@@ -25,7 +25,7 @@ public final class CelRuntimeFactory {
    * <p>Note, the {@link CelOptions#current}, standard CEL function libraries, and linked message
    * evaluation are enabled by default.
    */
-  public static CelRuntimeLegacyImpl.Builder standardCelRuntimeBuilder() {
+  public static CelRuntimeBuilder standardCelRuntimeBuilder() {
     return CelRuntimeLegacyImpl.newBuilder()
         .setOptions(CelOptions.current().build())
         .setStandardEnvironmentEnabled(true);
