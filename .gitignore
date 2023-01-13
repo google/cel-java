@@ -1,0 +1,30 @@
+# Bazel
+bazel-bin
+bazel-examples
+bazel-genfiles
+bazel-grpc-java
+bazel-out
+bazel-testlogs
+
+# IntelliJ IDEA
+.idea
+*.iml
+*.ipr
+*.iws
+.ijwb
+
+# Eclipse
+.classpath
+.project
+.settings
+.gitignore
+bin
+
+# OS X
+.DS_Store
+
+# Maven (examples)
+target
+
+# Temporary output dir for artifacts
+mvn-artifacts

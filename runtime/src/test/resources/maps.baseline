@@ -1,0 +1,142 @@
+Source: {1: 2, 3: 4}[3] == 4
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   true
+
+Source: 3 in {1: 2, 3: 4} && !(4 in {1: 2, 3: 4})
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   true
+
+Source: x.map_int32_int64[22] == 23
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=map_int32_int64 {
+  key: 22
+  value: 23
+}
+}
+result:   true
+
+Source: TestAllTypes{map_int32_int64: {21: 22, 22: 23}}.map_int32_int64[22] == 23
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   true
+
+Source: TestAllTypes{oneof_type: NestedTestAllTypes{payload: x}}.oneof_type.payload.map_int32_int64[22] == 23
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=map_int32_int64 {
+  key: 22
+  value: 23
+}
+}
+result:   true
+
+Source: !(4 in map) && 1 in map
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare y {
+  value int
+}
+declare map {
+  value map(int, int)
+}
+=====>
+bindings: {map={1=4, 2=3, 3=2}}
+result:   true
+
+Source: !(y in {1: 4, 2: 3, 3: 2}) && y in {5: 3, 4: 2, 3: 3}
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare y {
+  value int
+}
+declare map {
+  value map(int, int)
+}
+=====>
+bindings: {y=4}
+result:   true
+
+Source: !(y in map) && (y + 3) in map
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare y {
+  value int
+}
+declare map {
+  value map(int, int)
+}
+=====>
+bindings: {y=1, map={4=1, 5=2, 6=3}}
+result:   true
+
+Source: TestAllTypes{map_int64_nested_type:{42:NestedTestAllTypes{payload:TestAllTypes{}}}}
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare y {
+  value int
+}
+declare map {
+  value map(int, int)
+}
+=====>
+bindings: {}
+result:   map_int64_nested_type {
+  key: 42
+  value {
+    payload {
+    }
+  }
+}
+
+
+Source: {true: 1, false: 2, true: 3}[true]
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare y {
+  value int
+}
+declare map {
+  value map(int, int)
+}
+=====>
+bindings: {}
+error:    evaluation error at test_location:24: duplicate map key [true]
+
+Source: {b: 1, !b: 2, b: 3}[true]
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare y {
+  value int
+}
+declare map {
+  value map(int, int)
+}
+declare b {
+  value bool
+}
+=====>
+bindings: {b=true}
+error:    evaluation error at test_location:15: duplicate map key [true]
+

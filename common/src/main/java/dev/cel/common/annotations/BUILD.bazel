@@ -1,0 +1,14 @@
+package(default_visibility = [
+    "//:__subpackages__",
+    "//common/src/main/java/dev/cel/common/annotations:__pkg__",
+])
+
+# keep sorted
+ANNOTATION_SOURCES = [
+    "Internal.java",
+]
+
+java_library(
+    name = "annotations",
+    srcs = ANNOTATION_SOURCES,
+)

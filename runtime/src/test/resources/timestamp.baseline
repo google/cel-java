@@ -1,0 +1,299 @@
+Source: t1 < t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 9
+} +> {t1=seconds: 10
+nanos: 10
+}
+result:   false
+
+Source: t1 < t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 9
+nanos: 10
+} +> {t1=seconds: 10
+nanos: 10
+}
+result:   false
+
+Source: t1 < t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 10
+} +> {t1=seconds: 10
+nanos: 10
+}
+result:   false
+
+Source: t1 < t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 10
+} +> {t1=seconds: 10
+nanos: 9
+}
+result:   true
+
+Source: t1 < t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 10
+} +> {t1=seconds: 9
+nanos: 10
+}
+result:   true
+
+Source: t1 <= t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 9
+} +> {t1=seconds: 10
+nanos: 10
+}
+result:   false
+
+Source: t1 <= t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 9
+nanos: 10
+} +> {t1=seconds: 10
+nanos: 10
+}
+result:   false
+
+Source: t1 <= t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 10
+} +> {t1=seconds: 10
+nanos: 10
+}
+result:   true
+
+Source: t1 <= t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 10
+} +> {t1=seconds: 10
+nanos: 9
+}
+result:   true
+
+Source: t1 <= t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 10
+} +> {t1=seconds: 9
+nanos: 10
+}
+result:   true
+
+Source: t1 > t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 9
+} +> {t1=seconds: 10
+nanos: 10
+}
+result:   true
+
+Source: t1 > t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 9
+nanos: 10
+} +> {t1=seconds: 10
+nanos: 10
+}
+result:   true
+
+Source: t1 > t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 10
+} +> {t1=seconds: 10
+nanos: 10
+}
+result:   false
+
+Source: t1 > t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 10
+} +> {t1=seconds: 10
+nanos: 9
+}
+result:   false
+
+Source: t1 > t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 10
+} +> {t1=seconds: 9
+nanos: 10
+}
+result:   false
+
+Source: t1 >= t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 9
+} +> {t1=seconds: 10
+nanos: 10
+}
+result:   true
+
+Source: t1 >= t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 9
+nanos: 10
+} +> {t1=seconds: 10
+nanos: 10
+}
+result:   true
+
+Source: t1 >= t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 10
+} +> {t1=seconds: 10
+nanos: 10
+}
+result:   true
+
+Source: t1 >= t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 10
+} +> {t1=seconds: 10
+nanos: 9
+}
+result:   false
+
+Source: t1 >= t2
+declare t1 {
+  value google.protobuf.Timestamp
+}
+declare t2 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {t2=seconds: 10
+nanos: 10
+} +> {t1=seconds: 9
+nanos: 10
+}
+result:   false

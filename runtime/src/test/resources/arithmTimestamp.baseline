@@ -1,0 +1,79 @@
+Source: ts1 - ts2 == d1
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+declare ts2 {
+  value google.protobuf.Timestamp
+}
+declare d1 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {ts2=seconds: 10
+nanos: 10
+} +> {ts1=seconds: 25
+nanos: 35
+} +> {d1=seconds: 15
+nanos: 25
+}
+result:   true
+
+Source: ts1 - d1 == ts2
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+declare ts2 {
+  value google.protobuf.Timestamp
+}
+declare d1 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {ts2=seconds: 10
+nanos: 10
+} +> {ts1=seconds: 25
+nanos: 35
+} +> {d1=seconds: 15
+nanos: 25
+}
+result:   true
+
+Source: ts2 + d1 == ts1
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+declare ts2 {
+  value google.protobuf.Timestamp
+}
+declare d1 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {ts2=seconds: 10
+nanos: 10
+} +> {ts1=seconds: 25
+nanos: 35
+} +> {d1=seconds: 15
+nanos: 25
+}
+result:   true
+
+Source: d1 + ts2 == ts1
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+declare ts2 {
+  value google.protobuf.Timestamp
+}
+declare d1 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {ts2=seconds: 10
+nanos: 10
+} +> {ts1=seconds: 25
+nanos: 35
+} +> {d1=seconds: 15
+nanos: 25
+}
+result:   true

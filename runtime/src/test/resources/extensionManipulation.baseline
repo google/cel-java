@@ -1,0 +1,64 @@
+Source: [y.hasI(), y.getI() == 200, !n.hasI(), n.getI() == 0,
+ n.assignI(43).hasI(), n.assignI(42).getI() == 42,
+ y.assignI(99).hasI(), y.assignI(31).getI() == 31,
+ !n.clearI().hasI(), !y.clearI().hasI(), y.clearI().getI() == 0,
+ y.hasN(), y.getN().getI() == 0, !y.getN().hasN(), y.getN().getN().getI() == 0,
+ !n.hasN(), n.assignN(y).getN().hasN(),
+ !n.clearN().hasN(), !y.clearN().hasN(),
+ n.getR() == [], y.getR().map(h, h.s) == ["alpha", "beta"],
+ n.assignR(["a", "b"].map(s, StringHolder{s:s})).getR().map(h, h.s) == ["a", "b"],
+ y.clearR().getR() == []]
+declare y {
+  value dev.cel.testing.testdata.proto2.Proto2Message
+}
+declare n {
+  value dev.cel.testing.testdata.proto2.Proto2Message
+}
+declare getI {
+  function getI dev.cel.testing.testdata.proto2.Proto2Message.() -> int
+}
+declare hasI {
+  function hasI dev.cel.testing.testdata.proto2.Proto2Message.() -> bool
+}
+declare assignI {
+  function assignI dev.cel.testing.testdata.proto2.Proto2Message.(int) -> dev.cel.testing.testdata.proto2.Proto2Message
+}
+declare clearI {
+  function clearI dev.cel.testing.testdata.proto2.Proto2Message.() -> dev.cel.testing.testdata.proto2.Proto2Message
+}
+declare getN {
+  function getN dev.cel.testing.testdata.proto2.Proto2Message.() -> dev.cel.testing.testdata.proto2.Proto2Message
+}
+declare hasN {
+  function hasN dev.cel.testing.testdata.proto2.Proto2Message.() -> bool
+}
+declare assignN {
+  function assignN dev.cel.testing.testdata.proto2.Proto2Message.(dev.cel.testing.testdata.proto2.Proto2Message) -> dev.cel.testing.testdata.proto2.Proto2Message
+}
+declare clearN {
+  function clearN dev.cel.testing.testdata.proto2.Proto2Message.() -> dev.cel.testing.testdata.proto2.Proto2Message
+}
+declare getR {
+  function getR dev.cel.testing.testdata.proto2.Proto2Message.() -> list(dev.cel.testing.testdata.proto2.StringHolder)
+}
+declare assignR {
+  function assignR dev.cel.testing.testdata.proto2.Proto2Message.(list(dev.cel.testing.testdata.proto2.StringHolder)) -> dev.cel.testing.testdata.proto2.Proto2Message
+}
+declare clearR {
+  function clearR dev.cel.testing.testdata.proto2.Proto2Message.() -> dev.cel.testing.testdata.proto2.Proto2Message
+}
+=====>
+bindings: {y=single_int32: 100
+[dev.cel.testing.testdata.proto2.nested_ext] {
+  single_int32: 50
+}
+[dev.cel.testing.testdata.proto2.int32_ext]: 200
+[dev.cel.testing.testdata.proto2.repeated_string_holder_ext] {
+  s: "alpha"
+}
+[dev.cel.testing.testdata.proto2.repeated_string_holder_ext] {
+  s: "beta"
+}
+, n=single_int32: 50
+}
+result:   [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true]

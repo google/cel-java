@@ -1,0 +1,19 @@
+package(
+    default_testonly = True,
+    default_visibility = [
+        "//:__subpackages__",
+        "//common/src/main/java/dev/cel/common/testing:__pkg__",
+    ],
+)
+
+java_library(
+    name = "testing",
+    srcs = [
+        "RepeatedTestProvider.java",
+    ],
+    deps = [
+        "//common/src/main/java/dev/cel/common/annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+    ],
+)

@@ -1,0 +1,34 @@
+Source: 1u < 2u && 1u <= 1u && 2u > 1u && 1u >= 1u && 1u == 1u && 2u != 1u
+=====>
+bindings: {}
+result:   true
+
+Source: 1u + 2u + x * 3u / x + (x % 3u)
+declare x {
+  value uint
+}
+=====>
+bindings: {x=5}
+result:   8
+
+Source: x + y == 11u
+declare x {
+  value uint
+}
+declare y {
+  value dyn
+}
+=====>
+bindings: {y=6} +> {x=5}
+result:   true
+
+Source: x - y == 1u
+declare x {
+  value uint
+}
+declare y {
+  value dyn
+}
+=====>
+bindings: {y=5} +> {x=6}
+result:   true

@@ -1,0 +1,10 @@
+Source: f_stash([1, 2, 3].map(x, x + f_grab())) == [124, 125, 126]
+declare f_stash {
+  function f_stash (T) -> T
+}
+declare f_grab {
+  function f_grab () -> int
+}
+=====>
+bindings: {}
+result:   true

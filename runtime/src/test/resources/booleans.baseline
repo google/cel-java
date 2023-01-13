@@ -1,0 +1,274 @@
+Source: x ? 1 : 0
+declare x {
+  value bool
+}
+=====>
+bindings: {x=true}
+result:   1
+
+Source: x ? 1 : 0
+declare x {
+  value bool
+}
+=====>
+bindings: {x=false}
+result:   0
+
+Source: (1 / 0 == 0 && false) == (false && 1 / 0 == 0)
+declare x {
+  value bool
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (1 / 0 == 0 || true) == (true || 1 / 0 == 0)
+declare x {
+  value bool
+}
+=====>
+bindings: {}
+result:   true
+
+Source: 1 / y == 1 || true
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {y=0}
+result:   true
+
+Source: 1 / y == 1 || false
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {y=0}
+error:    evaluation error: / by zero
+
+Source: false || 1 / y == 1
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {y=0}
+error:    evaluation error: / by zero
+
+Source: 1 / y == 1 && true
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {y=0}
+error:    evaluation error: / by zero
+
+Source: true && 1 / y == 1
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {y=0}
+error:    evaluation error: / by zero
+
+Source: 1 / y == 1 && false
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {y=0}
+result:   false
+
+Source: (true > false) == true
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (true > true) == false
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (false > true) == false
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (false > false) == false
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (true >= false) == true
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (true >= true) == true
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (false >= false) == true
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (false >= true) == false
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (false < true) == true
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (false < false) == false
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (true < false) == false
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (true < true) == false
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (false <= true) == true
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (false <= false) == true
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (true <= false) == false
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+
+Source: (true <= true) == true
+declare x {
+  value bool
+}
+declare y {
+  value int
+}
+=====>
+bindings: {}
+result:   true
+

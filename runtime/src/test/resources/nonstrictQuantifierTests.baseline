@@ -1,0 +1,41 @@
+Source: [0, 2, 4].exists(x, 4/x == 2 && 4/(4-x) == 2)
+=====>
+bindings: {}
+result:   true
+
+Source: ![0, 2, 4].all(x, 4/x != 2 && 4/(4-x) != 2)
+=====>
+bindings: {}
+result:   true
+
+Source: [0, 2, 4].exists(x, four/x == 2 && four/(four-x) == 2)
+declare four {
+  value int
+}
+=====>
+bindings: {four=4}
+result:   true
+
+Source: ![0, 2, 4].all(x, four/x != 2 && four/(four-x) != 2)
+declare four {
+  value int
+}
+=====>
+bindings: {four=4}
+result:   true
+
+Source: [0, 2, four].exists(x, four/x == 2 && four/(four-x) == 2)
+declare four {
+  value int
+}
+=====>
+bindings: {four=4}
+result:   true
+
+Source: ![0, 2, four].all(x, four/x != 2 && four/(four-x) != 2)
+declare four {
+  value int
+}
+=====>
+bindings: {four=4}
+result:   true

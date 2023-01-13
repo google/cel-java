@@ -1,0 +1,31 @@
+load("//:testing.bzl", "junit4_test_suites")
+
+java_library(
+    name = "tests",
+    testonly = True,
+    srcs = glob(["*.java"]),
+    deps = [
+        "//:auto_value",
+        "//:java_truth",
+        "//common/src/main/java/dev/cel/common/types",
+        "//common/src/main/java/dev/cel/common/types:cel_types",
+        "//common/src/main/java/dev/cel/common/types:message_type_provider",
+        "//common/src/main/java/dev/cel/common/types:type_providers",
+        "//common/src/main/resources/testdata/proto2:messages_extensions_proto2_java_proto",
+        "//common/src/main/resources/testdata/proto2:messages_proto2_java_proto",
+        "//common/src/main/resources/testdata/proto3:test_all_types_java_proto",
+        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_truth_extensions_truth_proto_extension",
+        "@maven//:junit_junit",
+    ],
+)
+
+junit4_test_suites(
+    name = "test_suites",
+    sizes = [
+        "small",
+    ],
+    deps = [":tests"],
+)

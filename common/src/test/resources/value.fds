@@ -1,0 +1,305 @@
+file {
+  name: "google/protobuf/any.proto"
+  package: "google.protobuf"
+  message_type {
+    name: "Any"
+    field {
+      name: "type_url"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_STRING
+      options {
+        ctype: STRING_PIECE
+      }
+    }
+    field {
+      name: "value"
+      number: 2
+      label: LABEL_OPTIONAL
+      type: TYPE_BYTES
+      options {
+        ctype: CORD
+      }
+    }
+  }
+  options {
+    java_package: "com.google.protobuf"
+    java_outer_classname: "AnyProto"
+    java_multiple_files: true
+    go_package: "google.golang.org/protobuf/types/known/anypb"
+    objc_class_prefix: "GPB"
+    csharp_namespace: "Google.Protobuf.WellKnownTypes"
+  }
+  syntax: "proto3"
+}
+file {
+  name: "google/protobuf/struct.proto"
+  package: "google.protobuf"
+  message_type {
+    name: "Struct"
+    field {
+      name: "fields"
+      number: 1
+      label: LABEL_REPEATED
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.Struct.FieldsEntry"
+    }
+    nested_type {
+      name: "FieldsEntry"
+      field {
+        name: "key"
+        number: 1
+        label: LABEL_OPTIONAL
+        type: TYPE_STRING
+      }
+      field {
+        name: "value"
+        number: 2
+        label: LABEL_OPTIONAL
+        type: TYPE_MESSAGE
+        type_name: ".google.protobuf.Value"
+      }
+      options {
+        map_entry: true
+      }
+    }
+  }
+  message_type {
+    name: "Value"
+    field {
+      name: "null_value"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_ENUM
+      type_name: ".google.protobuf.NullValue"
+      oneof_index: 0
+    }
+    field {
+      name: "number_value"
+      number: 2
+      label: LABEL_OPTIONAL
+      type: TYPE_DOUBLE
+      oneof_index: 0
+    }
+    field {
+      name: "string_value"
+      number: 3
+      label: LABEL_OPTIONAL
+      type: TYPE_STRING
+      oneof_index: 0
+    }
+    field {
+      name: "bool_value"
+      number: 4
+      label: LABEL_OPTIONAL
+      type: TYPE_BOOL
+      oneof_index: 0
+    }
+    field {
+      name: "struct_value"
+      number: 5
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.Struct"
+      oneof_index: 0
+    }
+    field {
+      name: "list_value"
+      number: 6
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.ListValue"
+      oneof_index: 0
+    }
+    oneof_decl {
+      name: "kind"
+    }
+  }
+  message_type {
+    name: "ListValue"
+    field {
+      name: "values"
+      number: 1
+      label: LABEL_REPEATED
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.Value"
+    }
+  }
+  enum_type {
+    name: "NullValue"
+    value {
+      name: "NULL_VALUE"
+      number: 0
+    }
+  }
+  options {
+    java_package: "com.google.protobuf"
+    java_outer_classname: "StructProto"
+    java_multiple_files: true
+    go_package: "google.golang.org/protobuf/types/known/structpb"
+    cc_enable_arenas: true
+    objc_class_prefix: "GPB"
+    csharp_namespace: "Google.Protobuf.WellKnownTypes"
+  }
+  syntax: "proto3"
+}
+file {
+  name: "google/api/expr/value.proto"
+  package: "google.api.expr"
+  dependency: "google/protobuf/any.proto"
+  dependency: "google/protobuf/struct.proto"
+  message_type {
+    name: "Value"
+    field {
+      name: "null_value"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_ENUM
+      type_name: ".google.protobuf.NullValue"
+      oneof_index: 0
+    }
+    field {
+      name: "bool_value"
+      number: 2
+      label: LABEL_OPTIONAL
+      type: TYPE_BOOL
+      oneof_index: 0
+    }
+    field {
+      name: "int64_value"
+      number: 3
+      label: LABEL_OPTIONAL
+      type: TYPE_INT64
+      oneof_index: 0
+    }
+    field {
+      name: "uint64_value"
+      number: 4
+      label: LABEL_OPTIONAL
+      type: TYPE_UINT64
+      oneof_index: 0
+    }
+    field {
+      name: "double_value"
+      number: 5
+      label: LABEL_OPTIONAL
+      type: TYPE_DOUBLE
+      oneof_index: 0
+    }
+    field {
+      name: "string_value"
+      number: 6
+      label: LABEL_OPTIONAL
+      type: TYPE_STRING
+      oneof_index: 0
+    }
+    field {
+      name: "bytes_value"
+      number: 7
+      label: LABEL_OPTIONAL
+      type: TYPE_BYTES
+      oneof_index: 0
+    }
+    field {
+      name: "enum_value"
+      number: 9
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.api.expr.EnumValue"
+      oneof_index: 0
+    }
+    field {
+      name: "object_value"
+      number: 10
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.Any"
+      oneof_index: 0
+    }
+    field {
+      name: "map_value"
+      number: 11
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.api.expr.MapValue"
+      oneof_index: 0
+    }
+    field {
+      name: "list_value"
+      number: 12
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.api.expr.ListValue"
+      oneof_index: 0
+    }
+    field {
+      name: "type_value"
+      number: 15
+      label: LABEL_OPTIONAL
+      type: TYPE_STRING
+      oneof_index: 0
+    }
+    oneof_decl {
+      name: "kind"
+    }
+  }
+  message_type {
+    name: "EnumValue"
+    field {
+      name: "type"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_STRING
+    }
+    field {
+      name: "value"
+      number: 2
+      label: LABEL_OPTIONAL
+      type: TYPE_INT32
+    }
+  }
+  message_type {
+    name: "ListValue"
+    field {
+      name: "values"
+      number: 1
+      label: LABEL_REPEATED
+      type: TYPE_MESSAGE
+      type_name: ".google.api.expr.Value"
+    }
+  }
+  message_type {
+    name: "MapValue"
+    field {
+      name: "entries"
+      number: 1
+      label: LABEL_REPEATED
+      type: TYPE_MESSAGE
+      type_name: ".google.api.expr.MapValue.Entry"
+    }
+    nested_type {
+      name: "Entry"
+      field {
+        name: "key"
+        number: 1
+        label: LABEL_OPTIONAL
+        type: TYPE_MESSAGE
+        type_name: ".google.api.expr.Value"
+      }
+      field {
+        name: "value"
+        number: 2
+        label: LABEL_OPTIONAL
+        type: TYPE_MESSAGE
+        type_name: ".google.api.expr.Value"
+      }
+    }
+  }
+  options {
+    java_package: "com.google.api.expr"
+    java_outer_classname: "ValueProto"
+    java_multiple_files: true
+    cc_enable_arenas: true
+  }
+  syntax: "proto3"
+}

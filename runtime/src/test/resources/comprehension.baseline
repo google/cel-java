@@ -1,0 +1,14 @@
+Source: [0, 1, 2].map(x, x > 0, x + 1) == [2, 3]
+=====>
+bindings: {}
+result:   true
+
+Source: [0, 1, 2].exists(x, x > 0)
+=====>
+bindings: {}
+result:   true
+
+Source: [0, 1, 2].exists(x, x > 2)
+=====>
+bindings: {}
+result:   false

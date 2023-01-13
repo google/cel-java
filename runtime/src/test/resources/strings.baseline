@@ -1,0 +1,12 @@
+Source: 'a' < 'b' && 'a' <= 'b' && 'b' > 'a' && 'a' >= 'a' && 'a' == 'a' && 'a' != 'b'
+=====>
+bindings: {}
+result:   true
+
+Source: 'abc' + x == 'abcdef' && x.endsWith('ef') && x.startsWith('d') && x.contains('de') && !x.contains('abcdef')
+declare x {
+  value string
+}
+=====>
+bindings: {x=def}
+result:   true

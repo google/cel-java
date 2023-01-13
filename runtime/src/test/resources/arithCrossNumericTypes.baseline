@@ -1,0 +1,19 @@
+Source: 1.9 < 2 && 1 < 1.1 && 2u < 2.9 && 1.1 < 2u && 1 < 2u && 2u < 3
+=====>
+bindings: {}
+result:   true
+
+Source: 1.9 <= 2 && 1 <= 1.1 && 2u <= 2.9 && 1.1 <= 2u && 2 <= 2u && 2u <= 2
+=====>
+bindings: {}
+result:   true
+
+Source: 1.9 > 2 && 1 > 1.1 && 2u > 2.9 && 1.1 > 2u && 2 > 2u && 2u > 2
+=====>
+bindings: {}
+result:   false
+
+Source: 1.9 >= 2 && 1 >= 1.1 && 2u >= 2.9 && 1.1 >= 2u && 2 >= 2u && 2u >= 2
+=====>
+bindings: {}
+result:   false

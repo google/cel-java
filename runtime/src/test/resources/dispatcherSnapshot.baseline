@@ -1,0 +1,7 @@
+Source: just_undefined("hi there ") == "foo"
+declare just_undefined {
+  function just_undefined (string) -> string
+}
+=====>
+bindings: {}
+error:    evaluation error at test_location:14: no runtime binding for just_undefined

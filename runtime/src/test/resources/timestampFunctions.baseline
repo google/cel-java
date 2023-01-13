@@ -1,0 +1,606 @@
+Source: ts1.getFullYear("America/Los_Angeles")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   1969
+
+Source: ts1.getFullYear()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   1970
+
+Source: ts1.getFullYear()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: -1
+}
+result:   1969
+
+Source: ts1.getFullYear("Indian/Cocos")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   1970
+
+Source: ts1.getFullYear("2:00")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   1970
+
+Source: ts1.getMonth("America/Los_Angeles")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   11
+
+Source: ts1.getMonth()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   0
+
+Source: ts1.getMonth()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: -1
+}
+result:   11
+
+Source: ts1.getMonth("Indian/Cocos")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   0
+
+Source: ts1.getMonth("-8:15")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   11
+
+Source: ts1.getDayOfYear("America/Los_Angeles")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   364
+
+Source: ts1.getDayOfYear()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   0
+
+Source: ts1.getDayOfYear()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: -1
+}
+result:   364
+
+Source: ts1.getDayOfYear("Indian/Cocos")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   0
+
+Source: ts1.getDayOfYear("-9:00")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   364
+
+Source: ts1.getDayOfMonth("America/Los_Angeles")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   30
+
+Source: ts1.getDayOfMonth()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   0
+
+Source: ts1.getDayOfMonth()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: -1
+}
+result:   30
+
+Source: ts1.getDayOfMonth("Indian/Cocos")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   0
+
+Source: ts1.getDayOfMonth("8:00")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   0
+
+Source: ts1.getDate("America/Los_Angeles")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   31
+
+Source: ts1.getDate()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   1
+
+Source: ts1.getDate()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: -1
+}
+result:   31
+
+Source: ts1.getDate("Indian/Cocos")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   1
+
+Source: ts1.getDate("9:30")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   1
+
+Source: ts1.getDayOfWeek("America/Los_Angeles")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 259200
+}
+result:   6
+
+Source: ts1.getDayOfWeek()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 259200
+}
+result:   0
+
+Source: ts1.getDayOfWeek()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: -1
+}
+result:   3
+
+Source: ts1.getDayOfWeek("Indian/Cocos")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 259200
+}
+result:   0
+
+Source: ts1.getDayOfWeek("-9:30")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 259200
+}
+result:   6
+
+Source: ts1.getHours("America/Los_Angeles")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   16
+
+Source: ts1.getHours()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   0
+
+Source: ts1.getHours()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: -1
+}
+result:   23
+
+Source: ts1.getHours("Indian/Cocos")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   6
+
+Source: ts1.getHours("6:30")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   6
+
+Source: ts1.getMinutes("America/Los_Angeles")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   0
+
+Source: ts1.getMinutes()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   0
+
+Source: ts1.getMinutes()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: -1
+}
+result:   59
+
+Source: ts1.getMinutes("Indian/Cocos")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   30
+
+Source: ts1.getMinutes("-8:00")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   0
+
+Source: ts1.getSeconds("America/Los_Angeles")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   1
+
+Source: ts1.getSeconds()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   1
+
+Source: ts1.getSeconds()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: -1
+}
+result:   59
+
+Source: ts1.getSeconds("Indian/Cocos")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   1
+
+Source: ts1.getSeconds("-8:00")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   1
+
+Source: ts1.getMilliseconds("America/Los_Angeles")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   11
+
+Source: ts1.getMilliseconds()
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   11
+
+Source: ts1.getMilliseconds("Indian/Cocos")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   11
+
+Source: ts1.getMilliseconds("-8:00")
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {ts1=seconds: 1
+nanos: 11000000
+}
+result:   11
+
+Source: ts1.getFullYear() < val
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+declare val {
+  value int
+}
+=====>
+bindings: {val=2013} +> {ts1=seconds: 1
+nanos: 11000000
+}
+result:   true
+
+Source: ts1.getMonth() < val
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+declare val {
+  value int
+}
+=====>
+bindings: {val=12} +> {ts1=seconds: 1
+nanos: 11000000
+}
+result:   true
+
+Source: ts1.getDayOfYear() < val
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+declare val {
+  value int
+}
+=====>
+bindings: {val=13} +> {ts1=seconds: 1
+nanos: 11000000
+}
+result:   true
+
+Source: ts1.getDayOfMonth() < val
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+declare val {
+  value int
+}
+=====>
+bindings: {val=10} +> {ts1=seconds: 1
+nanos: 11000000
+}
+result:   true
+
+Source: ts1.getDate() < val
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+declare val {
+  value int
+}
+=====>
+bindings: {val=15} +> {ts1=seconds: 1
+nanos: 11000000
+}
+result:   true
+
+Source: ts1.getDayOfWeek() < val
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+declare val {
+  value int
+}
+=====>
+bindings: {val=15} +> {ts1=seconds: 1
+nanos: 11000000
+}
+result:   true
+
+Source: ts1.getHours() < val
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+declare val {
+  value int
+}
+=====>
+bindings: {val=15} +> {ts1=seconds: 1
+nanos: 11000000
+}
+result:   true
+
+Source: ts1.getMinutes() < val
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+declare val {
+  value int
+}
+=====>
+bindings: {val=15} +> {ts1=seconds: 1
+nanos: 11000000
+}
+result:   true
+
+Source: ts1.getSeconds() < val
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+declare val {
+  value int
+}
+=====>
+bindings: {val=15} +> {ts1=seconds: 1
+nanos: 11000000
+}
+result:   true
+
+Source: ts1.getMilliseconds() < val
+declare ts1 {
+  value google.protobuf.Timestamp
+}
+declare val {
+  value int
+}
+=====>
+bindings: {val=15} +> {ts1=seconds: 1
+nanos: 11000000
+}
+result:   true

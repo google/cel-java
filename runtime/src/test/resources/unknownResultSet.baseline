@@ -1,0 +1,988 @@
+Source: x.single_int32 == 1 && x.single_string == "test"
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 2
+}
+
+
+Source: x.single_int32 == 1 && x.single_string != "test"
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   false
+
+Source: x.single_int32 == 1 && x.single_int64 == 1
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 2
+  exprs: 7
+}
+
+
+Source: x.single_int32 == 1 && x.single_timestamp <= timestamp("bad timestamp string")
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 2
+}
+
+
+Source: x.single_string == "test" && x.single_int32 == 1
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 7
+}
+
+
+Source: x.single_string != "test" && x.single_int32 == 1
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   false
+
+Source: x.single_timestamp <= timestamp("bad timestamp string") && x.single_int32 == 1
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 8
+}
+
+
+Source: x.single_timestamp <= timestamp("bad timestamp string") && x.single_timestamp > timestamp("another bad timestamp string")
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+error:    evaluation error: Failed to parse timestamp: invalid timestamp "bad timestamp string"
+
+Source: x.single_int32 == 1 || x.single_string == "test"
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   true
+
+Source: x.single_int32 == 1 || x.single_string != "test"
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 2
+}
+
+
+Source: x.single_int32 == 1 || x.single_int64 == 1
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 2
+  exprs: 7
+}
+
+
+Source: x.single_int32 == 1 || x.single_timestamp <= timestamp("bad timestamp string")
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 2
+}
+
+
+Source: x.single_string == "test" || x.single_int32 == 1
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   true
+
+Source: x.single_string != "test" || x.single_int32 == 1
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 7
+}
+
+
+Source: x.single_timestamp <= timestamp("bad timestamp string") || x.single_int32 == 1
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 8
+}
+
+
+Source: x.single_timestamp <= timestamp("bad timestamp string") || x.single_timestamp > timestamp("another bad timestamp string")
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+error:    evaluation error: Failed to parse timestamp: invalid timestamp "bad timestamp string"
+
+Source: x.single_int32.f(1)
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 2
+}
+
+
+Source: 1.f(x.single_int32)
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 4
+}
+
+
+Source: x.single_int64.f(x.single_int32)
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 2
+  exprs: 5
+}
+
+
+Source: x
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {y=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 1
+}
+
+
+Source: x
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=unknown {
+}
+}
+result:   unknown {
+  exprs: 1
+}
+
+
+Source: x.map_int32_int64.map(x, x > 0, x + 1)
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 2
+}
+
+
+Source: [0, 2, 4].exists(z, z == 2 || z == x.single_int32)
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   true
+
+Source: [0, 2, 4].exists(z, z == x.single_int32)
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 10
+}
+
+
+Source: [0, 2, 4].exists_one(z, z == 0 || (z == 2 && z == x.single_int32) || (z == 4 && z == x.single_int64))
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 27
+}
+
+
+Source: [0, 2].all(z, z == 2 || z == x.single_int32)
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 13
+}
+
+
+Source: [0, 2, 4].filter(z, z == 0 || (z == 2 && z == x.single_int32) || (z == 4 && z == x.single_int64))
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 27
+}
+
+
+Source: [0, 2, 4].map(z, z == 0 || (z == 2 && z == x.single_int32) || (z == 4 && z == x.single_int64))
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 18
+  exprs: 27
+}
+
+
+Source: x.single_int32 == 1 ? 1 : 2
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 2
+}
+
+
+Source: x.single_string == "test" ? x.single_int32 : 2
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 7
+}
+
+
+Source: x.single_string == "test" ? 1 : x.single_int32
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   1
+
+Source: x.single_string != "test" ? x.single_int32 : 2
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   2
+
+Source: x.single_string != "test" ? 1 : x.single_int32
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 8
+}
+
+
+Source: x.single_int64 == 1 ? x.single_int32 : x.single_int32
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 2
+}
+
+
+Source: {x.single_int32: 2, 3: 4}
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 4
+}
+
+
+Source: {1: x.single_int32, 3: 4}
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 5
+}
+
+
+Source: {1: x.single_int32, x.single_int64: 4}
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 5
+  exprs: 8
+}
+
+
+Source: [1, x.single_int32, 3, 4]
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 4
+}
+
+
+Source: [1, x.single_int32, x.single_int64, 4]
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 4
+  exprs: 6
+}
+
+
+Source: TestAllTypes{single_int32: x.single_int32}.single_int32 == 2
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 5
+}
+
+
+Source: TestAllTypes{single_int32: x.single_int32, single_int64: x.single_int64}
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_int32,
+  paths: single_int64,
+  paths: map_int32_int64
+}
+}
+result:   unknown {
+  exprs: 5
+  exprs: 8
+}
+
+

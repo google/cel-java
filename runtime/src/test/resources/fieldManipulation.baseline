@@ -1,0 +1,119 @@
+Source: TestAllTypes{single_bool: true}.assignSingleInt64(1) == TestAllTypes{single_bool: true, single_int64: 1}
+declare assignSingleInt64 {
+  function assignSingleInt64 dev.cel.testing.testdata.proto3.TestAllTypes.(int) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare assignRepeatedInt64 {
+  function assignRepeatedInt64 dev.cel.testing.testdata.proto3.TestAllTypes.(list(int)) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare assignMap {
+  function assignMap dev.cel.testing.testdata.proto3.TestAllTypes.(map(int, int)) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare clearField {
+  function clearField dev.cel.testing.testdata.proto3.TestAllTypes.(string) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare singletonInt64 {
+  function singletonInt64 (int) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   true
+
+Source: TestAllTypes{repeated_int64: [1, 2]}.assignRepeatedInt64([3, 1, 4]) == TestAllTypes{repeated_int64: [3, 1, 4]}
+declare assignSingleInt64 {
+  function assignSingleInt64 dev.cel.testing.testdata.proto3.TestAllTypes.(int) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare assignRepeatedInt64 {
+  function assignRepeatedInt64 dev.cel.testing.testdata.proto3.TestAllTypes.(list(int)) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare assignMap {
+  function assignMap dev.cel.testing.testdata.proto3.TestAllTypes.(map(int, int)) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare clearField {
+  function clearField dev.cel.testing.testdata.proto3.TestAllTypes.(string) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare singletonInt64 {
+  function singletonInt64 (int) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   true
+
+Source: TestAllTypes{single_bool: true, single_int64: 1}.clearField("single_bool") == TestAllTypes{single_int64: 1}
+declare assignSingleInt64 {
+  function assignSingleInt64 dev.cel.testing.testdata.proto3.TestAllTypes.(int) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare assignRepeatedInt64 {
+  function assignRepeatedInt64 dev.cel.testing.testdata.proto3.TestAllTypes.(list(int)) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare assignMap {
+  function assignMap dev.cel.testing.testdata.proto3.TestAllTypes.(map(int, int)) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare clearField {
+  function clearField dev.cel.testing.testdata.proto3.TestAllTypes.(string) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare singletonInt64 {
+  function singletonInt64 (int) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   true
+
+Source: TestAllTypes{single_bool: false}.assignMap({13: 26, 22: 42}).map_int32_int64[22] == 42
+declare assignSingleInt64 {
+  function assignSingleInt64 dev.cel.testing.testdata.proto3.TestAllTypes.(int) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare assignRepeatedInt64 {
+  function assignRepeatedInt64 dev.cel.testing.testdata.proto3.TestAllTypes.(list(int)) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare assignMap {
+  function assignMap dev.cel.testing.testdata.proto3.TestAllTypes.(map(int, int)) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare clearField {
+  function clearField dev.cel.testing.testdata.proto3.TestAllTypes.(string) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare singletonInt64 {
+  function singletonInt64 (int) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   true
+
+Source: TestAllTypes{single_bool: true, repeated_int64: [1, 2]}.clearField("repeated_int64") == TestAllTypes{single_bool: true}
+declare assignSingleInt64 {
+  function assignSingleInt64 dev.cel.testing.testdata.proto3.TestAllTypes.(int) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare assignRepeatedInt64 {
+  function assignRepeatedInt64 dev.cel.testing.testdata.proto3.TestAllTypes.(list(int)) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare assignMap {
+  function assignMap dev.cel.testing.testdata.proto3.TestAllTypes.(map(int, int)) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare clearField {
+  function clearField dev.cel.testing.testdata.proto3.TestAllTypes.(string) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare singletonInt64 {
+  function singletonInt64 (int) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   true
+
+Source: singletonInt64(12) == TestAllTypes{single_int64: 12}
+declare assignSingleInt64 {
+  function assignSingleInt64 dev.cel.testing.testdata.proto3.TestAllTypes.(int) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare assignRepeatedInt64 {
+  function assignRepeatedInt64 dev.cel.testing.testdata.proto3.TestAllTypes.(list(int)) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare assignMap {
+  function assignMap dev.cel.testing.testdata.proto3.TestAllTypes.(map(int, int)) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare clearField {
+  function clearField dev.cel.testing.testdata.proto3.TestAllTypes.(string) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare singletonInt64 {
+  function singletonInt64 (int) -> dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   true

@@ -1,0 +1,23 @@
+Source: 1 < 2 && 1 <= 1 && 2 > 1 && 1 >= 1 && 1 == 1 && 2 != 1
+=====>
+bindings: {}
+result:   true
+
+Source: 1 + 2 - x * 3 / x + (x % 3)
+declare x {
+  value int
+}
+=====>
+bindings: {x=-5}
+result:   -2
+
+Source: x + y == 1
+declare x {
+  value int
+}
+declare y {
+  value dyn
+}
+=====>
+bindings: {y=6} +> {x=-5}
+result:   true

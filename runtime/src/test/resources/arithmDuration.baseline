@@ -1,0 +1,39 @@
+Source: d1 + d2 == d3
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+declare d3 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d3=seconds: 25
+nanos: 45
+} +> {d2=seconds: 10
+nanos: 20
+} +> {d1=seconds: 15
+nanos: 25
+}
+result:   true
+
+Source: d3 - d1 == d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+declare d3 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d3=seconds: 25
+nanos: 45
+} +> {d2=seconds: 10
+nanos: 20
+} +> {d1=seconds: 15
+nanos: 25
+}
+result:   true

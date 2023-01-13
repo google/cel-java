@@ -1,0 +1,131 @@
+Source: d1.getHours()
+declare d1 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d1=seconds: 93541
+nanos: 11000000
+}
+result:   25
+
+Source: d1.getHours()
+declare d1 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d1=seconds: -93541
+nanos: -11000000
+}
+result:   -25
+
+Source: d1.getMinutes()
+declare d1 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d1=seconds: 93541
+nanos: 11000000
+}
+result:   1559
+
+Source: d1.getMinutes()
+declare d1 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d1=seconds: -93541
+nanos: -11000000
+}
+result:   -1559
+
+Source: d1.getSeconds()
+declare d1 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d1=seconds: 93541
+nanos: 11000000
+}
+result:   93541
+
+Source: d1.getSeconds()
+declare d1 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d1=seconds: -93541
+nanos: -11000000
+}
+result:   -93541
+
+Source: d1.getMilliseconds()
+declare d1 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d1=seconds: 93541
+nanos: 11000000
+}
+result:   11
+
+Source: d1.getMilliseconds()
+declare d1 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d1=seconds: -93541
+nanos: -11000000
+}
+result:   -11
+
+Source: d1.getHours() < val
+declare d1 {
+  value google.protobuf.Duration
+}
+declare val {
+  value int
+}
+=====>
+bindings: {val=30} +> {d1=seconds: 93541
+nanos: 11000000
+}
+result:   true
+
+Source: d1.getMinutes() > val
+declare d1 {
+  value google.protobuf.Duration
+}
+declare val {
+  value int
+}
+=====>
+bindings: {val=30} +> {d1=seconds: 93541
+nanos: 11000000
+}
+result:   true
+
+Source: d1.getSeconds() > val
+declare d1 {
+  value google.protobuf.Duration
+}
+declare val {
+  value int
+}
+=====>
+bindings: {val=30} +> {d1=seconds: 93541
+nanos: 11000000
+}
+result:   true
+
+Source: d1.getMilliseconds() < val
+declare d1 {
+  value google.protobuf.Duration
+}
+declare val {
+  value int
+}
+=====>
+bindings: {val=30} +> {d1=seconds: 93541
+nanos: 11000000
+}
+result:   true

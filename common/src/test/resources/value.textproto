@@ -1,0 +1,4 @@
+# proto-file: google/protobuf/any.proto
+# proto-message: Any
+type_url: "type.googleapis.com/google.api.expr.Value"
+value: "b\026\n\a2\005Hello\n\a2\005World\n\002\030*"

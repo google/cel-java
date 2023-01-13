@@ -1,0 +1,557 @@
+Source: x.single_int32
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: map_int32_int64,
+  paths: single_int32,
+  paths: single_nested_message.bb,
+  paths: repeated_nested_message,
+  paths: single_duration.seconds
+}
+}
+result:   unknown {
+  exprs: 2
+}
+
+
+Source: x.map_int32_int64[22]
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: map_int32_int64,
+  paths: single_int32,
+  paths: single_nested_message.bb,
+  paths: repeated_nested_message,
+  paths: single_duration.seconds
+}
+}
+result:   unknown {
+  exprs: 2
+}
+
+
+Source: x.repeated_nested_message[1]
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: map_int32_int64,
+  paths: single_int32,
+  paths: single_nested_message.bb,
+  paths: repeated_nested_message,
+  paths: single_duration.seconds
+}
+}
+result:   unknown {
+  exprs: 2
+}
+
+
+Source: x.single_timestamp.getSeconds()
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: map_int32_int64,
+  paths: single_int32,
+  paths: single_nested_message.bb,
+  paths: repeated_nested_message,
+  paths: single_duration.seconds
+}
+}
+result:   15
+
+Source: x.single_duration.getMilliseconds()
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: map_int32_int64,
+  paths: single_int32,
+  paths: single_nested_message.bb,
+  paths: repeated_nested_message,
+  paths: single_duration.seconds
+}
+}
+error:    evaluation error: Incomplete data does not support function calls.
+
+Source: x.single_duration + x.single_duration
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: map_int32_int64,
+  paths: single_int32,
+  paths: single_nested_message.bb,
+  paths: repeated_nested_message,
+  paths: single_duration.seconds
+}
+}
+error:    evaluation error: Incomplete data does not support function calls.
+
+Source: x.single_nested_message.bb
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: map_int32_int64,
+  paths: single_int32,
+  paths: single_nested_message.bb,
+  paths: repeated_nested_message,
+  paths: single_duration.seconds
+}
+}
+result:   unknown {
+  exprs: 3
+}
+
+
+Source: x.single_nested_message
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: map_int32_int64,
+  paths: single_int32,
+  paths: single_nested_message.bb,
+  paths: repeated_nested_message,
+  paths: single_duration.seconds
+}
+}
+error:    evaluation error: Incomplete data cannot be returned as a result.
+
+Source: TestAllTypes{single_nested_message: x.single_nested_message}
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: map_int32_int64,
+  paths: single_int32,
+  paths: single_nested_message.bb,
+  paths: repeated_nested_message,
+  paths: single_duration.seconds
+}
+}
+error:    evaluation error: Incomplete data cannot be a field of a message.
+
+Source: {1: x.single_int32}
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: map_int32_int64,
+  paths: single_int32,
+  paths: single_nested_message.bb,
+  paths: repeated_nested_message,
+  paths: single_duration.seconds
+}
+}
+result:   unknown {
+  exprs: 5
+}
+
+
+Source: {1: x.single_int64}
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: map_int32_int64,
+  paths: single_int32,
+  paths: single_nested_message.bb,
+  paths: repeated_nested_message,
+  paths: single_duration.seconds
+}
+}
+result:   {1=0}
+
+Source: {1: x.single_nested_message}
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: map_int32_int64,
+  paths: single_int32,
+  paths: single_nested_message.bb,
+  paths: repeated_nested_message,
+  paths: single_duration.seconds
+}
+}
+error:    evaluation error: Incomplete data cannot be a value of a map.
+
+Source: [1, x.single_int32]
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: map_int32_int64,
+  paths: single_int32,
+  paths: single_nested_message.bb,
+  paths: repeated_nested_message,
+  paths: single_duration.seconds
+}
+}
+result:   unknown {
+  exprs: 4
+}
+
+
+Source: [x.single_nested_message]
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: map_int32_int64,
+  paths: single_int32,
+  paths: single_nested_message.bb,
+  paths: repeated_nested_message,
+  paths: single_duration.seconds
+}
+}
+error:    evaluation error: Incomplete data cannot be an elem of a list.
+
+Source: x.single_nested_message.bb
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_nested_message
+}
+}
+result:   unknown {
+  exprs: 2
+}
+
+
+Source: (x.single_nested_message.bb == 42) || true
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_nested_message
+}
+}
+result:   true
+
+Source: (x.single_nested_message.bb == 42) || false
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_nested_message
+}
+}
+result:   unknown {
+  exprs: 2
+}
+
+
+Source: (x.single_nested_message.bb == 42) && true
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_nested_message
+}
+}
+result:   unknown {
+  exprs: 2
+}
+
+
+Source: (x.single_nested_message.bb == 42) && false
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+message: {
+single_nested_message {
+}
+repeated_nested_message {
+  bb: 14
+}
+single_duration {
+  seconds: 15
+}
+single_timestamp {
+  seconds: 15
+}
+},
+fieldMask: {
+  paths: single_nested_message
+}
+}
+result:   false

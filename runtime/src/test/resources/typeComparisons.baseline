@@ -1,0 +1,39 @@
+Source: type(1) == int && type(1u) == uint && type(1u) != int && type(1) != uint && type(uint(1.1)) == uint && type(1.1) == double
+=====>
+bindings: {}
+result:   true
+
+Source: type('hello') == string && type(b'¿') == bytes
+=====>
+bindings: {}
+result:   true
+
+Source: type([1, 2, 3]) == list && type({'a': 1, 'b': 2}) == map
+=====>
+bindings: {}
+result:   true
+
+Source: type(true) == bool && type(false) == bool
+=====>
+bindings: {}
+result:   true
+
+Source: type(duration('10s')) == google.protobuf.Duration
+=====>
+bindings: {}
+result:   true
+
+Source: type(TestAllTypes{}) == TestAllTypes && type(TestAllTypes{}) == proto3.TestAllTypes && type(TestAllTypes{}) == .dev.cel.testing.testdata.proto3.TestAllTypes && type(proto3.TestAllTypes{}) == TestAllTypes && type(proto3.TestAllTypes{}) == proto3.TestAllTypes && type(proto3.TestAllTypes{}) == .dev.cel.testing.testdata.proto3.TestAllTypes && type(.dev.cel.testing.testdata.proto3.TestAllTypes{}) == TestAllTypes && type(.dev.cel.testing.testdata.proto3.TestAllTypes{}) == proto3.TestAllTypes && type(.dev.cel.testing.testdata.proto3.TestAllTypes{}) == .dev.cel.testing.testdata.proto3.TestAllTypes
+=====>
+bindings: {}
+result:   true
+
+Source: type(TestAllTypes) == type
+=====>
+bindings: {}
+result:   true
+
+Source: type(null) == null_type
+=====>
+bindings: {}
+result:   true

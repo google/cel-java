@@ -1,0 +1,15 @@
+Source: 18446744073709551615u + 1u
+=====>
+bindings: {}
+error:    evaluation error: range overflow on unsigned addition
+
+Source: 0u - 1u
+=====>
+bindings: {}
+error:    evaluation error: unsigned subtraction underflow
+
+Source: 5000000000u * 5000000000u
+=====>
+bindings: {}
+error:    evaluation error: multiply out of unsigned integer range
+

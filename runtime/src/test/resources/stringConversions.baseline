@@ -1,0 +1,34 @@
+Source: string(1.1)
+=====>
+bindings: {}
+result:   1.1
+
+Source: string(2u)
+=====>
+bindings: {}
+result:   2
+
+Source: string(-1)
+=====>
+bindings: {}
+result:   -1
+
+Source: string(b'abc\303\203')
+=====>
+bindings: {}
+result:   abcÃ
+
+Source: string(bytes('abc\303'))
+=====>
+bindings: {}
+result:   abcÃ
+
+Source: string(timestamp('2009-02-13T23:31:30Z'))
+=====>
+bindings: {}
+result:   2009-02-13T23:31:30Z
+
+Source: string(duration('1000000s'))
+=====>
+bindings: {}
+result:   1000000s

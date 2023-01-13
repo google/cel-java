@@ -1,0 +1,16 @@
+Source: F(true, 2, 1 / 0)
+declare F {
+  function F (bool, int, int) -> int
+}
+=====>
+bindings: {}
+result:   2
+
+Source: F(false, 3, 1 / 0)
+declare F {
+  function F (bool, int, int) -> int
+}
+=====>
+bindings: {}
+error:    evaluation error: / by zero
+

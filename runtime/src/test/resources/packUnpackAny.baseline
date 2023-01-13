@@ -1,0 +1,215 @@
+Source: any == d
+declare any {
+  value any
+}
+declare d {
+  value google.protobuf.Duration
+}
+declare message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {d=seconds: 100
+} +> {any=type_url: "type.googleapis.com/google.protobuf.Duration"
+value: "\bd"
+}
+result:   true
+
+Source: any == message.single_any
+declare any {
+  value any
+}
+declare d {
+  value google.protobuf.Duration
+}
+declare message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {message=single_any {
+  type_url: "type.googleapis.com/google.protobuf.Duration"
+  value: "\bd"
+}
+} +> {any=type_url: "type.googleapis.com/google.protobuf.Duration"
+value: "\bd"
+}
+result:   true
+
+Source: d == message.single_any
+declare any {
+  value any
+}
+declare d {
+  value google.protobuf.Duration
+}
+declare message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {message=single_any {
+  type_url: "type.googleapis.com/google.protobuf.Duration"
+  value: "\bd"
+}
+} +> {d=seconds: 100
+}
+result:   true
+
+Source: any.single_int64 == 1
+declare any {
+  value any
+}
+declare d {
+  value google.protobuf.Duration
+}
+declare message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {any=single_int64: 1
+}
+result:   true
+
+Source: any == 1
+declare any {
+  value any
+}
+declare d {
+  value google.protobuf.Duration
+}
+declare message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {any=type_url: "type.googleapis.com/google.protobuf.Int64Value"
+value: "\b\001"
+}
+result:   true
+
+Source: TestAllTypes{single_any: d}
+declare any {
+  value any
+}
+declare d {
+  value google.protobuf.Duration
+}
+declare message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {d=seconds: 100
+}
+result:   single_any {
+  type_url: "type.googleapis.com/google.protobuf.Duration"
+  value: "\bd"
+}
+
+
+Source: TestAllTypes{single_any: message.single_int64}
+declare any {
+  value any
+}
+declare d {
+  value google.protobuf.Duration
+}
+declare message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {message=single_int64: -1
+}
+result:   single_any {
+  type_url: "type.googleapis.com/google.protobuf.Int64Value"
+  value: "\b\377\377\377\377\377\377\377\377\377\001"
+}
+
+
+Source: TestAllTypes{single_any: message.single_uint64}
+declare any {
+  value any
+}
+declare d {
+  value google.protobuf.Duration
+}
+declare message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {message=single_uint64: 1
+}
+result:   single_any {
+  type_url: "type.googleapis.com/google.protobuf.UInt64Value"
+  value: "\b\001"
+}
+
+
+Source: TestAllTypes{single_any: 1.0}
+declare any {
+  value any
+}
+declare d {
+  value google.protobuf.Duration
+}
+declare message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   single_any {
+  type_url: "type.googleapis.com/google.protobuf.DoubleValue"
+  value: "\t\000\000\000\000\000\000\360?"
+}
+
+
+Source: TestAllTypes{single_any: true}
+declare any {
+  value any
+}
+declare d {
+  value google.protobuf.Duration
+}
+declare message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   single_any {
+  type_url: "type.googleapis.com/google.protobuf.BoolValue"
+  value: "\b\001"
+}
+
+
+Source: TestAllTypes{single_any: "happy"}
+declare any {
+  value any
+}
+declare d {
+  value google.protobuf.Duration
+}
+declare message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   single_any {
+  type_url: "type.googleapis.com/google.protobuf.StringValue"
+  value: "\n\005happy"
+}
+
+
+Source: TestAllTypes{single_any: message.single_bytes}
+declare any {
+  value any
+}
+declare d {
+  value google.protobuf.Duration
+}
+declare message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {message=single_bytes: "happy"
+}
+result:   single_any {
+  type_url: "type.googleapis.com/google.protobuf.BytesValue"
+  value: "\n\005happy"
+}

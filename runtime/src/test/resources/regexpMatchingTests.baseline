@@ -1,0 +1,319 @@
+Source: matches("alpha", "^al.*") == true
+=====>
+bindings: {}
+result:   true
+
+Source: matches("alpha", "^.al.*") == false
+=====>
+bindings: {}
+result:   true
+
+Source: matches("alpha", ".*ha$") == true
+=====>
+bindings: {}
+result:   true
+
+Source: matches("alpha", "^.*ha.$") == false
+=====>
+bindings: {}
+result:   true
+
+Source: matches("alpha", "") == true
+=====>
+bindings: {}
+result:   true
+
+Source: matches("alpha", "ph") == true
+=====>
+bindings: {}
+result:   true
+
+Source: matches("alpha", "^ph") == false
+=====>
+bindings: {}
+result:   true
+
+Source: matches("alpha", "ph$") == false
+=====>
+bindings: {}
+result:   true
+
+Source: "alpha".matches("^al.*") == true
+=====>
+bindings: {}
+result:   true
+
+Source: "alpha".matches("^.al.*") == false
+=====>
+bindings: {}
+result:   true
+
+Source: "alpha".matches(".*ha$") == true
+=====>
+bindings: {}
+result:   true
+
+Source: "alpha".matches(".*ha.$") == false
+=====>
+bindings: {}
+result:   true
+
+Source: "alpha".matches("") == true
+=====>
+bindings: {}
+result:   true
+
+Source: "alpha".matches("ph") == true
+=====>
+bindings: {}
+result:   true
+
+Source: "alpha".matches("^ph") == false
+=====>
+bindings: {}
+result:   true
+
+Source: "alpha".matches("ph$") == false
+=====>
+bindings: {}
+result:   true
+
+Source: matches("alpha", regexp) == true
+declare regexp {
+  value string
+}
+=====>
+bindings: {regexp=^al.*}
+result:   true
+
+Source: matches("alpha", regexp) == false
+declare regexp {
+  value string
+}
+=====>
+bindings: {regexp=^.al.*}
+result:   true
+
+Source: matches("alpha", regexp) == true
+declare regexp {
+  value string
+}
+=====>
+bindings: {regexp=.*ha$}
+result:   true
+
+Source: matches("alpha", regexp) == false
+declare regexp {
+  value string
+}
+=====>
+bindings: {regexp=.*ha.$}
+result:   true
+
+Source: "alpha".matches(regexp) == true
+declare regexp {
+  value string
+}
+=====>
+bindings: {regexp=^al.*}
+result:   true
+
+Source: "alpha".matches(regexp) == false
+declare regexp {
+  value string
+}
+=====>
+bindings: {regexp=^.al.*}
+result:   true
+
+Source: "alpha".matches(regexp) == true
+declare regexp {
+  value string
+}
+=====>
+bindings: {regexp=.*ha$}
+result:   true
+
+Source: "alpha".matches(regexp) == false
+declare regexp {
+  value string
+}
+=====>
+bindings: {regexp=.*ha.$}
+result:   true
+
+Source: matches(s, "^al.*") == true
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha}
+result:   true
+
+Source: matches(s, "^.al.*") == false
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha}
+result:   true
+
+Source: matches(s, ".*ha$") == true
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha}
+result:   true
+
+Source: matches(s, "^.*ha.$") == false
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha}
+result:   true
+
+Source: s.matches("^al.*") == true
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha}
+result:   true
+
+Source: s.matches("^.al.*") == false
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha}
+result:   true
+
+Source: s.matches(".*ha$") == true
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha}
+result:   true
+
+Source: s.matches("^.*ha.$") == false
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha}
+result:   true
+
+Source: matches(s, regexp) == true
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha, regexp=^al.*}
+result:   true
+
+Source: matches(s, regexp) == true
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha, regexp=.*ha$}
+result:   true
+
+Source: matches(s, regexp) == false
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha, regexp=^.al.*}
+result:   true
+
+Source: matches(s, regexp) == false
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha, regexp=.*ha.$}
+result:   true
+
+Source: s.matches(regexp) == true
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha, regexp=^al.*}
+result:   true
+
+Source: s.matches(regexp) == true
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha, regexp=.*ha$}
+result:   true
+
+Source: s.matches(regexp) == false
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha, regexp=^.al.*}
+result:   true
+
+Source: s.matches(regexp) == false
+declare regexp {
+  value string
+}
+declare s {
+  value string
+}
+=====>
+bindings: {s=alpha, regexp=.*ha.$}
+result:   true

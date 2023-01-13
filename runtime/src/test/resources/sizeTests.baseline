@@ -1,0 +1,54 @@
+Source: size(b) == 5 && b.size() == 5
+declare str {
+  value string
+}
+declare b {
+  value bytes
+}
+=====>
+bindings: {b=[104, 97, 112, 112, 121]}
+result:   true
+
+Source: size(str) == 5 && str.size() == 5
+declare str {
+  value string
+}
+declare b {
+  value bytes
+}
+=====>
+bindings: {str=happy}
+result:   true
+
+Source: size(str) == 5 && str.size() == 5
+declare str {
+  value string
+}
+declare b {
+  value bytes
+}
+=====>
+bindings: {str=happ􏿼}
+result:   true
+
+Source: size({1:14, 2:15}) == 2 && {1:14, 2:15}.size() == 2
+declare str {
+  value string
+}
+declare b {
+  value bytes
+}
+=====>
+bindings: {}
+result:   true
+
+Source: size([1,2,3]) == 3 && [1,2,3].size() == 3
+declare str {
+  value string
+}
+declare b {
+  value bytes
+}
+=====>
+bindings: {}
+result:   true

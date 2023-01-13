@@ -1,0 +1,66 @@
+Source: f_constructor() + "\n" + f_strict("static", 13) + " " + f_strict(dynamic, 14) + "\n" + f_directN("static", true) + " " + f_directN(dynamic, false) + "\n" + f_direct(true, 20) + " " + f_direct(dynamic == "foo", 21) + "\n" + f_direct1("static") + " " + f_direct1(dynamic) + "\n" + f_direct2("static", 30) + " " + f_direct2(dynamic, 31) + "\n" + f_asyncN("static", true) + " " + f_asyncN(dynamic, false) + "\n" + f_async(true, 20) + " " + f_async(dynamic == "foo", 21) + "\n" + f_async1("static") + " " + f_async1(dynamic) + "\n" + f_async2("static", 30) + " " + f_async2(dynamic, 31) + "\n" + f_effect("static") + " " + f_effect(dynamic) + "\n" + f_nobarrier("static") + " " + f_nobarrier(dynamic) + "\n" + f_simple1("static") + " " + f_simple1(dynamic) + "\n" + f_simple2("static", "foo") + " " + f_simple2(dynamic, "bar") + "\n" + f_simpleN("static", 54, 32) + " " + f_simpleN(dynamic, 98,76)
+declare dynamic {
+  value string
+}
+declare f_constructor {
+  function f_constructor () -> string
+}
+declare f_strict {
+  function f_strict (string, int) -> string
+}
+declare f_directN {
+  function f_directN (string, bool) -> string
+}
+declare f_direct {
+  function f_direct (bool, int) -> string
+}
+declare f_direct1 {
+  function f_direct1 (string) -> string
+}
+declare f_direct2 {
+  function f_direct2 (string, int) -> string
+}
+declare f_asyncN {
+  function f_asyncN (string, bool) -> string
+}
+declare f_async {
+  function f_async (bool, int) -> string
+}
+declare f_async1 {
+  function f_async1 (string) -> string
+}
+declare f_async2 {
+  function f_async2 (string, int) -> string
+}
+declare f_effect {
+  function f_effect (string) -> string
+}
+declare f_nobarrier {
+  function f_nobarrier (string) -> string
+}
+declare f_simple1 {
+  function f_simple1 (string) -> string
+}
+declare f_simple2 {
+  function f_simple2 (string, string) -> string
+}
+declare f_simpleN {
+  function f_simpleN (string, int, int) -> string
+}
+=====>
+bindings: {dynamic=dynamic}
+result:   constructed!
+strict: static13 strict: dynamic14
+directN: statictrue directN: dynamicfalse
+direct: true20 direct: false21
+direct1:static direct1:dynamic
+direct2: static30 direct2: dynamic31
+asyncN: statictrue asyncN: dynamicfalse
+async: true20 async: false21
+async1:static async1:dynamic
+async2: static30 async2: dynamic31
+effective: static effective: dynamic
+nobarrier: static nobarrier: dynamic
+simple1: static simple1: dynamic
+simple2: static@foo simple2: dynamic@bar
+simpleN: static5432 simpleN: dynamic9876

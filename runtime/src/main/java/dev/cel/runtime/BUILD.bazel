@@ -1,0 +1,160 @@
+package(default_visibility = [
+    "//:__subpackages__",
+    "//runtime/src/main/java/dev/cel/runtime:__pkg__",
+])
+
+BASE_SOURCES = [
+    "DefaultMetadata.java",
+    "IncompleteData.java",
+    "InterpreterException.java",
+    "MessageProvider.java",
+    "Metadata.java",
+    "Registrar.java",
+    "StandardFunctions.java",
+    "StandardTypeResolver.java",
+    "TypeResolver.java",
+]
+
+INTERPRETER_SOURCES = [
+    "Activation.java",
+    "CallArgumentChecker.java",
+    "DefaultDispatcher.java",
+    "DefaultInterpreter.java",
+    "DescriptorMessageProvider.java",
+    "Dispatcher.java",
+    "DynamicMessageFactory.java",
+    "GlobalResolver.java",
+    "Interpretable.java",
+    "Interpreter.java",
+    "InterpreterUtil.java",
+    "MessageFactory.java",
+    "PartialMessage.java",
+    "PartialMessageOrBuilder.java",
+    "RuntimeTypeProvider.java",
+    "RuntimeUnknownResolver.java",
+    "UnknownTrackingInterpretable.java",
+]
+
+java_library(
+    name = "base",
+    srcs = BASE_SOURCES,
+    deps = [
+        ":runtime_helper",
+        "//:auto_value",
+        "//common/src/main/java/dev/cel/common:options",
+        "//common/src/main/java/dev/cel/common/annotations",
+        "//common/src/main/java/dev/cel/common/internal:comparison_functions",
+        "//common/src/main/java/dev/cel/common/internal:dynamic_proto",
+        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:struct_proto",
+        "@com_google_protobuf//:timestamp_proto",
+        "@maven//:com_google_code_findbugs_annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_protobuf_protobuf_java_util",
+        "@maven//:com_google_protobuf_protobuf_javalite",
+    ],
+)
+
+java_library(
+    name = "interpreter",
+    srcs = INTERPRETER_SOURCES,
+    deprecation = "Please use //java/com/google/api/expr/cel:runtime instead",
+    exports = [":base"],
+    deps = [
+        ":base",
+        ":runtime_helper",
+        ":unknown_attributes",
+        "//:auto_value",
+        "//common/src/main/java/dev/cel/common",
+        "//common/src/main/java/dev/cel/common:features",
+        "//common/src/main/java/dev/cel/common:options",
+        "//common/src/main/java/dev/cel/common/annotations",
+        "//common/src/main/java/dev/cel/common/internal:dynamic_proto",
+        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
+        "@com_google_protobuf//:field_mask_proto",
+        "@com_google_protobuf//:struct_proto",
+        "@maven//:com_google_code_findbugs_annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_protobuf_protobuf_java_util",
+        "@maven//:com_google_protobuf_protobuf_javalite",
+    ],
+)
+
+java_library(
+    name = "runtime_helper",
+    srcs = [
+        "RuntimeEquality.java",
+        "RuntimeHelpers.java",
+    ],
+    # NOTE: do not grow this dependencies arbitrarily
+    deps = [
+        "//common/src/main/java/dev/cel/common:options",
+        "//common/src/main/java/dev/cel/common/annotations",
+        "//common/src/main/java/dev/cel/common/internal:comparison_functions",
+        "//common/src/main/java/dev/cel/common/internal:converter",
+        "//common/src/main/java/dev/cel/common/internal:dynamic_proto",
+        "//common/src/main/java/dev/cel/common/internal:proto_equality",
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:struct_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_re2j_re2j",
+        "@maven//:org_threeten_threeten_extra",
+    ],
+)
+
+# keep sorted
+RUNTIME_SOURCES = [
+    "CelEvaluationException.java",
+    "CelFunctionOverload.java",
+    "CelRuntime.java",
+    "CelRuntimeBuilder.java",
+    "CelRuntimeFactory.java",
+    "CelRuntimeLegacyImpl.java",
+    "CelRuntimeLibrary.java",
+    "CelVariableResolver.java",
+    "UnknownContext.java",
+]
+
+java_library(
+    name = "runtime",
+    srcs = RUNTIME_SOURCES,
+    deps = [
+        ":base",
+        ":interpreter",
+        ":unknown_attributes",
+        "//:auto_value",
+        "//common/src/main/java/dev/cel/common",
+        "//common/src/main/java/dev/cel/common:options",
+        "//common/src/main/java/dev/cel/common/internal:dynamic_proto",
+        "@maven//:com_google_code_findbugs_annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+# keep sorted
+UNKNOWN_ATTRIBUTE_SOURCES = [
+    "CelAttribute.java",
+    "CelAttributePattern.java",
+    "CelAttributeResolver.java",
+    "CelUnknownSet.java",
+]
+
+java_library(
+    name = "unknown_attributes",
+    srcs = UNKNOWN_ATTRIBUTE_SOURCES,
+    deps = [
+        "//:auto_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_re2j_re2j",
+    ],
+)

@@ -1,0 +1,22 @@
+Source: vector([1,2,3]).at(1) == 2
+declare vector {
+  function vector (list(T)) -> vector(T)
+}
+declare at {
+  function at vector(T).(int) -> T
+}
+=====>
+bindings: {}
+result:   true
+
+Source: vector([1,2,3]).at(1) + vector([7]).at(0)
+declare vector {
+  function vector (list(T)) -> vector(T)
+}
+declare at {
+  function at vector(T).(int) -> T
+}
+=====>
+bindings: {}
+result:   9
+

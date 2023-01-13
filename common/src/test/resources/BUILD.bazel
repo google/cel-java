@@ -1,0 +1,61 @@
+package(
+    default_visibility = [
+        "//:__subpackages__",
+        "//third_party/java_src/cel/common/src/test/java/dev/cel/common/internal:__pkg__",
+    ],
+)
+
+filegroup(
+    name = "resources",
+    srcs = [
+        "value.fds",
+        "value.textproto",
+    ],
+)
+
+proto_library(
+    name = "multi_file_proto",
+    srcs = ["multi_file.proto"],
+)
+
+java_proto_library(
+    name = "multi_file_java_proto",
+    deps = [":multi_file_proto"],
+)
+
+proto_library(
+    name = "single_file_proto",
+    srcs = ["single_file.proto"],
+)
+
+java_proto_library(
+    name = "single_file_java_proto",
+    deps = [":single_file_proto"],
+)
+
+proto_library(
+    name = "default_instance_message_test_protos",
+    srcs = [
+        "enum_conflicting_name.proto",
+        "message_conflicting_name.proto",
+        "proto_java_api_version_1.proto",
+        "proto_without_java_opts.proto",
+    ],
+)
+
+java_proto_library(
+    name = "default_instance_message_test_protos_java_proto",
+    deps = [":default_instance_message_test_protos"],
+)
+
+proto_library(
+    name = "service_conflicting_name_proto",
+    srcs = [
+        "service_conflicting_name.proto",
+    ],
+)
+
+java_proto_library(
+    name = "service_conflicting_name_java_proto",
+    deps = [":service_conflicting_name_proto"],
+)

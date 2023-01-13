@@ -1,0 +1,45 @@
+Source: x.single_nested_message.bb == 43 && has(x.single_nested_message)
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_nested_message {
+  bb: 43
+}
+}
+result:   true
+
+Source: single_nested_message.bb == 43
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare single_nested_message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage
+}
+=====>
+bindings: {single_nested_message=bb: 43
+}
+result:   true
+
+Source: TestAllTypes{single_int64: 1, single_sfixed64: 2, single_int32: 2}.single_int32 == 2
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare single_nested_message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage
+}
+=====>
+bindings: {}
+result:   true
+
+Source: TestAllTypes{single_int32_wrapper: 12345678900}
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare single_nested_message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage
+}
+=====>
+bindings: {}
+error:    evaluation error at test_location:12: Out of range: 12345678900
+

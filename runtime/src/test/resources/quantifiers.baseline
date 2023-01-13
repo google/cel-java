@@ -1,0 +1,29 @@
+Source: [1,-2,3].exists_one(x, x > 0)
+=====>
+bindings: {}
+result:   false
+
+Source: [-1,-2,3].exists_one(x, x > 0)
+=====>
+bindings: {}
+result:   true
+
+Source: [-1,-2,-3].exists(x, x > 0)
+=====>
+bindings: {}
+result:   false
+
+Source: [1,-2,3].exists(x, x > 0)
+=====>
+bindings: {}
+result:   true
+
+Source: [1,-2,3].all(x, x > 0)
+=====>
+bindings: {}
+result:   false
+
+Source: [1,2,3].all(x, x > 0)
+=====>
+bindings: {}
+result:   true

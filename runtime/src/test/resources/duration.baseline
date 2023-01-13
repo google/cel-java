@@ -1,0 +1,299 @@
+Source: d1 < d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 9
+} +> {d1=seconds: 10
+nanos: 10
+}
+result:   false
+
+Source: d1 < d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 9
+nanos: 10
+} +> {d1=seconds: 10
+nanos: 10
+}
+result:   false
+
+Source: d1 < d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 10
+} +> {d1=seconds: 10
+nanos: 10
+}
+result:   false
+
+Source: d1 < d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 10
+} +> {d1=seconds: 10
+nanos: 9
+}
+result:   true
+
+Source: d1 < d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 10
+} +> {d1=seconds: 9
+nanos: 10
+}
+result:   true
+
+Source: d1 <= d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 9
+} +> {d1=seconds: 10
+nanos: 10
+}
+result:   false
+
+Source: d1 <= d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 9
+nanos: 10
+} +> {d1=seconds: 10
+nanos: 10
+}
+result:   false
+
+Source: d1 <= d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 10
+} +> {d1=seconds: 10
+nanos: 10
+}
+result:   true
+
+Source: d1 <= d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 10
+} +> {d1=seconds: 10
+nanos: 9
+}
+result:   true
+
+Source: d1 <= d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 10
+} +> {d1=seconds: 9
+nanos: 10
+}
+result:   true
+
+Source: d1 > d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 9
+} +> {d1=seconds: 10
+nanos: 10
+}
+result:   true
+
+Source: d1 > d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 9
+nanos: 10
+} +> {d1=seconds: 10
+nanos: 10
+}
+result:   true
+
+Source: d1 > d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 10
+} +> {d1=seconds: 10
+nanos: 10
+}
+result:   false
+
+Source: d1 > d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 10
+} +> {d1=seconds: 10
+nanos: 9
+}
+result:   false
+
+Source: d1 > d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 10
+} +> {d1=seconds: 9
+nanos: 10
+}
+result:   false
+
+Source: d1 >= d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 9
+} +> {d1=seconds: 10
+nanos: 10
+}
+result:   true
+
+Source: d1 >= d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 9
+nanos: 10
+} +> {d1=seconds: 10
+nanos: 10
+}
+result:   true
+
+Source: d1 >= d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 10
+} +> {d1=seconds: 10
+nanos: 10
+}
+result:   true
+
+Source: d1 >= d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 10
+} +> {d1=seconds: 10
+nanos: 9
+}
+result:   false
+
+Source: d1 >= d2
+declare d1 {
+  value google.protobuf.Duration
+}
+declare d2 {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {d2=seconds: 10
+nanos: 10
+} +> {d1=seconds: 9
+nanos: 10
+}
+result:   false

@@ -1,0 +1,75 @@
+Source: x.single_bool_wrapper == true && x.single_bytes_wrapper == b'hi' && x.single_double_wrapper == -3.0 && x.single_float_wrapper == 1.5 && x.single_int32_wrapper == -12 && x.single_int64_wrapper == -34 && x.single_string_wrapper == 'hello' && x.single_uint32_wrapper == 12u && x.single_uint64_wrapper == 34u
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_int64_wrapper {
+  value: -34
+}
+single_int32_wrapper {
+  value: -12
+}
+single_double_wrapper {
+  value: -3.0
+}
+single_float_wrapper {
+  value: 1.5
+}
+single_uint64_wrapper {
+  value: 34
+}
+single_uint32_wrapper {
+  value: 12
+}
+single_string_wrapper {
+  value: "hello"
+}
+single_bool_wrapper {
+  value: true
+}
+single_bytes_wrapper {
+  value: "hi"
+}
+}
+result:   true
+
+Source: x.single_bool_wrapper == google.protobuf.BoolValue{} && x.single_bytes_wrapper == google.protobuf.BytesValue{value: b'hi'} && x.single_double_wrapper == google.protobuf.DoubleValue{value: -3.0} && x.single_float_wrapper == google.protobuf.FloatValue{value: 1.5} && x.single_int32_wrapper == google.protobuf.Int32Value{value: -12} && x.single_int64_wrapper == google.protobuf.Int64Value{value: -34} && x.single_string_wrapper == google.protobuf.StringValue{} && x.single_uint32_wrapper == google.protobuf.UInt32Value{value: 12u} && x.single_uint64_wrapper == google.protobuf.UInt64Value{value: 34u}
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_int64_wrapper {
+  value: -34
+}
+single_int32_wrapper {
+  value: -12
+}
+single_double_wrapper {
+  value: -3.0
+}
+single_float_wrapper {
+  value: 1.5
+}
+single_uint64_wrapper {
+  value: 34
+}
+single_uint32_wrapper {
+  value: 12
+}
+single_string_wrapper {
+}
+single_bool_wrapper {
+}
+single_bytes_wrapper {
+  value: "hi"
+}
+}
+result:   true
+
+Source: x.single_bool_wrapper == null && x.single_bytes_wrapper == null && x.single_double_wrapper == null && x.single_float_wrapper == null && x.single_int32_wrapper == null && x.single_int64_wrapper == null && x.single_string_wrapper == null && x.single_uint32_wrapper == null && x.single_uint64_wrapper == null
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {x=}
+result:   true

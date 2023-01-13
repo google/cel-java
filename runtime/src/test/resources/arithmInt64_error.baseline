@@ -1,0 +1,30 @@
+Source: 9223372036854775807 + 1
+=====>
+bindings: {}
+error:    evaluation error: long overflow
+
+Source: -9223372036854775808 - 1
+=====>
+bindings: {}
+error:    evaluation error: long overflow
+
+Source: -(-9223372036854775808)
+=====>
+bindings: {}
+error:    evaluation error: long overflow
+
+Source: 5000000000 * 5000000000
+=====>
+bindings: {}
+error:    evaluation error: long overflow
+
+Source: (-9223372036854775808)/-1
+=====>
+bindings: {}
+error:    evaluation error: most negative number wraps
+
+Source: 1 / 0
+=====>
+bindings: {}
+error:    evaluation error: / by zero
+

@@ -1,0 +1,8 @@
+Source: x == dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGAR
+declare x {
+  value int
+}
+=====>
+bindings: {x=1}
+result:   true
+

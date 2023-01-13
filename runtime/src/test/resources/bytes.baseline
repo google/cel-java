@@ -1,0 +1,4 @@
+Source: b'a' < b'b' && b'a' <= b'b' && b'b' > b'a' && b'a' >= b'a' && b'a' == b'a' && b'a' != b'b'
+=====>
+bindings: {}
+result:   true

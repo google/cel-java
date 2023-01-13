@@ -1,0 +1,23 @@
+Source: 1.9 < 2.0 && 1.1 <= 1.1 && 2.0 > 1.9 && 1.1 >= 1.1 && 1.1 == 1.1 && 2.0 != 1.9
+=====>
+bindings: {}
+result:   true
+
+Source: 1.0 + 2.3 + x * 3.0 / x
+declare x {
+  value double
+}
+=====>
+bindings: {x=3.33}
+result:   6.3
+
+Source: x + y == 9.99
+declare x {
+  value double
+}
+declare y {
+  value dyn
+}
+=====>
+bindings: {y=6.66} +> {x=3.33}
+result:   true

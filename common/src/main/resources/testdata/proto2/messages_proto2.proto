@@ -1,0 +1,44 @@
+// Copyright 2022 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// LINT: ALLOW_GROUPS
+syntax = "proto2";
+
+package dev.cel.testing.testdata.proto2;
+
+import "common/src/main/resources/testdata/proto2/test_all_types.proto";
+
+option java_outer_classname = "MessagesProto2";
+option java_package = "dev.cel.testing.testdata.proto2";
+option java_multiple_files = true;
+
+message Proto2Message {
+  optional int32 single_int32 = 1;
+  optional fixed32 single_fixed32 = 2;
+  optional fixed64 single_fixed64 = 3;
+  optional dev.cel.testing.testdata.proto2.GlobalEnum single_enum = 4;
+  optional dev.cel.testing.testdata.proto2.NestedTestAllTypes
+      single_nested_test_all_types = 5;
+
+  optional group NestedGroup = 6 {
+    optional int32 single_id = 7;
+    optional string single_name = 8;
+  }
+
+  extensions 100 to max;
+}
+
+message StringHolder {
+  optional string s = 1;
+}
