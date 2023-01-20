@@ -27,7 +27,7 @@ import dev.cel.common.annotations.Internal;
 final class ProtoRegistryProvider {
 
   static ExtensionRegistry getExtensionRegistry() {
-    return ExtensionRegistry.getEmptyRegistry();
+    return ExtensionRegistry.getGeneratedRegistry();
   }
 
   static TypeRegistry getTypeRegistry() {
