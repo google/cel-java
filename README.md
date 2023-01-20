@@ -153,10 +153,7 @@ This section will be completed once parser and type-checker has been added.
 
 ## Install
 
-CEL-Go supports `modules` and uses semantic versioning. For more info see
-the [Go Modules](https://github.com/golang/go/wiki/Modules) docs.
-
-And of course, there is always the option to build from source directly.
+CEL-Java will be available in Maven repository soon.
 
 ## Common Questions
 
@@ -195,17 +192,17 @@ runtime bindings and error handling to do the right thing.
 
 * See [CONTRIBUTING.md](./CONTRIBUTING.md) to get started.
 * Use [GitHub Issues][4] to request features or report bugs.
-*
+
 ### Dependencies
 
 Java 8 or newer is required.
 
 | Library               | Version | Details              |
 |-----------------------|---------|----------------------|
-| [Guava][2]            | TBD     | N/A                  |
-| [RE2/J][3]            | TBD     | N/A                  |
-| [Protocol Buffers][4] | TBD     | Full or lite runtime |
-| [ANTLR4][5]           | TBD     | Java runtime         |
+| [Guava][2]            | 31.1    | N/A                  |
+| [RE2/J][3]            | 1.7     | N/A                  |
+| [Protocol Buffers][4] | 3.21.11 | Full or lite runtime |
+| [ANTLR4][5]           | 4.11.1  | Java runtime         |
 
 ## License
 
