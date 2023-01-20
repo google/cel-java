@@ -85,6 +85,8 @@ public abstract class CelOptions {
 
   public abstract boolean enableUnknownTracking();
 
+  public abstract int comprehensionMaxIterations();
+
   public ImmutableSet<ExprFeatures> toExprFeatures() {
     ImmutableSet.Builder<ExprFeatures> features = ImmutableSet.builder();
     if (enableCompileTimeOverloadResolution()) {
@@ -148,7 +150,7 @@ public abstract class CelOptions {
         // Parser options
         .enableNonOverridableOperatorNames(false)
         .enableReservedIds(false)
-        .maxExpressionCodePointSize(100_00)
+        .maxExpressionCodePointSize(10_000)
         .maxParseErrorRecoveryLimit(30)
         .maxParseRecursionDepth(250)
         .populateMacroCalls(false)
@@ -168,7 +170,8 @@ public abstract class CelOptions {
         .errorOnIntWrap(false)
         .errorOnDuplicateMapKeys(false)
         .resolveTypeDependencies(true)
-        .enableUnknownTracking(false);
+        .enableUnknownTracking(false)
+        .comprehensionMaxIterations(-1);
   }
 
   /**
@@ -405,6 +408,18 @@ public abstract class CelOptions {
      * and function results (a particular invocation that was identified as unknown).
      */
     public abstract Builder enableUnknownTracking(boolean value);
+
+    /**
+     * Limit the total number of iterations permitted within comprehension loops.
+     *
+     * <p>If the limit is reached, then an evaluation exception will be thrown. This limit also
+     * affects nested comprehension interactions as well.
+     *
+     * <p>A negative {@code value} will disable max iteration checks.
+     *
+     * <p>Note: comprehension limits are not supported within the async CEL interpreter.
+     */
+    public abstract Builder comprehensionMaxIterations(int value);
 
     public abstract CelOptions build();
   }
