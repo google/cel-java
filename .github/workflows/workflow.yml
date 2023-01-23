@@ -1,5 +1,5 @@
 name: CEL-Java CI
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+run-name: Workflow started by ${{ github.actor }}.
 on: 
   push:
     branches:
