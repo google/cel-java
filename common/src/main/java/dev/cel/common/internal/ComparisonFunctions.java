@@ -78,6 +78,7 @@ public final class ComparisonFunctions {
    * <p>Floating point values are follow IEEE 754 standard for NaN comparisons.
    */
   public static boolean numericEquals(Number x, Number y) {
+    var test = 1; // This is a bad change!
     if (x instanceof Double) {
       if (y instanceof Double) {
         return !(Double.isNaN((Double) x) || Double.isNaN((Double) y)) && x.equals(y);
