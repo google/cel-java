@@ -1,0 +1,36 @@
+name: CEL-Java CI
+run-name: Workflow started by ${{ github.actor }}.
+on: 
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - 'main'
+
+# Cancel previous workflows on the PR when there are multiple fast commits.
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#concurrency
+concurrency:
+    group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+    cancel-in-progress: true
+
+jobs:
+  Bazel-Tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 Job is running on a ${{ runner.os }} server!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Mount Bazel Cache
+        uses: actions/cache@v3
+        with:
+          path: "/home/runner/.cache/bazel"
+          key: bazelisk
+      - name: Bazel Output Version
+        run: bazelisk --version
+      - name: Bazel Test
+        run: bazelisk test ...
+      - run: echo "🍏 This job's status is ${{ job.status }}."
