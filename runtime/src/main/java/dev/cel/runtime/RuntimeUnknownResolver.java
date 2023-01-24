@@ -14,7 +14,6 @@
 
 package dev.cel.runtime;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.common.annotations.Internal;
 import java.util.Map;
@@ -121,12 +120,11 @@ public class RuntimeUnknownResolver {
     return attributeResolver.resolve(attr);
   }
 
-  RuntimeUnknownResolver withScope(
-      ImmutableMap<String, DefaultInterpreter.IntermediateResult> vars) {
+  ScopedResolver withScope(Map<String, DefaultInterpreter.IntermediateResult> vars) {
     return new ScopedResolver(this, vars);
   }
 
-  private static final class ScopedResolver extends RuntimeUnknownResolver {
+  static final class ScopedResolver extends RuntimeUnknownResolver {
     private final RuntimeUnknownResolver parent;
     private final Map<String, DefaultInterpreter.IntermediateResult> shadowedVars;
 

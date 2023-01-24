@@ -35,6 +35,7 @@ import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -122,7 +123,7 @@ public final class DefaultInterpreter implements Interpreter {
   }
 
   @Override
-  public Interpretable createInterpretable(CheckedExpr checkedExpr) throws InterpreterException {
+  public Interpretable createInterpretable(CheckedExpr checkedExpr) {
     return new DefaultInterpretable(typeProvider, dispatcher, checkedExpr, celOptions);
   }
 
@@ -156,31 +157,32 @@ public final class DefaultInterpreter implements Interpreter {
     @Override
     public Object evalTrackingUnknowns(RuntimeUnknownResolver resolver)
         throws InterpreterException {
-      IntermediateResult internalResult = evalInternal(resolver, checkedExpr.getExpr());
+      ExecutionFrame frame = new ExecutionFrame(resolver, celOptions.comprehensionMaxIterations());
+      IntermediateResult internalResult = evalInternal(frame, checkedExpr.getExpr());
       Object result = internalResult.value();
       // TODO: remove support for IncompleteData.
       return InterpreterUtil.completeDataOnly(
           result, "Incomplete data cannot be returned as a result.");
     }
 
-    private IntermediateResult evalInternal(RuntimeUnknownResolver resolver, Expr expr)
+    private IntermediateResult evalInternal(ExecutionFrame frame, Expr expr)
         throws InterpreterException {
       try {
         switch (expr.getExprKindCase()) {
           case CONST_EXPR:
-            return IntermediateResult.create(evalConstant(resolver, expr, expr.getConstExpr()));
+            return IntermediateResult.create(evalConstant(frame, expr, expr.getConstExpr()));
           case IDENT_EXPR:
-            return evalIdent(resolver, expr, expr.getIdentExpr());
+            return evalIdent(frame, expr, expr.getIdentExpr());
           case SELECT_EXPR:
-            return evalSelect(resolver, expr, expr.getSelectExpr());
+            return evalSelect(frame, expr, expr.getSelectExpr());
           case CALL_EXPR:
-            return evalCall(resolver, expr, expr.getCallExpr());
+            return evalCall(frame, expr, expr.getCallExpr());
           case LIST_EXPR:
-            return evalList(resolver, expr, expr.getListExpr());
+            return evalList(frame, expr, expr.getListExpr());
           case STRUCT_EXPR:
-            return evalStruct(resolver, expr, expr.getStructExpr());
+            return evalStruct(frame, expr, expr.getStructExpr());
           case COMPREHENSION_EXPR:
-            return evalComprehension(resolver, expr, expr.getComprehensionExpr());
+            return evalComprehension(frame, expr, expr.getComprehensionExpr());
           default:
             throw new IllegalStateException(
                 "unexpected expression kind: " + expr.getExprKindCase());
@@ -197,8 +199,7 @@ public final class DefaultInterpreter implements Interpreter {
       return value instanceof CelUnknownSet || InterpreterUtil.isUnknown(value);
     }
 
-    private Object evalConstant(
-        RuntimeUnknownResolver unusedResolver, Expr unusedExpr, Constant constExpr) {
+    private Object evalConstant(ExecutionFrame unusedFrame, Expr unusedExpr, Constant constExpr) {
       switch (constExpr.getConstantKindCase()) {
         case NULL_VALUE:
           return constExpr.getNullValue();
@@ -232,16 +233,16 @@ public final class DefaultInterpreter implements Interpreter {
       return checkedExpr.getReferenceMapOrDefault(exprId, defaultValue);
     }
 
-    private IntermediateResult evalIdent(
-        RuntimeUnknownResolver resolver, Expr expr, Ident unusedIdent) throws InterpreterException {
+    private IntermediateResult evalIdent(ExecutionFrame frame, Expr expr, Ident unusedIdent)
+        throws InterpreterException {
       Reference reference = getReferenceOrThrow(expr.getId());
       if (reference.hasValue()) {
-        return IntermediateResult.create(evalConstant(resolver, expr, reference.getValue()));
+        return IntermediateResult.create(evalConstant(frame, expr, reference.getValue()));
       }
-      return resolveIdent(resolver, expr, reference.getName());
+      return resolveIdent(frame, expr, reference.getName());
     }
 
-    private IntermediateResult resolveIdent(RuntimeUnknownResolver resolver, Expr expr, String name)
+    private IntermediateResult resolveIdent(ExecutionFrame frame, Expr expr, String name)
         throws InterpreterException {
       // Check whether the type exists in the type check map as a 'type'.
       Type checkedType = checkedExpr.getTypeMapMap().get(expr.getId());
@@ -256,19 +257,19 @@ public final class DefaultInterpreter implements Interpreter {
             .build();
       }
 
-      IntermediateResult rawResult = resolver.resolveSimpleName(name, expr.getId());
+      IntermediateResult rawResult = frame.resolveSimpleName(name, expr.getId());
 
       // Value resolved from Binding, it could be Message, PartialMessage or unbound(null)
       Object value = InterpreterUtil.strict(typeProvider.adapt(rawResult.value()));
       return IntermediateResult.create(rawResult.attribute(), value);
     }
 
-    private IntermediateResult evalSelect(
-        RuntimeUnknownResolver resolver, Expr expr, Select selectExpr) throws InterpreterException {
+    private IntermediateResult evalSelect(ExecutionFrame frame, Expr expr, Select selectExpr)
+        throws InterpreterException {
       Reference reference = getReferenceOrDefault(expr.getId(), null);
       if (reference == null) {
         // This indicates this is a field selection on the operand.
-        IntermediateResult operandResult = evalInternal(resolver, selectExpr.getOperand());
+        IntermediateResult operandResult = evalInternal(frame, selectExpr.getOperand());
         Object operand = operandResult.value();
 
         CelAttribute attribute =
@@ -276,7 +277,7 @@ public final class DefaultInterpreter implements Interpreter {
                 .attribute()
                 .qualify(CelAttribute.Qualifier.ofString(selectExpr.getField()));
 
-        Optional<Object> attrValue = resolver.resolveAttribute(attribute);
+        Optional<Object> attrValue = frame.resolveAttribute(attribute);
 
         if (attrValue.isPresent()) {
           return IntermediateResult.create(attribute, attrValue.get());
@@ -299,12 +300,12 @@ public final class DefaultInterpreter implements Interpreter {
       // This indicates it's a qualified name.
       if (reference.hasValue()) {
         // If the value is identified as a constant, skip attribute tracking.
-        return IntermediateResult.create(evalConstant(resolver, expr, reference.getValue()));
+        return IntermediateResult.create(evalConstant(frame, expr, reference.getValue()));
       }
-      return resolveIdent(resolver, expr, reference.getName());
+      return resolveIdent(frame, expr, reference.getName());
     }
 
-    private IntermediateResult evalCall(RuntimeUnknownResolver resolver, Expr expr, Call callExpr)
+    private IntermediateResult evalCall(ExecutionFrame frame, Expr expr, Call callExpr)
         throws InterpreterException {
       Reference reference = getReferenceOrThrow(expr.getId());
       Preconditions.checkState(reference.getOverloadIdCount() > 0);
@@ -314,17 +315,17 @@ public final class DefaultInterpreter implements Interpreter {
         case "identity":
           // Could be added as a binding to the dispatcher.  Handled here for parity
           // with FuturesInterpreter where the difference is slightly more significant.
-          return evalInternal(resolver, callExpr.getArgs(0));
+          return evalInternal(frame, callExpr.getArgs(0));
         case "conditional":
-          return evalConditional(resolver, callExpr);
+          return evalConditional(frame, callExpr);
         case "logical_and":
-          return evalLogicalAnd(resolver, callExpr);
+          return evalLogicalAnd(frame, callExpr);
         case "logical_or":
-          return evalLogicalOr(resolver, callExpr);
+          return evalLogicalOr(frame, callExpr);
         case "not_strictly_false":
-          return evalNotStrictlyFalse(resolver, callExpr);
+          return evalNotStrictlyFalse(frame, callExpr);
         case "type":
-          return evalType(resolver, callExpr);
+          return evalType(frame, callExpr);
         default:
           break;
       }
@@ -340,7 +341,7 @@ public final class DefaultInterpreter implements Interpreter {
       for (int i = 0; i < argResults.length; i++) {
         // Default evaluation is strict so errors will propagate (via thrown Java exception) before
         // unknowns.
-        argResults[i] = evalInternal(resolver, callArgs.get(i));
+        argResults[i] = evalInternal(frame, callArgs.get(i));
         // TODO: remove support for IncompleteData after migrating users to attribute
         // tracking unknowns.
         InterpreterUtil.completeDataOnly(
@@ -352,17 +353,17 @@ public final class DefaultInterpreter implements Interpreter {
 
       CelAttribute attr = indexAttr.orElse(CelAttribute.EMPTY);
 
-      Optional<Object> resolved = resolver.resolveAttribute(attr);
+      Optional<Object> resolved = frame.resolveAttribute(attr);
       if (resolved.isPresent()) {
         return IntermediateResult.create(attr, resolved.get());
       }
 
       CallArgumentChecker argChecker =
           indexAttr.isPresent()
-              ? CallArgumentChecker.createAcceptingPartial(resolver)
-              : CallArgumentChecker.create(resolver);
-      for (int i = 0; i < argResults.length; i++) {
-        argChecker.checkArg(argResults[i]);
+              ? CallArgumentChecker.createAcceptingPartial(frame.getResolver())
+              : CallArgumentChecker.create(frame.getResolver());
+      for (DefaultInterpreter.IntermediateResult element : argResults) {
+        argChecker.checkArg(element);
       }
       Optional<Object> unknowns = argChecker.maybeUnknowns();
       if (unknowns.isPresent()) {
@@ -409,16 +410,16 @@ public final class DefaultInterpreter implements Interpreter {
       return Optional.empty();
     }
 
-    private IntermediateResult evalConditional(RuntimeUnknownResolver resolver, Call callExpr)
+    private IntermediateResult evalConditional(ExecutionFrame frame, Call callExpr)
         throws InterpreterException {
-      IntermediateResult condition = evalBooleanStrict(resolver, callExpr.getArgs(0));
+      IntermediateResult condition = evalBooleanStrict(frame, callExpr.getArgs(0));
       if (isUnknownValue(condition.value())) {
         return condition;
       }
       if ((boolean) condition.value()) {
-        return evalInternal(resolver, callExpr.getArgs(1));
+        return evalInternal(frame, callExpr.getArgs(1));
       }
-      return evalInternal(resolver, callExpr.getArgs(2));
+      return evalInternal(frame, callExpr.getArgs(2));
     }
 
     private IntermediateResult mergeBooleanUnknowns(IntermediateResult lhs, IntermediateResult rhs)
@@ -439,14 +440,14 @@ public final class DefaultInterpreter implements Interpreter {
           InterpreterUtil.shortcircuitUnknownOrThrowable(lhs.value(), rhs.value()));
     }
 
-    private IntermediateResult evalLogicalOr(RuntimeUnknownResolver resolver, Call callExpr)
+    private IntermediateResult evalLogicalOr(ExecutionFrame frame, Call callExpr)
         throws InterpreterException {
-      IntermediateResult left = evalBooleanNonstrict(resolver, callExpr.getArgs(0));
+      IntermediateResult left = evalBooleanNonstrict(frame, callExpr.getArgs(0));
       if (left.value() instanceof Boolean && (Boolean) left.value()) {
         return left;
       }
 
-      IntermediateResult right = evalBooleanNonstrict(resolver, callExpr.getArgs(1));
+      IntermediateResult right = evalBooleanNonstrict(frame, callExpr.getArgs(1));
       if (right.value() instanceof Boolean && (Boolean) right.value()) {
         return right;
       }
@@ -459,14 +460,14 @@ public final class DefaultInterpreter implements Interpreter {
       return mergeBooleanUnknowns(left, right);
     }
 
-    private IntermediateResult evalLogicalAnd(RuntimeUnknownResolver resolver, Call callExpr)
+    private IntermediateResult evalLogicalAnd(ExecutionFrame frame, Call callExpr)
         throws InterpreterException {
-      IntermediateResult left = evalBooleanNonstrict(resolver, callExpr.getArgs(0));
+      IntermediateResult left = evalBooleanNonstrict(frame, callExpr.getArgs(0));
       if (left.value() instanceof Boolean && !((Boolean) left.value())) {
         return left;
       }
 
-      IntermediateResult right = evalBooleanNonstrict(resolver, callExpr.getArgs(1));
+      IntermediateResult right = evalBooleanNonstrict(frame, callExpr.getArgs(1));
       if (right.value() instanceof Boolean && !((Boolean) right.value())) {
         return right;
       }
@@ -481,10 +482,9 @@ public final class DefaultInterpreter implements Interpreter {
 
     // Returns true unless the expression evaluates to false, in which case it returns false.
     // True is also returned if evaluation yields an error or an unknown set.
-    private IntermediateResult evalNotStrictlyFalse(
-        RuntimeUnknownResolver resolver, Call callExpr) {
+    private IntermediateResult evalNotStrictlyFalse(ExecutionFrame frame, Call callExpr) {
       try {
-        IntermediateResult value = evalBooleanStrict(resolver, callExpr.getArgs(0));
+        IntermediateResult value = evalBooleanStrict(frame, callExpr.getArgs(0));
         if (value.value() instanceof Boolean) {
           return value;
         }
@@ -494,10 +494,10 @@ public final class DefaultInterpreter implements Interpreter {
       return IntermediateResult.create(true);
     }
 
-    private IntermediateResult evalType(RuntimeUnknownResolver resolver, Call callExpr)
+    private IntermediateResult evalType(ExecutionFrame frame, Call callExpr)
         throws InterpreterException {
       Expr typeExprArg = callExpr.getArgs(0);
-      IntermediateResult argResult = evalInternal(resolver, typeExprArg);
+      IntermediateResult argResult = evalInternal(frame, typeExprArg);
       Type checkedType = checkedExpr.getTypeMapMap().get(typeExprArg.getId());
       Value checkedTypeValue = typeProvider.adaptType(checkedType);
       Object typeValue = typeProvider.resolveObjectType(argResult.value(), checkedTypeValue);
@@ -511,10 +511,9 @@ public final class DefaultInterpreter implements Interpreter {
           .build();
     }
 
-    private IntermediateResult evalBoolean(
-        RuntimeUnknownResolver resolver, Expr expr, boolean strict) throws InterpreterException {
-      IntermediateResult value =
-          strict ? evalInternal(resolver, expr) : evalNonstrictly(resolver, expr);
+    private IntermediateResult evalBoolean(ExecutionFrame frame, Expr expr, boolean strict)
+        throws InterpreterException {
+      IntermediateResult value = strict ? evalInternal(frame, expr) : evalNonstrictly(frame, expr);
 
       if (!(value.value() instanceof Boolean)
           && !isUnknownValue(value.value())
@@ -527,28 +526,27 @@ public final class DefaultInterpreter implements Interpreter {
       return value;
     }
 
-    private IntermediateResult evalBooleanStrict(RuntimeUnknownResolver resolver, Expr expr)
+    private IntermediateResult evalBooleanStrict(ExecutionFrame frame, Expr expr)
         throws InterpreterException {
-      return evalBoolean(resolver, expr, /* strict= */ true);
+      return evalBoolean(frame, expr, /* strict= */ true);
     }
 
     // Evaluate a non-strict boolean sub expression.
     // Behaves the same as non-strict eval, but throws an InterpreterException if the result
     // doesn't support CELs short-circuiting behavior (not an error, unknown or boolean).
-    private IntermediateResult evalBooleanNonstrict(RuntimeUnknownResolver resolver, Expr expr)
+    private IntermediateResult evalBooleanNonstrict(ExecutionFrame frame, Expr expr)
         throws InterpreterException {
-      return evalBoolean(resolver, expr, /* strict= */ false);
+      return evalBoolean(frame, expr, /* strict= */ false);
     }
 
-    private IntermediateResult evalList(
-        RuntimeUnknownResolver resolver, Expr unusedExpr, CreateList listExpr)
+    private IntermediateResult evalList(ExecutionFrame frame, Expr unusedExpr, CreateList listExpr)
         throws InterpreterException {
 
-      CallArgumentChecker argChecker = CallArgumentChecker.create(resolver);
+      CallArgumentChecker argChecker = CallArgumentChecker.create(frame.getResolver());
       List<Object> result = new ArrayList<>(listExpr.getElementsCount());
 
       for (int i = 0; i < listExpr.getElementsCount(); i++) {
-        IntermediateResult element = evalInternal(resolver, listExpr.getElements(i));
+        IntermediateResult element = evalInternal(frame, listExpr.getElements(i));
         // TODO: remove support for IncompleteData.
         InterpreterUtil.completeDataOnly(
             element.value(), "Incomplete data cannot be an elem of a list.");
@@ -560,18 +558,18 @@ public final class DefaultInterpreter implements Interpreter {
       return IntermediateResult.create(argChecker.maybeUnknowns().orElse(result));
     }
 
-    private IntermediateResult evalStructMap(
-        RuntimeUnknownResolver resolver, CreateStruct structExpr) throws InterpreterException {
+    private IntermediateResult evalStructMap(ExecutionFrame frame, CreateStruct structExpr)
+        throws InterpreterException {
 
-      CallArgumentChecker argChecker = CallArgumentChecker.create(resolver);
+      CallArgumentChecker argChecker = CallArgumentChecker.create(frame.getResolver());
 
       Map<Object, Object> result = new LinkedHashMap<>();
 
       for (CreateStruct.Entry entry : structExpr.getEntriesList()) {
-        IntermediateResult keyResult = evalInternal(resolver, entry.getMapKey());
+        IntermediateResult keyResult = evalInternal(frame, entry.getMapKey());
         argChecker.checkArg(keyResult);
 
-        IntermediateResult valueResult = evalInternal(resolver, entry.getValue());
+        IntermediateResult valueResult = evalInternal(frame, entry.getValue());
         // TODO: remove support for IncompleteData.
         InterpreterUtil.completeDataOnly(
             valueResult.value(), "Incomplete data cannot be a value of a map.");
@@ -588,19 +586,18 @@ public final class DefaultInterpreter implements Interpreter {
       return IntermediateResult.create(argChecker.maybeUnknowns().orElse(result));
     }
 
-    private IntermediateResult evalStruct(
-        RuntimeUnknownResolver resolver, Expr expr, CreateStruct structExpr)
+    private IntermediateResult evalStruct(ExecutionFrame frame, Expr expr, CreateStruct structExpr)
         throws InterpreterException {
       Reference reference = getReferenceOrDefault(expr.getId(), null);
       if (reference == null) {
-        return evalStructMap(resolver, structExpr);
+        return evalStructMap(frame, structExpr);
       }
 
       // Message creation.
-      CallArgumentChecker argChecker = CallArgumentChecker.create(resolver);
+      CallArgumentChecker argChecker = CallArgumentChecker.create(frame.getResolver());
       Map<String, Object> fields = new HashMap<>();
       for (CreateStruct.Entry entry : structExpr.getEntriesList()) {
-        IntermediateResult fieldResult = evalInternal(resolver, entry.getValue());
+        IntermediateResult fieldResult = evalInternal(frame, entry.getValue());
         // TODO: remove support for IncompleteData
         InterpreterUtil.completeDataOnly(
             fieldResult.value(), "Incomplete data cannot be a field of a message.");
@@ -620,9 +617,9 @@ public final class DefaultInterpreter implements Interpreter {
     // If evaluation results in a value, that value is returned directly.  If an exception
     // is thrown during evaluation, that exception itself is returned as the result.
     // Applying {@link #strict} to such a value-or-throwable recovers strict behavior.
-    private IntermediateResult evalNonstrictly(RuntimeUnknownResolver resolver, Expr expr) {
+    private IntermediateResult evalNonstrictly(ExecutionFrame frame, Expr expr) {
       try {
-        return evalInternal(resolver, expr);
+        return evalInternal(frame, expr);
       } catch (Exception e) {
         return IntermediateResult.create(e);
       }
@@ -630,11 +627,10 @@ public final class DefaultInterpreter implements Interpreter {
 
     @SuppressWarnings("unchecked")
     private IntermediateResult evalComprehension(
-        RuntimeUnknownResolver resolver, Expr unusedExpr, Comprehension compre)
-        throws InterpreterException {
+        ExecutionFrame frame, Expr unusedExpr, Comprehension compre) throws InterpreterException {
       String accuVar = compre.getAccuVar();
       String iterVar = compre.getIterVar();
-      IntermediateResult iterRangeRaw = evalInternal(resolver, compre.getIterRange());
+      IntermediateResult iterRangeRaw = evalInternal(frame, compre.getIterRange());
       Collection<Object> iterRange;
       if (isUnknownValue(iterRangeRaw.value())) {
         return iterRangeRaw;
@@ -650,9 +646,11 @@ public final class DefaultInterpreter implements Interpreter {
             .setLocation(metadata, compre.getIterRange().getId())
             .build();
       }
-      IntermediateResult accuValue = evalNonstrictly(resolver, compre.getAccuInit());
+      IntermediateResult accuValue = evalNonstrictly(frame, compre.getAccuInit());
       int i = 0;
       for (Object elem : iterRange) {
+        frame.incrementIterations();
+
         CelAttribute iterAttr = CelAttribute.EMPTY;
         if (iterRange instanceof List) {
           iterAttr = iterRangeRaw.attribute().qualify(CelAttribute.Qualifier.ofInt(i));
@@ -666,19 +664,72 @@ public final class DefaultInterpreter implements Interpreter {
                 accuVar,
                 accuValue);
 
-        RuntimeUnknownResolver loopResolver = resolver.withScope(loopVars);
-        IntermediateResult evalObject = evalBooleanStrict(loopResolver, compre.getLoopCondition());
-
+        frame.pushScope(loopVars);
+        IntermediateResult evalObject = evalBooleanStrict(frame, compre.getLoopCondition());
         if (!isUnknownValue(evalObject.value()) && !(boolean) evalObject.value()) {
+          frame.popScope();
           break;
         }
-        accuValue = evalNonstrictly(loopResolver, compre.getLoopStep());
+        accuValue = evalNonstrictly(frame, compre.getLoopStep());
+        frame.popScope();
       }
 
-      RuntimeUnknownResolver resultResolver =
-          resolver.withScope(ImmutableMap.of(accuVar, accuValue));
+      frame.pushScope(ImmutableMap.of(accuVar, accuValue));
+      IntermediateResult result = evalInternal(frame, compre.getResult());
+      frame.popScope();
+      return result;
+    }
+  }
 
-      return evalInternal(resultResolver, compre.getResult());
+  /** This class tracks the state meaningful to a single evaluation pass. */
+  private static class ExecutionFrame {
+    private final int maxIterations;
+    private final ArrayDeque<RuntimeUnknownResolver> resolvers;
+    private RuntimeUnknownResolver currentResolver;
+    private int iterations;
+
+    private ExecutionFrame(RuntimeUnknownResolver resolver, int maxIterations) {
+      this.resolvers = new ArrayDeque<>();
+      this.resolvers.add(resolver);
+      this.currentResolver = resolver;
+      this.maxIterations = maxIterations;
+    }
+
+    private RuntimeUnknownResolver getResolver() {
+      return currentResolver;
+    }
+
+    private void incrementIterations() throws InterpreterException {
+      if (maxIterations < 0) {
+        return;
+      }
+      if (++iterations > maxIterations) {
+        throw new InterpreterException.Builder(
+                String.format("Iteration budget exceeded: %d", maxIterations))
+            .build();
+      }
+    }
+
+    private IntermediateResult resolveSimpleName(String name, Long exprId) {
+      return currentResolver.resolveSimpleName(name, exprId);
+    }
+
+    private Optional<Object> resolveAttribute(CelAttribute attr) {
+      return currentResolver.resolveAttribute(attr);
+    }
+
+    private void pushScope(ImmutableMap<String, IntermediateResult> scope) {
+      RuntimeUnknownResolver scopedResolver = currentResolver.withScope(scope);
+      currentResolver = scopedResolver;
+      resolvers.addLast(scopedResolver);
+    }
+
+    private void popScope() {
+      if (resolvers.isEmpty()) {
+        throw new IllegalStateException("Execution frame error: more scopes popped than pushed");
+      }
+      resolvers.removeLast();
+      currentResolver = resolvers.getLast();
     }
   }
 }
