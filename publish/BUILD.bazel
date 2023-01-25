@@ -1,0 +1,29 @@
+load("@rules_jvm_external//:defs.bzl", "java_export")
+load("@bazel_common//tools/maven:pom_file.bzl", "pom_file")
+load("//publish:cel_version.bzl", "CEL_VERSION")
+
+RUNTIME_TARGETS = [
+    "//runtime/src/main/java/dev/cel/runtime",
+    "//runtime/src/main/java/dev/cel/runtime:base",
+    "//runtime/src/main/java/dev/cel/runtime:interpreter",
+    "//runtime/src/main/java/dev/cel/runtime:runtime_helper",
+    "//runtime/src/main/java/dev/cel/runtime:unknown_attributes",
+]
+
+pom_file(
+    name = "cel_runtime_pom",
+    substitutions = {
+        "CEL_VERSION": CEL_VERSION,
+        "PACKAGE_NAME": "CEL Java Runtime",
+        "PACKAGE_DESC": "Common Expression Language Runtime for Java",
+    },
+    targets = RUNTIME_TARGETS,
+    template_file = "pom_template.xml",
+)
+
+java_export(
+    name = "cel_runtime",
+    maven_coordinates = "dev.cel:runtime:%s" % CEL_VERSION,
+    pom_template = ":cel_runtime_pom",
+    runtime_deps = RUNTIME_TARGETS,
+)
