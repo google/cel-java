@@ -52,7 +52,6 @@ public abstract class CelAttribute {
       AS_STRING,
       AS_INT,
       AS_UINT,
-      AS_DOUBLE,
       AS_BOOL,
       WILD_CARD
     };
@@ -75,10 +74,6 @@ public abstract class CelAttribute {
       return ofUint(UnsignedLong.valueOf(value));
     }
 
-    public static Qualifier ofDouble(double value) {
-      return AutoOneOf_CelAttribute_Qualifier.asDouble(value);
-    }
-
     public static Qualifier ofBool(boolean value) {
       return AutoOneOf_CelAttribute_Qualifier.asBool(value);
     }
@@ -95,8 +90,6 @@ public abstract class CelAttribute {
 
     public abstract UnsignedLong asUint();
 
-    public abstract Double asDouble();
-
     public abstract Boolean asBool();
 
     public abstract void wildCard();
@@ -112,8 +105,6 @@ public abstract class CelAttribute {
         return ofUint((UnsignedLong) value);
       } else if (value instanceof Long) {
         return ofInt((Long) value);
-      } else if (value instanceof Double) {
-        return ofDouble((Double) value);
       } else if (value instanceof Boolean) {
         return ofBool((boolean) value);
       } else if (value instanceof String) {
@@ -133,9 +124,6 @@ public abstract class CelAttribute {
           break;
         case AS_UINT:
           key = asUint().toString() + "u";
-          break;
-        case AS_DOUBLE:
-          key = asDouble().toString();
           break;
         case AS_BOOL:
           key = asBool() ? "true" : "false";

@@ -45,9 +45,6 @@ public final class CelAttributeTest {
     assertThat(CelAttribute.create("identifier").qualify(CelAttribute.Qualifier.ofUint(1)))
         .isNotEqualTo(CelAttribute.create("identifier").qualify(CelAttribute.Qualifier.ofInt(1)));
 
-    assertThat(CelAttribute.create("identifier").qualify(CelAttribute.Qualifier.ofDouble(1)))
-        .isNotEqualTo(CelAttribute.create("identifier").qualify(CelAttribute.Qualifier.ofInt(1)));
-
     assertThat(CelAttribute.create("identifier").qualify(CelAttribute.Qualifier.ofBool(true)))
         .isNotEqualTo(CelAttribute.create("identifier").qualify(CelAttribute.Qualifier.ofInt(1)));
 
@@ -67,9 +64,6 @@ public final class CelAttributeTest {
 
     assertThat(CelAttribute.create("identifier").qualify(CelAttribute.Qualifier.ofInt(1)))
         .isEqualTo(CelAttribute.create("identifier").qualify(CelAttribute.Qualifier.ofInt(1)));
-
-    assertThat(CelAttribute.create("identifier").qualify(CelAttribute.Qualifier.ofDouble(1)))
-        .isEqualTo(CelAttribute.create("identifier").qualify(CelAttribute.Qualifier.ofDouble(1)));
 
     assertThat(CelAttribute.create("identifier").qualify(CelAttribute.Qualifier.ofUint(1)))
         .isEqualTo(CelAttribute.create("identifier").qualify(CelAttribute.Qualifier.ofUint(1)));
@@ -115,12 +109,6 @@ public final class CelAttributeTest {
         .isEqualTo("identifier[1]");
 
     assertThat(
-            CelAttribute.create("identifier")
-                .qualify(CelAttribute.Qualifier.ofDouble(1))
-                .toString())
-        .isEqualTo("identifier[1.0]");
-
-    assertThat(
             CelAttribute.create("identifier").qualify(CelAttribute.Qualifier.ofUint(1)).toString())
         .isEqualTo("identifier[1u]");
 
@@ -158,7 +146,6 @@ public final class CelAttributeTest {
     assertThat(Qualifier.fromGeneric(Long.valueOf(1))).isEqualTo(Qualifier.ofInt(1));
     assertThat(Qualifier.fromGeneric(UnsignedLong.valueOf(1))).isEqualTo(Qualifier.ofUint(1));
     assertThat(Qualifier.fromGeneric("abcd")).isEqualTo(Qualifier.ofString("abcd"));
-    assertThat(Qualifier.fromGeneric(Double.valueOf(10))).isEqualTo(Qualifier.ofDouble(10));
     assertThat(Qualifier.fromGeneric(Boolean.valueOf(false))).isEqualTo(Qualifier.ofBool(false));
   }
 

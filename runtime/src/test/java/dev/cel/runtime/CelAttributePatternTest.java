@@ -43,9 +43,6 @@ public final class CelAttributePatternTest {
     assertThat(CelAttributePattern.create("identifier").qualify(Qualifier.ofUint(1)))
         .isNotEqualTo(CelAttributePattern.create("identifier").qualify(Qualifier.ofInt(1)));
 
-    assertThat(CelAttributePattern.create("identifier").qualify(Qualifier.ofDouble(1)))
-        .isNotEqualTo(CelAttributePattern.create("identifier").qualify(Qualifier.ofInt(1)));
-
     assertThat(CelAttributePattern.create("identifier").qualify(Qualifier.ofBool(true)))
         .isNotEqualTo(CelAttributePattern.create("identifier").qualify(Qualifier.ofInt(1)));
 
@@ -69,9 +66,6 @@ public final class CelAttributePatternTest {
 
     assertThat(CelAttributePattern.create("identifier").qualify(Qualifier.ofInt(1)))
         .isEqualTo(CelAttributePattern.create("identifier").qualify(Qualifier.ofInt(1)));
-
-    assertThat(CelAttributePattern.create("identifier").qualify(Qualifier.ofDouble(1)))
-        .isEqualTo(CelAttributePattern.create("identifier").qualify(Qualifier.ofDouble(1)));
 
     assertThat(CelAttributePattern.create("identifier").qualify(Qualifier.ofUint(1)))
         .isEqualTo(CelAttributePattern.create("identifier").qualify(Qualifier.ofUint(1)));
@@ -101,9 +95,6 @@ public final class CelAttributePatternTest {
 
     assertThat(CelAttributePattern.create("identifier").qualify(Qualifier.ofInt(1)).toString())
         .isEqualTo("identifier[1]");
-
-    assertThat(CelAttributePattern.create("identifier").qualify(Qualifier.ofDouble(1)).toString())
-        .isEqualTo("identifier[1.0]");
 
     assertThat(CelAttributePattern.create("identifier").qualify(Qualifier.ofUint(1)).toString())
         .isEqualTo("identifier[1u]");
