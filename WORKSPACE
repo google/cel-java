@@ -122,7 +122,7 @@ rules_pkg_dependencies()
 
 BAZEL_COMMON_TAG = "aaa4d801588f7744c6f4428e4f133f26b8518f42"
 
-BAZEL_COMMON_SHA = "6c8c0f13d90f4855971832157f94210966afae56c643708fafc9be6ab0d27d50"
+BAZEL_COMMON_SHA = "1f85abb0043f3589b9bf13a80319dc48a5f01a052c68bab3c08015a56d92ab7f"
 
 http_archive(
     name = "bazel_common",
