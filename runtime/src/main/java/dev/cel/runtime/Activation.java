@@ -30,7 +30,7 @@ import dev.cel.common.internal.ProtoAdapter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import javax.annotation.Nullable;
+import org.jspecify.nullness.Nullable;
 
 /**
  * An object which allows to bind names to values.

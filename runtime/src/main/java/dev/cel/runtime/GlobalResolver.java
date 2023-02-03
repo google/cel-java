@@ -15,7 +15,7 @@
 package dev.cel.runtime;
 
 import dev.cel.common.annotations.Internal;
-import javax.annotation.Nullable;
+import org.jspecify.nullness.Nullable;
 
 /**
  * An interface describing an object that can perform a lookup on a given name, returning the value
@@ -28,6 +28,5 @@ import javax.annotation.Nullable;
 public interface GlobalResolver {
 
   /** Resolves the given name to its value. Returns null if resolution fails. */
-  @Nullable
-  Object resolve(String name);
+  @Nullable Object resolve(String name);
 }

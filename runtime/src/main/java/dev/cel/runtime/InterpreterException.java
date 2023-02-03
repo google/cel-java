@@ -17,7 +17,7 @@ package dev.cel.runtime;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.annotations.Internal;
-import javax.annotation.Nullable;
+import org.jspecify.nullness.Nullable;
 
 /**
  * An exception produced during interpretation of expressions.

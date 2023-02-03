@@ -50,7 +50,7 @@ import dev.cel.common.internal.BidiConverter;
 import dev.cel.common.internal.DynamicProto;
 import java.util.Arrays;
 import java.util.List;
-import javax.annotation.Nullable;
+import org.jspecify.nullness.Nullable;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -34,7 +34,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.internal.DynamicProto;
 import java.util.Arrays;
 import java.util.function.Function;
-import javax.annotation.Nullable;
+import org.jspecify.nullness.Nullable;
 
 /** {@code CelRuntime} implementation based on the legacy CEL-Java stack. */
 @ThreadSafe

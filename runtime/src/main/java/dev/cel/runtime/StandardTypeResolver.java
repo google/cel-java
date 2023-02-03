@@ -29,7 +29,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
 import java.util.Collection;
 import java.util.Map;
-import javax.annotation.Nullable;
+import org.jspecify.nullness.Nullable;
 
 /**
  * The {@code StandardTypeResolver} implements the {@link TypeResolver} and resolves types supported

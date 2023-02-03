@@ -49,12 +49,12 @@ java_library(
         "@com_google_protobuf//:duration_proto",
         "@com_google_protobuf//:struct_proto",
         "@com_google_protobuf//:timestamp_proto",
-        "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:com_google_protobuf_protobuf_javalite",
+        "@maven//:org_jspecify_jspecify",
     ],
 )
 
@@ -82,6 +82,7 @@ java_library(
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:com_google_protobuf_protobuf_javalite",
+        "@maven//:org_jspecify_jspecify",
     ],
 )
 
@@ -137,6 +138,7 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_jspecify_jspecify",
     ],
 )
 

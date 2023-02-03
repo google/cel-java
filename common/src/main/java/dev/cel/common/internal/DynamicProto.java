@@ -32,7 +32,7 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.types.CelTypes;
 import java.util.Map.Entry;
 import java.util.Optional;
-import javax.annotation.Nullable;
+import org.jspecify.nullness.Nullable;
 
 /**
  * The {@code DynamicProto} class supports the conversion of {@link Any} values to concrete {@code
@@ -56,9 +56,7 @@ public final class DynamicProto {
   @Immutable
   @FunctionalInterface
   public interface ProtoMessageFactory {
-
-    @Nullable
-    Message.Builder newBuilder(String messageName);
+    Message.@Nullable Builder newBuilder(String messageName);
   }
 
   /** Builder for configuring the {@link DynamicProto}. */

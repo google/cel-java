@@ -18,7 +18,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Message;
 import dev.cel.common.annotations.Internal;
-import javax.annotation.Nullable;
+import org.jspecify.nullness.Nullable;
 
 /**
  * The {@code MessageFactory} provides a method to create a protobuf builder objects by name.
@@ -35,8 +35,7 @@ public interface MessageFactory {
    *
    * <p>Returns {@code null} if the builder could not be created.
    */
-  @Nullable
-  Message.Builder newBuilder(String messageName);
+  Message.@Nullable Builder newBuilder(String messageName);
 
   /**
    * The {@code CombinedMessageFactory} takes one or more {@code MessageFactory} instances and
@@ -52,9 +51,8 @@ public interface MessageFactory {
       this.messageFactories = ImmutableList.copyOf(messageFactories);
     }
 
-    @Nullable
     @Override
-    public Message.Builder newBuilder(String messageName) {
+    public Message.@Nullable Builder newBuilder(String messageName) {
       for (MessageFactory messageFactory : messageFactories) {
         Message.Builder builder = messageFactory.newBuilder(messageName);
         if (builder != null) {

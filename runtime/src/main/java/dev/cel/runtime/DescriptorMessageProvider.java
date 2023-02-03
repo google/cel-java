@@ -30,7 +30,7 @@ import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoAdapter;
 import java.util.Map;
 import java.util.Optional;
-import javax.annotation.Nullable;
+import org.jspecify.nullness.Nullable;
 
 /**
  * An implementation of {@link RuntimeTypeProvider} which relies on proto descriptors.

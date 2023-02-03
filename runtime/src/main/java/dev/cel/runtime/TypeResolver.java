@@ -18,7 +18,7 @@ import com.google.api.expr.v1alpha1.Type;
 import com.google.api.expr.v1alpha1.Value;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
-import javax.annotation.Nullable;
+import org.jspecify.nullness.Nullable;
 
 /**
  * The {@code TypeResolver} determines the CEL type of Java-native values and assists with adapting
@@ -42,8 +42,7 @@ public interface TypeResolver {
    * <p>Type resolution is biased toward the runtime value type, given the dynamically typed nature
    * of CEL.
    */
-  @Nullable
-  Value resolveObjectType(Object obj, @Nullable Value checkedTypeValue);
+  @Nullable Value resolveObjectType(Object obj, @Nullable Value checkedTypeValue);
 
   /**
    * Adapt the check-time {@code type} instance to a runtime {@code Value}.
@@ -51,6 +50,5 @@ public interface TypeResolver {
    * <p>When the checked {@code type} does not have a runtime equivalent, e.g. {@code Type#DYN}, the
    * return value will be {@code null}.
    */
-  @Nullable
-  Value adaptType(@Nullable Type type);
+  @Nullable Value adaptType(@Nullable Type type);
 }

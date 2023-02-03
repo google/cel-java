@@ -25,7 +25,7 @@ import dev.cel.common.ExprFeatures;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.DynamicProto;
 import java.util.Collection;
-import javax.annotation.Nullable;
+import org.jspecify.nullness.Nullable;
 
 /**
  * The {@code DynamicMessageFactory} creates {@link DynamicMessage} instances by protobuf name.
@@ -89,8 +89,7 @@ public final class DynamicMessageFactory implements MessageFactory {
   }
 
   @Override
-  @Nullable
-  public Message.Builder newBuilder(String messageName) {
+  public Message.@Nullable Builder newBuilder(String messageName) {
     return dynamicProto.newMessageBuilder(messageName).orElse(null);
   }
 }
