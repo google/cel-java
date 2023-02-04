@@ -24,9 +24,9 @@ import dev.cel.common.annotations.Internal;
  * <p>CEL Library Internals. Do Not Use.
  */
 @Internal
-final class ProtoRegistryProvider {
+public final class ProtoRegistryProvider {
 
-  static ExtensionRegistry getExtensionRegistry() {
+  public static ExtensionRegistry getExtensionRegistry() {
     return ExtensionRegistry.getEmptyRegistry();
   }
 

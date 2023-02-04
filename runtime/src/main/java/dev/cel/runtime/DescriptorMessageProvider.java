@@ -49,6 +49,7 @@ import org.jspecify.nullness.Nullable;
 @Internal
 public final class DescriptorMessageProvider implements RuntimeTypeProvider {
   private final MessageFactory messageFactory;
+  private final DynamicProto dynamicProto;
   private final TypeResolver typeResolver;
 
   @SuppressWarnings("Immutable")
@@ -74,6 +75,7 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
    */
   public DescriptorMessageProvider(
       MessageFactory messageFactory, DynamicProto dynamicProto, CelOptions celOptions) {
+    this.dynamicProto = dynamicProto;
     // Dedupe the descriptors while indexing by name.
     this.typeResolver = StandardTypeResolver.getInstance(celOptions);
     this.messageFactory = messageFactory;
@@ -158,8 +160,16 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
     return typedMessage.hasField(fieldDescriptor);
   }
 
-  private static FieldDescriptor findField(Descriptor descriptor, String fieldName) {
+  private FieldDescriptor findField(Descriptor descriptor, String fieldName) {
     FieldDescriptor fieldDescriptor = descriptor.findFieldByName(fieldName);
+    if (fieldDescriptor == null) {
+      Optional<FieldDescriptor> maybeFieldDescriptor =
+          dynamicProto.maybeGetExtensionDescriptor(descriptor, fieldName);
+      if (maybeFieldDescriptor.isPresent()) {
+        fieldDescriptor = maybeFieldDescriptor.get();
+      }
+    }
+
     if (fieldDescriptor == null) {
       throw new IllegalArgumentException(
           String.format(

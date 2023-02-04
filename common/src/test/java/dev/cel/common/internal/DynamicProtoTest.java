@@ -20,7 +20,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.base.Ascii;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import com.google.protobuf.Any;
@@ -36,11 +36,10 @@ import com.google.protobuf.TextFormat;
 import com.google.protobuf.Value;
 import com.google.type.Expr;
 import dev.cel.common.CelDescriptorUtil;
+import dev.cel.common.CelDescriptors;
 import dev.cel.testing.testdata.MultiFile;
 import dev.cel.testing.testdata.SingleFileProto.SingleFile;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -53,19 +52,13 @@ public final class DynamicProtoTest {
     Expr expr =
         Expr.newBuilder().setExpression("a < b").setTitle("Simple ordering predicate").build();
     Any packedExpr = Any.pack(expr);
-
-    ImmutableSet<Descriptor> descriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-                ImmutableSet.of(Expr.getDescriptor().getFile()))
-            .messageTypeDescriptors();
-
-    ImmutableMap.Builder<String, Descriptor> typeMap = ImmutableMap.builder();
-    for (Descriptor d : descriptors) {
-      typeMap.put(d.getFullName(), d);
-    }
+    CelDescriptors celDescriptors =
+        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(Expr.getDescriptor().getFile());
     DynamicProto dynamicProto =
-        DynamicProto.newBuilder().setDynamicDescriptors(typeMap.buildOrThrow()).build();
+        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build();
+
     Message unpacked = dynamicProto.unpack(packedExpr);
+
     assertThat(expr).isEqualTo(unpacked);
     assertThat(unpacked).isInstanceOf(Expr.class);
   }
@@ -78,17 +71,13 @@ public final class DynamicProtoTest {
             .setPath(MultiFile.File.Path.newBuilder().addFragments("dir"))
             .build();
     Any packed = Any.pack(file);
-    ImmutableSet<Descriptor> descriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-                ImmutableSet.of(MultiFile.getDescriptor().getFile()))
-            .messageTypeDescriptors();
-    ImmutableMap.Builder<String, Descriptor> typeMap = ImmutableMap.builder();
-    for (Descriptor d : descriptors) {
-      typeMap.put(d.getFullName(), d);
-    }
+    CelDescriptors celDescriptors =
+        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(MultiFile.getDescriptor().getFile());
     DynamicProto dynamicProto =
-        DynamicProto.newBuilder().setDynamicDescriptors(typeMap.buildOrThrow()).build();
+        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build();
+
     Message unpacked = dynamicProto.unpack(packed);
+
     assertThat(file).isEqualTo(unpacked);
     assertThat(unpacked).isInstanceOf(MultiFile.File.class);
   }
@@ -97,17 +86,13 @@ public final class DynamicProtoTest {
   public void unpackLinkedMessageType_withTypeRegistry_singleFileNested() throws Exception {
     SingleFile.Path path = SingleFile.Path.newBuilder().addFragments("dir").build();
     Any packed = Any.pack(path);
-    ImmutableSet<Descriptor> descriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-                ImmutableSet.of(SingleFile.getDescriptor().getFile()))
-            .messageTypeDescriptors();
-    ImmutableMap.Builder<String, Descriptor> typeMap = ImmutableMap.builder();
-    for (Descriptor d : descriptors) {
-      typeMap.put(d.getFullName(), d);
-    }
+    CelDescriptors celDescriptors =
+        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(SingleFile.getDescriptor().getFile());
     DynamicProto dynamicProto =
-        DynamicProto.newBuilder().setDynamicDescriptors(typeMap.buildOrThrow()).build();
+        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build();
+
     Message unpacked = dynamicProto.unpack(packed);
+
     assertThat(path).isEqualTo(unpacked);
     assertThat(unpacked).isInstanceOf(SingleFile.Path.class);
   }
@@ -117,16 +102,12 @@ public final class DynamicProtoTest {
     Expr expr =
         Expr.newBuilder().setExpression("a < b").setTitle("Simple ordering predicate").build();
     Any packedExpr = Any.pack(expr);
-    ImmutableSet<Descriptor> descriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-                ImmutableSet.of(Expr.getDescriptor().getFile()))
-            .messageTypeDescriptors();
-    ImmutableMap.Builder<String, Descriptor> typeMap = ImmutableMap.builder();
-    for (Descriptor d : descriptors) {
-      typeMap.put(d.getFullName(), d);
-    }
+    CelDescriptors celDescriptors =
+        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(Expr.getDescriptor().getFile());
     DynamicProto dynamicProto =
-        DynamicProto.newBuilder().setDynamicDescriptors(typeMap.buildOrThrow()).build();
+        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build();
+
+    // Order is important here.
     Message unpacked = dynamicProto.unpack(packedExpr);
     assertThat(expr).isEqualTo(unpacked);
     assertThat(unpacked).isInstanceOf(Expr.class);
@@ -141,29 +122,19 @@ public final class DynamicProtoTest {
             .putFields("hello", Value.newBuilder().setStringValue("world").build())
             .build();
     Any packedStruct = Any.pack(struct);
-    Map<String, Descriptor> typeMap = new HashMap<>();
-    ImmutableSet<Descriptor> localDescriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-                ImmutableSet.of(Struct.getDescriptor().getFile()))
-            .messageTypeDescriptors();
-    for (Descriptor d : localDescriptors) {
-      typeMap.put(d.getFullName(), d);
-    }
-
-    // This descriptor set will contain an overloapping reference to Struct type
+    // This descriptor set will contain an overlapping reference to Struct type
     FileDescriptorSet fds = TextFormat.parse(readFile("value.fds"), FileDescriptorSet.class);
-    ImmutableSet<FileDescriptor> files =
-        CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds);
-    ImmutableSet<Descriptor> dynamicDescriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(files).messageTypeDescriptors();
-    for (Descriptor d : dynamicDescriptors) {
-      typeMap.put(d.getFullName(), d);
-    }
-
+    ImmutableList.Builder<FileDescriptor> fileDescriptorBuilder = ImmutableList.builder();
+    fileDescriptorBuilder.add(Struct.getDescriptor().getFile());
+    fileDescriptorBuilder.addAll(CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds));
     // Unpacking should still use the linked class.
+    CelDescriptors celDescriptors =
+        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileDescriptorBuilder.build());
     DynamicProto dynamicProto =
-        DynamicProto.newBuilder().setDynamicDescriptors(ImmutableMap.copyOf(typeMap)).build();
+        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build();
+
     Message unpacked = dynamicProto.unpack(packedStruct);
+
     assertThat(unpacked).isInstanceOf(Struct.class);
     assertThat(struct).isEqualTo(unpacked);
   }
@@ -193,14 +164,9 @@ public final class DynamicProtoTest {
     FileDescriptorSet fds = TextFormat.parse(readFile("value.fds"), FileDescriptorSet.class);
     ImmutableSet<FileDescriptor> files =
         CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds);
-    ImmutableSet<Descriptor> descriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(files).messageTypeDescriptors();
-    ImmutableMap.Builder<String, Descriptor> typeMap = ImmutableMap.builder();
-    for (Descriptor d : descriptors) {
-      typeMap.put(d.getFullName(), d);
-    }
+    CelDescriptors celDescriptors = CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(files);
     DynamicProto dynamicProto =
-        DynamicProto.newBuilder().setDynamicDescriptors(typeMap.buildOrThrow()).build();
+        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build();
     Any.Builder anyValue = Any.newBuilder();
     TextFormat.merge(readFile("value.textproto"), anyValue);
     assertThat(anyValue.getTypeUrl()).isEqualTo("type.googleapis.com/google.api.expr.Value");
@@ -233,14 +199,9 @@ public final class DynamicProtoTest {
     FileDescriptorSet fds = TextFormat.parse(readFile("value.fds"), FileDescriptorSet.class);
     ImmutableSet<FileDescriptor> files =
         CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds);
-    ImmutableSet<Descriptor> descriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(files).messageTypeDescriptors();
-    ImmutableMap.Builder<String, Descriptor> typeMap = ImmutableMap.builder();
-    for (Descriptor d : descriptors) {
-      typeMap.put(d.getFullName(), d);
-    }
+    CelDescriptors celDescriptors = CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(files);
     DynamicProto dynamicProto =
-        DynamicProto.newBuilder().setDynamicDescriptors(typeMap.buildOrThrow()).build();
+        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build();
     Any.Builder anyValue = Any.newBuilder();
     TextFormat.merge(readFile("value.textproto"), anyValue);
     assertThat(anyValue.getTypeUrl()).isEqualTo("type.googleapis.com/google.api.expr.Value");
@@ -288,15 +249,10 @@ public final class DynamicProtoTest {
     FileDescriptorSet fds = TextFormat.parse(readFile("value.fds"), FileDescriptorSet.class);
     ImmutableSet<FileDescriptor> files =
         CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds);
-    ImmutableSet<Descriptor> descriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(files).messageTypeDescriptors();
-    ImmutableMap.Builder<String, Descriptor> typeMap = ImmutableMap.builder();
-    for (Descriptor d : descriptors) {
-      typeMap.put(d.getFullName(), d);
-    }
+    CelDescriptors celDescriptors = CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(files);
     DynamicProto dynamicProto =
         DynamicProto.newBuilder()
-            .setDynamicDescriptors(typeMap.buildOrThrow())
+            .setDynamicDescriptors(celDescriptors)
             .build();
     Any any = TextFormat.parse(readFile("value.textproto"), Any.class);
     Message unpacked = dynamicProto.unpack(any);
@@ -310,7 +266,8 @@ public final class DynamicProtoTest {
     DynamicProto dynamicProto =
         DynamicProto.newBuilder()
             .setDynamicDescriptors(
-                ImmutableMap.of(Value.getDescriptor().getFullName(), Value.getDescriptor()))
+                CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+                    Value.getDescriptor().getFile()))
             .build();
     Value.Builder valueBuilder =
         (Value.Builder) dynamicProto.newMessageBuilder("google.protobuf.Value").get();
@@ -323,7 +280,8 @@ public final class DynamicProtoTest {
     DynamicProto dynamicProto =
         DynamicProto.newBuilder()
             .setDynamicDescriptors(
-                ImmutableMap.of(Value.getDescriptor().getFullName(), Value.getDescriptor()))
+                CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+                    Value.getDescriptor().getFile()))
             .build();
     FieldDescriptor stringValueField = Value.getDescriptor().findFieldByName("string_value");
     Message.Builder valueBuilder = dynamicProto.newMessageBuilder("google.protobuf.Value").get();
@@ -336,15 +294,10 @@ public final class DynamicProtoTest {
     FileDescriptorSet fds = TextFormat.parse(readFile("value.fds"), FileDescriptorSet.class);
     ImmutableSet<FileDescriptor> files =
         CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds);
-    ImmutableSet<Descriptor> descriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(files).messageTypeDescriptors();
-    ImmutableMap.Builder<String, Descriptor> typeMap = ImmutableMap.builder();
-    for (Descriptor d : descriptors) {
-      typeMap.put(d.getFullName(), d);
-    }
+    CelDescriptors celDescriptors = CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(files);
     DynamicProto dynamicProto =
         DynamicProto.newBuilder()
-            .setDynamicDescriptors(typeMap.buildOrThrow())
+            .setDynamicDescriptors(celDescriptors)
             .build();
     assertThat(dynamicProto.newMessageBuilder("google.api.expr.Value")).isPresent();
     assertThat(dynamicProto.newMessageBuilder("google.api.expr.Value").get())

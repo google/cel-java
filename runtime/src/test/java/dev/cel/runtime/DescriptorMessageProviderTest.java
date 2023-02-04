@@ -23,8 +23,12 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Message;
 import com.google.protobuf.NullValue;
 import dev.cel.common.CelDescriptorUtil;
+import dev.cel.common.CelDescriptors;
 import dev.cel.common.CelOptions;
 import dev.cel.common.internal.DynamicProto;
+import dev.cel.testing.testdata.proto2.MessagesProto2;
+import dev.cel.testing.testdata.proto2.MessagesProto2Extensions;
+import dev.cel.testing.testdata.proto2.Proto2Message;
 import dev.cel.testing.testdata.proto2.Proto2Message.NestedGroup;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import org.junit.Assert;
@@ -44,7 +48,9 @@ public final class DescriptorMessageProviderTest {
     ImmutableList<Descriptor> descriptors = ImmutableList.of(TestAllTypes.getDescriptor());
     DynamicProto dynamicProto =
         DynamicProto.newBuilder()
-            .setDynamicDescriptors(CelDescriptorUtil.descriptorCollectionToMap(descriptors))
+            .setDynamicDescriptors(
+                CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+                    TestAllTypes.getDescriptor().getFile()))
             .build();
     provider =
         new DescriptorMessageProvider(
@@ -145,5 +151,31 @@ public final class DescriptorMessageProviderTest {
   public void selectField_nonProtoObjectError() {
     Assert.assertThrows(
         IllegalStateException.class, () -> provider.selectField("hello", "not_a_field"));
+  }
+
+  @Test
+  public void selectField_extensionUsingDynamicTypes() {
+    CelDescriptors celDescriptors =
+        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+            ImmutableList.of(MessagesProto2Extensions.getDescriptor()));
+    DynamicProto dynamicProto =
+        DynamicProto.newBuilder()
+            .setDynamicDescriptors(celDescriptors)
+            .build();
+    provider =
+        new DescriptorMessageProvider(
+            DynamicMessageFactory.typeFactory(celDescriptors),
+            dynamicProto,
+            CelOptions.current().build());
+
+    long result =
+        (long)
+            provider.selectField(
+                Proto2Message.newBuilder()
+                    .setExtension(MessagesProto2Extensions.int32Ext, 10)
+                    .build(),
+                MessagesProto2.getDescriptor().getPackage() + ".int32_ext");
+
+    assertThat(result).isEqualTo(10);
   }
 }

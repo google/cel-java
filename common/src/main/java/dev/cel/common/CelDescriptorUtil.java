@@ -24,6 +24,7 @@ import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.Descriptors.GenericDescriptor;
 import dev.cel.common.internal.FileDescriptorSetConverter;
 import dev.cel.common.types.CelTypes;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -70,7 +71,18 @@ public final class CelDescriptorUtil {
    * <p>Note, the input {@code fileDescriptors} set will be expanded to the complete set of
    * dependencies needed to describe the types within the provided files.
    */
-  @VisibleForTesting
+  public static CelDescriptors getAllDescriptorsFromFileDescriptor(
+      FileDescriptor... fileDescriptors) {
+    return getAllDescriptorsFromFileDescriptor(Arrays.asList(fileDescriptors));
+  }
+
+  /**
+   * Extract the full message {@code CelDescriptors} set from the input set of {@code
+   * fileDescriptors}. All message type, enum, extension and file descriptors will be extracted.
+   *
+   * <p>Note, the input {@code fileDescriptors} set will be expanded to the complete set of
+   * dependencies needed to describe the types within the provided files.
+   */
   public static CelDescriptors getAllDescriptorsFromFileDescriptor(
       Iterable<FileDescriptor> fileDescriptors) {
     return getAllDescriptorsFromFileDescriptor(fileDescriptors, true);
@@ -85,7 +97,6 @@ public final class CelDescriptorUtil {
    *     imports on FileDescriptor B, FD B's descriptors will be pulled in). Setting false will
    *     disable this.
    */
-  @VisibleForTesting
   public static CelDescriptors getAllDescriptorsFromFileDescriptor(
       Iterable<FileDescriptor> fileDescriptors, boolean resolveTypeDependencies) {
     ImmutableSet<FileDescriptor> allFileDescriptors =

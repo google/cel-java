@@ -14,14 +14,13 @@
 
 package dev.cel.runtime;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
 import dev.cel.common.CelDescriptorUtil;
+import dev.cel.common.CelDescriptors;
 import dev.cel.common.CelOptions;
-import dev.cel.common.ExprFeatures;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.DynamicProto;
 import java.util.Collection;
@@ -42,49 +41,51 @@ public final class DynamicMessageFactory implements MessageFactory {
   /**
    * Create a {@link RuntimeTypeProvider} which can access only the types listed in the input {@code
    * descriptors} using the {@code CelOptions.LEGACY} settings.
+   *
+   * @deprecated Use CEL Fluent APIs instead. Directly instantiating DynamicMessageFactory's
+   *     RuntimeTypeProvider is no longer needed.
    */
+  @Deprecated
   public static RuntimeTypeProvider typeProvider(Collection<Descriptor> descriptors) {
-    return typeProvider(descriptors, CelOptions.LEGACY);
-  }
+    CelDescriptors celDescriptors =
+        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+            CelDescriptorUtil.getFileDescriptorsForDescriptors(descriptors));
 
-  /**
-   * Create a {@link RuntimeTypeProvider} which can access only the types listed in the input {@code
-   * descriptors} using a custom set of {@code features}.
-   */
-  public static RuntimeTypeProvider typeProvider(
-      Collection<Descriptor> descriptors, ImmutableSet<ExprFeatures> features) {
-    return typeProvider(descriptors, CelOptions.fromExprFeatures(features));
-  }
-
-  /**
-   * Create a {@link RuntimeTypeProvider} which can access only the types listed in the input {@code
-   * descriptors} and configured set of {@code celOptions}.
-   */
-  public static RuntimeTypeProvider typeProvider(
-      Collection<Descriptor> descriptors, CelOptions celOptions) {
     return new DescriptorMessageProvider(
         typeFactory(descriptors),
-        DynamicProto.newBuilder()
-            .setDynamicDescriptors(CelDescriptorUtil.descriptorCollectionToMap(descriptors))
-            .build(),
-        celOptions);
+        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build(),
+        CelOptions.LEGACY);
   }
 
   /**
    * Create a {@code MessageFactory} which can produce any protobuf type in the generated descriptor
    * pool or in the input {@code descriptors}.
+   *
+   * @deprecated Use CEL Fluent APIs instead. Directly instantiating DynamicMessageFactory is no
+   *     longer needed.
    */
+  @Deprecated
   public static MessageFactory typeFactory(Collection<Descriptor> descriptors) {
+    CelDescriptors celDescriptors =
+        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+            CelDescriptorUtil.getFileDescriptorsForDescriptors(descriptors));
+    return typeFactory(celDescriptors);
+  }
 
-    return new DynamicMessageFactory(descriptors);
+  /**
+   * Create a {@code MessageFactory} which can produce any protobuf type linked in the binary, or
+   * present in the collection of {@code descriptors}.
+   */
+  public static MessageFactory typeFactory(CelDescriptors celDescriptors) {
+    return new DynamicMessageFactory(celDescriptors);
   }
 
   private final DynamicProto dynamicProto;
 
-  private DynamicMessageFactory(Collection<Descriptor> descriptors) {
+  private DynamicMessageFactory(CelDescriptors celDescriptors) {
     this.dynamicProto =
         DynamicProto.newBuilder()
-            .setDynamicDescriptors(CelDescriptorUtil.descriptorCollectionToMap(descriptors))
+            .setDynamicDescriptors(celDescriptors)
             .build();
   }
 

@@ -19,15 +19,20 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.util.Arrays.stream;
 
 import com.google.auto.value.AutoBuilder;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
+import dev.cel.common.CelDescriptorUtil;
+import dev.cel.common.CelDescriptors;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.types.CelTypes;
 import java.util.Map.Entry;
@@ -50,6 +55,7 @@ public final class DynamicProto {
           .collect(toImmutableMap(d -> d.typeName(), d -> d.descriptor()));
 
   private final ImmutableMap<String, Descriptor> dynamicDescriptors;
+  private final ImmutableMultimap<String, FieldDescriptor> dynamicExtensionDescriptors;
   private final ProtoMessageFactory protoMessageFactory;
 
   /** {@code ProtoMessageFactory} provides a method to create a protobuf builder objects by name. */
@@ -63,9 +69,8 @@ public final class DynamicProto {
   @AutoBuilder(ofClass = DynamicProto.class)
   public abstract static class Builder {
 
-    /** Sets {@link Descriptor}s to unpack any message types. */
-    public abstract Builder setDynamicDescriptors(
-        ImmutableMap<String, Descriptor> dynamicDescriptors);
+    /** Sets {@link CelDescriptors} to unpack any message types. */
+    public abstract Builder setDynamicDescriptors(CelDescriptors celDescriptors);
 
     /** Sets a custom type factory to unpack any message types. */
     public abstract Builder setProtoMessageFactory(ProtoMessageFactory factory);
@@ -77,15 +82,17 @@ public final class DynamicProto {
 
   public static Builder newBuilder() {
     return new AutoBuilder_DynamicProto_Builder()
-        .setDynamicDescriptors(ImmutableMap.of())
+        .setDynamicDescriptors(CelDescriptors.builder().build())
         .setProtoMessageFactory((typeName) -> null);
   }
 
   DynamicProto(
-      ImmutableMap<String, Descriptor> dynamicDescriptors,
+      CelDescriptors dynamicDescriptors,
       ProtoMessageFactory protoMessageFactory) {
+    ImmutableMap<String, Descriptor> messageTypeDescriptorMap =
+        CelDescriptorUtil.descriptorCollectionToMap(dynamicDescriptors.messageTypeDescriptors());
     ImmutableMap<String, Descriptor> filteredDescriptors =
-        dynamicDescriptors.entrySet().stream()
+        messageTypeDescriptorMap.entrySet().stream()
             .filter(e -> !WELL_KNOWN_DESCRIPTORS.containsKey(e.getKey()))
             .collect(toImmutableMap(Entry::getKey, Entry::getValue));
     this.dynamicDescriptors =
@@ -93,6 +100,7 @@ public final class DynamicProto {
             .putAll(WELL_KNOWN_DESCRIPTORS)
             .putAll(filteredDescriptors)
             .buildOrThrow();
+    this.dynamicExtensionDescriptors = checkNotNull(dynamicDescriptors.extensionDescriptors());
     this.protoMessageFactory = checkNotNull(protoMessageFactory);
   }
 
@@ -179,6 +187,20 @@ public final class DynamicProto {
 
     Descriptor descriptor = ProtoRegistryProvider.getTypeRegistry().find(typeName);
     return Optional.ofNullable(descriptor != null ? descriptor : dynamicDescriptors.get(typeName));
+  }
+
+  /** Gets the corresponding field descriptor for an extension field on a message. */
+  public Optional<FieldDescriptor> maybeGetExtensionDescriptor(
+      Descriptor containingDescriptor, String fieldName) {
+
+    String typeName = containingDescriptor.getFullName();
+    ImmutableCollection<FieldDescriptor> fieldDescriptors =
+        dynamicExtensionDescriptors.get(typeName);
+    if (fieldDescriptors == null) {
+      return Optional.empty();
+    }
+
+    return fieldDescriptors.stream().filter(d -> d.getFullName().equals(fieldName)).findFirst();
   }
 
   /**

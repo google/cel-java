@@ -208,13 +208,11 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       runtimeTypeFactory =
           maybeCombineTypeFactory(
               runtimeTypeFactory,
-              DynamicMessageFactory.typeFactory(celDescriptors.messageTypeDescriptors()));
+              DynamicMessageFactory.typeFactory(celDescriptors));
 
-      ImmutableMap<String, Descriptor> messageDescriptorMap =
-          CelDescriptorUtil.descriptorCollectionToMap(celDescriptors.messageTypeDescriptors());
       DynamicProto dynamicProto =
           DynamicProto.newBuilder()
-              .setDynamicDescriptors(messageDescriptorMap)
+              .setDynamicDescriptors(celDescriptors)
               .setProtoMessageFactory(runtimeTypeFactory::newBuilder)
               .build();
 

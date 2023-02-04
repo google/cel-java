@@ -25,7 +25,6 @@ import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
-import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.DoubleValue;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
@@ -76,12 +75,12 @@ public final class RuntimeEqualityTest {
           .enableUnsignedLongs(true)
           .build();
 
-  private static final ImmutableList<Descriptor> DESCRIPTORS =
-      ImmutableList.of(AttributeContext.getDescriptor());
   private static final RuntimeEquality RUNTIME_EQUALITY =
       new RuntimeEquality(
           DynamicProto.newBuilder()
-              .setDynamicDescriptors(CelDescriptorUtil.descriptorCollectionToMap(DESCRIPTORS))
+              .setDynamicDescriptors(
+                  CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+                      AttributeContext.getDescriptor().getFile()))
               .build());
 
   @Test
