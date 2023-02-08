@@ -186,7 +186,7 @@ runtime bindings and error handling to do the right thing.
 ### Where can I learn more about the language?
 
 * See the [CEL Spec][1] for the specification and conformance test suite.
-* Ask for support on the [CEL Go Discuss][2] Google group.
+* Ask for support on the [CEL Java Discuss][2] Google group.
 
 ### How can I contribute?
 
