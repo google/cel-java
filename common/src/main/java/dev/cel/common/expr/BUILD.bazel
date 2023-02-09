@@ -1,0 +1,24 @@
+package(default_visibility = [
+    "//:__subpackages__",
+    "//common/src/main/java/dev/cel/common/expr:__pkg__",
+])
+
+# keep sorted
+EXPR_SOURCES = [
+    "CelConstant.java",
+    "CelReference.java",
+]
+
+java_library(
+    name = "expr",
+    srcs = EXPR_SOURCES,
+    deps = [
+        "//:auto_value",
+        "//common/src/main/java/dev/cel/common/annotations",
+        "@com_google_protobuf//:struct_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_javalite",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
