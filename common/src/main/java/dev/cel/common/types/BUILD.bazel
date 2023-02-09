@@ -1,7 +1,10 @@
-package(default_visibility = [
-    "//:__subpackages__",
-    "//common/src/main/java/dev/cel/common/types:__pkg__",
-])
+package(
+    default_applicable_licenses = ["//third_party/java_src/cel:license"],
+    default_visibility = [
+        "//:__subpackages__",
+        "//common/src/main/java/dev/cel/common/types:__pkg__",
+    ],
+)
 
 # Collection of CEL type implementations and type-inference related classes.
 
