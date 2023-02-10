@@ -1,6 +1,6 @@
 name: CEL-Java CI
 run-name: Workflow started by ${{ github.actor }}.
-on: 
+on:
   push:
     branches:
       - 'main'
@@ -32,5 +32,5 @@ jobs:
       - name: Bazel Output Version
         run: bazelisk --version
       - name: Bazel Test
-        run: bazelisk test ...
+        run: bazelisk test ... --test_output=errors
       - run: echo "🍏 This job's status is ${{ job.status }}."

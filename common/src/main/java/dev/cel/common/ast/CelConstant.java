@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.common.expr;
+package dev.cel.common.ast;
 
 import com.google.auto.value.AutoOneOf;
+import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.NullValue;
@@ -48,7 +49,7 @@ public abstract class CelConstant {
 
   public abstract long int64Value();
 
-  public abstract long uint64Value();
+  public abstract UnsignedLong uint64Value();
 
   public abstract double doubleValue();
 
@@ -56,31 +57,31 @@ public abstract class CelConstant {
 
   public abstract ByteString bytesValue();
 
-  public static CelConstant ofNullValue(NullValue value) {
+  public static CelConstant ofValue(NullValue value) {
     return AutoOneOf_CelConstant.nullValue(value);
   }
 
-  public static CelConstant ofBooleanValue(boolean value) {
+  public static CelConstant ofValue(boolean value) {
     return AutoOneOf_CelConstant.booleanValue(value);
   }
 
-  public static CelConstant ofInt64Value(long value) {
+  public static CelConstant ofValue(long value) {
     return AutoOneOf_CelConstant.int64Value(value);
   }
 
-  public static CelConstant ofUInt64Value(long value) {
+  public static CelConstant ofValue(UnsignedLong value) {
     return AutoOneOf_CelConstant.uint64Value(value);
   }
 
-  public static CelConstant ofDoubleValue(double value) {
+  public static CelConstant ofValue(double value) {
     return AutoOneOf_CelConstant.doubleValue(value);
   }
 
-  public static CelConstant ofStringValue(String value) {
+  public static CelConstant ofValue(String value) {
     return AutoOneOf_CelConstant.stringValue(value);
   }
 
-  public static CelConstant ofBytesValue(ByteString value) {
+  public static CelConstant ofValue(ByteString value) {
     return AutoOneOf_CelConstant.bytesValue(value);
   }
 }

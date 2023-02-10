@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.common.expr;
+package dev.cel.common.ast;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.NullValue;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
-import dev.cel.common.expr.CelConstant.Kind;
+import dev.cel.common.ast.CelConstant.Kind;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -30,47 +31,47 @@ public class CelConstantTest {
 
   @Test
   public void equality_objectsAreValueEqual_success() {
-    assertThat(CelConstant.ofNullValue(NullValue.NULL_VALUE))
-        .isEqualTo(CelConstant.ofNullValue(NullValue.NULL_VALUE));
-    assertThat(CelConstant.ofBooleanValue(true)).isEqualTo(CelConstant.ofBooleanValue(true));
-    assertThat(CelConstant.ofBooleanValue(false)).isEqualTo(CelConstant.ofBooleanValue(false));
-    assertThat(CelConstant.ofInt64Value(2)).isEqualTo(CelConstant.ofInt64Value(2));
-    assertThat(CelConstant.ofUInt64Value(2)).isEqualTo(CelConstant.ofUInt64Value(2));
-    assertThat(CelConstant.ofDoubleValue(2.1)).isEqualTo(CelConstant.ofDoubleValue(2.1));
-    assertThat(CelConstant.ofStringValue("Hello world!"))
-        .isEqualTo(CelConstant.ofStringValue("Hello world!"));
-    assertThat(CelConstant.ofBytesValue(ByteString.copyFromUtf8("Test")))
-        .isEqualTo(CelConstant.ofBytesValue(ByteString.copyFromUtf8("Test")));
+    assertThat(CelConstant.ofValue(NullValue.NULL_VALUE))
+        .isEqualTo(CelConstant.ofValue(NullValue.NULL_VALUE));
+    assertThat(CelConstant.ofValue(true)).isEqualTo(CelConstant.ofValue(true));
+    assertThat(CelConstant.ofValue(false)).isEqualTo(CelConstant.ofValue(false));
+    assertThat(CelConstant.ofValue(2)).isEqualTo(CelConstant.ofValue(2));
+    assertThat(CelConstant.ofValue(UnsignedLong.valueOf(2)))
+        .isEqualTo(CelConstant.ofValue(UnsignedLong.valueOf(2)));
+    assertThat(CelConstant.ofValue(2.1)).isEqualTo(CelConstant.ofValue(2.1));
+    assertThat(CelConstant.ofValue("Hello world!")).isEqualTo(CelConstant.ofValue("Hello world!"));
+    assertThat(CelConstant.ofValue(ByteString.copyFromUtf8("Test")))
+        .isEqualTo(CelConstant.ofValue(ByteString.copyFromUtf8("Test")));
   }
 
   @Test
   public void equality_valueEqualityUnsatisfied_fails() {
-    assertThat(CelConstant.ofNullValue(NullValue.NULL_VALUE))
-        .isNotEqualTo(CelConstant.ofNullValue(NullValue.UNRECOGNIZED));
-    assertThat(CelConstant.ofBooleanValue(true)).isNotEqualTo(CelConstant.ofBooleanValue(false));
-    assertThat(CelConstant.ofBooleanValue(false)).isNotEqualTo(CelConstant.ofBooleanValue(true));
-    assertThat(CelConstant.ofInt64Value(3)).isNotEqualTo(CelConstant.ofInt64Value(2));
-    assertThat(CelConstant.ofUInt64Value(3)).isNotEqualTo(CelConstant.ofUInt64Value(2));
-    assertThat(CelConstant.ofInt64Value(3)).isNotEqualTo(CelConstant.ofUInt64Value(3));
-    assertThat(CelConstant.ofInt64Value(3)).isNotEqualTo(CelConstant.ofDoubleValue(3));
-    assertThat(CelConstant.ofDoubleValue(3.1)).isNotEqualTo(CelConstant.ofDoubleValue(2.1));
-    assertThat(CelConstant.ofStringValue("world!"))
-        .isNotEqualTo(CelConstant.ofStringValue("Hello world!"));
-    assertThat(CelConstant.ofBytesValue(ByteString.copyFromUtf8("T")))
-        .isNotEqualTo(CelConstant.ofBytesValue(ByteString.copyFromUtf8("Test")));
+    assertThat(CelConstant.ofValue(NullValue.NULL_VALUE))
+        .isNotEqualTo(CelConstant.ofValue(NullValue.UNRECOGNIZED));
+    assertThat(CelConstant.ofValue(true)).isNotEqualTo(CelConstant.ofValue(false));
+    assertThat(CelConstant.ofValue(false)).isNotEqualTo(CelConstant.ofValue(true));
+    assertThat(CelConstant.ofValue(3)).isNotEqualTo(CelConstant.ofValue(2));
+    assertThat(CelConstant.ofValue(UnsignedLong.valueOf(3)))
+        .isNotEqualTo(CelConstant.ofValue(UnsignedLong.valueOf(2)));
+    assertThat(CelConstant.ofValue(3)).isNotEqualTo(CelConstant.ofValue(UnsignedLong.valueOf(3)));
+    assertThat(CelConstant.ofValue(3)).isNotEqualTo(CelConstant.ofValue(3.0));
+    assertThat(CelConstant.ofValue(3.1)).isNotEqualTo(CelConstant.ofValue(2.1));
+    assertThat(CelConstant.ofValue("world!")).isNotEqualTo(CelConstant.ofValue("Hello world!"));
+    assertThat(CelConstant.ofValue(ByteString.copyFromUtf8("T")))
+        .isNotEqualTo(CelConstant.ofValue(ByteString.copyFromUtf8("Test")));
   }
 
   @Test
   public void constructNullValue() {
-    CelConstant constant = CelConstant.ofNullValue(NullValue.NULL_VALUE);
+    CelConstant constant = CelConstant.ofValue(NullValue.NULL_VALUE);
 
     assertThat(constant.nullValue()).isEqualTo(NullValue.NULL_VALUE);
   }
 
   @Test
   public void constructBooleanValue() {
-    CelConstant trueConstant = CelConstant.ofBooleanValue(true);
-    CelConstant falseConstant = CelConstant.ofBooleanValue(false);
+    CelConstant trueConstant = CelConstant.ofValue(true);
+    CelConstant falseConstant = CelConstant.ofValue(false);
 
     assertThat(trueConstant.booleanValue()).isTrue();
     assertThat(falseConstant.booleanValue()).isFalse();
@@ -78,47 +79,47 @@ public class CelConstantTest {
 
   @Test
   public void constructInt64Value() {
-    CelConstant constant = CelConstant.ofInt64Value(2);
+    CelConstant constant = CelConstant.ofValue(2);
 
     assertThat(constant.int64Value()).isEqualTo(2);
   }
 
   @Test
   public void constructUInt64Value() {
-    CelConstant constant = CelConstant.ofUInt64Value(2);
+    CelConstant constant = CelConstant.ofValue(UnsignedLong.valueOf(2));
 
-    assertThat(constant.uint64Value()).isEqualTo(2);
+    assertThat(constant.uint64Value()).isEqualTo(UnsignedLong.valueOf(2));
   }
 
   @Test
   public void constructDoubleValue() {
-    CelConstant constant = CelConstant.ofDoubleValue(2.1);
+    CelConstant constant = CelConstant.ofValue(2.1);
 
     assertThat(constant.doubleValue()).isEqualTo(2.1);
   }
 
   @Test
   public void constructStringValue() {
-    CelConstant constant = CelConstant.ofStringValue("Hello world!");
+    CelConstant constant = CelConstant.ofValue("Hello world!");
 
     assertThat(constant.stringValue()).isEqualTo("Hello world!");
   }
 
   @Test
   public void constructBytesValue() {
-    CelConstant constant = CelConstant.ofBytesValue(ByteString.copyFromUtf8("Test"));
+    CelConstant constant = CelConstant.ofValue(ByteString.copyFromUtf8("Test"));
 
     assertThat(constant.bytesValue()).isEqualTo(ByteString.copyFromUtf8("Test"));
   }
 
   private enum CelConstantTestCase {
-    NULL(CelConstant.ofNullValue(NullValue.NULL_VALUE)),
-    BOOLEAN(CelConstant.ofBooleanValue(true)),
-    INT64(CelConstant.ofInt64Value(2)),
-    UINT64(CelConstant.ofUInt64Value(2)),
-    DOUBLE(CelConstant.ofDoubleValue(2.1)),
-    STRING(CelConstant.ofStringValue("Hello world!")),
-    BYTES(CelConstant.ofBytesValue(ByteString.copyFromUtf8("Test")));
+    NULL(CelConstant.ofValue(NullValue.NULL_VALUE)),
+    BOOLEAN(CelConstant.ofValue(true)),
+    INT64(CelConstant.ofValue(2)),
+    UINT64(CelConstant.ofValue(UnsignedLong.valueOf(2))),
+    DOUBLE(CelConstant.ofValue(2.1)),
+    STRING(CelConstant.ofValue("Hello world!")),
+    BYTES(CelConstant.ofValue(ByteString.copyFromUtf8("Test")));
 
     final CelConstant constant;
 

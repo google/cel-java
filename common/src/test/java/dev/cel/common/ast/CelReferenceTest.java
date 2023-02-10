@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.common.expr;
+package dev.cel.common.ast;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
@@ -51,11 +51,11 @@ public class CelReferenceTest {
   @Test
   public void constructCelReference_withValue() {
     CelReference reference =
-        CelReference.newBuilder().setName("refName").setValue(CelConstant.ofInt64Value(10)).build();
+        CelReference.newBuilder().setName("refName").setValue(CelConstant.ofValue(10)).build();
 
     assertThat(reference.name()).isEqualTo("refName");
     assertThat(reference.overloadIds()).isEmpty();
-    assertThat(reference.value()).hasValue(CelConstant.ofInt64Value(10));
+    assertThat(reference.value()).hasValue(CelConstant.ofValue(10));
   }
 
   @Test
@@ -67,7 +67,7 @@ public class CelReferenceTest {
                 CelReference.newBuilder()
                     .setName("refName")
                     .addOverloadIds(ImmutableList.of("a", "b", "c"))
-                    .setValue(CelConstant.ofInt64Value(10))
+                    .setValue(CelConstant.ofValue(10))
                     .build());
 
     assertThat(exception)
