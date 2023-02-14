@@ -1,4 +1,4 @@
-// Copyright 2022 Google LLC
+// Copyright 2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import com.google.api.expr.v1alpha1.Type;
 import com.google.api.expr.v1alpha1.Value;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.types.CelType;
 import org.jspecify.nullness.Nullable;
 
 /**
@@ -50,5 +51,17 @@ public interface TypeResolver {
    * <p>When the checked {@code type} does not have a runtime equivalent, e.g. {@code Type#DYN}, the
    * return value will be {@code null}.
    */
+  @Nullable Value adaptType(CelType type);
+
+  /**
+   * Adapt the check-time {@code type} instance to a runtime {@code Value}.
+   *
+   * <p>When the checked {@code type} does not have a runtime equivalent, e.g. {@code Type#DYN}, the
+   * return value will be {@code null}.
+   *
+   * @deprecated use {@link #adaptType(CelType)} instead. This only exists to maintain compatibility
+   *     with legacy async evaluator.
+   */
+  @Deprecated
   @Nullable Value adaptType(@Nullable Type type);
 }

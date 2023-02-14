@@ -16,6 +16,7 @@ package dev.cel.runtime;
 
 import com.google.api.expr.v1alpha1.CheckedExpr;
 import javax.annotation.concurrent.ThreadSafe;
+import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.annotations.Internal;
 
 /**
@@ -31,6 +32,16 @@ public interface Interpreter {
    * Creates an interpretable for the given expression.
    *
    * <p>This method may run pre-processing and partial evaluation of the expression it gets passed.
+   *
+   * @deprecated Use {@link #createInterpretable(CelAbstractSyntaxTree)} instead.
    */
+  @Deprecated
   Interpretable createInterpretable(CheckedExpr checkedExpr) throws InterpreterException;
+
+  /**
+   * Creates an interpretable for the given expression.
+   *
+   * <p>This method may run pre-processing and partial evaluation of the expression it gets passed.
+   */
+  Interpretable createInterpretable(CelAbstractSyntaxTree ast);
 }

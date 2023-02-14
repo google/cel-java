@@ -16,9 +16,10 @@ package dev.cel.runtime;
 
 import com.google.api.expr.v1alpha1.CheckedExpr;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.annotations.Internal;
-import java.util.Map;
 
 /**
  * Metadata implementation based on {@link CheckedExpr}.
@@ -29,20 +30,25 @@ import java.util.Map;
 @Internal
 public final class DefaultMetadata implements Metadata {
 
-  private final CheckedExpr checkedExpr;
+  private final CelAbstractSyntaxTree ast;
 
+  public DefaultMetadata(CelAbstractSyntaxTree ast) {
+    this.ast = Preconditions.checkNotNull(ast);
+  }
+
+  @Deprecated
   public DefaultMetadata(CheckedExpr checkedExpr) {
-    this.checkedExpr = Preconditions.checkNotNull(checkedExpr);
+    this(CelAbstractSyntaxTree.fromCheckedExpr(checkedExpr));
   }
 
   @Override
   public String getLocation() {
-    return checkedExpr.getSourceInfo().getLocation();
+    return ast.getSource().getDescription();
   }
 
   @Override
   public int getPosition(long exprId) {
-    Map<Long, Integer> positions = checkedExpr.getSourceInfo().getPositionsMap();
+    ImmutableMap<Long, Integer> positions = ast.getSource().getPositionsMap();
     return positions.containsKey(exprId) ? positions.get(exprId) : 0;
   }
 }

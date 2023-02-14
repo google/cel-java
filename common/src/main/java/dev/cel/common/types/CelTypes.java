@@ -19,7 +19,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import com.google.api.expr.v1alpha1.Type;
 import com.google.api.expr.v1alpha1.Type.PrimitiveType;
 import com.google.api.expr.v1alpha1.Type.WellKnownType;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -29,6 +28,7 @@ import com.google.common.collect.Iterables;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Empty;
 import com.google.protobuf.NullValue;
+import dev.cel.common.annotations.Internal;
 import java.util.Optional;
 
 /** Utility class for working with {@link Type}. */
@@ -134,6 +134,8 @@ public final class CelTypes {
           .put(CelTypes.DURATION, SimpleType.DURATION)
           .put(CelTypes.TIMESTAMP, SimpleType.TIMESTAMP)
           .put(CelTypes.DYN, SimpleType.DYN)
+          .put(CelTypes.NULL_TYPE, SimpleType.NULL_TYPE)
+          .put(CelTypes.ERROR, SimpleType.ERROR)
           .buildOrThrow();
 
   /** Create a primitive {@code Type}. */
@@ -153,18 +155,13 @@ public final class CelTypes {
 
   /** Create a list with {@code elemType}. */
   public static Type createList(Type elemType) {
-    return Type.newBuilder()
-        .setListType(Type.ListType.newBuilder().setElemType(elemType))
-        .build();
+    return Type.newBuilder().setListType(Type.ListType.newBuilder().setElemType(elemType)).build();
   }
 
   /** Create a map with {@code keyType} and {@code valueType}. */
   public static Type createMap(Type keyType, Type valueType) {
     return Type.newBuilder()
-        .setMapType(
-            Type.MapType.newBuilder()
-                .setKeyType(keyType)
-                .setValueType(valueType))
+        .setMapType(Type.MapType.newBuilder().setKeyType(keyType).setValueType(valueType))
         .build();
   }
 
@@ -190,8 +187,7 @@ public final class CelTypes {
 
   /** Create a wrapper type where the input is a {@code Type} of primitive types. */
   public static Type createWrapper(Type type) {
-    Preconditions.checkArgument(
-        type.getTypeKindCase() == Type.TypeKindCase.PRIMITIVE);
+    Preconditions.checkArgument(type.getTypeKindCase() == Type.TypeKindCase.PRIMITIVE);
     return createWrapper(type.getPrimitive());
   }
 
@@ -314,7 +310,9 @@ public final class CelTypes {
     return Optional.ofNullable(WELL_KNOWN_CEL_TYPE_MAP.getOrDefault(typeName, null));
   }
 
-  static Type celTypeToType(CelType celType) {
+  /** Converts a Protobuf type into CEL native type. */
+  @Internal
+  public static Type celTypeToType(CelType celType) {
     Type type = SIMPLE_CEL_KIND_TO_TYPE.get(celType.kind());
     if (type != null) {
       if (celType instanceof NullableType) {
@@ -353,8 +351,8 @@ public final class CelTypes {
     }
   }
 
-  /** Converts a Protobuf type to CEL native type */
-  @VisibleForTesting
+  /** Converts a Protobuf type to CEL native type. */
+  @Internal
   public static CelType typeToCelType(Type type) {
     CelType celType = PROTOBUF_TYPE_TO_CEL_TYPE_MAP.get(type);
     if (celType != null) {

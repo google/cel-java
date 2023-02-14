@@ -28,6 +28,7 @@ import dev.cel.common.ExprFeatures;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoAdapter;
+import dev.cel.common.types.CelType;
 import java.util.Map;
 import java.util.Optional;
 import org.jspecify.nullness.Nullable;
@@ -38,10 +39,6 @@ import org.jspecify.nullness.Nullable;
  * <p>This can handle all messages providable by the given {@link MessageFactory}. In addition, one
  * can provide message descriptors for messages external to the program which are provided via a
  * {@link DynamicMessageFactory}.
- *
- * <p>This class cannot be used with proto lite on Android, as proto lite does not support
- * descriptors. On Android, one must implement {@code RuntimeTypeProvider} manually until b/63484269
- * is fixed.
  *
  * <p>CEL Library Internals. Do Not Use.
  */
@@ -88,8 +85,16 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
     return typeResolver.resolveObjectType(obj, checkedTypeValue);
   }
 
+  /** {@inheritDoc} */
   @Override
+  public Value adaptType(CelType type) {
+    return typeResolver.adaptType(type);
+  }
+
   @Nullable
+  @Override
+  @Deprecated
+  /** {@inheritDoc} */
   public Value adaptType(@Nullable Type type) {
     return typeResolver.adaptType(type);
   }

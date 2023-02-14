@@ -14,6 +14,8 @@
 
 package dev.cel.runtime;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.api.expr.v1alpha1.Type;
 import com.google.api.expr.v1alpha1.Type.PrimitiveType;
 import com.google.api.expr.v1alpha1.Type.TypeKindCase;
@@ -27,6 +29,9 @@ import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.NullValue;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.types.CelKind;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.TypeType;
 import java.util.Collection;
 import java.util.Map;
 import org.jspecify.nullness.Nullable;
@@ -113,9 +118,54 @@ public final class StandardTypeResolver implements TypeResolver {
     return null;
   }
 
+  /** {@inheritDoc} */
   @Override
-  @Nullable
-  public Value adaptType(Type type) {
+  public @Nullable Value adaptType(CelType type) {
+    checkNotNull(type);
+    // TODO: Add enum type support here.
+    Value.Builder typeValue = Value.newBuilder();
+    switch (type.kind()) {
+      case OPAQUE:
+      case STRUCT:
+        return typeValue.setTypeValue(type.name()).build();
+      case LIST:
+        return typeValue.setTypeValue("list").build();
+      case MAP:
+        return typeValue.setTypeValue("map").build();
+      case TYPE:
+        CelType typeOfType = ((TypeType) type).type();
+        if (typeOfType.kind() == CelKind.DYN) {
+          return typeValue.setTypeValue("type").build();
+        }
+        return adaptType(typeOfType);
+      case NULL_TYPE:
+        return typeValue.setTypeValue("null_type").build();
+      case DURATION:
+        return typeValue.setTypeValue("google.protobuf.Duration").build();
+      case TIMESTAMP:
+        return typeValue.setTypeValue("google.protobuf.Timestamp").build();
+      case BOOL:
+        return typeValue.setTypeValue("bool").build();
+      case BYTES:
+        return typeValue.setTypeValue("bytes").build();
+      case DOUBLE:
+        return typeValue.setTypeValue("double").build();
+      case INT:
+        return typeValue.setTypeValue("int").build();
+      case STRING:
+        return typeValue.setTypeValue("string").build();
+      case UINT:
+        return typeValue.setTypeValue("uint").build();
+      default:
+        break;
+    }
+    return null;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Deprecated
+  public @Nullable Value adaptType(@Nullable Type type) {
     if (type == null) {
       return null;
     }

@@ -19,11 +19,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.ImmutableIntArray;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.internal.CelCodePointArray;
+import java.util.Map;
 import java.util.Optional;
 
 /** Represents the source content of an expression and related metadata. */
@@ -35,10 +37,12 @@ public final class CelSource {
   private final CelCodePointArray codePoints;
   private final String description;
   private final ImmutableIntArray lineOffsets;
+  private final ImmutableMap<Long, Integer> positions;
 
   private CelSource(Builder builder) {
     codePoints = checkNotNull(builder.codePoints);
     description = checkNotNull(builder.description);
+    positions = checkNotNull(builder.positions.buildOrThrow());
     lineOffsets = checkNotNull(builder.lineOffsets.build());
   }
 
@@ -48,6 +52,10 @@ public final class CelSource {
 
   public String getDescription() {
     return description;
+  }
+
+  public ImmutableMap<Long, Integer> getPositionsMap() {
+    return positions;
   }
 
   /**
@@ -168,6 +176,7 @@ public final class CelSource {
     private final CelCodePointArray codePoints;
     private String description;
     private final ImmutableIntArray.Builder lineOffsets;
+    private final ImmutableMap.Builder<Long, Integer> positions;
 
     private Builder() {
       this(CelCodePointArray.fromString(""), ImmutableIntArray.builder());
@@ -177,6 +186,7 @@ public final class CelSource {
       this.codePoints = checkNotNull(codePoints);
       description = "";
       this.lineOffsets = checkNotNull(lineOffsets);
+      this.positions = ImmutableMap.builder();
     }
 
     @CanIgnoreReturnValue
@@ -206,6 +216,13 @@ public final class CelSource {
       for (int lineOffset : lineOffsets) {
         addLineOffsets(lineOffset);
       }
+      return this;
+    }
+
+    @CanIgnoreReturnValue
+    public Builder addPositionsMap(Map<Long, Integer> positionsMap) {
+      checkNotNull(positionsMap);
+      this.positions.putAll(positionsMap);
       return this;
     }
 

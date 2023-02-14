@@ -28,6 +28,7 @@ import com.google.api.expr.v1alpha1.ParsedExpr;
 import com.google.api.expr.v1alpha1.Reference;
 import com.google.api.expr.v1alpha1.SourceInfo;
 import com.google.common.collect.ImmutableList;
+import dev.cel.common.ast.CelConstant;
 import dev.cel.common.internal.Constants;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.SimpleType;
@@ -124,14 +125,14 @@ public final class CelAbstractSyntaxTreeTest {
   @Test
   public void getExpr_yieldsEquivalentMessage() {
     CelAbstractSyntaxTree ast = CelAbstractSyntaxTree.fromParsedExpr(PARSED_EXPR);
-    assertThat(ast.getExpr()).isEqualTo(EXPR);
+    assertThat(ast.getProtoExpr()).isEqualTo(EXPR);
   }
 
   @Test
   public void findEnumValue_findsConstantInCheckedExpr() {
     CelAbstractSyntaxTree ast = CelAbstractSyntaxTree.fromCheckedExpr(CHECKED_ENUM_EXPR);
     assertThat(ast.findEnumValue(1)).isEmpty();
-    assertThat(ast.findEnumValue(2)).hasValue(Constant.newBuilder().setInt64Value(2).build());
+    assertThat(ast.findEnumValue(2)).hasValue(CelConstant.ofValue(2));
     assertThat(ast.findEnumValue(3)).isEmpty();
   }
 

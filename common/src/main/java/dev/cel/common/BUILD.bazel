@@ -18,8 +18,11 @@ java_library(
     srcs = COMMON_SOURCES,
     deps = [
         "//:auto_value",
+        "//common/src/main/java/dev/cel/common/ast",
+        "//common/src/main/java/dev/cel/common/ast:expr_converter",
         "//common/src/main/java/dev/cel/common/internal",
         "//common/src/main/java/dev/cel/common/internal:file_descriptor_converter",
+        "//common/src/main/java/dev/cel/common/types",
         "//common/src/main/java/dev/cel/common/types:cel_types",
         "//common/src/main/java/dev/cel/common/types:type_providers",
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",

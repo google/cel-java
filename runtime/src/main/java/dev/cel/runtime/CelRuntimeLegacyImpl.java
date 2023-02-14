@@ -49,13 +49,9 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
   }
 
   @Override
-  public CelRuntime.Program createProgram(CelAbstractSyntaxTree ast) throws CelEvaluationException {
+  public CelRuntime.Program createProgram(CelAbstractSyntaxTree ast) {
     checkState(ast.isChecked(), "programs must be created from checked expressions");
-    try {
-      return CelRuntime.Program.from(interpreter.createInterpretable(ast.toCheckedExpr()), options);
-    } catch (InterpreterException e) {
-      throw new CelEvaluationException(e);
-    }
+    return CelRuntime.Program.from(interpreter.createInterpretable(ast), options);
   }
 
   /** Create a new builder for constructing a {@code CelRuntime} instance. */

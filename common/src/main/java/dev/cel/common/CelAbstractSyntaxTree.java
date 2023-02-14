@@ -15,21 +15,27 @@
 package dev.cel.common;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.google.api.expr.v1alpha1.CheckedExpr;
-import com.google.api.expr.v1alpha1.Constant;
 import com.google.api.expr.v1alpha1.Expr;
-import com.google.api.expr.v1alpha1.ExprOrBuilder;
 import com.google.api.expr.v1alpha1.ParsedExpr;
-import com.google.api.expr.v1alpha1.Reference;
 import com.google.api.expr.v1alpha1.SourceInfo;
 import com.google.api.expr.v1alpha1.Type;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
+import com.google.errorprone.annotations.InlineMe;
+import dev.cel.common.ast.CelConstant;
+import dev.cel.common.ast.CelExpr;
+import dev.cel.common.ast.CelExprConverter;
+import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypes;
-import java.util.Map;
+import dev.cel.common.types.SimpleType;
+import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
@@ -42,11 +48,11 @@ public final class CelAbstractSyntaxTree {
   private final CheckedExpr checkedExpr;
   private final CelSource source;
 
-  @SuppressWarnings("Immutable") // Protocol Buffer library ensures unmodifiable.
-  private final Map<Long, Reference> references;
+  private final CelExpr celExpr;
 
-  @SuppressWarnings("Immutable") // Protocol Buffer library ensures unmodifiable.
-  private final Map<Long, Type> types;
+  private final ImmutableMap<Long, CelReference> references;
+
+  private final ImmutableMap<Long, CelType> types;
 
   CelAbstractSyntaxTree(ParsedExpr parsedExpr, CelSource source) {
     this(
@@ -59,17 +65,45 @@ public final class CelAbstractSyntaxTree {
 
   CelAbstractSyntaxTree(CheckedExpr checkedExpr, CelSource source) {
     this.checkedExpr = checkedExpr;
+    this.celExpr = CelExprConverter.fromExpr(checkedExpr.getExpr());
     this.source = source;
-    this.references = checkedExpr.getReferenceMapMap();
-    this.types = checkedExpr.getTypeMapMap();
+    this.references =
+        checkedExpr.getReferenceMapMap().entrySet().stream()
+            .collect(
+                toImmutableMap(
+                    Entry::getKey,
+                    v -> CelExprConverter.exprReferenceToCelReference(v.getValue())));
+    this.types =
+        checkedExpr.getTypeMapMap().entrySet().stream()
+            .collect(toImmutableMap(Entry::getKey, v -> CelTypes.typeToCelType(v.getValue())));
+  }
+
+  /**
+   * Returns the underlying {@link com.google.api.expr.Expr} representation of the abstract syntax
+   * tree.
+   *
+   * @deprecated Use the renamed {@link #getProtoExpr()} instead
+   */
+  @Deprecated
+  @InlineMe(replacement = "this.getProtoExpr()")
+  public Expr getExpr() {
+    return getProtoExpr();
   }
 
   /**
    * Returns the underlying {@link com.google.api.expr.Expr} representation of the abstract syntax
    * tree.
    */
-  public Expr getExpr() {
+  public Expr getProtoExpr() {
     return checkedExpr.getExpr();
+  }
+
+  /**
+   * Returns the underlying {@link CelExpr} representation of the abstract syntax tree.
+   * TODO: Rename to getExpr
+   */
+  public CelExpr getCelExpr() {
+    return celExpr;
   }
 
   /** Tests whether the underlying abstract syntax tree has been type checked or not. */
@@ -82,7 +116,7 @@ public final class CelAbstractSyntaxTree {
    * type is returned.
    */
   public CelType getResultType() {
-    return CelTypes.typeToCelType(getProtoResultType());
+    return isChecked() ? getType(getCelExpr().id()).get() : SimpleType.DYN;
   }
 
   /**
@@ -90,7 +124,7 @@ public final class CelAbstractSyntaxTree {
    * described in checked.proto. Otherwise, the dynamic type is returned.
    */
   public Type getProtoResultType() {
-    return isChecked() ? getType(getExpr()) : CelTypes.DYN;
+    return CelTypes.celTypeToType(getResultType());
   }
 
   /**
@@ -129,23 +163,28 @@ public final class CelAbstractSyntaxTree {
     return checkedExpr;
   }
 
-  Type getType(long exprId) {
-    return types.get(exprId);
+  public Optional<CelType> getType(long exprId) {
+    return Optional.ofNullable(types.get(exprId));
   }
 
-  Type getType(ExprOrBuilder expr) {
-    return getType(expr.getId());
+  public Optional<CelReference> getReference(long exprId) {
+    return Optional.ofNullable(references.get(exprId));
   }
 
-  Optional<Constant> findEnumValue(long exprId) {
-    Reference ref = references.get(exprId);
-    return ref != null && ref.hasValue() ? Optional.of(ref.getValue()) : Optional.empty();
+  public CelReference getReferenceOrThrow(long exprId) {
+    return getReference(exprId)
+        .orElseThrow(() -> new NoSuchElementException("Expr Id not found: " + exprId));
+  }
+
+  Optional<CelConstant> findEnumValue(long exprId) {
+    CelReference ref = references.get(exprId);
+    return ref != null ? ref.value() : Optional.empty();
   }
 
   Optional<ImmutableList<String>> findOverloadIDs(long exprId) {
-    Reference ref = references.get(exprId);
-    return ref != null && !ref.hasValue()
-        ? Optional.of(ImmutableList.copyOf(ref.getOverloadIdList()))
+    CelReference ref = references.get(exprId);
+    return ref != null && !ref.value().isPresent()
+        ? Optional.of(ref.overloadIds())
         : Optional.empty();
   }
 
@@ -155,6 +194,7 @@ public final class CelAbstractSyntaxTree {
         checkedExpr,
         CelSource.newBuilder()
             .addAllLineOffsets(checkedExpr.getSourceInfo().getLineOffsetsList())
+            .addPositionsMap(checkedExpr.getSourceInfo().getPositionsMap())
             .setDescription(checkedExpr.getSourceInfo().getLocation())
             .build());
   }
@@ -165,6 +205,7 @@ public final class CelAbstractSyntaxTree {
         parsedExpr,
         CelSource.newBuilder()
             .addAllLineOffsets(parsedExpr.getSourceInfo().getLineOffsetsList())
+            .addPositionsMap(parsedExpr.getSourceInfo().getPositionsMap())
             .setDescription(parsedExpr.getSourceInfo().getLocation())
             .build());
   }

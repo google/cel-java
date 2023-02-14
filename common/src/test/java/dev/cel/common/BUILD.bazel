@@ -9,6 +9,7 @@ java_library(
         "//common/src/main/java/dev/cel/common",
         "//common/src/main/java/dev/cel/common:features",
         "//common/src/main/java/dev/cel/common:options",
+        "//common/src/main/java/dev/cel/common/ast",
         "//common/src/main/java/dev/cel/common/internal",
         "//common/src/main/java/dev/cel/common/types",
         "//common/src/main/java/dev/cel/common/types:cel_types",
