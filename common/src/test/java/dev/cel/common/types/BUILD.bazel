@@ -1,5 +1,7 @@
 load("//:testing.bzl", "junit4_test_suites")
 
+package(default_applicable_licenses = ["//third_party/java_src/cel:license"])
+
 java_library(
     name = "tests",
     testonly = True,
