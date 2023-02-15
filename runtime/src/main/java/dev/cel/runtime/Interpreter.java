@@ -14,7 +14,7 @@
 
 package dev.cel.runtime;
 
-import com.google.api.expr.v1alpha1.CheckedExpr;
+import dev.cel.expr.CheckedExpr;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.annotations.Internal;

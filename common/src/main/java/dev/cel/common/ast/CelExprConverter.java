@@ -14,15 +14,15 @@
 
 package dev.cel.common.ast;
 
-import com.google.api.expr.v1alpha1.Constant;
-import com.google.api.expr.v1alpha1.Expr;
-import com.google.api.expr.v1alpha1.Expr.Call;
-import com.google.api.expr.v1alpha1.Expr.Comprehension;
-import com.google.api.expr.v1alpha1.Expr.CreateList;
-import com.google.api.expr.v1alpha1.Expr.CreateStruct;
-import com.google.api.expr.v1alpha1.Expr.CreateStruct.Entry;
-import com.google.api.expr.v1alpha1.Expr.Select;
-import com.google.api.expr.v1alpha1.Reference;
+import dev.cel.expr.Constant;
+import dev.cel.expr.Expr;
+import dev.cel.expr.Expr.Call;
+import dev.cel.expr.Expr.Comprehension;
+import dev.cel.expr.Expr.CreateList;
+import dev.cel.expr.Expr.CreateStruct;
+import dev.cel.expr.Expr.CreateStruct.Entry;
+import dev.cel.expr.Expr.Select;
+import dev.cel.expr.Reference;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.UnsignedLong;
 import java.util.Optional;

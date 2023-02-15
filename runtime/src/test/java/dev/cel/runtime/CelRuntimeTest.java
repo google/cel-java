@@ -16,7 +16,7 @@ package dev.cel.runtime;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.api.expr.v1alpha1.CheckedExpr;
+import dev.cel.expr.CheckedExpr;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;

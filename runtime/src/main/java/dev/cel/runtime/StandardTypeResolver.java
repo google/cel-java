@@ -16,11 +16,11 @@ package dev.cel.runtime;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.api.expr.v1alpha1.Type;
-import com.google.api.expr.v1alpha1.Type.PrimitiveType;
-import com.google.api.expr.v1alpha1.Type.TypeKindCase;
-import com.google.api.expr.v1alpha1.Value;
-import com.google.api.expr.v1alpha1.Value.KindCase;
+import dev.cel.expr.Type;
+import dev.cel.expr.Type.PrimitiveType;
+import dev.cel.expr.Type.TypeKindCase;
+import dev.cel.expr.Value;
+import dev.cel.expr.Value.KindCase;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;

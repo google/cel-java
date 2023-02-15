@@ -14,8 +14,8 @@
 
 package dev.cel.runtime;
 
-import com.google.api.expr.v1alpha1.Type;
-import com.google.api.expr.v1alpha1.Value;
+import dev.cel.expr.Type;
+import dev.cel.expr.Value;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Descriptors.Descriptor;

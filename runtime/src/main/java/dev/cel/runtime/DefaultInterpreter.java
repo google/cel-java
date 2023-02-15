@@ -14,8 +14,8 @@
 
 package dev.cel.runtime;
 
-import com.google.api.expr.v1alpha1.CheckedExpr;
-import com.google.api.expr.v1alpha1.Value;
+import dev.cel.expr.CheckedExpr;
+import dev.cel.expr.Value;
 import javax.annotation.concurrent.ThreadSafe;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;

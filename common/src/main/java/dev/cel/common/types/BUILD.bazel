@@ -45,7 +45,7 @@ java_library(
         ":type_providers",
         ":types",
         "//common/src/main/java/dev/cel/common/annotations",
-        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
+        "@cel_spec//proto/expr:expr_java_proto",
         "@com_google_protobuf//:empty_proto",
         "@com_google_protobuf//:protobuf_java",
         "@com_google_protobuf//:struct_proto",

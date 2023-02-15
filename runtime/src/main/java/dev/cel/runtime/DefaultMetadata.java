@@ -14,7 +14,7 @@
 
 package dev.cel.runtime;
 
-import com.google.api.expr.v1alpha1.CheckedExpr;
+import dev.cel.expr.CheckedExpr;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;

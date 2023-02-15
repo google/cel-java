@@ -14,8 +14,8 @@
 
 package dev.cel.runtime;
 
-import com.google.api.expr.v1alpha1.ExprValue;
-import com.google.api.expr.v1alpha1.UnknownSet;
+import dev.cel.expr.ExprValue;
+import dev.cel.expr.UnknownSet;
 import dev.cel.common.annotations.Internal;
 import java.util.ArrayList;
 import java.util.Optional;

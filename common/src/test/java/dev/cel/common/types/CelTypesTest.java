@@ -17,8 +17,8 @@ package dev.cel.common.types;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 
-import com.google.api.expr.v1alpha1.Type;
-import com.google.api.expr.v1alpha1.Type.AbstractType;
+import dev.cel.expr.Type;
+import dev.cel.expr.Type.AbstractType;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

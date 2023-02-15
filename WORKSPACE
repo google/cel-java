@@ -128,3 +128,23 @@ http_archive(
     strip_prefix = "bazel-common-%s" % BAZEL_COMMON_TAG,
     url = "https://github.com/google/bazel-common/archive/%s.tar.gz" % BAZEL_COMMON_TAG,
 )
+
+# cel-spec api/expr canonical protos
+http_archive(
+    name = "cel_spec",
+    sha256 = "dca9a2e71bda5fadbc9292a533f2ee6d200e9395a6f3632ed18c80b1c6ff7ac0",
+    strip_prefix = "cel-spec-d10463e91785b042b041bce39941c86769e56fd4",
+    urls = [
+        "https://github.com/google/cel-spec/archive/d10463e91785b042b041bce39941c86769e56fd4.tar.gz",
+    ],
+)
+
+# required by cel_spec
+http_archive(
+    name = "io_bazel_rules_go",
+    sha256 = "19ef30b21eae581177e0028f6f4b1f54c66467017be33d211ab6fc81da01ea4d",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.38.0/rules_go-v0.38.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.38.0/rules_go-v0.38.0.zip",
+    ],
+)

@@ -17,11 +17,11 @@ package dev.cel.common;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-import com.google.api.expr.v1alpha1.CheckedExpr;
-import com.google.api.expr.v1alpha1.Expr;
-import com.google.api.expr.v1alpha1.ParsedExpr;
-import com.google.api.expr.v1alpha1.SourceInfo;
-import com.google.api.expr.v1alpha1.Type;
+import dev.cel.expr.CheckedExpr;
+import dev.cel.expr.Expr;
+import dev.cel.expr.ParsedExpr;
+import dev.cel.expr.SourceInfo;
+import dev.cel.expr.Type;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CheckReturnValue;

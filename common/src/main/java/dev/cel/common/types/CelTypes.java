@@ -16,9 +16,9 @@ package dev.cel.common.types;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
-import com.google.api.expr.v1alpha1.Type;
-import com.google.api.expr.v1alpha1.Type.PrimitiveType;
-import com.google.api.expr.v1alpha1.Type.WellKnownType;
+import dev.cel.expr.Type;
+import dev.cel.expr.Type.PrimitiveType;
+import dev.cel.expr.Type.WellKnownType;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
