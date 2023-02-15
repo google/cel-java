@@ -38,15 +38,10 @@ import org.jspecify.nullness.Nullable;
 
 /** {@code CelRuntime} implementation based on the legacy CEL-Java stack. */
 @ThreadSafe
-public final class CelRuntimeLegacyImpl implements CelRuntime {
+final class CelRuntimeLegacyImpl implements CelRuntime {
 
   private final Interpreter interpreter;
   private final CelOptions options;
-
-  private CelRuntimeLegacyImpl(Interpreter interpreter, CelOptions options) {
-    this.interpreter = interpreter;
-    this.options = options;
-  }
 
   @Override
   public CelRuntime.Program createProgram(CelAbstractSyntaxTree ast) {
@@ -62,24 +57,16 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
   /** Builder class for {@code CelRuntimeLegacyImpl}. */
   public static final class Builder implements CelRuntimeBuilder {
 
-    @SuppressWarnings("unused")
-    private CelOptions options;
-
     private final ImmutableSet.Builder<Descriptor> messageTypes;
     private final ImmutableSet.Builder<FileDescriptor> fileTypes;
     private final ImmutableMap.Builder<String, CelFunctionBinding> functionBindings;
     private final ImmutableSet.Builder<CelRuntimeLibrary> celRuntimeLibraries;
+
+    @SuppressWarnings("unused")
+    private CelOptions options;
+
     private boolean standardEnvironmentEnabled;
     private Function<String, Message.Builder> customTypeFactory;
-
-    private Builder() {
-      this.options = CelOptions.newBuilder().build();
-      this.fileTypes = ImmutableSet.builder();
-      this.messageTypes = ImmutableSet.builder();
-      this.functionBindings = ImmutableMap.builder();
-      this.celRuntimeLibraries = ImmutableSet.builder();
-      this.customTypeFactory = null;
-    }
 
     /** {@inheritDoc} */
     @Override
@@ -248,5 +235,19 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       return new MessageFactory.CombinedMessageFactory(
           ImmutableList.of(parentFactory, childFactory));
     }
+
+    private Builder() {
+      this.options = CelOptions.newBuilder().build();
+      this.fileTypes = ImmutableSet.builder();
+      this.messageTypes = ImmutableSet.builder();
+      this.functionBindings = ImmutableMap.builder();
+      this.celRuntimeLibraries = ImmutableSet.builder();
+      this.customTypeFactory = null;
+    }
+  }
+
+  private CelRuntimeLegacyImpl(Interpreter interpreter, CelOptions options) {
+    this.interpreter = interpreter;
+    this.options = options;
   }
 }
