@@ -4,7 +4,7 @@ package(default_visibility = [
 ])
 
 # keep sorted
-EXPR_SOURCES = [
+AST_SOURCES = [
     "CelConstant.java",
     "CelExpr.java",
     "CelReference.java",
@@ -15,9 +15,14 @@ EXPR_CONVERTER_SOURCES = [
     "CelExprConverter.java",
 ]
 
+# keep sorted
+EXPR_V1ALPHA1_CONVERTER_SOURCES = [
+    "CelExprV1Alpha1Converter.java",
+]
+
 java_library(
     name = "ast",
-    srcs = EXPR_SOURCES,
+    srcs = AST_SOURCES,
     deps = [
         "//:auto_value",
         "//common/src/main/java/dev/cel/common/annotations",
@@ -35,6 +40,16 @@ java_library(
     deps = [
         ":ast",
         "@cel_spec//proto/expr:expr_java_proto",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "expr_v1alpha1_converter",
+    srcs = EXPR_V1ALPHA1_CONVERTER_SOURCES,
+    deps = [
+        ":ast",
+        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
         "@maven//:com_google_guava_guava",
     ],
 )

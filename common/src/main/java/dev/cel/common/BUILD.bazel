@@ -13,6 +13,16 @@ COMMON_SOURCES = [
     "CelSourceLocation.java",
 ]
 
+# keep sorted
+PROTO_AST_SOURCE = [
+    "CelProtoAbstractSyntaxTree.java",
+]
+
+# keep sorted
+PROTO_V1ALPHA1_AST_SOURCE = [
+    "CelProtoV1Alpha1AbstractSyntaxTree.java",
+]
+
 java_library(
     name = "common",
     srcs = COMMON_SOURCES,
@@ -47,6 +57,34 @@ java_library(
     name = "features",
     srcs = ["ExprFeatures.java"],
     deps = [
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "proto_ast",
+    srcs = PROTO_AST_SOURCE,
+    deps = [
+        ":common",
+        "//:auto_value",
+        "//common/src/main/java/dev/cel/common/ast:expr_converter",
+        "//common/src/main/java/dev/cel/common/types:cel_types",
+        "@cel_spec//proto/expr:expr_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "proto_v1alpha1_ast",
+    srcs = PROTO_V1ALPHA1_AST_SOURCE,
+    deps = [
+        ":common",
+        "//:auto_value",
+        "//common/src/main/java/dev/cel/common/ast:expr_v1alpha1_converter",
+        "//common/src/main/java/dev/cel/common/types:cel_v1alpha1_types",
+        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
 )

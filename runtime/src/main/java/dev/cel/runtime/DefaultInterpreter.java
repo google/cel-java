@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
@@ -126,7 +127,7 @@ public final class DefaultInterpreter implements Interpreter {
   @Override
   @Deprecated
   public Interpretable createInterpretable(CheckedExpr checkedExpr) {
-    return createInterpretable(CelAbstractSyntaxTree.fromCheckedExpr(checkedExpr));
+    return createInterpretable(CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst());
   }
 
   /** {@inheritDoc} */

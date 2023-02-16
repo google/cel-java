@@ -171,12 +171,6 @@ public final class CelAbstractSyntaxTreeTest {
   }
 
   @Test
-  public void getSourceInfo_yieldsEquivalentMessage() {
-    CelAbstractSyntaxTree ast = CelAbstractSyntaxTree.fromParsedExpr(PARSED_EXPR);
-    assertThat(ast.getSourceInfo()).isEqualTo(SOURCE_INFO);
-  }
-
-  @Test
   public void getSource_hasDescriptionEqualToSourceLocation() {
     CelAbstractSyntaxTree ast = CelAbstractSyntaxTree.fromParsedExpr(PARSED_EXPR);
     assertThat(ast.getSource().getDescription()).isEqualTo("test/location.cel");

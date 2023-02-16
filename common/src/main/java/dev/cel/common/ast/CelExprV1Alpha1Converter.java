@@ -14,15 +14,15 @@
 
 package dev.cel.common.ast;
 
-import dev.cel.expr.Constant;
-import dev.cel.expr.Expr;
-import dev.cel.expr.Expr.Call;
-import dev.cel.expr.Expr.Comprehension;
-import dev.cel.expr.Expr.CreateList;
-import dev.cel.expr.Expr.CreateStruct;
-import dev.cel.expr.Expr.CreateStruct.Entry;
-import dev.cel.expr.Expr.Select;
-import dev.cel.expr.Reference;
+import com.google.api.expr.v1alpha1.Constant;
+import com.google.api.expr.v1alpha1.Expr;
+import com.google.api.expr.v1alpha1.Expr.Call;
+import com.google.api.expr.v1alpha1.Expr.Comprehension;
+import com.google.api.expr.v1alpha1.Expr.CreateList;
+import com.google.api.expr.v1alpha1.Expr.CreateStruct;
+import com.google.api.expr.v1alpha1.Expr.CreateStruct.Entry;
+import com.google.api.expr.v1alpha1.Expr.Select;
+import com.google.api.expr.v1alpha1.Reference;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.UnsignedLong;
 import java.util.Optional;
@@ -34,8 +34,8 @@ import java.util.Optional;
  * <p>Note: Keep this file in sync with {@code CelExprV1Alpha1Converter}
  */
 // LINT.IfChange
-public final class CelExprConverter {
-  private CelExprConverter() {}
+public final class CelExprV1Alpha1Converter {
+  private CelExprV1Alpha1Converter() {}
 
   /** Convert {@link Expr} into {@link CelExpr} */
   public static CelExpr fromExpr(Expr expr) {
@@ -102,7 +102,7 @@ public final class CelExprConverter {
             .setName(reference.getName())
             .addOverloadIds(reference.getOverloadIdList());
     if (reference.hasValue()) {
-      builder.setValue(CelExprConverter.exprConstantToCelConstant(reference.getValue()));
+      builder.setValue(exprConstantToCelConstant(reference.getValue()));
     }
 
     return builder.build();
@@ -165,4 +165,4 @@ public final class CelExprConverter {
     return CelExpr.ofCreateStructExpr(id, structExpr.getMessageName(), entries.build());
   }
 }
-// LINT.ThenChange(CelExprV1Alpha1Converter.java)
+// LINT.ThenChange(CelExprConverter.java)

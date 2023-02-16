@@ -20,7 +20,6 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import dev.cel.expr.CheckedExpr;
 import dev.cel.expr.Expr;
 import dev.cel.expr.ParsedExpr;
-import dev.cel.expr.SourceInfo;
 import dev.cel.expr.Type;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -46,7 +45,7 @@ import java.util.Optional;
 public final class CelAbstractSyntaxTree {
 
   private final CheckedExpr checkedExpr;
-  private final CelSource source;
+  private final CelSource celSource;
 
   private final CelExpr celExpr;
 
@@ -54,19 +53,31 @@ public final class CelAbstractSyntaxTree {
 
   private final ImmutableMap<Long, CelType> types;
 
-  CelAbstractSyntaxTree(ParsedExpr parsedExpr, CelSource source) {
+  CelAbstractSyntaxTree(
+      CelExpr celExpr,
+      CelSource celSource,
+      ImmutableMap<Long, CelReference> references,
+      ImmutableMap<Long, CelType> types) {
+    this.checkedExpr = null;
+    this.celExpr = celExpr;
+    this.celSource = celSource;
+    this.references = references;
+    this.types = types;
+  }
+
+  CelAbstractSyntaxTree(ParsedExpr parsedExpr, CelSource celSource) {
     this(
         CheckedExpr.newBuilder()
             .setExpr(parsedExpr.getExpr())
             .setSourceInfo(parsedExpr.getSourceInfo())
             .build(),
-        source);
+        celSource);
   }
 
-  CelAbstractSyntaxTree(CheckedExpr checkedExpr, CelSource source) {
+  CelAbstractSyntaxTree(CheckedExpr checkedExpr, CelSource celSource) {
     this.checkedExpr = checkedExpr;
     this.celExpr = CelExprConverter.fromExpr(checkedExpr.getExpr());
-    this.source = source;
+    this.celSource = celSource;
     this.references =
         checkedExpr.getReferenceMapMap().entrySet().stream()
             .collect(
@@ -131,15 +142,7 @@ public final class CelAbstractSyntaxTree {
    * Returns the {@link CelSource} that was used during construction of the abstract syntax tree.
    */
   public CelSource getSource() {
-    return source;
-  }
-
-  /**
-   * Returns the underlying {@link com.google.api.expr.SourceInfo} representation of the abstract
-   * syntax tree.
-   */
-  public SourceInfo getSourceInfo() {
-    return checkedExpr.getSourceInfo();
+    return celSource;
   }
 
   /**
@@ -147,7 +150,10 @@ public final class CelAbstractSyntaxTree {
    * syntax tree.
    */
   public ParsedExpr toParsedExpr() {
-    return ParsedExpr.newBuilder().setExpr(getExpr()).setSourceInfo(getSourceInfo()).build();
+    return ParsedExpr.newBuilder()
+        .setExpr(getProtoExpr())
+        .setSourceInfo(checkedExpr.getSourceInfo())
+        .build();
   }
 
   /**
@@ -188,7 +194,12 @@ public final class CelAbstractSyntaxTree {
         : Optional.empty();
   }
 
-  /** Construct an abstract syntax tree from a {@link com.google.api.expr.CheckedExpr}. */
+  /**
+   * Construct an abstract syntax tree from a {@link com.google.api.expr.CheckedExpr}.
+   *
+   * @deprecated Use {@link CelProtoAbstractSyntaxTree#fromCheckedExpr(CheckedExpr)} instead.
+   */
+  @Deprecated
   public static CelAbstractSyntaxTree fromCheckedExpr(CheckedExpr checkedExpr) {
     return new CelAbstractSyntaxTree(
         checkedExpr,
@@ -199,7 +210,12 @@ public final class CelAbstractSyntaxTree {
             .build());
   }
 
-  /** Construct an abstract syntax tree from a {@link com.google.api.expr.ParsedExpr}. */
+  /**
+   * Construct an abstract syntax tree from a {@link com.google.api.expr.ParsedExpr}.
+   *
+   * @deprecated Use {@link CelProtoAbstractSyntaxTree#fromParsedExpr(ParsedExpr)} instead.
+   */
+  @Deprecated
   public static CelAbstractSyntaxTree fromParsedExpr(ParsedExpr parsedExpr) {
     return new CelAbstractSyntaxTree(
         parsedExpr,

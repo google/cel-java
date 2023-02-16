@@ -22,8 +22,8 @@ import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.rpc.context.AttributeContext;
-import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelProtoAbstractSyntaxTree;
 import java.util.Base64;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,7 +50,7 @@ public class CelRuntimeTest {
             Base64.getDecoder().decode(base64EncodedCheckedExpr),
             ExtensionRegistry.getEmptyRegistry());
     CelRuntime.Program program =
-        celRuntime.createProgram(CelAbstractSyntaxTree.fromCheckedExpr(expr));
+        celRuntime.createProgram(CelProtoAbstractSyntaxTree.fromCheckedExpr(expr).getAst());
 
     Object evaluatedResult =
         program.eval(

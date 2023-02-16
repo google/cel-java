@@ -9,6 +9,7 @@ java_library(
         "//:java_truth",
         "//common/src/main/java/dev/cel/common",
         "//common/src/main/java/dev/cel/common:options",
+        "//common/src/main/java/dev/cel/common:proto_ast",
         "//common/src/main/java/dev/cel/common/internal:converter",
         "//common/src/main/java/dev/cel/common/internal:dynamic_proto",
         "//common/src/main/resources/testdata/proto2:messages_extensions_proto2_java_proto",

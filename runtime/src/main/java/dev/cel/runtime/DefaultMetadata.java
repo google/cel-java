@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.annotations.Internal;
 
 /**
@@ -38,7 +39,7 @@ public final class DefaultMetadata implements Metadata {
 
   @Deprecated
   public DefaultMetadata(CheckedExpr checkedExpr) {
-    this(CelAbstractSyntaxTree.fromCheckedExpr(checkedExpr));
+    this(CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst());
   }
 
   @Override
