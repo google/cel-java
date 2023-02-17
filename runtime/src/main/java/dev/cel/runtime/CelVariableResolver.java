@@ -14,11 +14,9 @@
 
 package dev.cel.runtime;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.Optional;
 
 /** Functional interface that exposes a method to find a CEL variable value by name. */
-@ThreadSafe
 @FunctionalInterface
 public interface CelVariableResolver {
 
