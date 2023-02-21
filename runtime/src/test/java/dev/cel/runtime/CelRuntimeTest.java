@@ -17,6 +17,9 @@ package dev.cel.runtime;
 import static com.google.common.truth.Truth.assertThat;
 
 import dev.cel.expr.CheckedExpr;
+import com.google.api.expr.v1alpha1.Constant;
+import com.google.api.expr.v1alpha1.Expr;
+import com.google.api.expr.v1alpha1.Type.PrimitiveType;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
@@ -24,6 +27,8 @@ import com.google.protobuf.ExtensionRegistry;
 import com.google.rpc.context.AttributeContext;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
+import dev.cel.common.CelProtoV1Alpha1AbstractSyntaxTree;
+import dev.cel.common.types.CelV1AlphaTypes;
 import java.util.Base64;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,5 +78,28 @@ public class CelRuntimeTest {
                     .build()));
 
     assertThat(evaluatedResult).isEqualTo(true);
+  }
+
+  @Test
+  public void evaluate_v1alpha1CheckedExpr() throws Exception {
+    // Note: v1alpha1 proto support exists only to help migrate existing consumers.
+    // New users of CEL should use the canonical protos instead (I.E: dev.cel.expr)
+    com.google.api.expr.v1alpha1.CheckedExpr checkedExpr =
+        com.google.api.expr.v1alpha1.CheckedExpr.newBuilder()
+            .setExpr(
+                Expr.newBuilder()
+                    .setId(1)
+                    .setConstExpr(Constant.newBuilder().setStringValue("Hello world!").build())
+                    .build())
+            .putTypeMap(1, CelV1AlphaTypes.create(PrimitiveType.STRING))
+            .build();
+    CelRuntime celRuntime = CelRuntimeFactory.standardCelRuntimeBuilder().build();
+    CelRuntime.Program program =
+        celRuntime.createProgram(
+            CelProtoV1Alpha1AbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst());
+
+    String evaluatedResult = (String) program.eval();
+
+    assertThat(evaluatedResult).isEqualTo("Hello world!");
   }
 }

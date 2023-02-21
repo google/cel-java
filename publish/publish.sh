@@ -1,12 +1,28 @@
 #!/bin/bash
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 #
 # Publishes CEL to a Maven repository.
 #
-# To push locally, just run the script
-# To publish a SNAPSHOT version, run with -snapshot (-s) flag: "publish.sh --snapshot"
+# To push locally, just run the script. On MacOS by default, the artifact lives in ~/.m2/repository
+# To publish a SNAPSHOT version, run with -snapshot (-s) flag: "publish.sh --snapshot". Snapshots can be found in https://s01.oss.sonatype.org/#nexus-search;quick~dev.cel
 # To publish a RELEASE version remotely, run with -release (-r) flag: "publish.sh --release". Note that released maven artifacts are permanent and can never be deleted under any circumstances.
 
-# Note: To publish, you must create a pgp certificate and upload it to keyserver.ubuntu.com. See https://blog.sonatype.com/2010/01/how-to-generate-pgp-signatures-with-maven/
+# Note, to publish remotely:
+# 1. You must create a pgp certificate and upload it to keyserver.ubuntu.com. See https://blog.sonatype.com/2010/01/how-to-generate-pgp-signatures-with-maven/
+# 2. You will need to enter the key's password. The prompt appears in GUI, not in terminal. The publish operation will eventually timeout if the password is not entered.
 
 RUNTIME_TARGET=//publish:cel_runtime.publish
 

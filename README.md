@@ -100,12 +100,12 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.runtime.CelRuntimeFactory;
 
 CelRuntime celRuntime = CelRuntimeFactory.standardCelRuntimeBuilder().build();
-CelAbstractSyntaxTree ast = CelAbstractSyntaxTree.fromCheckedExpr(checkedExpr);
+CelAbstractSyntaxTree ast = CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr);
 
 try {
-  CelRuntime.Program program=celRuntime.createProgram(ast);
-  Object evaluatedResult=program.eval(parameterValues);
-} catch(CelEvaluationException e) {
+  CelRuntime.Program program = celRuntime.createProgram(ast);
+  Object evaluatedResult = program.eval(parameterValues);
+} catch (CelEvaluationException e) {
   throw new IllegalArgumentException("Evaluation error has occurred.",e);
 }
 ```
@@ -153,7 +153,23 @@ This section will be completed once parser and type-checker has been added.
 
 ## Install
 
-CEL-Java will be available in Maven repository soon.
+CEL-Java is available in Maven Central Repository. [Download the JARs here][6] or add the following to your build dependencies:
+
+**Maven (pom.xml)**:
+
+```xml
+<dependency>
+  <groupId>dev.cel</groupId>
+  <artifactId>runtime</artifactId>
+  <version>0.1.0</version>
+</dependency>
+```
+
+**Gradle**
+
+```gradle
+implementation 'dev.cel:runtime:0.1.0'
+```
 
 ## Common Questions
 
@@ -219,3 +235,5 @@ Disclaimer: This is not an official Google product.
 [4]:  https://github.com/google/cel-go
 
 [5]:  https://github.com/google/cel-java/issues
+
+[6]:  https://search.maven.org/search?q=g:dev.cel
