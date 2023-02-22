@@ -24,7 +24,8 @@
 # 1. You must create a pgp certificate and upload it to keyserver.ubuntu.com. See https://blog.sonatype.com/2010/01/how-to-generate-pgp-signatures-with-maven/
 # 2. You will need to enter the key's password. The prompt appears in GUI, not in terminal. The publish operation will eventually timeout if the password is not entered.
 
-RUNTIME_TARGET=//publish:cel_runtime.publish
+
+ALL_TARGETS=("//publish:cel_runtime.publish" "//publish:cel_v1alpha1.publish")
 
 function publish_maven_remote() {
   maven_repo_url=$1
@@ -33,12 +34,16 @@ function publish_maven_remote() {
    # https://github.com/bazelbuild/rules_jvm_external/issues/679
    read -p "maven_user: " maven_user
    read -s -p "maven_password: " maven_password
-   bazel run --stamp \
-     --define "maven_repo=$maven_repo_url" \
-     --define gpg_sign=true \
-     --define "maven_user=$maven_user" \
-     --define "maven_password=$maven_password" \
-     $RUNTIME_TARGET
+   for PUBLISH_TARGET in "${ALL_TARGETS[@]}"
+   do
+        bazel run --stamp \
+          --define "maven_repo=$maven_repo_url" \
+          --define gpg_sign=true \
+          --define "maven_user=$maven_user" \
+          --define "maven_password=$maven_password" \
+          $PUBLISH_TARGET
+   done
+
 }
 
 version=$(<cel_version.bzl)
@@ -71,5 +76,8 @@ elif [ "$flag" == "--release" ] || [ "$flag" == "-r" ]; then
 else
  local_maven_repo=$HOME/.m2/repository
  echo "Pushing to local Maven repository $local_maven_repo"
- bazel run --define "maven_repo=file://$local_maven_repo" $RUNTIME_TARGET
+  for PUBLISH_TARGET in "${ALL_TARGETS[@]}"
+  do
+     bazel run --define "maven_repo=file://$local_maven_repo" $PUBLISH_TARGET
+  done
 fi

@@ -171,6 +171,8 @@ CEL-Java is available in Maven Central Repository. [Download the JARs here][6] o
 implementation 'dev.cel:runtime:0.1.0'
 ```
 
+Note: if you are already using `com.google.api.expr.v1alpha1` protobuf definitions, you also need to take `dev:cel:v1alpha1:0.1.0` as a dependency and leverage `CelProtoV1Alpha1AbstractSyntaxTree` class to convert your protobuf objects. Please note that v1alpha1 is now deprecated and new consumers should opt to use `dev.cel.expr` protos instead.
+
 ## Common Questions
 
 ### Why not JavaScript, Lua, or WASM?
