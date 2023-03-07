@@ -150,7 +150,7 @@ public abstract class CelOptions {
         // Parser options
         .enableNonOverridableOperatorNames(false)
         .enableReservedIds(false)
-        .maxExpressionCodePointSize(10_000)
+        .maxExpressionCodePointSize(100_000)
         .maxParseErrorRecoveryLimit(30)
         .maxParseRecursionDepth(250)
         .populateMacroCalls(false)
