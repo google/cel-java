@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.Math.min;
 
-import com.google.common.annotations.VisibleForTesting;
 import dev.cel.common.annotations.Internal;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.IntStream;
@@ -30,7 +29,6 @@ import org.antlr.v4.runtime.misc.Interval;
  *
  * <p>CEL Library Internals. Do Not Use.
  */
-@VisibleForTesting
 @Internal
 public final class CodePointStream implements CharStream {
 

@@ -106,7 +106,7 @@ public final class Constants {
 
   static Constant parseUint(String text) throws ParseException {
     int base;
-    if (!text.endsWith("u")) {
+    if (!text.endsWith("u") && !text.endsWith("U")) {
       throw new ParseException("Unsigned integer literal is missing trailing 'u' suffix", 0);
     }
     text = text.substring(0, text.length() - 1);
