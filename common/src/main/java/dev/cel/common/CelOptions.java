@@ -148,7 +148,7 @@ public abstract class CelOptions {
   public static Builder newBuilder() {
     return new AutoValue_CelOptions.Builder()
         // Parser options
-        .enableNonOverridableOperatorNames(false)
+        .enableNonOverridableOperatorNames(true)
         .enableReservedIds(false)
         .maxExpressionCodePointSize(100_000)
         .maxParseErrorRecoveryLimit(30)
