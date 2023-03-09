@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
-import com.google.errorprone.annotations.InlineMe;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExprConverter;
@@ -92,28 +91,13 @@ public final class CelAbstractSyntaxTree {
   /**
    * Returns the underlying {@link com.google.api.expr.Expr} representation of the abstract syntax
    * tree.
-   *
-   * @deprecated Use the renamed {@link #getProtoExpr()} instead
-   */
-  @Deprecated
-  @InlineMe(replacement = "this.getProtoExpr()")
-  public Expr getExpr() {
-    return getProtoExpr();
-  }
-
-  /**
-   * Returns the underlying {@link com.google.api.expr.Expr} representation of the abstract syntax
-   * tree.
    */
   public Expr getProtoExpr() {
     return checkedExpr.getExpr();
   }
 
-  /**
-   * Returns the underlying {@link CelExpr} representation of the abstract syntax tree.
-   * TODO: Rename to getExpr
-   */
-  public CelExpr getCelExpr() {
+  /** Returns the underlying {@link CelExpr} representation of the abstract syntax tree. */
+  public CelExpr getExpr() {
     return celExpr;
   }
 
@@ -127,7 +111,7 @@ public final class CelAbstractSyntaxTree {
    * type is returned.
    */
   public CelType getResultType() {
-    return isChecked() ? getType(getCelExpr().id()).get() : SimpleType.DYN;
+    return isChecked() ? getType(getExpr().id()).get() : SimpleType.DYN;
   }
 
   /**

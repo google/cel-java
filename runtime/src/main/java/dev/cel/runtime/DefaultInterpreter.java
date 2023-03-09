@@ -167,7 +167,7 @@ public final class DefaultInterpreter implements Interpreter {
     public Object evalTrackingUnknowns(RuntimeUnknownResolver resolver)
         throws InterpreterException {
       ExecutionFrame frame = new ExecutionFrame(resolver, celOptions.comprehensionMaxIterations());
-      IntermediateResult internalResult = evalInternal(frame, ast.getCelExpr());
+      IntermediateResult internalResult = evalInternal(frame, ast.getExpr());
       Object result = internalResult.value();
       // TODO: remove support for IncompleteData.
       return InterpreterUtil.completeDataOnly(
