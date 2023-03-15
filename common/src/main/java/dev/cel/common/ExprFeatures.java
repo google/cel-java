@@ -56,17 +56,6 @@ public enum ExprFeatures {
   HOMOGENEOUS_LITERALS,
 
   /**
-   * Ensure that internal operator names cannot be override in the host environment.
-   *
-   * <p>The legacy operator name for human-readable functions was {@code _<op>_}; however, this
-   * could result in a host-defined operator colliding with a built-in operator name if the host
-   * used the same naming convention as the internal operator names. e.g. {@code in} had an internal
-   * name of {@code _in_}. This feature changes the name to {@code @in} which cannot be expressed as
-   * a CEL function identifier.
-   */
-  NON_OVERRIDABLE_OPERATOR_NAMES,
-
-  /**
    * Treat regex {@code matches} calls as substring (unanchored) match patterns.
    *
    * <p>The default treatment for pattern matching within RE2 is full match within Java; however,
@@ -159,7 +148,6 @@ public enum ExprFeatures {
   /** Feature flags that enable the current best practices for CEL. */
   public static final ImmutableSet<ExprFeatures> CURRENT =
       ImmutableSet.of(
-          NON_OVERRIDABLE_OPERATOR_NAMES,
           REGEX_PARTIAL_MATCH,
           RESERVED_IDS,
           UNSIGNED_COMPARISON_AND_ARITHMETIC_IS_UNSIGNED,

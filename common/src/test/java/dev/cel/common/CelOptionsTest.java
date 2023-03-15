@@ -37,7 +37,6 @@ public final class CelOptionsTest {
     allFeatures.add(
         ExprFeatures.COMPILE_TIME_OVERLOAD_RESOLUTION,
         ExprFeatures.HOMOGENEOUS_LITERALS,
-        ExprFeatures.NON_OVERRIDABLE_OPERATOR_NAMES,
         ExprFeatures.REGEX_PARTIAL_MATCH,
         ExprFeatures.RESERVED_IDS,
         ExprFeatures.RETAIN_REPEATED_UNARY_OPERATORS,
