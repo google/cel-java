@@ -19,13 +19,13 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.util.Arrays.stream;
 
 import dev.cel.expr.ExprValue;
-import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedInts;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.CheckReturnValue;
+import javax.annotation.concurrent.ThreadSafe;
 import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
