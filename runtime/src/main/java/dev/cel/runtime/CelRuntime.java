@@ -14,13 +14,13 @@
 
 package dev.cel.runtime;
 
-import javax.annotation.concurrent.ThreadSafe;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
 import com.google.protobuf.Message;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;

@@ -100,6 +100,7 @@ java_library(
         "//common/src/main/java/dev/cel/common/internal:converter",
         "//common/src/main/java/dev/cel/common/internal:dynamic_proto",
         "//common/src/main/java/dev/cel/common/internal:proto_equality",
+        "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
