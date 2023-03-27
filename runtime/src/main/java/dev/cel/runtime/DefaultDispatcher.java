@@ -14,12 +14,12 @@
 
 package dev.cel.runtime;
 
-import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.CelOptions;

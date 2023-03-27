@@ -14,8 +14,8 @@
 
 package dev.cel.runtime;
 
-import javax.annotation.concurrent.ThreadSafe;
 import com.google.errorprone.annotations.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.annotations.Internal;
 import java.util.List;
 
