@@ -1,9 +1,6 @@
 package(
     default_testonly = True,
-    default_visibility = [
-        "//:__subpackages__",
-        "//common/src/main/java/dev/cel/common/testing:__pkg__",
-    ],
+    default_visibility = ["//common/src/main/java/dev/cel/common/testing:__pkg__"],
 )
 
 java_library(
