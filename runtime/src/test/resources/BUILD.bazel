@@ -1,8 +1,5 @@
 package(
-    default_visibility = [
-        "//:__subpackages__",
-        "//runtime/src/test/resources:__pkg__",
-    ],
+    default_visibility = ["//runtime/src/test/resources:__pkg__"],
 )
 
 filegroup(
