@@ -955,7 +955,7 @@ fieldMask: {
 }
 }
 result:   unknown {
-  exprs: 5
+  exprs: 4
 }
 
 
@@ -981,8 +981,8 @@ fieldMask: {
 }
 }
 result:   unknown {
-  exprs: 5
-  exprs: 8
+  exprs: 4
+  exprs: 7
 }
 
 
