@@ -1,4 +1,6 @@
 package(
+    default_applicable_licenses = [
+    ],
     default_visibility = [
         "//:__subpackages__",
         "//runtime/src/test/resources:__pkg__",

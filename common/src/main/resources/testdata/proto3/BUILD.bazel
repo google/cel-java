@@ -1,4 +1,6 @@
 package(
+    default_applicable_licenses = [
+    ],
     default_testonly = True,
     default_visibility = [
         "//:__subpackages__",

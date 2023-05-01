@@ -1,8 +1,12 @@
 # Reference implementation for an Async evaluator for the CEL runtime.
 
-package(default_visibility = [
-    "//runtime/src/main/java/dev/cel/runtime/async:__pkg__",
-])
+package(
+    default_applicable_licenses = [
+    ],
+    default_visibility = [
+        "//runtime/src/main/java/dev/cel/runtime/async:__pkg__",
+    ],
+)
 
 ASYNC_RUNTIME_SOURCES = [
     "AsyncProgramImpl.java",

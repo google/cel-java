@@ -1,7 +1,11 @@
-package(default_visibility = [
-    "//:__subpackages__",
-    "//runtime/src/main/java/dev/cel/runtime:__pkg__",
-])
+package(
+    default_applicable_licenses = [
+    ],
+    default_visibility = [
+        "//:__subpackages__",
+        "//runtime/src/main/java/dev/cel/runtime:__pkg__",
+    ],
+)
 
 BASE_SOURCES = [
     "DefaultMetadata.java",

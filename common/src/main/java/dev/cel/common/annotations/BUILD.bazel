@@ -1,7 +1,11 @@
-package(default_visibility = [
-    "//:__subpackages__",
-    "//common/src/main/java/dev/cel/common/annotations:__pkg__",
-])
+package(
+    default_applicable_licenses = [
+    ],
+    default_visibility = [
+        "//:__subpackages__",
+        "//common/src/main/java/dev/cel/common/annotations:__pkg__",
+    ],
+)
 
 # keep sorted
 ANNOTATION_SOURCES = [
