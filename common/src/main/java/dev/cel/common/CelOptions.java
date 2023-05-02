@@ -39,8 +39,6 @@ public abstract class CelOptions {
 
   // Parser related options
 
-  public abstract boolean enableNonOverridableOperatorNames();
-
   public abstract boolean enableReservedIds();
 
   public abstract int maxExpressionCodePointSize();
@@ -98,9 +96,6 @@ public abstract class CelOptions {
     if (enableHomogeneousLiterals()) {
       features.add(ExprFeatures.HOMOGENEOUS_LITERALS);
     }
-    if (enableNonOverridableOperatorNames()) {
-      features.add(ExprFeatures.NON_OVERRIDABLE_OPERATOR_NAMES);
-    }
     if (enableRegexPartialMatch()) {
       features.add(ExprFeatures.REGEX_PARTIAL_MATCH);
     }
@@ -148,7 +143,6 @@ public abstract class CelOptions {
   public static Builder newBuilder() {
     return new AutoValue_CelOptions.Builder()
         // Parser options
-        .enableNonOverridableOperatorNames(true)
         .enableReservedIds(false)
         .maxExpressionCodePointSize(100_000)
         .maxParseErrorRecoveryLimit(30)
@@ -182,7 +176,6 @@ public abstract class CelOptions {
     return newBuilder()
         .enableReservedIds(true)
         .enableUnsignedComparisonAndArithmeticIsUnsigned(true)
-        .enableNonOverridableOperatorNames(true)
         .enableRegexPartialMatch(true)
         .errorOnDuplicateMapKeys(true)
         .errorOnIntWrap(true)
@@ -196,8 +189,6 @@ public abstract class CelOptions {
             features.contains(ExprFeatures.COMPILE_TIME_OVERLOAD_RESOLUTION))
         .disableCelStandardEquality(features.contains(ExprFeatures.LEGACY_JAVA_EQUALITY))
         .enableHomogeneousLiterals(features.contains(ExprFeatures.HOMOGENEOUS_LITERALS))
-        .enableNonOverridableOperatorNames(
-            features.contains(ExprFeatures.NON_OVERRIDABLE_OPERATOR_NAMES))
         .enableRegexPartialMatch(features.contains(ExprFeatures.REGEX_PARTIAL_MATCH))
         .enableReservedIds(features.contains(ExprFeatures.RESERVED_IDS))
         .enableUnsignedComparisonAndArithmeticIsUnsigned(
@@ -224,17 +215,6 @@ public abstract class CelOptions {
     Builder() {}
 
     // Parser related builder options.
-
-    /**
-     * Ensure that internal operator names cannot be override in the host environment.
-     *
-     * <p>The legacy operator name for human-readable functions was {@code _<op>_}; however, this
-     * could result in a host-defined operator colliding with a built-in operator name if the host
-     * used the same naming convention as the internal operator names. e.g. {@code in} had an
-     * internal name of {@code _in_}. This feature changes the name to {@code @in} which cannot be
-     * expressed as a CEL function identifier.
-     */
-    public abstract Builder enableNonOverridableOperatorNames(boolean value);
 
     /**
      * Check for use of reserved identifiers during parsing.
