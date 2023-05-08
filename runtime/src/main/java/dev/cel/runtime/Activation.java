@@ -114,12 +114,15 @@ public abstract class Activation implements GlobalResolver {
 
   /** Creates a binder backed up by a map. */
   public static Activation copyOf(Map<String, ?> map) {
-    // ImmutableMaps are null-hostile, but the Activation is not, so make sure that null values
-    // and entries are skipped.
+    @SuppressWarnings("unchecked")
     final ImmutableMap<String, Object> copy =
-        map.entrySet().stream()
-            .filter(entry -> entry.getKey() != null && entry.getValue() != null)
-            .collect(toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+        (map instanceof ImmutableMap)
+            ? (ImmutableMap<String, Object>) map
+            : map.entrySet().stream()
+                // ImmutableMaps are null-hostile, but the Activation is not, so make sure that null
+                // values and entries are skipped.
+                .filter(entry -> entry.getKey() != null && entry.getValue() != null)
+                .collect(toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
     return new Activation() {
       @Nullable
       @Override
