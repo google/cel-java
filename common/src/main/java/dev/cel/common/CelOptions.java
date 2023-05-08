@@ -41,6 +41,8 @@ public abstract class CelOptions {
 
   public abstract boolean enableReservedIds();
 
+  public abstract boolean enableOptionalSyntax();
+
   public abstract int maxExpressionCodePointSize();
 
   public abstract int maxParseErrorRecoveryLimit();
@@ -144,6 +146,7 @@ public abstract class CelOptions {
     return new AutoValue_CelOptions.Builder()
         // Parser options
         .enableReservedIds(false)
+        .enableOptionalSyntax(false)
         .maxExpressionCodePointSize(100_000)
         .maxParseErrorRecoveryLimit(30)
         .maxParseRecursionDepth(250)
@@ -223,6 +226,15 @@ public abstract class CelOptions {
      * spec</a> for a list of reserved identifiers.
      */
     public abstract Builder enableReservedIds(boolean value);
+
+    /**
+     * NOTE: DO NOT USE. THIS FEATURE IS NOT READY YET. TODO: Remove comment when
+     * ready.
+     *
+     * <p>EnableOptionalSyntax enables syntax for optional field and index selection (e.g:
+     * msg.?field).
+     */
+    abstract Builder enableOptionalSyntax(boolean value);
 
     /**
      * Set a limit on the size of the expression string which may be parsed in terms of the number
