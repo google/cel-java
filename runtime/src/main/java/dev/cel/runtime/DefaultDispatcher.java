@@ -22,6 +22,7 @@ import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
 import com.google.protobuf.MessageLite;
+import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.ExprFeatures;
 import dev.cel.common.annotations.Internal;
@@ -162,6 +163,7 @@ public final class DefaultDispatcher implements Dispatcher, Registrar {
       if (overload == null) {
         throw new InterpreterException.Builder(
                 "[internal] Unknown overload id '%s' for function '%s'", overloadId, functionName)
+            .setErrorCode(CelErrorCode.OVERLOAD_NOT_FOUND)
             .setLocation(metadata, exprId)
             .build();
       }
@@ -175,8 +177,7 @@ public final class DefaultDispatcher implements Dispatcher, Registrar {
         return overloads.get(overloadId).function.apply(args);
       } catch (RuntimeException e) {
         throw new InterpreterException.Builder(
-                "Function '%s' failed with arg(s) '%s'", overloadId, Joiner.on(", ").join(args))
-            .setCause(e)
+                e, "Function '%s' failed with arg(s) '%s'", overloadId, Joiner.on(", ").join(args))
             .build();
       }
     }
@@ -184,6 +185,7 @@ public final class DefaultDispatcher implements Dispatcher, Registrar {
       throw new InterpreterException.Builder(
               "Ambiguous overloads for function '%s'. Matching candidates: %s",
               functionName, Joiner.on(",").join(candidates))
+          .setErrorCode(CelErrorCode.AMBIGUOUS_OVERLOAD)
           .setLocation(metadata, exprId)
           .build();
     }
@@ -191,6 +193,7 @@ public final class DefaultDispatcher implements Dispatcher, Registrar {
     throw new InterpreterException.Builder(
             "No matching overload for function '%s'. Overload candidates: %s",
             functionName, Joiner.on(",").join(overloadIds))
+        .setErrorCode(CelErrorCode.OVERLOAD_NOT_FOUND)
         .setLocation(metadata, exprId)
         .build();
   }

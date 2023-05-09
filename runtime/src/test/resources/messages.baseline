@@ -31,15 +31,3 @@ declare single_nested_message {
 =====>
 bindings: {}
 result:   true
-
-Source: TestAllTypes{single_int32_wrapper: 12345678900}
-declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
-}
-declare single_nested_message {
-  value dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage
-}
-=====>
-bindings: {}
-error:    evaluation error at test_location:12: Out of range: 12345678900
-

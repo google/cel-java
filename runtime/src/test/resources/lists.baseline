@@ -108,4 +108,5 @@ declare list {
 }
 =====>
 bindings: {y=1, list=[1, 2, 3]}
-error:    evaluation error: Function 'index_list' failed with arg(s) '[1, 2, 3], 3'
+error:    evaluation error: Index out of bounds: 3
+error_code:    INDEX_OUT_OF_BOUNDS

@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.annotations.Internal;
@@ -197,9 +198,8 @@ public final class DefaultInterpreter implements Interpreter {
             throw new IllegalStateException(
                 "unexpected expression kind: " + expr.exprKind().getKind());
         }
-      } catch (IllegalArgumentException e) {
-        throw new InterpreterException.Builder(e.getMessage())
-            .setCause(e)
+      } catch (RuntimeException e) {
+        throw new InterpreterException.Builder(e, e.getMessage())
             .setLocation(metadata, expr.id())
             .build();
       }
@@ -499,6 +499,7 @@ public final class DefaultInterpreter implements Interpreter {
                               "expected a runtime type for '%s' from checked expression, but found"
                                   + " none.",
                               argResult.getClass().getSimpleName())
+                          .setErrorCode(CelErrorCode.TYPE_NOT_FOUND)
                           .setLocation(metadata, typeExprArg.id())
                           .build());
 
@@ -515,6 +516,7 @@ public final class DefaultInterpreter implements Interpreter {
           && !isUnknownValue(value.value())
           && !(value.value() instanceof Exception)) {
         throw new InterpreterException.Builder("expected boolean value, found: %s", value.value())
+            .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
             .setLocation(metadata, expr.id())
             .build();
       }
@@ -574,6 +576,7 @@ public final class DefaultInterpreter implements Interpreter {
 
         if (celOptions.errorOnDuplicateMapKeys() && result.containsKey(keyResult.value())) {
           throw new InterpreterException.Builder("duplicate map key [%s]", keyResult.value())
+              .setErrorCode(CelErrorCode.DUPLICATE_ATTRIBUTE)
               .setLocation(metadata, entry.id())
               .build();
         }
@@ -642,6 +645,7 @@ public final class DefaultInterpreter implements Interpreter {
         throw new InterpreterException.Builder(
                 "expected a list or a map for iteration range but got '%s'",
                 iterRangeRaw.value().getClass().getSimpleName())
+            .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
             .setLocation(metadata, compre.iterRange().id())
             .build();
       }
@@ -705,6 +709,7 @@ public final class DefaultInterpreter implements Interpreter {
       if (++iterations > maxIterations) {
         throw new InterpreterException.Builder(
                 String.format("Iteration budget exceeded: %d", maxIterations))
+            .setErrorCode(CelErrorCode.ITERATION_BUDGET_EXCEEDED)
             .build();
       }
     }

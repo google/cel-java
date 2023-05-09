@@ -23,6 +23,7 @@ import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.Timestamps;
+import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.ComparisonFunctions;
@@ -209,7 +210,10 @@ public class StandardFunctions {
           try {
             return Double.parseDouble(arg);
           } catch (NumberFormatException e) {
-            throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(CelErrorCode.BAD_FORMAT)
+                .build();
           }
         });
   }
@@ -251,7 +255,9 @@ public class StandardFunctions {
           try {
             return RuntimeHelpers.createDurationFromString(d);
           } catch (IllegalArgumentException e) {
-            throw new InterpreterException.Builder(e.getMessage()).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setErrorCode(CelErrorCode.BAD_FORMAT)
+                .build();
           }
         });
 
@@ -290,7 +296,10 @@ public class StandardFunctions {
           try {
             return RuntimeHelpers.int64Add(x, y, celOptions);
           } catch (ArithmeticException e) {
-            throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(getArithmeticErrorCode(e))
+                .build();
           }
         });
     registrar.add(
@@ -301,7 +310,10 @@ public class StandardFunctions {
           try {
             return RuntimeHelpers.int64Subtract(x, y, celOptions);
           } catch (ArithmeticException e) {
-            throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(getArithmeticErrorCode(e))
+                .build();
           }
         });
     registrar.add(
@@ -312,7 +324,10 @@ public class StandardFunctions {
           try {
             return RuntimeHelpers.int64Multiply(x, y, celOptions);
           } catch (ArithmeticException e) {
-            throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(getArithmeticErrorCode(e))
+                .build();
           }
         });
     registrar.add(
@@ -323,10 +338,26 @@ public class StandardFunctions {
           try {
             return RuntimeHelpers.int64Divide(x, y, celOptions);
           } catch (ArithmeticException e) {
-            throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(getArithmeticErrorCode(e))
+                .build();
           }
         });
-    registrar.add("modulo_int64", Long.class, Long.class, (Long x, Long y) -> x % y);
+    registrar.add(
+        "modulo_int64",
+        Long.class,
+        Long.class,
+        (Long x, Long y) -> {
+          try {
+            return x % y;
+          } catch (ArithmeticException e) {
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(getArithmeticErrorCode(e))
+                .build();
+          }
+        });
     registrar.add(
         "negate_int64",
         Long.class,
@@ -334,7 +365,10 @@ public class StandardFunctions {
           try {
             return RuntimeHelpers.int64Negate(x, celOptions);
           } catch (ArithmeticException e) {
-            throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(getArithmeticErrorCode(e))
+                .build();
           }
         });
 
@@ -345,7 +379,9 @@ public class StandardFunctions {
           UnsignedLong.class,
           (UnsignedLong arg) -> {
             if (arg.compareTo(UnsignedLong.valueOf(Long.MAX_VALUE)) > 0) {
-              throw new InterpreterException.Builder("unsigned out of int range").build();
+              throw new InterpreterException.Builder("unsigned out of int range")
+                  .setErrorCode(CelErrorCode.NUMERIC_OVERFLOW)
+                  .build();
             }
             return arg.longValue();
           });
@@ -355,7 +391,9 @@ public class StandardFunctions {
           Long.class,
           (Long arg) -> {
             if (celOptions.errorOnIntWrap() && arg < 0) {
-              throw new InterpreterException.Builder("unsigned out of int range").build();
+              throw new InterpreterException.Builder("unsigned out of int range")
+                  .setErrorCode(CelErrorCode.NUMERIC_OVERFLOW)
+                  .build();
             }
             return arg;
           });
@@ -368,7 +406,9 @@ public class StandardFunctions {
             return RuntimeHelpers.doubleToLongChecked(arg)
                 .orElseThrow(
                     () ->
-                        new InterpreterException.Builder("double is out of range for int").build());
+                        new InterpreterException.Builder("double is out of range for int")
+                            .setErrorCode(CelErrorCode.NUMERIC_OVERFLOW)
+                            .build());
           }
           return arg.longValue();
         });
@@ -379,7 +419,10 @@ public class StandardFunctions {
           try {
             return Long.parseLong(arg);
           } catch (NumberFormatException e) {
-            throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(CelErrorCode.BAD_FORMAT)
+                .build();
           }
         });
     registrar.add("timestamp_to_int64", Timestamp.class, Timestamps::toSeconds);
@@ -523,7 +566,9 @@ public class StandardFunctions {
           try {
             return Timestamps.parse(ts);
           } catch (ParseException e) {
-            throw new InterpreterException.Builder(e.getMessage()).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setErrorCode(CelErrorCode.BAD_FORMAT)
+                .build();
           }
         });
     registrar.add("int64_to_timestamp", Long.class, Timestamps::fromSeconds);
@@ -674,7 +719,10 @@ public class StandardFunctions {
           try {
             return RuntimeHelpers.uint64Add(x, y, celOptions);
           } catch (ArithmeticException e) {
-            throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(getArithmeticErrorCode(e))
+                .build();
           }
         });
     registrar.add(
@@ -685,7 +733,10 @@ public class StandardFunctions {
           try {
             return RuntimeHelpers.uint64Subtract(x, y, celOptions);
           } catch (ArithmeticException e) {
-            throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(getArithmeticErrorCode(e))
+                .build();
           }
         });
     registrar.add(
@@ -696,7 +747,10 @@ public class StandardFunctions {
           try {
             return RuntimeHelpers.uint64Multiply(x, y, celOptions);
           } catch (ArithmeticException e) {
-            throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(getArithmeticErrorCode(e))
+                .build();
           }
         });
     registrar.add(
@@ -716,7 +770,9 @@ public class StandardFunctions {
         Long.class,
         (Long arg) -> {
           if (celOptions.errorOnIntWrap() && arg < 0) {
-            throw new InterpreterException.Builder("int out of uint range").build();
+            throw new InterpreterException.Builder("int out of uint range")
+                .setErrorCode(CelErrorCode.NUMERIC_OVERFLOW)
+                .build();
           }
           return arg;
         });
@@ -728,7 +784,10 @@ public class StandardFunctions {
             return RuntimeHelpers.doubleToUnsignedChecked(arg)
                 .map(UnsignedLong::longValue)
                 .orElseThrow(
-                    () -> new InterpreterException.Builder("double out of uint range").build());
+                    () ->
+                        new InterpreterException.Builder("double out of uint range")
+                            .setErrorCode(CelErrorCode.NUMERIC_OVERFLOW)
+                            .build());
           }
           return arg.longValue();
         });
@@ -739,7 +798,10 @@ public class StandardFunctions {
           try {
             return UnsignedLongs.parseUnsignedLong(arg);
           } catch (NumberFormatException e) {
-            throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(CelErrorCode.BAD_FORMAT)
+                .build();
           }
         });
   }
@@ -774,7 +836,10 @@ public class StandardFunctions {
           try {
             return RuntimeHelpers.uint64Add(x, y);
           } catch (ArithmeticException e) {
-            throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(getArithmeticErrorCode(e))
+                .build();
           }
         });
     registrar.add(
@@ -785,7 +850,10 @@ public class StandardFunctions {
           try {
             return RuntimeHelpers.uint64Subtract(x, y);
           } catch (ArithmeticException e) {
-            throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(getArithmeticErrorCode(e))
+                .build();
           }
         });
     registrar.add(
@@ -796,7 +864,10 @@ public class StandardFunctions {
           try {
             return RuntimeHelpers.uint64Multiply(x, y);
           } catch (ArithmeticException e) {
-            throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(getArithmeticErrorCode(e))
+                .build();
           }
         });
     registrar.add(
@@ -812,7 +883,9 @@ public class StandardFunctions {
         Long.class,
         (Long arg) -> {
           if (celOptions.errorOnIntWrap() && arg < 0) {
-            throw new InterpreterException.Builder("int out of uint range").build();
+            throw new InterpreterException.Builder("int out of uint range")
+                .setErrorCode(CelErrorCode.NUMERIC_OVERFLOW)
+                .build();
           }
           return UnsignedLong.valueOf(arg);
         });
@@ -823,7 +896,10 @@ public class StandardFunctions {
           if (celOptions.errorOnIntWrap()) {
             return RuntimeHelpers.doubleToUnsignedChecked(arg)
                 .orElseThrow(
-                    () -> new InterpreterException.Builder("double out of uint range").build());
+                    () ->
+                        new InterpreterException.Builder("double out of uint range")
+                            .setErrorCode(CelErrorCode.NUMERIC_OVERFLOW)
+                            .build());
           }
           return UnsignedLong.valueOf(BigDecimal.valueOf(arg).toBigInteger());
         });
@@ -834,7 +910,10 @@ public class StandardFunctions {
           try {
             return UnsignedLong.valueOf(arg);
           } catch (NumberFormatException e) {
-            throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(CelErrorCode.BAD_FORMAT)
+                .build();
           }
         });
   }
@@ -1021,6 +1100,15 @@ public class StandardFunctions {
     return Instant.ofEpochSecond(ts.getSeconds(), ts.getNanos())
         .atZone(timeZone(tz))
         .toLocalDateTime();
+  }
+
+  private static CelErrorCode getArithmeticErrorCode(ArithmeticException e) {
+    String exceptionMessage = e.getMessage();
+    // The two known cases for an arithmetic exception is divide by zero and overflow.
+    if (exceptionMessage.equals("/ by zero")) {
+      return CelErrorCode.DIVIDE_BY_ZERO;
+    }
+    return CelErrorCode.NUMERIC_OVERFLOW;
   }
 
   private StandardFunctions() {}

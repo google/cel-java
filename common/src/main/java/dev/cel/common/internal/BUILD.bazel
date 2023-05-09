@@ -73,6 +73,8 @@ java_library(
         ":converter",
         "//:auto_value",
         "//common/src/main/java/dev/cel/common",
+        "//common/src/main/java/dev/cel/common:error_codes",
+        "//common/src/main/java/dev/cel/common:runtime_exception",
         "//common/src/main/java/dev/cel/common/annotations",
         "//common/src/main/java/dev/cel/common/types:cel_types",
         "@cel_spec//proto/expr:expr_java_proto",

@@ -23,7 +23,9 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.NullValue;
+import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelRuntimeException;
 import dev.cel.common.ExprFeatures;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.DynamicProto;
@@ -104,8 +106,10 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
   public Object createMessage(String messageName, Map<String, Object> values) {
     Message.Builder builder = messageFactory.newBuilder(messageName);
     if (builder == null) {
-      throw new IllegalArgumentException(
-          String.format("cannot resolve '%s' as a message", messageName));
+      throw new CelRuntimeException(
+          new IllegalArgumentException(
+              String.format("cannot resolve '%s' as a message", messageName)),
+          CelErrorCode.ATTRIBUTE_NOT_FOUND);
     }
     try {
       Descriptor descriptor = builder.getDescriptorForType();
@@ -129,8 +133,9 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
       if (map.containsKey(fieldName)) {
         return map.get(fieldName);
       }
-      throw new IllegalArgumentException(
-          String.format("key '%s' is not present in map.", fieldName));
+      throw new CelRuntimeException(
+          new IllegalArgumentException(String.format("key '%s' is not present in map.", fieldName)),
+          CelErrorCode.ATTRIBUTE_NOT_FOUND);
     }
     MessageOrBuilder typedMessage = assertFullProtoMessage(message);
     FieldDescriptor fieldDescriptor = findField(typedMessage.getDescriptorForType(), fieldName);
@@ -186,11 +191,13 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
   private static MessageOrBuilder assertFullProtoMessage(Object candidate) {
     if (!(candidate instanceof MessageOrBuilder)) {
       // This is an internal error. It should not happen for type checked expressions.
-      throw new IllegalStateException(
-          String.format(
-              "[internal] expected an instance of 'com.google.protobuf.MessageOrBuilder' "
-                  + "but found '%s'",
-              candidate.getClass().getName()));
+      throw new CelRuntimeException(
+          new IllegalStateException(
+              String.format(
+                  "[internal] expected an instance of 'com.google.protobuf.MessageOrBuilder' "
+                      + "but found '%s'",
+                  candidate.getClass().getName())),
+          CelErrorCode.INTERNAL_ERROR);
     }
     return (MessageOrBuilder) candidate;
   }

@@ -18,7 +18,9 @@ import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageOrBuilder;
+import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.ComparisonFunctions;
 import dev.cel.common.internal.DynamicProto;
@@ -66,7 +68,8 @@ public final class RuntimeEquality {
     if (value.isPresent()) {
       return (B) value.get();
     }
-    throw new IndexOutOfBoundsException(index.toString());
+    throw new CelRuntimeException(
+        new IndexOutOfBoundsException(index.toString()), CelErrorCode.ATTRIBUTE_NOT_FOUND);
   }
 
   /** Determine whether the {@code map} contains the given {@code key}. */

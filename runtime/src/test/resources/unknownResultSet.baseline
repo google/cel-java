@@ -173,6 +173,7 @@ fieldMask: {
 }
 }
 error:    evaluation error: Failed to parse timestamp: invalid timestamp "bad timestamp string"
+error_code:    BAD_FORMAT
 
 Source: x.single_int32 == 1 || x.single_string == "test"
 declare x {
@@ -349,6 +350,7 @@ fieldMask: {
 }
 }
 error:    evaluation error: Failed to parse timestamp: invalid timestamp "bad timestamp string"
+error_code:    BAD_FORMAT
 
 Source: x.single_int32.f(1)
 declare x {

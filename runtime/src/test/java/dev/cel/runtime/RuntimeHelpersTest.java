@@ -36,6 +36,7 @@ import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelRuntimeException;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Assert;
@@ -218,7 +219,7 @@ public final class RuntimeHelpersTest {
     assertThat(RuntimeHelpers.uint64Divide(UnsignedLong.MAX_VALUE, UnsignedLong.MAX_VALUE))
         .isEqualTo(UnsignedLong.ONE);
     assertThrows(
-        ArithmeticException.class,
+        CelRuntimeException.class,
         () -> RuntimeHelpers.uint64Divide(UnsignedLong.MAX_VALUE, UnsignedLong.ZERO));
   }
 
@@ -243,7 +244,7 @@ public final class RuntimeHelpersTest {
     assertThat(RuntimeHelpers.uint64Mod(UnsignedLong.ONE, UnsignedLong.ONE))
         .isEqualTo(UnsignedLong.ZERO);
     assertThrows(
-        ArithmeticException.class,
+        CelRuntimeException.class,
         () -> RuntimeHelpers.uint64Mod(UnsignedLong.ONE, UnsignedLong.ZERO));
   }
 
@@ -379,6 +380,6 @@ public final class RuntimeHelpersTest {
     ImmutableList<String> list = ImmutableList.of("value", "value2");
     assertThat(RuntimeHelpers.indexList(list, 0.0)).isEqualTo("value");
     assertThat(RuntimeHelpers.indexList(list, UnsignedLong.valueOf(1L))).isEqualTo("value2");
-    Assert.assertThrows(IndexOutOfBoundsException.class, () -> RuntimeHelpers.indexList(list, 1.1));
+    Assert.assertThrows(CelRuntimeException.class, () -> RuntimeHelpers.indexList(list, 1.1));
   }
 }

@@ -44,6 +44,7 @@ import com.google.rpc.context.AttributeContext.Peer;
 import com.google.rpc.context.AttributeContext.Request;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelRuntimeException;
 import dev.cel.common.internal.AdaptingTypes;
 import dev.cel.common.internal.BidiConverter;
 import dev.cel.common.internal.DynamicProto;
@@ -160,10 +161,10 @@ public final class RuntimeEqualityTest {
     assertThat(RUNTIME_EQUALITY.indexMap(mixedKeyMap, 1.0, CelOptions.DEFAULT)).isEqualTo("value");
     assertThat(RUNTIME_EQUALITY.indexMap(mixedKeyMap, 2.0, CelOptions.DEFAULT)).isEqualTo("value2");
     Assert.assertThrows(
-        IndexOutOfBoundsException.class,
+        CelRuntimeException.class,
         () -> RUNTIME_EQUALITY.indexMap(mixedKeyMap, 1.0, CelOptions.LEGACY));
     Assert.assertThrows(
-        IndexOutOfBoundsException.class,
+        CelRuntimeException.class,
         () -> RUNTIME_EQUALITY.indexMap(mixedKeyMap, 1.1, CelOptions.DEFAULT));
   }
 
@@ -668,10 +669,10 @@ public final class RuntimeEqualityTest {
     for (State state : result.states()) {
       if (state.outcome() == null) {
         Assert.assertThrows(
-            IllegalArgumentException.class,
+            CelRuntimeException.class,
             () -> RUNTIME_EQUALITY.objectEquals(lhs, rhs, state.celOptions()));
         Assert.assertThrows(
-            IllegalArgumentException.class,
+            CelRuntimeException.class,
             () -> RUNTIME_EQUALITY.objectEquals(rhs, lhs, state.celOptions()));
         return;
       }

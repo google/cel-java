@@ -17,3 +17,4 @@ Source: double('bad')
 =====>
 bindings: {}
 error:    evaluation error: For input string: "bad"
+error_code:    BAD_FORMAT

@@ -214,7 +214,10 @@ final class CelRuntimeLegacyImpl implements CelRuntime {
                     try {
                       return func.getDefinition().apply(args);
                     } catch (CelEvaluationException e) {
-                      throw new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+                      throw new InterpreterException.Builder(e.getMessage())
+                          .setCause(e)
+                          .setErrorCode(e.getErrorCode())
+                          .build();
                     }
                   }));
 

@@ -31,6 +31,7 @@ java_library(
     name = "common",
     srcs = COMMON_SOURCES,
     deps = [
+        ":error_codes",
         "//:auto_value",
         "//common/src/main/java/dev/cel/common/ast",
         "//common/src/main/java/dev/cel/common/ast:expr_converter",
@@ -90,5 +91,19 @@ java_library(
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "error_codes",
+    srcs = ["CelErrorCode.java"],
+)
+
+java_library(
+    name = "runtime_exception",
+    srcs = ["CelRuntimeException.java"],
+    deps = [
+        ":error_codes",
+        "//common/src/main/java/dev/cel/common/annotations",
     ],
 )

@@ -1,4 +1,4 @@
-// Copyright 2022 Google LLC
+// Copyright 2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,21 +14,23 @@
 
 package dev.cel.common;
 
-/** Base class for all checked exceptions explicitly thrown by the library. */
-public abstract class CelException extends Exception {
-  // By default, unclassified errors are "internal errors".
-  private CelErrorCode errorCode = CelErrorCode.INTERNAL_ERROR;
+import dev.cel.common.annotations.Internal;
 
-  public CelException(String message) {
-    super(message);
-  }
+/**
+ * Wrapper for an unchecked runtime exception with a CelErrorCode supplied.
+ *
+ * <p>Note: This is not to be confused with the notion of CEL Runtime. Use {@code
+ * CelEvaluationException} instead to signify an evaluation error.
+ *
+ * <p>TODO: Make this class abstract and define specific exception classes that
+ * corresponds to the CelErrorCode.
+ */
+@Internal
+public class CelRuntimeException extends RuntimeException {
+  private final CelErrorCode errorCode;
 
-  public CelException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public CelException(String message, Throwable cause, CelErrorCode errorCode) {
-    super(message, cause);
+  public CelRuntimeException(Throwable cause, CelErrorCode errorCode) {
+    super(cause);
     this.errorCode = errorCode;
   }
 

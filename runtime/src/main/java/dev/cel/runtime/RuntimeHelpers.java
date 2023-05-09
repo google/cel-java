@@ -25,7 +25,9 @@ import com.google.protobuf.Message;
 import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.NullValue;
 import com.google.re2j.Pattern;
+import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.Converter;
 import dev.cel.common.internal.DynamicProto;
@@ -104,11 +106,17 @@ public final class RuntimeHelpers {
     if (index instanceof Double) {
       return doubleToLongLossless(index.doubleValue())
           .map(v -> indexList(list, v))
-          .orElseThrow(() -> new IndexOutOfBoundsException(Double.toString(index.doubleValue())));
+          .orElseThrow(
+              () ->
+                  new CelRuntimeException(
+                      new IndexOutOfBoundsException("Index out of bounds: " + index.doubleValue()),
+                      CelErrorCode.INDEX_OUT_OF_BOUNDS));
     }
     int castIndex = Ints.checkedCast(index.longValue());
     if (castIndex < 0 || castIndex >= list.size()) {
-      throw new IndexOutOfBoundsException(Integer.toString(castIndex));
+      throw new CelRuntimeException(
+          new IndexOutOfBoundsException("Index out of bounds: " + castIndex),
+          CelErrorCode.INDEX_OUT_OF_BOUNDS);
     }
     return list.get(castIndex);
   }
@@ -205,9 +213,13 @@ public final class RuntimeHelpers {
   }
 
   public static long uint64Divide(long x, long y, CelOptions celOptions) {
-    return celOptions.enableUnsignedComparisonAndArithmeticIsUnsigned()
-        ? UnsignedLongs.divide(x, y)
-        : UnsignedLong.valueOf(x).dividedBy(UnsignedLong.valueOf(y)).longValue();
+    try {
+      return celOptions.enableUnsignedComparisonAndArithmeticIsUnsigned()
+          ? UnsignedLongs.divide(x, y)
+          : UnsignedLong.valueOf(x).dividedBy(UnsignedLong.valueOf(y)).longValue();
+    } catch (ArithmeticException e) {
+      throw new CelRuntimeException(e, CelErrorCode.DIVIDE_BY_ZERO);
+    }
   }
 
   public static long uint64Divide(long x, long y) {
@@ -218,20 +230,26 @@ public final class RuntimeHelpers {
 
   public static UnsignedLong uint64Divide(UnsignedLong x, UnsignedLong y) {
     if (y.equals(UnsignedLong.ZERO)) {
-      throw new ArithmeticException("divide by zero");
+      throw new CelRuntimeException(
+          new ArithmeticException("/ by zero"), CelErrorCode.DIVIDE_BY_ZERO);
     }
     return x.dividedBy(y);
   }
 
   public static long uint64Mod(long x, long y, CelOptions celOptions) {
-    return celOptions.enableUnsignedComparisonAndArithmeticIsUnsigned()
-        ? UnsignedLongs.remainder(x, y)
-        : UnsignedLong.valueOf(x).mod(UnsignedLong.valueOf(y)).longValue();
+    try {
+      return celOptions.enableUnsignedComparisonAndArithmeticIsUnsigned()
+          ? UnsignedLongs.remainder(x, y)
+          : UnsignedLong.valueOf(x).mod(UnsignedLong.valueOf(y)).longValue();
+    } catch (ArithmeticException e) {
+      throw new CelRuntimeException(e, CelErrorCode.DIVIDE_BY_ZERO);
+    }
   }
 
   public static UnsignedLong uint64Mod(UnsignedLong x, UnsignedLong y) {
     if (y.equals(UnsignedLong.ZERO)) {
-      throw new ArithmeticException("divide by zero");
+      throw new CelRuntimeException(
+          new ArithmeticException("/ by zero"), CelErrorCode.DIVIDE_BY_ZERO);
     }
     return x.mod(y);
   }

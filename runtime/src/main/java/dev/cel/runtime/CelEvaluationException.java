@@ -14,6 +14,7 @@
 
 package dev.cel.runtime;
 
+import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelException;
 
 /**
@@ -32,5 +33,9 @@ public final class CelEvaluationException extends CelException {
 
   CelEvaluationException(InterpreterException cause) {
     super(cause.getMessage(), cause.getCause());
+  }
+
+  CelEvaluationException(InterpreterException cause, CelErrorCode errorCode) {
+    super(cause.getMessage(), cause.getCause(), errorCode);
   }
 }

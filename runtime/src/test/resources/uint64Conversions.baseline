@@ -12,6 +12,7 @@ Source: uint(-1)
 =====>
 bindings: {}
 error:    evaluation error: int out of uint range
+error_code:    NUMERIC_OVERFLOW
 
 Source: uint(1e19)
 =====>
@@ -22,6 +23,7 @@ Source: uint(6.022e23)
 =====>
 bindings: {}
 error:    evaluation error: double out of uint range
+error_code:    NUMERIC_OVERFLOW
 
 Source: uint(42)
 =====>
@@ -32,3 +34,4 @@ Source: uint('f1')
 =====>
 bindings: {}
 error:    evaluation error: f1
+error_code:    BAD_FORMAT

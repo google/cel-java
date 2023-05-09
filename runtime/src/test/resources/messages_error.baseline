@@ -1,0 +1,11 @@
+Source: TestAllTypes{single_int32_wrapper: 12345678900}
+=====>
+bindings: {}
+error:    evaluation error at test_location:12: Out of range: 12345678900
+error_code:    NUMERIC_OVERFLOW
+
+Source: TestAllTypes{}.map_string_string.a
+=====>
+bindings: {}
+error:    evaluation error at test_location:32: key 'a' is not present in map.
+error_code:    ATTRIBUTE_NOT_FOUND

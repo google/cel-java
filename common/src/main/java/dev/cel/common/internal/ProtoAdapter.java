@@ -51,6 +51,8 @@ import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
+import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -84,7 +86,7 @@ public final class ProtoAdapter {
    * Java native values which may enter the evaluation via {@code DYN} inputs.
    */
   public static final BidiConverter<Number, Number> INT_CONVERTER =
-      BidiConverter.of(Number::longValue, value -> Ints.checkedCast(value.longValue()));
+      BidiConverter.of(Number::longValue, value -> intCheckedCast(value.longValue()));
 
   /**
    * Signed uint converter handles bidirectional conversions between uint32 <-> uint64 values.
@@ -100,7 +102,7 @@ public final class ProtoAdapter {
   public static final BidiConverter<Number, Number> SIGNED_UINT32_CONVERTER =
       BidiConverter.of(
           value -> UnsignedInts.toLong(value.intValue()),
-          value -> UnsignedInts.checkedCast(value.longValue()));
+          value -> unsignedIntCheckedCast(value.longValue()));
 
   /**
    * Unigned uint converter handles bidirectional conversions between uint32 <-> uint64 values.
@@ -116,7 +118,7 @@ public final class ProtoAdapter {
   public static final BidiConverter<Number, Number> UNSIGNED_UINT32_CONVERTER =
       BidiConverter.of(
           value -> UnsignedLong.fromLongBits(Integer.toUnsignedLong(value.intValue())),
-          value -> UnsignedInts.checkedCast(value.longValue()));
+          value -> unsignedIntCheckedCast(value.longValue()));
 
   /**
    * Unsigned uint64 converter which adapts from a {@code long} value on the wire to an {@code
@@ -567,7 +569,7 @@ public final class ProtoAdapter {
       return Int32Value.of((Integer) value);
     }
     if (value instanceof Long) {
-      return Int32Value.of(Ints.checkedCast((Long) value));
+      return Int32Value.of(intCheckedCast((Long) value));
     }
     return null;
   }
@@ -589,10 +591,18 @@ public final class ProtoAdapter {
       return UInt32Value.of((Integer) value);
     }
     if (value instanceof Long) {
-      return UInt32Value.of(UnsignedInts.checkedCast((Long) value));
+      try {
+        return UInt32Value.of(unsignedIntCheckedCast((Long) value));
+      } catch (IllegalArgumentException e) {
+        throw new CelRuntimeException(e, CelErrorCode.NUMERIC_OVERFLOW);
+      }
     }
     if (value instanceof UnsignedLong) {
-      return UInt32Value.of(UnsignedInts.checkedCast(((UnsignedLong) value).longValue()));
+      try {
+        return UInt32Value.of(unsignedIntCheckedCast(((UnsignedLong) value).longValue()));
+      } catch (IllegalArgumentException e) {
+        throw new CelRuntimeException(e, CelErrorCode.NUMERIC_OVERFLOW);
+      }
     }
     return null;
   }
@@ -676,5 +686,21 @@ public final class ProtoAdapter {
   private static boolean isUnknown(Object object) {
     return object instanceof ExprValue
         && ((ExprValue) object).getKindCase() == ExprValue.KindCase.UNKNOWN;
+  }
+
+  private static int intCheckedCast(long value) {
+    try {
+      return Ints.checkedCast(value);
+    } catch (IllegalArgumentException e) {
+      throw new CelRuntimeException(e, CelErrorCode.NUMERIC_OVERFLOW);
+    }
+  }
+
+  private static int unsignedIntCheckedCast(long value) {
+    try {
+      return UnsignedInts.checkedCast(value);
+    } catch (IllegalArgumentException e) {
+      throw new CelRuntimeException(e, CelErrorCode.NUMERIC_OVERFLOW);
+    }
   }
 }

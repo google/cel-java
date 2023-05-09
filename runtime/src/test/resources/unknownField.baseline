@@ -151,6 +151,7 @@ fieldMask: {
 }
 }
 error:    evaluation error: Incomplete data does not support function calls.
+error_code:    INVALID_ARGUMENT
 
 Source: x.single_duration + x.single_duration
 declare x {
@@ -180,6 +181,7 @@ fieldMask: {
 }
 }
 error:    evaluation error: Incomplete data does not support function calls.
+error_code:    INVALID_ARGUMENT
 
 Source: x.single_nested_message.bb
 declare x {
@@ -241,6 +243,7 @@ fieldMask: {
 }
 }
 error:    evaluation error: Incomplete data cannot be returned as a result.
+error_code:    INVALID_ARGUMENT
 
 Source: TestAllTypes{single_nested_message: x.single_nested_message}
 declare x {
@@ -270,6 +273,7 @@ fieldMask: {
 }
 }
 error:    evaluation error: Incomplete data cannot be a field of a message.
+error_code:    INVALID_ARGUMENT
 
 Source: {1: x.single_int32}
 declare x {
@@ -360,6 +364,7 @@ fieldMask: {
 }
 }
 error:    evaluation error: Incomplete data cannot be a value of a map.
+error_code:    INVALID_ARGUMENT
 
 Source: [1, x.single_int32]
 declare x {
@@ -421,6 +426,7 @@ fieldMask: {
 }
 }
 error:    evaluation error: Incomplete data cannot be an elem of a list.
+error_code:    INVALID_ARGUMENT
 
 Source: x.single_nested_message.bb
 declare x {

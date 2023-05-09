@@ -16,6 +16,8 @@ package dev.cel.runtime;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
+import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import org.jspecify.nullness.Nullable;
 
@@ -26,6 +28,11 @@ import org.jspecify.nullness.Nullable;
  */
 @Internal
 public class InterpreterException extends Exception {
+  private final CelErrorCode errorCode;
+
+  public CelErrorCode getErrorCode() {
+    return errorCode;
+  }
 
   /** Builder for InterpreterException. */
   public static class Builder {
@@ -33,9 +40,27 @@ public class InterpreterException extends Exception {
     @Nullable private String location;
     private int position;
     private Throwable cause;
+    private CelErrorCode errorCode = CelErrorCode.INTERNAL_ERROR;
 
     @SuppressWarnings({"AnnotateFormatMethod"}) // Format strings are optional.
     public Builder(String message, Object... args) {
+      this.message = args.length > 0 ? String.format(message, args) : message;
+    }
+
+    @SuppressWarnings({"AnnotateFormatMethod"}) // Format strings are optional.
+    public Builder(RuntimeException e, String message, Object... args) {
+      if (e instanceof CelRuntimeException) {
+        CelRuntimeException celRuntimeException = (CelRuntimeException) e;
+        this.errorCode = celRuntimeException.getErrorCode();
+        // CelRuntimeException is just a wrapper for the specific RuntimeException (typically
+        // IllegalArgumentException). The underlying cause and its message is what we are actually
+        // interested in.
+        this.cause = e.getCause();
+        message = e.getCause().getMessage();
+      } else {
+        this.cause = e;
+      }
+
       this.message = args.length > 0 ? String.format(message, args) : message;
     }
 
@@ -54,17 +79,25 @@ public class InterpreterException extends Exception {
       return this;
     }
 
+    @CanIgnoreReturnValue
+    public Builder setErrorCode(CelErrorCode errorCode) {
+      this.errorCode = errorCode;
+      return this;
+    }
+
     @CheckReturnValue
     public InterpreterException build() {
       return new InterpreterException(
           String.format(
               "evaluation error%s: %s",
               location != null ? " at " + location + ":" + position : "", message),
-          cause);
+          cause,
+          errorCode);
     }
   }
 
-  private InterpreterException(String message, Throwable cause) {
+  private InterpreterException(String message, Throwable cause, CelErrorCode errorCode) {
     super(message, cause);
+    this.errorCode = errorCode;
   }
 }

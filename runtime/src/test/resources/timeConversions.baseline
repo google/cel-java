@@ -53,3 +53,4 @@ declare t1 {
 =====>
 bindings: {}
 error:    evaluation error: invalid duration format
+error_code:    BAD_FORMAT
