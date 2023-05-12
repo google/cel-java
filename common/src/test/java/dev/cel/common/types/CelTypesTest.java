@@ -91,6 +91,33 @@ public final class CelTypesTest {
   }
 
   @Test
+  public void createOptionalType() {
+    Type optionalType = CelTypes.createOptionalType(CelTypes.INT64);
+
+    assertThat(optionalType.hasAbstractType()).isTrue();
+    assertThat(optionalType.getAbstractType().getName()).isEqualTo("optional");
+    assertThat(optionalType.getAbstractType().getParameterTypesCount()).isEqualTo(1);
+    assertThat(optionalType.getAbstractType().getParameterTypes(0)).isEqualTo(CelTypes.INT64);
+  }
+
+  @Test
+  public void isOptionalType_true() {
+    Type optionalType = CelTypes.createOptionalType(CelTypes.INT64);
+
+    assertThat(CelTypes.isOptionalType(optionalType)).isTrue();
+  }
+
+  @Test
+  public void isOptionalType_false() {
+    Type notOptionalType =
+        Type.newBuilder()
+            .setAbstractType(AbstractType.newBuilder().setName("notOptional").build())
+            .build();
+
+    assertThat(CelTypes.isOptionalType(notOptionalType)).isFalse();
+  }
+
+  @Test
   public void celTypeToType() {
     assertThat(CelTypes.celTypeToType(testCase.celType())).isEqualTo(testCase.type());
   }

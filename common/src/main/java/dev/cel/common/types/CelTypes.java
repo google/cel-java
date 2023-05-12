@@ -17,6 +17,7 @@ package dev.cel.common.types;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import dev.cel.expr.Type;
+import dev.cel.expr.Type.AbstractType;
 import dev.cel.expr.Type.PrimitiveType;
 import dev.cel.expr.Type.WellKnownType;
 import com.google.common.base.Joiner;
@@ -189,6 +190,22 @@ public final class CelTypes {
   public static Type createWrapper(Type type) {
     Preconditions.checkArgument(type.getTypeKindCase() == Type.TypeKindCase.PRIMITIVE);
     return createWrapper(type.getPrimitive());
+  }
+
+  /**
+   * Create an abstract type indicating that the parameterized type may be contained within the
+   * object.
+   */
+  public static Type createOptionalType(Type paramType) {
+    return Type.newBuilder()
+        .setAbstractType(
+            AbstractType.newBuilder().setName("optional").addParameterTypes(paramType).build())
+        .build();
+  }
+
+  /** Checks if the provided parameter is an optional type */
+  public static boolean isOptionalType(Type type) {
+    return type.hasAbstractType() && type.getAbstractType().getName().equals("optional");
   }
 
   /**
