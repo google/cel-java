@@ -18,9 +18,10 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.annotations.Internal;
 
 /**
- * Options to configure how the CEL parser, type-checker, and evalator behave.
+ * Options to configure how the CEL parser, type-checker, and evaluator behave.
  *
  * <p>Users are strongly encouraged to use {@link #current} to ensure that the overall CEL stack
  * behaves in the manner most consistent with the CEL specification.
@@ -228,13 +229,17 @@ public abstract class CelOptions {
     public abstract Builder enableReservedIds(boolean value);
 
     /**
-     * NOTE: DO NOT USE. THIS FEATURE IS NOT READY YET. TODO: Remove comment when
-     * ready.
+     * NOTE: DO NOT USE. THIS FEATURE IS NOT READY YET.
+     *
+     * <p>TODO: Remove comment when ready.
      *
      * <p>EnableOptionalSyntax enables syntax for optional field and index selection (e.g:
      * msg.?field).
+     *
+     * <p>Note: Optional syntax is not supported for {@code CelParserKind#LEGACY} parsers.
      */
-    abstract Builder enableOptionalSyntax(boolean value);
+    @Internal
+    public abstract Builder enableOptionalSyntax(boolean value);
 
     /**
      * Set a limit on the size of the expression string which may be parsed in terms of the number
