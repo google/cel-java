@@ -42,7 +42,7 @@ java_library(
     srcs = EXPR_CONVERTER_SOURCES,
     deps = [
         ":ast",
-        "@cel_spec//proto/expr:expr_java_proto",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
         "@maven//:com_google_guava_guava",
     ],
 )

@@ -12,7 +12,7 @@ java_library(
         "//common/src/main/java/dev/cel/common/ast",
         "//common/src/main/java/dev/cel/common/ast:expr_converter",
         "//common/src/main/java/dev/cel/common/ast:expr_v1alpha1_converter",
-        "@cel_spec//proto/expr:expr_java_proto",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
