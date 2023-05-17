@@ -24,7 +24,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Empty;
@@ -199,13 +198,16 @@ public final class CelTypes {
   public static Type createOptionalType(Type paramType) {
     return Type.newBuilder()
         .setAbstractType(
-            AbstractType.newBuilder().setName("optional").addParameterTypes(paramType).build())
+            AbstractType.newBuilder()
+                .setName(OptionalType.NAME)
+                .addParameterTypes(paramType)
+                .build())
         .build();
   }
 
   /** Checks if the provided parameter is an optional type */
   public static boolean isOptionalType(Type type) {
-    return type.hasAbstractType() && type.getAbstractType().getName().equals("optional");
+    return type.hasAbstractType() && type.getAbstractType().getName().equals(OptionalType.NAME);
   }
 
   /**
@@ -380,8 +382,7 @@ public final class CelTypes {
       case WRAPPER:
         return NullableType.create(typeToCelType(CelTypes.create(type.getWrapper())));
       case MESSAGE_TYPE:
-        return ProtoMessageType.create(
-            type.getMessageType(), ImmutableSet.of(), (fieldName) -> Optional.empty());
+        return StructTypeReference.create(type.getMessageType());
       case LIST_TYPE:
         Type.ListType listType = type.getListType();
         return ListType.create(typeToCelType(listType.getElemType()));
@@ -397,6 +398,9 @@ public final class CelTypes {
             abstractType.getParameterTypesList().stream()
                 .map(CelTypes::typeToCelType)
                 .collect(toImmutableList());
+        if (abstractType.getName().equals(OptionalType.NAME)) {
+          return OptionalType.create(params.get(0));
+        }
         return OpaqueType.create(abstractType.getName(), params);
       case TYPE:
         return TypeType.create(typeToCelType(type.getType()));

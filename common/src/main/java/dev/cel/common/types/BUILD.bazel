@@ -16,6 +16,7 @@ CEL_TYPE_SOURCES = [
     "MapType.java",
     "NullableType.java",
     "OpaqueType.java",
+    "OptionalType.java",
     "ProtoMessageType.java",
     "SimpleType.java",
     "StructType.java",

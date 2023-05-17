@@ -22,9 +22,7 @@ import dev.cel.expr.Type.AbstractType;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
-import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -58,7 +56,7 @@ public final class CelTypesTest {
           testCase(ListType.create(SimpleType.DYN), CelTypes.createList(CelTypes.DYN)),
           testCase(EnumType.create("CustomEnum", ImmutableMap.of()), CelTypes.INT64),
           testCase(
-              StructType.create("MyCustomStruct", ImmutableSet.of(), (name) -> Optional.empty()),
+              StructTypeReference.create("MyCustomStruct"),
               CelTypes.createMessage("MyCustomStruct")),
           testCase(
               OpaqueType.create("vector", SimpleType.UINT),
@@ -69,6 +67,8 @@ public final class CelTypesTest {
                           .addParameterTypes(CelTypes.UINT64))
                   .build()),
           testCase(TypeParamType.create("T"), CelTypes.createTypeParam("T")),
+          testCase(
+              OptionalType.create(SimpleType.INT), CelTypes.createOptionalType(CelTypes.INT64)),
           testCase(
               TypeType.create(MapType.create(SimpleType.STRING, SimpleType.STRING)),
               CelTypes.create(CelTypes.createMap(CelTypes.STRING, CelTypes.STRING))));
@@ -120,5 +120,14 @@ public final class CelTypesTest {
   @Test
   public void celTypeToType() {
     assertThat(CelTypes.celTypeToType(testCase.celType())).isEqualTo(testCase.type());
+  }
+
+  @Test
+  public void typeToCelType() {
+    if (testCase.celType() instanceof EnumType) {
+      // (b/178627883) Strongly typed enum is not supported yet
+      return;
+    }
+    assertThat(CelTypes.typeToCelType(testCase.type())).isEqualTo(testCase.celType());
   }
 }
