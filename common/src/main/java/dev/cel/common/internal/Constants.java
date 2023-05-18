@@ -52,27 +52,27 @@ public final class Constants {
   public static final Constant TRUE = Constant.newBuilder().setBoolValue(true).build();
   public static final Constant ERROR = Constant.newBuilder().setStringValue("<<error>>").build();
 
-  static Constant of(boolean value) {
+  public static Constant of(boolean value) {
     return value ? TRUE : FALSE;
   }
 
-  static Constant of(long value) {
+  public static Constant of(long value) {
     return Constant.newBuilder().setInt64Value(value).build();
   }
 
-  static Constant of(UnsignedLong value) {
+  public static Constant of(UnsignedLong value) {
     return Constant.newBuilder().setUint64Value(checkNotNull(value).longValue()).build();
   }
 
-  static Constant of(double value) {
+  public static Constant of(double value) {
     return Constant.newBuilder().setDoubleValue(value).build();
   }
 
-  static Constant of(ByteString value) {
+  public static Constant of(ByteString value) {
     return Constant.newBuilder().setBytesValue(checkNotNull(value)).build();
   }
 
-  static Constant of(String value) {
+  public static Constant of(String value) {
     return Constant.newBuilder().setStringValue(checkNotNull(value)).build();
   }
 

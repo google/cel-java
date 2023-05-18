@@ -21,6 +21,7 @@ import dev.cel.expr.Expr.Comprehension;
 import dev.cel.expr.Expr.CreateList;
 import dev.cel.expr.Expr.CreateStruct;
 import dev.cel.expr.Expr.CreateStruct.Entry;
+import dev.cel.expr.Expr.Ident;
 import dev.cel.expr.Expr.Select;
 import dev.cel.expr.Reference;
 import com.google.common.collect.ImmutableList;
@@ -29,13 +30,66 @@ import java.util.Optional;
 
 /**
  * Converts a proto-based Canonical Expression Tree {@link Expr} into the CEL native representation
- * of Expression tree {@link CelExpr}.
+ * of Expression tree {@link CelExpr} and vice versa.
  *
  * <p>Note: Keep this file in sync with {@code CelExprV1Alpha1Converter}
  */
 // LINT.IfChange
 public final class CelExprConverter {
   private CelExprConverter() {}
+
+  /** Convert {@link CelExpr} into {@link Expr} */
+  public static Expr fromCelExpr(CelExpr celExpr) {
+    CelExpr.ExprKind celExprKind = celExpr.exprKind();
+    Expr.Builder expr = newExprBuilder(celExpr);
+    switch (celExprKind.getKind()) {
+      case CONSTANT:
+        return expr.setConstExpr(celConstantToExprConstant(celExprKind.constant())).build();
+      case IDENT:
+        return expr.setIdentExpr(Ident.newBuilder().setName(celExprKind.ident().name())).build();
+      case SELECT:
+        CelExpr.CelSelect celSelect = celExprKind.select();
+        return expr.setSelectExpr(
+                Select.newBuilder()
+                    .setField(celSelect.field())
+                    .setOperand(fromCelExpr(celSelect.operand()))
+                    .setTestOnly(celSelect.testOnly()))
+            .build();
+      case CALL:
+        CelExpr.CelCall celCall = celExprKind.call();
+        Call.Builder callBuilder =
+            Call.newBuilder()
+                .setFunction(celCall.function())
+                .addAllArgs(fromCelExprList(celCall.args()));
+        celCall.target().ifPresent(target -> callBuilder.setTarget(fromCelExpr(target)));
+        return expr.setCallExpr(callBuilder).build();
+      case CREATE_LIST:
+        CelExpr.CelCreateList celCreateList = celExprKind.createList();
+        return expr.setListExpr(
+                CreateList.newBuilder()
+                    .addAllElements(fromCelExprList(celCreateList.elements()))
+                    .addAllOptionalIndices(celCreateList.optionalIndices()))
+            .build();
+      case CREATE_STRUCT:
+        return expr.setStructExpr(celStructToExprStruct(celExprKind.createStruct())).build();
+      case COMPREHENSION:
+        CelExpr.CelComprehension celComprehension = celExprKind.comprehension();
+        return expr.setComprehensionExpr(
+                Comprehension.newBuilder()
+                    .setIterVar(celComprehension.iterVar())
+                    .setIterRange(fromCelExpr(celComprehension.iterRange()))
+                    .setAccuVar(celComprehension.accuVar())
+                    .setAccuInit(fromCelExpr(celComprehension.accuInit()))
+                    .setLoopCondition(fromCelExpr(celComprehension.loopCondition()))
+                    .setLoopStep(fromCelExpr(celComprehension.loopStep()))
+                    .setResult(fromCelExpr(celComprehension.result())))
+            .build();
+      case NOT_SET:
+        return expr.build();
+    }
+    throw new IllegalArgumentException(
+        "Unexpected expression kind case: " + celExpr.exprKind().getKind());
+  }
 
   /** Convert {@link Expr} into {@link CelExpr} */
   public static CelExpr fromExpr(Expr expr) {
@@ -102,7 +156,7 @@ public final class CelExprConverter {
             .setName(reference.getName())
             .addOverloadIds(reference.getOverloadIdList());
     if (reference.hasValue()) {
-      builder.setValue(CelExprConverter.exprConstantToCelConstant(reference.getValue()));
+      builder.setValue(exprConstantToCelConstant(reference.getValue()));
     }
 
     return builder.build();
@@ -163,6 +217,93 @@ public final class CelExprConverter {
       entries.add(celStructEntry);
     }
     return CelExpr.ofCreateStructExpr(id, structExpr.getMessageName(), entries.build());
+  }
+
+  private static Expr.Builder newExprBuilder(CelExpr expr) {
+    return Expr.newBuilder().setId(expr.id());
+  }
+
+  /**
+   * Converts a proto-based {@link Constant} to CEL native representation of {@link CelConstant}.
+   */
+  private static Constant celConstantToExprConstant(CelConstant celConstant) {
+    switch (celConstant.getKind()) {
+      case NULL_VALUE:
+        return Constant.newBuilder().setNullValue(celConstant.nullValue()).build();
+      case BOOLEAN_VALUE:
+        return Constant.newBuilder().setBoolValue(celConstant.booleanValue()).build();
+      case INT64_VALUE:
+        return Constant.newBuilder().setInt64Value(celConstant.int64Value()).build();
+      case UINT64_VALUE:
+        return Constant.newBuilder().setUint64Value(celConstant.uint64Value().longValue()).build();
+      case DOUBLE_VALUE:
+        return Constant.newBuilder().setDoubleValue(celConstant.doubleValue()).build();
+      case STRING_VALUE:
+        return Constant.newBuilder().setStringValue(celConstant.stringValue()).build();
+      case BYTES_VALUE:
+        return Constant.newBuilder().setBytesValue(celConstant.bytesValue()).build();
+    }
+
+    throw new IllegalStateException("unsupported constant case: " + celConstant.getKind());
+  }
+
+  private static CreateStruct celStructToExprStruct(CelExpr.CelCreateStruct celCreateStruct) {
+    ImmutableList.Builder<CreateStruct.Entry> entries = ImmutableList.builder();
+    for (CelExpr.CelCreateStruct.Entry celStructExprEntry : celCreateStruct.entries()) {
+      CreateStruct.Entry exprStructEntry;
+
+      switch (celStructExprEntry.keyKind().getKind()) {
+        case FIELD_KEY:
+          exprStructEntry =
+              CreateStruct.Entry.newBuilder()
+                  .setId(celStructExprEntry.id())
+                  .setFieldKey(celStructExprEntry.keyKind().fieldKey())
+                  .setValue(fromCelExpr(celStructExprEntry.value()))
+                  .setOptionalEntry(celStructExprEntry.optionalEntry())
+                  .build();
+          break;
+        case MAP_KEY:
+          exprStructEntry =
+              CreateStruct.Entry.newBuilder()
+                  .setId(celStructExprEntry.id())
+                  .setMapKey(fromCelExpr(celStructExprEntry.keyKind().mapKey()))
+                  .setValue(fromCelExpr(celStructExprEntry.value()))
+                  .setOptionalEntry(celStructExprEntry.optionalEntry())
+                  .build();
+          break;
+        default:
+          throw new IllegalArgumentException(
+              "Unexpected struct key kind case: " + celStructExprEntry.keyKind().getKind());
+      }
+
+      entries.add(exprStructEntry);
+    }
+
+    return CreateStruct.newBuilder()
+        .setMessageName(celCreateStruct.messageName())
+        .addAllEntries(entries.build())
+        .build();
+  }
+
+  private static ImmutableList<Expr> fromCelExprList(Iterable<CelExpr> celExprList) {
+    ImmutableList.Builder<Expr> celExprListBuilder = ImmutableList.builder();
+    for (CelExpr celExpr : celExprList) {
+      celExprListBuilder.add(fromCelExpr(celExpr));
+    }
+    return celExprListBuilder.build();
+  }
+
+  /**
+   * Converts a proto-based {@link CelReference} to CEL native representation of {@link Reference}.
+   */
+  public static Reference celReferenceToExprReference(CelReference reference) {
+    Reference.Builder builder =
+        Reference.newBuilder().setName(reference.name()).addAllOverloadId(reference.overloadIds());
+    reference
+        .value()
+        .ifPresent(celConstant -> builder.setValue(celConstantToExprConstant(celConstant)));
+
+    return builder.build();
   }
 }
 // LINT.ThenChange(CelExprV1Alpha1Converter.java)
