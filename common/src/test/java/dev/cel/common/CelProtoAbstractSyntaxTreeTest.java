@@ -23,6 +23,7 @@ import dev.cel.expr.Constant;
 import dev.cel.expr.Expr;
 import dev.cel.expr.Expr.Call;
 import dev.cel.expr.ParsedExpr;
+import dev.cel.expr.Reference;
 import dev.cel.expr.SourceInfo;
 import dev.cel.common.types.CelTypes;
 import java.util.Arrays;
@@ -63,6 +64,7 @@ public class CelProtoAbstractSyntaxTreeTest {
   private static final CheckedExpr CHECKED_EXPR =
       CheckedExpr.newBuilder()
           .putTypeMap(1L, CelTypes.BOOL)
+          .putReferenceMap(1L, Reference.newBuilder().addOverloadId("not_equals").build())
           .setSourceInfo(SOURCE_INFO)
           .setExpr(EXPR)
           .build();
@@ -103,6 +105,22 @@ public class CelProtoAbstractSyntaxTreeTest {
   public void getProtoResultType_isStaticWhenCheckedExpr() {
     CelProtoAbstractSyntaxTree ast = CelProtoAbstractSyntaxTree.fromCheckedExpr(CHECKED_EXPR);
     assertThat(ast.getProtoResultType()).isEqualTo(CelTypes.BOOL);
+  }
+
+  @Test
+  public void fromCelAst_toParsedExpr_roundTrip() {
+    CelAbstractSyntaxTree celAst = CelProtoAbstractSyntaxTree.fromParsedExpr(PARSED_EXPR).getAst();
+
+    assertThat(CelProtoAbstractSyntaxTree.fromCelAst(celAst).toParsedExpr()).isEqualTo(PARSED_EXPR);
+  }
+
+  @Test
+  public void fromCelAst_toCheckedExpr_roundTrip() {
+    CelAbstractSyntaxTree celAst =
+        CelProtoAbstractSyntaxTree.fromCheckedExpr(CHECKED_EXPR).getAst();
+
+    assertThat(CelProtoAbstractSyntaxTree.fromCelAst(celAst).toCheckedExpr())
+        .isEqualTo(CHECKED_EXPR);
   }
 }
 // LINT.ThenChange(CelProtoV1Alpha1AbstractSyntaxTreeTest.java)

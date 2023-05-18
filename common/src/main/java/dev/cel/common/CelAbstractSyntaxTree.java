@@ -157,8 +157,16 @@ public final class CelAbstractSyntaxTree {
     return Optional.ofNullable(types.get(exprId));
   }
 
+  public ImmutableMap<Long, CelType> getTypeMap() {
+    return types;
+  }
+
   public Optional<CelReference> getReference(long exprId) {
     return Optional.ofNullable(references.get(exprId));
+  }
+
+  public ImmutableMap<Long, CelReference> getReferenceMap() {
+    return references;
   }
 
   public CelReference getReferenceOrThrow(long exprId) {

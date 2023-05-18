@@ -62,6 +62,34 @@ public final class CelProtoV1Alpha1AbstractSyntaxTree {
                         Entry::getKey, v -> CelV1AlphaTypes.typeToCelType(v.getValue()))));
   }
 
+  private CelProtoV1Alpha1AbstractSyntaxTree(CelAbstractSyntaxTree ast) {
+    this.ast = ast;
+
+    CheckedExpr.Builder checkedExprBuilder =
+        CheckedExpr.newBuilder()
+            .setSourceInfo(
+                SourceInfo.newBuilder()
+                    .setLocation(ast.getSource().getDescription())
+                    .addAllLineOffsets(ast.getSource().getLineOffsets().asList())
+                    .putAllPositions(ast.getSource().getPositionsMap()))
+            .setExpr(CelExprV1Alpha1Converter.fromCelExpr(ast.getExpr()));
+
+    if (ast.isChecked()) {
+      checkedExprBuilder.putAllReferenceMap(
+          ast.getReferenceMap().entrySet().stream()
+              .collect(
+                  toImmutableMap(
+                      Entry::getKey,
+                      v -> CelExprV1Alpha1Converter.celReferenceToExprReference(v.getValue()))));
+      checkedExprBuilder.putAllTypeMap(
+          ast.getTypeMap().entrySet().stream()
+              .collect(
+                  toImmutableMap(Entry::getKey, v -> CelV1AlphaTypes.celTypeToType(v.getValue()))));
+    }
+
+    this.checkedExpr = checkedExprBuilder.build();
+  }
+
   /** Construct an abstract syntax tree from a {@link com.google.api.expr.v1alpha1.CheckedExpr}. */
   public static CelProtoV1Alpha1AbstractSyntaxTree fromCheckedExpr(CheckedExpr checkedExpr) {
     return new CelProtoV1Alpha1AbstractSyntaxTree(checkedExpr);
@@ -74,6 +102,16 @@ public final class CelProtoV1Alpha1AbstractSyntaxTree {
             .setExpr(parsedExpr.getExpr())
             .setSourceInfo(parsedExpr.getSourceInfo())
             .build());
+  }
+
+  /** Constructs CelProtoAbstractSyntaxTree from {@link CelAbstractSyntaxTree}. */
+  public static CelProtoV1Alpha1AbstractSyntaxTree fromCelAst(CelAbstractSyntaxTree ast) {
+    return new CelProtoV1Alpha1AbstractSyntaxTree(ast);
+  }
+
+  /** Tests whether the underlying abstract syntax tree has been type checked or not. */
+  public boolean isChecked() {
+    return ast.isChecked();
   }
 
   /**
@@ -97,7 +135,7 @@ public final class CelProtoV1Alpha1AbstractSyntaxTree {
   @CheckReturnValue
   public CheckedExpr toCheckedExpr() {
     checkState(
-        ast.isChecked(),
+        isChecked(),
         "CelAbstractSyntaxTree must be checked before it can be converted to CheckedExpr");
     return checkedExpr;
   }

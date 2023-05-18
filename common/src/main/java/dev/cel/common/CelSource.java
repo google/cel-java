@@ -144,6 +144,12 @@ public final class CelSource {
     return new LineAndOffset(line, lineOffsets.get(line - 2));
   }
 
+  public Builder toBuilder() {
+    return new Builder(codePoints, ImmutableIntArray.builder().addAll(lineOffsets))
+        .setDescription(description)
+        .addPositionsMap(positions);
+  }
+
   public static Builder newBuilder() {
     return new Builder();
   }
@@ -184,9 +190,9 @@ public final class CelSource {
 
     private Builder(CelCodePointArray codePoints, ImmutableIntArray.Builder lineOffsets) {
       this.codePoints = checkNotNull(codePoints);
-      description = "";
       this.lineOffsets = checkNotNull(lineOffsets);
       this.positions = ImmutableMap.builder();
+      description = "";
     }
 
     @CanIgnoreReturnValue
