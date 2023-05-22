@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      https://www.apache.org/licenses/LICENSE-2.0
+#      https://www.apache.org/licenses/LICENSE-2.0.txt
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,9 +14,10 @@
 
 # From: https://github.com/google/guice/blob/master/test_defs.bzl
 
-"""starlark macros to generate test suites."""
+"""Starlark macros to generate test suites."""
 
-_TEMPLATE = """package {VAR_PACKAGE};
+_TEMPLATE = """
+package {VAR_PACKAGE};
 import org.junit.runners.Suite;
 import org.junit.runner.RunWith;
 
@@ -46,24 +47,22 @@ _gen_suite = rule(
     implementation = _impl,
 )
 
-def junit4_test_suites(
-        name,
-        sizes,
-        deps,
-        srcs = None):
+def junit4_test_suites(name, sizes, deps, srcs=None):
     """
-    Generates tests for test file in srcs ending in "Test.java"
+    Generates tests for test files in srcs ending in "Test.java"
 
     Args:
-      name: name of the test suite to generate
-      srcs: list of test source files, uses 'glob(["**/*Test.java"])' if not specified
-      deps: list of runtime dependencies required to run the test
-      sizes: not used, exists only so that the opensource CEL mirror exactly the internal one
+      name: Name of the test suite to generate
+      sizes: Not used, exists only so that the open-source CEL mirror exactly the internal one
+      srcs: List of test source files. If not specified, it uses 'glob(["**/*Test.java"])'
+
+    Returns:
+      None
     """
 
     package_name = native.package_name()
 
-    # strip the path prefix from package name so that we get the correct test class name
+    # Strip the path prefix from the package name so that we get the correct test class name
     # "common/src/test/java/dev/cel/common/internal" becomes "dev/cel/common/internal"
     package_name = package_name.rpartition("/test/java/")[2]
 
