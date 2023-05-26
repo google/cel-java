@@ -27,6 +27,8 @@ EXPR_V1ALPHA1_CONVERTER_SOURCES = [
 java_library(
     name = "ast",
     srcs = AST_SOURCES,
+    tags = [
+    ],
     deps = [
         "//:auto_value",
         "//common/src/main/java/dev/cel/common/annotations",
@@ -40,6 +42,8 @@ java_library(
 java_library(
     name = "expr_converter",
     srcs = EXPR_CONVERTER_SOURCES,
+    tags = [
+    ],
     deps = [
         ":ast",
         "@cel_spec//proto/dev/cel/expr:expr_java_proto",
@@ -50,6 +54,8 @@ java_library(
 java_library(
     name = "expr_v1alpha1_converter",
     srcs = EXPR_V1ALPHA1_CONVERTER_SOURCES,
+    tags = [
+    ],
     deps = [
         ":ast",
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",

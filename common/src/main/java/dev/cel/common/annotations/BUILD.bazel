@@ -15,4 +15,6 @@ ANNOTATION_SOURCES = [
 java_library(
     name = "annotations",
     srcs = ANNOTATION_SOURCES,
+    tags = [
+    ],
 )

@@ -30,6 +30,8 @@ PROTO_V1ALPHA1_AST_SOURCE = [
 java_library(
     name = "common",
     srcs = COMMON_SOURCES,
+    tags = [
+    ],
     deps = [
         ":error_codes",
         "//:auto_value",
@@ -50,6 +52,8 @@ java_library(
 java_library(
     name = "options",
     srcs = ["CelOptions.java"],
+    tags = [
+    ],
     deps = [
         ":features",
         "//:auto_value",
@@ -62,6 +66,8 @@ java_library(
 java_library(
     name = "features",
     srcs = ["ExprFeatures.java"],
+    tags = [
+    ],
     deps = [
         "@maven//:com_google_guava_guava",
     ],
@@ -70,6 +76,8 @@ java_library(
 java_library(
     name = "proto_ast",
     srcs = PROTO_AST_SOURCE,
+    tags = [
+    ],
     deps = [
         ":common",
         "//:auto_value",
@@ -84,6 +92,8 @@ java_library(
 java_library(
     name = "proto_v1alpha1_ast",
     srcs = PROTO_V1ALPHA1_AST_SOURCE,
+    tags = [
+    ],
     deps = [
         ":common",
         "//:auto_value",
@@ -98,11 +108,15 @@ java_library(
 java_library(
     name = "error_codes",
     srcs = ["CelErrorCode.java"],
+    tags = [
+    ],
 )
 
 java_library(
     name = "runtime_exception",
     srcs = ["CelRuntimeException.java"],
+    tags = [
+    ],
     deps = [
         ":error_codes",
         "//common/src/main/java/dev/cel/common/annotations",
