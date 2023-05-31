@@ -66,6 +66,8 @@ public abstract class CelOptions {
 
   public abstract boolean enableHeterogeneousNumericComparisons();
 
+  public abstract boolean enableNamespacedDeclarations();
+
   // Evaluation related options
 
   public abstract boolean disableCelStandardEquality();
@@ -129,6 +131,9 @@ public abstract class CelOptions {
     if (enableHeterogeneousNumericComparisons()) {
       features.add(ExprFeatures.ENABLE_HETEROGENEOUS_NUMERIC_COMPARISONS);
     }
+    if (enableNamespacedDeclarations()) {
+      features.add(ExprFeatures.ENABLE_NAMESPACED_DECLARATIONS);
+    }
     if (enableUnsignedLongs()) {
       features.add(ExprFeatures.ENABLE_UNSIGNED_LONGS);
     }
@@ -159,6 +164,7 @@ public abstract class CelOptions {
         .enableHomogeneousLiterals(false)
         .enableTimestampEpoch(false)
         .enableHeterogeneousNumericComparisons(false)
+        .enableNamespacedDeclarations(false)
         // Evaluation options
         .disableCelStandardEquality(true)
         .enableRegexPartialMatch(false)
@@ -207,6 +213,8 @@ public abstract class CelOptions {
         .enableTimestampEpoch(features.contains(ExprFeatures.ENABLE_TIMESTAMP_EPOCH))
         .enableHeterogeneousNumericComparisons(
             features.contains(ExprFeatures.ENABLE_HETEROGENEOUS_NUMERIC_COMPARISONS))
+        .enableNamespacedDeclarations(
+            features.contains(ExprFeatures.ENABLE_NAMESPACED_DECLARATIONS))
         .enableUnsignedLongs(features.contains(ExprFeatures.ENABLE_UNSIGNED_LONGS))
         .enableProtoDifferencerEquality(features.contains(ExprFeatures.PROTO_DIFFERENCER_EQUALITY))
         .build();
@@ -321,6 +329,14 @@ public abstract class CelOptions {
      * <p>TODO: Remove this feature once it has been auto-enabled.
      */
     public abstract Builder enableHeterogeneousNumericComparisons(boolean value);
+
+    /**
+     * Enables the usage of namespaced functions and identifiers. This causes the type-checker to
+     * rewrite the AST to support namespacing.
+     *
+     * <p>TODO: Remove this feature once it has been auto-enabled.
+     */
+    public abstract Builder enableNamespacedDeclarations(boolean value);
 
     // Evaluation related options
 

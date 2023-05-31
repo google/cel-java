@@ -1,0 +1,19 @@
+Source: x
+declare ns.x {
+  value int
+}
+=====>
+bindings: {ns.x=2}
+result:   2
+
+Source: msgVar.single_int32
+declare ns.x {
+  value int
+}
+declare dev.cel.testing.testdata.proto3.msgVar {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {dev.cel.testing.testdata.proto3.msgVar=single_int32: 5
+}
+result:   5

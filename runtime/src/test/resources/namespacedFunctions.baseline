@@ -1,0 +1,23 @@
+Source: ns.func('hello')
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+=====>
+bindings: {}
+result:   5
+
+Source: ns.func('hello')
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+=====>
+bindings: {}
+result:   5
+
+Source: func('hello')
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+=====>
+bindings: {}
+result:   5

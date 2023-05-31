@@ -143,7 +143,13 @@ public enum ExprFeatures {
    * Enable proto differencer based equality for messages. This is in place of Message.equals()
    * which has a slightly different behavior.
    */
-  PROTO_DIFFERENCER_EQUALITY;
+  PROTO_DIFFERENCER_EQUALITY,
+
+  /**
+   * Enables the usage of namespaced functions and identifiers. This causes the type-checker to
+   * rewrite the AST to support namespacing.
+   */
+  ENABLE_NAMESPACED_DECLARATIONS;
 
   /** Feature flags that enable the current best practices for CEL. */
   public static final ImmutableSet<ExprFeatures> CURRENT =
