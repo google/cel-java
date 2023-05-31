@@ -47,6 +47,7 @@ public final class CelOptionsTest {
         ExprFeatures.POPULATE_MACRO_CALLS,
         ExprFeatures.ENABLE_TIMESTAMP_EPOCH,
         ExprFeatures.ENABLE_HETEROGENEOUS_NUMERIC_COMPARISONS,
+        ExprFeatures.ENABLE_NAMESPACED_DECLARATIONS,
         ExprFeatures.ENABLE_UNSIGNED_LONGS,
         ExprFeatures.PROTO_DIFFERENCER_EQUALITY);
     assertThat(CelOptions.fromExprFeatures(allFeatures.build()).toExprFeatures())

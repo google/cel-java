@@ -164,7 +164,7 @@ public abstract class CelOptions {
         .enableHomogeneousLiterals(false)
         .enableTimestampEpoch(false)
         .enableHeterogeneousNumericComparisons(false)
-        .enableNamespacedDeclarations(false)
+        .enableNamespacedDeclarations(true)
         // Evaluation options
         .disableCelStandardEquality(true)
         .enableRegexPartialMatch(false)
@@ -332,10 +332,16 @@ public abstract class CelOptions {
 
     /**
      * Enables the usage of namespaced functions and identifiers. This causes the type-checker to
-     * rewrite the AST to support namespacing.
+     * rewrite the AST to support namespacing (e.g: a field selector of form `namespace.msg.field`
+     * gets rewritten as a fully qualified identifier name of `namespace.msg.field`).
      *
      * <p>TODO: Remove this feature once it has been auto-enabled.
+     *
+     * @deprecated This will be removed in the future. Please update your codebase to not rely on
+     *     existence of certain expression nodes that would be collapsed/removed with this feature
+     *     enabled.
      */
+    @Deprecated
     public abstract Builder enableNamespacedDeclarations(boolean value);
 
     // Evaluation related options
