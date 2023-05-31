@@ -21,6 +21,8 @@ INTERNAL_SOURCES = [
 java_library(
     name = "internal",
     srcs = INTERNAL_SOURCES,
+    tags = [
+    ],
     deps = [
         "//:auto_value",
         "//common/src/main/java/dev/cel/common/annotations",
@@ -35,6 +37,8 @@ java_library(
 java_library(
     name = "comparison_functions",
     srcs = ["ComparisonFunctions.java"],
+    tags = [
+    ],
     deps = [
         "//:auto_value",
         "//common/src/main/java/dev/cel/common/annotations",
@@ -49,6 +53,8 @@ java_library(
         "AdaptingTypes.java",
         "BidiConverter.java",
         "Converter.java",
+    ],
+    tags = [
     ],
     deps = [
         "//:auto_value",
@@ -69,6 +75,8 @@ DYNAMIC_PROTO_SOURCES = [
 java_library(
     name = "dynamic_proto",
     srcs = DYNAMIC_PROTO_SOURCES,
+    tags = [
+    ],
     deps = [
         ":converter",
         "//:auto_value",
@@ -89,6 +97,8 @@ java_library(
 java_library(
     name = "proto_equality",
     srcs = ["ProtoEquality.java"],
+    tags = [
+    ],
     deps = [
         ":dynamic_proto",
         "//:auto_value",
@@ -104,6 +114,8 @@ java_library(
     name = "file_descriptor_converter",
     srcs = [
         "FileDescriptorSetConverter.java",
+    ],
+    tags = [
     ],
     deps = [
         "//:auto_value",
