@@ -2,13 +2,30 @@ Source: ns.func('hello')
 declare ns.func {
   function ns_func_overload (string) -> int
 }
+declare member {
+  function ns_member_overload int.() -> int
+}
 =====>
 bindings: {}
 result:   5
 
+Source: ns.func('hello').member()
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.() -> int
+}
+=====>
+bindings: {}
+result:   10
+
 Source: ns.func('hello')
 declare ns.func {
   function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.() -> int
 }
 =====>
 bindings: {}
@@ -18,6 +35,20 @@ Source: func('hello')
 declare ns.func {
   function ns_func_overload (string) -> int
 }
+declare member {
+  function ns_member_overload int.() -> int
+}
 =====>
 bindings: {}
 result:   5
+
+Source: func('hello').member()
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.() -> int
+}
+=====>
+bindings: {}
+result:   10
