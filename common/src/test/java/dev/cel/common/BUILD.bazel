@@ -6,7 +6,10 @@ package(default_applicable_licenses = [
 java_library(
     name = "tests",
     testonly = True,
-    srcs = glob(["*.java"]),
+    srcs = glob(
+        ["*.java"],
+        exclude = ["CelOptionalLibraryTest.java"],
+    ),
     deps = [
         "//:java_truth",
         "//common/src/main/java/dev/cel/common",
@@ -19,6 +22,7 @@ java_library(
         "//common/src/main/java/dev/cel/common/types",
         "//common/src/main/java/dev/cel/common/types:cel_types",
         "//common/src/main/java/dev/cel/common/types:cel_v1alpha1_types",
+        "//common/src/main/resources/testdata/proto3:test_all_types_java_proto",
         "@cel_spec//proto/dev/cel/expr:expr_java_proto",
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
         "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
@@ -35,5 +39,7 @@ junit4_test_suites(
     sizes = [
         "small",
     ],
-    deps = [":tests"],
+    deps = [
+        ":tests",
+    ],
 )
