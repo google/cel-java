@@ -34,7 +34,6 @@ scripting language is too resource intensive.
     * [Macros](#macros)
     * [Evaluate](#evaluate)
     * [Errors](#Errors)
-* [Examples](examples/README.md)
 * [Install](#install)
 * [Common Questions](#common-questions)
 * [License](#license)
@@ -100,7 +99,7 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.runtime.CelRuntimeFactory;
 
 CelRuntime celRuntime = CelRuntimeFactory.standardCelRuntimeBuilder().build();
-CelAbstractSyntaxTree ast = CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr);
+CelAbstractSyntaxTree ast = CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst();
 
 try {
   CelRuntime.Program program = celRuntime.createProgram(ast);
