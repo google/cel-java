@@ -20,6 +20,61 @@ declare member {
 bindings: {}
 result:   9
 
+Source: {ns.func('test'): 2}
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.(int) -> int
+}
+=====>
+bindings: {}
+result:   {4=2}
+
+Source: {2: ns.func('test')}
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.(int) -> int
+}
+=====>
+bindings: {}
+result:   {2=4}
+
+Source: [ns.func('test'), 2]
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.(int) -> int
+}
+=====>
+bindings: {}
+result:   [4, 2]
+
+Source: [ns.func('test')].map(x, x * 2)
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.(int) -> int
+}
+=====>
+bindings: {}
+result:   [8]
+
+Source: [1, 2].map(x, x * ns.func('test'))
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.(int) -> int
+}
+=====>
+bindings: {}
+result:   [4, 8]
+
 Source: ns.func('hello')
 declare ns.func {
   function ns_func_overload (string) -> int
