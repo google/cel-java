@@ -166,7 +166,7 @@ public abstract class CelOptions {
         .enableHomogeneousLiterals(false)
         .enableTimestampEpoch(false)
         .enableHeterogeneousNumericComparisons(false)
-        .enableNamespacedDeclarations(true)
+        .enableNamespacedDeclarations(false)
         // Evaluation options
         .disableCelStandardEquality(true)
         .enableRegexPartialMatch(false)

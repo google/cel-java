@@ -3,29 +3,29 @@ declare ns.func {
   function ns_func_overload (string) -> int
 }
 declare member {
-  function ns_member_overload int.() -> int
+  function ns_member_overload int.(int) -> int
 }
 =====>
 bindings: {}
 result:   5
 
-Source: ns.func('hello').member()
+Source: ns.func('hello').member(ns.func('test'))
 declare ns.func {
   function ns_func_overload (string) -> int
 }
 declare member {
-  function ns_member_overload int.() -> int
+  function ns_member_overload int.(int) -> int
 }
 =====>
 bindings: {}
-result:   10
+result:   9
 
 Source: ns.func('hello')
 declare ns.func {
   function ns_func_overload (string) -> int
 }
 declare member {
-  function ns_member_overload int.() -> int
+  function ns_member_overload int.(int) -> int
 }
 =====>
 bindings: {}
@@ -36,19 +36,19 @@ declare ns.func {
   function ns_func_overload (string) -> int
 }
 declare member {
-  function ns_member_overload int.() -> int
+  function ns_member_overload int.(int) -> int
 }
 =====>
 bindings: {}
 result:   5
 
-Source: func('hello').member()
+Source: func('hello').member(func('test'))
 declare ns.func {
   function ns_func_overload (string) -> int
 }
 declare member {
-  function ns_member_overload int.() -> int
+  function ns_member_overload int.(int) -> int
 }
 =====>
 bindings: {}
-result:   10
+result:   9
