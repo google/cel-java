@@ -322,10 +322,6 @@ public final class DefaultInterpreter implements Interpreter {
           return evalNotStrictlyFalse(frame, callExpr);
         case "type":
           return evalType(frame, callExpr);
-        case "optional_or_optional":
-          return evalOptionalOr(frame, callExpr);
-        case "optional_orValue_value":
-          return evalOptionalOrValue(frame, callExpr);
         default:
           break;
       }
@@ -510,50 +506,6 @@ public final class DefaultInterpreter implements Interpreter {
       Value checkedTypeValue = typeProvider.adaptType(checkedType);
       Object typeValue = typeProvider.resolveObjectType(argResult.value(), checkedTypeValue);
       return IntermediateResult.create(typeValue);
-    }
-
-    private IntermediateResult evalOptionalOr(ExecutionFrame frame, CelCall callExpr)
-        throws InterpreterException {
-      CelExpr lhsExpr = callExpr.target().get();
-      IntermediateResult lhsResult = evalInternal(frame, lhsExpr);
-      if (!(lhsResult.value() instanceof Optional)) {
-        throw new InterpreterException.Builder(
-                "expected optional value, found: %s", lhsResult.value())
-            .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
-            .setLocation(metadata, lhsExpr.id())
-            .build();
-      }
-
-      Optional<?> lhsOptionalValue = (Optional<?>) lhsResult.value();
-
-      if (lhsOptionalValue.isPresent()) {
-        // Short-circuit lhs if a value exists
-        return lhsResult;
-      }
-
-      return evalInternal(frame, callExpr.args().get(0));
-    }
-
-    private IntermediateResult evalOptionalOrValue(ExecutionFrame frame, CelCall callExpr)
-        throws InterpreterException {
-      CelExpr lhsExpr = callExpr.target().get();
-      IntermediateResult lhsResult = evalInternal(frame, lhsExpr);
-      if (!(lhsResult.value() instanceof Optional)) {
-        throw new InterpreterException.Builder(
-                "expected optional value, found: %s", lhsResult.value())
-            .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
-            .setLocation(metadata, lhsExpr.id())
-            .build();
-      }
-
-      Optional<?> lhsOptionalValue = (Optional<?>) lhsResult.value();
-
-      if (lhsOptionalValue.isPresent()) {
-        // Short-circuit lhs if a value exists
-        return IntermediateResult.create(lhsOptionalValue.get());
-      }
-
-      return evalInternal(frame, callExpr.args().get(0));
     }
 
     private IntermediateResult evalBoolean(ExecutionFrame frame, CelExpr expr, boolean strict)
