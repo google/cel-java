@@ -663,7 +663,20 @@ public final class DefaultInterpreter implements Interpreter {
               .setLocation(metadata, entry.id())
               .build();
         }
-        result.put(keyResult.value(), valueResult.value());
+
+        Object value = valueResult.value();
+        if (entry.optionalEntry()) {
+          Optional<?> optionalVal = (Optional<?>) valueResult.value();
+          if (!optionalVal.isPresent()) {
+            // This is a no-op currently but will be semantically correct when extended proto
+            // support allows proto mutation.
+            result.remove(keyResult.value());
+            continue;
+          }
+
+          value = optionalVal.get();
+        }
+        result.put(keyResult.value(), value);
       }
 
       return IntermediateResult.create(argChecker.maybeUnknowns().orElse(result));
@@ -687,7 +700,20 @@ public final class DefaultInterpreter implements Interpreter {
             fieldResult.value(), "Incomplete data cannot be a field of a message.");
         argChecker.checkArg(fieldResult);
 
-        fields.put(entry.keyKind().fieldKey(), fieldResult.value());
+        Object value = fieldResult.value();
+        if (entry.optionalEntry()) {
+          Optional<?> optionalVal = (Optional<?>) value;
+          if (!optionalVal.isPresent()) {
+            // This is a no-op currently but will be semantically correct when extended proto
+            // support allows proto mutation.
+            fields.remove(entry.keyKind().fieldKey());
+            continue;
+          }
+
+          value = optionalVal.get();
+        }
+
+        fields.put(entry.keyKind().fieldKey(), value);
       }
 
       Optional<Object> unknowns = argChecker.maybeUnknowns();

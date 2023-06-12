@@ -1056,7 +1056,7 @@ public class StandardFunctions {
    * <p>Conversely, declarations related to Optional values should NOT be added as part of the
    * standard definitions to avoid accidental exposure of this optional feature.
    */
-  @SuppressWarnings({"rawtypes", "unchecked"})
+  @SuppressWarnings({"rawtypes"})
   private static void addOptionalValueFunctions(
       Registrar registrar, RuntimeEquality runtimeEquality, CelOptions options) {
     registrar.add(
@@ -1074,42 +1074,19 @@ public class StandardFunctions {
         "optional_map_optindex_optional_value",
         Optional.class,
         Object.class,
-        (Optional optional, Object key) -> {
-          Optional<Map<?, ?>> optionalMap = (Optional<Map<?, ?>>) optional;
-          if (!optionalMap.isPresent()) {
-            return Optional.empty();
-          }
-
-          return runtimeEquality.findInMap(optionalMap.get(), key, options);
-        });
+        (Optional optionalMap, Object key) ->
+            indexOptionalMap(optionalMap, key, options, runtimeEquality));
     registrar.add(
         "optional_map_index_value",
         Optional.class,
         Object.class,
-        (Optional optional, Object key) -> {
-          Optional<Map<?, ?>> optionalMap = (Optional<Map<?, ?>>) optional;
-          if (!optionalMap.isPresent()) {
-            return Optional.empty();
-          }
-
-          return runtimeEquality.findInMap(optionalMap.get(), key, options);
-        });
+        (Optional optionalMap, Object key) ->
+            indexOptionalMap(optionalMap, key, options, runtimeEquality));
     registrar.add(
         "optional_list_index_int",
         Optional.class,
         Long.class,
-        (Optional optionalList, Long index) -> {
-          if (!optionalList.isPresent()) {
-            return Optional.empty();
-          }
-
-          List<?> list = (List<?>) optionalList.get();
-          int castIndex = Ints.checkedCast(index);
-          if (castIndex < 0 || castIndex >= list.size()) {
-            return Optional.empty();
-          }
-          return Optional.of(list.get(castIndex));
-        });
+        StandardFunctions::indexOptionalList);
     registrar.add(
         "list_optindex_optional_int",
         List.class,
@@ -1125,17 +1102,30 @@ public class StandardFunctions {
         "optional_list_optindex_optional_int",
         Optional.class,
         Long.class,
-        (Optional optionalList, Long optionalIndex) -> {
-          if (!optionalList.isPresent()) {
-            return Optional.empty();
-          }
-          List<?> list = (List<?>) optionalList.get();
-          int castIndex = Ints.checkedCast(optionalIndex);
-          if (castIndex < 0 || castIndex >= list.size()) {
-            return Optional.empty();
-          }
-          return Optional.of(list.get(castIndex));
-        });
+        StandardFunctions::indexOptionalList);
+  }
+
+  private static Object indexOptionalMap(
+      Optional<?> optionalMap, Object key, CelOptions options, RuntimeEquality runtimeEquality) {
+    if (!optionalMap.isPresent()) {
+      return Optional.empty();
+    }
+
+    Map<?, ?> map = (Map<?, ?>) optionalMap.get();
+
+    return runtimeEquality.findInMap(map, key, options);
+  }
+
+  private static Object indexOptionalList(Optional<?> optionalList, long index) {
+    if (!optionalList.isPresent()) {
+      return Optional.empty();
+    }
+    List<?> list = (List<?>) optionalList.get();
+    int castIndex = Ints.checkedCast(index);
+    if (castIndex < 0 || castIndex >= list.size()) {
+      return Optional.empty();
+    }
+    return Optional.of(list.get(castIndex));
   }
 
   /**
