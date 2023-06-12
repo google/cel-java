@@ -273,12 +273,19 @@ public final class DefaultInterpreter implements Interpreter {
         return resolveIdent(frame, expr, reference.name());
       }
 
+      return evalFieldSelect(
+          frame, expr, selectExpr.operand(), selectExpr.field(), selectExpr.testOnly());
+    }
+
+    private IntermediateResult evalFieldSelect(
+        ExecutionFrame frame, CelExpr expr, CelExpr operandExpr, String field, boolean isTestOnly)
+        throws InterpreterException {
       // This indicates this is a field selection on the operand.
-      IntermediateResult operandResult = evalInternal(frame, selectExpr.operand());
+      IntermediateResult operandResult = evalInternal(frame, operandExpr);
       Object operand = operandResult.value();
 
       CelAttribute attribute =
-          operandResult.attribute().qualify(CelAttribute.Qualifier.ofString(selectExpr.field()));
+          operandResult.attribute().qualify(CelAttribute.Qualifier.ofString(field));
 
       Optional<Object> attrValue = frame.resolveAttribute(attribute);
 
@@ -291,11 +298,10 @@ public final class DefaultInterpreter implements Interpreter {
         return IntermediateResult.create(attribute, operand);
       }
 
-      if (selectExpr.testOnly()) {
-        return IntermediateResult.create(
-            attribute, typeProvider.hasField(operand, selectExpr.field()));
+      if (isTestOnly) {
+        return IntermediateResult.create(attribute, typeProvider.hasField(operand, field));
       }
-      Object fieldValue = typeProvider.selectField(operand, selectExpr.field());
+      Object fieldValue = typeProvider.selectField(operand, field);
 
       return IntermediateResult.create(
           attribute, InterpreterUtil.valueOrUnknown(fieldValue, expr.id()));
@@ -326,6 +332,12 @@ public final class DefaultInterpreter implements Interpreter {
           return evalOptionalOr(frame, callExpr);
         case "optional_orValue_value":
           return evalOptionalOrValue(frame, callExpr);
+        case "select_optional_field":
+          Optional<IntermediateResult> result = maybeEvalOptionalSelectField(frame, expr, callExpr);
+          if (result.isPresent()) {
+            return result.get();
+          }
+          break;
         default:
           break;
       }
@@ -554,6 +566,29 @@ public final class DefaultInterpreter implements Interpreter {
       }
 
       return evalInternal(frame, callExpr.args().get(0));
+    }
+
+    private Optional<IntermediateResult> maybeEvalOptionalSelectField(
+        ExecutionFrame frame, CelExpr expr, CelCall callExpr) throws InterpreterException {
+      CelExpr operand = callExpr.args().get(0);
+      IntermediateResult lhsResult = evalInternal(frame, operand);
+      if ((lhsResult.value() instanceof Map)) {
+        // Let the function dispatch handle optional map indexing
+        return Optional.empty();
+      }
+
+      String field = callExpr.args().get(1).exprKind().constant().stringValue();
+      boolean hasField = (boolean) typeProvider.hasField(lhsResult.value(), field);
+      if (!hasField) {
+        // Protobuf sets default (zero) values to uninitialized fields.
+        // In case of CEL's optional values, we want to explicitly return Optional.none()
+        // If the field is not set.
+        return Optional.of(IntermediateResult.create(Optional.empty()));
+      }
+
+      IntermediateResult result = evalFieldSelect(frame, expr, operand, field, false);
+      return Optional.of(
+          IntermediateResult.create(result.attribute(), Optional.of(result.value())));
     }
 
     private IntermediateResult evalBoolean(ExecutionFrame frame, CelExpr expr, boolean strict)

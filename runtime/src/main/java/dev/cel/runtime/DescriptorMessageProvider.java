@@ -127,7 +127,22 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
 
   @Override
   @Nullable
+  @SuppressWarnings("unchecked")
   public Object selectField(Object message, String fieldName) {
+    if (message instanceof Optional) {
+      Optional<Map<?, ?>> optionalMap = (Optional<Map<?, ?>>) message;
+      if (!optionalMap.isPresent()) {
+        return Optional.empty();
+      }
+
+      Map<?, ?> unwrappedMap = optionalMap.get();
+      if (!unwrappedMap.containsKey(fieldName)) {
+        return Optional.empty();
+      }
+
+      return Optional.of(unwrappedMap.get(fieldName));
+    }
+
     if (message instanceof Map) {
       Map<?, ?> map = (Map<?, ?>) message;
       if (map.containsKey(fieldName)) {
@@ -137,6 +152,7 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
           new IllegalArgumentException(String.format("key '%s' is not present in map.", fieldName)),
           CelErrorCode.ATTRIBUTE_NOT_FOUND);
     }
+
     MessageOrBuilder typedMessage = assertFullProtoMessage(message);
     FieldDescriptor fieldDescriptor = findField(typedMessage.getDescriptorForType(), fieldName);
     // check whether the field is a wrapper type, then test has and return null
@@ -158,10 +174,19 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
 
   @Override
   public Object hasField(Object message, String fieldName) {
+    if (message instanceof Optional<?>) {
+      Optional<?> optionalMessage = (Optional<?>) message;
+      if (!optionalMessage.isPresent()) {
+        return false;
+      }
+      message = optionalMessage.get();
+    }
+
     if (message instanceof Map) {
       Map<?, ?> map = (Map<?, ?>) message;
       return map.containsKey(fieldName);
     }
+
     MessageOrBuilder typedMessage = assertFullProtoMessage(message);
     FieldDescriptor fieldDescriptor = findField(typedMessage.getDescriptorForType(), fieldName);
     if (fieldDescriptor.isRepeated()) {

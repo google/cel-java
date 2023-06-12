@@ -77,7 +77,7 @@ public final class RuntimeEquality {
     return findInMap(map, key, celOptions).isPresent();
   }
 
-  private Optional<Object> findInMap(Map<?, ?> map, Object index, CelOptions celOptions) {
+  public Optional<Object> findInMap(Map<?, ?> map, Object index, CelOptions celOptions) {
     if (celOptions.disableCelStandardEquality()) {
       return Optional.ofNullable(map.get(index));
     }

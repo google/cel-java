@@ -16,6 +16,7 @@ package dev.cel.runtime;
 
 import static java.time.Duration.ofSeconds;
 
+import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedLong;
 import com.google.common.primitives.UnsignedLongs;
 import com.google.protobuf.ByteString;
@@ -37,6 +38,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /** Adds standard functions to a {@link Registrar}. */
 @Internal
@@ -110,6 +112,7 @@ public class StandardFunctions {
     if (celOptions.enableHeterogeneousNumericComparisons()) {
       addCrossTypeNumericFunctions(registrar);
     }
+    addOptionalValueFunctions(registrar, runtimeEquality, celOptions);
 
     // Common operators.
     registrar.add(
@@ -1043,6 +1046,96 @@ public class StandardFunctions {
         Double.class,
         UnsignedLong.class,
         (Double x, UnsignedLong y) -> ComparisonFunctions.compareDoubleUint(x, y) >= 0);
+  }
+
+  /**
+   * Note: These aren't part of the standard language definitions, but it is being defined here to
+   * support runtime bindings for CelOptionalLibrary, as it requires specific dependencies such as
+   * {@link RuntimeEquality} that is only available here.
+   *
+   * <p>Conversely, declarations related to Optional values should NOT be added as part of the
+   * standard definitions to avoid accidental exposure of this optional feature.
+   */
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  private static void addOptionalValueFunctions(
+      Registrar registrar, RuntimeEquality runtimeEquality, CelOptions options) {
+    registrar.add(
+        "select_optional_field", // This only handles map selection. Proto selection is special
+        // cased inside the interpreter.
+        Map.class,
+        String.class,
+        (Map map, String key) -> runtimeEquality.findInMap(map, key, options));
+    registrar.add(
+        "map_optindex_optional_value",
+        Map.class,
+        Object.class,
+        (Map map, Object key) -> runtimeEquality.findInMap(map, key, options));
+    registrar.add(
+        "optional_map_optindex_optional_value",
+        Optional.class,
+        Object.class,
+        (Optional optional, Object key) -> {
+          Optional<Map<?, ?>> optionalMap = (Optional<Map<?, ?>>) optional;
+          if (!optionalMap.isPresent()) {
+            return Optional.empty();
+          }
+
+          return runtimeEquality.findInMap(optionalMap.get(), key, options);
+        });
+    registrar.add(
+        "optional_map_index_value",
+        Optional.class,
+        Object.class,
+        (Optional optional, Object key) -> {
+          Optional<Map<?, ?>> optionalMap = (Optional<Map<?, ?>>) optional;
+          if (!optionalMap.isPresent()) {
+            return Optional.empty();
+          }
+
+          return runtimeEquality.findInMap(optionalMap.get(), key, options);
+        });
+    registrar.add(
+        "optional_list_index_int",
+        Optional.class,
+        Long.class,
+        (Optional optionalList, Long index) -> {
+          if (!optionalList.isPresent()) {
+            return Optional.empty();
+          }
+
+          List<?> list = (List<?>) optionalList.get();
+          int castIndex = Ints.checkedCast(index);
+          if (castIndex < 0 || castIndex >= list.size()) {
+            return Optional.empty();
+          }
+          return Optional.of(list.get(castIndex));
+        });
+    registrar.add(
+        "list_optindex_optional_int",
+        List.class,
+        Long.class,
+        (List list, Long index) -> {
+          int castIndex = Ints.checkedCast(index);
+          if (castIndex < 0 || castIndex >= list.size()) {
+            return Optional.empty();
+          }
+          return Optional.of(list.get(castIndex));
+        });
+    registrar.add(
+        "optional_list_optindex_optional_int",
+        Optional.class,
+        Long.class,
+        (Optional optionalList, Long optionalIndex) -> {
+          if (!optionalList.isPresent()) {
+            return Optional.empty();
+          }
+          List<?> list = (List<?>) optionalList.get();
+          int castIndex = Ints.checkedCast(optionalIndex);
+          if (castIndex < 0 || castIndex >= list.size()) {
+            return Optional.empty();
+          }
+          return Optional.of(list.get(castIndex));
+        });
   }
 
   /**
