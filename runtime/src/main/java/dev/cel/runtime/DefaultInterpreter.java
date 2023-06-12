@@ -18,6 +18,7 @@ import dev.cel.expr.CheckedExpr;
 import dev.cel.expr.Value;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -43,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -627,14 +629,27 @@ public final class DefaultInterpreter implements Interpreter {
       CallArgumentChecker argChecker = CallArgumentChecker.create(frame.getResolver());
       List<Object> result = new ArrayList<>(listExpr.elements().size());
 
-      for (CelExpr element : listExpr.elements()) {
+      HashSet<Integer> optionalIndicesSet = new HashSet<>(listExpr.optionalIndices());
+      ImmutableList<CelExpr> elements = listExpr.elements();
+      for (int i = 0; i < elements.size(); i++) {
+        CelExpr element = elements.get(i);
         IntermediateResult evaluatedElement = evalInternal(frame, element);
         // TODO: remove support for IncompleteData.
         InterpreterUtil.completeDataOnly(
             evaluatedElement.value(), "Incomplete data cannot be an elem of a list.");
 
         argChecker.checkArg(evaluatedElement);
-        result.add(evaluatedElement.value());
+        Object value = evaluatedElement.value();
+        if (optionalIndicesSet.contains(i)) {
+          Optional<?> optionalVal = (Optional<?>) value;
+          if (!optionalVal.isPresent()) {
+            continue;
+          }
+
+          value = optionalVal.get();
+        }
+
+        result.add(value);
       }
 
       return IntermediateResult.create(argChecker.maybeUnknowns().orElse(result));
@@ -666,7 +681,7 @@ public final class DefaultInterpreter implements Interpreter {
 
         Object value = valueResult.value();
         if (entry.optionalEntry()) {
-          Optional<?> optionalVal = (Optional<?>) valueResult.value();
+          Optional<?> optionalVal = (Optional<?>) value;
           if (!optionalVal.isPresent()) {
             // This is a no-op currently but will be semantically correct when extended proto
             // support allows proto mutation.
