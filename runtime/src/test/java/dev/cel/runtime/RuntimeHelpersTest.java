@@ -39,6 +39,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -285,6 +286,25 @@ public final class RuntimeHelpersTest {
     assertThrows(
         ArithmeticException.class,
         () -> RuntimeHelpers.uint64Subtract(UnsignedLong.ONE, UnsignedLong.valueOf(2)));
+  }
+
+  @Test
+  public void maybeAdaptPrimitive_optionalValues() {
+    // Optional values containing int/float are adapted into long/double
+    assertThat(RuntimeHelpers.maybeAdaptPrimitive(Optional.of(5))).isEqualTo(Optional.of(5L));
+    assertThat(RuntimeHelpers.maybeAdaptPrimitive(Optional.of(5.5f))).isEqualTo(Optional.of(5.5d));
+    // Optional values for the rest of the primitive types are not adapted
+    assertThat(RuntimeHelpers.maybeAdaptPrimitive(Optional.of(5L))).isEqualTo(Optional.of(5L));
+    assertThat(RuntimeHelpers.maybeAdaptPrimitive(Optional.of(5.5d))).isEqualTo(Optional.of(5.5d));
+    assertThat(RuntimeHelpers.maybeAdaptPrimitive(Optional.of(true))).isEqualTo(Optional.of(true));
+    assertThat(RuntimeHelpers.maybeAdaptPrimitive(Optional.of(false)))
+        .isEqualTo(Optional.of(false));
+    assertThat(RuntimeHelpers.maybeAdaptPrimitive(Optional.of("test")))
+        .isEqualTo(Optional.of("test"));
+    assertThat(RuntimeHelpers.maybeAdaptPrimitive(Optional.of(UnsignedLong.valueOf(5))))
+        .isEqualTo(Optional.of(UnsignedLong.valueOf(5)));
+    assertThat(RuntimeHelpers.maybeAdaptPrimitive(BytesValue.of(ByteString.copyFromUtf8("test"))))
+        .isEqualTo(BytesValue.of(ByteString.copyFromUtf8("test")));
   }
 
   @Test

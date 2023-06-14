@@ -346,6 +346,13 @@ public final class RuntimeHelpers {
 
   /** Adapts a {@code Number} value to its appropriate CEL type. */
   public static Object maybeAdaptPrimitive(Object value) {
+    if (value instanceof Optional<?>) {
+      Optional<?> optionalVal = (Optional<?>) value;
+      if (!optionalVal.isPresent()) {
+        return optionalVal;
+      }
+      return Optional.of(maybeAdaptPrimitive(optionalVal.get()));
+    }
     if (value instanceof Float) {
       return FLOAT_TO_DOUBLE.convert((Float) value);
     }
