@@ -18,7 +18,6 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.annotations.Internal;
 
 /**
  * Options to configure how the CEL parser, type-checker, and evaluator behave.
@@ -239,16 +238,13 @@ public abstract class CelOptions {
     public abstract Builder enableReservedIds(boolean value);
 
     /**
-     * NOTE: DO NOT USE. THIS FEATURE IS NOT READY YET.
+     * EnableOptionalSyntax enables syntax for optional field and index selection (e.g: msg.?field).
      *
-     * <p>TODO: Remove comment when ready.
-     *
-     * <p>EnableOptionalSyntax enables syntax for optional field and index selection (e.g:
-     * msg.?field).
+     * <p>Note: This option is automatically enabled for the parser by adding {@code
+     * CelOptionalLibrary} to the environment.
      *
      * <p>Note: Optional syntax is not supported for {@code CelParserKind#LEGACY} parsers.
      */
-    @Internal
     public abstract Builder enableOptionalSyntax(boolean value);
 
     /**
