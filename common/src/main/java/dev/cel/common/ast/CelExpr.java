@@ -14,11 +14,16 @@
 
 package dev.cel.common.ast;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.auto.value.AutoOneOf;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -46,6 +51,81 @@ public abstract class CelExpr {
   public abstract long id();
 
   public abstract ExprKind exprKind();
+
+  public CelConstant constant() {
+    return exprKind().constant();
+  }
+
+  public CelIdent ident() {
+    return exprKind().ident();
+  }
+
+  public CelSelect select() {
+    return exprKind().select();
+  }
+
+  public CelCall call() {
+    return exprKind().call();
+  }
+
+  public CelCreateList createList() {
+    return exprKind().createList();
+  }
+
+  public CelCreateStruct createStruct() {
+    return exprKind().createStruct();
+  }
+
+  public CelComprehension comprehension() {
+    return exprKind().comprehension();
+  }
+
+  /** Builder for CelExpr. */
+  @AutoValue.Builder
+  public abstract static class Builder {
+    public abstract long id();
+
+    public abstract Builder setId(long value);
+
+    public abstract Builder setExprKind(ExprKind value);
+
+    public Builder setConstant(CelConstant constant) {
+      return setExprKind(AutoOneOf_CelExpr_ExprKind.constant(constant));
+    }
+
+    public Builder setIdent(CelIdent ident) {
+      return setExprKind(AutoOneOf_CelExpr_ExprKind.ident(ident));
+    }
+
+    public Builder setCall(CelCall call) {
+      return setExprKind(AutoOneOf_CelExpr_ExprKind.call(call));
+    }
+
+    public Builder setSelect(CelSelect select) {
+      return setExprKind(AutoOneOf_CelExpr_ExprKind.select(select));
+    }
+
+    public Builder setCreateList(CelCreateList createList) {
+      return setExprKind(AutoOneOf_CelExpr_ExprKind.createList(createList));
+    }
+
+    public Builder setCreateStruct(CelCreateStruct createStruct) {
+      return setExprKind(AutoOneOf_CelExpr_ExprKind.createStruct(createStruct));
+    }
+
+    public Builder setComprehension(CelComprehension comprehension) {
+      return setExprKind(AutoOneOf_CelExpr_ExprKind.comprehension(comprehension));
+    }
+
+    @CheckReturnValue
+    public abstract CelExpr build();
+  }
+
+  public static Builder newBuilder() {
+    return new AutoValue_CelExpr.Builder()
+        .setId(0)
+        .setExprKind(AutoOneOf_CelExpr_ExprKind.notSet(new AutoValue_CelExpr_CelNotSet()));
+  }
 
   /** Denotes the kind of the expression. An expression can only be of one kind. */
   @AutoOneOf(CelExpr.ExprKind.Kind.class)
@@ -103,6 +183,20 @@ public abstract class CelExpr {
      * <p>Qualified names are represented by the [Expr.Select][] expression.
      */
     public abstract String name();
+
+    /** Builder for CelIdent. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract Builder setName(String value);
+
+      @CheckReturnValue
+      public abstract CelIdent build();
+    }
+
+    public static CelIdent.Builder newBuilder() {
+      return new AutoValue_CelExpr_CelIdent.Builder();
+    }
   }
 
   /** A field selection expression. e.g. `request.auth`. */
@@ -132,6 +226,24 @@ public abstract class CelExpr {
      * <p>This results from the macro `has(request.auth)`.
      */
     public abstract boolean testOnly();
+
+    /** Builder for CelSelect. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract Builder setOperand(CelExpr value);
+
+      public abstract Builder setField(String value);
+
+      public abstract Builder setTestOnly(boolean value);
+
+      @CheckReturnValue
+      public abstract CelSelect build();
+    }
+
+    public static CelSelect.Builder newBuilder() {
+      return new AutoValue_CelExpr_CelSelect.Builder().setTestOnly(false);
+    }
   }
 
   /**
@@ -154,6 +266,37 @@ public abstract class CelExpr {
     public abstract String function();
 
     public abstract ImmutableList<CelExpr> args();
+
+    /** Builder for CelCall. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract Builder setTarget(CelExpr value);
+
+      public abstract Builder setFunction(String value);
+
+      abstract ImmutableList.Builder<CelExpr> argsBuilder();
+
+      @CanIgnoreReturnValue
+      public Builder addArgs(CelExpr... args) {
+        checkNotNull(args);
+        return addArgs(Arrays.asList(args));
+      }
+
+      @CanIgnoreReturnValue
+      public Builder addArgs(Iterable<CelExpr> args) {
+        checkNotNull(args);
+        this.argsBuilder().addAll(args);
+        return this;
+      }
+
+      @CheckReturnValue
+      public abstract CelCall build();
+    }
+
+    public static Builder newBuilder() {
+      return new AutoValue_CelExpr_CelCall.Builder();
+    }
   }
 
   /**
@@ -175,6 +318,47 @@ public abstract class CelExpr {
      * the optional-typed value is absent, the list element is omitted from the CreateList result.
      */
     public abstract ImmutableList<Integer> optionalIndices();
+
+    /** Builder for CelCreateList. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+      abstract ImmutableList.Builder<CelExpr> elementsBuilder();
+
+      abstract ImmutableList.Builder<Integer> optionalIndicesBuilder();
+
+      @CanIgnoreReturnValue
+      public CelCreateList.Builder addElements(CelExpr... elements) {
+        checkNotNull(elements);
+        return addElements(Arrays.asList(elements));
+      }
+
+      @CanIgnoreReturnValue
+      public CelCreateList.Builder addElements(Iterable<CelExpr> elements) {
+        checkNotNull(elements);
+        this.elementsBuilder().addAll(elements);
+        return this;
+      }
+
+      @CanIgnoreReturnValue
+      public CelCreateList.Builder addOptionalIndices(Integer... indices) {
+        checkNotNull(indices);
+        return addOptionalIndices(Arrays.asList(indices));
+      }
+
+      @CanIgnoreReturnValue
+      public CelCreateList.Builder addOptionalIndices(Iterable<Integer> indices) {
+        checkNotNull(indices);
+        this.optionalIndicesBuilder().addAll(indices);
+        return this;
+      }
+
+      @CheckReturnValue
+      public abstract CelCreateList build();
+    }
+
+    public static CelCreateList.Builder newBuilder() {
+      return new AutoValue_CelExpr_CelCreateList.Builder();
+    }
   }
 
   /**
@@ -191,6 +375,35 @@ public abstract class CelExpr {
 
     /** The entries in the creation expression. */
     public abstract ImmutableList<Entry> entries();
+
+    /** Builder for CelCreateStruct. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract Builder setMessageName(String value);
+
+      abstract ImmutableList.Builder<Entry> entriesBuilder();
+
+      @CanIgnoreReturnValue
+      public Builder addEntries(Entry... entries) {
+        checkNotNull(entries);
+        return addEntries(Arrays.asList(entries));
+      }
+
+      @CanIgnoreReturnValue
+      public Builder addEntries(Iterable<Entry> entries) {
+        checkNotNull(entries);
+        this.entriesBuilder().addAll(entries);
+        return this;
+      }
+
+      @CheckReturnValue
+      public abstract CelCreateStruct build();
+    }
+
+    public static CelCreateStruct.Builder newBuilder() {
+      return new AutoValue_CelExpr_CelCreateStruct.Builder().setMessageName("");
+    }
 
     /** Represents an entry of the struct */
     @AutoValue
@@ -216,6 +429,34 @@ public abstract class CelExpr {
 
       /** Whether the key-value pair is optional. */
       public abstract boolean optionalEntry();
+
+      /** Builder for CelCreateStruct.Entry. */
+      @AutoValue.Builder
+      public abstract static class Builder {
+
+        public abstract Builder setId(long value);
+
+        public abstract Builder setKeyKind(KeyKind value);
+
+        public abstract Builder setValue(CelExpr value);
+
+        public abstract Builder setOptionalEntry(boolean value);
+
+        public Builder setMapKey(CelExpr mapKey) {
+          return setKeyKind(AutoOneOf_CelExpr_CelCreateStruct_Entry_KeyKind.mapKey(mapKey));
+        }
+
+        public Builder setFieldKey(String fieldKey) {
+          return setKeyKind(AutoOneOf_CelExpr_CelCreateStruct_Entry_KeyKind.fieldKey(fieldKey));
+        }
+
+        @CheckReturnValue
+        public abstract Entry build();
+      }
+
+      public static Entry.Builder newBuilder() {
+        return new AutoValue_CelExpr_CelCreateStruct_Entry.Builder().setOptionalEntry(false);
+      }
 
       /** Entry key kind. */
       @AutoOneOf(KeyKind.Kind.class)
@@ -298,67 +539,125 @@ public abstract class CelExpr {
      * <p>Computes the result.
      */
     public abstract CelExpr result();
+
+    /** Builder for Comprehension. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract Builder setIterVar(String value);
+
+      public abstract Builder setIterRange(CelExpr value);
+
+      public abstract Builder setAccuVar(String value);
+
+      public abstract Builder setAccuInit(CelExpr value);
+
+      public abstract Builder setLoopCondition(CelExpr value);
+
+      public abstract Builder setLoopStep(CelExpr value);
+
+      public abstract Builder setResult(CelExpr value);
+
+      @CheckReturnValue
+      public abstract CelComprehension build();
+    }
+
+    public static Builder newBuilder() {
+      return new AutoValue_CelExpr_CelComprehension.Builder();
+    }
   }
 
   public static CelExpr ofNotSet(long id) {
-    return new AutoValue_CelExpr(
-        id, AutoOneOf_CelExpr_ExprKind.notSet(new AutoValue_CelExpr_CelNotSet()));
+    return newBuilder()
+        .setId(id)
+        .setExprKind(AutoOneOf_CelExpr_ExprKind.notSet(new AutoValue_CelExpr_CelNotSet()))
+        .build();
   }
 
   public static CelExpr ofConstantExpr(long id, CelConstant celConstant) {
-    return new AutoValue_CelExpr(id, AutoOneOf_CelExpr_ExprKind.constant(celConstant));
+    return newBuilder()
+        .setId(id)
+        .setExprKind(AutoOneOf_CelExpr_ExprKind.constant(celConstant))
+        .build();
   }
 
   public static CelExpr ofIdentExpr(long id, String identName) {
-    return new AutoValue_CelExpr(
-        id, AutoOneOf_CelExpr_ExprKind.ident(new AutoValue_CelExpr_CelIdent(identName)));
+    return newBuilder()
+        .setId(id)
+        .setExprKind(
+            AutoOneOf_CelExpr_ExprKind.ident(CelIdent.newBuilder().setName(identName).build()))
+        .build();
   }
 
   public static CelExpr ofSelectExpr(
       long id, CelExpr operandExpr, String field, boolean isTestOnly) {
-    return new AutoValue_CelExpr(
-        id,
-        AutoOneOf_CelExpr_ExprKind.select(
-            new AutoValue_CelExpr_CelSelect(operandExpr, field, isTestOnly)));
+    return newBuilder()
+        .setId(id)
+        .setExprKind(
+            AutoOneOf_CelExpr_ExprKind.select(
+                CelSelect.newBuilder()
+                    .setOperand(operandExpr)
+                    .setField(field)
+                    .setTestOnly(isTestOnly)
+                    .build()))
+        .build();
   }
 
   public static CelExpr ofCallExpr(
       long id, Optional<CelExpr> targetExpr, String function, ImmutableList<CelExpr> arguments) {
-    return new AutoValue_CelExpr(
-        id,
-        AutoOneOf_CelExpr_ExprKind.call(
-            new AutoValue_CelExpr_CelCall(targetExpr, function, arguments)));
+
+    CelCall.Builder celCallBuilder = CelCall.newBuilder().setFunction(function).addArgs(arguments);
+    targetExpr.ifPresent(celCallBuilder::setTarget);
+    return newBuilder()
+        .setId(id)
+        .setExprKind(AutoOneOf_CelExpr_ExprKind.call(celCallBuilder.build()))
+        .build();
   }
 
   public static CelExpr ofCreateListExpr(
       long id, ImmutableList<CelExpr> elements, ImmutableList<Integer> optionalIndices) {
-    return new AutoValue_CelExpr(
-        id,
-        AutoOneOf_CelExpr_ExprKind.createList(
-            new AutoValue_CelExpr_CelCreateList(elements, optionalIndices)));
+    return newBuilder()
+        .setId(id)
+        .setExprKind(
+            AutoOneOf_CelExpr_ExprKind.createList(
+                CelCreateList.newBuilder()
+                    .addElements(elements)
+                    .addOptionalIndices(optionalIndices)
+                    .build()))
+        .build();
   }
 
   public static CelExpr ofCreateStructExpr(
       long id, String messageName, ImmutableList<CelCreateStruct.Entry> entries) {
-    return new AutoValue_CelExpr(
-        id,
-        AutoOneOf_CelExpr_ExprKind.createStruct(
-            new AutoValue_CelExpr_CelCreateStruct(messageName, entries)));
+    return newBuilder()
+        .setId(id)
+        .setExprKind(
+            AutoOneOf_CelExpr_ExprKind.createStruct(
+                CelCreateStruct.newBuilder()
+                    .setMessageName(messageName)
+                    .addEntries(entries)
+                    .build()))
+        .build();
   }
 
   public static CelCreateStruct.Entry ofCreateStructFieldEntryExpr(
       long id, String fieldKey, CelExpr value, boolean isOptionalEntry) {
-    return new AutoValue_CelExpr_CelCreateStruct_Entry(
-        id,
-        AutoOneOf_CelExpr_CelCreateStruct_Entry_KeyKind.fieldKey(fieldKey),
-        value,
-        isOptionalEntry);
+    return CelCreateStruct.Entry.newBuilder()
+        .setId(id)
+        .setFieldKey(fieldKey)
+        .setValue(value)
+        .setOptionalEntry(isOptionalEntry)
+        .build();
   }
 
   public static CelCreateStruct.Entry ofCreateStructMapEntryExpr(
       long id, CelExpr mapKey, CelExpr value, boolean isOptionalEntry) {
-    return new AutoValue_CelExpr_CelCreateStruct_Entry(
-        id, AutoOneOf_CelExpr_CelCreateStruct_Entry_KeyKind.mapKey(mapKey), value, isOptionalEntry);
+    return CelCreateStruct.Entry.newBuilder()
+        .setId(id)
+        .setMapKey(mapKey)
+        .setValue(value)
+        .setOptionalEntry(isOptionalEntry)
+        .build();
   }
 
   public static CelExpr ofComprehension(
@@ -370,10 +669,19 @@ public abstract class CelExpr {
       CelExpr loopCondition,
       CelExpr loopStep,
       CelExpr result) {
-    return new AutoValue_CelExpr(
-        id,
-        AutoOneOf_CelExpr_ExprKind.comprehension(
-            new AutoValue_CelExpr_CelComprehension(
-                iterVar, iterRange, accuVar, accuInit, loopCondition, loopStep, result)));
+    return newBuilder()
+        .setId(id)
+        .setExprKind(
+            AutoOneOf_CelExpr_ExprKind.comprehension(
+                CelComprehension.newBuilder()
+                    .setIterVar(iterVar)
+                    .setIterRange(iterRange)
+                    .setAccuVar(accuVar)
+                    .setAccuInit(accuInit)
+                    .setLoopCondition(loopCondition)
+                    .setLoopStep(loopStep)
+                    .setResult(result)
+                    .build()))
+        .build();
   }
 }
