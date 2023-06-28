@@ -29,7 +29,6 @@ import dev.cel.expr.Reference;
 import dev.cel.expr.SourceInfo;
 import com.google.common.collect.ImmutableList;
 import dev.cel.common.ast.CelConstant;
-import dev.cel.common.internal.Constants;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.SimpleType;
 import org.junit.Test;
@@ -39,7 +38,11 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public final class CelAbstractSyntaxTreeTest {
 
-  private static final Expr EXPR = Expr.newBuilder().setId(1L).setConstExpr(Constants.TRUE).build();
+  private static final Expr EXPR =
+      Expr.newBuilder()
+          .setId(1L)
+          .setConstExpr(Constant.newBuilder().setBoolValue(true).build())
+          .build();
   private static final SourceInfo SOURCE_INFO =
       SourceInfo.newBuilder()
           .setLocation("test/location.cel")

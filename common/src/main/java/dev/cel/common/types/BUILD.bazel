@@ -12,6 +12,7 @@ package(
 # keep sorted
 CEL_TYPE_SOURCES = [
     "EnumType.java",
+    "FunctionType.java",
     "ListType.java",
     "MapType.java",
     "NullableType.java",

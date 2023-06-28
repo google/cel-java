@@ -14,6 +14,8 @@
 
 package dev.cel.common.ast;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
 import dev.cel.expr.Constant;
 import dev.cel.expr.Expr;
 import dev.cel.expr.Expr.Call;
@@ -25,7 +27,9 @@ import dev.cel.expr.Expr.Ident;
 import dev.cel.expr.Expr.Select;
 import dev.cel.expr.Reference;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -226,7 +230,7 @@ public final class CelExprConverter {
   /**
    * Converts a proto-based {@link Constant} to CEL native representation of {@link CelConstant}.
    */
-  private static Constant celConstantToExprConstant(CelConstant celConstant) {
+  public static Constant celConstantToExprConstant(CelConstant celConstant) {
     switch (celConstant.getKind()) {
       case NULL_VALUE:
         return Constant.newBuilder().setNullValue(celConstant.nullValue()).build();
@@ -304,6 +308,12 @@ public final class CelExprConverter {
         .ifPresent(celConstant -> builder.setValue(celConstantToExprConstant(celConstant)));
 
     return builder.build();
+  }
+
+  public static ImmutableMap<Long, CelExpr> exprMacroCallsToCelExprMacroCalls(
+      Map<Long, Expr> macroCalls) {
+    return macroCalls.entrySet().stream()
+        .collect(toImmutableMap(Map.Entry::getKey, v -> fromExpr(v.getValue())));
   }
 }
 // LINT.ThenChange(CelExprV1Alpha1Converter.java)

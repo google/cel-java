@@ -121,6 +121,8 @@ public abstract class CelExpr {
     public abstract CelExpr build();
   }
 
+  public abstract Builder toBuilder();
+
   public static Builder newBuilder() {
     return new AutoValue_CelExpr.Builder()
         .setId(0)
@@ -194,7 +196,9 @@ public abstract class CelExpr {
       public abstract CelIdent build();
     }
 
-    public static CelIdent.Builder newBuilder() {
+    public abstract Builder toBuilder();
+
+    public static Builder newBuilder() {
       return new AutoValue_CelExpr_CelIdent.Builder();
     }
   }
@@ -241,7 +245,9 @@ public abstract class CelExpr {
       public abstract CelSelect build();
     }
 
-    public static CelSelect.Builder newBuilder() {
+    public abstract Builder toBuilder();
+
+    public static Builder newBuilder() {
       return new AutoValue_CelExpr_CelSelect.Builder().setTestOnly(false);
     }
   }
@@ -293,6 +299,8 @@ public abstract class CelExpr {
       @CheckReturnValue
       public abstract CelCall build();
     }
+
+    public abstract Builder toBuilder();
 
     public static Builder newBuilder() {
       return new AutoValue_CelExpr_CelCall.Builder();
@@ -356,7 +364,9 @@ public abstract class CelExpr {
       public abstract CelCreateList build();
     }
 
-    public static CelCreateList.Builder newBuilder() {
+    public abstract Builder toBuilder();
+
+    public static Builder newBuilder() {
       return new AutoValue_CelExpr_CelCreateList.Builder();
     }
   }
@@ -401,7 +411,9 @@ public abstract class CelExpr {
       public abstract CelCreateStruct build();
     }
 
-    public static CelCreateStruct.Builder newBuilder() {
+    public abstract Builder toBuilder();
+
+    public static Builder newBuilder() {
       return new AutoValue_CelExpr_CelCreateStruct.Builder().setMessageName("");
     }
 
@@ -454,7 +466,9 @@ public abstract class CelExpr {
         public abstract Entry build();
       }
 
-      public static Entry.Builder newBuilder() {
+      public abstract Builder toBuilder();
+
+      public static Builder newBuilder() {
         return new AutoValue_CelExpr_CelCreateStruct_Entry.Builder().setOptionalEntry(false);
       }
 
@@ -561,6 +575,8 @@ public abstract class CelExpr {
       @CheckReturnValue
       public abstract CelComprehension build();
     }
+
+    public abstract Builder toBuilder();
 
     public static Builder newBuilder() {
       return new AutoValue_CelExpr_CelComprehension.Builder();
