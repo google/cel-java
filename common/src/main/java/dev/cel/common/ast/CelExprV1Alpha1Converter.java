@@ -226,7 +226,7 @@ public final class CelExprV1Alpha1Converter {
   /**
    * Converts a proto-based {@link Constant} to CEL native representation of {@link CelConstant}.
    */
-  private static Constant celConstantToExprConstant(CelConstant celConstant) {
+  public static Constant celConstantToExprConstant(CelConstant celConstant) {
     switch (celConstant.getKind()) {
       case NULL_VALUE:
         return Constant.newBuilder().setNullValue(celConstant.nullValue()).build();
