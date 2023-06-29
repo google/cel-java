@@ -35,6 +35,7 @@ java_library(
     deps = [
         ":error_codes",
         "//:auto_value",
+        "//common/src/main/java/dev/cel/common/annotations",
         "//common/src/main/java/dev/cel/common/ast",
         "//common/src/main/java/dev/cel/common/ast:expr_converter",
         "//common/src/main/java/dev/cel/common/internal",

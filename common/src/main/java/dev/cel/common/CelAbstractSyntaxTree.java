@@ -20,11 +20,13 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import dev.cel.expr.CheckedExpr;
 import dev.cel.expr.Expr;
 import dev.cel.expr.ParsedExpr;
+import dev.cel.expr.SourceInfo;
 import dev.cel.expr.Type;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExprConverter;
@@ -32,6 +34,7 @@ import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.SimpleType;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -52,16 +55,51 @@ public final class CelAbstractSyntaxTree {
 
   private final ImmutableMap<Long, CelType> types;
 
-  CelAbstractSyntaxTree(
+  CelAbstractSyntaxTree(CelExpr celExpr, CelSource celSource) {
+    this(celExpr, celSource, ImmutableMap.of(), ImmutableMap.of());
+  }
+
+  @Internal
+  public CelAbstractSyntaxTree(
       CelExpr celExpr,
       CelSource celSource,
-      ImmutableMap<Long, CelReference> references,
-      ImmutableMap<Long, CelType> types) {
-    this.checkedExpr = null;
+      Map<Long, CelReference> references,
+      Map<Long, CelType> types) {
+    // TODO: This exists only for compatibility reason. Move this logic into
+    // CelProtoAbstractSyntaxTree after the native type migration is complete.
+    CheckedExpr.Builder checkedExprBuilder =
+        CheckedExpr.newBuilder()
+            .setSourceInfo(
+                SourceInfo.newBuilder()
+                    .setLocation(celSource.getDescription())
+                    .addAllLineOffsets(celSource.getLineOffsets())
+                    .putAllMacroCalls(
+                        celSource.getMacroCalls().entrySet().stream()
+                            .collect(
+                                toImmutableMap(
+                                    Entry::getKey,
+                                    v -> CelExprConverter.fromCelExpr(v.getValue()))))
+                    .putAllPositions(celSource.getPositionsMap()))
+            .setExpr(CelExprConverter.fromCelExpr(celExpr));
+
+    if (!types.isEmpty()) {
+      // This is a type-checked AST
+      checkedExprBuilder.putAllReferenceMap(
+          references.entrySet().stream()
+              .collect(
+                  toImmutableMap(
+                      Entry::getKey,
+                      v -> CelExprConverter.celReferenceToExprReference(v.getValue()))));
+      checkedExprBuilder.putAllTypeMap(
+          types.entrySet().stream()
+              .collect(toImmutableMap(Entry::getKey, v -> CelTypes.celTypeToType(v.getValue()))));
+    }
+
+    this.checkedExpr = checkedExprBuilder.build();
     this.celExpr = celExpr;
     this.celSource = celSource;
-    this.references = references;
-    this.types = types;
+    this.references = ImmutableMap.copyOf(references);
+    this.types = ImmutableMap.copyOf(types);
   }
 
   CelAbstractSyntaxTree(ParsedExpr parsedExpr, CelSource celSource) {
@@ -199,6 +237,9 @@ public final class CelAbstractSyntaxTree {
             .addAllLineOffsets(checkedExpr.getSourceInfo().getLineOffsetsList())
             .addPositionsMap(checkedExpr.getSourceInfo().getPositionsMap())
             .setDescription(checkedExpr.getSourceInfo().getLocation())
+            .addAllMacroCalls(
+                CelExprConverter.exprMacroCallsToCelExprMacroCalls(
+                    checkedExpr.getSourceInfo().getMacroCallsMap()))
             .build());
   }
 
@@ -214,6 +255,9 @@ public final class CelAbstractSyntaxTree {
         CelSource.newBuilder()
             .addAllLineOffsets(parsedExpr.getSourceInfo().getLineOffsetsList())
             .addPositionsMap(parsedExpr.getSourceInfo().getPositionsMap())
+            .addAllMacroCalls(
+                CelExprConverter.exprMacroCallsToCelExprMacroCalls(
+                    parsedExpr.getSourceInfo().getMacroCallsMap()))
             .setDescription(parsedExpr.getSourceInfo().getLocation())
             .build());
   }

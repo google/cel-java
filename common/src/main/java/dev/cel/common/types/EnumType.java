@@ -44,6 +44,11 @@ public final class EnumType extends CelType {
     return name;
   }
 
+  @Override
+  public boolean isAssignableFrom(CelType other) {
+    return super.isAssignableFrom(other) || other.kind().equals(CelKind.INT);
+  }
+
   /** Find an enum number by {@code enumName}. */
   public Optional<Integer> findNumberByName(String enumName) {
     return enumNumberResolver.findNumber(enumName);
@@ -57,14 +62,14 @@ public final class EnumType extends CelType {
   /** Functional interface for lookup up an enum number by its local or fully qualified name. */
   @Immutable
   @FunctionalInterface
-  public static interface EnumNumberResolver {
+  public interface EnumNumberResolver {
     Optional<Integer> findNumber(String enumName);
   }
 
   /** Functional interface for looking up an enum name by its number. */
   @Immutable
   @FunctionalInterface
-  public static interface EnumNameResolver {
+  public interface EnumNameResolver {
     Optional<String> findName(Integer enumNumber);
   }
 

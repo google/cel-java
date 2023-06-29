@@ -26,7 +26,7 @@ java_library(
     deps = [
         "//:auto_value",
         "//common/src/main/java/dev/cel/common/annotations",
-        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "//common/src/main/java/dev/cel/common/ast",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",

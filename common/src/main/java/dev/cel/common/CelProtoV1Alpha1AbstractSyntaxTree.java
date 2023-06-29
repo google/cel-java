@@ -49,6 +49,9 @@ public final class CelProtoV1Alpha1AbstractSyntaxTree {
             CelSource.newBuilder()
                 .addAllLineOffsets(checkedExpr.getSourceInfo().getLineOffsetsList())
                 .addPositionsMap(checkedExpr.getSourceInfo().getPositionsMap())
+                .addAllMacroCalls(
+                    CelExprV1Alpha1Converter.exprMacroCallsToCelExprMacroCalls(
+                        checkedExpr.getSourceInfo().getMacroCallsMap()))
                 .setDescription(checkedExpr.getSourceInfo().getLocation())
                 .build(),
             checkedExpr.getReferenceMapMap().entrySet().stream()
@@ -70,7 +73,13 @@ public final class CelProtoV1Alpha1AbstractSyntaxTree {
             .setSourceInfo(
                 SourceInfo.newBuilder()
                     .setLocation(ast.getSource().getDescription())
-                    .addAllLineOffsets(ast.getSource().getLineOffsets().asList())
+                    .addAllLineOffsets(ast.getSource().getLineOffsets())
+                    .putAllMacroCalls(
+                        ast.getSource().getMacroCalls().entrySet().stream()
+                            .collect(
+                                toImmutableMap(
+                                    Entry::getKey,
+                                    v -> CelExprV1Alpha1Converter.fromCelExpr(v.getValue()))))
                     .putAllPositions(ast.getSource().getPositionsMap()))
             .setExpr(CelExprV1Alpha1Converter.fromCelExpr(ast.getExpr()));
 

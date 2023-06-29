@@ -19,79 +19,60 @@ import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 
 import dev.cel.expr.Type;
 import dev.cel.expr.Type.AbstractType;
-import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.errorprone.annotations.Immutable;
+import com.google.testing.junit.testparameterinjector.TestParameter;
+import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
 
-@RunWith(Parameterized.class)
+@RunWith(TestParameterInjector.class)
 public final class CelTypesTest {
 
-  @AutoValue
-  @Immutable
-  abstract static class TestCase {
-    abstract CelType celType();
+  private enum TestCases {
+    UNSPECIFIED(UnspecifiedType.create(), Type.getDefaultInstance()),
+    STRING(SimpleType.STRING, CelTypes.STRING),
+    INT(NullableType.create(SimpleType.INT), CelTypes.createWrapper(CelTypes.INT64)),
+    UINT(NullableType.create(SimpleType.UINT), CelTypes.createWrapper(CelTypes.UINT64)),
+    DOUBLE(NullableType.create(SimpleType.DOUBLE), CelTypes.createWrapper(CelTypes.DOUBLE)),
+    BOOL(NullableType.create(SimpleType.BOOL), CelTypes.createWrapper(CelTypes.BOOL)),
+    BYTES(SimpleType.BYTES, CelTypes.BYTES),
+    ANY(SimpleType.ANY, CelTypes.ANY),
+    LIST(
+        ListType.create(),
+        Type.newBuilder().setListType(Type.ListType.getDefaultInstance()).build()),
+    DYN(ListType.create(SimpleType.DYN), CelTypes.createList(CelTypes.DYN)),
+    ENUM(EnumType.create("CustomEnum", ImmutableMap.of()), CelTypes.INT64),
+    STRUCT_TYPE_REF(
+        StructTypeReference.create("MyCustomStruct"), CelTypes.createMessage("MyCustomStruct")),
+    OPAQUE(
+        OpaqueType.create("vector", SimpleType.UINT),
+        Type.newBuilder()
+            .setAbstractType(
+                AbstractType.newBuilder().setName("vector").addParameterTypes(CelTypes.UINT64))
+            .build()),
+    TYPE_PARAM(TypeParamType.create("T"), CelTypes.createTypeParam("T")),
+    FUNCTION(
+        FunctionType.create(SimpleType.INT, ImmutableList.of(SimpleType.STRING, SimpleType.UINT)),
+        Type.newBuilder()
+            .setFunction(
+                Type.FunctionType.newBuilder()
+                    .setResultType(CelTypes.INT64)
+                    .addAllArgTypes(ImmutableList.of(CelTypes.STRING, CelTypes.UINT64)))
+            .build()),
+    OPTIONAL(OptionalType.create(SimpleType.INT), CelTypes.createOptionalType(CelTypes.INT64)),
+    TYPE(
+        TypeType.create(MapType.create(SimpleType.STRING, SimpleType.STRING)),
+        CelTypes.create(CelTypes.createMap(CelTypes.STRING, CelTypes.STRING)));
 
-    abstract Type type();
+    private final CelType celType;
+    private final Type type;
 
-    @Override
-    public final String toString() {
-      return String.format("CelType: %s => Type: %s", celType(), type());
+    TestCases(CelType celType, Type type) {
+      this.celType = celType;
+      this.type = type;
     }
   }
-
-  static TestCase testCase(CelType celType, Type type) {
-    return new AutoValue_CelTypesTest_TestCase(celType, type);
-  }
-
-  private static final ImmutableList<TestCase> TEST_CASES =
-      ImmutableList.of(
-          testCase(UnspecifiedType.create(), Type.getDefaultInstance()),
-          testCase(SimpleType.STRING, CelTypes.STRING),
-          testCase(NullableType.create(SimpleType.INT), CelTypes.createWrapper(CelTypes.INT64)),
-          testCase(
-              ListType.create(),
-              Type.newBuilder().setListType(Type.ListType.getDefaultInstance()).build()),
-          testCase(ListType.create(SimpleType.DYN), CelTypes.createList(CelTypes.DYN)),
-          testCase(EnumType.create("CustomEnum", ImmutableMap.of()), CelTypes.INT64),
-          testCase(
-              StructTypeReference.create("MyCustomStruct"),
-              CelTypes.createMessage("MyCustomStruct")),
-          testCase(
-              OpaqueType.create("vector", SimpleType.UINT),
-              Type.newBuilder()
-                  .setAbstractType(
-                      AbstractType.newBuilder()
-                          .setName("vector")
-                          .addParameterTypes(CelTypes.UINT64))
-                  .build()),
-          testCase(TypeParamType.create("T"), CelTypes.createTypeParam("T")),
-          testCase(
-              FunctionType.create(
-                  SimpleType.INT, ImmutableList.of(SimpleType.STRING, SimpleType.UINT)),
-              Type.newBuilder()
-                  .setFunction(
-                      Type.FunctionType.newBuilder()
-                          .setResultType(CelTypes.INT64)
-                          .addAllArgTypes(ImmutableList.of(CelTypes.STRING, CelTypes.UINT64)))
-                  .build()),
-          testCase(
-              OptionalType.create(SimpleType.INT), CelTypes.createOptionalType(CelTypes.INT64)),
-          testCase(
-              TypeType.create(MapType.create(SimpleType.STRING, SimpleType.STRING)),
-              CelTypes.create(CelTypes.createMap(CelTypes.STRING, CelTypes.STRING))));
-
-  @Parameters(name = "{index}: {0}")
-  public static ImmutableList<TestCase> data() {
-    return TEST_CASES;
-  }
-
-  @Parameter public TestCase testCase;
 
   @Test
   public void isWellKnownType_true() {
@@ -131,16 +112,74 @@ public final class CelTypesTest {
   }
 
   @Test
-  public void celTypeToType() {
-    assertThat(CelTypes.celTypeToType(testCase.celType())).isEqualTo(testCase.type());
+  public void celTypeToType(@TestParameter TestCases testCase) {
+    assertThat(CelTypes.celTypeToType(testCase.celType)).isEqualTo(testCase.type);
   }
 
   @Test
-  public void typeToCelType() {
-    if (testCase.celType() instanceof EnumType) {
+  public void typeToCelType(@TestParameter TestCases testCase) {
+    if (testCase.celType instanceof EnumType) {
       // (b/178627883) Strongly typed enum is not supported yet
       return;
     }
-    assertThat(CelTypes.typeToCelType(testCase.type())).isEqualTo(testCase.celType());
+
+    assertThat(CelTypes.typeToCelType(testCase.type)).isEqualTo(testCase.celType);
+  }
+
+  private enum FormatTestCases {
+    UNSPECIFIED(UnspecifiedType.create(), "<unknown type>"),
+    STRING(SimpleType.STRING, "string"),
+    INT(NullableType.create(SimpleType.INT), "wrapper(int)"),
+    UINT(NullableType.create(SimpleType.UINT), "wrapper(uint)"),
+    DOUBLE(NullableType.create(SimpleType.DOUBLE), "wrapper(double)"),
+    BOOL(NullableType.create(SimpleType.BOOL), "wrapper(bool)"),
+    NULL_TYPE(SimpleType.NULL_TYPE, "null"),
+    BYTES(SimpleType.BYTES, "bytes"),
+    ANY(SimpleType.ANY, "any"),
+    LIST_DYN(ListType.create(SimpleType.DYN), "list(dyn)"),
+    ENUM(EnumType.create("CustomEnum", ImmutableMap.of()), "int"),
+    STRUCT_TYPE_REF(StructTypeReference.create("MyCustomStruct"), "MyCustomStruct"),
+    OPAQUE(OpaqueType.create("vector", SimpleType.UINT), "vector(uint)"),
+    TYPE_PARAM(TypeParamType.create("T"), "T"),
+    FUNCTION(
+        FunctionType.create(SimpleType.INT, ImmutableList.of(SimpleType.STRING, SimpleType.UINT)),
+        "(string, uint) -> int"),
+    OPTIONAL(OptionalType.create(SimpleType.INT), "optional(int)"),
+    MAP(MapType.create(SimpleType.INT, SimpleType.STRING), "map(int, string)"),
+    TYPE(
+        TypeType.create(MapType.create(SimpleType.STRING, SimpleType.STRING)),
+        "type(map(string, string))"),
+    TIMESTAMP(SimpleType.TIMESTAMP, "google.protobuf.Timestamp"),
+    DURATION(SimpleType.DURATION, "google.protobuf.Duration"),
+    ERROR(SimpleType.ERROR, "*error*");
+
+    private final CelType celType;
+    private final String formattedString;
+
+    FormatTestCases(CelType celType, String formattedString) {
+      this.celType = celType;
+      this.formattedString = formattedString;
+    }
+  }
+
+  @Test
+  public void format_withCelType(@TestParameter FormatTestCases testCase) {
+    assertThat(CelTypes.format(testCase.celType)).isEqualTo(testCase.formattedString);
+  }
+
+  @Test
+  public void format_withType(@TestParameter FormatTestCases testCase) {
+    Type type = CelTypes.celTypeToType(testCase.celType);
+
+    assertThat(CelTypes.format(type)).isEqualTo(testCase.formattedString);
+  }
+
+  @Test
+  public void formatFunction_isInstanceFunction() {
+    String formattedString =
+        CelTypes.formatFunction(
+            SimpleType.INT, ImmutableList.of(SimpleType.STRING, SimpleType.UINT), true, false);
+
+    assertThat(formattedString).isEqualTo("string.(uint) -> int");
   }
 }

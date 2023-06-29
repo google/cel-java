@@ -39,6 +39,13 @@ public abstract class StructTypeReference extends CelType {
   @Override
   public abstract String name();
 
+  @Override
+  public boolean isAssignableFrom(CelType other) {
+    return super.isAssignableFrom(other)
+        || ((other instanceof StructType || other instanceof StructTypeReference)
+            && other.name().equals(name()));
+  }
+
   public static StructTypeReference create(String name) {
     return new AutoValue_StructTypeReference(CelKind.STRUCT, name);
   }
