@@ -68,6 +68,15 @@ public final class CelTypesTest {
                   .build()),
           testCase(TypeParamType.create("T"), CelTypes.createTypeParam("T")),
           testCase(
+              FunctionType.create(
+                  SimpleType.INT, ImmutableList.of(SimpleType.STRING, SimpleType.UINT)),
+              Type.newBuilder()
+                  .setFunction(
+                      Type.FunctionType.newBuilder()
+                          .setResultType(CelTypes.INT64)
+                          .addAllArgTypes(ImmutableList.of(CelTypes.STRING, CelTypes.UINT64)))
+                  .build()),
+          testCase(
               OptionalType.create(SimpleType.INT), CelTypes.createOptionalType(CelTypes.INT64)),
           testCase(
               TypeType.create(MapType.create(SimpleType.STRING, SimpleType.STRING)),

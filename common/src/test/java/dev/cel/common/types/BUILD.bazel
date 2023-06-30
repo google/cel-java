@@ -12,6 +12,7 @@ java_library(
         "//:java_truth",
         "//common/src/main/java/dev/cel/common/types",
         "//common/src/main/java/dev/cel/common/types:cel_types",
+        "//common/src/main/java/dev/cel/common/types:function_type",
         "//common/src/main/java/dev/cel/common/types:message_type_provider",
         "//common/src/main/java/dev/cel/common/types:type_providers",
         "//common/src/main/resources/testdata/proto2:messages_extensions_proto2_java_proto",

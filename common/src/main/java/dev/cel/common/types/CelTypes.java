@@ -365,6 +365,17 @@ public final class CelTypes {
         return CelTypes.create(celTypeToType(typeType.type()));
       case TYPE_PARAM:
         return CelTypes.createTypeParam(celType.name());
+      case FUNCTION:
+        FunctionType functionType = (FunctionType) celType;
+        return Type.newBuilder()
+            .setFunction(
+                Type.FunctionType.newBuilder()
+                    .setResultType(celTypeToType(functionType.resultType()))
+                    .addAllArgTypes(
+                        functionType.parameters().stream()
+                            .map(CelTypes::celTypeToType)
+                            .collect(toImmutableList())))
+            .build();
       default:
         throw new IllegalArgumentException(String.format("Unsupported type: %s", celType));
     }
@@ -404,6 +415,13 @@ public final class CelTypes {
         return OpaqueType.create(abstractType.getName(), params);
       case TYPE:
         return TypeType.create(typeToCelType(type.getType()));
+      case FUNCTION:
+        Type.FunctionType functionType = type.getFunction();
+        return FunctionType.create(
+            typeToCelType(functionType.getResultType()),
+            functionType.getArgTypesList().stream()
+                .map(CelTypes::typeToCelType)
+                .collect(toImmutableList()));
       default:
         // Add more cases as needed.
         throw new IllegalArgumentException(String.format("Unsupported type: %s", type));

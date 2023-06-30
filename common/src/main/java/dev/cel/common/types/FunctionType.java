@@ -19,30 +19,38 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.annotations.Internal;
 
-/** OptionalType is an opaque type that that represents an optional value. */
+/**
+ * Function type with an expected result type and the argument types. Note that this is used to
+ * mirror the FunctionType message in checked.proto for type-checker use and should not be exposed
+ * to the users.
+ *
+ * <p>CEL Library Internals. Do Not Use.
+ */
 @AutoValue
 @CheckReturnValue
 @Immutable
-public abstract class OptionalType extends CelType {
-
-  public static final String NAME = "optional";
+@Internal
+public abstract class FunctionType extends CelType {
 
   @Override
-  public CelKind kind() {
-    return CelKind.OPAQUE;
-  }
+  public abstract CelKind kind();
 
   @Override
   public String name() {
-    return NAME;
+    return "function";
   }
+
+  public abstract CelType resultType();
 
   @Override
   public abstract ImmutableList<CelType> parameters();
 
-  public static OptionalType create(CelType parameter) {
-    Preconditions.checkNotNull(parameter);
-    return new AutoValue_OptionalType(ImmutableList.of(parameter));
+  public static FunctionType create(CelType resultType, Iterable<CelType> argumentTypes) {
+    Preconditions.checkNotNull(resultType);
+    Preconditions.checkNotNull(argumentTypes);
+    return new AutoValue_FunctionType(
+        CelKind.FUNCTION, resultType, ImmutableList.copyOf(argumentTypes));
   }
 }
