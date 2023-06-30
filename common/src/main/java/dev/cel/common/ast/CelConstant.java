@@ -18,7 +18,9 @@ import com.google.auto.value.AutoOneOf;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.Duration;
 import com.google.protobuf.NullValue;
+import com.google.protobuf.Timestamp;
 import dev.cel.common.annotations.Internal;
 
 /**
@@ -39,6 +41,16 @@ public abstract class CelConstant {
     DOUBLE_VALUE,
     STRING_VALUE,
     BYTES_VALUE,
+    /**
+     * @deprecated Do not use. Duration is no longer built-in CEL type.
+     */
+    @Deprecated
+    TIMESTAMP_VALUE,
+    /**
+     * @deprecated Do not use. Duration is no longer built-in CEL type.
+     */
+    @Deprecated
+    DURATION_VALUE
   }
 
   public abstract Kind getKind();
@@ -56,6 +68,18 @@ public abstract class CelConstant {
   public abstract String stringValue();
 
   public abstract ByteString bytesValue();
+
+  /**
+   * @deprecated Do not use. Timestamp is no longer built-in CEL type.
+   */
+  @Deprecated
+  public abstract Timestamp timestampValue();
+
+  /**
+   * @deprecated Do not use. Duration is no longer built-in CEL type.
+   */
+  @Deprecated
+  public abstract Duration durationValue();
 
   public static CelConstant ofValue(NullValue value) {
     return AutoOneOf_CelConstant.nullValue(value);
@@ -83,5 +107,21 @@ public abstract class CelConstant {
 
   public static CelConstant ofValue(ByteString value) {
     return AutoOneOf_CelConstant.bytesValue(value);
+  }
+
+  /**
+   * @deprecated Do not use. Duration is no longer built-in CEL type.
+   */
+  @Deprecated
+  public static CelConstant ofValue(Duration value) {
+    return AutoOneOf_CelConstant.durationValue(value);
+  }
+
+  /**
+   * @deprecated Do not use. Timestamp is no longer built-in CEL type.
+   */
+  @Deprecated
+  public static CelConstant ofValue(Timestamp value) {
+    return AutoOneOf_CelConstant.timestampValue(value);
   }
 }

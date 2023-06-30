@@ -14,6 +14,8 @@
 
 package dev.cel.common.ast;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
 import dev.cel.expr.Constant;
 import dev.cel.expr.Expr;
 import dev.cel.expr.Expr.Call;
@@ -25,7 +27,9 @@ import dev.cel.expr.Expr.Ident;
 import dev.cel.expr.Expr.Select;
 import dev.cel.expr.Reference;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -181,6 +185,10 @@ public final class CelExprConverter {
         return CelConstant.ofValue(constExpr.getStringValue());
       case BYTES_VALUE:
         return CelConstant.ofValue(constExpr.getBytesValue());
+      case DURATION_VALUE:
+        return CelConstant.ofValue(constExpr.getDurationValue());
+      case TIMESTAMP_VALUE:
+        return CelConstant.ofValue(constExpr.getTimestampValue());
       default:
         throw new IllegalStateException(
             "unsupported constant case: " + constExpr.getConstantKindCase());
@@ -242,6 +250,10 @@ public final class CelExprConverter {
         return Constant.newBuilder().setStringValue(celConstant.stringValue()).build();
       case BYTES_VALUE:
         return Constant.newBuilder().setBytesValue(celConstant.bytesValue()).build();
+      case DURATION_VALUE:
+        return Constant.newBuilder().setDurationValue(celConstant.durationValue()).build();
+      case TIMESTAMP_VALUE:
+        return Constant.newBuilder().setTimestampValue(celConstant.timestampValue()).build();
     }
 
     throw new IllegalStateException("unsupported constant case: " + celConstant.getKind());
@@ -304,6 +316,12 @@ public final class CelExprConverter {
         .ifPresent(celConstant -> builder.setValue(celConstantToExprConstant(celConstant)));
 
     return builder.build();
+  }
+
+  public static ImmutableMap<Long, CelExpr> exprMacroCallsToCelExprMacroCalls(
+      Map<Long, Expr> macroCalls) {
+    return macroCalls.entrySet().stream()
+        .collect(toImmutableMap(Map.Entry::getKey, v -> fromExpr(v.getValue())));
   }
 }
 // LINT.ThenChange(CelExprV1Alpha1Converter.java)
