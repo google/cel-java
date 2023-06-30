@@ -26,6 +26,12 @@ CEL_TYPE_SOURCES = [
 ]
 
 # keep sorted
+CEL_INTERNAL_TYPE_SOURCES = [
+    "FunctionType.java",
+    "NotSetType.java",
+]
+
+# keep sorted
 CEL_TYPE_PROVIDER_SOURCES = [
     "CelKind.java",
     "CelType.java",
@@ -40,14 +46,15 @@ java_library(
     deps = [
         ":type_providers",
         "//:auto_value",
+        "//common/src/main/java/dev/cel/common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
 )
 
 java_library(
-    name = "function_type",
-    srcs = ["FunctionType.java"],
+    name = "cel_internal_types",
+    srcs = CEL_INTERNAL_TYPE_SOURCES,
     deps = [
         ":type_providers",
         "//:auto_value",
@@ -63,7 +70,7 @@ java_library(
     tags = [
     ],
     deps = [
-        ":function_type",
+        ":cel_internal_types",
         ":type_providers",
         ":types",
         "//common/src/main/java/dev/cel/common/annotations",

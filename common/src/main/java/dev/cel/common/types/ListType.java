@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.annotations.Internal;
 
 /** Lists are a parameterized type with the parameter indicating the {@code elemType}. */
 @AutoValue
@@ -41,8 +42,18 @@ public abstract class ListType extends CelType {
     return create(parameters.get(0));
   }
 
+  public boolean hasElemType() {
+    return !parameters().isEmpty();
+  }
+
   public CelType elemType() {
     return parameters().get(0);
+  }
+
+  /** Do not use. This exists for compatibility reason with ListType from checked.proto. */
+  @Internal
+  public static ListType create() {
+    return new AutoValue_ListType(CelKind.LIST, "list", ImmutableList.of());
   }
 
   public static ListType create(CelType elemType) {

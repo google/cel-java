@@ -20,6 +20,7 @@ import dev.cel.expr.Type;
 import dev.cel.expr.Type.AbstractType;
 import dev.cel.expr.Type.PrimitiveType;
 import dev.cel.expr.Type.WellKnownType;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -195,6 +196,7 @@ public final class CelTypes {
    * Create an abstract type indicating that the parameterized type may be contained within the
    * object.
    */
+  @VisibleForTesting
   public static Type createOptionalType(Type paramType) {
     return Type.newBuilder()
         .setAbstractType(
@@ -341,9 +343,17 @@ public final class CelTypes {
     }
 
     switch (celType.kind()) {
+      case NOT_SET:
+        return Type.getDefaultInstance();
       case LIST:
         ListType listType = (ListType) celType;
-        return CelTypes.createList(celTypeToType(listType.elemType()));
+        if (listType.hasElemType()) {
+          return CelTypes.createList(celTypeToType(listType.elemType()));
+        } else {
+          // TODO: Exists for compatibility reason only. Remove after callers have been
+          // migrated.
+          return Type.newBuilder().setListType(Type.ListType.getDefaultInstance()).build();
+        }
       case MAP:
         MapType mapType = (MapType) celType;
         return CelTypes.createMap(
@@ -390,13 +400,21 @@ public final class CelTypes {
     }
 
     switch (type.getTypeKindCase()) {
+      case TYPEKIND_NOT_SET:
+        return NotSetType.create();
       case WRAPPER:
         return NullableType.create(typeToCelType(CelTypes.create(type.getWrapper())));
       case MESSAGE_TYPE:
         return StructTypeReference.create(type.getMessageType());
       case LIST_TYPE:
         Type.ListType listType = type.getListType();
-        return ListType.create(typeToCelType(listType.getElemType()));
+        if (listType.hasElemType()) {
+          return ListType.create(typeToCelType(listType.getElemType()));
+        } else {
+          // TODO: Exists for compatibility reason only. Remove after callers have been
+          // migrated.
+          return ListType.create();
+        }
       case MAP_TYPE:
         Type.MapType mapType = type.getMapType();
         return MapType.create(
