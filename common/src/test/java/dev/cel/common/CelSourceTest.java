@@ -66,7 +66,7 @@ public final class CelSourceTest {
     charStream.seek(0);
     assertThat(charStream.LA(0)).isEqualTo(0);
     assertThat(charStream.LA(-1)).isEqualTo(IntStream.EOF);
-    assertThat(source.getLineOffsets().length()).isEqualTo(1);
+    assertThat(source.getLineOffsets()).hasSize(1);
     assertThat(source.getLineOffsets().get(0)).isEqualTo(LATIN_1_EXPR.codePoints().count() + 1);
   }
 
@@ -83,9 +83,7 @@ public final class CelSourceTest {
     charStream.seek(0);
     assertThat(charStream.LA(0)).isEqualTo(0);
     assertThat(charStream.LA(-1)).isEqualTo(IntStream.EOF);
-    assertThat(source.getLineOffsets().length()).isEqualTo(2);
-    assertThat(source.getLineOffsets().get(0)).isEqualTo(6);
-    assertThat(source.getLineOffsets().get(1)).isEqualTo(11);
+    assertThat(source.getLineOffsets()).containsExactly(6, 11).inOrder();
   }
 
   @Test
@@ -101,7 +99,7 @@ public final class CelSourceTest {
     charStream.seek(0);
     assertThat(charStream.LA(0)).isEqualTo(0);
     assertThat(charStream.LA(-1)).isEqualTo(IntStream.EOF);
-    assertThat(source.getLineOffsets().length()).isEqualTo(1);
+    assertThat(source.getLineOffsets()).hasSize(1);
     assertThat(source.getLineOffsets().get(0)).isEqualTo(BASIC_EXPR.codePoints().count() + 1);
   }
 
@@ -118,9 +116,7 @@ public final class CelSourceTest {
     charStream.seek(0);
     assertThat(charStream.LA(0)).isEqualTo(0);
     assertThat(charStream.LA(-1)).isEqualTo(IntStream.EOF);
-    assertThat(source.getLineOffsets().length()).isEqualTo(2);
-    assertThat(source.getLineOffsets().get(0)).isEqualTo(6);
-    assertThat(source.getLineOffsets().get(1)).isEqualTo(12);
+    assertThat(source.getLineOffsets()).containsExactly(6, 12).inOrder();
   }
 
   @Test
@@ -136,7 +132,7 @@ public final class CelSourceTest {
     charStream.seek(0);
     assertThat(charStream.LA(0)).isEqualTo(0);
     assertThat(charStream.LA(-1)).isEqualTo(IntStream.EOF);
-    assertThat(source.getLineOffsets().length()).isEqualTo(1);
+    assertThat(source.getLineOffsets()).hasSize(1);
     assertThat(source.getLineOffsets().get(0))
         .isEqualTo(SUPPLEMENTAL_EXPR.codePoints().count() + 1);
   }
@@ -154,8 +150,6 @@ public final class CelSourceTest {
     charStream.seek(0);
     assertThat(charStream.LA(0)).isEqualTo(0);
     assertThat(charStream.LA(-1)).isEqualTo(IntStream.EOF);
-    assertThat(source.getLineOffsets().length()).isEqualTo(2);
-    assertThat(source.getLineOffsets().get(0)).isEqualTo(6);
-    assertThat(source.getLineOffsets().get(1)).isEqualTo(13);
+    assertThat(source.getLineOffsets()).containsExactly(6, 13).inOrder();
   }
 }

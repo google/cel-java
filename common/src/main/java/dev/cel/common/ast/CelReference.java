@@ -23,6 +23,7 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -54,6 +55,12 @@ public abstract class CelReference {
     abstract ImmutableList.Builder<String> overloadIdsBuilder();
 
     @CanIgnoreReturnValue
+    public Builder addOverloadIds(String... overloadIds) {
+      checkNotNull(overloadIds);
+      return addOverloadIds(Arrays.asList(overloadIds));
+    }
+
+    @CanIgnoreReturnValue
     public Builder addOverloadIds(Iterable<String> overloadIds) {
       checkNotNull(overloadIds);
       this.overloadIdsBuilder().addAll(overloadIds);
@@ -73,6 +80,6 @@ public abstract class CelReference {
   }
 
   public static CelReference.Builder newBuilder() {
-    return new AutoValue_CelReference.Builder();
+    return new AutoValue_CelReference.Builder().setName("");
   }
 }
