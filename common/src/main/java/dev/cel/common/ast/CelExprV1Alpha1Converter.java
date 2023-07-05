@@ -181,6 +181,10 @@ public final class CelExprV1Alpha1Converter {
         return CelConstant.ofValue(constExpr.getStringValue());
       case BYTES_VALUE:
         return CelConstant.ofValue(constExpr.getBytesValue());
+      case DURATION_VALUE:
+        return CelConstant.ofValue(constExpr.getDurationValue());
+      case TIMESTAMP_VALUE:
+        return CelConstant.ofValue(constExpr.getTimestampValue());
       default:
         throw new IllegalStateException(
             "unsupported constant case: " + constExpr.getConstantKindCase());
@@ -242,6 +246,10 @@ public final class CelExprV1Alpha1Converter {
         return Constant.newBuilder().setStringValue(celConstant.stringValue()).build();
       case BYTES_VALUE:
         return Constant.newBuilder().setBytesValue(celConstant.bytesValue()).build();
+      case DURATION_VALUE:
+        return Constant.newBuilder().setDurationValue(celConstant.durationValue()).build();
+      case TIMESTAMP_VALUE:
+        return Constant.newBuilder().setTimestampValue(celConstant.timestampValue()).build();
     }
 
     throw new IllegalStateException("unsupported constant case: " + celConstant.getKind());

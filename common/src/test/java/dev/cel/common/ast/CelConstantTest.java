@@ -19,7 +19,9 @@ import static org.junit.Assert.assertThrows;
 
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.Duration;
 import com.google.protobuf.NullValue;
+import com.google.protobuf.Timestamp;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.ast.CelConstant.Kind;
@@ -42,6 +44,10 @@ public class CelConstantTest {
     assertThat(CelConstant.ofValue("Hello world!")).isEqualTo(CelConstant.ofValue("Hello world!"));
     assertThat(CelConstant.ofValue(ByteString.copyFromUtf8("Test")))
         .isEqualTo(CelConstant.ofValue(ByteString.copyFromUtf8("Test")));
+    assertThat(CelConstant.ofValue(Duration.newBuilder().setSeconds(100L).build()))
+        .isEqualTo(CelConstant.ofValue(Duration.newBuilder().setSeconds(100L).build()));
+    assertThat(CelConstant.ofValue(Timestamp.newBuilder().setSeconds(100L).build()))
+        .isEqualTo(CelConstant.ofValue(Timestamp.newBuilder().setSeconds(100L).build()));
   }
 
   @Test
@@ -59,6 +65,10 @@ public class CelConstantTest {
     assertThat(CelConstant.ofValue("world!")).isNotEqualTo(CelConstant.ofValue("Hello world!"));
     assertThat(CelConstant.ofValue(ByteString.copyFromUtf8("T")))
         .isNotEqualTo(CelConstant.ofValue(ByteString.copyFromUtf8("Test")));
+    assertThat(CelConstant.ofValue(Duration.newBuilder().setSeconds(100L).build()))
+        .isNotEqualTo(CelConstant.ofValue(Duration.newBuilder().setSeconds(50).build()));
+    assertThat(CelConstant.ofValue(Timestamp.newBuilder().setSeconds(100L).build()))
+        .isNotEqualTo(CelConstant.ofValue(Timestamp.newBuilder().setSeconds(50).build()));
   }
 
   @Test
@@ -112,6 +122,21 @@ public class CelConstantTest {
     assertThat(constant.bytesValue()).isEqualTo(ByteString.copyFromUtf8("Test"));
   }
 
+  @Test
+  public void constructDurationValue() {
+    CelConstant constant = CelConstant.ofValue(Duration.newBuilder().setSeconds(100L).build());
+
+    assertThat(constant.durationValue()).isEqualTo(Duration.newBuilder().setSeconds(100L).build());
+  }
+
+  @Test
+  public void constructTimestampValue() {
+    CelConstant constant = CelConstant.ofValue(Timestamp.newBuilder().setSeconds(100L).build());
+
+    assertThat(constant.timestampValue())
+        .isEqualTo(Timestamp.newBuilder().setSeconds(100L).build());
+  }
+
   private enum CelConstantTestCase {
     NULL(CelConstant.ofValue(NullValue.NULL_VALUE)),
     BOOLEAN(CelConstant.ofValue(true)),
@@ -119,7 +144,9 @@ public class CelConstantTest {
     UINT64(CelConstant.ofValue(UnsignedLong.valueOf(2))),
     DOUBLE(CelConstant.ofValue(2.1)),
     STRING(CelConstant.ofValue("Hello world!")),
-    BYTES(CelConstant.ofValue(ByteString.copyFromUtf8("Test")));
+    BYTES(CelConstant.ofValue(ByteString.copyFromUtf8("Test"))),
+    DURATION(CelConstant.ofValue(Duration.newBuilder().setSeconds(100L).build())),
+    TIMESTAMP(CelConstant.ofValue(Timestamp.newBuilder().setSeconds(100L).build()));
 
     final CelConstant constant;
 
@@ -153,6 +180,12 @@ public class CelConstantTest {
     }
     if (constantKindCase != Kind.BYTES_VALUE) {
       assertThrows(UnsupportedOperationException.class, constant::bytesValue);
+    }
+    if (constantKindCase != Kind.DURATION_VALUE) {
+      assertThrows(UnsupportedOperationException.class, constant::durationValue);
+    }
+    if (constantKindCase != Kind.TIMESTAMP_VALUE) {
+      assertThrows(UnsupportedOperationException.class, constant::timestampValue);
     }
   }
 }
