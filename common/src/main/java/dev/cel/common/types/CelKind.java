@@ -24,6 +24,7 @@ import com.google.errorprone.annotations.CheckReturnValue;
  */
 @CheckReturnValue
 public enum CelKind {
+  UNSPECIFIED,
   ERROR,
   DYN,
   ANY,
@@ -54,5 +55,14 @@ public enum CelKind {
 
   public boolean isError() {
     return this == ERROR;
+  }
+
+  public boolean isPrimitive() {
+    return this == BOOL
+        || this == INT
+        || this == UINT
+        || this == DOUBLE
+        || this == STRING
+        || this == BYTES;
   }
 }

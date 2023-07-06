@@ -51,8 +51,12 @@ public final class CelTypesTest {
 
   private static final ImmutableList<TestCase> TEST_CASES =
       ImmutableList.of(
+          testCase(UnspecifiedType.create(), Type.getDefaultInstance()),
           testCase(SimpleType.STRING, CelTypes.STRING),
           testCase(NullableType.create(SimpleType.INT), CelTypes.createWrapper(CelTypes.INT64)),
+          testCase(
+              ListType.create(),
+              Type.newBuilder().setListType(Type.ListType.getDefaultInstance()).build()),
           testCase(ListType.create(SimpleType.DYN), CelTypes.createList(CelTypes.DYN)),
           testCase(EnumType.create("CustomEnum", ImmutableMap.of()), CelTypes.INT64),
           testCase(

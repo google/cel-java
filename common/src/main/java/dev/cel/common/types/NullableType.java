@@ -40,7 +40,7 @@ public abstract class NullableType extends CelType {
     return targetType().isAssignableFrom(other) || other.equals(SimpleType.NULL_TYPE);
   }
 
-  abstract CelType targetType();
+  public abstract CelType targetType();
 
   @Override
   public CelType withParameters(ImmutableList<CelType> parameters) {
