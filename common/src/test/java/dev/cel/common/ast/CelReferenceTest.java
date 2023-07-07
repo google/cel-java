@@ -38,10 +38,7 @@ public class CelReferenceTest {
   @Test
   public void constructCelReference_withOverloadIds() {
     CelReference reference =
-        CelReference.newBuilder()
-            .setName("refName")
-            .addOverloadIds(ImmutableList.of("a", "b", "c"))
-            .build();
+        CelReference.newBuilder().setName("refName").addOverloadIds("a", "b", "c").build();
 
     assertThat(reference.name()).isEqualTo("refName");
     assertThat(reference.overloadIds()).containsExactly("a", "b", "c");

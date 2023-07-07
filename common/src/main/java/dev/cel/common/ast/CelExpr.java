@@ -23,7 +23,9 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -121,6 +123,8 @@ public abstract class CelExpr {
     public abstract CelExpr build();
   }
 
+  public abstract Builder toBuilder();
+
   public static Builder newBuilder() {
     return new AutoValue_CelExpr.Builder()
         .setId(0)
@@ -194,7 +198,9 @@ public abstract class CelExpr {
       public abstract CelIdent build();
     }
 
-    public static CelIdent.Builder newBuilder() {
+    public abstract Builder toBuilder();
+
+    public static Builder newBuilder() {
       return new AutoValue_CelExpr_CelIdent.Builder();
     }
   }
@@ -241,7 +247,9 @@ public abstract class CelExpr {
       public abstract CelSelect build();
     }
 
-    public static CelSelect.Builder newBuilder() {
+    public abstract Builder toBuilder();
+
+    public static Builder newBuilder() {
       return new AutoValue_CelExpr_CelSelect.Builder().setTestOnly(false);
     }
   }
@@ -270,12 +278,28 @@ public abstract class CelExpr {
     /** Builder for CelCall. */
     @AutoValue.Builder
     public abstract static class Builder {
+      List<CelExpr> mutableArgs = new ArrayList<>();
+
+      abstract ImmutableList<CelExpr> args();
 
       public abstract Builder setTarget(CelExpr value);
 
+      public abstract Builder setTarget(Optional<CelExpr> value);
+
       public abstract Builder setFunction(String value);
 
-      abstract ImmutableList.Builder<CelExpr> argsBuilder();
+      // Not public. This only exists to make AutoValue.Builder work.
+      abstract Builder setArgs(ImmutableList<CelExpr> value);
+
+      public Builder setArg(int index, CelExpr arg) {
+        checkNotNull(arg);
+        mutableArgs.set(index, arg);
+        return this;
+      }
+
+      public Builder clearTarget() {
+        return setTarget(Optional.empty());
+      }
 
       @CanIgnoreReturnValue
       public Builder addArgs(CelExpr... args) {
@@ -286,12 +310,27 @@ public abstract class CelExpr {
       @CanIgnoreReturnValue
       public Builder addArgs(Iterable<CelExpr> args) {
         checkNotNull(args);
-        this.argsBuilder().addAll(args);
+        args.forEach(mutableArgs::add);
         return this;
       }
 
       @CheckReturnValue
-      public abstract CelCall build();
+      // Not public due to overridden build logic.
+      abstract CelCall autoBuild();
+
+      public CelCall build() {
+        setArgs(ImmutableList.copyOf(mutableArgs));
+        return autoBuild();
+      }
+    }
+
+    // Not public due to overridden build logic.
+    abstract Builder autoToBuilder();
+
+    public Builder toBuilder() {
+      Builder builder = autoToBuilder();
+      builder.mutableArgs = new ArrayList<>(builder.args());
+      return builder;
     }
 
     public static Builder newBuilder() {
@@ -322,41 +361,69 @@ public abstract class CelExpr {
     /** Builder for CelCreateList. */
     @AutoValue.Builder
     public abstract static class Builder {
-      abstract ImmutableList.Builder<CelExpr> elementsBuilder();
+      List<CelExpr> mutableElements = new ArrayList<>();
+
+      abstract ImmutableList<CelExpr> elements();
 
       abstract ImmutableList.Builder<Integer> optionalIndicesBuilder();
 
+      // Not public. This only exists to make AutoValue.Builder work.
       @CanIgnoreReturnValue
-      public CelCreateList.Builder addElements(CelExpr... elements) {
+      abstract Builder setElements(ImmutableList<CelExpr> elements);
+
+      @CanIgnoreReturnValue
+      public Builder setElement(int index, CelExpr element) {
+        checkNotNull(element);
+        mutableElements.set(index, element);
+        return this;
+      }
+
+      @CanIgnoreReturnValue
+      public Builder addElements(CelExpr... elements) {
         checkNotNull(elements);
         return addElements(Arrays.asList(elements));
       }
 
       @CanIgnoreReturnValue
-      public CelCreateList.Builder addElements(Iterable<CelExpr> elements) {
+      public Builder addElements(Iterable<CelExpr> elements) {
         checkNotNull(elements);
-        this.elementsBuilder().addAll(elements);
+        elements.forEach(mutableElements::add);
         return this;
       }
 
       @CanIgnoreReturnValue
-      public CelCreateList.Builder addOptionalIndices(Integer... indices) {
+      public Builder addOptionalIndices(Integer... indices) {
         checkNotNull(indices);
         return addOptionalIndices(Arrays.asList(indices));
       }
 
       @CanIgnoreReturnValue
-      public CelCreateList.Builder addOptionalIndices(Iterable<Integer> indices) {
+      public Builder addOptionalIndices(Iterable<Integer> indices) {
         checkNotNull(indices);
         this.optionalIndicesBuilder().addAll(indices);
         return this;
       }
 
+      // Not public due to overridden build logic.
+      abstract CelCreateList autoBuild();
+
       @CheckReturnValue
-      public abstract CelCreateList build();
+      public CelCreateList build() {
+        setElements(ImmutableList.copyOf(mutableElements));
+        return autoBuild();
+      }
     }
 
-    public static CelCreateList.Builder newBuilder() {
+    // Not public due to overridden build logic.
+    abstract Builder autoToBuilder();
+
+    public Builder toBuilder() {
+      Builder builder = autoToBuilder();
+      builder.mutableElements = new ArrayList<>(builder.elements());
+      return builder;
+    }
+
+    public static Builder newBuilder() {
       return new AutoValue_CelExpr_CelCreateList.Builder();
     }
   }
@@ -379,10 +446,23 @@ public abstract class CelExpr {
     /** Builder for CelCreateStruct. */
     @AutoValue.Builder
     public abstract static class Builder {
+      List<Entry> mutableEntries = new ArrayList<>();
 
+      abstract ImmutableList<Entry> entries();
+
+      @CanIgnoreReturnValue
       public abstract Builder setMessageName(String value);
 
-      abstract ImmutableList.Builder<Entry> entriesBuilder();
+      // Not public. This only exists to make AutoValue.Builder work.
+      @CanIgnoreReturnValue
+      abstract Builder setEntries(ImmutableList<Entry> entries);
+
+      @CanIgnoreReturnValue
+      public Builder setEntry(int index, Entry entry) {
+        checkNotNull(entry);
+        mutableEntries.set(index, entry);
+        return this;
+      }
 
       @CanIgnoreReturnValue
       public Builder addEntries(Entry... entries) {
@@ -393,15 +473,30 @@ public abstract class CelExpr {
       @CanIgnoreReturnValue
       public Builder addEntries(Iterable<Entry> entries) {
         checkNotNull(entries);
-        this.entriesBuilder().addAll(entries);
+        entries.forEach(mutableEntries::add);
         return this;
       }
 
+      // Not public due to overridden build logic.
+      abstract CelCreateStruct autoBuild();
+
       @CheckReturnValue
-      public abstract CelCreateStruct build();
+      public CelCreateStruct build() {
+        setEntries(ImmutableList.copyOf(mutableEntries));
+        return autoBuild();
+      }
     }
 
-    public static CelCreateStruct.Builder newBuilder() {
+    // Not public due to overridden build logic.
+    abstract Builder autoToBuilder();
+
+    public Builder toBuilder() {
+      Builder builder = autoToBuilder();
+      builder.mutableEntries = new ArrayList<>(builder.entries());
+      return builder;
+    }
+
+    public static Builder newBuilder() {
       return new AutoValue_CelExpr_CelCreateStruct.Builder().setMessageName("");
     }
 
@@ -454,7 +549,9 @@ public abstract class CelExpr {
         public abstract Entry build();
       }
 
-      public static Entry.Builder newBuilder() {
+      public abstract Builder toBuilder();
+
+      public static Builder newBuilder() {
         return new AutoValue_CelExpr_CelCreateStruct_Entry.Builder().setOptionalEntry(false);
       }
 
@@ -561,6 +658,8 @@ public abstract class CelExpr {
       @CheckReturnValue
       public abstract CelComprehension build();
     }
+
+    public abstract Builder toBuilder();
 
     public static Builder newBuilder() {
       return new AutoValue_CelExpr_CelComprehension.Builder();

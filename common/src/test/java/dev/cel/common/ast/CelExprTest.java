@@ -129,6 +129,47 @@ public class CelExprTest {
   }
 
   @Test
+  public void celExprBuilder_setCall_clearTarget() {
+    CelCall celCall =
+        CelCall.newBuilder()
+            .setFunction("function")
+            .setTarget(CelExpr.ofConstantExpr(1, CelConstant.ofValue("test")))
+            .build();
+    CelExpr celExpr =
+        CelExpr.newBuilder().setCall(celCall.toBuilder().clearTarget().build()).build();
+
+    assertThat(celExpr.call()).isEqualTo(CelCall.newBuilder().setFunction("function").build());
+  }
+
+  @Test
+  public void celExprBuilder_setCall_setArgByIndex() {
+    CelCall celCall =
+        CelCall.newBuilder()
+            .setFunction("function")
+            .addArgs(
+                CelExpr.ofConstantExpr(5, CelConstant.ofValue("hello")),
+                CelExpr.ofConstantExpr(6, CelConstant.ofValue(5)))
+            .build();
+
+    CelExpr celExpr =
+        CelExpr.newBuilder()
+            .setCall(
+                celCall.toBuilder()
+                    .setArg(1, CelExpr.ofConstantExpr(7, CelConstant.ofValue("world")))
+                    .build())
+            .build();
+
+    assertThat(celExpr.call())
+        .isEqualTo(
+            CelCall.newBuilder()
+                .setFunction("function")
+                .addArgs(
+                    CelExpr.ofConstantExpr(5, CelConstant.ofValue("hello")),
+                    CelExpr.ofConstantExpr(7, CelConstant.ofValue("world")))
+                .build());
+  }
+
+  @Test
   public void celExprBuilder_setSelect() {
     CelSelect celSelect =
         CelSelect.newBuilder().setField("field").setOperand(CelExpr.newBuilder().build()).build();
@@ -150,6 +191,32 @@ public class CelExprTest {
   }
 
   @Test
+  public void celExprBuilder_setCreateList_setElementByIndex() {
+    CelCreateList celCreateList =
+        CelCreateList.newBuilder()
+            .addElements(
+                CelExpr.ofConstantExpr(5, CelConstant.ofValue("hello")),
+                CelExpr.ofConstantExpr(6, CelConstant.ofValue(5)))
+            .build();
+
+    CelExpr celExpr =
+        CelExpr.newBuilder()
+            .setCreateList(
+                celCreateList.toBuilder()
+                    .setElement(1, CelExpr.ofConstantExpr(7, CelConstant.ofValue("world")))
+                    .build())
+            .build();
+
+    assertThat(celExpr.createList())
+        .isEqualTo(
+            CelCreateList.newBuilder()
+                .addElements(
+                    CelExpr.ofConstantExpr(5, CelConstant.ofValue("hello")),
+                    CelExpr.ofConstantExpr(7, CelConstant.ofValue("world")))
+                .build());
+  }
+
+  @Test
   public void celExprBuilder_setCreateStruct() {
     CelCreateStruct celCreateStruct =
         CelCreateStruct.newBuilder()
@@ -164,6 +231,62 @@ public class CelExprTest {
 
     assertThat(celExpr.createStruct().entries().get(0).optionalEntry()).isFalse();
     assertThat(celExpr.createStruct()).isEqualTo(celCreateStruct);
+  }
+
+  @Test
+  public void celExprBuilder_setCreateStruct_setEntryByIndex() {
+    CelCreateStruct celCreateStruct =
+        CelCreateStruct.newBuilder()
+            .addEntries(
+                CelCreateStruct.Entry.newBuilder()
+                    .setId(2)
+                    .setValue(
+                        CelExpr.ofConstantExpr(5, CelConstant.ofValue("hello")).toBuilder().build())
+                    .setFieldKey("field_key")
+                    .build(),
+                CelCreateStruct.Entry.newBuilder()
+                    .setId(3)
+                    .setValue(
+                        CelExpr.ofConstantExpr(6, CelConstant.ofValue(100)).toBuilder().build())
+                    .setFieldKey("field_key")
+                    .build())
+            .build();
+
+    CelExpr celExpr =
+        CelExpr.newBuilder()
+            .setCreateStruct(
+                celCreateStruct.toBuilder()
+                    .setEntry(
+                        1,
+                        CelCreateStruct.Entry.newBuilder()
+                            .setId(4)
+                            .setValue(
+                                CelExpr.ofConstantExpr(6, CelConstant.ofValue("world")).toBuilder()
+                                    .build())
+                            .setFieldKey("field_key")
+                            .build())
+                    .build())
+            .build();
+
+    assertThat(celExpr.createStruct())
+        .isEqualTo(
+            CelCreateStruct.newBuilder()
+                .addEntries(
+                    CelCreateStruct.Entry.newBuilder()
+                        .setId(2)
+                        .setValue(
+                            CelExpr.ofConstantExpr(5, CelConstant.ofValue("hello")).toBuilder()
+                                .build())
+                        .setFieldKey("field_key")
+                        .build(),
+                    CelCreateStruct.Entry.newBuilder()
+                        .setId(4)
+                        .setValue(
+                            CelExpr.ofConstantExpr(6, CelConstant.ofValue("world")).toBuilder()
+                                .build())
+                        .setFieldKey("field_key")
+                        .build())
+                .build());
   }
 
   @Test
