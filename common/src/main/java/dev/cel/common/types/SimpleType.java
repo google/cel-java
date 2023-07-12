@@ -50,7 +50,10 @@ public abstract class SimpleType extends CelType {
 
   @Override
   public boolean isAssignableFrom(CelType other) {
-    return kind().isDyn() || super.isAssignableFrom(other);
+    return kind().isDyn()
+        || super.isAssignableFrom(other)
+        || (kind().equals(CelKind.INT) && other instanceof EnumType)
+        || (other instanceof NullableType && other.isAssignableFrom(this));
   }
 
   private static CelType create(CelKind kind, String name) {

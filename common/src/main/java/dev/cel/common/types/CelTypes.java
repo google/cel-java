@@ -217,74 +217,77 @@ public final class CelTypes {
    *
    * <p>This method can also format global functions. See the {@link #formatFunction} methods for
    * richer control over function formatting.
+   *
+   * @deprecated Use {@link #format(CelType)} instead.
    */
+  @Deprecated
   public static String format(Type type) {
+    return format(typeToCelType(type), /* typeParamToDyn= */ false);
+  }
+
+  /**
+   * Method to adapt a simple {@code Type} into a {@code String} representation.
+   *
+   * <p>This method can also format global functions. See the {@link #formatFunction} methods for
+   * richer control over function formatting.
+   */
+  public static String format(CelType type) {
     return format(type, /* typeParamToDyn= */ false);
   }
 
-  private static String format(Type type, boolean typeParamToDyn) {
-    switch (type.getTypeKindCase()) {
+  private static String format(CelType type, boolean typeParamToDyn) {
+    if (type instanceof NullableType) {
+      return String.format(
+          "wrapper(%s)", format(((NullableType) type).targetType(), typeParamToDyn));
+    }
+    switch (type.kind()) {
       case DYN:
         return "dyn";
-      case NULL:
+      case NULL_TYPE:
         return "null";
-      case PRIMITIVE:
-        switch (type.getPrimitive()) {
-          case BOOL:
-            return "bool";
-          case INT64:
-            return "int";
-          case UINT64:
-            return "uint";
-          case DOUBLE:
-            return "double";
-          case STRING:
-            return "string";
-          case BYTES:
-            return "bytes";
-          default:
-            break;
-        }
-        break;
-      case WELL_KNOWN:
-        switch (type.getWellKnown()) {
-          case TIMESTAMP:
-            return "google.protobuf.Timestamp";
-          case DURATION:
-            return "google.protobuf.Duration";
-          case ANY:
-            return "any";
-          default:
-            break;
-        }
-        break;
-      case LIST_TYPE:
-        return String.format("list(%s)", format(type.getListType().getElemType(), typeParamToDyn));
-      case MAP_TYPE:
+      case BOOL:
+        return "bool";
+      case INT:
+        return "int";
+      case UINT:
+        return "uint";
+      case DOUBLE:
+        return "double";
+      case STRING:
+        return "string";
+      case BYTES:
+        return "bytes";
+      case TIMESTAMP:
+        return "google.protobuf.Timestamp";
+      case DURATION:
+        return "google.protobuf.Duration";
+      case ANY:
+        return "any";
+      case LIST:
+        ListType listType = (ListType) type;
+        return String.format("list(%s)", format(listType.elemType(), typeParamToDyn));
+      case MAP:
+        MapType mapType = (MapType) type;
         return String.format(
             "map(%s, %s)",
-            format(type.getMapType().getKeyType(), typeParamToDyn),
-            format(type.getMapType().getValueType(), typeParamToDyn));
+            format(mapType.keyType(), typeParamToDyn), format(mapType.valueType(), typeParamToDyn));
       case TYPE:
-        return String.format("type(%s)", format(type.getType(), typeParamToDyn));
-      case WRAPPER:
-        return String.format("wrapper(%s)", format(create(type.getWrapper()), typeParamToDyn));
+        TypeType typeType = (TypeType) type;
+        return String.format("type(%s)", format(typeType.type(), typeParamToDyn));
       case ERROR:
         return "*error*";
-      case MESSAGE_TYPE:
-        return type.getMessageType();
+      case STRUCT:
+        return type.name();
       case TYPE_PARAM:
-        return typeParamToDyn ? "dyn" : type.getTypeParam();
+        return typeParamToDyn ? "dyn" : type.name();
       case FUNCTION:
+        FunctionType functionType = (FunctionType) type;
         return formatFunction(
-            type.getFunction().getResultType(),
-            type.getFunction().getArgTypesList(),
-            false,
-            typeParamToDyn);
-      case ABSTRACT_TYPE:
-        String result = type.getAbstractType().getName();
-        if (type.getAbstractType().getParameterTypesCount() > 0) {
-          result += formatTypeArgs(type.getAbstractType().getParameterTypesList(), typeParamToDyn);
+            functionType.resultType(), functionType.parameters(), false, typeParamToDyn);
+      case OPAQUE:
+        String result = type.name();
+        if (!type.parameters().isEmpty()) {
+          result += formatTypeArgs(type.parameters(), typeParamToDyn);
         }
         return result;
       default:
@@ -306,7 +309,7 @@ public final class CelTypes {
    * {@code Types.DYN} values.
    */
   public static String formatFunction(
-      Type resultType, Iterable<Type> argTypes, boolean isInstance, boolean typeParamToDyn) {
+      CelType resultType, Iterable<CelType> argTypes, boolean isInstance, boolean typeParamToDyn) {
     String argString;
     if (isInstance) {
       argString =
@@ -446,11 +449,11 @@ public final class CelTypes {
     }
   }
 
-  private static String formatTypeArgs(Iterable<Type> types, final boolean typeParamToDyn) {
+  private static String formatTypeArgs(Iterable<CelType> types, final boolean typeParamToDyn) {
     return String.format(
         "(%s)",
         Joiner.on(", ")
-            .join(Iterables.transform(types, (Type type) -> format(type, typeParamToDyn))));
+            .join(Iterables.transform(types, (CelType type) -> format(type, typeParamToDyn))));
   }
 
   private CelTypes() {}

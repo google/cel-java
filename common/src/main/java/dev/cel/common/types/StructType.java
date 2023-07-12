@@ -52,6 +52,13 @@ public class StructType extends CelType {
     return name;
   }
 
+  @Override
+  public boolean isAssignableFrom(CelType other) {
+    return super.isAssignableFrom(other)
+        || ((other instanceof StructType || other instanceof StructTypeReference)
+            && other.name().equals(name()));
+  }
+
   /** Returns the {@code CelType} associated with the struct field name. */
   public Optional<Field> findField(String fieldName) {
     if (!fieldNames.contains(fieldName)) {

@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExprConverter;
@@ -33,6 +34,7 @@ import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.SimpleType;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -57,11 +59,12 @@ public final class CelAbstractSyntaxTree {
     this(celExpr, celSource, ImmutableMap.of(), ImmutableMap.of());
   }
 
-  CelAbstractSyntaxTree(
+  @Internal
+  public CelAbstractSyntaxTree(
       CelExpr celExpr,
       CelSource celSource,
-      ImmutableMap<Long, CelReference> references,
-      ImmutableMap<Long, CelType> types) {
+      Map<Long, CelReference> references,
+      Map<Long, CelType> types) {
     // TODO: This exists only for compatibility reason. Move this logic into
     // CelProtoAbstractSyntaxTree after the native type migration is complete.
     CheckedExpr.Builder checkedExprBuilder =
@@ -95,8 +98,8 @@ public final class CelAbstractSyntaxTree {
     this.checkedExpr = checkedExprBuilder.build();
     this.celExpr = celExpr;
     this.celSource = celSource;
-    this.references = references;
-    this.types = types;
+    this.references = ImmutableMap.copyOf(references);
+    this.types = ImmutableMap.copyOf(types);
   }
 
   CelAbstractSyntaxTree(ParsedExpr parsedExpr, CelSource celSource) {

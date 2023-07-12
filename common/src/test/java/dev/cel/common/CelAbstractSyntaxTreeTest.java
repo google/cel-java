@@ -29,6 +29,7 @@ import dev.cel.expr.Reference;
 import dev.cel.expr.SourceInfo;
 import com.google.common.collect.ImmutableList;
 import dev.cel.common.ast.CelConstant;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.SimpleType;
 import org.junit.Test;
@@ -177,5 +178,24 @@ public final class CelAbstractSyntaxTreeTest {
   public void getSource_hasDescriptionEqualToSourceLocation() {
     CelAbstractSyntaxTree ast = CelAbstractSyntaxTree.fromParsedExpr(PARSED_EXPR);
     assertThat(ast.getSource().getDescription()).isEqualTo("test/location.cel");
+  }
+
+  @Test
+  public void parsedExpression_createAst() {
+    CelExpr celExpr = CelExpr.newBuilder().setId(1).setConstant(CelConstant.ofValue(2)).build();
+    CelSource celSource =
+        CelSource.newBuilder("expression")
+            .setDescription("desc")
+            .addPositions(1, 5)
+            .addLineOffsets(10)
+            .build();
+
+    CelAbstractSyntaxTree ast = new CelAbstractSyntaxTree(celExpr, celSource);
+
+    assertThat(ast).isNotNull();
+    assertThat(ast.getExpr()).isEqualTo(celExpr);
+    assertThat(ast.getSource()).isEqualTo(celSource);
+    assertThat(ast.getTypeMap()).isEmpty();
+    assertThat(ast.getReferenceMap()).isEmpty();
   }
 }
