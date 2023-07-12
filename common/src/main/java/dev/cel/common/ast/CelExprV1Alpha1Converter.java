@@ -14,6 +14,8 @@
 
 package dev.cel.common.ast;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
 import com.google.api.expr.v1alpha1.Constant;
 import com.google.api.expr.v1alpha1.Expr;
 import com.google.api.expr.v1alpha1.Expr.Call;
@@ -25,7 +27,9 @@ import com.google.api.expr.v1alpha1.Expr.Ident;
 import com.google.api.expr.v1alpha1.Expr.Select;
 import com.google.api.expr.v1alpha1.Reference;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -312,6 +316,12 @@ public final class CelExprV1Alpha1Converter {
         .ifPresent(celConstant -> builder.setValue(celConstantToExprConstant(celConstant)));
 
     return builder.build();
+  }
+
+  public static ImmutableMap<Long, CelExpr> exprMacroCallsToCelExprMacroCalls(
+      Map<Long, Expr> macroCalls) {
+    return macroCalls.entrySet().stream()
+        .collect(toImmutableMap(Map.Entry::getKey, v -> fromExpr(v.getValue())));
   }
 }
 // LINT.ThenChange(CelExprConverter.java)

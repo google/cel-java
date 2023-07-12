@@ -46,6 +46,9 @@ public final class CelProtoAbstractSyntaxTree {
             CelSource.newBuilder()
                 .addAllLineOffsets(checkedExpr.getSourceInfo().getLineOffsetsList())
                 .addPositionsMap(checkedExpr.getSourceInfo().getPositionsMap())
+                .addAllMacroCalls(
+                    CelExprConverter.exprMacroCallsToCelExprMacroCalls(
+                        checkedExpr.getSourceInfo().getMacroCallsMap()))
                 .setDescription(checkedExpr.getSourceInfo().getLocation())
                 .build(),
             checkedExpr.getReferenceMapMap().entrySet().stream()
@@ -59,29 +62,18 @@ public final class CelProtoAbstractSyntaxTree {
 
   private CelProtoAbstractSyntaxTree(CelAbstractSyntaxTree ast) {
     this.ast = ast;
-
-    CheckedExpr.Builder checkedExprBuilder =
-        CheckedExpr.newBuilder()
-            .setSourceInfo(
-                SourceInfo.newBuilder()
-                    .setLocation(ast.getSource().getDescription())
-                    .addAllLineOffsets(ast.getSource().getLineOffsets().asList())
-                    .putAllPositions(ast.getSource().getPositionsMap()))
-            .setExpr(CelExprConverter.fromCelExpr(ast.getExpr()));
-
+    // TODO: The logic of converting a native CEL AST to Checked expression should be
+    // moved from CelAbstractSyntaxTree's constructor to here.
     if (ast.isChecked()) {
-      checkedExprBuilder.putAllReferenceMap(
-          ast.getReferenceMap().entrySet().stream()
-              .collect(
-                  toImmutableMap(
-                      Entry::getKey,
-                      v -> CelExprConverter.celReferenceToExprReference(v.getValue()))));
-      checkedExprBuilder.putAllTypeMap(
-          ast.getTypeMap().entrySet().stream()
-              .collect(toImmutableMap(Entry::getKey, v -> CelTypes.celTypeToType(v.getValue()))));
+      this.checkedExpr = ast.toCheckedExpr();
+    } else {
+      ParsedExpr parsedExpr = ast.toParsedExpr();
+      this.checkedExpr =
+          CheckedExpr.newBuilder()
+              .setExpr(parsedExpr.getExpr())
+              .setSourceInfo(parsedExpr.getSourceInfo())
+              .build();
     }
-
-    this.checkedExpr = checkedExprBuilder.build();
   }
 
   /** Construct an abstract syntax tree from a {@link com.google.api.expr.CheckedExpr}. */

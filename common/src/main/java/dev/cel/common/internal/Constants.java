@@ -15,15 +15,14 @@
 package dev.cel.common.internal;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
-import dev.cel.expr.Constant;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.NullValue;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.ast.CelConstant;
 import java.text.ParseException;
 import java.util.PrimitiveIterator;
 
@@ -46,37 +45,12 @@ public final class Constants {
   private static final int MIN_SURROGATE = 0xd800;
   private static final int MAX_SURROGATE = 0xdfff;
 
-  public static final Constant NULL =
-      Constant.newBuilder().setNullValue(NullValue.NULL_VALUE).build();
-  public static final Constant FALSE = Constant.newBuilder().setBoolValue(false).build();
-  public static final Constant TRUE = Constant.newBuilder().setBoolValue(true).build();
-  public static final Constant ERROR = Constant.newBuilder().setStringValue("<<error>>").build();
+  public static final CelConstant NULL = CelConstant.ofValue(NullValue.NULL_VALUE);
+  public static final CelConstant FALSE = CelConstant.ofValue(false);
+  public static final CelConstant TRUE = CelConstant.ofValue(true);
+  public static final CelConstant ERROR = CelConstant.ofValue("<<error>>");
 
-  public static Constant of(boolean value) {
-    return value ? TRUE : FALSE;
-  }
-
-  public static Constant of(long value) {
-    return Constant.newBuilder().setInt64Value(value).build();
-  }
-
-  public static Constant of(UnsignedLong value) {
-    return Constant.newBuilder().setUint64Value(checkNotNull(value).longValue()).build();
-  }
-
-  public static Constant of(double value) {
-    return Constant.newBuilder().setDoubleValue(value).build();
-  }
-
-  public static Constant of(ByteString value) {
-    return Constant.newBuilder().setBytesValue(checkNotNull(value)).build();
-  }
-
-  public static Constant of(String value) {
-    return Constant.newBuilder().setStringValue(checkNotNull(value)).build();
-  }
-
-  static Constant parseInt(String text) throws ParseException {
+  static CelConstant parseInt(String text) throws ParseException {
     int base;
     if (text.startsWith("-0x")) {
       base = 16;
@@ -101,10 +75,10 @@ public final class Constants {
     } catch (NumberFormatException e) {
       throw new ParseException(e.getMessage(), 0);
     }
-    return of(value);
+    return CelConstant.ofValue(value);
   }
 
-  static Constant parseUint(String text) throws ParseException {
+  static CelConstant parseUint(String text) throws ParseException {
     int base;
     if (!text.endsWith("u") && !text.endsWith("U")) {
       throw new ParseException("Unsigned integer literal is missing trailing 'u' suffix", 0);
@@ -122,20 +96,20 @@ public final class Constants {
     } catch (NumberFormatException e) {
       throw new ParseException(e.getMessage(), 0);
     }
-    return of(UnsignedLong.fromLongBits(value));
+    return CelConstant.ofValue(UnsignedLong.fromLongBits(value));
   }
 
-  static Constant parseDouble(String text) throws ParseException {
+  static CelConstant parseDouble(String text) throws ParseException {
     double value;
     try {
       value = Double.parseDouble(text);
     } catch (NumberFormatException e) {
       throw new ParseException(e.getMessage(), 0);
     }
-    return of(value);
+    return CelConstant.ofValue(value);
   }
 
-  static Constant parseBytes(String text) throws ParseException {
+  static CelConstant parseBytes(String text) throws ParseException {
     boolean isRawLiteral = false;
     int offset = 0;
     if (text.startsWith("r") || text.startsWith("R")) {
@@ -181,10 +155,10 @@ public final class Constants {
     text = text.substring(0, text.length() - quote.length());
     DecodeBuffer<ByteString> buffer = new DecodeByteStringBuffer(text.length());
     decodeString(offset, text, buffer, isRawLiteral, true);
-    return of(buffer.toDecodedValue());
+    return CelConstant.ofValue(buffer.toDecodedValue());
   }
 
-  static Constant parseString(String text) throws ParseException {
+  static CelConstant parseString(String text) throws ParseException {
     int offset = 0;
     boolean isRawLiteral = false;
     if (text.startsWith("r") || text.startsWith("R")) {
@@ -214,7 +188,7 @@ public final class Constants {
     text = text.substring(0, text.length() - quote.length());
     DecodeBuffer<String> buffer = new DecodeStringBuffer(text.length());
     decodeString(offset, text, buffer, isRawLiteral, false);
-    return of(buffer.toDecodedValue());
+    return CelConstant.ofValue(buffer.toDecodedValue());
   }
 
   private static <T> void decodeString(

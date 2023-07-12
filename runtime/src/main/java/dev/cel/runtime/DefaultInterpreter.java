@@ -183,19 +183,19 @@ public final class DefaultInterpreter implements Interpreter {
         ExprKind.Kind exprKind = expr.exprKind().getKind();
         switch (exprKind) {
           case CONSTANT:
-            return IntermediateResult.create(evalConstant(frame, expr, expr.exprKind().constant()));
+            return IntermediateResult.create(evalConstant(frame, expr, expr.constant()));
           case IDENT:
-            return evalIdent(frame, expr, expr.exprKind().ident());
+            return evalIdent(frame, expr, expr.ident());
           case SELECT:
-            return evalSelect(frame, expr, expr.exprKind().select());
+            return evalSelect(frame, expr, expr.select());
           case CALL:
-            return evalCall(frame, expr, expr.exprKind().call());
+            return evalCall(frame, expr, expr.call());
           case CREATE_LIST:
-            return evalList(frame, expr, expr.exprKind().createList());
+            return evalList(frame, expr, expr.createList());
           case CREATE_STRUCT:
-            return evalStruct(frame, expr, expr.exprKind().createStruct());
+            return evalStruct(frame, expr, expr.createStruct());
           case COMPREHENSION:
-            return evalComprehension(frame, expr, expr.exprKind().comprehension());
+            return evalComprehension(frame, expr, expr.comprehension());
           default:
             throw new IllegalStateException(
                 "unexpected expression kind: " + expr.exprKind().getKind());
@@ -579,7 +579,7 @@ public final class DefaultInterpreter implements Interpreter {
         return Optional.empty();
       }
 
-      String field = callExpr.args().get(1).exprKind().constant().stringValue();
+      String field = callExpr.args().get(1).constant().stringValue();
       boolean hasField = (boolean) typeProvider.hasField(lhsResult.value(), field);
       if (!hasField) {
         // Protobuf sets default (zero) values to uninitialized fields.
