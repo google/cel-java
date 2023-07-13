@@ -213,6 +213,20 @@ public final class CelTypes {
   }
 
   /**
+   * Create an abstract type with an expected result type (first argument in the parameter) and the
+   * argument types.
+   *
+   * <p>CEL Library Internals. Do Not Use.
+   */
+  @Internal
+  public static OpaqueType createFunctionType(CelType resultType, Iterable<CelType> argumentTypes) {
+    ImmutableList.Builder<CelType> arguments = ImmutableList.builder();
+    arguments.add(resultType);
+    arguments.addAll(argumentTypes);
+    return OpaqueType.create("function", arguments.build());
+  }
+
+  /**
    * Method to adapt a simple {@code Type} into a {@code String} representation.
    *
    * <p>This method can also format global functions. See the {@link #formatFunction} methods for
@@ -280,16 +294,20 @@ public final class CelTypes {
         return type.name();
       case TYPE_PARAM:
         return typeParamToDyn ? "dyn" : type.name();
-      case FUNCTION:
-        FunctionType functionType = (FunctionType) type;
-        return formatFunction(
-            functionType.resultType(), functionType.parameters(), false, typeParamToDyn);
       case OPAQUE:
-        String result = type.name();
-        if (!type.parameters().isEmpty()) {
-          result += formatTypeArgs(type.parameters(), typeParamToDyn);
+        if (type.name().equals("function")) {
+          return formatFunction(
+              type.parameters().get(0),
+              type.parameters().subList(1, type.parameters().size()),
+              false,
+              typeParamToDyn);
+        } else {
+          String result = type.name();
+          if (!type.parameters().isEmpty()) {
+            result += formatTypeArgs(type.parameters(), typeParamToDyn);
+          }
+          return result;
         }
-        return result;
       default:
         break;
     }
@@ -362,15 +380,28 @@ public final class CelTypes {
         return CelTypes.createMap(
             celTypeToType(mapType.keyType()), celTypeToType(mapType.valueType()));
       case OPAQUE:
-        return Type.newBuilder()
-            .setAbstractType(
-                Type.AbstractType.newBuilder()
-                    .setName(celType.name())
-                    .addAllParameterTypes(
-                        celType.parameters().stream()
-                            .map(CelTypes::celTypeToType)
-                            .collect(toImmutableList())))
-            .build();
+        if (celType.name().equals("function")) {
+          Type.FunctionType.Builder functionBuilder = Type.FunctionType.newBuilder();
+          if (!celType.parameters().isEmpty()) {
+            functionBuilder.setResultType(CelTypes.celTypeToType(celType.parameters().get(0)));
+            functionBuilder.addAllArgTypes(
+                celType.parameters().stream()
+                    .skip(1)
+                    .map(CelTypes::celTypeToType)
+                    .collect(toImmutableList()));
+          }
+          return Type.newBuilder().setFunction(functionBuilder).build();
+        } else {
+          return Type.newBuilder()
+              .setAbstractType(
+                  Type.AbstractType.newBuilder()
+                      .setName(celType.name())
+                      .addAllParameterTypes(
+                          celType.parameters().stream()
+                              .map(CelTypes::celTypeToType)
+                              .collect(toImmutableList())))
+              .build();
+        }
       case STRUCT:
         return CelTypes.createMessage(celType.name());
       case TYPE:
@@ -378,17 +409,6 @@ public final class CelTypes {
         return CelTypes.create(celTypeToType(typeType.type()));
       case TYPE_PARAM:
         return CelTypes.createTypeParam(celType.name());
-      case FUNCTION:
-        FunctionType functionType = (FunctionType) celType;
-        return Type.newBuilder()
-            .setFunction(
-                Type.FunctionType.newBuilder()
-                    .setResultType(celTypeToType(functionType.resultType()))
-                    .addAllArgTypes(
-                        functionType.parameters().stream()
-                            .map(CelTypes::celTypeToType)
-                            .collect(toImmutableList())))
-            .build();
       default:
         throw new IllegalArgumentException(String.format("Unsupported type: %s", celType));
     }
@@ -438,8 +458,8 @@ public final class CelTypes {
         return TypeType.create(typeToCelType(type.getType()));
       case FUNCTION:
         Type.FunctionType functionType = type.getFunction();
-        return FunctionType.create(
-            typeToCelType(functionType.getResultType()),
+        return CelTypes.createFunctionType(
+            CelTypes.typeToCelType(functionType.getResultType()),
             functionType.getArgTypesList().stream()
                 .map(CelTypes::typeToCelType)
                 .collect(toImmutableList()));

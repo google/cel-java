@@ -27,7 +27,6 @@ CEL_TYPE_SOURCES = [
 
 # keep sorted
 CEL_INTERNAL_TYPE_SOURCES = [
-    "FunctionType.java",
     "UnspecifiedType.java",
 ]
 

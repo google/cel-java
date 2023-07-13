@@ -53,7 +53,8 @@ public final class CelTypesTest {
             .build()),
     TYPE_PARAM(TypeParamType.create("T"), CelTypes.createTypeParam("T")),
     FUNCTION(
-        FunctionType.create(SimpleType.INT, ImmutableList.of(SimpleType.STRING, SimpleType.UINT)),
+        CelTypes.createFunctionType(
+            SimpleType.INT, ImmutableList.of(SimpleType.STRING, SimpleType.UINT)),
         Type.newBuilder()
             .setFunction(
                 Type.FunctionType.newBuilder()
@@ -142,7 +143,8 @@ public final class CelTypesTest {
     OPAQUE(OpaqueType.create("vector", SimpleType.UINT), "vector(uint)"),
     TYPE_PARAM(TypeParamType.create("T"), "T"),
     FUNCTION(
-        FunctionType.create(SimpleType.INT, ImmutableList.of(SimpleType.STRING, SimpleType.UINT)),
+        CelTypes.createFunctionType(
+            SimpleType.INT, ImmutableList.of(SimpleType.STRING, SimpleType.UINT)),
         "(string, uint) -> int"),
     OPTIONAL(OptionalType.create(SimpleType.INT), "optional(int)"),
     MAP(MapType.create(SimpleType.INT, SimpleType.STRING), "map(int, string)"),
