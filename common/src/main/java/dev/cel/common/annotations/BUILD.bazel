@@ -1,9 +1,9 @@
 package(
     default_applicable_licenses = [
+        "//:license",
     ],
     default_visibility = [
-        "//:__subpackages__",
-        "//common/src/main/java/dev/cel/common/annotations:__pkg__",
+        "//common/annotations:__pkg__",
     ],
 )
 

@@ -1,0 +1,19 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "ast",
+    exports = ["//common/src/main/java/dev/cel/common/ast"],
+)
+
+java_library(
+    name = "expr_converter",
+    exports = ["//common/src/main/java/dev/cel/common/ast:expr_converter"],
+)
+
+java_library(
+    name = "expr_v1alpha1_converter",
+    exports = ["//common/src/main/java/dev/cel/common/ast:expr_v1alpha1_converter"],
+)

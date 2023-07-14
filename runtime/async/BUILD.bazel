@@ -1,0 +1,11 @@
+# Reference implementation for an Async evaluator for the CEL runtime.
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "async",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/async"],
+)

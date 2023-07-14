@@ -1,6 +1,7 @@
 load("//:testing.bzl", "junit4_test_suites")
 
 package(default_applicable_licenses = [
+    "//:license",
 ])
 
 java_library(
@@ -12,17 +13,17 @@ java_library(
     ),
     deps = [
         "//:java_truth",
-        "//common/src/main/java/dev/cel/common",
-        "//common/src/main/java/dev/cel/common:features",
-        "//common/src/main/java/dev/cel/common:options",
-        "//common/src/main/java/dev/cel/common:proto_ast",
-        "//common/src/main/java/dev/cel/common:proto_v1alpha1_ast",
-        "//common/src/main/java/dev/cel/common/ast",
-        "//common/src/main/java/dev/cel/common/internal",
-        "//common/src/main/java/dev/cel/common/types",
-        "//common/src/main/java/dev/cel/common/types:cel_types",
-        "//common/src/main/java/dev/cel/common/types:cel_v1alpha1_types",
-        "//common/src/main/resources/testdata/proto3:test_all_types_java_proto",
+        "//common",
+        "//common:features",
+        "//common:options",
+        "//common:proto_ast",
+        "//common:proto_v1alpha1_ast",
+        "//common/ast",
+        "//common/internal",
+        "//common/resources/testdata/proto3:test_all_types_java_proto",
+        "//common/types",
+        "//common/types:cel_types",
+        "//common/types:cel_v1alpha1_types",
         "@cel_spec//proto/dev/cel/expr:expr_java_proto",
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
         "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
@@ -39,6 +40,7 @@ junit4_test_suites(
     sizes = [
         "small",
     ],
+    src_dir = "src/test/java",
     deps = [
         ":tests",
     ],

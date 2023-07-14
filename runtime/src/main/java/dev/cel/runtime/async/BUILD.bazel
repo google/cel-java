@@ -2,9 +2,10 @@
 
 package(
     default_applicable_licenses = [
+        "//:license",
     ],
     default_visibility = [
-        "//runtime/src/main/java/dev/cel/runtime/async:__pkg__",
+        "//runtime/async:__pkg__",
     ],
 )
 
@@ -23,9 +24,9 @@ java_library(
     srcs = ASYNC_RUNTIME_SOURCES,
     deps = [
         "//:auto_value",
-        "//common/src/main/java/dev/cel/common",
-        "//runtime/src/main/java/dev/cel/runtime",
-        "//runtime/src/main/java/dev/cel/runtime:unknown_attributes",
+        "//common",
+        "//runtime",
+        "//runtime:unknown_attributes",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",

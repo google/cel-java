@@ -1,9 +1,9 @@
 package(
     default_applicable_licenses = [
+        "//:license",
     ],
     default_visibility = [
-        "//:__subpackages__",
-        "//common/src/main/java/dev/cel/common/types:__pkg__",
+        "//common/types:__pkg__",
     ],
 )
 
@@ -45,7 +45,7 @@ java_library(
     deps = [
         ":type_providers",
         "//:auto_value",
-        "//common/src/main/java/dev/cel/common/annotations",
+        "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
@@ -57,7 +57,7 @@ java_library(
     deps = [
         ":type_providers",
         "//:auto_value",
-        "//common/src/main/java/dev/cel/common/annotations",
+        "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
@@ -72,7 +72,7 @@ java_library(
         ":cel_internal_types",
         ":type_providers",
         ":types",
-        "//common/src/main/java/dev/cel/common/annotations",
+        "//common/annotations",
         "@cel_spec//proto/dev/cel/expr:expr_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -87,7 +87,7 @@ java_library(
     deps = [
         ":type_providers",
         ":types",
-        "//common/src/main/java/dev/cel/common/annotations",
+        "//common/annotations",
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -130,8 +130,8 @@ java_library(
         ":type_providers",
         ":types",
         "//:auto_value",
-        "//common/src/main/java/dev/cel/common",
-        "//common/src/main/java/dev/cel/common/internal:file_descriptor_converter",
+        "//common",
+        "//common/internal:file_descriptor_converter",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",

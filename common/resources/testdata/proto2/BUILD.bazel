@@ -1,0 +1,20 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+    default_visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "test_all_types_java_proto",
+    actual = "//common/src/main/resources/testdata/proto2:test_all_types_java_proto",
+)
+
+alias(
+    name = "messages_proto2_java_proto",
+    actual = "//common/src/main/resources/testdata/proto2:messages_proto2_java_proto",
+)
+
+alias(
+    name = "messages_extensions_proto2_java_proto",
+    actual = "//common/src/main/resources/testdata/proto2:messages_extensions_proto2_java_proto",
+)

@@ -175,8 +175,7 @@ public final class RuntimeEqualityTest {
      *
      * <p>The {@code null} value indicates that the outcome is an error.
      */
-    @Nullable
-    public abstract Boolean outcome();
+    public abstract @Nullable Boolean outcome();
 
     /** Set of options to use when performing the equality check. */
     public abstract CelOptions celOptions();

@@ -3,11 +3,11 @@ load("@bazel_common//tools/maven:pom_file.bzl", "pom_file")
 load("//publish:cel_version.bzl", "CEL_VERSION")
 
 RUNTIME_TARGETS = [
-    "//runtime/src/main/java/dev/cel/runtime",
-    "//runtime/src/main/java/dev/cel/runtime:base",
-    "//runtime/src/main/java/dev/cel/runtime:interpreter",
-    "//runtime/src/main/java/dev/cel/runtime:runtime_helper",
-    "//runtime/src/main/java/dev/cel/runtime:unknown_attributes",
+    "//runtime",
+    "//runtime:base",
+    "//runtime:interpreter",
+    "//runtime:runtime_helper",
+    "//runtime:unknown_attributes",
 ]
 
 pom_file(
@@ -30,7 +30,7 @@ java_export(
 )
 
 V1ALPHA1_UTILITY_TARGETS = [
-    "//common/src/main/java/dev/cel/common:proto_v1alpha1_ast",
+    "//common:proto_v1alpha1_ast",
 ]
 
 pom_file(

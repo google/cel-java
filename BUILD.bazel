@@ -15,11 +15,18 @@
 # Includes package-wide build definitions for maven imported java targets
 # that needs to be defined separately.
 
+load("@rules_license//rules:license.bzl", "license")
+
 licenses(["notice"])  # Apache License 2.0
 
 exports_files(["LICENSE"])
 
 package(default_visibility = ["//visibility:public"])
+
+license(
+    name = "license",
+    package_name = "cel",
+)
 
 # Auto-value requires java_plugin to run the annotation processor
 

@@ -1,6 +1,7 @@
 load("//:testing.bzl", "junit4_test_suites")
 
 package(default_applicable_licenses = [
+    "//:license",
 ])
 
 java_library(
@@ -9,9 +10,9 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//:java_truth",
-        "//common/src/main/java/dev/cel/common/ast",
-        "//common/src/main/java/dev/cel/common/ast:expr_converter",
-        "//common/src/main/java/dev/cel/common/ast:expr_v1alpha1_converter",
+        "//common/ast",
+        "//common/ast:expr_converter",
+        "//common/ast:expr_v1alpha1_converter",
         "@cel_spec//proto/dev/cel/expr:expr_java_proto",
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
         "@maven//:com_google_guava_guava",
@@ -26,5 +27,6 @@ junit4_test_suites(
     sizes = [
         "small",
     ],
+    src_dir = "src/test/java",
     deps = [":tests"],
 )

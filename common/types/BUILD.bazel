@@ -1,0 +1,44 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "types",
+    exports = ["//common/src/main/java/dev/cel/common/types"],
+)
+
+java_library(
+    name = "cel_internal_types",
+    visibility = ["//visibility:public"],
+    exports = ["//common/src/main/java/dev/cel/common/types:cel_internal_types"],
+)
+
+java_library(
+    name = "json",
+    visibility = [
+        "//visibility:public",
+    ],
+    exports = ["//common/src/main/java/dev/cel/common/types:json"],
+)
+
+java_library(
+    name = "type_providers",
+    exports = ["//common/src/main/java/dev/cel/common/types:type_providers"],
+)
+
+java_library(
+    name = "message_type_provider",
+    exports = ["//common/src/main/java/dev/cel/common/types:message_type_provider"],
+)
+
+java_library(
+    name = "cel_types",
+    exports = ["//common/src/main/java/dev/cel/common/types:cel_types"],
+)
+
+java_library(
+    name = "cel_v1alpha1_types",
+    visibility = ["//visibility:public"],
+    exports = ["//common/src/main/java/dev/cel/common/types:cel_v1alpha1_types"],
+)

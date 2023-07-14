@@ -1,7 +1,6 @@
 load("//:testing.bzl", "junit4_test_suites")
 
-package(default_applicable_licenses = [
-])
+package(default_applicable_licenses = ["//:license"])
 
 java_library(
     name = "tests",
@@ -10,22 +9,22 @@ java_library(
     deps = [
         "//:auto_value",
         "//:java_truth",
-        "//common/src/main/java/dev/cel/common",
-        "//common/src/main/java/dev/cel/common:error_codes",
-        "//common/src/main/java/dev/cel/common:options",
-        "//common/src/main/java/dev/cel/common:proto_ast",
-        "//common/src/main/java/dev/cel/common:proto_v1alpha1_ast",
-        "//common/src/main/java/dev/cel/common:runtime_exception",
-        "//common/src/main/java/dev/cel/common/internal:converter",
-        "//common/src/main/java/dev/cel/common/internal:dynamic_proto",
-        "//common/src/main/java/dev/cel/common/types:cel_v1alpha1_types",
-        "//common/src/main/resources/testdata/proto2:messages_extensions_proto2_java_proto",
-        "//common/src/main/resources/testdata/proto2:messages_proto2_java_proto",
-        "//common/src/main/resources/testdata/proto3:test_all_types_java_proto",
-        "//runtime/src/main/java/dev/cel/runtime",
-        "//runtime/src/main/java/dev/cel/runtime:interpreter",
-        "//runtime/src/main/java/dev/cel/runtime:runtime_helper",
-        "//runtime/src/main/java/dev/cel/runtime:unknown_attributes",
+        "//common",
+        "//common:error_codes",
+        "//common:options",
+        "//common:proto_ast",
+        "//common:proto_v1alpha1_ast",
+        "//common:runtime_exception",
+        "//common/internal:converter",
+        "//common/internal:dynamic_proto",
+        "//common/resources/testdata/proto2:messages_extensions_proto2_java_proto",
+        "//common/resources/testdata/proto2:messages_proto2_java_proto",
+        "//common/resources/testdata/proto3:test_all_types_java_proto",
+        "//common/types:cel_v1alpha1_types",
+        "//runtime",
+        "//runtime:interpreter",
+        "//runtime:runtime_helper",
+        "//runtime:unknown_attributes",
         "@cel_spec//proto/dev/cel/expr:expr_java_proto",
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
         "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
@@ -43,5 +42,6 @@ junit4_test_suites(
     sizes = [
         "small",
     ],
+    src_dir = "src/test/java",
     deps = [":tests"],
 )

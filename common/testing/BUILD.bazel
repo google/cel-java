@@ -1,0 +1,10 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "testing",
+    exports = ["//common/src/main/java/dev/cel/common/testing"],
+)

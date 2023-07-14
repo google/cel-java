@@ -1,0 +1,34 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "internal",
+    exports = ["//common/src/main/java/dev/cel/common/internal"],
+)
+
+java_library(
+    name = "comparison_functions",
+    exports = ["//common/src/main/java/dev/cel/common/internal:comparison_functions"],
+)
+
+java_library(
+    name = "converter",
+    exports = ["//common/src/main/java/dev/cel/common/internal:converter"],
+)
+
+java_library(
+    name = "dynamic_proto",
+    exports = ["//common/src/main/java/dev/cel/common/internal:dynamic_proto"],
+)
+
+java_library(
+    name = "proto_equality",
+    exports = ["//common/src/main/java/dev/cel/common/internal:proto_equality"],
+)
+
+java_library(
+    name = "file_descriptor_converter",
+    exports = ["//common/src/main/java/dev/cel/common/internal:file_descriptor_converter"],
+)

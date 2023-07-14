@@ -1,9 +1,9 @@
 package(
     default_applicable_licenses = [
+        "//:license",
     ],
     default_visibility = [
-        "//:__subpackages__",
-        "//common/src/main/java/dev/cel/common/internal:__pkg__",
+        "//common/internal:__pkg__",
     ],
 )
 
@@ -25,8 +25,8 @@ java_library(
     ],
     deps = [
         "//:auto_value",
-        "//common/src/main/java/dev/cel/common/annotations",
-        "//common/src/main/java/dev/cel/common/ast",
+        "//common/annotations",
+        "//common/ast",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -41,7 +41,7 @@ java_library(
     ],
     deps = [
         "//:auto_value",
-        "//common/src/main/java/dev/cel/common/annotations",
+        "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
@@ -58,7 +58,7 @@ java_library(
     ],
     deps = [
         "//:auto_value",
-        "//common/src/main/java/dev/cel/common/annotations",
+        "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:org_jspecify_jspecify",
     ],
@@ -80,11 +80,11 @@ java_library(
     deps = [
         ":converter",
         "//:auto_value",
-        "//common/src/main/java/dev/cel/common",
-        "//common/src/main/java/dev/cel/common:error_codes",
-        "//common/src/main/java/dev/cel/common:runtime_exception",
-        "//common/src/main/java/dev/cel/common/annotations",
-        "//common/src/main/java/dev/cel/common/types:cel_types",
+        "//common",
+        "//common:error_codes",
+        "//common:runtime_exception",
+        "//common/annotations",
+        "//common/types:cel_types",
         "@cel_spec//proto/dev/cel/expr:expr_java_proto",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -102,7 +102,7 @@ java_library(
     deps = [
         ":dynamic_proto",
         "//:auto_value",
-        "//common/src/main/java/dev/cel/common/annotations",
+        "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",

@@ -26,8 +26,8 @@ import dev.cel.runtime.UnknownContext;
  * <p>This is a factory for two primitives:
  *
  * <ul>
- *   <li>{@link UnknownContext} manages the state necessary for the intial round of iterative
- *       evaluation. The AsyncProgram implemenation may use its .withX methods to generate an
+ *   <li>{@link UnknownContext} manages the state necessary for the initial round of iterative
+ *       evaluation. The AsyncProgram implementation may use its .withX methods to generate an
  *       updated context for later rounds.
  *   <li>{@link AsyncProgram} provides an evaluation manager to automate evaluating and resolving
  *       unknown data

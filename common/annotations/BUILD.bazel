@@ -1,0 +1,9 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "annotations",
+    exports = ["//common/src/main/java/dev/cel/common/annotations"],
+)

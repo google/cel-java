@@ -1,10 +1,10 @@
 package(
     default_applicable_licenses = [
+        "//:license",
     ],
     default_testonly = True,
     default_visibility = [
-        "//:__subpackages__",
-        "//common/src/main/resources/testdata/proto2:__pkg__",
+        "//common/resources/testdata/proto2:__pkg__",
     ],
 )
 

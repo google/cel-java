@@ -1,9 +1,9 @@
 package(
     default_applicable_licenses = [
+        "//:license",
     ],
     default_visibility = [
-        "//:__subpackages__",
-        "//common/src/main/java/dev/cel/common/ast:__pkg__",
+        "//common/ast:__pkg__",
     ],
 )
 
@@ -31,7 +31,7 @@ java_library(
     ],
     deps = [
         "//:auto_value",
-        "//common/src/main/java/dev/cel/common/annotations",
+        "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",

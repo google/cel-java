@@ -42,15 +42,14 @@ public abstract class Activation implements GlobalResolver {
 
   /** Resolves the given name to its value. Returns null if resolution fails. */
   @Override
-  @Nullable
-  public abstract Object resolve(String name);
+  public abstract @Nullable Object resolve(String name);
 
   /** An empty binder which resolves everything to null. */
   public static final Activation EMPTY =
       new Activation() {
-        @Nullable
+
         @Override
-        public Object resolve(String name) {
+        public @Nullable Object resolve(String name) {
           return null;
         }
 
@@ -63,9 +62,9 @@ public abstract class Activation implements GlobalResolver {
   /** Creates a binder which binds the given name to the value. */
   public static Activation of(final String name, Object value) {
     return new Activation() {
-      @Nullable
+
       @Override
-      public Object resolve(String theName) {
+      public @Nullable Object resolve(String theName) {
         if (theName.equals(name)) {
           return RuntimeHelpers.maybeAdaptPrimitive(value);
         }
@@ -96,9 +95,9 @@ public abstract class Activation implements GlobalResolver {
   /** Creates a binder which binds the given name to the supplier. */
   public static Activation of(final String name, final Supplier<?> supplier) {
     return new Activation() {
-      @Nullable
+
       @Override
-      public Object resolve(String theName) {
+      public @Nullable Object resolve(String theName) {
         if (theName.equals(name)) {
           return RuntimeHelpers.maybeAdaptPrimitive(supplier.get());
         }
@@ -124,9 +123,9 @@ public abstract class Activation implements GlobalResolver {
                 .filter(entry -> entry.getKey() != null && entry.getValue() != null)
                 .collect(toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
     return new Activation() {
-      @Nullable
+
       @Override
-      public Object resolve(String name) {
+      public @Nullable Object resolve(String name) {
         return RuntimeHelpers.maybeAdaptPrimitive(copy.get(name));
       }
 
@@ -196,9 +195,9 @@ public abstract class Activation implements GlobalResolver {
   public Activation extend(final Activation activation) {
     final Activation outer = this;
     return new Activation() {
-      @Nullable
+
       @Override
-      public Object resolve(String name) {
+      public @Nullable Object resolve(String name) {
         Object value = activation.resolve(name);
         return value != null ? value : outer.resolve(name);
       }

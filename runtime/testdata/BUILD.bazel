@@ -1,0 +1,15 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+    default_visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "test_java_proto",
+    actual = "//runtime/src/test/resources:test_java_proto",
+)
+
+alias(
+    name = "testdata",
+    actual = "//runtime/src/test/resources",
+)

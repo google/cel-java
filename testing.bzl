@@ -50,15 +50,17 @@ def junit4_test_suites(
         name,
         sizes,
         deps,
+        src_dir,  # @unused.
         srcs = None):
     """
     Generates tests for test file in srcs ending in "Test.java"
 
     Args:
       name: name of the test suite to generate
-      srcs: list of test source files, uses 'glob(["**/*Test.java"])' if not specified
-      deps: list of runtime dependencies required to run the test
       sizes: not used, exists only so that the opensource CEL mirror exactly the internal one
+      deps: list of runtime dependencies required to run the test
+      src_dir: not used, exists only so that the opensource CEL mirror exactly the internal one
+      srcs: list of test source files, uses 'glob(["**/*Test.java"])' if not specified
     """
 
     package_name = native.package_name()

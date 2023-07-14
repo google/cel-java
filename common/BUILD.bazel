@@ -1,0 +1,40 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "common",
+    exports = ["//common/src/main/java/dev/cel/common"],
+)
+
+java_library(
+    name = "options",
+    exports = ["//common/src/main/java/dev/cel/common:options"],
+)
+
+java_library(
+    name = "features",
+    exports = ["//common/src/main/java/dev/cel/common:features"],
+)
+
+java_library(
+    name = "proto_ast",
+    exports = ["//common/src/main/java/dev/cel/common:proto_ast"],
+)
+
+java_library(
+    name = "proto_v1alpha1_ast",
+    visibility = ["//visibility:public"],
+    exports = ["//common/src/main/java/dev/cel/common:proto_v1alpha1_ast"],
+)
+
+java_library(
+    name = "error_codes",
+    exports = ["//common/src/main/java/dev/cel/common:error_codes"],
+)
+
+java_library(
+    name = "runtime_exception",
+    exports = ["//common/src/main/java/dev/cel/common:runtime_exception"],
+)

@@ -1,0 +1,15 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+    default_visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "test_all_types_java_proto",
+    actual = "//common/src/main/resources/testdata/proto3:test_all_types_java_proto",
+)
+
+alias(
+    name = "standalone_global_enum_java_proto",
+    actual = "//common/src/main/resources/testdata/proto3:standalone_global_enum_java_proto",
+)

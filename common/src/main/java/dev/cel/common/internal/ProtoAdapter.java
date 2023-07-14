@@ -429,8 +429,7 @@ public final class ProtoAdapter {
   // This technique was chosen over {@code Optional} for brevity as any call site which might
   // care about an Optional return is handled higher up the call stack.
 
-  @Nullable
-  private Message adaptValueToAny(Object value) {
+  private @Nullable Message adaptValueToAny(Object value) {
     if (value == null || value instanceof NullValue) {
       return Any.pack(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build());
     }
@@ -470,8 +469,7 @@ public final class ProtoAdapter {
     return null;
   }
 
-  @Nullable
-  private Any maybePackAny(Object value, WellKnownProto wellKnownProto) {
+  private @Nullable Any maybePackAny(Object value, WellKnownProto wellKnownProto) {
     Optional<Message> protoValue = adaptValueToProto(value, wellKnownProto.typeName());
     if (protoValue.isPresent()) {
       return Any.pack(protoValue.get());
@@ -479,8 +477,7 @@ public final class ProtoAdapter {
     return null;
   }
 
-  @Nullable
-  private Value adaptValueToJsonValue(Object value) {
+  private @Nullable Value adaptValueToJsonValue(Object value) {
     Value.Builder json = Value.newBuilder();
     if (value == null || value instanceof NullValue) {
       return json.setNullValue(NullValue.NULL_VALUE).build();
@@ -509,8 +506,7 @@ public final class ProtoAdapter {
     return null;
   }
 
-  @Nullable
-  private ListValue adaptValueToJsonListValue(Object value) {
+  private @Nullable ListValue adaptValueToJsonListValue(Object value) {
     if (!(value instanceof Iterable)) {
       return null;
     }
@@ -522,8 +518,7 @@ public final class ProtoAdapter {
     return jsonList.build();
   }
 
-  @Nullable
-  private Struct adaptValueToJsonStructValue(Object value) {
+  private @Nullable Struct adaptValueToJsonStructValue(Object value) {
     if (!(value instanceof Map)) {
       return null;
     }
@@ -541,8 +536,7 @@ public final class ProtoAdapter {
     return struct.build();
   }
 
-  @Nullable
-  private Message adaptValueToDouble(Object value) {
+  private @Nullable Message adaptValueToDouble(Object value) {
     if (value instanceof Double) {
       return DoubleValue.of((Double) value);
     }
@@ -552,8 +546,7 @@ public final class ProtoAdapter {
     return null;
   }
 
-  @Nullable
-  private Message adaptValueToFloat(Object value) {
+  private @Nullable Message adaptValueToFloat(Object value) {
     if (value instanceof Double) {
       return FloatValue.of(((Double) value).floatValue());
     }
@@ -563,8 +556,7 @@ public final class ProtoAdapter {
     return null;
   }
 
-  @Nullable
-  private Message adaptValueToInt32(Object value) {
+  private @Nullable Message adaptValueToInt32(Object value) {
     if (value instanceof Integer) {
       return Int32Value.of((Integer) value);
     }
@@ -574,8 +566,7 @@ public final class ProtoAdapter {
     return null;
   }
 
-  @Nullable
-  private Message adaptValueToInt64(Object value) {
+  private @Nullable Message adaptValueToInt64(Object value) {
     if (value instanceof Integer) {
       return Int64Value.of(((Integer) value).longValue());
     }
@@ -585,8 +576,7 @@ public final class ProtoAdapter {
     return null;
   }
 
-  @Nullable
-  private Message adaptValueToUint32(Object value) {
+  private @Nullable Message adaptValueToUint32(Object value) {
     if (value instanceof Integer) {
       return UInt32Value.of((Integer) value);
     }
@@ -607,8 +597,7 @@ public final class ProtoAdapter {
     return null;
   }
 
-  @Nullable
-  private Message adaptValueToUint64(Object value) {
+  private @Nullable Message adaptValueToUint64(Object value) {
     if (value instanceof Integer) {
       return UInt64Value.of(UnsignedInts.toLong((Integer) value));
     }
@@ -621,8 +610,7 @@ public final class ProtoAdapter {
     return null;
   }
 
-  @Nullable
-  private Object adaptJsonToValue(Value value) {
+  private @Nullable Object adaptJsonToValue(Value value) {
     switch (value.getKindCase()) {
       case BOOL_VALUE:
         return value.getBoolValue();

@@ -1,0 +1,32 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "runtime",
+    exports = ["//runtime/src/main/java/dev/cel/runtime"],
+)
+
+java_library(
+    name = "base",
+    visibility = ["//visibility:public"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:base"],
+)
+
+java_library(
+    name = "interpreter",
+    visibility = ["//visibility:public"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:interpreter"],
+)
+
+java_library(
+    name = "runtime_helper",
+    visibility = ["//visibility:public"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:runtime_helper"],
+)
+
+java_library(
+    name = "unknown_attributes",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:unknown_attributes"],
+)
