@@ -14,18 +14,17 @@
 
 package dev.cel.common;
 
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import dev.cel.expr.CheckedExpr;
 import dev.cel.expr.Expr;
 import dev.cel.expr.ParsedExpr;
-import dev.cel.expr.SourceInfo;
 import dev.cel.expr.Type;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
+import com.google.errorprone.annotations.InlineMe;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
@@ -42,11 +41,13 @@ import java.util.Optional;
 /**
  * Represents a checked or unchecked expression, its source, and related metadata such as source
  * position information.
+ *
+ * <p>Note: Use {@link CelProtoAbstractSyntaxTree} if you need access to the protobuf equivalent
+ * ASTs, such as ParsedExpr and CheckedExpr from syntax.proto or checked.proto.
  */
 @Immutable
 public final class CelAbstractSyntaxTree {
 
-  private final CheckedExpr checkedExpr;
   private final CelSource celSource;
 
   private final CelExpr celExpr;
@@ -65,37 +66,6 @@ public final class CelAbstractSyntaxTree {
       CelSource celSource,
       Map<Long, CelReference> references,
       Map<Long, CelType> types) {
-    // TODO: This exists only for compatibility reason. Move this logic into
-    // CelProtoAbstractSyntaxTree after the native type migration is complete.
-    CheckedExpr.Builder checkedExprBuilder =
-        CheckedExpr.newBuilder()
-            .setSourceInfo(
-                SourceInfo.newBuilder()
-                    .setLocation(celSource.getDescription())
-                    .addAllLineOffsets(celSource.getLineOffsets())
-                    .putAllMacroCalls(
-                        celSource.getMacroCalls().entrySet().stream()
-                            .collect(
-                                toImmutableMap(
-                                    Entry::getKey,
-                                    v -> CelExprConverter.fromCelExpr(v.getValue()))))
-                    .putAllPositions(celSource.getPositionsMap()))
-            .setExpr(CelExprConverter.fromCelExpr(celExpr));
-
-    if (!types.isEmpty()) {
-      // This is a type-checked AST
-      checkedExprBuilder.putAllReferenceMap(
-          references.entrySet().stream()
-              .collect(
-                  toImmutableMap(
-                      Entry::getKey,
-                      v -> CelExprConverter.celReferenceToExprReference(v.getValue()))));
-      checkedExprBuilder.putAllTypeMap(
-          types.entrySet().stream()
-              .collect(toImmutableMap(Entry::getKey, v -> CelTypes.celTypeToType(v.getValue()))));
-    }
-
-    this.checkedExpr = checkedExprBuilder.build();
     this.celExpr = celExpr;
     this.celSource = celSource;
     this.references = ImmutableMap.copyOf(references);
@@ -112,7 +82,6 @@ public final class CelAbstractSyntaxTree {
   }
 
   CelAbstractSyntaxTree(CheckedExpr checkedExpr, CelSource celSource) {
-    this.checkedExpr = checkedExpr;
     this.celExpr = CelExprConverter.fromExpr(checkedExpr.getExpr());
     this.celSource = celSource;
     this.references =
@@ -129,9 +98,15 @@ public final class CelAbstractSyntaxTree {
   /**
    * Returns the underlying {@link com.google.api.expr.Expr} representation of the abstract syntax
    * tree.
+   *
+   * @deprecated Use {@link CelProtoAbstractSyntaxTree#getExpr()} instead.
    */
+  @Deprecated
+  @InlineMe(
+      replacement = "CelProtoAbstractSyntaxTree.fromCelAst(this).getExpr()",
+      imports = {"dev.cel.common.CelProtoAbstractSyntaxTree"})
   public Expr getProtoExpr() {
-    return checkedExpr.getExpr();
+    return CelProtoAbstractSyntaxTree.fromCelAst(this).getExpr();
   }
 
   /** Returns the underlying {@link CelExpr} representation of the abstract syntax tree. */
@@ -170,25 +145,31 @@ public final class CelAbstractSyntaxTree {
   /**
    * Returns the underlying {@link com.google.api.expr.ParsedExpr} representation of the abstract
    * syntax tree.
+   *
+   * @deprecated Use {@link CelProtoAbstractSyntaxTree#toParsedExpr()}} instead.
    */
+  @Deprecated
+  @InlineMe(
+      replacement = "CelProtoAbstractSyntaxTree.fromCelAst(this).toParsedExpr()",
+      imports = {"dev.cel.common.CelProtoAbstractSyntaxTree"})
   public ParsedExpr toParsedExpr() {
-    return ParsedExpr.newBuilder()
-        .setExpr(getProtoExpr())
-        .setSourceInfo(checkedExpr.getSourceInfo())
-        .build();
+    return CelProtoAbstractSyntaxTree.fromCelAst(this).toParsedExpr();
   }
 
   /**
    * Returns the underlying {@link com.google.api.expr.CheckedExpr} representation of the abstract
    * syntax tree. Throws {@link java.lang.IllegalStateException} if {@link
    * CelAbstractSyntaxTree#isChecked} is false.
+   *
+   * @deprecated Use {@link CelProtoAbstractSyntaxTree#toCheckedExpr()} instead.
    */
   @CheckReturnValue
+  @Deprecated
+  @InlineMe(
+      replacement = "CelProtoAbstractSyntaxTree.fromCelAst(this).toCheckedExpr()",
+      imports = {"dev.cel.common.CelProtoAbstractSyntaxTree"})
   public CheckedExpr toCheckedExpr() {
-    checkState(
-        isChecked(),
-        "CelAbstractSyntaxTree must be checked before it can be converted to CheckedExpr");
-    return checkedExpr;
+    return CelProtoAbstractSyntaxTree.fromCelAst(this).toCheckedExpr();
   }
 
   public Optional<CelType> getType(long exprId) {
@@ -230,17 +211,11 @@ public final class CelAbstractSyntaxTree {
    * @deprecated Use {@link CelProtoAbstractSyntaxTree#fromCheckedExpr(CheckedExpr)} instead.
    */
   @Deprecated
+  @InlineMe(
+      replacement = "CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst()",
+      imports = {"dev.cel.common.CelProtoAbstractSyntaxTree"})
   public static CelAbstractSyntaxTree fromCheckedExpr(CheckedExpr checkedExpr) {
-    return new CelAbstractSyntaxTree(
-        checkedExpr,
-        CelSource.newBuilder()
-            .addAllLineOffsets(checkedExpr.getSourceInfo().getLineOffsetsList())
-            .addPositionsMap(checkedExpr.getSourceInfo().getPositionsMap())
-            .setDescription(checkedExpr.getSourceInfo().getLocation())
-            .addAllMacroCalls(
-                CelExprConverter.exprMacroCallsToCelExprMacroCalls(
-                    checkedExpr.getSourceInfo().getMacroCallsMap()))
-            .build());
+    return CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst();
   }
 
   /**
@@ -249,16 +224,10 @@ public final class CelAbstractSyntaxTree {
    * @deprecated Use {@link CelProtoAbstractSyntaxTree#fromParsedExpr(ParsedExpr)} instead.
    */
   @Deprecated
+  @InlineMe(
+      replacement = "CelProtoAbstractSyntaxTree.fromParsedExpr(parsedExpr).getAst()",
+      imports = {"dev.cel.common.CelProtoAbstractSyntaxTree"})
   public static CelAbstractSyntaxTree fromParsedExpr(ParsedExpr parsedExpr) {
-    return new CelAbstractSyntaxTree(
-        parsedExpr,
-        CelSource.newBuilder()
-            .addAllLineOffsets(parsedExpr.getSourceInfo().getLineOffsetsList())
-            .addPositionsMap(parsedExpr.getSourceInfo().getPositionsMap())
-            .addAllMacroCalls(
-                CelExprConverter.exprMacroCallsToCelExprMacroCalls(
-                    parsedExpr.getSourceInfo().getMacroCallsMap()))
-            .setDescription(parsedExpr.getSourceInfo().getLocation())
-            .build());
+    return CelProtoAbstractSyntaxTree.fromParsedExpr(parsedExpr).getAst();
   }
 }

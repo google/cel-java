@@ -57,6 +57,12 @@ public class CelProtoV1Alpha1AbstractSyntaxTreeTest {
           .setLocation("test/location.cel")
           .putPositions(1L, 0)
           .addLineOffsets(4)
+          .putMacroCalls(
+              2,
+              Expr.newBuilder()
+                  .setId(4)
+                  .setConstExpr(Constant.newBuilder().setStringValue("Hello"))
+                  .build())
           .build();
   private static final ParsedExpr PARSED_EXPR =
       ParsedExpr.newBuilder().setExpr(EXPR).setSourceInfo(SOURCE_INFO).build();

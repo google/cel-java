@@ -11,13 +11,9 @@ COMMON_SOURCES = [
     "CelDescriptorUtil.java",
     "CelDescriptors.java",
     "CelException.java",
+    "CelProtoAbstractSyntaxTree.java",  # TODO Split target after migrating callers
     "CelSource.java",
     "CelSourceLocation.java",
-]
-
-# keep sorted
-PROTO_AST_SOURCE = [
-    "CelProtoAbstractSyntaxTree.java",
 ]
 
 # keep sorted
@@ -73,18 +69,7 @@ java_library(
 
 java_library(
     name = "proto_ast",
-    srcs = PROTO_AST_SOURCE,
-    tags = [
-    ],
-    deps = [
-        ":common",
-        "//:auto_value",
-        "//common/ast:expr_converter",
-        "//common/types:cel_types",
-        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
-        "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_guava_guava",
-    ],
+    exports = [":common"],  # TODO Split target after migrating callers
 )
 
 java_library(

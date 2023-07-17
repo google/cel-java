@@ -62,18 +62,35 @@ public final class CelProtoAbstractSyntaxTree {
 
   private CelProtoAbstractSyntaxTree(CelAbstractSyntaxTree ast) {
     this.ast = ast;
-    // TODO: The logic of converting a native CEL AST to Checked expression should be
-    // moved from CelAbstractSyntaxTree's constructor to here.
+
+    CheckedExpr.Builder checkedExprBuilder =
+        CheckedExpr.newBuilder()
+            .setSourceInfo(
+                SourceInfo.newBuilder()
+                    .setLocation(ast.getSource().getDescription())
+                    .addAllLineOffsets(ast.getSource().getLineOffsets())
+                    .putAllMacroCalls(
+                        ast.getSource().getMacroCalls().entrySet().stream()
+                            .collect(
+                                toImmutableMap(
+                                    Entry::getKey,
+                                    v -> CelExprConverter.fromCelExpr(v.getValue()))))
+                    .putAllPositions(ast.getSource().getPositionsMap()))
+            .setExpr(CelExprConverter.fromCelExpr(ast.getExpr()));
+
     if (ast.isChecked()) {
-      this.checkedExpr = ast.toCheckedExpr();
-    } else {
-      ParsedExpr parsedExpr = ast.toParsedExpr();
-      this.checkedExpr =
-          CheckedExpr.newBuilder()
-              .setExpr(parsedExpr.getExpr())
-              .setSourceInfo(parsedExpr.getSourceInfo())
-              .build();
+      checkedExprBuilder.putAllReferenceMap(
+          ast.getReferenceMap().entrySet().stream()
+              .collect(
+                  toImmutableMap(
+                      Entry::getKey,
+                      v -> CelExprConverter.celReferenceToExprReference(v.getValue()))));
+      checkedExprBuilder.putAllTypeMap(
+          ast.getTypeMap().entrySet().stream()
+              .collect(toImmutableMap(Entry::getKey, v -> CelTypes.celTypeToType(v.getValue()))));
     }
+
+    this.checkedExpr = checkedExprBuilder.build();
   }
 
   /** Construct an abstract syntax tree from a {@link com.google.api.expr.CheckedExpr}. */
