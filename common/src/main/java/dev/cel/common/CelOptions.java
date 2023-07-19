@@ -242,8 +242,6 @@ public abstract class CelOptions {
      *
      * <p>Note: This option is automatically enabled for the parser by adding {@code
      * CelOptionalLibrary} to the environment.
-     *
-     * <p>Note: Optional syntax is not supported for {@code CelParserKind#LEGACY} parsers.
      */
     public abstract Builder enableOptionalSyntax(boolean value);
 
