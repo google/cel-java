@@ -17,7 +17,6 @@ package dev.cel.common;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -192,18 +191,6 @@ public final class CelSource {
       lineOffsets.add(lineOffset);
     }
     return new Builder(CelCodePointArray.fromString(text), lineOffsets);
-  }
-
-  // TODO: remove this its only for compatibility
-  @VisibleForTesting
-  static CelSource fromString(String text) {
-    return fromString(text, "<input>");
-  }
-
-  // TODO: remove this its only for compatibility
-  @VisibleForTesting
-  static CelSource fromString(String content, String description) {
-    return newBuilder(content).setDescription(description).build();
   }
 
   /** Builder for {@link CelSource}. */

@@ -1,0 +1,290 @@
+I: *@a | b
+=====>
+E: ERROR: <input>:1:1: extraneous input '*' expecting {'[', '{', '(', '.', '-', '!', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT, STRING, BYTES, IDENTIFIER}
+ | *@a | b
+ | ^
+ERROR: <input>:1:2: token recognition error at: '@'
+ | *@a | b
+ | .^
+ERROR: <input>:1:5: token recognition error at: '| '
+ | *@a | b
+ | ....^
+ERROR: <input>:1:7: extraneous input 'b' expecting <EOF>
+ | *@a | b
+ | ......^
+
+I: a | b
+=====>
+E: ERROR: <input>:1:3: token recognition error at: '| '
+ | a | b
+ | ..^
+ERROR: <input>:1:5: extraneous input 'b' expecting <EOF>
+ | a | b
+ | ....^
+
+I: ?
+=====>
+E: ERROR: <input>:1:1: mismatched input '?' expecting {'[', '{', '(', '.', '-', '!', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT, STRING, BYTES, IDENTIFIER}
+ | ?
+ | ^
+ERROR: <input>:1:2: mismatched input '<EOF>' expecting {'[', '{', '(', '.', '-', '!', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT, STRING, BYTES, IDENTIFIER}
+ | ?
+ | .^
+
+I: 1 + $
+=====>
+E: ERROR: <input>:1:5: token recognition error at: '$'
+ | 1 + $
+ | ....^
+ERROR: <input>:1:6: mismatched input '<EOF>' expecting {'[', '{', '(', '.', '-', '!', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT, STRING, BYTES, IDENTIFIER}
+ | 1 + $
+ | .....^
+
+I: 1.all(2, 3)
+=====>
+E: ERROR: <input>:1:7: The argument must be a simple name
+ | 1.all(2, 3)
+ | ......^
+
+I: 1.exists(2, 3)
+=====>
+E: ERROR: <input>:1:10: The argument must be a simple name
+ | 1.exists(2, 3)
+ | .........^
+
+I: 1 + +
+=====>
+E: ERROR: <input>:1:5: mismatched input '+' expecting {'[', '{', '(', '.', '-', '!', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT, STRING, BYTES, IDENTIFIER}
+ | 1 + +
+ | ....^
+ERROR: <input>:1:6: mismatched input '<EOF>' expecting {'[', '{', '(', '.', '-', '!', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT, STRING, BYTES, IDENTIFIER}
+ | 1 + +
+ | .....^
+
+I: "\xFh"
+=====>
+E: ERROR: <input>:1:1: token recognition error at: '"\xFh'
+ | "\xFh"
+ | ^
+ERROR: <input>:1:6: token recognition error at: '"'
+ | "\xFh"
+ | .....^
+ERROR: <input>:1:7: mismatched input '<EOF>' expecting {'[', '{', '(', '.', '-', '!', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT, STRING, BYTES, IDENTIFIER}
+ | "\xFh"
+ | ......^
+
+I: "\a\b\f\n\r\t\v\'\"\\\? Illegal escape \>"
+=====>
+E: ERROR: <input>:1:1: token recognition error at: '"\a\b\f\n\r\t\v\'\"\\\? Illegal escape \>'
+ | "\a\b\f\n\r\t\v\'\"\\\? Illegal escape \>"
+ | ^
+ERROR: <input>:1:42: token recognition error at: '"'
+ | "\a\b\f\n\r\t\v\'\"\\\? Illegal escape \>"
+ | .........................................^
+ERROR: <input>:1:43: mismatched input '<EOF>' expecting {'[', '{', '(', '.', '-', '!', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT, STRING, BYTES, IDENTIFIER}
+ | "\a\b\f\n\r\t\v\'\"\\\? Illegal escape \>"
+ | ..........................................^
+
+I: as
+=====>
+E: ERROR: <input>:1:1: reserved identifier: as
+ | as
+ | ^
+
+I: break
+=====>
+E: ERROR: <input>:1:1: reserved identifier: break
+ | break
+ | ^
+
+I: const
+=====>
+E: ERROR: <input>:1:1: reserved identifier: const
+ | const
+ | ^
+
+I: continue
+=====>
+E: ERROR: <input>:1:1: reserved identifier: continue
+ | continue
+ | ^
+
+I: else
+=====>
+E: ERROR: <input>:1:1: reserved identifier: else
+ | else
+ | ^
+
+I: for
+=====>
+E: ERROR: <input>:1:1: reserved identifier: for
+ | for
+ | ^
+
+I: function
+=====>
+E: ERROR: <input>:1:1: reserved identifier: function
+ | function
+ | ^
+
+I: if
+=====>
+E: ERROR: <input>:1:1: reserved identifier: if
+ | if
+ | ^
+
+I: import
+=====>
+E: ERROR: <input>:1:1: reserved identifier: import
+ | import
+ | ^
+
+I: in
+=====>
+E: ERROR: <input>:1:1: mismatched input 'in' expecting {'[', '{', '(', '.', '-', '!', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT, STRING, BYTES, IDENTIFIER}
+ | in
+ | ^
+ERROR: <input>:1:3: mismatched input '<EOF>' expecting {'[', '{', '(', '.', '-', '!', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT, STRING, BYTES, IDENTIFIER}
+ | in
+ | ..^
+
+I: let
+=====>
+E: ERROR: <input>:1:1: reserved identifier: let
+ | let
+ | ^
+
+I: loop
+=====>
+E: ERROR: <input>:1:1: reserved identifier: loop
+ | loop
+ | ^
+
+I: package
+=====>
+E: ERROR: <input>:1:1: reserved identifier: package
+ | package
+ | ^
+
+I: namespace
+=====>
+E: ERROR: <input>:1:1: reserved identifier: namespace
+ | namespace
+ | ^
+
+I: return
+=====>
+E: ERROR: <input>:1:1: reserved identifier: return
+ | return
+ | ^
+
+I: var
+=====>
+E: ERROR: <input>:1:1: reserved identifier: var
+ | var
+ | ^
+
+I: void
+=====>
+E: ERROR: <input>:1:1: reserved identifier: void
+ | void
+ | ^
+
+I: while
+=====>
+E: ERROR: <input>:1:1: reserved identifier: while
+ | while
+ | ^
+
+I: [1, 2, 3].map(var, var * var)
+=====>
+E: ERROR: <input>:1:15: reserved identifier: var
+ | [1, 2, 3].map(var, var * var)
+ | ..............^
+ERROR: <input>:1:15: argument is not an identifier
+ | [1, 2, 3].map(var, var * var)
+ | ..............^
+ERROR: <input>:1:20: reserved identifier: var
+ | [1, 2, 3].map(var, var * var)
+ | ...................^
+ERROR: <input>:1:26: reserved identifier: var
+ | [1, 2, 3].map(var, var * var)
+ | .........................^
+
+I: '😁' in ['😁', '😑', '😦']
+   && in.😁
+=====>
+E: ERROR: <input>:2:7: extraneous input 'in' expecting {'[', '{', '(', '.', '-', '!', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT, STRING, BYTES, IDENTIFIER}
+ |    && in.😁
+ | ......^
+ERROR: <input>:2:10: token recognition error at: '😁'
+ |    && in.😁
+ | .........＾
+ERROR: <input>:2:11: no viable alternative at input '.'
+ |    && in.😁
+ | .........．^
+
+I: [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[['too many']]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+=====>
+E: Expression recursion limit exceeded. limit: 250
+
+I: {"a": 1}."a"
+=====>
+E: ERROR: <input>:1:10: no viable alternative at input '."a"'
+ | {"a": 1}."a"
+ | .........^
+
+I: 1 + 2
+3 +
+=====>
+E: ERROR: <input>:2:1: mismatched input '3' expecting {<EOF>, '==', '!=', 'in', '<', '<=', '>=', '>', '&&', '||', '[', '.', '-', '?', '+', '*', '/', '%%'}
+ | 3 +
+ | ^
+
+I: TestAllTypes(){single_int32: 1, single_int64: 2}
+=====>
+E: ERROR: <input>:1:15: mismatched input '{' expecting {<EOF>, '==', '!=', 'in', '<', '<=', '>=', '>', '&&', '||', '[', '.', '-', '?', '+', '*', '/', '%%'}
+ | TestAllTypes(){single_int32: 1, single_int64: 2}
+ | ..............^
+
+I: {
+=====>
+E: ERROR: <input>:1:2: mismatched input '<EOF>' expecting {'[', '{', '}', '(', '.', ',', '-', '!', '?', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT, STRING, BYTES, IDENTIFIER}
+ | {
+ | .^
+
+I: t{>C}
+=====>
+E: ERROR: <input>:1:3: extraneous input '>' expecting {'}', ',', '?', IDENTIFIER}
+ | t{>C}
+ | ..^
+ERROR: <input>:1:5: mismatched input '}' expecting ':'
+ | t{>C}
+ | ....^
+
+I: a.?b && a[?b]
+=====>
+E: ERROR: <input>:1:2: unsupported syntax '.?'
+ | a.?b && a[?b]
+ | .^
+ERROR: <input>:1:10: unsupported syntax '[?'
+ | a.?b && a[?b]
+ | .........^
+
+I: Msg{?field: value} && {?'key': value}
+=====>
+E: ERROR: <input>:1:5: unsupported syntax '?'
+ | Msg{?field: value} && {?'key': value}
+ | ....^
+ERROR: <input>:1:24: unsupported syntax '?'
+ | Msg{?field: value} && {?'key': value}
+ | .......................^
+
+I: [?a, ?b]
+=====>
+E: ERROR: <input>:1:2: unsupported syntax '?'
+ | [?a, ?b]
+ | .^
+ERROR: <input>:1:6: unsupported syntax '?'
+ | [?a, ?b]
+ | .....^

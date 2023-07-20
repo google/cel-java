@@ -226,7 +226,7 @@ public abstract class CelOverloadDecl {
   }
 
   /** Converts a {@link CelOverloadDecl} to a protobuf equivalent form {@link Overload} */
-  static Overload celOverloadToOverload(CelOverloadDecl overload) {
+  public static Overload celOverloadToOverload(CelOverloadDecl overload) {
     return Overload.newBuilder()
         .setIsInstanceFunction(overload.isInstanceFunction())
         .setOverloadId(overload.overloadId())

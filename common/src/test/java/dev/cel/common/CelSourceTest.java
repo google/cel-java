@@ -43,19 +43,20 @@ public final class CelSourceTest {
 
   @Test
   public void getLocationOffset_correctStartingLocation() throws Exception {
-    CelSource source = CelSource.fromString(LATIN_1_EXPR);
+    CelSource source = CelSource.newBuilder(LATIN_1_EXPR).build();
     assertThat(source.getLocationOffset(CelSourceLocation.of(1, 0))).hasValue(0);
   }
 
   @Test
   public void getOffsetLocation_correctStartingLocation() throws Exception {
-    CelSource source = CelSource.fromString(LATIN_1_EXPR);
+    CelSource source = CelSource.newBuilder(LATIN_1_EXPR).build();
     assertThat(source.getOffsetLocation(0)).hasValue(CelSourceLocation.of(1, 0));
   }
 
   @Test
   public void fromString_handlesSingleLineLatin1() throws Exception {
-    CelSource source = CelSource.fromString(LATIN_1_EXPR, UNKNOWN_SOURCE_NAME);
+    CelSource source =
+        CelSource.newBuilder(LATIN_1_EXPR).setDescription(UNKNOWN_SOURCE_NAME).build();
     assertThat(source.getContent().toString()).isEqualTo(LATIN_1_EXPR);
     assertThat(source.getContent()).isInstanceOf(Latin1CodePointArray.class);
     CharStream charStream = new CodePointStream(source.getDescription(), source.getContent());
@@ -72,7 +73,8 @@ public final class CelSourceTest {
 
   @Test
   public void fromString_handlesMultiLineLatin1() throws Exception {
-    CelSource source = CelSource.fromString(LATIN_1_NL_EXPR, UNKNOWN_SOURCE_NAME);
+    CelSource source =
+        CelSource.newBuilder(LATIN_1_NL_EXPR).setDescription(UNKNOWN_SOURCE_NAME).build();
     assertThat(source.getContent().toString()).isEqualTo(LATIN_1_NL_EXPR);
     assertThat(source.getContent()).isInstanceOf(Latin1CodePointArray.class);
     CharStream charStream = new CodePointStream(source.getDescription(), source.getContent());
@@ -88,7 +90,7 @@ public final class CelSourceTest {
 
   @Test
   public void fromString_handlesSingleLineBasic() throws Exception {
-    CelSource source = CelSource.fromString(BASIC_EXPR, UNKNOWN_SOURCE_NAME);
+    CelSource source = CelSource.newBuilder(BASIC_EXPR).setDescription(UNKNOWN_SOURCE_NAME).build();
     assertThat(source.getContent().toString()).isEqualTo(BASIC_EXPR);
     assertThat(source.getContent()).isInstanceOf(BasicCodePointArray.class);
     CharStream charStream = new CodePointStream(source.getDescription(), source.getContent());
@@ -105,7 +107,8 @@ public final class CelSourceTest {
 
   @Test
   public void fromString_handlesMultiLineBasic() throws Exception {
-    CelSource source = CelSource.fromString(BASIC_NL_EXPR, UNKNOWN_SOURCE_NAME);
+    CelSource source =
+        CelSource.newBuilder(BASIC_NL_EXPR).setDescription(UNKNOWN_SOURCE_NAME).build();
     assertThat(source.getContent().toString()).isEqualTo(BASIC_NL_EXPR);
     assertThat(source.getContent()).isInstanceOf(BasicCodePointArray.class);
     CharStream charStream = new CodePointStream(source.getDescription(), source.getContent());
@@ -121,7 +124,8 @@ public final class CelSourceTest {
 
   @Test
   public void fromString_handlesSingleLineSupplemental() throws Exception {
-    CelSource source = CelSource.fromString(SUPPLEMENTAL_EXPR, UNKNOWN_SOURCE_NAME);
+    CelSource source =
+        CelSource.newBuilder(SUPPLEMENTAL_EXPR).setDescription(UNKNOWN_SOURCE_NAME).build();
     assertThat(source.getContent().toString()).isEqualTo(SUPPLEMENTAL_EXPR);
     assertThat(source.getContent()).isInstanceOf(SupplementalCodePointArray.class);
     CharStream charStream = new CodePointStream(source.getDescription(), source.getContent());
@@ -139,7 +143,8 @@ public final class CelSourceTest {
 
   @Test
   public void fromString_handlesMultiLineSupplemental() throws Exception {
-    CelSource source = CelSource.fromString(SUPPLEMENTAL_NL_EXPR, UNKNOWN_SOURCE_NAME);
+    CelSource source =
+        CelSource.newBuilder(SUPPLEMENTAL_NL_EXPR).setDescription(UNKNOWN_SOURCE_NAME).build();
     assertThat(source.getContent().toString()).isEqualTo(SUPPLEMENTAL_NL_EXPR);
     assertThat(source.getContent()).isInstanceOf(SupplementalCodePointArray.class);
     CharStream charStream = new CodePointStream(source.getDescription(), source.getContent());

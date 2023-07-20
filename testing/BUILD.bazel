@@ -1,0 +1,20 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "adorner",
+    exports = ["//testing/src/main/java/dev/cel/testing:adorner"],
+)
+
+java_library(
+    name = "line_differ",
+    exports = ["//testing/src/main/java/dev/cel/testing:line_differ"],
+)
+
+java_library(
+    name = "baseline_test_case",
+    exports = ["//testing/src/main/java/dev/cel/testing:baseline_test_case"],
+)

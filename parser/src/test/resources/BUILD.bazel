@@ -1,0 +1,14 @@
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_visibility = [
+        "//parser:__subpackages__",
+    ],
+)
+
+filegroup(
+    name = "baselines",
+    testonly = True,
+    srcs = glob(["*.baseline"]),
+)
