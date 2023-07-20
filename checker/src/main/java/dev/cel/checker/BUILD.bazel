@@ -175,3 +175,16 @@ java_library(
         "@maven//:com_google_guava_guava",
     ],
 )
+
+java_library(
+    name = "proto_expr_visitor",
+    srcs = [
+        "CelProtoExprVisitor.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":checker_legacy_environment",
+        "//common",
+    ],
+)

@@ -1,0 +1,43 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = [
+        "//bundle:__pkg__",
+    ],
+)
+
+CEL_SOURCES = [
+    "Cel.java",
+    "CelBuilder.java",
+    "CelFactory.java",
+    "CelImpl.java",
+]
+
+java_library(
+    name = "cel",
+    srcs = CEL_SOURCES,
+    tags = [
+    ],
+    deps = [
+        "//checker",
+        "//checker:checker_builder",
+        "//checker:checker_legacy_environment",
+        "//checker:proto_type_mask",
+        "//common",
+        "//common:compiler_common",
+        "//common:options",
+        "//common/internal:env_visitor",
+        "//common/types:cel_types",
+        "//common/types:type_providers",
+        "//compiler",
+        "//compiler:compiler_builder",
+        "//parser",
+        "//parser:macro",
+        "//parser:parser_builder",
+        "//runtime",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_code_findbugs_annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)

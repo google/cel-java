@@ -28,3 +28,8 @@ java_library(
     visibility = ["//visibility:public"],
     exports = ["//parser/src/main/java/dev/cel/parser:cel_g4_visitors"],
 )
+
+java_library(
+    name = "unparser",
+    exports = ["//parser/src/main/java/dev/cel/parser:unparser"],
+)

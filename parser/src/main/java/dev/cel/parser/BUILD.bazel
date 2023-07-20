@@ -30,6 +30,12 @@ MACRO_SOURCES = [
     "CelStandardMacro.java",
 ]
 
+# keep sorted
+UNPARSER_SOURCES = [
+    "CelUnparser.java",
+    "CelUnparserImpl.java",
+]
+
 java_library(
     name = "parser",
     srcs = PARSER_SOURCES,
@@ -112,5 +118,18 @@ java_library(
     ],
     deps = [
         "@maven//:org_antlr_antlr4_runtime",
+    ],
+)
+
+java_library(
+    name = "unparser",
+    srcs = UNPARSER_SOURCES,
+    tags = [
+    ],
+    deps = [
+        "//checker:checker_legacy_environment",
+        "//parser:operator",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )

@@ -35,6 +35,7 @@ java_library(
         "//common",
         "//common:compiler_common",
         "//common:options",
+        "//common/annotations",
         "//common/internal:env_visitor",
         "//common/types:cel_types",
         "//common/types:type_providers",

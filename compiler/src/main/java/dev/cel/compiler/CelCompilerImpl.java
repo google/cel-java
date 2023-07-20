@@ -34,6 +34,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelSource;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.CelVarDecl;
+import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.EnvVisitable;
 import dev.cel.common.internal.EnvVisitor;
 import dev.cel.common.types.CelType;
@@ -47,10 +48,14 @@ import java.util.Arrays;
 
 /**
  * CelCompiler implementation which uses either the legacy or modernized CEL-Java stack to offer a
- * stream-lined expression parse/type-check experience, via a single {@code compile} method.
+ * stream-lined expression parse/type-check experience, via a single {@code compile} method. *
+ *
+ * <p>CEL Library Internals. Do Not Use. Consumers should use factories, such as {@link
+ * CelCompilerFactory} instead to instantiate a compiler.
  */
 @Immutable
-final class CelCompilerImpl implements CelCompiler, EnvVisitable {
+@Internal
+public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
 
   private final CelParser parser;
   private final CelChecker checker;
@@ -82,7 +87,8 @@ final class CelCompilerImpl implements CelCompiler, EnvVisitable {
    *
    * <p>By default, {@link CelOptions#DEFAULT} are enabled, as is the CEL standard environment.
    */
-  static Builder newBuilder(CelParserBuilder parserBuilder, CelCheckerBuilder checkerBuilder) {
+  public static Builder newBuilder(
+      CelParserBuilder parserBuilder, CelCheckerBuilder checkerBuilder) {
     return new Builder(parserBuilder, checkerBuilder);
   }
 

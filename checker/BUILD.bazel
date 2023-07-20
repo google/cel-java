@@ -40,3 +40,8 @@ java_library(
     visibility = ["//visibility:public"],  # Planned for use in a new type-checker.
     exports = ["//checker/src/main/java/dev/cel/checker:type_inferencer"],
 )
+
+java_library(
+    name = "proto_expr_visitor",
+    exports = ["//checker/src/main/java/dev/cel/checker:proto_expr_visitor"],
+)

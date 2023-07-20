@@ -31,14 +31,21 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
 import dev.cel.common.CelOptions;
+import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.DynamicProto;
 import java.util.Arrays;
 import java.util.function.Function;
 import org.jspecify.nullness.Nullable;
 
-/** {@code CelRuntime} implementation based on the legacy CEL-Java stack. */
+/**
+ * {@code CelRuntime} implementation based on the legacy CEL-Java stack.
+ *
+ * <p>CEL Library Internals. Do Not Use. Consumers should use factories, such as {@link
+ * CelRuntimeFactory} instead to instantiate a runtime.
+ */
 @ThreadSafe
-final class CelRuntimeLegacyImpl implements CelRuntime {
+@Internal
+public final class CelRuntimeLegacyImpl implements CelRuntime {
 
   private final Interpreter interpreter;
   private final CelOptions options;
