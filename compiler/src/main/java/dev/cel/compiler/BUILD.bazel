@@ -1,0 +1,70 @@
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_visibility = [
+        "//compiler:__pkg__",
+    ],
+)
+
+# keep sorted
+COMPILER_SOURCES = [
+    "CelCompilerFactory.java",
+    "CelCompilerImpl.java",
+]
+
+# keep sorted
+COMPILER_BUILDER_SOURCES = [
+    "CelCompiler.java",
+    "CelCompilerBuilder.java",
+    "CelCompilerLibrary.java",
+]
+
+java_library(
+    name = "compiler",
+    srcs = COMPILER_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":compiler_builder",
+        "//:auto_value",
+        "//checker",
+        "//checker:checker_builder",
+        "//checker:checker_legacy_environment",
+        "//checker:proto_type_mask",
+        "//common",
+        "//common:compiler_common",
+        "//common:options",
+        "//common/internal:env_visitor",
+        "//common/types:cel_types",
+        "//common/types:type_providers",
+        "//parser",
+        "//parser:macro",
+        "//parser:parser_builder",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "compiler_builder",
+    srcs = COMPILER_BUILDER_SOURCES,
+    tags = [
+    ],
+    deps = [
+        "//:auto_value",
+        "//checker:checker_builder",
+        "//checker:checker_legacy_environment",
+        "//checker:proto_type_mask",
+        "//common:compiler_common",
+        "//common:options",
+        "//common/types:type_providers",
+        "//parser:macro",
+        "//parser:parser_builder",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)

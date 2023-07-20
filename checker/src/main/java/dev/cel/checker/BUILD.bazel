@@ -1,0 +1,177 @@
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_visibility = [
+        "//checker:__pkg__",
+    ],
+)
+
+# keep sorted
+CHECKER_SOURCES = [
+    "CelCheckerLegacyImpl.java",
+    "ProtoTypeMaskTypeProvider.java",
+]
+
+# keep sorted
+CHECKER_BUILDER_SOURCES = [
+    "CelChecker.java",
+    "CelCheckerBuilder.java",
+    "CelCheckerLibrary.java",
+]
+
+# keep sorted
+CHECKER_LEGACY_ENV_SOURCES = [
+    "DescriptorTypeProvider.java",
+    "Env.java",
+    "ExprChecker.java",
+    "ExprVisitor.java",
+    "InferenceContext.java",
+    "Standard.java",
+    "TypeFormatter.java",
+    "TypeProvider.java",
+    "Types.java",
+]
+
+java_library(
+    name = "checker",
+    srcs = CHECKER_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":cel_ident_decl",
+        ":checker_builder",
+        ":checker_legacy_environment",
+        ":proto_type_mask",
+        ":provider_legacy",
+        "//:auto_value",
+        "//common",
+        "//common:compiler_common",
+        "//common:options",
+        "//common/ast:expr_converter",
+        "//common/internal:env_visitor",
+        "//common/internal:errors",
+        "//common/types",
+        "//common/types:cel_types",
+        "//common/types:message_type_provider",
+        "//common/types:type_providers",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "checker_builder",
+    srcs = CHECKER_BUILDER_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":checker_legacy_environment",
+        ":proto_type_mask",
+        "//common",
+        "//common:compiler_common",
+        "//common:options",
+        "//common/types:type_providers",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "proto_type_mask",
+    srcs = ["ProtoTypeMask.java"],
+    tags = [
+    ],
+    deps = [
+        "//:auto_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "cel_ident_decl",
+    srcs = [
+        "CelIdentDecl.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//:auto_value",
+        "//common/annotations",
+        "//common/ast",
+        "//common/ast:expr_converter",
+        "//common/types:cel_types",
+        "//common/types:type_providers",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "provider_legacy",
+    srcs = ["TypeProviderLegacyImpl.java"],
+    tags = [
+    ],
+    deps = [
+        ":checker_legacy_environment",
+        "//:auto_value",
+        "//common/annotations",
+        "//common/types",
+        "//common/types:cel_types",
+        "//common/types:type_providers",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "checker_legacy_environment",
+    srcs = CHECKER_LEGACY_ENV_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":cel_ident_decl",
+        "//:auto_value",
+        "//common:compiler_common",
+        "//common:features",
+        "//common:options",
+        "//common:proto_ast",
+        "//common/annotations",
+        "//common/ast",
+        "//common/ast:expr_converter",
+        "//common/internal:errors",
+        "//common/internal:file_descriptor_converter",
+        "//common/types",
+        "//common/types:cel_types",
+        "//common/types:type_providers",
+        "//parser:macro",
+        "//parser:operator",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "type_inferencer",
+    srcs = ["TypeInferencer.java"],
+    tags = [
+    ],
+    deps = [
+        "//:auto_value",
+        "//common/types",
+        "//common/types:type_providers",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)

@@ -1,0 +1,42 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "checker",
+    exports = ["//checker/src/main/java/dev/cel/checker"],
+)
+
+java_library(
+    name = "checker_builder",
+    exports = ["//checker/src/main/java/dev/cel/checker:checker_builder"],
+)
+
+java_library(
+    name = "proto_type_mask",
+    exports = ["//checker/src/main/java/dev/cel/checker:proto_type_mask"],
+)
+
+java_library(
+    name = "provider_legacy",
+    visibility = ["//visibility:public"],
+    exports = ["//checker/src/main/java/dev/cel/checker:provider_legacy"],
+)
+
+java_library(
+    name = "cel_ident_decl",
+    exports = ["//checker/src/main/java/dev/cel/checker:cel_ident_decl"],
+)
+
+java_library(
+    name = "checker_legacy_environment",
+    visibility = ["//visibility:public"],
+    exports = ["//checker/src/main/java/dev/cel/checker:checker_legacy_environment"],
+)
+
+java_library(
+    name = "type_inferencer",
+    visibility = ["//visibility:public"],  # Planned for use in a new type-checker.
+    exports = ["//checker/src/main/java/dev/cel/checker:type_inferencer"],
+)

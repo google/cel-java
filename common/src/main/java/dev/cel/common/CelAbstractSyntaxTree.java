@@ -56,10 +56,13 @@ public final class CelAbstractSyntaxTree {
 
   private final ImmutableMap<Long, CelType> types;
 
-  CelAbstractSyntaxTree(CelExpr celExpr, CelSource celSource) {
+  /** Internal: Consumers should not be creating an instance of this class directly. */
+  @Internal
+  public CelAbstractSyntaxTree(CelExpr celExpr, CelSource celSource) {
     this(celExpr, celSource, ImmutableMap.of(), ImmutableMap.of());
   }
 
+  /** Internal: Consumers should not be creating an instance of this class directly. */
   @Internal
   public CelAbstractSyntaxTree(
       CelExpr celExpr,

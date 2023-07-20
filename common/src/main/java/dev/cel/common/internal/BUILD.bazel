@@ -18,6 +18,12 @@ INTERNAL_SOURCES = [
     "SupplementalCodePointArray.java",
 ]
 
+# keep sorted
+ENV_VISITOR_SOURCES = [
+    "EnvVisitable.java",
+    "EnvVisitor.java",
+]
+
 java_library(
     name = "internal",
     srcs = INTERNAL_SOURCES,
@@ -60,6 +66,20 @@ java_library(
         "//:auto_value",
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "errors",
+    srcs = ["Errors.java"],
+    tags = [
+    ],
+    deps = [
+        "//:auto_value",
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
         "@maven//:org_jspecify_jspecify",
     ],
 )
@@ -122,5 +142,16 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "env_visitor",
+    srcs = ENV_VISITOR_SOURCES,
+    tags = [
+    ],
+    deps = [
+        "//common/annotations",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
     ],
 )

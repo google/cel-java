@@ -32,3 +32,13 @@ java_library(
     name = "file_descriptor_converter",
     exports = ["//common/src/main/java/dev/cel/common/internal:file_descriptor_converter"],
 )
+
+java_library(
+    name = "errors",
+    exports = ["//common/src/main/java/dev/cel/common/internal:errors"],
+)
+
+java_library(
+    name = "env_visitor",
+    exports = ["//common/src/main/java/dev/cel/common/internal:env_visitor"],
+)

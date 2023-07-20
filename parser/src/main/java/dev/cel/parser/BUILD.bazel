@@ -1,0 +1,116 @@
+load("//:antlr.bzl", "antlr4_java_combined")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = [
+        "//parser:__pkg__",
+    ],
+)
+
+# keep sorted
+PARSER_SOURCES = [
+    "CelParserFactory.java",
+    "CelParserImpl.java",
+    "ExpressionBalancer.java",
+    "Parser.java",
+]
+
+# keep sorted
+PARSER_BUILDER_SOURCES = [
+    "CelParser.java",
+    "CelParserBuilder.java",
+    "CelParserLibrary.java",
+]
+
+# keep sorted
+MACRO_SOURCES = [
+    "CelExprFactory.java",
+    "CelMacro.java",
+    "CelMacroExpander.java",
+    "CelStandardMacro.java",
+]
+
+java_library(
+    name = "parser",
+    srcs = PARSER_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":cel_g4_visitors",
+        ":macro",
+        ":operator",
+        ":parser_builder",
+        "//:auto_value",
+        "//common",
+        "//common:compiler_common",
+        "//common:optional_library",
+        "//common:options",
+        "//common/annotations",
+        "//common/ast",
+        "//common/internal",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_antlr_antlr4_runtime",
+    ],
+)
+
+java_library(
+    name = "parser_builder",
+    srcs = PARSER_BUILDER_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":macro",
+        "//common",
+        "//common:compiler_common",
+        "//common:options",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "macro",
+    srcs = MACRO_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":operator",
+        "//:auto_value",
+        "//common",
+        "//common:compiler_common",
+        "//common/ast",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "operator",
+    srcs = ["Operator.java"],
+    tags = [
+    ],
+    deps = [
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+antlr4_java_combined(
+    name = "cel_g4",
+    src = "CEL.g4",
+    listener = False,
+    package = "cel.parser.internal",
+    visitor = True,
+)
+
+java_library(
+    name = "cel_g4_visitors",
+    srcs = [":cel_g4"],
+    tags = [
+    ],
+    deps = [
+        "@maven//:org_antlr_antlr4_runtime",
+    ],
+)

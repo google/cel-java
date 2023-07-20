@@ -89,7 +89,7 @@ public abstract class CelOptions {
 
   public abstract int comprehensionMaxIterations();
 
-  abstract Builder toBuilder();
+  public abstract Builder toBuilder();
 
   public ImmutableSet<ExprFeatures> toExprFeatures() {
     ImmutableSet.Builder<ExprFeatures> features = ImmutableSet.builder();

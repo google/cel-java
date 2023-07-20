@@ -1,0 +1,14 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "compiler",
+    exports = ["//compiler/src/main/java/dev/cel/compiler"],
+)
+
+java_library(
+    name = "compiler_builder",
+    exports = ["//compiler/src/main/java/dev/cel/compiler:compiler_builder"],
+)

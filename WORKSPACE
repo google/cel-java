@@ -16,7 +16,7 @@ workspace(name = "cel_java")
 
 register_toolchains("//:repository_default_toolchain_definition")
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 
 http_archive(
     name = "bazel_skylib",
@@ -51,6 +51,8 @@ load("@rules_jvm_external//:setup.bzl", "rules_jvm_external_setup")
 
 rules_jvm_external_setup()
 
+ANTLR4_VERSION = "4.11.1"
+
 # Important: there can only be one maven_install rule. Add new maven deps here.
 maven_install(
     # keep sorted
@@ -67,7 +69,7 @@ maven_install(
         "com.google.truth.extensions:truth-java8-extension:1.1.3",
         "com.google.truth.extensions:truth-proto-extension:1.1.3",
         "com.google.truth:truth:1.1.3",
-        "org.antlr:antlr4-runtime:4.11.1",
+        "org.antlr:antlr4-runtime:" + ANTLR4_VERSION,
         "org.jspecify:jspecify:0.2.0",
         "org.threeten:threeten-extra:1.7.1",
     ],
@@ -148,6 +150,12 @@ http_archive(
         "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.38.0/rules_go-v0.38.0.zip",
         "https://github.com/bazelbuild/rules_go/releases/download/v0.38.0/rules_go-v0.38.0.zip",
     ],
+)
+
+http_jar(
+    name = "antlr4_jar",
+    sha256 = "62975e192b4af2622b72b5f0131553ee3cbce97f76dc2a41632dcc55e25473e1",
+    urls = ["https://www.antlr.org/download/antlr-" + ANTLR4_VERSION + "-complete.jar"],
 )
 
 # Load license rules.

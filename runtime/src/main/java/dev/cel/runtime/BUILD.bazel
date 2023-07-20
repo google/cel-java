@@ -165,6 +165,28 @@ UNKNOWN_ATTRIBUTE_SOURCES = [
     "CelUnknownSet.java",
 ]
 
+# keep sorted
+UNKNOWN_OPTIONS_SOURCES = [
+    "CelAttributeParser.java",
+]
+
+java_library(
+    name = "unknown_options",
+    srcs = UNKNOWN_OPTIONS_SOURCES,
+    tags = [
+    ],
+    deps = [
+        "//common",
+        "//common:compiler_common",
+        "//parser",
+        "//parser:operator",
+        "//parser:parser_builder",
+        "//runtime:unknown_attributes",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
 java_library(
     name = "unknown_attributes",
     srcs = UNKNOWN_ATTRIBUTE_SOURCES,

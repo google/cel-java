@@ -30,3 +30,8 @@ java_library(
     name = "unknown_attributes",
     exports = ["//runtime/src/main/java/dev/cel/runtime:unknown_attributes"],
 )
+
+java_library(
+    name = "unknown_options",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:unknown_options"],
+)

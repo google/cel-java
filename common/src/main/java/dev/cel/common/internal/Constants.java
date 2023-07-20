@@ -17,7 +17,6 @@ package dev.cel.common.internal;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.NullValue;
@@ -31,7 +30,6 @@ import java.util.PrimitiveIterator;
  *
  * <p>CEL Library Internals. Do Not Use.
  */
-@VisibleForTesting
 @Internal
 public final class Constants {
 
@@ -50,7 +48,7 @@ public final class Constants {
   public static final CelConstant TRUE = CelConstant.ofValue(true);
   public static final CelConstant ERROR = CelConstant.ofValue("<<error>>");
 
-  static CelConstant parseInt(String text) throws ParseException {
+  public static CelConstant parseInt(String text) throws ParseException {
     int base;
     if (text.startsWith("-0x")) {
       base = 16;
@@ -78,7 +76,7 @@ public final class Constants {
     return CelConstant.ofValue(value);
   }
 
-  static CelConstant parseUint(String text) throws ParseException {
+  public static CelConstant parseUint(String text) throws ParseException {
     int base;
     if (!text.endsWith("u") && !text.endsWith("U")) {
       throw new ParseException("Unsigned integer literal is missing trailing 'u' suffix", 0);
@@ -99,7 +97,7 @@ public final class Constants {
     return CelConstant.ofValue(UnsignedLong.fromLongBits(value));
   }
 
-  static CelConstant parseDouble(String text) throws ParseException {
+  public static CelConstant parseDouble(String text) throws ParseException {
     double value;
     try {
       value = Double.parseDouble(text);
@@ -109,7 +107,7 @@ public final class Constants {
     return CelConstant.ofValue(value);
   }
 
-  static CelConstant parseBytes(String text) throws ParseException {
+  public static CelConstant parseBytes(String text) throws ParseException {
     boolean isRawLiteral = false;
     int offset = 0;
     if (text.startsWith("r") || text.startsWith("R")) {
@@ -158,7 +156,7 @@ public final class Constants {
     return CelConstant.ofValue(buffer.toDecodedValue());
   }
 
-  static CelConstant parseString(String text) throws ParseException {
+  public static CelConstant parseString(String text) throws ParseException {
     int offset = 0;
     boolean isRawLiteral = false;
     if (text.startsWith("r") || text.startsWith("R")) {

@@ -1,0 +1,30 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "parser",
+    exports = ["//parser/src/main/java/dev/cel/parser"],
+)
+
+java_library(
+    name = "parser_builder",
+    exports = ["//parser/src/main/java/dev/cel/parser:parser_builder"],
+)
+
+java_library(
+    name = "macro",
+    exports = ["//parser/src/main/java/dev/cel/parser:macro"],
+)
+
+java_library(
+    name = "operator",
+    exports = ["//parser/src/main/java/dev/cel/parser:operator"],
+)
+
+java_library(
+    name = "cel_g4_visitors",
+    visibility = ["//visibility:public"],
+    exports = ["//parser/src/main/java/dev/cel/parser:cel_g4_visitors"],
+)

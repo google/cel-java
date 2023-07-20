@@ -9,6 +9,11 @@ java_library(
 )
 
 java_library(
+    name = "compiler_common",
+    exports = ["//common/src/main/java/dev/cel/common:compiler_common"],
+)
+
+java_library(
     name = "options",
     exports = ["//common/src/main/java/dev/cel/common:options"],
 )
@@ -37,4 +42,9 @@ java_library(
 java_library(
     name = "runtime_exception",
     exports = ["//common/src/main/java/dev/cel/common:runtime_exception"],
+)
+
+java_library(
+    name = "optional_library",
+    exports = ["//common/src/main/java/dev/cel/common:optional_library"],
 )
