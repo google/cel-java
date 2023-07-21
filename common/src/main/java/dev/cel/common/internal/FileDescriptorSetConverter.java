@@ -36,6 +36,12 @@ import java.util.Map;
 @CheckReturnValue
 public final class FileDescriptorSetConverter {
 
+  /**
+   * Extracts all FileDescriptors from the FileDescriptorSet
+   *
+   * <p>Warning: This will produce a unique FileDescriptor instances. Use with care especially in
+   * hermetic environments.
+   */
   public static ImmutableSet<FileDescriptor> convert(FileDescriptorSet fileDescriptorSet) {
     Map<String, FileDescriptorProto> descriptorProtos = new HashMap<>();
     for (FileDescriptorProto fileProto : fileDescriptorSet.getFileList()) {

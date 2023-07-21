@@ -20,6 +20,7 @@ import dev.cel.expr.Decl;
 import dev.cel.expr.Type;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
@@ -36,6 +37,7 @@ import dev.cel.common.CelValidationResult;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.internal.EnvVisitable;
 import dev.cel.common.internal.EnvVisitor;
+import dev.cel.common.internal.FileDescriptorSetConverter;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypes;
@@ -289,8 +291,13 @@ final class CelImpl implements Cel, EnvVisitable {
 
     @Override
     public Builder addFileTypes(FileDescriptorSet fileDescriptorSet) {
-      compilerBuilder.addFileTypes(fileDescriptorSet);
-      runtimeBuilder.addFileTypes(fileDescriptorSet);
+      // Note: The convert method here constructs unique instances of FileDescriptors, so we convert
+      // it here in advance and pass it down to compiler/runtime to avoid creating additional
+      // instances.
+      ImmutableSet<FileDescriptor> fileDescriptors =
+          FileDescriptorSetConverter.convert(fileDescriptorSet);
+      compilerBuilder.addFileTypes(fileDescriptors);
+      runtimeBuilder.addFileTypes(fileDescriptors);
       return this;
     }
 

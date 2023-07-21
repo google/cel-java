@@ -26,6 +26,7 @@ java_library(
         "//common:compiler_common",
         "//common:options",
         "//common/internal:env_visitor",
+        "//common/internal:file_descriptor_converter",
         "//common/types:cel_types",
         "//common/types:type_providers",
         "//compiler",

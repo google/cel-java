@@ -57,7 +57,12 @@ public final class CelDescriptorUtil {
     return getFileDescriptorsAndDependencies(fileDescriptors.build());
   }
 
-  /** Convert a {@code FileDescriptorSet} into a set of {@code FileDescriptor} instances. */
+  /**
+   * Convert a {@code FileDescriptorSet} into a set of {@code FileDescriptor} instances.
+   *
+   * <p>Warning: This will produce unique FileDescriptor instances. Use with care especially in
+   * hermetic environments.
+   */
   @VisibleForTesting
   public static ImmutableSet<FileDescriptor> getFileDescriptorsFromFileDescriptorSet(
       FileDescriptorSet fileDescriptorSet) {
