@@ -1,0 +1,5 @@
+Source: 1 + x
+=====>
+ERROR: test_location:1:5: undeclared reference to 'x' (in container '')
+  | 1 + x
+  | ....^

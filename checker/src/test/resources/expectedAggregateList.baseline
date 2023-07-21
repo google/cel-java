@@ -1,0 +1,15 @@
+Source: [] + [1,2,3,] + [4]
+=====>
+_+_(
+  _+_(
+    []~list(int),
+    [
+      1~int,
+      2~int,
+      3~int
+    ]~list(int)
+  )~list(int)^add_list,
+  [
+    4~int
+  ]~list(int)
+)~list(int)^add_list

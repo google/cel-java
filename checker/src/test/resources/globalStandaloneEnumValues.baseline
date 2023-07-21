@@ -1,0 +1,6 @@
+Source: StandaloneGlobalEnum.SGAZ == 2
+=====>
+_==_(
+  dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGAZ~int^dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGAZ,
+  2~int
+)~bool^equals

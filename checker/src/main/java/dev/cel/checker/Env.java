@@ -401,8 +401,7 @@ public class Env {
    * @deprecated Use {@link #tryLookupCelFunction} instead.
    */
   @Deprecated
-  @Nullable
-  public Decl tryLookupFunction(String container, String name) {
+  public @Nullable Decl tryLookupFunction(String container, String name) {
     CelFunctionDecl decl = tryLookupCelFunction(container, name);
     if (decl == null) {
       return null;
@@ -421,8 +420,7 @@ public class Env {
    *
    * <p>Returns {@code null} if the function cannot be found.
    */
-  @Nullable
-  public CelFunctionDecl tryLookupCelFunction(String container, String name) {
+  public @Nullable CelFunctionDecl tryLookupCelFunction(String container, String name) {
     for (String cand : qualifiedTypeNameCandidates(container, name)) {
       // First determine whether we know this name already.
       CelFunctionDecl decl = findFunctionDecl(cand);
@@ -437,8 +435,7 @@ public class Env {
    * @deprecated Use {@link #tryLookupCelIdent} instead.
    */
   @Deprecated
-  @Nullable
-  public Decl tryLookupIdent(String container, String name) {
+  public @Nullable Decl tryLookupIdent(String container, String name) {
     CelIdentDecl decl = tryLookupCelIdent(container, name);
     if (decl == null) {
       return null;
@@ -457,8 +454,7 @@ public class Env {
    *
    * <p>Returns {@code null} if the function cannot be found.
    */
-  @Nullable
-  public CelIdentDecl tryLookupCelIdent(String container, String name) {
+  public @Nullable CelIdentDecl tryLookupCelIdent(String container, String name) {
     for (String cand : qualifiedTypeNameCandidates(container, name)) {
       // First determine whether we know this name already.
       CelIdentDecl decl = findIdentDecl(cand);
@@ -624,8 +620,7 @@ public class Env {
   }
 
   /** Search for the named identifier declaration. */
-  @Nullable
-  private CelIdentDecl findIdentDecl(String name) {
+  private @Nullable CelIdentDecl findIdentDecl(String name) {
     for (DeclGroup declGroup : Lists.reverse(decls)) {
       CelIdentDecl ident = declGroup.getIdent(name);
       if (ident != null) {
@@ -636,8 +631,7 @@ public class Env {
   }
 
   /** Search for the named function declaration. */
-  @Nullable
-  private CelFunctionDecl findFunctionDecl(String name) {
+  private @Nullable CelFunctionDecl findFunctionDecl(String name) {
     // Search bottom-up for the matching function declarations.
     List<CelFunctionDecl> functions = new ArrayList<>();
     for (DeclGroup declGroup : Lists.reverse(decls)) {
@@ -903,8 +897,7 @@ public class Env {
     }
 
     /** Get an identifier declaration by {@code name}. Returns {@code null} if absent. */
-    @Nullable
-    public CelIdentDecl getIdent(String name) {
+    public @Nullable CelIdentDecl getIdent(String name) {
       return idents.get(name);
     }
 
@@ -914,8 +907,7 @@ public class Env {
     }
 
     /** Get a function declaration by {@code name}. Returns {@code null} if absent. */
-    @Nullable
-    public CelFunctionDecl getFunction(String name) {
+    public @Nullable CelFunctionDecl getFunction(String name) {
       return functions.get(name);
     }
 

@@ -1,0 +1,5 @@
+Source: TestAllTypes{single_int32: 1, undefined: 2}
+=====>
+ERROR: test_location:1:40: undefined field 'undefined'
+  | TestAllTypes{single_int32: 1, undefined: 2}
+  | .......................................^

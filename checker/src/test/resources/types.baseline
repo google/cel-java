@@ -1,0 +1,21 @@
+Source: list == type([1]) && map == type({1:2u})
+=====>
+_&&_(
+  _==_(
+    list~type(list(dyn))^list,
+    type(
+      [
+        1~int
+      ]~list(int)
+    )~type(dyn)^type
+  )~bool^equals,
+  _==_(
+    map~type(map(dyn, dyn))^map,
+    type(
+      {
+        1~int:2u~uint
+      }~map(int, uint)
+    )~type(dyn)^type
+  )~bool^equals
+)~bool^logical_and
+

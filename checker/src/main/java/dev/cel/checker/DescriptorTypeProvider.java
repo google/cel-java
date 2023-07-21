@@ -80,16 +80,14 @@ public class DescriptorTypeProvider implements TypeProvider {
     this.symbolTable = new SymbolTable(ImmutableList.copyOf(descriptors));
   }
 
-  @Nullable
   @Override
-  public Type lookupType(String typeName) {
+  public @Nullable Type lookupType(String typeName) {
     TypeDef typeDef = lookupMessageTypeDef(typeName);
     return typeDef != null ? Types.create(Types.createMessage(typeDef.name())) : null;
   }
 
-  @Nullable
   @Override
-  public Integer lookupEnumValue(String enumName) {
+  public @Nullable Integer lookupEnumValue(String enumName) {
     int dot = enumName.lastIndexOf('.');
     if (dot > 0) {
       String enumTypeName = enumName.substring(0, dot);
@@ -105,9 +103,8 @@ public class DescriptorTypeProvider implements TypeProvider {
     return null;
   }
 
-  @Nullable
   @Override
-  public FieldType lookupFieldType(Type type, String fieldName) {
+  public @Nullable FieldType lookupFieldType(Type type, String fieldName) {
     TypeDef messageTypeDef = lookupMessageTypeDef(type.getMessageType());
     if (messageTypeDef == null) {
       return null;
@@ -119,9 +116,8 @@ public class DescriptorTypeProvider implements TypeProvider {
     return FieldType.of(fieldDefToType(fieldDef));
   }
 
-  @Nullable
   @Override
-  public ImmutableSet<String> lookupFieldNames(Type type) {
+  public @Nullable ImmutableSet<String> lookupFieldNames(Type type) {
     if (type.getTypeKindCase() != Type.TypeKindCase.MESSAGE_TYPE) {
       return null;
     }
@@ -136,14 +132,12 @@ public class DescriptorTypeProvider implements TypeProvider {
     return fields.build();
   }
 
-  @Nullable
   @Override
-  public ExtensionFieldType lookupExtensionType(String extensionName) {
+  public @Nullable ExtensionFieldType lookupExtensionType(String extensionName) {
     return symbolTable.lookupExtension(extensionName);
   }
 
-  @Nullable
-  private TypeDef lookupMessageTypeDef(String typeName) {
+  private @Nullable TypeDef lookupMessageTypeDef(String typeName) {
     TypeDef typeDef = symbolTable.lookupTypeDef(typeName);
     return (typeDef != null && typeDef.isMessage()) ? typeDef : null;
   }
@@ -224,16 +218,14 @@ public class DescriptorTypeProvider implements TypeProvider {
     }
 
     /** Find a {@link TypeDef} by qualified {@code typeName}. */
-    @Nullable
-    private TypeDef lookupTypeDef(String typeName) {
+    private @Nullable TypeDef lookupTypeDef(String typeName) {
       // In proto-land it is common to prefix the type-name with a dot. Generally, the dot is
       // stripped prior to type resolution.
       typeName = typeName.startsWith(".") ? typeName.substring(1) : typeName;
       return typeMap.get(typeName);
     }
 
-    @Nullable
-    private ExtensionFieldType lookupExtension(String extensionName) {
+    private @Nullable ExtensionFieldType lookupExtension(String extensionName) {
       extensionName = extensionName.startsWith(".") ? extensionName.substring(1) : extensionName;
       return extensionMap.get(extensionName);
     }
@@ -299,8 +291,8 @@ public class DescriptorTypeProvider implements TypeProvider {
     }
 
     /** Build a {@link FieldDef}. Null if the field type is not-supported, i.e. proto groups. */
-    @Nullable
-    private FieldDef buildFieldDef(FieldDescriptor fieldDescriptor, Map<String, TypeDef> typeMap) {
+    private @Nullable FieldDef buildFieldDef(
+        FieldDescriptor fieldDescriptor, Map<String, TypeDef> typeMap) {
       String fieldName = fieldDescriptor.getName();
       boolean repeated = fieldDescriptor.isRepeated();
       switch (fieldDescriptor.getType()) {
@@ -358,14 +350,12 @@ public class DescriptorTypeProvider implements TypeProvider {
     /**
      * The set of {@link FieldDef} values for a message. Non-null when {@link #isMessage} is true.
      */
-    @Nullable
-    public abstract Iterable<FieldDef> fields();
+    public abstract @Nullable Iterable<FieldDef> fields();
 
     /**
      * The set of {@link EnumValueDef} values for an enum. Non-null when {@link #isEnum} is true.
      */
-    @Nullable
-    public abstract Iterable<EnumValueDef> enumValues();
+    public abstract @Nullable Iterable<EnumValueDef> enumValues();
 
     /** Return whether the type is an enum. */
     public boolean isEnum() {
@@ -377,8 +367,7 @@ public class DescriptorTypeProvider implements TypeProvider {
       return fields() != null;
     }
 
-    @Nullable
-    public FieldDef lookupField(String name) {
+    public @Nullable FieldDef lookupField(String name) {
       for (FieldDef field : fields()) {
         if (field.name().equals(name)) {
           return field;
@@ -387,8 +376,7 @@ public class DescriptorTypeProvider implements TypeProvider {
       return null;
     }
 
-    @Nullable
-    public EnumValueDef findEnumValue(String name) {
+    public @Nullable EnumValueDef findEnumValue(String name) {
       for (EnumValueDef enumValue : enumValues()) {
         if (enumValue.name().equals(name)) {
           return enumValue;
@@ -458,12 +446,10 @@ public class DescriptorTypeProvider implements TypeProvider {
     public abstract String name();
 
     /** The field {@code TypeDef}. Null if {@link #isMap} is true. */
-    @Nullable
-    public abstract TypeDef type();
+    public abstract @Nullable TypeDef type();
 
     /** The field {@code MapEntryDef}. Null if {@link #isMap} is false. */
-    @Nullable
-    public abstract MapEntryDef mapEntryType();
+    public abstract @Nullable MapEntryDef mapEntryType();
 
     /** The field is repeated if it is a list or map type. */
     public abstract boolean repeated();

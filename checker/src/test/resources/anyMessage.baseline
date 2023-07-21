@@ -1,0 +1,39 @@
+Source: x == google.protobuf.Any{type_url:'types.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes'} && x.single_nested_message.bb == 43 || x == dev.cel.testing.testdata.proto3.TestAllTypes{} || y < x|| x >= x
+declare x {
+  value any
+}
+declare y {
+  value wrapper(int)
+}
+=====>
+_||_(
+  _||_(
+    _&&_(
+      _==_(
+        x~any^x,
+        google.protobuf.Any{
+          type_url:"types.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes"~string
+        }~any^google.protobuf.Any
+      )~bool^equals,
+      _==_(
+        x~any^x.single_nested_message~dyn.bb~dyn,
+        43~int
+      )~bool^equals
+    )~bool^logical_and,
+    _==_(
+      x~any^x,
+      dev.cel.testing.testdata.proto3.TestAllTypes{}~dev.cel.testing.testdata.proto3.TestAllTypes^dev.cel.testing.testdata.proto3.TestAllTypes
+    )~bool^equals
+  )~bool^logical_or,
+  _||_(
+    _<_(
+      y~wrapper(int)^y,
+      x~any^x
+    )~bool^less_int64|less_int64_uint64|less_int64_double,
+    _>=_(
+      x~any^x,
+      x~any^x
+    )~bool^greater_equals_bool|greater_equals_int64|greater_equals_uint64|greater_equals_double|greater_equals_string|greater_equals_bytes|greater_equals_timestamp|greater_equals_duration|greater_equals_int64_uint64|greater_equals_uint64_int64|greater_equals_int64_double|greater_equals_double_int64|greater_equals_uint64_double|greater_equals_double_uint64
+  )~bool^logical_or
+)~bool^logical_or
+

@@ -1,0 +1,7 @@
+Source: "abc" + "def"
+=====>
+_+_(
+  "abc"~string,
+  "def"~string
+)~string^add_string
+

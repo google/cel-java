@@ -1,0 +1,26 @@
+Source: size([vector([1, 2]), vector([2u, -1])]) == 2
+declare vector {
+  function vector (type(T)) -> type(vector(T))
+  function vector (list(T)) -> vector(T)
+}
+=====>
+_==_(
+  size(
+    [
+      vector(
+        [
+          1~int,
+          2~int
+        ]~list(int)
+      )~vector(int)^vector,
+      vector(
+        [
+          2u~uint,
+          -1~int
+        ]~list(dyn)
+      )~vector(dyn)^vector
+    ]~list(vector(dyn))
+  )~int^size_list,
+  2~int
+)~bool^equals
+

@@ -1,0 +1,271 @@
+Source: 'redundant expression so the env is constructed and can be printed'
+=====>
+"redundant expression so the env is constructed and can be printed"~string
+
+
+Standard environment:
+declare !_ {
+  function logical_not (bool) -> bool
+}
+declare -_ {
+  function negate_int64 (int) -> int
+  function negate_double (double) -> double
+}
+declare @in {
+  function in_list (A, list(A)) -> bool
+  function in_map (A, map(A, B)) -> bool
+}
+declare @not_strictly_false {
+  function not_strictly_false (bool) -> bool
+}
+declare _!=_ {
+  function not_equals (A, A) -> bool
+}
+declare _%_ {
+  function modulo_int64 (int, int) -> int
+  function modulo_uint64 (uint, uint) -> uint
+}
+declare _&&_ {
+  function logical_and (bool, bool) -> bool
+}
+declare _*_ {
+  function multiply_int64 (int, int) -> int
+  function multiply_uint64 (uint, uint) -> uint
+  function multiply_double (double, double) -> double
+}
+declare _+_ {
+  function add_int64 (int, int) -> int
+  function add_uint64 (uint, uint) -> uint
+  function add_double (double, double) -> double
+  function add_string (string, string) -> string
+  function add_bytes (bytes, bytes) -> bytes
+  function add_list (list(A), list(A)) -> list(A)
+  function add_timestamp_duration (google.protobuf.Timestamp, google.protobuf.Duration) -> google.protobuf.Timestamp
+  function add_duration_timestamp (google.protobuf.Duration, google.protobuf.Timestamp) -> google.protobuf.Timestamp
+  function add_duration_duration (google.protobuf.Duration, google.protobuf.Duration) -> google.protobuf.Duration
+}
+declare _-_ {
+  function subtract_int64 (int, int) -> int
+  function subtract_uint64 (uint, uint) -> uint
+  function subtract_double (double, double) -> double
+  function subtract_timestamp_timestamp (google.protobuf.Timestamp, google.protobuf.Timestamp) -> google.protobuf.Duration
+  function subtract_timestamp_duration (google.protobuf.Timestamp, google.protobuf.Duration) -> google.protobuf.Timestamp
+  function subtract_duration_duration (google.protobuf.Duration, google.protobuf.Duration) -> google.protobuf.Duration
+}
+declare _/_ {
+  function divide_int64 (int, int) -> int
+  function divide_uint64 (uint, uint) -> uint
+  function divide_double (double, double) -> double
+}
+declare _<=_ {
+  function less_equals_bool (bool, bool) -> bool
+  function less_equals_int64 (int, int) -> bool
+  function less_equals_uint64 (uint, uint) -> bool
+  function less_equals_double (double, double) -> bool
+  function less_equals_string (string, string) -> bool
+  function less_equals_bytes (bytes, bytes) -> bool
+  function less_equals_timestamp (google.protobuf.Timestamp, google.protobuf.Timestamp) -> bool
+  function less_equals_duration (google.protobuf.Duration, google.protobuf.Duration) -> bool
+  function less_equals_int64_uint64 (int, uint) -> bool
+  function less_equals_uint64_int64 (uint, int) -> bool
+  function less_equals_int64_double (int, double) -> bool
+  function less_equals_double_int64 (double, int) -> bool
+  function less_equals_uint64_double (uint, double) -> bool
+  function less_equals_double_uint64 (double, uint) -> bool
+}
+declare _<_ {
+  function less_bool (bool, bool) -> bool
+  function less_int64 (int, int) -> bool
+  function less_uint64 (uint, uint) -> bool
+  function less_double (double, double) -> bool
+  function less_string (string, string) -> bool
+  function less_bytes (bytes, bytes) -> bool
+  function less_timestamp (google.protobuf.Timestamp, google.protobuf.Timestamp) -> bool
+  function less_duration (google.protobuf.Duration, google.protobuf.Duration) -> bool
+  function less_int64_uint64 (int, uint) -> bool
+  function less_uint64_int64 (uint, int) -> bool
+  function less_int64_double (int, double) -> bool
+  function less_double_int64 (double, int) -> bool
+  function less_uint64_double (uint, double) -> bool
+  function less_double_uint64 (double, uint) -> bool
+}
+declare _==_ {
+  function equals (A, A) -> bool
+}
+declare _>=_ {
+  function greater_equals_bool (bool, bool) -> bool
+  function greater_equals_int64 (int, int) -> bool
+  function greater_equals_uint64 (uint, uint) -> bool
+  function greater_equals_double (double, double) -> bool
+  function greater_equals_string (string, string) -> bool
+  function greater_equals_bytes (bytes, bytes) -> bool
+  function greater_equals_timestamp (google.protobuf.Timestamp, google.protobuf.Timestamp) -> bool
+  function greater_equals_duration (google.protobuf.Duration, google.protobuf.Duration) -> bool
+  function greater_equals_int64_uint64 (int, uint) -> bool
+  function greater_equals_uint64_int64 (uint, int) -> bool
+  function greater_equals_int64_double (int, double) -> bool
+  function greater_equals_double_int64 (double, int) -> bool
+  function greater_equals_uint64_double (uint, double) -> bool
+  function greater_equals_double_uint64 (double, uint) -> bool
+}
+declare _>_ {
+  function greater_bool (bool, bool) -> bool
+  function greater_int64 (int, int) -> bool
+  function greater_uint64 (uint, uint) -> bool
+  function greater_double (double, double) -> bool
+  function greater_string (string, string) -> bool
+  function greater_bytes (bytes, bytes) -> bool
+  function greater_timestamp (google.protobuf.Timestamp, google.protobuf.Timestamp) -> bool
+  function greater_duration (google.protobuf.Duration, google.protobuf.Duration) -> bool
+  function greater_int64_uint64 (int, uint) -> bool
+  function greater_uint64_int64 (uint, int) -> bool
+  function greater_int64_double (int, double) -> bool
+  function greater_double_int64 (double, int) -> bool
+  function greater_uint64_double (uint, double) -> bool
+  function greater_double_uint64 (double, uint) -> bool
+}
+declare _?_:_ {
+  function conditional (bool, A, A) -> A
+}
+declare _[_] {
+  function index_list (list(A), int) -> A
+  function index_map (map(A, B), A) -> B
+}
+declare __not_strictly_false__ {
+  function not_strictly_false (bool) -> bool
+}
+declare _in_ {
+  function in_list (A, list(A)) -> bool
+  function in_map (A, map(A, B)) -> bool
+}
+declare _||_ {
+  function logical_or (bool, bool) -> bool
+}
+declare bool {
+  value type(bool)
+}
+declare bytes {
+  value type(bytes)
+  function string_to_bytes (string) -> bytes
+}
+declare contains {
+  function contains_string string.(string) -> bool
+}
+declare double {
+  value type(double)
+  function int64_to_double (int) -> double
+  function uint64_to_double (uint) -> double
+  function string_to_double (string) -> double
+}
+declare duration {
+  function string_to_duration (string) -> google.protobuf.Duration
+}
+declare dyn {
+  value type(dyn)
+  function to_dyn (A) -> dyn
+}
+declare endsWith {
+  function ends_with_string string.(string) -> bool
+}
+declare getDate {
+  function timestamp_to_day_of_month_1_based google.protobuf.Timestamp.() -> int
+  function timestamp_to_day_of_month_1_based_with_tz google.protobuf.Timestamp.(string) -> int
+}
+declare getDayOfMonth {
+  function timestamp_to_day_of_month google.protobuf.Timestamp.() -> int
+  function timestamp_to_day_of_month_with_tz google.protobuf.Timestamp.(string) -> int
+}
+declare getDayOfWeek {
+  function timestamp_to_day_of_week google.protobuf.Timestamp.() -> int
+  function timestamp_to_day_of_week_with_tz google.protobuf.Timestamp.(string) -> int
+}
+declare getDayOfYear {
+  function timestamp_to_day_of_year google.protobuf.Timestamp.() -> int
+  function timestamp_to_day_of_year_with_tz google.protobuf.Timestamp.(string) -> int
+}
+declare getFullYear {
+  function timestamp_to_year google.protobuf.Timestamp.() -> int
+  function timestamp_to_year_with_tz google.protobuf.Timestamp.(string) -> int
+}
+declare getHours {
+  function timestamp_to_hours google.protobuf.Timestamp.() -> int
+  function timestamp_to_hours_with_tz google.protobuf.Timestamp.(string) -> int
+  function duration_to_hours google.protobuf.Duration.() -> int
+}
+declare getMilliseconds {
+  function timestamp_to_milliseconds google.protobuf.Timestamp.() -> int
+  function timestamp_to_milliseconds_with_tz google.protobuf.Timestamp.(string) -> int
+  function duration_to_milliseconds google.protobuf.Duration.() -> int
+}
+declare getMinutes {
+  function timestamp_to_minutes google.protobuf.Timestamp.() -> int
+  function timestamp_to_minutes_with_tz google.protobuf.Timestamp.(string) -> int
+  function duration_to_minutes google.protobuf.Duration.() -> int
+}
+declare getMonth {
+  function timestamp_to_month google.protobuf.Timestamp.() -> int
+  function timestamp_to_month_with_tz google.protobuf.Timestamp.(string) -> int
+}
+declare getSeconds {
+  function timestamp_to_seconds google.protobuf.Timestamp.() -> int
+  function timestamp_to_seconds_with_tz google.protobuf.Timestamp.(string) -> int
+  function duration_to_seconds google.protobuf.Duration.() -> int
+}
+declare int {
+  value type(int)
+  function uint64_to_int64 (uint) -> int
+  function double_to_int64 (double) -> int
+  function string_to_int64 (string) -> int
+  function timestamp_to_int64 (google.protobuf.Timestamp) -> int
+}
+declare list {
+  value type(list(dyn))
+  function to_list (type(A), list(A)) -> list(A)
+}
+declare map {
+  value type(map(dyn, dyn))
+  function to_map (type(A), type(B), map(A, B)) -> map(A, B)
+}
+declare matches {
+  function matches (string, string) -> bool
+  function matches_string string.(string) -> bool
+}
+declare null_type {
+  value type(null)
+}
+declare size {
+  function size_string (string) -> int
+  function size_bytes (bytes) -> int
+  function size_list (list(A)) -> int
+  function size_map (map(A, B)) -> int
+  function string_size string.() -> int
+  function bytes_size bytes.() -> int
+  function list_size list(A).() -> int
+  function map_size map(A, B).() -> int
+}
+declare startsWith {
+  function starts_with_string string.(string) -> bool
+}
+declare string {
+  value type(string)
+  function int64_to_string (int) -> string
+  function uint64_to_string (uint) -> string
+  function double_to_string (double) -> string
+  function bytes_to_string (bytes) -> string
+  function timestamp_to_string (google.protobuf.Timestamp) -> string
+  function duration_to_string (google.protobuf.Duration) -> string
+}
+declare timestamp {
+  function string_to_timestamp (string) -> google.protobuf.Timestamp
+  function int64_to_timestamp (int) -> google.protobuf.Timestamp
+}
+declare type {
+  value type(dyn)
+  function type (A) -> type(dyn)
+}
+declare uint {
+  value type(uint)
+  function int64_to_uint64 (int) -> uint
+  function double_to_uint64 (double) -> uint
+  function string_to_uint64 (string) -> uint
+}

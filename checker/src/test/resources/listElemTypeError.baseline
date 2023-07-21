@@ -1,0 +1,11 @@
+Source: x + y
+declare x {
+  value list(dev.cel.testing.testdata.proto3.TestAllTypes)
+}
+declare y {
+  value list(int)
+}
+=====>
+ERROR: test_location:1:3: found no matching overload for '_+_' applied to '(list(dev.cel.testing.testdata.proto3.TestAllTypes), list(int))' (candidates: (int, int),(uint, uint),(double, double),(string, string),(bytes, bytes),(list(%A0), list(%A0)),(google.protobuf.Timestamp, google.protobuf.Duration),(google.protobuf.Duration, google.protobuf.Timestamp),(google.protobuf.Duration, google.protobuf.Duration))
+  | x + y
+  | ..^

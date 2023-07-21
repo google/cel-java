@@ -1,0 +1,8 @@
+Source: x.single_int64 != null
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+ERROR: test_location:1:16: found no matching overload for '_!=_' applied to '(int, null)' (candidates: (%A0, %A0))
+  | x.single_int64 != null
+  | ...............^

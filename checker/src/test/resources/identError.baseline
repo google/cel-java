@@ -1,0 +1,5 @@
+Source: undeclared_ident
+=====>
+ERROR: test_location:1:1: undeclared reference to 'undeclared_ident' (in container '')
+ | undeclared_ident
+ | ^

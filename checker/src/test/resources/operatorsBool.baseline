@@ -1,0 +1,16 @@
+Source: false && !true || false ? 2 : 3
+=====>
+_?_:_(
+  _||_(
+    _&&_(
+      false~bool,
+      !_(
+        true~bool
+      )~bool^logical_not
+    )~bool^logical_and,
+    false~bool
+  )~bool^logical_or,
+  2~int,
+  3~int
+)~int^conditional
+

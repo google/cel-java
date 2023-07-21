@@ -1,0 +1,8 @@
+Source: x[1u]
+declare x {
+  value list(dev.cel.testing.testdata.proto3.TestAllTypes)
+}
+=====>
+ERROR: test_location:1:2: found no matching overload for '_[_]' applied to '(list(dev.cel.testing.testdata.proto3.TestAllTypes), uint)' (candidates: (list(%A0), int),(map(%A1, %B2), %A1))
+  | x[1u]
+  | .^

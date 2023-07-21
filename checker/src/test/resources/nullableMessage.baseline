@@ -1,0 +1,25 @@
+Source: x.single_nested_message != null
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+_!=_(
+  x~dev.cel.testing.testdata.proto3.TestAllTypes^x.single_nested_message~dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage,
+  null~null
+)~bool^not_equals
+
+Source: null == TestAllTypes{} || TestAllTypes{} == null
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+_||_(
+  _==_(
+    null~null,
+    TestAllTypes{}~dev.cel.testing.testdata.proto3.TestAllTypes^dev.cel.testing.testdata.proto3.TestAllTypes
+  )~bool^equals,
+  _==_(
+    TestAllTypes{}~dev.cel.testing.testdata.proto3.TestAllTypes^dev.cel.testing.testdata.proto3.TestAllTypes,
+    null~null
+  )~bool^equals
+)~bool^logical_or

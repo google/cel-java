@@ -1,0 +1,16 @@
+Source: x
+declare ns.x {
+  value int
+}
+=====>
+ns.x~int^ns.x
+
+Source: msgVar.single_int32
+declare ns.x {
+  value int
+}
+declare dev.cel.testing.testdata.proto3.msgVar {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+dev.cel.testing.testdata.proto3.msgVar~dev.cel.testing.testdata.proto3.TestAllTypes^dev.cel.testing.testdata.proto3.msgVar.single_int32~int

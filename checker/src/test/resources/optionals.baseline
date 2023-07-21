@@ -1,0 +1,121 @@
+Source: a.?b
+declare a {
+  value map(string, string)
+}
+=====>
+_?._(
+  a~map(string, string)^a,
+  "b"
+)~optional(string)^select_optional_field
+
+Source: x.y
+declare x {
+  value optional(map(string, string))
+}
+=====>
+x~optional(map(string, string))^x.y~optional(string)
+
+Source: {?'nested': x.b}
+declare x {
+  value optional(map(string, string))
+}
+=====>
+{
+  ?"nested"~string:x~optional(map(string, string))^x.b~optional(string)
+}~map(string, string)
+
+Source: d.dynamic
+declare d {
+  value optional(dyn)
+}
+=====>
+d~optional(dyn)^d.dynamic~optional(dyn)
+
+Source: has(d.dynamic)
+declare d {
+  value optional(dyn)
+}
+=====>
+d~optional(dyn)^d.dynamic~test-only~~bool
+
+Source: has(e.?b.c)
+declare e {
+  value optional(map(string, dyn))
+}
+=====>
+_?._(
+  e~optional(map(string, dyn))^e,
+  "b"
+)~optional(dyn)^select_optional_field.c~test-only~~bool
+
+Source: {?'key': {'a': 'b'}.?value}
+=====>
+{
+  ?"key"~string:_?._(
+    {
+      "a"~string:"b"~string
+    }~map(string, string),
+    "value"
+  )~optional(string)^select_optional_field
+}~map(string, string)
+
+Source: {?'key': {'a': 'b'}.?value}.key
+=====>
+{
+  ?"key"~string:_?._(
+    {
+      "a"~string:"b"~string
+    }~map(string, string),
+    "value"
+  )~optional(string)^select_optional_field
+}~map(string, string).key~string
+
+Source: TestAllTypes{?single_int32: {}.?i}
+=====>
+TestAllTypes{
+  ?single_int32:_?._(
+    {}~map(dyn, int),
+    "i"
+  )~optional(int)^select_optional_field
+}~dev.cel.testing.testdata.proto3.TestAllTypes^dev.cel.testing.testdata.proto3.TestAllTypes
+
+Source: [?a, ?b, 'world']
+declare a {
+  value optional(string)
+}
+declare b {
+  value optional(string)
+}
+=====>
+[
+  ?a~optional(string)^a,
+  ?b~optional(string)^b,
+  "world"~string
+]~list(string)
+
+Source: [?a, ?b, 2]
+declare a {
+  value optional(string)
+}
+declare b {
+  value optional(string)
+}
+=====>
+[
+  ?a~optional(string)^a,
+  ?b~optional(string)^b,
+  2~int
+]~list(dyn)
+
+Source: {?'str':a, 2:3}
+declare a {
+  value optional(string)
+}
+declare b {
+  value optional(string)
+}
+=====>
+{
+  ?"str"~string:a~optional(string)^a,
+  2~int:3~int
+}~map(dyn, dyn)

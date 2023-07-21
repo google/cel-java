@@ -1,0 +1,6 @@
+Source: b"abc" + b"def"
+=====>
+_+_(
+  b"abc"~bytes,
+  b"def"~bytes
+)~bytes^add_bytes

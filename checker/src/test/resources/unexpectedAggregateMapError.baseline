@@ -1,0 +1,5 @@
+Source: {1:2u, 2:3u}
+=====>
+ERROR: test_location:1:1: expected type 'map(int, bool)' but found 'map(int, uint)'
+  | {1:2u, 2:3u}
+  | ^

@@ -5,7 +5,12 @@ package(default_applicable_licenses = ["//:license"])
 java_library(
     name = "tests",
     testonly = 1,
-    srcs = glob(["*.java"]),
+    srcs = glob(
+        ["*.java"],
+        exclude = [
+            "InterpreterTest.java",
+        ],
+    ),
     deps = [
         "//:auto_value",
         "//:java_truth",
@@ -37,11 +42,32 @@ java_library(
     ],
 )
 
+java_library(
+    name = "interpreter_test",
+    testonly = 1,
+    srcs = [
+        "InterpreterTest.java",
+    ],
+    deps = [
+        #         "//java/com/google/testing/testsize:annotations",
+        "//common:options",
+        "//testing:base_interpreter_test",
+        "//testing:eval",
+        "//testing:sync",
+        "@maven//:junit_junit",
+    ],
+)
+
 junit4_test_suites(
     name = "test_suites",
+    shard_count = 4,
     sizes = [
         "small",
+        "medium",
     ],
     src_dir = "src/test/java",
-    deps = [":tests"],
+    deps = [
+        ":interpreter_test",
+        ":tests",
+    ],
 )

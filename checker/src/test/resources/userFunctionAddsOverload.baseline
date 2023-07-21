@@ -1,0 +1,15 @@
+Source: size(x) > 4
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare size {
+  function size_message (dev.cel.testing.testdata.proto3.TestAllTypes) -> int
+}
+=====>
+_>_(
+  size(
+    x~dev.cel.testing.testdata.proto3.TestAllTypes^x
+  )~int^size_message,
+  4~int
+)~bool^greater_int64
+

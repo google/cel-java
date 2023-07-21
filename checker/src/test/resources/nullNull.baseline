@@ -1,0 +1,12 @@
+Source: null == null && null != null
+=====>
+_&&_(
+  _==_(
+    null~null,
+    null~null
+  )~bool^equals,
+  _!=_(
+    null~null,
+    null~null
+  )~bool^not_equals
+)~bool^logical_and

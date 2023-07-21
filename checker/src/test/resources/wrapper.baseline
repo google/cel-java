@@ -1,0 +1,13 @@
+Source: x.single_int64_wrapper + 1 != 23
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+_!=_(
+  _+_(
+    x~dev.cel.testing.testdata.proto3.TestAllTypes^x.single_int64_wrapper~wrapper(int),
+    1~int
+  )~int^add_int64,
+  23~int
+)~bool^not_equals
+

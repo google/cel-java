@@ -1,0 +1,11 @@
+Source: x.all(e, 0)
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+ERROR: test_location:1:1: expression of type 'dev.cel.testing.testdata.proto3.TestAllTypes' cannot be range of a comprehension (must be list, map, or dynamic)
+  | x.all(e, 0)
+  | ^
+ERROR: test_location:1:6: found no matching overload for '_&&_' applied to '(bool, int)' (candidates: (bool, bool))
+  | x.all(e, 0)
+  | .....^

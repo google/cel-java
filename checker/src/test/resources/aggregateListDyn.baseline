@@ -1,0 +1,6 @@
+Source: [1, 2u]
+=====>
+[
+  1~int,
+  2u~uint
+]~list(dyn)

@@ -1,0 +1,50 @@
+Source: x["claims"]["groups"][0].name == "dummy" && x.claims["exp"] == y[1].time && x.claims.structured == {'key': z} && z == 1.0
+declare x {
+  value google.protobuf.Struct
+}
+declare y {
+  value google.protobuf.ListValue
+}
+declare z {
+  value google.protobuf.Value
+}
+=====>
+_&&_(
+  _&&_(
+    _==_(
+      _[_](
+        _[_](
+          _[_](
+            x~map(string, dyn)^x,
+            "claims"~string
+          )~dyn^index_map,
+          "groups"~string
+        )~list(dyn)^index_map,
+        0~int
+      )~dyn^index_list.name~dyn,
+      "dummy"~string
+    )~bool^equals,
+    _==_(
+      _[_](
+        x~map(string, dyn)^x.claims~dyn,
+        "exp"~string
+      )~dyn^index_map,
+      _[_](
+        y~list(dyn)^y,
+        1~int
+      )~dyn^index_list.time~dyn
+    )~bool^equals
+  )~bool^logical_and,
+  _&&_(
+    _==_(
+      x~map(string, dyn)^x.claims~dyn.structured~dyn,
+      {
+        "key"~string:z~dyn^z
+      }~map(string, dyn)
+    )~bool^equals,
+    _==_(
+      z~dyn^z,
+      1.0~double
+    )~bool^equals
+  )~bool^logical_and
+)~bool^logical_and

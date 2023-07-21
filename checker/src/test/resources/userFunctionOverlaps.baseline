@@ -1,0 +1,15 @@
+Source: size(x) == 1u
+declare size {
+  function my_size (list(TEST)) -> uint
+}
+declare x {
+  value list(int)
+}
+=====>
+_==_(
+  size(
+    x~list(int)^x
+  )~uint^my_size,
+  1u~uint
+)~bool^equals
+

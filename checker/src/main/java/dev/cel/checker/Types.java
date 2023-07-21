@@ -215,8 +215,7 @@ public final class Types {
    * parameters. A new substitution is returned, or null if the check fails. The given substitution
    * is not modified.
    */
-  @Nullable
-  public static Map<CelType, CelType> isAssignable(
+  public static @Nullable Map<CelType, CelType> isAssignable(
       Map<CelType, CelType> subs, CelType type1, CelType type2) {
     Map<CelType, CelType> subsCopy = new HashMap<>(subs);
     if (internalIsAssignable(subsCopy, type1, type2)) {
@@ -232,9 +231,9 @@ public final class Types {
    *
    * @deprecated Use {@link #isAssignable(Map, CelType, CelType)} instead.
    */
-  @Nullable
   @Deprecated
-  public static Map<Type, Type> isAssignable(Map<Type, Type> subs, Type type1, Type type2) {
+  public static @Nullable Map<Type, Type> isAssignable(
+      Map<Type, Type> subs, Type type1, Type type2) {
     HashMap<CelType, CelType> subsCopy =
         subs.entrySet().stream()
             .collect(
@@ -261,8 +260,7 @@ public final class Types {
   /**
    * Same as {@link #isAssignable(Map, Type, Type)} but performs pairwise check on lists of types.
    */
-  @Nullable
-  public static Map<CelType, CelType> isAssignable(
+  public static @Nullable Map<CelType, CelType> isAssignable(
       Map<CelType, CelType> subs, List<CelType> list1, List<CelType> list2) {
     Map<CelType, CelType> subsCopy = new HashMap<>(subs);
     if (internalIsAssignable(subsCopy, list1, list2)) {

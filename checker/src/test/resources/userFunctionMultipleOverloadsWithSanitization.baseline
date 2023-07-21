@@ -1,0 +1,18 @@
+Source: myfun(1) + myfun(s)
+declare s {
+  value google.protobuf.Struct
+}
+declare myfun {
+  function myfun_int (int) -> int
+  function myfun_struct (google.protobuf.Struct) -> int
+}
+=====>
+_+_(
+  myfun(
+    1~int
+  )~int^myfun_int,
+  myfun(
+    s~map(string, dyn)^s
+  )~int^myfun_struct
+)~int^add_int64
+

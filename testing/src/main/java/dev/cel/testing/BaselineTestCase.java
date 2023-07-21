@@ -17,7 +17,6 @@ package dev.cel.testing;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.io.Resources;
-import dev.cel.testing.LineDiffer.Diff;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
@@ -38,7 +37,7 @@ public abstract class BaselineTestCase {
   public static class BaselineComparisonError extends AssertionFailedError {
     private final String testName;
     private final String actual;
-    private final Diff lineDiff;
+    private final LineDiffer.Diff lineDiff;
     private final String baselineFileName;
 
     /**
@@ -49,7 +48,7 @@ public abstract class BaselineTestCase {
      * @param lineDiff the diff between the expected and {@code actual}.
      */
     public BaselineComparisonError(
-        String testName, String baselineFileName, String actual, Diff lineDiff) {
+        String testName, String baselineFileName, String actual, LineDiffer.Diff lineDiff) {
       this.testName = testName;
       this.actual = actual;
       this.lineDiff = lineDiff;
@@ -125,7 +124,7 @@ public abstract class BaselineTestCase {
       output.flush();
       String actual = ((ByteArrayOutputStream) output).toString("UTF-8").trim();
       String expected = getExpected().trim();
-      Diff lineDiff = LineDiffer.diffLines(expected, actual);
+      LineDiffer.Diff lineDiff = LineDiffer.diffLines(expected, actual);
       if (!lineDiff.isEmpty()) {
         throw new BaselineComparisonError(
             testName.getMethodName(), baselineFileName(), actual, lineDiff);

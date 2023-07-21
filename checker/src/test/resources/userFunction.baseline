@@ -1,0 +1,21 @@
+Source: myfun(1, true, 3u) + 1.myfun(false, 3u).myfun(true, 42u)
+declare myfun {
+  function myfun_instance int.(bool, uint) -> int
+  function myfun_static (int, bool, uint) -> int
+}
+=====>
+_+_(
+  myfun(
+    1~int,
+    true~bool,
+    3u~uint
+  )~int^myfun_static,
+  1~int.myfun(
+    false~bool,
+    3u~uint
+  )~int^myfun_instance.myfun(
+    true~bool,
+    42u~uint
+  )~int^myfun_instance
+)~int^add_int64
+

@@ -1,0 +1,8 @@
+Source: false
+declare has {
+  function has_id (dyn) -> dyn
+}
+=====>
+ERROR: test_location:1:1: overload for name 'has' with 1 argument(s) overlaps with predefined macro
+  | false
+  | ^

@@ -60,8 +60,7 @@ public interface TypeProvider {
    * <p>The {@code FieldType} return value will indicate the type of the field and whether presence
    * check is supported via the ('has') macro.
    */
-  @Nullable
-  default FieldType lookupFieldType(CelType type, String fieldName) {
+  default @Nullable FieldType lookupFieldType(CelType type, String fieldName) {
     return lookupFieldType(CelTypes.celTypeToType(type), fieldName);
   }
 
@@ -70,8 +69,7 @@ public interface TypeProvider {
    *
    * <p>If the type is not a message type, or the type is not found, the result is {@code null}.
    */
-  @Nullable
-  default ImmutableSet<String> lookupFieldNames(Type type) {
+  default @Nullable ImmutableSet<String> lookupFieldNames(Type type) {
     throw new UnsupportedOperationException("lookupFieldNames is not implemented");
   }
 
@@ -79,8 +77,7 @@ public interface TypeProvider {
    * Lookup the {@code FieldType} of the named extension (specified using its full path). Returns
    * null if not found.
    */
-  @Nullable
-  default ExtensionFieldType lookupExtensionType(String extensionName) {
+  default @Nullable ExtensionFieldType lookupExtensionType(String extensionName) {
     return null; // Default implementation does not find any extensions.
   }
 
@@ -129,39 +126,33 @@ public interface TypeProvider {
       this.typeProviders = ImmutableList.copyOf(typeProviders);
     }
 
-    @Nullable
     @Override
-    public Type lookupType(String typeName) {
+    public @Nullable Type lookupType(String typeName) {
       return findFirstNonNull(typeProvider -> typeProvider.lookupType(typeName));
     }
 
-    @Nullable
     @Override
-    public Integer lookupEnumValue(String enumName) {
+    public @Nullable Integer lookupEnumValue(String enumName) {
       return findFirstNonNull(typeProvider -> typeProvider.lookupEnumValue(enumName));
     }
 
-    @Nullable
     @Override
-    public FieldType lookupFieldType(Type type, String fieldName) {
+    public @Nullable FieldType lookupFieldType(Type type, String fieldName) {
       return findFirstNonNull(typeProvider -> typeProvider.lookupFieldType(type, fieldName));
     }
 
-    @Nullable
     @Override
-    public ImmutableSet<String> lookupFieldNames(Type type) {
+    public @Nullable ImmutableSet<String> lookupFieldNames(Type type) {
       // The expectation is that only one provider will contain a reference to the provided type.
       return findFirstNonNull(typeProvider -> typeProvider.lookupFieldNames(type));
     }
 
-    @Nullable
     @Override
-    public ExtensionFieldType lookupExtensionType(String extensionName) {
+    public @Nullable ExtensionFieldType lookupExtensionType(String extensionName) {
       return findFirstNonNull(typeProvider -> typeProvider.lookupExtensionType(extensionName));
     }
 
-    @Nullable
-    private <T> T findFirstNonNull(Function<TypeProvider, T> lookup) {
+    private <T> @Nullable T findFirstNonNull(Function<TypeProvider, T> lookup) {
       for (TypeProvider typeProvider : typeProviders) {
         T result = lookup.apply(typeProvider);
         if (result != null) {

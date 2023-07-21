@@ -51,6 +51,7 @@ def junit4_test_suites(
         sizes,
         deps,
         src_dir,  # @unused.
+        shard_count = None,  # @unused.
         srcs = None):
     """
     Generates tests for test file in srcs ending in "Test.java"
@@ -60,6 +61,7 @@ def junit4_test_suites(
       sizes: not used, exists only so that the opensource CEL mirror exactly the internal one
       deps: list of runtime dependencies required to run the test
       src_dir: not used, exists only so that the opensource CEL mirror exactly the internal one
+      shard_count: not used, exists only so that the opensource CEL mirror exactly the internal one
       srcs: list of test source files, uses 'glob(["**/*Test.java"])' if not specified
     """
 

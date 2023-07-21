@@ -1,0 +1,19 @@
+Source: 1.0 + 2.0 * 3.0 - 1.0 / 2.20202 != 66.6
+=====>
+_!=_(
+  _-_(
+    _+_(
+      1.0~double,
+      _*_(
+        2.0~double,
+        3.0~double
+      )~double^multiply_double
+    )~double^add_double,
+    _/_(
+      1.0~double,
+      2.20202~double
+    )~double^divide_double
+  )~double^subtract_double,
+  66.6~double
+)~bool^not_equals
+

@@ -1,0 +1,7 @@
+Source: {"a":1, "b":2}.a
+=====>
+{
+  "a"~string:1~int,
+  "b"~string:2~int
+}~map(string, int).a~int
+

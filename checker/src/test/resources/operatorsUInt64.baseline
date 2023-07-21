@@ -1,0 +1,22 @@
+Source: 1u + 2u * 3u - 1u / 2u == 6u % 1u
+=====>
+_==_(
+  _-_(
+    _+_(
+      1u~uint,
+      _*_(
+        2u~uint,
+        3u~uint
+      )~uint^multiply_uint64
+    )~uint^add_uint64,
+    _/_(
+      1u~uint,
+      2u~uint
+    )~uint^divide_uint64
+  )~uint^subtract_uint64,
+  _%_(
+    6u~uint,
+    1u~uint
+  )~uint^modulo_uint64
+)~bool^equals
+

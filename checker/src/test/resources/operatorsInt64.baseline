@@ -1,0 +1,21 @@
+Source: 1 + 2 * 3 - 1 / 2 == 6 % 1
+=====>
+_==_(
+  _-_(
+    _+_(
+      1~int,
+      _*_(
+        2~int,
+        3~int
+      )~int^multiply_int64
+    )~int^add_int64,
+    _/_(
+      1~int,
+      2~int
+    )~int^divide_int64
+  )~int^subtract_int64,
+  _%_(
+    6~int,
+    1~int
+  )~int^modulo_int64
+)~bool^equals

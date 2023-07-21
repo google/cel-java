@@ -1,0 +1,12 @@
+Source: int(1u) + int(uint("1"))
+=====>
+_+_(
+  int(
+    1u~uint
+  )~int^uint64_to_int64,
+  int(
+    uint(
+      "1"~string
+    )~uint^string_to_uint64
+  )~int^uint64_to_int64
+)~int^add_int64

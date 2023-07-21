@@ -1,0 +1,11 @@
+Source: x.single_nested_message.undefined == x.undefined
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+ERROR: test_location:1:24: undefined field 'undefined'
+  | x.single_nested_message.undefined == x.undefined
+  | .......................^
+ERROR: test_location:1:39: undefined field 'undefined'
+  | x.single_nested_message.undefined == x.undefined
+  | ......................................^

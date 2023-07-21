@@ -712,8 +712,7 @@ public final class ExprChecker {
    * expression and returns the name they constitute, or null if the expression cannot be
    * interpreted like this.
    */
-  @Nullable
-  private String asQualifiedName(CelExpr expr) {
+  private @Nullable String asQualifiedName(CelExpr expr) {
     switch (expr.exprKind().getKind()) {
       case IDENT:
         return expr.ident().name();

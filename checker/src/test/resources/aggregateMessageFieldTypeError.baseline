@@ -1,0 +1,5 @@
+Source: TestAllTypes{single_int32: 1u}
+=====>
+ERROR: test_location:1:26: expected type of field 'single_int32' is 'int' but provided type is 'uint'
+  | TestAllTypes{single_int32: 1u}
+  | .........................^

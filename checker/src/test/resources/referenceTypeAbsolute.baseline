@@ -1,0 +1,3 @@
+Source: .dev.cel.testing.testdata.proto3.TestAllTypes
+=====>
+dev.cel.testing.testdata.proto3.TestAllTypes~type(dev.cel.testing.testdata.proto3.TestAllTypes)^dev.cel.testing.testdata.proto3.TestAllTypes

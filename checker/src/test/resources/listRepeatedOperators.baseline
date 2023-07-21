@@ -1,0 +1,13 @@
+Source: x.repeated_int64[x.single_int32] == 23
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+_==_(
+  _[_](
+    x~dev.cel.testing.testdata.proto3.TestAllTypes^x.repeated_int64~list(int),
+    x~dev.cel.testing.testdata.proto3.TestAllTypes^x.single_int32~int
+  )~int^index_list,
+  23~int
+)~bool^equals
+

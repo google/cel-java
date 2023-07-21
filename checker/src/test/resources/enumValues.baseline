@@ -1,0 +1,6 @@
+Source: TestAllTypes.NestedEnum.BAR != 99
+=====>
+_!=_(
+  dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum.BAR~int^dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum.BAR,
+  99~int
+)~bool^not_equals

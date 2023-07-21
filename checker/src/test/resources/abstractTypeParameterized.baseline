@@ -1,0 +1,34 @@
+Source: type(vector([1])) == vector(dyn) && vector([1]).at(0) == 1
+declare vector {
+  function vector (type(T)) -> type(vector(T))
+  function vector (list(T)) -> vector(T)
+}
+declare at {
+  function at vector(T).(int) -> T
+}
+=====>
+_&&_(
+  _==_(
+    type(
+      vector(
+        [
+          1~int
+        ]~list(int)
+      )~vector(int)^vector
+    )~type(dyn)^type,
+    vector(
+      dyn~type(dyn)^dyn
+    )~type(vector(dyn))^vector
+  )~bool^equals,
+  _==_(
+    vector(
+      [
+        1~int
+      ]~list(int)
+    )~vector(int)^vector.at(
+      0~int
+    )~int^at,
+    1~int
+  )~bool^equals
+)~bool^logical_and
+

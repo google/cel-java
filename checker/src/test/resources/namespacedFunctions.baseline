@@ -1,0 +1,168 @@
+Source: ns.func('hello')
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+=====>
+ns.func(
+  "hello"~string
+)~int^ns_func_overload
+
+Source: ns.func('hello').member(ns.func('test'))
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.(int) -> int
+}
+=====>
+ns.func(
+  "hello"~string
+)~int^ns_func_overload.member(
+  ns.func(
+    "test"~string
+  )~int^ns_func_overload
+)~int^ns_member_overload
+
+Source: {ns.func('test'): 2}
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.(int) -> int
+}
+=====>
+{
+  ns.func(
+    "test"~string
+  )~int^ns_func_overload:2~int
+}~map(int, int)
+
+Source: {2: ns.func('test')}
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.(int) -> int
+}
+=====>
+{
+  2~int:ns.func(
+    "test"~string
+  )~int^ns_func_overload
+}~map(int, int)
+
+Source: [ns.func('test'), 2]
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.(int) -> int
+}
+=====>
+[
+  ns.func(
+    "test"~string
+  )~int^ns_func_overload,
+  2~int
+]~list(int)
+
+Source: [ns.func('test')].map(x, x * 2)
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.(int) -> int
+}
+=====>
+__comprehension__(
+  // Variable
+  x,
+  // Target
+  [
+    ns.func(
+      "test"~string
+    )~int^ns_func_overload
+  ]~list(int),
+  // Accumulator
+  __result__,
+  // Init
+  []~list(int),
+  // LoopCondition
+  true~bool,
+  // LoopStep
+  _+_(
+    __result__~list(int)^__result__,
+    [
+      _*_(
+        x~int^x,
+        2~int
+      )~int^multiply_int64
+    ]~list(int)
+  )~list(int)^add_list,
+  // Result
+  __result__~list(int)^__result__)~list(int)
+
+Source: [1, 2].map(x, x * ns.func('test'))
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.(int) -> int
+}
+=====>
+__comprehension__(
+  // Variable
+  x,
+  // Target
+  [
+    1~int,
+    2~int
+  ]~list(int),
+  // Accumulator
+  __result__,
+  // Init
+  []~list(int),
+  // LoopCondition
+  true~bool,
+  // LoopStep
+  _+_(
+    __result__~list(int)^__result__,
+    [
+      _*_(
+        x~int^x,
+        ns.func(
+          "test"~string
+        )~int^ns_func_overload
+      )~int^multiply_int64
+    ]~list(int)
+  )~list(int)^add_list,
+  // Result
+  __result__~list(int)^__result__)~list(int)
+
+Source: func('hello')
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.(int) -> int
+}
+=====>
+ns.func(
+  "hello"~string
+)~int^ns_func_overload
+
+Source: func('hello').member(func('test'))
+declare ns.func {
+  function ns_func_overload (string) -> int
+}
+declare member {
+  function ns_member_overload int.(int) -> int
+}
+=====>
+ns.func(
+  "hello"~string
+)~int^ns_func_overload.member(
+  ns.func(
+    "test"~string
+  )~int^ns_func_overload
+)~int^ns_member_overload

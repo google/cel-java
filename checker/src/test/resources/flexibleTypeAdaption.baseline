@@ -1,0 +1,130 @@
+Source: size([] + [1])
+=====>
+size(
+  _+_(
+    []~list(int),
+    [
+      1~int
+    ]~list(int)
+  )~list(int)^add_list
+)~int^size_list
+
+Source: [1] + [dyn('string')]
+=====>
+_+_(
+  [
+    1~int
+  ]~list(int),
+  [
+    dyn(
+      "string"~string
+    )~dyn^to_dyn
+  ]~list(dyn)
+)~list(dyn)^add_list
+
+Source: [dyn('string')] + [1]
+=====>
+_+_(
+  [
+    dyn(
+      "string"~string
+    )~dyn^to_dyn
+  ]~list(dyn),
+  [
+    1~int
+  ]~list(int)
+)~list(dyn)^add_list
+
+Source: ([[[1]], [[2]], [[3]]][0][0] + [2, 3, {'four': {'five': 'six'}}])[3]
+=====>
+_[_](
+  _+_(
+    _[_](
+      _[_](
+        [
+          [
+            [
+              1~int
+            ]~list(int)
+          ]~list(list(int)),
+          [
+            [
+              2~int
+            ]~list(int)
+          ]~list(list(int)),
+          [
+            [
+              3~int
+            ]~list(int)
+          ]~list(list(int))
+        ]~list(list(list(int))),
+        0~int
+      )~list(list(int))^index_list,
+      0~int
+    )~list(int)^index_list,
+    [
+      2~int,
+      3~int,
+      {
+        "four"~string:{
+          "five"~string:"six"~string
+        }~map(string, string)
+      }~map(string, map(string, string))
+    ]~list(dyn)
+  )~list(dyn)^add_list,
+  3~int
+)~dyn^index_list
+
+Source: a.b + 1 == a[0]
+declare a {
+  value T
+}
+=====>
+_==_(
+  _+_(
+    a~dyn^a.b~dyn,
+    1~int
+  )~int^add_int64,
+  _[_](
+    a~dyn^a,
+    0~int
+  )~dyn^index_list|index_map
+)~bool^equals
+
+Source: merge({'hello': dyn(1)}, {'world': 2.0})
+declare a {
+  value T
+}
+declare merge {
+  function merge_maps (map(A, B), map(A, B)) -> map(A, B)
+}
+=====>
+merge(
+  {
+    "hello"~string:dyn(
+      1~int
+    )~dyn^to_dyn
+  }~map(string, dyn),
+  {
+    "world"~string:2.0~double
+  }~map(string, double)
+)~map(string, dyn)^merge_maps
+
+Source: 1 in dyn([1, 2, 3])
+declare a {
+  value T
+}
+declare merge {
+  function merge_maps (map(A, B), map(A, B)) -> map(A, B)
+}
+=====>
+@in(
+  1~int,
+  dyn(
+    [
+      1~int,
+      2~int,
+      3~int
+    ]~list(int)
+  )~dyn^to_dyn
+)~bool^in_list|in_map

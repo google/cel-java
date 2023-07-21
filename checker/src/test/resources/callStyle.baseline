@@ -1,0 +1,14 @@
+Source: size(x) == x.size()
+declare size {
+  function my_size list(A).() -> int
+}
+declare x {
+  value list(int)
+}
+=====>
+_==_(
+  size(
+    x~list(int)^x
+  )~int^size_list,
+  x~list(int)^x.size()~int^my_size
+)~bool^equals

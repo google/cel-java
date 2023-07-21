@@ -1,0 +1,25 @@
+Source: x["a"].single_int32 == 23
+declare x {
+  value map(string, dev.cel.testing.testdata.proto3.TestAllTypes)
+}
+=====>
+_==_(
+  _[_](
+    x~map(string, dev.cel.testing.testdata.proto3.TestAllTypes)^x,
+    "a"~string
+  )~dev.cel.testing.testdata.proto3.TestAllTypes^index_map.single_int32~int,
+  23~int
+)~bool^equals
+
+Source: x.size() == size(x)
+declare x {
+  value map(string, dev.cel.testing.testdata.proto3.TestAllTypes)
+}
+=====>
+_==_(
+  x~map(string, dev.cel.testing.testdata.proto3.TestAllTypes)^x.size()~int^map_size,
+  size(
+    x~map(string, dev.cel.testing.testdata.proto3.TestAllTypes)^x
+  )~int^size_map
+)~bool^equals
+

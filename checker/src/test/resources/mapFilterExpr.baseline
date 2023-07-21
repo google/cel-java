@@ -1,0 +1,112 @@
+Source: x.repeated_int64.map(x, x > 0, double(x))
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+__comprehension__(
+  // Variable
+  x,
+  // Target
+  x~dev.cel.testing.testdata.proto3.TestAllTypes^x.repeated_int64~list(int),
+  // Accumulator
+  __result__,
+  // Init
+  []~list(double),
+  // LoopCondition
+  true~bool,
+  // LoopStep
+  _?_:_(
+    _>_(
+      x~int^x,
+      0~int
+    )~bool^greater_int64,
+    _+_(
+      __result__~list(double)^__result__,
+      [
+        double(
+          x~int^x
+        )~double^int64_to_double
+      ]~list(double)
+    )~list(double)^add_list,
+    __result__~list(double)^__result__
+  )~list(double)^conditional,
+  // Result
+  __result__~list(double)^__result__)~list(double)
+
+Source: lists.filter(x, x > 1.5)
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare lists {
+  value dyn
+}
+=====>
+__comprehension__(
+  // Variable
+  x,
+  // Target
+  lists~dyn^lists,
+  // Accumulator
+  __result__,
+  // Init
+  []~list(dyn),
+  // LoopCondition
+  true~bool,
+  // LoopStep
+  _?_:_(
+    _>_(
+      x~dyn^x,
+      1.5~double
+    )~bool^greater_double|greater_int64_double|greater_uint64_double,
+    _+_(
+      __result__~list(dyn)^__result__,
+      [
+        x~dyn^x
+      ]~list(dyn)
+    )~list(dyn)^add_list,
+    __result__~list(dyn)^__result__
+  )~list(dyn)^conditional,
+  // Result
+  __result__~list(dyn)^__result__)~list(dyn)
+
+Source: args.user["myextension"].customAttributes.filter(x, x.name == "hobbies")
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare lists {
+  value dyn
+}
+declare args {
+  value map(string, dyn)
+}
+=====>
+__comprehension__(
+  // Variable
+  x,
+  // Target
+  _[_](
+    args~map(string, dyn)^args.user~dyn,
+    "myextension"~string
+  )~dyn^index_map.customAttributes~dyn,
+  // Accumulator
+  __result__,
+  // Init
+  []~list(dyn),
+  // LoopCondition
+  true~bool,
+  // LoopStep
+  _?_:_(
+    _==_(
+      x~dyn^x.name~dyn,
+      "hobbies"~string
+    )~bool^equals,
+    _+_(
+      __result__~list(dyn)^__result__,
+      [
+        x~dyn^x
+      ]~list(dyn)
+    )~list(dyn)^add_list,
+    __result__~list(dyn)^__result__
+  )~list(dyn)^conditional,
+  // Result
+  __result__~list(dyn)^__result__)~list(dyn)

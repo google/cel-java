@@ -24,6 +24,9 @@ import org.jspecify.nullness.Nullable;
 /**
  * An exception produced during interpretation of expressions.
  *
+ * <p>TODO: Remove in favor of creating exception types that corresponds to the error
+ * code.
+ *
  * <p>CEL Library Internals. Do Not Use.
  */
 @Internal

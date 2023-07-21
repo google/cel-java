@@ -1,0 +1,8 @@
+Source: x[2].single_int32 == 23
+declare x {
+  value map(string, dev.cel.testing.testdata.proto3.TestAllTypes)
+}
+=====>
+ERROR: test_location:1:2: found no matching overload for '_[_]' applied to '(map(string, dev.cel.testing.testdata.proto3.TestAllTypes), int)' (candidates: (list(%A0), int),(map(%A1, %B2), %A1))
+  | x[2].single_int32 == 23
+  | .^

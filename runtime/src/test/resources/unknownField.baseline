@@ -3,7 +3,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -35,7 +35,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -67,7 +67,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -99,7 +99,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -128,7 +128,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -158,7 +158,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -188,7 +188,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -220,7 +220,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -250,7 +250,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -280,7 +280,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -312,7 +312,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -341,7 +341,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -371,7 +371,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -403,7 +403,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -433,7 +433,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -461,7 +461,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -486,7 +486,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -514,7 +514,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }
@@ -542,7 +542,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class com.google.api.tools.contract.runtime.interpreter.PartialMessage{
+bindings: {x=class dev.cel.runtime.PartialMessage{
 message: {
 single_nested_message {
 }

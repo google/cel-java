@@ -1,0 +1,37 @@
+Source: x.single_nested_enum == TestAllTypes.NestedEnum.BAR
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+_==_(
+  x~dev.cel.testing.testdata.proto3.TestAllTypes^x.single_nested_enum~int,
+  dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum.BAR~int^dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum.BAR
+)~bool^equals
+
+Source: single_nested_enum == TestAllTypes.NestedEnum.BAR
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare single_nested_enum {
+  value int
+}
+=====>
+_==_(
+  single_nested_enum~int^single_nested_enum,
+  dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum.BAR~int^dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum.BAR
+)~bool^equals
+
+Source: TestAllTypes{single_nested_enum : TestAllTypes.NestedEnum.BAR}.single_nested_enum == 1
+declare x {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare single_nested_enum {
+  value int
+}
+=====>
+_==_(
+  TestAllTypes{
+    single_nested_enum:dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum.BAR~int^dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum.BAR
+  }~dev.cel.testing.testdata.proto3.TestAllTypes^dev.cel.testing.testdata.proto3.TestAllTypes.single_nested_enum~int,
+  1~int
+)~bool^equals

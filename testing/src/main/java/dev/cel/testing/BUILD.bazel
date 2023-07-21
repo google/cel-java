@@ -4,6 +4,14 @@ package(
     default_visibility = ["//testing:__pkg__"],
 )
 
+TEST_DECL_SOURCES = [
+    "TestCelFunctionDeclWrapper.java",
+    "TestCelVariableDeclWrapper.java",
+    "TestDecl.java",
+    "TestProtoFunctionDeclWrapper.java",
+    "TestProtoVariableDeclWrapper.java",
+]
+
 java_library(
     name = "baseline_test_case",
     srcs = [
@@ -35,5 +43,100 @@ java_library(
     deps = [
         "@cel_spec//proto/dev/cel/expr:expr_java_proto",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "test_decls",
+    srcs = TEST_DECL_SOURCES,
+    deps = [
+        "//common:compiler_common",
+        "//common/types:cel_types",
+        "//common/types:type_providers",
+        "//compiler:compiler_builder",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "cel_baseline_test_case",
+    srcs = ["CelBaselineTestCase.java"],
+    deps = [
+        ":baseline_test_case",
+        ":test_decls",
+        "//:java_truth",
+        "//common",
+        "//common:compiler_common",
+        "//common:options",
+        "//common/types:cel_types",
+        "//common/types:message_type_provider",
+        "//common/types:type_providers",
+        "//compiler",
+        "//compiler:compiler_builder",
+        "//parser:macro",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "sync",
+    testonly = 1,
+    srcs = ["EvalSync.java"],
+    deps = [
+        ":eval",
+        "//common",
+        "//common:options",
+        "//common/internal:dynamic_proto",
+        "//runtime:interpreter",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "eval",
+    testonly = 1,
+    srcs = [
+        "Eval.java",
+    ],
+    deps = [
+        "//common:options",
+        "//runtime:base",
+        "//runtime:interpreter",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "base_interpreter_test",
+    testonly = 1,
+    srcs = [
+        "BaseInterpreterTest.java",
+    ],
+    resources = ["//runtime/testdata"],
+    deps = [
+        ":cel_baseline_test_case",
+        ":eval",
+        "//:java_truth",
+        "//common",
+        "//common/internal:dynamic_proto",
+        "//common/resources/testdata/proto3:standalone_global_enum_java_proto",
+        "//common/resources/testdata/proto3:test_all_types_java_proto",
+        "//common/types:cel_types",
+        "//runtime:interpreter",
+        "//runtime/testdata:test_java_proto",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_protobuf_protobuf_java_util",
+        "@maven//:junit_junit",
     ],
 )

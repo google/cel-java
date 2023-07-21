@@ -1,0 +1,6 @@
+Source: GlobalEnum.GAZ == 2
+=====>
+_==_(
+  dev.cel.testing.testdata.proto3.GlobalEnum.GAZ~int^dev.cel.testing.testdata.proto3.GlobalEnum.GAZ,
+  2~int
+)~bool^equals
