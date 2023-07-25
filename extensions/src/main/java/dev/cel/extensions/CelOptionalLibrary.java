@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.common;
+package dev.cel.extensions;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -25,6 +25,9 @@ import com.google.protobuf.Message;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.Timestamp;
 import dev.cel.checker.CelCheckerBuilder;
+import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelIssue;
+import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;

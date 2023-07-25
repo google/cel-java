@@ -17,3 +17,8 @@ java_library(
     name = "math",
     exports = ["//extensions/src/main/java/dev/cel/extensions:math"],
 )
+
+java_library(
+    name = "optional_library",
+    exports = ["//extensions/src/main/java/dev/cel/extensions:optional_library"],
+)
