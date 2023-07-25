@@ -22,7 +22,6 @@ import com.google.common.collect.Iterables;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.CelOptionalLibrary;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelSource;
 import dev.cel.common.CelValidationResult;
@@ -141,15 +140,14 @@ public final class CelParserImpl implements CelParser {
     }
 
     @Override
+    public CelOptions getOptions() {
+      return this.options;
+    }
+
+    @Override
     @CheckReturnValue
     public CelParserImpl build() {
       ImmutableSet<CelParserLibrary> parserLibrarySet = celParserLibraries.build();
-      if (!options.enableOptionalSyntax()
-          && parserLibrarySet.stream().anyMatch(lib -> lib instanceof CelOptionalLibrary)) {
-        // Enable optional syntax by default if the optional library has been added to the
-        // environment
-        options = options.toBuilder().enableOptionalSyntax(true).build();
-      }
 
       // Add libraries, such as extensions
       parserLibrarySet.forEach(celLibrary -> celLibrary.setParserOptions(this));

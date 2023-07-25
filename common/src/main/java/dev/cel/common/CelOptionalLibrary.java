@@ -56,6 +56,12 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
 
   @Override
   public void setParserOptions(CelParserBuilder parserBuilder) {
+    if (!parserBuilder.getOptions().enableOptionalSyntax()) {
+      // Enable optional syntax by default if the optional library has been added to the
+      // environment
+      parserBuilder.setOptions(
+          parserBuilder.getOptions().toBuilder().enableOptionalSyntax(true).build());
+    }
     parserBuilder.addMacros(
         CelMacro.newReceiverMacro("optMap", 2, CelOptionalLibrary::expandOptMap));
     parserBuilder.addMacros(

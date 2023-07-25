@@ -20,9 +20,13 @@ import dev.cel.common.CelOptions;
 
 /** Interface for building an instance of CelParser */
 public interface CelParserBuilder {
-  /** Configures the {@code CelOptions} used to enable fixes within the parser. */
+  /** Configures the {@link CelOptions} used to enable fixes within the parser. */
   @CanIgnoreReturnValue
   CelParserBuilder setOptions(CelOptions celOptions);
+
+  /** Retrieves the currently configured {@link CelOptions} for the parser. */
+  @CanIgnoreReturnValue
+  CelOptions getOptions();
 
   /**
    * Sets the macro set defined as part of CEL standard library for the parser, replacing the macros
