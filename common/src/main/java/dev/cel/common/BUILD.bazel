@@ -133,25 +133,3 @@ java_library(
         "//common/annotations",
     ],
 )
-
-java_library(
-    name = "optional_library",
-    srcs = ["CelOptionalLibrary.java"],
-    tags = [
-        "alt_dep=//common:optional_library",
-        "avoid_dep",
-    ],
-    deps = [
-        "//checker:checker_builder",
-        "//common:compiler_common",
-        "//common/ast",
-        "//common/types",
-        "//compiler:compiler_builder",
-        "//parser:macro",
-        "//parser:operator",
-        "//parser:parser_builder",
-        "//runtime",
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
-    ],
-)

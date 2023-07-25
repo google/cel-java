@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.common;
+package dev.cel.extensions;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
@@ -32,6 +32,11 @@ import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelBuilder;
 import dev.cel.bundle.CelFactory;
+import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOptions;
+import dev.cel.common.CelOverloadDecl;
+import dev.cel.common.CelValidationException;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
@@ -42,8 +47,8 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes.NestedMessage;
+import dev.cel.testing.testdata.proto2.TestAllTypesProto.TestAllTypes;
+import dev.cel.testing.testdata.proto2.TestAllTypesProto.TestAllTypes.NestedMessage;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -88,7 +93,7 @@ public class CelOptionalLibraryTest {
         .setOptions(
             CelOptions.current().enableUnsignedLongs(true).enableTimestampEpoch(true).build())
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-        .setContainer("dev.cel.testing.testdata.proto3")
+        .setContainer("dev.cel.testing.testdata.proto2")
         .addMessageTypes(TestAllTypes.getDescriptor())
         .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
         .addCompilerLibraries(CelOptionalLibrary.INSTANCE);
