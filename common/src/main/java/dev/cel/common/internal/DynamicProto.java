@@ -196,7 +196,7 @@ public final class DynamicProto {
     String typeName = containingDescriptor.getFullName();
     ImmutableCollection<FieldDescriptor> fieldDescriptors =
         dynamicExtensionDescriptors.get(typeName);
-    if (fieldDescriptors == null) {
+    if (fieldDescriptors.isEmpty()) {
       return Optional.empty();
     }
 

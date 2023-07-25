@@ -1,0 +1,88 @@
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_visibility = ["//extensions:__pkg__"],
+)
+
+java_library(
+    name = "extensions",
+    srcs = ["CelExtensions.java"],
+    tags = [
+    ],
+    deps = [
+        ":bindings",
+        ":math",
+        ":protos",
+        ":strings",
+        "//common:options",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "strings",
+    srcs = ["CelStringExtensions.java"],
+    tags = [
+    ],
+    deps = [
+        "//checker:checker_builder",
+        "//common:compiler_common",
+        "//common/internal",
+        "//common/types",
+        "//compiler:compiler_builder",
+        "//runtime",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "protos",
+    srcs = ["CelProtoExtensions.java"],
+    deps = [
+        "//common:compiler_common",
+        "//common/ast",
+        "//common/internal",
+        "//compiler:compiler_builder",
+        "//parser:macro",
+        "//parser:parser_builder",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "math",
+    srcs = ["CelMathExtensions.java"],
+    tags = [
+    ],
+    deps = [
+        "//checker:checker_builder",
+        "//common:compiler_common",
+        "//common:options",
+        "//common/ast",
+        "//common/internal:comparison_functions",
+        "//common/types",
+        "//compiler:compiler_builder",
+        "//parser:macro",
+        "//parser:parser_builder",
+        "//runtime",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "bindings",
+    srcs = ["CelBindingsExtensions.java"],
+    deps = [
+        "//common:compiler_common",
+        "//common/ast",
+        "//compiler:compiler_builder",
+        "//parser:macro",
+        "//parser:parser_builder",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)

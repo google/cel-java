@@ -1,0 +1,19 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "extensions",
+    exports = ["//extensions/src/main/java/dev/cel/extensions"],
+)
+
+java_library(
+    name = "strings",
+    exports = ["//extensions/src/main/java/dev/cel/extensions:strings"],
+)
+
+java_library(
+    name = "math",
+    exports = ["//extensions/src/main/java/dev/cel/extensions:math"],
+)
