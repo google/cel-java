@@ -4,6 +4,7 @@ package(
     default_applicable_licenses = ["//:license"],
     default_visibility = [
         "//parser:__pkg__",
+        "//publish:__pkg__",
     ],
 )
 

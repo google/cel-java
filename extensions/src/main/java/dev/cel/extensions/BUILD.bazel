@@ -2,7 +2,10 @@ package(
     default_applicable_licenses = [
         "//:license",
     ],
-    default_visibility = ["//extensions:__pkg__"],
+    default_visibility = [
+        "//extensions:__pkg__",
+        "//publish:__pkg__",
+    ],
 )
 
 java_library(

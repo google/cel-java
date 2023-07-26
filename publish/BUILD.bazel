@@ -2,13 +2,78 @@ load("@rules_jvm_external//:defs.bzl", "java_export")
 load("@bazel_common//tools/maven:pom_file.bzl", "pom_file")
 load("//publish:cel_version.bzl", "CEL_VERSION")
 
+# Note: These targets must reference the build targets in `src` directly in
+# order to properly generate the maven dependencies in pom.xml.
+
 RUNTIME_TARGETS = [
-    "//runtime",
-    "//runtime:base",
-    "//runtime:interpreter",
-    "//runtime:runtime_helper",
-    "//runtime:unknown_attributes",
+    "//runtime/src/main/java/dev/cel/runtime",
+    "//runtime/src/main/java/dev/cel/runtime:base",
+    "//runtime/src/main/java/dev/cel/runtime:interpreter",
+    "//runtime/src/main/java/dev/cel/runtime:runtime_helper",
+    "//runtime/src/main/java/dev/cel/runtime:unknown_attributes",
 ]
+
+COMPILER_TARGETS = [
+    "//parser/src/main/java/dev/cel/parser",
+    "//parser/src/main/java/dev/cel/parser:parser_builder",
+    "//checker/src/main/java/dev/cel/checker:checker",
+    "//checker/src/main/java/dev/cel/checker:checker_builder",
+    "//checker/src/main/java/dev/cel/checker:proto_type_mask",
+    "//checker/src/main/java/dev/cel/checker:proto_expr_visitor",
+    "//compiler/src/main/java/dev/cel/compiler",
+    "//compiler/src/main/java/dev/cel/compiler:compiler_builder",
+]
+
+V1ALPHA1_UTILITY_TARGETS = [
+    "//common/src/main/java/dev/cel/common:proto_v1alpha1_ast",
+]
+
+EXTENSION_TARGETS = [
+    "//extensions/src/main/java/dev/cel/extensions",
+    "//extensions/src/main/java/dev/cel/extensions:optional_library",
+]
+
+ALL_TARGETS = [
+    "//bundle/src/main/java/dev/cel/bundle:cel",
+] + RUNTIME_TARGETS + COMPILER_TARGETS + EXTENSION_TARGETS + V1ALPHA1_UTILITY_TARGETS
+
+pom_file(
+    name = "cel_pom",
+    substitutions = {
+        "CEL_VERSION": CEL_VERSION,
+        "CEL_ARTIFACT_ID": "cel",
+        "PACKAGE_NAME": "CEL Java",
+        "PACKAGE_DESC": "Common Expression Language for Java. This include both the compilation and runtime packages.",
+    },
+    targets = ALL_TARGETS,
+    template_file = "pom_template.xml",
+)
+
+java_export(
+    name = "cel",
+    maven_coordinates = "dev.cel:cel:%s" % CEL_VERSION,
+    pom_template = ":cel_pom",
+    runtime_deps = ALL_TARGETS,
+)
+
+pom_file(
+    name = "cel_compiler_pom",
+    substitutions = {
+        "CEL_VERSION": CEL_VERSION,
+        "CEL_ARTIFACT_ID": "compiler",
+        "PACKAGE_NAME": "CEL Java Compiler",
+        "PACKAGE_DESC": "Common Expression Language Compiler for Java",
+    },
+    targets = COMPILER_TARGETS,
+    template_file = "pom_template.xml",
+)
+
+java_export(
+    name = "cel_compiler",
+    maven_coordinates = "dev.cel:compiler:%s" % CEL_VERSION,
+    pom_template = ":cel_compiler_pom",
+    runtime_deps = COMPILER_TARGETS,
+)
 
 pom_file(
     name = "cel_runtime_pom",
@@ -29,9 +94,24 @@ java_export(
     runtime_deps = RUNTIME_TARGETS,
 )
 
-V1ALPHA1_UTILITY_TARGETS = [
-    "//common:proto_v1alpha1_ast",
-]
+pom_file(
+    name = "cel_extensions_pom",
+    substitutions = {
+        "CEL_VERSION": CEL_VERSION,
+        "CEL_ARTIFACT_ID": "extensions",
+        "PACKAGE_NAME": "CEL Java Extensions",
+        "PACKAGE_DESC": "Common Expression Language Extensions for Java",
+    },
+    targets = EXTENSION_TARGETS,
+    template_file = "pom_template.xml",
+)
+
+java_export(
+    name = "cel_extensions",
+    maven_coordinates = "dev.cel:extensions:%s" % CEL_VERSION,
+    pom_template = ":cel_extensions_pom",
+    runtime_deps = EXTENSION_TARGETS,
+)
 
 pom_file(
     name = "cel_v1alpha1_pom",

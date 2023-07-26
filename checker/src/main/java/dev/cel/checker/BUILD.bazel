@@ -4,6 +4,7 @@ package(
     ],
     default_visibility = [
         "//checker:__pkg__",
+        "//publish:__pkg__",
     ],
 )
 
