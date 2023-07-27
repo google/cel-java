@@ -35,6 +35,30 @@ CHECKER_LEGACY_ENV_SOURCES = [
 ]
 
 java_library(
+    name = "type_provider_legacy",
+    srcs = [
+        "DescriptorTypeProvider.java",
+        "TypeProvider.java",
+        "Types.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//:auto_value",
+        "//common/annotations",
+        "//common/internal:file_descriptor_converter",
+        "//common/types",
+        "//common/types:cel_types",
+        "//common/types:type_providers",
+        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
     name = "checker",
     srcs = CHECKER_SOURCES,
     tags = [
@@ -44,7 +68,7 @@ java_library(
         ":checker_builder",
         ":checker_legacy_environment",
         ":proto_type_mask",
-        ":provider_legacy",
+        ":type_provider_legacy_impl",
         "//:auto_value",
         "//common",
         "//common:compiler_common",
@@ -115,7 +139,7 @@ java_library(
 )
 
 java_library(
-    name = "provider_legacy",
+    name = "type_provider_legacy_impl",
     srcs = ["TypeProviderLegacyImpl.java"],
     tags = [
     ],

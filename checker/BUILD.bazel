@@ -19,9 +19,15 @@ java_library(
 )
 
 java_library(
-    name = "provider_legacy",
+    name = "type_provider_legacy",
+    deprecation = "Please use CelTypeProvider instead in //common/types:type_providers",
+    exports = ["//checker/src/main/java/dev/cel/checker:type_provider_legacy"],
+)
+
+java_library(
+    name = "type_provider_legacy_impl",
     visibility = ["//visibility:public"],
-    exports = ["//checker/src/main/java/dev/cel/checker:provider_legacy"],
+    exports = ["//checker/src/main/java/dev/cel/checker:type_provider_legacy_impl"],
 )
 
 java_library(
