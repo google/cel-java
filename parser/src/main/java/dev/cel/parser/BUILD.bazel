@@ -127,7 +127,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//checker:checker_legacy_environment",
+        "//checker:proto_expr_visitor",
         "//parser:operator",
         "@cel_spec//proto/dev/cel/expr:expr_java_proto",
         "@maven//:com_google_protobuf_protobuf_java",

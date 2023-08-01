@@ -15,11 +15,12 @@
 package dev.cel.checker;
 
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelProtoAbstractSyntaxTree;
 
 /** CEL expression visitor implementation based on the {@link com.google.api.expr.Expr} proto. */
 public abstract class CelProtoExprVisitor extends ExprVisitor {
   /** Visit the {@code ast} value, routing to overloads based on the kind of expression. */
   public void visit(CelAbstractSyntaxTree ast) {
-    visit(ast.getProtoExpr());
+    visit(CelProtoAbstractSyntaxTree.fromCelAst(ast).getExpr());
   }
 }

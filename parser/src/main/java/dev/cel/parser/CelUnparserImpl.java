@@ -21,7 +21,7 @@ import dev.cel.expr.Expr.ExprKindCase;
 import dev.cel.expr.ParsedExpr;
 import dev.cel.expr.SourceInfo;
 import com.google.protobuf.ByteString;
-import dev.cel.checker.ExprVisitor;
+import dev.cel.checker.CelProtoExprVisitor;
 import java.util.Optional;
 
 /** Unparser implementation for CEL. */
@@ -44,7 +44,7 @@ final class CelUnparserImpl implements CelUnparser {
     return CelUnparserExprVisitor.unparse(parsedExpr);
   }
 
-  static final class CelUnparserExprVisitor extends ExprVisitor {
+  static final class CelUnparserExprVisitor extends CelProtoExprVisitor {
     private final Expr expr;
     private final SourceInfo sourceInfo;
     private final StringBuilder stringBuilder;
