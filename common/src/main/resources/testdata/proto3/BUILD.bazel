@@ -24,6 +24,8 @@ proto_library(
 
 java_proto_library(
     name = "test_all_types_java_proto",
+    tags = [
+    ],
     deps = [":test_all_types_proto"],
 )
 
@@ -34,5 +36,7 @@ proto_library(
 
 java_proto_library(
     name = "standalone_global_enum_java_proto",
+    tags = [
+    ],
     deps = [":standalone_global_enum_proto"],
 )
