@@ -44,11 +44,11 @@ public class CelExtensionsTest {
             + " 'hello'.replace('he', 'we') == 'wello' && 'hello'.upperAscii() == 'HELLO' && '"
             + " hello '.trim() == 'hello' && ['he','llo'].join() == 'hello' && 'hi'.split('') =="
             + " ['h','i']";
-    CelRuntime.Program program = cel.createProgram(cel.compile(allStringExtExpr).getAst());
 
-    Object evaluatedResult = program.eval();
+    boolean evaluatedResult =
+        (boolean) cel.createProgram(cel.compile(allStringExtExpr).getAst()).eval();
 
-    assertThat(evaluatedResult).isEqualTo(true);
+    assertThat(evaluatedResult).isTrue();
   }
 
   @Test
@@ -59,13 +59,14 @@ public class CelExtensionsTest {
             .addCompilerLibraries(extensions)
             .addRuntimeLibraries(extensions)
             .build();
-    CelRuntime.Program program =
-        cel.createProgram(
-            cel.compile("'test'.substring(2) == 'st' && 'hello'.charAt(1) == 'e'").getAst());
 
-    Object evaluatedResult = program.eval();
+    boolean evaluatedResult =
+        (boolean)
+            cel.createProgram(
+                    cel.compile("'test'.substring(2) == 'st' && 'hello'.charAt(1) == 'e'").getAst())
+                .eval();
 
-    assertThat(evaluatedResult).isEqualTo(true);
+    assertThat(evaluatedResult).isTrue();
   }
 
   @Test
@@ -101,10 +102,10 @@ public class CelExtensionsTest {
             .build();
     String allMathExtExpr = "math.greatest(1, 2.0) == 2.0 && math.least(1, 2.0) == 1";
 
-    CelRuntime.Program program = cel.createProgram(cel.compile(allMathExtExpr).getAst());
-    Object evaluatedResult = program.eval();
+    boolean evaluatedResult =
+        (boolean) cel.createProgram(cel.compile(allMathExtExpr).getAst()).eval();
 
-    assertThat(evaluatedResult).isEqualTo(true);
+    assertThat(evaluatedResult).isTrue();
   }
 
   @Test
@@ -116,11 +117,26 @@ public class CelExtensionsTest {
             .addRuntimeLibraries(CelExtensions.math(celOptions, CelMathExtensions.Function.MAX))
             .build();
 
-    CelRuntime.Program program =
-        cel.createProgram(cel.compile("math.greatest(1, 2.0) == 2.0").getAst());
-    Object evaluatedResult = program.eval();
+    boolean evaluatedResult =
+        (boolean) cel.createProgram(cel.compile("math.greatest(1, 2.0) == 2.0").getAst()).eval();
 
-    assertThat(evaluatedResult).isEqualTo(true);
+    assertThat(evaluatedResult).isTrue();
     assertThrows(CelValidationException.class, () -> cel.compile("math.least(1,2)").getAst());
   }
+
+  @Test
+  public void addEncoderExtension_success() throws Exception {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addCompilerLibraries(CelExtensions.encoders())
+            .addRuntimeLibraries(CelExtensions.encoders())
+            .build();
+
+    boolean evaluatedResult =
+        (boolean)
+            cel.createProgram(cel.compile("base64.decode('aGVsbG8=') == b'hello'").getAst()).eval();
+
+    assertThat(evaluatedResult).isTrue();
+  }
 }
+

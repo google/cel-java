@@ -306,3 +306,35 @@ Examples:
 
      'TacoCat'.upperAscii()      // returns 'TACOCAT'
      'TacoCÆt Xii'.upperAscii()  // returns 'TACOCÆT XII'
+
+## Encoders
+
+Encoding utilities for marshalling data into standardized representations.
+
+### Base64.Decode
+
+Decodes base64-encoded string to bytes.
+
+This function will return an error if the string input is not
+base64-encoded.
+
+    base64.decode(<string>) -> <bytes>
+
+Examples:
+
+    base64.decode('aGVsbG8=')  // return b'hello'
+    base64.decode('aGVsbG8')   // return b'hello'. Note that the padding
+                               // character can be omitted.
+    base64.decode('z!')        // error
+
+### Base64.Encode
+
+Encodes bytes to a base64-encoded string. Note that the string is encoded in
+ISO_8859_1.
+
+    base64.encode(<bytes>)  -> <string>
+
+Example:
+
+    base64.encode(b'hello') // return 'aGVsbG8='
+

@@ -29,6 +29,7 @@ public final class CelExtensions {
   private static final CelStringExtensions STRING_EXTENSIONS_ALL = new CelStringExtensions();
   private static final CelProtoExtensions PROTO_EXTENSIONS = new CelProtoExtensions();
   private static final CelBindingsExtensions BINDINGS_EXTENSIONS = new CelBindingsExtensions();
+  private static final CelEncoderExtensions ENCODER_EXTENSIONS = new CelEncoderExtensions();
 
   /**
    * Extended functions for string manipulation.
@@ -157,6 +158,16 @@ public final class CelExtensions {
    */
   public static CelBindingsExtensions bindings() {
     return BINDINGS_EXTENSIONS;
+  }
+
+  /**
+   * Extended functions for string, byte and object encodings.
+   *
+   * <p>This adds {@code base64.encode} and {@code base64.decode} functions. See README.md for their
+   * documentation.
+   */
+  public static CelEncoderExtensions encoders() {
+    return ENCODER_EXTENSIONS;
   }
 
   private CelExtensions() {}
