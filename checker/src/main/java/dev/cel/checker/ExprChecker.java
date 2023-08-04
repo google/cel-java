@@ -52,10 +52,12 @@ import org.jspecify.nullness.Nullable;
 /**
  * The expression type checker.
  *
- * <p>CEL Library Internals. Do Not Use. CEL-Java users should leverage the Fluent APIs instead. See
- * {@code CelCompilerFactory}.
+ * <p>CEL-Java library internals. Do not use.
+ *
+ * @deprecated Please migrate to CEL-Java Fluent APIs instead. See {@code CelCompilerFactory}.
  */
 @Internal
+@Deprecated
 public final class ExprChecker {
 
   /**
