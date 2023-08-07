@@ -33,7 +33,7 @@ java_library(
         "//runtime:runtime_helper",
         "//runtime:unknown_attributes",
         "//runtime:unknown_options",
-        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
         "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
         "@maven//:com_google_guava_guava",

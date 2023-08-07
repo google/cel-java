@@ -73,7 +73,7 @@ java_library(
         ":type_providers",
         ":types",
         "//common/annotations",
-        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
     ],

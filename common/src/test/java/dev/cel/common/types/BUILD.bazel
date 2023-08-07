@@ -16,7 +16,7 @@ java_library(
         "//common/types:cel_types",
         "//common/types:message_type_provider",
         "//common/types:type_providers",
-        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:com_google_truth_extensions_truth_proto_extension",

@@ -98,7 +98,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -129,7 +129,7 @@ java_library(
     deps = [
         "//checker:proto_expr_visitor",
         "//parser:operator",
-        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_protobuf_protobuf_java",
     ],
 )

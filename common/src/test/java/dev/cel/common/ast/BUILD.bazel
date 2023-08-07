@@ -22,7 +22,7 @@ java_library(
         "//compiler:compiler_builder",
         "//parser:macro",
         "//parser:operator",
-        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",

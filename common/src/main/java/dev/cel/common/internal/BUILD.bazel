@@ -105,7 +105,7 @@ java_library(
         "//common:runtime_exception",
         "//common/annotations",
         "//common/types:cel_types",
-        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -152,6 +152,6 @@ java_library(
     ],
     deps = [
         "//common/annotations",
-        "@cel_spec//proto/dev/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
     ],
 )

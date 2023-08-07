@@ -136,10 +136,10 @@ http_archive(
 # cel-spec api/expr canonical protos
 http_archive(
     name = "cel_spec",
-    sha256 = "a1a46fe46903fccbbc46811570dfdc64589b031e60d99a9ae93e3e8a21f7f1c5",
-    strip_prefix = "cel-spec-c8bbae9828aea503e17300affc7e0b7264a4983e",
+    sha256 = "6c2d9ec6dd5e2afbc41423dcaeca9fdd73edcd76554a897caee5b9a2b0e20491",
+    strip_prefix = "cel-spec-0.11.0",
     urls = [
-        "https://github.com/google/cel-spec/archive/c8bbae9828aea503e17300affc7e0b7264a4983e.tar.gz",
+        "https://github.com/google/cel-spec/archive/refs/tags/v0.11.0.tar.gz",
     ],
 )
 
