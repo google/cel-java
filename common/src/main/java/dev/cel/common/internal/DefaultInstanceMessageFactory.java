@@ -196,16 +196,18 @@ final class DefaultInstanceMessageFactory {
   private static final class LazyGeneratedMessageDefaultInstance {
     private final String fullClassName;
     private volatile Message defaultInstance = null;
+    private volatile boolean loaded = false;
 
     public LazyGeneratedMessageDefaultInstance(String fullClassName) {
       this.fullClassName = fullClassName;
     }
 
     public Message getDefaultInstance() {
-      if (defaultInstance == null) {
+      if (!loaded) {
         synchronized (this) {
-          if (defaultInstance == null) {
+          if (!loaded) {
             loadDefaultInstance();
+            loaded = true;
           }
         }
       }
