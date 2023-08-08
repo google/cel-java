@@ -28,17 +28,77 @@ scripting language is too resource intensive.
 
 ---
 
+* [Quick Start](#quick-start)
 * [Overview](#overview)
     * [Environment Setup](#environment-setup)
-    * [Parse and Check](#parse-and-check)
-    * [Macros](#macros)
-    * [Evaluate](#evaluate)
-    * [Errors](#Errors)
+    * [Parsing](#parsing)
+    * [Checking](#checking)
+        * [Macros](#macros)
+    * [Evaluation](#evaluation)
+        * [Errors](#errors)
+    * [Extensions](#extensions)
 * [Install](#install)
 * [Common Questions](#common-questions)
 * [License](#license)
 
 ---
+
+## Quick Start
+
+### Install
+
+CEL-Java is available in Maven Central Repository. [Download the JARs here][8] or add the following to your build dependencies:
+
+**Maven (pom.xml)**:
+
+```xml
+<dependency>
+  <groupId>dev.cel</groupId>
+  <artifactId>cel</artifactId>
+  <version>0.2.0</version>
+</dependency>
+```
+
+**Gradle**
+
+```gradle
+implementation 'dev.cel:cel:0.2.0'
+```
+
+Then run this example:
+
+```java
+import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelValidationException;
+import dev.cel.common.types.SimpleType;
+import dev.cel.compiler.CelCompiler;
+import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntimeFactory;
+import java.util.Map;
+
+public class HelloWorld {
+  // Construct the compilation and runtime environments.
+  // These instances are immutable and thus trivially thread-safe and amenable to caching.
+  private static final CelCompiler CEL_COMPILER =
+      CelCompilerFactory.standardCelCompilerBuilder().addVar("my_var", SimpleType.STRING).build();
+  private static final CelRuntime CEL_RUNTIME =
+      CelRuntimeFactory.standardCelRuntimeBuilder().build();
+
+  public void run() throws CelValidationException, CelEvaluationException {
+    // Compile the expression into an Abstract Syntax Tree.
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("my_var + '!'").getAst();
+
+    // Plan an executable program instance.
+    CelRuntime.Program program = CEL_RUNTIME.createProgram(ast);
+
+    // Evaluate the program with an input variable.
+    String result = (String) program.eval(Map.of("my_var", "Hello World"));
+    System.out.println(result); // 'Hello World!'
+  }
+}
+```
 
 ## Overview
 
@@ -48,22 +108,91 @@ against some input. Checking is optional, but strongly encouraged.
 
 ### Environment Setup
 
-This section will be completed once parser and type-checker has been added.
+Configuration for the entire CEL stack can be done all at once via the
+`CelFactory.standardCelBuilder()`, or can be composed into compilation and
+evaluation via the `CelCompilerFactory` and `CelRuntimeFactory`.
 
-### Parse and Check
+The simplest form of CEL usage is as follows:
 
-Parsing and type-checking support are currently not available in Java but will
-be added in the near future. In the interim, you may consider
-leveraging [Go implementation of CEL][4]
-to produce a type-checked expression to evaluate it in CEL-Java.
+```java
+Cel cel = CelFactory.standardCelBuilder().build();
+```
+
+More commonly, your application will want to configure type-checking separately
+from the runtime. Use `CelCompilerFactory` to construct a compilation
+environment and declare the types, macros, variables, and functions to use with
+your CEL application:
+
+```java
+// Example environment for the following expression:
+//    resource.name.startsWith('/groups/' + group)
+CelCompiler cel = CelCompilerFactory.standardCelCompilerBuilder()
+    .setStandardMacros(CelStandardMacro.HAS)
+    .setContainer("google.rpc.context.AttributeContext")
+    .addMessageTypes(AttributeContext.getDescriptor())
+    .addVar("resource",
+        StructTypeReference.create("google.rpc.context.AttributeContext.Resource"))
+    .addVar("group", SimpleType.STRING)
+    .build();
+```
+
+More information about the features which are supported on the builder may be
+found in the [`CelCompilerBuilder`][9].
+
+### Parsing
+
+Some CEL use cases only require parsing of an expression in order to be useful.
+For example, one example might want to check whether the expression contains any
+nested comprehensions, or possibly to pass the parsed expression to a C++ or Go
+binary for evaluation. Presently, Java does not support parse-only evaluation.
+
+```java
+CelValidationResult parseResult =
+    cel.parse("resource.name.startsWith('/groups/' + group)");
+try {
+  return parseResult.getAst();
+} catch (CelValidationException e) {
+  // Handle exception...
+}
+```
+
+### Checking
+
+Type-checking is performed on `CelAbstractSyntaxTree` values to ensure that the
+expression is well formed and all variable and function references are defined.
+
+Type-checking can be performed immediately after parsing an expression:
+
+```java
+try {
+  CelValidationResult parseResult =
+      cel.parse("resource.name.startsWith('/groups/' + group)");
+  CelValidationResult checkResult = cel.check(parseResult.getAst());
+  return checkResult.getAst();
+} catch (CelValidationException e) {
+  // Handle exception...
+}
+```
+
+Or, the parse and type-check can be combined into the `compile` call. This is
+likely the more common need.
+
+```java
+CelValidationResult compileResult =
+    cel.compile("resource.name.startsWith('/groups/' + group)");
+try {
+  return compileResult.getAst();
+} catch (CelValidationException e) {
+  // Handle exception...
+}
+```
 
 #### Macros
 
-Macros are optional but enabled by default. Macros were introduced to support
-optional CEL features that might not be desired in all use cases without the
-syntactic burden and complexity such features might desire if they were part of
-the core CEL syntax. Macros are expanded at parse time and their expansions are
-type-checked at check time.
+Macros were introduced to support optional CEL features that might not be
+desired in all use cases without the syntactic burden and complexity such
+features might desire if they were part of the core CEL syntax. Macros are
+expanded at parse time and their expansions are type-checked at check time.
 
 For example, when macros are enabled it is possible to support bounded iteration
 / fold operators. The macros `all`, `exists`, `exists_one`, `filter`, and `map`
@@ -87,27 +216,36 @@ has(message.field)
 Both cases traditionally require special syntax at the language level, but these
 features are exposed via macros in CEL.
 
-### Evaluate
-
-Now, evaluate for fun and profit. The evaluation is thread-safe and side-effect
-free. Many different inputs can be sent to the same `cel.Program` and if fields
-are present in the input, but not referenced in the expression, they are
-ignored.
+Refer to the [CEL Specification][10] for full listings of available macros. To
+leverage them, simply set the desired macros via `setStandardMacros` on the
+builder:
 
 ```java
-import dev.cel.common.CelAbstractSyntaxTree;
-import dev.cel.runtime.CelRuntimeFactory;
+CelCompiler.standardCelBuilder()
+  .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+```
 
+### Evaluation
+
+Expressions can be evaluated using once they are type-checked/compiled by
+creating a `CelRuntime.Program` from a `CelAbstractSyntaxTree`:
+
+```java
 CelRuntime celRuntime = CelRuntimeFactory.standardCelRuntimeBuilder().build();
-CelAbstractSyntaxTree ast = CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst();
-
 try {
-  CelRuntime.Program program = celRuntime.createProgram(ast);
-  Object evaluatedResult = program.eval(parameterValues);
+  CelRuntime.Program program = celRuntime.createProgram(compileResult.getAst());
+  return program.eval(
+      ImmutableMap.of(
+          "resource", Resource.newBuilder().setName("/groups/").build(),
+          "group", "admin"
+      ));
 } catch (CelEvaluationException e) {
-  throw new IllegalArgumentException("Evaluation error has occurred.",e);
+  // Handle evaluation exceptions ...
 }
 ```
+
+The evaluation is thread-safe and side effect free thus many different inputs can
+be sent to the same `cel.Program`.
 
 #### Partial State
 
@@ -148,29 +286,42 @@ possibly relevant to the result.
 
 ### Errors
 
-This section will be completed once parser and type-checker has been added.
+Parse and check errors have friendly error messages with pointers to where the
+issues occur in source:
 
-## Install
-
-CEL-Java is available in Maven Central Repository. [Download the JARs here][6] or add the following to your build dependencies:
-
-**Maven (pom.xml)**:
-
-```xml
-<dependency>
-  <groupId>dev.cel</groupId>
-  <artifactId>runtime</artifactId>
-  <version>0.1.0</version>
-</dependency>
+```sh
+ERROR: <input>:1:40: undefined field 'undefined'
+    | TestAllTypes{single_int32: 1, undefined: 2}
+    | .......................................^`,
 ```
 
-**Gradle**
+Both the parsed and checked expressions contain source position information
+about each node that appears in the output AST. This information can be used
+to determine error locations at evaluation time as well.
 
-```gradle
-implementation 'dev.cel:runtime:0.1.0'
+### Extensions
+
+CEL-Java offers a suite of [canonical extensions][11] to support commonly
+needed features that falls outside the CEL specification.
+
+Examples:
+
+```java
+// String manipulation
+'hello hello'.replace('he', 'we')     // returns 'wello wello'
+'hello hello hello'.split(' ')     // returns ['hello', 'hello', 'hello']
+
+// Math extensions
+math.greatest(-42.0, -21.5, -100.0)   // -21.5
+math.least(-42.0, -21.5, -100.0)   // -100.0
+
+// Proto extensions
+proto.getExt(msg, google.expr.proto2.test.int32_ext) // returns int value
+
+// Local bindings
+cel.bind(a, 'hello',
+    cel.bind(b, 'world', a + b + b + a)) // "helloworldworldhello"
 ```
-
-Note: if you are already using `com.google.api.expr.v1alpha1` protobuf definitions, you also need to take `dev:cel:v1alpha1:0.1.0` as a dependency and leverage `CelProtoV1Alpha1AbstractSyntaxTree` class to convert your protobuf objects. Please note that v1alpha1 is now deprecated and new consumers should opt to use `dev.cel.expr` protos instead.
 
 ## Common Questions
 
@@ -208,18 +359,18 @@ runtime bindings and error handling to do the right thing.
 ### How can I contribute?
 
 * See [CONTRIBUTING.md](./CONTRIBUTING.md) to get started.
-* Use [GitHub Issues][4] to request features or report bugs.
+* Use [GitHub Issues][7] to request features or report bugs.
 
 ### Dependencies
 
 Java 8 or newer is required.
 
-| Library               | Version | Details              |
-|-----------------------|---------|----------------------|
-| [Guava][2]            | 31.1    | N/A                  |
-| [RE2/J][3]            | 1.7     | N/A                  |
-| [Protocol Buffers][4] | 3.21.11 | Full or lite runtime |
-| [ANTLR4][5]           | 4.11.1  | Java runtime         |
+| Library               | Details              |
+|-----------------------|----------------------|
+| [Guava][3]            | N/A                  |
+| [RE2/J][4]            | N/A                  |
+| [Protocol Buffers][5] | Full or lite runtime |
+| [ANTLR4][6]           | Java runtime         |
 
 ## License
 
@@ -228,13 +379,13 @@ Released under the [Apache License](LICENSE).
 Disclaimer: This is not an official Google product.
 
 [1]:  https://github.com/google/cel-spec
-
 [2]:  https://groups.google.com/forum/#!forum/cel-java-discuss
-
-[3]:  https://github.com/google/cel-cpp
-
-[4]:  https://github.com/google/cel-go
-
-[5]:  https://github.com/google/cel-java/issues
-
-[6]:  https://search.maven.org/search?q=g:dev.cel
+[3]:  https://github.com/google/guava
+[4]:  https://github.com/google/re2j
+[5]:  https://github.com/protocolbuffers/protobuf/tree/master/java
+[6]:  https://github.com/antlr/antlr4/tree/master/runtime/Java
+[7]:  https://github.com/google/cel-java/issues
+[8]:  https://search.maven.org/search?q=g:dev.cel
+[9]:  https://github.com/google/cel-java/blob/main/compiler/src/main/java/dev/cel/compiler/CelCompilerBuilder.java
+[10]:  https://github.com/google/cel-spec/blob/master/doc/langdef.md#macros
+[11]:  https://github.com/google/cel-java/blob/main/extensions/src/main/java/dev/cel/extensions/README.md
