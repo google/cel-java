@@ -535,7 +535,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
       return exprFactory.newExprBuilder(context).build();
     }
     String id = context.id.getText();
-    if (RESERVED_IDS.contains(id)) {
+    if (options.enableReservedIds() && RESERVED_IDS.contains(id)) {
       return exprFactory.reportError(context, "reserved identifier: %s", id);
     }
     if (context.leadingDot != null) {
