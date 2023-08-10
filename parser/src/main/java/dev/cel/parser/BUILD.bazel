@@ -98,7 +98,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "//common/ast",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -127,9 +127,22 @@ java_library(
     tags = [
     ],
     deps = [
-        "//checker:proto_expr_visitor",
-        "//parser:operator",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
+        ":unparser_visitor",
+        "//common",
+        "//common:options",
+    ],
+)
+
+java_library(
+    name = "unparser_visitor",
+    srcs = ["CelUnparserVisitor.java"],
+    tags = [
+    ],
+    deps = [
+        ":operator",
+        "//common",
+        "//common/ast",
+        "//common/ast:cel_expr_visitor",
         "@maven//:com_google_protobuf_protobuf_java",
     ],
 )

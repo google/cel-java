@@ -15,20 +15,18 @@
 package dev.cel.parser;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 import static org.junit.Assert.assertThrows;
 
-import dev.cel.expr.Constant;
-import dev.cel.expr.Expr;
-import dev.cel.expr.Expr.Call;
-import dev.cel.expr.Expr.CreateStruct;
-import dev.cel.expr.Expr.CreateStruct.Entry;
-import dev.cel.expr.ParsedExpr;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameter.TestParameterValuesProvider;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
+import dev.cel.common.CelSource;
+import dev.cel.common.ast.CelExpr;
+import dev.cel.common.ast.CelExpr.CelCall;
+import dev.cel.common.ast.CelExpr.CelCreateStruct;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
@@ -162,51 +160,61 @@ public final class CelUnparserImplTest {
   public void unparse_succeeds(
       @TestParameter(valuesProvider = ValidExprDataProvider.class) String originalExpr)
       throws Exception {
-    ParsedExpr parsedExprOne =
-        CelProtoAbstractSyntaxTree.fromCelAst(parser.parse(originalExpr, "unparser").getAst())
-            .toParsedExpr();
+    CelAbstractSyntaxTree astOne = parser.parse(originalExpr, "unparser").getAst();
 
-    String unparsedResult = unparser.unparse(parsedExprOne);
+    String unparsedResult = unparser.unparse(astOne);
 
     assertThat(originalExpr).isEqualTo(unparsedResult);
     // parse again, confirm it's the same result
-    ParsedExpr parsedExprTwo =
-        CelProtoAbstractSyntaxTree.fromCelAst(parser.parse(unparsedResult, "unparser").getAst())
-            .toParsedExpr();
-    assertThat(parsedExprTwo).isEqualTo(parsedExprOne);
+    CelAbstractSyntaxTree astTwo = parser.parse(unparsedResult, "unparser").getAst();
+
+    assertThat(CelProtoAbstractSyntaxTree.fromCelAst(astTwo).toParsedExpr())
+        .isEqualTo(CelProtoAbstractSyntaxTree.fromCelAst(astOne).toParsedExpr());
   }
 
   private static final class InvalidExprDataProvider implements TestParameterValuesProvider {
     @Override
-    public List<Expr> provideValues() {
+    public List<CelExpr> provideValues() {
       return Arrays.asList(
-          Expr.getDefaultInstance(), // empty expr
-          Expr.newBuilder().setConstExpr(Constant.getDefaultInstance()).build(), // bad_constant
-          Expr.newBuilder()
-              .setCallExpr(
-                  Call.newBuilder()
+          CelExpr.newBuilder().build(), // empty expr
+          CelExpr.newBuilder()
+              .setCall(
+                  CelCall.newBuilder()
                       .setFunction("_&&_")
-                      .addArgs(Expr.getDefaultInstance())
-                      .addArgs(Expr.getDefaultInstance())
+                      .addArgs(CelExpr.newBuilder().build())
+                      .addArgs(CelExpr.newBuilder().build())
                       .build())
               .build(), // bad args
-          Expr.newBuilder()
-              .setStructExpr(
-                  CreateStruct.newBuilder()
+          CelExpr.newBuilder()
+              .setCreateStruct(
+                  CelCreateStruct.newBuilder()
                       .setMessageName("Msg")
-                      .addEntries(Entry.newBuilder().setFieldKey("field").build())
+                      .addEntries(
+                          CelCreateStruct.Entry.newBuilder()
+                              .setId(0)
+                              .setValue(CelExpr.newBuilder().build())
+                              .setFieldKey("field")
+                              .build())
                       .build())
               .build(), // bad struct
-          Expr.newBuilder()
-              .setStructExpr(
-                  CreateStruct.newBuilder()
+          CelExpr.newBuilder()
+              .setCreateStruct(
+                  CelCreateStruct.newBuilder()
                       .setMessageName("Msg")
-                      .addEntries(Entry.newBuilder().setMapKey(Expr.getDefaultInstance()).build())
+                      .addEntries(
+                          CelCreateStruct.Entry.newBuilder()
+                              .setId(0)
+                              .setValue(CelExpr.newBuilder().build())
+                              .setMapKey(CelExpr.newBuilder().build())
+                              .build())
                       .build())
               .build(), // bad map
-          Expr.newBuilder()
-              .setCallExpr(
-                  Call.newBuilder().setFunction("_[_]").addArgs(Expr.getDefaultInstance()).build())
+          CelExpr.newBuilder()
+              .setCall(
+                  CelCall.newBuilder()
+                      .setFunction("_[_]")
+                      .addArgs(CelExpr.newBuilder().build())
+                      .build())
               .build() // bad index
           );
     }
@@ -214,12 +222,45 @@ public final class CelUnparserImplTest {
 
   @Test
   public void unparse_fails(
-      @TestParameter(valuesProvider = InvalidExprDataProvider.class) Expr invalidExpr) {
+      @TestParameter(valuesProvider = InvalidExprDataProvider.class) CelExpr invalidExpr) {
     Throwable thrown =
         assertThrows(
             Throwable.class,
-            () -> unparser.unparse(ParsedExpr.newBuilder().setExpr(invalidExpr).build()));
+            () ->
+                unparser.unparse(
+                    new CelAbstractSyntaxTree(invalidExpr, CelSource.newBuilder().build())));
 
     assertThat(thrown).hasMessageThat().contains("unexpected");
+  }
+
+  @Test
+  public void unparse_comprehensionWithoutMacroCallTracking_presenceTestSucceeds()
+      throws Exception {
+    CelParserImpl parser =
+        CelParserImpl.newBuilder()
+            .setOptions(CelOptions.newBuilder().populateMacroCalls(false).build())
+            .addMacros(CelMacro.STANDARD_MACROS)
+            .build();
+    CelAbstractSyntaxTree ast = parser.parse("has(hello.world)").getAst();
+
+    assertThat(unparser.unparse(ast)).isEqualTo("has(hello.world)");
+  }
+
+  @Test
+  public void unparse_comprehensionWithoutMacroCallTracking_throwsException() throws Exception {
+    CelParserImpl parser =
+        CelParserImpl.newBuilder()
+            .setOptions(CelOptions.newBuilder().populateMacroCalls(false).build())
+            .addMacros(CelMacro.STANDARD_MACROS)
+            .build();
+    CelAbstractSyntaxTree ast = parser.parse("[1, 2, 3].all(x, x > 0)").getAst();
+
+    UnsupportedOperationException e =
+        assertThrows(UnsupportedOperationException.class, () -> unparser.unparse(ast));
+    assertThat(e)
+        .hasMessageThat()
+        .contains(
+            "Comprehension unparsing requires macro calls to be populated. Ensure the option is"
+                + " enabled.");
   }
 }

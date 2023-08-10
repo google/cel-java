@@ -14,22 +14,23 @@
 
 package dev.cel.parser;
 
-import dev.cel.expr.ParsedExpr;
+import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelOptions;
 
 /**
- * Provides an unparsing utility that converts a ParsedExpr back into a human readable format.
+ * Provides an unparsing utility that converts an AST back into a human-readable format.
  *
- * <p>Input to the unparser is a ParsedExpr. The unparser does not do any checks to see if the
- * ParsedExpr is syntactically or semantically correct but does checks enough to prevent its crash
- * and might return errors in such cases.
+ * <p>Input to the unparser is a {@link CelAbstractSyntaxTree}. The unparser does not do any checks
+ * to see if the AST is syntactically or semantically correct but does check enough to prevent its
+ * crash and might return errors in such cases.
  */
 public interface CelUnparser {
 
   /**
-   * Unparses the {@link ParsedExpr} value to a human-readable string.
+   * Unparses the {@link CelAbstractSyntaxTree} value to a human-readable string.
    *
-   * <p>For the best results ensure that the expression is parsed with ParserOptions.add_macro_calls
-   * = true.
+   * <p>To reconstruct an expression that originally contained a macro call, ensure the expression
+   * was parsed with {@link CelOptions#populateMacroCalls()} enabled.
    */
-  String unparse(ParsedExpr parsedExpr);
+  String unparse(CelAbstractSyntaxTree ast);
 }

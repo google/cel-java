@@ -19,10 +19,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import dev.cel.expr.Expr;
-import dev.cel.expr.Expr.Call;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
+import dev.cel.common.ast.CelExpr;
+import dev.cel.common.ast.CelExpr.CelCall;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -155,7 +155,8 @@ public final class OperatorTest {
     "{operator1: '_!=_', operator2: '_?_:_'}",
   })
   public void operatorLowerPrecedence(String operator1, String operator2) {
-    Expr expr = Expr.newBuilder().setCallExpr(Call.newBuilder().setFunction(operator2)).build();
+    CelExpr expr =
+        CelExpr.newBuilder().setCall(CelCall.newBuilder().setFunction(operator2).build()).build();
 
     assertTrue(Operator.isOperatorLowerPrecedence(operator1, expr));
   }
@@ -170,16 +171,10 @@ public final class OperatorTest {
     "{operator1: '_!=_', operator2: '_-_'}",
   })
   public void operatorNotLowerPrecedence(String operator1, String operator2) {
-    Expr expr = Expr.newBuilder().setCallExpr(Call.newBuilder().setFunction(operator2)).build();
+    CelExpr expr =
+        CelExpr.newBuilder().setCall(CelCall.newBuilder().setFunction(operator2).build()).build();
 
     assertFalse(Operator.isOperatorLowerPrecedence(operator1, expr));
-  }
-
-  @Test
-  public void operatorNotLowerPrecedenceWhenNoCallExpr() {
-    assertFalse(
-        Operator.isOperatorLowerPrecedence(
-            "_?_:_", Expr.newBuilder().setCallExpr(Call.getDefaultInstance()).build()));
   }
 
   @Test
