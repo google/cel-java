@@ -27,8 +27,8 @@ public final class CelRuntimeFactory {
    */
   public static CelRuntimeBuilder standardCelRuntimeBuilder() {
     return CelRuntimeLegacyImpl.newBuilder()
-        .setOptions(CelOptions.current().build())
-        .setStandardEnvironmentEnabled(true);
+        .setOptions(CelOptions.current().build()) // Test
+        .setStandardEnvironmentEnabled(false);
   }
 
   private CelRuntimeFactory() {}
