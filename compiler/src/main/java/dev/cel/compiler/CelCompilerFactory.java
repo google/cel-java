@@ -30,7 +30,7 @@ public final class CelCompilerFactory {
    */
   public static CelCheckerBuilder standardCelCheckerBuilder() {
     return CelCheckerLegacyImpl.newBuilder()
-        .setOptions(CelOptions.current().build())
+        .setOptions(CelOptions.current().build()) // Test
         .setStandardEnvironmentEnabled(true);
   }
 
@@ -44,7 +44,7 @@ public final class CelCompilerFactory {
 
     return CelCompilerImpl.newBuilder(CelParserImpl.newBuilder(), CelCheckerLegacyImpl.newBuilder())
         .setOptions(CelOptions.current().build())
-        .setStandardEnvironmentEnabled(true);
+        .setStandardEnvironmentEnabled(false);
   }
 
   private CelCompilerFactory() {}
