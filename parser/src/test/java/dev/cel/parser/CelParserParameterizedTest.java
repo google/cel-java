@@ -185,6 +185,11 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
     runTest(PARSER, "Msg{?field: value}");
     runTest(PARSER, "[?a, ?b]");
     runTest(PARSER, "[?a[?b]]");
+    runTest(
+        CelParserImpl.newBuilder()
+            .setOptions(CelOptions.current().enableReservedIds(false).build())
+            .build(),
+        "while");
   }
 
   @Test

@@ -14,8 +14,8 @@
 
 package dev.cel.parser;
 
-import dev.cel.expr.Expr;
 import com.google.common.collect.ImmutableMap;
+import dev.cel.common.ast.CelExpr;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -60,11 +60,11 @@ public enum Operator {
   private final String functionName;
   private final String displayName;
 
-  private Operator(String functionName) {
+  Operator(String functionName) {
     this(functionName, "");
   }
 
-  private Operator(String functionName, String displayName) {
+  Operator(String functionName, String displayName) {
     this.functionName = functionName;
     this.displayName = displayName;
   }
@@ -193,11 +193,11 @@ public enum Operator {
     return Optional.ofNullable(BINARY_OPERATORS.get(op));
   }
 
-  static boolean isOperatorLowerPrecedence(String op, Expr expr) {
-    if (!expr.hasCallExpr()) {
+  static boolean isOperatorLowerPrecedence(String op, CelExpr expr) {
+    if (!expr.exprKind().getKind().equals(CelExpr.ExprKind.Kind.CALL)) {
       return false;
     }
-    return lookupPrecedence(op) < lookupPrecedence(expr.getCallExpr().getFunction());
+    return lookupPrecedence(op) < lookupPrecedence(expr.call().function());
   }
 
   static boolean isOperatorLeftRecursive(String op) {
