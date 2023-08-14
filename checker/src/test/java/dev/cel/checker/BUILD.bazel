@@ -10,10 +10,6 @@ java_library(
     srcs = glob(["*Test.java"]),
     resources = ["//checker/src/test/resources:baselines"],
     deps = [
-        "@cel_spec//proto/cel/expr:expr_java_proto",
-        "@maven//:com_google_protobuf_protobuf_java",
-        "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
-        "@maven//:com_google_guava_guava",
         #         "//java/com/google/testing/testsize:annotations",
         "//:auto_value",
         "//checker",
@@ -50,6 +46,10 @@ java_library(
         "@maven//:junit_junit",
         "//:java_truth",
         "@maven//:com_google_truth_extensions_truth_proto_extension",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 

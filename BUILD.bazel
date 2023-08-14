@@ -83,21 +83,24 @@ java_library(
 )
 
 load(
-  "@bazel_tools//tools/jdk:default_java_toolchain.bzl",
-  "default_java_toolchain", "DEFAULT_TOOLCHAIN_CONFIGURATION", "BASE_JDK9_JVM_OPTS", "DEFAULT_JAVACOPTS"
+    "@bazel_tools//tools/jdk:default_java_toolchain.bzl",
+    "BASE_JDK9_JVM_OPTS",
+    "DEFAULT_JAVACOPTS",
+    "DEFAULT_TOOLCHAIN_CONFIGURATION",
+    "default_java_toolchain",
 )
 
 default_java_toolchain(
-  name = "repository_default_toolchain",
-  configuration = DEFAULT_TOOLCHAIN_CONFIGURATION,
-  java_runtime = "@bazel_tools//tools/jdk:remote_jdk11",
-  jvm_opts = BASE_JDK9_JVM_OPTS,
-  javacopts = DEFAULT_JAVACOPTS,
-  source_version = "8",
-  target_version = "8",
-  package_configuration = [
-    ":error_prone",
-  ],
+    name = "repository_default_toolchain",
+    configuration = DEFAULT_TOOLCHAIN_CONFIGURATION,
+    java_runtime = "@bazel_tools//tools/jdk:remote_jdk11",
+    javacopts = DEFAULT_JAVACOPTS,
+    jvm_opts = BASE_JDK9_JVM_OPTS,
+    package_configuration = [
+        ":error_prone",
+    ],
+    source_version = "8",
+    target_version = "8",
 )
 
 # This associates a set of javac flags with a set of packages
@@ -105,8 +108,6 @@ java_package_configuration(
     name = "error_prone",
     # keep sorted
     javacopts = [
-        "-XepDisableWarningsInGeneratedCode",
-        "-XepExcludedPaths:.*/bazel-out/.*",
         "-Xep:AmbiguousMethodReference:ERROR",
         "-Xep:BadAnnotationImplementation:ERROR",
         "-Xep:BadComparable:ERROR",
@@ -169,6 +170,8 @@ java_package_configuration(
         "-Xep:UnusedVariable:ERROR",
         "-Xep:WaitNotInLoop:ERROR",
         "-Xep:WildcardImport:ERROR",
+        "-XepDisableWarningsInGeneratedCode",
+        "-XepExcludedPaths:.*/bazel-out/.*",
     ],
     packages = ["error_prone_packages"],
 )

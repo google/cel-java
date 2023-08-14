@@ -136,9 +136,12 @@ final class DefaultInstanceMessageFactory {
       javaPackageName.append(descriptor.getFile().getOptions().getJavaPackage()).append(".");
     } else {
       javaPackageName
+          // CEL-Internal-1
           .append(descriptor.getFile().getPackage())
           .append(".");
     }
+
+    // CEL-Internal-2
 
     return javaPackageName.toString();
   }
