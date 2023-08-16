@@ -35,6 +35,7 @@ java_library(
 
 java_library(
     name = "errors",
+    visibility = ["//visibility:public"],
     exports = ["//common/src/main/java/dev/cel/common/internal:errors"],
 )
 

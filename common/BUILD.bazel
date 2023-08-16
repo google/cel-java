@@ -41,5 +41,6 @@ java_library(
 
 java_library(
     name = "runtime_exception",
+    visibility = ["//visibility:public"],
     exports = ["//common/src/main/java/dev/cel/common:runtime_exception"],
 )
