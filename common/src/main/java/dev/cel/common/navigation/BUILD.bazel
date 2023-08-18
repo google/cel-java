@@ -1,0 +1,25 @@
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_visibility = [
+        "//common/navigation:__pkg__",
+    ],
+)
+
+java_library(
+    name = "navigation",
+    srcs = [
+        "CelNavigableAst.java",
+        "CelNavigableExpr.java",
+        "CelNavigableExprVisitor.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//:auto_value",
+        "//common",
+        "//common/ast",
+        "@maven//:com_google_guava_guava",
+    ],
+)

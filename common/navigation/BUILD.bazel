@@ -1,0 +1,9 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],  # TODO: Expose when ready
+)
+
+java_library(
+    name = "navigation",
+    exports = ["//common/src/main/java/dev/cel/common/navigation"],
+)
