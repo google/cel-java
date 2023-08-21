@@ -201,3 +201,18 @@ java_library(
         "@maven//:com_google_re2j_re2j",
     ],
 )
+
+java_library(
+    name = "interpreter_util",
+    srcs = ["InterpreterUtil.java"],
+    tags = [
+    ],
+    deps = [
+        ":base",
+        "//common:error_codes",
+        "//common/annotations",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)

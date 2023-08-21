@@ -35,3 +35,8 @@ java_library(
     name = "unknown_options",
     exports = ["//runtime/src/main/java/dev/cel/runtime:unknown_options"],
 )
+
+java_library(
+    name = "interpreter_util",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:interpreter_util"],
+)
