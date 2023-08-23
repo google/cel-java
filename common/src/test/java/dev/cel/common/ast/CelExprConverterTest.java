@@ -41,6 +41,9 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 public class CelExprConverterTest {
   private enum ConstantTestCase {
+    NOT_SET(
+        Expr.newBuilder().setId(1).setConstExpr(Constant.getDefaultInstance()).build(),
+        CelExpr.ofConstantExpr(1, CelConstant.ofNotSet())),
     NULL(
         Expr.newBuilder()
             .setId(1)

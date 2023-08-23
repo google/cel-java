@@ -137,6 +137,14 @@ public class CelConstantTest {
         .isEqualTo(Timestamp.newBuilder().setSeconds(100L).build());
   }
 
+  @Test
+  public void constructNotSetConstant() {
+    CelConstant constant = CelConstant.ofNotSet();
+
+    assertThat(constant).isNotNull();
+    assertThat(constant.getKind()).isEqualTo(Kind.NOT_SET);
+  }
+
   private enum CelConstantTestCase {
     NULL(CelConstant.ofValue(NullValue.NULL_VALUE)),
     BOOLEAN(CelConstant.ofValue(true)),

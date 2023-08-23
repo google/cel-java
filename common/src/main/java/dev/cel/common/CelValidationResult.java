@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
+import com.google.errorprone.annotations.InlineMe;
 import dev.cel.common.annotations.Internal;
 import org.jspecify.nullness.Nullable;
 
@@ -112,9 +113,20 @@ public final class CelValidationResult {
     return issues;
   }
 
-  /** Convert the {@code CelIssue} set to a debug string. */
-  public String getDebugString() {
+  /** Convert all issues to a human-readable string. */
+  public String getIssueString() {
     return JOINER.join(Iterables.transform(issues, iss -> iss.toDisplayString(source)));
+  }
+
+  /**
+   * Convert the {@code CelIssue} set to a debug string.
+   *
+   * @deprecated Use {@link #getIssueString()} instead.
+   */
+  @Deprecated
+  @InlineMe(replacement = "this.getIssueString()")
+  public String getDebugString() {
+    return getIssueString();
   }
 
   /** Convert the {@code CelIssue}s with {@code ERROR} severity to an error string. */

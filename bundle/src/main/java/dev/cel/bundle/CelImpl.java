@@ -100,6 +100,11 @@ final class CelImpl implements Cel, EnvVisitable {
     }
   }
 
+  /** Combines a prebuilt {@link CelCompiler} and {@link CelRuntime} into {@link CelImpl}. */
+  static CelImpl combine(CelCompiler compiler, CelRuntime runtime) {
+    return new CelImpl(Suppliers.memoize(() -> compiler), Suppliers.memoize(() -> runtime));
+  }
+
   /**
    * Create a new builder for constructing a {@code CelImpl} instance.
    *

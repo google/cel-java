@@ -29,9 +29,10 @@ import java.util.PrimitiveIterator;
 public abstract class CelIssue {
 
   /** Severity of a CelIssue. */
-  public static enum Severity {
+  public enum Severity {
     ERROR,
     WARNING,
+    INFORMATION,
     DEPRECATED;
   }
 

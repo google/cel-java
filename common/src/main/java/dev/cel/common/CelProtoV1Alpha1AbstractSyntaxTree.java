@@ -44,7 +44,7 @@ public final class CelProtoV1Alpha1AbstractSyntaxTree {
   private CelProtoV1Alpha1AbstractSyntaxTree(CheckedExpr checkedExpr) {
     this.checkedExpr = checkedExpr;
     this.ast =
-        new CelAbstractSyntaxTree(
+        CelAbstractSyntaxTree.newCheckedAst(
             CelExprV1Alpha1Converter.fromExpr(checkedExpr.getExpr()),
             CelSource.newBuilder()
                 .addAllLineOffsets(checkedExpr.getSourceInfo().getLineOffsetsList())

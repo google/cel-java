@@ -228,7 +228,8 @@ public final class CelUnparserImplTest {
             Throwable.class,
             () ->
                 unparser.unparse(
-                    new CelAbstractSyntaxTree(invalidExpr, CelSource.newBuilder().build())));
+                    CelAbstractSyntaxTree.newParsedAst(
+                        invalidExpr, CelSource.newBuilder().build())));
 
     assertThat(thrown).hasMessageThat().contains("unexpected");
   }

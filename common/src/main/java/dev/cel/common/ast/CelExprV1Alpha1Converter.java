@@ -174,6 +174,8 @@ public final class CelExprV1Alpha1Converter {
    */
   public static CelConstant exprConstantToCelConstant(Constant constExpr) {
     switch (constExpr.getConstantKindCase()) {
+      case CONSTANTKIND_NOT_SET:
+        return CelConstant.ofNotSet();
       case NULL_VALUE:
         return CelConstant.ofValue(constExpr.getNullValue());
       case BOOL_VALUE:
@@ -243,6 +245,8 @@ public final class CelExprV1Alpha1Converter {
    */
   public static Constant celConstantToExprConstant(CelConstant celConstant) {
     switch (celConstant.getKind()) {
+      case NOT_SET:
+        return Constant.getDefaultInstance();
       case NULL_VALUE:
         return Constant.newBuilder().setNullValue(celConstant.nullValue()).build();
       case BOOLEAN_VALUE:

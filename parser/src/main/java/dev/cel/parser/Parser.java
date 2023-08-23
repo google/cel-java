@@ -162,7 +162,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
           sourceInfo.build(), parseFailure, ImmutableList.copyOf(exprFactory.getIssuesList()));
     }
     return new CelValidationResult(
-        new CelAbstractSyntaxTree(expr, sourceInfo.build()),
+        CelAbstractSyntaxTree.newParsedAst(expr, sourceInfo.build()),
         ImmutableList.copyOf(exprFactory.getIssuesList()));
   }
 

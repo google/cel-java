@@ -1,0 +1,57 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = [
+        "//validator/validators:__pkg__",
+    ],
+)
+
+java_library(
+    name = "timestamp",
+    srcs = [
+        "TimestampLiteralValidator.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//bundle:cel",
+        "//common",
+        "//common/ast",
+        "//common/navigation",
+        "//validator:ast_validator",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "duration",
+    srcs = [
+        "DurationLiteralValidator.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//bundle:cel",
+        "//common",
+        "//common/ast",
+        "//common/navigation",
+        "//validator:ast_validator",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "regex",
+    srcs = [
+        "RegexLiteralValidator.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//bundle:cel",
+        "//common/ast",
+        "//common/navigation",
+        "//validator:ast_validator",
+    ],
+)

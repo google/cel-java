@@ -28,7 +28,6 @@ java_library(
     ],
     deps = [
         ":compiler_builder",
-        "//:auto_value",
         "//checker",
         "//checker:checker_builder",
         "//checker:checker_legacy_environment",

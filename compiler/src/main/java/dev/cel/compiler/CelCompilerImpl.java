@@ -48,7 +48,7 @@ import java.util.Arrays;
 
 /**
  * CelCompiler implementation which uses either the legacy or modernized CEL-Java stack to offer a
- * stream-lined expression parse/type-check experience, via a single {@code compile} method. *
+ * stream-lined expression parse/type-check experience, via a single {@code compile} method.
  *
  * <p>CEL Library Internals. Do Not Use. Consumers should use factories, such as {@link
  * CelCompilerFactory} instead to instantiate a compiler.
@@ -80,6 +80,11 @@ public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
     if (checker instanceof EnvVisitable) {
       ((EnvVisitable) checker).accept(envVisitor);
     }
+  }
+
+  /** Combines a prebuilt {@link CelParser} and {@link CelChecker} into {@link CelCompilerImpl}. */
+  static CelCompilerImpl combine(CelParser parser, CelChecker checker) {
+    return new CelCompilerImpl(parser, checker);
   }
 
   /**
