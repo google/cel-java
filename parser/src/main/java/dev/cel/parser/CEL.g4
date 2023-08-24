@@ -60,7 +60,7 @@ primary
     : leadingDot='.'? id=IDENTIFIER (op='(' args=exprList? ')')?  # IdentOrGlobalCall
     | '(' e=expr ')'                                              # Nested
     | op='[' elems=listInit? ','? ']'                             # CreateList
-    | op='{' entries=mapInitializerList? ','? '}'                 # CreateStruct
+    | op='{' entries=mapInitializerList? ','? '}'                 # CreateMap
     | leadingDot='.'? ids+=IDENTIFIER (ops+='.' ids+=IDENTIFIER)*
         op='{' entries=fieldInitializerList? ','? '}'             # CreateMessage
     | literal                                                     # ConstantLiteral

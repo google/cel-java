@@ -390,7 +390,7 @@ public class CelNavigableExprVisitorTest {
                 1,
                 "TestAllTypes",
                 ImmutableList.of(
-                    CelExpr.ofCreateStructFieldEntryExpr(2, "single_int64", constExpr, false))));
+                    CelExpr.ofCreateStructEntryExpr(2, "single_int64", constExpr, false))));
   }
 
   @Test
@@ -417,7 +417,7 @@ public class CelNavigableExprVisitorTest {
                 1,
                 "TestAllTypes",
                 ImmutableList.of(
-                    CelExpr.ofCreateStructFieldEntryExpr(
+                    CelExpr.ofCreateStructEntryExpr(
                         2,
                         "single_int64",
                         CelExpr.ofConstantExpr(3, CelConstant.ofValue(1)),
@@ -440,15 +440,14 @@ public class CelNavigableExprVisitorTest {
         .containsExactly(
             mapKeyExpr,
             mapValueExpr,
-            CelExpr.ofCreateStructExpr(
+            CelExpr.ofCreateMapExpr(
                 1,
-                "",
                 ImmutableList.of(
-                    CelExpr.ofCreateStructMapEntryExpr(2, mapKeyExpr, mapValueExpr, false))));
+                    CelExpr.ofCreateMapEntryExpr(2, mapKeyExpr, mapValueExpr, false))));
   }
 
   @Test
-  public void mapConstruction_filterCreateStruct_descendantsReturned() throws Exception {
+  public void mapConstruction_filterCreateMap_descendantsReturned() throws Exception {
     CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
     CelAbstractSyntaxTree ast = compiler.compile("{'key': 2}").getAst();
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
@@ -457,7 +456,7 @@ public class CelNavigableExprVisitorTest {
         navigableAst
             .getRoot()
             .descendants()
-            .filter(x -> x.getKind().equals(Kind.CREATE_STRUCT))
+            .filter(x -> x.getKind().equals(Kind.CREATE_MAP))
             .collect(toImmutableList());
 
     assertThat(allNodes).hasSize(1);
@@ -465,11 +464,10 @@ public class CelNavigableExprVisitorTest {
     CelExpr mapValueExpr = CelExpr.ofConstantExpr(4, CelConstant.ofValue(2));
     assertThat(allNodes.get(0).expr())
         .isEqualTo(
-            CelExpr.ofCreateStructExpr(
+            CelExpr.ofCreateMapExpr(
                 1,
-                "",
                 ImmutableList.of(
-                    CelExpr.ofCreateStructMapEntryExpr(2, mapKeyExpr, mapValueExpr, false))));
+                    CelExpr.ofCreateMapEntryExpr(2, mapKeyExpr, mapValueExpr, false))));
   }
 
   @Test
@@ -482,8 +480,7 @@ public class CelNavigableExprVisitorTest {
         navigableAst.getRoot().descendants().collect(toImmutableList());
 
     assertThat(allNodes).hasSize(1);
-    assertThat(allNodes.get(0).expr())
-        .isEqualTo(CelExpr.ofCreateStructExpr(1, "", ImmutableList.of()));
+    assertThat(allNodes.get(0).expr()).isEqualTo(CelExpr.ofCreateMapExpr(1, ImmutableList.of()));
   }
 
   @Test

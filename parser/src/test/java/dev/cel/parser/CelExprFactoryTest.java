@@ -23,9 +23,8 @@ import dev.cel.common.CelIssue;
 import dev.cel.common.CelSourceLocation;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
-import dev.cel.common.ast.CelExpr.CelCreateStruct;
+import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct.Entry;
-import dev.cel.common.ast.CelExpr.CelCreateStruct.Entry.KeyKind;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.internal.Constants;
 import org.junit.Test;
@@ -160,14 +159,13 @@ public final class CelExprFactoryTest {
   @Test
   public void newMap_returnsMap() {
     TestCelExprFactory exprFactory = new TestCelExprFactory();
-    CelCreateStruct.Entry entry =
+    CelCreateMap.Entry entry =
         exprFactory.newMapEntry(
             exprFactory.newStringLiteral("foo"), exprFactory.newStringLiteral("bar"));
     CelExpr expr = exprFactory.newMap(entry);
     assertThat(expr.id()).isEqualTo(4L);
-    assertThat(expr.exprKind().getKind()).isEqualTo(Kind.CREATE_STRUCT);
-    assertThat(expr.createStruct().messageName()).isEmpty();
-    assertThat(expr.createStruct().entries()).containsExactly(entry);
+    assertThat(expr.exprKind().getKind()).isEqualTo(Kind.CREATE_MAP);
+    assertThat(expr.createMap().entries()).containsExactly(entry);
   }
 
   @Test
@@ -175,10 +173,8 @@ public final class CelExprFactoryTest {
     TestCelExprFactory exprFactory = new TestCelExprFactory();
     CelExpr key = exprFactory.newStringLiteral("foo");
     CelExpr value = exprFactory.newStringLiteral("bar");
-    CelCreateStruct.Entry entry = exprFactory.newMapEntry(key, value);
+    CelCreateMap.Entry entry = exprFactory.newMapEntry(key, value);
     assertThat(entry.id()).isEqualTo(3L);
-    assertThat(entry.keyKind().getKind()).isEqualTo(KeyKind.Kind.MAP_KEY);
-    assertThat(entry.keyKind().mapKey()).isEqualTo(key);
     assertThat(entry.value()).isEqualTo(value);
   }
 
@@ -199,7 +195,6 @@ public final class CelExprFactoryTest {
     CelExpr value = exprFactory.newStringLiteral("bar");
     Entry field = exprFactory.newMessageField("foo", value);
     assertThat(field.id()).isEqualTo(2L);
-    assertThat(field.keyKind().getKind()).isEqualTo(KeyKind.Kind.FIELD_KEY);
     assertThat(field.value()).isEqualTo(value);
   }
 

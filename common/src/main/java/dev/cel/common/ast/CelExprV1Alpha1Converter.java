@@ -23,6 +23,7 @@ import com.google.api.expr.v1alpha1.Expr.Comprehension;
 import com.google.api.expr.v1alpha1.Expr.CreateList;
 import com.google.api.expr.v1alpha1.Expr.CreateStruct;
 import com.google.api.expr.v1alpha1.Expr.CreateStruct.Entry;
+import com.google.api.expr.v1alpha1.Expr.CreateStruct.Entry.KeyKindCase;
 import com.google.api.expr.v1alpha1.Expr.Ident;
 import com.google.api.expr.v1alpha1.Expr.Select;
 import com.google.api.expr.v1alpha1.Reference;
@@ -76,6 +77,8 @@ public final class CelExprV1Alpha1Converter {
             .build();
       case CREATE_STRUCT:
         return expr.setStructExpr(celStructToExprStruct(celExprKind.createStruct())).build();
+      case CREATE_MAP:
+        return expr.setStructExpr(celMapToExprStruct(celExprKind.createMap())).build();
       case COMPREHENSION:
         CelExpr.CelComprehension celComprehension = celExprKind.comprehension();
         return expr.setComprehensionExpr(
@@ -196,35 +199,39 @@ public final class CelExprV1Alpha1Converter {
   }
 
   private static CelExpr exprStructToCelStruct(long id, CreateStruct structExpr) {
-    ImmutableList.Builder<CelExpr.CelCreateStruct.Entry> entries = ImmutableList.builder();
-    for (Entry structExprEntry : structExpr.getEntriesList()) {
-      CelExpr.CelCreateStruct.Entry celStructEntry;
-
-      switch (structExprEntry.getKeyKindCase()) {
-        case FIELD_KEY:
-          celStructEntry =
-              CelExpr.ofCreateStructFieldEntryExpr(
-                  structExprEntry.getId(),
-                  structExprEntry.getFieldKey(),
-                  fromExpr(structExprEntry.getValue()),
-                  structExprEntry.getOptionalEntry());
-          break;
-        case MAP_KEY:
-          celStructEntry =
-              CelExpr.ofCreateStructMapEntryExpr(
-                  structExprEntry.getId(),
-                  fromExpr(structExprEntry.getMapKey()),
-                  fromExpr(structExprEntry.getValue()),
-                  structExprEntry.getOptionalEntry());
-          break;
-        default:
+    if (!structExpr.getMessageName().isEmpty()) {
+      ImmutableList.Builder<CelExpr.CelCreateStruct.Entry> entries = ImmutableList.builder();
+      for (Entry structExprEntry : structExpr.getEntriesList()) {
+        if (!structExprEntry.getKeyKindCase().equals(KeyKindCase.FIELD_KEY)) {
           throw new IllegalArgumentException(
               "Unexpected struct key kind case: " + structExprEntry.getKeyKindCase());
+        }
+        entries.add(
+            CelExpr.ofCreateStructEntryExpr(
+                structExprEntry.getId(),
+                structExprEntry.getFieldKey(),
+                fromExpr(structExprEntry.getValue()),
+                structExprEntry.getOptionalEntry()));
       }
 
-      entries.add(celStructEntry);
+      return CelExpr.ofCreateStructExpr(id, structExpr.getMessageName(), entries.build());
+    } else {
+      ImmutableList.Builder<CelExpr.CelCreateMap.Entry> entries = ImmutableList.builder();
+      for (Entry mapExprEntry : structExpr.getEntriesList()) {
+        if (!mapExprEntry.getKeyKindCase().equals(KeyKindCase.MAP_KEY)) {
+          throw new IllegalArgumentException(
+              "Unexpected map key kind case: " + mapExprEntry.getKeyKindCase());
+        }
+        entries.add(
+            CelExpr.ofCreateMapEntryExpr(
+                mapExprEntry.getId(),
+                fromExpr(mapExprEntry.getMapKey()),
+                fromExpr(mapExprEntry.getValue()),
+                mapExprEntry.getOptionalEntry()));
+      }
+
+      return CelExpr.ofCreateMapExpr(id, entries.build());
     }
-    return CelExpr.ofCreateStructExpr(id, structExpr.getMessageName(), entries.build());
   }
 
   private static Expr.Builder newExprBuilder(CelExpr expr) {
@@ -262,39 +269,36 @@ public final class CelExprV1Alpha1Converter {
   private static CreateStruct celStructToExprStruct(CelExpr.CelCreateStruct celCreateStruct) {
     ImmutableList.Builder<CreateStruct.Entry> entries = ImmutableList.builder();
     for (CelExpr.CelCreateStruct.Entry celStructExprEntry : celCreateStruct.entries()) {
-      CreateStruct.Entry exprStructEntry;
-
-      switch (celStructExprEntry.keyKind().getKind()) {
-        case FIELD_KEY:
-          exprStructEntry =
-              CreateStruct.Entry.newBuilder()
-                  .setId(celStructExprEntry.id())
-                  .setFieldKey(celStructExprEntry.keyKind().fieldKey())
-                  .setValue(fromCelExpr(celStructExprEntry.value()))
-                  .setOptionalEntry(celStructExprEntry.optionalEntry())
-                  .build();
-          break;
-        case MAP_KEY:
-          exprStructEntry =
-              CreateStruct.Entry.newBuilder()
-                  .setId(celStructExprEntry.id())
-                  .setMapKey(fromCelExpr(celStructExprEntry.keyKind().mapKey()))
-                  .setValue(fromCelExpr(celStructExprEntry.value()))
-                  .setOptionalEntry(celStructExprEntry.optionalEntry())
-                  .build();
-          break;
-        default:
-          throw new IllegalArgumentException(
-              "Unexpected struct key kind case: " + celStructExprEntry.keyKind().getKind());
-      }
-
-      entries.add(exprStructEntry);
+      entries.add(
+          CreateStruct.Entry.newBuilder()
+              .setId(celStructExprEntry.id())
+              .setFieldKey(celStructExprEntry.fieldKey())
+              .setValue(fromCelExpr(celStructExprEntry.value()))
+              .setOptionalEntry(celStructExprEntry.optionalEntry())
+              .build());
     }
 
-    return CreateStruct.newBuilder()
+    return Expr.CreateStruct.newBuilder()
         .setMessageName(celCreateStruct.messageName())
         .addAllEntries(entries.build())
         .build();
+  }
+
+  private static CreateStruct celMapToExprStruct(CelExpr.CelCreateMap celCreateMap) {
+    ImmutableList.Builder<CreateStruct.Entry> entries = ImmutableList.builder();
+    for (CelExpr.CelCreateMap.Entry celMapEntry : celCreateMap.entries()) {
+      CreateStruct.Entry exprMapEntry =
+          CreateStruct.Entry.newBuilder()
+              .setId(celMapEntry.id())
+              .setMapKey(fromCelExpr(celMapEntry.key()))
+              .setValue(fromCelExpr(celMapEntry.value()))
+              .setOptionalEntry(celMapEntry.optionalEntry())
+              .build();
+
+      entries.add(exprMapEntry);
+    }
+
+    return CreateStruct.newBuilder().addAllEntries(entries.build()).build();
   }
 
   private static ImmutableList<Expr> fromCelExprList(Iterable<CelExpr> celExprList) {

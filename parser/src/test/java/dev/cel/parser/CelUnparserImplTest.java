@@ -26,6 +26,7 @@ import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.CelSource;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
+import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct;
 import java.util.Arrays;
 import java.util.List;
@@ -198,14 +199,13 @@ public final class CelUnparserImplTest {
                       .build())
               .build(), // bad struct
           CelExpr.newBuilder()
-              .setCreateStruct(
-                  CelCreateStruct.newBuilder()
-                      .setMessageName("Msg")
+              .setCreateMap(
+                  CelCreateMap.newBuilder()
                       .addEntries(
-                          CelCreateStruct.Entry.newBuilder()
+                          CelCreateMap.Entry.newBuilder()
                               .setId(0)
                               .setValue(CelExpr.newBuilder().build())
-                              .setMapKey(CelExpr.newBuilder().build())
+                              .setKey(CelExpr.newBuilder().build())
                               .build())
                       .build())
               .build(), // bad map

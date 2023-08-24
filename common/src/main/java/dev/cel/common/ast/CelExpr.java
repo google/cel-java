@@ -78,6 +78,10 @@ public abstract class CelExpr {
     return exprKind().createStruct();
   }
 
+  public CelCreateMap createMap() {
+    return exprKind().createMap();
+  }
+
   public CelComprehension comprehension() {
     return exprKind().comprehension();
   }
@@ -115,6 +119,10 @@ public abstract class CelExpr {
       return setExprKind(AutoOneOf_CelExpr_ExprKind.createStruct(createStruct));
     }
 
+    public Builder setCreateMap(CelCreateMap createMap) {
+      return setExprKind(AutoOneOf_CelExpr_ExprKind.createMap(createMap));
+    }
+
     public Builder setComprehension(CelComprehension comprehension) {
       return setExprKind(AutoOneOf_CelExpr_ExprKind.comprehension(comprehension));
     }
@@ -145,6 +153,7 @@ public abstract class CelExpr {
       CALL,
       CREATE_LIST,
       CREATE_STRUCT,
+      CREATE_MAP,
       COMPREHENSION,
     }
 
@@ -163,6 +172,8 @@ public abstract class CelExpr {
     public abstract CelCreateList createList();
 
     public abstract CelCreateStruct createStruct();
+
+    public abstract CelCreateMap createMap();
 
     public abstract CelComprehension comprehension();
   }
@@ -429,10 +440,10 @@ public abstract class CelExpr {
   }
 
   /**
-   * A map or message creation expression.
+   * A message creation expression.
    *
-   * <p>Maps are constructed as `{'key_name': 'value'}`. Message construction is similar, but
-   * prefixed with a type name and composed of field ids: `types.MyType{field_id: 'value'}`.
+   * <p>Messages are constructed with a type name and composed of field ids: `types.MyType{field_id:
+   * 'value'}`.
    */
   @AutoValue
   @Immutable
@@ -441,37 +452,37 @@ public abstract class CelExpr {
     public abstract String messageName();
 
     /** The entries in the creation expression. */
-    public abstract ImmutableList<Entry> entries();
+    public abstract ImmutableList<CelCreateStruct.Entry> entries();
 
     /** Builder for CelCreateStruct. */
     @AutoValue.Builder
     public abstract static class Builder {
-      List<Entry> mutableEntries = new ArrayList<>();
+      List<CelCreateStruct.Entry> mutableEntries = new ArrayList<>();
 
-      abstract ImmutableList<Entry> entries();
+      abstract ImmutableList<CelCreateStruct.Entry> entries();
 
       @CanIgnoreReturnValue
       public abstract Builder setMessageName(String value);
 
       // Not public. This only exists to make AutoValue.Builder work.
       @CanIgnoreReturnValue
-      abstract Builder setEntries(ImmutableList<Entry> entries);
+      abstract Builder setEntries(ImmutableList<CelCreateStruct.Entry> entries);
 
       @CanIgnoreReturnValue
-      public Builder setEntry(int index, Entry entry) {
+      public Builder setEntry(int index, CelCreateStruct.Entry entry) {
         checkNotNull(entry);
         mutableEntries.set(index, entry);
         return this;
       }
 
       @CanIgnoreReturnValue
-      public Builder addEntries(Entry... entries) {
+      public Builder addEntries(CelCreateStruct.Entry... entries) {
         checkNotNull(entries);
         return addEntries(Arrays.asList(entries));
       }
 
       @CanIgnoreReturnValue
-      public Builder addEntries(Iterable<Entry> entries) {
+      public Builder addEntries(Iterable<CelCreateStruct.Entry> entries) {
         checkNotNull(entries);
         entries.forEach(mutableEntries::add);
         return this;
@@ -511,7 +522,7 @@ public abstract class CelExpr {
       public abstract long id();
 
       /** Entry key kind. */
-      public abstract KeyKind keyKind();
+      public abstract String fieldKey();
 
       /**
        * Required. The value assigned to the key.
@@ -531,22 +542,14 @@ public abstract class CelExpr {
 
         public abstract Builder setId(long value);
 
-        public abstract Builder setKeyKind(KeyKind value);
+        public abstract Builder setFieldKey(String value);
 
         public abstract Builder setValue(CelExpr value);
 
         public abstract Builder setOptionalEntry(boolean value);
 
-        public Builder setMapKey(CelExpr mapKey) {
-          return setKeyKind(AutoOneOf_CelExpr_CelCreateStruct_Entry_KeyKind.mapKey(mapKey));
-        }
-
-        public Builder setFieldKey(String fieldKey) {
-          return setKeyKind(AutoOneOf_CelExpr_CelCreateStruct_Entry_KeyKind.fieldKey(fieldKey));
-        }
-
         @CheckReturnValue
-        public abstract Entry build();
+        public abstract CelCreateStruct.Entry build();
       }
 
       public abstract Builder toBuilder();
@@ -554,24 +557,120 @@ public abstract class CelExpr {
       public static Builder newBuilder() {
         return new AutoValue_CelExpr_CelCreateStruct_Entry.Builder().setOptionalEntry(false);
       }
+    }
+  }
 
-      /** Entry key kind. */
-      @AutoOneOf(KeyKind.Kind.class)
-      @Immutable
-      public abstract static class KeyKind {
-        public abstract KeyKind.Kind getKind();
+  /**
+   * A map creation expression.
+   *
+   * <p>Maps are constructed as `{'key_name': 'value'}`.
+   */
+  @AutoValue
+  @Immutable
+  public abstract static class CelCreateMap {
+    /** The entries in the creation expression. */
+    public abstract ImmutableList<CelCreateMap.Entry> entries();
 
-        /** The field key for a message creator statement. */
-        public abstract String fieldKey();
+    /** Builder for CelCreateMap. */
+    @AutoValue.Builder
+    public abstract static class Builder {
 
-        /** The key expression for a map creation statement. */
-        public abstract CelExpr mapKey();
+      List<CelCreateMap.Entry> mutableEntries = new ArrayList<>();
 
-        /** Denotes Entry Key kind. */
-        public enum Kind {
-          FIELD_KEY,
-          MAP_KEY
-        }
+      abstract ImmutableList<CelCreateMap.Entry> entries();
+
+      // Not public. This only exists to make AutoValue.Builder work.
+      @CanIgnoreReturnValue
+      abstract Builder setEntries(ImmutableList<CelCreateMap.Entry> entries);
+
+      @CanIgnoreReturnValue
+      public Builder setEntry(int index, CelCreateMap.Entry entry) {
+        checkNotNull(entry);
+        mutableEntries.set(index, entry);
+        return this;
+      }
+
+      @CanIgnoreReturnValue
+      public Builder addEntries(CelCreateMap.Entry... entries) {
+        checkNotNull(entries);
+        return addEntries(Arrays.asList(entries));
+      }
+
+      @CanIgnoreReturnValue
+      public Builder addEntries(Iterable<CelCreateMap.Entry> entries) {
+        checkNotNull(entries);
+        entries.forEach(mutableEntries::add);
+        return this;
+      }
+
+      // Not public due to overridden build logic.
+      abstract CelCreateMap autoBuild();
+
+      @CheckReturnValue
+      public CelCreateMap build() {
+        setEntries(ImmutableList.copyOf(mutableEntries));
+        return autoBuild();
+      }
+    }
+
+    // Not public due to overridden build logic.
+    abstract Builder autoToBuilder();
+
+    public Builder toBuilder() {
+      Builder builder = autoToBuilder();
+      builder.mutableEntries = new ArrayList<>(builder.entries());
+      return builder;
+    }
+
+    public static Builder newBuilder() {
+      return new AutoValue_CelExpr_CelCreateMap.Builder();
+    }
+
+    /** Represents an entry of the map */
+    @AutoValue
+    @Immutable
+    public abstract static class Entry {
+      /**
+       * Required. An id assigned to this node by the parser which is unique in a given expression
+       * tree. This is used to associate type information and other attributes to the node.
+       */
+      public abstract long id();
+
+      /** Required. The key. */
+      public abstract CelExpr key();
+
+      /**
+       * Required. The value assigned to the key.
+       *
+       * <p>If the optional_entry field is true, the expression must resolve to an optional-typed
+       * value. If the optional value is present, the key will be set; however, if the optional
+       * value is absent, the key will be unset.
+       */
+      public abstract CelExpr value();
+
+      /** Whether the key-value pair is optional. */
+      public abstract boolean optionalEntry();
+
+      /** Builder for CelCreateMap.Entry. */
+      @AutoValue.Builder
+      public abstract static class Builder {
+
+        public abstract CelCreateMap.Entry.Builder setId(long value);
+
+        public abstract CelCreateMap.Entry.Builder setKey(CelExpr value);
+
+        public abstract CelCreateMap.Entry.Builder setValue(CelExpr value);
+
+        public abstract CelCreateMap.Entry.Builder setOptionalEntry(boolean value);
+
+        @CheckReturnValue
+        public abstract CelCreateMap.Entry build();
+      }
+
+      public abstract CelCreateMap.Entry.Builder toBuilder();
+
+      public static CelCreateMap.Entry.Builder newBuilder() {
+        return new AutoValue_CelExpr_CelCreateMap_Entry.Builder().setOptionalEntry(false);
       }
     }
   }
@@ -739,7 +838,16 @@ public abstract class CelExpr {
         .build();
   }
 
-  public static CelCreateStruct.Entry ofCreateStructFieldEntryExpr(
+  public static CelExpr ofCreateMapExpr(long id, ImmutableList<CelCreateMap.Entry> entries) {
+    return newBuilder()
+        .setId(id)
+        .setExprKind(
+            AutoOneOf_CelExpr_ExprKind.createMap(
+                CelCreateMap.newBuilder().addEntries(entries).build()))
+        .build();
+  }
+
+  public static CelCreateStruct.Entry ofCreateStructEntryExpr(
       long id, String fieldKey, CelExpr value, boolean isOptionalEntry) {
     return CelCreateStruct.Entry.newBuilder()
         .setId(id)
@@ -749,11 +857,11 @@ public abstract class CelExpr {
         .build();
   }
 
-  public static CelCreateStruct.Entry ofCreateStructMapEntryExpr(
+  public static CelCreateMap.Entry ofCreateMapEntryExpr(
       long id, CelExpr mapKey, CelExpr value, boolean isOptionalEntry) {
-    return CelCreateStruct.Entry.newBuilder()
+    return CelCreateMap.Entry.newBuilder()
         .setId(id)
-        .setMapKey(mapKey)
+        .setKey(mapKey)
         .setValue(value)
         .setOptionalEntry(isOptionalEntry)
         .build();

@@ -19,9 +19,8 @@ import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.CelCreateList;
+import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct;
-import dev.cel.common.ast.CelExpr.CelCreateStruct.Entry;
-import dev.cel.common.ast.CelExpr.CelCreateStruct.Entry.KeyKind.Kind;
 import dev.cel.common.ast.CelExpr.CelSelect;
 import dev.cel.common.navigation.CelNavigableExpr.TraversalOrder;
 import java.util.stream.Stream;
@@ -113,16 +112,10 @@ final class CelNavigableExprVisitor {
         visit(navigableExpr, navigableExpr.expr().select());
         break;
       case CREATE_STRUCT:
-        CelCreateStruct createStruct = navigableExpr.expr().createStruct();
-        if (createStruct.entries().isEmpty()) {
-          break;
-        }
-        // TODO: Replace with CREATE_MAP kind
-        if (createStruct.entries().get(0).keyKind().getKind().equals(Kind.MAP_KEY)) {
-          visitMap(navigableExpr, navigableExpr.expr().createStruct());
-        } else {
-          visitStruct(navigableExpr, navigableExpr.expr().createStruct());
-        }
+        visitStruct(navigableExpr, navigableExpr.expr().createStruct());
+        break;
+      case CREATE_MAP:
+        visitMap(navigableExpr, navigableExpr.expr().createMap());
         break;
       case COMPREHENSION:
         visit(navigableExpr, navigableExpr.expr().comprehension());
@@ -163,15 +156,15 @@ final class CelNavigableExprVisitor {
   }
 
   private void visitStruct(CelNavigableExpr navigableExpr, CelCreateStruct struct) {
-    for (Entry entry : struct.entries()) {
+    for (CelCreateStruct.Entry entry : struct.entries()) {
       CelNavigableExpr value = newNavigableChild(navigableExpr, entry.value());
       visit(value);
     }
   }
 
-  private void visitMap(CelNavigableExpr navigableExpr, CelCreateStruct struct) {
-    for (Entry entry : struct.entries()) {
-      CelNavigableExpr key = newNavigableChild(navigableExpr, entry.keyKind().mapKey());
+  private void visitMap(CelNavigableExpr navigableExpr, CelCreateMap map) {
+    for (CelCreateMap.Entry entry : map.entries()) {
+      CelNavigableExpr key = newNavigableChild(navigableExpr, entry.key());
       visit(key);
 
       CelNavigableExpr value = newNavigableChild(navigableExpr, entry.value());

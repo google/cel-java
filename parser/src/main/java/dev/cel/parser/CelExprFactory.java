@@ -113,25 +113,25 @@ public abstract class CelExprFactory {
   }
 
   /** Creates a new map {@link CelExpr} comprised of the entries. */
-  public final CelExpr newMap(CelExpr.CelCreateStruct.Entry... entries) {
+  public final CelExpr newMap(CelExpr.CelCreateMap.Entry... entries) {
     return newMap(Arrays.asList(entries));
   }
 
   /** Creates a new map {@link CelExpr} comprised of the entries. */
-  public final CelExpr newMap(Iterable<CelExpr.CelCreateStruct.Entry> entries) {
+  public final CelExpr newMap(Iterable<CelExpr.CelCreateMap.Entry> entries) {
     return CelExpr.newBuilder()
         .setId(nextExprIdForMacro())
-        .setCreateStruct(CelExpr.CelCreateStruct.newBuilder().addEntries(entries).build())
+        .setCreateMap(CelExpr.CelCreateMap.newBuilder().addEntries(entries).build())
         .build();
   }
 
   /**
    * Creates a new map {@link CelExpr.CelCreateStruct.Entry} comprised of the given key and value.
    */
-  public final CelExpr.CelCreateStruct.Entry newMapEntry(CelExpr key, CelExpr value) {
-    return CelExpr.CelCreateStruct.Entry.newBuilder()
+  public final CelExpr.CelCreateMap.Entry newMapEntry(CelExpr key, CelExpr value) {
+    return CelExpr.CelCreateMap.Entry.newBuilder()
         .setId(nextExprIdForMacro())
-        .setMapKey(key)
+        .setKey(key)
         .setValue(value)
         .build();
   }

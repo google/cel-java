@@ -29,6 +29,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
+import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.internal.ComparisonFunctions;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
@@ -505,7 +506,7 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
   }
 
   private static boolean isTargetInNamespace(CelExpr target) {
-    return target.exprKind().getKind().equals(CelExpr.ExprKind.Kind.IDENT)
+    return target.exprKind().getKind().equals(Kind.IDENT)
         && target.ident().name().equals(MATH_NAMESPACE);
   }
 
@@ -525,7 +526,7 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
 
   private static Optional<CelExpr> checkInvalidArgumentSingleArg(
       CelExprFactory exprFactory, String functionName, CelExpr argument) {
-    if (argument.exprKind().getKind() == CelExpr.ExprKind.Kind.CREATE_LIST) {
+    if (argument.exprKind().getKind() == Kind.CREATE_LIST) {
       if (argument.createList().elements().isEmpty()) {
         return newError(
             exprFactory, String.format("%s invalid single argument value", functionName), argument);
@@ -542,13 +543,14 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
   }
 
   private static boolean isArgumentValidType(CelExpr argument) {
-    if (argument.exprKind().getKind() == CelExpr.ExprKind.Kind.CONSTANT) {
+    if (argument.exprKind().getKind() == Kind.CONSTANT) {
       CelConstant constant = argument.constant();
       return constant.getKind() == CelConstant.Kind.INT64_VALUE
           || constant.getKind() == CelConstant.Kind.UINT64_VALUE
           || constant.getKind() == CelConstant.Kind.DOUBLE_VALUE;
-    } else if (argument.exprKind().getKind() == CelExpr.ExprKind.Kind.CREATE_LIST
-        || argument.exprKind().getKind() == CelExpr.ExprKind.Kind.CREATE_STRUCT) {
+    } else if (argument.exprKind().getKind().equals(Kind.CREATE_LIST)
+        || argument.exprKind().getKind().equals(Kind.CREATE_STRUCT)
+        || argument.exprKind().getKind().equals(Kind.CREATE_MAP)) {
       return false;
     }
 

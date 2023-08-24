@@ -32,6 +32,7 @@ import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.CelCreateList;
+import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct;
 import dev.cel.common.ast.CelExpr.CelIdent;
 import dev.cel.common.ast.CelExpr.CelSelect;
@@ -194,6 +195,8 @@ public final class DefaultInterpreter implements Interpreter {
             return evalList(frame, expr, expr.createList());
           case CREATE_STRUCT:
             return evalStruct(frame, expr, expr.createStruct());
+          case CREATE_MAP:
+            return evalMap(frame, expr.createMap());
           case COMPREHENSION:
             return evalComprehension(frame, expr, expr.comprehension());
           default:
@@ -655,15 +658,15 @@ public final class DefaultInterpreter implements Interpreter {
       return IntermediateResult.create(argChecker.maybeUnknowns().orElse(result));
     }
 
-    private IntermediateResult evalStructMap(ExecutionFrame frame, CelCreateStruct structExpr)
+    private IntermediateResult evalMap(ExecutionFrame frame, CelCreateMap mapExpr)
         throws InterpreterException {
 
       CallArgumentChecker argChecker = CallArgumentChecker.create(frame.getResolver());
 
       Map<Object, Object> result = new LinkedHashMap<>();
 
-      for (CelCreateStruct.Entry entry : structExpr.entries()) {
-        IntermediateResult keyResult = evalInternal(frame, entry.keyKind().mapKey());
+      for (CelCreateMap.Entry entry : mapExpr.entries()) {
+        IntermediateResult keyResult = evalInternal(frame, entry.key());
         argChecker.checkArg(keyResult);
 
         IntermediateResult valueResult = evalInternal(frame, entry.value());
@@ -700,10 +703,13 @@ public final class DefaultInterpreter implements Interpreter {
     private IntermediateResult evalStruct(
         ExecutionFrame frame, CelExpr expr, CelCreateStruct structExpr)
         throws InterpreterException {
-      Optional<CelReference> reference = ast.getReference(expr.id());
-      if (!reference.isPresent()) {
-        return evalStructMap(frame, structExpr);
-      }
+      CelReference reference =
+          ast.getReference(expr.id())
+              .orElseThrow(
+                  () ->
+                      new IllegalStateException(
+                          "Could not find a reference for CelCreateStruct expresison at ID: "
+                              + expr.id()));
 
       // Message creation.
       CallArgumentChecker argChecker = CallArgumentChecker.create(frame.getResolver());
@@ -721,21 +727,21 @@ public final class DefaultInterpreter implements Interpreter {
           if (!optionalVal.isPresent()) {
             // This is a no-op currently but will be semantically correct when extended proto
             // support allows proto mutation.
-            fields.remove(entry.keyKind().fieldKey());
+            fields.remove(entry.fieldKey());
             continue;
           }
 
           value = optionalVal.get();
         }
 
-        fields.put(entry.keyKind().fieldKey(), value);
+        fields.put(entry.fieldKey(), value);
       }
 
       Optional<Object> unknowns = argChecker.maybeUnknowns();
       if (unknowns.isPresent()) {
         return IntermediateResult.create(unknowns.get());
       }
-      return IntermediateResult.create(typeProvider.createMessage(reference.get().name(), fields));
+      return IntermediateResult.create(typeProvider.createMessage(reference.name(), fields));
     }
 
     // Evaluates the expression and returns a value-or-throwable.

@@ -24,6 +24,7 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.CelCreateList;
+import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct;
 import dev.cel.common.ast.CelExpr.CelCreateStruct.Entry;
 import dev.cel.common.ast.CelExpr.CelIdent;
@@ -55,6 +56,8 @@ public class CelExprVisitorTest {
 
     public abstract Optional<CelCreateStruct> createStruct();
 
+    public abstract Optional<CelCreateMap> createMap();
+
     public abstract Optional<CelCreateList> createList();
 
     public abstract Optional<CelComprehension> comprehension();
@@ -72,6 +75,8 @@ public class CelExprVisitorTest {
       public abstract Builder setCall(CelCall value);
 
       public abstract Builder setCreateStruct(CelCreateStruct value);
+
+      public abstract Builder setCreateMap(CelCreateMap value);
 
       public abstract Builder setCreateList(CelCreateList value);
 
@@ -123,6 +128,12 @@ public class CelExprVisitorTest {
     protected void visit(CelExpr expr, CelCreateStruct createStruct) {
       visitedReference.setCreateStruct(createStruct);
       super.visit(expr, createStruct);
+    }
+
+    @Override
+    protected void visit(CelExpr expr, CelCreateMap createMap) {
+      visitedReference.setCreateMap(createMap);
+      super.visit(expr, createMap);
     }
 
     @Override
@@ -265,7 +276,7 @@ public class CelExprVisitorTest {
   }
 
   @Test
-  public void visitCreateStruct_mapKey() throws Exception {
+  public void visitCreateMap() throws Exception {
     CelCompiler celCompiler = CelCompilerFactory.standardCelCompilerBuilder().build();
     CelAbstractSyntaxTree ast = celCompiler.compile("{'a': 'b'}").getAst();
 
@@ -276,12 +287,12 @@ public class CelExprVisitorTest {
         .isEqualTo(
             VisitedReference.newBuilder()
                 .setConstant(CelConstant.ofValue("b"))
-                .setCreateStruct(
-                    CelCreateStruct.newBuilder()
+                .setCreateMap(
+                    CelCreateMap.newBuilder()
                         .addEntries(
-                            Entry.newBuilder()
+                            CelCreateMap.Entry.newBuilder()
                                 .setId(2)
-                                .setMapKey(CelExpr.ofConstantExpr(3, CelConstant.ofValue("a")))
+                                .setKey(CelExpr.ofConstantExpr(3, CelConstant.ofValue("a")))
                                 .setValue(CelExpr.ofConstantExpr(4, CelConstant.ofValue("b")))
                                 .build())
                         .build())

@@ -21,6 +21,7 @@ import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.CelCreateList;
+import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct;
 import dev.cel.common.ast.CelExpr.CelIdent;
 import dev.cel.common.ast.CelExpr.CelSelect;
@@ -171,9 +172,7 @@ public class CelUnparserVisitor extends CelExprVisitor {
 
   @Override
   protected void visit(CelExpr expr, CelCreateStruct createStruct) {
-    if (!createStruct.messageName().isEmpty()) {
-      stringBuilder.append(createStruct.messageName());
-    }
+    stringBuilder.append(createStruct.messageName());
     stringBuilder.append(LEFT_BRACE);
     for (int i = 0; i < createStruct.entries().size(); i++) {
       if (i > 0) {
@@ -181,14 +180,23 @@ public class CelUnparserVisitor extends CelExprVisitor {
       }
 
       CelCreateStruct.Entry e = createStruct.entries().get(i);
-      switch (e.keyKind().getKind()) {
-        case FIELD_KEY:
-          stringBuilder.append(e.keyKind().fieldKey());
-          break;
-        case MAP_KEY:
-          visit(e.keyKind().mapKey());
-          break;
+      stringBuilder.append(e.fieldKey());
+      stringBuilder.append(COLON).append(SPACE);
+      visit(e.value());
+    }
+    stringBuilder.append(RIGHT_BRACE);
+  }
+
+  @Override
+  protected void visit(CelExpr expr, CelCreateMap createMap) {
+    stringBuilder.append(LEFT_BRACE);
+    for (int i = 0; i < createMap.entries().size(); i++) {
+      if (i > 0) {
+        stringBuilder.append(COMMA).append(SPACE);
       }
+
+      CelCreateMap.Entry e = createMap.entries().get(i);
+      visit(e.key());
       stringBuilder.append(COLON).append(SPACE);
       visit(e.value());
     }

@@ -15,6 +15,7 @@
 package dev.cel.common.ast;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import dev.cel.expr.Constant;
 import dev.cel.expr.Expr;
@@ -196,7 +197,7 @@ public class CelExprConverterTest {
   }
 
   @Test
-  public void convertExprStructExpr_toCelStruct_withFieldKey() {
+  public void convertExprStructExpr_toCelStruct() {
     Expr expr =
         Expr.newBuilder()
             .setId(1)
@@ -221,18 +222,66 @@ public class CelExprConverterTest {
                 1,
                 "messageName",
                 ImmutableList.of(
-                    CelExpr.ofCreateStructFieldEntryExpr(
+                    CelExpr.ofCreateStructEntryExpr(
                         2, "fieldKey", CelExpr.ofConstantExpr(3, CelConstant.ofValue(10)), true))));
   }
 
   @Test
-  public void convertExprStructExpr_toCelStruct_withMapKey() {
+  public void convertExprStructExpr_invalidMapKey_throws() {
     Expr expr =
         Expr.newBuilder()
             .setId(1)
             .setStructExpr(
                 CreateStruct.newBuilder()
                     .setMessageName("messageName")
+                    .addEntries(
+                        CreateStruct.Entry.newBuilder()
+                            .setId(2)
+                            .setMapKey(
+                                Expr.getDefaultInstance()) // A message creation should not have a
+                            // map key set.
+                            .setValue(newInt64ConstantExpr(3, 10))
+                            .setOptionalEntry(true)
+                            .build())
+                    .build())
+            .build();
+
+    IllegalArgumentException e =
+        assertThrows(IllegalArgumentException.class, () -> CelExprConverter.fromExpr(expr));
+
+    assertThat(e).hasMessageThat().contains("Unexpected struct key kind case");
+  }
+
+  @Test
+  public void convertExprStructExpr_invalidFieldKey_throws() {
+    Expr expr =
+        Expr.newBuilder()
+            .setId(1)
+            .setStructExpr(
+                CreateStruct.newBuilder()
+                    .addEntries(
+                        CreateStruct.Entry.newBuilder()
+                            .setId(2)
+                            .setFieldKey("Bogus") // A map creation should not have a field key set
+                            .setValue(newInt64ConstantExpr(3, 10))
+                            .setOptionalEntry(true)
+                            .build())
+                    .build())
+            .build();
+
+    IllegalArgumentException e =
+        assertThrows(IllegalArgumentException.class, () -> CelExprConverter.fromExpr(expr));
+
+    assertThat(e).hasMessageThat().contains("Unexpected map key kind case");
+  }
+
+  @Test
+  public void convertExprStructExpr_toCelMap() {
+    Expr expr =
+        Expr.newBuilder()
+            .setId(1)
+            .setStructExpr(
+                CreateStruct.newBuilder()
                     .addEntries(
                         CreateStruct.Entry.newBuilder()
                             .setId(2)
@@ -247,11 +296,10 @@ public class CelExprConverterTest {
 
     assertThat(celExpr)
         .isEqualTo(
-            CelExpr.ofCreateStructExpr(
+            CelExpr.ofCreateMapExpr(
                 1,
-                "messageName",
                 ImmutableList.of(
-                    CelExpr.ofCreateStructMapEntryExpr(
+                    CelExpr.ofCreateMapEntryExpr(
                         2,
                         CelExpr.ofConstantExpr(3, CelConstant.ofValue(15)),
                         CelExpr.ofConstantExpr(4, CelConstant.ofValue(10)),
@@ -432,7 +480,7 @@ public class CelExprConverterTest {
             1,
             "messageName",
             ImmutableList.of(
-                CelExpr.ofCreateStructFieldEntryExpr(
+                CelExpr.ofCreateStructEntryExpr(
                     2, "fieldKey", CelExpr.ofConstantExpr(3, CelConstant.ofValue(10)), true)));
 
     Expr expr = CelExprConverter.fromCelExpr(celExpr);
@@ -456,13 +504,12 @@ public class CelExprConverterTest {
   }
 
   @Test
-  public void convertCelStructExpr_toExprStruct_withMapKey() {
+  public void convertCelMapExpr_toExprStruct() {
     CelExpr celExpr =
-        CelExpr.ofCreateStructExpr(
+        CelExpr.ofCreateMapExpr(
             1,
-            "messageName",
             ImmutableList.of(
-                CelExpr.ofCreateStructMapEntryExpr(
+                CelExpr.ofCreateMapEntryExpr(
                     2,
                     CelExpr.ofConstantExpr(3, CelConstant.ofValue(15)),
                     CelExpr.ofConstantExpr(4, CelConstant.ofValue(10)),
@@ -476,7 +523,6 @@ public class CelExprConverterTest {
                 .setId(1)
                 .setStructExpr(
                     CreateStruct.newBuilder()
-                        .setMessageName("messageName")
                         .addEntries(
                             CreateStruct.Entry.newBuilder()
                                 .setId(2)

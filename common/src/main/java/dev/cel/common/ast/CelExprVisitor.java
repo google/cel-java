@@ -18,8 +18,8 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.CelCreateList;
+import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct;
-import dev.cel.common.ast.CelExpr.CelCreateStruct.Entry.KeyKind.Kind;
 import dev.cel.common.ast.CelExpr.CelIdent;
 import dev.cel.common.ast.CelExpr.CelSelect;
 
@@ -66,6 +66,9 @@ public class CelExprVisitor {
       case CREATE_STRUCT:
         visit(expr, expr.createStruct());
         break;
+      case CREATE_MAP:
+        visit(expr, expr.createMap());
+        break;
       case COMPREHENSION:
         visit(expr, expr.comprehension());
         break;
@@ -107,9 +110,14 @@ public class CelExprVisitor {
   /** Visit a {@code CelCreateStruct} expression. */
   protected void visit(CelExpr expr, CelCreateStruct createStruct) {
     for (CelCreateStruct.Entry entry : createStruct.entries()) {
-      if (entry.keyKind().getKind() == Kind.MAP_KEY) {
-        visit(entry.keyKind().mapKey());
-      }
+      visit(entry.value());
+    }
+  }
+
+  /** Visit a {@code CelCreateMap} expression. */
+  protected void visit(CelExpr expr, CelCreateMap createMap) {
+    for (CelCreateMap.Entry entry : createMap.entries()) {
+      visit(entry.key());
       visit(entry.value());
     }
   }

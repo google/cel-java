@@ -183,6 +183,8 @@ public final class ExprChecker {
         return visit(expr, expr.createList());
       case CREATE_STRUCT:
         return visit(expr, expr.createStruct());
+      case CREATE_MAP:
+        return visit(expr, expr.createMap());
       case COMPREHENSION:
         return visit(expr, expr.comprehension());
       default:
@@ -353,18 +355,74 @@ public final class ExprChecker {
 
   @CheckReturnValue
   private CelExpr visit(CelExpr expr, CelExpr.CelCreateStruct createStruct) {
-    if (!createStruct.messageName().isEmpty()) {
-      return visitCreateMessage(expr, createStruct);
+    // Determine the type of the message.
+    CelType messageType = SimpleType.ERROR;
+    CelIdentDecl decl = env.lookupIdent(getPosition(expr), inContainer, createStruct.messageName());
+    env.setRef(expr, CelReference.newBuilder().setName(decl.name()).build());
+    CelType type = decl.type();
+    if (type.kind() != CelKind.ERROR) {
+      if (type.kind() != CelKind.TYPE) {
+        // expected type of types
+        env.reportError(getPosition(expr), "'%s' is not a type", CelTypes.format(type));
+      } else {
+        messageType = ((TypeType) type).type();
+        if (messageType.kind() != CelKind.STRUCT) {
+          env.reportError(
+              getPosition(expr), "'%s' is not a message type", CelTypes.format(messageType));
+          messageType = SimpleType.ERROR;
+        }
+      }
     }
-    CelType mapKeyType = null;
-    CelType mapValueType = null;
+
+    // When the type is well-known mark the expression with the CEL type rather than the proto type.
+    if (Env.isWellKnownType(messageType)) {
+      env.setType(expr, Env.getWellKnownType(messageType));
+    } else {
+      env.setType(expr, messageType);
+    }
+
+    // Check the field initializers.
     ImmutableList<CelExpr.CelCreateStruct.Entry> entriesList = createStruct.entries();
     for (int i = 0; i < entriesList.size(); i++) {
       CelExpr.CelCreateStruct.Entry entry = entriesList.get(i);
-      CelExpr visitedMapKeyExpr = visit(entry.keyKind().mapKey());
-      if (namespacedDeclarations && !visitedMapKeyExpr.equals(entry.keyKind().mapKey())) {
+      CelExpr visitedValueExpr = visit(entry.value());
+      if (namespacedDeclarations && !visitedValueExpr.equals(entry.value())) {
+        // Subtree has been rewritten. Replace the struct value.
+        expr = replaceStructEntryValueSubtree(expr, visitedValueExpr, i);
+      }
+      CelType fieldType = getFieldType(getPosition(entry), messageType, entry.fieldKey()).celType();
+      CelType valueType = env.getType(visitedValueExpr);
+      if (entry.optionalEntry()) {
+        if (valueType instanceof OptionalType) {
+          valueType = unwrapOptional(valueType);
+        } else {
+          assertIsAssignable(
+              getPosition(visitedValueExpr), valueType, OptionalType.create(valueType));
+        }
+      }
+      if (!inferenceContext.isAssignable(fieldType, valueType)) {
+        env.reportError(
+            getPosition(entry),
+            "expected type of field '%s' is '%s' but provided type is '%s'",
+            entry.fieldKey(),
+            CelTypes.format(fieldType),
+            CelTypes.format(valueType));
+      }
+    }
+    return expr;
+  }
+
+  @CheckReturnValue
+  private CelExpr visit(CelExpr expr, CelExpr.CelCreateMap createMap) {
+    CelType mapKeyType = null;
+    CelType mapValueType = null;
+    ImmutableList<CelExpr.CelCreateMap.Entry> entriesList = createMap.entries();
+    for (int i = 0; i < entriesList.size(); i++) {
+      CelExpr.CelCreateMap.Entry entry = entriesList.get(i);
+      CelExpr visitedMapKeyExpr = visit(entry.key());
+      if (namespacedDeclarations && !visitedMapKeyExpr.equals(entry.key())) {
         // Subtree has been rewritten. Replace the map key.
-        expr = replaceStructEntryMapKeySubtree(expr, visitedMapKeyExpr, i);
+        expr = replaceMapEntryKeySubtree(expr, visitedMapKeyExpr, i);
       }
       mapKeyType =
           joinTypes(getPosition(visitedMapKeyExpr), mapKeyType, env.getType(visitedMapKeyExpr));
@@ -372,7 +430,7 @@ public final class ExprChecker {
       CelExpr visitedValueExpr = visit(entry.value());
       if (namespacedDeclarations && !visitedValueExpr.equals(entry.value())) {
         // Subtree has been rewritten. Replace the map value.
-        expr = replaceStructEntryValueSubtree(expr, visitedValueExpr, i);
+        expr = replaceMapEntryValueSubtree(expr, visitedValueExpr, i);
       }
       CelType valueType = env.getType(visitedValueExpr);
       if (entry.optionalEntry()) {
@@ -579,65 +637,6 @@ public final class ExprChecker {
       resultType = SimpleType.ERROR;
     }
     return OverloadResolution.of(refBuilder.build(), resultType);
-  }
-
-  private CelExpr visitCreateMessage(CelExpr expr, CelExpr.CelCreateStruct createStruct) {
-    // Determine the type of the message.
-    CelType messageType = SimpleType.ERROR;
-    CelIdentDecl decl = env.lookupIdent(getPosition(expr), inContainer, createStruct.messageName());
-    env.setRef(expr, CelReference.newBuilder().setName(decl.name()).build());
-    CelType type = decl.type();
-    if (type.kind() != CelKind.ERROR) {
-      if (type.kind() != CelKind.TYPE) {
-        // expected type of types
-        env.reportError(getPosition(expr), "'%s' is not a type", CelTypes.format(type));
-      } else {
-        messageType = ((TypeType) type).type();
-        if (messageType.kind() != CelKind.STRUCT) {
-          env.reportError(
-              getPosition(expr), "'%s' is not a message type", CelTypes.format(messageType));
-          messageType = SimpleType.ERROR;
-        }
-      }
-    }
-
-    // When the type is well-known mark the expression with the CEL type rather than the proto type.
-    if (Env.isWellKnownType(messageType)) {
-      env.setType(expr, Env.getWellKnownType(messageType));
-    } else {
-      env.setType(expr, messageType);
-    }
-
-    // Check the field initializers.
-    ImmutableList<CelExpr.CelCreateStruct.Entry> entriesList = createStruct.entries();
-    for (int i = 0; i < entriesList.size(); i++) {
-      CelExpr.CelCreateStruct.Entry entry = entriesList.get(i);
-      CelExpr visitedValueExpr = visit(entry.value());
-      if (namespacedDeclarations && !visitedValueExpr.equals(entry.value())) {
-        // Subtree has been rewritten. Replace the struct value.
-        expr = replaceStructEntryValueSubtree(expr, visitedValueExpr, i);
-      }
-      CelType fieldType =
-          getFieldType(getPosition(entry), messageType, entry.keyKind().fieldKey()).celType();
-      CelType valueType = env.getType(visitedValueExpr);
-      if (entry.optionalEntry()) {
-        if (valueType instanceof OptionalType) {
-          valueType = unwrapOptional(valueType);
-        } else {
-          assertIsAssignable(
-              getPosition(visitedValueExpr), valueType, OptionalType.create(valueType));
-        }
-      }
-      if (!inferenceContext.isAssignable(fieldType, valueType)) {
-        env.reportError(
-            getPosition(entry),
-            "expected type of field '%s' is '%s' but provided type is '%s'",
-            entry.keyKind().fieldKey(),
-            CelTypes.format(fieldType),
-            CelTypes.format(valueType));
-      }
-    }
-    return expr;
   }
 
   // Return value from visit is not needed as the subtree is not rewritten here.
@@ -856,12 +855,20 @@ public final class ExprChecker {
     return expr.toBuilder().setCreateStruct(createStruct).build();
   }
 
-  private static CelExpr replaceStructEntryMapKeySubtree(CelExpr expr, CelExpr newKey, int index) {
-    CelExpr.CelCreateStruct createStruct = expr.createStruct();
-    CelExpr.CelCreateStruct.Entry newEntry =
-        createStruct.entries().get(index).toBuilder().setMapKey(newKey).build();
-    createStruct = createStruct.toBuilder().setEntry(index, newEntry).build();
-    return expr.toBuilder().setCreateStruct(createStruct).build();
+  private static CelExpr replaceMapEntryKeySubtree(CelExpr expr, CelExpr newKey, int index) {
+    CelExpr.CelCreateMap createMap = expr.createMap();
+    CelExpr.CelCreateMap.Entry newEntry =
+        createMap.entries().get(index).toBuilder().setKey(newKey).build();
+    createMap = createMap.toBuilder().setEntry(index, newEntry).build();
+    return expr.toBuilder().setCreateMap(createMap).build();
+  }
+
+  private static CelExpr replaceMapEntryValueSubtree(CelExpr expr, CelExpr newValue, int index) {
+    CelExpr.CelCreateMap createMap = expr.createMap();
+    CelExpr.CelCreateMap.Entry newEntry =
+        createMap.entries().get(index).toBuilder().setValue(newValue).build();
+    createMap = createMap.toBuilder().setEntry(index, newEntry).build();
+    return expr.toBuilder().setCreateMap(createMap).build();
   }
 
   private static CelExpr replaceComprehensionRangeSubtree(CelExpr expr, CelExpr newRange) {
