@@ -15,6 +15,7 @@
 package dev.cel.common.ast;
 
 import com.google.auto.value.AutoOneOf;
+import com.google.auto.value.AutoValue;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.ByteString;
@@ -34,6 +35,7 @@ import dev.cel.common.annotations.Internal;
 public abstract class CelConstant {
   /** Represents the type of the Constant */
   public enum Kind {
+    NOT_SET,
     NULL_VALUE,
     BOOLEAN_VALUE,
     INT64_VALUE,
@@ -54,6 +56,18 @@ public abstract class CelConstant {
   }
 
   public abstract Kind getKind();
+
+  /**
+   * An unset constant.
+   *
+   * <p>As the name implies, this constant does nothing. This is used to represent a default
+   * instance of CelConstant.
+   */
+  @AutoValue
+  @Immutable
+  public abstract static class CelConstantNotSet {}
+
+  public abstract CelConstantNotSet notSet();
 
   public abstract NullValue nullValue();
 
@@ -80,6 +94,10 @@ public abstract class CelConstant {
    */
   @Deprecated
   public abstract Duration durationValue();
+
+  public static CelConstant ofNotSet() {
+    return AutoOneOf_CelConstant.notSet(new AutoValue_CelConstant_CelConstantNotSet());
+  }
 
   public static CelConstant ofValue(NullValue value) {
     return AutoOneOf_CelConstant.nullValue(value);

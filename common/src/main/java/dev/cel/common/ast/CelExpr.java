@@ -23,6 +23,7 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -50,40 +51,165 @@ import java.util.Optional;
 @Immutable
 public abstract class CelExpr {
 
+  /**
+   * Required. An id assigned to this node by the parser which is unique in a given expression tree.
+   * This is used to associate type information and other attributes to a node in the parse tree.
+   */
   public abstract long id();
 
+  /** Represents the variant of the expression. */
   public abstract ExprKind exprKind();
 
+  /**
+   * Gets the underlying constant expression.
+   *
+   * @throws UnsupportedOperationException if expression is not {@link Kind#CONSTANT}.
+   */
   public CelConstant constant() {
     return exprKind().constant();
   }
 
+  /**
+   * Gets the underlying identifier expression.
+   *
+   * @throws UnsupportedOperationException if expression is not {@link Kind#IDENT}.
+   */
   public CelIdent ident() {
     return exprKind().ident();
   }
 
+  /**
+   * Gets the underlying select expression.
+   *
+   * @throws UnsupportedOperationException if expression is not {@link Kind#SELECT}.
+   */
   public CelSelect select() {
     return exprKind().select();
   }
 
+  /**
+   * Gets the underlying call expression.
+   *
+   * @throws UnsupportedOperationException if expression is not {@link Kind#CALL}.
+   */
   public CelCall call() {
     return exprKind().call();
   }
 
+  /**
+   * Gets the underlying createList expression.
+   *
+   * @throws UnsupportedOperationException if expression is not {@link Kind#CREATE_LIST}.
+   */
   public CelCreateList createList() {
     return exprKind().createList();
   }
 
+  /**
+   * Gets the underlying createStruct expression.
+   *
+   * @throws UnsupportedOperationException if expression is not {@link Kind#CREATE_STRUCT}.
+   */
   public CelCreateStruct createStruct() {
     return exprKind().createStruct();
   }
 
+  /**
+   * Gets the underlying createMap expression.
+   *
+   * @throws UnsupportedOperationException if expression is not {@link Kind#createMap}.
+   */
   public CelCreateMap createMap() {
     return exprKind().createMap();
   }
 
+  /**
+   * Gets the underlying comprehension expression.
+   *
+   * @throws UnsupportedOperationException if expression is not {@link Kind#COMPREHENSION}.
+   */
   public CelComprehension comprehension() {
     return exprKind().comprehension();
+  }
+
+  /**
+   * Gets the underlying constant expression or a default instance of one if expression is not
+   * {@link Kind#CONSTANT}.
+   */
+  public CelConstant constantOrDefault() {
+    return exprKind().getKind().equals(ExprKind.Kind.CONSTANT)
+        ? exprKind().constant()
+        : CelConstant.ofNotSet();
+  }
+
+  /**
+   * Gets the underlying identifier expression or a default instance of one if expression is not
+   * {@link Kind#IDENT}.
+   */
+  public CelIdent identOrDefault() {
+    return exprKind().getKind().equals(ExprKind.Kind.IDENT)
+        ? exprKind().ident()
+        : CelIdent.newBuilder().build();
+  }
+
+  /**
+   * Gets the underlying select expression or a default instance of one if expression is not {@link
+   * Kind#SELECT}.
+   */
+  public CelSelect selectOrDefault() {
+    return exprKind().getKind().equals(ExprKind.Kind.SELECT)
+        ? exprKind().select()
+        : CelSelect.newBuilder().build();
+  }
+
+  /**
+   * Gets the underlying call expression or a default instance of one if expression is not {@link
+   * Kind#CALL}.
+   */
+  public CelCall callOrDefault() {
+    return exprKind().getKind().equals(ExprKind.Kind.CALL)
+        ? exprKind().call()
+        : CelCall.newBuilder().build();
+  }
+
+  /**
+   * Gets the underlying createList expression or a default instance of one if expression is not
+   * {@link Kind#CREATE_LIST}.
+   */
+  public CelCreateList createListOrDefault() {
+    return exprKind().getKind().equals(ExprKind.Kind.CREATE_LIST)
+        ? exprKind().createList()
+        : CelCreateList.newBuilder().build();
+  }
+
+  /**
+   * Gets the underlying createStruct expression or a default instance of one if expression is not
+   * {@link Kind#CREATE_STRUCT}.
+   */
+  public CelCreateStruct createStructOrDefault() {
+    return exprKind().getKind().equals(ExprKind.Kind.CREATE_STRUCT)
+        ? exprKind().createStruct()
+        : CelCreateStruct.newBuilder().build();
+  }
+
+  /**
+   * Gets the underlying createMap expression or a default instance of one if expression is not
+   * {@link Kind#CREATE_MAP}.
+   */
+  public CelCreateMap createMapOrDefault() {
+    return exprKind().getKind().equals(ExprKind.Kind.CREATE_MAP)
+        ? exprKind().createMap()
+        : CelCreateMap.newBuilder().build();
+  }
+
+  /**
+   * Gets the underlying comprehension expression or a default instance of one if expression is not
+   * {@link Kind#COMPREHENSION}.
+   */
+  public CelComprehension comprehensionOrDefault() {
+    return exprKind().getKind().equals(ExprKind.Kind.COMPREHENSION)
+        ? exprKind().comprehension()
+        : CelComprehension.newBuilder().build();
   }
 
   /** Builder for CelExpr. */
@@ -212,7 +338,7 @@ public abstract class CelExpr {
     public abstract Builder toBuilder();
 
     public static Builder newBuilder() {
-      return new AutoValue_CelExpr_CelIdent.Builder();
+      return new AutoValue_CelExpr_CelIdent.Builder().setName("");
     }
   }
 
@@ -261,7 +387,10 @@ public abstract class CelExpr {
     public abstract Builder toBuilder();
 
     public static Builder newBuilder() {
-      return new AutoValue_CelExpr_CelSelect.Builder().setTestOnly(false);
+      return new AutoValue_CelExpr_CelSelect.Builder()
+          .setField("")
+          .setOperand(CelExpr.newBuilder().build())
+          .setTestOnly(false);
     }
   }
 
@@ -345,7 +474,7 @@ public abstract class CelExpr {
     }
 
     public static Builder newBuilder() {
-      return new AutoValue_CelExpr_CelCall.Builder();
+      return new AutoValue_CelExpr_CelCall.Builder().setFunction("");
     }
   }
 
@@ -761,7 +890,14 @@ public abstract class CelExpr {
     public abstract Builder toBuilder();
 
     public static Builder newBuilder() {
-      return new AutoValue_CelExpr_CelComprehension.Builder();
+      return new AutoValue_CelExpr_CelComprehension.Builder()
+          .setIterVar("")
+          .setIterRange(CelExpr.newBuilder().build())
+          .setAccuVar("")
+          .setAccuInit(CelExpr.newBuilder().build())
+          .setLoopCondition(CelExpr.newBuilder().build())
+          .setLoopStep(CelExpr.newBuilder().build())
+          .setResult(CelExpr.newBuilder().build());
     }
   }
 

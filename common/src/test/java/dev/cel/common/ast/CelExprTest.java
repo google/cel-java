@@ -15,12 +15,14 @@
 package dev.cel.common.ast;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.CelCreateList;
+import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct;
 import dev.cel.common.ast.CelExpr.CelIdent;
 import dev.cel.common.ast.CelExpr.CelSelect;
@@ -64,6 +66,9 @@ public class CelExprTest {
                     .build())
             .build(),
         Kind.SELECT),
+    CREATE_MAP(
+        CelExpr.newBuilder().setCreateMap(CelCreateMap.newBuilder().build()).build(),
+        Kind.CREATE_MAP),
     CREATE_LIST(
         CelExpr.newBuilder().setCreateList(CelCreateList.newBuilder().build()).build(),
         Kind.CREATE_LIST),
@@ -304,5 +309,102 @@ public class CelExprTest {
     CelExpr celExpr = CelExpr.newBuilder().setComprehension(celComprehension).build();
 
     assertThat(celExpr.comprehension()).isEqualTo(celComprehension);
+  }
+
+  @Test
+  public void getUnderlyingExpression_unmatchedKind_throws(
+      @TestParameter BuilderExprKindTestCase testCase) {
+    if (!testCase.expectedExprKind.equals(Kind.NOT_SET)) {
+      assertThrows(UnsupportedOperationException.class, () -> testCase.expr.exprKind().notSet());
+    }
+    if (!testCase.expectedExprKind.equals(Kind.CONSTANT)) {
+      assertThrows(UnsupportedOperationException.class, testCase.expr::constant);
+    }
+    if (!testCase.expectedExprKind.equals(Kind.IDENT)) {
+      assertThrows(UnsupportedOperationException.class, testCase.expr::ident);
+    }
+    if (!testCase.expectedExprKind.equals(Kind.SELECT)) {
+      assertThrows(UnsupportedOperationException.class, testCase.expr::select);
+    }
+    if (!testCase.expectedExprKind.equals(Kind.CALL)) {
+      assertThrows(UnsupportedOperationException.class, testCase.expr::call);
+    }
+    if (!testCase.expectedExprKind.equals(Kind.CREATE_LIST)) {
+      assertThrows(UnsupportedOperationException.class, testCase.expr::createList);
+    }
+    if (!testCase.expectedExprKind.equals(Kind.CREATE_STRUCT)) {
+      assertThrows(UnsupportedOperationException.class, testCase.expr::createStruct);
+    }
+    if (!testCase.expectedExprKind.equals(Kind.CREATE_MAP)) {
+      assertThrows(UnsupportedOperationException.class, testCase.expr::createMap);
+    }
+    if (!testCase.expectedExprKind.equals(Kind.COMPREHENSION)) {
+      assertThrows(UnsupportedOperationException.class, testCase.expr::comprehension);
+    }
+  }
+
+  @Test
+  public void getDefault_unmatchedKind_returnsDefaultInstance(
+      @TestParameter BuilderExprKindTestCase testCase) {
+    if (!testCase.expectedExprKind.equals(Kind.CONSTANT)) {
+      assertThat(testCase.expr.constantOrDefault()).isEqualTo(CelConstant.ofNotSet());
+    }
+    if (!testCase.expectedExprKind.equals(Kind.IDENT)) {
+      assertThat(testCase.expr.identOrDefault()).isEqualTo(CelIdent.newBuilder().build());
+    }
+    if (!testCase.expectedExprKind.equals(Kind.SELECT)) {
+      assertThat(testCase.expr.selectOrDefault()).isEqualTo(CelSelect.newBuilder().build());
+    }
+    if (!testCase.expectedExprKind.equals(Kind.CALL)) {
+      assertThat(testCase.expr.callOrDefault()).isEqualTo(CelCall.newBuilder().build());
+    }
+    if (!testCase.expectedExprKind.equals(Kind.CREATE_LIST)) {
+      assertThat(testCase.expr.createListOrDefault()).isEqualTo(CelCreateList.newBuilder().build());
+    }
+    if (!testCase.expectedExprKind.equals(Kind.CREATE_STRUCT)) {
+      assertThat(testCase.expr.createStructOrDefault())
+          .isEqualTo(CelCreateStruct.newBuilder().build());
+    }
+    if (!testCase.expectedExprKind.equals(Kind.CREATE_MAP)) {
+      assertThat(testCase.expr.createMapOrDefault()).isEqualTo(CelCreateMap.newBuilder().build());
+    }
+    if (!testCase.expectedExprKind.equals(Kind.COMPREHENSION)) {
+      assertThat(testCase.expr.comprehensionOrDefault())
+          .isEqualTo(CelComprehension.newBuilder().build());
+    }
+  }
+
+  @Test
+  public void getDefault_matchedKind_returnsUnderlyingExpression(
+      @TestParameter BuilderExprKindTestCase testCase) {
+    switch (testCase.expectedExprKind) {
+      case NOT_SET:
+        // no-op
+        break;
+      case CONSTANT:
+        assertThat(testCase.expr.constantOrDefault()).isEqualTo(testCase.expr.constant());
+        break;
+      case IDENT:
+        assertThat(testCase.expr.identOrDefault()).isEqualTo(testCase.expr.ident());
+        break;
+      case SELECT:
+        assertThat(testCase.expr.selectOrDefault()).isEqualTo(testCase.expr.select());
+        break;
+      case CALL:
+        assertThat(testCase.expr.callOrDefault()).isEqualTo(testCase.expr.call());
+        break;
+      case CREATE_LIST:
+        assertThat(testCase.expr.createListOrDefault()).isEqualTo(testCase.expr.createList());
+        break;
+      case CREATE_STRUCT:
+        assertThat(testCase.expr.createStructOrDefault()).isEqualTo(testCase.expr.createStruct());
+        break;
+      case CREATE_MAP:
+        assertThat(testCase.expr.createMapOrDefault()).isEqualTo(testCase.expr.createMap());
+        break;
+      case COMPREHENSION:
+        assertThat(testCase.expr.comprehensionOrDefault()).isEqualTo(testCase.expr.comprehension());
+        break;
+    }
   }
 }
