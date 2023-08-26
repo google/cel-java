@@ -54,7 +54,8 @@ import org.jspecify.nullness.Nullable;
  *
  * <p>CEL-Java library internals. Do not use.
  *
- * @deprecated Please migrate to CEL-Java Fluent APIs instead. See {@code CelCompilerFactory}.
+ * @deprecated Please migrate to CEL-Java Fluent APIs instead. See {@code
+ *     CelCompilerFactory}(b/199537464).
  */
 @Internal
 @Deprecated

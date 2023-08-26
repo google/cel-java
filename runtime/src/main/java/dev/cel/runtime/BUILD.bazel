@@ -67,7 +67,7 @@ java_library(
 java_library(
     name = "interpreter",
     srcs = INTERPRETER_SOURCES,
-    deprecation = "Please use CEL-Java Fluent APIs //runtime:runtime instead",
+    deprecation = "See go/cel-java-migration-guide. Please use CEL-Java Fluent APIs //runtime:runtime instead",
     tags = [
     ],
     exports = [":base"],
