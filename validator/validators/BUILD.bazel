@@ -7,3 +7,13 @@ java_library(
     name = "timestamp",
     exports = ["//validator/src/main/java/dev/cel/validator/validators:timestamp"],
 )
+
+java_library(
+    name = "duration",
+    exports = ["//validator/src/main/java/dev/cel/validator/validators:duration"],
+)
+
+java_library(
+    name = "regex",
+    exports = ["//validator/src/main/java/dev/cel/validator/validators:regex"],
+)

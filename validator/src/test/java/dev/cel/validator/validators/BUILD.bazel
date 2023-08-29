@@ -16,6 +16,8 @@ java_library(
         "//runtime",
         "//validator",
         "//validator:validator_builder",
+        "//validator/validators:duration",
+        "//validator/validators:regex",
         "//validator/validators:timestamp",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",

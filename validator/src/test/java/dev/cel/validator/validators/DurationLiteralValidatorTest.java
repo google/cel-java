@@ -20,15 +20,14 @@ import static dev.cel.common.CelOverloadDecl.newGlobalOverload;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.protobuf.Timestamp;
-import com.google.protobuf.util.Timestamps;
+import com.google.protobuf.Duration;
+import com.google.protobuf.util.Durations;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelIssue.Severity;
-import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.types.SimpleType;
 import dev.cel.runtime.CelEvaluationException;
@@ -40,36 +39,32 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public class TimestampLiteralValidatorTest {
-  private static final CelOptions CEL_OPTIONS =
-      CelOptions.current().enableTimestampEpoch(true).build();
-
-  private static final Cel CEL = CelFactory.standardCelBuilder().setOptions(CEL_OPTIONS).build();
+public class DurationLiteralValidatorTest {
+  private static final Cel CEL = CelFactory.standardCelBuilder().build();
 
   private static final CelValidator CEL_VALIDATOR =
       CelValidatorFactory.standardCelValidatorBuilder(CEL)
-          .addAstValidators(TimestampLiteralValidator.INSTANCE)
+          .addAstValidators(DurationLiteralValidator.INSTANCE)
           .build();
 
   @Test
-  @TestParameters("{source: timestamp(0)}")
-  @TestParameters("{source: timestamp(1624124124)}")
-  @TestParameters("{source: timestamp('2021-06-19T17:35:24Z')}")
-  @TestParameters("{source: timestamp('1972-01-01T10:00:20.021-05:00')}")
-  public void timestamp_validFormat(String source) throws Exception {
+  @TestParameters("{source: duration('0')}")
+  @TestParameters("{source: duration('1h')}")
+  @TestParameters("{source: duration('-1m6s')}")
+  @TestParameters("{source: duration('2h3m4s5us')}")
+  public void duration_validFormat(String source) throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile(source).getAst();
 
     CelValidationResult result = CEL_VALIDATOR.validate(ast);
 
     assertThat(result.hasError()).isFalse();
     assertThat(result.getAllIssues()).isEmpty();
-    assertThat(CEL.createProgram(ast).eval()).isInstanceOf(Timestamp.class);
+    assertThat(CEL.createProgram(ast).eval()).isInstanceOf(Duration.class);
   }
 
   @Test
-  public void timestampsInCallArgument_validFormat() throws Exception {
-    String source =
-        "string(timestamp(1524124124)) + ':' + string(timestamp('2021-06-19T17:35:24Z'))";
+  public void durationsInCallArgument_validFormat() throws Exception {
+    String source = "string(duration('1h')) + ':' + string(duration('-1m'))";
     CelAbstractSyntaxTree ast = CEL.compile(source).getAst();
 
     CelValidationResult result = CEL_VALIDATOR.validate(ast);
@@ -80,13 +75,9 @@ public class TimestampLiteralValidatorTest {
   }
 
   @Test
-  public void timestamp_withVariable_noOp() throws Exception {
-    Cel cel =
-        CelFactory.standardCelBuilder()
-            .addVar("str_var", SimpleType.STRING)
-            .setOptions(CEL_OPTIONS)
-            .build();
-    CelAbstractSyntaxTree ast = cel.compile("timestamp(str_var)").getAst();
+  public void duration_withVariable_noOp() throws Exception {
+    Cel cel = CelFactory.standardCelBuilder().addVar("str_var", SimpleType.STRING).build();
+    CelAbstractSyntaxTree ast = cel.compile("duration(str_var)").getAst();
 
     CelValidationResult result = CEL_VALIDATOR.validate(ast);
 
@@ -98,33 +89,30 @@ public class TimestampLiteralValidatorTest {
         assertThrows(
             CelEvaluationException.class,
             () -> CEL.createProgram(ast).eval(ImmutableMap.of("str_var", "bad")));
-    assertThat(e)
-        .hasMessageThat()
-        .contains("evaluation error: Failed to parse timestamp: invalid timestamp \"bad\"");
+    assertThat(e).hasMessageThat().contains("evaluation error: invalid duration format");
   }
 
   @Test
-  public void timestamp_withFunction_noOp() throws Exception {
+  public void duration_withFunction_noOp() throws Exception {
     Cel cel =
         CelFactory.standardCelBuilder()
             .addFunctionDeclarations(
                 newFunctionDeclaration(
                     "testFunc",
-                    newGlobalOverload("testFuncOverloadId", SimpleType.INT, SimpleType.STRING)))
+                    newGlobalOverload("testFuncOverloadId", SimpleType.STRING, SimpleType.STRING)))
             .addFunctionBindings(
                 CelFunctionBinding.from(
                     "testFuncOverloadId",
                     String.class,
                     stringArg -> {
                       try {
-                        return Timestamps.parse(stringArg).getSeconds();
+                        return Durations.parse(stringArg).toString();
                       } catch (ParseException e) {
                         throw new RuntimeException(e);
                       }
                     }))
-            .setOptions(CEL_OPTIONS)
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("timestamp(testFunc('bad'))").getAst();
+    CelAbstractSyntaxTree ast = cel.compile("duration(testFunc('bad'))").getAst();
 
     CelValidationResult result = CEL_VALIDATOR.validate(ast);
 
@@ -140,8 +128,8 @@ public class TimestampLiteralValidatorTest {
   }
 
   @Test
-  public void timestamp_invalidFormat() throws Exception {
-    CelAbstractSyntaxTree ast = CEL.compile("timestamp('bad')").getAst();
+  public void duration_invalidFormat() throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("duration('bad')").getAst();
 
     CelValidationResult result = CEL_VALIDATOR.validate(ast);
 
@@ -150,28 +138,28 @@ public class TimestampLiteralValidatorTest {
     assertThat(result.getAllIssues().get(0).getSeverity()).isEqualTo(Severity.ERROR);
     assertThat(result.getAllIssues().get(0).toDisplayString(ast.getSource()))
         .isEqualTo(
-            "ERROR: <input>:1:11: timestamp validation failed. Reason: evaluation error: Failed to"
-                + " parse timestamp: invalid timestamp \"bad\"\n"
-                + " | timestamp('bad')\n"
-                + " | ..........^");
+            "ERROR: <input>:1:10: duration validation failed. Reason: evaluation error: invalid"
+                + " duration format\n"
+                + " | duration('bad')\n"
+                + " | .........^");
   }
 
   @Test
-  public void timestamp_unexpectedResultType_throws() throws Exception {
+  public void duration_unexpectedResultType_throws() throws Exception {
     Cel cel =
         CelFactory.standardCelBuilder()
             .setStandardEnvironmentEnabled(false)
             .addFunctionDeclarations(
                 newFunctionDeclaration(
-                    "timestamp",
-                    newGlobalOverload("timestamp_overload", SimpleType.TIMESTAMP, SimpleType.INT)))
+                    "duration",
+                    newGlobalOverload("duration_overload", SimpleType.DURATION, SimpleType.STRING)))
             .addFunctionBindings(
-                CelFunctionBinding.from("timestamp_overload", Long.class, (arg) -> 1))
+                CelFunctionBinding.from("duration_overload", String.class, (arg) -> 1))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("timestamp(0)").getAst();
+    CelAbstractSyntaxTree ast = cel.compile("duration('1h')").getAst();
     CelValidator celValidator =
         CelValidatorFactory.standardCelValidatorBuilder(cel)
-            .addAstValidators(TimestampLiteralValidator.INSTANCE)
+            .addAstValidators(DurationLiteralValidator.INSTANCE)
             .build();
 
     CelValidationResult result = celValidator.validate(ast);
@@ -181,10 +169,10 @@ public class TimestampLiteralValidatorTest {
     assertThat(result.getAllIssues().get(0).getSeverity()).isEqualTo(Severity.ERROR);
     assertThat(result.getAllIssues().get(0).toDisplayString(ast.getSource()))
         .isEqualTo(
-            "ERROR: <input>:1:11: timestamp validation failed. Reason: Expected"
-                + " com.google.protobuf.Timestamp type but got java.lang.Integer instead\n"
-                + " | timestamp(0)\n"
-                + " | ..........^");
+            "ERROR: <input>:1:10: duration validation failed. Reason: Expected"
+                + " com.google.protobuf.Duration type but got java.lang.Integer instead\n"
+                + " | duration('1h')\n"
+                + " | .........^");
   }
 
   @Test

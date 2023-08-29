@@ -14,14 +14,14 @@
 
 package dev.cel.validator.validators;
 
-import com.google.protobuf.Timestamp;
+import com.google.protobuf.Duration;
 
-/** TimestampLiteralValidator ensures that timestamp literal arguments are valid. */
-public class TimestampLiteralValidator extends LiteralValidator {
-  public static final TimestampLiteralValidator INSTANCE =
-      new TimestampLiteralValidator("timestamp", Timestamp.class);
+/** DurationLiteralValidator ensures that duration literal arguments are valid. */
+public class DurationLiteralValidator extends LiteralValidator {
+  public static final DurationLiteralValidator INSTANCE =
+      new DurationLiteralValidator("duration", Duration.class);
 
-  private TimestampLiteralValidator(String functionName, Class<?> expectedResultType) {
+  private DurationLiteralValidator(String functionName, Class<?> expectedResultType) {
     super(functionName, expectedResultType);
   }
 }
