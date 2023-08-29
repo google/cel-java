@@ -14,9 +14,11 @@
 
 package dev.cel.compiler;
 
+import dev.cel.checker.CelChecker;
 import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.checker.CelCheckerLegacyImpl;
 import dev.cel.common.CelOptions;
+import dev.cel.parser.CelParser;
 import dev.cel.parser.CelParserImpl;
 
 /** Factory class for creating builders for type-checker and compiler instances. */
@@ -41,10 +43,14 @@ public final class CelCompilerFactory {
    * configured by default.
    */
   public static CelCompilerBuilder standardCelCompilerBuilder() {
-
     return CelCompilerImpl.newBuilder(CelParserImpl.newBuilder(), CelCheckerLegacyImpl.newBuilder())
         .setOptions(CelOptions.current().build())
         .setStandardEnvironmentEnabled(true);
+  }
+
+  /** Combines a prebuilt {@link CelParser} and {@link CelChecker} into {@link CelCompiler}. */
+  public static CelCompiler combine(CelParser celParser, CelChecker celChecker) {
+    return CelCompilerImpl.combine(celParser, celChecker);
   }
 
   private CelCompilerFactory() {}

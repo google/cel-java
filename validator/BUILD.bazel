@@ -1,0 +1,26 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],  # TODO: Expose when ready
+)
+
+java_library(
+    name = "validator",
+    exports = ["//validator/src/main/java/dev/cel/validator"],
+)
+
+java_library(
+    name = "validator_builder",
+    exports = ["//validator/src/main/java/dev/cel/validator:validator_builder"],
+)
+
+java_library(
+    name = "ast_validator",
+    exports = ["//validator/src/main/java/dev/cel/validator:ast_validator"],
+)
+
+java_library(
+    name = "validator_impl",
+    testonly = 1,
+    visibility = ["//validator/src/test/java/dev/cel/validator:__pkg__"],
+    exports = ["//validator/src/main/java/dev/cel/validator:validator_impl"],
+)

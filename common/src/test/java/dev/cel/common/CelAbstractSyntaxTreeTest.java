@@ -190,7 +190,7 @@ public final class CelAbstractSyntaxTreeTest {
             .addLineOffsets(10)
             .build();
 
-    CelAbstractSyntaxTree ast = new CelAbstractSyntaxTree(celExpr, celSource);
+    CelAbstractSyntaxTree ast = CelAbstractSyntaxTree.newParsedAst(celExpr, celSource);
 
     assertThat(ast).isNotNull();
     assertThat(ast.getExpr()).isEqualTo(celExpr);

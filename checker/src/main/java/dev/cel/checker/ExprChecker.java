@@ -137,7 +137,8 @@ public final class ExprChecker {
     // by DYN.
     Map<Long, CelType> typeMap =
         Maps.transformValues(env.getTypeMap(), checker.inferenceContext::finalize);
-    return new CelAbstractSyntaxTree(expr, ast.getSource(), env.getRefMap(), typeMap);
+
+    return CelAbstractSyntaxTree.newCheckedAst(expr, ast.getSource(), env.getRefMap(), typeMap);
   }
 
   private final Env env;

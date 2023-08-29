@@ -14,8 +14,6 @@
 
 package dev.cel.common;
 
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
-
 import dev.cel.expr.CheckedExpr;
 import dev.cel.expr.Expr;
 import dev.cel.expr.ParsedExpr;
@@ -28,13 +26,11 @@ import com.google.errorprone.annotations.InlineMe;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
-import dev.cel.common.ast.CelExprConverter;
 import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.SimpleType;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -56,15 +52,36 @@ public final class CelAbstractSyntaxTree {
 
   private final ImmutableMap<Long, CelType> types;
 
-  /** Internal: Consumers should not be creating an instance of this class directly. */
+  /**
+   * Constructs a new instance of CelAbstractSyntaxTree that represent a parsed expression.
+   *
+   * <p>Note that ASTs should not be manually constructed except for special circumstances such as
+   * validating or optimizing an AST.
+   */
+  public static CelAbstractSyntaxTree newParsedAst(CelExpr celExpr, CelSource celSource) {
+    return new CelAbstractSyntaxTree(celExpr, celSource);
+  }
+
+  /**
+   * Constructs a new instance of CelAbstractSyntaxTree that represent a checked expression.
+   *
+   * <p>CEL Library Internals. Do not construct a type-checked AST by hand. Use a CelCompiler to
+   * type-check a parsed AST instead.
+   */
   @Internal
-  public CelAbstractSyntaxTree(CelExpr celExpr, CelSource celSource) {
+  public static CelAbstractSyntaxTree newCheckedAst(
+      CelExpr celExpr,
+      CelSource celSource,
+      Map<Long, CelReference> references,
+      Map<Long, CelType> types) {
+    return new CelAbstractSyntaxTree(celExpr, celSource, references, types);
+  }
+
+  private CelAbstractSyntaxTree(CelExpr celExpr, CelSource celSource) {
     this(celExpr, celSource, ImmutableMap.of(), ImmutableMap.of());
   }
 
-  /** Internal: Consumers should not be creating an instance of this class directly. */
-  @Internal
-  public CelAbstractSyntaxTree(
+  private CelAbstractSyntaxTree(
       CelExpr celExpr,
       CelSource celSource,
       Map<Long, CelReference> references,
@@ -73,29 +90,6 @@ public final class CelAbstractSyntaxTree {
     this.celSource = celSource;
     this.references = ImmutableMap.copyOf(references);
     this.types = ImmutableMap.copyOf(types);
-  }
-
-  CelAbstractSyntaxTree(ParsedExpr parsedExpr, CelSource celSource) {
-    this(
-        CheckedExpr.newBuilder()
-            .setExpr(parsedExpr.getExpr())
-            .setSourceInfo(parsedExpr.getSourceInfo())
-            .build(),
-        celSource);
-  }
-
-  CelAbstractSyntaxTree(CheckedExpr checkedExpr, CelSource celSource) {
-    this.celExpr = CelExprConverter.fromExpr(checkedExpr.getExpr());
-    this.celSource = celSource;
-    this.references =
-        checkedExpr.getReferenceMapMap().entrySet().stream()
-            .collect(
-                toImmutableMap(
-                    Entry::getKey,
-                    v -> CelExprConverter.exprReferenceToCelReference(v.getValue())));
-    this.types =
-        checkedExpr.getTypeMapMap().entrySet().stream()
-            .collect(toImmutableMap(Entry::getKey, v -> CelTypes.typeToCelType(v.getValue())));
   }
 
   /**

@@ -1,0 +1,9 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],  # TODO: Expose when ready
+)
+
+java_library(
+    name = "timestamp",
+    exports = ["//validator/src/main/java/dev/cel/validator/validators:timestamp"],
+)
