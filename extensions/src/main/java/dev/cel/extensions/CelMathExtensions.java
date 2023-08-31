@@ -34,8 +34,8 @@ import dev.cel.common.internal.ComparisonFunctions;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompilerLibrary;
-import dev.cel.parser.CelExprFactory;
 import dev.cel.parser.CelMacro;
+import dev.cel.parser.CelMacroExprFactory;
 import dev.cel.parser.CelParserBuilder;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeBuilder;
@@ -390,7 +390,7 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
   }
 
   private static Optional<CelExpr> expandGreatestMacro(
-      CelExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
+      CelMacroExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
     if (!isTargetInNamespace(target)) {
       // Return empty to indicate that we're not interested in expanding this macro, and
       // that the parser should default to a function call on the receiver.
@@ -469,7 +469,7 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
   }
 
   private static Optional<CelExpr> expandLeastMacro(
-      CelExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
+      CelMacroExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
     if (!isTargetInNamespace(target)) {
       // Return empty to indicate that we're not interested in expanding this macro, and
       // that the parser should default to a function call on the receiver.
@@ -511,7 +511,7 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
   }
 
   private static Optional<CelExpr> checkInvalidArgument(
-      CelExprFactory exprFactory, String functionName, List<CelExpr> arguments) {
+      CelMacroExprFactory exprFactory, String functionName, List<CelExpr> arguments) {
 
     for (CelExpr arg : arguments) {
       if (!isArgumentValidType(arg)) {
@@ -525,7 +525,7 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
   }
 
   private static Optional<CelExpr> checkInvalidArgumentSingleArg(
-      CelExprFactory exprFactory, String functionName, CelExpr argument) {
+      CelMacroExprFactory exprFactory, String functionName, CelExpr argument) {
     if (argument.exprKind().getKind() == Kind.CREATE_LIST) {
       if (argument.createList().elements().isEmpty()) {
         return newError(
@@ -558,7 +558,7 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
   }
 
   private static Optional<CelExpr> newError(
-      CelExprFactory exprFactory, String errorMessage, CelExpr argument) {
+      CelMacroExprFactory exprFactory, String errorMessage, CelExpr argument) {
     return Optional.of(
         exprFactory.reportError(
             CelIssue.formatError(exprFactory.getSourceLocation(argument), errorMessage)));

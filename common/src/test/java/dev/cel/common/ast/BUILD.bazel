@@ -15,6 +15,7 @@ java_library(
         "//common/ast",
         "//common/ast:cel_expr_visitor",
         "//common/ast:expr_converter",
+        "//common/ast:expr_factory",
         "//common/ast:expr_v1alpha1_converter",
         "//common/resources/testdata/proto3:test_all_types_java_proto",
         "//common/types",

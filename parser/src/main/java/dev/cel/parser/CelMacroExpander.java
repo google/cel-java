@@ -35,5 +35,5 @@ public interface CelMacroExpander {
    *     that an expansion is not needed.
    */
   Optional<CelExpr> expandMacro(
-      CelExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments);
+      CelMacroExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments);
 }

@@ -57,10 +57,10 @@ java_library(
     visibility = ["//visibility:private"],
     deps = [
         "//bundle:cel",
-        "//common",
         "//common/ast",
+        "//common/ast:expr_factory",
+        "//common/ast:expr_util",
         "//common/navigation",
         "//validator:ast_validator",
-        "@maven//:com_google_guava_guava",
     ],
 )

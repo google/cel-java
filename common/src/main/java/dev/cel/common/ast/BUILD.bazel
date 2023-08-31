@@ -73,3 +73,32 @@ java_library(
         "//common",
     ],
 )
+
+java_library(
+    name = "expr_factory",
+    srcs = ["CelExprFactory.java"],
+    tags = [
+    ],
+    deps = [
+        ":ast",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "expr_util",
+    srcs = ["CelExprUtil.java"],
+    tags = [
+    ],
+    deps = [
+        ":ast",
+        "//bundle:cel",
+        "//common",
+        "//common:compiler_common",
+        "//runtime",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)

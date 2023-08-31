@@ -22,8 +22,8 @@ import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelIssue;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.compiler.CelCompilerLibrary;
-import dev.cel.parser.CelExprFactory;
 import dev.cel.parser.CelMacro;
+import dev.cel.parser.CelMacroExprFactory;
 import dev.cel.parser.CelParserBuilder;
 import java.util.Optional;
 
@@ -45,7 +45,7 @@ final class CelBindingsExtensions implements CelCompilerLibrary {
    * variable to be used in the subsequent result expression.
    */
   private static Optional<CelExpr> expandBind(
-      CelExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
+      CelMacroExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
     checkNotNull(target);
     if (!isTargetInNamespace(target)) {
       // Return empty to indicate that we're not interested in expanding this macro, and

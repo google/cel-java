@@ -1,4 +1,4 @@
-// Copyright 2022 Google LLC
+// Copyright 2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,44 +12,59 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.parser;
+package dev.cel.common.ast;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
+import com.google.common.base.Preconditions;
 import com.google.common.primitives.UnsignedLong;
-import com.google.errorprone.annotations.FormatMethod;
-import com.google.errorprone.annotations.FormatString;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.protobuf.ByteString;
-import dev.cel.common.CelIssue;
-import dev.cel.common.CelSourceLocation;
-import dev.cel.common.ast.CelConstant;
-import dev.cel.common.ast.CelExpr;
 import java.util.Arrays;
 
-/**
- * Assists with the expansion of {@link CelMacro} in a manner which is consistent with the source
- * position and expression ID generation code leveraged by both the parser and type-checker.
- */
-public abstract class CelExprFactory {
+/** Factory for generating expression nodes. */
+public class CelExprFactory {
+  private long exprId = 0L;
 
-  // Package-private default constructor to prevent extensions outside of the codebase.
-  CelExprFactory() {}
+  /** Builder for configuring {@link CelExprFactory}. */
+  public static final class Builder {
+    private long startingExprId = 0L;
+
+    @CanIgnoreReturnValue
+    public Builder setStartingExpressionId(long exprId) {
+      Preconditions.checkArgument(exprId > 0);
+      startingExprId = exprId;
+      return this;
+    }
+
+    @CheckReturnValue
+    public CelExprFactory build() {
+      return new CelExprFactory(startingExprId);
+    }
+
+    private Builder() {}
+  }
+
+  /** Creates a new builder to configure CelExprFactory. */
+  public static CelExprFactory.Builder newBuilder() {
+    return new Builder();
+  }
+
+  /** Create a new constant expression. */
+  public final CelExpr newConstant(CelConstant constant) {
+    return CelExpr.newBuilder().setId(nextExprId()).setConstant(constant).build();
+  }
 
   /** Creates a new constant {@link CelExpr} for a bool value. */
   public final CelExpr newBoolLiteral(boolean value) {
-    return CelExpr.newBuilder()
-        .setId(nextExprIdForMacro())
-        .setConstant(CelConstant.ofValue(value))
-        .build();
+    return newConstant(CelConstant.ofValue(value));
   }
 
   /** Creates a new constant {@link CelExpr} for a bytes value. */
   public final CelExpr newBytesLiteral(ByteString value) {
-    return CelExpr.newBuilder()
-        .setId(nextExprIdForMacro())
-        .setConstant(CelConstant.ofValue(value))
-        .build();
+    return newConstant(CelConstant.ofValue(value));
   }
 
   /** Creates a new constant {@link CelExpr} for a bytes value. */
@@ -69,34 +84,22 @@ public abstract class CelExprFactory {
 
   /** Creates a new constant {@link CelExpr} for a double value. */
   public final CelExpr newDoubleLiteral(double value) {
-    return CelExpr.newBuilder()
-        .setId(nextExprIdForMacro())
-        .setConstant(CelConstant.ofValue(value))
-        .build();
+    return newConstant(CelConstant.ofValue(value));
   }
 
   /** Creates a new constant {@link CelExpr} for an int value. */
   public final CelExpr newIntLiteral(long value) {
-    return CelExpr.newBuilder()
-        .setId(nextExprIdForMacro())
-        .setConstant(CelConstant.ofValue(value))
-        .build();
+    return newConstant(CelConstant.ofValue(value));
   }
 
   /** Creates a new constant {@link CelExpr} for a string value. */
   public final CelExpr newStringLiteral(String value) {
-    return CelExpr.newBuilder()
-        .setId(nextExprIdForMacro())
-        .setConstant(CelConstant.ofValue(value))
-        .build();
+    return newConstant(CelConstant.ofValue(value));
   }
 
   /** Creates a new constant {@link CelExpr} for a uint value. */
   public final CelExpr newUintLiteral(long value) {
-    return CelExpr.newBuilder()
-        .setId(nextExprIdForMacro())
-        .setConstant(CelConstant.ofValue(UnsignedLong.fromLongBits(value)))
-        .build();
+    return newConstant(CelConstant.ofValue(UnsignedLong.fromLongBits(value)));
   }
 
   /** Creates a new list {@link CelExpr} comprised of the elements. */
@@ -107,7 +110,7 @@ public abstract class CelExprFactory {
   /** Creates a new list {@link CelExpr} comprised of the elements. */
   public final CelExpr newList(Iterable<CelExpr> elements) {
     return CelExpr.newBuilder()
-        .setId(nextExprIdForMacro())
+        .setId(nextExprId())
         .setCreateList(CelExpr.CelCreateList.newBuilder().addElements(elements).build())
         .build();
   }
@@ -120,7 +123,7 @@ public abstract class CelExprFactory {
   /** Creates a new map {@link CelExpr} comprised of the entries. */
   public final CelExpr newMap(Iterable<CelExpr.CelCreateMap.Entry> entries) {
     return CelExpr.newBuilder()
-        .setId(nextExprIdForMacro())
+        .setId(nextExprId())
         .setCreateMap(CelExpr.CelCreateMap.newBuilder().addEntries(entries).build())
         .build();
   }
@@ -130,7 +133,7 @@ public abstract class CelExprFactory {
    */
   public final CelExpr.CelCreateMap.Entry newMapEntry(CelExpr key, CelExpr value) {
     return CelExpr.CelCreateMap.Entry.newBuilder()
-        .setId(nextExprIdForMacro())
+        .setId(nextExprId())
         .setKey(key)
         .setValue(value)
         .build();
@@ -145,7 +148,7 @@ public abstract class CelExprFactory {
   public final CelExpr newMessage(String typeName, Iterable<CelExpr.CelCreateStruct.Entry> fields) {
     checkArgument(!isNullOrEmpty(typeName));
     return CelExpr.newBuilder()
-        .setId(nextExprIdForMacro())
+        .setId(nextExprId())
         .setCreateStruct(
             CelExpr.CelCreateStruct.newBuilder()
                 .setMessageName(typeName)
@@ -161,7 +164,7 @@ public abstract class CelExprFactory {
   public final CelExpr.CelCreateStruct.Entry newMessageField(String field, CelExpr value) {
     checkArgument(!isNullOrEmpty(field));
     return CelExpr.CelCreateStruct.Entry.newBuilder()
-        .setId(nextExprIdForMacro())
+        .setId(nextExprId())
         .setFieldKey(field)
         .setValue(value)
         .build();
@@ -179,7 +182,7 @@ public abstract class CelExprFactory {
     checkArgument(!isNullOrEmpty(iterVar));
     checkArgument(!isNullOrEmpty(accuVar));
     return CelExpr.newBuilder()
-        .setId(nextExprIdForMacro())
+        .setId(nextExprId())
         .setComprehension(
             CelExpr.CelComprehension.newBuilder()
                 .setIterVar(iterVar)
@@ -499,7 +502,7 @@ public abstract class CelExprFactory {
   public final CelExpr newIdentifier(String name) {
     checkArgument(!isNullOrEmpty(name));
     return CelExpr.newBuilder()
-        .setId(nextExprIdForMacro())
+        .setId(nextExprId())
         .setIdent(CelExpr.CelIdent.newBuilder().setName(name).build())
         .build();
   }
@@ -513,7 +516,7 @@ public abstract class CelExprFactory {
   public final CelExpr newGlobalCall(String function, Iterable<CelExpr> arguments) {
     checkArgument(!isNullOrEmpty(function));
     return CelExpr.newBuilder()
-        .setId(nextExprIdForMacro())
+        .setId(nextExprId())
         .setCall(CelExpr.CelCall.newBuilder().setFunction(function).addArgs(arguments).build())
         .build();
   }
@@ -534,7 +537,7 @@ public abstract class CelExprFactory {
       String function, CelExpr target, Iterable<CelExpr> arguments) {
     checkArgument(!isNullOrEmpty(function));
     return CelExpr.newBuilder()
-        .setId(nextExprIdForMacro())
+        .setId(nextExprId())
         .setCall(
             CelExpr.CelCall.newBuilder()
                 .setFunction(function)
@@ -551,7 +554,7 @@ public abstract class CelExprFactory {
   public final CelExpr newSelect(CelExpr operand, String field, boolean testOnly) {
     checkArgument(!isNullOrEmpty(field));
     return CelExpr.newBuilder()
-        .setId(nextExprIdForMacro())
+        .setId(nextExprId())
         .setSelect(
             CelExpr.CelSelect.newBuilder()
                 .setOperand(operand)
@@ -561,38 +564,14 @@ public abstract class CelExprFactory {
         .build();
   }
 
-  /** Retrieves the source location for the given {@link CelExpr} ID. */
-  public final CelSourceLocation getSourceLocation(CelExpr expr) {
-    return getSourceLocation(expr.id());
+  /** Returns the next unique expression ID. */
+  protected long nextExprId() {
+    return ++exprId;
   }
 
-  /** Retrieves the source location for the given {@link CelExpr} ID. */
-  protected abstract CelSourceLocation getSourceLocation(long exprId);
+  protected CelExprFactory() {}
 
-  /**
-   * Creates a {@link CelIssue} and reports it, returning a sentinel {@link CelExpr} that indicates
-   * an error.
-   */
-  @FormatMethod
-  public final CelExpr reportError(@FormatString String format, Object... args) {
-    return reportError(
-        CelIssue.formatError(currentSourceLocationForMacro(), String.format(format, args)));
+  private CelExprFactory(long exprId) {
+    this.exprId = exprId;
   }
-
-  /**
-   * Creates a {@link CelIssue} and reports it, returning a sentinel {@link CelExpr} that indicates
-   * an error.
-   */
-  public final CelExpr reportError(String message) {
-    return reportError(CelIssue.formatError(currentSourceLocationForMacro(), message));
-  }
-
-  /** Reports a {@link CelIssue} and returns a sentinel {@link CelExpr} that indicates an error. */
-  public abstract CelExpr reportError(CelIssue error);
-
-  /** Returns the next unique expression ID. This should only be used for macros. */
-  protected abstract long nextExprIdForMacro();
-
-  /** Returns the current (last known) source location. This should only be used for macros. */
-  protected abstract CelSourceLocation currentSourceLocationForMacro();
 }

@@ -23,8 +23,8 @@ import dev.cel.common.CelIssue;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.internal.Constants;
 import dev.cel.compiler.CelCompilerLibrary;
-import dev.cel.parser.CelExprFactory;
 import dev.cel.parser.CelMacro;
+import dev.cel.parser.CelMacroExprFactory;
 import dev.cel.parser.CelParserBuilder;
 import java.util.Optional;
 
@@ -43,17 +43,17 @@ final class CelProtoExtensions implements CelCompilerLibrary {
   }
 
   private static Optional<CelExpr> expandHasProtoExt(
-      CelExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
+      CelMacroExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
     return expandProtoExt(exprFactory, target, arguments, true);
   }
 
   private static Optional<CelExpr> expandGetProtoExt(
-      CelExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
+      CelMacroExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
     return expandProtoExt(exprFactory, target, arguments, false);
   }
 
   private static Optional<CelExpr> expandProtoExt(
-      CelExprFactory exprFactory,
+      CelMacroExprFactory exprFactory,
       CelExpr target,
       ImmutableList<CelExpr> arguments,
       boolean testOnly) {

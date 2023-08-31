@@ -1024,21 +1024,19 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     return tree;
   }
 
-  /** Implementation of {@link CelExprFactory}. */
-  private static final class ExprFactory extends CelExprFactory {
+  /** Implementation of {@link CelMacroExprFactory}. */
+  private static final class ExprFactory extends CelMacroExprFactory {
 
     private final org.antlr.v4.runtime.Parser recognizer;
     private final CelSource.Builder sourceInfo;
     private final ArrayList<CelIssue> issues;
     private final ArrayDeque<Integer> positions;
-    private long exprId;
 
     private ExprFactory(org.antlr.v4.runtime.Parser recognizer, CelSource.Builder sourceInfo) {
       this.recognizer = recognizer;
       this.sourceInfo = sourceInfo;
       issues = new ArrayList<>();
       positions = new ArrayDeque<>(1); // Currently this usually contains at most 1 position.
-      exprId = 0L;
     }
 
     // Implementation of CelExprFactory.
@@ -1083,13 +1081,6 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     // Implementation of CelExprFactory.
 
     @Override
-    public long nextExprIdForMacro() {
-      checkState(!positions.isEmpty()); // Should only be called while expanding macros.
-      // Do not call this method directly from within the parser, use nextExprId(int).
-      return nextExprId(peekPosition());
-    }
-
-    @Override
     protected CelSourceLocation currentSourceLocationForMacro() {
       checkState(!positions.isEmpty()); // Should only be called while expanding macros.
       return getLocation(peekPosition());
@@ -1112,11 +1103,18 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     }
 
     private long nextExprId(int position) {
-      long exprId = ++this.exprId;
+      long exprId = super.nextExprId();
       if (position != -1) {
         sourceInfo.addPositions(exprId, position);
       }
       return exprId;
+    }
+
+    @Override
+    public long nextExprId() {
+      checkState(!positions.isEmpty()); // Should only be called while expanding macros.
+      // Do not call this method directly from within the parser, use nextExprId(int).
+      return nextExprId(peekPosition());
     }
 
     private List<CelIssue> getIssuesList() {

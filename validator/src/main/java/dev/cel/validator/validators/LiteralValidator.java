@@ -14,16 +14,14 @@
 
 package dev.cel.validator.validators;
 
-import com.google.common.collect.ImmutableList;
 import dev.cel.bundle.Cel;
-import dev.cel.common.CelAbstractSyntaxTree;
-import dev.cel.common.CelSource;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
+import dev.cel.common.ast.CelExprFactory;
+import dev.cel.common.ast.CelExprUtil;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.validator.CelAstValidator;
-import java.util.Optional;
 
 /**
  * LiteralValidator defines the common logic to handle simple validation of a literal in a function
@@ -41,6 +39,8 @@ abstract class LiteralValidator implements CelAstValidator {
 
   @Override
   public void validate(CelNavigableAst navigableAst, Cel cel, IssuesFactory issuesFactory) {
+    CelExprFactory exprFactory = CelExprFactory.newBuilder().build();
+
     navigableAst
         .getRoot()
         .descendants()
@@ -55,25 +55,9 @@ abstract class LiteralValidator implements CelAstValidator {
         .forEach(
             expr -> {
               CelExpr callExpr =
-                  CelExpr.ofCallExpr(
-                      1,
-                      Optional.empty(),
-                      functionName,
-                      ImmutableList.of(CelExpr.ofConstantExpr(2, expr.constant())));
-
-              CelAbstractSyntaxTree ast =
-                  CelAbstractSyntaxTree.newParsedAst(callExpr, CelSource.newBuilder().build());
+                  exprFactory.newGlobalCall(functionName, exprFactory.newConstant(expr.constant()));
               try {
-                ast = cel.check(ast).getAst();
-                Object result = cel.createProgram(ast).eval();
-
-                if (!expectedResultType.isInstance(result)) {
-                  throw new IllegalStateException(
-                      String.format(
-                          "Expected %s type but got %s instead",
-                          expectedResultType.getName(), result.getClass().getName()));
-                }
-
+                CelExprUtil.evaluateExpr(cel, callExpr, expectedResultType);
               } catch (Exception e) {
                 issuesFactory.addError(
                     expr.id(),

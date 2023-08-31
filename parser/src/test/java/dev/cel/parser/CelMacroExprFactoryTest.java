@@ -32,9 +32,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public final class CelExprFactoryTest {
+public final class CelMacroExprFactoryTest {
 
-  private static final class TestCelExprFactory extends CelExprFactory {
+  private static final class TestCelExprFactory extends CelMacroExprFactory {
 
     private long exprId;
 
@@ -43,7 +43,7 @@ public final class CelExprFactoryTest {
     }
 
     @Override
-    public long nextExprIdForMacro() {
+    public long nextExprId() {
       return ++exprId;
     }
 
@@ -54,7 +54,7 @@ public final class CelExprFactoryTest {
 
     @Override
     public CelExpr reportError(CelIssue issue) {
-      return CelExpr.newBuilder().setId(nextExprIdForMacro()).setConstant(Constants.ERROR).build();
+      return CelExpr.newBuilder().setId(nextExprId()).setConstant(Constants.ERROR).build();
     }
 
     @Override

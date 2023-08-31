@@ -35,8 +35,8 @@ import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.compiler.CelCompilerLibrary;
-import dev.cel.parser.CelExprFactory;
 import dev.cel.parser.CelMacro;
+import dev.cel.parser.CelMacroExprFactory;
 import dev.cel.parser.CelParserBuilder;
 import dev.cel.parser.Operator;
 import dev.cel.runtime.CelRuntime;
@@ -199,7 +199,7 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
   }
 
   private static Optional<CelExpr> expandOptMap(
-      CelExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
+      CelMacroExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
     checkNotNull(exprFactory);
     checkNotNull(target);
     checkArgument(arguments.size() == 2);
@@ -233,7 +233,7 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
   }
 
   private static Optional<CelExpr> expandOptFlatMap(
-      CelExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
+      CelMacroExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
     checkNotNull(exprFactory);
     checkNotNull(target);
     checkArgument(arguments.size() == 2);

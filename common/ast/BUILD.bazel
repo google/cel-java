@@ -22,3 +22,13 @@ java_library(
     name = "cel_expr_visitor",
     exports = ["//common/src/main/java/dev/cel/common/ast:cel_expr_visitor"],
 )
+
+java_library(
+    name = "expr_factory",
+    exports = ["//common/src/main/java/dev/cel/common/ast:expr_factory"],
+)
+
+java_library(
+    name = "expr_util",
+    exports = ["//common/src/main/java/dev/cel/common/ast:expr_util"],
+)

@@ -244,7 +244,7 @@ public abstract class CelMacro implements Comparable<CelMacro> {
 
   // CelMacroExpander implementation for CEL's has() macro.
   private static Optional<CelExpr> expandHasMacro(
-      CelExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
+      CelMacroExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
     checkNotNull(exprFactory);
     checkNotNull(target);
     checkArgument(arguments.size() == 1);
@@ -257,7 +257,7 @@ public abstract class CelMacro implements Comparable<CelMacro> {
 
   // CelMacroExpander implementation for CEL's all() macro.
   private static Optional<CelExpr> expandAllMacro(
-      CelExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
+      CelMacroExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
     checkNotNull(exprFactory);
     checkNotNull(target);
     checkArgument(arguments.size() == 2);
@@ -281,7 +281,7 @@ public abstract class CelMacro implements Comparable<CelMacro> {
 
   // CelMacroExpander implementation for CEL's exists() macro.
   private static Optional<CelExpr> expandExistsMacro(
-      CelExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
+      CelMacroExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
     checkNotNull(exprFactory);
     checkNotNull(target);
     checkArgument(arguments.size() == 2);
@@ -307,7 +307,7 @@ public abstract class CelMacro implements Comparable<CelMacro> {
 
   // CelMacroExpander implementation for CEL's exists_one() macro.
   private static Optional<CelExpr> expandExistsOneMacro(
-      CelExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
+      CelMacroExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
     checkNotNull(exprFactory);
     checkNotNull(target);
     checkArgument(arguments.size() == 2);
@@ -337,7 +337,7 @@ public abstract class CelMacro implements Comparable<CelMacro> {
 
   // CelMacroExpander implementation for CEL's map() macro.
   private static Optional<CelExpr> expandMapMacro(
-      CelExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
+      CelMacroExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
     checkNotNull(exprFactory);
     checkNotNull(target);
     checkArgument(arguments.size() == 2 || arguments.size() == 3);
@@ -372,7 +372,7 @@ public abstract class CelMacro implements Comparable<CelMacro> {
 
   // CelMacroExpander implementation for CEL's filter() macro.
   private static Optional<CelExpr> expandFilterMacro(
-      CelExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
+      CelMacroExprFactory exprFactory, CelExpr target, ImmutableList<CelExpr> arguments) {
     checkNotNull(exprFactory);
     checkNotNull(target);
     checkArgument(arguments.size() == 2);
@@ -392,7 +392,7 @@ public abstract class CelMacro implements Comparable<CelMacro> {
             arg0.ident().name(), target, ACCUMULATOR_VAR, accuInit, condition, step, accuIdent));
   }
 
-  private static CelExpr reportArgumentError(CelExprFactory exprFactory, CelExpr argument) {
+  private static CelExpr reportArgumentError(CelMacroExprFactory exprFactory, CelExpr argument) {
     return exprFactory.reportError(
         CelIssue.formatError(
             exprFactory.getSourceLocation(argument), "The argument must be a simple name"));
