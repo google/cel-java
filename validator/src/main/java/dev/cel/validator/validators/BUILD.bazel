@@ -48,6 +48,25 @@ java_library(
 )
 
 java_library(
+    name = "homogeneous_literal",
+    srcs = [
+        "HomogeneousLiteralValidator.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//bundle:cel",
+        "//common",
+        "//common/ast",
+        "//common/navigation",
+        "//common/types:cel_types",
+        "//common/types:type_providers",
+        "//validator:ast_validator",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "literal_validator",
     srcs = [
         "LiteralValidator.java",

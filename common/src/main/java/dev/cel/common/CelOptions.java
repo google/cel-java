@@ -301,7 +301,11 @@ public abstract class CelOptions {
      * checker will implicitly coerce them to type dyn.
      *
      * <p>This flag is recommended for all new uses of CEL.
+     *
+     * @deprecated Use standalone {@code dev.cel.validators.validator.HomogeneousLiteralValidator}
+     *     instead.
      */
+    @Deprecated
     public abstract Builder enableHomogeneousLiterals(boolean value);
 
     /**

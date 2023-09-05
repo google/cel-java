@@ -1,6 +1,6 @@
 package(
     default_applicable_licenses = ["//:license"],
-    default_visibility = ["//visibility:public"],  # TODO: Expose when ready
+    default_visibility = ["//visibility:public"],
 )
 
 java_library(
@@ -16,4 +16,9 @@ java_library(
 java_library(
     name = "regex",
     exports = ["//validator/src/main/java/dev/cel/validator/validators:regex"],
+)
+
+java_library(
+    name = "homogeneous_literal",
+    exports = ["//validator/src/main/java/dev/cel/validator/validators:homogeneous_literal"],
 )
