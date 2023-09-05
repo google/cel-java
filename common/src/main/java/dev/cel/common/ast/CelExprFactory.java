@@ -26,25 +26,28 @@ import java.util.Arrays;
 
 /** Factory for generating expression nodes. */
 public class CelExprFactory {
-  private long exprId = 0L;
+  private final CelExprIdGenerator idGenerator;
 
   /** Builder for configuring {@link CelExprFactory}. */
   public static final class Builder {
-    private long startingExprId = 0L;
+
+    private CelExprIdGenerator exprIdGenerator;
 
     @CanIgnoreReturnValue
-    public Builder setStartingExpressionId(long exprId) {
-      Preconditions.checkArgument(exprId > 0);
-      startingExprId = exprId;
+    public Builder setIdGenerator(CelExprIdGenerator exprIdGenerator) {
+      this.exprIdGenerator = exprIdGenerator;
+      Preconditions.checkNotNull(exprIdGenerator);
       return this;
     }
 
     @CheckReturnValue
     public CelExprFactory build() {
-      return new CelExprFactory(startingExprId);
+      return new CelExprFactory(exprIdGenerator);
     }
 
-    private Builder() {}
+    private Builder() {
+      exprIdGenerator = CelExprIdGeneratorFactory.newMonotonicIdGenerator(0);
+    }
   }
 
   /** Creates a new builder to configure CelExprFactory. */
@@ -566,12 +569,14 @@ public class CelExprFactory {
 
   /** Returns the next unique expression ID. */
   protected long nextExprId() {
-    return ++exprId;
+    return idGenerator.nextExprId();
   }
 
-  protected CelExprFactory() {}
+  protected CelExprFactory(CelExprIdGenerator idGenerator) {
+    this.idGenerator = idGenerator;
+  }
 
-  private CelExprFactory(long exprId) {
-    this.exprId = exprId;
+  protected CelExprFactory() {
+    this(CelExprIdGeneratorFactory.newMonotonicIdGenerator(0));
   }
 }

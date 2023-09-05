@@ -24,6 +24,13 @@ EXPR_V1ALPHA1_CONVERTER_SOURCES = [
     "CelExprV1Alpha1Converter.java",
 ]
 
+# keep sorted
+EXPR_FACTORY_SOURCES = [
+    "CelExprFactory.java",
+    "CelExprIdGenerator.java",
+    "CelExprIdGeneratorFactory.java",
+]
+
 java_library(
     name = "ast",
     srcs = AST_SOURCES,
@@ -76,7 +83,7 @@ java_library(
 
 java_library(
     name = "expr_factory",
-    srcs = ["CelExprFactory.java"],
+    srcs = EXPR_FACTORY_SOURCES,
     tags = [
     ],
     deps = [

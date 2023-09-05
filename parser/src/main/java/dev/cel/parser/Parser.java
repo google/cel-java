@@ -1035,8 +1035,8 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     private ExprFactory(org.antlr.v4.runtime.Parser recognizer, CelSource.Builder sourceInfo) {
       this.recognizer = recognizer;
       this.sourceInfo = sourceInfo;
-      issues = new ArrayList<>();
-      positions = new ArrayDeque<>(1); // Currently this usually contains at most 1 position.
+      this.issues = new ArrayList<>();
+      this.positions = new ArrayDeque<>(1); // Currently this usually contains at most 1 position.
     }
 
     // Implementation of CelExprFactory.

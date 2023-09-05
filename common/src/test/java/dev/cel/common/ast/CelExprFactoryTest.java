@@ -15,7 +15,6 @@
 package dev.cel.common.ast;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertThrows;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,15 +39,23 @@ public class CelExprFactoryTest {
   }
 
   @Test
-  public void construct_withStartingExprId_throwsIfIdIsZero() {
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> CelExprFactory.newBuilder().setStartingExpressionId(0L));
+  public void construct_witMonotonicIdGenerator_success() {
+    CelExprFactory exprFactory =
+        CelExprFactory.newBuilder()
+            .setIdGenerator(CelExprIdGeneratorFactory.newMonotonicIdGenerator(3L))
+            .build();
+
+    assertThat(exprFactory).isNotNull();
+    assertThat(exprFactory.nextExprId()).isEqualTo(4L);
+    assertThat(exprFactory.nextExprId()).isEqualTo(5L);
   }
 
   @Test
-  public void construct_withStartingExprId_success() {
-    CelExprFactory exprFactory = CelExprFactory.newBuilder().setStartingExpressionId(3L).build();
+  public void construct_withStableIdGenerator_success() {
+    CelExprFactory exprFactory =
+        CelExprFactory.newBuilder()
+            .setIdGenerator(CelExprIdGeneratorFactory.newStableIdGenerator(3L))
+            .build();
 
     assertThat(exprFactory).isNotNull();
     assertThat(exprFactory.nextExprId()).isEqualTo(4L);
