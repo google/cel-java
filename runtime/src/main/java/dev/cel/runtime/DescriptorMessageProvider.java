@@ -145,12 +145,14 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
 
     if (message instanceof Map) {
       Map<?, ?> map = (Map<?, ?>) message;
-      if (map.containsKey(fieldName)) {
-        return map.get(fieldName);
+      Object value = map.get(fieldName);
+      if (value == null && !map.containsKey(fieldName)) {
+        throw new CelRuntimeException(
+            new IllegalArgumentException(
+                String.format("key '%s' is not present in map.", fieldName)),
+            CelErrorCode.ATTRIBUTE_NOT_FOUND);
       }
-      throw new CelRuntimeException(
-          new IllegalArgumentException(String.format("key '%s' is not present in map.", fieldName)),
-          CelErrorCode.ATTRIBUTE_NOT_FOUND);
+      return value;
     }
 
     MessageOrBuilder typedMessage = assertFullProtoMessage(message);
