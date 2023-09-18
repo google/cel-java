@@ -19,6 +19,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -41,11 +42,15 @@ import java.util.Optional;
 @Immutable
 public class UnknownContext {
   private final ImmutableList<CelAttributePattern> unresolvedAttributes;
+
   // GlobalResolver implementation must be Immutable if used in this class.
-  @SuppressWarnings({"ThreadSafe", "Immutable"})
+  @SuppressWarnings("Immutable")
+  @ThreadSafe.Suppress
   private final GlobalResolver variableResolver;
+
   // Clients must resolve attributes to Immutable types.
-  @SuppressWarnings({"ThreadSafe", "Immutable"})
+  @SuppressWarnings("Immutable")
+  @ThreadSafe.Suppress
   private final ImmutableMap<CelAttribute, Object> resolvedAttributes;
 
   private UnknownContext(
