@@ -41,11 +41,13 @@ import java.util.Optional;
 @Immutable
 public class UnknownContext {
   private final ImmutableList<CelAttributePattern> unresolvedAttributes;
+
   // GlobalResolver implementation must be Immutable if used in this class.
-  @SuppressWarnings({"ThreadSafe", "Immutable"})
+  @SuppressWarnings("Immutable")
   private final GlobalResolver variableResolver;
+
   // Clients must resolve attributes to Immutable types.
-  @SuppressWarnings({"ThreadSafe", "Immutable"})
+  @SuppressWarnings("Immutable")
   private final ImmutableMap<CelAttribute, Object> resolvedAttributes;
 
   private UnknownContext(
