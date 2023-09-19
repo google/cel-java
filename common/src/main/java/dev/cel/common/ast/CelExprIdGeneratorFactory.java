@@ -18,10 +18,15 @@ import com.google.common.base.Preconditions;
 import java.util.HashMap;
 
 /** Factory for populating expression IDs */
-final class CelExprIdGeneratorFactory {
+public final class CelExprIdGeneratorFactory {
 
-  /** MonotonicIdGenerator increments expression IDs from an initial seed value. */
-  static CelExprIdGenerator newMonotonicIdGenerator(long exprId) {
+  /**
+   * MonotonicIdGenerator increments expression IDs from an initial seed value.
+   *
+   * @param exprId Seed value. Must be non-negative. For example, if 1 is provided {@link
+   *     CelExprIdGenerator#nextExprId} will return 2.
+   */
+  public static CelExprIdGenerator newMonotonicIdGenerator(long exprId) {
     return new MonotonicIdGenerator(exprId);
   }
 

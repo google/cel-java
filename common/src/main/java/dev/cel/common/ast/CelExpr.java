@@ -221,6 +221,80 @@ public abstract class CelExpr {
 
     public abstract Builder setExprKind(ExprKind value);
 
+    public abstract ExprKind exprKind();
+
+    /**
+     * Gets the underlying constant expression.
+     *
+     * @throws UnsupportedOperationException if expression is not {@link Kind#CONSTANT}.
+     */
+    public CelConstant constant() {
+      return exprKind().constant();
+    }
+
+    /**
+     * Gets the underlying identifier expression.
+     *
+     * @throws UnsupportedOperationException if expression is not {@link Kind#IDENT}.
+     */
+    public CelIdent ident() {
+      return exprKind().ident();
+    }
+
+    /**
+     * Gets the underlying select expression.
+     *
+     * @throws UnsupportedOperationException if expression is not {@link Kind#SELECT}.
+     */
+    public CelSelect select() {
+      return exprKind().select();
+    }
+
+    /**
+     * Gets the underlying call expression.
+     *
+     * @throws UnsupportedOperationException if expression is not {@link Kind#CALL}.
+     */
+    public CelCall call() {
+      return exprKind().call();
+    }
+
+    /**
+     * Gets the underlying createList expression.
+     *
+     * @throws UnsupportedOperationException if expression is not {@link Kind#CREATE_LIST}.
+     */
+    public CelCreateList createList() {
+      return exprKind().createList();
+    }
+
+    /**
+     * Gets the underlying createStruct expression.
+     *
+     * @throws UnsupportedOperationException if expression is not {@link Kind#CREATE_STRUCT}.
+     */
+    public CelCreateStruct createStruct() {
+      return exprKind().createStruct();
+    }
+
+    /**
+     * Gets the underlying createMap expression.
+     *
+     * @throws UnsupportedOperationException if expression is not {@link Kind#createMap}.
+     */
+    public CelCreateMap createMap() {
+      return exprKind().createMap();
+    }
+
+    /**
+     * Gets the underlying comprehension expression.
+     *
+     * @throws UnsupportedOperationException if expression is not {@link Kind#COMPREHENSION}.
+     */
+    public CelComprehension comprehension() {
+      return exprKind().comprehension();
+    }
+
     public Builder setConstant(CelConstant constant) {
       return setExprKind(AutoOneOf_CelExpr_ExprKind.constant(constant));
     }
@@ -373,6 +447,11 @@ public abstract class CelExpr {
     /** Builder for CelSelect. */
     @AutoValue.Builder
     public abstract static class Builder {
+      public abstract CelExpr operand();
+
+      public abstract String field();
+
+      public abstract boolean testOnly();
 
       public abstract Builder setOperand(CelExpr value);
 
@@ -418,15 +497,17 @@ public abstract class CelExpr {
     /** Builder for CelCall. */
     @AutoValue.Builder
     public abstract static class Builder {
-      List<CelExpr> mutableArgs = new ArrayList<>();
+      private List<CelExpr> mutableArgs = new ArrayList<>();
 
-      abstract ImmutableList<CelExpr> args();
+      public abstract ImmutableList<CelExpr> args();
 
       public abstract Builder setTarget(CelExpr value);
 
       public abstract Builder setTarget(Optional<CelExpr> value);
 
       public abstract Builder setFunction(String value);
+
+      public abstract Optional<CelExpr> target();
 
       // Not public. This only exists to make AutoValue.Builder work.
       abstract Builder setArgs(ImmutableList<CelExpr> value);
@@ -501,15 +582,22 @@ public abstract class CelExpr {
     /** Builder for CelCreateList. */
     @AutoValue.Builder
     public abstract static class Builder {
-      List<CelExpr> mutableElements = new ArrayList<>();
+      private List<CelExpr> mutableElements = new ArrayList<>();
 
+      // Not public. This only exists to make AutoValue.Builder work.
       abstract ImmutableList<CelExpr> elements();
 
+      // Not public. This only exists to make AutoValue.Builder work.
       abstract ImmutableList.Builder<Integer> optionalIndicesBuilder();
 
       // Not public. This only exists to make AutoValue.Builder work.
       @CanIgnoreReturnValue
       abstract Builder setElements(ImmutableList<CelExpr> elements);
+
+      /** Returns an immutable copy of the current mutable elements present in the builder. */
+      public ImmutableList<CelExpr> getElements() {
+        return ImmutableList.copyOf(mutableElements);
+      }
 
       @CanIgnoreReturnValue
       public Builder setElement(int index, CelExpr element) {
@@ -586,8 +674,9 @@ public abstract class CelExpr {
     /** Builder for CelCreateStruct. */
     @AutoValue.Builder
     public abstract static class Builder {
-      List<CelCreateStruct.Entry> mutableEntries = new ArrayList<>();
+      private List<CelCreateStruct.Entry> mutableEntries = new ArrayList<>();
 
+      // Not public. This only exists to make AutoValue.Builder work.
       abstract ImmutableList<CelCreateStruct.Entry> entries();
 
       @CanIgnoreReturnValue
@@ -596,6 +685,11 @@ public abstract class CelExpr {
       // Not public. This only exists to make AutoValue.Builder work.
       @CanIgnoreReturnValue
       abstract Builder setEntries(ImmutableList<CelCreateStruct.Entry> entries);
+
+      /** Returns an immutable copy of the current mutable entries present in the builder. */
+      public ImmutableList<CelCreateStruct.Entry> getEntries() {
+        return ImmutableList.copyOf(mutableEntries);
+      }
 
       @CanIgnoreReturnValue
       public Builder setEntry(int index, CelCreateStruct.Entry entry) {
@@ -669,6 +763,8 @@ public abstract class CelExpr {
       @AutoValue.Builder
       public abstract static class Builder {
 
+        public abstract CelExpr value();
+
         public abstract Builder setId(long value);
 
         public abstract Builder setFieldKey(String value);
@@ -704,13 +800,19 @@ public abstract class CelExpr {
     @AutoValue.Builder
     public abstract static class Builder {
 
-      List<CelCreateMap.Entry> mutableEntries = new ArrayList<>();
+      private List<CelCreateMap.Entry> mutableEntries = new ArrayList<>();
 
+      // Not public. This only exists to make AutoValue.Builder work.
       abstract ImmutableList<CelCreateMap.Entry> entries();
 
       // Not public. This only exists to make AutoValue.Builder work.
       @CanIgnoreReturnValue
       abstract Builder setEntries(ImmutableList<CelCreateMap.Entry> entries);
+
+      /** Returns an immutable copy of the current mutable entries present in the builder. */
+      public ImmutableList<CelCreateMap.Entry> getEntries() {
+        return ImmutableList.copyOf(mutableEntries);
+      }
 
       @CanIgnoreReturnValue
       public Builder setEntry(int index, CelCreateMap.Entry entry) {
@@ -783,6 +885,10 @@ public abstract class CelExpr {
       /** Builder for CelCreateMap.Entry. */
       @AutoValue.Builder
       public abstract static class Builder {
+
+        public abstract CelExpr key();
+
+        public abstract CelExpr value();
 
         public abstract CelCreateMap.Entry.Builder setId(long value);
 
@@ -868,6 +974,15 @@ public abstract class CelExpr {
     /** Builder for Comprehension. */
     @AutoValue.Builder
     public abstract static class Builder {
+      public abstract CelExpr iterRange();
+
+      public abstract CelExpr accuInit();
+
+      public abstract CelExpr loopCondition();
+
+      public abstract CelExpr loopStep();
+
+      public abstract CelExpr result();
 
       public abstract Builder setIterVar(String value);
 

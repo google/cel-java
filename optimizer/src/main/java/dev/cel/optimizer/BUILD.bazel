@@ -34,8 +34,8 @@ java_library(
     ],
     deps = [
         ":ast_optimizer",
+        ":optimization_exception",
         "//common",
-        "//common:compiler_common",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
@@ -49,6 +49,7 @@ java_library(
     ],
     deps = [
         ":ast_optimizer",
+        ":optimization_exception",
         ":optimizer_builder",
         "//bundle:cel",
         "//common",
@@ -67,5 +68,25 @@ java_library(
         "//bundle:cel",
         "//common",
         "//common/navigation",
+    ],
+)
+
+java_library(
+    name = "mutable_ast",
+    srcs = ["MutableAst.java"],
+    tags = [
+    ],
+    deps = [
+        "//common/annotations",
+        "//common/ast",
+        "//common/ast:expr_factory",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "optimization_exception",
+    srcs = ["CelOptimizationException.java"],
+    tags = [
     ],
 )

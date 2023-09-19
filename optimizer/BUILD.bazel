@@ -19,6 +19,18 @@ java_library(
 )
 
 java_library(
+    name = "optimization_exception",
+    exports = ["//optimizer/src/main/java/dev/cel/optimizer:optimization_exception"],
+)
+
+java_library(
+    name = "mutable_ast",
+    testonly = 1,
+    visibility = ["//optimizer/src/test/java/dev/cel/optimizer:__pkg__"],
+    exports = ["//optimizer/src/main/java/dev/cel/optimizer:mutable_ast"],
+)
+
+java_library(
     name = "optimizer_impl",
     testonly = 1,
     visibility = ["//optimizer/src/test/java/dev/cel/optimizer:__pkg__"],

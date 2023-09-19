@@ -33,16 +33,23 @@ final class CelOptimizerImpl implements CelOptimizer {
   }
 
   @Override
-  public CelAbstractSyntaxTree optimize(CelAbstractSyntaxTree ast) throws CelValidationException {
+  public CelAbstractSyntaxTree optimize(CelAbstractSyntaxTree ast) throws CelOptimizationException {
     if (!ast.isChecked()) {
       throw new IllegalArgumentException("AST must be type-checked.");
     }
 
     CelAbstractSyntaxTree optimizedAst = ast;
-    for (CelAstOptimizer optimizer : astOptimizers) {
-      CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
-      optimizedAst = optimizer.optimize(navigableAst, cel);
-      optimizedAst = cel.check(optimizedAst).getAst();
+    try {
+      for (CelAstOptimizer optimizer : astOptimizers) {
+        CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
+        optimizedAst = optimizer.optimize(navigableAst, cel);
+        optimizedAst = cel.check(optimizedAst).getAst();
+      }
+    } catch (CelValidationException e) {
+      throw new CelOptimizationException(
+          "Optimized AST failed to type-check: " + e.getMessage(), e);
+    } catch (RuntimeException e) {
+      throw new CelOptimizationException("Optimization failure: " + e.getMessage(), e);
     }
 
     return optimizedAst;

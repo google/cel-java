@@ -15,7 +15,6 @@
 package dev.cel.optimizer;
 
 import dev.cel.common.CelAbstractSyntaxTree;
-import dev.cel.common.CelValidationException;
 
 /** Public interface for optimizing an AST. */
 public interface CelOptimizer {
@@ -31,8 +30,7 @@ public interface CelOptimizer {
    * equal to the original expression.
    *
    * @param ast A type-checked AST.
-   * @throws CelValidationException If the optimized AST fails to type-check after a single
-   *     optimization pass.
+   * @throws CelOptimizationException If any failures occur during any of the AST optimization pass.
    */
-  CelAbstractSyntaxTree optimize(CelAbstractSyntaxTree ast) throws CelValidationException;
+  CelAbstractSyntaxTree optimize(CelAbstractSyntaxTree ast) throws CelOptimizationException;
 }

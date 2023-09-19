@@ -87,11 +87,12 @@ public class CelOptimizerImplTest {
                 })
             .build();
 
-    IllegalArgumentException e =
+    CelOptimizationException e =
         assertThrows(
-            IllegalArgumentException.class,
+            CelOptimizationException.class,
             () -> celOptimizer.optimize(CEL.compile("'hello world'").getAst()));
-    assertThat(e).hasMessageThat().isEqualTo("Test exception");
+    assertThat(e).hasMessageThat().isEqualTo("Optimization failure: Test exception");
+    assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
@@ -115,12 +116,16 @@ public class CelOptimizerImplTest {
                         CelExpr.ofIdentExpr(1, "undeclared_ident"), CelSource.newBuilder().build()))
             .build();
 
-    CelValidationException e =
+    CelOptimizationException e =
         assertThrows(
-            CelValidationException.class,
+            CelOptimizationException.class,
             () -> celOptimizer.optimize(CEL.compile("'hello world'").getAst()));
+
     assertThat(e)
         .hasMessageThat()
-        .contains("ERROR: :1:1: undeclared reference to 'undeclared_ident' (in container '')");
+        .contains(
+            "Optimized AST failed to type-check: ERROR: :1:1: undeclared reference to"
+                + " 'undeclared_ident' (in container '')");
+    assertThat(e).hasCauseThat().isInstanceOf(CelValidationException.class);
   }
 }

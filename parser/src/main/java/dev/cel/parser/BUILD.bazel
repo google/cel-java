@@ -34,6 +34,7 @@ MACRO_SOURCES = [
 # keep sorted
 UNPARSER_SOURCES = [
     "CelUnparser.java",
+    "CelUnparserFactory.java",
     "CelUnparserImpl.java",
 ]
 
