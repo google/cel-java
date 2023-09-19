@@ -27,6 +27,7 @@ import dev.cel.common.ast.CelExpr.CelIdent;
 import dev.cel.common.ast.CelExpr.CelSelect;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelExprVisitor;
+import java.util.HashSet;
 import java.util.Optional;
 
 /** Visitor implementation to unparse an AST. */
@@ -104,16 +105,7 @@ public class CelUnparserVisitor extends CelExprVisitor {
 
   @Override
   protected void visit(CelExpr expr, CelSelect select) {
-    if (select.testOnly()) {
-      stringBuilder.append(Operator.HAS.getFunction()).append(LEFT_PAREN);
-    }
-    CelExpr operand = select.operand();
-    boolean nested = !select.testOnly() && isBinaryOrTernaryOperator(operand);
-    visitMaybeNested(operand, nested);
-    stringBuilder.append(DOT).append(select.field());
-    if (select.testOnly()) {
-      stringBuilder.append(RIGHT_PAREN);
-    }
+    visitSelect(select.operand(), select.testOnly(), DOT, select.field());
   }
 
   @Override
@@ -133,12 +125,24 @@ public class CelUnparserVisitor extends CelExprVisitor {
     }
 
     if (fun.equals(Operator.INDEX.getFunction())) {
-      visitIndex(call);
+      visitIndex(call, LEFT_BRACKET);
+      return;
+    }
+
+    if (fun.equals(Operator.OPTIONAL_INDEX.getFunction())) {
+      visitIndex(call, LEFT_BRACKET + QUESTION_MARK);
       return;
     }
 
     if (fun.equals(Operator.CONDITIONAL.getFunction())) {
       visitTernary(call);
+      return;
+    }
+
+    if (fun.equals(Operator.OPTIONAL_SELECT.getFunction())) {
+      CelExpr operand = call.args().get(0);
+      String field = call.args().get(1).constant().stringValue();
+      visitSelect(operand, false, DOT + QUESTION_MARK, field);
       return;
     }
 
@@ -161,9 +165,13 @@ public class CelUnparserVisitor extends CelExprVisitor {
   @Override
   protected void visit(CelExpr expr, CelCreateList createList) {
     stringBuilder.append(LEFT_BRACKET);
+    HashSet<Integer> optionalIndices = new HashSet<>(createList.optionalIndices());
     for (int i = 0; i < createList.elements().size(); i++) {
       if (i > 0) {
         stringBuilder.append(COMMA).append(SPACE);
+      }
+      if (optionalIndices.contains(i)) {
+        stringBuilder.append(QUESTION_MARK);
       }
       visit(createList.elements().get(i));
     }
@@ -180,6 +188,9 @@ public class CelUnparserVisitor extends CelExprVisitor {
       }
 
       CelCreateStruct.Entry e = createStruct.entries().get(i);
+      if (e.optionalEntry()) {
+        stringBuilder.append(QUESTION_MARK);
+      }
       stringBuilder.append(e.fieldKey());
       stringBuilder.append(COLON).append(SPACE);
       visit(e.value());
@@ -196,6 +207,9 @@ public class CelUnparserVisitor extends CelExprVisitor {
       }
 
       CelCreateMap.Entry e = createMap.entries().get(i);
+      if (e.optionalEntry()) {
+        stringBuilder.append(QUESTION_MARK);
+      }
       visit(e.key());
       stringBuilder.append(COLON).append(SPACE);
       visit(e.value());
@@ -243,6 +257,18 @@ public class CelUnparserVisitor extends CelExprVisitor {
     visitMaybeNested(rhs, rhsParen);
   }
 
+  private void visitSelect(CelExpr operand, boolean testOnly, String op, String field) {
+    if (testOnly) {
+      stringBuilder.append(Operator.HAS.getFunction()).append(LEFT_PAREN);
+    }
+    boolean nested = !testOnly && isBinaryOrTernaryOperator(operand);
+    visitMaybeNested(operand, nested);
+    stringBuilder.append(op).append(field);
+    if (testOnly) {
+      stringBuilder.append(RIGHT_PAREN);
+    }
+  }
+
   private void visitTernary(CelCall expr) {
     if (expr.args().size() != 3) {
       throw new IllegalArgumentException(String.format("unexpected ternary: %s", expr));
@@ -268,13 +294,13 @@ public class CelUnparserVisitor extends CelExprVisitor {
     visitMaybeNested(expr.args().get(2), nested);
   }
 
-  private void visitIndex(CelCall expr) {
+  private void visitIndex(CelCall expr, String op) {
     if (expr.args().size() != 2) {
       throw new IllegalArgumentException(String.format("unexpected index call: %s", expr));
     }
     boolean nested = isBinaryOrTernaryOperator(expr.args().get(0));
     visitMaybeNested(expr.args().get(0), nested);
-    stringBuilder.append(LEFT_BRACKET);
+    stringBuilder.append(op);
     visit(expr.args().get(1));
     stringBuilder.append(RIGHT_BRACKET);
   }

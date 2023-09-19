@@ -28,6 +28,7 @@ import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct;
+import dev.cel.extensions.CelOptionalLibrary;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
@@ -39,6 +40,7 @@ public final class CelUnparserImplTest {
   private final CelParserImpl parser =
       CelParserImpl.newBuilder()
           .setOptions(CelOptions.newBuilder().populateMacroCalls(true).build())
+          .addLibraries(CelOptionalLibrary.INSTANCE)
           .addMacros(CelMacro.STANDARD_MACROS)
           .build();
 
@@ -153,7 +155,14 @@ public final class CelUnparserImplTest {
           "size(x) == x.size()",
 
           // Long string
-          "Loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong");
+          "Loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong",
+
+          // Optionals
+          "a.?b",
+          "a[?b]",
+          "[?a, ?b, c]",
+          "{?a: b, c: d}",
+          "v1alpha1.Expr{?id: id, call_expr: v1alpha1.Call_Expr{function: \"name\"}}");
     }
   }
 
