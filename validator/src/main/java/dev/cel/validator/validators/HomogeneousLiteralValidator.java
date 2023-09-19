@@ -34,7 +34,7 @@ import java.util.Optional;
  * HomogeneousLiteralValidator checks that all list and map literals entries have the same types,
  * i.e. no mixed list element types or mixed map key or map value types.
  */
-public class HomogeneousLiteralValidator implements CelAstValidator {
+public final class HomogeneousLiteralValidator implements CelAstValidator {
   private final ImmutableSet<String> exemptFunctions;
 
   /**

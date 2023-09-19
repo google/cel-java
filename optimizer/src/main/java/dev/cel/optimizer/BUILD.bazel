@@ -1,0 +1,71 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = [
+        "//visibility:public",
+    ],
+)
+
+java_library(
+    name = "optimizer",
+    srcs = [
+        "CelOptimizerFactory.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":optimizer_impl",
+        "//bundle:cel",
+        "//checker:checker_builder",
+        "//compiler",
+        "//compiler:compiler_builder",
+        "//optimizer:optimizer_builder",
+        "//parser:parser_builder",
+        "//runtime",
+    ],
+)
+
+java_library(
+    name = "optimizer_builder",
+    srcs = [
+        "CelOptimizer.java",
+        "CelOptimizerBuilder.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":ast_optimizer",
+        "//common",
+        "//common:compiler_common",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "optimizer_impl",
+    srcs = [
+        "CelOptimizerImpl.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":ast_optimizer",
+        ":optimizer_builder",
+        "//bundle:cel",
+        "//common",
+        "//common:compiler_common",
+        "//common/navigation",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "ast_optimizer",
+    srcs = ["CelAstOptimizer.java"],
+    tags = [
+    ],
+    deps = [
+        "//bundle:cel",
+        "//common",
+        "//common/navigation",
+    ],
+)

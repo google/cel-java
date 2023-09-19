@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.validator.validators;
+package dev.cel.optimizer;
 
-import com.google.protobuf.Duration;
+import dev.cel.bundle.Cel;
+import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.navigation.CelNavigableAst;
 
-/** DurationLiteralValidator ensures that duration literal arguments are valid. */
-public final class DurationLiteralValidator extends LiteralValidator {
-  public static final DurationLiteralValidator INSTANCE =
-      new DurationLiteralValidator("duration", Duration.class);
+/** Public interface for performing a single, custom optimization on an AST. */
+public interface CelAstOptimizer {
 
-  private DurationLiteralValidator(String functionName, Class<?> expectedResultType) {
-    super(functionName, expectedResultType);
-  }
+  /**
+   * Optimizes a single AST.
+   **/
+  CelAbstractSyntaxTree optimize(CelNavigableAst navigableAst, Cel cel);
 }

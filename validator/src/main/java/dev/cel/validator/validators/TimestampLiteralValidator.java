@@ -17,7 +17,7 @@ package dev.cel.validator.validators;
 import com.google.protobuf.Timestamp;
 
 /** TimestampLiteralValidator ensures that timestamp literal arguments are valid. */
-public class TimestampLiteralValidator extends LiteralValidator {
+public final class TimestampLiteralValidator extends LiteralValidator {
   public static final TimestampLiteralValidator INSTANCE =
       new TimestampLiteralValidator("timestamp", Timestamp.class);
 

@@ -31,8 +31,6 @@ import org.junit.runners.JUnit4;
 public class CelValidatorImplTest {
   private static final Cel CEL = CelFactory.standardCelBuilder().build();
 
-  // private static final CelValidatorImpl CEL_VALIDATOR = new CelValidatorImpl(CEL,
-
   @Test
   public void constructCelValidator_success() {
     CelValidator celValidator =

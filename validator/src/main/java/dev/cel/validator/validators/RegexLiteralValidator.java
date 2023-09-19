@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /** RegexLiteralValidator ensures that regex patterns are valid. */
-public class RegexLiteralValidator implements CelAstValidator {
+public final class RegexLiteralValidator implements CelAstValidator {
   public static final RegexLiteralValidator INSTANCE = new RegexLiteralValidator();
 
   @Override
