@@ -93,7 +93,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     testOutput().println("bindings: " + activation);
     Object result = null;
     try {
-      result = eval.eval(ast.toCheckedExpr(), activation);
+      result = eval.eval(CelProtoAbstractSyntaxTree.fromCelAst(ast).toCheckedExpr(), activation);
       if (result instanceof ByteString) {
         // Note: this call may fail for printing byte sequences that are not valid UTF-8, but works
         // pretty well for test purposes.
@@ -113,7 +113,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
    * native CelAbstractSyntaxTree
    */
   private void assertAstRoundTrip(CelAbstractSyntaxTree ast) {
-    CheckedExpr checkedExpr = ast.toCheckedExpr();
+    CheckedExpr checkedExpr = CelProtoAbstractSyntaxTree.fromCelAst(ast).toCheckedExpr();
     CelProtoAbstractSyntaxTree protoAst = CelProtoAbstractSyntaxTree.fromCelAst(ast);
     assertThat(checkedExpr).isEqualTo(protoAst.toCheckedExpr());
   }

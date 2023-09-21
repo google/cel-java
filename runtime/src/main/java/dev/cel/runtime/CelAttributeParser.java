@@ -22,6 +22,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.UnsignedLong;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelValidationResult;
 import dev.cel.parser.CelParser;
@@ -110,7 +111,8 @@ public class CelAttributeParser {
     try {
       CelAbstractSyntaxTree ast = result.getAst();
       ArrayDeque<CelAttribute.Qualifier> qualifiers = new ArrayDeque<>();
-      Expr node = ast.getProtoExpr();
+      // TODO: Traverse using CelExpr
+      Expr node = CelProtoAbstractSyntaxTree.fromCelAst(ast).getExpr();
       while (node != null) {
         switch (node.getExprKindCase()) {
           case IDENT_EXPR:

@@ -37,6 +37,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 // import com.google.testing.testsize.MediumTest;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.internal.EnvVisitable;
 import dev.cel.common.internal.Errors;
 import dev.cel.common.types.CelTypes;
@@ -78,7 +79,9 @@ public class ExprCheckerTest extends CelBaselineTestCase {
       testOutput()
           .println(
               CelDebug.toAdornedDebugString(
-                  ast.getProtoExpr(), new CheckedExprAdorner(ast.toCheckedExpr())));
+                  CelProtoAbstractSyntaxTree.fromCelAst(ast).getExpr(),
+                  new CheckedExprAdorner(
+                      CelProtoAbstractSyntaxTree.fromCelAst(ast).toCheckedExpr())));
     }
     testOutput().println();
   }
@@ -699,7 +702,9 @@ public class ExprCheckerTest extends CelBaselineTestCase {
       testOutput()
           .println(
               CelDebug.toAdornedDebugString(
-                  ast.getProtoExpr(), new CheckedExprAdorner(ast.toCheckedExpr())));
+                  CelProtoAbstractSyntaxTree.fromCelAst(ast).getExpr(),
+                  new CheckedExprAdorner(
+                      CelProtoAbstractSyntaxTree.fromCelAst(ast).toCheckedExpr())));
     }
   }
 
@@ -949,7 +954,8 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     source = "a.?b";
     declareVariable("a", createMap(CelTypes.STRING, CelTypes.STRING));
     prepareCompiler(new ProtoMessageTypeProvider());
-    ParsedExpr parsedExpr = celCompiler.parse(source).getAst().toParsedExpr();
+    ParsedExpr parsedExpr =
+        CelProtoAbstractSyntaxTree.fromCelAst(celCompiler.parse(source).getAst()).toParsedExpr();
     ParsedExpr.Builder parsedExprBuilder = parsedExpr.toBuilder();
     parsedExprBuilder
         .getExprBuilder()

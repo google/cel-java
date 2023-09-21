@@ -56,6 +56,7 @@ import dev.cel.checker.TypeProvider;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.CelVarDecl;
@@ -1053,7 +1054,7 @@ public final class CelImplTest {
     Cel cel = standardCelBuilderWithMacros().build();
     CelValidationResult result = cel.parse("!!!true");
     assertThat(result.hasError()).isFalse();
-    assertThat(result.getAst().toParsedExpr().getExpr())
+    assertThat(CelProtoAbstractSyntaxTree.fromCelAst(result.getAst()).toParsedExpr().getExpr())
         .ignoringFieldDescriptors(Expr.getDescriptor().findFieldByName("id"))
         .isEqualTo(NOT_EXPR);
 
@@ -1063,7 +1064,7 @@ public final class CelImplTest {
             .build();
     result = cel.parse("!!!true");
     assertThat(result.hasError()).isFalse();
-    assertThat(result.getAst().toParsedExpr().getExpr())
+    assertThat(CelProtoAbstractSyntaxTree.fromCelAst(result.getAst()).toParsedExpr().getExpr())
         .ignoringFieldDescriptors(Expr.getDescriptor().findFieldByName("id"))
         .isEqualTo(NOT_NOT_NOT_EXPR);
   }
@@ -1078,7 +1079,7 @@ public final class CelImplTest {
       throws Exception {
     assertThat(result.hasError()).isFalse();
     assertThat(result.getAllIssues()).isEmpty();
-    assertThat(result.getAst().toParsedExpr())
+    assertThat(CelProtoAbstractSyntaxTree.fromCelAst(result.getAst()).toParsedExpr())
         .ignoringFieldDescriptors(
             Expr.getDescriptor().findFieldByName("id"),
             ParsedExpr.getDescriptor().findFieldByName("source_info"))
@@ -1089,7 +1090,7 @@ public final class CelImplTest {
   private void assertValidationResult(CelValidationResult result, CheckedExpr checkedExpr)
       throws Exception {
     assertThat(result.hasError()).isFalse();
-    assertThat(result.getAst().toCheckedExpr())
+    assertThat(CelProtoAbstractSyntaxTree.fromCelAst(result.getAst()).toCheckedExpr())
         .ignoringFieldDescriptors(
             Expr.getDescriptor().findFieldByName("id"),
             CheckedExpr.getDescriptor().findFieldByName("source_info"))
