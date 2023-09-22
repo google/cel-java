@@ -226,6 +226,29 @@ public final class ProtoAdapterTest {
     }
 
     @Test
+    public void adaptValueToProto_asymmetricJsonConversion() {
+      ProtoAdapter protoAdapter =
+          new ProtoAdapter(DynamicProto.newBuilder().build(), CURRENT.enableUnsignedLongs());
+      assertThat(
+              protoAdapter.adaptValueToProto(
+                  UnsignedLong.valueOf(1L), Value.getDescriptor().getFullName()))
+          .hasValue(Value.newBuilder().setNumberValue(1).build());
+      assertThat(
+              protoAdapter.adaptValueToProto(
+                  UnsignedLong.fromLongBits(-1L), Value.getDescriptor().getFullName()))
+          .hasValue(Value.newBuilder().setStringValue(Long.toUnsignedString(-1L)).build());
+      assertThat(protoAdapter.adaptValueToProto(1L, Value.getDescriptor().getFullName()))
+          .hasValue(Value.newBuilder().setNumberValue(1).build());
+      assertThat(
+              protoAdapter.adaptValueToProto(Long.MAX_VALUE, Value.getDescriptor().getFullName()))
+          .hasValue(Value.newBuilder().setStringValue(Long.toString(Long.MAX_VALUE)).build());
+      assertThat(
+              protoAdapter.adaptValueToProto(
+                  ByteString.copyFromUtf8("foo"), Value.getDescriptor().getFullName()))
+          .hasValue(Value.newBuilder().setStringValue("Zm9v").build());
+    }
+
+    @Test
     public void adaptValueToProto_unsupportedJsonConversion() {
       ProtoAdapter protoAdapter =
           new ProtoAdapter(DynamicProto.newBuilder().build(), LEGACY.enableUnsignedLongs());

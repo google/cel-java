@@ -55,6 +55,7 @@ import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -477,6 +478,11 @@ public final class ProtoAdapter {
     return null;
   }
 
+  private static final long JSON_MAX_INT_VALUE = (1L << 53) - 1;
+  private static final long JSON_MIN_INT_VALUE = -JSON_MAX_INT_VALUE;
+  private static final UnsignedLong JSON_MAX_UINT_VALUE =
+      UnsignedLong.fromLongBits(JSON_MAX_INT_VALUE);
+
   private @Nullable Value adaptValueToJsonValue(Object value) {
     Value.Builder json = Value.newBuilder();
     if (value == null || value instanceof NullValue) {
@@ -485,8 +491,26 @@ public final class ProtoAdapter {
     if (value instanceof Boolean) {
       return json.setBoolValue((Boolean) value).build();
     }
-    if (value instanceof Number) {
+    if (value instanceof Integer || value instanceof Long) {
+      long longValue = ((Number) value).longValue();
+      if (longValue < JSON_MIN_INT_VALUE || longValue > JSON_MAX_INT_VALUE) {
+        return json.setStringValue(Long.toString(longValue)).build();
+      }
+      return json.setNumberValue((double) longValue).build();
+    }
+    if (value instanceof UnsignedLong) {
+      if (((UnsignedLong) value).compareTo(JSON_MAX_UINT_VALUE) > 0) {
+        return json.setStringValue(((UnsignedLong) value).toString()).build();
+      }
+      return json.setNumberValue((double) ((UnsignedLong) value).longValue()).build();
+    }
+    if (value instanceof Float || value instanceof Double) {
       return json.setNumberValue(((Number) value).doubleValue()).build();
+    }
+    if (value instanceof ByteString) {
+      return json.setStringValue(
+              Base64.getEncoder().encodeToString(((ByteString) value).toByteArray()))
+          .build();
     }
     if (value instanceof String) {
       return json.setStringValue((String) value).build();
