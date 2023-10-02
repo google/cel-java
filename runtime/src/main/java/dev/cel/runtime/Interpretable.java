@@ -28,4 +28,6 @@ public interface Interpretable {
 
   /** Runs interpretation with the given activation which supplies name/value bindings. */
   Object eval(GlobalResolver resolver) throws InterpreterException;
+
+  Object eval(GlobalResolver resolver, CelEvaluationListener listener) throws InterpreterException;
 }

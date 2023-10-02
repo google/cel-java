@@ -75,7 +75,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     private boolean standardEnvironmentEnabled;
     private Function<String, Message.Builder> customTypeFactory;
 
-    /** {@inheritDoc} */
     @Override
     @CanIgnoreReturnValue
     public Builder setOptions(CelOptions options) {
@@ -83,14 +82,12 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     @CanIgnoreReturnValue
     public Builder addFunctionBindings(CelFunctionBinding... bindings) {
       return addFunctionBindings(Arrays.asList(bindings));
     }
 
-    /** {@inheritDoc} */
     @Override
     @CanIgnoreReturnValue
     public Builder addFunctionBindings(Iterable<CelFunctionBinding> bindings) {
@@ -98,28 +95,24 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     @CanIgnoreReturnValue
     public Builder addMessageTypes(Descriptor... descriptors) {
       return addMessageTypes(Arrays.asList(descriptors));
     }
 
-    /** {@inheritDoc} */
     @Override
     @CanIgnoreReturnValue
     public Builder addMessageTypes(Iterable<Descriptor> descriptors) {
       return addFileTypes(CelDescriptorUtil.getFileDescriptorsForDescriptors(descriptors));
     }
 
-    /** {@inheritDoc} */
     @Override
     @CanIgnoreReturnValue
     public Builder addFileTypes(FileDescriptor... fileDescriptors) {
       return addFileTypes(Arrays.asList(fileDescriptors));
     }
 
-    /** {@inheritDoc} */
     @Override
     @CanIgnoreReturnValue
     public Builder addFileTypes(Iterable<FileDescriptor> fileDescriptors) {
@@ -127,7 +120,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     @CanIgnoreReturnValue
     public Builder addFileTypes(FileDescriptorSet fileDescriptorSet) {
@@ -135,7 +127,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
           CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fileDescriptorSet));
     }
 
-    /** {@inheritDoc} */
     @Override
     @CanIgnoreReturnValue
     public Builder setTypeFactory(Function<String, Message.Builder> typeFactory) {
@@ -143,7 +134,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     @CanIgnoreReturnValue
     public Builder setStandardEnvironmentEnabled(boolean value) {
@@ -151,7 +141,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     @CanIgnoreReturnValue
     public Builder addLibraries(CelRuntimeLibrary... libraries) {
@@ -159,7 +148,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       return this.addLibraries(Arrays.asList(libraries));
     }
 
-    /** {@inheritDoc} */
     @Override
     @CanIgnoreReturnValue
     public Builder addLibraries(Iterable<? extends CelRuntimeLibrary> libraries) {

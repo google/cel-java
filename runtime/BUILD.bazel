@@ -40,3 +40,8 @@ java_library(
     name = "interpreter_util",
     exports = ["//runtime/src/main/java/dev/cel/runtime:interpreter_util"],
 )
+
+java_library(
+    name = "evaluation_listener",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:evaluation_listener"],
+)

@@ -127,14 +127,12 @@ public final class DefaultInterpreter implements Interpreter {
     this.celOptions = celOptions;
   }
 
-  /** {@inheritDoc} */
   @Override
   @Deprecated
   public Interpretable createInterpretable(CheckedExpr checkedExpr) {
     return createInterpretable(CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst());
   }
 
-  /** {@inheritDoc} */
   @Override
   public Interpretable createInterpretable(CelAbstractSyntaxTree ast) {
     return new DefaultInterpretable(typeProvider, dispatcher, ast, celOptions);
@@ -164,13 +162,21 @@ public final class DefaultInterpreter implements Interpreter {
     @Override
     public Object eval(GlobalResolver resolver) throws InterpreterException {
       // Result is already unwrapped from IntermediateResult.
-      return evalTrackingUnknowns(RuntimeUnknownResolver.fromResolver(resolver));
+      return eval(resolver, CelEvaluationListener.noOpListener());
     }
 
     @Override
-    public Object evalTrackingUnknowns(RuntimeUnknownResolver resolver)
+    public Object eval(GlobalResolver resolver, CelEvaluationListener listener)
         throws InterpreterException {
-      ExecutionFrame frame = new ExecutionFrame(resolver, celOptions.comprehensionMaxIterations());
+      return evalTrackingUnknowns(RuntimeUnknownResolver.fromResolver(resolver), listener);
+    }
+
+    @Override
+    public Object evalTrackingUnknowns(
+        RuntimeUnknownResolver resolver, CelEvaluationListener listener)
+        throws InterpreterException {
+      ExecutionFrame frame =
+          new ExecutionFrame(listener, resolver, celOptions.comprehensionMaxIterations());
       IntermediateResult internalResult = evalInternal(frame, ast.getExpr());
       Object result = internalResult.value();
       // TODO: remove support for IncompleteData.
@@ -182,27 +188,38 @@ public final class DefaultInterpreter implements Interpreter {
         throws InterpreterException {
       try {
         ExprKind.Kind exprKind = expr.exprKind().getKind();
+        IntermediateResult result;
         switch (exprKind) {
           case CONSTANT:
-            return IntermediateResult.create(evalConstant(frame, expr, expr.constant()));
+            result = IntermediateResult.create(evalConstant(frame, expr, expr.constant()));
+            break;
           case IDENT:
-            return evalIdent(frame, expr, expr.ident());
+            result = evalIdent(frame, expr, expr.ident());
+            break;
           case SELECT:
-            return evalSelect(frame, expr, expr.select());
+            result = evalSelect(frame, expr, expr.select());
+            break;
           case CALL:
-            return evalCall(frame, expr, expr.call());
+            result = evalCall(frame, expr, expr.call());
+            break;
           case CREATE_LIST:
-            return evalList(frame, expr, expr.createList());
+            result = evalList(frame, expr, expr.createList());
+            break;
           case CREATE_STRUCT:
-            return evalStruct(frame, expr, expr.createStruct());
+            result = evalStruct(frame, expr, expr.createStruct());
+            break;
           case CREATE_MAP:
-            return evalMap(frame, expr.createMap());
+            result = evalMap(frame, expr.createMap());
+            break;
           case COMPREHENSION:
-            return evalComprehension(frame, expr, expr.comprehension());
+            result = evalComprehension(frame, expr, expr.comprehension());
+            break;
           default:
             throw new IllegalStateException(
                 "unexpected expression kind: " + expr.exprKind().getKind());
         }
+        frame.getEvaluationListener().callback(expr, result.value());
+        return result;
       } catch (RuntimeException e) {
         throw new InterpreterException.Builder(e, e.getMessage())
             .setLocation(metadata, expr.id())
@@ -816,16 +833,25 @@ public final class DefaultInterpreter implements Interpreter {
 
   /** This class tracks the state meaningful to a single evaluation pass. */
   private static class ExecutionFrame {
+    private final CelEvaluationListener evaluationListener;
     private final int maxIterations;
     private final ArrayDeque<RuntimeUnknownResolver> resolvers;
     private RuntimeUnknownResolver currentResolver;
     private int iterations;
 
-    private ExecutionFrame(RuntimeUnknownResolver resolver, int maxIterations) {
+    private ExecutionFrame(
+        CelEvaluationListener evaluationListener,
+        RuntimeUnknownResolver resolver,
+        int maxIterations) {
+      this.evaluationListener = evaluationListener;
       this.resolvers = new ArrayDeque<>();
       this.resolvers.add(resolver);
       this.currentResolver = resolver;
       this.maxIterations = maxIterations;
+    }
+
+    private CelEvaluationListener getEvaluationListener() {
+      return evaluationListener;
     }
 
     private RuntimeUnknownResolver getResolver() {

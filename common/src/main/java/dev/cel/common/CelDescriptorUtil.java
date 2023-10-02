@@ -14,7 +14,6 @@
 
 package dev.cel.common;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
@@ -63,7 +62,6 @@ public final class CelDescriptorUtil {
    * <p>Warning: This will produce unique FileDescriptor instances. Use with care especially in
    * hermetic environments.
    */
-  @VisibleForTesting
   public static ImmutableSet<FileDescriptor> getFileDescriptorsFromFileDescriptorSet(
       FileDescriptorSet fileDescriptorSet) {
     return FileDescriptorSetConverter.convert(fileDescriptorSet);

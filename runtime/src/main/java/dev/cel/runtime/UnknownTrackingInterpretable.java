@@ -23,5 +23,6 @@ import dev.cel.common.annotations.Internal;
  */
 @Internal
 public interface UnknownTrackingInterpretable {
-  Object evalTrackingUnknowns(RuntimeUnknownResolver resolver) throws InterpreterException;
+  Object evalTrackingUnknowns(RuntimeUnknownResolver resolver, CelEvaluationListener listener)
+      throws InterpreterException;
 }

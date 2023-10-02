@@ -16,20 +16,32 @@ package dev.cel.runtime;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import dev.cel.expr.CheckedExpr;
 import com.google.api.expr.v1alpha1.Constant;
 import com.google.api.expr.v1alpha1.Expr;
 import com.google.api.expr.v1alpha1.Type.PrimitiveType;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.ExtensionRegistry;
 import com.google.rpc.context.AttributeContext;
+import dev.cel.bundle.Cel;
+import dev.cel.bundle.CelFactory;
+import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.CelProtoV1Alpha1AbstractSyntaxTree;
+import dev.cel.common.CelSource;
+import dev.cel.common.ast.CelConstant;
+import dev.cel.common.ast.CelExpr;
+import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.types.CelV1AlphaTypes;
-import java.util.Base64;
+import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.StructTypeReference;
+import dev.cel.parser.CelStandardMacro;
+import dev.cel.parser.CelUnparserFactory;
+import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -39,23 +51,15 @@ public class CelRuntimeTest {
 
   @Test
   public void evaluate_anyPackedEqualityUsingProtoDifferencer_success() throws Exception {
-    CelRuntime celRuntime =
-        CelRuntimeFactory.standardCelRuntimeBuilder()
+    Cel cel =
+        CelFactory.standardCelBuilder()
             .setOptions(CelOptions.current().enableProtoDifferencerEquality(true).build())
+            .addVar("a", StructTypeReference.create(AttributeContext.getDescriptor().getFullName()))
+            .addVar("b", StructTypeReference.create(AttributeContext.getDescriptor().getFullName()))
             .addMessageTypes(AttributeContext.getDescriptor())
             .build();
-    // Checked Expression for 'a == b' where a, b are google.rpc.context.AttributeContext message
-    // types.
-    // This will be removed in favor of compiling the expression inside this test once Cel Compiler
-    // is OSSed.
-    String base64EncodedCheckedExpr =
-        "EgcIARIDCgFhEgcIAxIDCgFiEgwIAhIIGgZlcXVhbHMaKQgBEiVKI2dvb2dsZS5ycGMuY29udGV4dC5BdHRyaWJ1dGVDb250ZXh0GikIAxIlSiNnb29nbGUucnBjLmNvbnRleHQuQXR0cmlidXRlQ29udGV4dBoGCAISAhgBIhwQAjIYEgRfPT1fGgcQASIDCgFhGgcQAyIDCgFiKh4SBzxpbnB1dD4aAQciBAgBEAAiBAgCEAIiBAgDEAU=";
-    CheckedExpr expr =
-        CheckedExpr.parseFrom(
-            Base64.getDecoder().decode(base64EncodedCheckedExpr),
-            ExtensionRegistry.getEmptyRegistry());
-    CelRuntime.Program program =
-        celRuntime.createProgram(CelProtoAbstractSyntaxTree.fromCheckedExpr(expr).getAst());
+    CelAbstractSyntaxTree ast = cel.compile("a == b").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
 
     Object evaluatedResult =
         program.eval(
@@ -101,5 +105,198 @@ public class CelRuntimeTest {
     String evaluatedResult = (String) program.eval();
 
     assertThat(evaluatedResult).isEqualTo("Hello world!");
+  }
+
+  @Test
+  public void trace_callExpr_identifyFalseBranch() throws Exception {
+    AtomicReference<CelExpr> capturedExpr = new AtomicReference<>();
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          if (res instanceof Boolean && !(boolean) res && capturedExpr.get() == null) {
+            capturedExpr.set(expr);
+          }
+        };
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addVar("a", SimpleType.INT)
+            .addVar("b", SimpleType.INT)
+            .addVar("c", SimpleType.INT)
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("a < 0 && b < 0 && c < 0").getAst();
+
+    boolean result =
+        (boolean) cel.createProgram(ast).trace(ImmutableMap.of("a", -1, "b", 1, "c", -4), listener);
+
+    assertThat(result).isFalse();
+    // Demonstrate that "b < 0" is what caused the expression to be false
+    CelAbstractSyntaxTree subtree =
+        CelAbstractSyntaxTree.newParsedAst(capturedExpr.get(), CelSource.newBuilder().build());
+    assertThat(CelUnparserFactory.newUnparser().unparse(subtree)).isEqualTo("b < 0");
+  }
+
+  @Test
+  public void trace_constant() throws Exception {
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          assertThat(res).isEqualTo("hello world");
+          assertThat(expr.constant().getKind()).isEqualTo(CelConstant.Kind.STRING_VALUE);
+        };
+    Cel cel = CelFactory.standardCelBuilder().build();
+    CelAbstractSyntaxTree ast = cel.compile("'hello world'").getAst();
+
+    String result = (String) cel.createProgram(ast).trace(listener);
+
+    assertThat(result).isEqualTo("hello world");
+  }
+
+  @Test
+  public void trace_ident() throws Exception {
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          assertThat(res).isEqualTo("test");
+          assertThat(expr.ident().name()).isEqualTo("a");
+        };
+    Cel cel = CelFactory.standardCelBuilder().addVar("a", SimpleType.STRING).build();
+    CelAbstractSyntaxTree ast = cel.compile("a").getAst();
+
+    String result = (String) cel.createProgram(ast).trace(ImmutableMap.of("a", "test"), listener);
+
+    assertThat(result).isEqualTo("test");
+  }
+
+  @Test
+  public void trace_select() throws Exception {
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          if (expr.exprKind().getKind().equals(Kind.SELECT)) {
+            assertThat(res).isEqualTo(3L);
+            assertThat(expr.select().field()).isEqualTo("single_int64");
+          }
+        };
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .setContainer("dev.cel.testing.testdata.proto3")
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("TestAllTypes{single_int64: 3}.single_int64").getAst();
+
+    Long result = (Long) cel.createProgram(ast).trace(listener);
+
+    assertThat(result).isEqualTo(3L);
+  }
+
+  @Test
+  public void trace_createStruct() throws Exception {
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          assertThat(res).isEqualTo(TestAllTypes.getDefaultInstance());
+          assertThat(expr.createStruct().messageName()).isEqualTo("TestAllTypes");
+        };
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .setContainer("dev.cel.testing.testdata.proto3")
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("TestAllTypes{}").getAst();
+
+    TestAllTypes result = (TestAllTypes) cel.createProgram(ast).trace(listener);
+
+    assertThat(result).isEqualTo(TestAllTypes.getDefaultInstance());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked") // Test only
+  public void trace_createList() throws Exception {
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          if (expr.exprKind().getKind().equals(Kind.CREATE_LIST)) {
+            assertThat((List<Long>) res).containsExactly(1L, 2L, 3L);
+            assertThat(expr.createList().elements()).hasSize(3);
+          }
+        };
+    Cel cel = CelFactory.standardCelBuilder().build();
+    CelAbstractSyntaxTree ast = cel.compile("[1, 2, 3]").getAst();
+
+    List<Long> result = (List<Long>) cel.createProgram(ast).trace(listener);
+
+    assertThat(result).containsExactly(1L, 2L, 3L);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked") // Test only
+  public void trace_createMap() throws Exception {
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          if (expr.exprKind().getKind().equals(Kind.CREATE_MAP)) {
+            assertThat((Map<Long, String>) res).containsExactly(1L, "a");
+            assertThat(expr.createMap().entries()).hasSize(1);
+          }
+        };
+    Cel cel = CelFactory.standardCelBuilder().build();
+    CelAbstractSyntaxTree ast = cel.compile("{1: 'a'}").getAst();
+
+    Map<Long, String> result = (Map<Long, String>) cel.createProgram(ast).trace(listener);
+
+    assertThat(result).containsExactly(1L, "a");
+  }
+
+  @Test
+  public void trace_comprehension() throws Exception {
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          if (expr.exprKind().getKind().equals(Kind.COMPREHENSION)) {
+            assertThat(expr.comprehension().iterVar()).isEqualTo("i");
+          }
+        };
+    Cel cel =
+        CelFactory.standardCelBuilder().setStandardMacros(CelStandardMacro.STANDARD_MACROS).build();
+    CelAbstractSyntaxTree ast = cel.compile("[true].exists(i, i)").getAst();
+
+    boolean result = (boolean) cel.createProgram(ast).trace(listener);
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void trace_withMessageInput() throws Exception {
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          assertThat(res).isEqualTo(6L);
+          assertThat(expr.ident().name()).isEqualTo("single_int64");
+        };
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .addVar("single_int64", SimpleType.INT)
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("single_int64").getAst();
+
+    Long result =
+        (Long)
+            cel.createProgram(ast)
+                .trace(TestAllTypes.newBuilder().setSingleInt64(6L).build(), listener);
+
+    assertThat(result).isEqualTo(6L);
+  }
+
+  @Test
+  public void trace_withVariableResolver() throws Exception {
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          assertThat(res).isEqualTo("hello");
+          assertThat(expr.ident().name()).isEqualTo("variable");
+        };
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .addVar("variable", SimpleType.STRING)
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("variable").getAst();
+    CelVariableResolver resolver =
+        (name) -> name.equals("variable") ? Optional.of("hello") : Optional.empty();
+
+    String result = (String) cel.createProgram(ast).trace(resolver, listener);
+
+    assertThat(result).isEqualTo("hello");
   }
 }

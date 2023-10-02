@@ -68,6 +68,41 @@ public interface CelRuntime {
     }
 
     /**
+     * Trace evaluates a compiled program without any variables and invokes the listener as
+     * evaluation progresses through the AST.
+     */
+    public Object trace(CelEvaluationListener listener) throws CelEvaluationException {
+      return evalInternal(Activation.EMPTY, listener);
+    }
+
+    /**
+     * Trace evaluates a compiled program using a {@code mapValue} as the source of input variables.
+     * The listener is invoked as evaluation progresses through the AST.
+     */
+    public Object trace(Map<String, ?> mapValue, CelEvaluationListener listener)
+        throws CelEvaluationException {
+      return evalInternal(Activation.copyOf(mapValue), listener);
+    }
+
+    /**
+     * Trace evaluates a compiled program using {@code message} fields as the source of input
+     * variables. The listener is invoked as evaluation progresses through the AST.
+     */
+    public Object trace(Message message, CelEvaluationListener listener)
+        throws CelEvaluationException {
+      return evalInternal(Activation.fromProto(message, getOptions()), listener);
+    }
+
+    /**
+     * Trace evaluates a compiled program using a custom variable {@code resolver}. The listener is
+     * invoked as evaluation progresses through the AST.
+     */
+    public Object trace(CelVariableResolver resolver, CelEvaluationListener listener)
+        throws CelEvaluationException {
+      return evalInternal((name) -> resolver.find(name).orElse(null), listener);
+    }
+
+    /**
      * Advance evaluation based on the current unknown context.
      *
      * <p>This represents one round of incremental evaluation and may return a final result or a
@@ -77,18 +112,24 @@ public interface CelRuntime {
      * UnknownTracking} is disabled, this is equivalent to eval.
      */
     public Object advanceEvaluation(UnknownContext context) throws CelEvaluationException {
-      return evalInternal(context);
+      return evalInternal(context, CelEvaluationListener.noOpListener());
     }
 
     private Object evalInternal(GlobalResolver resolver) throws CelEvaluationException {
-      return evalInternal(UnknownContext.create(resolver));
+      return evalInternal(resolver, CelEvaluationListener.noOpListener());
+    }
+
+    private Object evalInternal(GlobalResolver resolver, CelEvaluationListener listener)
+        throws CelEvaluationException {
+      return evalInternal(UnknownContext.create(resolver), listener);
     }
 
     /**
      * Evaluate an expr node with an UnknownContext (an activation annotated with which attributes
      * are unknown).
      */
-    private Object evalInternal(UnknownContext context) throws CelEvaluationException {
+    private Object evalInternal(UnknownContext context, CelEvaluationListener listener)
+        throws CelEvaluationException {
       try {
         Interpretable impl = getInterpretable();
         if (getOptions().enableUnknownTracking()) {
@@ -102,9 +143,10 @@ public interface CelRuntime {
               RuntimeUnknownResolver.builder()
                   .setResolver(context.variableResolver())
                   .setAttributeResolver(context.createAttributeResolver())
-                  .build());
+                  .build(),
+              listener);
         } else {
-          return impl.eval(context.variableResolver());
+          return impl.eval(context.variableResolver(), listener);
         }
       } catch (InterpreterException e) {
         throw unwrapOrCreateEvaluationException(e);
