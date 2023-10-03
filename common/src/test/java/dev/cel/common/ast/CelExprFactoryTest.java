@@ -25,40 +25,16 @@ public class CelExprFactoryTest {
 
   @Test
   public void construct_success() {
-    CelExprFactory exprFactory = CelExprFactory.newBuilder().build();
+    CelExprFactory exprFactory = CelExprFactory.newInstance();
 
     assertThat(exprFactory).isNotNull();
   }
 
   @Test
   public void nextExprId_startingDefaultIsOne() {
-    CelExprFactory exprFactory = CelExprFactory.newBuilder().build();
+    CelExprFactory exprFactory = CelExprFactory.newInstance();
 
     assertThat(exprFactory.nextExprId()).isEqualTo(1L);
     assertThat(exprFactory.nextExprId()).isEqualTo(2L);
-  }
-
-  @Test
-  public void construct_witMonotonicIdGenerator_success() {
-    CelExprFactory exprFactory =
-        CelExprFactory.newBuilder()
-            .setIdGenerator(CelExprIdGeneratorFactory.newMonotonicIdGenerator(3L))
-            .build();
-
-    assertThat(exprFactory).isNotNull();
-    assertThat(exprFactory.nextExprId()).isEqualTo(4L);
-    assertThat(exprFactory.nextExprId()).isEqualTo(5L);
-  }
-
-  @Test
-  public void construct_withStableIdGenerator_success() {
-    CelExprFactory exprFactory =
-        CelExprFactory.newBuilder()
-            .setIdGenerator(CelExprIdGeneratorFactory.newStableIdGenerator(3L))
-            .build();
-
-    assertThat(exprFactory).isNotNull();
-    assertThat(exprFactory.nextExprId()).isEqualTo(4L);
-    assertThat(exprFactory.nextExprId()).isEqualTo(5L);
   }
 }

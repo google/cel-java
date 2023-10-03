@@ -55,6 +55,11 @@ public abstract class CelNavigableExpr {
   /** Represents the count of transitive parents. Depth of an AST's root is 0. */
   public abstract int depth();
 
+  /** Constructs a new instance of {@link CelNavigableExpr} from {@link CelExpr}. */
+  public static CelNavigableExpr fromExpr(CelExpr expr) {
+    return CelNavigableExpr.builder().setExpr(expr).build();
+  }
+
   /**
    * Returns a stream of {@link CelNavigableExpr} collected from the current node down to the last
    * leaf-level member using post-order traversal.
@@ -111,7 +116,7 @@ public abstract class CelNavigableExpr {
 
   /** Create a new builder to construct a {@link CelNavigableExpr} instance. */
   public static Builder builder() {
-    return new AutoValue_CelNavigableExpr.Builder();
+    return new AutoValue_CelNavigableExpr.Builder().setDepth(0);
   }
 
   /** Builder to configure {@link CelNavigableExpr}. */

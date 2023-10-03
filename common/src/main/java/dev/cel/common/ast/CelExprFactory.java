@@ -17,42 +17,16 @@ package dev.cel.common.ast;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
-import com.google.common.base.Preconditions;
 import com.google.common.primitives.UnsignedLong;
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.protobuf.ByteString;
 import java.util.Arrays;
 
 /** Factory for generating expression nodes. */
 public class CelExprFactory {
-  private final CelExprIdGenerator idGenerator;
+  private final CelExprIdGeneratorFactory.MonotonicIdGenerator idGenerator;
 
-  /** Builder for configuring {@link CelExprFactory}. */
-  public static final class Builder {
-
-    private CelExprIdGenerator exprIdGenerator;
-
-    @CanIgnoreReturnValue
-    public Builder setIdGenerator(CelExprIdGenerator exprIdGenerator) {
-      this.exprIdGenerator = exprIdGenerator;
-      Preconditions.checkNotNull(exprIdGenerator);
-      return this;
-    }
-
-    @CheckReturnValue
-    public CelExprFactory build() {
-      return new CelExprFactory(exprIdGenerator);
-    }
-
-    private Builder() {
-      exprIdGenerator = CelExprIdGeneratorFactory.newMonotonicIdGenerator(0);
-    }
-  }
-
-  /** Creates a new builder to configure CelExprFactory. */
-  public static CelExprFactory.Builder newBuilder() {
-    return new Builder();
+  public static CelExprFactory newInstance() {
+    return new CelExprFactory();
   }
 
   /** Create a new constant expression. */
@@ -572,11 +546,7 @@ public class CelExprFactory {
     return idGenerator.nextExprId();
   }
 
-  protected CelExprFactory(CelExprIdGenerator idGenerator) {
-    this.idGenerator = idGenerator;
-  }
-
   protected CelExprFactory() {
-    this(CelExprIdGeneratorFactory.newMonotonicIdGenerator(0));
+    idGenerator = CelExprIdGeneratorFactory.newMonotonicIdGenerator(0);
   }
 }

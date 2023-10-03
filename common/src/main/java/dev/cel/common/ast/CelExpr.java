@@ -15,6 +15,7 @@
 package dev.cel.common.ast;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.auto.value.AutoOneOf;
 import com.google.auto.value.AutoValue;
@@ -499,7 +500,8 @@ public abstract class CelExpr {
     public abstract static class Builder {
       private List<CelExpr> mutableArgs = new ArrayList<>();
 
-      public abstract ImmutableList<CelExpr> args();
+      // Not public. This only exists to make AutoValue.Builder work.
+      abstract ImmutableList<CelExpr> args();
 
       public abstract Builder setTarget(CelExpr value);
 
@@ -511,6 +513,16 @@ public abstract class CelExpr {
 
       // Not public. This only exists to make AutoValue.Builder work.
       abstract Builder setArgs(ImmutableList<CelExpr> value);
+
+      /** Returns an immutable copy of the current mutable arguments present in the builder. */
+      public ImmutableList<CelExpr> getArgs() {
+        return ImmutableList.copyOf(mutableArgs);
+      }
+
+      /** Returns an immutable copy of the builders from the current mutable arguments. */
+      public ImmutableList<CelExpr.Builder> getArgsBuilders() {
+        return mutableArgs.stream().map(CelExpr::toBuilder).collect(toImmutableList());
+      }
 
       public Builder setArg(int index, CelExpr arg) {
         checkNotNull(arg);
@@ -597,6 +609,11 @@ public abstract class CelExpr {
       /** Returns an immutable copy of the current mutable elements present in the builder. */
       public ImmutableList<CelExpr> getElements() {
         return ImmutableList.copyOf(mutableElements);
+      }
+
+      /** Returns an immutable copy of the builders from the current mutable elements. */
+      public ImmutableList<CelExpr.Builder> getElementsBuilders() {
+        return mutableElements.stream().map(CelExpr::toBuilder).collect(toImmutableList());
       }
 
       @CanIgnoreReturnValue
@@ -691,6 +708,13 @@ public abstract class CelExpr {
         return ImmutableList.copyOf(mutableEntries);
       }
 
+      /** Returns an immutable copy of the builders from the current mutable entries. */
+      public ImmutableList<CelCreateStruct.Entry.Builder> getEntriesBuilders() {
+        return mutableEntries.stream()
+            .map(CelCreateStruct.Entry::toBuilder)
+            .collect(toImmutableList());
+      }
+
       @CanIgnoreReturnValue
       public Builder setEntry(int index, CelCreateStruct.Entry entry) {
         checkNotNull(entry);
@@ -780,7 +804,9 @@ public abstract class CelExpr {
       public abstract Builder toBuilder();
 
       public static Builder newBuilder() {
-        return new AutoValue_CelExpr_CelCreateStruct_Entry.Builder().setOptionalEntry(false);
+        return new AutoValue_CelExpr_CelCreateStruct_Entry.Builder()
+            .setId(0)
+            .setOptionalEntry(false);
       }
     }
   }
@@ -812,6 +838,13 @@ public abstract class CelExpr {
       /** Returns an immutable copy of the current mutable entries present in the builder. */
       public ImmutableList<CelCreateMap.Entry> getEntries() {
         return ImmutableList.copyOf(mutableEntries);
+      }
+
+      /** Returns an immutable copy of the builders from the current mutable entries. */
+      public ImmutableList<CelCreateMap.Entry.Builder> getEntriesBuilders() {
+        return mutableEntries.stream()
+            .map(CelCreateMap.Entry::toBuilder)
+            .collect(toImmutableList());
       }
 
       @CanIgnoreReturnValue
@@ -905,7 +938,7 @@ public abstract class CelExpr {
       public abstract CelCreateMap.Entry.Builder toBuilder();
 
       public static CelCreateMap.Entry.Builder newBuilder() {
-        return new AutoValue_CelExpr_CelCreateMap_Entry.Builder().setOptionalEntry(false);
+        return new AutoValue_CelExpr_CelCreateMap_Entry.Builder().setId(0).setOptionalEntry(false);
       }
     }
   }

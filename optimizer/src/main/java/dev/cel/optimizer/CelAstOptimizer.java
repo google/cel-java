@@ -27,8 +27,7 @@ public interface CelAstOptimizer {
       throws CelOptimizationException;
 
   /**
-   * Replaces a subtree in the given CelExpr. This operation is intended for AST optimization
-   * purposes.
+   * Replaces a subtree in the given AST. This operation is intended for AST optimization purposes.
    *
    * <p>This is a very dangerous operation. Callers should re-typecheck the mutated AST and
    * additionally verify that the resulting AST is semantically valid.
@@ -36,14 +35,16 @@ public interface CelAstOptimizer {
    * <p>All expression IDs will be renumbered in a stable manner to ensure there's no ID collision
    * between the nodes. The renumbering occurs even if the subtree was not replaced.
    *
+   * <p>This will scrub out the description, positions and line offsets from {@code CelSource}. If
+   * the source contains macro calls, its call IDs will be to be consistent with the renumbered IDs
+   * in the AST.
+   *
    * @param ast Original ast to mutate.
    * @param newExpr New CelExpr to replace the subtree with.
    * @param exprIdToReplace Expression id of the subtree that is getting replaced.
    */
   default CelAbstractSyntaxTree replaceSubtree(
       CelAbstractSyntaxTree ast, CelExpr newExpr, long exprIdToReplace) {
-    CelExpr newRoot = MutableAst.replaceSubtree(ast.getExpr(), newExpr, exprIdToReplace);
-
-    return CelAbstractSyntaxTree.newParsedAst(newRoot, ast.getSource());
+    return MutableAst.replaceSubtree(ast, newExpr, exprIdToReplace);
   }
 }

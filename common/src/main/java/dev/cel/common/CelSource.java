@@ -176,7 +176,8 @@ public final class CelSource {
   public Builder toBuilder() {
     return new Builder(codePoints, lineOffsets)
         .setDescription(description)
-        .addPositionsMap(positions);
+        .addPositionsMap(positions)
+        .addAllMacroCalls(macroCalls);
   }
 
   public static Builder newBuilder() {
@@ -267,6 +268,12 @@ public final class CelSource {
     @CanIgnoreReturnValue
     public Builder addAllMacroCalls(Map<Long, CelExpr> macroCalls) {
       this.macroCalls.putAll(macroCalls);
+      return this;
+    }
+
+    @CanIgnoreReturnValue
+    public Builder clearMacroCall(long exprId) {
+      this.macroCalls.remove(exprId);
       return this;
     }
 

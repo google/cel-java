@@ -24,21 +24,26 @@ public final class CelExprIdGeneratorFactory {
    * MonotonicIdGenerator increments expression IDs from an initial seed value.
    *
    * @param exprId Seed value. Must be non-negative. For example, if 1 is provided {@link
-   *     CelExprIdGenerator#nextExprId} will return 2.
+   *     MonotonicIdGenerator#nextExprId()} will return 2.
    */
-  public static CelExprIdGenerator newMonotonicIdGenerator(long exprId) {
+  public static MonotonicIdGenerator newMonotonicIdGenerator(long exprId) {
     return new MonotonicIdGenerator(exprId);
   }
 
-  /** StableIdGenerator ensures new IDs are only created the first time they are encountered. */
-  static CelExprIdGenerator newStableIdGenerator(long exprId) {
+  /**
+   * StableIdGenerator ensures new IDs are only created the first time they are encountered.
+   *
+   * @param exprId Seed value. Must be non-negative. For example, if 1 is provided {@link
+   *     StableIdGenerator#renumberId(long)} will return 2.
+   */
+  public static StableIdGenerator newStableIdGenerator(long exprId) {
     return new StableIdGenerator(exprId);
   }
 
-  private static class MonotonicIdGenerator implements CelExprIdGenerator {
+  /** MonotonicIdGenerator increments expression IDs from an initial seed value. */
+  public static class MonotonicIdGenerator {
     private long exprId;
 
-    @Override
     public long nextExprId() {
       return ++exprId;
     }
@@ -49,16 +54,11 @@ public final class CelExprIdGeneratorFactory {
     }
   }
 
-  private static class StableIdGenerator implements CelExprIdGenerator {
+  /** StableIdGenerator ensures new IDs are only created the first time they are encountered. */
+  public static class StableIdGenerator {
     private final HashMap<Long, Long> idSet;
     private long exprId;
 
-    @Override
-    public long nextExprId() {
-      return ++exprId;
-    }
-
-    @Override
     public long renumberId(long id) {
       Preconditions.checkArgument(id >= 0);
       if (id == 0) {
@@ -69,7 +69,7 @@ public final class CelExprIdGeneratorFactory {
         return idSet.get(id);
       }
 
-      long nextExprId = nextExprId();
+      long nextExprId = ++exprId;
       idSet.put(id, nextExprId);
       return nextExprId;
     }

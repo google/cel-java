@@ -152,6 +152,18 @@ public class CelExprTest {
   }
 
   @Test
+  public void callBuilder_getArgs() {
+    CelCall celCall =
+        CelCall.newBuilder()
+            .setFunction("function")
+            .addArgs(CelExpr.ofConstantExpr(1, CelConstant.ofValue("test")))
+            .build();
+
+    assertThat(celCall.toBuilder().getArgs())
+        .containsExactly(CelExpr.ofConstantExpr(1, CelConstant.ofValue("test")));
+  }
+
+  @Test
   public void celExprBuilder_setCall_setArgByIndex() {
     CelCall celCall =
         CelCall.newBuilder()
@@ -203,6 +215,17 @@ public class CelExprTest {
   }
 
   @Test
+  public void createListBuilder_getArgs() {
+    CelCreateList celCreateList =
+        CelCreateList.newBuilder()
+            .addElements(CelExpr.ofConstantExpr(1, CelConstant.ofValue(2)))
+            .build();
+
+    assertThat(celCreateList.toBuilder().getElements())
+        .containsExactly(CelExpr.ofConstantExpr(1, CelConstant.ofValue(2)));
+  }
+
+  @Test
   public void celExprBuilder_setCreateList_setElementByIndex() {
     CelCreateList celCreateList =
         CelCreateList.newBuilder()
@@ -244,6 +267,27 @@ public class CelExprTest {
     assertThat(celExpr.createStruct().entries().get(0).optionalEntry()).isFalse();
     assertThat(celExpr.createStruct()).isEqualTo(celCreateStruct);
     assertThat(celExpr.toBuilder().createStruct()).isEqualTo(celCreateStruct);
+  }
+
+  @Test
+  public void createStructBuilder_getArgs() {
+    CelCreateStruct celCreateStruct =
+        CelCreateStruct.newBuilder()
+            .addEntries(
+                CelCreateStruct.Entry.newBuilder()
+                    .setId(1)
+                    .setValue(CelExpr.newBuilder().build())
+                    .setFieldKey("field_key")
+                    .build())
+            .build();
+
+    assertThat(celCreateStruct.toBuilder().getEntries())
+        .containsExactly(
+            CelCreateStruct.Entry.newBuilder()
+                .setId(1)
+                .setValue(CelExpr.newBuilder().build())
+                .setFieldKey("field_key")
+                .build());
   }
 
   @Test
@@ -429,5 +473,51 @@ public class CelExprTest {
         assertThat(testCase.expr.comprehensionOrDefault()).isEqualTo(testCase.expr.comprehension());
         break;
     }
+  }
+
+  @Test
+  public void celCreateMapEntry_keyOrValueNotSet_throws() {
+    assertThrows(IllegalStateException.class, () -> CelCreateMap.Entry.newBuilder().build());
+    assertThrows(
+        IllegalStateException.class,
+        () -> CelCreateMap.Entry.newBuilder().setKey(CelExpr.ofNotSet(1)).build());
+    assertThrows(
+        IllegalStateException.class,
+        () -> CelCreateMap.Entry.newBuilder().setValue(CelExpr.ofNotSet(1)).build());
+  }
+
+  @Test
+  public void celCreateMapEntry_default() {
+    CelCreateMap.Entry entry =
+        CelCreateMap.Entry.newBuilder()
+            .setKey(CelExpr.ofNotSet(1))
+            .setValue(CelExpr.ofNotSet(2))
+            .build();
+
+    assertThat(entry.id()).isEqualTo(0);
+    assertThat(entry.optionalEntry()).isFalse();
+  }
+
+  @Test
+  public void celCreateStructEntry_fieldKeyOrValueNotSet_throws() {
+    assertThrows(IllegalStateException.class, () -> CelCreateStruct.Entry.newBuilder().build());
+    assertThrows(
+        IllegalStateException.class,
+        () -> CelCreateStruct.Entry.newBuilder().setFieldKey("fieldKey").build());
+    assertThrows(
+        IllegalStateException.class,
+        () -> CelCreateStruct.Entry.newBuilder().setValue(CelExpr.ofNotSet(1)).build());
+  }
+
+  @Test
+  public void celCreateStructEntry_default() {
+    CelCreateStruct.Entry entry =
+        CelCreateStruct.Entry.newBuilder()
+            .setFieldKey("fieldKey")
+            .setValue(CelExpr.ofNotSet(1))
+            .build();
+
+    assertThat(entry.id()).isEqualTo(0);
+    assertThat(entry.optionalEntry()).isFalse();
   }
 }

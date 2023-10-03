@@ -28,6 +28,7 @@ import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.optimizer.CelOptimizer;
 import dev.cel.optimizer.CelOptimizerFactory;
+import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparser;
 import dev.cel.parser.CelUnparserFactory;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
@@ -54,6 +55,7 @@ public class ConstantFoldingOptimizerTest {
   private static final CelUnparser CEL_UNPARSER = CelUnparserFactory.newUnparser();
 
   @Test
+  @TestParameters("{source: 'null', expected: 'null'}")
   @TestParameters("{source: '1 + 2', expected: '3'}")
   @TestParameters("{source: '1 + 2 + 3', expected: '6'}")
   @TestParameters("{source: '1 + 2 + x', expected: '3 + x'}")
@@ -144,12 +146,115 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters(
       "{source: '{?\"hello\": optional.of(\"world\")}[\"hello\"] == x', expected: '\"world\" =="
           + " x'}")
+  @TestParameters("{source: '[1] + [2] + [3]', expected: '[1, 2, 3]'}")
+  @TestParameters("{source: '[1] + [?optional.of(2)] + [3]', expected: '[1, 2, 3]'}")
+  @TestParameters("{source: '[1] + [x]', expected: '[1] + [x]'}")
+  @TestParameters("{source: 'x + dyn([1, 2] + [3, 4])', expected: 'x + [1, 2, 3, 4]'}")
+  @TestParameters(
+      "{source: '{\"a\": dyn([1, 2]), \"b\": x}', expected: '{\"a\": [1, 2], \"b\": x}'}")
+  // TODO: Support folding lists with mixed types. This requires mutable lists.
+  // @TestParameters("{source: 'dyn([1]) + [1.0]'}")
   public void constantFold_success(String source, String expected) throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile(source).getAst();
 
     CelAbstractSyntaxTree optimizedAst = CEL_OPTIMIZER.optimize(ast);
 
     assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo(expected);
+  }
+
+  @Test
+  @TestParameters("{source: '[1 + 1, 1 + 2].exists(i, i < 10)', expected: 'true'}")
+  @TestParameters("{source: '[1, 1 + 1, 1 + 2, 2 + 3].exists(i, i < 10)', expected: 'true'}")
+  @TestParameters("{source: '[1, 1 + 1, 1 + 2, 2 + 3].exists(i, i < 1 % 2)', expected: 'false'}")
+  @TestParameters("{source: '[1, 2, 3].map(i, i * 2)', expected: '[2, 4, 6]'}")
+  @TestParameters(
+      "{source: '[1, 2, 3].map(i, [1, 2, 3].map(j, i * j))', "
+          + "expected: '[[1, 2, 3], [2, 4, 6], [3, 6, 9]]'}")
+  @TestParameters(
+      "{source: '[1, 2, 3].map(i, [1, 2, 3].map(j, i * j).filter(k, k % 2 == 0))', "
+          + "expected: '[[2], [2, 4, 6], [6]]'}")
+  @TestParameters(
+      "{source: '[1, 2, 3].map(i, [1, 2, 3].map(j, i * j).filter(k, k % 2 == x))', "
+          + "expected: '[1, 2, 3].map(i, [1, 2, 3].map(j, i * j).filter(k, k % 2 == x))'}")
+  @TestParameters(
+      "{source: '[{}, {\"a\": 1}, {\"b\": 2}].filter(m, has(m.a))', expected: '[{\"a\": 1}]'}")
+  @TestParameters(
+      "{source: '[{}, {?\"a\": optional.of(1)}, {\"b\": optional.of(2)}].filter(m, has(m.a))',"
+          + " expected: '[{\"a\": 1}]'}")
+  @TestParameters(
+      "{source: '[{}, {?\"a\": optional.of(1)}, {\"b\": optional.of(2)}].map(i, i)',"
+          + " expected: '[{}, {\"a\": 1}, {\"b\": optional.of(2)}].map(i, i)'}")
+  @TestParameters(
+      "{source: '[{}, {\"a\": 1}, {\"b\": 2}].filter(m, has({\"a\": true}.a))',"
+          + " expected: '[{}, {\"a\": 1}, {\"b\": 2}]'}")
+  @TestParameters("{source: 'has(x.single_int32)', expected: 'has(x.single_int32)'}")
+  @TestParameters(
+      "{source: '[{}, {\"a\": 1}, {\"b\": 2}].filter(m, has(x.a))', expected:"
+          + " '[{}, {\"a\": 1}, {\"b\": 2}].filter(m, has(x.a))'}")
+  public void constantFold_macros_macroCallMetadataPopulated(String source, String expected)
+      throws Exception {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addVar("x", SimpleType.DYN)
+            .addVar("y", SimpleType.DYN)
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .setOptions(CelOptions.current().populateMacroCalls(true).build())
+            .addCompilerLibraries(CelOptionalLibrary.INSTANCE)
+            .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
+            .build();
+    CelOptimizer celOptimizer =
+        CelOptimizerFactory.standardCelOptimizerBuilder(cel)
+            .addAstOptimizers(ConstantFoldingOptimizer.INSTANCE)
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
+
+    CelAbstractSyntaxTree optimizedAst = celOptimizer.optimize(ast);
+
+    assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo(expected);
+  }
+
+  @Test
+  @TestParameters("{source: '[1 + 1, 1 + 2].exists(i, i < 10) == true'}")
+  @TestParameters("{source: '[1, 1 + 1, 1 + 2, 2 + 3].exists(i, i < 10) == true'}")
+  @TestParameters("{source: '[1, 1 + 1, 1 + 2, 2 + 3].exists(i, i < 1 % 2) == false'}")
+  @TestParameters("{source: '[1, 2, 3].map(i, i * 2) == [2, 4, 6]'}")
+  @TestParameters(
+      "{source: '[1, 2, 3].map(i, [1, 2, 3].map(j, i * j)) == [[1, 2, 3], [2, 4, 6], [3, 6, 9]]'}")
+  @TestParameters(
+      "{source: '[1, 2, 3].map(i, [1, 2, 3].map(j, i * j).filter(k, k % 2 == 0)) == "
+          + "[[2], [2, 4, 6], [6]]'}")
+  @TestParameters("{source: '[{}, {\"a\": 1}, {\"b\": 2}].filter(m, has(m.a)) == [{\"a\": 1}]'}")
+  @TestParameters(
+      "{source: '[{}, {?\"a\": optional.of(1)}, {\"b\": optional.of(2)}].filter(m, has(m.a)) == "
+          + " [{\"a\": 1}]'}")
+  @TestParameters(
+      "{source: '[{}, {?\"a\": optional.of(1)}, {\"b\": optional.of(2)}].map(i, i) == "
+          + " [{}, {\"a\": 1}, {\"b\": optional.of(2)}].map(i, i)'}")
+  @TestParameters(
+      "{source: '[{}, {\"a\": 1}, {\"b\": 2}].filter(m, has({\"a\": true}.a)) == "
+          + " [{}, {\"a\": 1}, {\"b\": 2}]'}")
+  public void constantFold_macros_withoutMacroCallMetadata(String source) throws Exception {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addVar("x", SimpleType.DYN)
+            .addVar("y", SimpleType.DYN)
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .setOptions(CelOptions.current().populateMacroCalls(false).build())
+            .addCompilerLibraries(CelOptionalLibrary.INSTANCE)
+            .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
+            .build();
+    CelOptimizer celOptimizer =
+        CelOptimizerFactory.standardCelOptimizerBuilder(cel)
+            .addAstOptimizers(ConstantFoldingOptimizer.INSTANCE)
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
+
+    CelAbstractSyntaxTree optimizedAst = celOptimizer.optimize(ast);
+
+    assertThat(optimizedAst.getSource().getMacroCalls()).isEmpty();
+    assertThat(cel.createProgram(optimizedAst).eval()).isEqualTo(true);
   }
 
   @Test

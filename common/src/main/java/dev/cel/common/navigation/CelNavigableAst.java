@@ -21,13 +21,12 @@ import dev.cel.common.CelAbstractSyntaxTree;
  * node's children, descendants or its parent with ease.
  */
 public final class CelNavigableAst {
-
   private final CelAbstractSyntaxTree ast;
   private final CelNavigableExpr root;
 
   private CelNavigableAst(CelAbstractSyntaxTree ast) {
     this.ast = ast;
-    this.root = CelNavigableExpr.builder().setExpr(ast.getExpr()).setDepth(0).build();
+    this.root = CelNavigableExpr.fromExpr(ast.getExpr());
   }
 
   /** Constructs a new instance of {@link CelNavigableAst} from {@link CelAbstractSyntaxTree}. */

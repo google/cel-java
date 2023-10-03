@@ -39,7 +39,7 @@ abstract class LiteralValidator implements CelAstValidator {
 
   @Override
   public void validate(CelNavigableAst navigableAst, Cel cel, IssuesFactory issuesFactory) {
-    CelExprFactory exprFactory = CelExprFactory.newBuilder().build();
+    CelExprFactory exprFactory = CelExprFactory.newInstance();
 
     navigableAst
         .getRoot()

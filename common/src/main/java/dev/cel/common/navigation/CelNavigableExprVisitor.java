@@ -27,7 +27,6 @@ import java.util.stream.Stream;
 
 /** Visitor implementation to navigate an AST. */
 final class CelNavigableExprVisitor {
-
   private static final int MAX_DESCENDANTS_RECURSION_DEPTH = 500;
 
   private final Stream.Builder<CelNavigableExpr> streamBuilder;

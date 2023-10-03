@@ -17,6 +17,7 @@ package dev.cel.common.ast;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import dev.cel.common.ast.CelExprIdGeneratorFactory.StableIdGenerator;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -38,7 +39,7 @@ public class CelExprIdGeneratorTest {
 
   @Test
   public void stableIdGenerator_renumberId() {
-    CelExprIdGenerator idGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(0);
+    StableIdGenerator idGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(0);
 
     assertThat(idGenerator.renumberId(0)).isEqualTo(0);
     assertThat(idGenerator.renumberId(2)).isEqualTo(1);

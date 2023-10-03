@@ -34,7 +34,10 @@ import dev.cel.optimizer.CelAstOptimizer;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.parser.Operator;
 import dev.cel.runtime.CelEvaluationException;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 
@@ -138,6 +141,8 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       case SELECT:
         CelNavigableExpr operand = navigableExpr.children().collect(onlyElement());
         return areChildrenArgConstant(operand);
+      case COMPREHENSION:
+        return !isNestedComprehension(navigableExpr);
       default:
         return false;
     }
@@ -153,6 +158,19 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
         || expr.getKind().equals(Kind.CREATE_MAP)
         || expr.getKind().equals(Kind.CREATE_STRUCT)) {
       return expr.children().allMatch(ConstantFoldingOptimizer::areChildrenArgConstant);
+    }
+
+    return false;
+  }
+
+  private static boolean isNestedComprehension(CelNavigableExpr expr) {
+    Optional<CelNavigableExpr> maybeParent = expr.parent();
+    while (maybeParent.isPresent()) {
+      CelNavigableExpr parent = maybeParent.get();
+      if (parent.getKind().equals(Kind.COMPREHENSION)) {
+        return true;
+      }
+      maybeParent = parent.parent();
     }
 
     return false;
@@ -176,16 +194,51 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       return maybeRewriteOptional(optResult, ast, expr);
     }
 
-    if (!CelConstant.isConstantValue(result)) {
-      // Evaluated result is not a constant (e.g: unknowns)
-      return Optional.empty();
+    return maybeAdaptEvaluatedResult(result)
+        .map(celExpr -> replaceSubtree(ast, celExpr, expr.id()));
+  }
+
+  private Optional<CelExpr> maybeAdaptEvaluatedResult(Object result) {
+    if (CelConstant.isConstantValue(result)) {
+      return Optional.of(
+          CelExpr.newBuilder().setConstant(CelConstant.ofObjectValue(result)).build());
+    } else if (result instanceof Collection<?>) {
+      Collection<?> collection = (Collection<?>) result;
+      CelCreateList.Builder createListBuilder = CelCreateList.newBuilder();
+      for (Object evaluatedElement : collection) {
+        Optional<CelExpr> adaptedExpr = maybeAdaptEvaluatedResult(evaluatedElement);
+        if (!adaptedExpr.isPresent()) {
+          return Optional.empty();
+        }
+        createListBuilder.addElements(adaptedExpr.get());
+      }
+
+      return Optional.of(CelExpr.newBuilder().setCreateList(createListBuilder.build()).build());
+    } else if (result instanceof Map<?, ?>) {
+      Map<?, ?> map = (Map<?, ?>) result;
+      CelCreateMap.Builder createMapBuilder = CelCreateMap.newBuilder();
+      for (Entry<?, ?> entry : map.entrySet()) {
+        Optional<CelExpr> adaptedKey = maybeAdaptEvaluatedResult(entry.getKey());
+        if (!adaptedKey.isPresent()) {
+          return Optional.empty();
+        }
+        Optional<CelExpr> adaptedValue = maybeAdaptEvaluatedResult(entry.getValue());
+        if (!adaptedValue.isPresent()) {
+          return Optional.empty();
+        }
+
+        createMapBuilder.addEntries(
+            CelCreateMap.Entry.newBuilder()
+                .setKey(adaptedKey.get())
+                .setValue(adaptedValue.get())
+                .build());
+      }
+
+      return Optional.of(CelExpr.newBuilder().setCreateMap(createMapBuilder.build()).build());
     }
 
-    return Optional.of(
-        replaceSubtree(
-            ast,
-            CelExpr.newBuilder().setConstant(CelConstant.ofObjectValue(result)).build(),
-            expr.id()));
+    // Evaluated result cannot be folded (e.g: unknowns)
+    return Optional.empty();
   }
 
   private Optional<CelAbstractSyntaxTree> maybeRewriteOptional(

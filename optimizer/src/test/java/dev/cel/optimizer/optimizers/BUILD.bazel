@@ -18,6 +18,7 @@ java_library(
         "//optimizer:optimization_exception",
         "//optimizer:optimizer_builder",
         "//optimizer/optimizers:constant_folding",
+        "//parser:macro",
         "//parser:unparser",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",

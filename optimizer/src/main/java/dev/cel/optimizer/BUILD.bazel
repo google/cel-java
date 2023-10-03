@@ -80,9 +80,11 @@ java_library(
     tags = [
     ],
     deps = [
+        "//common",
         "//common/annotations",
         "//common/ast",
         "//common/ast:expr_factory",
+        "//common/navigation",
         "@maven//:com_google_guava_guava",
     ],
 )
