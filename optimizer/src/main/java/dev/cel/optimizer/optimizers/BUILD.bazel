@@ -1,0 +1,28 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = [
+        "//optimizer/optimizers:__pkg__",
+    ],
+)
+
+java_library(
+    name = "constant_folding",
+    srcs = [
+        "ConstantFoldingOptimizer.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//bundle:cel",
+        "//common",
+        "//common:compiler_common",
+        "//common/ast",
+        "//common/ast:expr_util",
+        "//common/navigation",
+        "//optimizer:ast_optimizer",
+        "//optimizer:optimization_exception",
+        "//parser:operator",
+        "//runtime",
+        "@maven//:com_google_guava_guava",
+    ],
+)

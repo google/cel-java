@@ -59,32 +59,49 @@ public abstract class CelNavigableExpr {
    * Returns a stream of {@link CelNavigableExpr} collected from the current node down to the last
    * leaf-level member using post-order traversal.
    */
-  public Stream<CelNavigableExpr> descendants() {
-    return descendants(TraversalOrder.POST_ORDER);
+  public Stream<CelNavigableExpr> allNodes() {
+    return allNodes(TraversalOrder.POST_ORDER);
   }
 
   /**
    * Returns a stream of {@link CelNavigableExpr} collected from the current node down to the last
    * leaf-level member using the specified traversal order.
    */
-  public Stream<CelNavigableExpr> descendants(TraversalOrder traversalOrder) {
+  public Stream<CelNavigableExpr> allNodes(TraversalOrder traversalOrder) {
     return CelNavigableExprVisitor.collect(this, traversalOrder);
   }
 
   /**
-   * Returns a stream of {@link CelNavigableExpr} collected from the current node to its immediate
-   * children using post-order traversal.
+   * Returns a stream of {@link CelNavigableExpr} collected down to the last leaf-level member using
+   * post-order traversal.
+   */
+  public Stream<CelNavigableExpr> descendants() {
+    return descendants(TraversalOrder.POST_ORDER);
+  }
+
+  /**
+   * Returns a stream of {@link CelNavigableExpr} collected down to the last leaf-level member using
+   * the specified traversal order.
+   */
+  public Stream<CelNavigableExpr> descendants(TraversalOrder traversalOrder) {
+    return CelNavigableExprVisitor.collect(this, traversalOrder).filter(node -> !node.equals(this));
+  }
+
+  /**
+   * Returns a stream of {@link CelNavigableExpr} collected from its immediate children using
+   * post-order traversal.
    */
   public Stream<CelNavigableExpr> children() {
     return children(TraversalOrder.POST_ORDER);
   }
 
   /**
-   * Returns a stream of {@link CelNavigableExpr} collected from the current node to its immediate
-   * children using the specified traversal order.
+   * Returns a stream of {@link CelNavigableExpr} collected from its immediate children using the
+   * specified traversal order.
    */
   public Stream<CelNavigableExpr> children(TraversalOrder traversalOrder) {
-    return CelNavigableExprVisitor.collect(this, 1, traversalOrder);
+    return CelNavigableExprVisitor.collect(this, this.depth() + 1, traversalOrder)
+        .filter(node -> !node.equals(this));
   }
 
   /** Returns the underlying kind of the {@link CelExpr}. */

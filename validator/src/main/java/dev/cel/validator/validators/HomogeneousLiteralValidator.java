@@ -57,7 +57,7 @@ public final class HomogeneousLiteralValidator implements CelAstValidator {
   public void validate(CelNavigableAst navigableAst, Cel cel, IssuesFactory issuesFactory) {
     navigableAst
         .getRoot()
-        .descendants()
+        .allNodes()
         .filter(
             node ->
                 node.getKind().equals(Kind.CREATE_LIST) || node.getKind().equals(Kind.CREATE_MAP))

@@ -72,7 +72,7 @@ public class CelNavigableExprVisitorTest {
   }
 
   @Test
-  public void add_descendants_allNodesReturned() throws Exception {
+  public void add_allNodes_allNodesReturned() throws Exception {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder().addVar("a", SimpleType.INT).build();
     // Tree shape:
@@ -83,7 +83,7 @@ public class CelNavigableExprVisitorTest {
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
 
     ImmutableList<CelExpr> allNodes =
-        navigableAst.getRoot().descendants().map(CelNavigableExpr::expr).collect(toImmutableList());
+        navigableAst.getRoot().allNodes().map(CelNavigableExpr::expr).collect(toImmutableList());
 
     CelExpr childAddCall =
         CelExpr.ofCallExpr(
@@ -109,7 +109,7 @@ public class CelNavigableExprVisitorTest {
   }
 
   @Test
-  public void add_filterConstants_descendantsReturned() throws Exception {
+  public void add_filterConstants_allNodesReturned() throws Exception {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder().addVar("a", SimpleType.INT).build();
     // Tree shape:
@@ -122,7 +122,7 @@ public class CelNavigableExprVisitorTest {
     ImmutableList<CelNavigableExpr> allConstants =
         navigableAst
             .getRoot()
-            .descendants()
+            .allNodes()
             .filter(x -> x.getKind().equals(Kind.CONSTANT))
             .collect(toImmutableList());
 
@@ -147,7 +147,7 @@ public class CelNavigableExprVisitorTest {
     ImmutableList<CelNavigableExpr> allConstants =
         navigableAst
             .getRoot()
-            .descendants()
+            .allNodes()
             .filter(x -> x.getKind().equals(Kind.CONSTANT))
             .collect(toImmutableList());
 
@@ -222,6 +222,33 @@ public class CelNavigableExprVisitorTest {
   }
 
   @Test
+  public void add_childrenOfMiddleBranch_success() throws Exception {
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder().addVar("a", SimpleType.INT).build();
+    // Tree shape:
+    //           +
+    //      +         2
+    //  1        a
+    CelAbstractSyntaxTree ast = compiler.compile("1 + a + 2").getAst();
+    CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
+    CelNavigableExpr ident =
+        navigableAst
+            .getRoot()
+            .allNodes()
+            .filter(node -> node.getKind().equals(Kind.IDENT)) // Find "a"
+            .findAny()
+            .get();
+
+    ImmutableList<CelNavigableExpr> children =
+        ident.parent().get().children().collect(toImmutableList());
+
+    // Assert that the children of add call in the middle branch are const(1) and ident("a")
+    assertThat(children).hasSize(2);
+    assertThat(children.get(0).expr()).isEqualTo(CelExpr.ofConstantExpr(1, CelConstant.ofValue(1)));
+    assertThat(children.get(1)).isEqualTo(ident);
+  }
+
+  @Test
   public void stringFormatCall_filterList_success() throws Exception {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder()
@@ -239,7 +266,7 @@ public class CelNavigableExprVisitorTest {
     ImmutableList<CelNavigableExpr> allConstants =
         navigableAst
             .getRoot()
-            .descendants()
+            .allNodes()
             .filter(x -> x.getKind().equals(Kind.CREATE_LIST))
             .collect(toImmutableList());
 
@@ -270,7 +297,7 @@ public class CelNavigableExprVisitorTest {
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
 
     ImmutableList<CelNavigableExpr> targetExprs =
-        navigableAst.getRoot().descendants().collect(toImmutableList());
+        navigableAst.getRoot().allNodes().collect(toImmutableList());
 
     assertThat(targetExprs).hasSize(5);
   }
@@ -286,7 +313,7 @@ public class CelNavigableExprVisitorTest {
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
 
     ImmutableList<CelExpr> allNodes =
-        navigableAst.getRoot().descendants().map(CelNavigableExpr::expr).collect(toImmutableList());
+        navigableAst.getRoot().allNodes().map(CelNavigableExpr::expr).collect(toImmutableList());
 
     CelExpr operand = CelExpr.ofIdentExpr(1, "msg");
     assertThat(allNodes)
@@ -294,7 +321,7 @@ public class CelNavigableExprVisitorTest {
   }
 
   @Test
-  public void nestedMessage_filterSelect_descendantsReturned() throws Exception {
+  public void nestedMessage_filterSelect_allNodesReturned() throws Exception {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
@@ -306,7 +333,7 @@ public class CelNavigableExprVisitorTest {
     ImmutableList<CelExpr> allSelects =
         navigableAst
             .getRoot()
-            .descendants()
+            .allNodes()
             .filter(x -> x.getKind().equals(Kind.SELECT))
             .map(CelNavigableExpr::expr)
             .collect(toImmutableList());
@@ -360,7 +387,7 @@ public class CelNavigableExprVisitorTest {
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
 
     ImmutableList<CelExpr> allNodes =
-        navigableAst.getRoot().descendants().map(CelNavigableExpr::expr).collect(toImmutableList());
+        navigableAst.getRoot().allNodes().map(CelNavigableExpr::expr).collect(toImmutableList());
 
     assertThat(allNodes).hasSize(2);
     assertThat(allNodes)
@@ -380,7 +407,7 @@ public class CelNavigableExprVisitorTest {
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
 
     ImmutableList<CelExpr> allNodes =
-        navigableAst.getRoot().descendants().map(CelNavigableExpr::expr).collect(toImmutableList());
+        navigableAst.getRoot().allNodes().map(CelNavigableExpr::expr).collect(toImmutableList());
 
     CelExpr constExpr = CelExpr.ofConstantExpr(3, CelConstant.ofValue(1));
     assertThat(allNodes)
@@ -394,7 +421,7 @@ public class CelNavigableExprVisitorTest {
   }
 
   @Test
-  public void messageConstruction_filterCreateStruct_descendantsReturned() throws Exception {
+  public void messageConstruction_filterCreateStruct_allNodesReturned() throws Exception {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
@@ -406,7 +433,7 @@ public class CelNavigableExprVisitorTest {
     ImmutableList<CelNavigableExpr> allNodes =
         navigableAst
             .getRoot()
-            .descendants()
+            .allNodes()
             .filter(x -> x.getKind().equals(Kind.CREATE_STRUCT))
             .collect(toImmutableList());
 
@@ -431,7 +458,7 @@ public class CelNavigableExprVisitorTest {
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
 
     ImmutableList<CelExpr> allNodes =
-        navigableAst.getRoot().descendants().map(CelNavigableExpr::expr).collect(toImmutableList());
+        navigableAst.getRoot().allNodes().map(CelNavigableExpr::expr).collect(toImmutableList());
 
     assertThat(allNodes).hasSize(3);
     CelExpr mapKeyExpr = CelExpr.ofConstantExpr(3, CelConstant.ofValue("key"));
@@ -447,7 +474,7 @@ public class CelNavigableExprVisitorTest {
   }
 
   @Test
-  public void mapConstruction_filterCreateMap_descendantsReturned() throws Exception {
+  public void mapConstruction_filterCreateMap_allNodesReturned() throws Exception {
     CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
     CelAbstractSyntaxTree ast = compiler.compile("{'key': 2}").getAst();
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
@@ -455,7 +482,7 @@ public class CelNavigableExprVisitorTest {
     ImmutableList<CelNavigableExpr> allNodes =
         navigableAst
             .getRoot()
-            .descendants()
+            .allNodes()
             .filter(x -> x.getKind().equals(Kind.CREATE_MAP))
             .collect(toImmutableList());
 
@@ -477,7 +504,7 @@ public class CelNavigableExprVisitorTest {
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
 
     ImmutableList<CelNavigableExpr> allNodes =
-        navigableAst.getRoot().descendants().collect(toImmutableList());
+        navigableAst.getRoot().allNodes().collect(toImmutableList());
 
     assertThat(allNodes).hasSize(1);
     assertThat(allNodes.get(0).expr()).isEqualTo(CelExpr.ofCreateMapExpr(1, ImmutableList.of()));
@@ -495,7 +522,7 @@ public class CelNavigableExprVisitorTest {
     ImmutableList<CelExpr> allNodes =
         navigableAst
             .getRoot()
-            .descendants(TraversalOrder.PRE_ORDER)
+            .allNodes(TraversalOrder.PRE_ORDER)
             .map(CelNavigableExpr::expr)
             .collect(toImmutableList());
 
@@ -557,7 +584,7 @@ public class CelNavigableExprVisitorTest {
     ImmutableList<CelExpr> allNodes =
         navigableAst
             .getRoot()
-            .descendants(TraversalOrder.POST_ORDER)
+            .allNodes(TraversalOrder.POST_ORDER)
             .map(CelNavigableExpr::expr)
             .collect(toImmutableList());
 
@@ -617,7 +644,7 @@ public class CelNavigableExprVisitorTest {
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
 
     ImmutableList<CelNavigableExpr> allNodes =
-        navigableAst.getRoot().descendants(TraversalOrder.PRE_ORDER).collect(toImmutableList());
+        navigableAst.getRoot().allNodes(TraversalOrder.PRE_ORDER).collect(toImmutableList());
 
     CelExpr iterRangeConstExpr = CelExpr.ofConstantExpr(2, CelConstant.ofValue(true));
     CelExpr iterRange =
@@ -668,7 +695,7 @@ public class CelNavigableExprVisitorTest {
   }
 
   @Test
-  public void comprehension_filterComprehension_descendantsReturned() throws Exception {
+  public void comprehension_filterComprehension_allNodesReturned() throws Exception {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .setStandardMacros(CelStandardMacro.EXISTS)
@@ -679,7 +706,7 @@ public class CelNavigableExprVisitorTest {
     ImmutableList<CelNavigableExpr> allNodes =
         navigableAst
             .getRoot()
-            .descendants()
+            .allNodes()
             .filter(x -> x.getKind().equals(Kind.COMPREHENSION))
             .collect(toImmutableList());
 
@@ -736,7 +763,7 @@ public class CelNavigableExprVisitorTest {
     ImmutableList<CelExpr> allNodes =
         navigableAst
             .getRoot()
-            .descendants(TraversalOrder.PRE_ORDER)
+            .allNodes(TraversalOrder.PRE_ORDER)
             .map(CelNavigableExpr::expr)
             .collect(toImmutableList());
 
@@ -773,7 +800,7 @@ public class CelNavigableExprVisitorTest {
     ImmutableList<CelExpr> allNodes =
         navigableAst
             .getRoot()
-            .descendants(TraversalOrder.POST_ORDER)
+            .allNodes(TraversalOrder.POST_ORDER)
             .map(CelNavigableExpr::expr)
             .collect(toImmutableList());
 
@@ -805,7 +832,7 @@ public class CelNavigableExprVisitorTest {
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
 
     IllegalStateException e =
-        assertThrows(IllegalStateException.class, () -> navigableAst.getRoot().descendants());
+        assertThrows(IllegalStateException.class, () -> navigableAst.getRoot().allNodes());
     assertThat(e).hasMessageThat().contains("Max recursion depth reached.");
   }
 }

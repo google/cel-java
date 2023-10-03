@@ -1,0 +1,34 @@
+load("//:testing.bzl", "junit4_test_suites")
+
+package(default_applicable_licenses = ["//:license"])
+
+java_library(
+    name = "tests",
+    testonly = 1,
+    srcs = glob(["*.java"]),
+    deps = [
+        "//:java_truth",
+        "//bundle:cel",
+        "//common",
+        "//common:options",
+        "//common/resources/testdata/proto3:test_all_types_java_proto",
+        "//common/types",
+        "//extensions:optional_library",
+        "//optimizer",
+        "//optimizer:optimization_exception",
+        "//optimizer:optimizer_builder",
+        "//optimizer/optimizers:constant_folding",
+        "//parser:unparser",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+junit4_test_suites(
+    name = "test_suites",
+    sizes = [
+        "small",
+    ],
+    src_dir = "src/test/java",
+    deps = [":tests"],
+)

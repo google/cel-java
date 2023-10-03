@@ -65,8 +65,11 @@ java_library(
     tags = [
     ],
     deps = [
+        ":mutable_ast",
+        ":optimization_exception",
         "//bundle:cel",
         "//common",
+        "//common/ast",
         "//common/navigation",
     ],
 )

@@ -196,4 +196,28 @@ public class CelConstantTest {
       assertThrows(UnsupportedOperationException.class, constant::timestampValue);
     }
   }
+
+  @Test
+  public void getObjectValue_success() {
+    assertThat(CelConstant.ofObjectValue(NullValue.NULL_VALUE))
+        .isEqualTo(CelConstant.ofValue(NullValue.NULL_VALUE));
+    assertThat(CelConstant.ofObjectValue(true)).isEqualTo(CelConstant.ofValue(true));
+    assertThat(CelConstant.ofObjectValue(2L)).isEqualTo(CelConstant.ofValue(2L));
+    assertThat(CelConstant.ofObjectValue(UnsignedLong.valueOf(3L)))
+        .isEqualTo(CelConstant.ofValue(UnsignedLong.valueOf(3L)));
+    assertThat(CelConstant.ofObjectValue(3.0d)).isEqualTo(CelConstant.ofValue(3.0d));
+    assertThat(CelConstant.ofObjectValue("test")).isEqualTo(CelConstant.ofValue("test"));
+    assertThat(CelConstant.ofObjectValue(ByteString.copyFromUtf8("hello")))
+        .isEqualTo(CelConstant.ofValue(ByteString.copyFromUtf8("hello")));
+  }
+
+  @Test
+  public void getObjectValue_invalidParameter_throws() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> CelConstant.ofObjectValue(Duration.getDefaultInstance()));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> CelConstant.ofObjectValue(Timestamp.getDefaultInstance()));
+  }
 }

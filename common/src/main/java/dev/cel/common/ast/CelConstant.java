@@ -16,6 +16,7 @@ package dev.cel.common.ast;
 
 import com.google.auto.value.AutoOneOf;
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.ByteString;
@@ -33,6 +34,16 @@ import dev.cel.common.annotations.Internal;
 @Internal
 @Immutable
 public abstract class CelConstant {
+  private static final ImmutableSet<Class<?>> CONSTANT_CLASSES =
+      ImmutableSet.of(
+          NullValue.class,
+          Boolean.class,
+          Long.class,
+          UnsignedLong.class,
+          Double.class,
+          String.class,
+          ByteString.class);
+
   /** Represents the type of the Constant */
   public enum Kind {
     NOT_SET,
@@ -125,6 +136,38 @@ public abstract class CelConstant {
 
   public static CelConstant ofValue(ByteString value) {
     return AutoOneOf_CelConstant.bytesValue(value);
+  }
+
+  /** Checks whether the provided Java object is a valid CelConstant value. */
+  public static boolean isConstantValue(Object value) {
+    return CONSTANT_CLASSES.contains(value.getClass());
+  }
+
+  /**
+   * Converts the given Java object into a CelConstant value. This is equivalent of calling {@link
+   * CelConstant#ofValue} with concrete types.
+   *
+   * @throws IllegalArgumentException If the value is not a supported CelConstant. This includes the
+   *     deprecated duration and timestamp values.
+   */
+  public static CelConstant ofObjectValue(Object value) {
+    if (value instanceof NullValue) {
+      return ofValue((NullValue) value);
+    } else if (value instanceof Boolean) {
+      return ofValue((boolean) value);
+    } else if (value instanceof Long) {
+      return ofValue((long) value);
+    } else if (value instanceof UnsignedLong) {
+      return ofValue((UnsignedLong) value);
+    } else if (value instanceof Double) {
+      return ofValue((double) value);
+    } else if (value instanceof String) {
+      return ofValue((String) value);
+    } else if (value instanceof ByteString) {
+      return ofValue((ByteString) value);
+    }
+
+    throw new IllegalArgumentException("Value is not a CelConstant: " + value);
   }
 
   /**
