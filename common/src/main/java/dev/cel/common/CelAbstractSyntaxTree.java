@@ -14,15 +14,10 @@
 
 package dev.cel.common;
 
-import dev.cel.expr.CheckedExpr;
-import dev.cel.expr.Expr;
-import dev.cel.expr.ParsedExpr;
 import dev.cel.expr.Type;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
-import com.google.errorprone.annotations.InlineMe;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
@@ -92,20 +87,6 @@ public final class CelAbstractSyntaxTree {
     this.types = ImmutableMap.copyOf(types);
   }
 
-  /**
-   * Returns the underlying {@link com.google.api.expr.Expr} representation of the abstract syntax
-   * tree.
-   *
-   * @deprecated Use {@link CelProtoAbstractSyntaxTree#getExpr()} instead.
-   */
-  @Deprecated
-  @InlineMe(
-      replacement = "CelProtoAbstractSyntaxTree.fromCelAst(this).getExpr()",
-      imports = {"dev.cel.common.CelProtoAbstractSyntaxTree"})
-  public Expr getProtoExpr() {
-    return CelProtoAbstractSyntaxTree.fromCelAst(this).getExpr();
-  }
-
   /** Returns the underlying {@link CelExpr} representation of the abstract syntax tree. */
   public CelExpr getExpr() {
     return celExpr;
@@ -139,36 +120,6 @@ public final class CelAbstractSyntaxTree {
     return celSource;
   }
 
-  /**
-   * Returns the underlying {@link com.google.api.expr.ParsedExpr} representation of the abstract
-   * syntax tree.
-   *
-   * @deprecated Use {@link CelProtoAbstractSyntaxTree#toParsedExpr()}} instead.
-   */
-  @Deprecated
-  @InlineMe(
-      replacement = "CelProtoAbstractSyntaxTree.fromCelAst(this).toParsedExpr()",
-      imports = {"dev.cel.common.CelProtoAbstractSyntaxTree"})
-  public ParsedExpr toParsedExpr() {
-    return CelProtoAbstractSyntaxTree.fromCelAst(this).toParsedExpr();
-  }
-
-  /**
-   * Returns the underlying {@link com.google.api.expr.CheckedExpr} representation of the abstract
-   * syntax tree. Throws {@link java.lang.IllegalStateException} if {@link
-   * CelAbstractSyntaxTree#isChecked} is false.
-   *
-   * @deprecated Use {@link CelProtoAbstractSyntaxTree#toCheckedExpr()} instead.
-   */
-  @CheckReturnValue
-  @Deprecated
-  @InlineMe(
-      replacement = "CelProtoAbstractSyntaxTree.fromCelAst(this).toCheckedExpr()",
-      imports = {"dev.cel.common.CelProtoAbstractSyntaxTree"})
-  public CheckedExpr toCheckedExpr() {
-    return CelProtoAbstractSyntaxTree.fromCelAst(this).toCheckedExpr();
-  }
-
   public Optional<CelType> getType(long exprId) {
     return Optional.ofNullable(types.get(exprId));
   }
@@ -200,31 +151,5 @@ public final class CelAbstractSyntaxTree {
     return ref != null && !ref.value().isPresent()
         ? Optional.of(ref.overloadIds())
         : Optional.empty();
-  }
-
-  /**
-   * Construct an abstract syntax tree from a {@link com.google.api.expr.CheckedExpr}.
-   *
-   * @deprecated Use {@link CelProtoAbstractSyntaxTree#fromCheckedExpr(CheckedExpr)} instead.
-   */
-  @Deprecated
-  @InlineMe(
-      replacement = "CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst()",
-      imports = {"dev.cel.common.CelProtoAbstractSyntaxTree"})
-  public static CelAbstractSyntaxTree fromCheckedExpr(CheckedExpr checkedExpr) {
-    return CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst();
-  }
-
-  /**
-   * Construct an abstract syntax tree from a {@link com.google.api.expr.ParsedExpr}.
-   *
-   * @deprecated Use {@link CelProtoAbstractSyntaxTree#fromParsedExpr(ParsedExpr)} instead.
-   */
-  @Deprecated
-  @InlineMe(
-      replacement = "CelProtoAbstractSyntaxTree.fromParsedExpr(parsedExpr).getAst()",
-      imports = {"dev.cel.common.CelProtoAbstractSyntaxTree"})
-  public static CelAbstractSyntaxTree fromParsedExpr(ParsedExpr parsedExpr) {
-    return CelProtoAbstractSyntaxTree.fromParsedExpr(parsedExpr).getAst();
   }
 }
