@@ -35,11 +35,35 @@ java_library(
 
 java_library(
     name = "errors",
-    visibility = ["//visibility:public"],
     exports = ["//common/src/main/java/dev/cel/common/internal:errors"],
 )
 
 java_library(
     name = "env_visitor",
     exports = ["//common/src/main/java/dev/cel/common/internal:env_visitor"],
+)
+
+java_library(
+    name = "default_instance_message_factory",
+    exports = ["//common/src/main/java/dev/cel/common/internal:default_instance_message_factory"],
+)
+
+java_library(
+    name = "well_known_proto",
+    exports = ["//common/src/main/java/dev/cel/common/internal:well_known_proto"],
+)
+
+java_library(
+    name = "proto_message_factory",
+    exports = ["//common/src/main/java/dev/cel/common/internal:proto_message_factory"],
+)
+
+java_library(
+    name = "default_message_factory",
+    exports = ["//common/src/main/java/dev/cel/common/internal:default_message_factory"],
+)
+
+java_library(
+    name = "cel_descriptor_pools",
+    exports = ["//common/src/main/java/dev/cel/common/internal:cel_descriptor_pools"],
 )

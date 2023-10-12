@@ -24,6 +24,13 @@ ENV_VISITOR_SOURCES = [
     "EnvVisitor.java",
 ]
 
+# keep sorted
+CEL_DESCRIPTOR_POOL_SOURCES = [
+    "CelDescriptorPool.java",
+    "CombinedDescriptorPool.java",
+    "DefaultDescriptorPool.java",
+]
+
 java_library(
     name = "internal",
     srcs = INTERNAL_SOURCES,
@@ -86,11 +93,24 @@ java_library(
 
 # keep sorted
 DYNAMIC_PROTO_SOURCES = [
-    "DefaultInstanceMessageFactory.java",
     "DynamicProto.java",
     "ProtoAdapter.java",
     "ProtoRegistryProvider.java",
 ]
+
+java_library(
+    name = "default_instance_message_factory",
+    srcs = ["DefaultInstanceMessageFactory.java"],
+    tags = [
+    ],
+    deps = [
+        "//common/annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+# keep sorted
 
 java_library(
     name = "dynamic_proto",
@@ -99,6 +119,7 @@ java_library(
     ],
     deps = [
         ":converter",
+        ":default_instance_message_factory",
         "//:auto_value",
         "//common",
         "//common:error_codes",
@@ -153,5 +174,58 @@ java_library(
     deps = [
         "//common/annotations",
         "@cel_spec//proto/cel/expr:expr_java_proto",
+    ],
+)
+
+java_library(
+    name = "well_known_proto",
+    srcs = ["WellKnownProto.java"],
+    tags = [
+    ],
+    deps = [
+        "//common/annotations",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "default_message_factory",
+    srcs = ["DefaultMessageFactory.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_descriptor_pools",
+        ":default_instance_message_factory",
+        ":proto_message_factory",
+        "//common/annotations",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "proto_message_factory",
+    srcs = ["ProtoMessageFactory.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_descriptor_pools",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "cel_descriptor_pools",
+    srcs = CEL_DESCRIPTOR_POOL_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":well_known_proto",
+        "//common",
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
