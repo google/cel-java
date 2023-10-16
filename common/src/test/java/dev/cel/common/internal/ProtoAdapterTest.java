@@ -40,6 +40,7 @@ import com.google.type.Expr;
 import dev.cel.common.CelOptions;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
@@ -54,6 +55,9 @@ public final class ProtoAdapterTest {
   private static final CelOptions LEGACY = CelOptions.DEFAULT;
   private static final CelOptions CURRENT =
       CelOptions.newBuilder().enableUnsignedLongs(true).build();
+
+  private static final DynamicProto DYNAMIC_PROTO =
+      DynamicProto.create(DefaultMessageFactory.create(DefaultDescriptorPool.INSTANCE));
 
   @RunWith(Parameterized.class)
   public static class BidirectionalConversionTest {
@@ -156,8 +160,9 @@ public final class ProtoAdapterTest {
 
     @Test
     public void adaptValueToProto_bidirectionalConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DynamicProto.newBuilder().build(), options.enableUnsignedLongs());
+      DynamicProto dynamicProto =
+          DynamicProto.create(DefaultMessageFactory.create(DefaultDescriptorPool.INSTANCE));
+      ProtoAdapter protoAdapter = new ProtoAdapter(dynamicProto, options.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(value, proto.getDescriptorForType().getFullName()))
           .hasValue(proto);
       assertThat(protoAdapter.adaptProtoToValue(proto)).isEqualTo(value);
@@ -171,13 +176,11 @@ public final class ProtoAdapterTest {
       Expr expr = Expr.newBuilder().setExpression("test").build();
       ProtoAdapter protoAdapter =
           new ProtoAdapter(
-              DynamicProto.newBuilder()
-                  .setProtoMessageFactory(
-                      (typeName) ->
-                          typeName.equals(Expr.getDescriptor().getFullName())
-                              ? Expr.newBuilder()
-                              : null)
-                  .build(),
+              DynamicProto.create(
+                  (typeName) ->
+                      typeName.equals(Expr.getDescriptor().getFullName())
+                          ? Optional.of(Expr.newBuilder())
+                          : Optional.empty()),
               LEGACY.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(expr, Any.getDescriptor().getFullName()))
           .hasValue(Any.pack(expr));
@@ -189,8 +192,7 @@ public final class ProtoAdapterTest {
   public static class AsymmetricConversionTest {
     @Test
     public void adaptValueToProto_asymmetricNullConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DynamicProto.newBuilder().build(), LEGACY.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(null, Any.getDescriptor().getFullName()))
           .hasValue(Any.pack(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()));
       assertThat(
@@ -201,8 +203,7 @@ public final class ProtoAdapterTest {
 
     @Test
     public void adaptValueToProto_asymmetricFloatConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DynamicProto.newBuilder().build(), LEGACY.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(1.5F, Any.getDescriptor().getFullName()))
           .hasValue(Any.pack(FloatValue.of(1.5F)));
       assertThat(protoAdapter.adaptProtoToValue(Any.pack(FloatValue.of(1.5F)))).isEqualTo(1.5D);
@@ -210,8 +211,7 @@ public final class ProtoAdapterTest {
 
     @Test
     public void adaptValueToProto_asymmetricDoubleFloatConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DynamicProto.newBuilder().build(), LEGACY.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(1.5D, FloatValue.getDescriptor().getFullName()))
           .hasValue(FloatValue.of(1.5F));
       assertThat(protoAdapter.adaptProtoToValue(FloatValue.of(1.5F))).isEqualTo(1.5D);
@@ -219,16 +219,14 @@ public final class ProtoAdapterTest {
 
     @Test
     public void adaptValueToProto_asymmetricFloatDoubleConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DynamicProto.newBuilder().build(), LEGACY.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(1.5F, DoubleValue.getDescriptor().getFullName()))
           .hasValue(DoubleValue.of(1.5D));
     }
 
     @Test
     public void adaptValueToProto_asymmetricJsonConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DynamicProto.newBuilder().build(), CURRENT.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, CURRENT.enableUnsignedLongs());
       assertThat(
               protoAdapter.adaptValueToProto(
                   UnsignedLong.valueOf(1L), Value.getDescriptor().getFullName()))
@@ -250,8 +248,7 @@ public final class ProtoAdapterTest {
 
     @Test
     public void adaptValueToProto_unsupportedJsonConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DynamicProto.newBuilder().build(), LEGACY.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
       assertThat(
               protoAdapter.adaptValueToProto(
                   ImmutableMap.of(1, 1), Any.getDescriptor().getFullName()))
@@ -260,8 +257,7 @@ public final class ProtoAdapterTest {
 
     @Test
     public void adaptValueToProto_unsupportedJsonListConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DynamicProto.newBuilder().build(), LEGACY.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
       assertThat(
               protoAdapter.adaptValueToProto(
                   ImmutableMap.of(1, 1), ListValue.getDescriptor().getFullName()))
@@ -270,8 +266,7 @@ public final class ProtoAdapterTest {
 
     @Test
     public void adaptValueToProto_unsupportedConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DynamicProto.newBuilder().build(), LEGACY.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto("Hello", Expr.getDescriptor().getFullName()))
           .isEmpty();
     }

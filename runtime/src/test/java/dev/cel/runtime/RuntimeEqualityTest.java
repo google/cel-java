@@ -47,6 +47,8 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.internal.AdaptingTypes;
 import dev.cel.common.internal.BidiConverter;
+import dev.cel.common.internal.DefaultDescriptorPool;
+import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 import java.util.Arrays;
 import java.util.List;
@@ -78,11 +80,11 @@ public final class RuntimeEqualityTest {
 
   private static final RuntimeEquality RUNTIME_EQUALITY =
       new RuntimeEquality(
-          DynamicProto.newBuilder()
-              .setDynamicDescriptors(
-                  CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-                      AttributeContext.getDescriptor().getFile()))
-              .build());
+          DynamicProto.create(
+              DefaultMessageFactory.create(
+                  DefaultDescriptorPool.create(
+                      CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+                          AttributeContext.getDescriptor().getFile())))));
 
   @Test
   public void inMap() throws Exception {

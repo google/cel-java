@@ -91,7 +91,6 @@ java_library(
     ],
 )
 
-# keep sorted
 DYNAMIC_PROTO_SOURCES = [
     "DynamicProto.java",
     "ProtoAdapter.java",
@@ -119,13 +118,12 @@ java_library(
     ],
     deps = [
         ":converter",
-        ":default_instance_message_factory",
+        ":proto_message_factory",
+        ":well_known_proto",
         "//:auto_value",
-        "//common",
         "//common:error_codes",
         "//common:runtime_exception",
         "//common/annotations",
-        "//common/types:cel_types",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",

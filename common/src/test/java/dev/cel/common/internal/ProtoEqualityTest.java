@@ -37,7 +37,8 @@ public final class ProtoEqualityTest {
 
   @Before
   public void setUp() {
-    this.dynamicProto = DynamicProto.newBuilder().build();
+    this.dynamicProto =
+        DynamicProto.create(DefaultMessageFactory.create(DefaultDescriptorPool.INSTANCE));
     this.protoEquality = new ProtoEquality(dynamicProto);
   }
 

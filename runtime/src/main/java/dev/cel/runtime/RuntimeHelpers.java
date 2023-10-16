@@ -50,8 +50,6 @@ public final class RuntimeHelpers {
   private static final java.time.Duration DURATION_MAX = java.time.Duration.ofDays(3652500);
   private static final java.time.Duration DURATION_MIN = DURATION_MAX.negated();
 
-  private static final DynamicProto DYNAMIC_PROTO_INSTANCE = DynamicProto.newBuilder().build();
-
   // Functions
   // =========
 
@@ -360,10 +358,6 @@ public final class RuntimeHelpers {
       return INT32_TO_INT64.convert((Integer) value);
     }
     return value;
-  }
-
-  static Object adaptProtoToValue(MessageOrBuilder obj, CelOptions celOptions) {
-    return adaptProtoToValue(DYNAMIC_PROTO_INSTANCE, obj, celOptions);
   }
 
   /**

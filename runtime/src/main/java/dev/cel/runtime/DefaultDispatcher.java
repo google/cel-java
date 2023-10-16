@@ -26,6 +26,8 @@ import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.ExprFeatures;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.internal.DefaultDescriptorPool;
+import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,7 +70,9 @@ public final class DefaultDispatcher implements Dispatcher, Registrar {
   }
 
   public static DefaultDispatcher create(CelOptions celOptions) {
-    return create(celOptions, DynamicProto.newBuilder().build());
+    DynamicProto dynamicProto =
+        DynamicProto.create(DefaultMessageFactory.create(DefaultDescriptorPool.INSTANCE));
+    return create(celOptions, dynamicProto);
   }
 
   public static DefaultDispatcher create(CelOptions celOptions, DynamicProto dynamicProto) {
