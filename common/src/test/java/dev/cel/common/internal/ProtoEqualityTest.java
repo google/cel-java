@@ -269,12 +269,12 @@ public final class ProtoEqualityTest {
         DynamicMessage.parseFrom(
             Any.getDescriptor(),
             doublePackedStruct.getValue(),
-            ProtoRegistryProvider.getExtensionRegistry());
+            DefaultDescriptorPool.INSTANCE.getExtensionRegistry());
     DynamicMessage dynAny2 =
         DynamicMessage.parseFrom(
             Any.getDescriptor(),
             doublePackedStruct.getValue(),
-            ProtoRegistryProvider.getExtensionRegistry());
+            DefaultDescriptorPool.INSTANCE.getExtensionRegistry());
     assertThat(protoEquality.equals(dynAny, dynAny2)).isTrue();
   }
 }

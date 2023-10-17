@@ -94,7 +94,6 @@ java_library(
 DYNAMIC_PROTO_SOURCES = [
     "DynamicProto.java",
     "ProtoAdapter.java",
-    "ProtoRegistryProvider.java",
 ]
 
 java_library(

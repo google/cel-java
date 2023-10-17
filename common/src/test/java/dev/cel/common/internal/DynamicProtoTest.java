@@ -227,7 +227,9 @@ public final class DynamicProtoTest {
     Any any = Any.pack(struct);
     DynamicMessage anyDyn =
         DynamicMessage.parseFrom(
-            Struct.getDescriptor(), any.getValue(), ProtoRegistryProvider.getExtensionRegistry());
+            Struct.getDescriptor(),
+            any.getValue(),
+            DefaultDescriptorPool.INSTANCE.getExtensionRegistry());
     Message adapted = dynamicProto.maybeAdaptDynamicMessage(anyDyn);
     assertThat(adapted).isEqualTo(struct);
     assertThat(adapted).isInstanceOf(Struct.class);
@@ -244,7 +246,9 @@ public final class DynamicProtoTest {
     Any any = Any.pack(struct);
     DynamicMessage anyDyn =
         DynamicMessage.parseFrom(
-            Struct.getDescriptor(), any.getValue(), ProtoRegistryProvider.getExtensionRegistry());
+            Struct.getDescriptor(),
+            any.getValue(),
+            DefaultDescriptorPool.INSTANCE.getExtensionRegistry());
     Message adapted = dynamicProto.maybeAdaptDynamicMessage(anyDyn);
     Message adapted2 = dynamicProto.maybeAdaptDynamicMessage(anyDyn);
     assertThat(adapted).isEqualTo(adapted2);

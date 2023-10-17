@@ -127,7 +127,7 @@ java_library(
         ":eval",
         "//:java_truth",
         "//common",
-        "//common/internal:dynamic_proto",
+        "//common/internal:cel_descriptor_pools",
         "//common/resources/testdata/proto3:standalone_global_enum_java_proto",
         "//common/resources/testdata/proto3:test_all_types_java_proto",
         "//common/types:cel_types",

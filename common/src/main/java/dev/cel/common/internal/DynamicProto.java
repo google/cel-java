@@ -46,6 +46,22 @@ public final class DynamicProto {
     this.protoMessageFactory = checkNotNull(protoMessageFactory);
   }
 
+  /** Attempts to unpack an Any message. */
+  public Optional<Message> maybeUnpackAny(Message msg) {
+    try {
+      Any any =
+          msg instanceof Any
+              ? (Any) msg
+              : Any.parseFrom(
+                  msg.toByteString(),
+                  protoMessageFactory.getDescriptorPool().getExtensionRegistry());
+
+      return Optional.of(unpack(any));
+    } catch (InvalidProtocolBufferException e) {
+      return Optional.empty();
+    }
+  }
+
   /**
    * Unpack an {@code Any} value to a concrete {@code Message} value.
    *
