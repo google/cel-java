@@ -25,6 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
+import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelDescriptorUtil;
@@ -79,6 +80,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
     private boolean standardEnvironmentEnabled;
     private Function<String, Message.Builder> customTypeFactory;
+    private ExtensionRegistry extensionRegistry;
 
     @Override
     @CanIgnoreReturnValue
@@ -161,6 +163,14 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       return this;
     }
 
+    @Override
+    @CanIgnoreReturnValue
+    public Builder setExtensionRegistry(ExtensionRegistry extensionRegistry) {
+      checkNotNull(extensionRegistry);
+      this.extensionRegistry = extensionRegistry.getUnmodifiable();
+      return this;
+    }
+
     /** Build a new {@code CelRuntimeLegacyImpl} instance from the builder config. */
     @Override
     @CanIgnoreReturnValue
@@ -171,6 +181,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       CelDescriptorPool celDescriptorPool =
           newDescriptorPool(
               fileTypes.build(),
+              extensionRegistry,
               options);
 
       @SuppressWarnings("Immutable")
@@ -214,6 +225,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
     private static CelDescriptorPool newDescriptorPool(
         ImmutableSet<FileDescriptor> fileTypeSet,
+        ExtensionRegistry extensionRegistry,
         CelOptions celOptions) {
       CelDescriptors celDescriptors =
           CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
@@ -221,7 +233,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
       ImmutableList.Builder<CelDescriptorPool> descriptorPools = new ImmutableList.Builder<>();
 
-      descriptorPools.add(DefaultDescriptorPool.create(celDescriptors));
+      descriptorPools.add(DefaultDescriptorPool.create(celDescriptors, extensionRegistry));
 
       return CombinedDescriptorPool.create(descriptorPools.build());
     }
@@ -241,6 +253,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       this.fileTypes = ImmutableSet.builder();
       this.functionBindings = ImmutableMap.builder();
       this.celRuntimeLibraries = ImmutableSet.builder();
+      this.extensionRegistry = ExtensionRegistry.getEmptyRegistry();
       this.customTypeFactory = null;
     }
   }
