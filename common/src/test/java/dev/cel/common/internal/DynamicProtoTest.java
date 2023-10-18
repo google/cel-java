@@ -15,6 +15,7 @@
 package dev.cel.common.internal;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertThrows;
 
@@ -54,8 +55,7 @@ public final class DynamicProtoTest {
     CelDescriptors celDescriptors =
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(Expr.getDescriptor().getFile());
     DynamicProto dynamicProto =
-        DynamicProto.create(
-            DefaultMessageFactory.create(DefaultDescriptorPool.create(celDescriptors)));
+        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build();
 
     Message unpacked = dynamicProto.unpack(packedExpr);
 
@@ -74,8 +74,7 @@ public final class DynamicProtoTest {
     CelDescriptors celDescriptors =
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(MultiFile.getDescriptor().getFile());
     DynamicProto dynamicProto =
-        DynamicProto.create(
-            DefaultMessageFactory.create(DefaultDescriptorPool.create(celDescriptors)));
+        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build();
 
     Message unpacked = dynamicProto.unpack(packed);
 
@@ -90,8 +89,7 @@ public final class DynamicProtoTest {
     CelDescriptors celDescriptors =
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(SingleFile.getDescriptor().getFile());
     DynamicProto dynamicProto =
-        DynamicProto.create(
-            DefaultMessageFactory.create(DefaultDescriptorPool.create(celDescriptors)));
+        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build();
 
     Message unpacked = dynamicProto.unpack(packed);
 
@@ -107,8 +105,7 @@ public final class DynamicProtoTest {
     CelDescriptors celDescriptors =
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(Expr.getDescriptor().getFile());
     DynamicProto dynamicProto =
-        DynamicProto.create(
-            DefaultMessageFactory.create(DefaultDescriptorPool.create(celDescriptors)));
+        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build();
 
     // Order is important here.
     Message unpacked = dynamicProto.unpack(packedExpr);
@@ -134,8 +131,7 @@ public final class DynamicProtoTest {
     CelDescriptors celDescriptors =
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileDescriptorBuilder.build());
     DynamicProto dynamicProto =
-        DynamicProto.create(
-            DefaultMessageFactory.create(DefaultDescriptorPool.create(celDescriptors)));
+        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build();
 
     Message unpacked = dynamicProto.unpack(packedStruct);
 
@@ -146,7 +142,8 @@ public final class DynamicProtoTest {
   @Test
   public void unpackDynamicMessageType_noDescriptor() throws Exception {
     DynamicProto dynamicProto =
-        DynamicProto.create(DefaultMessageFactory.create(DefaultDescriptorPool.INSTANCE));
+        DynamicProto.newBuilder()
+            .build();
     Any.Builder anyValue = Any.newBuilder();
     TextFormat.merge(readFile("value.textproto"), anyValue);
     assertThat(anyValue.getTypeUrl()).isEqualTo("type.googleapis.com/google.api.expr.Value");
@@ -155,8 +152,7 @@ public final class DynamicProtoTest {
 
   @Test
   public void unpackDynamicMessageType_badDescriptor() throws Exception {
-    DynamicProto dynamicProto =
-        DynamicProto.create(DefaultMessageFactory.create(DefaultDescriptorPool.INSTANCE));
+    DynamicProto dynamicProto = DynamicProto.newBuilder().build();
     Any.Builder anyValue = Any.newBuilder();
     TextFormat.merge(readFile("value.textproto"), anyValue);
     anyValue.setTypeUrl("google.api.expr.Value");
@@ -170,8 +166,7 @@ public final class DynamicProtoTest {
         CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds);
     CelDescriptors celDescriptors = CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(files);
     DynamicProto dynamicProto =
-        DynamicProto.create(
-            DefaultMessageFactory.create(DefaultDescriptorPool.create(celDescriptors)));
+        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build();
     Any.Builder anyValue = Any.newBuilder();
     TextFormat.merge(readFile("value.textproto"), anyValue);
     assertThat(anyValue.getTypeUrl()).isEqualTo("type.googleapis.com/google.api.expr.Value");
@@ -206,8 +201,7 @@ public final class DynamicProtoTest {
         CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds);
     CelDescriptors celDescriptors = CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(files);
     DynamicProto dynamicProto =
-        DynamicProto.create(
-            DefaultMessageFactory.create(DefaultDescriptorPool.create(celDescriptors)));
+        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build();
     Any.Builder anyValue = Any.newBuilder();
     TextFormat.merge(readFile("value.textproto"), anyValue);
     assertThat(anyValue.getTypeUrl()).isEqualTo("type.googleapis.com/google.api.expr.Value");
@@ -218,8 +212,7 @@ public final class DynamicProtoTest {
 
   @Test
   public void maybeAdaptDynamicMessage() throws Exception {
-    DynamicProto dynamicProto =
-        DynamicProto.create(DefaultMessageFactory.create(DefaultDescriptorPool.INSTANCE));
+    DynamicProto dynamicProto = DynamicProto.newBuilder().build();
     Struct struct =
         Struct.newBuilder()
             .putFields("hello", Value.newBuilder().setStringValue("world").build())
@@ -227,9 +220,7 @@ public final class DynamicProtoTest {
     Any any = Any.pack(struct);
     DynamicMessage anyDyn =
         DynamicMessage.parseFrom(
-            Struct.getDescriptor(),
-            any.getValue(),
-            DefaultDescriptorPool.INSTANCE.getExtensionRegistry());
+            Struct.getDescriptor(), any.getValue(), ProtoRegistryProvider.getExtensionRegistry());
     Message adapted = dynamicProto.maybeAdaptDynamicMessage(anyDyn);
     assertThat(adapted).isEqualTo(struct);
     assertThat(adapted).isInstanceOf(Struct.class);
@@ -237,8 +228,7 @@ public final class DynamicProtoTest {
 
   @Test
   public void maybeAdaptDynamicMessage_cached() throws Exception {
-    DynamicProto dynamicProto =
-        DynamicProto.create(DefaultMessageFactory.create(DefaultDescriptorPool.INSTANCE));
+    DynamicProto dynamicProto = DynamicProto.newBuilder().build();
     Struct struct =
         Struct.newBuilder()
             .putFields("hello", Value.newBuilder().setStringValue("world").build())
@@ -246,9 +236,7 @@ public final class DynamicProtoTest {
     Any any = Any.pack(struct);
     DynamicMessage anyDyn =
         DynamicMessage.parseFrom(
-            Struct.getDescriptor(),
-            any.getValue(),
-            DefaultDescriptorPool.INSTANCE.getExtensionRegistry());
+            Struct.getDescriptor(), any.getValue(), ProtoRegistryProvider.getExtensionRegistry());
     Message adapted = dynamicProto.maybeAdaptDynamicMessage(anyDyn);
     Message adapted2 = dynamicProto.maybeAdaptDynamicMessage(anyDyn);
     assertThat(adapted).isEqualTo(adapted2);
@@ -263,13 +251,57 @@ public final class DynamicProtoTest {
         CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds);
     CelDescriptors celDescriptors = CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(files);
     DynamicProto dynamicProto =
-        DynamicProto.create(
-            DefaultMessageFactory.create(DefaultDescriptorPool.create(celDescriptors)));
+        DynamicProto.newBuilder()
+            .setDynamicDescriptors(celDescriptors)
+            .build();
     Any any = TextFormat.parse(readFile("value.textproto"), Any.class);
     Message unpacked = dynamicProto.unpack(any);
     assertThat(unpacked).isInstanceOf(DynamicMessage.class);
     assertThat(dynamicProto.maybeAdaptDynamicMessage((DynamicMessage) unpacked))
         .isSameInstanceAs(unpacked);
+  }
+
+  @Test
+  public void newBuilder() throws Exception {
+    DynamicProto dynamicProto =
+        DynamicProto.newBuilder()
+            .setDynamicDescriptors(
+                CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+                    Value.getDescriptor().getFile()))
+            .build();
+    Value.Builder valueBuilder =
+        (Value.Builder) dynamicProto.newMessageBuilder("google.protobuf.Value").get();
+    assertThat(valueBuilder.setStringValue("hello").build())
+        .isEqualTo(Value.newBuilder().setStringValue("hello").build());
+  }
+
+  @Test
+  public void newBuilder_notLinked() throws Exception {
+    DynamicProto dynamicProto =
+        DynamicProto.newBuilder()
+            .setDynamicDescriptors(
+                CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+                    Value.getDescriptor().getFile()))
+            .build();
+    FieldDescriptor stringValueField = Value.getDescriptor().findFieldByName("string_value");
+    Message.Builder valueBuilder = dynamicProto.newMessageBuilder("google.protobuf.Value").get();
+    assertThat(valueBuilder.setField(stringValueField, "hello").build())
+        .isEqualTo(Value.newBuilder().setStringValue("hello").build());
+  }
+
+  @Test
+  public void newBuilder_dynamic() throws Exception {
+    FileDescriptorSet fds = TextFormat.parse(readFile("value.fds"), FileDescriptorSet.class);
+    ImmutableSet<FileDescriptor> files =
+        CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds);
+    CelDescriptors celDescriptors = CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(files);
+    DynamicProto dynamicProto =
+        DynamicProto.newBuilder()
+            .setDynamicDescriptors(celDescriptors)
+            .build();
+    assertThat(dynamicProto.newMessageBuilder("google.api.expr.Value")).isPresent();
+    assertThat(dynamicProto.newMessageBuilder("google.api.expr.Value").get())
+        .isInstanceOf(DynamicMessage.Builder.class);
   }
 
   private static String readFile(String path) throws IOException {

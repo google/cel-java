@@ -20,12 +20,12 @@ import com.google.protobuf.Descriptors.FileDescriptor;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
 import dev.cel.common.CelOptions;
-import dev.cel.common.internal.DefaultDescriptorPool;
-import dev.cel.common.internal.DefaultMessageFactory;
+import dev.cel.common.internal.DynamicProto;
 import dev.cel.runtime.Activation;
 import dev.cel.runtime.DefaultDispatcher;
 import dev.cel.runtime.DefaultInterpreter;
 import dev.cel.runtime.DescriptorMessageProvider;
+import dev.cel.runtime.DynamicMessageFactory;
 import dev.cel.runtime.Interpreter;
 import dev.cel.runtime.InterpreterException;
 import dev.cel.runtime.Registrar;
@@ -47,7 +47,9 @@ public final class EvalSync implements Eval {
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileDescriptors);
     this.typeProvider =
         new DescriptorMessageProvider(
-            DefaultMessageFactory.create(DefaultDescriptorPool.create(celDescriptors)), celOptions);
+            DynamicMessageFactory.typeFactory(celDescriptors),
+            DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build(),
+            celOptions);
     this.interpreter = new DefaultInterpreter(typeProvider, dispatcher, celOptions);
     this.celOptions = celOptions;
   }

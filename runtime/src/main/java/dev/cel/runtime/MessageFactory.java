@@ -17,18 +17,17 @@ package dev.cel.runtime;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Message;
-import dev.cel.common.internal.ProtoMessageFactory;
-import java.util.Optional;
+import dev.cel.common.annotations.Internal;
 import org.jspecify.nullness.Nullable;
 
 /**
  * The {@code MessageFactory} provides a method to create a protobuf builder objects by name.
  *
- * @deprecated Do not use. Internally, {@link ProtoMessageFactory} should be used.
+ * <p>CEL Library Internals. Do Not Use.
  */
 @Immutable
+@Internal
 @FunctionalInterface
-@Deprecated
 public interface MessageFactory {
 
   /**
@@ -37,14 +36,6 @@ public interface MessageFactory {
    * <p>Returns {@code null} if the builder could not be created.
    */
   Message.@Nullable Builder newBuilder(String messageName);
-
-  /**
-   * Exists only to maintain FunctionalInterface requirement and to make legacy Dynamic/Linked
-   * message factories compatible with the new ProtoMessageFactory.
-   */
-  default ProtoMessageFactory toProtoMessageFactory() {
-    return msgName -> Optional.ofNullable(newBuilder(msgName));
-  }
 
   /**
    * The {@code CombinedMessageFactory} takes one or more {@code MessageFactory} instances and

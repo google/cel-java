@@ -19,7 +19,6 @@ import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
-import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import dev.cel.common.CelOptions;
 import java.util.function.Function;
@@ -149,13 +148,6 @@ public interface CelRuntimeBuilder {
   /** Adds a collection of libraries for runtime. */
   @CanIgnoreReturnValue
   CelRuntimeBuilder addLibraries(Iterable<? extends CelRuntimeLibrary> libraries);
-
-  /**
-   * Sets a proto ExtensionRegistry to assist with unpacking Any messages containing a proto2
-   extension field.
-   */
-  @CanIgnoreReturnValue
-  CelRuntimeBuilder setExtensionRegistry(ExtensionRegistry extensionRegistry);
 
   /** Build a new instance of the {@code CelRuntime}. */
   @CheckReturnValue

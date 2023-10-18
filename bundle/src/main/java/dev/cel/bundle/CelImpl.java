@@ -25,7 +25,6 @@ import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
-import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.checker.ProtoTypeMask;
@@ -337,13 +336,6 @@ final class CelImpl implements Cel, EnvVisitable {
     public Builder addRuntimeLibraries(Iterable<CelRuntimeLibrary> libraries) {
       checkNotNull(libraries);
       runtimeBuilder.addLibraries(libraries);
-      return this;
-    }
-
-    @Override
-    public CelBuilder setExtensionRegistry(ExtensionRegistry extensionRegistry) {
-      checkNotNull(extensionRegistry);
-      runtimeBuilder.setExtensionRegistry(extensionRegistry);
       return this;
     }
 

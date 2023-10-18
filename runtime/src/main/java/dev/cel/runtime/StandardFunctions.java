@@ -28,8 +28,6 @@ import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.ComparisonFunctions;
-import dev.cel.common.internal.DefaultDescriptorPool;
-import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -88,11 +86,7 @@ public class StandardFunctions {
    * {@code FuturesInterpreter}.
    */
   public static void addNonInlined(Registrar registrar, CelOptions celOptions) {
-    addNonInlined(
-        registrar,
-        new RuntimeEquality(
-            DynamicProto.create(DefaultMessageFactory.create(DefaultDescriptorPool.INSTANCE))),
-        celOptions);
+    addNonInlined(registrar, new RuntimeEquality(DynamicProto.newBuilder().build()), celOptions);
   }
 
   /**

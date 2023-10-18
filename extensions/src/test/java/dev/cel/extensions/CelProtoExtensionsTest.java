@@ -19,14 +19,10 @@ import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.protobuf.Any;
 import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.ExtensionRegistry;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
-import dev.cel.bundle.Cel;
-import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
@@ -279,29 +275,6 @@ public final class CelProtoExtensionsTest {
             celRuntime.createProgram(ast).eval(ImmutableMap.of("msg", PACKAGE_SCOPED_EXT_MSG));
 
     assertThat(result).isTrue();
-  }
-
-  @Test
-  public void getExt_onAnyPackedExtensionField_success() throws Exception {
-    ExtensionRegistry extensionRegistry = ExtensionRegistry.newInstance();
-    MessagesProto2Extensions.registerAllExtensions(extensionRegistry);
-    Cel cel =
-        CelFactory.standardCelBuilder()
-            .addCompilerLibraries(CelExtensions.protos())
-            .addFileTypes(MessagesProto2Extensions.getDescriptor())
-            .setExtensionRegistry(extensionRegistry)
-            .addVar(
-                "msg", StructTypeReference.create("dev.cel.testing.testdata.proto2.Proto2Message"))
-            .build();
-    CelAbstractSyntaxTree ast =
-        cel.compile("proto.getExt(msg, dev.cel.testing.testdata.proto2.int32_ext)").getAst();
-    Any anyMsg =
-        Any.pack(
-            Proto2Message.newBuilder().setExtension(MessagesProto2Extensions.int32Ext, 1).build());
-
-    Long result = (Long) cel.createProgram(ast).eval(ImmutableMap.of("msg", anyMsg));
-
-    assertThat(result).isEqualTo(1);
   }
 
   private enum ParseErrorTestCase {

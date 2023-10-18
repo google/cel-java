@@ -37,9 +37,6 @@ import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
-import dev.cel.common.internal.DefaultDescriptorPool;
-import dev.cel.common.internal.DefaultMessageFactory;
-import dev.cel.common.internal.DynamicProto;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -50,8 +47,6 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public final class RuntimeHelpersTest {
-  private static final DynamicProto DYNAMIC_PROTO =
-      DynamicProto.create(DefaultMessageFactory.create(DefaultDescriptorPool.INSTANCE));
 
   @Test
   public void createDurationFromString() throws Exception {
@@ -315,38 +310,26 @@ public final class RuntimeHelpersTest {
   @Test
   public void adaptProtoToValue_wrapperValues() throws Exception {
     CelOptions celOptions = CelOptions.LEGACY;
-    assertThat(RuntimeHelpers.adaptProtoToValue(DYNAMIC_PROTO, BoolValue.of(true), celOptions))
-        .isEqualTo(true);
-    assertThat(
-            RuntimeHelpers.adaptProtoToValue(
-                DYNAMIC_PROTO, BytesValue.of(ByteString.EMPTY), celOptions))
+    assertThat(RuntimeHelpers.adaptProtoToValue(BoolValue.of(true), celOptions)).isEqualTo(true);
+    assertThat(RuntimeHelpers.adaptProtoToValue(BytesValue.of(ByteString.EMPTY), celOptions))
         .isEqualTo(ByteString.EMPTY);
-    assertThat(RuntimeHelpers.adaptProtoToValue(DYNAMIC_PROTO, DoubleValue.of(1.5d), celOptions))
-        .isEqualTo(1.5d);
-    assertThat(RuntimeHelpers.adaptProtoToValue(DYNAMIC_PROTO, FloatValue.of(1.5f), celOptions))
-        .isEqualTo(1.5d);
-    assertThat(RuntimeHelpers.adaptProtoToValue(DYNAMIC_PROTO, Int32Value.of(12), celOptions))
-        .isEqualTo(12L);
-    assertThat(RuntimeHelpers.adaptProtoToValue(DYNAMIC_PROTO, Int64Value.of(-12L), celOptions))
-        .isEqualTo(-12L);
-    assertThat(RuntimeHelpers.adaptProtoToValue(DYNAMIC_PROTO, UInt32Value.of(123), celOptions))
-        .isEqualTo(123L);
-    assertThat(RuntimeHelpers.adaptProtoToValue(DYNAMIC_PROTO, UInt64Value.of(1234L), celOptions))
+    assertThat(RuntimeHelpers.adaptProtoToValue(DoubleValue.of(1.5d), celOptions)).isEqualTo(1.5d);
+    assertThat(RuntimeHelpers.adaptProtoToValue(FloatValue.of(1.5f), celOptions)).isEqualTo(1.5d);
+    assertThat(RuntimeHelpers.adaptProtoToValue(Int32Value.of(12), celOptions)).isEqualTo(12L);
+    assertThat(RuntimeHelpers.adaptProtoToValue(Int64Value.of(-12L), celOptions)).isEqualTo(-12L);
+    assertThat(RuntimeHelpers.adaptProtoToValue(UInt32Value.of(123), celOptions)).isEqualTo(123L);
+    assertThat(RuntimeHelpers.adaptProtoToValue(UInt64Value.of(1234L), celOptions))
         .isEqualTo(1234L);
-    assertThat(RuntimeHelpers.adaptProtoToValue(DYNAMIC_PROTO, StringValue.of("hello"), celOptions))
+    assertThat(RuntimeHelpers.adaptProtoToValue(StringValue.of("hello"), celOptions))
         .isEqualTo("hello");
 
     assertThat(
             RuntimeHelpers.adaptProtoToValue(
-                DYNAMIC_PROTO,
-                UInt32Value.of(123),
-                CelOptions.newBuilder().enableUnsignedLongs(true).build()))
+                UInt32Value.of(123), CelOptions.newBuilder().enableUnsignedLongs(true).build()))
         .isEqualTo(UnsignedLong.valueOf(123L));
     assertThat(
             RuntimeHelpers.adaptProtoToValue(
-                DYNAMIC_PROTO,
-                UInt64Value.of(1234L),
-                CelOptions.newBuilder().enableUnsignedLongs(true).build()))
+                UInt64Value.of(1234L), CelOptions.newBuilder().enableUnsignedLongs(true).build()))
         .isEqualTo(UnsignedLong.valueOf(1234L));
   }
 
@@ -354,14 +337,11 @@ public final class RuntimeHelpersTest {
   public void adaptProtoToValue_jsonValues() throws Exception {
     assertThat(
             RuntimeHelpers.adaptProtoToValue(
-                DYNAMIC_PROTO,
-                Value.newBuilder().setStringValue("json").build(),
-                CelOptions.LEGACY))
+                Value.newBuilder().setStringValue("json").build(), CelOptions.LEGACY))
         .isEqualTo("json");
 
     assertThat(
             RuntimeHelpers.adaptProtoToValue(
-                DYNAMIC_PROTO,
                 Value.newBuilder()
                     .setListValue(
                         ListValue.newBuilder()
@@ -374,7 +354,6 @@ public final class RuntimeHelpersTest {
     mp.put("list_value", ImmutableList.of(false, NullValue.NULL_VALUE));
     assertThat(
             RuntimeHelpers.adaptProtoToValue(
-                DYNAMIC_PROTO,
                 Struct.newBuilder()
                     .putFields(
                         "list_value",
@@ -406,16 +385,13 @@ public final class RuntimeHelpersTest {
             .build();
     Any anyJsonValue = Any.pack(jsonValue);
     mp.put("list_value", ImmutableList.of(false, NullValue.NULL_VALUE));
-    assertThat(RuntimeHelpers.adaptProtoToValue(DYNAMIC_PROTO, anyJsonValue, CelOptions.LEGACY))
-        .isEqualTo(mp);
+    assertThat(RuntimeHelpers.adaptProtoToValue(anyJsonValue, CelOptions.LEGACY)).isEqualTo(mp);
   }
 
   @Test
   public void adaptProtoToValue_builderValue() throws Exception {
     CelOptions celOptions = CelOptions.LEGACY;
-    assertThat(
-            RuntimeHelpers.adaptProtoToValue(
-                DYNAMIC_PROTO, BoolValue.newBuilder().setValue(true), celOptions))
+    assertThat(RuntimeHelpers.adaptProtoToValue(BoolValue.newBuilder().setValue(true), celOptions))
         .isEqualTo(true);
   }
 

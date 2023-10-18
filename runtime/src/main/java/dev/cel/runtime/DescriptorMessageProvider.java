@@ -30,7 +30,6 @@ import dev.cel.common.ExprFeatures;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoAdapter;
-import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.types.CelType;
 import java.util.Map;
 import java.util.Optional;
@@ -48,44 +47,38 @@ import org.jspecify.nullness.Nullable;
 @Immutable
 @Internal
 public final class DescriptorMessageProvider implements RuntimeTypeProvider {
-  private final ProtoMessageFactory protoMessageFactory;
+  private final MessageFactory messageFactory;
+  private final DynamicProto dynamicProto;
   private final TypeResolver typeResolver;
 
   @SuppressWarnings("Immutable")
   private final ProtoAdapter protoAdapter;
 
-  /**
-   * Creates a new message provider with the given message factory.
-   *
-   * @deprecated Migrate to the CEL-Java fluent APIs. See {@code CelRuntimeFactory}.
-   */
-  @Deprecated
+  /** Creates a new message provider with the given message factory. */
   public DescriptorMessageProvider(MessageFactory messageFactory) {
-    this(messageFactory.toProtoMessageFactory(), CelOptions.LEGACY);
+    this(messageFactory, DynamicProto.newBuilder().build(), CelOptions.LEGACY);
   }
 
   /**
    * Creates a new message provider with the given message factory and a set of customized {@code
    * features}.
-   *
-   * @deprecated Migrate to the CEL-Java fluent APIs. See {@code CelRuntimeFactory}.
    */
-  @Deprecated
   public DescriptorMessageProvider(
       MessageFactory messageFactory, ImmutableSet<ExprFeatures> features) {
-    this(messageFactory.toProtoMessageFactory(), CelOptions.fromExprFeatures(features));
+    this(messageFactory, DynamicProto.newBuilder().build(), CelOptions.fromExprFeatures(features));
   }
 
   /**
    * Create a new message provider with a given message factory and custom descriptor set to use
    * when adapting from proto to CEL and vice versa.
    */
-  public DescriptorMessageProvider(ProtoMessageFactory protoMessageFactory, CelOptions celOptions) {
+  public DescriptorMessageProvider(
+      MessageFactory messageFactory, DynamicProto dynamicProto, CelOptions celOptions) {
+    this.dynamicProto = dynamicProto;
+    // Dedupe the descriptors while indexing by name.
     this.typeResolver = StandardTypeResolver.getInstance(celOptions);
-    this.protoMessageFactory = protoMessageFactory;
-    this.protoAdapter =
-        new ProtoAdapter(
-            DynamicProto.create(protoMessageFactory), celOptions.enableUnsignedLongs());
+    this.messageFactory = messageFactory;
+    this.protoAdapter = new ProtoAdapter(dynamicProto, celOptions.enableUnsignedLongs());
   }
 
   @Override
@@ -111,16 +104,13 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
   @Nullable
   @Override
   public Object createMessage(String messageName, Map<String, Object> values) {
-    Message.Builder builder =
-        protoMessageFactory
-            .newBuilder(messageName)
-            .orElseThrow(
-                () ->
-                    new CelRuntimeException(
-                        new IllegalArgumentException(
-                            String.format("cannot resolve '%s' as a message", messageName)),
-                        CelErrorCode.ATTRIBUTE_NOT_FOUND));
-
+    Message.Builder builder = messageFactory.newBuilder(messageName);
+    if (builder == null) {
+      throw new CelRuntimeException(
+          new IllegalArgumentException(
+              String.format("cannot resolve '%s' as a message", messageName)),
+          CelErrorCode.ATTRIBUTE_NOT_FOUND);
+    }
     try {
       Descriptor descriptor = builder.getDescriptorForType();
       for (Map.Entry<String, Object> entry : values.entrySet()) {
@@ -209,7 +199,7 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
     FieldDescriptor fieldDescriptor = descriptor.findFieldByName(fieldName);
     if (fieldDescriptor == null) {
       Optional<FieldDescriptor> maybeFieldDescriptor =
-          protoMessageFactory.getDescriptorPool().findExtensionDescriptor(descriptor, fieldName);
+          dynamicProto.maybeGetExtensionDescriptor(descriptor, fieldName);
       if (maybeFieldDescriptor.isPresent()) {
         fieldDescriptor = maybeFieldDescriptor.get();
       }

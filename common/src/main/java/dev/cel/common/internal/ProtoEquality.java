@@ -22,6 +22,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import dev.cel.common.annotations.Internal;
 import java.util.List;
@@ -68,8 +69,8 @@ public final class ProtoEquality {
       // Test whether the typeUrl values are the same, if not return false.
       // Use the dynamicProto.unpack(message1), dynamicProto.unpack(message2)
       // and assign the results to message1 and message2.
-      Optional<Message> unpackedAny1 = dynamicProto.maybeUnpackAny(message1);
-      Optional<Message> unpackedAny2 = dynamicProto.maybeUnpackAny(message2);
+      Optional<Message> unpackedAny1 = anyUnpack(message1);
+      Optional<Message> unpackedAny2 = anyUnpack(message2);
       if (unpackedAny1.isPresent() && unpackedAny2.isPresent()) {
         return equals(unpackedAny1.get(), unpackedAny2.get());
       }
@@ -162,6 +163,18 @@ public final class ProtoEquality {
   private ByteString anyValue(Message msg) {
     FieldDescriptor value = msg.getDescriptorForType().findFieldByName("value");
     return (ByteString) msg.getField(value);
+  }
+
+  private Optional<Message> anyUnpack(Message msg) {
+    try {
+      Any any =
+          msg instanceof Any
+              ? (Any) msg
+              : Any.parseFrom(msg.toByteString(), ProtoRegistryProvider.getExtensionRegistry());
+      return Optional.of(dynamicProto.unpack(any));
+    } catch (InvalidProtocolBufferException e) {
+      return Optional.empty();
+    }
   }
 
   private static ProtoMap protoMap(List<?> entries) {

@@ -50,7 +50,7 @@ import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.Timestamps;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
-import dev.cel.common.internal.DefaultDescriptorPool;
+import dev.cel.common.internal.ProtoRegistryProvider;
 import dev.cel.common.types.CelTypes;
 import dev.cel.runtime.Activation;
 import dev.cel.runtime.InterpreterException;
@@ -1916,7 +1916,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             DynamicMessage.parseFrom(
                 TestAllTypes.getDescriptor(),
                 wrapperBindings.toByteArray(),
-                DefaultDescriptorPool.INSTANCE.getExtensionRegistry()));
+                ProtoRegistryProvider.getExtensionRegistry()));
 
     declareVariable("msg", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
 

@@ -27,11 +27,7 @@ import dev.cel.common.CelDescriptors;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
-import dev.cel.common.internal.CelDescriptorPool;
-import dev.cel.common.internal.DefaultDescriptorPool;
-import dev.cel.common.internal.DefaultMessageFactory;
-// CEL-Internal-3
-import dev.cel.common.internal.ProtoMessageFactory;
+import dev.cel.common.internal.DynamicProto;
 import dev.cel.testing.testdata.proto2.MessagesProto2;
 import dev.cel.testing.testdata.proto2.MessagesProto2Extensions;
 import dev.cel.testing.testdata.proto2.Proto2Message;
@@ -51,12 +47,16 @@ public final class DescriptorMessageProviderTest {
   @Before
   public void setUp() {
     CelOptions options = CelOptions.current().build();
-    CelDescriptors celDescriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-            TestAllTypes.getDescriptor().getFile());
-    ProtoMessageFactory dynamicMessageFactory =
-        DefaultMessageFactory.create(DefaultDescriptorPool.create(celDescriptors));
-    provider = new DescriptorMessageProvider(dynamicMessageFactory, options);
+    ImmutableList<Descriptor> descriptors = ImmutableList.of(TestAllTypes.getDescriptor());
+    DynamicProto dynamicProto =
+        DynamicProto.newBuilder()
+            .setDynamicDescriptors(
+                CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+                    TestAllTypes.getDescriptor().getFile()))
+            .build();
+    provider =
+        new DescriptorMessageProvider(
+            DynamicMessageFactory.typeFactory(descriptors), dynamicProto, options);
   }
 
   @Test
@@ -169,11 +169,15 @@ public final class DescriptorMessageProviderTest {
     CelDescriptors celDescriptors =
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
             ImmutableList.of(MessagesProto2Extensions.getDescriptor()));
-    CelDescriptorPool pool = DefaultDescriptorPool.create(celDescriptors);
-
+    DynamicProto dynamicProto =
+        DynamicProto.newBuilder()
+            .setDynamicDescriptors(celDescriptors)
+            .build();
     provider =
         new DescriptorMessageProvider(
-            DefaultMessageFactory.create(pool), CelOptions.current().build());
+            DynamicMessageFactory.typeFactory(celDescriptors),
+            dynamicProto,
+            CelOptions.current().build());
 
     long result =
         (long)

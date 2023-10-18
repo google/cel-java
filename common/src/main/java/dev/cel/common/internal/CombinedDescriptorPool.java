@@ -74,8 +74,7 @@ public final class CombinedDescriptorPool implements CelDescriptorPool {
   private CombinedDescriptorPool(ImmutableList<CelDescriptorPool> descriptorPools) {
     this.descriptorPools = descriptorPools;
     // TODO: Combine the extension registry. This will become necessary once we accept
-    // ExtensionRegistry through runtime builder. Ideally, proto team should open source this
-    // implementation but we may have to create our own.
+    // ExtensionRegistry through runtime builder.
     this.extensionRegistry =
         descriptorPools.stream()
             .map(CelDescriptorPool::getExtensionRegistry)
