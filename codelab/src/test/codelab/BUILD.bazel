@@ -1,0 +1,72 @@
+package(default_applicable_licenses = [
+    "//:license",
+])
+
+java_test(
+    name = "Exercise1Test",
+    srcs = ["Exercise1Test.java"],
+    tags = ["notap"],
+    test_class = "codelab.Exercise1Test",
+    deps = [
+        "//:java_truth",
+        "//codelab",
+        "//common",
+        "//compiler",
+        "//compiler:compiler_builder",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_test(
+    name = "Exercise2Test",
+    srcs = ["Exercise2Test.java"],
+    tags = ["notap"],
+    test_class = "codelab.Exercise2Test",
+    deps = [
+        "//:java_truth",
+        "//codelab",
+        "//common",
+        "//common/types",
+        "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_test(
+    name = "Exercise3Test",
+    srcs = ["Exercise3Test.java"],
+    tags = ["notap"],
+    test_class = "codelab.Exercise3Test",
+    deps = [
+        "//:java_truth",
+        "//codelab",
+        "//runtime",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_test(
+    name = "Exercise4Test",
+    srcs = ["Exercise4Test.java"],
+    tags = ["notap"],
+    test_class = "codelab.Exercise4Test",
+    deps = [
+        "//:java_truth",
+        "//codelab",
+        "//common",
+        "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+test_suite(
+    name = "exercise_test_suite",
+    tags = ["notap"],
+)

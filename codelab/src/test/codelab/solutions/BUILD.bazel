@@ -1,0 +1,63 @@
+package(default_applicable_licenses = [
+    "//:license",
+])
+
+java_test(
+    name = "Exercise1Test",
+    srcs = ["Exercise1Test.java"],
+    test_class = "codelab.solutions.Exercise1Test",
+    deps = [
+        "//:java_truth",
+        "//codelab:solutions",
+        "//common",
+        "//compiler",
+        "//compiler:compiler_builder",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_test(
+    name = "Exercise2Test",
+    srcs = ["Exercise2Test.java"],
+    test_class = "codelab.solutions.Exercise2Test",
+    deps = [
+        "//:java_truth",
+        "//codelab:solutions",
+        "//common",
+        "//common/types",
+        "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_test(
+    name = "Exercise3Test",
+    srcs = ["Exercise3Test.java"],
+    test_class = "codelab.solutions.Exercise3Test",
+    deps = [
+        "//:java_truth",
+        "//codelab:solutions",
+        "//runtime",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_test(
+    name = "Exercise4Test",
+    srcs = ["Exercise4Test.java"],
+    test_class = "codelab.solutions.Exercise4Test",
+    deps = [
+        "//:java_truth",
+        "//codelab:solutions",
+        "//common",
+        "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)

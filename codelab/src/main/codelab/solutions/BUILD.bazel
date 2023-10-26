@@ -1,0 +1,22 @@
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_visibility = ["//codelab:__pkg__"],
+)
+
+java_library(
+    name = "solutions",
+    srcs = glob(["*.java"]),
+    deps = [
+        "//common",
+        "//common:compiler_common",
+        "//common/types",
+        "//common/types:type_providers",
+        "//compiler",
+        "//compiler:compiler_builder",
+        "//runtime",
+        "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
+        "@maven//:com_google_guava_guava",
+    ],
+)

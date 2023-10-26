@@ -1,0 +1,14 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//codelab:__subpackages__"],
+)
+
+java_library(
+    name = "codelab",
+    exports = ["//codelab/src/main/codelab"],
+)
+
+java_library(
+    name = "solutions",
+    exports = ["//codelab/src/main/codelab/solutions"],
+)
