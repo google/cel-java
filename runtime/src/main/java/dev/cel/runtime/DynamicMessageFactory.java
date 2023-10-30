@@ -21,8 +21,10 @@ import com.google.protobuf.Message;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
 import dev.cel.common.CelOptions;
-import dev.cel.common.annotations.Internal;
-import dev.cel.common.internal.DynamicProto;
+import dev.cel.common.internal.CelDescriptorPool;
+import dev.cel.common.internal.DefaultDescriptorPool;
+import dev.cel.common.internal.DefaultMessageFactory;
+import dev.cel.common.internal.ProtoMessageFactory;
 import java.util.Collection;
 import org.jspecify.nullness.Nullable;
 
@@ -32,11 +34,13 @@ import org.jspecify.nullness.Nullable;
  * <p>Creating message with {@code DynamicMessage} is significantly slower than instantiating
  * messages directly as it uses Java reflection.
  *
- * <p>CEL Library Internals. Do Not Use.
+ * @deprecated Do not use. CEL-Java users should leverage the Fluent APIs instead. See {@code
+ *     CelRuntimeFactory}.
  */
 @Immutable
-@Internal
+@Deprecated
 public final class DynamicMessageFactory implements MessageFactory {
+  private final ProtoMessageFactory protoMessageFactory;
 
   /**
    * Create a {@link RuntimeTypeProvider} which can access only the types listed in the input {@code
@@ -47,14 +51,8 @@ public final class DynamicMessageFactory implements MessageFactory {
    */
   @Deprecated
   public static RuntimeTypeProvider typeProvider(Collection<Descriptor> descriptors) {
-    CelDescriptors celDescriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-            CelDescriptorUtil.getFileDescriptorsForDescriptors(descriptors));
-
     return new DescriptorMessageProvider(
-        typeFactory(descriptors),
-        DynamicProto.newBuilder().setDynamicDescriptors(celDescriptors).build(),
-        CelOptions.LEGACY);
+        typeFactory(descriptors).toProtoMessageFactory(), CelOptions.LEGACY);
   }
 
   /**
@@ -69,28 +67,21 @@ public final class DynamicMessageFactory implements MessageFactory {
     CelDescriptors celDescriptors =
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
             CelDescriptorUtil.getFileDescriptorsForDescriptors(descriptors));
-    return typeFactory(celDescriptors);
+
+    return new DynamicMessageFactory(DefaultDescriptorPool.create(celDescriptors));
   }
 
-  /**
-   * Create a {@code MessageFactory} which can produce any protobuf type linked in the binary, or
-   * present in the collection of {@code descriptors}.
-   */
-  public static MessageFactory typeFactory(CelDescriptors celDescriptors) {
-    return new DynamicMessageFactory(celDescriptors);
+  @Override
+  public ProtoMessageFactory toProtoMessageFactory() {
+    return protoMessageFactory;
   }
 
-  private final DynamicProto dynamicProto;
-
-  private DynamicMessageFactory(CelDescriptors celDescriptors) {
-    this.dynamicProto =
-        DynamicProto.newBuilder()
-            .setDynamicDescriptors(celDescriptors)
-            .build();
+  private DynamicMessageFactory(CelDescriptorPool celDescriptorPool) {
+    protoMessageFactory = DefaultMessageFactory.create(celDescriptorPool);
   }
 
   @Override
   public Message.@Nullable Builder newBuilder(String messageName) {
-    return dynamicProto.newMessageBuilder(messageName).orElse(null);
+    return protoMessageFactory.newBuilder(messageName).orElse(null);
   }
 }

@@ -143,53 +143,6 @@ public final class ProtoAdapter {
       stream(WellKnownProto.values())
           .collect(toImmutableMap(WellKnownProto::typeName, Function.identity()));
 
-  /**
-   * WellKnownProto types used throughout CEL. These types are specially handled to ensure that
-   * bidirectional conversion between CEL native values and these well-known types is performed
-   * consistently across runtimes.
-   */
-  enum WellKnownProto {
-    JSON_VALUE(Value.getDescriptor()),
-    JSON_STRUCT_VALUE(Struct.getDescriptor()),
-    JSON_LIST_VALUE(ListValue.getDescriptor()),
-    ANY_VALUE(Any.getDescriptor()),
-    BOOL_VALUE(BoolValue.getDescriptor(), true),
-    BYTES_VALUE(BytesValue.getDescriptor(), true),
-    DOUBLE_VALUE(DoubleValue.getDescriptor(), true),
-    FLOAT_VALUE(FloatValue.getDescriptor(), true),
-    INT32_VALUE(Int32Value.getDescriptor(), true),
-    INT64_VALUE(Int64Value.getDescriptor(), true),
-    STRING_VALUE(StringValue.getDescriptor(), true),
-    UINT32_VALUE(UInt32Value.getDescriptor(), true),
-    UINT64_VALUE(UInt64Value.getDescriptor(), true),
-    DURATION_VALUE(Duration.getDescriptor()),
-    TIMESTAMP_VALUE(Timestamp.getDescriptor());
-
-    private final Descriptor descriptor;
-    private final boolean isWrapperType;
-
-    WellKnownProto(Descriptor descriptor) {
-      this(descriptor, /* isWrapperType= */ false);
-    }
-
-    WellKnownProto(Descriptor descriptor, boolean isWrapperType) {
-      this.descriptor = descriptor;
-      this.isWrapperType = isWrapperType;
-    }
-
-    Descriptor descriptor() {
-      return descriptor;
-    }
-
-    String typeName() {
-      return descriptor.getFullName();
-    }
-
-    boolean isWrapperType() {
-      return isWrapperType;
-    }
-  }
-
   private final DynamicProto dynamicProto;
   private final boolean enableUnsignedLongs;
 

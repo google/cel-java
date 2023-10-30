@@ -15,29 +15,16 @@
 package dev.cel.common.internal;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
-import static java.util.Arrays.stream;
 
-import com.google.auto.value.AutoBuilder;
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.Descriptors.Descriptor;
-import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
-import dev.cel.common.CelDescriptorUtil;
-import dev.cel.common.CelDescriptors;
 import dev.cel.common.annotations.Internal;
-import dev.cel.common.types.CelTypes;
-import java.util.Map.Entry;
 import java.util.Optional;
-import org.jspecify.nullness.Nullable;
 
 /**
  * The {@code DynamicProto} class supports the conversion of {@link Any} values to concrete {@code
@@ -49,59 +36,30 @@ import org.jspecify.nullness.Nullable;
 @CheckReturnValue
 @Internal
 public final class DynamicProto {
-
-  private static final ImmutableMap<String, Descriptor> WELL_KNOWN_DESCRIPTORS =
-      stream(ProtoAdapter.WellKnownProto.values())
-          .collect(toImmutableMap(d -> d.typeName(), d -> d.descriptor()));
-
-  private final ImmutableMap<String, Descriptor> dynamicDescriptors;
-  private final ImmutableMultimap<String, FieldDescriptor> dynamicExtensionDescriptors;
   private final ProtoMessageFactory protoMessageFactory;
 
-  /** {@code ProtoMessageFactory} provides a method to create a protobuf builder objects by name. */
-  @Immutable
-  @FunctionalInterface
-  public interface ProtoMessageFactory {
-    Message.@Nullable Builder newBuilder(String messageName);
+  public static DynamicProto create(ProtoMessageFactory protoMessageFactory) {
+    return new DynamicProto(protoMessageFactory);
   }
 
-  /** Builder for configuring the {@link DynamicProto}. */
-  @AutoBuilder(ofClass = DynamicProto.class)
-  public abstract static class Builder {
-
-    /** Sets {@link CelDescriptors} to unpack any message types. */
-    public abstract Builder setDynamicDescriptors(CelDescriptors celDescriptors);
-
-    /** Sets a custom type factory to unpack any message types. */
-    public abstract Builder setProtoMessageFactory(ProtoMessageFactory factory);
-
-    /** Builds a new instance of {@link DynamicProto} */
-    @CheckReturnValue
-    public abstract DynamicProto build();
-  }
-
-  public static Builder newBuilder() {
-    return new AutoBuilder_DynamicProto_Builder()
-        .setDynamicDescriptors(CelDescriptors.builder().build())
-        .setProtoMessageFactory((typeName) -> null);
-  }
-
-  DynamicProto(
-      CelDescriptors dynamicDescriptors,
-      ProtoMessageFactory protoMessageFactory) {
-    ImmutableMap<String, Descriptor> messageTypeDescriptorMap =
-        CelDescriptorUtil.descriptorCollectionToMap(dynamicDescriptors.messageTypeDescriptors());
-    ImmutableMap<String, Descriptor> filteredDescriptors =
-        messageTypeDescriptorMap.entrySet().stream()
-            .filter(e -> !WELL_KNOWN_DESCRIPTORS.containsKey(e.getKey()))
-            .collect(toImmutableMap(Entry::getKey, Entry::getValue));
-    this.dynamicDescriptors =
-        ImmutableMap.<String, Descriptor>builder()
-            .putAll(WELL_KNOWN_DESCRIPTORS)
-            .putAll(filteredDescriptors)
-            .buildOrThrow();
-    this.dynamicExtensionDescriptors = checkNotNull(dynamicDescriptors.extensionDescriptors());
+  DynamicProto(ProtoMessageFactory protoMessageFactory) {
     this.protoMessageFactory = checkNotNull(protoMessageFactory);
+  }
+
+  /** Attempts to unpack an Any message. */
+  public Optional<Message> maybeUnpackAny(Message msg) {
+    try {
+      Any any =
+          msg instanceof Any
+              ? (Any) msg
+              : Any.parseFrom(
+                  msg.toByteString(),
+                  protoMessageFactory.getDescriptorPool().getExtensionRegistry());
+
+      return Optional.of(unpack(any));
+    } catch (InvalidProtocolBufferException e) {
+      return Optional.empty();
+    }
   }
 
   /**
@@ -120,7 +78,8 @@ public final class DynamicProto {
                         String.format("malformed type URL: %s", any.getTypeUrl())));
 
     Message.Builder builder =
-        newMessageBuilder(messageTypeName)
+        protoMessageFactory
+            .newBuilder(messageTypeName)
             .orElseThrow(
                 () ->
                     new InvalidProtocolBufferException(
@@ -136,7 +95,7 @@ public final class DynamicProto {
    */
   public Message maybeAdaptDynamicMessage(DynamicMessage input) {
     Optional<Message.Builder> maybeBuilder =
-        newMessageBuilder(input.getDescriptorForType().getFullName());
+        protoMessageFactory.newBuilder(input.getDescriptorForType().getFullName());
     if (!maybeBuilder.isPresent() || maybeBuilder.get() instanceof DynamicMessage.Builder) {
       // Just return the same input if:
       // 1. We didn't get a builder back because there's no descriptor (nothing we can do)
@@ -146,61 +105,6 @@ public final class DynamicProto {
     }
 
     return merge(maybeBuilder.get(), input.toByteString());
-  }
-
-  /**
-   * This method instantiates a builder for the given {@code typeName} assuming one is configured
-   * within the descriptor set provided to the {@code DynamicProto} constructor.
-   *
-   * <p>When the {@code useLinkedTypes} flag is set, the {@code Message.Builder} returned will be
-   * the concrete builder instance linked into the binary if it is present; otherwise, the result
-   * will be a {@code DynamicMessageBuilder}.
-   */
-  public Optional<Message.Builder> newMessageBuilder(String typeName) {
-    if (!CelTypes.isWellKnownType(typeName)) {
-      // Check if the message factory can produce a concrete message via custom type factory
-      // first.
-      Message.Builder builder = protoMessageFactory.newBuilder(typeName);
-      if (builder != null) {
-        return Optional.of(builder);
-      }
-    }
-
-    Optional<Descriptor> descriptor = maybeGetDescriptor(typeName);
-    if (!descriptor.isPresent()) {
-      return Optional.empty();
-    }
-    // If the descriptor that's resolved does not match the descriptor instance in the message
-    // factory, the call to fetch the prototype will return null, and a dynamic proto message
-    // should be used as a fallback.
-    Optional<Message> message =
-        DefaultInstanceMessageFactory.getInstance().getPrototype(descriptor.get());
-    if (message.isPresent()) {
-      return Optional.of(message.get().toBuilder());
-    }
-
-    // Fallback to a dynamic proto instance.
-    return Optional.of(DynamicMessage.newBuilder(descriptor.get()));
-  }
-
-  private Optional<Descriptor> maybeGetDescriptor(String typeName) {
-
-    Descriptor descriptor = ProtoRegistryProvider.getTypeRegistry().find(typeName);
-    return Optional.ofNullable(descriptor != null ? descriptor : dynamicDescriptors.get(typeName));
-  }
-
-  /** Gets the corresponding field descriptor for an extension field on a message. */
-  public Optional<FieldDescriptor> maybeGetExtensionDescriptor(
-      Descriptor containingDescriptor, String fieldName) {
-
-    String typeName = containingDescriptor.getFullName();
-    ImmutableCollection<FieldDescriptor> fieldDescriptors =
-        dynamicExtensionDescriptors.get(typeName);
-    if (fieldDescriptors.isEmpty()) {
-      return Optional.empty();
-    }
-
-    return fieldDescriptors.stream().filter(d -> d.getFullName().equals(fieldName)).findFirst();
   }
 
   /**
@@ -214,7 +118,9 @@ public final class DynamicProto {
    */
   private Message merge(Message.Builder builder, ByteString inputBytes) {
     try {
-      return builder.mergeFrom(inputBytes, ProtoRegistryProvider.getExtensionRegistry()).build();
+      return builder
+          .mergeFrom(inputBytes, protoMessageFactory.getDescriptorPool().getExtensionRegistry())
+          .build();
     } catch (InvalidProtocolBufferException e) {
       throw new AssertionError("Failed to merge input message into the message builder", e);
     }

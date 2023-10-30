@@ -23,6 +23,10 @@ import java.util.Optional;
 /** DefaultMessageFactory produces {@link Message.Builder} instances by protobuf name. */
 @Internal
 public final class DefaultMessageFactory implements ProtoMessageFactory {
+
+  /** A default message factory instance that can construct well known typed messages. */
+  public static final DefaultMessageFactory INSTANCE = create(DefaultDescriptorPool.INSTANCE);
+
   private final CelDescriptorPool celDescriptorPool;
 
   public static DefaultMessageFactory create(CelDescriptorPool celDescriptorPool) {

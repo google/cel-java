@@ -19,15 +19,25 @@ import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.protobuf.Any;
 import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.DoubleValue;
+import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
 import com.google.protobuf.NullValue;
+import com.google.testing.junit.testparameterinjector.TestParameter;
+import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
-import dev.cel.common.internal.DynamicProto;
+import dev.cel.common.internal.CelDescriptorPool;
+import dev.cel.common.internal.DefaultDescriptorPool;
+import dev.cel.common.internal.DefaultMessageFactory;
+// CEL-Internal-3
+import dev.cel.common.internal.ProtoMessageFactory;
+import dev.cel.common.internal.WellKnownProto;
 import dev.cel.testing.testdata.proto2.MessagesProto2;
 import dev.cel.testing.testdata.proto2.MessagesProto2Extensions;
 import dev.cel.testing.testdata.proto2.Proto2Message;
@@ -37,9 +47,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
-@RunWith(JUnit4.class)
+@RunWith(TestParameterInjector.class)
 public final class DescriptorMessageProviderTest {
 
   private RuntimeTypeProvider provider;
@@ -47,16 +56,12 @@ public final class DescriptorMessageProviderTest {
   @Before
   public void setUp() {
     CelOptions options = CelOptions.current().build();
-    ImmutableList<Descriptor> descriptors = ImmutableList.of(TestAllTypes.getDescriptor());
-    DynamicProto dynamicProto =
-        DynamicProto.newBuilder()
-            .setDynamicDescriptors(
-                CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-                    TestAllTypes.getDescriptor().getFile()))
-            .build();
-    provider =
-        new DescriptorMessageProvider(
-            DynamicMessageFactory.typeFactory(descriptors), dynamicProto, options);
+    CelDescriptors celDescriptors =
+        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+            TestAllTypes.getDescriptor().getFile());
+    ProtoMessageFactory dynamicMessageFactory =
+        DefaultMessageFactory.create(DefaultDescriptorPool.create(celDescriptors));
+    provider = new DescriptorMessageProvider(dynamicMessageFactory, options);
   }
 
   @Test
@@ -169,15 +174,11 @@ public final class DescriptorMessageProviderTest {
     CelDescriptors celDescriptors =
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
             ImmutableList.of(MessagesProto2Extensions.getDescriptor()));
-    DynamicProto dynamicProto =
-        DynamicProto.newBuilder()
-            .setDynamicDescriptors(celDescriptors)
-            .build();
+    CelDescriptorPool pool = DefaultDescriptorPool.create(celDescriptors);
+
     provider =
         new DescriptorMessageProvider(
-            DynamicMessageFactory.typeFactory(celDescriptors),
-            dynamicProto,
-            CelOptions.current().build());
+            DefaultMessageFactory.create(pool), CelOptions.current().build());
 
     long result =
         (long)
@@ -188,5 +189,56 @@ public final class DescriptorMessageProviderTest {
                 MessagesProto2.getDescriptor().getPackage() + ".int32_ext");
 
     assertThat(result).isEqualTo(10);
+  }
+
+  @Test
+  public void createMessage_wellKnownType_withCustomMessageProvider(
+      @TestParameter WellKnownProto wellKnownProto) {
+    if (wellKnownProto.equals(WellKnownProto.ANY_VALUE)) {
+      return;
+    }
+
+    Descriptor wellKnownDescriptor = wellKnownProto.descriptor();
+    DescriptorMessageProvider messageProvider =
+        new DescriptorMessageProvider(
+            msgName ->
+                msgName.equals(wellKnownDescriptor.getFullName())
+                    ? DynamicMessage.newBuilder(wellKnownDescriptor)
+                    : null);
+
+    Object createdMessage =
+        messageProvider.createMessage(wellKnownDescriptor.getFullName(), ImmutableMap.of());
+
+    assertThat(createdMessage).isNotNull();
+  }
+
+  @Test
+  public void createMessage_anyType_withCustomMessageProvider() {
+    DescriptorMessageProvider messageProvider =
+        new DescriptorMessageProvider(
+            msgName -> msgName.equals(Any.getDescriptor().getFullName()) ? Any.newBuilder() : null);
+
+    double createdMessage =
+        (double)
+            messageProvider.createMessage(
+                Any.getDescriptor().getFullName(),
+                ImmutableMap.of("type_url", "types.googleapis.com/google.protobuf.DoubleValue"));
+
+    assertThat(createdMessage).isEqualTo(0.0d);
+  }
+
+  @Test
+  public void createMessage_doubleValue_withCustomMessageProvider() {
+    DescriptorMessageProvider messageProvider =
+        new DescriptorMessageProvider(
+            msgName ->
+                msgName.equals("google.protobuf.DoubleValue")
+                    ? DynamicMessage.newBuilder(DoubleValue.getDescriptor())
+                    : null);
+
+    double value =
+        (double) messageProvider.createMessage("google.protobuf.DoubleValue", ImmutableMap.of());
+
+    assertThat(value).isEqualTo(0.0d);
   }
 }

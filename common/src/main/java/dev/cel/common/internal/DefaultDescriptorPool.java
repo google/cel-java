@@ -46,7 +46,10 @@ public final class DefaultDescriptorPool implements CelDescriptorPool {
 
   /** A DefaultDescriptorPool instance with just well known types loaded. */
   public static final DefaultDescriptorPool INSTANCE =
-      new DefaultDescriptorPool(WELL_KNOWN_TYPE_DESCRIPTORS, ImmutableMultimap.of());
+      new DefaultDescriptorPool(
+          WELL_KNOWN_TYPE_DESCRIPTORS,
+          ImmutableMultimap.of(),
+          ExtensionRegistry.getEmptyRegistry());
 
   // K: Fully qualified message type name, V: Message descriptor
   private final ImmutableMap<String, Descriptor> descriptorMap;
@@ -55,7 +58,15 @@ public final class DefaultDescriptorPool implements CelDescriptorPool {
   // V: Field descriptor for the extension message
   private final ImmutableMultimap<String, FieldDescriptor> extensionDescriptorMap;
 
+  @SuppressWarnings("Immutable") // ExtensionRegistry is immutable, just not marked as such.
+  private final ExtensionRegistry extensionRegistry;
+
   public static DefaultDescriptorPool create(CelDescriptors celDescriptors) {
+    return create(celDescriptors, ExtensionRegistry.getEmptyRegistry());
+  }
+
+  public static DefaultDescriptorPool create(
+      CelDescriptors celDescriptors, ExtensionRegistry extensionRegistry) {
     Map<String, Descriptor> descriptorMap = new HashMap<>(); // Using a hashmap to allow deduping
     stream(WellKnownProto.values()).forEach(d -> descriptorMap.put(d.typeName(), d.descriptor()));
 
@@ -64,7 +75,9 @@ public final class DefaultDescriptorPool implements CelDescriptorPool {
     }
 
     return new DefaultDescriptorPool(
-        ImmutableMap.copyOf(descriptorMap), celDescriptors.extensionDescriptors());
+        ImmutableMap.copyOf(descriptorMap),
+        celDescriptors.extensionDescriptors(),
+        extensionRegistry);
   }
 
   @Override
@@ -83,14 +96,15 @@ public final class DefaultDescriptorPool implements CelDescriptorPool {
 
   @Override
   public ExtensionRegistry getExtensionRegistry() {
-    // TODO: Populate one from runtime builder.
-    return ExtensionRegistry.getEmptyRegistry();
+    return extensionRegistry;
   }
 
   private DefaultDescriptorPool(
       ImmutableMap<String, Descriptor> descriptorMap,
-      ImmutableMultimap<String, FieldDescriptor> extensionDescriptorMap) {
+      ImmutableMultimap<String, FieldDescriptor> extensionDescriptorMap,
+      ExtensionRegistry extensionRegistry) {
     this.descriptorMap = checkNotNull(descriptorMap);
     this.extensionDescriptorMap = checkNotNull(extensionDescriptorMap);
+    this.extensionRegistry = checkNotNull(extensionRegistry);
   }
 }

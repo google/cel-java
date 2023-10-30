@@ -41,8 +41,7 @@ public final class DefaultMessageFactoryTest {
 
   @Test
   public void newBuilder_wellKnownType_producesNewMessage() {
-    DefaultMessageFactory messageFactory =
-        DefaultMessageFactory.create(DefaultDescriptorPool.INSTANCE);
+    DefaultMessageFactory messageFactory = DefaultMessageFactory.INSTANCE;
 
     Value.Builder valueBuilder =
         (Value.Builder) messageFactory.newBuilder("google.protobuf.Value").get();
@@ -69,8 +68,7 @@ public final class DefaultMessageFactoryTest {
 
   @Test
   public void newBuilder_unknownMessage_returnsEmpty() {
-    DefaultMessageFactory messageFactory =
-        DefaultMessageFactory.create(DefaultDescriptorPool.INSTANCE);
+    DefaultMessageFactory messageFactory = DefaultMessageFactory.INSTANCE;
 
     assertThat(messageFactory.newBuilder("unknown_message")).isEmpty();
   }
@@ -108,7 +106,7 @@ public final class DefaultMessageFactoryTest {
     CombinedMessageFactory messageFactory =
         new ProtoMessageFactory.CombinedMessageFactory(
             ImmutableList.of(
-                DefaultMessageFactory.create(DefaultDescriptorPool.INSTANCE),
+                DefaultMessageFactory.INSTANCE,
                 (messageName) ->
                     messageName.equals("test")
                         ? Optional.of(TestAllTypes.newBuilder())

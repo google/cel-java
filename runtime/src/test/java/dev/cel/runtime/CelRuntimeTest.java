@@ -21,7 +21,10 @@ import com.google.api.expr.v1alpha1.Expr;
 import com.google.api.expr.v1alpha1.Type.PrimitiveType;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
+import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+import com.google.protobuf.DynamicMessage;
 import com.google.rpc.context.AttributeContext;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
@@ -35,6 +38,8 @@ import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.types.CelV1AlphaTypes;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
+import dev.cel.compiler.CelCompiler;
+import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparserFactory;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
@@ -105,6 +110,100 @@ public class CelRuntimeTest {
     String evaluatedResult = (String) program.eval();
 
     assertThat(evaluatedResult).isEqualTo("Hello world!");
+  }
+
+  @Test
+  public void newWellKnownTypeMessage_withDifferentDescriptorInstance() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addMessageTypes(BoolValue.getDescriptor())
+            .build();
+    CelRuntime celRuntime =
+        CelRuntimeFactory.standardCelRuntimeBuilder()
+            .addFileTypes(
+                FileDescriptorSet.newBuilder()
+                    .addFile(
+                        BoolValue.getDescriptor().getFile().toProto()) // Copy the WKT descriptor
+                    .build())
+            .build();
+
+    CelAbstractSyntaxTree ast =
+        celCompiler.compile("google.protobuf.BoolValue{value: false}").getAst();
+
+    assertThat(celRuntime.createProgram(ast).eval()).isEqualTo(false);
+  }
+
+  @Test
+  public void newWellKnownTypeMessage_inDynamicMessage_withSetTypeFactory() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addMessageTypes(BoolValue.getDescriptor())
+            .build();
+    CelRuntime celRuntime =
+        CelRuntimeFactory.standardCelRuntimeBuilder()
+            .setTypeFactory(
+                (typeName) ->
+                    typeName.equals("google.protobuf.BoolValue")
+                        ? DynamicMessage.newBuilder(BoolValue.getDescriptor())
+                        : null)
+            .build();
+
+    CelAbstractSyntaxTree ast =
+        celCompiler.compile("google.protobuf.BoolValue{value: false}").getAst();
+
+    assertThat(celRuntime.createProgram(ast).eval()).isEqualTo(false);
+  }
+
+  @Test
+  public void newWellKnownTypeMessage_inAnyMessage_withDifferentDescriptorInstance()
+      throws Exception {
+    FileDescriptorSet fds =
+        FileDescriptorSet.newBuilder()
+            // Copy the WKT descriptors
+            .addFile(Any.getDescriptor().getFile().toProto())
+            .addFile(BoolValue.getDescriptor().getFile().toProto())
+            .build();
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder().addFileTypes(fds).build();
+    CelRuntime celRuntime =
+        CelRuntimeFactory.standardCelRuntimeBuilder()
+            .build();
+
+    CelAbstractSyntaxTree ast =
+        celCompiler
+            .compile(
+                "google.protobuf.Any{type_url: 'types.googleapis.com/google.protobuf.DoubleValue'}")
+            .getAst();
+
+    assertThat(celRuntime.createProgram(ast).eval()).isEqualTo(0.0d);
+  }
+
+  @Test
+  public void newWellKnownTypeMessage_inAnyMessage_withSetTypeFactory() throws Exception {
+    FileDescriptorSet fds =
+        FileDescriptorSet.newBuilder()
+            // Copy the WKT descriptors
+            .addFile(Any.getDescriptor().getFile().toProto())
+            .addFile(BoolValue.getDescriptor().getFile().toProto())
+            .build();
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder().addFileTypes(fds).build();
+    CelRuntime celRuntime =
+        CelRuntimeFactory.standardCelRuntimeBuilder()
+            .setTypeFactory(
+                (typeName) ->
+                    typeName.equals("google.protobuf.Any")
+                        ? Any.newBuilder().setTypeUrl("google.protobuf.DoubleValue")
+                        : null)
+            .build();
+
+    CelAbstractSyntaxTree ast =
+        celCompiler
+            .compile(
+                "google.protobuf.Any{type_url: 'types.googleapis.com/google.protobuf.DoubleValue'}")
+            .getAst();
+
+    assertThat(celRuntime.createProgram(ast).eval()).isEqualTo(0.0d);
   }
 
   @Test

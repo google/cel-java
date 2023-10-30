@@ -25,6 +25,7 @@ import com.google.protobuf.Message;
 import dev.cel.common.CelOptions;
 import dev.cel.common.ExprFeatures;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoAdapter;
 import java.util.HashMap;
@@ -166,8 +167,10 @@ public abstract class Activation implements GlobalResolver {
   public static Activation fromProto(Message message, CelOptions celOptions) {
     Map<String, Object> variables = new HashMap<>();
     Map<FieldDescriptor, Object> msgFieldValues = message.getAllFields();
+
     ProtoAdapter protoAdapter =
-        new ProtoAdapter(DynamicProto.newBuilder().build(), celOptions.enableUnsignedLongs());
+        new ProtoAdapter(
+            DynamicProto.create(DefaultMessageFactory.INSTANCE), celOptions.enableUnsignedLongs());
 
     for (FieldDescriptor field : message.getDescriptorForType().getFields()) {
       // Get the value of the field set on the message, if present, otherwise use reflection to

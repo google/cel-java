@@ -16,7 +16,6 @@ package dev.cel.runtime;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -26,14 +25,23 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
+import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.internal.CelDescriptorPool;
+import dev.cel.common.internal.CombinedDescriptorPool;
+import dev.cel.common.internal.DefaultDescriptorPool;
+import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
+// CEL-Internal-3
+import dev.cel.common.internal.ProtoMessageFactory;
+import dev.cel.common.types.CelTypes;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.function.Function;
 import org.jspecify.nullness.Nullable;
 
@@ -64,7 +72,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
   /** Builder class for {@code CelRuntimeLegacyImpl}. */
   public static final class Builder implements CelRuntimeBuilder {
 
-    private final ImmutableSet.Builder<Descriptor> messageTypes;
     private final ImmutableSet.Builder<FileDescriptor> fileTypes;
     private final ImmutableMap.Builder<String, CelFunctionBinding> functionBindings;
     private final ImmutableSet.Builder<CelRuntimeLibrary> celRuntimeLibraries;
@@ -74,6 +81,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
     private boolean standardEnvironmentEnabled;
     private Function<String, Message.Builder> customTypeFactory;
+    private ExtensionRegistry extensionRegistry;
 
     @Override
     @CanIgnoreReturnValue
@@ -156,6 +164,14 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       return this;
     }
 
+    @Override
+    @CanIgnoreReturnValue
+    public Builder setExtensionRegistry(ExtensionRegistry extensionRegistry) {
+      checkNotNull(extensionRegistry);
+      this.extensionRegistry = extensionRegistry.getUnmodifiable();
+      return this;
+    }
+
     /** Build a new {@code CelRuntimeLegacyImpl} instance from the builder config. */
     @Override
     @CanIgnoreReturnValue
@@ -163,36 +179,26 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       // Add libraries, such as extensions
       celRuntimeLibraries.build().forEach(celLibrary -> celLibrary.setRuntimeOptions(this));
 
-      ImmutableSet<FileDescriptor> fileTypeSet = fileTypes.build();
-      ImmutableSet<Descriptor> messageTypeSet = messageTypes.build();
-      if (!messageTypeSet.isEmpty()) {
-        fileTypeSet =
-            new ImmutableSet.Builder<FileDescriptor>()
-                .addAll(fileTypeSet)
-                .addAll(messageTypeSet.stream().map(Descriptor::getFile).collect(toImmutableSet()))
-                .build();
-      }
+      CelDescriptorPool celDescriptorPool =
+          newDescriptorPool(
+              fileTypes.build(),
+              extensionRegistry,
+              options);
 
-      CelDescriptors celDescriptors =
-          CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-              fileTypeSet, options.resolveTypeDependencies());
-
-      // This lambda implements @Immutable interface 'MessageFactory', but 'Builder' has non-final
-      // field 'customTypeFactory'
       @SuppressWarnings("Immutable")
-      MessageFactory runtimeTypeFactory =
-          customTypeFactory != null ? typeName -> customTypeFactory.apply(typeName) : null;
-
+      ProtoMessageFactory runtimeTypeFactory =
+          customTypeFactory != null
+              ? messageName ->
+                  CelTypes.isWellKnownType(
+                          messageName) // Let DefaultMessageFactory handle WKT constructions
+                      ? Optional.empty()
+                      : Optional.ofNullable(customTypeFactory.apply(messageName))
+              : null;
       runtimeTypeFactory =
-          maybeCombineTypeFactory(
-              runtimeTypeFactory,
-              DynamicMessageFactory.typeFactory(celDescriptors));
+          maybeCombineMessageFactory(
+              runtimeTypeFactory, DefaultMessageFactory.create(celDescriptorPool));
 
-      DynamicProto dynamicProto =
-          DynamicProto.newBuilder()
-              .setDynamicDescriptors(celDescriptors)
-              .setProtoMessageFactory(runtimeTypeFactory::newBuilder)
-              .build();
+      DynamicProto dynamicProto = DynamicProto.create(runtimeTypeFactory);
 
       DefaultDispatcher dispatcher = DefaultDispatcher.create(options, dynamicProto);
       if (standardEnvironmentEnabled) {
@@ -218,28 +224,41 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
       return new CelRuntimeLegacyImpl(
           new DefaultInterpreter(
-              new DescriptorMessageProvider(runtimeTypeFactory, dynamicProto, options),
-              dispatcher,
-              options),
+              new DescriptorMessageProvider(runtimeTypeFactory, options), dispatcher, options),
           options);
     }
 
+    private static CelDescriptorPool newDescriptorPool(
+        ImmutableSet<FileDescriptor> fileTypeSet,
+        ExtensionRegistry extensionRegistry,
+        CelOptions celOptions) {
+      CelDescriptors celDescriptors =
+          CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+              fileTypeSet, celOptions.resolveTypeDependencies());
+
+      ImmutableList.Builder<CelDescriptorPool> descriptorPools = new ImmutableList.Builder<>();
+
+      descriptorPools.add(DefaultDescriptorPool.create(celDescriptors, extensionRegistry));
+
+      return CombinedDescriptorPool.create(descriptorPools.build());
+    }
+
     @CanIgnoreReturnValue
-    private static MessageFactory maybeCombineTypeFactory(
-        @Nullable MessageFactory parentFactory, MessageFactory childFactory) {
+    private static ProtoMessageFactory maybeCombineMessageFactory(
+        @Nullable ProtoMessageFactory parentFactory, ProtoMessageFactory childFactory) {
       if (parentFactory == null) {
         return childFactory;
       }
-      return new MessageFactory.CombinedMessageFactory(
+      return new ProtoMessageFactory.CombinedMessageFactory(
           ImmutableList.of(parentFactory, childFactory));
     }
 
     private Builder() {
       this.options = CelOptions.newBuilder().build();
       this.fileTypes = ImmutableSet.builder();
-      this.messageTypes = ImmutableSet.builder();
       this.functionBindings = ImmutableMap.builder();
       this.celRuntimeLibraries = ImmutableSet.builder();
+      this.extensionRegistry = ExtensionRegistry.getEmptyRegistry();
       this.customTypeFactory = null;
     }
   }
