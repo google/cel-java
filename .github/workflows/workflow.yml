@@ -32,5 +32,5 @@ jobs:
       - name: Bazel Output Version
         run: bazelisk --version
       - name: Bazel Test
-        run: bazelisk test ... --test_output=errors
+        run: bazelisk test ... --deleted_packages=codelab/src/test/codelab --test_output=errors # Exclude codelab exercises as they are intentionally made to fail
       - run: echo "🍏 This job's status is ${{ job.status }}."
