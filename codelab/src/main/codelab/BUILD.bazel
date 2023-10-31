@@ -9,7 +9,7 @@ java_library(
     name = "codelab",
     srcs = glob(["*.java"]),
     deps = [
-        "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",  # unuseddeps: keep
+        "@maven//:com_google_api_grpc_proto_google_common_protos",  # unuseddeps: keep
         "@maven//:com_google_guava_guava",  # unuseddeps: keep
         "//common",  # unuseddeps: keep
         "//common:compiler_common",  # unuseddeps: keep

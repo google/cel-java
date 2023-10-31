@@ -57,6 +57,7 @@ ANTLR4_VERSION = "4.11.1"
 maven_install(
     # keep sorted
     artifacts = [
+        "com.google.api.grpc:proto-google-common-protos:2.27.0",
         "com.google.auto.value:auto-value:1.10.1",
         "com.google.auto.value:auto-value-annotations:1.10.1",
         "com.google.code.findbugs:annotations:3.0.1",

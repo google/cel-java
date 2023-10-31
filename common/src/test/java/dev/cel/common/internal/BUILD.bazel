@@ -33,7 +33,7 @@ java_library(
         "//common/src/test/resources:service_conflicting_name_java_proto",
         "//common/src/test/resources:single_file_java_proto",
         "//common/testing",
-        "@com_google_googleapis//google/type:type_java_proto",
+        "@maven//:com_google_api_grpc_proto_google_common_protos",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",

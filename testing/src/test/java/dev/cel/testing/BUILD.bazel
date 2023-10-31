@@ -21,7 +21,7 @@ java_library(
         "//runtime:interpreter",
         "//testing:line_differ",
         "//testing:sync",
-        "@com_google_googleapis//google/type:type_java_proto",
+        "@maven//:com_google_api_grpc_proto_google_common_protos",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:junit_junit",
