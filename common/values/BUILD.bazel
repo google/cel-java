@@ -1,0 +1,9 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],  # TODO: Expose to public when ready
+)
+
+java_library(
+    name = "cel_byte_string",
+    exports = ["//common/src/main/java/dev/cel/common/values:cel_byte_string"],
+)
