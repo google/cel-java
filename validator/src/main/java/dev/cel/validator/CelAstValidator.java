@@ -27,11 +27,11 @@ public interface CelAstValidator {
   void validate(CelNavigableAst navigableAst, Cel cel, IssuesFactory issuesFactory);
 
   /** Factory for populating issues while performing AST validation. */
-  final class IssuesFactory {
+  public final class IssuesFactory {
     private final ImmutableList.Builder<CelIssue> issuesBuilder;
     private final CelNavigableAst navigableAst;
 
-    IssuesFactory(CelNavigableAst navigableAst) {
+    public IssuesFactory(CelNavigableAst navigableAst) {
       this.navigableAst = navigableAst;
       this.issuesBuilder = ImmutableList.builder();
     }
