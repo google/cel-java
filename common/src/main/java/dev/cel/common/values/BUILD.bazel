@@ -7,6 +7,45 @@ package(
     ],
 )
 
+# keep sorted
+CEL_VALUES_SOURCES = [
+    "BoolValue.java",
+    "BytesValue.java",
+    "DoubleValue.java",
+    "DurationValue.java",
+    "EnumValue.java",
+    "IntValue.java",
+    "NullValue.java",
+    "StringValue.java",
+    "TimestampValue.java",
+    "UintValue.java",
+]
+
+java_library(
+    name = "cel_value",
+    srcs = ["CelValue.java"],
+    tags = [
+    ],
+    deps = [
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "values",
+    srcs = CEL_VALUES_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":cel_byte_string",
+        ":cel_value",
+        "//:auto_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
 java_library(
     name = "cel_byte_string",
     srcs = ["CelByteString.java"],

@@ -8,7 +8,9 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//:java_truth",
+        "//common/values",
         "//common/values:cel_byte_string",
+        "@maven//:com_google_guava_guava",
         "@maven//:com_google_guava_guava_testlib",
         "@maven//:junit_junit",
     ],
