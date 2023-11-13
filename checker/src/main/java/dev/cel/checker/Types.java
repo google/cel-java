@@ -340,7 +340,7 @@ public final class Types {
       case MAP:
         return internalIsCandidateAssignableToTarget(subs, type1, type2);
       default:
-        return type1.isAssignableFrom(type2);
+        return type2.isAssignableFrom(type1);
     }
   }
 

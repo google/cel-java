@@ -18,7 +18,10 @@ import static com.google.common.truth.Truth.assertThat;
 
 import dev.cel.expr.Type;
 import dev.cel.expr.Type.PrimitiveType;
+import dev.cel.common.types.CelKind;
+import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypes;
+import dev.cel.common.types.SimpleType;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
@@ -37,5 +40,35 @@ public class TypesTest {
     Map<Type, Type> result = Types.isAssignable(subs, typeParamA, stringType);
 
     assertThat(result).containsExactly(typeParamA, stringType);
+  }
+
+  @Test
+  public void isAssignable_usingCustomTypes() {
+    Map<CelType, CelType> subs = new HashMap<>();
+    CelType intType = SimpleType.INT;
+    CelType customType = new CustomCelType();
+
+    // A curated example where a CEL's int type can be assigned to a custom type.
+    assertThat(Types.isAssignable(subs, intType, customType)).isEqualTo(subs);
+    // But not the other way around.
+    assertThat(Types.isAssignable(subs, customType, intType)).isNull();
+  }
+
+  private static final class CustomCelType extends CelType {
+
+    @Override
+    public CelKind kind() {
+      return CelKind.INT;
+    }
+
+    @Override
+    public String name() {
+      return "customInt";
+    }
+
+    @Override
+    public boolean isAssignableFrom(CelType other) {
+      return super.isAssignableFrom(other) || other.equals(SimpleType.INT);
+    }
   }
 }

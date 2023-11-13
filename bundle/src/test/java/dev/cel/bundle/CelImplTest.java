@@ -54,8 +54,10 @@ import dev.cel.checker.DescriptorTypeProvider;
 import dev.cel.checker.ProtoTypeMask;
 import dev.cel.checker.TypeProvider;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelValidationResult;
@@ -63,6 +65,8 @@ import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCreateList;
 import dev.cel.common.testing.RepeatedTestProvider;
+import dev.cel.common.types.CelKind;
+import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.EnumType;
 import dev.cel.common.types.ListType;
@@ -1719,6 +1723,46 @@ public final class CelImplTest {
                 ImmutableSet.of(
                     CelAttribute.create("partialMessage1"),
                     CelAttribute.create("partialMessage2"))));
+  }
+
+  @Test
+  public void program_functionBindingWithCustomType_assignableToRelatedType() throws Exception {
+    // A custom type that is assignable to an integer
+    CelType customType =
+        new CelType() {
+          @Override
+          public CelKind kind() {
+            return CelKind.INT;
+          }
+
+          @Override
+          public String name() {
+            return "customInt";
+          }
+
+          @Override
+          public boolean isAssignableFrom(CelType other) {
+            return super.isAssignableFrom(other) || other.equals(SimpleType.INT);
+          }
+        };
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addVar("x", SimpleType.INT)
+            .addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                    "print",
+                    CelOverloadDecl.newGlobalOverload(
+                        "print_overload",
+                        SimpleType.STRING,
+                        customType))) // The overload would accept either Int or CustomType
+            .addFunctionBindings(
+                CelFunctionBinding.from("print_overload", Long.class, String::valueOf))
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("print(x)").getAst();
+
+    String result = (String) cel.createProgram(ast).eval(ImmutableMap.of("x", 5));
+
+    assertThat(result).isEqualTo("5");
   }
 
   private static TypeProvider aliasingProvider(ImmutableMap<String, Type> typeAliases) {

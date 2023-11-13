@@ -28,6 +28,7 @@ java_library(
         "//common/types",
         "//common/types:cel_types",
         "//common/types:message_type_provider",
+        "//common/types:type_providers",
         "//compiler",
         "//compiler:compiler_builder",
         "//parser:macro",
