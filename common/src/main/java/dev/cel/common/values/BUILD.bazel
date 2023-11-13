@@ -17,7 +17,9 @@ CEL_VALUES_SOURCES = [
     "IntValue.java",
     "NullValue.java",
     "StringValue.java",
+    "StructValue.java",
     "TimestampValue.java",
+    "TypeValue.java",
     "UintValue.java",
 ]
 
@@ -41,6 +43,7 @@ java_library(
         ":cel_byte_string",
         ":cel_value",
         "//:auto_value",
+        "//common/types:type_providers",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
