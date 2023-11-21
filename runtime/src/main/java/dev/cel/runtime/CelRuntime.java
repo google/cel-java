@@ -57,11 +57,6 @@ public interface CelRuntime {
       return evalInternal(Activation.fromProto(message, getOptions()));
     }
 
-    /** Evaluate a compiled program with an {@code activation} instance. */
-    public Object eval(Activation activation) throws CelEvaluationException {
-      return evalInternal(activation);
-    }
-
     /** Evaluate a compiled program with a custom variable {@code resolver}. */
     public Object eval(CelVariableResolver resolver) throws CelEvaluationException {
       return evalInternal((name) -> resolver.find(name).orElse(null));
