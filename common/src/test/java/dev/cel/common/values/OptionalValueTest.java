@@ -20,6 +20,10 @@ import static org.junit.Assert.assertThrows;
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.OptionalType;
+import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.StructTypeReference;
 import java.util.NoSuchElementException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -126,6 +130,13 @@ public class OptionalValueTest {
     assertThrows(NullPointerException.class, () -> OptionalValue.create(null));
   }
 
+  @Test
+  public void celTypeTest() {
+    OptionalValue<CelValue> value = OptionalValue.EMPTY;
+
+    assertThat(value.celType()).isEqualTo(OptionalType.create(SimpleType.DYN));
+  }
+
   @SuppressWarnings("Immutable") // Test only
   private static class CelCustomStruct extends StructValue {
     private final long data;
@@ -138,6 +149,11 @@ public class OptionalValueTest {
     @Override
     public boolean isZeroValue() {
       return data == 0;
+    }
+
+    @Override
+    public CelType celType() {
+      return StructTypeReference.create("customStruct");
     }
 
     @Override

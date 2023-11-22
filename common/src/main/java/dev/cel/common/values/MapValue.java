@@ -17,6 +17,9 @@ package dev.cel.common.values;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.DoNotCall;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.MapType;
+import dev.cel.common.types.SimpleType;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -31,6 +34,8 @@ import org.jspecify.nullness.Nullable;
 @Immutable(containerOf = {"K", "V"})
 public abstract class MapValue<K extends CelValue, V extends CelValue> extends CelValue
     implements Map<K, V> {
+    
+  private static final MapType MAP_TYPE = MapType.create(SimpleType.DYN, SimpleType.DYN);
 
   @Override
   public abstract Map<K, V> value();
@@ -52,6 +57,11 @@ public abstract class MapValue<K extends CelValue, V extends CelValue> extends C
           String.format("key '%s' is not present in map.", key.value()));
     }
     return value().get(key);
+  }
+
+  @Override
+  public CelType celType() {
+    return MAP_TYPE;
   }
 
   public boolean has(K key) {

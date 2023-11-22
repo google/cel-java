@@ -15,6 +15,8 @@
 package dev.cel.common.values;
 
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.SimpleType;
 
 /**
  * NullValue represents the value 'null' of 'null_type' according to the CEL specification. One of
@@ -29,6 +31,11 @@ public final class NullValue extends CelValue {
   @Override
   public NullValue value() {
     return NULL_VALUE;
+  }
+
+  @Override
+  public CelType celType() {
+    return SimpleType.NULL_TYPE;
   }
 
   @Override

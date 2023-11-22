@@ -19,6 +19,8 @@ import static org.junit.Assert.assertThrows;
 
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.StructTypeReference;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -69,6 +71,14 @@ public class StructValueTest {
     assertThat(celCustomStruct.hasField(fieldName)).isEqualTo(expectedResult);
   }
 
+  @Test
+  public void celTypeTest() {
+    UserDefinedClass userDefinedPojo = new UserDefinedClass(0);
+    CelCustomStruct value = new CelCustomStruct(userDefinedPojo);
+
+    assertThat(value.celType()).isEqualTo(StructTypeReference.create("customStruct"));
+  }
+
   private static class UserDefinedClass {
     private final long data;
 
@@ -89,6 +99,11 @@ public class StructValueTest {
     @Override
     public boolean isZeroValue() {
       return userDefinedClass.data == 0;
+    }
+
+    @Override
+    public CelType celType() {
+      return StructTypeReference.create("customStruct");
     }
 
     @Override

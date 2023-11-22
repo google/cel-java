@@ -17,6 +17,8 @@ package dev.cel.common.values;
 import com.google.auto.value.AutoValue;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.SimpleType;
 
 /**
  * UintValue represents CelValue for unsigned longs, leveraging Guava's implementation of {@link
@@ -35,6 +37,11 @@ public abstract class UintValue extends CelValue {
   @Override
   public boolean isZeroValue() {
     return UnsignedLong.ZERO.equals(value());
+  }
+
+  @Override
+  public CelType celType() {
+    return SimpleType.UINT;
   }
 
   public static UintValue create(UnsignedLong value) {

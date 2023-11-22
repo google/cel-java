@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.primitives.UnsignedLong;
+import dev.cel.common.types.SimpleType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -44,5 +45,12 @@ public class UintValueTest {
   @Test
   public void create_nullValue_throws() {
     assertThrows(NullPointerException.class, () -> UintValue.create(null));
+  }
+
+  @Test
+  public void celTypeTest() {
+    UintValue value = UintValue.create(UnsignedLong.valueOf(0L));
+
+    assertThat(value.celType()).isEqualTo(SimpleType.UINT);
   }
 }

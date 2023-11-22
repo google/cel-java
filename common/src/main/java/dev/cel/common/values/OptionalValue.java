@@ -17,6 +17,8 @@ package dev.cel.common.values;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.types.OptionalType;
+import dev.cel.common.types.SimpleType;
 import java.util.NoSuchElementException;
 import org.jspecify.nullness.Nullable;
 
@@ -28,6 +30,7 @@ import org.jspecify.nullness.Nullable;
 @AutoValue
 @Immutable(containerOf = "E")
 public abstract class OptionalValue<E extends CelValue> extends CelValue {
+  private static final OptionalType OPTIONAL_TYPE = OptionalType.create(SimpleType.DYN);
 
   /** Sentinel value representing an empty optional ('optional.none()' in CEL) */
   public static final OptionalValue<CelValue> EMPTY = empty();
@@ -47,6 +50,11 @@ public abstract class OptionalValue<E extends CelValue> extends CelValue {
   @Override
   public boolean isZeroValue() {
     return innerValue() == null;
+  }
+
+  @Override
+  public OptionalType celType() {
+    return OPTIONAL_TYPE;
   }
 
   /**

@@ -16,6 +16,8 @@ package dev.cel.common.values;
 
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.SimpleType;
 import java.time.Instant;
 
 /** TimestampValue is a simple CelValue wrapper around {@link java.time.Instant} */
@@ -29,6 +31,11 @@ public abstract class TimestampValue extends CelValue {
   @Override
   public boolean isZeroValue() {
     return Instant.EPOCH.equals(value());
+  }
+
+  @Override
+  public CelType celType() {
+    return SimpleType.TIMESTAMP;
   }
 
   public static TimestampValue create(Instant value) {

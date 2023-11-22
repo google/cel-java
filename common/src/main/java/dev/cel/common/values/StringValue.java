@@ -16,6 +16,8 @@ package dev.cel.common.values;
 
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.SimpleType;
 
 /** StringValue is a simple CelValue wrapper around Java strings. */
 @AutoValue
@@ -28,6 +30,11 @@ public abstract class StringValue extends CelValue {
   @Override
   public boolean isZeroValue() {
     return value().isEmpty();
+  }
+
+  @Override
+  public CelType celType() {
+    return SimpleType.STRING;
   }
 
   public static StringValue create(String value) {

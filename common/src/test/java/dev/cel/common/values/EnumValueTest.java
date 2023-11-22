@@ -16,6 +16,7 @@ package dev.cel.common.values;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import dev.cel.common.types.SimpleType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -41,5 +42,12 @@ public class EnumValueTest {
   public void enumValue_isZeroValue_returnsFalse() {
     assertThat(EnumValue.create(TestKind.ONE).isZeroValue()).isFalse();
     assertThat(EnumValue.create(TestKind.TWO).isZeroValue()).isFalse();
+  }
+
+  @Test
+  public void celTypeTest() {
+    EnumValue<TestKind> value = EnumValue.create(TestKind.ONE);
+
+    assertThat(value.celType()).isEqualTo(SimpleType.INT);
   }
 }

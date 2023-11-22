@@ -17,6 +17,7 @@ package dev.cel.common.values;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import dev.cel.common.types.SimpleType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -38,6 +39,13 @@ public class BoolValueTest {
 
     assertThat(boolValue.value()).isTrue();
     assertThat(boolValue.isZeroValue()).isFalse();
+  }
+
+  @Test
+  public void celTypeTest() {
+    BoolValue value = BoolValue.create(true);
+
+    assertThat(value.celType()).isEqualTo(SimpleType.BOOL);
   }
 
   @Test

@@ -37,6 +37,7 @@ java_library(
     ],
     deps = [
         "//common/annotations",
+        "//common/types:type_providers",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
@@ -51,6 +52,7 @@ java_library(
         ":cel_value",
         "//:auto_value",
         "//common/annotations",
+        "//common/types",
         "//common/types:type_providers",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",

@@ -17,6 +17,7 @@ package dev.cel.common.values;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import dev.cel.common.types.OpaqueType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -25,14 +26,15 @@ import org.junit.runners.JUnit4;
 public class OpaqueValueTest {
   @Test
   public void opaqueValue_construct() {
-    OpaqueValue opaqueValue = OpaqueValue.create("test");
+    OpaqueValue opaqueValue = OpaqueValue.create("opaque_type_name", "test");
 
     assertThat(opaqueValue.value()).isEqualTo("test");
     assertThat(opaqueValue.isZeroValue()).isFalse();
+    assertThat(opaqueValue.celType()).isEqualTo(OpaqueType.create("opaque_type_name"));
   }
 
   @Test
   public void create_nullValue_throws() {
-    assertThrows(NullPointerException.class, () -> OpaqueValue.create(null));
+    assertThrows(NullPointerException.class, () -> OpaqueValue.create("opaque_type_name", null));
   }
 }

@@ -17,6 +17,7 @@ package dev.cel.common.values;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import dev.cel.common.types.SimpleType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -38,6 +39,13 @@ public class BytesValueTest {
 
     assertThat(bytesValue.value()).isEqualTo(CelByteString.of(new byte[] {0x1, 0x5, 0xc}));
     assertThat(bytesValue.isZeroValue()).isFalse();
+  }
+
+  @Test
+  public void celTypeTest() {
+    BytesValue value = BytesValue.create(CelByteString.EMPTY);
+
+    assertThat(value.celType()).isEqualTo(SimpleType.BYTES);
   }
 
   @Test

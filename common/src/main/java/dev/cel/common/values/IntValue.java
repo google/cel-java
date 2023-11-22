@@ -15,6 +15,8 @@
 package dev.cel.common.values;
 
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.SimpleType;
 
 /** IntValue is a simple CelValue wrapper around Java longs. */
 @Immutable
@@ -33,6 +35,11 @@ public final class IntValue extends CelValue {
   @Override
   public boolean isZeroValue() {
     return value() == 0;
+  }
+
+  @Override
+  public CelType celType() {
+    return SimpleType.INT;
   }
 
   public static IntValue create(long value) {

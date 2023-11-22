@@ -17,6 +17,7 @@ package dev.cel.common.values;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import dev.cel.common.types.SimpleType;
 import java.time.Instant;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,5 +45,12 @@ public class TimestampValueTest {
   @Test
   public void create_nullValue_throws() {
     assertThrows(NullPointerException.class, () -> TimestampValue.create(null));
+  }
+
+  @Test
+  public void celTypeTest() {
+    TimestampValue value = TimestampValue.create(Instant.ofEpochSecond(0));
+
+    assertThat(value.celType()).isEqualTo(SimpleType.TIMESTAMP);
   }
 }

@@ -16,6 +16,7 @@ package dev.cel.common.values;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import dev.cel.common.types.SimpleType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -27,5 +28,12 @@ public class NullValueTest {
   public void nullValueTest() {
     assertThat(NullValue.NULL_VALUE.value()).isEqualTo(NullValue.NULL_VALUE);
     assertThat(NullValue.NULL_VALUE.isZeroValue()).isTrue();
+  }
+
+  @Test
+  public void celTypeTest() {
+    NullValue value = NullValue.NULL_VALUE;
+
+    assertThat(value.celType()).isEqualTo(SimpleType.NULL_TYPE);
   }
 }

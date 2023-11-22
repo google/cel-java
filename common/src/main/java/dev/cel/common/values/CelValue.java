@@ -16,6 +16,7 @@ package dev.cel.common.values;
 
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.types.CelType;
 
 /**
  * A representation of a CEL value for the runtime. Clients should never directly extend from
@@ -35,8 +36,10 @@ public abstract class CelValue {
   /** Returns true if the {@link #value()} is a zero value for its type. */
   public abstract boolean isZeroValue();
 
+  /** The CelType that represents this value. */
+  public abstract CelType celType();
+
   // TOOD(b/309695452): Add CelEquals method
-  // TODO: Add a getter for CelType
 
   public CelValue() {}
 }

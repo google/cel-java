@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.testing.ClassSanityTester;
 import com.google.common.testing.EqualsTester;
+import dev.cel.common.types.SimpleType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -69,5 +70,12 @@ public class IntValueTest {
     assertThat(IntValue.create(100).hashCode()).isEqualTo(999975);
     assertThat(IntValue.create(Long.MAX_VALUE).hashCode()).isEqualTo(-2146483645);
     assertThat(IntValue.create(Long.MIN_VALUE).hashCode()).isEqualTo(-2146483645);
+  }
+
+  @Test
+  public void celTypeTest() {
+    IntValue value = IntValue.create(0);
+
+    assertThat(value.celType()).isEqualTo(SimpleType.INT);
   }
 }

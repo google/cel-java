@@ -20,6 +20,8 @@ import static org.junit.Assert.assertThrows;
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
+import dev.cel.common.types.MapType;
+import dev.cel.common.types.SimpleType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -95,5 +97,12 @@ public class ImmutableMapValueTest {
   @Test
   public void create_nullValue_throws() {
     assertThrows(NullPointerException.class, () -> ImmutableMapValue.create(null));
+  }
+
+  @Test
+  public void celTypeTest() {
+    MapValue<CelValue, CelValue> value = ImmutableMapValue.create(ImmutableMap.of());
+
+    assertThat(value.celType()).isEqualTo(MapType.create(SimpleType.DYN, SimpleType.DYN));
   }
 }

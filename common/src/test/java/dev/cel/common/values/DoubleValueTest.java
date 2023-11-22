@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.testing.ClassSanityTester;
 import com.google.common.testing.EqualsTester;
+import dev.cel.common.types.SimpleType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -39,6 +40,13 @@ public class DoubleValueTest {
 
     assertThat(doubleValue.value()).isEqualTo(5.0d);
     assertThat(doubleValue.isZeroValue()).isFalse();
+  }
+
+  @Test
+  public void celTypeTest() {
+    DoubleValue value = DoubleValue.create(0.0d);
+
+    assertThat(value.celType()).isEqualTo(SimpleType.DOUBLE);
   }
 
   @Test

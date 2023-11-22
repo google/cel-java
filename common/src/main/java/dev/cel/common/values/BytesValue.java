@@ -16,6 +16,8 @@ package dev.cel.common.values;
 
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.SimpleType;
 
 /** BytesValue is a simple CelValue wrapper around CelByteString (immutable byte string). */
 @AutoValue
@@ -28,6 +30,11 @@ public abstract class BytesValue extends CelValue {
   @Override
   public boolean isZeroValue() {
     return value().isEmpty();
+  }
+
+  @Override
+  public CelType celType() {
+    return SimpleType.BYTES;
   }
 
   public static BytesValue create(CelByteString value) {

@@ -17,6 +17,9 @@ package dev.cel.common.values;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.DoNotCall;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.ListType;
+import dev.cel.common.types.SimpleType;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -31,6 +34,7 @@ import org.jspecify.nullness.Nullable;
  */
 @Immutable
 public abstract class ListValue<E extends CelValue> extends CelValue implements List<E> {
+  private static final ListType LIST_TYPE = ListType.create(SimpleType.DYN);
 
   @Override
   @SuppressWarnings("Immutable") // ListValue APIs prohibit mutation.
@@ -39,6 +43,11 @@ public abstract class ListValue<E extends CelValue> extends CelValue implements 
   @Override
   public boolean isZeroValue() {
     return isEmpty();
+  }
+
+  @Override
+  public CelType celType() {
+    return LIST_TYPE;
   }
 
   /**

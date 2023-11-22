@@ -16,6 +16,8 @@ package dev.cel.common.values;
 
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.SimpleType;
 
 /** BoolValue is a simple CelValue wrapper around Java booleans. */
 @AutoValue
@@ -28,6 +30,11 @@ public abstract class BoolValue extends CelValue {
   @Override
   public boolean isZeroValue() {
     return !value();
+  }
+
+  @Override
+  public CelType celType() {
+    return SimpleType.BOOL;
   }
 
   public static BoolValue create(Boolean value) {

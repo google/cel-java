@@ -18,6 +18,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
+import dev.cel.common.types.ListType;
+import dev.cel.common.types.SimpleType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -60,5 +62,12 @@ public class ImmutableListValueTest {
   @Test
   public void create_nullValue_throws() {
     assertThrows(NullPointerException.class, () -> ImmutableListValue.create(null));
+  }
+
+  @Test
+  public void celTypeTest() {
+    ListValue<CelValue> value = ImmutableListValue.create(ImmutableList.of());
+
+    assertThat(value.celType()).isEqualTo(ListType.create(SimpleType.DYN));
   }
 }

@@ -16,6 +16,8 @@ package dev.cel.common.values;
 
 import com.google.auto.value.AutoValue;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.SimpleType;
 
 /**
  * CelErrorValue represent the intermediate error that occurs during evaluation in the form of Java
@@ -37,6 +39,11 @@ public abstract class ErrorValue extends CelValue {
   @Override
   public boolean isZeroValue() {
     return false;
+  }
+
+  @Override
+  public CelType celType() {
+    return SimpleType.ERROR;
   }
 
   public static ErrorValue create(Exception value) {

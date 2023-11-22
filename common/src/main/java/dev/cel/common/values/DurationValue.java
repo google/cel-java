@@ -16,6 +16,8 @@ package dev.cel.common.values;
 
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.SimpleType;
 import java.time.Duration;
 
 /** DurationValue is a simple CelValue wrapper around {@link java.time.Duration} */
@@ -29,6 +31,11 @@ public abstract class DurationValue extends CelValue {
   @Override
   public boolean isZeroValue() {
     return value().isZero();
+  }
+
+  @Override
+  public CelType celType() {
+    return SimpleType.DURATION;
   }
 
   public static DurationValue create(Duration value) {

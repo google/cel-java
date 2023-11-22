@@ -15,6 +15,7 @@
 package dev.cel.common.values;
 
 import com.google.auto.value.AutoValue;
+import dev.cel.common.types.OpaqueType;
 
 /** OpaqueValue is the value representation of OpaqueType. */
 @AutoValue
@@ -27,7 +28,10 @@ public abstract class OpaqueValue extends CelValue {
     return false;
   }
 
-  public static OpaqueValue create(Object value) {
-    return new AutoValue_OpaqueValue(value);
+  @Override
+  public abstract OpaqueType celType();
+
+  public static OpaqueValue create(String name, Object value) {
+    return new AutoValue_OpaqueValue(value, OpaqueType.create(name));
   }
 }

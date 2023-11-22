@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.TypeType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -36,5 +37,12 @@ public class TypeValueTest {
   @Test
   public void create_nullValue_throws() {
     assertThrows(NullPointerException.class, () -> TypeValue.create(null));
+  }
+
+  @Test
+  public void celTypeTest() {
+    TypeValue value = TypeValue.create(SimpleType.INT);
+
+    assertThat(value.celType()).isEqualTo(TypeType.create(SimpleType.INT));
   }
 }

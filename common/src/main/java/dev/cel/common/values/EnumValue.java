@@ -16,6 +16,8 @@ package dev.cel.common.values;
 
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.SimpleType;
 
 /**
  * EnumValue is a simple CelValue wrapper around Java enums.
@@ -33,6 +35,12 @@ public abstract class EnumValue<E extends Enum<E>> extends CelValue {
   @Override
   public boolean isZeroValue() {
     return false;
+  }
+
+  @Override
+  public CelType celType() {
+    // (b/178627883) Strongly typed enum is not supported yet
+    return SimpleType.INT;
   }
 
   public static <E extends Enum<E>> EnumValue<E> create(Enum<E> value) {

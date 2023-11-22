@@ -17,6 +17,7 @@ package dev.cel.common.values;
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.TypeType;
 
 /** TypeValue holds the CEL type information for the underlying CelValue. */
 @AutoValue
@@ -31,7 +32,10 @@ public abstract class TypeValue extends CelValue {
     return false;
   }
 
+  @Override
+  public abstract TypeType celType();
+
   public static TypeValue create(CelType value) {
-    return new AutoValue_TypeValue(value);
+    return new AutoValue_TypeValue(value, TypeType.create(value));
   }
 }
