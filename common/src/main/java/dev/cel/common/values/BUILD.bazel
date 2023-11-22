@@ -30,6 +30,11 @@ CEL_VALUES_SOURCES = [
     "UintValue.java",
 ]
 
+# keep sorted
+PROTO_MESSAGE_VALUE_SOURCES = [
+    "ProtoMessageValue.java",
+]
+
 java_library(
     name = "cel_value",
     srcs = ["CelValue.java"],
@@ -68,5 +73,24 @@ java_library(
     deps = [
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "proto_message_value",
+    srcs = PROTO_MESSAGE_VALUE_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":cel_value",
+        ":values",
+        "//:auto_value",
+        "//common/internal:cel_descriptor_pools",
+        "//common/types",
+        "//common/types:type_providers",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_jspecify_jspecify",
     ],
 )

@@ -17,3 +17,8 @@ java_library(
     name = "cel_byte_string",
     exports = ["//common/src/main/java/dev/cel/common/values:cel_byte_string"],
 )
+
+java_library(
+    name = "proto_message_value",
+    exports = ["//common/src/main/java/dev/cel/common/values:proto_message_value"],
+)

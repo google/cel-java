@@ -34,7 +34,10 @@ public interface CelDescriptorPool {
   /** Finds the descriptor by fully qualified message type. */
   Optional<Descriptor> findDescriptor(String name);
 
-  /** Finds the corresponding field descriptor for an extension field on a message. */
+  /**
+   * Finds the corresponding field descriptor for an extension field on a message. The field name
+   * must be fully-qualified.
+   */
   Optional<FieldDescriptor> findExtensionDescriptor(
       Descriptor containingDescriptor, String fieldName);
 
