@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public class StructValueTest {
+public final class StructValueTest {
 
   @Test
   public void emptyStruct() {

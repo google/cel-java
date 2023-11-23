@@ -32,6 +32,7 @@ import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoAdapter;
 import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypes;
 import java.util.Map;
 import java.util.Optional;
 import org.jspecify.nullness.Nullable;
@@ -242,19 +243,7 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
       return false;
     }
     String fieldTypeName = field.getMessageType().getFullName();
-    switch (fieldTypeName) {
-      case "google.protobuf.BoolValue":
-      case "google.protobuf.BytesValue":
-      case "google.protobuf.DoubleValue":
-      case "google.protobuf.FloatValue":
-      case "google.protobuf.Int32Value":
-      case "google.protobuf.Int64Value":
-      case "google.protobuf.StringValue":
-      case "google.protobuf.UInt32Value":
-      case "google.protobuf.UInt64Value":
-        return true;
-      default:
-        return false;
-    }
+
+    return CelTypes.isWrapperType(fieldTypeName);
   }
 }

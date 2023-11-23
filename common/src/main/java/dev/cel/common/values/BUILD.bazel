@@ -11,6 +11,7 @@ package(
 CEL_VALUES_SOURCES = [
     "BoolValue.java",
     "BytesValue.java",
+    "CelValueConverter.java",
     "DoubleValue.java",
     "DurationValue.java",
     "EnumValue.java",
@@ -32,6 +33,7 @@ CEL_VALUES_SOURCES = [
 
 # keep sorted
 PROTO_MESSAGE_VALUE_SOURCES = [
+    "ProtoCelValueConverter.java",
     "ProtoMessageValue.java",
 ]
 
@@ -56,6 +58,7 @@ java_library(
         ":cel_byte_string",
         ":cel_value",
         "//:auto_value",
+        "//common:options",
         "//common/annotations",
         "//common/types",
         "//common/types:type_providers",
@@ -85,12 +88,19 @@ java_library(
         ":cel_value",
         ":values",
         "//:auto_value",
+        "//common:options",
+        "//common/annotations",
         "//common/internal:cel_descriptor_pools",
+        "//common/internal:dynamic_proto",
+        "//common/internal:well_known_proto",
         "//common/types",
+        "//common/types:cel_types",
         "//common/types:type_providers",
+        "//common/values:cel_byte_string",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:org_jspecify_jspecify",
     ],
 )

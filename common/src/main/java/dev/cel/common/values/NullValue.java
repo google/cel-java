@@ -42,4 +42,6 @@ public final class NullValue extends CelValue {
   public boolean isZeroValue() {
     return true;
   }
+
+  private NullValue() {}
 }

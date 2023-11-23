@@ -37,6 +37,8 @@ public abstract class ProtoMessageValue extends StructValue {
 
   abstract CelDescriptorPool celDescriptorPool();
 
+  abstract ProtoCelValueConverter protoCelValueConverter();
+
   @Override
   public boolean isZeroValue() {
     return value().getDefaultInstanceForType().equals(value());
@@ -56,16 +58,24 @@ public abstract class ProtoMessageValue extends StructValue {
 
   @Override
   public CelValue select(String fieldName) {
-    throw new UnsupportedOperationException("Not implemented yet");
+    FieldDescriptor fieldDescriptor =
+        findField(celDescriptorPool(), value().getDescriptorForType(), fieldName);
+
+    return protoCelValueConverter().fromProtoMessageFieldToCelValue(value(), fieldDescriptor);
   }
 
-  public static ProtoMessageValue create(Message value, CelDescriptorPool celDescriptorPool) {
+  public static ProtoMessageValue create(
+      Message value,
+      CelDescriptorPool celDescriptorPool,
+      ProtoCelValueConverter protoCelValueConverter) {
     Preconditions.checkNotNull(value);
     Preconditions.checkNotNull(celDescriptorPool);
+    Preconditions.checkNotNull(protoCelValueConverter);
     return new AutoValue_ProtoMessageValue(
         value,
         StructTypeReference.create(value.getDescriptorForType().getFullName()),
-        celDescriptorPool);
+        celDescriptorPool,
+        protoCelValueConverter);
   }
 
   private FieldDescriptor findField(

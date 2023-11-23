@@ -192,6 +192,24 @@ public final class CelTypes {
     return createWrapper(type.getPrimitive());
   }
 
+  /** Checks if the fully-qualified protobuf type name is a wrapper type. */
+  public static boolean isWrapperType(String typeName) {
+    switch (typeName) {
+      case BOOL_WRAPPER_MESSAGE:
+      case BYTES_WRAPPER_MESSAGE:
+      case DOUBLE_WRAPPER_MESSAGE:
+      case FLOAT_WRAPPER_MESSAGE:
+      case INT32_WRAPPER_MESSAGE:
+      case INT64_WRAPPER_MESSAGE:
+      case STRING_WRAPPER_MESSAGE:
+      case UINT32_WRAPPER_MESSAGE:
+      case UINT64_WRAPPER_MESSAGE:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   /**
    * Create an abstract type indicating that the parameterized type may be contained within the
    * object.

@@ -9,7 +9,10 @@ java_library(
     deps = [
         "//:java_truth",
         "//common",
+        "//common:options",
         "//common/internal:cel_descriptor_pools",
+        "//common/internal:default_message_factory",
+        "//common/internal:dynamic_proto",
         "//common/resources/testdata/proto2:messages_extensions_proto2_java_proto",
         "//common/resources/testdata/proto2:messages_proto2_java_proto",
         "//common/resources/testdata/proto2:test_all_types_java_proto",
@@ -21,6 +24,7 @@ java_library(
         "//common/values:proto_message_value",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_guava_guava_testlib",
+        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",
     ],
