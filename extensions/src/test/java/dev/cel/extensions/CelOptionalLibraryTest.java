@@ -1018,7 +1018,9 @@ public class CelOptionalLibraryTest {
     CelValidationException e =
         assertThrows(CelValidationException.class, () -> cel.compile("{?'hi': 'world'}").getAst());
 
-    assertThat(e).hasMessageThat().contains("expected type 'optional(string)' but found 'string'");
+    assertThat(e)
+        .hasMessageThat()
+        .contains("expected type 'optional_type(string)' but found 'string'");
   }
 
   @Test

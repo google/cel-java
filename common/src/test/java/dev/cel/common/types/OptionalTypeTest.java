@@ -27,7 +27,7 @@ public class OptionalTypeTest {
   public void createOptionalType_success() {
     OptionalType optionalType = OptionalType.create(SimpleType.STRING);
 
-    assertThat(optionalType.name()).isEqualTo("optional");
+    assertThat(optionalType.name()).isEqualTo("optional_type");
     assertThat(optionalType.kind()).isEqualTo(CelKind.OPAQUE);
     assertThat(optionalType.parameters()).containsExactly(SimpleType.STRING);
   }

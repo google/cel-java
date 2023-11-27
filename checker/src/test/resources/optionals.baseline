@@ -6,47 +6,47 @@ declare a {
 _?._(
   a~map(string, string)^a,
   "b"
-)~optional(string)^select_optional_field
+)~optional_type(string)^select_optional_field
 
 Source: x.y
 declare x {
-  value optional(map(string, string))
+  value optional_type(map(string, string))
 }
 =====>
-x~optional(map(string, string))^x.y~optional(string)
+x~optional_type(map(string, string))^x.y~optional_type(string)
 
 Source: {?'nested': x.b}
 declare x {
-  value optional(map(string, string))
+  value optional_type(map(string, string))
 }
 =====>
 {
-  ?"nested"~string:x~optional(map(string, string))^x.b~optional(string)
+  ?"nested"~string:x~optional_type(map(string, string))^x.b~optional_type(string)
 }~map(string, string)
 
 Source: d.dynamic
 declare d {
-  value optional(dyn)
+  value optional_type(dyn)
 }
 =====>
-d~optional(dyn)^d.dynamic~optional(dyn)
+d~optional_type(dyn)^d.dynamic~optional_type(dyn)
 
 Source: has(d.dynamic)
 declare d {
-  value optional(dyn)
+  value optional_type(dyn)
 }
 =====>
-d~optional(dyn)^d.dynamic~test-only~~bool
+d~optional_type(dyn)^d.dynamic~test-only~~bool
 
 Source: has(e.?b.c)
 declare e {
-  value optional(map(string, dyn))
+  value optional_type(map(string, dyn))
 }
 =====>
 _?._(
-  e~optional(map(string, dyn))^e,
+  e~optional_type(map(string, dyn))^e,
   "b"
-)~optional(dyn)^select_optional_field.c~test-only~~bool
+)~optional_type(dyn)^select_optional_field.c~test-only~~bool
 
 Source: {?'key': {'a': 'b'}.?value}
 =====>
@@ -56,7 +56,7 @@ Source: {?'key': {'a': 'b'}.?value}
       "a"~string:"b"~string
     }~map(string, string),
     "value"
-  )~optional(string)^select_optional_field
+  )~optional_type(string)^select_optional_field
 }~map(string, string)
 
 Source: {?'key': {'a': 'b'}.?value}.key
@@ -67,7 +67,7 @@ Source: {?'key': {'a': 'b'}.?value}.key
       "a"~string:"b"~string
     }~map(string, string),
     "value"
-  )~optional(string)^select_optional_field
+  )~optional_type(string)^select_optional_field
 }~map(string, string).key~string
 
 Source: TestAllTypes{?single_int32: {}.?i}
@@ -76,46 +76,46 @@ TestAllTypes{
   ?single_int32:_?._(
     {}~map(dyn, int),
     "i"
-  )~optional(int)^select_optional_field
+  )~optional_type(int)^select_optional_field
 }~dev.cel.testing.testdata.proto3.TestAllTypes^dev.cel.testing.testdata.proto3.TestAllTypes
 
 Source: [?a, ?b, 'world']
 declare a {
-  value optional(string)
+  value optional_type(string)
 }
 declare b {
-  value optional(string)
+  value optional_type(string)
 }
 =====>
 [
-  ?a~optional(string)^a,
-  ?b~optional(string)^b,
+  ?a~optional_type(string)^a,
+  ?b~optional_type(string)^b,
   "world"~string
 ]~list(string)
 
 Source: [?a, ?b, 2]
 declare a {
-  value optional(string)
+  value optional_type(string)
 }
 declare b {
-  value optional(string)
+  value optional_type(string)
 }
 =====>
 [
-  ?a~optional(string)^a,
-  ?b~optional(string)^b,
+  ?a~optional_type(string)^a,
+  ?b~optional_type(string)^b,
   2~int
 ]~list(dyn)
 
 Source: {?'str':a, 2:3}
 declare a {
-  value optional(string)
+  value optional_type(string)
 }
 declare b {
-  value optional(string)
+  value optional_type(string)
 }
 =====>
 {
-  ?"str"~string:a~optional(string)^a,
+  ?"str"~string:a~optional_type(string)^a,
   2~int:3~int
 }~map(dyn, dyn)

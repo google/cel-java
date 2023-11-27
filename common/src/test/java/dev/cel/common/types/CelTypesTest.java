@@ -90,7 +90,7 @@ public final class CelTypesTest {
     Type optionalType = CelTypes.createOptionalType(CelTypes.INT64);
 
     assertThat(optionalType.hasAbstractType()).isTrue();
-    assertThat(optionalType.getAbstractType().getName()).isEqualTo("optional");
+    assertThat(optionalType.getAbstractType().getName()).isEqualTo("optional_type");
     assertThat(optionalType.getAbstractType().getParameterTypesCount()).isEqualTo(1);
     assertThat(optionalType.getAbstractType().getParameterTypes(0)).isEqualTo(CelTypes.INT64);
   }
@@ -146,7 +146,7 @@ public final class CelTypesTest {
         CelTypes.createFunctionType(
             SimpleType.INT, ImmutableList.of(SimpleType.STRING, SimpleType.UINT)),
         "(string, uint) -> int"),
-    OPTIONAL(OptionalType.create(SimpleType.INT), "optional(int)"),
+    OPTIONAL(OptionalType.create(SimpleType.INT), "optional_type(int)"),
     MAP(MapType.create(SimpleType.INT, SimpleType.STRING), "map(int, string)"),
     TYPE(
         TypeType.create(MapType.create(SimpleType.STRING, SimpleType.STRING)),

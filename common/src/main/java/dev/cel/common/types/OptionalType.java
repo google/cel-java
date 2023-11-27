@@ -26,7 +26,7 @@ import com.google.errorprone.annotations.Immutable;
 @Immutable
 public abstract class OptionalType extends CelType {
 
-  public static final String NAME = "optional";
+  public static final String NAME = "optional_type";
 
   @Override
   public CelKind kind() {
