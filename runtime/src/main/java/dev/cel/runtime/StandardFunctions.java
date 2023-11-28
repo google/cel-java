@@ -24,6 +24,7 @@ import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.Timestamps;
+import com.google.re2j.PatternSyntaxException;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
@@ -62,13 +63,31 @@ public class StandardFunctions {
         "matches",
         String.class,
         String.class,
-        (String string, String regexp) -> RuntimeHelpers.matches(string, regexp, celOptions));
+        (String string, String regexp) -> {
+          try {
+            return RuntimeHelpers.matches(string, regexp, celOptions);
+          } catch (PatternSyntaxException e) {
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
+                .build();
+          }
+        });
     // Duplicate receiver-style matches overload.
     registrar.add(
         "matches_string",
         String.class,
         String.class,
-        (String string, String regexp) -> RuntimeHelpers.matches(string, regexp, celOptions));
+        (String string, String regexp) -> {
+          try {
+            return RuntimeHelpers.matches(string, regexp, celOptions);
+          } catch (PatternSyntaxException e) {
+            throw new InterpreterException.Builder(e.getMessage())
+                .setCause(e)
+                .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
+                .build();
+          }
+        });
     // In operator: b in a
     registrar.add(
         "in_list",

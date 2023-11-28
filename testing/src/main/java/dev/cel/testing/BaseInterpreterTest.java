@@ -1476,6 +1476,15 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   }
 
   @Test
+  public void regexpMatches_error() throws Exception {
+    source = "matches(\"alpha\", \"**\")";
+    runTest(Activation.EMPTY);
+
+    source = "\"alpha\".matches(\"**\")";
+    runTest(Activation.EMPTY);
+  }
+
+  @Test
   public void int64Conversions() throws Exception {
     source = "int('-1')"; // string converts to -1
     runTest(Activation.EMPTY);

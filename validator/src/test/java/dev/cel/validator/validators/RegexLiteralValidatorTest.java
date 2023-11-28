@@ -96,7 +96,8 @@ public class RegexLiteralValidatorTest {
             () -> CEL.createProgram(ast).eval(ImmutableMap.of("str_var", "**")));
     assertThat(e)
         .hasMessageThat()
-        .contains("evaluation error: Function 'matches' failed with arg(s) 'test, **'");
+        .contains(
+            "evaluation error: error parsing regexp: missing argument to repetition operator: `*`");
   }
 
   @Test
@@ -116,7 +117,8 @@ public class RegexLiteralValidatorTest {
             () -> CEL.createProgram(ast).eval(ImmutableMap.of("str_var", "**")));
     assertThat(e)
         .hasMessageThat()
-        .contains("evaluation error: Function 'matches_string' failed with arg(s) 'test, **'");
+        .contains(
+            "evaluation error: error parsing regexp: missing argument to repetition operator: `*`");
   }
 
   @Test
@@ -141,7 +143,8 @@ public class RegexLiteralValidatorTest {
     // However, the same AST fails on evaluation when the function dispatch fails.
     assertThat(e)
         .hasMessageThat()
-        .contains("evaluation error: Function 'matches' failed with arg(s) 'test, **'");
+        .contains(
+            "evaluation error: error parsing regexp: missing argument to repetition operator: `*`");
   }
 
   @Test
@@ -166,7 +169,8 @@ public class RegexLiteralValidatorTest {
     // However, the same AST fails on evaluation when the function dispatch fails.
     assertThat(e)
         .hasMessageThat()
-        .contains("evaluation error: Function 'matches_string' failed with arg(s) 'test, **'");
+        .contains(
+            "evaluation error: error parsing regexp: missing argument to repetition operator: `*`");
   }
 
   @Test

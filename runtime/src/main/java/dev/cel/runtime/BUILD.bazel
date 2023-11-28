@@ -61,6 +61,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
+        "@maven//:com_google_re2j_re2j",
         "@maven//:org_jspecify_jspecify",
     ],
 )
