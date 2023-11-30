@@ -16,7 +16,6 @@ package dev.cel.common.internal;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
-import static java.util.Arrays.stream;
 
 import dev.cel.expr.ExprValue;
 import com.google.common.collect.ImmutableList;
@@ -60,7 +59,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import org.jspecify.nullness.Nullable;
 
 /**
@@ -139,10 +137,6 @@ public final class ProtoAdapter {
   public static final BidiConverter<Number, Number> DOUBLE_CONVERTER =
       BidiConverter.of(Number::doubleValue, Number::floatValue);
 
-  private static final ImmutableMap<String, WellKnownProto> WELL_KNOWN_PROTOS =
-      stream(WellKnownProto.values())
-          .collect(toImmutableMap(WellKnownProto::typeName, Function.identity()));
-
   private final DynamicProto dynamicProto;
   private final boolean enableUnsignedLongs;
 
@@ -163,7 +157,8 @@ public final class ProtoAdapter {
     }
     // If the proto is not a well-known type, then the input Message is what's expected as the
     // output return value.
-    WellKnownProto wellKnownProto = WELL_KNOWN_PROTOS.get(typeName(proto.getDescriptorForType()));
+    WellKnownProto wellKnownProto =
+        WellKnownProto.getByDescriptorName(typeName(proto.getDescriptorForType()));
     if (wellKnownProto == null) {
       return proto;
     }
@@ -328,7 +323,7 @@ public final class ProtoAdapter {
    * considered, such as a packing an {@code google.protobuf.StringValue} into a {@code Any} value.
    */
   public Optional<Message> adaptValueToProto(Object value, String protoTypeName) {
-    WellKnownProto wellKnownProto = WELL_KNOWN_PROTOS.get(protoTypeName);
+    WellKnownProto wellKnownProto = WellKnownProto.getByDescriptorName(protoTypeName);
     if (wellKnownProto == null) {
       if (value instanceof Message) {
         return Optional.of((Message) value);
@@ -644,7 +639,7 @@ public final class ProtoAdapter {
       return false;
     }
     String fieldTypeName = fieldDescriptor.getMessageType().getFullName();
-    WellKnownProto wellKnownProto = WELL_KNOWN_PROTOS.get(fieldTypeName);
+    WellKnownProto wellKnownProto = WellKnownProto.getByDescriptorName(fieldTypeName);
     return wellKnownProto != null && wellKnownProto.isWrapperType();
   }
 
