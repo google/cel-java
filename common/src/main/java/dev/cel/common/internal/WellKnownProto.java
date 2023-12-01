@@ -14,6 +14,10 @@
 
 package dev.cel.common.internal;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static java.util.Arrays.stream;
+
+import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.BytesValue;
@@ -31,6 +35,7 @@ import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
 import dev.cel.common.annotations.Internal;
+import java.util.function.Function;
 
 /**
  * WellKnownProto types used throughout CEL. These types are specially handled to ensure that
@@ -58,6 +63,14 @@ public enum WellKnownProto {
   private final Descriptor descriptor;
   private final boolean isWrapperType;
 
+  private static final ImmutableMap<String, WellKnownProto> WELL_KNOWN_PROTO_MAP;
+
+  static {
+    WELL_KNOWN_PROTO_MAP =
+        stream(WellKnownProto.values())
+            .collect(toImmutableMap(WellKnownProto::typeName, Function.identity()));
+  }
+
   WellKnownProto(Descriptor descriptor) {
     this(descriptor, /* isWrapperType= */ false);
   }
@@ -75,7 +88,11 @@ public enum WellKnownProto {
     return descriptor.getFullName();
   }
 
-  boolean isWrapperType() {
+  public boolean isWrapperType() {
     return isWrapperType;
+  }
+
+  public static WellKnownProto getByDescriptorName(String name) {
+    return WELL_KNOWN_PROTO_MAP.get(name);
   }
 }

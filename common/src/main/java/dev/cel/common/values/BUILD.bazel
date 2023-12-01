@@ -35,6 +35,7 @@ CEL_VALUES_SOURCES = [
 PROTO_MESSAGE_VALUE_SOURCES = [
     "ProtoCelValueConverter.java",
     "ProtoMessageValue.java",
+    "ProtoWrapperValue.java",
 ]
 
 java_library(

@@ -18,9 +18,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.math.LongMath.checkedAdd;
 import static com.google.common.math.LongMath.checkedSubtract;
-import static java.util.Arrays.stream;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
@@ -56,7 +54,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * {@code CelValueConverter} handles bidirectional conversion between native Java and protobuf
@@ -70,9 +67,6 @@ import java.util.function.Function;
 @Immutable
 @Internal
 public final class ProtoCelValueConverter extends CelValueConverter {
-  private static final ImmutableMap<String, WellKnownProto> WELL_KNOWN_PROTOS =
-      stream(WellKnownProto.values())
-          .collect(toImmutableMap(WellKnownProto::typeName, Function.identity()));
   private final CelDescriptorPool celDescriptorPool;
   private final DynamicProto dynamicProto;
 
@@ -90,7 +84,7 @@ public final class ProtoCelValueConverter extends CelValueConverter {
     }
 
     WellKnownProto wellKnownProto =
-        WELL_KNOWN_PROTOS.get(message.getDescriptorForType().getFullName());
+        WellKnownProto.getByDescriptorName(message.getDescriptorForType().getFullName());
     if (wellKnownProto == null) {
       return ProtoMessageValue.create((Message) message, celDescriptorPool, this);
     }
