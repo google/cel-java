@@ -357,17 +357,30 @@ public abstract class CelMacro implements Comparable<CelMacro> {
       arg1 = checkNotNull(arguments.get(1));
       arg2 = null;
     }
-    CelExpr accuIdent = exprFactory.newIdentifier(ACCUMULATOR_VAR);
     CelExpr accuInit = exprFactory.newList();
     CelExpr condition = exprFactory.newBoolLiteral(true);
     CelExpr step =
-        exprFactory.newGlobalCall(Operator.ADD.getFunction(), accuIdent, exprFactory.newList(arg1));
+        exprFactory.newGlobalCall(
+            Operator.ADD.getFunction(),
+            exprFactory.newIdentifier(ACCUMULATOR_VAR),
+            exprFactory.newList(arg1));
     if (arg2 != null) {
-      step = exprFactory.newGlobalCall(Operator.CONDITIONAL.getFunction(), arg2, step, accuIdent);
+      step =
+          exprFactory.newGlobalCall(
+              Operator.CONDITIONAL.getFunction(),
+              arg2,
+              step,
+              exprFactory.newIdentifier(ACCUMULATOR_VAR));
     }
     return Optional.of(
         exprFactory.fold(
-            arg0.ident().name(), target, ACCUMULATOR_VAR, accuInit, condition, step, accuIdent));
+            arg0.ident().name(),
+            target,
+            ACCUMULATOR_VAR,
+            accuInit,
+            condition,
+            step,
+            exprFactory.newIdentifier(ACCUMULATOR_VAR)));
   }
 
   // CelMacroExpander implementation for CEL's filter() macro.
@@ -381,15 +394,28 @@ public abstract class CelMacro implements Comparable<CelMacro> {
       return Optional.of(reportArgumentError(exprFactory, arg0));
     }
     CelExpr arg1 = checkNotNull(arguments.get(1));
-    CelExpr accuIdent = exprFactory.newIdentifier(ACCUMULATOR_VAR);
     CelExpr accuInit = exprFactory.newList();
     CelExpr condition = exprFactory.newBoolLiteral(true);
     CelExpr step =
-        exprFactory.newGlobalCall(Operator.ADD.getFunction(), accuIdent, exprFactory.newList(arg0));
-    step = exprFactory.newGlobalCall(Operator.CONDITIONAL.getFunction(), arg1, step, accuIdent);
+        exprFactory.newGlobalCall(
+            Operator.ADD.getFunction(),
+            exprFactory.newIdentifier(ACCUMULATOR_VAR),
+            exprFactory.newList(arg0));
+    step =
+        exprFactory.newGlobalCall(
+            Operator.CONDITIONAL.getFunction(),
+            arg1,
+            step,
+            exprFactory.newIdentifier(ACCUMULATOR_VAR));
     return Optional.of(
         exprFactory.fold(
-            arg0.ident().name(), target, ACCUMULATOR_VAR, accuInit, condition, step, accuIdent));
+            arg0.ident().name(),
+            target,
+            ACCUMULATOR_VAR,
+            accuInit,
+            condition,
+            step,
+            exprFactory.newIdentifier(ACCUMULATOR_VAR)));
   }
 
   private static CelExpr reportArgumentError(CelMacroExprFactory exprFactory, CelExpr argument) {
