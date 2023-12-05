@@ -5,12 +5,23 @@ package(
 
 java_library(
     name = "cel_value",
+    visibility = ["//visibility:public"],
     exports = ["//common/src/main/java/dev/cel/common/values:cel_value"],
+)
+
+java_library(
+    name = "cel_value_provider",
+    exports = ["//common/src/main/java/dev/cel/common/values:cel_value_provider"],
 )
 
 java_library(
     name = "values",
     exports = ["//common/src/main/java/dev/cel/common/values"],
+)
+
+java_library(
+    name = "proto_message_value_provider",
+    exports = ["//common/src/main/java/dev/cel/common/values:proto_message_value_provider"],
 )
 
 java_library(

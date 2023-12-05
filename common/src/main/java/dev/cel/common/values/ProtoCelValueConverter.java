@@ -18,10 +18,8 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.math.LongMath.checkedAdd;
 import static com.google.common.math.LongMath.checkedSubtract;
-import static java.util.Arrays.stream;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.primitives.UnsignedLong;
+import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
@@ -56,7 +54,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * {@code CelValueConverter} handles bidirectional conversion between native Java and protobuf
@@ -70,9 +67,6 @@ import java.util.function.Function;
 @Immutable
 @Internal
 public final class ProtoCelValueConverter extends CelValueConverter {
-  private static final ImmutableMap<String, WellKnownProto> WELL_KNOWN_PROTOS =
-      stream(WellKnownProto.values())
-          .collect(toImmutableMap(WellKnownProto::typeName, Function.identity()));
   private final CelDescriptorPool celDescriptorPool;
   private final DynamicProto dynamicProto;
 
@@ -82,15 +76,38 @@ public final class ProtoCelValueConverter extends CelValueConverter {
     return new ProtoCelValueConverter(celOptions, celDescriptorPool, dynamicProto);
   }
 
+  /**
+   * Adapts a {@link CelValue} to a native Java object. The CelValue is adapted into protobuf object
+   * when an equivalent exists.
+   */
+  @Override
+  public Object fromCelValueToJavaObject(CelValue celValue) {
+    Preconditions.checkNotNull(celValue);
+
+    if (celValue instanceof TimestampValue) {
+      return TimeUtils.toProtoTimestamp(((TimestampValue) celValue).value());
+    } else if (celValue instanceof DurationValue) {
+      return TimeUtils.toProtoDuration(((DurationValue) celValue).value());
+    } else if (celValue instanceof BytesValue) {
+      return ByteString.copyFrom(((BytesValue) celValue).value().toByteArray());
+    } else if (NullValue.NULL_VALUE.equals(celValue)) {
+      return com.google.protobuf.NullValue.NULL_VALUE;
+    }
+
+    return super.fromCelValueToJavaObject(celValue);
+  }
+
   /** Adapts a Protobuf message into a {@link CelValue}. */
   public CelValue fromProtoMessageToCelValue(MessageOrBuilder message) {
+    Preconditions.checkNotNull(message);
+
     // Attempt to convert the proto from a dynamic message into a concrete message if possible.
     if (message instanceof DynamicMessage) {
       message = dynamicProto.maybeAdaptDynamicMessage((DynamicMessage) message);
     }
 
     WellKnownProto wellKnownProto =
-        WELL_KNOWN_PROTOS.get(message.getDescriptorForType().getFullName());
+        WellKnownProto.getByDescriptorName(message.getDescriptorForType().getFullName());
     if (wellKnownProto == null) {
       return ProtoMessageValue.create((Message) message, celDescriptorPool, this);
     }
@@ -132,11 +149,11 @@ public final class ProtoCelValueConverter extends CelValueConverter {
       case STRING_VALUE:
         return fromJavaPrimitiveToCelValue(((StringValue) message).getValue());
       case UINT32_VALUE:
-        return fromJavaPrimitiveToCelValue(
-            UnsignedLong.fromLongBits(((UInt32Value) message).getValue()));
+        return UintValue.create(
+            ((UInt32Value) message).getValue(), celOptions.enableUnsignedLongs());
       case UINT64_VALUE:
-        return fromJavaPrimitiveToCelValue(
-            UnsignedLong.fromLongBits(((UInt64Value) message).getValue()));
+        return UintValue.create(
+            ((UInt64Value) message).getValue(), celOptions.enableUnsignedLongs());
     }
 
     throw new UnsupportedOperationException(
@@ -149,6 +166,8 @@ public final class ProtoCelValueConverter extends CelValueConverter {
    */
   @Override
   public CelValue fromJavaObjectToCelValue(Object value) {
+    Preconditions.checkNotNull(value);
+
     if (value instanceof Message) {
       return fromProtoMessageToCelValue((Message) value);
     } else if (value instanceof Message.Builder) {
@@ -158,6 +177,9 @@ public final class ProtoCelValueConverter extends CelValueConverter {
       return BytesValue.create(CelByteString.of(((ByteString) value).toByteArray()));
     } else if (value instanceof com.google.protobuf.NullValue) {
       return NullValue.NULL_VALUE;
+    } else if (value instanceof EnumValueDescriptor) {
+      // (b/178627883) Strongly typed enum is not supported yet
+      return IntValue.create(((EnumValueDescriptor) value).getNumber());
     }
 
     return super.fromJavaObjectToCelValue(value);
@@ -167,11 +189,11 @@ public final class ProtoCelValueConverter extends CelValueConverter {
   @SuppressWarnings("unchecked")
   public CelValue fromProtoMessageFieldToCelValue(
       Message message, FieldDescriptor fieldDescriptor) {
+    Preconditions.checkNotNull(message);
+    Preconditions.checkNotNull(fieldDescriptor);
+
     Object result = message.getField(fieldDescriptor);
     switch (fieldDescriptor.getType()) {
-      case ENUM:
-        // (b/178627883) Strongly typed enum is not supported yet
-        return IntValue.create(((EnumValueDescriptor) result).getNumber());
       case MESSAGE:
         if (CelTypes.isWrapperType(fieldDescriptor.getMessageType().getFullName())
             && !message.hasField(fieldDescriptor)) {
@@ -187,9 +209,9 @@ public final class ProtoCelValueConverter extends CelValueConverter {
         }
         break;
       case UINT32:
-        return UintValue.create(UnsignedLong.valueOf((int) result));
+        return UintValue.create((int) result, celOptions.enableUnsignedLongs());
       case UINT64:
-        return UintValue.create(UnsignedLong.fromLongBits((long) result));
+        return UintValue.create((long) result, celOptions.enableUnsignedLongs());
       default:
         break;
     }
@@ -247,6 +269,14 @@ public final class ProtoCelValueConverter extends CelValueConverter {
       return java.time.Duration.ofSeconds(duration.getSeconds(), duration.getNanos());
     }
 
+    private static Timestamp toProtoTimestamp(Instant instant) {
+      return normalizedTimestamp(instant.getEpochSecond(), instant.getNano());
+    }
+
+    private static com.google.protobuf.Duration toProtoDuration(Duration duration) {
+      return normalizedDuration(duration.getSeconds(), duration.getNano());
+    }
+
     private static Timestamp normalizedTimestamp(long seconds, int nanos) {
       if (nanos <= -NANOS_PER_SECOND || nanos >= NANOS_PER_SECOND) {
         seconds = checkedAdd(seconds, nanos / NANOS_PER_SECOND);
@@ -282,6 +312,8 @@ public final class ProtoCelValueConverter extends CelValueConverter {
   private ProtoCelValueConverter(
       CelOptions celOptions, CelDescriptorPool celDescriptorPool, DynamicProto dynamicProto) {
     super(celOptions);
+    Preconditions.checkNotNull(celDescriptorPool);
+    Preconditions.checkNotNull(dynamicProto);
     this.celDescriptorPool = celDescriptorPool;
     this.dynamicProto = dynamicProto;
   }

@@ -56,9 +56,9 @@ public final class ProtoMessageValueTest {
 
   private static final ProtoCelValueConverter PROTO_CEL_VALUE_CONVERTER =
       ProtoCelValueConverter.newInstance(
-          CelOptions.DEFAULT,
+          CelOptions.current().enableUnsignedLongs(true).build(),
           DefaultDescriptorPool.INSTANCE,
-          DynamicProto.create(DefaultMessageFactory.create(DefaultDescriptorPool.INSTANCE)));
+          DynamicProto.create(DefaultMessageFactory.INSTANCE));
 
   @Test
   public void emptyProtoMessage() {
@@ -172,7 +172,7 @@ public final class ProtoMessageValueTest {
   }
 
   private enum SelectFieldTestCase {
-    // // Primitives
+    // Primitives
     BOOL("single_bool", BoolValue.create(true)),
     INT32("single_int32", IntValue.create(4L)),
     INT64("single_int64", IntValue.create(5L)),

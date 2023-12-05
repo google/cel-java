@@ -14,6 +14,7 @@
 
 package dev.cel.common.values;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
@@ -21,6 +22,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 /**
  * {@code CelValueConverter} handles bidirectional conversion between native Java objects to {@link
@@ -34,8 +36,43 @@ abstract class CelValueConverter {
 
   protected final CelOptions celOptions;
 
+  /** Adapts a {@link CelValue} to a plain old Java Object. */
+  public Object fromCelValueToJavaObject(CelValue celValue) {
+    Preconditions.checkNotNull(celValue);
+
+    if (celValue instanceof MapValue) {
+      MapValue<CelValue, CelValue> mapValue = (MapValue<CelValue, CelValue>) celValue;
+      ImmutableMap.Builder<Object, Object> mapBuilder = ImmutableMap.builder();
+      for (Entry<CelValue, CelValue> entry : mapValue.value().entrySet()) {
+        Object key = fromCelValueToJavaObject(entry.getKey());
+        Object value = fromCelValueToJavaObject(entry.getValue());
+        mapBuilder.put(key, value);
+      }
+
+      return mapBuilder.buildOrThrow();
+    } else if (celValue instanceof ListValue) {
+      ListValue<CelValue> listValue = (ListValue<CelValue>) celValue;
+      ImmutableList.Builder<Object> listBuilder = ImmutableList.builder();
+      for (CelValue element : listValue.value()) {
+        listBuilder.add(fromCelValueToJavaObject(element));
+      }
+      return listBuilder.build();
+    } else if (celValue instanceof OptionalValue) {
+      OptionalValue<CelValue> optionalValue = (OptionalValue<CelValue>) celValue;
+      if (optionalValue.isZeroValue()) {
+        return Optional.empty();
+      }
+
+      return Optional.of(fromCelValueToJavaObject(optionalValue.value()));
+    }
+
+    return celValue.value();
+  }
+
   /** Adapts a plain old Java Object to a {@link CelValue}. */
   public CelValue fromJavaObjectToCelValue(Object value) {
+    Preconditions.checkNotNull(value);
+
     if (value instanceof CelValue) {
       return (CelValue) value;
     }
@@ -44,6 +81,13 @@ abstract class CelValueConverter {
       return toListValue((Iterable<Object>) value);
     } else if (value instanceof Map) {
       return toMapValue((Map<Object, Object>) value);
+    } else if (value instanceof Optional) {
+      Optional<?> optionalValue = (Optional<?>) value;
+      return optionalValue
+          .map(o -> OptionalValue.create(fromJavaObjectToCelValue(o)))
+          .orElse(OptionalValue.EMPTY);
+    } else if (value instanceof Exception) {
+      return ErrorValue.create((Exception) value);
     }
 
     return fromJavaPrimitiveToCelValue(value);
@@ -51,6 +95,8 @@ abstract class CelValueConverter {
 
   /** Adapts a plain old Java Object that are considered primitives to a {@link CelValue}. */
   protected CelValue fromJavaPrimitiveToCelValue(Object value) {
+    Preconditions.checkNotNull(value);
+
     if (value instanceof Boolean) {
       return BoolValue.create((Boolean) value);
     } else if (value instanceof Long) {
@@ -66,7 +112,7 @@ abstract class CelValueConverter {
     } else if (value instanceof Float) {
       return DoubleValue.create(Double.valueOf((Float) value));
     } else if (value instanceof UnsignedLong) {
-      return UintValue.create((UnsignedLong) value);
+      return UintValue.create(((UnsignedLong) value).longValue(), celOptions.enableUnsignedLongs());
     }
 
     // Fall back to an Opaque value, as a custom class was supplied in the runtime. The legacy
@@ -76,6 +122,8 @@ abstract class CelValueConverter {
   }
 
   private ListValue<CelValue> toListValue(Iterable<Object> iterable) {
+    Preconditions.checkNotNull(iterable);
+
     ImmutableList.Builder<CelValue> listBuilder = ImmutableList.builder();
     for (Object entry : iterable) {
       listBuilder.add(fromJavaObjectToCelValue(entry));
@@ -85,6 +133,8 @@ abstract class CelValueConverter {
   }
 
   private MapValue<CelValue, CelValue> toMapValue(Map<Object, Object> map) {
+    Preconditions.checkNotNull(map);
+
     ImmutableMap.Builder<CelValue, CelValue> mapBuilder = ImmutableMap.builder();
     for (Entry<Object, Object> entry : map.entrySet()) {
       CelValue mapKey = fromJavaObjectToCelValue(entry.getKey());
@@ -96,6 +146,7 @@ abstract class CelValueConverter {
   }
 
   protected CelValueConverter(CelOptions celOptions) {
+    Preconditions.checkNotNull(celOptions);
     this.celOptions = celOptions;
   }
 }

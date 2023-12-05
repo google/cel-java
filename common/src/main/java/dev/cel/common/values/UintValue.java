@@ -21,22 +21,21 @@ import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
 
 /**
- * UintValue represents CelValue for unsigned longs, leveraging Guava's implementation of {@link
- * UnsignedLong}.
- *
- * <p>TODO: Look into potentially accepting a primitive `long` to avoid boxing/unboxing
- * when the interpreter is augmented to work directly on CelValue.
+ * UintValue represents CelValue for unsigned longs. This either leverages Guava's implementation of
+ * {@link UnsignedLong}, or just holds a primitive long.
  */
-@AutoValue
 @Immutable
+@AutoValue
+@AutoValue.CopyAnnotations
+@SuppressWarnings("Immutable") // value is either a boxed long or an immutable UnsignedLong.
 public abstract class UintValue extends CelValue {
 
   @Override
-  public abstract UnsignedLong value();
+  public abstract Number value();
 
   @Override
   public boolean isZeroValue() {
-    return UnsignedLong.ZERO.equals(value());
+    return value().longValue() == 0;
   }
 
   @Override
@@ -46,5 +45,10 @@ public abstract class UintValue extends CelValue {
 
   public static UintValue create(UnsignedLong value) {
     return new AutoValue_UintValue(value);
+  }
+
+  public static UintValue create(long value, boolean enableUnsignedLongs) {
+    Number unsignedLong = enableUnsignedLongs ? UnsignedLong.fromLongBits(value) : value;
+    return new AutoValue_UintValue(unsignedLong);
   }
 }

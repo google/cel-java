@@ -46,6 +46,14 @@ public final class DynamicProto {
     this.protoMessageFactory = checkNotNull(protoMessageFactory);
   }
 
+  /**
+   * Gets the underlying message factory used to construct new protobuf messages upon unpacking an
+   * Any message.
+   */
+  public ProtoMessageFactory getProtoMessageFactory() {
+    return protoMessageFactory;
+  }
+
   /** Attempts to unpack an Any message. */
   public Optional<Message> maybeUnpackAny(Message msg) {
     try {
