@@ -21,6 +21,7 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.StructTypeReference;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -50,7 +51,7 @@ public final class StructValueTest {
     UserDefinedClass userDefinedPojo = new UserDefinedClass(5);
     CelCustomStruct celCustomStruct = new CelCustomStruct(userDefinedPojo);
 
-    assertThat(celCustomStruct.select("data")).isEqualTo(IntValue.create(5L));
+    assertThat(celCustomStruct.select(StringValue.create("data"))).isEqualTo(IntValue.create(5L));
   }
 
   @Test
@@ -58,17 +59,19 @@ public final class StructValueTest {
     UserDefinedClass userDefinedPojo = new UserDefinedClass(5);
     CelCustomStruct celCustomStruct = new CelCustomStruct(userDefinedPojo);
 
-    assertThrows(IllegalArgumentException.class, () -> celCustomStruct.select("bogus"));
+    assertThrows(
+        IllegalArgumentException.class, () -> celCustomStruct.select(StringValue.create("bogus")));
   }
 
   @Test
   @TestParameters("{fieldName: 'data', expectedResult: true}")
   @TestParameters("{fieldName: 'bogus', expectedResult: false}")
-  public void hasField_success(String fieldName, boolean expectedResult) {
+  public void findField_success(String fieldName, boolean expectedResult) {
     UserDefinedClass userDefinedPojo = new UserDefinedClass(5);
     CelCustomStruct celCustomStruct = new CelCustomStruct(userDefinedPojo);
 
-    assertThat(celCustomStruct.hasField(fieldName)).isEqualTo(expectedResult);
+    assertThat(celCustomStruct.find(StringValue.create(fieldName)).isPresent())
+        .isEqualTo(expectedResult);
   }
 
   @Test
@@ -88,7 +91,7 @@ public final class StructValueTest {
   }
 
   @SuppressWarnings("Immutable") // Test only
-  private static class CelCustomStruct extends StructValue {
+  private static class CelCustomStruct extends StructValue<StringValue> {
     private final UserDefinedClass userDefinedClass;
 
     @Override
@@ -107,17 +110,18 @@ public final class StructValueTest {
     }
 
     @Override
-    public CelValue select(String fieldName) {
-      if (fieldName.equals("data")) {
-        return IntValue.create(value().data);
-      }
-
-      throw new IllegalArgumentException("Invalid field name: " + fieldName);
+    public CelValue select(StringValue field) {
+      return find(field)
+          .orElseThrow(() -> new IllegalArgumentException("Invalid field name: " + field));
     }
 
     @Override
-    public boolean hasField(String fieldName) {
-      return fieldName.equals("data");
+    public Optional<CelValue> find(StringValue field) {
+      if (field.value().equals("data")) {
+        return Optional.of(IntValue.create(value().data));
+      }
+
+      return Optional.empty();
     }
 
     private CelCustomStruct(UserDefinedClass value) {

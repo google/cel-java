@@ -17,10 +17,13 @@ package dev.cel.common.values;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.DoNotCall;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelRuntimeException;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.jspecify.nullness.Nullable;
@@ -33,8 +36,8 @@ import org.jspecify.nullness.Nullable;
  */
 @Immutable(containerOf = {"K", "V"})
 public abstract class MapValue<K extends CelValue, V extends CelValue> extends CelValue
-    implements Map<K, V> {
-    
+    implements Map<K, V>, SelectableValue<K> {
+
   private static final MapType MAP_TYPE = MapType.create(SimpleType.DYN, SimpleType.DYN);
 
   @Override
@@ -48,24 +51,30 @@ public abstract class MapValue<K extends CelValue, V extends CelValue> extends C
   @Override
   @SuppressWarnings("unchecked")
   public V get(Object key) {
-    return get((K) key);
+    return select((K) key);
   }
 
-  public V get(K key) {
-    if (!has(key)) {
-      throw new IllegalArgumentException(
-          String.format("key '%s' is not present in map.", key.value()));
-    }
-    return value().get(key);
+  @Override
+  @SuppressWarnings("unchecked")
+  public V select(K field) {
+    return (V)
+        find(field)
+            .orElseThrow(
+                () ->
+                    new CelRuntimeException(
+                        new IllegalArgumentException(
+                            String.format("key '%s' is not present in map.", field.value())),
+                        CelErrorCode.ATTRIBUTE_NOT_FOUND));
+  }
+
+  @Override
+  public Optional<CelValue> find(K field) {
+    return value().containsKey(field) ? Optional.of(value().get(field)) : Optional.empty();
   }
 
   @Override
   public CelType celType() {
     return MAP_TYPE;
-  }
-
-  public boolean has(K key) {
-    return value().containsKey(key);
   }
 
   /**

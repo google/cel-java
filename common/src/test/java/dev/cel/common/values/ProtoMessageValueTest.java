@@ -15,6 +15,7 @@
 package dev.cel.common.values;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
@@ -85,7 +86,7 @@ public final class ProtoMessageValueTest {
   }
 
   @Test
-  public void hasField_fieldIsSet_success() {
+  public void findField_fieldIsSet_fieldExists() {
     TestAllTypes testAllTypes =
         TestAllTypes.newBuilder()
             .setSingleBool(true)
@@ -96,26 +97,26 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.hasField("single_bool")).isTrue();
-    assertThat(protoMessageValue.hasField("single_int64")).isTrue();
-    assertThat(protoMessageValue.hasField("repeated_int64")).isTrue();
+    assertThat(protoMessageValue.find(StringValue.create("single_bool"))).isPresent();
+    assertThat(protoMessageValue.find(StringValue.create("single_int64"))).isPresent();
+    assertThat(protoMessageValue.find(StringValue.create("repeated_int64"))).isPresent();
   }
 
   @Test
-  public void hasField_fieldIsUnset_success() {
+  public void findField_fieldIsUnset_fieldDoesNotExist() {
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(
             TestAllTypes.getDefaultInstance(),
             DefaultDescriptorPool.INSTANCE,
             PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.hasField("single_int32")).isFalse();
-    assertThat(protoMessageValue.hasField("single_uint64")).isFalse();
-    assertThat(protoMessageValue.hasField("repeated_int32")).isFalse();
+    assertThat(protoMessageValue.find(StringValue.create("single_int32"))).isEmpty();
+    assertThat(protoMessageValue.find(StringValue.create("single_uint64"))).isEmpty();
+    assertThat(protoMessageValue.find(StringValue.create("repeated_int32"))).isEmpty();
   }
 
   @Test
-  public void hasField_fieldIsUndeclared_throwsException() {
+  public void findField_fieldIsUndeclared_throwsException() {
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(
             TestAllTypes.getDefaultInstance(),
@@ -123,7 +124,9 @@ public final class ProtoMessageValueTest {
             PROTO_CEL_VALUE_CONVERTER);
 
     IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> protoMessageValue.hasField("bogus"));
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> protoMessageValue.select(StringValue.create("bogus")));
     assertThat(exception)
         .hasMessageThat()
         .isEqualTo(
@@ -132,7 +135,7 @@ public final class ProtoMessageValueTest {
   }
 
   @Test
-  public void hasField_extensionField_success() {
+  public void findField_extensionField_success() {
     CelDescriptorPool descriptorPool =
         DefaultDescriptorPool.create(
             CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
@@ -148,11 +151,13 @@ public final class ProtoMessageValueTest {
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(proto2Message, descriptorPool, protoCelValueConverter);
 
-    assertThat(protoMessageValue.hasField("dev.cel.testing.testdata.proto2.int32_ext")).isTrue();
+    assertThat(
+            protoMessageValue.find(StringValue.create("dev.cel.testing.testdata.proto2.int32_ext")))
+        .isPresent();
   }
 
   @Test
-  public void hasField_extensionField_throwsWhenDescriptorMissing() {
+  public void findField_extensionField_throwsWhenDescriptorMissing() {
     Proto2Message proto2Message =
         Proto2Message.newBuilder().setExtension(MessagesProto2Extensions.int32Ext, 1).build();
 
@@ -163,7 +168,9 @@ public final class ProtoMessageValueTest {
     IllegalArgumentException exception =
         assertThrows(
             IllegalArgumentException.class,
-            () -> protoMessageValue.hasField("dev.cel.testing.testdata.proto2.int32_ext"));
+            () ->
+                protoMessageValue.select(
+                    StringValue.create("dev.cel.testing.testdata.proto2.int32_ext")));
     assertThat(exception)
         .hasMessageThat()
         .isEqualTo(
@@ -253,7 +260,8 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select(testCase.fieldName)).isEqualTo(testCase.celValue);
+    assertThat(protoMessageValue.select(StringValue.create(testCase.fieldName)))
+        .isEqualTo(testCase.celValue);
   }
 
   @Test
@@ -267,7 +275,8 @@ public final class ProtoMessageValueTest {
             DefaultDescriptorPool.INSTANCE,
             PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select("single_int32_wrapper")).isEqualTo(IntValue.create(5));
+    assertThat(protoMessageValue.select(StringValue.create("single_int32_wrapper")))
+        .isEqualTo(IntValue.create(5));
   }
 
   @Test
@@ -283,7 +292,7 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select("single_timestamp"))
+    assertThat(protoMessageValue.select(StringValue.create("single_timestamp")))
         .isEqualTo(TimestampValue.create(Instant.ofEpochSecond(0, nanos)));
   }
 
@@ -303,7 +312,7 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select("single_duration"))
+    assertThat(protoMessageValue.select(StringValue.create("single_duration")))
         .isEqualTo(DurationValue.create(Duration.ofSeconds(seconds, nanos)));
   }
 
@@ -348,7 +357,8 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select("single_value")).isEqualTo(testCase.celValue);
+    assertThat(protoMessageValue.select(StringValue.create("single_value")))
+        .isEqualTo(testCase.celValue);
   }
 
   @Test
@@ -365,7 +375,7 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select("single_struct"))
+    assertThat(protoMessageValue.select(StringValue.create("single_struct")))
         .isEqualTo(
             ImmutableMapValue.create(
                 ImmutableMap.of(StringValue.create("a"), BoolValue.create(false))));
@@ -385,7 +395,7 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select("list_value"))
+    assertThat(protoMessageValue.select(StringValue.create("list_value")))
         .isEqualTo(ImmutableListValue.create(ImmutableList.of(BoolValue.create(false))));
   }
 
@@ -397,7 +407,8 @@ public final class ProtoMessageValueTest {
             DefaultDescriptorPool.INSTANCE,
             PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select("single_int64_wrapper")).isEqualTo(NullValue.NULL_VALUE);
+    assertThat(protoMessageValue.select(StringValue.create("single_int64_wrapper")))
+        .isEqualTo(NullValue.NULL_VALUE);
   }
 
   @Test

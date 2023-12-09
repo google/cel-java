@@ -20,6 +20,7 @@ import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import org.jspecify.nullness.Nullable;
 
 /**
@@ -29,7 +30,8 @@ import org.jspecify.nullness.Nullable;
  */
 @AutoValue
 @Immutable(containerOf = "E")
-public abstract class OptionalValue<E extends CelValue> extends CelValue {
+public abstract class OptionalValue<E extends CelValue> extends CelValue
+    implements SelectableValue<CelValue> {
   private static final OptionalType OPTIONAL_TYPE = OptionalType.create(SimpleType.DYN);
 
   /** Sentinel value representing an empty optional ('optional.none()' in CEL) */
@@ -65,51 +67,21 @@ public abstract class OptionalValue<E extends CelValue> extends CelValue {
    *   <li>map[?key] -> key in map ? optional{map[key]} : optional.none()
    * </ol>
    */
-  @SuppressWarnings("unchecked")
-  public OptionalValue<CelValue> select(CelValue field) {
-    if (isZeroValue()) {
-      return EMPTY;
-    }
-
-    CelValue celValue = value();
-    if (celValue instanceof MapValue) {
-      MapValue<CelValue, CelValue> mapValue = (MapValue<CelValue, CelValue>) celValue;
-      if (!mapValue.has(field)) {
-        return EMPTY;
-      }
-
-      return OptionalValue.create(mapValue.get(field));
-    } else if (celValue instanceof StructValue) {
-      StructValue structValue = (StructValue) celValue;
-      StringValue stringField = (StringValue) field;
-      if (!structValue.hasField(stringField.value())) {
-        return EMPTY;
-      }
-
-      return OptionalValue.create(structValue.select(stringField.value()));
-    }
-
-    throw new UnsupportedOperationException("Unsupported select on: " + celValue);
+  @Override
+  public CelValue select(CelValue field) {
+    return find(field).orElse(EMPTY);
   }
 
-  /** Presence test with optional semantics on maps and structs. */
-  @SuppressWarnings("unchecked") // Unchecked cast of MapValue flagged due to type erasure.
-  public boolean hasField(CelValue field) {
+  @Override
+  @SuppressWarnings("unchecked")
+  public Optional<CelValue> find(CelValue field) {
     if (isZeroValue()) {
-      return false;
+      return Optional.empty();
     }
 
-    CelValue celValue = value();
-    if (celValue instanceof MapValue) {
-      MapValue<CelValue, CelValue> mapValue = (MapValue<CelValue, CelValue>) celValue;
-      return mapValue.has(field);
-    } else if (celValue instanceof StructValue) {
-      StructValue structValue = (StructValue) celValue;
-      StringValue stringField = (StringValue) field;
-      return structValue.hasField(stringField.value());
-    }
-
-    throw new UnsupportedOperationException("Unsupported presence test on: " + celValue);
+    SelectableValue<CelValue> selectableValue = (SelectableValue<CelValue>) value();
+    Optional<CelValue> selectedField = selectableValue.find(field);
+    return selectedField.map(OptionalValue::create);
   }
 
   public static <E extends CelValue> OptionalValue<E> create(E value) {

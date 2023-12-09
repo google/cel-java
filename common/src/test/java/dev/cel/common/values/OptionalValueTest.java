@@ -15,6 +15,7 @@
 package dev.cel.common.values;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
@@ -25,6 +26,7 @@ import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -39,6 +41,14 @@ public class OptionalValueTest {
     NoSuchElementException exception =
         assertThrows(NoSuchElementException.class, optionalValue::value);
     assertThat(exception).hasMessageThat().isEqualTo("No value present");
+  }
+
+  @Test
+  public void optionalValue_selectEmpty() {
+    CelValue optionalValue = OptionalValue.EMPTY.select(StringValue.create("bogus"));
+
+    assertThat(optionalValue).isEqualTo(OptionalValue.EMPTY);
+    assertThat(optionalValue.isZeroValue()).isTrue();
   }
 
   @Test
@@ -95,14 +105,9 @@ public class OptionalValueTest {
   }
 
   @Test
-  public void hasField_onEmptyOptional() {
-    assertThat(OptionalValue.EMPTY.hasField(StringValue.create("bogus"))).isFalse();
-  }
-
-  @Test
   @TestParameters("{key: 1, expectedResult: true}")
   @TestParameters("{key: 100, expectedResult: false}")
-  public void hasField_map_success(long key, boolean expectedResult) {
+  public void findField_map_success(long key, boolean expectedResult) {
     IntValue one = IntValue.create(1L);
     StringValue hello = StringValue.create("hello");
     ImmutableMapValue<IntValue, StringValue> mapValue =
@@ -110,19 +115,25 @@ public class OptionalValueTest {
     OptionalValue<ImmutableMapValue<IntValue, StringValue>> optionalValueContainingMap =
         OptionalValue.create(mapValue);
 
-    assertThat(optionalValueContainingMap.hasField(IntValue.create(key))).isEqualTo(expectedResult);
+    assertThat(optionalValueContainingMap.find(IntValue.create(key)).isPresent())
+        .isEqualTo(expectedResult);
   }
 
   @Test
   @TestParameters("{field: 'data', expectedResult: true}")
   @TestParameters("{field: 'bogus', expectedResult: false}")
-  public void hasField_struct_success(String field, boolean expectedResult) {
+  public void findField_struct_success(String field, boolean expectedResult) {
     CelCustomStruct celCustomStruct = new CelCustomStruct(5L);
     OptionalValue<CelCustomStruct> optionalValueContainingStruct =
         OptionalValue.create(celCustomStruct);
 
-    assertThat(optionalValueContainingStruct.hasField(StringValue.create(field)))
+    assertThat(optionalValueContainingStruct.find(StringValue.create(field)).isPresent())
         .isEqualTo(expectedResult);
+  }
+
+  @Test
+  public void findField_onEmptyOptional() {
+    assertThat(OptionalValue.EMPTY.find(StringValue.create("bogus"))).isEmpty();
   }
 
   @Test
@@ -138,7 +149,7 @@ public class OptionalValueTest {
   }
 
   @SuppressWarnings("Immutable") // Test only
-  private static class CelCustomStruct extends StructValue {
+  private static class CelCustomStruct extends StructValue<StringValue> {
     private final long data;
 
     @Override
@@ -157,17 +168,17 @@ public class OptionalValueTest {
     }
 
     @Override
-    public CelValue select(String fieldName) {
-      if (fieldName.equals("data")) {
-        return IntValue.create(value());
-      }
-
-      throw new IllegalArgumentException("Invalid field name: " + fieldName);
+    public CelValue select(StringValue field) {
+      return find(field).get();
     }
 
     @Override
-    public boolean hasField(String fieldName) {
-      return fieldName.equals("data");
+    public Optional<CelValue> find(StringValue field) {
+      if (field.value().equals("data")) {
+        return Optional.of(IntValue.create(value()));
+      }
+
+      return Optional.empty();
     }
 
     private CelCustomStruct(long data) {

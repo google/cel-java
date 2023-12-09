@@ -20,6 +20,7 @@ import static org.junit.Assert.assertThrows;
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
+import dev.cel.common.CelRuntimeException;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
 import org.junit.Test;
@@ -65,21 +66,21 @@ public class ImmutableMapValueTest {
     ImmutableMapValue<IntValue, StringValue> mapValue =
         ImmutableMapValue.create(ImmutableMap.of(one, hello));
 
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> mapValue.get(IntValue.create(100L)));
-    assertThat(exception).hasMessageThat().isEqualTo("key '100' is not present in map.");
+    CelRuntimeException exception =
+        assertThrows(CelRuntimeException.class, () -> mapValue.get(IntValue.create(100L)));
+    assertThat(exception).hasMessageThat().contains("key '100' is not present in map.");
   }
 
   @Test
   @TestParameters("{key: 1, expectedResult: true}")
   @TestParameters("{key: 100, expectedResult: false}")
-  public void has_success(long key, boolean expectedResult) {
+  public void find_success(long key, boolean expectedResult) {
     IntValue one = IntValue.create(1L);
     StringValue hello = StringValue.create("hello");
     ImmutableMapValue<IntValue, StringValue> mapValue =
         ImmutableMapValue.create(ImmutableMap.of(one, hello));
 
-    assertThat(mapValue.has(IntValue.create(key))).isEqualTo(expectedResult);
+    assertThat(mapValue.find(IntValue.create(key)).isPresent()).isEqualTo(expectedResult);
   }
 
   @Test

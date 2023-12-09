@@ -23,11 +23,12 @@ import com.google.protobuf.Message;
 import dev.cel.common.internal.CelDescriptorPool;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.StructTypeReference;
+import java.util.Optional;
 
 /** ProtoMessageValue is a struct value with protobuf support. */
 @AutoValue
 @Immutable
-public abstract class ProtoMessageValue extends StructValue {
+public abstract class ProtoMessageValue extends StructValue<StringValue> {
 
   @Override
   public abstract Message value();
@@ -45,23 +46,30 @@ public abstract class ProtoMessageValue extends StructValue {
   }
 
   @Override
-  public boolean hasField(String fieldName) {
+  public CelValue select(StringValue field) {
     FieldDescriptor fieldDescriptor =
-        findField(celDescriptorPool(), value().getDescriptorForType(), fieldName);
+        findField(celDescriptorPool(), value().getDescriptorForType(), field.value());
 
-    if (fieldDescriptor.isRepeated()) {
-      return value().getRepeatedFieldCount(fieldDescriptor) > 0;
-    }
-
-    return value().hasField(fieldDescriptor);
+    return protoCelValueConverter().fromProtoMessageFieldToCelValue(value(), fieldDescriptor);
   }
 
   @Override
-  public CelValue select(String fieldName) {
+  public Optional<CelValue> find(StringValue field) {
     FieldDescriptor fieldDescriptor =
-        findField(celDescriptorPool(), value().getDescriptorForType(), fieldName);
+        findField(celDescriptorPool(), value().getDescriptorForType(), field.value());
 
-    return protoCelValueConverter().fromProtoMessageFieldToCelValue(value(), fieldDescriptor);
+    // Selecting a field on a protobuf message yields a default value even if the field is not
+    // declared. Therefore, we must exhaustively test whether they are actually declared.
+    if (fieldDescriptor.isRepeated()) {
+      if (value().getRepeatedFieldCount(fieldDescriptor) == 0) {
+        return Optional.empty();
+      }
+    } else if (!value().hasField(fieldDescriptor)) {
+      return Optional.empty();
+    }
+
+    return Optional.of(
+        protoCelValueConverter().fromProtoMessageFieldToCelValue(value(), fieldDescriptor));
   }
 
   public static ProtoMessageValue create(

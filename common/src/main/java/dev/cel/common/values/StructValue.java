@@ -22,22 +22,11 @@ import com.google.errorprone.annotations.Immutable;
  * <p>Users may extend from this class to provide a custom struct that CEL can understand (ex:
  * POJOs). Custom struct implementations must provide all functionalities denoted in the CEL
  * specification, such as field selection, presence testing and new object creation.
+ *
+ * <p>For an expression `e` selecting a field `f`, `e.f` must throw an exception if `f` does not
+ * exist in the struct (i.e: hasField returns false). If the field exists but is not set, the
+ * implementation should return an appropriate default value based on the struct's semantics.
  */
 @Immutable
-public abstract class StructValue extends CelValue {
-
-  /**
-   * Performs field selection. For an expression `e` selecting a field `f`, `e.f` must throw an
-   * exception if `f` does not exist in the struct (i.e: hasField returns false). If the field
-   * exists but is not set, the implementation should return an appropriate default value based on
-   * the struct's semantics.
-   */
-  public abstract CelValue select(String fieldName);
-
-  /**
-   * Performs presence test on a field.
-   *
-   * @return true iff the field exists in the struct.
-   */
-  public abstract boolean hasField(String fieldName);
-}
+public abstract class StructValue<T extends CelValue> extends CelValue
+    implements SelectableValue<T> {}
