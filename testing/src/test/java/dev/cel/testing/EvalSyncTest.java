@@ -33,7 +33,6 @@ import com.google.protobuf.UInt64Value;
 import com.google.type.Expr;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompiler;
@@ -141,10 +140,7 @@ public final class EvalSyncTest {
     @Test
     public void evaluateExpr_returnsExpectedResult() throws Exception {
       CelAbstractSyntaxTree ast = COMPILER.compile(expr).getAst();
-      assertThat(
-              EVAL.eval(
-                  CelProtoAbstractSyntaxTree.fromCelAst(ast).toCheckedExpr(), Activation.EMPTY))
-          .isEqualTo(evaluatedResult);
+      assertThat(EVAL.eval(ast, Activation.EMPTY)).isEqualTo(evaluatedResult);
     }
   }
 
@@ -182,11 +178,7 @@ public final class EvalSyncTest {
     @Test
     public void expr_returnsExpectedResult() throws Exception {
       CelAbstractSyntaxTree ast = compiler.compile(expr).getAst();
-      assertThat(
-              EVAL.eval(
-                  CelProtoAbstractSyntaxTree.fromCelAst(ast).toCheckedExpr(),
-                  Activation.of("x", paramValue)))
-          .isEqualTo(evaluatedResult);
+      assertThat(EVAL.eval(ast, Activation.of("x", paramValue))).isEqualTo(evaluatedResult);
     }
   }
 }

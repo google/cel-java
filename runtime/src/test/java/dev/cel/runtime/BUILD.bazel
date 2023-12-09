@@ -8,6 +8,7 @@ java_library(
     srcs = glob(
         ["*.java"],
         exclude = [
+            "CelValueInterpreterTest.java",
             "InterpreterTest.java",
         ],
     ),
@@ -70,6 +71,22 @@ java_library(
     ],
 )
 
+java_library(
+    name = "cel_value_interpreter_test",
+    testonly = 1,
+    srcs = [
+        "CelValueInterpreterTest.java",
+    ],
+    deps = [
+        #         "//java/com/google/testing/testsize:annotations",
+        "//common:options",
+        "//testing:base_interpreter_test",
+        "//testing:cel_value_sync",
+        "//testing:eval",
+        "@maven//:junit_junit",
+    ],
+)
+
 junit4_test_suites(
     name = "test_suites",
     shard_count = 4,
@@ -79,6 +96,7 @@ junit4_test_suites(
     ],
     src_dir = "src/test/java",
     deps = [
+        ":cel_value_interpreter_test",
         ":interpreter_test",
         ":tests",
     ],

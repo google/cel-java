@@ -147,9 +147,8 @@ java_library(
     tags = [
     ],
     deps = [
-        ":base",
         ":evaluation_listener",
-        ":interpreter",
+        ":runtime_type_provider_legacy",
         ":unknown_attributes",
         "//:auto_value",
         "//common",
@@ -161,6 +160,9 @@ java_library(
         "//common/internal:dynamic_proto",
         "//common/internal:proto_message_factory",
         "//common/types:cel_types",
+        "//common/values:cel_value_provider",
+        "//common/values:proto_message_value_provider",
+        "//runtime:interpreter",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -209,6 +211,29 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_re2j_re2j",
+    ],
+)
+
+java_library(
+    name = "runtime_type_provider_legacy",
+    srcs = ["RuntimeTypeProviderLegacyImpl.java"],
+    deps = [
+        ":unknown_attributes",
+        "//common:options",
+        "//common/annotations",
+        "//common/internal:cel_descriptor_pools",
+        "//common/internal:dynamic_proto",
+        "//common/types",
+        "//common/types:type_providers",
+        "//common/values",
+        "//common/values:cel_value",
+        "//common/values:cel_value_provider",
+        "//common/values:proto_message_value",
+        "//runtime:interpreter",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
     ],
 )
 

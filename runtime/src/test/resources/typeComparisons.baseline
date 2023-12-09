@@ -33,6 +33,11 @@ Source: type(TestAllTypes) == type
 bindings: {}
 result:   true
 
+Source: type(TestAllTypes{}) == TestAllTypes
+=====>
+bindings: {}
+result:   true
+
 Source: type(null) == null_type
 =====>
 bindings: {}

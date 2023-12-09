@@ -8,6 +8,7 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//:java_truth",
+        "//bundle:cel",
         "//common",
         "//common:options",
         "//common:runtime_exception",

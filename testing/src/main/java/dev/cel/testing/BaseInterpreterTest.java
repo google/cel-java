@@ -93,7 +93,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     testOutput().println("bindings: " + activation);
     Object result = null;
     try {
-      result = eval.eval(CelProtoAbstractSyntaxTree.fromCelAst(ast).toCheckedExpr(), activation);
+      result = eval.eval(ast, activation);
       if (result instanceof ByteString) {
         // Note: this call may fail for printing byte sequences that are not valid UTF-8, but works
         // pretty well for test purposes.
@@ -1754,6 +1754,10 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     // Test whether a type name is recognized as a type.
     source = "type(TestAllTypes) == type";
+    runTest(Activation.EMPTY);
+
+    // Test whether the type resolution of a proto object is recognized as the message's type.
+    source = "type(TestAllTypes{}) == TestAllTypes";
     runTest(Activation.EMPTY);
 
     // Test whether null resolves to null_type.

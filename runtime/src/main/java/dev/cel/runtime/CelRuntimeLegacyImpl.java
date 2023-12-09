@@ -40,6 +40,8 @@ import dev.cel.common.internal.DynamicProto;
 // CEL-Internal-3
 import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.types.CelTypes;
+import dev.cel.common.values.CelValueProvider;
+import dev.cel.common.values.ProtoMessageValueProvider;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
@@ -82,6 +84,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     private boolean standardEnvironmentEnabled;
     private Function<String, Message.Builder> customTypeFactory;
     private ExtensionRegistry extensionRegistry;
+    private CelValueProvider celValueProvider;
 
     @Override
     @CanIgnoreReturnValue
@@ -144,6 +147,13 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
     @Override
     @CanIgnoreReturnValue
+    public CelRuntimeBuilder setValueProvider(CelValueProvider celValueProvider) {
+      this.celValueProvider = celValueProvider;
+      return this;
+    }
+
+    @Override
+    @CanIgnoreReturnValue
     public Builder setStandardEnvironmentEnabled(boolean value) {
       standardEnvironmentEnabled = value;
       return this;
@@ -179,11 +189,14 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       // Add libraries, such as extensions
       celRuntimeLibraries.build().forEach(celLibrary -> celLibrary.setRuntimeOptions(this));
 
+      CelDescriptors celDescriptors =
+          CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+              fileTypes.build(), options.resolveTypeDependencies());
+
       CelDescriptorPool celDescriptorPool =
           newDescriptorPool(
-              fileTypes.build(),
-              extensionRegistry,
-              options);
+              celDescriptors,
+              extensionRegistry);
 
       @SuppressWarnings("Immutable")
       ProtoMessageFactory runtimeTypeFactory =
@@ -222,20 +235,30 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
                     }
                   }));
 
+      RuntimeTypeProvider runtimeTypeProvider;
+
+      if (options.enableCelValue()) {
+        CelValueProvider messageValueProvider =
+            ProtoMessageValueProvider.newInstance(dynamicProto, options);
+        if (celValueProvider != null) {
+          messageValueProvider =
+              new CelValueProvider.CombinedCelValueProvider(celValueProvider, messageValueProvider);
+        }
+
+        runtimeTypeProvider =
+            new RuntimeTypeProviderLegacyImpl(
+                options, messageValueProvider, celDescriptorPool, dynamicProto);
+      } else {
+        runtimeTypeProvider = new DescriptorMessageProvider(runtimeTypeFactory, options);
+      }
+
       return new CelRuntimeLegacyImpl(
-          new DefaultInterpreter(
-              new DescriptorMessageProvider(runtimeTypeFactory, options), dispatcher, options),
-          options);
+          new DefaultInterpreter(runtimeTypeProvider, dispatcher, options), options);
     }
 
     private static CelDescriptorPool newDescriptorPool(
-        ImmutableSet<FileDescriptor> fileTypeSet,
-        ExtensionRegistry extensionRegistry,
-        CelOptions celOptions) {
-      CelDescriptors celDescriptors =
-          CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-              fileTypeSet, celOptions.resolveTypeDependencies());
-
+        CelDescriptors celDescriptors,
+        ExtensionRegistry extensionRegistry) {
       ImmutableList.Builder<CelDescriptorPool> descriptorPools = new ImmutableList.Builder<>();
 
       descriptorPools.add(DefaultDescriptorPool.create(celDescriptors, extensionRegistry));

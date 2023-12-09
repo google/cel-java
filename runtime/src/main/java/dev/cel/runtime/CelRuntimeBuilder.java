@@ -22,6 +22,7 @@ import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import dev.cel.common.CelOptions;
+import dev.cel.common.values.CelValueProvider;
 import java.util.function.Function;
 
 /** Interface for building an instance of CelRuntime */
@@ -137,6 +138,16 @@ public interface CelRuntimeBuilder {
    */
   @CanIgnoreReturnValue
   CelRuntimeBuilder setTypeFactory(Function<String, Message.Builder> typeFactory);
+
+  /**
+   * Sets the {@code celValueProvider} for resolving values during evaluation. The provided value
+   * provider will be used first before falling back to the built-in {@link
+   * dev.cel.common.values.ProtoMessageValueProvider} for resolving protobuf messages.
+   *
+   * <p>Note {@link CelOptions#enableCelValue()} must be enabled or this method will be a no-op.
+   */
+  @CanIgnoreReturnValue
+  CelRuntimeBuilder setValueProvider(CelValueProvider celValueProvider);
 
   /** Enable or disable the standard CEL library functions and variables. */
   @CanIgnoreReturnValue

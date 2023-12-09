@@ -35,6 +35,11 @@ java_library(
 )
 
 java_library(
+    name = "cel_value_sync",
+    exports = ["//testing/src/main/java/dev/cel/testing:cel_value_sync"],
+)
+
+java_library(
     name = "eval",
     exports = ["//testing/src/main/java/dev/cel/testing:eval"],
 )

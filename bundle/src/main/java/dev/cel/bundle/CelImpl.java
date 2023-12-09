@@ -42,6 +42,7 @@ import dev.cel.common.internal.FileDescriptorSetConverter;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypes;
+import dev.cel.common.values.CelValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerImpl;
@@ -251,6 +252,12 @@ final class CelImpl implements Cel, EnvVisitable {
     @Override
     public Builder setTypeFactory(Function<String, Message.Builder> typeFactory) {
       runtimeBuilder.setTypeFactory(typeFactory);
+      return this;
+    }
+
+    @Override
+    public Builder setValueProvider(CelValueProvider celValueProvider) {
+      runtimeBuilder.setValueProvider(celValueProvider);
       return this;
     }
 
