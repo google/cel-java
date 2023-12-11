@@ -139,7 +139,13 @@ public interface CelRuntimeBuilder {
   @CanIgnoreReturnValue
   CelRuntimeBuilder setTypeFactory(Function<String, Message.Builder> typeFactory);
 
-  /** Sets the {@code celValueProvider} for resolving values during evaluation. */
+  /**
+   * Sets the {@code celValueProvider} for resolving values during evaluation. The provided value
+   * provider will be used first before falling back to the built-in {@link
+   * dev.cel.common.values.ProtoMessageValueProvider} for resolving protobuf messages.
+   *
+   * <p>Note {@link CelOptions#enableCelValue()} must be enabled or this method will be a no-op.
+   */
   @CanIgnoreReturnValue
   CelRuntimeBuilder setValueProvider(CelValueProvider celValueProvider);
 

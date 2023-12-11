@@ -30,6 +30,7 @@ java_library(
         "//common/internal:file_descriptor_converter",
         "//common/types:cel_types",
         "//common/types:type_providers",
+        "//common/values:cel_value_provider",
         "//compiler",
         "//compiler:compiler_builder",
         "//parser",

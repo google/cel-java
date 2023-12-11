@@ -29,6 +29,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
+import dev.cel.common.values.CelValueProvider;
 import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelStandardMacro;
@@ -184,6 +185,17 @@ public interface CelBuilder {
    */
   @CanIgnoreReturnValue
   CelBuilder setTypeFactory(Function<String, Message.Builder> typeFactory);
+
+  /**
+   * Sets the {@code celValueProvider} for resolving values during evaluation. The provided value
+   * provider will be used first before falling back to the built-in {@link
+   * dev.cel.common.values.ProtoMessageValueProvider} for resolving protobuf messages.
+   *
+   * <p>Note that {@link CelOptions#enableCelValue()} must be enabled or this method will be a
+   * no-op.
+   */
+  @CanIgnoreReturnValue
+  CelBuilder setValueProvider(CelValueProvider celValueProvider);
 
   /**
    * Set the {@code typeProvider} for use with type-checking expressions.

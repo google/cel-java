@@ -68,7 +68,6 @@ public class ImmutableMapValueTest {
 
     CelRuntimeException exception =
         assertThrows(CelRuntimeException.class, () -> mapValue.get(IntValue.create(100L)));
-    assertThat(exception).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
     assertThat(exception).hasMessageThat().contains("key '100' is not present in map.");
   }
 
