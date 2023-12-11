@@ -26,8 +26,6 @@ import com.google.errorprone.annotations.Immutable;
 @Immutable
 public abstract class TypeType extends CelType {
 
-  static final TypeType TYPE = create(SimpleType.DYN);
-
   @Override
   public CelKind kind() {
     return CelKind.TYPE;
@@ -36,6 +34,16 @@ public abstract class TypeType extends CelType {
   @Override
   public String name() {
     return "type";
+  }
+
+  /** Retrieves the underlying type name of the type-kind held. */
+  public String containingTypeName() {
+    CelType containingType = type();
+    if (containingType.kind() == CelKind.DYN) {
+      return "type";
+    }
+
+    return containingType.name();
   }
 
   @Override

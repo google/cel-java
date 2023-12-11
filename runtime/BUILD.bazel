@@ -45,3 +45,9 @@ java_library(
     name = "evaluation_listener",
     exports = ["//runtime/src/main/java/dev/cel/runtime:evaluation_listener"],
 )
+
+java_library(
+    name = "runtime_type_provider_legacy",
+    visibility = ["//visibility:public"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:runtime_type_provider_legacy"],
+)

@@ -82,6 +82,27 @@ java_library(
 )
 
 java_library(
+    name = "cel_value_sync",
+    testonly = 1,
+    srcs = ["EvalCelValueSync.java"],
+    deps = [
+        ":eval",
+        "//common",
+        "//common:options",
+        "//common/internal:cel_descriptor_pools",
+        "//common/internal:default_message_factory",
+        "//common/internal:dynamic_proto",
+        "//common/internal:proto_message_factory",
+        "//common/values:cel_value_provider",
+        "//common/values:proto_message_value_provider",
+        "//runtime:interpreter",
+        "//runtime:runtime_type_provider_legacy",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
     name = "sync",
     testonly = 1,
     srcs = ["EvalSync.java"],
@@ -92,7 +113,6 @@ java_library(
         "//common/internal:cel_descriptor_pools",
         "//common/internal:default_message_factory",
         "//runtime:interpreter",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
     ],
@@ -105,10 +125,10 @@ java_library(
         "Eval.java",
     ],
     deps = [
+        "//common",
         "//common:options",
         "//runtime:base",
         "//runtime:interpreter",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -132,7 +152,6 @@ java_library(
         "//common/resources/testdata/proto3:test_all_types_java_proto",
         "//common/types:cel_types",
         "//runtime:interpreter",
-        "//runtime/testdata:test_java_proto",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",

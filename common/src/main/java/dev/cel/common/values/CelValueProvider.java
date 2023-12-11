@@ -41,7 +41,7 @@ public interface CelValueProvider {
   final class CombinedCelValueProvider implements CelValueProvider {
     private final ImmutableList<CelValueProvider> celValueProviders;
 
-    CombinedCelValueProvider(CelValueProvider first, CelValueProvider second) {
+    public CombinedCelValueProvider(CelValueProvider first, CelValueProvider second) {
       Preconditions.checkNotNull(first);
       Preconditions.checkNotNull(second);
       celValueProviders = ImmutableList.of(first, second);

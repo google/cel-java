@@ -1,4 +1,4 @@
-// Copyright 2022 Google LLC
+// Copyright 2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,17 +22,24 @@ import dev.cel.common.CelDescriptors;
 import dev.cel.common.CelOptions;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
+import dev.cel.common.internal.DynamicProto;
+import dev.cel.common.internal.ProtoMessageFactory;
+import dev.cel.common.values.CelValueProvider;
+import dev.cel.common.values.ProtoMessageValueProvider;
 import dev.cel.runtime.Activation;
 import dev.cel.runtime.DefaultDispatcher;
 import dev.cel.runtime.DefaultInterpreter;
-import dev.cel.runtime.DescriptorMessageProvider;
 import dev.cel.runtime.Interpreter;
 import dev.cel.runtime.InterpreterException;
 import dev.cel.runtime.Registrar;
 import dev.cel.runtime.RuntimeTypeProvider;
+import dev.cel.runtime.RuntimeTypeProviderLegacyImpl;
 
-/** The {@code EvalSync} class represents common concerns for synchronous evaluation. */
-public final class EvalSync implements Eval {
+/**
+ * The {@link EvalSync} class represents common concerns for synchronous evaluation using {@code
+ * CelValue}.
+ */
+public final class EvalCelValueSync implements Eval {
 
   private final ImmutableList<FileDescriptor> fileDescriptors;
   private final DefaultDispatcher dispatcher;
@@ -40,16 +47,25 @@ public final class EvalSync implements Eval {
   private final RuntimeTypeProvider typeProvider;
   private final CelOptions celOptions;
 
-  public EvalSync(ImmutableList<FileDescriptor> fileDescriptors, CelOptions celOptions) {
+  public EvalCelValueSync(ImmutableList<FileDescriptor> fileDescriptors, CelOptions celOptions) {
     this.fileDescriptors = fileDescriptors;
     this.dispatcher = DefaultDispatcher.create(celOptions);
+    this.celOptions = celOptions;
+    this.typeProvider = newTypeProvider(fileDescriptors);
+    this.interpreter = new DefaultInterpreter(typeProvider, dispatcher, celOptions);
+  }
+
+  private RuntimeTypeProvider newTypeProvider(ImmutableList<FileDescriptor> fileDescriptors) {
     CelDescriptors celDescriptors =
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileDescriptors);
-    this.typeProvider =
-        new DescriptorMessageProvider(
-            DefaultMessageFactory.create(DefaultDescriptorPool.create(celDescriptors)), celOptions);
-    this.interpreter = new DefaultInterpreter(typeProvider, dispatcher, celOptions);
-    this.celOptions = celOptions;
+    DefaultDescriptorPool celDescriptorPool = DefaultDescriptorPool.create(celDescriptors);
+    ProtoMessageFactory messageFactory = DefaultMessageFactory.create(celDescriptorPool);
+    DynamicProto dynamicProto = DynamicProto.create(messageFactory);
+    CelValueProvider messageValueProvider =
+        ProtoMessageValueProvider.newInstance(dynamicProto, celOptions);
+
+    return new RuntimeTypeProviderLegacyImpl(
+        celOptions, messageValueProvider, celDescriptorPool, dynamicProto);
   }
 
   @Override

@@ -14,10 +14,10 @@
 
 package dev.cel.testing;
 
-import dev.cel.expr.CheckedExpr;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.protobuf.Descriptors.FileDescriptor;
+import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.runtime.Activation;
 import dev.cel.runtime.InterpreterException;
@@ -39,8 +39,6 @@ public interface Eval {
   /** Adapts a Java POJO to a CEL value. */
   Object adapt(Object value) throws InterpreterException;
 
-  /**
-   * Evaluates a {@code CheckedExpr} against a set of inputs represented by the {@code Activation}.
-   */
-  Object eval(CheckedExpr checkedExpr, Activation activation) throws Exception;
+  /** Evaluates an {@code ast} against a set of inputs represented by the {@code Activation}. */
+  Object eval(CelAbstractSyntaxTree ast, Activation activation) throws Exception;
 }
