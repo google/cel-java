@@ -67,7 +67,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
   }
 
   /** Create a new builder for constructing a {@code CelRuntime} instance. */
-  public static Builder newBuilder() {
+  public static CelRuntimeBuilder newBuilder() {
     return new Builder();
   }
 
@@ -87,96 +87,82 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     private CelValueProvider celValueProvider;
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder setOptions(CelOptions options) {
+    public CelRuntimeBuilder setOptions(CelOptions options) {
       this.options = options;
       return this;
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder addFunctionBindings(CelFunctionBinding... bindings) {
+    public CelRuntimeBuilder addFunctionBindings(CelFunctionBinding... bindings) {
       return addFunctionBindings(Arrays.asList(bindings));
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder addFunctionBindings(Iterable<CelFunctionBinding> bindings) {
+    public CelRuntimeBuilder addFunctionBindings(Iterable<CelFunctionBinding> bindings) {
       bindings.forEach(o -> functionBindings.put(o.getOverloadId(), o));
       return this;
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder addMessageTypes(Descriptor... descriptors) {
+    public CelRuntimeBuilder addMessageTypes(Descriptor... descriptors) {
       return addMessageTypes(Arrays.asList(descriptors));
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder addMessageTypes(Iterable<Descriptor> descriptors) {
+    public CelRuntimeBuilder addMessageTypes(Iterable<Descriptor> descriptors) {
       return addFileTypes(CelDescriptorUtil.getFileDescriptorsForDescriptors(descriptors));
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder addFileTypes(FileDescriptor... fileDescriptors) {
+    public CelRuntimeBuilder addFileTypes(FileDescriptor... fileDescriptors) {
       return addFileTypes(Arrays.asList(fileDescriptors));
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder addFileTypes(Iterable<FileDescriptor> fileDescriptors) {
+    public CelRuntimeBuilder addFileTypes(Iterable<FileDescriptor> fileDescriptors) {
       this.fileTypes.addAll(checkNotNull(fileDescriptors));
       return this;
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder addFileTypes(FileDescriptorSet fileDescriptorSet) {
+    public CelRuntimeBuilder addFileTypes(FileDescriptorSet fileDescriptorSet) {
       return addFileTypes(
           CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fileDescriptorSet));
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder setTypeFactory(Function<String, Message.Builder> typeFactory) {
+    public CelRuntimeBuilder setTypeFactory(Function<String, Message.Builder> typeFactory) {
       this.customTypeFactory = typeFactory;
       return this;
     }
 
     @Override
-    @CanIgnoreReturnValue
     public CelRuntimeBuilder setValueProvider(CelValueProvider celValueProvider) {
       this.celValueProvider = celValueProvider;
       return this;
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder setStandardEnvironmentEnabled(boolean value) {
+    public CelRuntimeBuilder setStandardEnvironmentEnabled(boolean value) {
       standardEnvironmentEnabled = value;
       return this;
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder addLibraries(CelRuntimeLibrary... libraries) {
+    public CelRuntimeBuilder addLibraries(CelRuntimeLibrary... libraries) {
       checkNotNull(libraries);
       return this.addLibraries(Arrays.asList(libraries));
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder addLibraries(Iterable<? extends CelRuntimeLibrary> libraries) {
+    public CelRuntimeBuilder addLibraries(Iterable<? extends CelRuntimeLibrary> libraries) {
       checkNotNull(libraries);
       this.celRuntimeLibraries.addAll(libraries);
       return this;
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder setExtensionRegistry(ExtensionRegistry extensionRegistry) {
+    public CelRuntimeBuilder setExtensionRegistry(ExtensionRegistry extensionRegistry) {
       checkNotNull(extensionRegistry);
       this.extensionRegistry = extensionRegistry.getUnmodifiable();
       return this;
@@ -184,7 +170,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
     /** Build a new {@code CelRuntimeLegacyImpl} instance from the builder config. */
     @Override
-    @CanIgnoreReturnValue
     public CelRuntimeLegacyImpl build() {
       // Add libraries, such as extensions
       celRuntimeLibraries.build().forEach(celLibrary -> celLibrary.setRuntimeOptions(this));

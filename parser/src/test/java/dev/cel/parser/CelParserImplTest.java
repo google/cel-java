@@ -39,7 +39,8 @@ public final class CelParserImplTest {
 
   @Test
   public void build_withMacros_containsAllMacros() {
-    CelParserImpl parser = CelParserImpl.newBuilder().addMacros(CelMacro.STANDARD_MACROS).build();
+    CelParserImpl parser =
+        (CelParserImpl) CelParserImpl.newBuilder().addMacros(CelMacro.STANDARD_MACROS).build();
     assertThat(parser.findMacro("has:1:false")).hasValue(CelMacro.HAS);
     assertThat(parser.findMacro("all:2:true")).hasValue(CelMacro.ALL);
     assertThat(parser.findMacro("exists:2:true")).hasValue(CelMacro.EXISTS);
@@ -52,7 +53,8 @@ public final class CelParserImplTest {
   @Test
   public void build_withStandardMacros_containsAllMacros() {
     CelParserImpl parser =
-        CelParserImpl.newBuilder().setStandardMacros(CelStandardMacro.STANDARD_MACROS).build();
+        (CelParserImpl)
+            CelParserImpl.newBuilder().setStandardMacros(CelStandardMacro.STANDARD_MACROS).build();
     assertThat(parser.findMacro("has:1:false")).hasValue(CelMacro.HAS);
     assertThat(parser.findMacro("all:2:true")).hasValue(CelMacro.ALL);
     assertThat(parser.findMacro("exists:2:true")).hasValue(CelMacro.EXISTS);
@@ -68,10 +70,11 @@ public final class CelParserImplTest {
         CelMacro.newReceiverMacro(
             "customMacro", 1, (a, b, c) -> Optional.of(CelExpr.newBuilder().build()));
     CelParserImpl parser =
-        CelParserImpl.newBuilder()
-            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-            .addMacros(customMacro)
-            .build();
+        (CelParserImpl)
+            CelParserImpl.newBuilder()
+                .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+                .addMacros(customMacro)
+                .build();
 
     assertThat(parser.findMacro("has:1:false")).hasValue(CelMacro.HAS);
     assertThat(parser.findMacro("all:2:true")).hasValue(CelMacro.ALL);
@@ -85,24 +88,26 @@ public final class CelParserImplTest {
 
   @Test
   public void build_withMacro_containsMacro() {
-    CelParserImpl parser = CelParserImpl.newBuilder().addMacros(CelMacro.HAS).build();
+    CelParserImpl parser =
+        (CelParserImpl) CelParserImpl.newBuilder().addMacros(CelMacro.HAS).build();
     assertThat(parser.findMacro("has:1:false")).hasValue(CelMacro.HAS);
   }
 
   @Test
   public void build_withStandardMacro_containsMacro() {
     CelParserImpl parser =
-        CelParserImpl.newBuilder().setStandardMacros(CelStandardMacro.HAS).build();
+        (CelParserImpl) CelParserImpl.newBuilder().setStandardMacros(CelStandardMacro.HAS).build();
     assertThat(parser.findMacro("has:1:false")).hasValue(CelMacro.HAS);
   }
 
   @Test
   public void build_withStandardMacro_secondCallReplaces() {
     CelParserImpl parser =
-        CelParserImpl.newBuilder()
-            .setStandardMacros(CelStandardMacro.HAS, CelStandardMacro.ALL)
-            .setStandardMacros(CelStandardMacro.HAS)
-            .build();
+        (CelParserImpl)
+            CelParserImpl.newBuilder()
+                .setStandardMacros(CelStandardMacro.HAS, CelStandardMacro.ALL)
+                .setStandardMacros(CelStandardMacro.HAS)
+                .build();
 
     assertThat(parser.findMacro("has:1:false")).hasValue(CelMacro.HAS);
     assertThat(parser.findMacro("all:2:true")).isEmpty();
@@ -124,24 +129,26 @@ public final class CelParserImplTest {
 
   @Test
   public void build_containsNoMacros() {
-    CelParserImpl parser = CelParserImpl.newBuilder().build();
+    CelParserImpl parser = (CelParserImpl) CelParserImpl.newBuilder().build();
     assertThat(parser.findMacro("has:1:false")).isEmpty();
   }
 
   @Test
   public void setParserLibrary_success() {
     CelParserImpl parser =
-        CelParserImpl.newBuilder()
-            .addLibraries(
-                new CelParserLibrary() {
-                  @Override
-                  public void setParserOptions(CelParserBuilder parserBuilder) {
-                    parserBuilder.addMacros(
-                        CelMacro.newReceiverVarArgMacro(
-                            "dummyMacro", (a, b, c) -> Optional.of(CelExpr.newBuilder().build())));
-                  }
-                })
-            .build();
+        (CelParserImpl)
+            CelParserImpl.newBuilder()
+                .addLibraries(
+                    new CelParserLibrary() {
+                      @Override
+                      public void setParserOptions(CelParserBuilder parserBuilder) {
+                        parserBuilder.addMacros(
+                            CelMacro.newReceiverVarArgMacro(
+                                "dummyMacro",
+                                (a, b, c) -> Optional.of(CelExpr.newBuilder().build())));
+                      }
+                    })
+                .build();
 
     assertThat(parser.findMacro("dummyMacro:*:true")).isPresent();
   }
@@ -149,9 +156,10 @@ public final class CelParserImplTest {
   @Test
   public void parse_throwsWhenExpressionSizeCodePointLimitExceeded() {
     CelParserImpl parser =
-        CelParserImpl.newBuilder()
-            .setOptions(CelOptions.newBuilder().maxExpressionCodePointSize(2).build())
-            .build();
+        (CelParserImpl)
+            CelParserImpl.newBuilder()
+                .setOptions(CelOptions.newBuilder().maxExpressionCodePointSize(2).build())
+                .build();
     CelValidationResult parseResult = parser.parse(CelSource.newBuilder("foo").build());
     CelValidationException exception =
         assertThrows(CelValidationException.class, parseResult::getAst);
@@ -205,7 +213,7 @@ public final class CelParserImplTest {
   public void parse_largeExprHitsMaxRecursionLimit_throws(
       @TestParameter MaxParseRecursionDepthTestCase testCase) {
     int maxParseRecursionLimit = MaxParseRecursionDepthTestCase.MAX_RECURSION_LIMIT;
-    CelParserImpl parser =
+    CelParser parser =
         CelParserImpl.newBuilder()
             .setOptions(
                 CelOptions.newBuilder().maxParseRecursionDepth(maxParseRecursionLimit).build())
@@ -231,7 +239,7 @@ public final class CelParserImplTest {
       @TestParameter MaxParseRecursionDepthTestCase testCase) throws CelValidationException {
     int maxParseRecursionLimit = MaxParseRecursionDepthTestCase.MAX_RECURSION_LIMIT + 1;
 
-    CelParserImpl parser =
+    CelParser parser =
         CelParserImpl.newBuilder()
             .setOptions(
                 CelOptions.newBuilder().maxParseRecursionDepth(maxParseRecursionLimit).build())
@@ -248,7 +256,7 @@ public final class CelParserImplTest {
   @TestParameters("{expression: 'A.exists_one(a?b, c)'}")
   @TestParameters("{expression: 'A.filter(a?b, c)'}")
   public void parse_macroArgumentContainsSyntaxError_throws(String expression) {
-    CelParserImpl parser = CelParserImpl.newBuilder().addMacros(CelMacro.STANDARD_MACROS).build();
+    CelParser parser = CelParserImpl.newBuilder().addMacros(CelMacro.STANDARD_MACROS).build();
 
     CelValidationResult parseResult = parser.parse(expression);
 

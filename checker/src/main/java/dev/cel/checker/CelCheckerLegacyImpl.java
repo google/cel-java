@@ -125,7 +125,7 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
   }
 
   /** Create a new builder to construct a {@code CelChecker} instance. */
-  public static Builder newBuilder() {
+  public static CelCheckerBuilder newBuilder() {
     return new Builder();
   }
 
@@ -145,35 +145,27 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     private CelTypeProvider celTypeProvider;
     private boolean standardEnvironmentEnabled;
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder setOptions(CelOptions celOptions) {
+    public CelCheckerBuilder setOptions(CelOptions celOptions) {
       this.celOptions = checkNotNull(celOptions);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder setContainer(String container) {
+    public CelCheckerBuilder setContainer(String container) {
       checkNotNull(container);
       this.container = container;
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addDeclarations(Decl... declarations) {
+    public CelCheckerBuilder addDeclarations(Decl... declarations) {
       checkNotNull(declarations);
       return addDeclarations(Arrays.asList(declarations));
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addDeclarations(Iterable<Decl> declarations) {
+    public CelCheckerBuilder addDeclarations(Iterable<Decl> declarations) {
       checkNotNull(declarations);
       for (Decl decl : declarations) {
         switch (decl.getDeclKindCase()) {
@@ -207,35 +199,28 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     @CanIgnoreReturnValue
-    public Builder addFunctionDeclarations(CelFunctionDecl... celFunctionDecls) {
+    public CelCheckerBuilder addFunctionDeclarations(CelFunctionDecl... celFunctionDecls) {
       checkNotNull(celFunctionDecls);
       return addFunctionDeclarations(Arrays.asList(celFunctionDecls));
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addFunctionDeclarations(Iterable<CelFunctionDecl> celFunctionDecls) {
+    public CelCheckerBuilder addFunctionDeclarations(Iterable<CelFunctionDecl> celFunctionDecls) {
       checkNotNull(celFunctionDecls);
       this.functionDeclarations.addAll(celFunctionDecls);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addVarDeclarations(CelVarDecl... celVarDecls) {
+    public CelCheckerBuilder addVarDeclarations(CelVarDecl... celVarDecls) {
       checkNotNull(celVarDecls);
       return addVarDeclarations(Arrays.asList(celVarDecls));
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addVarDeclarations(Iterable<CelVarDecl> celVarDecls) {
+    public CelCheckerBuilder addVarDeclarations(Iterable<CelVarDecl> celVarDecls) {
       checkNotNull(celVarDecls);
       for (CelVarDecl celVarDecl : celVarDecls) {
         this.identDeclarations.add(
@@ -244,122 +229,93 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addProtoTypeMasks(ProtoTypeMask... typeMasks) {
+    public CelCheckerBuilder addProtoTypeMasks(ProtoTypeMask... typeMasks) {
       checkNotNull(typeMasks);
       return addProtoTypeMasks(Arrays.asList(typeMasks));
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addProtoTypeMasks(Iterable<ProtoTypeMask> typeMasks) {
+    public CelCheckerBuilder addProtoTypeMasks(Iterable<ProtoTypeMask> typeMasks) {
       checkNotNull(typeMasks);
       protoTypeMasks.addAll(typeMasks);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder setResultType(CelType resultType) {
+    public CelCheckerBuilder setResultType(CelType resultType) {
       checkNotNull(resultType);
       this.expectedResultType = resultType;
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder setProtoResultType(Type resultType) {
+    public CelCheckerBuilder setProtoResultType(Type resultType) {
       checkNotNull(resultType);
       return setResultType(CelTypes.typeToCelType(resultType));
     }
 
-    /** {@inheritDoc} */
-    @CanIgnoreReturnValue
     @Override
     @Deprecated
-    public Builder setTypeProvider(TypeProvider typeProvider) {
+    public CelCheckerBuilder setTypeProvider(TypeProvider typeProvider) {
       this.customTypeProvider = typeProvider;
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder setTypeProvider(CelTypeProvider celTypeProvider) {
+    public CelCheckerBuilder setTypeProvider(CelTypeProvider celTypeProvider) {
       this.celTypeProvider = celTypeProvider;
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addMessageTypes(Descriptor... descriptors) {
+    public CelCheckerBuilder addMessageTypes(Descriptor... descriptors) {
       return addMessageTypes(Arrays.asList(checkNotNull(descriptors)));
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addMessageTypes(Iterable<Descriptor> descriptors) {
+    public CelCheckerBuilder addMessageTypes(Iterable<Descriptor> descriptors) {
       this.messageTypes.addAll(checkNotNull(descriptors));
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addFileTypes(FileDescriptor... fileDescriptors) {
+    public CelCheckerBuilder addFileTypes(FileDescriptor... fileDescriptors) {
       return addFileTypes(Arrays.asList(checkNotNull(fileDescriptors)));
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addFileTypes(Iterable<FileDescriptor> fileDescriptors) {
+    public CelCheckerBuilder addFileTypes(Iterable<FileDescriptor> fileDescriptors) {
       this.fileTypes.addAll(checkNotNull(fileDescriptors));
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addFileTypes(FileDescriptorSet fileDescriptorSet) {
+    public CelCheckerBuilder addFileTypes(FileDescriptorSet fileDescriptorSet) {
       checkNotNull(fileDescriptorSet);
       return addFileTypes(
           CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fileDescriptorSet));
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder setStandardEnvironmentEnabled(boolean value) {
+    public CelCheckerBuilder setStandardEnvironmentEnabled(boolean value) {
       standardEnvironmentEnabled = value;
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addLibraries(CelCheckerLibrary... libraries) {
+    public CelCheckerBuilder addLibraries(CelCheckerLibrary... libraries) {
       checkNotNull(libraries);
       return this.addLibraries(Arrays.asList(libraries));
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addLibraries(Iterable<? extends CelCheckerLibrary> libraries) {
+    public CelCheckerBuilder addLibraries(Iterable<? extends CelCheckerLibrary> libraries) {
       checkNotNull(libraries);
       this.celCheckerLibraries.addAll(libraries);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     @CheckReturnValue
     public CelCheckerLegacyImpl build() {

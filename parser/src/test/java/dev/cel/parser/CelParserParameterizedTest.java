@@ -239,7 +239,7 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
     runTest(PARSER, "{");
     runTest(PARSER, "t{>C}");
 
-    CelParserImpl parserWithoutOptionalSupport =
+    CelParser parserWithoutOptionalSupport =
         CelParserImpl.newBuilder()
             .setOptions(CelOptions.current().enableOptionalSyntax(false).build())
             .build();

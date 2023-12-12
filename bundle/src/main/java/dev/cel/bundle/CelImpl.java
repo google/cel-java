@@ -112,7 +112,7 @@ final class CelImpl implements Cel, EnvVisitable {
    *
    * <p>By default, {@link CelOptions#DEFAULT} are enabled, as is the CEL standard environment.
    */
-  static Builder newBuilder(CelParserBuilder parserBuilder, CelCheckerBuilder checkerBuilder) {
+  static CelBuilder newBuilder(CelParserBuilder parserBuilder, CelCheckerBuilder checkerBuilder) {
     return new CelImpl.Builder(parserBuilder, checkerBuilder);
   }
 
@@ -128,20 +128,20 @@ final class CelImpl implements Cel, EnvVisitable {
     }
 
     @Override
-    public Builder setOptions(CelOptions options) {
+    public CelBuilder setOptions(CelOptions options) {
       compilerBuilder.setOptions(options);
       runtimeBuilder.setOptions(options);
       return this;
     }
 
     @Override
-    public Builder setStandardMacros(CelStandardMacro... macros) {
+    public CelBuilder setStandardMacros(CelStandardMacro... macros) {
       compilerBuilder.setStandardMacros(macros);
       return this;
     }
 
     @Override
-    public Builder setStandardMacros(Iterable<CelStandardMacro> macros) {
+    public CelBuilder setStandardMacros(Iterable<CelStandardMacro> macros) {
       compilerBuilder.setStandardMacros(macros);
       return this;
     }
@@ -160,103 +160,103 @@ final class CelImpl implements Cel, EnvVisitable {
     }
 
     @Override
-    public Builder setContainer(String container) {
+    public CelBuilder setContainer(String container) {
       compilerBuilder.setContainer(container);
       return this;
     }
 
     @Override
-    public Builder addVar(String name, Type type) {
+    public CelBuilder addVar(String name, Type type) {
       compilerBuilder.addVar(name, type);
       return this;
     }
 
     @Override
-    public Builder addVar(String name, CelType type) {
+    public CelBuilder addVar(String name, CelType type) {
       compilerBuilder.addVar(name, type);
       return this;
     }
 
     @Override
-    public Builder addDeclarations(Decl... declarations) {
+    public CelBuilder addDeclarations(Decl... declarations) {
       compilerBuilder.addDeclarations(declarations);
       return this;
     }
 
     @Override
-    public Builder addDeclarations(Iterable<Decl> declarations) {
+    public CelBuilder addDeclarations(Iterable<Decl> declarations) {
       compilerBuilder.addDeclarations(declarations);
       return this;
     }
 
     @Override
-    public Builder addFunctionDeclarations(CelFunctionDecl... celFunctionDecls) {
+    public CelBuilder addFunctionDeclarations(CelFunctionDecl... celFunctionDecls) {
       compilerBuilder.addFunctionDeclarations(celFunctionDecls);
       return this;
     }
 
     @Override
-    public Builder addFunctionDeclarations(Iterable<CelFunctionDecl> celFunctionDecls) {
+    public CelBuilder addFunctionDeclarations(Iterable<CelFunctionDecl> celFunctionDecls) {
       compilerBuilder.addFunctionDeclarations(celFunctionDecls);
       return this;
     }
 
     @Override
-    public Builder addVarDeclarations(CelVarDecl... celVarDecls) {
+    public CelBuilder addVarDeclarations(CelVarDecl... celVarDecls) {
       compilerBuilder.addVarDeclarations(celVarDecls);
       return this;
     }
 
     @Override
-    public Builder addVarDeclarations(Iterable<CelVarDecl> celVarDecls) {
+    public CelBuilder addVarDeclarations(Iterable<CelVarDecl> celVarDecls) {
       compilerBuilder.addVarDeclarations(celVarDecls);
       return this;
     }
 
     @Override
-    public Builder addProtoTypeMasks(ProtoTypeMask... typeMasks) {
+    public CelBuilder addProtoTypeMasks(ProtoTypeMask... typeMasks) {
       compilerBuilder.addProtoTypeMasks(typeMasks);
       return this;
     }
 
     @Override
-    public Builder addProtoTypeMasks(Iterable<ProtoTypeMask> typeMasks) {
+    public CelBuilder addProtoTypeMasks(Iterable<ProtoTypeMask> typeMasks) {
       compilerBuilder.addProtoTypeMasks(typeMasks);
       return this;
     }
 
     @Override
-    public Builder addFunctionBindings(CelRuntime.CelFunctionBinding... bindings) {
+    public CelBuilder addFunctionBindings(CelRuntime.CelFunctionBinding... bindings) {
       runtimeBuilder.addFunctionBindings(bindings);
       return this;
     }
 
     @Override
-    public Builder addFunctionBindings(Iterable<CelRuntime.CelFunctionBinding> bindings) {
+    public CelBuilder addFunctionBindings(Iterable<CelRuntime.CelFunctionBinding> bindings) {
       runtimeBuilder.addFunctionBindings(bindings);
       return this;
     }
 
     @Override
-    public Builder setResultType(CelType resultType) {
+    public CelBuilder setResultType(CelType resultType) {
       checkNotNull(resultType);
       return setProtoResultType(CelTypes.celTypeToType(resultType));
     }
 
     @Override
-    public Builder setProtoResultType(Type resultType) {
+    public CelBuilder setProtoResultType(Type resultType) {
       compilerBuilder.setProtoResultType(resultType);
       return this;
     }
 
     @Override
-    public Builder setTypeFactory(Function<String, Message.Builder> typeFactory) {
+    public CelBuilder setTypeFactory(Function<String, Message.Builder> typeFactory) {
       runtimeBuilder.setTypeFactory(typeFactory);
       return this;
     }
 
     @Override
-    public Builder setValueProvider(CelValueProvider celValueProvider) {
+    public CelBuilder setValueProvider(CelValueProvider celValueProvider) {
       runtimeBuilder.setValueProvider(celValueProvider);
       return this;
     }
@@ -269,41 +269,41 @@ final class CelImpl implements Cel, EnvVisitable {
     }
 
     @Override
-    public Builder setTypeProvider(CelTypeProvider celTypeProvider) {
+    public CelBuilder setTypeProvider(CelTypeProvider celTypeProvider) {
       compilerBuilder.setTypeProvider(celTypeProvider);
       return this;
     }
 
     @Override
-    public Builder addMessageTypes(Descriptor... descriptors) {
+    public CelBuilder addMessageTypes(Descriptor... descriptors) {
       compilerBuilder.addMessageTypes(descriptors);
       runtimeBuilder.addMessageTypes(descriptors);
       return this;
     }
 
     @Override
-    public Builder addMessageTypes(Iterable<Descriptor> descriptors) {
+    public CelBuilder addMessageTypes(Iterable<Descriptor> descriptors) {
       compilerBuilder.addMessageTypes(descriptors);
       runtimeBuilder.addMessageTypes(descriptors);
       return this;
     }
 
     @Override
-    public Builder addFileTypes(FileDescriptor... fileDescriptors) {
+    public CelBuilder addFileTypes(FileDescriptor... fileDescriptors) {
       compilerBuilder.addFileTypes(fileDescriptors);
       runtimeBuilder.addFileTypes(fileDescriptors);
       return this;
     }
 
     @Override
-    public Builder addFileTypes(Iterable<FileDescriptor> fileDescriptors) {
+    public CelBuilder addFileTypes(Iterable<FileDescriptor> fileDescriptors) {
       compilerBuilder.addFileTypes(fileDescriptors);
       runtimeBuilder.addFileTypes(fileDescriptors);
       return this;
     }
 
     @Override
-    public Builder addFileTypes(FileDescriptorSet fileDescriptorSet) {
+    public CelBuilder addFileTypes(FileDescriptorSet fileDescriptorSet) {
       // Note: The convert method here constructs unique instances of FileDescriptors, so we convert
       // it here in advance and pass it down to compiler/runtime to avoid creating additional
       // instances.
@@ -315,33 +315,33 @@ final class CelImpl implements Cel, EnvVisitable {
     }
 
     @Override
-    public Builder setStandardEnvironmentEnabled(boolean value) {
+    public CelBuilder setStandardEnvironmentEnabled(boolean value) {
       compilerBuilder.setStandardEnvironmentEnabled(value);
       runtimeBuilder.setStandardEnvironmentEnabled(value);
       return this;
     }
 
     @Override
-    public Builder addCompilerLibraries(CelCompilerLibrary... libraries) {
+    public CelBuilder addCompilerLibraries(CelCompilerLibrary... libraries) {
       checkNotNull(libraries);
       return this.addCompilerLibraries(Arrays.asList(libraries));
     }
 
     @Override
-    public Builder addCompilerLibraries(Iterable<CelCompilerLibrary> libraries) {
+    public CelBuilder addCompilerLibraries(Iterable<CelCompilerLibrary> libraries) {
       checkNotNull(libraries);
       compilerBuilder.addLibraries(libraries);
       return this;
     }
 
     @Override
-    public Builder addRuntimeLibraries(CelRuntimeLibrary... libraries) {
+    public CelBuilder addRuntimeLibraries(CelRuntimeLibrary... libraries) {
       checkNotNull(libraries);
       return this.addRuntimeLibraries(Arrays.asList(libraries));
     }
 
     @Override
-    public Builder addRuntimeLibraries(Iterable<CelRuntimeLibrary> libraries) {
+    public CelBuilder addRuntimeLibraries(Iterable<CelRuntimeLibrary> libraries) {
       checkNotNull(libraries);
       runtimeBuilder.addLibraries(libraries);
       return this;

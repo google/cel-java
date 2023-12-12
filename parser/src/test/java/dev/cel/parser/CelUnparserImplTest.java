@@ -37,7 +37,7 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 public final class CelUnparserImplTest {
 
-  private final CelParserImpl parser =
+  private final CelParser parser =
       CelParserImpl.newBuilder()
           .setOptions(CelOptions.newBuilder().populateMacroCalls(true).build())
           .addLibraries(CelOptionalLibrary.INSTANCE)
@@ -246,7 +246,7 @@ public final class CelUnparserImplTest {
   @Test
   public void unparse_comprehensionWithoutMacroCallTracking_presenceTestSucceeds()
       throws Exception {
-    CelParserImpl parser =
+    CelParser parser =
         CelParserImpl.newBuilder()
             .setOptions(CelOptions.newBuilder().populateMacroCalls(false).build())
             .addMacros(CelMacro.STANDARD_MACROS)
@@ -258,7 +258,7 @@ public final class CelUnparserImplTest {
 
   @Test
   public void unparse_comprehensionWithoutMacroCallTracking_throwsException() throws Exception {
-    CelParserImpl parser =
+    CelParser parser =
         CelParserImpl.newBuilder()
             .setOptions(CelOptions.newBuilder().populateMacroCalls(false).build())
             .addMacros(CelMacro.STANDARD_MACROS)

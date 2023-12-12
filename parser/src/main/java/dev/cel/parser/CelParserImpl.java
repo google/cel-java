@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelOptions;
@@ -52,7 +51,7 @@ public final class CelParserImpl implements CelParser {
   private final CelOptions options;
 
   /** Creates a new {@link Builder}. */
-  public static Builder newBuilder() {
+  public static CelParserBuilder newBuilder() {
     return new Builder().setOptions(CelOptions.DEFAULT);
   }
 
@@ -84,15 +83,13 @@ public final class CelParserImpl implements CelParser {
     private CelOptions options;
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder setStandardMacros(CelStandardMacro... macros) {
+    public CelParserBuilder setStandardMacros(CelStandardMacro... macros) {
       checkNotNull(macros);
       return setStandardMacros(Arrays.asList(macros));
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder setStandardMacros(Iterable<CelStandardMacro> macros) {
+    public CelParserBuilder setStandardMacros(Iterable<CelStandardMacro> macros) {
       checkNotNull(macros);
       this.standardMacros.clear();
       Iterables.addAll(this.standardMacros, macros);
@@ -100,15 +97,13 @@ public final class CelParserImpl implements CelParser {
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder addMacros(CelMacro... macros) {
+    public CelParserBuilder addMacros(CelMacro... macros) {
       checkNotNull(macros);
       return addMacros(Arrays.asList(macros));
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder addMacros(Iterable<CelMacro> macros) {
+    public CelParserBuilder addMacros(Iterable<CelMacro> macros) {
       checkNotNull(macros);
       for (CelMacro m : macros) {
         CelMacro macro = checkNotNull(m);
@@ -118,22 +113,19 @@ public final class CelParserImpl implements CelParser {
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder addLibraries(CelParserLibrary... libraries) {
+    public CelParserBuilder addLibraries(CelParserLibrary... libraries) {
       checkNotNull(libraries);
       return this.addLibraries(Arrays.asList(libraries));
     }
 
     @Override
-    @CanIgnoreReturnValue
-    public Builder addLibraries(Iterable<? extends CelParserLibrary> libraries) {
+    public CelParserBuilder addLibraries(Iterable<? extends CelParserLibrary> libraries) {
       checkNotNull(libraries);
       this.celParserLibraries.addAll(libraries);
       return this;
     }
 
     @Override
-    @CanIgnoreReturnValue
     public Builder setOptions(CelOptions options) {
       this.options = checkNotNull(options);
       return this;

@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import dev.cel.expr.Decl;
 import dev.cel.expr.Type;
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
@@ -92,7 +91,7 @@ public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
    *
    * <p>By default, {@link CelOptions#DEFAULT} are enabled, as is the CEL standard environment.
    */
-  public static Builder newBuilder(
+  public static CelCompilerBuilder newBuilder(
       CelParserBuilder parserBuilder, CelCheckerBuilder checkerBuilder) {
     return new Builder(parserBuilder, checkerBuilder);
   }
@@ -102,230 +101,177 @@ public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
     private final CelParserBuilder parserBuilder;
     private final CelCheckerBuilder checkerBuilder;
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder setOptions(CelOptions options) {
+    public CelCompilerBuilder setOptions(CelOptions options) {
       parserBuilder.setOptions(options);
       checkerBuilder.setOptions(options);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder setStandardMacros(CelStandardMacro... macros) {
-      parserBuilder.setStandardMacros(macros);
-      return this;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    @CanIgnoreReturnValue
-    public Builder setStandardMacros(Iterable<CelStandardMacro> macros) {
+    public CelCompilerBuilder setStandardMacros(CelStandardMacro... macros) {
       parserBuilder.setStandardMacros(macros);
       return this;
     }
 
     @Override
-    public Builder addMacros(CelMacro... macros) {
+    public CelCompilerBuilder setStandardMacros(Iterable<CelStandardMacro> macros) {
+      parserBuilder.setStandardMacros(macros);
+      return this;
+    }
+
+    @Override
+    public CelCompilerBuilder addMacros(CelMacro... macros) {
       checkNotNull(macros);
       return addMacros(Arrays.asList(macros));
     }
 
     @Override
-    public Builder addMacros(Iterable<CelMacro> macros) {
+    public CelCompilerBuilder addMacros(Iterable<CelMacro> macros) {
       checkNotNull(macros);
       parserBuilder.addMacros(macros);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder setContainer(String container) {
+    public CelCompilerBuilder setContainer(String container) {
       checkerBuilder.setContainer(container);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addVar(String name, Type type) {
+    public CelCompilerBuilder addVar(String name, Type type) {
       return addVar(name, CelTypes.typeToCelType(type));
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addVar(String name, CelType type) {
+    public CelCompilerBuilder addVar(String name, CelType type) {
       return addVarDeclarations(CelVarDecl.newVarDeclaration(name, type));
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addDeclarations(Decl... declarations) {
+    public CelCompilerBuilder addDeclarations(Decl... declarations) {
       checkerBuilder.addDeclarations(declarations);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addDeclarations(Iterable<Decl> declarations) {
+    public CelCompilerBuilder addDeclarations(Iterable<Decl> declarations) {
       checkerBuilder.addDeclarations(declarations);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addFunctionDeclarations(CelFunctionDecl... celFunctionDecls) {
+    public CelCompilerBuilder addFunctionDeclarations(CelFunctionDecl... celFunctionDecls) {
       checkerBuilder.addFunctionDeclarations(celFunctionDecls);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addFunctionDeclarations(Iterable<CelFunctionDecl> celFunctionDecls) {
+    public CelCompilerBuilder addFunctionDeclarations(Iterable<CelFunctionDecl> celFunctionDecls) {
       checkerBuilder.addFunctionDeclarations(celFunctionDecls);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addVarDeclarations(CelVarDecl... celVarDecls) {
+    public CelCompilerBuilder addVarDeclarations(CelVarDecl... celVarDecls) {
       checkerBuilder.addVarDeclarations(celVarDecls);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addVarDeclarations(Iterable<CelVarDecl> celVarDecls) {
+    public CelCompilerBuilder addVarDeclarations(Iterable<CelVarDecl> celVarDecls) {
       checkerBuilder.addVarDeclarations(celVarDecls);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addProtoTypeMasks(ProtoTypeMask... typeMasks) {
+    public CelCompilerBuilder addProtoTypeMasks(ProtoTypeMask... typeMasks) {
       checkerBuilder.addProtoTypeMasks(typeMasks);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addProtoTypeMasks(Iterable<ProtoTypeMask> typeMasks) {
+    public CelCompilerBuilder addProtoTypeMasks(Iterable<ProtoTypeMask> typeMasks) {
       checkerBuilder.addProtoTypeMasks(typeMasks);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder setResultType(CelType resultType) {
+    public CelCompilerBuilder setResultType(CelType resultType) {
       checkNotNull(resultType);
       return setProtoResultType(CelTypes.celTypeToType(resultType));
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder setProtoResultType(Type resultType) {
+    public CelCompilerBuilder setProtoResultType(Type resultType) {
       checkerBuilder.setProtoResultType(resultType);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
     @Deprecated
-    public Builder setTypeProvider(TypeProvider typeProvider) {
+    public CelCompilerBuilder setTypeProvider(TypeProvider typeProvider) {
       checkerBuilder.setTypeProvider(typeProvider);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder setTypeProvider(CelTypeProvider celTypeProvider) {
+    public CelCompilerBuilder setTypeProvider(CelTypeProvider celTypeProvider) {
       checkerBuilder.setTypeProvider(celTypeProvider);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addMessageTypes(Descriptor... descriptors) {
+    public CelCompilerBuilder addMessageTypes(Descriptor... descriptors) {
       checkerBuilder.addMessageTypes(descriptors);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addMessageTypes(Iterable<Descriptor> descriptors) {
+    public CelCompilerBuilder addMessageTypes(Iterable<Descriptor> descriptors) {
       checkerBuilder.addMessageTypes(descriptors);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addFileTypes(FileDescriptor... fileDescriptors) {
+    public CelCompilerBuilder addFileTypes(FileDescriptor... fileDescriptors) {
       checkerBuilder.addFileTypes(fileDescriptors);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addFileTypes(Iterable<FileDescriptor> fileDescriptors) {
+    public CelCompilerBuilder addFileTypes(Iterable<FileDescriptor> fileDescriptors) {
       checkerBuilder.addFileTypes(fileDescriptors);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addFileTypes(FileDescriptorSet fileDescriptorSet) {
+    public CelCompilerBuilder addFileTypes(FileDescriptorSet fileDescriptorSet) {
       checkerBuilder.addFileTypes(fileDescriptorSet);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder setStandardEnvironmentEnabled(boolean value) {
+    public CelCompilerBuilder setStandardEnvironmentEnabled(boolean value) {
       checkerBuilder.setStandardEnvironmentEnabled(value);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addLibraries(CelCompilerLibrary... libraries) {
+    public CelCompilerBuilder addLibraries(CelCompilerLibrary... libraries) {
       checkNotNull(libraries);
       return this.addLibraries(Arrays.asList(libraries));
     }
 
-    /** {@inheritDoc} */
     @Override
-    @CanIgnoreReturnValue
-    public Builder addLibraries(Iterable<? extends CelCompilerLibrary> libraries) {
+    public CelCompilerBuilder addLibraries(Iterable<? extends CelCompilerLibrary> libraries) {
       checkNotNull(libraries);
       parserBuilder.addLibraries(libraries);
       checkerBuilder.addLibraries(libraries);
       return this;
     }
 
-    /** {@inheritDoc} */
     @Override
     @CheckReturnValue
     public CelCompilerImpl build() {
