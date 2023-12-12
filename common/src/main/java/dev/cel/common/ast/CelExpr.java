@@ -1175,4 +1175,9 @@ public abstract class CelExpr {
                     .build()))
         .build();
   }
+
+  @Override
+  public final String toString() {
+    return CelExprFormatter.format(this);
+  }
 }

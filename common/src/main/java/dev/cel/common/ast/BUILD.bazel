@@ -11,6 +11,7 @@ package(
 AST_SOURCES = [
     "CelConstant.java",
     "CelExpr.java",
+    "CelExprFormatter.java",
     "CelReference.java",
 ]
 
