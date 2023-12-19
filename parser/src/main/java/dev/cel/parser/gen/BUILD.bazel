@@ -1,0 +1,32 @@
+"""
+The generated parser is kept seperate from //parser/src/main/java/dev/cel/parser
+to avoid a path conflict with parser/src/main/java/dev/cel/parser/CelParser.java
+that causes build failures on filesystems with case-insensitive paths (e.g. macOS).
+"""
+
+load("//:antlr.bzl", "antlr4_java_combined")
+
+package(
+    default_applicable_licenses = ["//:license"],
+)
+
+antlr4_java_combined(
+    name = "cel_g4",
+    src = "CEL.g4",
+    listener = False,
+    package = "cel.parser.internal",
+    visitor = True,
+)
+
+java_library(
+    name = "cel_g4_visitors",
+    srcs = [":cel_g4"],
+    tags = [
+    ],
+    visibility = [
+        "//parser:__pkg__",
+    ],
+    deps = [
+        "@maven//:org_antlr_antlr4_runtime",
+    ],
+)

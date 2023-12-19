@@ -1,5 +1,3 @@
-load("//:antlr.bzl", "antlr4_java_combined")
-
 package(
     default_applicable_licenses = ["//:license"],
     default_visibility = [
@@ -44,7 +42,6 @@ java_library(
     tags = [
     ],
     deps = [
-        ":cel_g4_visitors",
         ":macro",
         ":operator",
         ":parser_builder",
@@ -54,6 +51,7 @@ java_library(
         "//common/annotations",
         "//common/ast",
         "//common/internal",
+        "//parser:cel_g4_visitors",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:org_antlr_antlr4_runtime",
@@ -100,24 +98,6 @@ java_library(
     deps = [
         "//common/ast",
         "@maven//:com_google_guava_guava",
-    ],
-)
-
-antlr4_java_combined(
-    name = "cel_g4",
-    src = "CEL.g4",
-    listener = False,
-    package = "cel.parser.internal",
-    visitor = True,
-)
-
-java_library(
-    name = "cel_g4_visitors",
-    srcs = [":cel_g4"],
-    tags = [
-    ],
-    deps = [
-        "@maven//:org_antlr_antlr4_runtime",
     ],
 )
 

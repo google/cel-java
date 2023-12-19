@@ -26,7 +26,7 @@ java_library(
 java_library(
     name = "cel_g4_visitors",
     visibility = ["//visibility:public"],
-    exports = ["//parser/src/main/java/dev/cel/parser:cel_g4_visitors"],
+    exports = ["//parser/src/main/java/dev/cel/parser/gen:cel_g4_visitors"],
 )
 
 java_library(
