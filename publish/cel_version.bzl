@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Maven artifact version for CEL."""
-CEL_VERSION = "0.2.0"
+CEL_VERSION = "0.3.0-SNAPSHOT"

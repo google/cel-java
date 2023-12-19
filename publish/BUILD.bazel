@@ -24,6 +24,27 @@ COMPILER_TARGETS = [
     "//compiler/src/main/java/dev/cel/compiler:compiler_builder",
 ]
 
+VALIDATOR_TARGETS = [
+    "//validator/src/main/java/dev/cel/validator",
+    "//validator/src/main/java/dev/cel/validator:validator_builder",
+    "//validator/src/main/java/dev/cel/validator:ast_validator",
+    "//validator/src/main/java/dev/cel/validator:validator_impl",
+    "//validator/src/main/java/dev/cel/validator/validators:timestamp",
+    "//validator/src/main/java/dev/cel/validator/validators:duration",
+    "//validator/src/main/java/dev/cel/validator/validators:regex",
+    "//validator/src/main/java/dev/cel/validator/validators:homogeneous_literal",
+]
+
+OPTIMIZER_TARGETS = [
+    "//optimizer/src/main/java/dev/cel/optimizer",
+    "//optimizer/src/main/java/dev/cel/optimizer:optimizer_builder",
+    "//optimizer/src/main/java/dev/cel/optimizer:ast_optimizer",
+    "//optimizer/src/main/java/dev/cel/optimizer:optimization_exception",
+    "//optimizer/src/main/java/dev/cel/optimizer:mutable_ast",
+    "//optimizer/src/main/java/dev/cel/optimizer:optimizer_impl",
+    "//optimizer/src/main/java/dev/cel/optimizer/optimizers:constant_folding",
+]
+
 V1ALPHA1_UTILITY_TARGETS = [
     "//common/src/main/java/dev/cel/common:proto_v1alpha1_ast",
 ]
@@ -35,7 +56,7 @@ EXTENSION_TARGETS = [
 
 ALL_TARGETS = [
     "//bundle/src/main/java/dev/cel/bundle:cel",
-] + RUNTIME_TARGETS + COMPILER_TARGETS + EXTENSION_TARGETS + V1ALPHA1_UTILITY_TARGETS
+] + RUNTIME_TARGETS + COMPILER_TARGETS + EXTENSION_TARGETS + V1ALPHA1_UTILITY_TARGETS + OPTIMIZER_TARGETS + VALIDATOR_TARGETS
 
 pom_file(
     name = "cel_pom",
@@ -111,6 +132,44 @@ java_export(
     maven_coordinates = "dev.cel:extensions:%s" % CEL_VERSION,
     pom_template = ":cel_extensions_pom",
     runtime_deps = EXTENSION_TARGETS,
+)
+
+pom_file(
+    name = "cel_validators_pom",
+    substitutions = {
+        "CEL_VERSION": CEL_VERSION,
+        "CEL_ARTIFACT_ID": "validators",
+        "PACKAGE_NAME": "CEL Java Validators",
+        "PACKAGE_DESC": "Common Expression Language Validators for Java",
+    },
+    targets = VALIDATOR_TARGETS,
+    template_file = "pom_template.xml",
+)
+
+java_export(
+    name = "cel_validators",
+    maven_coordinates = "dev.cel:validators:%s" % CEL_VERSION,
+    pom_template = ":cel_validators_pom",
+    runtime_deps = VALIDATOR_TARGETS,
+)
+
+pom_file(
+    name = "cel_optimizers_pom",
+    substitutions = {
+        "CEL_VERSION": CEL_VERSION,
+        "CEL_ARTIFACT_ID": "optimizers",
+        "PACKAGE_NAME": "CEL Java Optimizers",
+        "PACKAGE_DESC": "Common Expression Language Optimizers for Java",
+    },
+    targets = OPTIMIZER_TARGETS,
+    template_file = "pom_template.xml",
+)
+
+java_export(
+    name = "cel_optimizers",
+    maven_coordinates = "dev.cel:optimizers:%s" % CEL_VERSION,
+    pom_template = ":cel_optimizers_pom",
+    runtime_deps = OPTIMIZER_TARGETS,
 )
 
 pom_file(
