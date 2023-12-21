@@ -254,7 +254,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
    */
   @VisibleForTesting
   static void verifyOptimizedAstCorrectness(CelAbstractSyntaxTree ast) {
-    CelNavigableAst celNavigableAst = CelNavigableAst.fromAst(ast);
+    CelNavigableAst celNavigableAst = CelNavigableAst.fromAstToMutable(ast);
 
     ImmutableList<CelExpr> allCelBlocks =
         celNavigableAst

@@ -14,6 +14,8 @@ java_library(
         "CelNavigableExpr.java",
         "CelNavigableExprVisitor.java",
         "ExprHeightCalculator.java",
+        "MutableExpr.java",
+        "MutableExprConverter.java",
     ],
     tags = [
     ],
@@ -23,5 +25,7 @@ java_library(
         "//common/ast",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_jspecify_jspecify",
     ],
 )

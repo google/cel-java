@@ -24,14 +24,20 @@ public final class CelNavigableAst {
   private final CelAbstractSyntaxTree ast;
   private final CelNavigableExpr root;
 
-  private CelNavigableAst(CelAbstractSyntaxTree ast) {
+  private CelNavigableAst(CelAbstractSyntaxTree ast, boolean isMutable) {
     this.ast = ast;
-    this.root = CelNavigableExpr.fromExpr(ast.getExpr());
+    this.root = isMutable ?
+        CelNavigableExpr.fromMutableExpr(MutableExprConverter.fromCelExpr(ast.getExpr())) :
+        CelNavigableExpr.fromExpr(ast.getExpr());
   }
 
   /** Constructs a new instance of {@link CelNavigableAst} from {@link CelAbstractSyntaxTree}. */
   public static CelNavigableAst fromAst(CelAbstractSyntaxTree ast) {
-    return new CelNavigableAst(ast);
+    return new CelNavigableAst(ast, false);
+  }
+
+  public static CelNavigableAst fromAstToMutable(CelAbstractSyntaxTree ast) {
+    return new CelNavigableAst(ast, true);
   }
 
   /** Returns the root of the AST. */

@@ -49,6 +49,7 @@ public abstract class CelNavigableExpr {
   }
 
   public abstract CelExpr expr();
+  public abstract MutableExpr mutableExpr();
 
   public long id() {
     return expr().id();
@@ -74,6 +75,18 @@ public abstract class CelNavigableExpr {
         .setHeight(exprHeightCalculator.getHeight(expr.id()))
         .build();
   }
+
+
+  /** Constructs a new instance of {@link CelNavigableExpr} from {@link CelExpr}. */
+  public static CelNavigableExpr fromMutableExpr(MutableExpr expr) {
+    // ExprHeightCalculator exprHeightCalculator = new ExprHeightCalculator(expr);
+
+    return CelNavigableExpr.builder()
+        .setMutableExpr(expr)
+        // .setHeight(exprHeightCalculator.getHeight(expr.id()))
+        .build();
+  }
+
 
   /**
    * Returns a stream of {@link CelNavigableExpr} collected from the current node down to the last
@@ -132,7 +145,9 @@ public abstract class CelNavigableExpr {
 
   /** Create a new builder to construct a {@link CelNavigableExpr} instance. */
   public static Builder builder() {
-    return new AutoValue_CelNavigableExpr.Builder().setDepth(0).setHeight(0);
+    return new AutoValue_CelNavigableExpr.Builder()
+        .setExpr(CelExpr.ofNotSet(0))
+        .setMutableExpr(MutableExpr.ofNotSet()).setDepth(0).setHeight(0);
   }
 
   /** Builder to configure {@link CelNavigableExpr}. */
@@ -148,6 +163,7 @@ public abstract class CelNavigableExpr {
     }
 
     public abstract Builder setExpr(CelExpr value);
+    public abstract Builder setMutableExpr(MutableExpr value);
 
     abstract Builder setParent(CelNavigableExpr value);
 
