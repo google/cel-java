@@ -299,7 +299,12 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
 
       return Optional.of(replaceSubtree(ast, result, expr.id()));
     } else if (function.equals(Operator.IN.getFunction())) {
-      CelCreateList haystack = call.args().get(1).createList();
+      CelExpr callArg = call.args().get(1);
+      if (!callArg.exprKind().getKind().equals(Kind.CREATE_LIST)) {
+        return Optional.empty();
+      }
+
+      CelCreateList haystack = callArg.createList();
       if (haystack.elements().isEmpty()) {
         return Optional.of(
             replaceSubtree(

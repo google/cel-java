@@ -2,7 +2,7 @@
 bazel-bin
 bazel-examples
 bazel-genfiles
-bazel-grpc-java
+bazel-cel-java
 bazel-out
 bazel-testlogs
 

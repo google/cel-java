@@ -23,6 +23,8 @@ import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.types.ListType;
+import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.optimizer.CelOptimizationException;
@@ -41,6 +43,8 @@ public class ConstantFoldingOptimizerTest {
       CelFactory.standardCelBuilder()
           .addVar("x", SimpleType.DYN)
           .addVar("y", SimpleType.DYN)
+          .addVar("list_var", ListType.create(SimpleType.STRING))
+          .addVar("map_var", MapType.create(SimpleType.STRING, SimpleType.STRING))
           .addMessageTypes(TestAllTypes.getDescriptor())
           .setContainer("dev.cel.testing.testdata.proto3")
           .addCompilerLibraries(CelOptionalLibrary.INSTANCE)
@@ -152,6 +156,8 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters("{source: 'x + dyn([1, 2] + [3, 4])', expected: 'x + [1, 2, 3, 4]'}")
   @TestParameters(
       "{source: '{\"a\": dyn([1, 2]), \"b\": x}', expected: '{\"a\": [1, 2], \"b\": x}'}")
+  @TestParameters("{source: 'map_var[?\"key\"]', expected: 'map_var[?\"key\"]'}")
+  @TestParameters("{source: '\"abc\" in list_var', expected: '\"abc\" in list_var'}")
   // TODO: Support folding lists with mixed types. This requires mutable lists.
   // @TestParameters("{source: 'dyn([1]) + [1.0]'}")
   public void constantFold_success(String source, String expected) throws Exception {
