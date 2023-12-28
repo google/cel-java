@@ -1,9 +1,6 @@
 package(
     default_applicable_licenses = ["//:license"],
-    default_visibility = [
-        "//bundle:__pkg__",
-        "//publish:__pkg__",
-    ],
+    default_visibility = ["//bundle:__pkg__"],
 )
 
 CEL_SOURCES = [
