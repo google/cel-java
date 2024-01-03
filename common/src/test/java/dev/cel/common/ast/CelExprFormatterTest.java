@@ -62,6 +62,13 @@ public class CelExprFormatterTest {
   }
 
   @Test
+  public void notSet() {
+    String formattedExpr = CelExprFormatter.format(CelExpr.ofNotSet(1));
+
+    assertThat(formattedExpr).isEqualTo("NOT_SET [1] {}");
+  }
+
+  @Test
   public void select() throws Exception {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()

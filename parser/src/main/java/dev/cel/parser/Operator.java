@@ -189,7 +189,7 @@ public enum Operator {
     return Optional.ofNullable(UNARY_OPERATORS.get(op));
   }
 
-  static Optional<String> lookupBinaryOperator(String op) {
+  public static Optional<String> lookupBinaryOperator(String op) {
     return Optional.ofNullable(BINARY_OPERATORS.get(op));
   }
 

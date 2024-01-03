@@ -47,4 +47,14 @@ public interface CelAstOptimizer {
       CelAbstractSyntaxTree ast, CelExpr newExpr, long exprIdToReplace) {
     return MutableAst.replaceSubtree(ast, newExpr, exprIdToReplace);
   }
+
+  default CelAbstractSyntaxTree replaceSubtreeWithBindMacro(
+      CelAbstractSyntaxTree ast, String varName, CelExpr varInit, CelExpr exprToReplace) {
+    return MutableAst.replaceSubtreeWithNewBindMacro(
+        ast, varName, varInit, exprToReplace, exprToReplace.id());
+  }
+
+  default CelExpr clearExprIds(CelExpr celExpr) {
+    return MutableAst.clearExprIds(celExpr);
+  }
 }

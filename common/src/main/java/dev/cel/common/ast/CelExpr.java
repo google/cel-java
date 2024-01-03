@@ -216,6 +216,7 @@ public abstract class CelExpr {
   /** Builder for CelExpr. */
   @AutoValue.Builder
   public abstract static class Builder {
+
     public abstract long id();
 
     public abstract Builder setId(long value);
@@ -787,6 +788,8 @@ public abstract class CelExpr {
       @AutoValue.Builder
       public abstract static class Builder {
 
+        public abstract long id();
+
         public abstract CelExpr value();
 
         public abstract Builder setId(long value);
@@ -918,6 +921,7 @@ public abstract class CelExpr {
       /** Builder for CelCreateMap.Entry. */
       @AutoValue.Builder
       public abstract static class Builder {
+        public abstract long id();
 
         public abstract CelExpr key();
 
