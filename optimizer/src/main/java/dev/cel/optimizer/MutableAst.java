@@ -16,7 +16,9 @@ package dev.cel.optimizer;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static java.lang.Math.max;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -29,8 +31,9 @@ import dev.cel.common.ast.CelExpr.CelCreateList;
 import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct;
 import dev.cel.common.ast.CelExpr.CelSelect;
+import dev.cel.common.ast.CelExprFactory;
 import dev.cel.common.ast.CelExprIdGeneratorFactory;
-import dev.cel.common.ast.CelExprIdGeneratorFactory.MonotonicIdGenerator;
+import dev.cel.common.ast.CelExprIdGeneratorFactory.ExprIdGenerator;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.StableIdGenerator;
 import dev.cel.common.navigation.CelNavigableExpr;
 import java.util.Map.Entry;
@@ -51,34 +54,172 @@ final class MutableAst {
     this.exprIdToReplace = exprId;
   }
 
+  /** Replaces all the expression IDs in the expression tree with 0. */
+  static CelExpr clearExprIds(CelExpr celExpr) {
+    return renumberExprIds((unused) -> 0, celExpr.toBuilder()).build();
+  }
+
   /**
-   * Replaces a subtree in the given CelExpr.
+   * Mutates the given AST by replacing a subtree at a given index.
    *
-   * <p>This method should remain package-private.
+   * @param ast Existing AST being mutated
+   * @param newExpr New subtree to perform the replacement with.
+   * @param exprIdToReplace The expr ID in the existing AST to replace the subtree at.
    */
   static CelAbstractSyntaxTree replaceSubtree(
       CelAbstractSyntaxTree ast, CelExpr newExpr, long exprIdToReplace) {
-    // Update the IDs in the new expression tree first. This ensures that no ID collision
-    // occurs while attempting to replace the subtree, potentially leading to infinite loop
-    MonotonicIdGenerator monotonicIdGenerator =
-        CelExprIdGeneratorFactory.newMonotonicIdGenerator(getMaxId(ast.getExpr()));
-    CelExpr.Builder newExprBuilder =
-        renumberExprIds((unused) -> monotonicIdGenerator.nextExprId(), newExpr.toBuilder());
+    return replaceSubtree(
+        ast,
+        CelAbstractSyntaxTree.newParsedAst(newExpr, CelSource.newBuilder().build()),
+        exprIdToReplace);
+  }
 
+  /**
+   * Mutates the given AST by replacing a subtree at a given index.
+   *
+   * @param ast Existing AST being mutated
+   * @param newAst New subtree to perform the replacement with. If the subtree has a macro map
+   *     populated, its macro source is merged with the existing AST's after normalization.
+   * @param exprIdToReplace The expr ID in the existing AST to replace the subtree at.
+   */
+  static CelAbstractSyntaxTree replaceSubtree(
+      CelAbstractSyntaxTree ast, CelAbstractSyntaxTree newAst, long exprIdToReplace) {
+    // Stabilize the incoming AST by renumbering all of its expression IDs.
+    long maxId = max(getMaxId(ast), getMaxId(newAst));
+    newAst = stabilizeAst(newAst, maxId);
+
+    // Mutate the AST root with the new subtree. All the existing expr IDs are renumbered in the
+    // process, but its original IDs are memoized so that we can normalize the expr IDs
+    // in the macro source map.
     StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(0);
     CelExpr.Builder mutatedRoot =
         replaceSubtreeImpl(
             stableIdGenerator::renumberId,
             ast.getExpr().toBuilder(),
-            newExprBuilder,
+            newAst.getExpr().toBuilder(),
             exprIdToReplace);
 
-    // If the source info contained macro call information, their IDs must be normalized.
-    CelSource normalizedSource =
-        normalizeMacroSource(
-            ast.getSource(), exprIdToReplace, mutatedRoot, stableIdGenerator::renumberId);
+    CelSource newAstSource = ast.getSource();
+    if (!newAst.getSource().getMacroCalls().isEmpty()) {
+      // The root is mutated, but the expr IDs in the macro map needs to be normalized.
+      // In situations where an AST with a new macro map is being inserted (ex: new bind call),
+      // the new subtree's expr ID is not memoized in the stable ID generator because the ID never
+      // existed in the main AST.
+      // In this case, we forcibly memoize the new subtree ID with a newly generated ID so
+      // that the macro map IDs can be normalized properly.
+      stableIdGenerator.memoize(
+          newAst.getExpr().id(), stableIdGenerator.renumberId(exprIdToReplace));
+      newAstSource = combine(newAstSource, newAst.getSource());
+    }
 
-    return CelAbstractSyntaxTree.newParsedAst(mutatedRoot.build(), normalizedSource);
+    newAstSource =
+        normalizeMacroSource(
+            newAstSource, exprIdToReplace, mutatedRoot, stableIdGenerator::renumberId);
+
+    return CelAbstractSyntaxTree.newParsedAst(mutatedRoot.build(), newAstSource);
+  }
+
+  /** Replaces the subtree at the given ID with a newly created bind macro. */
+  static CelAbstractSyntaxTree replaceSubtreeWithNewBindMacro(
+      CelAbstractSyntaxTree ast,
+      String varName,
+      CelExpr varInit,
+      CelExpr resultExpr,
+      long exprIdToReplace) {
+    long maxId = max(getMaxId(varInit), getMaxId(ast));
+    StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(maxId);
+    BindMacro bindMacro = newBindMacro(varName, varInit, resultExpr, stableIdGenerator);
+    // In situations where the existing AST already contains a macro call (ex: nested cel.binds),
+    // its macro source must be normalized to make it consistent with the newly generated bind
+    // macro.
+    CelSource celSource =
+        normalizeMacroSource(
+            ast.getSource(),
+            -1, // Do not replace any of the subexpr in the macro map.
+            bindMacro.bindMacro().toBuilder(),
+            stableIdGenerator::renumberId);
+    celSource =
+        celSource.toBuilder()
+            .addMacroCalls(bindMacro.bindExpr().id(), bindMacro.bindMacro())
+            .build();
+
+    return replaceSubtree(
+        ast, CelAbstractSyntaxTree.newParsedAst(bindMacro.bindExpr(), celSource), exprIdToReplace);
+  }
+
+  private static BindMacro newBindMacro(
+      String varName, CelExpr varInit, CelExpr resultExpr, StableIdGenerator stableIdGenerator) {
+    // Clear incoming expression IDs in the initialization expression to avoid collision with the
+    // main AST.
+    varInit = clearExprIds(varInit);
+    CelExprFactory exprFactory =
+        CelExprFactory.newInstance((unused) -> stableIdGenerator.nextExprId(-1));
+    CelExpr bindMacroExpr =
+        exprFactory.fold(
+            "#unused",
+            exprFactory.newList(),
+            varName,
+            varInit,
+            exprFactory.newBoolLiteral(false),
+            exprFactory.newIdentifier(varName),
+            resultExpr);
+
+    // Update the IDs in the new expression tree first. This ensures that no ID collision
+    // occurs while attempting to replace the subtree later, potentially leading to an infinite loop
+    bindMacroExpr =
+        renumberExprIds(stableIdGenerator::nextExprId, bindMacroExpr.toBuilder()).build();
+
+    CelExpr bindMacroCallExpr =
+        exprFactory
+            .newReceiverCall(
+                "bind",
+                CelExpr.ofIdentExpr(stableIdGenerator.nextExprId(-1), "cel"),
+                CelExpr.ofIdentExpr(stableIdGenerator.nextExprId(-1), varName),
+                bindMacroExpr.comprehension().accuInit(),
+                bindMacroExpr.comprehension().result())
+            .toBuilder()
+            .setId(0)
+            .build();
+
+    return BindMacro.of(bindMacroExpr, bindMacroCallExpr);
+  }
+
+  private static CelSource combine(CelSource celSource1, CelSource celSource2) {
+    ImmutableMap.Builder<Long, CelExpr> macroMap = ImmutableMap.builder();
+    macroMap.putAll(celSource1.getMacroCalls());
+    macroMap.putAll(celSource2.getMacroCalls());
+
+    return CelSource.newBuilder().addAllMacroCalls(macroMap.buildOrThrow()).build();
+  }
+
+  /**
+   * Stabilizes the incoming AST by ensuring that all of expr IDs are consistently renumbered
+   * (monotonically increased) from the starting seed ID. If the AST contains any macro calls, its
+   * IDs are also normalized.
+   */
+  private static CelAbstractSyntaxTree stabilizeAst(CelAbstractSyntaxTree ast, long seedExprId) {
+    StableIdGenerator stableIdGenerator =
+        CelExprIdGeneratorFactory.newStableIdGenerator(seedExprId);
+    CelExpr.Builder newExprBuilder =
+        renumberExprIds(stableIdGenerator::nextExprId, ast.getExpr().toBuilder());
+
+    if (ast.getSource().getMacroCalls().isEmpty()) {
+      return CelAbstractSyntaxTree.newParsedAst(newExprBuilder.build(), ast.getSource());
+    }
+
+    CelSource.Builder sourceBuilder = CelSource.newBuilder();
+    // Update the macro call IDs and their call IDs
+    for (Entry<Long, CelExpr> macroCall : ast.getSource().getMacroCalls().entrySet()) {
+      long macroId = macroCall.getKey();
+      long newCallId = stableIdGenerator.renumberId(macroId);
+
+      CelExpr.Builder newCall =
+          renumberExprIds(stableIdGenerator::renumberId, macroCall.getValue().toBuilder());
+
+      sourceBuilder.addMacroCalls(newCallId, newCall.build());
+    }
+
+    return CelAbstractSyntaxTree.newParsedAst(newExprBuilder.build(), sourceBuilder.build());
   }
 
   private static CelSource normalizeMacroSource(
@@ -116,6 +257,10 @@ final class MutableAst {
       long macroId = macroCall.getKey();
       long callId = idGenerator.generate(macroId);
 
+      if (!allExprs.containsKey(callId)) {
+        continue;
+      }
+
       CelExpr.Builder newCall = renumberExprIds(idGenerator, macroCall.getValue().toBuilder());
       CelNavigableExpr callNav = CelNavigableExpr.fromExpr(newCall.build());
       ImmutableList<CelExpr> callDescendants =
@@ -150,6 +295,15 @@ final class MutableAst {
       ExprIdGenerator idGenerator, CelExpr.Builder root) {
     MutableAst mutableAst = new MutableAst(idGenerator, root, Integer.MIN_VALUE);
     return mutableAst.visit(root);
+  }
+
+  private static long getMaxId(CelAbstractSyntaxTree ast) {
+    long maxId = getMaxId(ast.getExpr());
+    for (Entry<Long, CelExpr> macroCall : ast.getSource().getMacroCalls().entrySet()) {
+      maxId = max(maxId, getMaxId(macroCall.getValue()));
+    }
+
+    return maxId;
   }
 
   private static long getMaxId(CelExpr newExpr) {
@@ -216,6 +370,7 @@ final class MutableAst {
     ImmutableList<CelCreateStruct.Entry.Builder> entries = createStruct.getEntriesBuilders();
     for (int i = 0; i < entries.size(); i++) {
       CelCreateStruct.Entry.Builder entry = entries.get(i);
+      entry.setId(celExprIdGenerator.generate(entry.id()));
       entry.setValue(visit(entry.value().toBuilder()).build());
 
       createStruct.setEntry(i, entry.build());
@@ -228,6 +383,7 @@ final class MutableAst {
     ImmutableList<CelCreateMap.Entry.Builder> entriesBuilders = createMap.getEntriesBuilders();
     for (int i = 0; i < entriesBuilders.size(); i++) {
       CelCreateMap.Entry.Builder entry = entriesBuilders.get(i);
+      entry.setId(celExprIdGenerator.generate(entry.id()));
       entry.setKey(visit(entry.key().toBuilder()).build());
       entry.setValue(visit(entry.value().toBuilder()).build());
 
@@ -257,10 +413,24 @@ final class MutableAst {
     return expr.setComprehension(comprehension.build());
   }
 
-  @FunctionalInterface
-  private interface ExprIdGenerator {
+  /**
+   * Intermediate value class to store the generated CelExpr for the bind macro and the macro call
+   * information.
+   */
+  @AutoValue
+  abstract static class BindMacro {
 
-    /** Generates an expression ID based on the provided ID. */
-    long generate(long exprId);
+    /** Comprehension expr for the generated cel.bind macro. */
+    abstract CelExpr bindExpr();
+
+    /**
+     * Call expr representation that will be stored in the macro call map of the AST. This is
+     * typically used for the purposes of supporting unparse.
+     */
+    abstract CelExpr bindMacro();
+
+    private static BindMacro of(CelExpr bindExpr, CelExpr bindMacro) {
+      return new AutoValue_MutableAst_BindMacro(bindExpr, bindMacro);
+    }
   }
 }

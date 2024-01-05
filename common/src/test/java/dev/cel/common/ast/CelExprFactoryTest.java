@@ -16,6 +16,7 @@ package dev.cel.common.ast;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import dev.cel.common.ast.CelExprIdGeneratorFactory.StableIdGenerator;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -36,5 +37,16 @@ public class CelExprFactoryTest {
 
     assertThat(exprFactory.nextExprId()).isEqualTo(1L);
     assertThat(exprFactory.nextExprId()).isEqualTo(2L);
+  }
+
+  @Test
+  public void nextExprId_usingStableIdGenerator() {
+    StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(0);
+    CelExprFactory exprFactory = CelExprFactory.newInstance(stableIdGenerator::nextExprId);
+
+    assertThat(exprFactory.nextExprId()).isEqualTo(1L);
+    assertThat(exprFactory.nextExprId()).isEqualTo(2L);
+    assertThat(stableIdGenerator.hasId(-1)).isFalse();
+    assertThat(stableIdGenerator.hasId(0)).isFalse();
   }
 }

@@ -19,14 +19,22 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.ByteString;
+import dev.cel.common.annotations.Internal;
 import java.util.Arrays;
 
 /** Factory for generating expression nodes. */
+@Internal
 public class CelExprFactory {
-  private final CelExprIdGeneratorFactory.MonotonicIdGenerator idGenerator;
+
+  private final CelExprIdGeneratorFactory.ExprIdGenerator idGenerator;
 
   public static CelExprFactory newInstance() {
     return new CelExprFactory();
+  }
+
+  public static CelExprFactory newInstance(
+      CelExprIdGeneratorFactory.ExprIdGenerator exprIdGenerator) {
+    return new CelExprFactory(exprIdGenerator);
   }
 
   /** Create a new constant expression. */
@@ -543,10 +551,19 @@ public class CelExprFactory {
 
   /** Returns the next unique expression ID. */
   protected long nextExprId() {
-    return idGenerator.nextExprId();
+    return idGenerator.generate(
+        /* exprId= */ -1); // Unconditionally generate next unique ID (i.e: no renumbering).
   }
 
   protected CelExprFactory() {
-    idGenerator = CelExprIdGeneratorFactory.newMonotonicIdGenerator(0);
+    this(CelExprIdGeneratorFactory.newMonotonicIdGenerator(0));
+  }
+
+  private CelExprFactory(CelExprIdGeneratorFactory.MonotonicIdGenerator idGenerator) {
+    this((unused) -> idGenerator.nextExprId());
+  }
+
+  private CelExprFactory(CelExprIdGeneratorFactory.ExprIdGenerator exprIdGenerator) {
+    idGenerator = exprIdGenerator;
   }
 }

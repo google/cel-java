@@ -81,6 +81,7 @@ java_library(
     tags = [
     ],
     deps = [
+        "//:auto_value",
         "//common",
         "//common/annotations",
         "//common/ast",

@@ -14,10 +14,16 @@
 
 package dev.cel.common.ast;
 
+import com.google.common.collect.ImmutableSet;
+
 /** Provides string formatting support for {@link CelExpr}. */
 final class CelExprFormatter {
   private final StringBuilder indent = new StringBuilder();
   private final StringBuilder exprBuilder = new StringBuilder();
+
+  /** Denotes a set of expression kinds that will not have a new line inserted. */
+  private static final ImmutableSet<CelExpr.ExprKind.Kind> EXCLUDED_NEWLINE_KINDS =
+      ImmutableSet.of(CelExpr.ExprKind.Kind.CONSTANT, CelExpr.ExprKind.Kind.NOT_SET);
 
   static String format(CelExpr celExpr) {
     CelExprFormatter formatter = new CelExprFormatter();
@@ -28,7 +34,7 @@ final class CelExprFormatter {
   private void formatExpr(CelExpr celExpr) {
     append(String.format("%s [%d] {", celExpr.exprKind().getKind(), celExpr.id()));
     CelExpr.ExprKind.Kind exprKind = celExpr.exprKind().getKind();
-    if (!exprKind.equals(CelExpr.ExprKind.Kind.CONSTANT)) {
+    if (!EXCLUDED_NEWLINE_KINDS.contains(exprKind)) {
       appendNewline();
     }
 
@@ -57,12 +63,17 @@ final class CelExprFormatter {
       case COMPREHENSION:
         appendComprehension(celExpr.comprehension());
         break;
+      case NOT_SET:
+        break;
       default:
+        // This should be unreachable unless if we've added any other kinds.
+        indent();
         append("Unknown kind: " + exprKind);
+        outdent();
         break;
     }
 
-    if (!exprKind.equals(CelExpr.ExprKind.Kind.CONSTANT)) {
+    if (!EXCLUDED_NEWLINE_KINDS.contains(exprKind)) {
       appendNewline();
       append("}");
     } else {
