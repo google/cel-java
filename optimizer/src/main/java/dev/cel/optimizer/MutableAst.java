@@ -30,19 +30,26 @@ import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.CelCreateList;
 import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct;
+import dev.cel.common.ast.CelExpr.CelIdent;
 import dev.cel.common.ast.CelExpr.CelSelect;
+import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelExprFactory;
 import dev.cel.common.ast.CelExprIdGeneratorFactory;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.ExprIdGenerator;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.StableIdGenerator;
+import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
+import dev.cel.common.navigation.CelNavigableExpr.TraversalOrder;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 /** MutableAst contains logic for mutating a {@link CelExpr}. */
 @Internal
 final class MutableAst {
-  private static final int MAX_ITERATION_COUNT = 500;
+  private static final int MAX_ITERATION_COUNT = 1000;
+  private static final ExprIdGenerator NO_OP_ID_GENERATOR = id -> id;
+
   private final CelExpr.Builder newExpr;
   private final ExprIdGenerator celExprIdGenerator;
   private int iterationCount;
@@ -91,7 +98,8 @@ final class MutableAst {
     // Mutate the AST root with the new subtree. All the existing expr IDs are renumbered in the
     // process, but its original IDs are memoized so that we can normalize the expr IDs
     // in the macro source map.
-    StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(0);
+    StableIdGenerator stableIdGenerator =
+        CelExprIdGeneratorFactory.newStableIdGenerator(getMaxId(newAst));
     CelExpr.Builder mutatedRoot =
         replaceSubtreeImpl(
             stableIdGenerator::renumberId,
@@ -147,11 +155,150 @@ final class MutableAst {
         ast, CelAbstractSyntaxTree.newParsedAst(bindMacro.bindExpr(), celSource), exprIdToReplace);
   }
 
+  static CelAbstractSyntaxTree renumberIdsConsecutively(CelAbstractSyntaxTree ast) {
+    StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(0);
+    CelExpr.Builder root =
+        renumberExprIds(stableIdGenerator::renumberId, ast.getExpr().toBuilder());
+    CelSource newSource =
+        normalizeMacroSource(
+            ast.getSource(), Integer.MIN_VALUE, root, stableIdGenerator::renumberId);
+
+    return CelAbstractSyntaxTree.newParsedAst(root.build(), newSource);
+  }
+
+  static CelAbstractSyntaxTree mangleComprehensionIdentifierNames(
+      CelAbstractSyntaxTree ast, String newIdentPrefix) {
+    int iterCount;
+    CelNavigableAst newNavigableAst = CelNavigableAst.fromAst(ast);
+    for (iterCount = 0; iterCount < MAX_ITERATION_COUNT; iterCount++) {
+      Optional<CelNavigableExpr> maybeComprehensionExpr =
+          newNavigableAst
+              .getRoot()
+              // This is important - mangling needs to happen bottom-up to avoid stepping over
+              // shadowed variables that are not part of the comprehension being mangled.
+              .allNodes(TraversalOrder.POST_ORDER)
+              .filter(node -> node.getKind().equals(Kind.COMPREHENSION))
+              .filter(node -> !node.expr().comprehension().iterVar().startsWith(newIdentPrefix))
+              .findAny();
+      if (!maybeComprehensionExpr.isPresent()) {
+        break;
+      }
+
+      CelExpr.Builder comprehensionExpr = maybeComprehensionExpr.get().expr().toBuilder();
+      String iterVar = comprehensionExpr.comprehension().iterVar();
+      int comprehensionNestingLevel = countComprehensionNestingLevel(maybeComprehensionExpr.get());
+      String mangledVarName = newIdentPrefix + comprehensionNestingLevel;
+
+      CelExpr.Builder mutatedComprehensionExpr =
+          mangleIdentsInComprehensionExpr(
+              newNavigableAst.getAst().getExpr().toBuilder(),
+              comprehensionExpr,
+              iterVar,
+              mangledVarName);
+      // Repeat the mangling process for the macro source.
+      CelSource newSource =
+          mangleIdentsInMacroSource(
+              newNavigableAst.getAst(),
+              mutatedComprehensionExpr,
+              iterVar,
+              mangledVarName,
+              comprehensionExpr.id());
+
+      newNavigableAst =
+          CelNavigableAst.fromAst(
+              CelAbstractSyntaxTree.newParsedAst(mutatedComprehensionExpr.build(), newSource));
+    }
+
+    if (iterCount >= MAX_ITERATION_COUNT) {
+      throw new IllegalStateException("Max iteration count reached.");
+    }
+
+    return newNavigableAst.getAst();
+  }
+
+  private static CelExpr.Builder mangleIdentsInComprehensionExpr(
+      CelExpr.Builder root,
+      CelExpr.Builder comprehensionExpr,
+      String originalIterVar,
+      String mangledVarName) {
+    int iterCount;
+    for (iterCount = 0; iterCount < MAX_ITERATION_COUNT; iterCount++) {
+      Optional<CelExpr> identToMangle =
+          CelNavigableExpr.fromExpr(comprehensionExpr.comprehension().loopStep())
+              .descendants()
+              .map(CelNavigableExpr::expr)
+              .filter(node -> node.identOrDefault().name().equals(originalIterVar))
+              .findAny();
+      if (!identToMangle.isPresent()) {
+        break;
+      }
+
+      comprehensionExpr =
+          replaceSubtreeImpl(
+              NO_OP_ID_GENERATOR,
+              comprehensionExpr,
+              CelExpr.newBuilder().setIdent(CelIdent.newBuilder().setName(mangledVarName).build()),
+              identToMangle.get().id());
+    }
+
+    if (iterCount >= MAX_ITERATION_COUNT) {
+      throw new IllegalStateException("Max iteration count reached.");
+    }
+
+    return replaceSubtreeImpl(
+        NO_OP_ID_GENERATOR,
+        root,
+        comprehensionExpr.setComprehension(
+            comprehensionExpr.comprehension().toBuilder().setIterVar(mangledVarName).build()),
+        comprehensionExpr.id());
+  }
+
+  private static CelSource mangleIdentsInMacroSource(
+      CelAbstractSyntaxTree ast,
+      CelExpr.Builder mutatedComprehensionExpr,
+      String originalIterVar,
+      String mangledVarName,
+      long originalComprehensionId) {
+    if (!ast.getSource().getMacroCalls().containsKey(originalComprehensionId)) {
+      return ast.getSource();
+    }
+
+    // First, normalize the macro source.
+    // ex: [x].exists(x, [x].exists(x, x == 1)) -> [x].exists(x, [@c1].exists(x, @c0 == 1)).
+    CelSource.Builder newSource =
+        normalizeMacroSource(ast.getSource(), -1, mutatedComprehensionExpr, (id) -> id).toBuilder();
+
+    // Note that in the above example, the iteration variable is not replaced after normalization.
+    // This is because populating a macro call map upon parse generates a new unique identifier
+    // that does not exist in the main AST. Thus, we need to manually replace the identifier.
+    CelExpr.Builder macroExpr = newSource.getMacroCalls().get(originalComprehensionId).toBuilder();
+    // By convention, the iteration variable is always the first argument of the
+    // macro call expression.
+    CelExpr identToMangle = macroExpr.call().args().get(0);
+    if (!identToMangle.identOrDefault().name().equals(originalIterVar)) {
+      throw new IllegalStateException(
+          String.format(
+              "Expected %s for iteration variable but got %s instead.",
+              identToMangle.identOrDefault().name(), originalIterVar));
+    }
+    macroExpr =
+        replaceSubtreeImpl(
+            NO_OP_ID_GENERATOR,
+            macroExpr,
+            CelExpr.newBuilder().setIdent(CelIdent.newBuilder().setName(mangledVarName).build()),
+            identToMangle.id());
+
+    newSource.addMacroCalls(originalComprehensionId, macroExpr.build());
+    return newSource.build();
+  }
+
   private static BindMacro newBindMacro(
       String varName, CelExpr varInit, CelExpr resultExpr, StableIdGenerator stableIdGenerator) {
-    // Clear incoming expression IDs in the initialization expression to avoid collision with the
-    // main AST.
-    varInit = clearExprIds(varInit);
+    // Renumber incoming expression IDs in the init and result expression to avoid collision with
+    // the main AST. Existing IDs are memoized for a macro source sanitization pass at the end
+    // (e.g: inserting a bind macro to an existing macro expr)
+    varInit = renumberExprIds(stableIdGenerator::nextExprId, varInit.toBuilder()).build();
+    resultExpr = renumberExprIds(stableIdGenerator::nextExprId, resultExpr.toBuilder()).build();
     CelExprFactory exprFactory =
         CelExprFactory.newInstance((unused) -> stableIdGenerator.nextExprId(-1));
     CelExpr bindMacroExpr =
@@ -163,11 +310,6 @@ final class MutableAst {
             exprFactory.newBoolLiteral(false),
             exprFactory.newIdentifier(varName),
             resultExpr);
-
-    // Update the IDs in the new expression tree first. This ensures that no ID collision
-    // occurs while attempting to replace the subtree later, potentially leading to an infinite loop
-    bindMacroExpr =
-        renumberExprIds(stableIdGenerator::nextExprId, bindMacroExpr.toBuilder()).build();
 
     CelExpr bindMacroCallExpr =
         exprFactory
@@ -270,6 +412,7 @@ final class MutableAst {
         if (!allExprs.containsKey(callChild.id())) {
           continue;
         }
+
         CelExpr mutatedExpr = allExprs.get(callChild.id());
         if (!callChild.equals(mutatedExpr)) {
           newCall =
@@ -277,6 +420,25 @@ final class MutableAst {
         }
       }
       sourceBuilder.addMacroCalls(callId, newCall.build());
+    }
+
+    // Replace comprehension nodes with a NOT_SET reference to reduce AST size.
+    for (Entry<Long, CelExpr> macroCall : sourceBuilder.getMacroCalls().entrySet()) {
+      CelExpr macroCallExpr = macroCall.getValue();
+      CelNavigableExpr.fromExpr(macroCallExpr)
+          .allNodes()
+          .filter(node -> node.getKind().equals(Kind.COMPREHENSION))
+          .map(CelNavigableExpr::expr)
+          .forEach(
+              node -> {
+                CelExpr.Builder mutatedNode =
+                    replaceSubtreeImpl(
+                        (id) -> id,
+                        macroCallExpr.toBuilder(),
+                        CelExpr.ofNotSet(node.id()).toBuilder(),
+                        node.id());
+                macroCall.setValue(mutatedNode.build());
+              });
     }
 
     return sourceBuilder.build();
@@ -309,9 +471,22 @@ final class MutableAst {
   private static long getMaxId(CelExpr newExpr) {
     return CelNavigableExpr.fromExpr(newExpr)
         .allNodes()
-        .mapToLong(node -> node.expr().id())
+        .mapToLong(CelNavigableExpr::id)
         .max()
         .orElseThrow(NoSuchElementException::new);
+  }
+
+  private static int countComprehensionNestingLevel(CelNavigableExpr comprehensionExpr) {
+    int nestedLevel = 0;
+    Optional<CelNavigableExpr> maybeParent = comprehensionExpr.parent();
+    while (maybeParent.isPresent()) {
+      if (maybeParent.get().getKind().equals(Kind.COMPREHENSION)) {
+        nestedLevel++;
+      }
+
+      maybeParent = maybeParent.get().parent();
+    }
+    return nestedLevel;
   }
 
   private CelExpr.Builder visit(CelExpr.Builder expr) {
@@ -419,7 +594,6 @@ final class MutableAst {
    */
   @AutoValue
   abstract static class BindMacro {
-
     /** Comprehension expr for the generated cel.bind macro. */
     abstract CelExpr bindExpr();
 

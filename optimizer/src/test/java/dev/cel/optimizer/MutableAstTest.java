@@ -71,7 +71,7 @@ public class MutableAstTest {
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(true)).build(), 1);
 
     assertThat(mutatedAst.getExpr())
-        .isEqualTo(CelExpr.ofConstantExpr(1, CelConstant.ofValue(true)));
+        .isEqualTo(CelExpr.ofConstantExpr(3, CelConstant.ofValue(true)));
   }
 
   @Test
@@ -126,7 +126,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast2 = CEL.compile(source).getAst();
 
     CelAbstractSyntaxTree mutatedAst =
-        MutableAst.replaceSubtree(ast, ast2, CelNavigableAst.fromAst(ast).getRoot().expr().id());
+        MutableAst.replaceSubtree(ast, ast2, CelNavigableAst.fromAst(ast).getRoot().id());
 
     assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(expectedMacroCallSize);
     assertThat(CEL_UNPARSER.unparse(mutatedAst)).isEqualTo(source);
@@ -185,7 +185,7 @@ public class MutableAstTest {
             variableName,
             CelExpr.ofConstantExpr(0, CelConstant.ofValue(3L)),
             resultExpr,
-            CelNavigableAst.fromAst(ast).getRoot().expr().id());
+            CelNavigableAst.fromAst(ast).getRoot().id());
 
     assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(1);
     assertThat(CEL_UNPARSER.unparse(mutatedAst)).isEqualTo("cel.bind(@r0, 3, @r0 + @r0)");
@@ -333,7 +333,7 @@ public class MutableAstTest {
             nestedVariableName,
             CelExpr.ofConstantExpr(0, CelConstant.ofValue(3L)),
             resultExpr,
-            1);
+            CelNavigableAst.fromAst(mutatedAst).getRoot().id());
 
     assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(2);
     assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(8);
@@ -349,7 +349,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast2 = CEL.compile("1").getAst();
 
     CelAbstractSyntaxTree mutatedAst =
-        MutableAst.replaceSubtree(ast, ast2, CelNavigableAst.fromAst(ast).getRoot().expr().id());
+        MutableAst.replaceSubtree(ast, ast2, CelNavigableAst.fromAst(ast).getRoot().id());
 
     assertThat(mutatedAst.getSource().getMacroCalls()).isEmpty();
     assertThat(CEL_UNPARSER.unparse(mutatedAst)).isEqualTo("1");
@@ -368,7 +368,7 @@ public class MutableAstTest {
         MutableAst.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(10)).build(), 4);
 
-    assertThat(replacedAst.getExpr()).isEqualTo(CelExpr.ofConstantExpr(1, CelConstant.ofValue(10)));
+    assertThat(replacedAst.getExpr()).isEqualTo(CelExpr.ofConstantExpr(7, CelConstant.ofValue(10)));
   }
 
   @Test
@@ -652,6 +652,197 @@ public class MutableAstTest {
     assertConsistentMacroCalls(ast);
   }
 
+  @Test
+  public void mangleComprehensionVariable_singleMacro() throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("[false].exists(i, i)").getAst();
+
+    CelAbstractSyntaxTree mangledAst = MutableAst.mangleComprehensionIdentifierNames(ast, "@c");
+
+    assertThat(mangledAst.getExpr().toString())
+        .isEqualTo(
+            "COMPREHENSION [13] {\n"
+                + "  iter_var: @c0\n"
+                + "  iter_range: {\n"
+                + "    CREATE_LIST [1] {\n"
+                + "      elements: {\n"
+                + "        CONSTANT [2] { value: false }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  accu_var: __result__\n"
+                + "  accu_init: {\n"
+                + "    CONSTANT [6] { value: false }\n"
+                + "  }\n"
+                + "  loop_condition: {\n"
+                + "    CALL [9] {\n"
+                + "      function: @not_strictly_false\n"
+                + "      args: {\n"
+                + "        CALL [8] {\n"
+                + "          function: !_\n"
+                + "          args: {\n"
+                + "            IDENT [7] {\n"
+                + "              name: __result__\n"
+                + "            }\n"
+                + "          }\n"
+                + "        }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  loop_step: {\n"
+                + "    CALL [11] {\n"
+                + "      function: _||_\n"
+                + "      args: {\n"
+                + "        IDENT [10] {\n"
+                + "          name: __result__\n"
+                + "        }\n"
+                + "        IDENT [5] {\n"
+                + "          name: @c0\n"
+                + "        }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  result: {\n"
+                + "    IDENT [12] {\n"
+                + "      name: __result__\n"
+                + "    }\n"
+                + "  }\n"
+                + "}");
+    assertThat(CEL_UNPARSER.unparse(mangledAst)).isEqualTo("[false].exists(@c0, @c0)");
+    assertThat(CEL.createProgram(CEL.check(mangledAst).getAst()).eval()).isEqualTo(false);
+    assertConsistentMacroCalls(ast);
+  }
+
+  @Test
+  public void mangleComprehensionVariable_nestedMacroWithShadowedVariables() throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("[x].exists(x, [x].exists(x, x == 1))").getAst();
+
+    CelAbstractSyntaxTree mangledAst = MutableAst.mangleComprehensionIdentifierNames(ast, "@c");
+
+    assertThat(mangledAst.getExpr().toString())
+        .isEqualTo(
+            "COMPREHENSION [27] {\n"
+                + "  iter_var: @c0\n"
+                + "  iter_range: {\n"
+                + "    CREATE_LIST [1] {\n"
+                + "      elements: {\n"
+                + "        IDENT [2] {\n"
+                + "          name: x\n"
+                + "        }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  accu_var: __result__\n"
+                + "  accu_init: {\n"
+                + "    CONSTANT [20] { value: false }\n"
+                + "  }\n"
+                + "  loop_condition: {\n"
+                + "    CALL [23] {\n"
+                + "      function: @not_strictly_false\n"
+                + "      args: {\n"
+                + "        CALL [22] {\n"
+                + "          function: !_\n"
+                + "          args: {\n"
+                + "            IDENT [21] {\n"
+                + "              name: __result__\n"
+                + "            }\n"
+                + "          }\n"
+                + "        }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  loop_step: {\n"
+                + "    CALL [25] {\n"
+                + "      function: _||_\n"
+                + "      args: {\n"
+                + "        IDENT [24] {\n"
+                + "          name: __result__\n"
+                + "        }\n"
+                + "        COMPREHENSION [19] {\n"
+                + "          iter_var: @c1\n"
+                + "          iter_range: {\n"
+                + "            CREATE_LIST [5] {\n"
+                + "              elements: {\n"
+                + "                IDENT [6] {\n"
+                + "                  name: @c0\n"
+                + "                }\n"
+                + "              }\n"
+                + "            }\n"
+                + "          }\n"
+                + "          accu_var: __result__\n"
+                + "          accu_init: {\n"
+                + "            CONSTANT [12] { value: false }\n"
+                + "          }\n"
+                + "          loop_condition: {\n"
+                + "            CALL [15] {\n"
+                + "              function: @not_strictly_false\n"
+                + "              args: {\n"
+                + "                CALL [14] {\n"
+                + "                  function: !_\n"
+                + "                  args: {\n"
+                + "                    IDENT [13] {\n"
+                + "                      name: __result__\n"
+                + "                    }\n"
+                + "                  }\n"
+                + "                }\n"
+                + "              }\n"
+                + "            }\n"
+                + "          }\n"
+                + "          loop_step: {\n"
+                + "            CALL [17] {\n"
+                + "              function: _||_\n"
+                + "              args: {\n"
+                + "                IDENT [16] {\n"
+                + "                  name: __result__\n"
+                + "                }\n"
+                + "                CALL [10] {\n"
+                + "                  function: _==_\n"
+                + "                  args: {\n"
+                + "                    IDENT [9] {\n"
+                + "                      name: @c1\n"
+                + "                    }\n"
+                + "                    CONSTANT [11] { value: 1 }\n"
+                + "                  }\n"
+                + "                }\n"
+                + "              }\n"
+                + "            }\n"
+                + "          }\n"
+                + "          result: {\n"
+                + "            IDENT [18] {\n"
+                + "              name: __result__\n"
+                + "            }\n"
+                + "          }\n"
+                + "        }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  result: {\n"
+                + "    IDENT [26] {\n"
+                + "      name: __result__\n"
+                + "    }\n"
+                + "  }\n"
+                + "}");
+
+    assertThat(CEL_UNPARSER.unparse(mangledAst))
+        .isEqualTo("[x].exists(@c0, [@c0].exists(@c1, @c1 == 1))");
+    assertThat(CEL.createProgram(CEL.check(mangledAst).getAst()).eval(ImmutableMap.of("x", 1)))
+        .isEqualTo(true);
+    assertConsistentMacroCalls(ast);
+  }
+
+  @Test
+  public void mangleComprehensionVariable_hasMacro_noOp() throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("has(msg.single_int64)").getAst();
+
+    CelAbstractSyntaxTree mangledAst = MutableAst.mangleComprehensionIdentifierNames(ast, "@c");
+
+    assertThat(CEL_UNPARSER.unparse(mangledAst)).isEqualTo("has(msg.single_int64)");
+    assertThat(
+            CEL.createProgram(CEL.check(mangledAst).getAst())
+                .eval(ImmutableMap.of("msg", TestAllTypes.getDefaultInstance())))
+        .isEqualTo(false);
+    assertConsistentMacroCalls(ast);
+  }
+
   /**
    * Asserts that the expressions that appears in source_info's macro calls are consistent with the
    * actual expr nodes in the AST.
@@ -673,7 +864,12 @@ public class MutableAstTest {
               node -> {
                 CelExpr e = allExprs.get(node.id());
                 if (e != null) {
-                  assertThat(node).isEqualTo(e);
+                  assertThat(node.id()).isEqualTo(e.id());
+                  if (e.exprKind().getKind().equals(Kind.COMPREHENSION)) {
+                    assertThat(node.exprKind().getKind()).isEqualTo(Kind.NOT_SET);
+                  } else {
+                    assertThat(node.exprKind().getKind()).isEqualTo(e.exprKind().getKind());
+                  }
                 }
               });
     }

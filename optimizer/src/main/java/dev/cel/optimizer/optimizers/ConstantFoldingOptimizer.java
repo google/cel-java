@@ -98,9 +98,8 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
 
     // If the output is a list, map, or struct which contains optional entries, then prune it
     // to make sure that the optionals, if resolved, do not surface in the output literal.
-    navigableAst = CelNavigableAst.fromAst(pruneOptionalElements(navigableAst));
-
-    return navigableAst.getAst();
+    CelAbstractSyntaxTree newAst = pruneOptionalElements(navigableAst);
+    return renumberIdsConsecutively(newAst);
   }
 
   private static boolean canFold(CelNavigableExpr navigableExpr) {

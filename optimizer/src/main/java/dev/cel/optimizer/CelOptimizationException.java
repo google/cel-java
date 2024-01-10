@@ -17,6 +17,10 @@ package dev.cel.optimizer;
 /** Checked exception thrown by CelOptimizer during AST optimization. */
 public final class CelOptimizationException extends Exception {
 
+  public CelOptimizationException(String message) {
+    super(message);
+  }
+
   public CelOptimizationException(String message, Throwable cause) {
     super(message, cause);
   }

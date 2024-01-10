@@ -50,6 +50,10 @@ public abstract class CelNavigableExpr {
 
   public abstract CelExpr expr();
 
+  public long id() {
+    return expr().id();
+  }
+
   public abstract Optional<CelNavigableExpr> parent();
 
   /** Represents the count of transitive parents. Depth of an AST's root is 0. */
