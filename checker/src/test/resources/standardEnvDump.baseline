@@ -261,7 +261,7 @@ declare timestamp {
 }
 declare type {
   value type(dyn)
-  function type (A) -> type(dyn)
+  function type (A) -> type(A)
 }
 declare uint {
   value type(uint)

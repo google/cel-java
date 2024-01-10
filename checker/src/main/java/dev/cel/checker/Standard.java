@@ -320,7 +320,7 @@ public final class Standard {
         CelFunctionDecl.newFunctionDeclaration(
             "type",
             CelOverloadDecl.newGlobalOverload(
-                "type", "returns type of value", TypeType.create(SimpleType.DYN), typeParamA)));
+                "type", "returns type of value", TypeType.create(typeParamA), typeParamA)));
 
     // Conversions to int
     celFunctionDeclBuilder.add(

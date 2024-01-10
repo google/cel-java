@@ -652,6 +652,8 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   public void types() throws Exception {
     source = "list == type([1]) && map == type({1:2u})";
     runTest();
+    source = "{}.map(c,[c,type(c)])";
+    runTest();
   }
 
   // Enum Values

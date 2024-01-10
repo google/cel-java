@@ -13,9 +13,8 @@ _&&_(
   _==_(
     type(
       make_abs()~abs^make_abs
-    )~type(dyn)^type,
+    )~type(abs)^type,
     abs~type(abs)^abs
   )~bool^equals,
   make_abs()~abs^make_abs.as_bool()~bool^as_bool
 )~bool^logical_and
-

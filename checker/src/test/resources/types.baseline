@@ -7,7 +7,7 @@ _&&_(
       [
         1~int
       ]~list(int)
-    )~type(dyn)^type
+    )~type(list(int))^type
   )~bool^equals,
   _==_(
     map~type(map(dyn, dyn))^map,
@@ -15,7 +15,34 @@ _&&_(
       {
         1~int:2u~uint
       }~map(int, uint)
-    )~type(dyn)^type
+    )~type(map(int, uint))^type
   )~bool^equals
 )~bool^logical_and
 
+Source: {}.map(c,[c,type(c)])
+=====>
+__comprehension__(
+  // Variable
+  c,
+  // Target
+  {}~map(dyn, dyn),
+  // Accumulator
+  __result__,
+  // Init
+  []~list(list(dyn)),
+  // LoopCondition
+  true~bool,
+  // LoopStep
+  _+_(
+    __result__~list(list(dyn))^__result__,
+    [
+      [
+        c~dyn^c,
+        type(
+          c~dyn^c
+        )~type(dyn)^type
+      ]~list(dyn)
+    ]~list(list(dyn))
+  )~list(list(dyn))^add_list,
+  // Result
+  __result__~list(list(dyn))^__result__)~list(list(dyn))

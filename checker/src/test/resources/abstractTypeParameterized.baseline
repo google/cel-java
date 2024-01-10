@@ -15,7 +15,7 @@ _&&_(
           1~int
         ]~list(int)
       )~vector(int)^vector
-    )~type(dyn)^type,
+    )~type(vector(int))^type,
     vector(
       dyn~type(dyn)^dyn
     )~type(vector(dyn))^vector
@@ -31,4 +31,3 @@ _&&_(
     1~int
   )~bool^equals
 )~bool^logical_and
-
