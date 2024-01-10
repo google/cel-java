@@ -42,6 +42,48 @@ public final class Standard {
   private static final ImmutableList<CelIdentDecl> CORE_IDENT_DECLARATIONS =
       coreIdentDeclarations();
 
+  /** Enumeration of Standard Functions that are not present in {@link Operator}). */
+  public enum Function {
+    BOOL("bool"),
+    BYTES("bytes"),
+    CONTAINS("contains"),
+    DOUBLE("double"),
+    DURATION("duration"),
+    DYN("dyn"),
+    ENDS_WITH("endsWith"),
+    GET_DATE("getDate"),
+    GET_DAY_OF_MONTH("getDayOfMonth"),
+    GET_DAY_OF_WEEK("getDayOfWeek"),
+    GET_DAY_OF_YEAR("getDayOfYear"),
+    GET_FULL_YEAR("getFullYear"),
+    GET_HOURS("getHours"),
+    GET_MILLISECONDS("getMilliseconds"),
+    GET_MINUTES("getMinutes"),
+    GET_MONTH("getMonth"),
+    GET_SECONDS("getSeconds"),
+    INT("int"),
+    LIST("list"),
+    MAP("map"),
+    MATCHES("matches"),
+    NULL_TYPE("null_type"),
+    SIZE("size"),
+    STARTS_WITH("startsWith"),
+    STRING("string"),
+    TIMESTAMP("timestamp"),
+    TYPE("type"),
+    UINT("uint");
+
+    private final String functionName;
+
+    public String getFunction() {
+      return functionName;
+    }
+
+    Function(String functionName) {
+      this.functionName = functionName;
+    }
+  }
+
   /**
    * Adds the standard declarations of CEL to the environment.
    *
@@ -318,14 +360,14 @@ public final class Standard {
     // Conversions to type
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "type",
+            Function.TYPE.getFunction(),
             CelOverloadDecl.newGlobalOverload(
                 "type", "returns type of value", TypeType.create(typeParamA), typeParamA)));
 
     // Conversions to int
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "int",
+            Function.INT.getFunction(),
             CelOverloadDecl.newGlobalOverload(
                 "uint64_to_int64", "type conversion", SimpleType.INT, SimpleType.UINT),
             CelOverloadDecl.newGlobalOverload(
@@ -341,7 +383,7 @@ public final class Standard {
     // Conversions to uint
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "uint",
+            Function.UINT.getFunction(),
             CelOverloadDecl.newGlobalOverload(
                 "int64_to_uint64", "type conversion", SimpleType.UINT, SimpleType.INT),
             CelOverloadDecl.newGlobalOverload(
@@ -352,7 +394,7 @@ public final class Standard {
     // Conversions to double
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "double",
+            Function.DOUBLE.getFunction(),
             CelOverloadDecl.newGlobalOverload(
                 "int64_to_double", "type conversion", SimpleType.DOUBLE, SimpleType.INT),
             CelOverloadDecl.newGlobalOverload(
@@ -363,7 +405,7 @@ public final class Standard {
     // Conversions to string
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "string",
+            Function.STRING.getFunction(),
             CelOverloadDecl.newGlobalOverload(
                 "int64_to_string", "type conversion", SimpleType.STRING, SimpleType.INT),
             CelOverloadDecl.newGlobalOverload(
@@ -380,14 +422,14 @@ public final class Standard {
     // Conversions to list
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "list",
+            Function.LIST.getFunction(),
             CelOverloadDecl.newGlobalOverload(
                 "to_list", "type conversion", listOfA, TypeType.create(typeParamA), listOfA)));
 
     // Conversions to map
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "map",
+            Function.MAP.getFunction(),
             CelOverloadDecl.newGlobalOverload(
                 "to_map",
                 "type conversion",
@@ -399,21 +441,21 @@ public final class Standard {
     // Conversions to bytes
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "bytes",
+            Function.BYTES.getFunction(),
             CelOverloadDecl.newGlobalOverload(
                 "string_to_bytes", "type conversion", SimpleType.BYTES, SimpleType.STRING)));
 
     // Conversions to dyn
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "dyn",
+            Function.DYN.getFunction(),
             CelOverloadDecl.newGlobalOverload(
                 "to_dyn", "type conversion", SimpleType.DYN, typeParamA)));
 
     // Conversions to Duration
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "duration",
+            Function.DURATION.getFunction(),
             CelOverloadDecl.newGlobalOverload(
                 "string_to_duration",
                 "type conversion, duration should be end with \"s\", which stands for seconds",
@@ -423,7 +465,7 @@ public final class Standard {
     // String functions
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "matches",
+            Function.MATCHES.getFunction(),
             CelOverloadDecl.newGlobalOverload(
                 "matches",
                 "matches first argument against regular expression in second argument",
@@ -432,7 +474,7 @@ public final class Standard {
                 SimpleType.STRING)));
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "matches",
+            Function.MATCHES.getFunction(),
             CelOverloadDecl.newMemberOverload(
                 "matches_string",
                 "matches the self argument against regular expression in first argument",
@@ -442,7 +484,7 @@ public final class Standard {
 
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "contains",
+            Function.CONTAINS.getFunction(),
             CelOverloadDecl.newMemberOverload(
                 "contains_string",
                 "tests whether the string operand contains the substring",
@@ -451,7 +493,7 @@ public final class Standard {
                 SimpleType.STRING)));
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "endsWith",
+            Function.ENDS_WITH.getFunction(),
             CelOverloadDecl.newMemberOverload(
                 "ends_with_string",
                 "tests whether the string operand ends with the suffix argument",
@@ -460,7 +502,7 @@ public final class Standard {
                 SimpleType.STRING)));
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "startsWith",
+            Function.STARTS_WITH.getFunction(),
             CelOverloadDecl.newMemberOverload(
                 "starts_with_string",
                 "tests whether the string operand starts with the prefix argument",
@@ -471,7 +513,7 @@ public final class Standard {
     // Date/time functions
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "getFullYear",
+            Function.GET_FULL_YEAR.getFunction(),
             CelOverloadDecl.newMemberOverload(
                 "timestamp_to_year",
                 "get year from the date in UTC",
@@ -486,7 +528,7 @@ public final class Standard {
 
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "getMonth",
+            Function.GET_MONTH.getFunction(),
             CelOverloadDecl.newMemberOverload(
                 "timestamp_to_month",
                 "get month from the date in UTC, 0-11",
@@ -501,7 +543,7 @@ public final class Standard {
 
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "getDayOfYear",
+            Function.GET_DAY_OF_YEAR.getFunction(),
             CelOverloadDecl.newMemberOverload(
                 "timestamp_to_day_of_year",
                 "get day of year from the date in UTC, zero-based indexing",
@@ -516,7 +558,7 @@ public final class Standard {
 
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "getDayOfMonth",
+            Function.GET_DAY_OF_MONTH.getFunction(),
             CelOverloadDecl.newMemberOverload(
                 "timestamp_to_day_of_month",
                 "get day of month from the date in UTC, zero-based indexing",
@@ -530,7 +572,7 @@ public final class Standard {
                 SimpleType.STRING)));
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "getDate",
+            Function.GET_DATE.getFunction(),
             CelOverloadDecl.newMemberOverload(
                 "timestamp_to_day_of_month_1_based",
                 "get day of month from the date in UTC, one-based indexing",
@@ -545,7 +587,7 @@ public final class Standard {
 
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "getDayOfWeek",
+            Function.GET_DAY_OF_WEEK.getFunction(),
             CelOverloadDecl.newMemberOverload(
                 "timestamp_to_day_of_week",
                 "get day of week from the date in UTC, zero-based, zero for Sunday",
@@ -560,7 +602,7 @@ public final class Standard {
 
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "getHours",
+            Function.GET_HOURS.getFunction(),
             CelOverloadDecl.newMemberOverload(
                 "timestamp_to_hours",
                 "get hours from the date in UTC, 0-23",
@@ -580,7 +622,7 @@ public final class Standard {
 
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "getMinutes",
+            Function.GET_MINUTES.getFunction(),
             CelOverloadDecl.newMemberOverload(
                 "timestamp_to_minutes",
                 "get minutes from the date in UTC, 0-59",
@@ -600,7 +642,7 @@ public final class Standard {
 
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "getSeconds",
+            Function.GET_SECONDS.getFunction(),
             CelOverloadDecl.newMemberOverload(
                 "timestamp_to_seconds",
                 "get seconds from the date in UTC, 0-59",
@@ -620,7 +662,7 @@ public final class Standard {
 
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
-            "getMilliseconds",
+            Function.GET_MILLISECONDS.getFunction(),
             CelOverloadDecl.newMemberOverload(
                 "timestamp_to_milliseconds",
                 "get milliseconds from the date in UTC, 0-999",
