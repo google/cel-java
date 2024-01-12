@@ -39,6 +39,28 @@ public interface CelAstOptimizer {
    * the source contains macro calls, its call IDs will be to be consistent with the renumbered IDs
    * in the AST.
    *
+   * @param celExpr Original ast to mutate.
+   * @param newExpr New CelExpr to replace the subtree with.
+   * @param exprIdToReplace Expression id of the subtree that is getting replaced.
+   */
+  default CelExpr replaceSubtree(
+      CelExpr celExpr, CelExpr newExpr, long exprIdToReplace) {
+    return MutableAst.replaceSubtree(celExpr, newExpr, exprIdToReplace);
+  }
+
+  /**
+   * Replaces a subtree in the given AST. This operation is intended for AST optimization purposes.
+   *
+   * <p>This is a very dangerous operation. Callers should re-typecheck the mutated AST and
+   * additionally verify that the resulting AST is semantically valid.
+   *
+   * <p>All expression IDs will be renumbered in a stable manner to ensure there's no ID collision
+   * between the nodes. The renumbering occurs even if the subtree was not replaced.
+   *
+   * <p>This will scrub out the description, positions and line offsets from {@code CelSource}. If
+   * the source contains macro calls, its call IDs will be to be consistent with the renumbered IDs
+   * in the AST.
+   *
    * @param ast Original ast to mutate.
    * @param newExpr New CelExpr to replace the subtree with.
    * @param exprIdToReplace Expression id of the subtree that is getting replaced.

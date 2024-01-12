@@ -31,6 +31,7 @@ import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
+import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.extensions.CelExtensions;
@@ -74,7 +75,10 @@ public class CSEOptimizerTest {
                           .setSingleInt64(10L)
                           .putMapInt32Int64(0, 1)
                           .putMapInt32Int64(1, 5)
-                          .putMapInt32Int64(2, 2)))
+                          .putMapInt32Int64(2, 2)
+                          .putMapStringString("key", "A")
+                  )
+          )
           .build();
 
   private static CelBuilder newCelBuilder() {
@@ -91,6 +95,7 @@ public class CSEOptimizerTest {
                 "custom_func",
                 newGlobalOverload("custom_func_overload", SimpleType.INT, SimpleType.INT)))
         .addVar("x", SimpleType.DYN)
+        .addVar("opt_x", OptionalType.create(SimpleType.DYN))
         .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
   }
 
@@ -313,6 +318,12 @@ public class CSEOptimizerTest {
         "[1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [[2, 3, 4], [2, 3, 4], [2, 3, 4]]",
         "cel.bind(@r0, [1, 2, 3], @r0.map(@c0, @r0.map(@c1, @c1 + 1))) == "
             + "cel.bind(@r1, [2, 3, 4], [@r1, @r1, @r1])"),
+    INCLUSION_LIST(
+        "1 in [1,2,3] && 2 in [1,2,3] && 3 in [3, [1,2,3]] && 1 in [1,2,3]",
+        "cel.bind(@r0, [1, 2, 3], cel.bind(@r1, 1 in @r0, @r1 && 2 in @r0 && 3 in [3, @r0] && @r1))"),
+    INCLUSION_MAP(
+        "2 in {'a': 1, 2: {true: false}, 3: {true: false}}",
+        "2 in cel.bind(@r0, {true: false}, {\"a\": 1, 2: @r0, 3: @r0})"),
     MACRO_SHADOWED_VARIABLE(
         "[x - 1 > 3 ? x - 1 : 5].exists(x, x - 1 > 3) || x - 1 > 3",
         "cel.bind(@r0, x - 1, cel.bind(@r1, @r0 > 3, [@r1 ? @r0 : 5].exists(@c0, @c0 - 1 > 3) ||"
@@ -321,6 +332,39 @@ public class CSEOptimizerTest {
         "size([\"foo\", \"bar\"].map(x, [x + x, x + x]).map(x, [x + x, x + x])) == 2",
         "size([\"foo\", \"bar\"].map(@c1, cel.bind(@r0, @c1 + @c1, [@r0, @r0]))"
             + ".map(@c0, cel.bind(@r1, @c0 + @c0, [@r1, @r1]))) == 2"),
+    PRESENCE_TEST_WITH_TERNARY(
+        "(has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : 0) == 10",
+        "cel.bind(@r0, msg.oneof_type, has(@r0.payload) ? @r0.payload.single_int64 : 0) == 10"
+    ),
+    PRESENCE_TEST_WITH_TERNARY_2(
+        "(has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : msg.oneof_type.payload.single_int64 * 0) == 10",
+        "cel.bind(@r0, msg.oneof_type, cel.bind(@r1, @r0.payload.single_int64, has(@r0.payload) ? @r1 : (@r1 * 0))) == 10"
+    ),
+    PRESENCE_TEST_WITH_TERNARY_3(
+        "(has(msg.oneof_type.payload.single_int64) ? msg.oneof_type.payload.single_int64 : msg.oneof_type.payload.single_int64 * 0) == 10",
+        "cel.bind(@r0, msg.oneof_type.payload, cel.bind(@r1, @r0.single_int64, has(@r0.single_int64) ? @r1 : (@r1 * 0))) == 10"
+    ),
+    PRESENCE_TEST_WITH_TERNARY_NESTED(
+        "(has(msg.oneof_type) && has(msg.oneof_type.payload) && has(msg.oneof_type.payload.single_int64)) ? ((has(msg.oneof_type.payload.map_string_string) && has(msg.oneof_type.payload.map_string_string.key)) ? msg.oneof_type.payload.map_string_string.key == 'A' : false) : false",
+        "cel.bind(@r0, msg.oneof_type, cel.bind(@r1, @r0.payload, (has(msg.oneof_type) && has(@r0.payload) && has(@r1.single_int64)) ? cel.bind(@r2, @r1.map_string_string, (has(@r1.map_string_string) && has(@r2.key)) ? (@r2.key == \"A\") : false) : false))"
+    ),
+    OPTIONAL_LIST(
+        "[10, ?optional.none(), [?optional.none(), ?opt_x], [?optional.none(), ?opt_x]] == [10, [5], [5]]",
+        "cel.bind(@r0, [?optional.none(), ?opt_x], [10, ?optional.none(), @r0, @r0]) == cel.bind(@r1, [5], [10, @r1, @r1])"
+    ),
+    OPTIONAL_MAP(
+        "{?'hello': optional.of('hello')}['hello'] + {?'hello': optional.of('hello')}['hello'] == 'hellohello'",
+        "cel.bind(@r0, {?\"hello\": optional.of(\"hello\")}[\"hello\"], @r0 + @r0) == \"hellohello\""
+    ),
+    OPTIONAL_MESSAGE(
+        "TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}"
+            + ".single_int32 + "
+            + "TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}"
+            + ".single_int64 == 5",
+        "cel.bind(@r0, TestAllTypes{"
+            + "?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}, "
+            + "@r0.single_int32 + @r0.single_int64) == 5"
+    ),
     ;
 
     private final String source;
@@ -340,8 +384,8 @@ public class CSEOptimizerTest {
     CelAbstractSyntaxTree optimizedAst = CEL_OPTIMIZER.optimize(ast);
 
     assertThat(
-            CEL.createProgram(optimizedAst)
-                .eval(ImmutableMap.of("msg", TEST_ALL_TYPES_INPUT, "x", 5L)))
+        CEL.createProgram(optimizedAst)
+            .eval(ImmutableMap.of("msg", TEST_ALL_TYPES_INPUT, "x", 5L, "opt_x", Optional.of(5L))))
         .isEqualTo(true);
     assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo(testCase.unparsed);
   }
@@ -363,9 +407,9 @@ public class CSEOptimizerTest {
 
     assertThat(optimizedAst.getSource().getMacroCalls()).isEmpty();
     assertThat(
-            celWithoutMacroMap
-                .createProgram(optimizedAst)
-                .eval(ImmutableMap.of("msg", TEST_ALL_TYPES_INPUT, "x", 5L)))
+        celWithoutMacroMap
+            .createProgram(optimizedAst)
+            .eval(ImmutableMap.of("msg", TEST_ALL_TYPES_INPUT, "x", 5L, "opt_x", Optional.of(5L))))
         .isEqualTo(true);
   }
 
@@ -383,7 +427,8 @@ public class CSEOptimizerTest {
   @TestParameters("{source: 'custom_func(1) + custom_func(1)'}")
   // Duplicated but nested calls.
   @TestParameters("{source: 'int(timestamp(int(timestamp(1000000000))))'}")
-  // Ternary with presence test is not supported yet.
+  // These cannot be optimized. Extracting msg.single_any would presence test
+  // the bound identifier (e.g: has(@r0)), which is not valid.
   @TestParameters("{source: 'has(msg.single_any) ? msg.single_any : 10'}")
   public void cse_noop(String source) throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile(source).getAst();
@@ -558,6 +603,6 @@ public class CSEOptimizerTest {
                             CSEOptions.newBuilder().maxIterationLimit(maxIterationLimit).build()))
                     .build()
                     .optimize(ast));
-    assertThat(e).hasMessageThat().isEqualTo("Max iteration count reached.");
+    assertThat(e).hasMessageThat().isEqualTo("Optimization failure: Max iteration count reached.");
   }
 }

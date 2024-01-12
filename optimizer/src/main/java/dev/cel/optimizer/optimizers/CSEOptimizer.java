@@ -36,7 +36,6 @@ import dev.cel.optimizer.CelAstOptimizer;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.parser.Operator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Optional;
 
 /**
@@ -89,8 +88,8 @@ public class CSEOptimizer implements CelAstOptimizer {
     int bindIdentifierIndex = 0;
     int iterCount;
     for (iterCount = 0; iterCount < cseOptions.maxIterationLimit(); iterCount++) {
-      Optional<CelNavigableExpr> cseCandidate = findCseCandidate(newAst);
-      if (!cseCandidate.isPresent()) {
+      CelNavigableExpr cseCandidate = findCseCandidate(newAst).orElse(null);
+      if (cseCandidate == null) {
         break;
       }
 
@@ -99,25 +98,29 @@ public class CSEOptimizer implements CelAstOptimizer {
 
       // Replace all CSE candidates with bind identifier
       for (; iterCount < cseOptions.maxIterationLimit(); iterCount++) {
-        Optional<CelNavigableExpr> exprToReplace =
+        CelExpr exprToReplace =
             CelNavigableAst.fromAst(newAst)
                 .getRoot()
                 .allNodes()
                 .filter(CSEOptimizer::canEliminate)
-                .filter(node -> areSemanticallyEqual(cseCandidate.get().expr(), node.expr()))
-                .findAny();
-        if (!exprToReplace.isPresent()) {
+                .filter(node -> areSemanticallyEqual(cseCandidate.expr(), node.expr()))
+                .map(CelNavigableExpr::expr)
+                .findAny().orElse(null);
+        if (exprToReplace == null) {
           break;
+        }
+
+        CelExpr newBindExpr = CelExpr.newBuilder().setIdent(CelIdent.newBuilder().setName(bindIdentifier).build()).build();
+        if (exprToReplace.selectOrDefault().testOnly()) {
+          // Rewrap the bind identifier into presence test
+          newBindExpr = CelExpr.ofSelectExpr(exprToReplace.id(), newBindExpr, exprToReplace.select().field(), true);
         }
 
         newAst =
             replaceSubtree(
                 newAst,
-                CelExpr.newBuilder()
-                    .setIdent(CelIdent.newBuilder().setName(bindIdentifier).build())
-                    .setId(exprToReplace.get().id())
-                    .build(),
-                exprToReplace.get().id());
+                newBindExpr,
+                exprToReplace.id());
       }
 
       // Find LCA to insert the new cel.bind macro into.
@@ -130,7 +133,7 @@ public class CSEOptimizer implements CelAstOptimizer {
       // Insert the new bind call
       newAst =
           replaceSubtreeWithNewBindMacro(
-              newAst, bindIdentifier, cseCandidate.get().expr(), lca.expr(), lca.id());
+              newAst, bindIdentifier, cseCandidate.expr(), lca.expr(), lca.id());
 
       // Retain the existing macro calls in case if the bind identifiers are replacing a subtree
       // that contains a comprehension.
@@ -138,7 +141,7 @@ public class CSEOptimizer implements CelAstOptimizer {
     }
 
     if (iterCount >= cseOptions.maxIterationLimit()) {
-      throw new CelOptimizationException("Max iteration count reached.");
+      throw new IllegalStateException("Max iteration count reached.");
     }
 
     if (iterCount == 0) {
@@ -192,7 +195,7 @@ public class CSEOptimizer implements CelAstOptimizer {
   }
 
   private Optional<CelNavigableExpr> findCseCandidate(CelAbstractSyntaxTree ast) {
-    HashSet<CelExpr> encounteredNodes = new HashSet<>();
+    HashMap<CelExpr, CelNavigableExpr> encounteredNodes = new HashMap<>();
     ImmutableList<CelNavigableExpr> allNodes =
         CelNavigableAst.fromAst(ast)
             .getRoot()
@@ -202,12 +205,12 @@ public class CSEOptimizer implements CelAstOptimizer {
 
     for (CelNavigableExpr node : allNodes) {
       // Strip out all IDs to test equivalence
-      CelExpr celExpr = clearExprIds(node.expr());
-      if (encounteredNodes.contains(celExpr)) {
-        return Optional.of(node);
+      CelExpr celExpr = normalizeForEquality(node.expr());
+      if (encounteredNodes.containsKey(celExpr)) {
+        return Optional.of(encounteredNodes.get(celExpr));
       }
 
-      encounteredNodes.add(celExpr);
+      encounteredNodes.put(celExpr, node);
     }
 
     return Optional.empty();
@@ -217,6 +220,7 @@ public class CSEOptimizer implements CelAstOptimizer {
     return !navigableExpr.getKind().equals(Kind.CONSTANT)
         && !navigableExpr.getKind().equals(Kind.IDENT)
         && !navigableExpr.expr().identOrDefault().name().startsWith(BIND_IDENTIFIER_PREFIX)
+        && !navigableExpr.expr().selectOrDefault().testOnly()
         && isAllowedFunction(navigableExpr)
         && isWithinInlineableComprehension(navigableExpr);
   }
@@ -247,7 +251,7 @@ public class CSEOptimizer implements CelAstOptimizer {
   }
 
   private boolean areSemanticallyEqual(CelExpr expr1, CelExpr expr2) {
-    return clearExprIds(expr1).equals(clearExprIds(expr2));
+    return normalizeForEquality(expr1).equals(normalizeForEquality(expr2));
   }
 
   private static boolean isAllowedFunction(CelNavigableExpr navigableExpr) {
@@ -256,6 +260,42 @@ public class CSEOptimizer implements CelAstOptimizer {
     }
 
     return true;
+  }
+
+  /**
+   * Converts the {@link CelExpr} to make it suitable for performing semantically equals check in {@link #areSemanticallyEqual(CelExpr, CelExpr)}.
+   *
+   * Specifically, this will:
+   *
+   * <ul>
+   *   <li>Set all expr IDs in the expression tree to 0.</li>
+   *   <li>Strip all presence tests (i.e: testOnly is marked as false on {@link CelExpr.ExprKind.Kind#SELECT}</li>
+   * </ul>
+   **/
+  private CelExpr normalizeForEquality(CelExpr celExpr) {
+    int iterCount;
+    for (iterCount = 0; iterCount < cseOptions.maxIterationLimit(); iterCount++) {
+      Optional<CelExpr> presenceTestExpr = CelNavigableExpr.fromExpr(celExpr)
+          .allNodes()
+          .map(CelNavigableExpr::expr)
+          .filter(expr -> expr.selectOrDefault().testOnly())
+          .findAny();
+      if (!presenceTestExpr.isPresent()) {
+        break;
+      }
+
+      CelExpr newExpr = presenceTestExpr.get().toBuilder()
+          .setSelect(presenceTestExpr.get().select().toBuilder().setTestOnly(false).build())
+          .build();
+
+      celExpr = replaceSubtree(celExpr, newExpr, newExpr.id());
+    }
+
+    if (iterCount >= cseOptions.maxIterationLimit()) {
+      throw new IllegalStateException("Max iteration count reached.");
+    }
+
+    return clearExprIds(celExpr);
   }
 
   /** Options to configure how Common Subexpression Elimination behave. */
