@@ -26,7 +26,7 @@ import dev.cel.common.CelValidationException;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
-import dev.cel.parser.CelMacro;
+import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeFactory;
@@ -39,7 +39,7 @@ public final class CelBindingsExtensionsTest {
 
   private static final CelCompiler COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
-          .addMacros(CelMacro.STANDARD_MACROS)
+          .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .addLibraries(CelExtensions.bindings())
           .build();
 

@@ -41,7 +41,7 @@ public final class CelUnparserImplTest {
       CelParserImpl.newBuilder()
           .setOptions(CelOptions.newBuilder().populateMacroCalls(true).build())
           .addLibraries(CelOptionalLibrary.INSTANCE)
-          .addMacros(CelMacro.STANDARD_MACROS)
+          .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .build();
 
   private final CelUnparserImpl unparser = new CelUnparserImpl();
@@ -249,7 +249,7 @@ public final class CelUnparserImplTest {
     CelParser parser =
         CelParserImpl.newBuilder()
             .setOptions(CelOptions.newBuilder().populateMacroCalls(false).build())
-            .addMacros(CelMacro.STANDARD_MACROS)
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
             .build();
     CelAbstractSyntaxTree ast = parser.parse("has(hello.world)").getAst();
 
@@ -261,7 +261,7 @@ public final class CelUnparserImplTest {
     CelParser parser =
         CelParserImpl.newBuilder()
             .setOptions(CelOptions.newBuilder().populateMacroCalls(false).build())
-            .addMacros(CelMacro.STANDARD_MACROS)
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
             .build();
     CelAbstractSyntaxTree ast = parser.parse("[1, 2, 3].all(x, x > 0)").getAst();
 
