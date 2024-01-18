@@ -1,0 +1,7 @@
+Source: f()
+declare f {
+  function f () -> string
+}
+=====>
+bindings: {}
+result:   testpeer
