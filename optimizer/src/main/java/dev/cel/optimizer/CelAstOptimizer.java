@@ -70,6 +70,36 @@ public interface CelAstOptimizer {
         ast, varName, varInit, resultExpr, exprIdToReplace);
   }
 
+  /**
+   * Replaces all comprehension identifier names with a unique name based on the given prefix.
+   *
+   * <p>The purpose of this is to avoid errors that can be caused by shadowed variables while
+   * augmenting an AST. As an example: {@code [2, 3].exists(x, x - 1 > 3) || x - 1 > 3}. Note that
+   * the scoping of `x - 1` is different between th two LOGICAL_OR branches. Iteration variable `x`
+   * in `exists` will be mangled to {@code [2, 3].exists(@c0, @c0 - 1 > 3) || x - 1 > 3} to avoid
+   * erroneously extracting x - 1 as common subexpression.
+   *
+   * <p>The expression IDs are not modified when the identifier names are changed.
+   *
+   * <p>Iteration variables in comprehensions are numbered based on their comprehension nesting
+   * levels. Examples:
+   *
+   * <ul>
+   *   <li>{@code [true].exists(i, i) && [true].exists(j, j)} -> {@code [true].exists(@c0, @c0) &&
+   *       [true].exists(@c0, @c0)} // Note that i,j gets replaced to the same @c0 in this example
+   *   <li>{@code [true].exists(i, i && [true].exists(j, j))} -> {@code [true].exists(@c0, @c0 &&
+   *       [true].exists(@c1, @c1))}
+   * </ul>
+   *
+   * @param ast AST to mutate
+   * @param newIdentPrefix Prefix to use for new identifier names. For example, providing @c will
+   *     produce @c0, @c1, @c2... as new names.
+   */
+  default CelAbstractSyntaxTree mangleComprehensionIdentifierNames(
+      CelAbstractSyntaxTree ast, String newIdentPrefix) {
+    return MutableAst.mangleComprehensionIdentifierNames(ast, newIdentPrefix);
+  }
+
   /** Sets all expr IDs in the expression tree to 0. */
   default CelExpr clearExprIds(CelExpr celExpr) {
     return MutableAst.clearExprIds(celExpr);

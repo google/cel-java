@@ -63,6 +63,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   private static final SubexpressionOptimizer INSTANCE =
       new SubexpressionOptimizer(SubexpressionOptimizerOptions.newBuilder().build());
   private static final String BIND_IDENTIFIER_PREFIX = "@r";
+  private static final String MANGLED_COMPREHENSION_IDENTIFIER_PREFIX = "@c";
   private static final ImmutableSet<String> CSE_ALLOWED_FUNCTIONS =
       Streams.concat(
               stream(Operator.values()).map(Operator::getFunction),
@@ -88,8 +89,11 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
   @Override
   public CelAbstractSyntaxTree optimize(CelNavigableAst navigableAst, Cel cel) {
-    CelAbstractSyntaxTree astToModify = navigableAst.getAst();
+    CelAbstractSyntaxTree astToModify =
+        mangleComprehensionIdentifierNames(
+            navigableAst.getAst(), MANGLED_COMPREHENSION_IDENTIFIER_PREFIX);
     CelSource sourceToModify = astToModify.getSource();
+
     int bindIdentifierIndex = 0;
     int iterCount;
     for (iterCount = 0; iterCount < cseOptions.maxIterationLimit(); iterCount++) {
@@ -247,9 +251,10 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       if (parent.getKind().equals(Kind.COMPREHENSION)) {
         return Streams.concat(
                 // If the expression is within a comprehension, it is eligible for CSE iff is in
-                // result or iterRange. While result is not human authored, it needs to be included
-                // to extract subexpressions that are already in cel.bind macro.
+                // result, loopStep or iterRange. While result is not human authored, it needs to be
+                // included to extract subexpressions that are already in cel.bind macro.
                 CelNavigableExpr.fromExpr(parent.expr().comprehension().result()).descendants(),
+                CelNavigableExpr.fromExpr(parent.expr().comprehension().loopStep()).descendants(),
                 CelNavigableExpr.fromExpr(parent.expr().comprehension().iterRange()).allNodes())
             .filter(
                 node ->

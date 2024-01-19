@@ -304,20 +304,25 @@ public class SubexpressionOptimizerTest {
         "cel.bind(@r0, msg.single_int64, (@r0 > 0) ? "
             + "cel.bind(@r1, msg.single_int32, (@r1 > 0) ? (@r0 + @r1) : 0) : 0) == 8"),
     MULTIPLE_MACROS(
-        "size([[1].exists(x, x > 0)]) + size([[1].exists(x, x > 0)]) + "
-            + "size([[2].exists(x, x > 1)]) + size([[2].exists(x, x > 1)]) == 4",
-        "cel.bind(@r1, size([[2].exists(x, x > 1)]), "
-            + "cel.bind(@r0, size([[1].exists(x, x > 0)]), @r0 + @r0) + @r1 + @r1) == 4"),
+        // Note that all of these have different iteration variables, but they are still logically
+        // the same.
+        "size([[1].exists(i, i > 0)]) + size([[1].exists(j, j > 0)]) + "
+            + "size([[2].exists(k, k > 1)]) + size([[2].exists(l, l > 1)]) == 4",
+        "cel.bind(@r1, size([[2].exists(@c0, @c0 > 1)]), "
+            + "cel.bind(@r0, size([[1].exists(@c0, @c0 > 0)]), @r0 + @r0) + @r1 + @r1) == 4"),
     NESTED_MACROS(
         "[1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [[2, 3, 4], [2, 3, 4], [2, 3, 4]]",
-        "cel.bind(@r0, [1, 2, 3], @r0.map(i, @r0.map(i, i + 1))) == cel.bind(@r1, [2, 3, 4], [@r1,"
-            + " @r1, @r1])"),
+        "cel.bind(@r0, [1, 2, 3], @r0.map(@c0, @r0.map(@c1, @c1 + 1))) == "
+            + "cel.bind(@r1, [2, 3, 4], [@r1, @r1, @r1])"),
     MACRO_SHADOWED_VARIABLE(
-        // Macro variable `x` in .exists is shadowed.
-        // This is left intact due to the fact that loop condition is not optimized at the moment.
         "[x - 1 > 3 ? x - 1 : 5].exists(x, x - 1 > 3) || x - 1 > 3",
-        "cel.bind(@r0, x - 1, cel.bind(@r1, @r0 > 3, [@r1 ? @r0 : 5].exists(x, x - 1 > 3) ||"
-            + " @r1))");
+        "cel.bind(@r0, x - 1, cel.bind(@r1, @r0 > 3, [@r1 ? @r0 : 5].exists(@c0, @c0 - 1 > 3) ||"
+            + " @r1))"),
+    MACRO_SHADOWED_VARIABLE_2(
+        "size([\"foo\", \"bar\"].map(x, [x + x, x + x]).map(x, [x + x, x + x])) == 2",
+        "size([\"foo\", \"bar\"].map(@c1, cel.bind(@r0, @c1 + @c1, [@r0, @r0]))"
+            + ".map(@c0, cel.bind(@r1, @c0 + @c0, [@r1, @r1]))) == 2"),
+    ;
 
     private final String source;
     private final String unparsed;
@@ -379,8 +384,6 @@ public class SubexpressionOptimizerTest {
   @TestParameters("{source: 'custom_func(1) + custom_func(1)'}")
   // Duplicated but nested calls.
   @TestParameters("{source: 'int(timestamp(int(timestamp(1000000000))))'}")
-  // Loop condition is not optimized at the moment. This requires mangling.
-  @TestParameters("{source: '[\"foo\", \"bar\"].map(x, [x + x, x + x]).map(x, [x + x, x + x])'}")
   // Ternary with presence test is not supported yet.
   @TestParameters("{source: 'has(msg.single_any) ? msg.single_any : 10'}")
   public void cse_noop(String source) throws Exception {
@@ -502,9 +505,9 @@ public class SubexpressionOptimizerTest {
 
     assertThat(CEL_UNPARSER.unparse(optimizedAst))
         .isEqualTo(
-            "cel.bind(@r0, [1, 2, 3], cel.bind(@r1, size(@r0.map(i, @r0.map(i, @r0.map(i,"
-                + " @r0.map(i, @r0.map(i, @r0.map(i, @r0.map(i, @r0.map(i, [1, 2, 3]))))))))), @r1"
-                + " + @r1 + @r1 + @r1 + @r1 + @r1 + @r1 + @r1 + @r1))");
+            "cel.bind(@r0, [1, 2, 3], cel.bind(@r1, size(@r0.map(@c0, @r0.map(@c1, @r0.map(@c2, "
+                + "@r0.map(@c3, @r0.map(@c4, @r0.map(@c5, @r0.map(@c6, @r0.map(@c7, @r0))))))))), "
+                + "@r1 + @r1 + @r1 + @r1 + @r1 + @r1 + @r1 + @r1 + @r1))");
     assertThat(CEL.createProgram(optimizedAst).eval()).isEqualTo(27);
   }
 

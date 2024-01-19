@@ -652,6 +652,197 @@ public class MutableAstTest {
     assertConsistentMacroCalls(ast);
   }
 
+  @Test
+  public void mangleComprehensionVariable_singleMacro() throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("[false].exists(i, i)").getAst();
+
+    CelAbstractSyntaxTree mangledAst = MutableAst.mangleComprehensionIdentifierNames(ast, "@c");
+
+    assertThat(mangledAst.getExpr().toString())
+        .isEqualTo(
+            "COMPREHENSION [13] {\n"
+                + "  iter_var: @c0\n"
+                + "  iter_range: {\n"
+                + "    CREATE_LIST [1] {\n"
+                + "      elements: {\n"
+                + "        CONSTANT [2] { value: false }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  accu_var: __result__\n"
+                + "  accu_init: {\n"
+                + "    CONSTANT [6] { value: false }\n"
+                + "  }\n"
+                + "  loop_condition: {\n"
+                + "    CALL [9] {\n"
+                + "      function: @not_strictly_false\n"
+                + "      args: {\n"
+                + "        CALL [8] {\n"
+                + "          function: !_\n"
+                + "          args: {\n"
+                + "            IDENT [7] {\n"
+                + "              name: __result__\n"
+                + "            }\n"
+                + "          }\n"
+                + "        }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  loop_step: {\n"
+                + "    CALL [11] {\n"
+                + "      function: _||_\n"
+                + "      args: {\n"
+                + "        IDENT [10] {\n"
+                + "          name: __result__\n"
+                + "        }\n"
+                + "        IDENT [5] {\n"
+                + "          name: @c0\n"
+                + "        }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  result: {\n"
+                + "    IDENT [12] {\n"
+                + "      name: __result__\n"
+                + "    }\n"
+                + "  }\n"
+                + "}");
+    assertThat(CEL_UNPARSER.unparse(mangledAst)).isEqualTo("[false].exists(@c0, @c0)");
+    assertThat(CEL.createProgram(CEL.check(mangledAst).getAst()).eval()).isEqualTo(false);
+    assertConsistentMacroCalls(ast);
+  }
+
+  @Test
+  public void mangleComprehensionVariable_nestedMacroWithShadowedVariables() throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("[x].exists(x, [x].exists(x, x == 1))").getAst();
+
+    CelAbstractSyntaxTree mangledAst = MutableAst.mangleComprehensionIdentifierNames(ast, "@c");
+
+    assertThat(mangledAst.getExpr().toString())
+        .isEqualTo(
+            "COMPREHENSION [27] {\n"
+                + "  iter_var: @c0\n"
+                + "  iter_range: {\n"
+                + "    CREATE_LIST [1] {\n"
+                + "      elements: {\n"
+                + "        IDENT [2] {\n"
+                + "          name: x\n"
+                + "        }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  accu_var: __result__\n"
+                + "  accu_init: {\n"
+                + "    CONSTANT [20] { value: false }\n"
+                + "  }\n"
+                + "  loop_condition: {\n"
+                + "    CALL [23] {\n"
+                + "      function: @not_strictly_false\n"
+                + "      args: {\n"
+                + "        CALL [22] {\n"
+                + "          function: !_\n"
+                + "          args: {\n"
+                + "            IDENT [21] {\n"
+                + "              name: __result__\n"
+                + "            }\n"
+                + "          }\n"
+                + "        }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  loop_step: {\n"
+                + "    CALL [25] {\n"
+                + "      function: _||_\n"
+                + "      args: {\n"
+                + "        IDENT [24] {\n"
+                + "          name: __result__\n"
+                + "        }\n"
+                + "        COMPREHENSION [19] {\n"
+                + "          iter_var: @c1\n"
+                + "          iter_range: {\n"
+                + "            CREATE_LIST [5] {\n"
+                + "              elements: {\n"
+                + "                IDENT [6] {\n"
+                + "                  name: @c0\n"
+                + "                }\n"
+                + "              }\n"
+                + "            }\n"
+                + "          }\n"
+                + "          accu_var: __result__\n"
+                + "          accu_init: {\n"
+                + "            CONSTANT [12] { value: false }\n"
+                + "          }\n"
+                + "          loop_condition: {\n"
+                + "            CALL [15] {\n"
+                + "              function: @not_strictly_false\n"
+                + "              args: {\n"
+                + "                CALL [14] {\n"
+                + "                  function: !_\n"
+                + "                  args: {\n"
+                + "                    IDENT [13] {\n"
+                + "                      name: __result__\n"
+                + "                    }\n"
+                + "                  }\n"
+                + "                }\n"
+                + "              }\n"
+                + "            }\n"
+                + "          }\n"
+                + "          loop_step: {\n"
+                + "            CALL [17] {\n"
+                + "              function: _||_\n"
+                + "              args: {\n"
+                + "                IDENT [16] {\n"
+                + "                  name: __result__\n"
+                + "                }\n"
+                + "                CALL [10] {\n"
+                + "                  function: _==_\n"
+                + "                  args: {\n"
+                + "                    IDENT [9] {\n"
+                + "                      name: @c1\n"
+                + "                    }\n"
+                + "                    CONSTANT [11] { value: 1 }\n"
+                + "                  }\n"
+                + "                }\n"
+                + "              }\n"
+                + "            }\n"
+                + "          }\n"
+                + "          result: {\n"
+                + "            IDENT [18] {\n"
+                + "              name: __result__\n"
+                + "            }\n"
+                + "          }\n"
+                + "        }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  result: {\n"
+                + "    IDENT [26] {\n"
+                + "      name: __result__\n"
+                + "    }\n"
+                + "  }\n"
+                + "}");
+
+    assertThat(CEL_UNPARSER.unparse(mangledAst))
+        .isEqualTo("[x].exists(@c0, [@c0].exists(@c1, @c1 == 1))");
+    assertThat(CEL.createProgram(CEL.check(mangledAst).getAst()).eval(ImmutableMap.of("x", 1)))
+        .isEqualTo(true);
+    assertConsistentMacroCalls(ast);
+  }
+
+  @Test
+  public void mangleComprehensionVariable_hasMacro_noOp() throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("has(msg.single_int64)").getAst();
+
+    CelAbstractSyntaxTree mangledAst = MutableAst.mangleComprehensionIdentifierNames(ast, "@c");
+
+    assertThat(CEL_UNPARSER.unparse(mangledAst)).isEqualTo("has(msg.single_int64)");
+    assertThat(
+            CEL.createProgram(CEL.check(mangledAst).getAst())
+                .eval(ImmutableMap.of("msg", TestAllTypes.getDefaultInstance())))
+        .isEqualTo(false);
+    assertConsistentMacroCalls(ast);
+  }
+
   /**
    * Asserts that the expressions that appears in source_info's macro calls are consistent with the
    * actual expr nodes in the AST.
