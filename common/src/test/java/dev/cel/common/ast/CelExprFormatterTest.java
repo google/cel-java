@@ -336,4 +336,37 @@ public class CelExprFormatterTest {
                 + "  }\n"
                 + "}");
   }
+
+  @Test
+  public void ternaryWithPresenceTest() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .build();
+    CelAbstractSyntaxTree ast =
+        celCompiler.compile("has(msg.single_any) ? msg.single_any : 10").getAst();
+
+    String formattedExpr = CelExprFormatter.format(ast.getExpr());
+
+    assertThat(formattedExpr)
+        .isEqualTo(
+            "CALL [5] {\n"
+                + "  function: _?_:_\n"
+                + "  args: {\n"
+                + "    SELECT [4] {\n"
+                + "      IDENT [2] {\n"
+                + "        name: msg\n"
+                + "      }.single_any~presence_test\n"
+                + "    }\n"
+                + "    SELECT [7] {\n"
+                + "      IDENT [6] {\n"
+                + "        name: msg\n"
+                + "      }.single_any\n"
+                + "    }\n"
+                + "    CONSTANT [8] { value: 10 }\n"
+                + "  }\n"
+                + "}");
+  }
 }

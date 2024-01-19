@@ -122,8 +122,8 @@ final class CelExprFormatter {
     indent();
     formatExpr(celSelect.operand());
     outdent();
-    append(".");
-    append(celSelect.field());
+    appendWithoutIndent(".");
+    appendWithoutIndent(celSelect.field());
     if (celSelect.testOnly()) {
       appendWithoutIndent("~presence_test");
     }

@@ -97,7 +97,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     int bindIdentifierIndex = 0;
     int iterCount;
     for (iterCount = 0; iterCount < cseOptions.maxIterationLimit(); iterCount++) {
-      CelNavigableExpr cseCandidate = findCseCandidate(astToModify).orElse(null);
+      CelExpr cseCandidate = findCseCandidate(astToModify).map(CelNavigableExpr::expr).orElse(null);
       if (cseCandidate == null) {
         break;
       }
@@ -107,7 +107,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
       // Using the CSE candidate, fetch all semantically equivalent subexpressions ahead of time.
       ImmutableList<CelExpr> allCseCandidates =
-          getAllCseCandidatesStream(astToModify, cseCandidate.expr()).collect(toImmutableList());
+          getAllCseCandidatesStream(astToModify, cseCandidate).collect(toImmutableList());
 
       // Replace all CSE candidates with new bind identifier
       for (CelExpr semanticallyEqualNode : allCseCandidates) {
@@ -142,7 +142,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       // Insert the new bind call
       astToModify =
           replaceSubtreeWithNewBindMacro(
-              astToModify, bindIdentifier, cseCandidate.expr(), lca.expr(), lca.id());
+              astToModify, bindIdentifier, cseCandidate, lca.expr(), lca.id());
 
       // Retain the existing macro calls in case if the bind identifiers are replacing a subtree
       // that contains a comprehension.
@@ -224,8 +224,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
             .collect(toImmutableList());
 
     for (CelNavigableExpr node : allNodes) {
-      // Strip out all IDs to test equivalence
-      CelExpr celExpr = clearExprIds(node.expr());
+      // Normalize the expr to test semantic equivalence.
+      CelExpr celExpr = normalizeForEquality(node.expr());
       if (encounteredNodes.contains(celExpr)) {
         return Optional.of(node);
       }
@@ -240,6 +240,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     return !navigableExpr.getKind().equals(Kind.CONSTANT)
         && !navigableExpr.getKind().equals(Kind.IDENT)
         && !navigableExpr.expr().identOrDefault().name().startsWith(BIND_IDENTIFIER_PREFIX)
+        && !navigableExpr.expr().selectOrDefault().testOnly()
         && isAllowedFunction(navigableExpr)
         && isWithinInlineableComprehension(navigableExpr);
   }
@@ -271,7 +272,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   }
 
   private boolean areSemanticallyEqual(CelExpr expr1, CelExpr expr2) {
-    return clearExprIds(expr1).equals(clearExprIds(expr2));
+    return normalizeForEquality(expr1).equals(normalizeForEquality(expr2));
   }
 
   private static boolean isAllowedFunction(CelNavigableExpr navigableExpr) {
@@ -280,6 +281,47 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     }
 
     return true;
+  }
+
+  /**
+   * Converts the {@link CelExpr} to make it suitable for performing semantically equals check in
+   * {@link #areSemanticallyEqual(CelExpr, CelExpr)}.
+   *
+   * <p>Specifically, this will:
+   *
+   * <ul>
+   *   <li>Set all expr IDs in the expression tree to 0.
+   *   <li>Strip all presence tests (i.e: testOnly is marked as false on {@link
+   *       CelExpr.ExprKind.Kind#SELECT}
+   * </ul>
+   */
+  private CelExpr normalizeForEquality(CelExpr celExpr) {
+    int iterCount;
+    for (iterCount = 0; iterCount < cseOptions.maxIterationLimit(); iterCount++) {
+      CelExpr presenceTestExpr =
+          CelNavigableExpr.fromExpr(celExpr)
+              .allNodes()
+              .map(CelNavigableExpr::expr)
+              .filter(expr -> expr.selectOrDefault().testOnly())
+              .findAny()
+              .orElse(null);
+      if (presenceTestExpr == null) {
+        break;
+      }
+
+      CelExpr newExpr =
+          presenceTestExpr.toBuilder()
+              .setSelect(presenceTestExpr.select().toBuilder().setTestOnly(false).build())
+              .build();
+
+      celExpr = replaceSubtree(celExpr, newExpr, newExpr.id());
+    }
+
+    if (iterCount >= cseOptions.maxIterationLimit()) {
+      throw new IllegalStateException("Max iteration count reached.");
+    }
+
+    return clearExprIds(celExpr);
   }
 
   /** Options to configure how Common Subexpression Elimination behave. */

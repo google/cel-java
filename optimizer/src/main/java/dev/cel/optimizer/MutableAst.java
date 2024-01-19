@@ -66,6 +66,15 @@ final class MutableAst {
     return renumberExprIds((unused) -> 0, celExpr.toBuilder()).build();
   }
 
+  /** Mutates the given {@link CelExpr} by replacing a subtree at the given index. */
+  static CelExpr replaceSubtree(CelExpr expr, CelExpr newExpr, long exprIdToReplace) {
+    return replaceSubtree(
+            CelAbstractSyntaxTree.newParsedAst(expr, CelSource.newBuilder().build()),
+            CelAbstractSyntaxTree.newParsedAst(newExpr, CelSource.newBuilder().build()),
+            exprIdToReplace)
+        .getExpr();
+  }
+
   /**
    * Mutates the given AST by replacing a subtree at a given index.
    *
