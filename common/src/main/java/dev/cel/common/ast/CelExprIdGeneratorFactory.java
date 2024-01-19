@@ -64,6 +64,11 @@ public final class CelExprIdGeneratorFactory {
       return idSet.containsKey(id);
     }
 
+    /** Generates the next available ID. */
+    public long nextExprId() {
+      return ++exprId;
+    }
+
     /**
      * Generate the next available ID while memoizing the existing ID.
      *

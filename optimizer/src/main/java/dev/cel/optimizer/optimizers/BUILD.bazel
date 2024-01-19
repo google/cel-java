@@ -27,3 +27,24 @@ java_library(
         "@maven//:com_google_guava_guava",
     ],
 )
+
+java_library(
+    name = "common_subexpression_elimination",
+    srcs = [
+        "SubexpressionOptimizer.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//:auto_value",
+        "//bundle:cel",
+        "//checker:checker_legacy_environment",
+        "//common",
+        "//common/ast",
+        "//common/navigation",
+        "//optimizer:ast_optimizer",
+        "//parser:operator",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)

@@ -289,6 +289,98 @@ public class ConstantFoldingOptimizerTest {
   }
 
   @Test
+  public void constantFold_withMacroCallPopulated_comprehensionsAreReplacedWithNotSet()
+      throws Exception {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addVar("x", SimpleType.DYN)
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .setOptions(CelOptions.current().populateMacroCalls(true).build())
+            .build();
+    CelOptimizer celOptimizer =
+        CelOptimizerFactory.standardCelOptimizerBuilder(cel)
+            .addAstOptimizers(ConstantFoldingOptimizer.INSTANCE)
+            .build();
+    CelAbstractSyntaxTree ast =
+        cel.compile("[1, 1 + 1, 1 + 1+ 1].map(i, i).filter(j, j % 2 == x)").getAst();
+
+    CelAbstractSyntaxTree optimizedAst = celOptimizer.optimize(ast);
+
+    assertThat(CEL_UNPARSER.unparse(optimizedAst))
+        .isEqualTo("[1, 2, 3].map(i, i).filter(j, j % 2 == x)");
+    assertThat(optimizedAst.getSource().getMacroCalls()).hasSize(2);
+    assertThat(optimizedAst.getSource().getMacroCalls().get(1L).toString())
+        .isEqualTo(
+            "CALL [0] {\n"
+                + "  function: filter\n"
+                + "  target: {\n"
+                + "    NOT_SET [2] {}\n"
+                + "  }\n"
+                + "  args: {\n"
+                + "    IDENT [25] {\n"
+                + "      name: j\n"
+                + "    }\n"
+                + "    CALL [17] {\n"
+                + "      function: _==_\n"
+                + "      args: {\n"
+                + "        CALL [18] {\n"
+                + "          function: _%_\n"
+                + "          args: {\n"
+                + "            IDENT [19] {\n"
+                + "              name: j\n"
+                + "            }\n"
+                + "            CONSTANT [20] { value: 2 }\n"
+                + "          }\n"
+                + "        }\n"
+                + "        IDENT [21] {\n"
+                + "          name: x\n"
+                + "        }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "}");
+    assertThat(optimizedAst.getSource().getMacroCalls().get(2L).toString())
+        .isEqualTo(
+            "CALL [0] {\n"
+                + "  function: map\n"
+                + "  target: {\n"
+                + "    CREATE_LIST [3] {\n"
+                + "      elements: {\n"
+                + "        CONSTANT [4] { value: 1 }\n"
+                + "        CONSTANT [5] { value: 2 }\n"
+                + "        CONSTANT [6] { value: 3 }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  args: {\n"
+                + "    IDENT [28] {\n"
+                + "      name: i\n"
+                + "    }\n"
+                + "    IDENT [12] {\n"
+                + "      name: i\n"
+                + "    }\n"
+                + "  }\n"
+                + "}");
+  }
+
+  @Test
+  public void constantFold_astProducesConsistentlyNumberedIds() throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("[1] + [2] + [3]").getAst();
+
+    CelAbstractSyntaxTree optimizedAst = CEL_OPTIMIZER.optimize(ast);
+
+    assertThat(optimizedAst.getExpr().toString())
+        .isEqualTo(
+            "CREATE_LIST [1] {\n"
+                + "  elements: {\n"
+                + "    CONSTANT [2] { value: 1 }\n"
+                + "    CONSTANT [3] { value: 2 }\n"
+                + "    CONSTANT [4] { value: 3 }\n"
+                + "  }\n"
+                + "}");
+  }
+
+  @Test
   public void maxIterationCountReached_throws() throws Exception {
     StringBuilder sb = new StringBuilder();
     sb.append("0");

@@ -6,6 +6,8 @@ bazel-cel-java
 bazel-out
 bazel-testlogs
 
+MODULE.bazel*
+
 # IntelliJ IDEA
 .idea
 *.iml

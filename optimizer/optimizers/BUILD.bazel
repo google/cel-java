@@ -7,3 +7,9 @@ java_library(
     name = "constant_folding",
     exports = ["//optimizer/src/main/java/dev/cel/optimizer/optimizers:constant_folding"],
 )
+
+java_library(
+    name = "common_subexpression_elimination",
+    visibility = ["//visibility:public"],  # TODO: Expose when ready
+    exports = ["//optimizer/src/main/java/dev/cel/optimizer/optimizers:common_subexpression_elimination"],
+)

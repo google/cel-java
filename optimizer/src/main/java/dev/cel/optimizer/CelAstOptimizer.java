@@ -47,4 +47,36 @@ public interface CelAstOptimizer {
       CelAbstractSyntaxTree ast, CelExpr newExpr, long exprIdToReplace) {
     return MutableAst.replaceSubtree(ast, newExpr, exprIdToReplace);
   }
+
+  /**
+   * Generates a new bind macro using the provided initialization and result expression, then
+   * replaces the subtree using the new bind expr at the designated expr ID.
+   *
+   * <p>The bind call takes the format of: {@code cel.bind(varInit, varName, resultExpr)}
+   *
+   * @param ast Original ast to mutate.
+   * @param varName New variable name for the bind macro call.
+   * @param varInit Initialization expression to bind to the local variable.
+   * @param resultExpr Result expression
+   * @param exprIdToReplace Expression ID of the subtree that is getting replaced.
+   */
+  default CelAbstractSyntaxTree replaceSubtreeWithNewBindMacro(
+      CelAbstractSyntaxTree ast,
+      String varName,
+      CelExpr varInit,
+      CelExpr resultExpr,
+      long exprIdToReplace) {
+    return MutableAst.replaceSubtreeWithNewBindMacro(
+        ast, varName, varInit, resultExpr, exprIdToReplace);
+  }
+
+  /** Sets all expr IDs in the expression tree to 0. */
+  default CelExpr clearExprIds(CelExpr celExpr) {
+    return MutableAst.clearExprIds(celExpr);
+  }
+
+  /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */
+  default CelAbstractSyntaxTree renumberIdsConsecutively(CelAbstractSyntaxTree ast) {
+    return MutableAst.renumberIdsConsecutively(ast);
+  }
 }

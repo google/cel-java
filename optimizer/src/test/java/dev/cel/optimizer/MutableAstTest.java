@@ -71,7 +71,7 @@ public class MutableAstTest {
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(true)).build(), 1);
 
     assertThat(mutatedAst.getExpr())
-        .isEqualTo(CelExpr.ofConstantExpr(1, CelConstant.ofValue(true)));
+        .isEqualTo(CelExpr.ofConstantExpr(3, CelConstant.ofValue(true)));
   }
 
   @Test
@@ -126,7 +126,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast2 = CEL.compile(source).getAst();
 
     CelAbstractSyntaxTree mutatedAst =
-        MutableAst.replaceSubtree(ast, ast2, CelNavigableAst.fromAst(ast).getRoot().expr().id());
+        MutableAst.replaceSubtree(ast, ast2, CelNavigableAst.fromAst(ast).getRoot().id());
 
     assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(expectedMacroCallSize);
     assertThat(CEL_UNPARSER.unparse(mutatedAst)).isEqualTo(source);
@@ -185,7 +185,7 @@ public class MutableAstTest {
             variableName,
             CelExpr.ofConstantExpr(0, CelConstant.ofValue(3L)),
             resultExpr,
-            CelNavigableAst.fromAst(ast).getRoot().expr().id());
+            CelNavigableAst.fromAst(ast).getRoot().id());
 
     assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(1);
     assertThat(CEL_UNPARSER.unparse(mutatedAst)).isEqualTo("cel.bind(@r0, 3, @r0 + @r0)");
@@ -333,7 +333,7 @@ public class MutableAstTest {
             nestedVariableName,
             CelExpr.ofConstantExpr(0, CelConstant.ofValue(3L)),
             resultExpr,
-            1);
+            CelNavigableAst.fromAst(mutatedAst).getRoot().id());
 
     assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(2);
     assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(8);
@@ -349,7 +349,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast2 = CEL.compile("1").getAst();
 
     CelAbstractSyntaxTree mutatedAst =
-        MutableAst.replaceSubtree(ast, ast2, CelNavigableAst.fromAst(ast).getRoot().expr().id());
+        MutableAst.replaceSubtree(ast, ast2, CelNavigableAst.fromAst(ast).getRoot().id());
 
     assertThat(mutatedAst.getSource().getMacroCalls()).isEmpty();
     assertThat(CEL_UNPARSER.unparse(mutatedAst)).isEqualTo("1");
@@ -368,7 +368,7 @@ public class MutableAstTest {
         MutableAst.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(10)).build(), 4);
 
-    assertThat(replacedAst.getExpr()).isEqualTo(CelExpr.ofConstantExpr(1, CelConstant.ofValue(10)));
+    assertThat(replacedAst.getExpr()).isEqualTo(CelExpr.ofConstantExpr(7, CelConstant.ofValue(10)));
   }
 
   @Test
@@ -673,7 +673,12 @@ public class MutableAstTest {
               node -> {
                 CelExpr e = allExprs.get(node.id());
                 if (e != null) {
-                  assertThat(node).isEqualTo(e);
+                  assertThat(node.id()).isEqualTo(e.id());
+                  if (e.exprKind().getKind().equals(Kind.COMPREHENSION)) {
+                    assertThat(node.exprKind().getKind()).isEqualTo(Kind.NOT_SET);
+                  } else {
+                    assertThat(node.exprKind().getKind()).isEqualTo(e.exprKind().getKind());
+                  }
                 }
               });
     }
