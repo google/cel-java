@@ -381,7 +381,7 @@ public class ConstantFoldingOptimizerTest {
   }
 
   @Test
-  public void maxIterationCountReached_throws() throws Exception {
+  public void iterationLimitReached_throws() throws Exception {
     StringBuilder sb = new StringBuilder();
     sb.append("0");
     for (int i = 1; i < 400; i++) {

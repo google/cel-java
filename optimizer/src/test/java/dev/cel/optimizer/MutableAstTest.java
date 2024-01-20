@@ -16,6 +16,7 @@ package dev.cel.optimizer;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
@@ -61,13 +62,14 @@ public class MutableAstTest {
           .build();
 
   private static final CelUnparser CEL_UNPARSER = CelUnparserFactory.newUnparser();
+  private static final MutableAst MUTABLE_AST = MutableAst.newInstance(1000);
 
   @Test
   public void constExpr() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("10").getAst();
 
     CelAbstractSyntaxTree mutatedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(true)).build(), 1);
 
     assertThat(mutatedAst.getExpr())
@@ -79,7 +81,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("10").getAst();
 
     CelAbstractSyntaxTree mutatedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(true)).build(), 1);
 
     assertThat(ast.isChecked()).isTrue();
@@ -91,7 +93,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("10").getAst();
 
     CelAbstractSyntaxTree mutatedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(true)).build(), 1);
 
     assertThat(mutatedAst.getSource().getDescription()).isEmpty();
@@ -105,7 +107,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("has(TestAllTypes{}.single_int32)").getAst();
 
     CelAbstractSyntaxTree mutatedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(true)).build(), 1);
 
     assertThat(mutatedAst.getSource().getDescription()).isEmpty();
@@ -126,7 +128,8 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast2 = CEL.compile(source).getAst();
 
     CelAbstractSyntaxTree mutatedAst =
-        MutableAst.replaceSubtree(ast, ast2, CelNavigableAst.fromAst(ast).getRoot().id());
+        MUTABLE_AST.replaceSubtreeWithNewAst(
+            ast, ast2, CelNavigableAst.fromAst(ast).getRoot().id());
 
     assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(expectedMacroCallSize);
     assertThat(CEL_UNPARSER.unparse(mutatedAst)).isEqualTo(source);
@@ -139,9 +142,9 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast2 = CEL.compile("[1].exists(x, x > 0)").getAst();
 
     CelAbstractSyntaxTree mutatedAst =
-        MutableAst.replaceSubtree(ast, ast2, 3); // Replace false with the macro expr
+        MUTABLE_AST.replaceSubtreeWithNewAst(ast, ast2, 3); // Replace false with the macro expr
     CelAbstractSyntaxTree mutatedAst2 =
-        MutableAst.replaceSubtree(ast, ast2, 1); // Replace true with the macro expr
+        MUTABLE_AST.replaceSubtreeWithNewAst(ast, ast2, 1); // Replace true with the macro expr
 
     assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(1);
     assertThat(CEL_UNPARSER.unparse(mutatedAst)).isEqualTo("true && [1].exists(x, x > 0)");
@@ -157,7 +160,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast2 = CEL.compile("[2].exists(y, y > 0)").getAst();
 
     CelAbstractSyntaxTree mutatedAst =
-        MutableAst.replaceSubtree(ast, ast2, 9); // Replace true with the ast2 maro expr
+        MUTABLE_AST.replaceSubtreeWithNewAst(ast, ast2, 9); // Replace true with the ast2 maro expr
 
     assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(2);
     assertThat(CEL_UNPARSER.unparse(mutatedAst))
@@ -180,7 +183,7 @@ public class MutableAstTest {
             .build();
 
     CelAbstractSyntaxTree mutatedAst =
-        MutableAst.replaceSubtreeWithNewBindMacro(
+        MUTABLE_AST.replaceSubtreeWithNewBindMacro(
             ast,
             variableName,
             CelExpr.ofConstantExpr(0, CelConstant.ofValue(3L)),
@@ -212,7 +215,7 @@ public class MutableAstTest {
     // Act
     // Perform the initial replacement. (1 + 1) -> cel.bind(@r0, 3, @r0 + @r0)
     CelAbstractSyntaxTree mutatedAst =
-        MutableAst.replaceSubtreeWithNewBindMacro(
+        MUTABLE_AST.replaceSubtreeWithNewBindMacro(
             ast,
             variableName,
             CelExpr.ofConstantExpr(0, CelConstant.ofValue(3L)),
@@ -261,7 +264,7 @@ public class MutableAstTest {
             .id();
     // This should produce cel.bind(@r1, 1, cel.bind(@r0, 3, @r0 + @r0 + @r1 + @r1))
     mutatedAst =
-        MutableAst.replaceSubtreeWithNewBindMacro(
+        MUTABLE_AST.replaceSubtreeWithNewBindMacro(
             mutatedAst,
             nestedVariableName,
             CelExpr.ofConstantExpr(0, CelConstant.ofValue(1L)),
@@ -293,7 +296,7 @@ public class MutableAstTest {
     // Act
     // Perform the initial replacement. (1 + 1 + 3 + 3) -> cel.bind(@r0, 1, @r0 + @r0) + 3 + 3
     CelAbstractSyntaxTree mutatedAst =
-        MutableAst.replaceSubtreeWithNewBindMacro(
+        MUTABLE_AST.replaceSubtreeWithNewBindMacro(
             ast,
             variableName,
             CelExpr.ofConstantExpr(0, CelConstant.ofValue(1L)),
@@ -328,7 +331,7 @@ public class MutableAstTest {
             .build();
     // Replace the root with the new result and a bind macro inserted
     mutatedAst =
-        MutableAst.replaceSubtreeWithNewBindMacro(
+        MUTABLE_AST.replaceSubtreeWithNewBindMacro(
             mutatedAst,
             nestedVariableName,
             CelExpr.ofConstantExpr(0, CelConstant.ofValue(3L)),
@@ -349,7 +352,8 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast2 = CEL.compile("1").getAst();
 
     CelAbstractSyntaxTree mutatedAst =
-        MutableAst.replaceSubtree(ast, ast2, CelNavigableAst.fromAst(ast).getRoot().id());
+        MUTABLE_AST.replaceSubtreeWithNewAst(
+            ast, ast2, CelNavigableAst.fromAst(ast).getRoot().id());
 
     assertThat(mutatedAst.getSource().getMacroCalls()).isEmpty();
     assertThat(CEL_UNPARSER.unparse(mutatedAst)).isEqualTo("1");
@@ -365,7 +369,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("1 + 2 + x").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(10)).build(), 4);
 
     assertThat(replacedAst.getExpr()).isEqualTo(CelExpr.ofConstantExpr(7, CelConstant.ofValue(10)));
@@ -380,7 +384,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("1 + 2 + x").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(10)).build(), 1);
 
     assertThat(CEL_UNPARSER.unparse(replacedAst)).isEqualTo("10 + 2 + x");
@@ -395,7 +399,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("1 + 2 + x").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(10)).build(), 2);
 
     assertThat(CEL_UNPARSER.unparse(replacedAst)).isEqualTo("10 + x");
@@ -410,7 +414,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("1 + 2 + x").getAst();
     CelAbstractSyntaxTree ast2 = CEL.compile("4 + 5 + 6").getAst();
 
-    CelAbstractSyntaxTree replacedAst = MutableAst.replaceSubtree(ast, ast2.getExpr(), 2);
+    CelAbstractSyntaxTree replacedAst = MUTABLE_AST.replaceSubtree(ast, ast2.getExpr(), 2);
 
     assertThat(CEL_UNPARSER.unparse(replacedAst)).isEqualTo("4 + 5 + 6 + x");
   }
@@ -432,7 +436,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = cel.compile("10.func(4.func(5))").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(20)).build(), 3);
 
     assertThat(CEL_UNPARSER.unparse(replacedAst)).isEqualTo("10.func(20.func(5))");
@@ -455,7 +459,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = cel.compile("10.func(4.func(5))").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(20)).build(), 5);
 
     assertThat(CEL_UNPARSER.unparse(replacedAst)).isEqualTo("10.func(4.func(20))");
@@ -478,7 +482,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = cel.compile("10.func(4.func(5))").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(20)).build(), 1);
 
     assertThat(CEL_UNPARSER.unparse(replacedAst)).isEqualTo("20.func(4.func(5))");
@@ -501,7 +505,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = cel.compile("10.func(4.func(5))").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(20)).build(), 4);
 
     assertThat(CEL_UNPARSER.unparse(replacedAst)).isEqualTo("10.func(20)");
@@ -516,7 +520,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("5 + msg.single_int64").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast,
             CelExpr.newBuilder()
                 .setSelect(
@@ -542,7 +546,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("5 + msg.single_int64").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast,
             CelExpr.newBuilder().setIdent(CelIdent.newBuilder().setName("test").build()).build(),
             3);
@@ -558,7 +562,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("[2, 3, 4]").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(5)).build(), 4);
 
     assertThat(CEL_UNPARSER.unparse(replacedAst)).isEqualTo("[2, 3, 5]");
@@ -573,7 +577,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("TestAllTypes{single_int64: 2}").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(5)).build(), 3);
 
     assertThat(CEL_UNPARSER.unparse(replacedAst)).isEqualTo("TestAllTypes{single_int64: 5}");
@@ -588,7 +592,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("{'a': 1}").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(5)).build(), 3);
 
     assertThat(CEL_UNPARSER.unparse(replacedAst)).isEqualTo("{5: 1}");
@@ -603,7 +607,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("{'a': 1}").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(5)).build(), 4);
 
     assertThat(CEL_UNPARSER.unparse(replacedAst)).isEqualTo("{\"a\": 5}");
@@ -614,7 +618,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("[true].exists(i, i)").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(false)).build(), 2);
 
     assertThat(CEL_UNPARSER.unparse(replacedAst)).isEqualTo("[false].exists(i, i)");
@@ -627,7 +631,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("[false].exists(i, i)").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(true)).build(), 6);
 
     assertThat(CEL_UNPARSER.unparse(replacedAst)).isEqualTo("[false].exists(i, i)");
@@ -643,7 +647,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("[false].exists(i, i)").getAst();
 
     CelAbstractSyntaxTree replacedAst =
-        MutableAst.replaceSubtree(
+        MUTABLE_AST.replaceSubtree(
             ast,
             CelExpr.newBuilder().setIdent(CelIdent.newBuilder().setName("test").build()).build(),
             5);
@@ -656,7 +660,7 @@ public class MutableAstTest {
   public void mangleComprehensionVariable_singleMacro() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("[false].exists(i, i)").getAst();
 
-    CelAbstractSyntaxTree mangledAst = MutableAst.mangleComprehensionIdentifierNames(ast, "@c");
+    CelAbstractSyntaxTree mangledAst = MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c");
 
     assertThat(mangledAst.getExpr().toString())
         .isEqualTo(
@@ -716,7 +720,7 @@ public class MutableAstTest {
   public void mangleComprehensionVariable_nestedMacroWithShadowedVariables() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("[x].exists(x, [x].exists(x, x == 1))").getAst();
 
-    CelAbstractSyntaxTree mangledAst = MutableAst.mangleComprehensionIdentifierNames(ast, "@c");
+    CelAbstractSyntaxTree mangledAst = MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c");
 
     assertThat(mangledAst.getExpr().toString())
         .isEqualTo(
@@ -833,7 +837,7 @@ public class MutableAstTest {
   public void mangleComprehensionVariable_hasMacro_noOp() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("has(msg.single_int64)").getAst();
 
-    CelAbstractSyntaxTree mangledAst = MutableAst.mangleComprehensionIdentifierNames(ast, "@c");
+    CelAbstractSyntaxTree mangledAst = MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c");
 
     assertThat(CEL_UNPARSER.unparse(mangledAst)).isEqualTo("has(msg.single_int64)");
     assertThat(
@@ -841,6 +845,21 @@ public class MutableAstTest {
                 .eval(ImmutableMap.of("msg", TestAllTypes.getDefaultInstance())))
         .isEqualTo(false);
     assertConsistentMacroCalls(ast);
+  }
+
+  @Test
+  public void replaceSubtree_iterationLimitReached_throws() throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("true && false").getAst();
+    MutableAst mutableAst = MutableAst.newInstance(1);
+
+    IllegalStateException e =
+        assertThrows(
+            IllegalStateException.class,
+            () ->
+                mutableAst.replaceSubtree(
+                    ast, CelExpr.ofConstantExpr(0, CelConstant.ofValue(false)), 1));
+
+    assertThat(e).hasMessageThat().isEqualTo("Max iteration count reached.");
   }
 
   /**

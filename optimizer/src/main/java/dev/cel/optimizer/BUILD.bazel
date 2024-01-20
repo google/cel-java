@@ -66,18 +66,19 @@ java_library(
     tags = [
     ],
     deps = [
-        ":mutable_ast",
         ":optimization_exception",
         "//bundle:cel",
         "//common",
-        "//common/ast",
         "//common/navigation",
     ],
 )
 
 java_library(
     name = "mutable_ast",
-    srcs = ["MutableAst.java"],
+    srcs = [
+        "MutableAst.java",
+        "MutableExprVisitor.java",
+    ],
     tags = [
     ],
     deps = [
@@ -87,6 +88,7 @@ java_library(
         "//common/ast",
         "//common/ast:expr_factory",
         "//common/navigation",
+        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
 )

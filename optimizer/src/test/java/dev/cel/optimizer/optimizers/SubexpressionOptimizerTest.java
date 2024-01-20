@@ -634,12 +634,12 @@ public class SubexpressionOptimizerTest {
   }
 
   @Test
-  public void maxIterationLimitReached_throws() throws Exception {
+  public void iterationLimitReached_throws() throws Exception {
     StringBuilder largeExprBuilder = new StringBuilder();
-    int maxIterationLimit = 100;
-    for (int i = 0; i < maxIterationLimit; i++) {
+    int iterationLimit = 100;
+    for (int i = 0; i < iterationLimit; i++) {
       largeExprBuilder.append("[1,2]");
-      if (i < maxIterationLimit - 1) {
+      if (i < iterationLimit - 1) {
         largeExprBuilder.append("+");
       }
     }
@@ -653,7 +653,7 @@ public class SubexpressionOptimizerTest {
                     .addAstOptimizers(
                         SubexpressionOptimizer.newInstance(
                             SubexpressionOptimizerOptions.newBuilder()
-                                .maxIterationLimit(maxIterationLimit)
+                                .iterationLimit(iterationLimit)
                                 .build()))
                     .build()
                     .optimize(ast));

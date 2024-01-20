@@ -33,6 +33,7 @@ import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.navigation.CelNavigableExpr.TraversalOrder;
 import dev.cel.optimizer.CelAstOptimizer;
+import dev.cel.optimizer.MutableAst;
 import dev.cel.parser.Operator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,7 +60,6 @@ import java.util.stream.Stream;
  * </pre>
  */
 public class SubexpressionOptimizer implements CelAstOptimizer {
-
   private static final SubexpressionOptimizer INSTANCE =
       new SubexpressionOptimizer(SubexpressionOptimizerOptions.newBuilder().build());
   private static final String BIND_IDENTIFIER_PREFIX = "@r";
@@ -70,6 +70,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
               stream(Standard.Function.values()).map(Standard.Function::getFunction))
           .collect(toImmutableSet());
   private final SubexpressionOptimizerOptions cseOptions;
+  private final MutableAst mutableAst;
 
   /**
    * Returns a default instance of common subexpression elimination optimizer with preconfigured
@@ -90,13 +91,13 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   @Override
   public CelAbstractSyntaxTree optimize(CelNavigableAst navigableAst, Cel cel) {
     CelAbstractSyntaxTree astToModify =
-        mangleComprehensionIdentifierNames(
+        mutableAst.mangleComprehensionIdentifierNames(
             navigableAst.getAst(), MANGLED_COMPREHENSION_IDENTIFIER_PREFIX);
     CelSource sourceToModify = astToModify.getSource();
 
     int bindIdentifierIndex = 0;
     int iterCount;
-    for (iterCount = 0; iterCount < cseOptions.maxIterationLimit(); iterCount++) {
+    for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
       CelExpr cseCandidate = findCseCandidate(astToModify).map(CelNavigableExpr::expr).orElse(null);
       if (cseCandidate == null) {
         break;
@@ -122,7 +123,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
                             "No value present for expr ID: " + semanticallyEqualNode.id()));
 
         astToModify =
-            replaceSubtree(
+            mutableAst.replaceSubtree(
                 astToModify,
                 CelExpr.newBuilder()
                     .setIdent(CelIdent.newBuilder().setName(bindIdentifier).build())
@@ -141,7 +142,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
       // Insert the new bind call
       astToModify =
-          replaceSubtreeWithNewBindMacro(
+          mutableAst.replaceSubtreeWithNewBindMacro(
               astToModify, bindIdentifier, cseCandidate, lca.expr(), lca.id());
 
       // Retain the existing macro calls in case if the bind identifiers are replacing a subtree
@@ -149,7 +150,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       sourceToModify = astToModify.getSource();
     }
 
-    if (iterCount >= cseOptions.maxIterationLimit()) {
+    if (iterCount >= cseOptions.iterationLimit()) {
       throw new IllegalStateException("Max iteration count reached.");
     }
 
@@ -163,7 +164,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
           CelAbstractSyntaxTree.newParsedAst(astToModify.getExpr(), CelSource.newBuilder().build());
     }
 
-    return renumberIdsConsecutively(astToModify);
+    return mutableAst.renumberIdsConsecutively(astToModify);
   }
 
   private Stream<CelExpr> getAllCseCandidatesStream(
@@ -297,7 +298,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
    */
   private CelExpr normalizeForEquality(CelExpr celExpr) {
     int iterCount;
-    for (iterCount = 0; iterCount < cseOptions.maxIterationLimit(); iterCount++) {
+    for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
       CelExpr presenceTestExpr =
           CelNavigableExpr.fromExpr(celExpr)
               .allNodes()
@@ -314,20 +315,20 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
               .setSelect(presenceTestExpr.select().toBuilder().setTestOnly(false).build())
               .build();
 
-      celExpr = replaceSubtree(celExpr, newExpr, newExpr.id());
+      celExpr = mutableAst.replaceSubtree(celExpr, newExpr, newExpr.id());
     }
 
-    if (iterCount >= cseOptions.maxIterationLimit()) {
+    if (iterCount >= cseOptions.iterationLimit()) {
       throw new IllegalStateException("Max iteration count reached.");
     }
 
-    return clearExprIds(celExpr);
+    return mutableAst.clearExprIds(celExpr);
   }
 
   /** Options to configure how Common Subexpression Elimination behave. */
   @AutoValue
   public abstract static class SubexpressionOptimizerOptions {
-    public abstract int maxIterationLimit();
+    public abstract int iterationLimit();
 
     public abstract boolean populateMacroCalls();
 
@@ -339,7 +340,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
        * Limit the number of iteration while performing CSE. An exception is thrown if the iteration
        * count exceeds the set value.
        */
-      public abstract Builder maxIterationLimit(int value);
+      public abstract Builder iterationLimit(int value);
 
       /**
        * Populate the macro_calls map in source_info with macro calls on the resulting optimized
@@ -355,7 +356,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     /** Returns a new options builder with recommended defaults pre-configured. */
     public static Builder newBuilder() {
       return new AutoValue_SubexpressionOptimizer_SubexpressionOptimizerOptions.Builder()
-          .maxIterationLimit(500)
+          .iterationLimit(500)
           .populateMacroCalls(false);
     }
 
@@ -364,5 +365,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
   private SubexpressionOptimizer(SubexpressionOptimizerOptions cseOptions) {
     this.cseOptions = cseOptions;
+    this.mutableAst = MutableAst.newInstance(cseOptions.iterationLimit());
   }
 }
