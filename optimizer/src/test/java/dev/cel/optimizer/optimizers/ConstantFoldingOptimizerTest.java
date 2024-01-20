@@ -30,6 +30,7 @@ import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.optimizer.CelOptimizer;
 import dev.cel.optimizer.CelOptimizerFactory;
+import dev.cel.optimizer.optimizers.ConstantFoldingOptimizer.ConstantFoldingOptions;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparser;
 import dev.cel.parser.CelUnparserFactory;
@@ -53,7 +54,7 @@ public class ConstantFoldingOptimizerTest {
 
   private static final CelOptimizer CEL_OPTIMIZER =
       CelOptimizerFactory.standardCelOptimizerBuilder(CEL)
-          .addAstOptimizers(ConstantFoldingOptimizer.INSTANCE)
+          .addAstOptimizers(ConstantFoldingOptimizer.getInstance())
           .build();
 
   private static final CelUnparser CEL_UNPARSER = CelUnparserFactory.newUnparser();
@@ -211,7 +212,7 @@ public class ConstantFoldingOptimizerTest {
             .build();
     CelOptimizer celOptimizer =
         CelOptimizerFactory.standardCelOptimizerBuilder(cel)
-            .addAstOptimizers(ConstantFoldingOptimizer.INSTANCE)
+            .addAstOptimizers(ConstantFoldingOptimizer.getInstance())
             .build();
     CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
@@ -253,7 +254,7 @@ public class ConstantFoldingOptimizerTest {
             .build();
     CelOptimizer celOptimizer =
         CelOptimizerFactory.standardCelOptimizerBuilder(cel)
-            .addAstOptimizers(ConstantFoldingOptimizer.INSTANCE)
+            .addAstOptimizers(ConstantFoldingOptimizer.getInstance())
             .build();
     CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
@@ -299,7 +300,7 @@ public class ConstantFoldingOptimizerTest {
             .build();
     CelOptimizer celOptimizer =
         CelOptimizerFactory.standardCelOptimizerBuilder(cel)
-            .addAstOptimizers(ConstantFoldingOptimizer.INSTANCE)
+            .addAstOptimizers(ConstantFoldingOptimizer.getInstance())
             .build();
     CelAbstractSyntaxTree ast =
         cel.compile("[1, 1 + 1, 1 + 1+ 1].map(i, i).filter(j, j % 2 == x)").getAst();
@@ -384,17 +385,19 @@ public class ConstantFoldingOptimizerTest {
   public void iterationLimitReached_throws() throws Exception {
     StringBuilder sb = new StringBuilder();
     sb.append("0");
-    for (int i = 1; i < 400; i++) {
+    for (int i = 1; i < 200; i++) {
       sb.append(" + ").append(i);
-    } // 0 + 1 + 2 + 3 + ... 400
+    } // 0 + 1 + 2 + 3 + ... 200
     Cel cel =
         CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().maxParseRecursionDepth(400).build())
+            .setOptions(CelOptions.current().maxParseRecursionDepth(200).build())
             .build();
     CelAbstractSyntaxTree ast = cel.compile(sb.toString()).getAst();
     CelOptimizer optimizer =
         CelOptimizerFactory.standardCelOptimizerBuilder(cel)
-            .addAstOptimizers(ConstantFoldingOptimizer.INSTANCE)
+            .addAstOptimizers(
+                ConstantFoldingOptimizer.newInstance(
+                    ConstantFoldingOptions.newBuilder().maxIterationLimit(200).build()))
             .build();
 
     CelOptimizationException e =

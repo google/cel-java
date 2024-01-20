@@ -16,6 +16,7 @@ package dev.cel.optimizer.optimizers;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -47,9 +48,22 @@ import java.util.Set;
  * calls and select statements with their evaluated result.
  */
 public final class ConstantFoldingOptimizer implements CelAstOptimizer {
-  private static final int MAX_ITERATION_COUNT = 400;
+  private static final ConstantFoldingOptimizer INSTANCE =
+      new ConstantFoldingOptimizer(ConstantFoldingOptions.newBuilder().build());
 
-  public static final ConstantFoldingOptimizer INSTANCE = new ConstantFoldingOptimizer();
+  /** Returns a default instance of constant folding optimizer with preconfigured defaults. */
+  public static ConstantFoldingOptimizer getInstance() {
+    return INSTANCE;
+  }
+
+  /**
+   * Returns a new instance of constant folding optimizer configured with the provided {@link
+   * ConstantFoldingOptions}.
+   */
+  public static ConstantFoldingOptimizer newInstance(
+      ConstantFoldingOptions constantFoldingOptions) {
+    return new ConstantFoldingOptimizer(constantFoldingOptions);
+  }
 
   // Use optional.of and optional.none as sentinel function names for folding optional calls.
   // TODO: Leverage CelValue representation of Optionals instead when available.
@@ -58,6 +72,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   private static final CelExpr OPTIONAL_NONE_EXPR =
       CelExpr.ofCallExpr(0, Optional.empty(), OPTIONAL_NONE_FUNCTION, ImmutableList.of());
 
+  private final ConstantFoldingOptions constantFoldingOptions;
   private final MutableAst mutableAst;
 
   @Override
@@ -67,7 +82,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
     int iterCount = 0;
     while (true) {
       iterCount++;
-      if (iterCount == MAX_ITERATION_COUNT) {
+      if (iterCount >= constantFoldingOptions.maxIterationLimit()) {
         throw new IllegalStateException("Max iteration count reached.");
       }
       Optional<CelExpr> foldableExpr =
@@ -553,7 +568,37 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
     return ast;
   }
 
-  private ConstantFoldingOptimizer() {
-    this.mutableAst = MutableAst.newInstance(MAX_ITERATION_COUNT);
+  /** Options to configure how Constant Folding behave. */
+  @AutoValue
+  public abstract static class ConstantFoldingOptions {
+    public abstract int maxIterationLimit();
+
+    /** Builder for configuring the {@link ConstantFoldingOptions}. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      /**
+       * Limit the number of iteration while performing constant folding. An exception is thrown if
+       * the iteration count exceeds the set value.
+       */
+      public abstract Builder maxIterationLimit(int value);
+
+      public abstract ConstantFoldingOptions build();
+
+      Builder() {}
+    }
+
+    /** Returns a new options builder with recommended defaults pre-configured. */
+    public static Builder newBuilder() {
+      return new AutoValue_ConstantFoldingOptimizer_ConstantFoldingOptions.Builder()
+          .maxIterationLimit(400);
+    }
+
+    ConstantFoldingOptions() {}
+  }
+
+  private ConstantFoldingOptimizer(ConstantFoldingOptions constantFoldingOptions) {
+    this.constantFoldingOptions = constantFoldingOptions;
+    this.mutableAst = MutableAst.newInstance(constantFoldingOptions.maxIterationLimit());
   }
 }

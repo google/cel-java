@@ -616,7 +616,7 @@ public class SubexpressionOptimizerTest {
             .addAstOptimizers(
                 SubexpressionOptimizer.newInstance(
                     SubexpressionOptimizerOptions.newBuilder().populateMacroCalls(true).build()),
-                ConstantFoldingOptimizer.INSTANCE)
+                ConstantFoldingOptimizer.getInstance())
             .build();
 
     CelAbstractSyntaxTree optimizedAst = optimizer.optimize(ast);
