@@ -1046,6 +1046,15 @@ public final class CelImplTest {
   }
 
   @Test
+  public void program_stringFormatInjection_throwsEvaluationException() throws Exception {
+    Cel cel = standardCelBuilderWithMacros().build();
+    CelRuntime.Program program = cel.createProgram(cel.compile("{}['%2000222222s']").getAst());
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
+    assertThat(e).hasMessageThat().contains("evaluation error");
+  }
+
+  @Test
   public void program_emptyTypeProviderConfig() throws Exception {
     Cel cel = standardCelBuilderWithMacros().build();
     assertThat(cel.createProgram(cel.compile("true && !false").getAst()).eval()).isEqualTo(true);

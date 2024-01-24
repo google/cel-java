@@ -16,6 +16,7 @@ package dev.cel.runtime;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
+import com.google.re2j.Pattern;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
@@ -31,6 +32,8 @@ import org.jspecify.nullness.Nullable;
  */
 @Internal
 public class InterpreterException extends Exception {
+  // Allow format specifiers of %d, %f, %s and %n only.
+  private static final Pattern ALLOWED_FORMAT_SPECIFIERS = Pattern.compile("%[^dfsn]");
   private final CelErrorCode errorCode;
 
   public CelErrorCode getErrorCode() {
@@ -47,7 +50,7 @@ public class InterpreterException extends Exception {
 
     @SuppressWarnings({"AnnotateFormatMethod"}) // Format strings are optional.
     public Builder(String message, Object... args) {
-      this.message = args.length > 0 ? String.format(message, args) : message;
+      this.message = safeFormat(message, args);
     }
 
     @SuppressWarnings({"AnnotateFormatMethod"}) // Format strings are optional.
@@ -64,7 +67,7 @@ public class InterpreterException extends Exception {
         this.cause = e;
       }
 
-      this.message = args.length > 0 ? String.format(message, args) : message;
+      this.message = safeFormat(message, args);
     }
 
     @CanIgnoreReturnValue
@@ -96,6 +99,15 @@ public class InterpreterException extends Exception {
               location != null ? " at " + location + ":" + position : "", message),
           cause,
           errorCode);
+    }
+
+    private static String safeFormat(String message, Object[] args) {
+      if (args.length == 0) {
+        return message;
+      }
+
+      String sanitizedMessage = ALLOWED_FORMAT_SPECIFIERS.matcher(message).replaceAll("");
+      return String.format(sanitizedMessage, args);
     }
   }
 
