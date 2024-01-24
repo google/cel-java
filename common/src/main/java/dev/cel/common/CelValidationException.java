@@ -14,22 +14,26 @@
 
 package dev.cel.common;
 
+import static java.lang.Math.min;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import java.util.List;
 
 /** Base class for all checked exceptions explicitly thrown by the library during parsing. */
 public final class CelValidationException extends CelException {
 
   private static final Joiner JOINER = Joiner.on('\n');
+  private static final int ERROR_SLICE_SIZE = 10000;
 
   private final CelSource source;
   private final ImmutableList<CelIssue> errors;
 
   @VisibleForTesting
-  public CelValidationException(CelSource source, Iterable<CelIssue> errors) {
-    super(JOINER.join(Iterables.transform(errors, error -> error.toDisplayString(source))));
+  public CelValidationException(CelSource source, List<CelIssue> errors) {
+    super(safeJoinErrorMessage(source, errors));
     this.source = source;
     this.errors = ImmutableList.copyOf(errors);
   }
@@ -39,6 +43,24 @@ public final class CelValidationException extends CelException {
     super(message, cause);
     this.source = source;
     this.errors = ImmutableList.copyOf(errors);
+  }
+
+  private static String safeJoinErrorMessage(CelSource source, List<CelIssue> errors) {
+    int sliceCount = errors.size() / ERROR_SLICE_SIZE;
+    if (sliceCount == 0) {
+      return JOINER.join(Iterables.transform(errors, error -> error.toDisplayString(source)));
+    }
+
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < sliceCount; i++) {
+      int startIndex = i * ERROR_SLICE_SIZE;
+      int endIndex = min((i + 1) * ERROR_SLICE_SIZE, errors.size());
+      List<CelIssue> slicedErrors = errors.subList(startIndex, endIndex);
+      sb.append(
+          JOINER.join(Iterables.transform(slicedErrors, error -> error.toDisplayString(source))));
+    }
+
+    return sb.toString();
   }
 
   /** Returns the {@link CelSource} that was being validated. */

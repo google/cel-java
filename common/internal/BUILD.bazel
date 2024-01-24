@@ -67,3 +67,8 @@ java_library(
     name = "cel_descriptor_pools",
     exports = ["//common/src/main/java/dev/cel/common/internal:cel_descriptor_pools"],
 )
+
+java_library(
+    name = "safe_string_formatter",
+    exports = ["//common/src/main/java/dev/cel/common/internal:safe_string_formatter"],
+)

@@ -227,3 +227,14 @@ java_library(
         "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
+
+java_library(
+    name = "safe_string_formatter",
+    srcs = ["SafeStringFormatter.java"],
+    tags = [
+    ],
+    deps = [
+        "//common/annotations",
+        "@maven//:com_google_re2j_re2j",
+    ],
+)

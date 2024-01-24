@@ -64,6 +64,7 @@ java_library(
         ":common",
         "//:auto_value",
         "//common/annotations",
+        "//common/internal:safe_string_formatter",
         "//common/types:cel_types",
         "//common/types:type_providers",
         "@cel_spec//proto/cel/expr:expr_java_proto",
