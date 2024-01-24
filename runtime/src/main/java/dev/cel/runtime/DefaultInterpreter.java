@@ -14,14 +14,11 @@
 
 package dev.cel.runtime;
 
-import dev.cel.expr.CheckedExpr;
-import dev.cel.expr.Value;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
-import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
@@ -34,12 +31,13 @@ import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.CelCreateList;
 import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct;
-import dev.cel.common.ast.CelExpr.CelIdent;
 import dev.cel.common.ast.CelExpr.CelSelect;
 import dev.cel.common.ast.CelExpr.ExprKind;
 import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelType;
+import dev.cel.expr.CheckedExpr;
+import dev.cel.expr.Value;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,6 +48,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Default implementation of the CEL interpreter.
@@ -194,7 +193,7 @@ public final class DefaultInterpreter implements Interpreter {
             result = IntermediateResult.create(evalConstant(frame, expr, expr.constant()));
             break;
           case IDENT:
-            result = evalIdent(frame, expr, expr.ident());
+            result = evalIdent(frame, expr);
             break;
           case SELECT:
             result = evalSelect(frame, expr, expr.select());
@@ -257,7 +256,7 @@ public final class DefaultInterpreter implements Interpreter {
       }
     }
 
-    private IntermediateResult evalIdent(ExecutionFrame frame, CelExpr expr, CelIdent unusedIdent)
+    private IntermediateResult evalIdent(ExecutionFrame frame, CelExpr expr)
         throws InterpreterException {
       CelReference reference = ast.getReferenceOrThrow(expr.id());
       if (reference.value().isPresent()) {
@@ -376,6 +375,12 @@ public final class DefaultInterpreter implements Interpreter {
             return result.get();
           }
           break;
+        case "cel_block_list":
+          return evalCelBlock(frame, expr, callExpr);
+        case "cel_index_int":
+          long index = callExpr.args().get(0).constant().int64Value();
+          String blockIdent = "@block" + index;
+          return resolveIdent(frame, CelExpr.ofIdentExpr(expr.id(), blockIdent), blockIdent);
         default:
           break;
       }
@@ -814,7 +819,7 @@ public final class DefaultInterpreter implements Interpreter {
             .build();
       }
       IntermediateResult accuValue;
-      if (celOptions.enableComprehensionLazyEval() && LazyExpression.isLazilyEvaluable(compre)) {
+      if (LazyExpression.isLazilyEvaluable(compre)) {
         accuValue = IntermediateResult.create(new LazyExpression(compre.accuInit()));
       } else {
         accuValue = evalNonstrictly(frame, compre.accuInit());
@@ -850,6 +855,18 @@ public final class DefaultInterpreter implements Interpreter {
       IntermediateResult result = evalInternal(frame, compre.result());
       frame.popScope();
       return result;
+    }
+
+    private IntermediateResult evalCelBlock(
+        ExecutionFrame frame, CelExpr unusedExpr, CelCall blockCall) throws InterpreterException {
+      CelCreateList exprList = blockCall.args().get(0).createList();
+      ImmutableMap.Builder<String, IntermediateResult> blockList = ImmutableMap.builder();
+      for (int i = 0; i < exprList.elements().size(); i++) {
+        blockList.put("@block" + i, IntermediateResult.create(new LazyExpression(exprList.elements().get(i))));
+      }
+      frame.pushScope(blockList.build());
+
+      return evalInternal(frame, blockCall.args().get(1));
     }
   }
 

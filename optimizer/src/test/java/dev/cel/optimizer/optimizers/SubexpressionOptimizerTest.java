@@ -88,7 +88,6 @@ public class SubexpressionOptimizerTest {
         .setOptions(
             CelOptions.current()
                 .enableTimestampEpoch(true)
-                .enableComprehensionLazyEval(true)
                 .populateMacroCalls(true)
                 .build())
         .addCompilerLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())

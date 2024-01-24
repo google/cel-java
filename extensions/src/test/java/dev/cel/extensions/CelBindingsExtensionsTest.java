@@ -82,19 +82,6 @@ public final class CelBindingsExtensionsTest {
   }
 
   @Test
-  public void binding_lazyEval_success(@TestParameter BindingTestCase testCase) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile(testCase.source).getAst();
-    CelRuntime.Program program =
-        CelRuntimeFactory.standardCelRuntimeBuilder()
-            .setOptions(CelOptions.current().enableComprehensionLazyEval(true).build())
-            .build()
-            .createProgram(ast);
-    boolean evaluatedResult = (boolean) program.eval();
-
-    assertThat(evaluatedResult).isTrue();
-  }
-
-  @Test
   @TestParameters("{expr: 'false.bind(false, false, false)'}")
   public void binding_nonCelNamespace_success(String expr) throws Exception {
     CelCompiler celCompiler =
@@ -152,7 +139,6 @@ public final class CelBindingsExtensionsTest {
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
-            .setOptions(CelOptions.current().enableComprehensionLazyEval(true).build())
             .addFunctionBindings(
                 CelFunctionBinding.from(
                     "get_true_overload",
@@ -189,7 +175,6 @@ public final class CelBindingsExtensionsTest {
     AtomicInteger invocation = new AtomicInteger();
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder()
-            .setOptions(CelOptions.current().enableComprehensionLazyEval(true).build())
             .addFunctionBindings(
                 CelFunctionBinding.from(
                     "get_true_overload",
@@ -222,7 +207,6 @@ public final class CelBindingsExtensionsTest {
     AtomicInteger invocation = new AtomicInteger();
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder()
-            .setOptions(CelOptions.current().enableComprehensionLazyEval(true).build())
             .addFunctionBindings(
                 CelFunctionBinding.from(
                     "get_true_overload",
@@ -242,4 +226,6 @@ public final class CelBindingsExtensionsTest {
     assertThat(result).isTrue();
     assertThat(invocation.get()).isEqualTo(2);
   }
+
+
 }
