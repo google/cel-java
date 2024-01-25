@@ -89,6 +89,8 @@ public abstract class CelOptions {
 
   public abstract boolean enableCelValue();
 
+  public abstract boolean enableComprehensionLazyEval();
+
   public abstract int comprehensionMaxIterations();
 
   public abstract Builder toBuilder();
@@ -179,6 +181,7 @@ public abstract class CelOptions {
         .resolveTypeDependencies(true)
         .enableUnknownTracking(false)
         .enableCelValue(false)
+        .enableComprehensionLazyEval(false)
         .comprehensionMaxIterations(-1);
   }
 
@@ -451,6 +454,12 @@ public abstract class CelOptions {
      * <p>Note: comprehension limits are not supported within the async CEL interpreter.
      */
     public abstract Builder comprehensionMaxIterations(int value);
+
+    /**
+     * Enables certain comprehension expressions to be lazily evaluated where safe. Currently, this
+     * only works for cel.bind.
+     */
+    public abstract Builder enableComprehensionLazyEval(boolean value);
 
     public abstract CelOptions build();
   }

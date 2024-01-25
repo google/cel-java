@@ -275,11 +275,27 @@ public final class DefaultInterpreter implements Interpreter {
         return IntermediateResult.create(typeValue);
       }
 
+      IntermediateResult cachedResult = frame.lookupLazilyEvaluatedResult(name).orElse(null);
+      if (cachedResult != null) {
+        return cachedResult;
+      }
+
       IntermediateResult rawResult = frame.resolveSimpleName(name, expr.id());
+      Object value = rawResult.value();
+      boolean isLazyExpression = value instanceof LazyExpression;
+      if (isLazyExpression) {
+        value = evalInternal(frame, ((LazyExpression) value).celExpr).value();
+      }
 
       // Value resolved from Binding, it could be Message, PartialMessage or unbound(null)
-      Object value = InterpreterUtil.strict(typeProvider.adapt(rawResult.value()));
-      return IntermediateResult.create(rawResult.attribute(), value);
+      value = InterpreterUtil.strict(typeProvider.adapt(value));
+      IntermediateResult result = IntermediateResult.create(rawResult.attribute(), value);
+
+      if (isLazyExpression) {
+        frame.cacheLazilyEvaluatedResult(name, result);
+      }
+
+      return result;
     }
 
     private IntermediateResult evalSelect(ExecutionFrame frame, CelExpr expr, CelSelect selectExpr)
@@ -404,7 +420,7 @@ public final class DefaultInterpreter implements Interpreter {
         return IntermediateResult.create(attr, unknowns.get());
       }
 
-      Object[] argArray = Arrays.stream(argResults).map(v -> v.value()).toArray();
+      Object[] argArray = Arrays.stream(argResults).map(IntermediateResult::value).toArray();
 
       return IntermediateResult.create(
           attr,
@@ -754,11 +770,12 @@ public final class DefaultInterpreter implements Interpreter {
         fields.put(entry.fieldKey(), value);
       }
 
-      Optional<Object> unknowns = argChecker.maybeUnknowns();
-      if (unknowns.isPresent()) {
-        return IntermediateResult.create(unknowns.get());
-      }
-      return IntermediateResult.create(typeProvider.createMessage(reference.name(), fields));
+      return argChecker
+          .maybeUnknowns()
+          .map(IntermediateResult::create)
+          .orElseGet(
+              () ->
+                  IntermediateResult.create(typeProvider.createMessage(reference.name(), fields)));
     }
 
     // Evaluates the expression and returns a value-or-throwable.
@@ -796,7 +813,12 @@ public final class DefaultInterpreter implements Interpreter {
             .setLocation(metadata, compre.iterRange().id())
             .build();
       }
-      IntermediateResult accuValue = evalNonstrictly(frame, compre.accuInit());
+      IntermediateResult accuValue;
+      if (celOptions.enableComprehensionLazyEval() && LazyExpression.isLazilyEvaluable(compre)) {
+        accuValue = IntermediateResult.create(new LazyExpression(compre.accuInit()));
+      } else {
+        accuValue = evalNonstrictly(frame, compre.accuInit());
+      }
       int i = 0;
       for (Object elem : iterRange) {
         frame.incrementIterations();
@@ -831,11 +853,39 @@ public final class DefaultInterpreter implements Interpreter {
     }
   }
 
+  /** Contains a CelExpr that is to be lazily evaluated. */
+  private static class LazyExpression {
+    private final CelExpr celExpr;
+
+    /**
+     * Checks whether the provided expression can be evaluated lazily then cached. For example, the
+     * accumulator initializer in `cel.bind` macro is a good candidate because it never needs to be
+     * updated after being evaluated once.
+     */
+    private static boolean isLazilyEvaluable(CelComprehension comprehension) {
+      // For now, just handle cel.bind. cel.block will be a future addition.
+      return comprehension
+              .loopCondition()
+              .constantOrDefault()
+              .getKind()
+              .equals(CelConstant.Kind.BOOLEAN_VALUE)
+          && !comprehension.loopCondition().constant().booleanValue()
+          && comprehension.iterVar().equals("#unused")
+          && comprehension.iterRange().exprKind().getKind().equals(ExprKind.Kind.CREATE_LIST)
+          && comprehension.iterRange().createList().elements().isEmpty();
+    }
+
+    private LazyExpression(CelExpr celExpr) {
+      this.celExpr = celExpr;
+    }
+  }
+
   /** This class tracks the state meaningful to a single evaluation pass. */
   private static class ExecutionFrame {
     private final CelEvaluationListener evaluationListener;
     private final int maxIterations;
     private final ArrayDeque<RuntimeUnknownResolver> resolvers;
+    private final Map<String, IntermediateResult> lazyEvalResultCache;
     private RuntimeUnknownResolver currentResolver;
     private int iterations;
 
@@ -848,6 +898,7 @@ public final class DefaultInterpreter implements Interpreter {
       this.resolvers.add(resolver);
       this.currentResolver = resolver;
       this.maxIterations = maxIterations;
+      this.lazyEvalResultCache = new HashMap<>();
     }
 
     private CelEvaluationListener getEvaluationListener() {
@@ -876,6 +927,14 @@ public final class DefaultInterpreter implements Interpreter {
 
     private Optional<Object> resolveAttribute(CelAttribute attr) {
       return currentResolver.resolveAttribute(attr);
+    }
+
+    private Optional<IntermediateResult> lookupLazilyEvaluatedResult(String name) {
+      return Optional.ofNullable(lazyEvalResultCache.get(name));
+    }
+
+    private void cacheLazilyEvaluatedResult(String name, IntermediateResult result) {
+      lazyEvalResultCache.put(name, result);
     }
 
     private void pushScope(ImmutableMap<String, IntermediateResult> scope) {

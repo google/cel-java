@@ -86,7 +86,11 @@ public class SubexpressionOptimizerTest {
         .setContainer("dev.cel.testing.testdata.proto3")
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .setOptions(
-            CelOptions.current().enableTimestampEpoch(true).populateMacroCalls(true).build())
+            CelOptions.current()
+                .enableTimestampEpoch(true)
+                .enableComprehensionLazyEval(true)
+                .populateMacroCalls(true)
+                .build())
         .addCompilerLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())
         .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
         .addFunctionDeclarations(
