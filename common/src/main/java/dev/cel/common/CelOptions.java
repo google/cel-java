@@ -181,7 +181,7 @@ public abstract class CelOptions {
         .resolveTypeDependencies(true)
         .enableUnknownTracking(false)
         .enableCelValue(false)
-        .enableComprehensionLazyEval(false)
+        .enableComprehensionLazyEval(true)
         .comprehensionMaxIterations(-1);
   }
 
