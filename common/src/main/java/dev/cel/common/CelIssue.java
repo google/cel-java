@@ -17,6 +17,7 @@ package dev.cel.common;
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.internal.SafeStringFormatter;
 import java.util.Optional;
 import java.util.PrimitiveIterator;
 
@@ -76,7 +77,7 @@ public abstract class CelIssue {
   public String toDisplayString(CelSource source) {
     // Based onhttps://github.com/google/cel-go/blob/v0.5.1/common/error.go#L42.
     String result =
-        String.format(
+        SafeStringFormatter.format(
             "%s: %s:%d:%d: %s",
             getSeverity(),
             source.getDescription(),
