@@ -814,7 +814,7 @@ public final class DefaultInterpreter implements Interpreter {
             .build();
       }
       IntermediateResult accuValue;
-      if (celOptions.enableComprehensionLazyEval() && LazyExpression.isLazilyEvaluable(compre)) {
+      if (LazyExpression.isLazilyEvaluable(compre)) {
         accuValue = IntermediateResult.create(new LazyExpression(compre.accuInit()));
       } else {
         accuValue = evalNonstrictly(frame, compre.accuInit());

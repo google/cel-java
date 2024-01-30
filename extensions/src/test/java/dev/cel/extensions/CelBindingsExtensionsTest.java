@@ -24,7 +24,6 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
-import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.types.SimpleType;
@@ -76,19 +75,6 @@ public final class CelBindingsExtensionsTest {
   public void binding_success(@TestParameter BindingTestCase testCase) throws Exception {
     CelAbstractSyntaxTree ast = COMPILER.compile(testCase.source).getAst();
     CelRuntime.Program program = RUNTIME.createProgram(ast);
-    boolean evaluatedResult = (boolean) program.eval();
-
-    assertThat(evaluatedResult).isTrue();
-  }
-
-  @Test
-  public void binding_lazyEval_success(@TestParameter BindingTestCase testCase) throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile(testCase.source).getAst();
-    CelRuntime.Program program =
-        CelRuntimeFactory.standardCelRuntimeBuilder()
-            .setOptions(CelOptions.current().enableComprehensionLazyEval(true).build())
-            .build()
-            .createProgram(ast);
     boolean evaluatedResult = (boolean) program.eval();
 
     assertThat(evaluatedResult).isTrue();
@@ -152,7 +138,6 @@ public final class CelBindingsExtensionsTest {
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
-            .setOptions(CelOptions.current().enableComprehensionLazyEval(true).build())
             .addFunctionBindings(
                 CelFunctionBinding.from(
                     "get_true_overload",
@@ -189,7 +174,6 @@ public final class CelBindingsExtensionsTest {
     AtomicInteger invocation = new AtomicInteger();
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder()
-            .setOptions(CelOptions.current().enableComprehensionLazyEval(true).build())
             .addFunctionBindings(
                 CelFunctionBinding.from(
                     "get_true_overload",
@@ -222,7 +206,6 @@ public final class CelBindingsExtensionsTest {
     AtomicInteger invocation = new AtomicInteger();
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder()
-            .setOptions(CelOptions.current().enableComprehensionLazyEval(true).build())
             .addFunctionBindings(
                 CelFunctionBinding.from(
                     "get_true_overload",
