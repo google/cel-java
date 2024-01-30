@@ -15,10 +15,10 @@
 package dev.cel.common.values;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.truth.Truth8;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.types.CelType;
@@ -133,7 +133,7 @@ public class OptionalValueTest {
 
   @Test
   public void findField_onEmptyOptional() {
-    assertThat(OptionalValue.EMPTY.find(StringValue.create("bogus"))).isEmpty();
+    Truth8.assertThat(OptionalValue.EMPTY.find(StringValue.create("bogus"))).isEmpty();
   }
 
   @Test

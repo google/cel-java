@@ -17,11 +17,11 @@ package dev.cel.checker;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.truth.Truth8;
 import com.google.protobuf.FieldMask;
 import com.google.rpc.context.AttributeContext;
 import dev.cel.common.types.CelType;
@@ -64,7 +64,7 @@ public final class ProtoTypeMaskTypeProviderTest {
     CelTypeProvider celTypeProvider = new ProtoMessageTypeProvider();
     ProtoTypeMaskTypeProvider protoTypeMaskProvider =
         new ProtoTypeMaskTypeProvider(celTypeProvider, ImmutableList.of());
-    assertThat(protoTypeMaskProvider.findType(ATTRIBUTE_CONTEXT_TYPE)).isEmpty();
+    Truth8.assertThat(protoTypeMaskProvider.findType(ATTRIBUTE_CONTEXT_TYPE)).isEmpty();
   }
 
   @Test
@@ -206,7 +206,7 @@ public final class ProtoTypeMaskTypeProviderTest {
                         .addPaths("request.auth.*")
                         .build())));
     ProtoMessageType ctxType = assertTypeFound(protoTypeMaskProvider, ATTRIBUTE_CONTEXT_TYPE);
-    assertThat(ctxType.findField("resource")).isPresent();
+    Truth8.assertThat(ctxType.findField("resource")).isPresent();
     assertTypeHasFieldWithType(ctxType, "resource", RESOURCE_TYPE);
     assertTypeHasFieldWithType(ctxType, "request", REQUEST_TYPE);
 
@@ -238,7 +238,7 @@ public final class ProtoTypeMaskTypeProviderTest {
                     "google.rpc.context.AttributeContext",
                     FieldMask.newBuilder().addPaths("resource.name").build())));
     ProtoMessageType resourceType = assertTypeFound(protoTypeMaskProvider, RESOURCE_TYPE);
-    assertThat(resourceType.findField("type")).isEmpty();
+    Truth8.assertThat(resourceType.findField("type")).isEmpty();
   }
 
   @Test
@@ -252,12 +252,12 @@ public final class ProtoTypeMaskTypeProviderTest {
                 ProtoTypeMask.of(
                     "google.rpc.context.AttributeContext",
                     FieldMask.newBuilder().addPaths("resource.name").build())));
-    assertThat(protoTypeMaskProvider.findType(REQUEST_TYPE)).isPresent();
+    Truth8.assertThat(protoTypeMaskProvider.findType(REQUEST_TYPE)).isPresent();
   }
 
   private ProtoMessageType assertTypeFound(CelTypeProvider celTypeProvider, String typeName) {
     Optional<CelType> foundType = celTypeProvider.findType(typeName);
-    assertThat(foundType).isPresent();
+    Truth8.assertThat(foundType).isPresent();
     CelType celType = foundType.get();
     assertThat(celType).isInstanceOf(ProtoMessageType.class);
     return (ProtoMessageType) celType;
@@ -271,7 +271,7 @@ public final class ProtoTypeMaskTypeProviderTest {
 
   private void assertTypeHasFieldWithType(
       ProtoMessageType protoType, String fieldName, String typeName) {
-    assertThat(protoType.findField(fieldName)).isPresent();
+    Truth8.assertThat(protoType.findField(fieldName)).isPresent();
     assertThat(protoType.findField(fieldName).get().type().name()).isEqualTo(typeName);
   }
 }

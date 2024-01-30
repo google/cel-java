@@ -15,11 +15,11 @@
 package dev.cel.checker;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.truth.Truth8;
 import dev.cel.checker.TypeInferencer.UnificationResult;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.JsonType;
@@ -69,7 +69,7 @@ public final class TypeInferencerTest {
     MapType mapInst = MapType.create(SimpleType.STRING, ListType.create(TypeParamType.create("V")));
     MapType mapParamFresh = (MapType) mapParam.withFreshTypeParamVariables(typeVarGenerator);
     Optional<UnificationResult> result = inferencer.unify(mapInst, mapParamFresh);
-    assertThat(result).isPresent();
+    Truth8.assertThat(result).isPresent();
     assertThat(result.get().substitutions())
         .containsExactly(
             mapParamFresh.keyType().name(),
@@ -86,8 +86,8 @@ public final class TypeInferencerTest {
     MapType mapInst = MapType.create(SimpleType.STRING, ListType.create(TypeParamType.create("V")));
     MapType mapParamFresh = (MapType) mapParam.withFreshTypeParamVariables(typeVarGenerator);
     Optional<UnificationResult> result = inferencer.unify(mapParamFresh, mapInst);
-    assertThat(result).isPresent();
-    assertThat(result.get().unifiedType()).hasValue(mapInst);
+    Truth8.assertThat(result).isPresent();
+    Truth8.assertThat(result.get().unifiedType()).hasValue(mapInst);
     assertThat(result.get().substitutions())
         .containsExactly(
             mapParamFresh.keyType().name(),
@@ -103,12 +103,12 @@ public final class TypeInferencerTest {
     TypeParamType equalsArg = TypeParamType.create("T");
     CelType equalsArgFresh = equalsArg.withFreshTypeParamVariables(typeVarGenerator);
     Optional<UnificationResult> firstArg = inferencer.unify(JsonType.JSON, equalsArgFresh);
-    assertThat(firstArg).isPresent();
-    assertThat(firstArg.get().unifiedType()).hasValue(JsonType.JSON);
+    Truth8.assertThat(firstArg).isPresent();
+    Truth8.assertThat(firstArg.get().unifiedType()).hasValue(JsonType.JSON);
     inferencer.recordSubstitutions(firstArg.get().substitutions());
     Optional<UnificationResult> secondArg = inferencer.unify(SimpleType.DOUBLE, equalsArgFresh);
-    assertThat(secondArg).isPresent();
-    assertThat(secondArg.get().unifiedType()).hasValue(JsonType.JSON);
+    Truth8.assertThat(secondArg).isPresent();
+    Truth8.assertThat(secondArg.get().unifiedType()).hasValue(JsonType.JSON);
     inferencer.recordSubstitutions(secondArg.get().substitutions());
     assertThat(inferencer.specialize(equalsArgFresh)).isEqualTo(JsonType.JSON);
   }
@@ -118,12 +118,12 @@ public final class TypeInferencerTest {
     TypeParamType equalsArg = TypeParamType.create("T");
     CelType equalsArgFresh = equalsArg.withFreshTypeParamVariables(typeVarGenerator);
     Optional<UnificationResult> firstArg = inferencer.unify(JsonType.JSON, equalsArgFresh);
-    assertThat(firstArg).isPresent();
-    assertThat(firstArg.get().unifiedType()).hasValue(JsonType.JSON);
+    Truth8.assertThat(firstArg).isPresent();
+    Truth8.assertThat(firstArg.get().unifiedType()).hasValue(JsonType.JSON);
     TypeInferencer inferencer2 = new TypeInferencer(UNION_TYPES, firstArg.get().substitutions());
     Optional<UnificationResult> secondArg = inferencer2.unify(SimpleType.DOUBLE, equalsArgFresh);
-    assertThat(secondArg).isPresent();
-    assertThat(secondArg.get().unifiedType()).hasValue(JsonType.JSON);
+    Truth8.assertThat(secondArg).isPresent();
+    Truth8.assertThat(secondArg.get().unifiedType()).hasValue(JsonType.JSON);
     inferencer2.recordSubstitutions(secondArg.get().substitutions());
     assertThat(inferencer2.specialize(equalsArgFresh)).isEqualTo(JsonType.JSON);
   }
@@ -131,15 +131,15 @@ public final class TypeInferencerTest {
   @Test
   public void unify_success_jsonToDouble() {
     Optional<UnificationResult> result = inferencer.unify(JsonType.JSON, SimpleType.DOUBLE);
-    assertThat(result).isPresent();
-    assertThat(result.get().unifiedType()).hasValue(JsonType.JSON);
+    Truth8.assertThat(result).isPresent();
+    Truth8.assertThat(result.get().unifiedType()).hasValue(JsonType.JSON);
   }
 
   @Test
   public void unify_success_doubleToJson() {
     Optional<UnificationResult> result = inferencer.unify(SimpleType.DOUBLE, JsonType.JSON);
-    assertThat(result).isPresent();
-    assertThat(result.get().unifiedType()).hasValue(JsonType.JSON);
+    Truth8.assertThat(result).isPresent();
+    Truth8.assertThat(result.get().unifiedType()).hasValue(JsonType.JSON);
   }
 
   @Test
@@ -147,14 +147,14 @@ public final class TypeInferencerTest {
     TypeParamType typeParamArg = TypeParamType.create("T");
     ListType listType = ListType.create(typeParamArg);
     Optional<UnificationResult> result = inferencer.unify(typeParamArg, listType);
-    assertThat(result).isEmpty();
+    Truth8.assertThat(result).isEmpty();
   }
 
   @Test
   public void unify_success_dynOrErrorYieldsError() {
     Optional<UnificationResult> result = inferencer.unify(SimpleType.DYN, SimpleType.ERROR);
-    assertThat(result).isPresent();
-    assertThat(result.get().unifiedType()).hasValue(SimpleType.ERROR);
+    Truth8.assertThat(result).isPresent();
+    Truth8.assertThat(result.get().unifiedType()).hasValue(SimpleType.ERROR);
   }
 
   @Test
@@ -162,8 +162,8 @@ public final class TypeInferencerTest {
     CelType outputType = TypeParamType.create("O").withFreshTypeParamVariables(typeVarGenerator);
     Optional<UnificationResult> result =
         inferencer.unify(ImmutableList.of(SimpleType.DOUBLE, SimpleType.NULL_TYPE), outputType);
-    assertThat(result).isPresent();
-    assertThat(result.get().unifiedType()).hasValue(NullableType.create(SimpleType.DOUBLE));
+    Truth8.assertThat(result).isPresent();
+    Truth8.assertThat(result.get().unifiedType()).hasValue(NullableType.create(SimpleType.DOUBLE));
   }
 
   @Test
@@ -171,8 +171,8 @@ public final class TypeInferencerTest {
     CelType outputType = NullableType.create(SimpleType.DOUBLE);
     Optional<UnificationResult> result =
         inferencer.unify(ImmutableList.of(SimpleType.DOUBLE, SimpleType.NULL_TYPE), outputType);
-    assertThat(result).isPresent();
-    assertThat(result.get().unifiedType()).hasValue(outputType);
+    Truth8.assertThat(result).isPresent();
+    Truth8.assertThat(result.get().unifiedType()).hasValue(outputType);
   }
 
   @Test
@@ -182,8 +182,8 @@ public final class TypeInferencerTest {
         inferencer.unify(
             ImmutableList.of(SimpleType.DOUBLE, SimpleType.NULL_TYPE, SimpleType.STRING),
             outputType);
-    assertThat(result).isPresent();
-    assertThat(result.get().unifiedType()).hasValue(JsonType.JSON);
+    Truth8.assertThat(result).isPresent();
+    Truth8.assertThat(result.get().unifiedType()).hasValue(JsonType.JSON);
   }
 
   @Test
@@ -194,8 +194,8 @@ public final class TypeInferencerTest {
         inferencer.unify(
             ImmutableList.of(SimpleType.DOUBLE, SimpleType.NULL_TYPE, SimpleType.STRING),
             outputType);
-    assertThat(result).isPresent();
-    assertThat(result.get().unifiedType()).hasValue(SimpleType.DYN);
+    Truth8.assertThat(result).isPresent();
+    Truth8.assertThat(result.get().unifiedType()).hasValue(SimpleType.DYN);
   }
 
   @Test
@@ -206,7 +206,7 @@ public final class TypeInferencerTest {
         inferencer.unify(
             ImmutableList.of(SimpleType.DOUBLE, SimpleType.NULL_TYPE, SimpleType.STRING),
             outputType);
-    assertThat(result).isEmpty();
+    Truth8.assertThat(result).isEmpty();
   }
 
   @Test
@@ -216,8 +216,8 @@ public final class TypeInferencerTest {
     CelType outputType = TypeParamType.create("O").withFreshTypeParamVariables(typeVarGenerator);
     Optional<UnificationResult> result =
         inferencer.unify(ImmutableList.of(setListDouble, setString), outputType);
-    assertThat(result).isPresent();
-    assertThat(result.get().unifiedType()).hasValue(OpaqueType.create("set", JsonType.JSON));
+    Truth8.assertThat(result).isPresent();
+    Truth8.assertThat(result.get().unifiedType()).hasValue(OpaqueType.create("set", JsonType.JSON));
   }
 
   @Test
@@ -229,8 +229,8 @@ public final class TypeInferencerTest {
     CelType outputType = TypeParamType.create("O").withFreshTypeParamVariables(typeVarGenerator);
     Optional<UnificationResult> result =
         inferencer.unify(ImmutableList.of(setListDouble, setString), outputType);
-    assertThat(result).isPresent();
-    assertThat(result.get().unifiedType())
+    Truth8.assertThat(result).isPresent();
+    Truth8.assertThat(result.get().unifiedType())
         .hasValue(OpaqueType.create("set", MapType.create(SimpleType.STRING, JsonType.JSON)));
   }
 
@@ -242,8 +242,8 @@ public final class TypeInferencerTest {
     CelType outputType = TypeParamType.create("0").withFreshTypeParamVariables(typeVarGenerator);
     Optional<UnificationResult> result =
         inferencer.unify(ImmutableList.of(setListDouble, setString), outputType);
-    assertThat(result).isPresent();
-    assertThat(result.get().unifiedType()).hasValue(OpaqueType.create("set", JsonType.JSON));
+    Truth8.assertThat(result).isPresent();
+    Truth8.assertThat(result.get().unifiedType()).hasValue(OpaqueType.create("set", JsonType.JSON));
   }
 
   @Test
@@ -258,8 +258,9 @@ public final class TypeInferencerTest {
     // to enter into the type resolution.
     Optional<UnificationResult> result =
         inferencer.unify(ImmutableList.of(setListDouble, setString), outputType);
-    assertThat(result).isPresent();
-    assertThat(result.get().unifiedType()).hasValue(OpaqueType.create("set", SimpleType.DYN));
+    Truth8.assertThat(result).isPresent();
+    Truth8.assertThat(result.get().unifiedType())
+        .hasValue(OpaqueType.create("set", SimpleType.DYN));
   }
 
   @Test
@@ -269,8 +270,9 @@ public final class TypeInferencerTest {
     CelType outputType = TypeParamType.create("O").withFreshTypeParamVariables(typeVarGenerator);
     Optional<UnificationResult> result =
         inferencer.unify(ImmutableList.of(setJson, setInt), outputType);
-    assertThat(result).isPresent();
-    assertThat(result.get().unifiedType()).hasValue(OpaqueType.create("set", SimpleType.DYN));
+    Truth8.assertThat(result).isPresent();
+    Truth8.assertThat(result.get().unifiedType())
+        .hasValue(OpaqueType.create("set", SimpleType.DYN));
   }
 
   @Test
@@ -281,35 +283,35 @@ public final class TypeInferencerTest {
     CelType outputType = TypeParamType.create("O").withFreshTypeParamVariables(typeVarGenerator);
     Optional<UnificationResult> result =
         inferencer.unify(ImmutableList.of(nullableStructType, structType), outputType);
-    assertThat(result).isPresent();
-    assertThat(result.get().unifiedType()).hasValue(nullableStructType);
+    Truth8.assertThat(result).isPresent();
+    Truth8.assertThat(result.get().unifiedType()).hasValue(nullableStructType);
   }
 
   @Test
   public void unify_false_differentKinds() {
     OpaqueType vectorType = OpaqueType.create("vector", SimpleType.STRING);
-    assertThat(inferencer.unify(JsonType.JSON, vectorType)).isEmpty();
+    Truth8.assertThat(inferencer.unify(JsonType.JSON, vectorType)).isEmpty();
   }
 
   @Test
   public void unify_false_sameKindDifferentTypeName() {
     OpaqueType setType = OpaqueType.create("set", SimpleType.STRING);
     OpaqueType vectorType = OpaqueType.create("vector", SimpleType.STRING);
-    assertThat(inferencer.unify(setType, vectorType)).isEmpty();
+    Truth8.assertThat(inferencer.unify(setType, vectorType)).isEmpty();
   }
 
   @Test
   public void unify_false_sameTypeDifferentParameterTypes() {
     OpaqueType setType = OpaqueType.create("set", SimpleType.INT);
     OpaqueType vectorType = OpaqueType.create("set", SimpleType.STRING);
-    assertThat(inferencer.unify(setType, vectorType)).isEmpty();
+    Truth8.assertThat(inferencer.unify(setType, vectorType)).isEmpty();
   }
 
   @Test
   public void unify_false_sameTypeDifferentParameterCounts() {
     OpaqueType setType = OpaqueType.create("set", SimpleType.INT);
     OpaqueType vectorType = OpaqueType.create("set", SimpleType.INT, SimpleType.INT);
-    assertThat(inferencer.unify(setType, vectorType)).isEmpty();
+    Truth8.assertThat(inferencer.unify(setType, vectorType)).isEmpty();
   }
 
   @Test
@@ -321,7 +323,7 @@ public final class TypeInferencerTest {
         inferencer.isAssignable(
             ImmutableList.of(mapInst, SimpleType.STRING),
             ImmutableList.of(mapParamFresh, mapParamFresh.keyType()));
-    assertThat(result).isPresent();
+    Truth8.assertThat(result).isPresent();
     assertThat(result.get())
         .containsExactly(
             mapParamFresh.keyType().name(),
@@ -340,7 +342,7 @@ public final class TypeInferencerTest {
         inferencer.isAssignable(
             ImmutableList.of(JsonType.JSON, SimpleType.DOUBLE),
             ImmutableList.of(equalsArgFresh, equalsArgFresh));
-    assertThat(result).isPresent();
+    Truth8.assertThat(result).isPresent();
     inferencer.recordSubstitutions(result.get());
     assertThat(inferencer.specialize(equalsArgFresh)).isEqualTo(JsonType.JSON);
   }
@@ -353,7 +355,7 @@ public final class TypeInferencerTest {
         inferencer.isAssignable(
             ImmutableList.of(SimpleType.DOUBLE, JsonType.JSON),
             ImmutableList.of(equalsArgFresh, equalsArgFresh));
-    assertThat(result).isPresent();
+    Truth8.assertThat(result).isPresent();
     inferencer.recordSubstitutions(result.get());
     assertThat(inferencer.specialize(equalsArgFresh)).isEqualTo(JsonType.JSON);
   }
@@ -366,7 +368,7 @@ public final class TypeInferencerTest {
         inferencer.isAssignable(
             ImmutableList.of(SimpleType.DOUBLE, SimpleType.STRING),
             ImmutableList.of(equalsArgFresh, equalsArgFresh));
-    assertThat(result).isEmpty();
+    Truth8.assertThat(result).isEmpty();
   }
 
   @Test
@@ -375,7 +377,7 @@ public final class TypeInferencerTest {
     OpaqueType setType2 = OpaqueType.create("set", SimpleType.STRING, SimpleType.INT);
     Optional<ImmutableMap<String, CelType>> result =
         inferencer.isAssignable(setType.parameters(), setType2.parameters());
-    assertThat(result).isEmpty();
+    Truth8.assertThat(result).isEmpty();
   }
 
   @Test
@@ -387,8 +389,8 @@ public final class TypeInferencerTest {
     CelType typeOfTypeWithFreshVars = typeOfType.withFreshTypeParamVariables(typeVarGenerator);
     Optional<UnificationResult> result =
         inferencer.unify(typeOfStructType, typeOfTypeWithFreshVars);
-    assertThat(result).isPresent();
-    assertThat(result.get().unifiedType()).hasValue(typeOfStructType);
+    Truth8.assertThat(result).isPresent();
+    Truth8.assertThat(result.get().unifiedType()).hasValue(typeOfStructType);
     inferencer.recordSubstitutions(result.get().substitutions());
     assertThat(inferencer.finalize(typeOfTypeWithFreshVars, SimpleType.DYN))
         .isEqualTo(typeOfStructType);

@@ -16,10 +16,10 @@ package dev.cel.common.internal;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static java.util.Arrays.stream;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.truth.Truth8;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Message;
@@ -95,7 +95,7 @@ public final class DefaultInstanceMessageFactoryTest {
     Optional<Message> defaultMessage =
         DefaultInstanceMessageFactory.getInstance().getPrototype(descriptor);
 
-    assertThat(defaultMessage).hasValue(testCase.defaultInstance);
+    Truth8.assertThat(defaultMessage).hasValue(testCase.defaultInstance);
   }
 
   @Test
@@ -107,8 +107,8 @@ public final class DefaultInstanceMessageFactoryTest {
     Optional<Message> defaultMessage2 =
         DefaultInstanceMessageFactory.getInstance().getPrototype(descriptor);
 
-    assertThat(defaultMessage).hasValue(testCase.defaultInstance);
-    assertThat(defaultMessage2).hasValue(testCase.defaultInstance);
+    Truth8.assertThat(defaultMessage).hasValue(testCase.defaultInstance);
+    Truth8.assertThat(defaultMessage2).hasValue(testCase.defaultInstance);
   }
 
   @Test

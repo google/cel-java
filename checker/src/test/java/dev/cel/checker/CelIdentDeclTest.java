@@ -15,7 +15,6 @@
 package dev.cel.checker;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 
 import dev.cel.expr.Constant;
@@ -23,6 +22,7 @@ import dev.cel.expr.Decl;
 import dev.cel.expr.Decl.IdentDecl;
 import dev.cel.expr.Type;
 import dev.cel.expr.Type.PrimitiveType;
+import com.google.common.truth.Truth8;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.types.SimpleType;
 import org.junit.Test;
@@ -45,7 +45,7 @@ public class CelIdentDeclTest {
     assertThat(stringIdent.name()).isEqualTo("ident");
     assertThat(stringIdent.type()).isEqualTo(SimpleType.STRING);
     assertThat(stringIdent.doc()).isEqualTo("doc");
-    assertThat(stringIdent.constant()).hasValue(CelConstant.ofValue("str"));
+    Truth8.assertThat(stringIdent.constant()).hasValue(CelConstant.ofValue("str"));
   }
 
   @Test
@@ -58,7 +58,7 @@ public class CelIdentDeclTest {
 
     builder.clearConstant();
 
-    assertThat(builder.build().constant()).isEmpty();
+    Truth8.assertThat(builder.build().constant()).isEmpty();
   }
 
   @Test
@@ -68,7 +68,7 @@ public class CelIdentDeclTest {
     assertThat(intIdent.name()).isEqualTo("ident");
     assertThat(intIdent.type()).isEqualTo(SimpleType.INT);
     assertThat(intIdent.doc()).isEmpty();
-    assertThat(intIdent.constant()).isEmpty();
+    Truth8.assertThat(intIdent.constant()).isEmpty();
   }
 
   @Test

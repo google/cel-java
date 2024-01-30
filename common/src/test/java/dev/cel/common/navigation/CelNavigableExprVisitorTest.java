@@ -16,13 +16,13 @@ package dev.cel.common.navigation;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static dev.cel.common.CelFunctionDecl.newFunctionDeclaration;
 import static dev.cel.common.CelOverloadDecl.newMemberOverload;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.UnsignedLong;
+import com.google.common.truth.Truth8;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -273,7 +273,7 @@ public class CelNavigableExprVisitorTest {
     assertThat(allConstants).hasSize(1);
     CelNavigableExpr listExpr = allConstants.get(0);
     assertThat(listExpr.getKind()).isEqualTo(Kind.CREATE_LIST);
-    assertThat(listExpr.parent()).isPresent();
+    Truth8.assertThat(listExpr.parent()).isPresent();
     CelNavigableExpr stringFormatExpr = listExpr.parent().get();
     assertThat(stringFormatExpr.getKind()).isEqualTo(Kind.CALL);
     CelCall call = listExpr.parent().get().expr().exprKind().call();
@@ -676,7 +676,7 @@ public class CelNavigableExprVisitorTest {
         CelExpr.ofComprehension(
             13, "i", iterRange, "__result__", accuInit, loopCondition, loopStep, result);
     assertThat(allNodes).hasSize(11);
-    assertThat(allNodes.get(0).parent()).isEmpty(); // comprehension
+    Truth8.assertThat(allNodes.get(0).parent()).isEmpty(); // comprehension
     assertThat(allNodes.get(1).parent().get().expr()).isEqualTo(comprehension); // iter_range
     assertThat(allNodes.get(2).parent().get().expr())
         .isEqualTo(iterRange); // const_expr within iter_range

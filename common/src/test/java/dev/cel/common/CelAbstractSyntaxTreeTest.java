@@ -15,7 +15,6 @@
 package dev.cel.common;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 
 import dev.cel.expr.CheckedExpr;
@@ -27,6 +26,7 @@ import dev.cel.expr.Reference;
 import dev.cel.expr.SourceInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.truth.Truth8;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.types.CelTypes;
@@ -107,9 +107,9 @@ public final class CelAbstractSyntaxTreeTest {
   @Test
   public void findEnumValue_findsConstantInCheckedExpr() {
     CelAbstractSyntaxTree ast = CHECKED_ENUM_AST;
-    assertThat(ast.findEnumValue(1)).isEmpty();
-    assertThat(ast.findEnumValue(2)).hasValue(CelConstant.ofValue(2));
-    assertThat(ast.findEnumValue(3)).isEmpty();
+    Truth8.assertThat(ast.findEnumValue(1)).isEmpty();
+    Truth8.assertThat(ast.findEnumValue(2)).hasValue(CelConstant.ofValue(2));
+    Truth8.assertThat(ast.findEnumValue(3)).isEmpty();
   }
 
   @Test
@@ -118,17 +118,17 @@ public final class CelAbstractSyntaxTreeTest {
         CelAbstractSyntaxTree.newParsedAst(
             CHECKED_ENUM_AST.getExpr(), CHECKED_ENUM_AST.getSource());
 
-    assertThat(ast.findEnumValue(1)).isEmpty();
-    assertThat(ast.findEnumValue(2)).isEmpty();
-    assertThat(ast.findEnumValue(3)).isEmpty();
+    Truth8.assertThat(ast.findEnumValue(1)).isEmpty();
+    Truth8.assertThat(ast.findEnumValue(2)).isEmpty();
+    Truth8.assertThat(ast.findEnumValue(3)).isEmpty();
   }
 
   @Test
   public void findOverloadIDs_findsOverloadsInCheckedExpr() {
     CelAbstractSyntaxTree ast = CHECKED_ENUM_AST;
-    assertThat(ast.findOverloadIDs(1)).isEmpty();
-    assertThat(ast.findOverloadIDs(2)).isEmpty();
-    assertThat(ast.findOverloadIDs(3)).hasValue(ImmutableList.of("not_equals"));
+    Truth8.assertThat(ast.findOverloadIDs(1)).isEmpty();
+    Truth8.assertThat(ast.findOverloadIDs(2)).isEmpty();
+    Truth8.assertThat(ast.findOverloadIDs(3)).hasValue(ImmutableList.of("not_equals"));
   }
 
   @Test
@@ -137,9 +137,9 @@ public final class CelAbstractSyntaxTreeTest {
         CelAbstractSyntaxTree.newParsedAst(
             CHECKED_ENUM_AST.getExpr(), CHECKED_ENUM_AST.getSource());
 
-    assertThat(ast.findOverloadIDs(1)).isEmpty();
-    assertThat(ast.findOverloadIDs(2)).isEmpty();
-    assertThat(ast.findOverloadIDs(3)).isEmpty();
+    Truth8.assertThat(ast.findOverloadIDs(1)).isEmpty();
+    Truth8.assertThat(ast.findOverloadIDs(2)).isEmpty();
+    Truth8.assertThat(ast.findOverloadIDs(3)).isEmpty();
   }
 
   @Test

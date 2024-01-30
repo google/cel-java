@@ -15,8 +15,8 @@
 package dev.cel.common.navigation;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 
+import com.google.common.truth.Truth8;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
@@ -39,7 +39,7 @@ public class CelNavigableAstTest {
     assertThat(navigableAst.getAst()).isEqualTo(ast);
     assertThat(navigableAst.getRoot().expr())
         .isEqualTo(CelExpr.ofConstantExpr(1, CelConstant.ofValue("Hello World")));
-    assertThat(navigableAst.getRoot().parent()).isEmpty();
+    Truth8.assertThat(navigableAst.getRoot().parent()).isEmpty();
     assertThat(navigableAst.getRoot().depth()).isEqualTo(0);
   }
 }

@@ -15,10 +15,10 @@
 package dev.cel.runtime;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.truth.Truth8;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +33,8 @@ public class UnknownContextTest {
 
     CelAttributeResolver attributeResolver = context.createAttributeResolver();
 
-    assertThat(attributeResolver.resolve(CelAttribute.fromQualifiedIdentifier("test"))).isEmpty();
+    Truth8.assertThat(attributeResolver.resolve(CelAttribute.fromQualifiedIdentifier("test")))
+        .isEmpty();
     assertThat(context.variableResolver().resolve("test")).isEqualTo("test_value");
   }
 
@@ -48,16 +49,16 @@ public class UnknownContextTest {
 
     CelAttributeResolver attributeResolver = context.createAttributeResolver();
 
-    assertThat(
+    Truth8.assertThat(
             attributeResolver.resolve(
                 CelAttribute.fromQualifiedIdentifier("qualified.Identifier1")))
         .hasValue(
             CelUnknownSet.create(CelAttribute.fromQualifiedIdentifier("qualified.Identifier1")));
-    assertThat(
+    Truth8.assertThat(
             attributeResolver.resolve(
                 CelAttribute.fromQualifiedIdentifier("qualified.Identifier2")))
         .isEmpty();
-    assertThat(
+    Truth8.assertThat(
             attributeResolver.resolve(
                 CelAttribute.fromQualifiedIdentifier("qualified.Identifier2.field1")))
         .hasValue(
@@ -76,17 +77,17 @@ public class UnknownContextTest {
 
     CelAttributeResolver attributeResolver = context.createAttributeResolver();
 
-    assertThat(
+    Truth8.assertThat(
             attributeResolver.maybePartialUnknown(
                 CelAttribute.fromQualifiedIdentifier("qualified.Identifier1")))
         .hasValue(
             CelUnknownSet.create(CelAttribute.fromQualifiedIdentifier("qualified.Identifier1")));
-    assertThat(
+    Truth8.assertThat(
             attributeResolver.maybePartialUnknown(
                 CelAttribute.fromQualifiedIdentifier("qualified.Identifier2")))
         .hasValue(
             CelUnknownSet.create(CelAttribute.fromQualifiedIdentifier("qualified.Identifier2")));
-    assertThat(
+    Truth8.assertThat(
             attributeResolver.maybePartialUnknown(
                 CelAttribute.fromQualifiedIdentifier("qualified.Identifier2.field1")))
         .hasValue(
@@ -105,17 +106,17 @@ public class UnknownContextTest {
 
     CelAttributeResolver attributeResolver = context.createAttributeResolver();
 
-    assertThat(
+    Truth8.assertThat(
             attributeResolver.maybePartialUnknown(
                 CelAttribute.fromQualifiedIdentifier("qualified.Identifier1")))
         .hasValue(
             CelUnknownSet.create(CelAttribute.fromQualifiedIdentifier("qualified.Identifier1")));
-    assertThat(
+    Truth8.assertThat(
             attributeResolver.maybePartialUnknown(
                 CelAttribute.fromQualifiedIdentifier("qualified.Identifier2")))
         .hasValue(
             CelUnknownSet.create(CelAttribute.fromQualifiedIdentifier("qualified.Identifier2")));
-    assertThat(
+    Truth8.assertThat(
             attributeResolver.maybePartialUnknown(
                 CelAttribute.fromQualifiedIdentifier("qualified.Identifier2.field1")))
         .hasValue(
@@ -135,7 +136,7 @@ public class UnknownContextTest {
 
     CelAttributeResolver attributeResolver = context.createAttributeResolver();
 
-    assertThat(
+    Truth8.assertThat(
             attributeResolver.resolve(CelAttribute.fromQualifiedIdentifier("qualified.Identifier")))
         .hasValue("value1");
   }
@@ -156,14 +157,14 @@ public class UnknownContextTest {
 
     CelAttributeResolver attributeResolver = context.createAttributeResolver();
 
-    assertThat(
+    Truth8.assertThat(
             attributeResolver.resolve(CelAttribute.fromQualifiedIdentifier("qualified.Identifier")))
         .hasValue("value1");
-    assertThat(
+    Truth8.assertThat(
             attributeResolver.maybePartialUnknown(
                 CelAttribute.fromQualifiedIdentifier("qualified.Identifier.field1")))
         .isEmpty();
-    assertThat(
+    Truth8.assertThat(
             attributeResolver.maybePartialUnknown(
                 CelAttribute.fromQualifiedIdentifier("qualified.Identifier.field2")))
         .isEmpty();

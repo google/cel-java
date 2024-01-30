@@ -15,10 +15,10 @@
 package dev.cel.common;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static org.antlr.v4.runtime.IntStream.UNKNOWN_SOURCE_NAME;
 import static org.junit.Assert.assertThrows;
 
+import com.google.common.truth.Truth8;
 import dev.cel.common.internal.BasicCodePointArray;
 import dev.cel.common.internal.CodePointStream;
 import dev.cel.common.internal.Latin1CodePointArray;
@@ -44,13 +44,13 @@ public final class CelSourceTest {
   @Test
   public void getLocationOffset_correctStartingLocation() throws Exception {
     CelSource source = CelSource.newBuilder(LATIN_1_EXPR).build();
-    assertThat(source.getLocationOffset(CelSourceLocation.of(1, 0))).hasValue(0);
+    Truth8.assertThat(source.getLocationOffset(CelSourceLocation.of(1, 0))).hasValue(0);
   }
 
   @Test
   public void getOffsetLocation_correctStartingLocation() throws Exception {
     CelSource source = CelSource.newBuilder(LATIN_1_EXPR).build();
-    assertThat(source.getOffsetLocation(0)).hasValue(CelSourceLocation.of(1, 0));
+    Truth8.assertThat(source.getOffsetLocation(0)).hasValue(CelSourceLocation.of(1, 0));
   }
 
   @Test

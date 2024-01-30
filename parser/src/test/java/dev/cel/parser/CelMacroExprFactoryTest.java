@@ -15,9 +15,9 @@
 package dev.cel.parser;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.common.primitives.UnsignedLong;
+import com.google.common.truth.Truth8;
 import com.google.protobuf.ByteString;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelSourceLocation;
@@ -578,7 +578,7 @@ public final class CelMacroExprFactoryTest {
     CelExpr expr = exprFactory.newGlobalCall("foo", argument);
     assertThat(expr.id()).isEqualTo(2L);
     assertThat(expr.exprKind().getKind()).isEqualTo(Kind.CALL);
-    assertThat(expr.call().target()).isEmpty();
+    Truth8.assertThat(expr.call().target()).isEmpty();
     assertThat(expr.call().function()).isEqualTo("foo");
     assertThat(expr.call().args()).containsExactly(argument);
   }
@@ -591,7 +591,7 @@ public final class CelMacroExprFactoryTest {
     CelExpr expr = exprFactory.newReceiverCall("foo", target, argument);
     assertThat(expr.id()).isEqualTo(3L);
     assertThat(expr.exprKind().getKind()).isEqualTo(Kind.CALL);
-    assertThat(expr.call().target()).hasValue(target);
+    Truth8.assertThat(expr.call().target()).hasValue(target);
     assertThat(expr.call().function()).isEqualTo("foo");
     assertThat(expr.call().args()).containsExactly(argument);
   }
