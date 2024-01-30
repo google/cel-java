@@ -14,7 +14,7 @@
 
 package dev.cel.runtime;
 
-import static com.google.common.truth.Truth8.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static dev.cel.runtime.CelVariableResolver.hierarchicalVariableResolver;
 
 import com.google.common.collect.ImmutableMap;
