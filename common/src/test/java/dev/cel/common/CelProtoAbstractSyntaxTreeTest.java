@@ -25,6 +25,9 @@ import dev.cel.expr.Expr.Call;
 import dev.cel.expr.ParsedExpr;
 import dev.cel.expr.Reference;
 import dev.cel.expr.SourceInfo;
+import dev.cel.expr.SourceInfo.Extension;
+import dev.cel.expr.SourceInfo.Extension.Component;
+import dev.cel.expr.SourceInfo.Extension.Version;
 import dev.cel.common.types.CelTypes;
 import java.util.Arrays;
 import org.junit.Test;
@@ -57,6 +60,13 @@ public class CelProtoAbstractSyntaxTreeTest {
           .setLocation("test/location.cel")
           .putPositions(1L, 0)
           .addLineOffsets(4)
+          .addExtensions(
+              Extension.newBuilder()
+                  .setId("extension_id")
+                  .addAffectedComponents(Component.COMPONENT_PARSER)
+                  .addAffectedComponents(Component.COMPONENT_TYPE_CHECKER)
+                  .addAffectedComponents(Component.COMPONENT_RUNTIME)
+                  .setVersion(Version.newBuilder().setMajor(5).setMinor(3)))
           .putMacroCalls(
               2,
               Expr.newBuilder()

@@ -19,6 +19,9 @@ import static org.antlr.v4.runtime.IntStream.UNKNOWN_SOURCE_NAME;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.truth.Truth8;
+import dev.cel.common.CelSource.Extension;
+import dev.cel.common.CelSource.Extension.Component;
+import dev.cel.common.CelSource.Extension.Version;
 import dev.cel.common.internal.BasicCodePointArray;
 import dev.cel.common.internal.CodePointStream;
 import dev.cel.common.internal.Latin1CodePointArray;
@@ -156,5 +159,26 @@ public final class CelSourceTest {
     assertThat(charStream.LA(0)).isEqualTo(0);
     assertThat(charStream.LA(-1)).isEqualTo(IntStream.EOF);
     assertThat(source.getLineOffsets()).containsExactly(6, 13).inOrder();
+  }
+
+  @Test
+  public void source_withExtension() {
+    CelSource celSource =
+        CelSource.newBuilder("")
+            .addAllExtensions(
+                Extension.create(
+                    "extension_id",
+                    Version.of(5, 3),
+                    Component.COMPONENT_PARSER,
+                    Component.COMPONENT_TYPE_CHECKER))
+            .build();
+
+    Extension extension = celSource.getExtensions().get(0);
+    assertThat(extension.id()).isEqualTo("extension_id");
+    assertThat(extension.version().major()).isEqualTo(5L);
+    assertThat(extension.version().minor()).isEqualTo(3L);
+    assertThat(extension.affectedComponents())
+        .containsExactly(Component.COMPONENT_PARSER, Component.COMPONENT_TYPE_CHECKER);
+    assertThat(celSource.getExtensions()).hasSize(1);
   }
 }

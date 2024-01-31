@@ -15,16 +15,22 @@
 package dev.cel.common;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import dev.cel.expr.CheckedExpr;
 import dev.cel.expr.Expr;
 import dev.cel.expr.ParsedExpr;
 import dev.cel.expr.SourceInfo;
+import dev.cel.expr.SourceInfo.Extension;
+import dev.cel.expr.SourceInfo.Extension.Component;
+import dev.cel.expr.SourceInfo.Extension.Version;
 import dev.cel.expr.Type;
+import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.ast.CelExprConverter;
 import dev.cel.common.types.CelTypes;
+import java.util.Collection;
 import java.util.Map.Entry;
 
 /**
@@ -49,6 +55,9 @@ public final class CelProtoAbstractSyntaxTree {
                 .addAllMacroCalls(
                     CelExprConverter.exprMacroCallsToCelExprMacroCalls(
                         checkedExpr.getSourceInfo().getMacroCallsMap()))
+                .addAllExtensions(
+                    fromExprExtensionsToCelExtensions(
+                        checkedExpr.getSourceInfo().getExtensionsList()))
                 .setDescription(checkedExpr.getSourceInfo().getLocation())
                 .build(),
             checkedExpr.getReferenceMapMap().entrySet().stream()
@@ -69,6 +78,8 @@ public final class CelProtoAbstractSyntaxTree {
                 SourceInfo.newBuilder()
                     .setLocation(ast.getSource().getDescription())
                     .addAllLineOffsets(ast.getSource().getLineOffsets())
+                    .addAllExtensions(
+                        fromCelExtensionsToExprExtensions(ast.getSource().getExtensions()))
                     .putAllMacroCalls(
                         ast.getSource().getMacroCalls().entrySet().stream()
                             .collect(
@@ -172,6 +183,70 @@ public final class CelProtoAbstractSyntaxTree {
   @CheckReturnValue
   public Type getProtoResultType() {
     return CelTypes.celTypeToType(ast.getResultType());
+  }
+
+  private static ImmutableList<Extension> fromCelExtensionsToExprExtensions(
+      Collection<CelSource.Extension> extensions) {
+    return extensions.stream()
+        .map(
+            celSourceExtension ->
+                Extension.newBuilder()
+                    .setId(celSourceExtension.id())
+                    .setVersion(
+                        Version.newBuilder()
+                            .setMajor(celSourceExtension.version().major())
+                            .setMinor(celSourceExtension.version().minor()))
+                    .addAllAffectedComponents(
+                        celSourceExtension.affectedComponents().stream()
+                            .map(
+                                component -> {
+                                  switch (component) {
+                                    case COMPONENT_UNSPECIFIED:
+                                      return Component.COMPONENT_UNSPECIFIED;
+                                    case COMPONENT_PARSER:
+                                      return Component.COMPONENT_PARSER;
+                                    case COMPONENT_TYPE_CHECKER:
+                                      return Component.COMPONENT_TYPE_CHECKER;
+                                    case COMPONENT_RUNTIME:
+                                      return Component.COMPONENT_RUNTIME;
+                                  }
+                                  throw new AssertionError(
+                                      "Unexpected component kind: " + component);
+                                })
+                            .collect(toImmutableList()))
+                    .build())
+        .collect(toImmutableList());
+  }
+
+  private static ImmutableList<CelSource.Extension> fromExprExtensionsToCelExtensions(
+      Collection<Extension> extensions) {
+    return extensions.stream()
+        .map(
+            exprExtension ->
+                CelSource.Extension.create(
+                    exprExtension.getId(),
+                    CelSource.Extension.Version.of(
+                        exprExtension.getVersion().getMajor(),
+                        exprExtension.getVersion().getMinor()),
+                    exprExtension.getAffectedComponentsList().stream()
+                        .map(
+                            component -> {
+                              switch (component) {
+                                case COMPONENT_UNSPECIFIED:
+                                  return CelSource.Extension.Component.COMPONENT_UNSPECIFIED;
+                                case COMPONENT_PARSER:
+                                  return CelSource.Extension.Component.COMPONENT_PARSER;
+                                case COMPONENT_TYPE_CHECKER:
+                                  return CelSource.Extension.Component.COMPONENT_TYPE_CHECKER;
+                                case COMPONENT_RUNTIME:
+                                  return CelSource.Extension.Component.COMPONENT_RUNTIME;
+                                case UNRECOGNIZED:
+                                  // fall-through
+                              }
+                              throw new AssertionError("Unexpected component kind: " + component);
+                            })
+                        .collect(toImmutableList())))
+        .collect(toImmutableList());
   }
 }
 // LINT.ThenChange(CelProtoV1Alpha1AbstractSyntaxTree.java)

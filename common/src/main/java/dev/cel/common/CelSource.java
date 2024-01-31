@@ -17,6 +17,7 @@ package dev.cel.common;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -26,6 +27,7 @@ import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.internal.CelCodePointArray;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +36,6 @@ import java.util.Optional;
 /** Represents the source content of an expression and related metadata. */
 @Immutable
 public final class CelSource {
-
   private static final Splitter LINE_SPLITTER = Splitter.on('\n');
 
   private final CelCodePointArray codePoints;
@@ -42,13 +43,15 @@ public final class CelSource {
   private final ImmutableList<Integer> lineOffsets;
   private final ImmutableMap<Long, Integer> positions;
   private final ImmutableMap<Long, CelExpr> macroCalls;
+  private final ImmutableList<Extension> extensions;
 
   private CelSource(Builder builder) {
-    codePoints = checkNotNull(builder.codePoints);
-    description = checkNotNull(builder.description);
-    positions = checkNotNull(builder.positions.buildOrThrow());
-    lineOffsets = checkNotNull(ImmutableList.copyOf(builder.lineOffsets));
-    macroCalls = checkNotNull(ImmutableMap.copyOf(builder.macroCalls));
+    this.codePoints = checkNotNull(builder.codePoints);
+    this.description = checkNotNull(builder.description);
+    this.positions = checkNotNull(builder.positions.buildOrThrow());
+    this.lineOffsets = checkNotNull(ImmutableList.copyOf(builder.lineOffsets));
+    this.macroCalls = checkNotNull(ImmutableMap.copyOf(builder.macroCalls));
+    this.extensions = checkNotNull(builder.extensions.build());
   }
 
   public CelCodePointArray getContent() {
@@ -75,6 +78,10 @@ public final class CelSource {
 
   public ImmutableMap<Long, CelExpr> getMacroCalls() {
     return macroCalls;
+  }
+
+  public ImmutableList<Extension> getExtensions() {
+    return extensions;
   }
 
   /** See {@link #getLocationOffset(int, int)}. */
@@ -201,6 +208,7 @@ public final class CelSource {
     private final List<Integer> lineOffsets;
     private final ImmutableMap.Builder<Long, Integer> positions;
     private final Map<Long, CelExpr> macroCalls;
+    private final ImmutableList.Builder<Extension> extensions;
 
     private String description;
 
@@ -213,7 +221,8 @@ public final class CelSource {
       this.lineOffsets = checkNotNull(lineOffsets);
       this.positions = ImmutableMap.builder();
       this.macroCalls = new HashMap<>();
-      description = "";
+      this.extensions = ImmutableList.builder();
+      this.description = "";
     }
 
     @CanIgnoreReturnValue
@@ -226,15 +235,6 @@ public final class CelSource {
     public Builder addLineOffsets(int lineOffset) {
       checkArgument(lineOffset >= 0);
       lineOffsets.add(lineOffset);
-      return this;
-    }
-
-    @CanIgnoreReturnValue
-    public Builder addLineOffsets(int... lineOffsets) {
-      // Purposefully not using Arrays.asList to avoid int boxing/unboxing.
-      for (int index = 0; index != lineOffsets.length; index++) {
-        addLineOffsets(lineOffsets[index]);
-      }
       return this;
     }
 
@@ -275,6 +275,18 @@ public final class CelSource {
     public Builder clearMacroCall(long exprId) {
       this.macroCalls.remove(exprId);
       return this;
+    }
+
+    @CanIgnoreReturnValue
+    public Builder addAllExtensions(Iterable<? extends Extension> extensions) {
+      checkNotNull(extensions);
+      this.extensions.addAll(extensions);
+      return this;
+    }
+
+    @CanIgnoreReturnValue
+    public Builder addAllExtensions(Extension... extensions) {
+      return addAllExtensions(Arrays.asList(extensions));
     }
 
     /** See {@link #getLocationOffset(int, int)}. */
@@ -332,5 +344,77 @@ public final class CelSource {
 
     int line;
     int offset;
+  }
+
+  /**
+   * Tag for an extension that were used while parsing or type checking the source expression. For
+   * example, optimizations that require special runtime support may be specified. These are used to
+   * check feature support between components in separate implementations. This can be used to
+   * either skip redundant work or report an error if the extension is unsupported.
+   */
+  @AutoValue
+  @Immutable
+  abstract static class Extension {
+
+    /** Identifier for the extension. Example: constant_folding */
+    abstract String id();
+
+    /**
+     * Version info. May be skipped if it isn't meaningful for the extension. (for example
+     * constant_folding might always be v0.0).
+     */
+    abstract Version version();
+
+    /**
+     * If set, the listed components must understand the extension for the expression to evaluate
+     * correctly.
+     */
+    abstract ImmutableList<Component> affectedComponents();
+
+    @AutoValue
+    @Immutable
+    abstract static class Version {
+
+      /**
+       * Major version changes indicate different required support level from the required
+       * components.
+       */
+      abstract long major();
+
+      /**
+       * Minor version changes must not change the observed behavior from existing implementations,
+       * but may be provided informational.
+       */
+      abstract long minor();
+
+      /** Create a new instance of Version with the provided major and minor values. */
+      static Version of(long major, long minor) {
+        return new AutoValue_CelSource_Extension_Version(major, minor);
+      }
+    }
+
+    /** CEL component specifier. */
+    enum Component {
+      /** Unspecified, default. */
+      COMPONENT_UNSPECIFIED,
+      /** Parser. Converts a CEL string to an AST. */
+      COMPONENT_PARSER,
+      /** Type checker. Checks that references in an AST are defined and types agree. */
+      COMPONENT_TYPE_CHECKER,
+      /** Runtime. Evaluates a parsed and optionally checked CEL AST against a context. */
+      COMPONENT_RUNTIME;
+    }
+
+    @CheckReturnValue
+    static Extension create(String id, Version version, Iterable<Component> components) {
+      checkNotNull(version);
+      checkNotNull(components);
+      return new AutoValue_CelSource_Extension(id, version, ImmutableList.copyOf(components));
+    }
+
+    @CheckReturnValue
+    static Extension create(String id, Version version, Component... components) {
+      return create(id, version, Arrays.asList(components));
+    }
   }
 }
