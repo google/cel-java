@@ -16,6 +16,7 @@ package dev.cel.runtime;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.common.annotations.Internal;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -33,6 +34,7 @@ public class RuntimeUnknownResolver {
 
   /** The underlying resolver for known values. */
   private final GlobalResolver resolver;
+
   /** Resolver for unknown and resolved attributes. */
   private final CelAttributeResolver attributeResolver;
 
@@ -112,6 +114,10 @@ public class RuntimeUnknownResolver {
         attr, InterpreterUtil.valueOrUnknown(result, exprId));
   }
 
+  void cacheLazilyEvaluatedResult(String name, DefaultInterpreter.IntermediateResult result) {
+    // no-op. Caching is handled in ScopedResolver.
+  }
+
   /**
    * Attempt to resolve an attribute bound to a context variable. This is used to shadow lazily
    * resolved values behind field accesses and index operations.
@@ -127,6 +133,7 @@ public class RuntimeUnknownResolver {
   static final class ScopedResolver extends RuntimeUnknownResolver {
     private final RuntimeUnknownResolver parent;
     private final Map<String, DefaultInterpreter.IntermediateResult> shadowedVars;
+    private final Map<String, DefaultInterpreter.IntermediateResult> lazyEvalResultCache;
 
     private ScopedResolver(
         RuntimeUnknownResolver parent,
@@ -134,15 +141,25 @@ public class RuntimeUnknownResolver {
       super(parent.resolver, parent.attributeResolver, parent.attributeTrackingEnabled);
       this.parent = parent;
       this.shadowedVars = shadowedVars;
+      this.lazyEvalResultCache = new HashMap<>();
     }
 
     @Override
     DefaultInterpreter.IntermediateResult resolveSimpleName(String name, Long exprId) {
-      DefaultInterpreter.IntermediateResult shadowed = shadowedVars.get(name);
-      if (shadowed != null) {
-        return shadowed;
+      DefaultInterpreter.IntermediateResult result = lazyEvalResultCache.get(name);
+      if (result != null) {
+        return result;
+      }
+      result = shadowedVars.get(name);
+      if (result != null) {
+        return result;
       }
       return parent.resolveSimpleName(name, exprId);
+    }
+
+    @Override
+    void cacheLazilyEvaluatedResult(String name, DefaultInterpreter.IntermediateResult result) {
+      lazyEvalResultCache.put(name, result);
     }
   }
 

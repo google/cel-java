@@ -275,11 +275,6 @@ public final class DefaultInterpreter implements Interpreter {
         return IntermediateResult.create(typeValue);
       }
 
-      IntermediateResult cachedResult = frame.lookupLazilyEvaluatedResult(name).orElse(null);
-      if (cachedResult != null) {
-        return cachedResult;
-      }
-
       IntermediateResult rawResult = frame.resolveSimpleName(name, expr.id());
       Object value = rawResult.value();
       boolean isLazyExpression = value instanceof LazyExpression;
@@ -885,7 +880,6 @@ public final class DefaultInterpreter implements Interpreter {
     private final CelEvaluationListener evaluationListener;
     private final int maxIterations;
     private final ArrayDeque<RuntimeUnknownResolver> resolvers;
-    private final Map<String, IntermediateResult> lazyEvalResultCache;
     private RuntimeUnknownResolver currentResolver;
     private int iterations;
 
@@ -898,7 +892,6 @@ public final class DefaultInterpreter implements Interpreter {
       this.resolvers.add(resolver);
       this.currentResolver = resolver;
       this.maxIterations = maxIterations;
-      this.lazyEvalResultCache = new HashMap<>();
     }
 
     private CelEvaluationListener getEvaluationListener() {
@@ -929,12 +922,9 @@ public final class DefaultInterpreter implements Interpreter {
       return currentResolver.resolveAttribute(attr);
     }
 
-    private Optional<IntermediateResult> lookupLazilyEvaluatedResult(String name) {
-      return Optional.ofNullable(lazyEvalResultCache.get(name));
-    }
-
-    private void cacheLazilyEvaluatedResult(String name, IntermediateResult result) {
-      lazyEvalResultCache.put(name, result);
+    private void cacheLazilyEvaluatedResult(
+        String name, DefaultInterpreter.IntermediateResult result) {
+      currentResolver.cacheLazilyEvaluatedResult(name, result);
     }
 
     private void pushScope(ImmutableMap<String, IntermediateResult> scope) {
