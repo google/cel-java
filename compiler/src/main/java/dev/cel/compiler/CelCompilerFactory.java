@@ -14,12 +14,15 @@
 
 package dev.cel.compiler;
 
+
 import dev.cel.checker.CelChecker;
 import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.checker.CelCheckerLegacyImpl;
 import dev.cel.common.CelOptions;
 import dev.cel.parser.CelParser;
+import dev.cel.parser.CelParserBuilder;
 import dev.cel.parser.CelParserImpl;
+import java.util.function.Supplier;
 
 /** Factory class for creating builders for type-checker and compiler instances. */
 public final class CelCompilerFactory {

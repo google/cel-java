@@ -15,6 +15,7 @@ java_library(
     ],
     deps = [
         ":bindings",
+        ":block",
         ":encoders",
         ":math",
         ":protos",
@@ -78,11 +79,29 @@ java_library(
 )
 
 java_library(
+    name = "block",
+    srcs = ["CelBlockExtensions.java"],
+    deps = [
+        "//checker:checker_builder",
+        "//common:compiler_common",
+        "//common/ast",
+        "//common/types",
+        "//compiler:compiler_builder",
+        "//parser:macro",
+        "//parser:parser_builder",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "bindings",
     srcs = ["CelBindingsExtensions.java"],
     deps = [
+        "//checker:checker_builder",
         "//common:compiler_common",
         "//common/ast",
+        "//common/types",
         "//compiler:compiler_builder",
         "//parser:macro",
         "//parser:parser_builder",

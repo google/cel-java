@@ -20,4 +20,6 @@ import dev.cel.runtime.CelRuntime;
 
 /** Cel interface for parse, type-check, and evaluation of CEL programs. */
 @ThreadSafe
-public interface Cel extends CelCompiler, CelRuntime {}
+public interface Cel extends CelCompiler, CelRuntime {
+  CelBuilder toCelBuilder();
+}

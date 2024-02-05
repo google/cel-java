@@ -57,4 +57,6 @@ public interface CelCompiler extends CelParser, CelChecker {
       throw new IllegalStateException("this method must only be called when !hasError()", ex);
     }
   }
+
+  CelCompilerBuilder toCompilerBuilder();
 }

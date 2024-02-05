@@ -31,9 +31,9 @@ public class CelOptimizerFactoryTest {
   public void standardCelOptimizerBuilder_withParserCheckerAndRuntime() {
     CelOptimizerBuilder builder =
         CelOptimizerFactory.standardCelOptimizerBuilder(
-            CelParserFactory.standardCelParserBuilder().build(),
-            CelCompilerFactory.standardCelCheckerBuilder().build(),
-            CelRuntimeFactory.standardCelRuntimeBuilder().build());
+            CelParserFactory::standardCelParserBuilder,
+            CelCompilerFactory::standardCelCheckerBuilder,
+            CelRuntimeFactory::standardCelRuntimeBuilder);
 
     assertThat(builder).isNotNull();
     assertThat(builder.build()).isNotNull();
@@ -43,8 +43,8 @@ public class CelOptimizerFactoryTest {
   public void standardCelOptimizerBuilder_withCompilerAndRuntime() {
     CelOptimizerBuilder builder =
         CelOptimizerFactory.standardCelOptimizerBuilder(
-            CelCompilerFactory.standardCelCompilerBuilder().build(),
-            CelRuntimeFactory.standardCelRuntimeBuilder().build());
+            CelCompilerFactory::standardCelCompilerBuilder,
+            CelRuntimeFactory::standardCelRuntimeBuilder);
 
     assertThat(builder).isNotNull();
     assertThat(builder.build()).isNotNull();
@@ -53,7 +53,7 @@ public class CelOptimizerFactoryTest {
   @Test
   public void standardCelOptimizerBuilder_withCel() {
     CelOptimizerBuilder builder =
-        CelOptimizerFactory.standardCelOptimizerBuilder(CelFactory.standardCelBuilder().build());
+        CelOptimizerFactory.standardCelOptimizerBuilder(CelFactory::standardCelBuilder);
 
     assertThat(builder).isNotNull();
     assertThat(builder.build()).isNotNull();

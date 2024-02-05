@@ -18,8 +18,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
-import dev.cel.expr.Decl;
-import dev.cel.expr.Type;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -47,6 +46,8 @@ import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.ProtoMessageTypeProvider;
+import dev.cel.expr.Decl;
+import dev.cel.expr.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -62,14 +63,17 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
 
   private final CelOptions celOptions;
   private final String container;
-  private final ImmutableList<CelIdentDecl> identDeclarations;
-  private final ImmutableList<CelFunctionDecl> functionDeclarations;
+  private final ImmutableSet<CelIdentDecl> identDeclarations;
+  private final ImmutableSet<CelFunctionDecl> functionDeclarations;
   private final Optional<CelType> expectedResultType;
 
   @SuppressWarnings("Immutable")
   private final TypeProvider typeProvider;
 
   private final boolean standardEnvironmentEnabled;
+
+  @SuppressWarnings("Immutable") // Builder is mutable by design. APIs must guarantee a new instance to be returned.
+  private final Builder checkerBuilder;
 
   @Override
   public CelValidationResult check(CelAbstractSyntaxTree ast) {
@@ -86,6 +90,11 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
       return new CelValidationResult(source, errorsToIssues(errors));
     }
     return new CelValidationResult(checkedAst, ImmutableList.of());
+  }
+
+  @Override
+  public CelCheckerBuilder toCheckerBuilder() {
+    return new Builder(checkerBuilder);
   }
 
   @Override
@@ -132,9 +141,9 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
   /** Builder class for the legacy {@code CelChecker} implementation. */
   public static final class Builder implements CelCheckerBuilder {
 
-    private final ImmutableList.Builder<CelIdentDecl> identDeclarations;
-    private final ImmutableList.Builder<CelFunctionDecl> functionDeclarations;
-    private final ImmutableList.Builder<ProtoTypeMask> protoTypeMasks;
+    private final ImmutableSet.Builder<CelIdentDecl> identDeclarations;
+    private final ImmutableSet.Builder<CelFunctionDecl> functionDeclarations;
+    private final ImmutableSet.Builder<ProtoTypeMask> protoTypeMasks;
     private final ImmutableSet.Builder<Descriptor> messageTypes;
     private final ImmutableSet.Builder<FileDescriptor> fileTypes;
     private final ImmutableSet.Builder<CelCheckerLibrary> celCheckerLibraries;
@@ -316,6 +325,38 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
       return this;
     }
 
+    // The following getters exist for asserting immutability for collections held by this builder, and shouldn't be exposed to the public.
+
+    @VisibleForTesting
+    ImmutableSet.Builder<CelFunctionDecl> getFunctionDecls() {
+      return this.functionDeclarations;
+    }
+
+    @VisibleForTesting
+    ImmutableSet.Builder<CelIdentDecl> getIdentDecls() {
+      return this.identDeclarations;
+    }
+
+    @VisibleForTesting
+    ImmutableSet.Builder<ProtoTypeMask> getProtoTypeMasks() {
+      return this.protoTypeMasks;
+    }
+
+    @VisibleForTesting
+    ImmutableSet.Builder<Descriptor> getMessageTypes() {
+      return this.messageTypes;
+    }
+
+    @VisibleForTesting
+    ImmutableSet.Builder<FileDescriptor> getFileTypes() {
+      return this.fileTypes;
+    }
+
+    @VisibleForTesting
+    ImmutableSet.Builder<CelCheckerLibrary> getCheckerLibraries() {
+      return this.celCheckerLibraries;
+    }
+
     @Override
     @CheckReturnValue
     public CelCheckerLegacyImpl build() {
@@ -348,13 +389,13 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
       // Configure the declaration set, and possibly alter the type provider if ProtoDecl values
       // are provided as they may prevent the use of certain field selection patterns against the
       // proto.
-      ImmutableList<CelIdentDecl> identDeclarationSet = identDeclarations.build();
-      ImmutableList<ProtoTypeMask> protoTypeMaskSet = protoTypeMasks.build();
+      ImmutableSet<CelIdentDecl> identDeclarationSet = identDeclarations.build();
+      ImmutableSet<ProtoTypeMask> protoTypeMaskSet = protoTypeMasks.build();
       if (!protoTypeMaskSet.isEmpty()) {
         ProtoTypeMaskTypeProvider protoTypeMaskTypeProvider =
             new ProtoTypeMaskTypeProvider(messageTypeProvider, protoTypeMaskSet);
         identDeclarationSet =
-            ImmutableList.<CelIdentDecl>builder()
+            ImmutableSet.<CelIdentDecl>builder()
                 .addAll(identDeclarationSet)
                 .addAll(protoTypeMaskTypeProvider.computeDeclsFromProtoTypeMasks())
                 .build();
@@ -375,29 +416,54 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
           functionDeclarations.build(),
           Optional.fromNullable(expectedResultType),
           legacyProvider,
-          standardEnvironmentEnabled);
+          standardEnvironmentEnabled,
+          this);
     }
 
     private Builder() {
       this.celOptions = CelOptions.newBuilder().build();
-      this.identDeclarations = ImmutableList.builder();
-      this.functionDeclarations = ImmutableList.builder();
+      this.identDeclarations = ImmutableSet.builder();
+      this.functionDeclarations = ImmutableSet.builder();
       this.fileTypes = ImmutableSet.builder();
       this.messageTypes = ImmutableSet.builder();
-      this.protoTypeMasks = ImmutableList.builder();
+      this.protoTypeMasks = ImmutableSet.builder();
       this.celCheckerLibraries = ImmutableSet.builder();
       this.container = "";
+    }
+
+    private Builder(Builder builder) {
+      // The following properties are either immutable or simple primitives, thus can be assigned directly.
+      this.celOptions = builder.celOptions;
+      this.celTypeProvider = builder.celTypeProvider;
+      this.container = builder.container;
+      this.customTypeProvider = builder.customTypeProvider;
+      this.expectedResultType = builder.expectedResultType;
+      this.standardEnvironmentEnabled = builder.standardEnvironmentEnabled;
+      // The following needs to be deep copied as they are collection builders
+      this.functionDeclarations = deepCopy(builder.functionDeclarations);
+      this.identDeclarations = deepCopy(builder.identDeclarations);
+      this.fileTypes = deepCopy(builder.fileTypes);
+      this.messageTypes = deepCopy(builder.messageTypes);
+      this.protoTypeMasks = deepCopy(builder.protoTypeMasks);
+      this.celCheckerLibraries = deepCopy(builder.celCheckerLibraries);
+    }
+
+    private static <T> ImmutableSet.Builder<T> deepCopy(ImmutableSet.Builder<T> builderToCopy) {
+      ImmutableSet.Builder<T> newBuilder = ImmutableSet.builder();
+      newBuilder.addAll(builderToCopy.build());
+      return newBuilder;
     }
   }
 
   private CelCheckerLegacyImpl(
       CelOptions celOptions,
       String container,
-      ImmutableList<CelIdentDecl> identDeclarations,
-      ImmutableList<CelFunctionDecl> functionDeclarations,
+      ImmutableSet<CelIdentDecl> identDeclarations,
+      ImmutableSet<CelFunctionDecl> functionDeclarations,
       Optional<CelType> expectedResultType,
       TypeProvider typeProvider,
-      boolean standardEnvironmentEnabled) {
+      boolean standardEnvironmentEnabled,
+      Builder checkerBuilder) {
     this.celOptions = celOptions;
     this.container = container;
     this.identDeclarations = identDeclarations;
@@ -405,6 +471,7 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     this.expectedResultType = expectedResultType;
     this.typeProvider = typeProvider;
     this.standardEnvironmentEnabled = standardEnvironmentEnabled;
+    this.checkerBuilder = checkerBuilder;
   }
 
   private static ImmutableList<CelIssue> errorsToIssues(Errors errors) {

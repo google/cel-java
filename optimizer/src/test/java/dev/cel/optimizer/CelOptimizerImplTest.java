@@ -37,7 +37,7 @@ public class CelOptimizerImplTest {
   @Test
   public void constructCelOptimizer_success() {
     CelOptimizer celOptimizer =
-        CelOptimizerImpl.newBuilder(CEL)
+        CelOptimizerImpl.newBuilder(CelFactory::standardCelBuilder)
             .addAstOptimizers(
                 (navigableAst, cel) ->
                     // no-op
@@ -53,7 +53,7 @@ public class CelOptimizerImplTest {
     List<Integer> list = new ArrayList<>();
 
     CelOptimizer celOptimizer =
-        CelOptimizerImpl.newBuilder(CEL)
+        CelOptimizerImpl.newBuilder(CelFactory::standardCelBuilder)
             .addAstOptimizers(
                 (navigableAst, cel) -> {
                   list.add(1);
@@ -80,7 +80,7 @@ public class CelOptimizerImplTest {
   @Test
   public void optimizer_whenAstOptimizerThrows_throwsException() {
     CelOptimizer celOptimizer =
-        CelOptimizerImpl.newBuilder(CEL)
+        CelOptimizerImpl.newBuilder(CelFactory::standardCelBuilder)
             .addAstOptimizers(
                 (navigableAst, cel) -> {
                   throw new IllegalArgumentException("Test exception");
@@ -97,7 +97,7 @@ public class CelOptimizerImplTest {
 
   @Test
   public void parsedAst_throwsException() {
-    CelOptimizer celOptimizer = CelOptimizerImpl.newBuilder(CEL).build();
+    CelOptimizer celOptimizer = CelOptimizerImpl.newBuilder(CelFactory::standardCelBuilder).build();
 
     IllegalArgumentException e =
         assertThrows(
@@ -109,7 +109,7 @@ public class CelOptimizerImplTest {
   @Test
   public void optimizedAst_failsToTypeCheck_throwsException() {
     CelOptimizer celOptimizer =
-        CelOptimizerImpl.newBuilder(CEL)
+        CelOptimizerImpl.newBuilder(CelFactory::standardCelBuilder)
             .addAstOptimizers(
                 (navigableAst, cel) ->
                     CelAbstractSyntaxTree.newParsedAst(

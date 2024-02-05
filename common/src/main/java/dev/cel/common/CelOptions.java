@@ -89,7 +89,6 @@ public abstract class CelOptions {
 
   public abstract boolean enableCelValue();
 
-
   public abstract int comprehensionMaxIterations();
 
   public abstract Builder toBuilder();

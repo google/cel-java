@@ -225,4 +225,6 @@ public final class CelBindingsExtensionsTest {
     assertThat(result).isTrue();
     assertThat(invocation.get()).isEqualTo(2);
   }
+
+
 }

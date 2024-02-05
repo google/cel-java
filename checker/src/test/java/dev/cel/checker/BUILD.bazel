@@ -14,6 +14,7 @@ java_library(
         "//:auto_value",
         "//checker",
         "//checker:cel_ident_decl",
+        "//checker:checker_builder",
         "//checker:checker_legacy_environment",
         "//checker:proto_expr_visitor",
         "//checker:proto_type_mask",

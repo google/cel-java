@@ -81,6 +81,21 @@ public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
     }
   }
 
+  @Override
+  public CelCompilerBuilder toCompilerBuilder() {
+    return newBuilder(toParserBuilder(), toCheckerBuilder());
+  }
+
+  @Override
+  public CelCheckerBuilder toCheckerBuilder() {
+    return checker.toCheckerBuilder();
+  }
+
+  @Override
+  public CelParserBuilder toParserBuilder() {
+    return parser.toParserBuilder();
+  }
+
   /** Combines a prebuilt {@link CelParser} and {@link CelChecker} into {@link CelCompilerImpl}. */
   static CelCompilerImpl combine(CelParser parser, CelChecker checker) {
     return new CelCompilerImpl(parser, checker);

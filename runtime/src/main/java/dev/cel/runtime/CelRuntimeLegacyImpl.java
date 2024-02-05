@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import java.util.HashMap;
 import javax.annotation.concurrent.ThreadSafe;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
@@ -75,7 +76,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
   public static final class Builder implements CelRuntimeBuilder {
 
     private final ImmutableSet.Builder<FileDescriptor> fileTypes;
-    private final ImmutableMap.Builder<String, CelFunctionBinding> functionBindings;
+    private final HashMap<String, CelFunctionBinding> functionBindings;
     private final ImmutableSet.Builder<CelRuntimeLibrary> celRuntimeLibraries;
 
     @SuppressWarnings("unused")
@@ -99,7 +100,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
     @Override
     public CelRuntimeBuilder addFunctionBindings(Iterable<CelFunctionBinding> bindings) {
-      bindings.forEach(o -> functionBindings.put(o.getOverloadId(), o));
+      bindings.forEach(o -> functionBindings.putIfAbsent(o.getOverloadId(), o));
       return this;
     }
 
@@ -203,7 +204,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
         StandardFunctions.add(dispatcher, dynamicProto, options);
       }
 
-      ImmutableMap<String, CelFunctionBinding> functionBindingMap = functionBindings.buildOrThrow();
+      ImmutableMap<String, CelFunctionBinding> functionBindingMap = ImmutableMap.copyOf(functionBindings);
       functionBindingMap.forEach(
           (String overloadId, CelFunctionBinding func) ->
               dispatcher.add(
@@ -264,7 +265,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     private Builder() {
       this.options = CelOptions.newBuilder().build();
       this.fileTypes = ImmutableSet.builder();
-      this.functionBindings = ImmutableMap.builder();
+      this.functionBindings = new HashMap<>();
       this.celRuntimeLibraries = ImmutableSet.builder();
       this.extensionRegistry = ExtensionRegistry.getEmptyRegistry();
       this.customTypeFactory = null;

@@ -29,6 +29,7 @@ public final class CelExtensions {
   private static final CelStringExtensions STRING_EXTENSIONS_ALL = new CelStringExtensions();
   private static final CelProtoExtensions PROTO_EXTENSIONS = new CelProtoExtensions();
   private static final CelBindingsExtensions BINDINGS_EXTENSIONS = new CelBindingsExtensions();
+  private static final CelBlockExtensions BLOCK_EXTENSIONS = new CelBlockExtensions();
   private static final CelEncoderExtensions ENCODER_EXTENSIONS = new CelEncoderExtensions();
 
   /**
@@ -158,6 +159,13 @@ public final class CelExtensions {
    */
   public static CelBindingsExtensions bindings() {
     return BINDINGS_EXTENSIONS;
+  }
+
+  /**
+   * TODO
+   */
+  public static CelBlockExtensions block() {
+    return BLOCK_EXTENSIONS;
   }
 
   /**

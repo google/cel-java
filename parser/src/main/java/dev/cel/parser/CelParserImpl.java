@@ -50,6 +50,9 @@ public final class CelParserImpl implements CelParser {
   // Specific options for limits on parsing power.
   private final CelOptions options;
 
+  @SuppressWarnings("Immutable") // Builder is mutable by design. APIs must guarantee a new instance to be returned.
+  private final Builder parserBuilder;
+
   /** Creates a new {@link Builder}. */
   public static CelParserBuilder newBuilder() {
     return new Builder().setOptions(CelOptions.DEFAULT);
@@ -63,6 +66,11 @@ public final class CelParserImpl implements CelParser {
   @Override
   public CelValidationResult parse(CelSource source) {
     return Parser.parse(this, source, getOptions());
+  }
+
+  @Override
+  public CelParserBuilder toParserBuilder() {
+    return new Builder(parserBuilder);
   }
 
   Optional<CelMacro> findMacro(String key) {
@@ -149,7 +157,7 @@ public final class CelParserImpl implements CelParser {
       standardMacros.stream()
           .map(CelStandardMacro::getDefinition)
           .forEach(celMacro -> builder.put(celMacro.getKey(), celMacro));
-      return new CelParserImpl(builder.buildOrThrow(), checkNotNull(options));
+      return new CelParserImpl(builder.buildOrThrow(), checkNotNull(options), this);
     }
 
     private Builder() {
@@ -157,10 +165,21 @@ public final class CelParserImpl implements CelParser {
       this.celParserLibraries = ImmutableSet.builder();
       this.standardMacros = new ArrayList<>();
     }
+
+    private Builder(Builder builder) {
+      // The following properties are either immutable or simple primitives, thus can be assigned directly.
+      this.options = builder.options;
+      this.macros = builder.macros;
+      this.standardMacros = builder.standardMacros;
+      // The following needs to be deep copied as they are collection builders
+      this.celParserLibraries = ImmutableSet.builder();
+      this.celParserLibraries.addAll(builder.celParserLibraries.build());
+    }
   }
 
-  private CelParserImpl(ImmutableMap<String, CelMacro> macros, CelOptions options) {
+  private CelParserImpl(ImmutableMap<String, CelMacro> macros, CelOptions options, Builder parserBuilder) {
     this.macros = macros;
     this.options = options;
+    this.parserBuilder = parserBuilder;
   }
 }

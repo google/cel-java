@@ -16,8 +16,6 @@ package dev.cel.bundle;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import dev.cel.expr.Decl;
-import dev.cel.expr.Type;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
@@ -45,8 +43,9 @@ import dev.cel.common.types.CelTypes;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
-import dev.cel.compiler.CelCompilerImpl;
 import dev.cel.compiler.CelCompilerLibrary;
+import dev.cel.expr.Decl;
+import dev.cel.expr.Type;
 import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelParserBuilder;
 import dev.cel.parser.CelStandardMacro;
@@ -84,6 +83,7 @@ final class CelImpl implements Cel, EnvVisitable {
     return compiler.get().parse(source);
   }
 
+
   @Override
   public CelValidationResult check(CelAbstractSyntaxTree ast) {
     return compiler.get().check(ast);
@@ -102,6 +102,26 @@ final class CelImpl implements Cel, EnvVisitable {
     }
   }
 
+  @Override
+  public CelBuilder toCelBuilder() {
+    return newBuilder(toCompilerBuilder());
+  }
+
+  @Override
+  public CelParserBuilder toParserBuilder() {
+    return compiler.get().toParserBuilder();
+  }
+
+  @Override
+  public CelCheckerBuilder toCheckerBuilder() {
+    return compiler.get().toCheckerBuilder();
+  }
+
+  @Override
+  public CelCompilerBuilder toCompilerBuilder() {
+    return compiler.get().toCompilerBuilder();
+  }
+
   /** Combines a prebuilt {@link CelCompiler} and {@link CelRuntime} into {@link CelImpl}. */
   static CelImpl combine(CelCompiler compiler, CelRuntime runtime) {
     return new CelImpl(Suppliers.memoize(() -> compiler), Suppliers.memoize(() -> runtime));
@@ -112,8 +132,8 @@ final class CelImpl implements Cel, EnvVisitable {
    *
    * <p>By default, {@link CelOptions#DEFAULT} are enabled, as is the CEL standard environment.
    */
-  static CelBuilder newBuilder(CelParserBuilder parserBuilder, CelCheckerBuilder checkerBuilder) {
-    return new CelImpl.Builder(parserBuilder, checkerBuilder);
+  static CelBuilder newBuilder(CelCompilerBuilder compilerBuilder) {
+    return new CelImpl.Builder(compilerBuilder, CelRuntimeLegacyImpl.newBuilder());
   }
 
   /** Builder class for CelImpl instances. */
@@ -122,9 +142,9 @@ final class CelImpl implements Cel, EnvVisitable {
     private final CelCompilerBuilder compilerBuilder;
     private final CelRuntimeBuilder runtimeBuilder;
 
-    private Builder(CelParserBuilder parserBuilder, CelCheckerBuilder checkerBuilder) {
-      this.compilerBuilder = CelCompilerImpl.newBuilder(parserBuilder, checkerBuilder);
-      this.runtimeBuilder = CelRuntimeLegacyImpl.newBuilder();
+    private Builder(CelCompilerBuilder celCompilerBuilder, CelRuntimeBuilder celRuntimeBuilder) {
+      this.compilerBuilder = celCompilerBuilder;
+      this.runtimeBuilder = celRuntimeBuilder;
     }
 
     @Override

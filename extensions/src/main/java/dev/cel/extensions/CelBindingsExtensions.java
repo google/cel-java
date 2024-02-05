@@ -40,6 +40,7 @@ final class CelBindingsExtensions implements CelCompilerLibrary {
         CelMacro.newReceiverMacro("bind", 3, CelBindingsExtensions::expandBind));
   }
 
+
   /**
    * The {@code expandBind} maps a variable name to an initialization expression, allowing the
    * variable to be used in the subsequent result expression.

@@ -15,13 +15,14 @@
 package dev.cel.optimizer;
 
 import dev.cel.bundle.Cel;
+import dev.cel.bundle.CelBuilder;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.navigation.CelNavigableAst;
+import java.util.function.Supplier;
 
 /** Public interface for performing a single, custom optimization on an AST. */
 public interface CelAstOptimizer {
 
   /** Optimizes a single AST. */
-  CelAbstractSyntaxTree optimize(CelNavigableAst navigableAst, Cel cel)
-      throws CelOptimizationException;
+  CelAbstractSyntaxTree optimize(CelNavigableAst navigableAst, CelBuilder cel) throws CelOptimizationException;
 }

@@ -93,7 +93,7 @@ public abstract class CelOverloadDecl {
      * Sets the parameter types {@link #parameterTypes()}. Note that this will override any
      * parameter types added via the accumulator methods {@link #addParameterTypes}.
      */
-    public abstract Builder setParameterTypes(ImmutableList<CelType> value);
+    public abstract Builder setParameterTypes(ImmutableSet<CelType> value);
 
     public abstract CelType resultType();
 

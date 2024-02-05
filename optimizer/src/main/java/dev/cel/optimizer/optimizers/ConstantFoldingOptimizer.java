@@ -19,6 +19,7 @@ import static com.google.common.collect.MoreCollectors.onlyElement;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import dev.cel.bundle.Cel;
+import dev.cel.bundle.CelBuilder;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.ast.CelConstant;
@@ -76,8 +77,9 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   private final MutableAst mutableAst;
 
   @Override
-  public CelAbstractSyntaxTree optimize(CelNavigableAst navigableAst, Cel cel)
+  public CelAbstractSyntaxTree optimize(CelNavigableAst navigableAst, CelBuilder celBuilder)
       throws CelOptimizationException {
+    Cel cel = celBuilder.build();
     Set<CelExpr> visitedExprs = new HashSet<>();
     int iterCount = 0;
     while (true) {

@@ -52,4 +52,6 @@ public interface CelParser {
    */
   @CheckReturnValue
   CelValidationResult parse(CelSource source);
+
+  CelParserBuilder toParserBuilder();
 }
