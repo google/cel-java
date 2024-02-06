@@ -20,7 +20,6 @@ import static org.junit.Assert.assertThrows;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
-import com.google.common.truth.Truth8;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.DynamicMessage;
@@ -97,9 +96,9 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
 
-    Truth8.assertThat(protoMessageValue.find(StringValue.create("single_bool"))).isPresent();
-    Truth8.assertThat(protoMessageValue.find(StringValue.create("single_int64"))).isPresent();
-    Truth8.assertThat(protoMessageValue.find(StringValue.create("repeated_int64"))).isPresent();
+    assertThat(protoMessageValue.find(StringValue.create("single_bool"))).isPresent();
+    assertThat(protoMessageValue.find(StringValue.create("single_int64"))).isPresent();
+    assertThat(protoMessageValue.find(StringValue.create("repeated_int64"))).isPresent();
   }
 
   @Test
@@ -110,9 +109,9 @@ public final class ProtoMessageValueTest {
             DefaultDescriptorPool.INSTANCE,
             PROTO_CEL_VALUE_CONVERTER);
 
-    Truth8.assertThat(protoMessageValue.find(StringValue.create("single_int32"))).isEmpty();
-    Truth8.assertThat(protoMessageValue.find(StringValue.create("single_uint64"))).isEmpty();
-    Truth8.assertThat(protoMessageValue.find(StringValue.create("repeated_int32"))).isEmpty();
+    assertThat(protoMessageValue.find(StringValue.create("single_int32"))).isEmpty();
+    assertThat(protoMessageValue.find(StringValue.create("single_uint64"))).isEmpty();
+    assertThat(protoMessageValue.find(StringValue.create("repeated_int32"))).isEmpty();
   }
 
   @Test
@@ -151,7 +150,7 @@ public final class ProtoMessageValueTest {
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(proto2Message, descriptorPool, protoCelValueConverter);
 
-    Truth8.assertThat(
+    assertThat(
             protoMessageValue.find(StringValue.create("dev.cel.testing.testdata.proto2.int32_ext")))
         .isPresent();
   }

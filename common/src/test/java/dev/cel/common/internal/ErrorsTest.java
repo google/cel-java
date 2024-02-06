@@ -16,7 +16,6 @@ package dev.cel.common.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.common.truth.Truth8;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -61,9 +60,9 @@ public final class ErrorsTest {
   @Test
   public void getSnippet() {
     Errors errors = new Errors("test", "hello\nworld\n");
-    Truth8.assertThat(errors.getSnippet(1)).hasValue("hello");
-    Truth8.assertThat(errors.getSnippet(2)).hasValue("world");
-    Truth8.assertThat(errors.getSnippet(3)).hasValue("");
-    Truth8.assertThat(errors.getSnippet(4)).isEmpty();
+    assertThat(errors.getSnippet(1)).hasValue("hello");
+    assertThat(errors.getSnippet(2)).hasValue("world");
+    assertThat(errors.getSnippet(3)).hasValue("");
+    assertThat(errors.getSnippet(4)).isEmpty();
   }
 }

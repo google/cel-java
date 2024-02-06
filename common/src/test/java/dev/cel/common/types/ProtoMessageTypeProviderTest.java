@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.truth.Truth8;
 import dev.cel.common.types.CelTypeProvider.CombinedCelTypeProvider;
 import dev.cel.testing.testdata.proto2.MessagesProto2;
 import dev.cel.testing.testdata.proto2.MessagesProto2Extensions;
@@ -49,7 +48,7 @@ public final class ProtoMessageTypeProviderTest {
 
   @Test
   public void findType_emptyTypeSet() {
-    Truth8.assertThat(emptyProvider.findType("any")).isEmpty();
+    assertThat(emptyProvider.findType("any")).isEmpty();
   }
 
   @Test
@@ -67,82 +66,78 @@ public final class ProtoMessageTypeProviderTest {
   public void findType_globalEnumWithAllNamesAndNumbers() {
     Optional<CelType> celType =
         proto3Provider.findType("dev.cel.testing.testdata.proto3.GlobalEnum");
-    Truth8.assertThat(celType).isPresent();
+    assertThat(celType).isPresent();
     assertThat(celType.get()).isInstanceOf(EnumType.class);
     EnumType enumType = (EnumType) celType.get();
     assertThat(enumType.name()).isEqualTo("dev.cel.testing.testdata.proto3.GlobalEnum");
-    Truth8.assertThat(enumType.findNameByNumber(0)).hasValue("GOO");
-    Truth8.assertThat(enumType.findNameByNumber(1)).hasValue("GAR");
-    Truth8.assertThat(enumType.findNameByNumber(2)).hasValue("GAZ");
-    Truth8.assertThat(enumType.findNameByNumber(3)).isEmpty();
+    assertThat(enumType.findNameByNumber(0)).hasValue("GOO");
+    assertThat(enumType.findNameByNumber(1)).hasValue("GAR");
+    assertThat(enumType.findNameByNumber(2)).hasValue("GAZ");
+    assertThat(enumType.findNameByNumber(3)).isEmpty();
   }
 
   @Test
   public void findType_nestedEnumWithAllNamesAndNumbers() {
     Optional<CelType> celType =
         proto3Provider.findType("dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum");
-    Truth8.assertThat(celType).isPresent();
+    assertThat(celType).isPresent();
     assertThat(celType.get()).isInstanceOf(EnumType.class);
     EnumType enumType = (EnumType) celType.get();
     assertThat(enumType.name())
         .isEqualTo("dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum");
-    Truth8.assertThat(enumType.findNumberByName("FOO")).hasValue(0);
-    Truth8.assertThat(enumType.findNumberByName("BAR")).hasValue(1);
-    Truth8.assertThat(enumType.findNumberByName("BAZ")).hasValue(2);
-    Truth8.assertThat(enumType.findNumberByName("MISSING")).isEmpty();
+    assertThat(enumType.findNumberByName("FOO")).hasValue(0);
+    assertThat(enumType.findNumberByName("BAR")).hasValue(1);
+    assertThat(enumType.findNumberByName("BAZ")).hasValue(2);
+    assertThat(enumType.findNumberByName("MISSING")).isEmpty();
   }
 
   @Test
   public void findType_globalMessageTypeNoExtensions() {
     Optional<CelType> celType =
         proto3Provider.findType("dev.cel.testing.testdata.proto3.NestedTestAllTypes");
-    Truth8.assertThat(celType).isPresent();
+    assertThat(celType).isPresent();
     assertThat(celType.get()).isInstanceOf(ProtoMessageType.class);
     ProtoMessageType protoType = (ProtoMessageType) celType.get();
     assertThat(protoType.name()).isEqualTo("dev.cel.testing.testdata.proto3.NestedTestAllTypes");
-    Truth8.assertThat(protoType.findField("payload")).isPresent();
-    Truth8.assertThat(protoType.findField("child")).isPresent();
-    Truth8.assertThat(protoType.findField("missing")).isEmpty();
+    assertThat(protoType.findField("payload")).isPresent();
+    assertThat(protoType.findField("child")).isPresent();
+    assertThat(protoType.findField("missing")).isEmpty();
     assertThat(protoType.fields()).hasSize(2);
-    Truth8.assertThat(protoType.findExtension("dev.cel.testing.testdata.proto3.any")).isEmpty();
+    assertThat(protoType.findExtension("dev.cel.testing.testdata.proto3.any")).isEmpty();
   }
 
   @Test
   public void findType_globalMessageWithExtensions() {
     Optional<CelType> celType =
         proto2Provider.findType("dev.cel.testing.testdata.proto2.Proto2Message");
-    Truth8.assertThat(celType).isPresent();
+    assertThat(celType).isPresent();
     assertThat(celType.get()).isInstanceOf(ProtoMessageType.class);
     ProtoMessageType protoType = (ProtoMessageType) celType.get();
     assertThat(protoType.name()).isEqualTo("dev.cel.testing.testdata.proto2.Proto2Message");
-    Truth8.assertThat(protoType.findField("single_int32")).isPresent();
-    Truth8.assertThat(protoType.findField("single_enum")).isPresent();
-    Truth8.assertThat(protoType.findField("single_nested_test_all_types")).isPresent();
-    Truth8.assertThat(protoType.findField("nestedgroup")).isPresent();
-    Truth8.assertThat(protoType.findField("nested_ext")).isEmpty();
+    assertThat(protoType.findField("single_int32")).isPresent();
+    assertThat(protoType.findField("single_enum")).isPresent();
+    assertThat(protoType.findField("single_nested_test_all_types")).isPresent();
+    assertThat(protoType.findField("nestedgroup")).isPresent();
+    assertThat(protoType.findField("nested_ext")).isEmpty();
 
-    Truth8.assertThat(protoType.findExtension("dev.cel.testing.testdata.proto2.nested_ext"))
+    assertThat(protoType.findExtension("dev.cel.testing.testdata.proto2.nested_ext")).isPresent();
+    assertThat(protoType.findExtension("dev.cel.testing.testdata.proto2.int32_ext")).isPresent();
+    assertThat(protoType.findExtension("dev.cel.testing.testdata.proto2.test_all_types_ext"))
         .isPresent();
-    Truth8.assertThat(protoType.findExtension("dev.cel.testing.testdata.proto2.int32_ext"))
+    assertThat(protoType.findExtension("dev.cel.testing.testdata.proto2.nested_enum_ext"))
         .isPresent();
-    Truth8.assertThat(protoType.findExtension("dev.cel.testing.testdata.proto2.test_all_types_ext"))
-        .isPresent();
-    Truth8.assertThat(protoType.findExtension("dev.cel.testing.testdata.proto2.nested_enum_ext"))
-        .isPresent();
-    Truth8.assertThat(
+    assertThat(
             protoType.findExtension("dev.cel.testing.testdata.proto2.repeated_string_holder_ext"))
         .isPresent();
 
-    Truth8.assertThat(
-            protoType.findExtension("dev.cel.testing.testdata.proto2.Proto2Message.int32_ext"))
+    assertThat(protoType.findExtension("dev.cel.testing.testdata.proto2.Proto2Message.int32_ext"))
         .isEmpty();
 
     Optional<CelType> holderType =
         proto2Provider.findType("dev.cel.testing.testdata.proto2.StringHolder");
-    Truth8.assertThat(holderType).isPresent();
+    assertThat(holderType).isPresent();
     ProtoMessageType stringHolderType = (ProtoMessageType) holderType.get();
-    Truth8.assertThat(
-            stringHolderType.findExtension("dev.cel.testing.testdata.proto2.nested_enum_ext"))
+    assertThat(stringHolderType.findExtension("dev.cel.testing.testdata.proto2.nested_enum_ext"))
         .isEmpty();
   }
 
@@ -150,24 +145,24 @@ public final class ProtoMessageTypeProviderTest {
   public void findType_scopedMessageWithExtensions() {
     Optional<CelType> celType =
         proto2Provider.findType("dev.cel.testing.testdata.proto2.Proto2Message");
-    Truth8.assertThat(celType).isPresent();
+    assertThat(celType).isPresent();
     assertThat(celType.get()).isInstanceOf(ProtoMessageType.class);
     ProtoMessageType protoType = (ProtoMessageType) celType.get();
 
-    Truth8.assertThat(
+    assertThat(
             protoType.findExtension(
                 "dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext"))
         .isPresent();
-    Truth8.assertThat(
+    assertThat(
             protoType.findExtension(
                 "dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.int64_ext"))
         .isPresent();
-    Truth8.assertThat(
+    assertThat(
             protoType.findExtension(
                 "dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.string_ext"))
         .isPresent();
 
-    Truth8.assertThat(
+    assertThat(
             protoType.findExtension(
                 "dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.nested_message_inside_ext"))
         .isPresent();
@@ -177,11 +172,11 @@ public final class ProtoMessageTypeProviderTest {
   public void findType_withRepeatedEnumField() {
     Optional<CelType> celType =
         proto3Provider.findType("dev.cel.testing.testdata.proto3.TestAllTypes");
-    Truth8.assertThat(celType).isPresent();
+    assertThat(celType).isPresent();
     assertThat(celType.get()).isInstanceOf(ProtoMessageType.class);
     ProtoMessageType protoType = (ProtoMessageType) celType.get();
     assertThat(protoType.name()).isEqualTo("dev.cel.testing.testdata.proto3.TestAllTypes");
-    Truth8.assertThat(protoType.findField("repeated_nested_enum")).isPresent();
+    assertThat(protoType.findField("repeated_nested_enum")).isPresent();
 
     CelType fieldType = protoType.findField("repeated_nested_enum").get().type();
     assertThat(fieldType.kind()).isEqualTo(CelKind.LIST);
@@ -191,8 +186,7 @@ public final class ProtoMessageTypeProviderTest {
         .isEqualTo("dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum");
     assertThat(elemType.kind()).isEqualTo(CelKind.INT);
     assertThat(elemType).isInstanceOf(EnumType.class);
-    Truth8.assertThat(
-            proto3Provider.findType("dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum"))
+    assertThat(proto3Provider.findType("dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum"))
         .hasValue(elemType);
   }
 
@@ -202,7 +196,7 @@ public final class ProtoMessageTypeProviderTest {
         proto3Provider.findType("dev.cel.testing.testdata.proto3.TestAllTypes");
     ProtoMessageType protoType = (ProtoMessageType) celType.get();
     assertThat(protoType.name()).isEqualTo("dev.cel.testing.testdata.proto3.TestAllTypes");
-    Truth8.assertThat(protoType.findField("single_nested_message").map(f -> f.type().name()))
+    assertThat(protoType.findField("single_nested_message").map(f -> f.type().name()))
         .hasValue("dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage");
   }
 
@@ -228,35 +222,33 @@ public final class ProtoMessageTypeProviderTest {
     Optional<CelType> celType =
         proto3Provider.findType("dev.cel.testing.testdata.proto3.TestAllTypes");
     ProtoMessageType protoType = (ProtoMessageType) celType.get();
-    Truth8.assertThat(protoType.findField("single_any").map(f -> f.type()))
-        .hasValue(SimpleType.ANY);
-    Truth8.assertThat(protoType.findField("single_duration").map(f -> f.type()))
+    assertThat(protoType.findField("single_any").map(f -> f.type())).hasValue(SimpleType.ANY);
+    assertThat(protoType.findField("single_duration").map(f -> f.type()))
         .hasValue(SimpleType.DURATION);
-    Truth8.assertThat(protoType.findField("single_timestamp").map(f -> f.type()))
+    assertThat(protoType.findField("single_timestamp").map(f -> f.type()))
         .hasValue(SimpleType.TIMESTAMP);
-    Truth8.assertThat(protoType.findField("single_value").map(f -> f.type()))
-        .hasValue(SimpleType.DYN);
-    Truth8.assertThat(protoType.findField("single_list_value").map(f -> f.type()))
+    assertThat(protoType.findField("single_value").map(f -> f.type())).hasValue(SimpleType.DYN);
+    assertThat(protoType.findField("single_list_value").map(f -> f.type()))
         .hasValue(ListType.create(SimpleType.DYN));
-    Truth8.assertThat(protoType.findField("single_struct").map(f -> f.type()))
+    assertThat(protoType.findField("single_struct").map(f -> f.type()))
         .hasValue(MapType.create(SimpleType.STRING, SimpleType.DYN));
-    Truth8.assertThat(protoType.findField("single_bool_wrapper").map(f -> f.type()))
+    assertThat(protoType.findField("single_bool_wrapper").map(f -> f.type()))
         .hasValue(NullableType.create(SimpleType.BOOL));
-    Truth8.assertThat(protoType.findField("single_bytes_wrapper").map(f -> f.type()))
+    assertThat(protoType.findField("single_bytes_wrapper").map(f -> f.type()))
         .hasValue(NullableType.create(SimpleType.BYTES));
-    Truth8.assertThat(protoType.findField("single_int32_wrapper").map(f -> f.type()))
+    assertThat(protoType.findField("single_int32_wrapper").map(f -> f.type()))
         .hasValue(NullableType.create(SimpleType.INT));
-    Truth8.assertThat(protoType.findField("single_int64_wrapper").map(f -> f.type()))
+    assertThat(protoType.findField("single_int64_wrapper").map(f -> f.type()))
         .hasValue(NullableType.create(SimpleType.INT));
-    Truth8.assertThat(protoType.findField("single_double_wrapper").map(f -> f.type()))
+    assertThat(protoType.findField("single_double_wrapper").map(f -> f.type()))
         .hasValue(NullableType.create(SimpleType.DOUBLE));
-    Truth8.assertThat(protoType.findField("single_float_wrapper").map(f -> f.type()))
+    assertThat(protoType.findField("single_float_wrapper").map(f -> f.type()))
         .hasValue(NullableType.create(SimpleType.DOUBLE));
-    Truth8.assertThat(protoType.findField("single_string_wrapper").map(f -> f.type()))
+    assertThat(protoType.findField("single_string_wrapper").map(f -> f.type()))
         .hasValue(NullableType.create(SimpleType.STRING));
-    Truth8.assertThat(protoType.findField("single_uint32_wrapper").map(f -> f.type()))
+    assertThat(protoType.findField("single_uint32_wrapper").map(f -> f.type()))
         .hasValue(NullableType.create(SimpleType.UINT));
-    Truth8.assertThat(protoType.findField("single_uint64_wrapper").map(f -> f.type()))
+    assertThat(protoType.findField("single_uint64_wrapper").map(f -> f.type()))
         .hasValue(NullableType.create(SimpleType.UINT));
   }
 

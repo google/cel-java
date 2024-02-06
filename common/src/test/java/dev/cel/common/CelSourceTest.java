@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.antlr.v4.runtime.IntStream.UNKNOWN_SOURCE_NAME;
 import static org.junit.Assert.assertThrows;
 
-import com.google.common.truth.Truth8;
 import dev.cel.common.CelSource.Extension;
 import dev.cel.common.CelSource.Extension.Component;
 import dev.cel.common.CelSource.Extension.Version;
@@ -47,13 +46,13 @@ public final class CelSourceTest {
   @Test
   public void getLocationOffset_correctStartingLocation() throws Exception {
     CelSource source = CelSource.newBuilder(LATIN_1_EXPR).build();
-    Truth8.assertThat(source.getLocationOffset(CelSourceLocation.of(1, 0))).hasValue(0);
+    assertThat(source.getLocationOffset(CelSourceLocation.of(1, 0))).hasValue(0);
   }
 
   @Test
   public void getOffsetLocation_correctStartingLocation() throws Exception {
     CelSource source = CelSource.newBuilder(LATIN_1_EXPR).build();
-    Truth8.assertThat(source.getOffsetLocation(0)).hasValue(CelSourceLocation.of(1, 0));
+    assertThat(source.getOffsetLocation(0)).hasValue(CelSourceLocation.of(1, 0));
   }
 
   @Test

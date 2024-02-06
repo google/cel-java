@@ -16,7 +16,6 @@ package dev.cel.common.navigation;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.common.truth.Truth8;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import org.junit.Test;
@@ -34,7 +33,7 @@ public class CelNavigableExprTest {
 
     assertThat(navigableExpr.expr()).isEqualTo(constExpr);
     assertThat(navigableExpr.depth()).isEqualTo(2);
-    Truth8.assertThat(navigableExpr.parent()).isEmpty();
+    assertThat(navigableExpr.parent()).isEmpty();
   }
 
   @Test
@@ -47,9 +46,9 @@ public class CelNavigableExprTest {
 
     assertThat(parentExpr.expr()).isEqualTo(identExpr);
     assertThat(parentExpr.depth()).isEqualTo(1);
-    Truth8.assertThat(parentExpr.parent()).isEmpty();
+    assertThat(parentExpr.parent()).isEmpty();
     assertThat(navigableExpr.expr()).isEqualTo(constExpr);
     assertThat(navigableExpr.depth()).isEqualTo(2);
-    Truth8.assertThat(navigableExpr.parent()).hasValue(parentExpr);
+    assertThat(navigableExpr.parent()).hasValue(parentExpr);
   }
 }

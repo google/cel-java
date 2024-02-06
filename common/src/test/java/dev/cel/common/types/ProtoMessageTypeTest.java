@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.truth.Truth8;
 import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +52,7 @@ public final class ProtoMessageTypeTest {
   @Test
   public void findField() {
     for (String fieldName : FIELD_MAP.keySet()) {
-      Truth8.assertThat(testMessage.findField(fieldName))
+      assertThat(testMessage.findField(fieldName))
           .hasValue(StructType.Field.of(fieldName, FIELD_MAP.get(fieldName)));
     }
   }
@@ -61,8 +60,8 @@ public final class ProtoMessageTypeTest {
   @Test
   public void withVisibleFields() {
     ProtoMessageType maskedMessage = testMessage.withVisibleFields(ImmutableSet.of("bool_value"));
-    Truth8.assertThat(maskedMessage.findField("int_value")).isEmpty();
-    Truth8.assertThat(maskedMessage.findField("bool_value")).isPresent();
+    assertThat(maskedMessage.findField("int_value")).isEmpty();
+    assertThat(maskedMessage.findField("bool_value")).isPresent();
     assertThat(maskedMessage.fields()).hasSize(1);
     assertThat(testMessage.fields()).hasSize(4);
   }
@@ -70,7 +69,7 @@ public final class ProtoMessageTypeTest {
   @Test
   public void findExtension() {
     for (String extName : EXTENSION_MAP.keySet()) {
-      Truth8.assertThat(testMessage.findExtension(extName))
+      assertThat(testMessage.findExtension(extName))
           .hasValue(
               ProtoMessageType.Extension.of(extName, EXTENSION_MAP.get(extName), testMessage));
     }

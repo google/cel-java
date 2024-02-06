@@ -19,7 +19,6 @@ import static org.junit.Assert.assertThrows;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
-import com.google.common.truth.Truth8;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
@@ -346,7 +345,7 @@ public class CelExprVisitorTest {
         .isEqualTo(Operator.LOGICAL_AND.getFunction());
     assertThat(comprehension.loopStep().call().args()).hasSize(2);
     assertThat(visitedReference.createList().get().elements()).isEqualTo(iterRangeElements);
-    Truth8.assertThat(visitedReference.identifier())
+    assertThat(visitedReference.identifier())
         .hasValue(CelIdent.newBuilder().setName("__result__").build());
     assertThat(visitedReference.arguments()).hasSize(10);
   }

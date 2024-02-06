@@ -20,7 +20,6 @@ import static org.junit.Assert.assertThrows;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
-import com.google.common.truth.Truth8;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.DoubleValue;
 import com.google.protobuf.NullValue;
@@ -144,7 +143,7 @@ public class CelOptionalLibraryTest {
     Optional<Long> result =
         (Optional<Long>) cel.createProgram(ast).eval(ImmutableMap.of("a", Optional.of(5)));
 
-    Truth8.assertThat(result).hasValue(5L);
+    assertThat(result).hasValue(5L);
   }
 
   @Test
@@ -155,7 +154,7 @@ public class CelOptionalLibraryTest {
     Optional<Long> result =
         (Optional<Long>) cel.createProgram(ast).eval(ImmutableMap.of("a", Optional.of(5.5f)));
 
-    Truth8.assertThat(result).hasValue(5.5d);
+    assertThat(result).hasValue(5.5d);
   }
 
   @Test
@@ -504,7 +503,7 @@ public class CelOptionalLibraryTest {
 
     Optional<Long> result = (Optional<Long>) cel.createProgram(ast).eval();
 
-    Truth8.assertThat(result).hasValue(2L);
+    assertThat(result).hasValue(2L);
   }
 
   @Test
@@ -520,7 +519,7 @@ public class CelOptionalLibraryTest {
         (Optional<Long>)
             cel.createProgram(ast).eval(ImmutableMap.of("msg", TestAllTypes.getDefaultInstance()));
 
-    Truth8.assertThat(result).isEmpty();
+    assertThat(result).isEmpty();
   }
 
   @Test
@@ -537,7 +536,7 @@ public class CelOptionalLibraryTest {
             cel.createProgram(ast)
                 .eval(ImmutableMap.of("msg", TestAllTypes.newBuilder().setSingleInt32(5).build()));
 
-    Truth8.assertThat(result).hasValue(5L);
+    assertThat(result).hasValue(5L);
   }
 
   @Test
@@ -568,7 +567,7 @@ public class CelOptionalLibraryTest {
                                 "dashed-index",
                                 TestAllTypes.newBuilder().setSingleInt32(5).build()))));
 
-    Truth8.assertThat(result).hasValue(5L);
+    assertThat(result).hasValue(5L);
   }
 
   @Test
@@ -1236,7 +1235,7 @@ public class CelOptionalLibraryTest {
     Optional<?> result =
         (Optional<?>) cel.createProgram(ast).eval(ImmutableMap.of("x", Optional.empty()));
 
-    Truth8.assertThat(result).isEmpty();
+    assertThat(result).isEmpty();
   }
 
   @Test
@@ -1251,7 +1250,7 @@ public class CelOptionalLibraryTest {
     Optional<?> result =
         (Optional<?>) cel.createProgram(ast).eval(ImmutableMap.of("x", Optional.of(42L)));
 
-    Truth8.assertThat(result).hasValue(43L);
+    assertThat(result).hasValue(43L);
   }
 
   @Test
@@ -1281,7 +1280,7 @@ public class CelOptionalLibraryTest {
     Optional<?> result =
         (Optional<?>) cel.createProgram(ast).eval(ImmutableMap.of("x", Optional.empty()));
 
-    Truth8.assertThat(result).isEmpty();
+    assertThat(result).isEmpty();
   }
 
   @Test
@@ -1296,7 +1295,7 @@ public class CelOptionalLibraryTest {
     Optional<?> result =
         (Optional<?>) cel.createProgram(ast).eval(ImmutableMap.of("x", Optional.of(42L)));
 
-    Truth8.assertThat(result).hasValue(43L);
+    assertThat(result).hasValue(43L);
   }
 
   @Test
@@ -1313,7 +1312,7 @@ public class CelOptionalLibraryTest {
     Optional<?> result =
         (Optional<?>) cel.createProgram(ast).eval(ImmutableMap.of("x", Optional.of(1L)));
 
-    Truth8.assertThat(result).isEmpty();
+    assertThat(result).isEmpty();
   }
 
   @Test
@@ -1330,7 +1329,7 @@ public class CelOptionalLibraryTest {
     Optional<?> result =
         (Optional<?>) cel.createProgram(ast).eval(ImmutableMap.of("x", Optional.of(1L)));
 
-    Truth8.assertThat(result).hasValue(2L);
+    assertThat(result).hasValue(2L);
   }
 
   @Test

@@ -17,7 +17,6 @@ package dev.cel.common.internal;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.truth.Truth8;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Value;
@@ -43,11 +42,10 @@ public class CombinedDescriptorPoolTest {
         CombinedDescriptorPool.create(
             ImmutableList.of(DefaultDescriptorPool.INSTANCE, dynamicDescriptorPool));
 
-    Truth8.assertThat(combinedDescriptorPool.findDescriptor(Value.getDescriptor().getFullName()))
+    assertThat(combinedDescriptorPool.findDescriptor(Value.getDescriptor().getFullName()))
         .hasValue(
             Value.getDescriptor()); // Retrieved from default descriptor pool (well-known-type)
-    Truth8.assertThat(
-            combinedDescriptorPool.findDescriptor(TestAllTypes.getDescriptor().getFullName()))
+    assertThat(combinedDescriptorPool.findDescriptor(TestAllTypes.getDescriptor().getFullName()))
         .hasValue(TestAllTypes.getDescriptor()); // Retrieved from the dynamic descriptor pool.
   }
 
@@ -61,7 +59,7 @@ public class CombinedDescriptorPoolTest {
         CombinedDescriptorPool.create(
             ImmutableList.of(DefaultDescriptorPool.INSTANCE, descriptorPool));
 
-    Truth8.assertThat(combinedDescriptorPool.findDescriptor("bogus")).isEmpty();
+    assertThat(combinedDescriptorPool.findDescriptor("bogus")).isEmpty();
   }
 
   @Test
@@ -78,7 +76,7 @@ public class CombinedDescriptorPoolTest {
         combinedDescriptorPool.findExtensionDescriptor(
             Proto2Message.getDescriptor(), "dev.cel.testing.testdata.proto2.test_all_types_ext");
 
-    Truth8.assertThat(fieldDescriptor).isPresent();
+    assertThat(fieldDescriptor).isPresent();
     assertThat(fieldDescriptor.get().isExtension()).isTrue();
     assertThat(fieldDescriptor.get().getFullName())
         .isEqualTo("dev.cel.testing.testdata.proto2.test_all_types_ext");
@@ -94,7 +92,7 @@ public class CombinedDescriptorPoolTest {
         CombinedDescriptorPool.create(
             ImmutableList.of(DefaultDescriptorPool.INSTANCE, dynamicDescriptorPool));
 
-    Truth8.assertThat(
+    assertThat(
             combinedDescriptorPool.findExtensionDescriptor(TestAllTypes.getDescriptor(), "bogus"))
         .isEmpty();
   }

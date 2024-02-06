@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.truth.Truth8;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -32,7 +31,7 @@ public class CelReferenceTest {
 
     assertThat(reference.name()).isEqualTo("refName");
     assertThat(reference.overloadIds()).isEmpty();
-    Truth8.assertThat(reference.value()).isEmpty();
+    assertThat(reference.value()).isEmpty();
   }
 
   @Test
@@ -42,7 +41,7 @@ public class CelReferenceTest {
 
     assertThat(reference.name()).isEqualTo("refName");
     assertThat(reference.overloadIds()).containsExactly("a", "b", "c");
-    Truth8.assertThat(reference.value()).isEmpty();
+    assertThat(reference.value()).isEmpty();
   }
 
   @Test
@@ -52,7 +51,7 @@ public class CelReferenceTest {
 
     assertThat(reference.name()).isEqualTo("refName");
     assertThat(reference.overloadIds()).isEmpty();
-    Truth8.assertThat(reference.value()).hasValue(CelConstant.ofValue(10));
+    assertThat(reference.value()).hasValue(CelConstant.ofValue(10));
   }
 
   @Test

@@ -22,7 +22,6 @@ import dev.cel.expr.Decl;
 import dev.cel.expr.Decl.IdentDecl;
 import dev.cel.expr.Type;
 import dev.cel.expr.Type.PrimitiveType;
-import com.google.common.truth.Truth8;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.types.SimpleType;
 import org.junit.Test;
@@ -45,7 +44,7 @@ public class CelIdentDeclTest {
     assertThat(stringIdent.name()).isEqualTo("ident");
     assertThat(stringIdent.type()).isEqualTo(SimpleType.STRING);
     assertThat(stringIdent.doc()).isEqualTo("doc");
-    Truth8.assertThat(stringIdent.constant()).hasValue(CelConstant.ofValue("str"));
+    assertThat(stringIdent.constant()).hasValue(CelConstant.ofValue("str"));
   }
 
   @Test
@@ -58,7 +57,7 @@ public class CelIdentDeclTest {
 
     builder.clearConstant();
 
-    Truth8.assertThat(builder.build().constant()).isEmpty();
+    assertThat(builder.build().constant()).isEmpty();
   }
 
   @Test
@@ -68,7 +67,7 @@ public class CelIdentDeclTest {
     assertThat(intIdent.name()).isEqualTo("ident");
     assertThat(intIdent.type()).isEqualTo(SimpleType.INT);
     assertThat(intIdent.doc()).isEmpty();
-    Truth8.assertThat(intIdent.constant()).isEmpty();
+    assertThat(intIdent.constant()).isEmpty();
   }
 
   @Test

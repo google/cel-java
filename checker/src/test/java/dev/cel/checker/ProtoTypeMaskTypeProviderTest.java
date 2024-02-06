@@ -21,7 +21,6 @@ import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.truth.Truth8;
 import com.google.protobuf.FieldMask;
 import com.google.rpc.context.AttributeContext;
 import dev.cel.common.types.CelType;
@@ -64,7 +63,7 @@ public final class ProtoTypeMaskTypeProviderTest {
     CelTypeProvider celTypeProvider = new ProtoMessageTypeProvider();
     ProtoTypeMaskTypeProvider protoTypeMaskProvider =
         new ProtoTypeMaskTypeProvider(celTypeProvider, ImmutableList.of());
-    Truth8.assertThat(protoTypeMaskProvider.findType(ATTRIBUTE_CONTEXT_TYPE)).isEmpty();
+    assertThat(protoTypeMaskProvider.findType(ATTRIBUTE_CONTEXT_TYPE)).isEmpty();
   }
 
   @Test
@@ -206,7 +205,7 @@ public final class ProtoTypeMaskTypeProviderTest {
                         .addPaths("request.auth.*")
                         .build())));
     ProtoMessageType ctxType = assertTypeFound(protoTypeMaskProvider, ATTRIBUTE_CONTEXT_TYPE);
-    Truth8.assertThat(ctxType.findField("resource")).isPresent();
+    assertThat(ctxType.findField("resource")).isPresent();
     assertTypeHasFieldWithType(ctxType, "resource", RESOURCE_TYPE);
     assertTypeHasFieldWithType(ctxType, "request", REQUEST_TYPE);
 
@@ -238,7 +237,7 @@ public final class ProtoTypeMaskTypeProviderTest {
                     "google.rpc.context.AttributeContext",
                     FieldMask.newBuilder().addPaths("resource.name").build())));
     ProtoMessageType resourceType = assertTypeFound(protoTypeMaskProvider, RESOURCE_TYPE);
-    Truth8.assertThat(resourceType.findField("type")).isEmpty();
+    assertThat(resourceType.findField("type")).isEmpty();
   }
 
   @Test
@@ -252,12 +251,12 @@ public final class ProtoTypeMaskTypeProviderTest {
                 ProtoTypeMask.of(
                     "google.rpc.context.AttributeContext",
                     FieldMask.newBuilder().addPaths("resource.name").build())));
-    Truth8.assertThat(protoTypeMaskProvider.findType(REQUEST_TYPE)).isPresent();
+    assertThat(protoTypeMaskProvider.findType(REQUEST_TYPE)).isPresent();
   }
 
   private ProtoMessageType assertTypeFound(CelTypeProvider celTypeProvider, String typeName) {
     Optional<CelType> foundType = celTypeProvider.findType(typeName);
-    Truth8.assertThat(foundType).isPresent();
+    assertThat(foundType).isPresent();
     CelType celType = foundType.get();
     assertThat(celType).isInstanceOf(ProtoMessageType.class);
     return (ProtoMessageType) celType;
@@ -271,7 +270,7 @@ public final class ProtoTypeMaskTypeProviderTest {
 
   private void assertTypeHasFieldWithType(
       ProtoMessageType protoType, String fieldName, String typeName) {
-    Truth8.assertThat(protoType.findField(fieldName)).isPresent();
+    assertThat(protoType.findField(fieldName)).isPresent();
     assertThat(protoType.findField(fieldName).get().type().name()).isEqualTo(typeName);
   }
 }

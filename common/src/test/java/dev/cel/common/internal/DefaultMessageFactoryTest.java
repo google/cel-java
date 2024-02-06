@@ -21,7 +21,6 @@ import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
-import com.google.common.truth.Truth8;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.DynamicMessage;
@@ -70,7 +69,7 @@ public final class DefaultMessageFactoryTest {
   public void newBuilder_unknownMessage_returnsEmpty() {
     DefaultMessageFactory messageFactory = DefaultMessageFactory.INSTANCE;
 
-    Truth8.assertThat(messageFactory.newBuilder("unknown_message")).isEmpty();
+    assertThat(messageFactory.newBuilder("unknown_message")).isEmpty();
   }
 
   @Test
@@ -85,7 +84,7 @@ public final class DefaultMessageFactoryTest {
     DefaultMessageFactory messageFactory =
         DefaultMessageFactory.create(DefaultDescriptorPool.create(celDescriptors));
 
-    Truth8.assertThat(messageFactory.newBuilder("google.api.expr.Value")).isPresent();
+    assertThat(messageFactory.newBuilder("google.api.expr.Value")).isPresent();
     assertThat(messageFactory.newBuilder("google.api.expr.Value").get())
         .isInstanceOf(DynamicMessage.Builder.class);
   }
@@ -114,6 +113,6 @@ public final class DefaultMessageFactoryTest {
 
     assertThat(messageFactory.newBuilder("test").get().build())
         .isEqualTo(TestAllTypes.getDefaultInstance());
-    Truth8.assertThat(messageFactory.newBuilder("bogus")).isEmpty();
+    assertThat(messageFactory.newBuilder("bogus")).isEmpty();
   }
 }
