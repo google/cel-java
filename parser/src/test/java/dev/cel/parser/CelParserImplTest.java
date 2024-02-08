@@ -271,4 +271,44 @@ public final class CelParserImplTest {
     assertThat(parseResult.getErrorString()).containsMatch("ERROR: <input>.*mismatched input ','");
     assertThrows(CelValidationException.class, parseResult::getAst);
   }
+
+  @Test
+  public void toParserBuilder_isNewInstance() {
+    CelParserBuilder celParserBuilder = CelParserFactory.standardCelParserBuilder();
+    CelParserImpl celParser = (CelParserImpl) celParserBuilder.build();
+
+    CelParserImpl.Builder newParserBuilder = (CelParserImpl.Builder) celParser.toParserBuilder();
+
+    assertThat(newParserBuilder).isNotEqualTo(celParserBuilder);
+  }
+
+  @Test
+  public void toParserBuilder_isImmutable() {
+    CelParserBuilder originalParserBuilder = CelParserFactory.standardCelParserBuilder();
+    CelParserImpl celParser = (CelParserImpl) originalParserBuilder.build();
+    originalParserBuilder.addLibraries(new CelParserLibrary() {});
+
+    CelParserImpl.Builder newParserBuilder = (CelParserImpl.Builder) celParser.toParserBuilder();
+
+    assertThat(newParserBuilder.getParserLibraries().build()).isEmpty();
+  }
+
+  @Test
+  public void toParserBuilder_collectionProperties_copied() {
+    CelParserBuilder celParserBuilder =
+        CelParserFactory.standardCelParserBuilder()
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .addMacros(
+                CelMacro.newGlobalMacro(
+                    "test", 1, (a, b, c) -> Optional.of(CelExpr.newBuilder().build())))
+            .addLibraries(new CelParserLibrary() {});
+    CelParserImpl celParser = (CelParserImpl) celParserBuilder.build();
+
+    CelParserImpl.Builder newParserBuilder = (CelParserImpl.Builder) celParser.toParserBuilder();
+
+    assertThat(newParserBuilder.getStandardMacros())
+        .hasSize(CelStandardMacro.STANDARD_MACROS.size());
+    assertThat(newParserBuilder.getMacros()).hasSize(1);
+    assertThat(newParserBuilder.getParserLibraries().build()).hasSize(1);
+  }
 }

@@ -16,6 +16,7 @@ package dev.cel.parser;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -50,6 +51,10 @@ public final class CelParserImpl implements CelParser {
   // Specific options for limits on parsing power.
   private final CelOptions options;
 
+  // Builder is mutable by design. APIs must make defensive copies in and out of this class.
+  @SuppressWarnings("Immutable")
+  private final Builder parserBuilder;
+
   /** Creates a new {@link Builder}. */
   public static CelParserBuilder newBuilder() {
     return new Builder().setOptions(CelOptions.DEFAULT);
@@ -63,6 +68,11 @@ public final class CelParserImpl implements CelParser {
   @Override
   public CelValidationResult parse(CelSource source) {
     return Parser.parse(this, source, getOptions());
+  }
+
+  @Override
+  public CelParserBuilder toParserBuilder() {
+    return new Builder(parserBuilder);
   }
 
   Optional<CelMacro> findMacro(String key) {
@@ -136,6 +146,23 @@ public final class CelParserImpl implements CelParser {
       return this.options;
     }
 
+    // The following getters exist for asserting immutability for collections held by this builder,
+    // and shouldn't be exposed to the public.
+    @VisibleForTesting
+    List<CelStandardMacro> getStandardMacros() {
+      return this.standardMacros;
+    }
+
+    @VisibleForTesting
+    Map<String, CelMacro> getMacros() {
+      return this.macros;
+    }
+
+    @VisibleForTesting
+    ImmutableSet.Builder<CelParserLibrary> getParserLibraries() {
+      return this.celParserLibraries;
+    }
+
     @Override
     @CheckReturnValue
     public CelParserImpl build() {
@@ -149,7 +176,7 @@ public final class CelParserImpl implements CelParser {
       standardMacros.stream()
           .map(CelStandardMacro::getDefinition)
           .forEach(celMacro -> builder.put(celMacro.getKey(), celMacro));
-      return new CelParserImpl(builder.buildOrThrow(), checkNotNull(options));
+      return new CelParserImpl(builder.buildOrThrow(), checkNotNull(options), this);
     }
 
     private Builder() {
@@ -157,10 +184,23 @@ public final class CelParserImpl implements CelParser {
       this.celParserLibraries = ImmutableSet.builder();
       this.standardMacros = new ArrayList<>();
     }
+
+    private Builder(Builder builder) {
+      // The following properties are either immutable or simple primitives, thus can be assigned
+      // directly.
+      this.options = builder.options;
+      // The following needs to be deep copied as they are collection builders
+      this.macros = new HashMap<>(builder.macros);
+      this.standardMacros = new ArrayList<>(builder.standardMacros);
+      this.celParserLibraries = ImmutableSet.builder();
+      this.celParserLibraries.addAll(builder.celParserLibraries.build());
+    }
   }
 
-  private CelParserImpl(ImmutableMap<String, CelMacro> macros, CelOptions options) {
+  private CelParserImpl(
+      ImmutableMap<String, CelMacro> macros, CelOptions options, Builder parserBuilder) {
     this.macros = macros;
     this.options = options;
+    this.parserBuilder = new Builder(parserBuilder);
   }
 }

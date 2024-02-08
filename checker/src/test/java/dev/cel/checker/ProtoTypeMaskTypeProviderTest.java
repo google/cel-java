@@ -19,7 +19,6 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.FieldMask;
 import com.google.rpc.context.AttributeContext;
@@ -52,7 +51,7 @@ public final class ProtoTypeMaskTypeProviderTest {
         () ->
             new ProtoTypeMaskTypeProvider(
                 celTypeProvider,
-                ImmutableList.of(
+                ImmutableSet.of(
                     ProtoTypeMask.of(
                         "google.rpc.context.AttributeContext",
                         FieldMask.newBuilder().addPaths("missing").build()))));
@@ -62,16 +61,16 @@ public final class ProtoTypeMaskTypeProviderTest {
   public void lookupFieldNames_undeclaredMessageType() {
     CelTypeProvider celTypeProvider = new ProtoMessageTypeProvider();
     ProtoTypeMaskTypeProvider protoTypeMaskProvider =
-        new ProtoTypeMaskTypeProvider(celTypeProvider, ImmutableList.of());
+        new ProtoTypeMaskTypeProvider(celTypeProvider, ImmutableSet.of());
     assertThat(protoTypeMaskProvider.findType(ATTRIBUTE_CONTEXT_TYPE)).isEmpty();
   }
 
   @Test
   public void lookupFieldNames_noProtoDecls() {
     CelTypeProvider celTypeProvider =
-        new ProtoMessageTypeProvider(ImmutableList.of(AttributeContext.getDescriptor()));
+        new ProtoMessageTypeProvider(ImmutableSet.of(AttributeContext.getDescriptor()));
     ProtoTypeMaskTypeProvider protoTypeMaskProvider =
-        new ProtoTypeMaskTypeProvider(celTypeProvider, ImmutableList.of());
+        new ProtoTypeMaskTypeProvider(celTypeProvider, ImmutableSet.of());
     ProtoMessageType protoType = assertTypeFound(protoTypeMaskProvider, ATTRIBUTE_CONTEXT_TYPE);
     assertThat(protoType.fields().stream().map(f -> f.name()).collect(toImmutableList()))
         .containsExactly(
@@ -91,10 +90,10 @@ public final class ProtoTypeMaskTypeProviderTest {
   @Test
   public void lookupFieldNames_fullProtoDecl() {
     CelTypeProvider celTypeProvider =
-        new ProtoMessageTypeProvider(ImmutableList.of(AttributeContext.getDescriptor()));
+        new ProtoMessageTypeProvider(ImmutableSet.of(AttributeContext.getDescriptor()));
     ProtoTypeMaskTypeProvider protoTypeMaskProvider =
         new ProtoTypeMaskTypeProvider(
-            celTypeProvider, ImmutableList.of(ProtoTypeMask.ofAllFields(ATTRIBUTE_CONTEXT_TYPE)));
+            celTypeProvider, ImmutableSet.of(ProtoTypeMask.ofAllFields(ATTRIBUTE_CONTEXT_TYPE)));
     ProtoMessageType protoType = assertTypeFound(protoTypeMaskProvider, ATTRIBUTE_CONTEXT_TYPE);
     assertTypeHasFields(
         protoType,
@@ -114,11 +113,11 @@ public final class ProtoTypeMaskTypeProviderTest {
   @Test
   public void lookupFieldNames_partialProtoDecl() {
     CelTypeProvider celTypeProvider =
-        new ProtoMessageTypeProvider(ImmutableList.of(AttributeContext.getDescriptor()));
+        new ProtoMessageTypeProvider(ImmutableSet.of(AttributeContext.getDescriptor()));
     ProtoTypeMaskTypeProvider protoTypeMaskProvider =
         new ProtoTypeMaskTypeProvider(
             celTypeProvider,
-            ImmutableList.of(
+            ImmutableSet.of(
                 ProtoTypeMask.of(
                     "google.rpc.context.AttributeContext",
                     FieldMask.newBuilder()
@@ -169,7 +168,7 @@ public final class ProtoTypeMaskTypeProviderTest {
     ProtoTypeMaskTypeProvider protoTypeMaskProvider =
         new ProtoTypeMaskTypeProvider(
             celTypeProvider,
-            ImmutableList.of(
+            ImmutableSet.of(
                 ProtoTypeMask.of(
                         "google.rpc.context.AttributeContext",
                         FieldMask.newBuilder()
@@ -191,11 +190,11 @@ public final class ProtoTypeMaskTypeProviderTest {
   @Test
   public void lookupFieldType() {
     CelTypeProvider celTypeProvider =
-        new ProtoMessageTypeProvider(ImmutableList.of(AttributeContext.getDescriptor()));
+        new ProtoMessageTypeProvider(ImmutableSet.of(AttributeContext.getDescriptor()));
     ProtoTypeMaskTypeProvider protoTypeMaskProvider =
         new ProtoTypeMaskTypeProvider(
             celTypeProvider,
-            ImmutableList.of(
+            ImmutableSet.of(
                 ProtoTypeMask.of(
                     "google.rpc.context.AttributeContext",
                     FieldMask.newBuilder()
@@ -228,11 +227,11 @@ public final class ProtoTypeMaskTypeProviderTest {
   @Test
   public void lookupFieldType_notExposedField() {
     CelTypeProvider celTypeProvider =
-        new ProtoMessageTypeProvider(ImmutableList.of(AttributeContext.getDescriptor()));
+        new ProtoMessageTypeProvider(ImmutableSet.of(AttributeContext.getDescriptor()));
     ProtoTypeMaskTypeProvider protoTypeMaskProvider =
         new ProtoTypeMaskTypeProvider(
             celTypeProvider,
-            ImmutableList.of(
+            ImmutableSet.of(
                 ProtoTypeMask.of(
                     "google.rpc.context.AttributeContext",
                     FieldMask.newBuilder().addPaths("resource.name").build())));
@@ -243,11 +242,11 @@ public final class ProtoTypeMaskTypeProviderTest {
   @Test
   public void lookupType_notExposed() {
     CelTypeProvider celTypeProvider =
-        new ProtoMessageTypeProvider(ImmutableList.of(AttributeContext.getDescriptor()));
+        new ProtoMessageTypeProvider(ImmutableSet.of(AttributeContext.getDescriptor()));
     ProtoTypeMaskTypeProvider protoTypeMaskProvider =
         new ProtoTypeMaskTypeProvider(
             celTypeProvider,
-            ImmutableList.of(
+            ImmutableSet.of(
                 ProtoTypeMask.of(
                     "google.rpc.context.AttributeContext",
                     FieldMask.newBuilder().addPaths("resource.name").build())));

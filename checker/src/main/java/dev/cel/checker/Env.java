@@ -958,7 +958,7 @@ public class Env {
     }
 
     CelFunctionDecl.Builder funcBuilder = func.toBuilder();
-    ImmutableList.Builder<CelOverloadDecl> overloadsBuilder = new ImmutableList.Builder<>();
+    ImmutableSet.Builder<CelOverloadDecl> overloadsBuilder = new ImmutableSet.Builder<>();
     for (CelOverloadDecl overloadDecl : funcBuilder.overloads()) {
       CelOverloadDecl.Builder overloadBuilder = overloadDecl.toBuilder();
       CelType resultType = overloadBuilder.build().resultType();
@@ -966,7 +966,7 @@ public class Env {
         overloadBuilder.setResultType(getWellKnownType(resultType));
       }
 
-      ImmutableList.Builder<CelType> parameterTypeBuilder = ImmutableList.builder();
+      ImmutableSet.Builder<CelType> parameterTypeBuilder = ImmutableSet.builder();
       for (CelType paramType : overloadBuilder.parameterTypes()) {
         if (isWellKnownType(paramType)) {
           parameterTypeBuilder.add(getWellKnownType(paramType));

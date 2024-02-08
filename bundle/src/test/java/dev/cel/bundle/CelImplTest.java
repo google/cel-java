@@ -50,6 +50,7 @@ import com.google.rpc.context.AttributeContext;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
+import dev.cel.checker.CelCheckerLegacyImpl;
 import dev.cel.checker.DescriptorTypeProvider;
 import dev.cel.checker.ProtoTypeMask;
 import dev.cel.checker.TypeProvider;
@@ -77,6 +78,8 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.compiler.CelCompilerImpl;
+import dev.cel.parser.CelParserImpl;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelAttribute;
 import dev.cel.runtime.CelAttribute.Qualifier;
@@ -86,6 +89,7 @@ import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime.Program;
 import dev.cel.runtime.CelRuntimeFactory;
+import dev.cel.runtime.CelRuntimeLegacyImpl;
 import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.CelVariableResolver;
 import dev.cel.runtime.UnknownContext;
@@ -1810,6 +1814,27 @@ public final class CelImplTest {
     String result = (String) cel.createProgram(ast).eval(ImmutableMap.of("x", 5));
 
     assertThat(result).isEqualTo("5");
+  }
+
+  @Test
+  public void toBuilder_isImmutable() {
+    CelBuilder celBuilder = CelFactory.standardCelBuilder();
+    CelImpl celImpl = (CelImpl) celBuilder.build();
+
+    CelImpl.Builder newCelBuilder = (CelImpl.Builder) celImpl.toCelBuilder();
+    CelParserImpl.Builder newParserBuilder = (CelParserImpl.Builder) celImpl.toParserBuilder();
+    CelCheckerLegacyImpl.Builder newCheckerBuilder =
+        (CelCheckerLegacyImpl.Builder) celImpl.toCheckerBuilder();
+    CelCompilerImpl.Builder newCompilerBuilder =
+        (CelCompilerImpl.Builder) celImpl.toCompilerBuilder();
+    CelRuntimeLegacyImpl.Builder newRuntimeBuilder =
+        (CelRuntimeLegacyImpl.Builder) celImpl.toRuntimeBuilder();
+
+    assertThat(newCelBuilder).isNotEqualTo(celBuilder);
+    assertThat(newParserBuilder).isNotEqualTo(celImpl.toParserBuilder());
+    assertThat(newCheckerBuilder).isNotEqualTo(celImpl.toCheckerBuilder());
+    assertThat(newCompilerBuilder).isNotEqualTo(celImpl.toCompilerBuilder());
+    assertThat(newRuntimeBuilder).isNotEqualTo(celImpl.toRuntimeBuilder());
   }
 
   private static TypeProvider aliasingProvider(ImmutableMap<String, Type> typeAliases) {

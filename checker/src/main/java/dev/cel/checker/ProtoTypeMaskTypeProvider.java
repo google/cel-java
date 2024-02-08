@@ -44,10 +44,10 @@ public final class ProtoTypeMaskTypeProvider implements CelTypeProvider {
   @SuppressWarnings("Immutable")
   private final ImmutableMap<String, CelType> allTypes;
 
-  private final ImmutableList<ProtoTypeMask> protoTypeMasks;
+  private final ImmutableSet<ProtoTypeMask> protoTypeMasks;
 
   ProtoTypeMaskTypeProvider(
-      CelTypeProvider delegateProvider, ImmutableList<ProtoTypeMask> protoTypeMasks) {
+      CelTypeProvider delegateProvider, ImmutableSet<ProtoTypeMask> protoTypeMasks) {
     this.protoTypeMasks = protoTypeMasks;
     this.allTypes = computeVisibleFieldsMap(delegateProvider, protoTypeMasks);
   }
@@ -89,7 +89,7 @@ public final class ProtoTypeMaskTypeProvider implements CelTypeProvider {
   }
 
   private static ImmutableMap<String, CelType> computeVisibleFieldsMap(
-      CelTypeProvider delegateProvider, ImmutableList<ProtoTypeMask> protoTypeMasks) {
+      CelTypeProvider delegateProvider, ImmutableSet<ProtoTypeMask> protoTypeMasks) {
     Map<String, Set<String>> fieldMap = new HashMap<>();
     for (ProtoTypeMask typeMask : protoTypeMasks) {
       Optional<CelType> rootType = delegateProvider.findType(typeMask.getTypeName());

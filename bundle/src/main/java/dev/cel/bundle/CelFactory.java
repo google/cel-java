@@ -17,8 +17,10 @@ package dev.cel.bundle;
 import dev.cel.checker.CelCheckerLegacyImpl;
 import dev.cel.common.CelOptions;
 import dev.cel.compiler.CelCompiler;
+import dev.cel.compiler.CelCompilerImpl;
 import dev.cel.parser.CelParserImpl;
 import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntimeLegacyImpl;
 
 /** Helper class to configure the entire CEL stack in a common interface. */
 public final class CelFactory {
@@ -33,7 +35,10 @@ public final class CelFactory {
    * evaluation are enabled by default.
    */
   public static CelBuilder standardCelBuilder() {
-    return CelImpl.newBuilder(CelParserImpl.newBuilder(), CelCheckerLegacyImpl.newBuilder())
+    return CelImpl.newBuilder(
+            CelCompilerImpl.newBuilder(
+                CelParserImpl.newBuilder(), CelCheckerLegacyImpl.newBuilder()),
+            CelRuntimeLegacyImpl.newBuilder())
         .setOptions(CelOptions.current().build())
         .setStandardEnvironmentEnabled(true);
   }

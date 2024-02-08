@@ -37,6 +37,8 @@ public interface CelRuntime {
   @CanIgnoreReturnValue
   Program createProgram(CelAbstractSyntaxTree ast) throws CelEvaluationException;
 
+  CelRuntimeBuilder toRuntimeBuilder();
+
   /** Creates an evaluable {@code Program} instance which is thread-safe and immutable. */
   @AutoValue
   @Immutable

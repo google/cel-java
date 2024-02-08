@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -43,6 +44,8 @@ import dev.cel.common.types.CelTypes;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.ProtoMessageValueProvider;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import org.jspecify.nullness.Nullable;
@@ -60,10 +63,19 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
   private final Interpreter interpreter;
   private final CelOptions options;
 
+  // Builder is mutable by design. APIs must guarantee a new instance to be returned.
+  // CEL-Internal-4
+  private final Builder runtimeBuilder;
+
   @Override
   public CelRuntime.Program createProgram(CelAbstractSyntaxTree ast) {
     checkState(ast.isChecked(), "programs must be created from checked expressions");
     return CelRuntime.Program.from(interpreter.createInterpretable(ast), options);
+  }
+
+  @Override
+  public CelRuntimeBuilder toRuntimeBuilder() {
+    return new Builder(runtimeBuilder);
   }
 
   /** Create a new builder for constructing a {@code CelRuntime} instance. */
@@ -75,7 +87,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
   public static final class Builder implements CelRuntimeBuilder {
 
     private final ImmutableSet.Builder<FileDescriptor> fileTypes;
-    private final ImmutableMap.Builder<String, CelFunctionBinding> functionBindings;
+    private final HashMap<String, CelFunctionBinding> functionBindings;
     private final ImmutableSet.Builder<CelRuntimeLibrary> celRuntimeLibraries;
 
     @SuppressWarnings("unused")
@@ -99,7 +111,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
     @Override
     public CelRuntimeBuilder addFunctionBindings(Iterable<CelFunctionBinding> bindings) {
-      bindings.forEach(o -> functionBindings.put(o.getOverloadId(), o));
+      bindings.forEach(o -> functionBindings.putIfAbsent(o.getOverloadId(), o));
       return this;
     }
 
@@ -168,6 +180,23 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       return this;
     }
 
+    // The following getters exist for asserting immutability for collections held by this builder,
+    // and shouldn't be exposed to the public.
+    @VisibleForTesting
+    Map<String, CelFunctionBinding> getFunctionBindings() {
+      return this.functionBindings;
+    }
+
+    @VisibleForTesting
+    ImmutableSet.Builder<CelRuntimeLibrary> getRuntimeLibraries() {
+      return this.celRuntimeLibraries;
+    }
+
+    @VisibleForTesting
+    ImmutableSet.Builder<FileDescriptor> getFileTypes() {
+      return this.fileTypes;
+    }
+
     /** Build a new {@code CelRuntimeLegacyImpl} instance from the builder config. */
     @Override
     public CelRuntimeLegacyImpl build() {
@@ -203,7 +232,8 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
         StandardFunctions.add(dispatcher, dynamicProto, options);
       }
 
-      ImmutableMap<String, CelFunctionBinding> functionBindingMap = functionBindings.buildOrThrow();
+      ImmutableMap<String, CelFunctionBinding> functionBindingMap =
+          ImmutableMap.copyOf(functionBindings);
       functionBindingMap.forEach(
           (String overloadId, CelFunctionBinding func) ->
               dispatcher.add(
@@ -238,7 +268,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       }
 
       return new CelRuntimeLegacyImpl(
-          new DefaultInterpreter(runtimeTypeProvider, dispatcher, options), options);
+          new DefaultInterpreter(runtimeTypeProvider, dispatcher, options), options, this);
     }
 
     private static CelDescriptorPool newDescriptorPool(
@@ -264,15 +294,35 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     private Builder() {
       this.options = CelOptions.newBuilder().build();
       this.fileTypes = ImmutableSet.builder();
-      this.functionBindings = ImmutableMap.builder();
+      this.functionBindings = new HashMap<>();
       this.celRuntimeLibraries = ImmutableSet.builder();
       this.extensionRegistry = ExtensionRegistry.getEmptyRegistry();
       this.customTypeFactory = null;
     }
+
+    private Builder(Builder builder) {
+      // The following properties are either immutable or simple primitives, thus can be assigned
+      // directly.
+      this.options = builder.options;
+      this.extensionRegistry = builder.extensionRegistry;
+      this.customTypeFactory = builder.customTypeFactory;
+      // The following needs to be deep copied as they are collection builders
+      this.fileTypes = deepCopy(builder.fileTypes);
+      this.celRuntimeLibraries = deepCopy(builder.celRuntimeLibraries);
+      this.functionBindings = new HashMap<>(builder.functionBindings);
+    }
+
+    private static <T> ImmutableSet.Builder<T> deepCopy(ImmutableSet.Builder<T> builderToCopy) {
+      ImmutableSet.Builder<T> newBuilder = ImmutableSet.builder();
+      newBuilder.addAll(builderToCopy.build());
+      return newBuilder;
+    }
   }
 
-  private CelRuntimeLegacyImpl(Interpreter interpreter, CelOptions options) {
+  private CelRuntimeLegacyImpl(
+      Interpreter interpreter, CelOptions options, Builder runtimeBuilder) {
     this.interpreter = interpreter;
     this.options = options;
+    this.runtimeBuilder = new Builder(runtimeBuilder);
   }
 }

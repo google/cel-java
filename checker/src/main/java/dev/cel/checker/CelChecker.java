@@ -28,4 +28,6 @@ public interface CelChecker {
    * <p>Check validates the type-agreement of the parsed {@code CelAbstractSyntaxTree}.
    */
   CelValidationResult check(CelAbstractSyntaxTree ast);
+
+  CelCheckerBuilder toCheckerBuilder();
 }

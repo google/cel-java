@@ -22,6 +22,7 @@ import static dev.cel.common.CelOverloadDecl.newMemberOverload;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.SimpleType;
+import java.util.Iterator;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -38,7 +39,7 @@ public final class CelFunctionDeclTest {
 
     assertThat(functionDecl.name()).isEqualTo("testGlobalFunction");
     assertThat(functionDecl.overloads()).hasSize(1);
-    CelOverloadDecl overloadDecl = functionDecl.overloads().get(0);
+    CelOverloadDecl overloadDecl = functionDecl.overloads().iterator().next();
     assertThat(overloadDecl.overloadId()).isEqualTo("overloadId");
     assertThat(overloadDecl.isInstanceFunction()).isFalse();
     assertThat(overloadDecl.resultType()).isEqualTo(SimpleType.BOOL);
@@ -54,7 +55,7 @@ public final class CelFunctionDeclTest {
 
     assertThat(functionDecl.name()).isEqualTo("testMemberFunction");
     assertThat(functionDecl.overloads()).hasSize(1);
-    CelOverloadDecl overloadDecl = functionDecl.overloads().get(0);
+    CelOverloadDecl overloadDecl = functionDecl.overloads().iterator().next();
     assertThat(overloadDecl.overloadId()).isEqualTo("overloadId");
     assertThat(overloadDecl.isInstanceFunction()).isTrue();
     assertThat(overloadDecl.resultType()).isEqualTo(SimpleType.TIMESTAMP);
@@ -74,13 +75,14 @@ public final class CelFunctionDeclTest {
     assertThat(functionDecl.name()).isEqualTo("testFunction");
     assertThat(functionDecl.overloads()).hasSize(2);
 
-    CelOverloadDecl memberOverloadDecl = functionDecl.overloads().get(0);
+    Iterator<CelOverloadDecl> iterator = functionDecl.overloads().iterator();
+    CelOverloadDecl memberOverloadDecl = iterator.next();
     assertThat(memberOverloadDecl.overloadId()).isEqualTo("memberOverloadId");
     assertThat(memberOverloadDecl.isInstanceFunction()).isTrue();
     assertThat(memberOverloadDecl.resultType()).isEqualTo(SimpleType.INT);
     assertThat(memberOverloadDecl.parameterTypes()).containsExactly(SimpleType.UINT);
 
-    CelOverloadDecl globalOverloadDecl = functionDecl.overloads().get(1);
+    CelOverloadDecl globalOverloadDecl = iterator.next();
     assertThat(globalOverloadDecl.overloadId()).isEqualTo("globalOverloadId");
     assertThat(globalOverloadDecl.isInstanceFunction()).isFalse();
     assertThat(globalOverloadDecl.resultType()).isEqualTo(SimpleType.STRING);
