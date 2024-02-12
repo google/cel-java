@@ -34,7 +34,6 @@ import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.CelCreateList;
 import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct;
-import dev.cel.common.ast.CelExpr.CelIdent;
 import dev.cel.common.ast.CelExpr.CelSelect;
 import dev.cel.common.ast.CelExpr.ExprKind;
 import dev.cel.common.ast.CelReference;
@@ -194,7 +193,7 @@ public final class DefaultInterpreter implements Interpreter {
             result = IntermediateResult.create(evalConstant(frame, expr, expr.constant()));
             break;
           case IDENT:
-            result = evalIdent(frame, expr, expr.ident());
+            result = evalIdent(frame, expr);
             break;
           case SELECT:
             result = evalSelect(frame, expr, expr.select());
@@ -257,7 +256,7 @@ public final class DefaultInterpreter implements Interpreter {
       }
     }
 
-    private IntermediateResult evalIdent(ExecutionFrame frame, CelExpr expr, CelIdent unusedIdent)
+    private IntermediateResult evalIdent(ExecutionFrame frame, CelExpr expr)
         throws InterpreterException {
       CelReference reference = ast.getReferenceOrThrow(expr.id());
       if (reference.value().isPresent()) {
@@ -371,6 +370,8 @@ public final class DefaultInterpreter implements Interpreter {
             return result.get();
           }
           break;
+        case "cel_block_list":
+          return evalCelBlock(frame, expr, callExpr);
         default:
           break;
       }
@@ -845,6 +846,21 @@ public final class DefaultInterpreter implements Interpreter {
       IntermediateResult result = evalInternal(frame, compre.result());
       frame.popScope();
       return result;
+    }
+
+    private IntermediateResult evalCelBlock(
+        ExecutionFrame frame, CelExpr unusedExpr, CelCall blockCall) throws InterpreterException {
+      CelCreateList exprList = blockCall.args().get(0).createList();
+      ImmutableMap.Builder<String, IntermediateResult> blockList = ImmutableMap.builder();
+      for (int index = 0; index < exprList.elements().size(); index++) {
+        // Register the block indices as lazily evaluated expressions stored as unique identifiers.
+        blockList.put(
+            "@index" + index,
+            IntermediateResult.create(new LazyExpression(exprList.elements().get(index))));
+      }
+      frame.pushScope(blockList.buildOrThrow());
+
+      return evalInternal(frame, blockCall.args().get(1));
     }
   }
 

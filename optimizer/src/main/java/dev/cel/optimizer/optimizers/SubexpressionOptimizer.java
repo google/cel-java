@@ -19,12 +19,15 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Arrays.stream;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import dev.cel.bundle.Cel;
 import dev.cel.checker.Standard;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelSource;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelIdent;
@@ -32,6 +35,9 @@ import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.navigation.CelNavigableExpr.TraversalOrder;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.ListType;
+import dev.cel.common.types.SimpleType;
 import dev.cel.optimizer.CelAstOptimizer;
 import dev.cel.optimizer.MutableAst;
 import dev.cel.parser.Operator;
@@ -64,6 +70,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       new SubexpressionOptimizer(SubexpressionOptimizerOptions.newBuilder().build());
   private static final String BIND_IDENTIFIER_PREFIX = "@r";
   private static final String MANGLED_COMPREHENSION_IDENTIFIER_PREFIX = "@c";
+  private static final String CEL_BLOCK_FUNCTION = "cel.@block";
   private static final ImmutableSet<String> CSE_ALLOWED_FUNCTIONS =
       Streams.concat(
               stream(Operator.values()).map(Operator::getFunction),
@@ -323,6 +330,14 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     }
 
     return mutableAst.clearExprIds(celExpr);
+  }
+
+  @VisibleForTesting
+  static CelFunctionDecl newCelBlockFunctionDecl(CelType resultType) {
+    return CelFunctionDecl.newFunctionDeclaration(
+        CEL_BLOCK_FUNCTION,
+        CelOverloadDecl.newGlobalOverload(
+            "cel_block_list", resultType, ListType.create(SimpleType.DYN), resultType));
   }
 
   /** Options to configure how Common Subexpression Elimination behave. */
