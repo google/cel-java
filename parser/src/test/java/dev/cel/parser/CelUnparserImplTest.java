@@ -18,8 +18,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.google.testing.junit.testparameterinjector.TestParameter;
-import com.google.testing.junit.testparameterinjector.TestParameter.TestParameterValuesProvider;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import com.google.testing.junit.testparameterinjector.TestParameterValuesProvider;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
@@ -46,9 +46,9 @@ public final class CelUnparserImplTest {
 
   private final CelUnparserImpl unparser = new CelUnparserImpl();
 
-  private static final class ValidExprDataProvider implements TestParameterValuesProvider {
+  private static final class ValidExprDataProvider extends TestParameterValuesProvider {
     @Override
-    public List<String> provideValues() {
+    public List<String> provideValues(Context context) {
       return Arrays.asList(
           "a + b - c",
           "a && b && c && d && e",
@@ -182,9 +182,9 @@ public final class CelUnparserImplTest {
         .isEqualTo(CelProtoAbstractSyntaxTree.fromCelAst(astOne).toParsedExpr());
   }
 
-  private static final class InvalidExprDataProvider implements TestParameterValuesProvider {
+  private static final class InvalidExprDataProvider extends TestParameterValuesProvider {
     @Override
-    public List<CelExpr> provideValues() {
+    public List<CelExpr> provideValues(Context context) {
       return Arrays.asList(
           CelExpr.newBuilder().build(), // empty expr
           CelExpr.newBuilder()

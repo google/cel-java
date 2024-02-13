@@ -18,7 +18,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.testing.junit.testparameterinjector.TestParameter.TestParameterValuesProvider;
+import com.google.testing.junit.testparameterinjector.TestParameterValuesProvider;
 import dev.cel.common.annotations.Internal;
 import java.util.stream.IntStream;
 
@@ -34,11 +34,11 @@ import java.util.stream.IntStream;
  */
 @Internal
 @VisibleForTesting
-public final class RepeatedTestProvider implements TestParameterValuesProvider {
+public final class RepeatedTestProvider extends TestParameterValuesProvider {
   private static final int REPEATED_TEST_RUN_COUNT = 50;
 
   @Override
-  public ImmutableList<Integer> provideValues() {
+  public ImmutableList<Integer> provideValues(Context context) {
     return IntStream.rangeClosed(1, REPEATED_TEST_RUN_COUNT).boxed().collect(toImmutableList());
   }
 }

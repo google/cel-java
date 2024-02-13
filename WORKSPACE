@@ -68,7 +68,7 @@ maven_install(
         "com.google.protobuf:protobuf-java:3.24.4",
         "com.google.protobuf:protobuf-java-util:3.24.4",
         "com.google.re2j:re2j:1.7",
-        "com.google.testparameterinjector:test-parameter-injector:1.14",
+        "com.google.testparameterinjector:test-parameter-injector:1.15",
         "com.google.truth.extensions:truth-java8-extension:1.4.0",
         "com.google.truth.extensions:truth-proto-extension:1.4.0",
         "com.google.truth:truth:1.4.0",
