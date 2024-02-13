@@ -95,10 +95,9 @@ final class CelNavigableExprVisitor {
     if (navigableExpr.depth() > MAX_DESCENDANTS_RECURSION_DEPTH - 1) {
       throw new IllegalStateException("Max recursion depth reached.");
     }
-    if (navigableExpr.depth() > maxDepth) {
-      return -1;
-    }
-    if (traversalOrder.equals(TraversalOrder.PRE_ORDER)) {
+
+    boolean addToStream = navigableExpr.depth() <= maxDepth;
+    if (addToStream && traversalOrder.equals(TraversalOrder.PRE_ORDER)) {
       streamBuilder.add(navigableExpr);
     }
 
@@ -129,7 +128,7 @@ final class CelNavigableExprVisitor {
     }
 
     navigableExpr.setHeight(height);
-    if (traversalOrder.equals(TraversalOrder.POST_ORDER)) {
+    if (addToStream && traversalOrder.equals(TraversalOrder.POST_ORDER)) {
       streamBuilder.add(navigableExpr);
     }
 
