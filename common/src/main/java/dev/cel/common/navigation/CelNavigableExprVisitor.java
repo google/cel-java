@@ -14,6 +14,8 @@
 
 package dev.cel.common.navigation;
 
+import static java.lang.Math.max;
+
 import com.google.common.collect.ImmutableList;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
@@ -29,7 +31,7 @@ import java.util.stream.Stream;
 final class CelNavigableExprVisitor {
   private static final int MAX_DESCENDANTS_RECURSION_DEPTH = 500;
 
-  private final Stream.Builder<CelNavigableExpr> streamBuilder;
+  private final Stream.Builder<CelNavigableExpr.Builder> streamBuilder;
   private final TraversalOrder traversalOrder;
   private final int maxDepth;
 
@@ -84,105 +86,124 @@ final class CelNavigableExprVisitor {
       CelNavigableExpr navigableExpr, int maxDepth, TraversalOrder traversalOrder) {
     CelNavigableExprVisitor visitor = new CelNavigableExprVisitor(maxDepth, traversalOrder);
 
-    visitor.visit(navigableExpr);
+    visitor.visit(navigableExpr.toBuilder());
 
-    return visitor.streamBuilder.build();
+    return visitor.streamBuilder.build().map(CelNavigableExpr.Builder::build);
   }
 
-  private void visit(CelNavigableExpr navigableExpr) {
+  private int visit(CelNavigableExpr.Builder navigableExpr) {
     if (navigableExpr.depth() > MAX_DESCENDANTS_RECURSION_DEPTH - 1) {
       throw new IllegalStateException("Max recursion depth reached.");
     }
     if (navigableExpr.depth() > maxDepth) {
-      return;
+      return -1;
     }
     if (traversalOrder.equals(TraversalOrder.PRE_ORDER)) {
       streamBuilder.add(navigableExpr);
     }
 
+    int height = 1;
     switch (navigableExpr.getKind()) {
       case CALL:
-        visit(navigableExpr, navigableExpr.expr().call());
+        height += visit(navigableExpr, navigableExpr.expr().call());
         break;
       case CREATE_LIST:
-        visit(navigableExpr, navigableExpr.expr().createList());
+        height += visit(navigableExpr, navigableExpr.expr().createList());
         break;
       case SELECT:
-        visit(navigableExpr, navigableExpr.expr().select());
+        height += visit(navigableExpr, navigableExpr.expr().select());
         break;
       case CREATE_STRUCT:
-        visitStruct(navigableExpr, navigableExpr.expr().createStruct());
+        height += visitStruct(navigableExpr, navigableExpr.expr().createStruct());
         break;
       case CREATE_MAP:
-        visitMap(navigableExpr, navigableExpr.expr().createMap());
+        height += visitMap(navigableExpr, navigableExpr.expr().createMap());
         break;
       case COMPREHENSION:
-        visit(navigableExpr, navigableExpr.expr().comprehension());
+        height += visit(navigableExpr, navigableExpr.expr().comprehension());
         break;
       default:
+        // This is a leaf node
+        height = 0;
         break;
     }
 
+    navigableExpr.setHeight(height);
     if (traversalOrder.equals(TraversalOrder.POST_ORDER)) {
       streamBuilder.add(navigableExpr);
     }
+
+    return height;
   }
 
-  private void visit(CelNavigableExpr navigableExpr, CelCall call) {
+  private int visit(CelNavigableExpr.Builder navigableExpr, CelCall call) {
+    int targetHeight = 0;
     if (call.target().isPresent()) {
-      CelNavigableExpr target = newNavigableChild(navigableExpr, call.target().get());
-      visit(target);
+      CelNavigableExpr.Builder target = newNavigableChild(navigableExpr, call.target().get());
+      targetHeight = visit(target);
     }
 
-    visitExprList(call.args(), navigableExpr);
+    int argumentHeight = visitExprList(call.args(), navigableExpr);
+    return max(targetHeight, argumentHeight);
   }
 
-  private void visit(CelNavigableExpr navigableExpr, CelCreateList createList) {
-    visitExprList(createList.elements(), navigableExpr);
+  private int visit(CelNavigableExpr.Builder navigableExpr, CelCreateList createList) {
+    return visitExprList(createList.elements(), navigableExpr);
   }
 
-  private void visit(CelNavigableExpr navigableExpr, CelSelect selectExpr) {
-    CelNavigableExpr operand = newNavigableChild(navigableExpr, selectExpr.operand());
-    visit(operand);
+  private int visit(CelNavigableExpr.Builder navigableExpr, CelSelect selectExpr) {
+    CelNavigableExpr.Builder operand = newNavigableChild(navigableExpr, selectExpr.operand());
+    return visit(operand);
   }
 
-  private void visit(CelNavigableExpr navigableExpr, CelComprehension comprehension) {
-    visit(newNavigableChild(navigableExpr, comprehension.iterRange()));
-    visit(newNavigableChild(navigableExpr, comprehension.accuInit()));
-    visit(newNavigableChild(navigableExpr, comprehension.loopCondition()));
-    visit(newNavigableChild(navigableExpr, comprehension.loopStep()));
-    visit(newNavigableChild(navigableExpr, comprehension.result()));
+  private int visit(CelNavigableExpr.Builder navigableExpr, CelComprehension comprehension) {
+    int maxHeight = 0;
+    maxHeight = max(visit(newNavigableChild(navigableExpr, comprehension.iterRange())), maxHeight);
+    maxHeight = max(visit(newNavigableChild(navigableExpr, comprehension.accuInit())), maxHeight);
+    maxHeight =
+        max(visit(newNavigableChild(navigableExpr, comprehension.loopCondition())), maxHeight);
+    maxHeight = max(visit(newNavigableChild(navigableExpr, comprehension.loopStep())), maxHeight);
+    maxHeight = max(visit(newNavigableChild(navigableExpr, comprehension.result())), maxHeight);
+
+    return maxHeight;
   }
 
-  private void visitStruct(CelNavigableExpr navigableExpr, CelCreateStruct struct) {
+  private int visitStruct(CelNavigableExpr.Builder navigableExpr, CelCreateStruct struct) {
+    int maxHeight = 0;
     for (CelCreateStruct.Entry entry : struct.entries()) {
-      CelNavigableExpr value = newNavigableChild(navigableExpr, entry.value());
-      visit(value);
+      CelNavigableExpr.Builder value = newNavigableChild(navigableExpr, entry.value());
+      maxHeight = max(visit(value), maxHeight);
     }
+    return maxHeight;
   }
 
-  private void visitMap(CelNavigableExpr navigableExpr, CelCreateMap map) {
+  private int visitMap(CelNavigableExpr.Builder navigableExpr, CelCreateMap map) {
+    int maxHeight = 0;
     for (CelCreateMap.Entry entry : map.entries()) {
-      CelNavigableExpr key = newNavigableChild(navigableExpr, entry.key());
-      visit(key);
+      CelNavigableExpr.Builder key = newNavigableChild(navigableExpr, entry.key());
+      maxHeight = max(visit(key), maxHeight);
 
-      CelNavigableExpr value = newNavigableChild(navigableExpr, entry.value());
-      visit(value);
+      CelNavigableExpr.Builder value = newNavigableChild(navigableExpr, entry.value());
+      maxHeight = max(visit(value), maxHeight);
     }
+    return 0;
   }
 
-  private void visitExprList(ImmutableList<CelExpr> createListExpr, CelNavigableExpr parent) {
+  private int visitExprList(
+      ImmutableList<CelExpr> createListExpr, CelNavigableExpr.Builder parent) {
+    int maxHeight = 0;
     for (CelExpr expr : createListExpr) {
-      CelNavigableExpr arg = newNavigableChild(parent, expr);
-      visit(arg);
+      CelNavigableExpr.Builder arg = newNavigableChild(parent, expr);
+      maxHeight = max(visit(arg), maxHeight);
     }
+    return maxHeight;
   }
 
-  private CelNavigableExpr newNavigableChild(CelNavigableExpr parent, CelExpr expr) {
+  private CelNavigableExpr.Builder newNavigableChild(
+      CelNavigableExpr.Builder parent, CelExpr expr) {
     return CelNavigableExpr.builder()
         .setExpr(expr)
         .setDepth(parent.depth() + 1)
-        .setParent(parent)
-        .build();
+        .setParentBuilder(parent);
   }
 }

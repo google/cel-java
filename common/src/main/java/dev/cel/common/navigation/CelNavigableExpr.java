@@ -15,6 +15,8 @@
 package dev.cel.common.navigation;
 
 import com.google.auto.value.AutoValue;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.ExprKind;
@@ -59,6 +61,12 @@ public abstract class CelNavigableExpr {
   /** Represents the count of transitive parents. Depth of an AST's root is 0. */
   public abstract int depth();
 
+  /**
+   * Represents the maximum count of children from any of its branches. Height of a leaf node is 0.
+   * For example, the height of the call node 'func' in expression `(1 + 2 + 3).func(4 + 5)` is 3.
+   */
+  public abstract int height();
+
   /** Constructs a new instance of {@link CelNavigableExpr} from {@link CelExpr}. */
   public static CelNavigableExpr fromExpr(CelExpr expr) {
     return CelNavigableExpr.builder().setExpr(expr).build();
@@ -93,7 +101,8 @@ public abstract class CelNavigableExpr {
    * the specified traversal order.
    */
   public Stream<CelNavigableExpr> descendants(TraversalOrder traversalOrder) {
-    return CelNavigableExprVisitor.collect(this, traversalOrder).filter(node -> !node.equals(this));
+    return CelNavigableExprVisitor.collect(this, traversalOrder)
+        .filter(node -> node.depth() > this.depth());
   }
 
   /**
@@ -110,7 +119,7 @@ public abstract class CelNavigableExpr {
    */
   public Stream<CelNavigableExpr> children(TraversalOrder traversalOrder) {
     return CelNavigableExprVisitor.collect(this, this.depth() + 1, traversalOrder)
-        .filter(node -> !node.equals(this));
+        .filter(node -> node.depth() > this.depth());
   }
 
   /** Returns the underlying kind of the {@link CelExpr}. */
@@ -120,21 +129,47 @@ public abstract class CelNavigableExpr {
 
   /** Create a new builder to construct a {@link CelNavigableExpr} instance. */
   public static Builder builder() {
-    return new AutoValue_CelNavigableExpr.Builder().setDepth(0);
+    return new AutoValue_CelNavigableExpr.Builder().setDepth(0).setHeight(0);
   }
 
   /** Builder to configure {@link CelNavigableExpr}. */
   @AutoValue.Builder
   public abstract static class Builder {
 
+    private Builder parentBuilder;
+
     public abstract CelExpr expr();
+
+    public abstract int depth();
+
+    public ExprKind.Kind getKind() {
+      return expr().exprKind().getKind();
+    }
 
     public abstract Builder setExpr(CelExpr value);
 
-    public abstract Builder setParent(CelNavigableExpr value);
+    abstract Builder setParent(CelNavigableExpr value);
+
+    @CanIgnoreReturnValue
+    public Builder setParentBuilder(CelNavigableExpr.Builder value) {
+      parentBuilder = value;
+      return this;
+    }
 
     public abstract Builder setDepth(int value);
 
-    public abstract CelNavigableExpr build();
+    public abstract Builder setHeight(int value);
+
+    public abstract CelNavigableExpr autoBuild();
+
+    @CheckReturnValue
+    public CelNavigableExpr build() {
+      if (parentBuilder != null) {
+        setParent(parentBuilder.build());
+      }
+      return autoBuild();
+    }
   }
+
+  public abstract Builder toBuilder();
 }
