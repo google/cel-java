@@ -456,11 +456,12 @@ public final class MutableAst {
       ExprIdGenerator idGenerator) {
     // Remove the macro metadata that no longer exists in the AST due to being replaced.
     celSource = celSource.toBuilder().clearMacroCall(exprIdToReplace).build();
+    CelSource.Builder sourceBuilder =
+        CelSource.newBuilder().addAllExtensions(celSource.getExtensions());
     if (celSource.getMacroCalls().isEmpty()) {
-      return CelSource.newBuilder().build();
+      return sourceBuilder.build();
     }
 
-    CelSource.Builder sourceBuilder = CelSource.newBuilder();
     ImmutableMap<Long, CelExpr> allExprs =
         CelNavigableExpr.fromExpr(mutatedRoot.build())
             .allNodes()

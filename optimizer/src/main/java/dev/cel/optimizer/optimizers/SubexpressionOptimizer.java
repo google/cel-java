@@ -29,6 +29,9 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelSource;
+import dev.cel.common.CelSource.Extension;
+import dev.cel.common.CelSource.Extension.Component;
+import dev.cel.common.CelSource.Extension.Version;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
@@ -87,6 +90,10 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
               stream(Operator.values()).map(Operator::getFunction),
               stream(Standard.Function.values()).map(Standard.Function::getFunction))
           .collect(toImmutableSet());
+
+  private static final Extension CEL_BLOCK_AST_EXTENSION_TAG =
+      Extension.create("cel_block", Version.of(1L, 1L), Component.COMPONENT_RUNTIME);
+
   private final SubexpressionOptimizerOptions cseOptions;
   private final MutableAst mutableAst;
 
@@ -209,7 +216,16 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     // Restore the expected result type the environment had prior to optimization.
     celBuilder.setResultType(resultType);
-    return astToModify;
+
+    return tagAstExtension(astToModify);
+  }
+
+  private static CelAbstractSyntaxTree tagAstExtension(CelAbstractSyntaxTree ast) {
+    // Tag the extension
+    CelSource.Builder celSourceBuilder =
+        ast.getSource().toBuilder().addAllExtensions(CEL_BLOCK_AST_EXTENSION_TAG);
+
+    return CelAbstractSyntaxTree.newParsedAst(ast.getExpr(), celSourceBuilder.build());
   }
 
   /**
@@ -510,7 +526,9 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
       /**
        * Rewrites the optimized AST using cel.@block call instead of cascaded cel.bind macros, aimed
-       * to produce a more compact AST.
+       * to produce a more compact AST. {@link com.google.api.expr.SourceInfo.Extension} field will
+       * be populated in the AST to inform that special runtime support is required to evaluate the
+       * optimized expression.
        */
       public abstract Builder enableCelBlock(boolean value);
 

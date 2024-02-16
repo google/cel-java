@@ -30,6 +30,9 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
+import dev.cel.common.CelSource.Extension;
+import dev.cel.common.CelSource.Extension.Component;
+import dev.cel.common.CelSource.Extension.Version;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelConstant;
@@ -1107,6 +1110,27 @@ public class SubexpressionOptimizerTest {
                             .build())
                     .optimize(ast));
     assertThat(e).hasMessageThat().isEqualTo("Optimization failure: Max iteration count reached.");
+  }
+
+  @Test
+  public void celBlock_astExtensionTagged() throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("size(x) + size(x)").getAst();
+    CelOptimizer optimizer =
+        CelOptimizerFactory.standardCelOptimizerBuilder(CEL)
+            .addAstOptimizers(
+                SubexpressionOptimizer.newInstance(
+                    SubexpressionOptimizerOptions.newBuilder()
+                        .populateMacroCalls(true)
+                        .enableCelBlock(true)
+                        .build()),
+                ConstantFoldingOptimizer.getInstance())
+            .build();
+
+    CelAbstractSyntaxTree optimizedAst = optimizer.optimize(ast);
+
+    assertThat(optimizedAst.getSource().getExtensions())
+        .containsExactly(
+            Extension.create("cel_block", Version.of(1L, 1L), Component.COMPONENT_RUNTIME));
   }
 
   private enum BlockTestCase {

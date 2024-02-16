@@ -184,6 +184,7 @@ public final class CelSource {
     return new Builder(codePoints, lineOffsets)
         .setDescription(description)
         .addPositionsMap(positions)
+        .addAllExtensions(extensions)
         .addAllMacroCalls(macroCalls);
   }
 
@@ -354,7 +355,7 @@ public final class CelSource {
    */
   @AutoValue
   @Immutable
-  abstract static class Extension {
+  public abstract static class Extension {
 
     /** Identifier for the extension. Example: constant_folding */
     abstract String id();
@@ -371,9 +372,10 @@ public final class CelSource {
      */
     abstract ImmutableList<Component> affectedComponents();
 
+    /** Version of the extension */
     @AutoValue
     @Immutable
-    abstract static class Version {
+    public abstract static class Version {
 
       /**
        * Major version changes indicate different required support level from the required
@@ -388,13 +390,13 @@ public final class CelSource {
       abstract long minor();
 
       /** Create a new instance of Version with the provided major and minor values. */
-      static Version of(long major, long minor) {
+      public static Version of(long major, long minor) {
         return new AutoValue_CelSource_Extension_Version(major, minor);
       }
     }
 
     /** CEL component specifier. */
-    enum Component {
+    public enum Component {
       /** Unspecified, default. */
       COMPONENT_UNSPECIFIED,
       /** Parser. Converts a CEL string to an AST. */
@@ -406,14 +408,14 @@ public final class CelSource {
     }
 
     @CheckReturnValue
-    static Extension create(String id, Version version, Iterable<Component> components) {
+    public static Extension create(String id, Version version, Iterable<Component> components) {
       checkNotNull(version);
       checkNotNull(components);
       return new AutoValue_CelSource_Extension(id, version, ImmutableList.copyOf(components));
     }
 
     @CheckReturnValue
-    static Extension create(String id, Version version, Component... components) {
+    public static Extension create(String id, Version version, Component... components) {
       return create(id, version, Arrays.asList(components));
     }
   }

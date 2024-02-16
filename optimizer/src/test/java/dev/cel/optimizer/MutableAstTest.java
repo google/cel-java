@@ -27,6 +27,9 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
+import dev.cel.common.CelSource;
+import dev.cel.common.CelSource.Extension;
+import dev.cel.common.CelSource.Extension.Version;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
@@ -99,6 +102,7 @@ public class MutableAstTest {
     assertThat(mutatedAst.getSource().getDescription()).isEmpty();
     assertThat(mutatedAst.getSource().getLineOffsets()).isEmpty();
     assertThat(mutatedAst.getSource().getPositionsMap()).isEmpty();
+    assertThat(mutatedAst.getSource().getExtensions()).isEmpty();
     assertThat(mutatedAst.getSource().getMacroCalls()).isEmpty();
   }
 
@@ -113,7 +117,24 @@ public class MutableAstTest {
     assertThat(mutatedAst.getSource().getDescription()).isEmpty();
     assertThat(mutatedAst.getSource().getLineOffsets()).isEmpty();
     assertThat(mutatedAst.getSource().getPositionsMap()).isEmpty();
+    assertThat(mutatedAst.getSource().getExtensions()).isEmpty();
     assertThat(mutatedAst.getSource().getMacroCalls()).isNotEmpty();
+  }
+
+  @Test
+  public void mutableAst_astContainsTaggedExtension_retained() throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("has(TestAllTypes{}.single_int32)").getAst();
+    Extension extension = Extension.create("test", Version.of(1, 1));
+    CelSource celSource = ast.getSource().toBuilder().addAllExtensions(extension).build();
+    ast =
+        CelAbstractSyntaxTree.newCheckedAst(
+            ast.getExpr(), celSource, ast.getReferenceMap(), ast.getTypeMap());
+
+    CelAbstractSyntaxTree mutatedAst =
+        MUTABLE_AST.replaceSubtree(
+            ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(true)).build(), 1);
+
+    assertThat(mutatedAst.getSource().getExtensions()).containsExactly(extension);
   }
 
   @Test
