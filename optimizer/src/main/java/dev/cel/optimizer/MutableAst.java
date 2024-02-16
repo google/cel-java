@@ -23,6 +23,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelSource;
@@ -200,10 +201,11 @@ public final class MutableAst {
    * @param newIdentPrefix Prefix to use for new identifier names. For example, providing @c will
    *     produce @c0, @c1, @c2... as new names.
    */
-  public CelAbstractSyntaxTree mangleComprehensionIdentifierNames(
+  public MangledComprehensionAst mangleComprehensionIdentifierNames(
       CelAbstractSyntaxTree ast, String newIdentPrefix) {
     int iterCount;
     CelNavigableAst newNavigableAst = CelNavigableAst.fromAst(ast);
+    ImmutableSet.Builder<String> mangledComprehensionIdents = ImmutableSet.builder();
     for (iterCount = 0; iterCount < iterationLimit; iterCount++) {
       CelNavigableExpr comprehensionNode =
           newNavigableAst
@@ -223,6 +225,7 @@ public final class MutableAst {
       String iterVar = comprehensionExpr.comprehension().iterVar();
       int comprehensionNestingLevel = countComprehensionNestingLevel(comprehensionNode);
       String mangledVarName = newIdentPrefix + comprehensionNestingLevel;
+      mangledComprehensionIdents.add(mangledVarName);
 
       CelExpr.Builder mutatedComprehensionExpr =
           mangleIdentsInComprehensionExpr(
@@ -251,7 +254,7 @@ public final class MutableAst {
       throw new IllegalStateException("Max iteration count reached.");
     }
 
-    return newNavigableAst.getAst();
+    return MangledComprehensionAst.of(newNavigableAst.getAst(), mangledComprehensionIdents.build());
   }
 
   /**
@@ -573,6 +576,25 @@ public final class MutableAst {
       maybeParent = maybeParent.get().parent();
     }
     return nestedLevel;
+  }
+
+  /**
+   * Intermediate value class to store the mangled identifiers for iteration variable in the
+   * comprehension.
+   */
+  @AutoValue
+  public abstract static class MangledComprehensionAst {
+
+    /** AST after the iteration variables have been mangled. */
+    public abstract CelAbstractSyntaxTree ast();
+
+    /** Set of identifiers with the iteration variable mangled. */
+    public abstract ImmutableSet<String> mangledComprehensionIdents();
+
+    private static MangledComprehensionAst of(
+        CelAbstractSyntaxTree ast, ImmutableSet<String> mangledComprehensionIdents) {
+      return new AutoValue_MutableAst_MangledComprehensionAst(ast, mangledComprehensionIdents);
+    }
   }
 
   /**

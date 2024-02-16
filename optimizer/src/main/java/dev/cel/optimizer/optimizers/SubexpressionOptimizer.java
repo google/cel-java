@@ -33,6 +33,7 @@ import dev.cel.common.CelSource.Extension;
 import dev.cel.common.CelSource.Extension.Component;
 import dev.cel.common.CelSource.Extension.Version;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelIdent;
@@ -45,6 +46,7 @@ import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.optimizer.CelAstOptimizer;
 import dev.cel.optimizer.MutableAst;
+import dev.cel.optimizer.MutableAst.MangledComprehensionAst;
 import dev.cel.parser.Operator;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -90,10 +92,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
               stream(Operator.values()).map(Operator::getFunction),
               stream(Standard.Function.values()).map(Standard.Function::getFunction))
           .collect(toImmutableSet());
-
   private static final Extension CEL_BLOCK_AST_EXTENSION_TAG =
       Extension.create("cel_block", Version.of(1L, 1L), Component.COMPONENT_RUNTIME);
-
   private final SubexpressionOptimizerOptions cseOptions;
   private final MutableAst mutableAst;
 
@@ -125,10 +125,13 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     // Retain the original expected result type, so that it can be reset in celBuilder at the end of
     // the optimization pass.
     CelType resultType = navigableAst.getAst().getResultType();
-    CelAbstractSyntaxTree astToModify =
+    MangledComprehensionAst mangledComprehensionAst =
         mutableAst.mangleComprehensionIdentifierNames(
             navigableAst.getAst(), MANGLED_COMPREHENSION_IDENTIFIER_PREFIX);
+    CelAbstractSyntaxTree astToModify = mangledComprehensionAst.ast();
     CelSource sourceToModify = astToModify.getSource();
+    ImmutableSet<CelVarDecl> mangledIdentDecls =
+        newMangledIdentDecls(celBuilder, mangledComprehensionAst);
 
     int blockIdentifierIndex = 0;
     int iterCount;
@@ -187,6 +190,9 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       return astToModify;
     }
 
+    // Add all mangled comprehension identifiers to the environment, so that the subexpressions can
+    // retain context to them.
+    celBuilder.addVarDeclarations(mangledIdentDecls);
     // Type-check all sub-expressions then add them as block identifiers to the CEL environment
     addBlockIdentsToEnv(celBuilder, subexpressions);
 
@@ -254,10 +260,47 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     }
   }
 
+  private static ImmutableSet<CelVarDecl> newMangledIdentDecls(
+      CelBuilder celBuilder, MangledComprehensionAst mangledComprehensionAst) {
+    if (mangledComprehensionAst.mangledComprehensionIdents().isEmpty()) {
+      return ImmutableSet.of();
+    }
+    CelAbstractSyntaxTree ast = mangledComprehensionAst.ast();
+    try {
+      ast = celBuilder.build().check(ast).getAst();
+    } catch (CelValidationException e) {
+      throw new IllegalStateException("Failed to type-check mangled AST.", e);
+    }
+
+    ImmutableSet.Builder<CelVarDecl> mangledVarDecls = ImmutableSet.builder();
+    for (String ident : mangledComprehensionAst.mangledComprehensionIdents()) {
+      CelExpr mangledIdentExpr =
+          CelNavigableAst.fromAst(ast)
+              .getRoot()
+              .allNodes()
+              .filter(node -> node.getKind().equals(Kind.IDENT))
+              .map(CelNavigableExpr::expr)
+              .filter(expr -> expr.ident().name().equals(ident))
+              .findAny()
+              .orElse(null);
+      if (mangledIdentExpr == null) {
+        break;
+      }
+
+      CelType mangledIdentType =
+          ast.getType(mangledIdentExpr.id()).orElseThrow(() -> new NoSuchElementException("?"));
+      mangledVarDecls.add(CelVarDecl.newVarDeclaration(ident, mangledIdentType));
+    }
+
+    return mangledVarDecls.build();
+  }
+
   private CelAbstractSyntaxTree optimizeUsingCelBind(CelNavigableAst navigableAst) {
     CelAbstractSyntaxTree astToModify =
-        mutableAst.mangleComprehensionIdentifierNames(
-            navigableAst.getAst(), MANGLED_COMPREHENSION_IDENTIFIER_PREFIX);
+        mutableAst
+            .mangleComprehensionIdentifierNames(
+                navigableAst.getAst(), MANGLED_COMPREHENSION_IDENTIFIER_PREFIX)
+            .ast();
     CelSource sourceToModify = astToModify.getSource();
 
     int bindIdentifierIndex = 0;
@@ -526,9 +569,9 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
       /**
        * Rewrites the optimized AST using cel.@block call instead of cascaded cel.bind macros, aimed
-       * to produce a more compact AST. {@link com.google.api.expr.SourceInfo.Extension} field will
-       * be populated in the AST to inform that special runtime support is required to evaluate the
-       * optimized expression.
+       * to produce a more compact AST. {@link CelSource.Extension} field will be populated in the
+       * AST to inform that special runtime support is required to evaluate the optimized
+       * expression.
        */
       public abstract Builder enableCelBlock(boolean value);
 

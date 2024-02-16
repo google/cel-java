@@ -681,7 +681,8 @@ public class MutableAstTest {
   public void mangleComprehensionVariable_singleMacro() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("[false].exists(i, i)").getAst();
 
-    CelAbstractSyntaxTree mangledAst = MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c");
+    CelAbstractSyntaxTree mangledAst =
+        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c").ast();
 
     assertThat(mangledAst.getExpr().toString())
         .isEqualTo(
@@ -741,7 +742,8 @@ public class MutableAstTest {
   public void mangleComprehensionVariable_nestedMacroWithShadowedVariables() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("[x].exists(x, [x].exists(x, x == 1))").getAst();
 
-    CelAbstractSyntaxTree mangledAst = MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c");
+    CelAbstractSyntaxTree mangledAst =
+        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c").ast();
 
     assertThat(mangledAst.getExpr().toString())
         .isEqualTo(
@@ -858,7 +860,8 @@ public class MutableAstTest {
   public void mangleComprehensionVariable_hasMacro_noOp() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("has(msg.single_int64)").getAst();
 
-    CelAbstractSyntaxTree mangledAst = MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c");
+    CelAbstractSyntaxTree mangledAst =
+        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c").ast();
 
     assertThat(CEL_UNPARSER.unparse(mangledAst)).isEqualTo("has(msg.single_int64)");
     assertThat(

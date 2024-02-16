@@ -91,6 +91,8 @@ public class SubexpressionOptimizerTest {
                   CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)))
           // Similarly, this is a test only decl (index0 -> @index0)
           .addVarDeclarations(
+              CelVarDecl.newVarDeclaration("c0", SimpleType.DYN),
+              CelVarDecl.newVarDeclaration("c1", SimpleType.DYN),
               CelVarDecl.newVarDeclaration("index0", SimpleType.DYN),
               CelVarDecl.newVarDeclaration("index1", SimpleType.DYN),
               CelVarDecl.newVarDeclaration("index2", SimpleType.DYN),
@@ -506,8 +508,9 @@ public class SubexpressionOptimizerTest {
         "size([\"foo\", \"bar\"].map(x, [x + x, x + x]).map(x, [x + x, x + x])) == 2",
         "size([\"foo\", \"bar\"].map(@c1, cel.bind(@r0, @c1 + @c1, [@r0, @r0]))"
             + ".map(@c0, cel.bind(@r1, @c0 + @c0, [@r1, @r1]))) == 2",
-        "Currently Unsupported"), // TODO: Handle comprehension variables that fall
-                                  // outside the cel.block scope
+        "cel.@block([@c1 + @c1, @c0 + @c0], "
+            + "size([\"foo\", \"bar\"].map(@c1, [@index0, @index0])"
+            + ".map(@c0, [@index1, @index1])) == 2)"),
     PRESENCE_TEST(
         "has({'a': true}.a) && {'a':true}['a']",
         "cel.bind(@r0, {\"a\": true}, has(@r0.a) && @r0[\"a\"])",
@@ -683,10 +686,6 @@ public class SubexpressionOptimizerTest {
   @Test
   public void cse_withCelBlock_macroMapPopulated(@TestParameter CseTestCase testCase)
       throws Exception {
-    if (testCase.equals(CseTestCase.MACRO_SHADOWED_VARIABLE_2)) {
-      // TODO: Handle comprehension variables that fall outside the cel.block scope
-      return;
-    }
     CelOptimizer celOptimizer =
         newCseOptimizer(
             SubexpressionOptimizerOptions.newBuilder()
@@ -709,10 +708,6 @@ public class SubexpressionOptimizerTest {
   @Test
   public void cse_withCelBlock_macroMapUnpopulated(@TestParameter CseTestCase testCase)
       throws Exception {
-    if (testCase.equals(CseTestCase.MACRO_SHADOWED_VARIABLE_2)) {
-      // TODO: Handle comprehension variables that fall outside the cel.block scope
-      return;
-    }
     CelOptimizer celOptimizer =
         newCseOptimizer(
             SubexpressionOptimizerOptions.newBuilder()
@@ -730,6 +725,32 @@ public class SubexpressionOptimizerTest {
                     ImmutableMap.of(
                         "msg", TEST_ALL_TYPES_INPUT, "x", 5L, "opt_x", Optional.of(5L))))
         .isEqualTo(true);
+  }
+
+  @Test
+  public void celBlock_nestedComprehension_iterVarReferencedAcrossComprehensions()
+      throws Exception {
+    String nestedComprehension =
+        "[\"foo\"].map(x, [[\"bar\"], [x + x, x + x]] + [\"bar\"].map(y, [x + y, [\"baz\"].map(z,"
+            + " [x + y + z, x + y, x + y + z])])) == [[[\"bar\"], [\"foofoo\", \"foofoo\"],"
+            + " [\"foobar\", [[\"foobarbaz\", \"foobar\", \"foobarbaz\"]]]]]";
+    CelOptimizer celOptimizer =
+        newCseOptimizer(
+            SubexpressionOptimizerOptions.newBuilder()
+                .populateMacroCalls(true)
+                .enableCelBlock(true)
+                .build());
+    CelAbstractSyntaxTree ast = CEL.compile(nestedComprehension).getAst();
+
+    CelAbstractSyntaxTree optimizedAst = celOptimizer.optimize(ast);
+
+    assertThat(CEL.createProgram(optimizedAst).eval()).isEqualTo(true);
+    assertThat(CEL_UNPARSER.unparse(optimizedAst))
+        .isEqualTo(
+            "cel.@block([@c0 + @c0, [\"bar\"], @c0 + @c1, @index2 + @c2], [\"foo\"].map(@c0,"
+                + " [@index1, [@index0, @index0]] + @index1.map(@c1, [@index2, [\"baz\"].map(@c2,"
+                + " [@index3, @index2, @index3])])) == [[@index1, [\"foofoo\", \"foofoo\"],"
+                + " [\"foobar\", [[\"foobarbaz\", \"foobar\", \"foobarbaz\"]]]]])");
   }
 
   @Test
@@ -1261,6 +1282,37 @@ public class SubexpressionOptimizerTest {
     boolean result = (boolean) celRuntime.createProgram(ast).eval();
 
     assertThat(result).isTrue();
+    assertThat(invocation.get()).isEqualTo(1);
+  }
+
+  @Test
+  @SuppressWarnings("Immutable") // Test only
+  public void lazyEval_nestedComprehension_indexReferencedInNestedScopes() throws Exception {
+    AtomicInteger invocation = new AtomicInteger();
+    CelRuntime celRuntime =
+        CelRuntimeFactory.standardCelRuntimeBuilder()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .addFunctionBindings(
+                CelFunctionBinding.from(
+                    "get_true_overload",
+                    ImmutableList.of(),
+                    arg -> {
+                      invocation.getAndIncrement();
+                      return true;
+                    }))
+            .build();
+    // Equivalent of [true, false, true].map(c0, [c0].map(c1, [c0, c1, true]))
+    CelAbstractSyntaxTree ast =
+        compileUsingInternalFunctions(
+            "cel.block([c0, c1, get_true()], [index2, false, index2].map(c0, [c0].map(c1, [index0,"
+                + " index1, index2]))) == [[[true, true, true]], [[false, false, true]], [[true,"
+                + " true, true]]]");
+
+    boolean result = (boolean) celRuntime.createProgram(ast).eval();
+
+    assertThat(result).isTrue();
+    // Even though the function get_true() is referenced across different comprehension scopes,
+    // it still gets memoized only once.
     assertThat(invocation.get()).isEqualTo(1);
   }
 
