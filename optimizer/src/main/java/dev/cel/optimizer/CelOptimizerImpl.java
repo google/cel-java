@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.bundle.Cel;
+import dev.cel.bundle.CelBuilder;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.navigation.CelNavigableAst;
@@ -39,11 +40,12 @@ final class CelOptimizerImpl implements CelOptimizer {
     }
 
     CelAbstractSyntaxTree optimizedAst = ast;
+    CelBuilder celBuilder = cel.toCelBuilder();
     try {
       for (CelAstOptimizer optimizer : astOptimizers) {
-        CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
-        optimizedAst = optimizer.optimize(navigableAst, cel);
-        optimizedAst = cel.check(optimizedAst).getAst();
+        CelNavigableAst navigableAst = CelNavigableAst.fromAst(optimizedAst);
+        optimizedAst = optimizer.optimize(navigableAst, celBuilder);
+        optimizedAst = celBuilder.build().check(optimizedAst).getAst();
       }
     } catch (CelValidationException e) {
       throw new CelOptimizationException(

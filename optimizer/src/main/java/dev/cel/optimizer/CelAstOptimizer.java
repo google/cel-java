@@ -14,7 +14,7 @@
 
 package dev.cel.optimizer;
 
-import dev.cel.bundle.Cel;
+import dev.cel.bundle.CelBuilder;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.navigation.CelNavigableAst;
 
@@ -22,6 +22,6 @@ import dev.cel.common.navigation.CelNavigableAst;
 public interface CelAstOptimizer {
 
   /** Optimizes a single AST. */
-  CelAbstractSyntaxTree optimize(CelNavigableAst navigableAst, Cel cel)
+  CelAbstractSyntaxTree optimize(CelNavigableAst navigableAst, CelBuilder cel)
       throws CelOptimizationException;
 }
