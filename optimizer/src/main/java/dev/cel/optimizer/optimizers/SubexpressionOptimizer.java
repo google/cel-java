@@ -130,8 +130,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
             navigableAst.getAst(), MANGLED_COMPREHENSION_IDENTIFIER_PREFIX);
     CelAbstractSyntaxTree astToModify = mangledComprehensionAst.ast();
     CelSource sourceToModify = astToModify.getSource();
-    ImmutableSet<CelVarDecl> mangledIdentDecls =
-        newMangledIdentDecls(celBuilder, mangledComprehensionAst);
 
     int blockIdentifierIndex = 0;
     int iterCount;
@@ -192,7 +190,11 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     // Add all mangled comprehension identifiers to the environment, so that the subexpressions can
     // retain context to them.
-    celBuilder.addVarDeclarations(mangledIdentDecls);
+    mangledComprehensionAst
+        .mangledComprehensionIdents()
+        .forEach(
+            (identName, type) ->
+                celBuilder.addVarDeclarations(CelVarDecl.newVarDeclaration(identName, type)));
     // Type-check all sub-expressions then add them as block identifiers to the CEL environment
     addBlockIdentsToEnv(celBuilder, subexpressions);
 
@@ -258,41 +260,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
       celBuilder.addVar("@index" + i, subAst.getResultType());
     }
-  }
-
-  private static ImmutableSet<CelVarDecl> newMangledIdentDecls(
-      CelBuilder celBuilder, MangledComprehensionAst mangledComprehensionAst) {
-    if (mangledComprehensionAst.mangledComprehensionIdents().isEmpty()) {
-      return ImmutableSet.of();
-    }
-    CelAbstractSyntaxTree ast = mangledComprehensionAst.ast();
-    try {
-      ast = celBuilder.build().check(ast).getAst();
-    } catch (CelValidationException e) {
-      throw new IllegalStateException("Failed to type-check mangled AST.", e);
-    }
-
-    ImmutableSet.Builder<CelVarDecl> mangledVarDecls = ImmutableSet.builder();
-    for (String ident : mangledComprehensionAst.mangledComprehensionIdents()) {
-      CelExpr mangledIdentExpr =
-          CelNavigableAst.fromAst(ast)
-              .getRoot()
-              .allNodes()
-              .filter(node -> node.getKind().equals(Kind.IDENT))
-              .map(CelNavigableExpr::expr)
-              .filter(expr -> expr.ident().name().equals(ident))
-              .findAny()
-              .orElse(null);
-      if (mangledIdentExpr == null) {
-        break;
-      }
-
-      CelType mangledIdentType =
-          ast.getType(mangledIdentExpr.id()).orElseThrow(() -> new NoSuchElementException("?"));
-      mangledVarDecls.add(CelVarDecl.newVarDeclaration(ident, mangledIdentType));
-    }
-
-    return mangledVarDecls.build();
   }
 
   private CelAbstractSyntaxTree optimizeUsingCelBind(CelNavigableAst navigableAst) {

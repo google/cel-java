@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
+// import com.google.testing.testsize.MediumTest;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelBuilder;
 import dev.cel.bundle.CelFactory;
@@ -65,6 +66,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+// @MediumTest
 @RunWith(TestParameterInjector.class)
 public class SubexpressionOptimizerTest {
 
@@ -478,15 +480,22 @@ public class SubexpressionOptimizerTest {
         // the same.
         "size([[1].exists(i, i > 0)]) + size([[1].exists(j, j > 0)]) + "
             + "size([[2].exists(k, k > 1)]) + size([[2].exists(l, l > 1)]) == 4",
-        "cel.bind(@r1, size([[2].exists(@c0, @c0 > 1)]), "
-            + "cel.bind(@r0, size([[1].exists(@c0, @c0 > 0)]), @r0 + @r0) + @r1 + @r1) == 4",
-        "cel.@block([size([[1].exists(@c0, @c0 > 0)]), size([[2].exists(@c0, @c0 > 1)])], @index0 +"
-            + " @index0 + @index1 + @index1 == 4)"),
+        "cel.bind(@r1, size([[2].exists(@c0:0, @c0:0 > 1)]), "
+            + "cel.bind(@r0, size([[1].exists(@c0:0, @c0:0 > 0)]), @r0 + @r0) + @r1 + @r1) == 4",
+        "cel.@block([size([[1].exists(@c0:0, @c0:0 > 0)]), size([[2].exists(@c0:0, @c0:0 > 1)])],"
+            + " @index0 + @index0 + @index1 + @index1 == 4)"),
+    MULTIPLE_MACROS_2(
+        "[[1].exists(i, i > 0)] + [[1].exists(j, j > 0)] + [['a'].exists(k, k == 'a')] +"
+            + " [['a'].exists(l, l == 'a')] == [true, true, true, true]",
+        "cel.bind(@r1, [[\"a\"].exists(@c0:1, @c0:1 == \"a\")], cel.bind(@r0, [[1].exists(@c0:0,"
+            + " @c0:0 > 0)], @r0 + @r0) + @r1 + @r1) == [true, true, true, true]",
+        "cel.@block([[[1].exists(@c0:0, @c0:0 > 0)], [[\"a\"].exists(@c0:1, @c0:1 == \"a\")]],"
+            + " @index0 + @index0 + @index1 + @index1 == [true, true, true, true])"),
     NESTED_MACROS(
         "[1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [[2, 3, 4], [2, 3, 4], [2, 3, 4]]",
-        "cel.bind(@r0, [1, 2, 3], @r0.map(@c0, @r0.map(@c1, @c1 + 1))) == "
+        "cel.bind(@r0, [1, 2, 3], @r0.map(@c0:0, @r0.map(@c1:0, @c1:0 + 1))) == "
             + "cel.bind(@r1, [2, 3, 4], [@r1, @r1, @r1])",
-        "cel.@block([[1, 2, 3], [2, 3, 4]], @index0.map(@c0, @index0.map(@c1, @c1 + 1)) =="
+        "cel.@block([[1, 2, 3], [2, 3, 4]], @index0.map(@c0:0, @index0.map(@c1:0, @c1:0 + 1)) =="
             + " [@index1, @index1, @index1])"),
     INCLUSION_LIST(
         "1 in [1,2,3] && 2 in [1,2,3] && 3 in [3, [1,2,3]] && 1 in [1,2,3]",
@@ -500,17 +509,17 @@ public class SubexpressionOptimizerTest {
         "cel.@block([{true: false}], 2 in {\"a\": 1, 2: @index0, 3: @index0})"),
     MACRO_SHADOWED_VARIABLE(
         "[x - 1 > 3 ? x - 1 : 5].exists(x, x - 1 > 3) || x - 1 > 3",
-        "cel.bind(@r0, x - 1, cel.bind(@r1, @r0 > 3, [@r1 ? @r0 : 5].exists(@c0, @c0 - 1 > 3) ||"
-            + " @r1))",
-        "cel.@block([x - 1, @index0 > 3], [@index1 ? @index0 : 5].exists(@c0, @c0 - 1 > 3) ||"
+        "cel.bind(@r0, x - 1, cel.bind(@r1, @r0 > 3, [@r1 ? @r0 : 5].exists(@c0:0, @c0:0 - 1 > 3)"
+            + " || @r1))",
+        "cel.@block([x - 1, @index0 > 3], [@index1 ? @index0 : 5].exists(@c0:0, @c0:0 - 1 > 3) ||"
             + " @index1)"),
     MACRO_SHADOWED_VARIABLE_2(
         "size([\"foo\", \"bar\"].map(x, [x + x, x + x]).map(x, [x + x, x + x])) == 2",
-        "size([\"foo\", \"bar\"].map(@c1, cel.bind(@r0, @c1 + @c1, [@r0, @r0]))"
-            + ".map(@c0, cel.bind(@r1, @c0 + @c0, [@r1, @r1]))) == 2",
-        "cel.@block([@c1 + @c1, @c0 + @c0], "
-            + "size([\"foo\", \"bar\"].map(@c1, [@index0, @index0])"
-            + ".map(@c0, [@index1, @index1])) == 2)"),
+        "size([\"foo\", \"bar\"].map(@c1:0, cel.bind(@r0, @c1:0 + @c1:0, [@r0, @r0]))"
+            + ".map(@c0:0, cel.bind(@r1, @c0:0 + @c0:0, [@r1, @r1]))) == 2",
+        "cel.@block([@c1:0 + @c1:0, @c0:0 + @c0:0], "
+            + "size([\"foo\", \"bar\"].map(@c1:0, [@index0, @index0])"
+            + ".map(@c0:0, [@index1, @index1])) == 2)"),
     PRESENCE_TEST(
         "has({'a': true}.a) && {'a':true}['a']",
         "cel.bind(@r0, {\"a\": true}, has(@r0.a) && @r0[\"a\"])",
@@ -747,10 +756,11 @@ public class SubexpressionOptimizerTest {
     assertThat(CEL.createProgram(optimizedAst).eval()).isEqualTo(true);
     assertThat(CEL_UNPARSER.unparse(optimizedAst))
         .isEqualTo(
-            "cel.@block([@c0 + @c0, [\"bar\"], @c0 + @c1, @index2 + @c2], [\"foo\"].map(@c0,"
-                + " [@index1, [@index0, @index0]] + @index1.map(@c1, [@index2, [\"baz\"].map(@c2,"
-                + " [@index3, @index2, @index3])])) == [[@index1, [\"foofoo\", \"foofoo\"],"
-                + " [\"foobar\", [[\"foobarbaz\", \"foobar\", \"foobarbaz\"]]]]])");
+            "cel.@block([@c0:0 + @c0:0, [\"bar\"], @c0:0 + @c1:0, @index2 + @c2:0],"
+                + " [\"foo\"].map(@c0:0, [@index1, [@index0, @index0]] + @index1.map(@c1:0,"
+                + " [@index2, [\"baz\"].map(@c2:0, [@index3, @index2, @index3])])) == [[@index1,"
+                + " [\"foofoo\", \"foofoo\"], [\"foobar\", [[\"foobarbaz\", \"foobar\","
+                + " \"foobarbaz\"]]]]])");
   }
 
   @Test
@@ -1014,9 +1024,9 @@ public class SubexpressionOptimizerTest {
 
     assertThat(CEL_UNPARSER.unparse(optimizedAst))
         .isEqualTo(
-            "cel.bind(@r0, [1, 2, 3], cel.bind(@r1, size(@r0.map(@c0, @r0.map(@c1, @r0.map(@c2, "
-                + "@r0.map(@c3, @r0.map(@c4, @r0.map(@c5, @r0.map(@c6, @r0.map(@c7, @r0))))))))), "
-                + "@r1 + @r1 + @r1 + @r1 + @r1 + @r1 + @r1 + @r1 + @r1))");
+            "cel.bind(@r0, [1, 2, 3], cel.bind(@r1, size(@r0.map(i, @r0.map(i, @r0.map(i,"
+                + " @r0.map(i, @r0.map(i, @r0.map(i, @r0.map(i, @r0.map(i, @r0))))))))), @r1 + @r1"
+                + " + @r1 + @r1 + @r1 + @r1 + @r1 + @r1 + @r1))");
     assertThat(CEL.createProgram(optimizedAst).eval()).isEqualTo(27);
   }
 
@@ -1050,10 +1060,10 @@ public class SubexpressionOptimizerTest {
 
     assertThat(CEL_UNPARSER.unparse(optimizedAst))
         .isEqualTo(
-            "cel.@block([[1, 2, 3], size(@index0.map(@c0, @index0.map(@c1, @index0.map(@c2,"
-                + " @index0.map(@c3, @index0.map(@c4, @index0.map(@c5, @index0.map(@c6,"
-                + " @index0.map(@c7, @index0)))))))))], @index1 + @index1 + @index1 + @index1 +"
-                + " @index1 + @index1 + @index1 + @index1 + @index1)");
+            "cel.@block([[1, 2, 3], size(@index0.map(i, @index0.map(i, @index0.map(i,"
+                + " @index0.map(i, @index0.map(i, @index0.map(i, @index0.map(i, @index0.map(i,"
+                + " @index0)))))))))], @index1 + @index1 + @index1 + @index1 + @index1 + @index1 +"
+                + " @index1 + @index1 + @index1)");
     assertThat(CEL.createProgram(optimizedAst).eval()).isEqualTo(27);
   }
 

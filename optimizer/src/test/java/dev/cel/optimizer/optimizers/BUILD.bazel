@@ -7,7 +7,7 @@ java_library(
     testonly = 1,
     srcs = glob(["*.java"]),
     deps = [
-        "//:java_truth",
+        #         "//java/com/google/testing/testsize:annotations",
         "//bundle:cel",
         "//common",
         "//common:compiler_common",
@@ -28,9 +28,10 @@ java_library(
         "//parser:operator",
         "//parser:unparser",
         "//runtime",
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "//:java_truth",
+        "@maven//:com_google_guava_guava",
     ],
 )
 
@@ -38,6 +39,7 @@ junit4_test_suites(
     name = "test_suites",
     sizes = [
         "small",
+        "medium",
     ],
     src_dir = "src/test/java",
     deps = [":tests"],

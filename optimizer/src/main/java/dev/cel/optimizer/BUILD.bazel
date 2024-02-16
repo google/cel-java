@@ -88,6 +88,7 @@ java_library(
         "//common/ast",
         "//common/ast:expr_factory",
         "//common/navigation",
+        "//common/types:type_providers",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
