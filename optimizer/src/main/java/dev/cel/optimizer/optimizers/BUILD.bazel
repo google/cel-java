@@ -48,6 +48,7 @@ java_library(
         "//common/navigation",
         "//common/types",
         "//common/types:type_providers",
+        "//extensions:optional_library",
         "//optimizer:ast_optimizer",
         "//optimizer:mutable_ast",
         "//parser:operator",
