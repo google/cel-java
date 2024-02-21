@@ -21,6 +21,7 @@ java_library(
         "//common/ast",
         "//common/ast:expr_util",
         "//common/navigation",
+        "//extensions:optional_library",
         "//optimizer:ast_optimizer",
         "//optimizer:mutable_ast",
         "//optimizer:optimization_exception",

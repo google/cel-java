@@ -50,11 +50,26 @@ import java.util.Optional;
 public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeLibrary {
   public static final CelOptionalLibrary INSTANCE = new CelOptionalLibrary();
 
-  private static final String VALUE_FUNCTION = "value";
-  private static final String HAS_VALUE_FUNCTION = "hasValue";
-  private static final String OPTIONAL_NONE_FUNCTION = "optional.none";
-  private static final String OPTIONAL_OF_FUNCTION = "optional.of";
-  private static final String OPTIONAL_OF_NON_ZERO_VALUE_FUNCTION = "optional.ofNonZeroValue";
+  /** Enumerations of function names used for supporting optionals. */
+  public enum Function {
+    VALUE("value"),
+    HAS_VALUE("hasValue"),
+    OPTIONAL_NONE("optional.none"),
+    OPTIONAL_OF("optional.of"),
+    OPTIONAL_OF_NON_ZERO_VALUE("optional.ofNonZeroValue"),
+    OR("or"),
+    OR_VALUE("orValue");
+    private final String functionName;
+
+    public String getFunction() {
+      return functionName;
+    }
+
+    Function(String functionName) {
+      this.functionName = functionName;
+    }
+  }
+
   private static final String UNUSED_ITER_VAR = "#unused";
 
   @Override
@@ -80,20 +95,20 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
     MapType mapTypeKv = MapType.create(paramTypeK, paramTypeV);
     checkerBuilder.addFunctionDeclarations(
         CelFunctionDecl.newFunctionDeclaration(
-            OPTIONAL_OF_FUNCTION,
+            Function.OPTIONAL_OF.getFunction(),
             CelOverloadDecl.newGlobalOverload("optional_of", optionalTypeV, paramTypeV)),
         CelFunctionDecl.newFunctionDeclaration(
-            OPTIONAL_OF_NON_ZERO_VALUE_FUNCTION,
+            Function.OPTIONAL_OF_NON_ZERO_VALUE.getFunction(),
             CelOverloadDecl.newGlobalOverload(
                 "optional_ofNonZeroValue", optionalTypeV, paramTypeV)),
         CelFunctionDecl.newFunctionDeclaration(
-            OPTIONAL_NONE_FUNCTION,
+            Function.OPTIONAL_NONE.getFunction(),
             CelOverloadDecl.newGlobalOverload("optional_none", optionalTypeV)),
         CelFunctionDecl.newFunctionDeclaration(
-            VALUE_FUNCTION,
+            Function.VALUE.getFunction(),
             CelOverloadDecl.newMemberOverload("optional_value", paramTypeV, optionalTypeV)),
         CelFunctionDecl.newFunctionDeclaration(
-            HAS_VALUE_FUNCTION,
+            Function.HAS_VALUE.getFunction(),
             CelOverloadDecl.newMemberOverload("optional_hasValue", SimpleType.BOOL, optionalTypeV)),
         // Note: Implementation of "or" and "orValue" are special-cased inside the interpreter.
         // Hence, their bindings are not provided here.
@@ -218,18 +233,18 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
     return Optional.of(
         exprFactory.newGlobalCall(
             Operator.CONDITIONAL.getFunction(),
-            exprFactory.newReceiverCall(HAS_VALUE_FUNCTION, target),
+            exprFactory.newReceiverCall(Function.HAS_VALUE.getFunction(), target),
             exprFactory.newGlobalCall(
-                OPTIONAL_OF_FUNCTION,
+                Function.OPTIONAL_OF.getFunction(),
                 exprFactory.fold(
                     UNUSED_ITER_VAR,
                     exprFactory.newList(),
                     varName,
-                    exprFactory.newReceiverCall(VALUE_FUNCTION, target),
+                    exprFactory.newReceiverCall(Function.VALUE.getFunction(), target),
                     exprFactory.newBoolLiteral(true),
                     exprFactory.newIdentifier(varName),
                     mapExpr)),
-            exprFactory.newGlobalCall(OPTIONAL_NONE_FUNCTION)));
+            exprFactory.newGlobalCall(Function.OPTIONAL_NONE.getFunction())));
   }
 
   private static Optional<CelExpr> expandOptFlatMap(
@@ -252,16 +267,16 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
     return Optional.of(
         exprFactory.newGlobalCall(
             Operator.CONDITIONAL.getFunction(),
-            exprFactory.newReceiverCall(HAS_VALUE_FUNCTION, target),
+            exprFactory.newReceiverCall(Function.HAS_VALUE.getFunction(), target),
             exprFactory.fold(
                 UNUSED_ITER_VAR,
                 exprFactory.newList(),
                 varName,
-                exprFactory.newReceiverCall(VALUE_FUNCTION, target),
+                exprFactory.newReceiverCall(Function.VALUE.getFunction(), target),
                 exprFactory.newBoolLiteral(true),
                 exprFactory.newIdentifier(varName),
                 mapExpr),
-            exprFactory.newGlobalCall(OPTIONAL_NONE_FUNCTION)));
+            exprFactory.newGlobalCall(Function.OPTIONAL_NONE.getFunction())));
   }
 
   private CelOptionalLibrary() {}

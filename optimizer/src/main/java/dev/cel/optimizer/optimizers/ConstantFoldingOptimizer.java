@@ -32,6 +32,7 @@ import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelExprUtil;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
+import dev.cel.extensions.CelOptionalLibrary.Function;
 import dev.cel.optimizer.CelAstOptimizer;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.optimizer.MutableAst;
@@ -68,10 +69,9 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
 
   // Use optional.of and optional.none as sentinel function names for folding optional calls.
   // TODO: Leverage CelValue representation of Optionals instead when available.
-  private static final String OPTIONAL_OF_FUNCTION = "optional.of";
-  private static final String OPTIONAL_NONE_FUNCTION = "optional.none";
   private static final CelExpr OPTIONAL_NONE_EXPR =
-      CelExpr.ofCallExpr(0, Optional.empty(), OPTIONAL_NONE_FUNCTION, ImmutableList.of());
+      CelExpr.ofCallExpr(
+          0, Optional.empty(), Function.OPTIONAL_NONE.getFunction(), ImmutableList.of());
 
   private final ConstantFoldingOptions constantFoldingOptions;
   private final MutableAst mutableAst;
@@ -130,8 +130,8 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
         String functionName = celCall.function();
 
         // These are already folded or do not need to be folded.
-        if (functionName.equals(OPTIONAL_OF_FUNCTION)
-            || functionName.equals(OPTIONAL_NONE_FUNCTION)) {
+        if (functionName.equals(Function.OPTIONAL_OF.getFunction())
+            || functionName.equals(Function.OPTIONAL_NONE.getFunction())) {
           return false;
         }
 
@@ -264,13 +264,13 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   private Optional<CelAbstractSyntaxTree> maybeRewriteOptional(
       Optional<?> optResult, CelAbstractSyntaxTree ast, CelExpr expr) {
     if (!optResult.isPresent()) {
-      if (!expr.callOrDefault().function().equals(OPTIONAL_NONE_FUNCTION)) {
+      if (!expr.callOrDefault().function().equals(Function.OPTIONAL_NONE.getFunction())) {
         // An empty optional value was encountered. Rewrite the tree with optional.none call.
         // This is to account for other optional functions returning an empty optional value
         // e.g: optional.ofNonZeroValue(0)
         return Optional.of(mutableAst.replaceSubtree(ast, OPTIONAL_NONE_EXPR, expr.id()));
       }
-    } else if (!expr.callOrDefault().function().equals(OPTIONAL_OF_FUNCTION)) {
+    } else if (!expr.callOrDefault().function().equals(Function.OPTIONAL_OF.getFunction())) {
       Object unwrappedResult = optResult.get();
       if (!CelConstant.isConstantValue(unwrappedResult)) {
         // Evaluated result is not a constant. Leave the optional as is.
@@ -281,7 +281,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
           CelExpr.newBuilder()
               .setCall(
                   CelCall.newBuilder()
-                      .setFunction(OPTIONAL_OF_FUNCTION)
+                      .setFunction(Function.OPTIONAL_OF.getFunction())
                       .addArgs(
                           CelExpr.newBuilder()
                               .setConstant(CelConstant.ofObjectValue(unwrappedResult))
@@ -444,12 +444,12 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
 
       if (element.exprKind().getKind().equals(Kind.CALL)) {
         CelCall call = element.call();
-        if (call.function().equals(OPTIONAL_NONE_FUNCTION)) {
+        if (call.function().equals(Function.OPTIONAL_NONE.getFunction())) {
           // Skip optional.none.
           // Skipping causes the list to get smaller.
           newOptIndex--;
           continue;
-        } else if (call.function().equals(OPTIONAL_OF_FUNCTION)) {
+        } else if (call.function().equals(Function.OPTIONAL_OF.getFunction())) {
           CelExpr arg = call.args().get(0);
           if (arg.exprKind().getKind().equals(Kind.CONSTANT)) {
             updatedElemBuilder.add(call.args().get(0));
@@ -491,11 +491,11 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       }
 
       CelCall call = value.call();
-      if (call.function().equals(OPTIONAL_NONE_FUNCTION)) {
+      if (call.function().equals(Function.OPTIONAL_NONE.getFunction())) {
         // Skip the element. This is resolving an optional.none: ex {?1: optional.none()}.
         modified = true;
         continue;
-      } else if (call.function().equals(OPTIONAL_OF_FUNCTION)) {
+      } else if (call.function().equals(Function.OPTIONAL_OF.getFunction())) {
         CelExpr arg = call.args().get(0);
         if (arg.exprKind().getKind().equals(Kind.CONSTANT)) {
           modified = true;
@@ -537,11 +537,11 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       }
 
       CelCall call = value.call();
-      if (call.function().equals(OPTIONAL_NONE_FUNCTION)) {
+      if (call.function().equals(Function.OPTIONAL_NONE.getFunction())) {
         // Skip the element. This is resolving an optional.none: ex msg{?field: optional.none()}.
         modified = true;
         continue;
-      } else if (call.function().equals(OPTIONAL_OF_FUNCTION)) {
+      } else if (call.function().equals(Function.OPTIONAL_OF.getFunction())) {
         CelExpr arg = call.args().get(0);
         if (arg.exprKind().getKind().equals(Kind.CONSTANT)) {
           modified = true;
