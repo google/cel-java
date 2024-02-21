@@ -85,6 +85,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       new SubexpressionOptimizer(SubexpressionOptimizerOptions.newBuilder().build());
   private static final String BIND_IDENTIFIER_PREFIX = "@r";
   private static final String MANGLED_COMPREHENSION_IDENTIFIER_PREFIX = "@c";
+  private static final String MANGLED_COMPREHENSION_RESULT_PREFIX = "@x";
   private static final String CEL_BLOCK_FUNCTION = "cel.@block";
   private static final String BLOCK_INDEX_PREFIX = "@index";
   private static final ImmutableSet<String> CSE_ALLOWED_FUNCTIONS =
@@ -127,7 +128,9 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     CelType resultType = navigableAst.getAst().getResultType();
     MangledComprehensionAst mangledComprehensionAst =
         mutableAst.mangleComprehensionIdentifierNames(
-            navigableAst.getAst(), MANGLED_COMPREHENSION_IDENTIFIER_PREFIX);
+            navigableAst.getAst(),
+            MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
+            MANGLED_COMPREHENSION_RESULT_PREFIX);
     CelAbstractSyntaxTree astToModify = mangledComprehensionAst.ast();
     CelSource sourceToModify = astToModify.getSource();
 
@@ -191,10 +194,12 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     // Add all mangled comprehension identifiers to the environment, so that the subexpressions can
     // retain context to them.
     mangledComprehensionAst
-        .mangledComprehensionIdents()
+        .mangledComprehensionMap()
         .forEach(
-            (identName, type) ->
-                celBuilder.addVarDeclarations(CelVarDecl.newVarDeclaration(identName, type)));
+            (name, type) ->
+                celBuilder.addVarDeclarations(
+                    CelVarDecl.newVarDeclaration(name.iterVarName(), type.iterVarType()),
+                    CelVarDecl.newVarDeclaration(name.resultName(), type.resultType())));
     // Type-check all sub-expressions then add them as block identifiers to the CEL environment
     addBlockIdentsToEnv(celBuilder, subexpressions);
 
@@ -266,7 +271,9 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     CelAbstractSyntaxTree astToModify =
         mutableAst
             .mangleComprehensionIdentifierNames(
-                navigableAst.getAst(), MANGLED_COMPREHENSION_IDENTIFIER_PREFIX)
+                navigableAst.getAst(),
+                MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
+                MANGLED_COMPREHENSION_RESULT_PREFIX)
             .ast();
     CelSource sourceToModify = astToModify.getSource();
 
@@ -432,7 +439,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
                 // result, loopStep or iterRange. While result is not human authored, it needs to be
                 // included to extract subexpressions that are already in cel.bind macro.
                 CelNavigableExpr.fromExpr(parent.expr().comprehension().result()).descendants(),
-                CelNavigableExpr.fromExpr(parent.expr().comprehension().loopStep()).descendants(),
+                CelNavigableExpr.fromExpr(parent.expr().comprehension().loopStep()).allNodes(),
                 CelNavigableExpr.fromExpr(parent.expr().comprehension().iterRange()).allNodes())
             .filter(
                 node ->

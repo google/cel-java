@@ -1011,6 +1011,8 @@ public abstract class CelExpr {
     /** Builder for Comprehension. */
     @AutoValue.Builder
     public abstract static class Builder {
+      public abstract String accuVar();
+
       public abstract CelExpr iterRange();
 
       public abstract CelExpr accuInit();

@@ -682,7 +682,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("[false].exists(i, i)").getAst();
 
     CelAbstractSyntaxTree mangledAst =
-        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c").ast();
+        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c", "@x").ast();
 
     assertThat(mangledAst.getExpr().toString())
         .isEqualTo(
@@ -695,7 +695,7 @@ public class MutableAstTest {
                 + "      }\n"
                 + "    }\n"
                 + "  }\n"
-                + "  accu_var: __result__\n"
+                + "  accu_var: @x0:0\n"
                 + "  accu_init: {\n"
                 + "    CONSTANT [6] { value: false }\n"
                 + "  }\n"
@@ -707,7 +707,7 @@ public class MutableAstTest {
                 + "          function: !_\n"
                 + "          args: {\n"
                 + "            IDENT [7] {\n"
-                + "              name: __result__\n"
+                + "              name: @x0:0\n"
                 + "            }\n"
                 + "          }\n"
                 + "        }\n"
@@ -719,7 +719,7 @@ public class MutableAstTest {
                 + "      function: _||_\n"
                 + "      args: {\n"
                 + "        IDENT [10] {\n"
-                + "          name: __result__\n"
+                + "          name: @x0:0\n"
                 + "        }\n"
                 + "        IDENT [5] {\n"
                 + "          name: @c0:0\n"
@@ -729,7 +729,7 @@ public class MutableAstTest {
                 + "  }\n"
                 + "  result: {\n"
                 + "    IDENT [12] {\n"
-                + "      name: __result__\n"
+                + "      name: @x0:0\n"
                 + "    }\n"
                 + "  }\n"
                 + "}");
@@ -743,7 +743,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("[x].exists(x, [x].exists(x, x == 1))").getAst();
 
     CelAbstractSyntaxTree mangledAst =
-        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c").ast();
+        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c", "@x").ast();
 
     assertThat(mangledAst.getExpr().toString())
         .isEqualTo(
@@ -758,7 +758,7 @@ public class MutableAstTest {
                 + "      }\n"
                 + "    }\n"
                 + "  }\n"
-                + "  accu_var: __result__\n"
+                + "  accu_var: @x0:0\n"
                 + "  accu_init: {\n"
                 + "    CONSTANT [20] { value: false }\n"
                 + "  }\n"
@@ -770,7 +770,7 @@ public class MutableAstTest {
                 + "          function: !_\n"
                 + "          args: {\n"
                 + "            IDENT [21] {\n"
-                + "              name: __result__\n"
+                + "              name: @x0:0\n"
                 + "            }\n"
                 + "          }\n"
                 + "        }\n"
@@ -782,7 +782,7 @@ public class MutableAstTest {
                 + "      function: _||_\n"
                 + "      args: {\n"
                 + "        IDENT [24] {\n"
-                + "          name: __result__\n"
+                + "          name: @x0:0\n"
                 + "        }\n"
                 + "        COMPREHENSION [19] {\n"
                 + "          iter_var: @c1:0\n"
@@ -795,7 +795,7 @@ public class MutableAstTest {
                 + "              }\n"
                 + "            }\n"
                 + "          }\n"
-                + "          accu_var: __result__\n"
+                + "          accu_var: @x1:0\n"
                 + "          accu_init: {\n"
                 + "            CONSTANT [12] { value: false }\n"
                 + "          }\n"
@@ -807,7 +807,7 @@ public class MutableAstTest {
                 + "                  function: !_\n"
                 + "                  args: {\n"
                 + "                    IDENT [13] {\n"
-                + "                      name: __result__\n"
+                + "                      name: @x1:0\n"
                 + "                    }\n"
                 + "                  }\n"
                 + "                }\n"
@@ -819,7 +819,7 @@ public class MutableAstTest {
                 + "              function: _||_\n"
                 + "              args: {\n"
                 + "                IDENT [16] {\n"
-                + "                  name: __result__\n"
+                + "                  name: @x1:0\n"
                 + "                }\n"
                 + "                CALL [10] {\n"
                 + "                  function: _==_\n"
@@ -835,7 +835,7 @@ public class MutableAstTest {
                 + "          }\n"
                 + "          result: {\n"
                 + "            IDENT [18] {\n"
-                + "              name: __result__\n"
+                + "              name: @x1:0\n"
                 + "            }\n"
                 + "          }\n"
                 + "        }\n"
@@ -844,11 +844,10 @@ public class MutableAstTest {
                 + "  }\n"
                 + "  result: {\n"
                 + "    IDENT [26] {\n"
-                + "      name: __result__\n"
+                + "      name: @x0:0\n"
                 + "    }\n"
                 + "  }\n"
                 + "}");
-
     assertThat(CEL_UNPARSER.unparse(mangledAst))
         .isEqualTo("[x].exists(@c0:0, [@c0:0].exists(@c1:0, @c1:0 == 1))");
     assertThat(CEL.createProgram(CEL.check(mangledAst).getAst()).eval(ImmutableMap.of("x", 1)))
@@ -861,7 +860,7 @@ public class MutableAstTest {
     CelAbstractSyntaxTree ast = CEL.compile("has(msg.single_int64)").getAst();
 
     CelAbstractSyntaxTree mangledAst =
-        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c").ast();
+        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c", "@x").ast();
 
     assertThat(CEL_UNPARSER.unparse(mangledAst)).isEqualTo("has(msg.single_int64)");
     assertThat(
