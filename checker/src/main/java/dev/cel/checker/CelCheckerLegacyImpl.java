@@ -40,6 +40,7 @@ import dev.cel.common.CelSource;
 import dev.cel.common.CelSourceLocation;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.CelVarDecl;
+import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelExprConverter;
 import dev.cel.common.internal.EnvVisitable;
 import dev.cel.common.internal.EnvVisitor;
@@ -57,8 +58,12 @@ import java.util.TreeSet;
 /**
  * {@code CelChecker} implementation which uses the original CEL-Java APIs to provide a simple,
  * consistent interface for type-checking.
+ *
+ * <p>CEL Library Internals. Do Not Use. Consumers should use {@code CelCompilerFactory} to
+ * instantiate a type-checker.
  */
 @Immutable
+@Internal
 public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
 
   private final CelOptions celOptions;
