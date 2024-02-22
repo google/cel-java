@@ -15,8 +15,6 @@
 package dev.cel.common.navigation;
 
 import com.google.auto.value.AutoValue;
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.ExprKind;
@@ -69,7 +67,12 @@ public abstract class CelNavigableExpr {
 
   /** Constructs a new instance of {@link CelNavigableExpr} from {@link CelExpr}. */
   public static CelNavigableExpr fromExpr(CelExpr expr) {
-    return CelNavigableExpr.builder().setExpr(expr).build();
+    ExprHeightCalculator exprHeightCalculator = new ExprHeightCalculator(expr);
+
+    return CelNavigableExpr.builder()
+        .setExpr(expr)
+        .setHeight(exprHeightCalculator.getHeight(expr.id()))
+        .build();
   }
 
   /**
@@ -136,8 +139,6 @@ public abstract class CelNavigableExpr {
   @AutoValue.Builder
   public abstract static class Builder {
 
-    private Builder parentBuilder;
-
     public abstract CelExpr expr();
 
     public abstract int depth();
@@ -150,25 +151,11 @@ public abstract class CelNavigableExpr {
 
     abstract Builder setParent(CelNavigableExpr value);
 
-    @CanIgnoreReturnValue
-    public Builder setParentBuilder(CelNavigableExpr.Builder value) {
-      parentBuilder = value;
-      return this;
-    }
-
     public abstract Builder setDepth(int value);
 
     public abstract Builder setHeight(int value);
 
-    public abstract CelNavigableExpr autoBuild();
-
-    @CheckReturnValue
-    public CelNavigableExpr build() {
-      if (parentBuilder != null) {
-        setParent(parentBuilder.build());
-      }
-      return autoBuild();
-    }
+    public abstract CelNavigableExpr build();
   }
 
   public abstract Builder toBuilder();

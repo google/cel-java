@@ -153,22 +153,28 @@ public class CelNavigableExprVisitorTest {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder().addVar("a", SimpleType.INT).build();
     // Tree shape:
-    //           +
-    //      +         2
-    //  1        a
-    CelAbstractSyntaxTree ast = compiler.compile("1 + a + 2").getAst();
+    //              +
+    //         +         3
+    //     +        2
+    //  a     1
+    CelAbstractSyntaxTree ast = compiler.compile("1 + a + 2 + 3").getAst();
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
 
-    CelNavigableExpr oneConst =
+    ImmutableList.Builder<Integer> heights = ImmutableList.builder();
+    CelNavigableExpr navigableExpr =
         navigableAst
             .getRoot()
-            .descendants()
-            .filter(node -> node.expr().constantOrDefault().int64Value() == 1)
+            .allNodes()
+            .filter(node -> node.expr().identOrDefault().name().equals("a"))
             .findAny()
             .get();
-    assertThat(oneConst.height()).isEqualTo(0); // 1
-    assertThat(oneConst.parent().get().height()).isEqualTo(1); // +
-    assertThat(oneConst.parent().get().parent().get().height()).isEqualTo(2); // root
+    heights.add(navigableExpr.height());
+    while (navigableExpr.parent().isPresent()) {
+      navigableExpr = navigableExpr.parent().get();
+      heights.add(navigableExpr.height());
+    }
+
+    assertThat(heights.build()).containsExactly(3, 2, 1, 0);
   }
 
   @Test
@@ -178,9 +184,9 @@ public class CelNavigableExprVisitorTest {
         CelCompilerFactory.standardCelCompilerBuilder().addVar("a", SimpleType.INT).build();
     // Tree shape:
     //              +
-    //         +         2
-    //     +        a
-    //  3
+    //         +         3
+    //     +        2
+    //  a     1
     CelAbstractSyntaxTree ast = compiler.compile("1 + a + 2 + 3").getAst();
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
 
@@ -840,7 +846,6 @@ public class CelNavigableExprVisitorTest {
 
     ImmutableList<CelNavigableExpr> allNodes =
         navigableAst.getRoot().allNodes(TraversalOrder.PRE_ORDER).collect(toImmutableList());
-
     CelExpr iterRangeConstExpr = CelExpr.ofConstantExpr(2, CelConstant.ofValue(true));
     CelExpr iterRange =
         CelExpr.ofCreateListExpr(1, ImmutableList.of(iterRangeConstExpr), ImmutableList.of());

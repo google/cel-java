@@ -717,9 +717,9 @@ public class SubexpressionOptimizerTest {
         "cel.@block([{\"key\": \"test\"}], {?\"key\":"
             + " optional.of(\"test\")}[?\"bogus\"].or(@index0[?\"bogus\"]).orValue(@index0[\"key\"])"
             + " == \"test\")",
-        "cel.@block([{\"key\": \"test\"}, @index0[\"key\"], @index0[?\"bogus\"], {?\"key\":"
-            + " optional.of(\"test\")}, @index3[?\"bogus\"], @index4.or(@index2),"
-            + " @index5.orValue(@index1)], @index6 == \"test\")"),
+        "cel.@block([{\"key\": \"test\"}, @index0[\"key\"], @index0[?\"bogus\"],"
+            + " optional.of(\"test\"), {?\"key\": @index3}, @index4[?\"bogus\"],"
+            + " @index5.or(@index2), @index6.orValue(@index1)], @index7 == \"test\")"),
     OPTIONAL_MESSAGE(
         "TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32:"
             + " optional.of(4)}.single_int32 + TestAllTypes{?single_int64:"
