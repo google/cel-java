@@ -75,6 +75,9 @@ java_export(
     maven_coordinates = "dev.cel:cel:%s" % CEL_VERSION,
     pom_template = ":cel_pom",
     runtime_deps = ALL_TARGETS,
+    deploy_env = [
+        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto"
+    ],
 )
 
 pom_file(
