@@ -1,0 +1,3359 @@
+Test case: SIZE_1
+Source: size([1,2]) + size([1,2]) + 1 == 5
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_LIST [3] {
+          elements: {
+            CONSTANT [4] { value: 1 }
+            CONSTANT [5] { value: 2 }
+          }
+        }
+        CALL [6] {
+          function: size
+          args: {
+            IDENT [7] {
+              name: @index0
+            }
+          }
+        }
+        CALL [8] {
+          function: _+_
+          args: {
+            CALL [9] {
+              function: _+_
+              args: {
+                IDENT [10] {
+                  name: @index1
+                }
+                IDENT [11] {
+                  name: @index1
+                }
+              }
+            }
+            CONSTANT [12] { value: 1 }
+          }
+        }
+      }
+    }
+    CALL [13] {
+      function: _==_
+      args: {
+        IDENT [14] {
+          name: @index2
+        }
+        CONSTANT [15] { value: 5 }
+      }
+    }
+  }
+}
+Test case: SIZE_2
+Source: 2 + size([1,2]) + size([1,2]) + 1 == 7
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_LIST [3] {
+          elements: {
+            CONSTANT [4] { value: 1 }
+            CONSTANT [5] { value: 2 }
+          }
+        }
+        CALL [6] {
+          function: size
+          args: {
+            IDENT [7] {
+              name: @index0
+            }
+          }
+        }
+        CALL [8] {
+          function: _+_
+          args: {
+            CALL [9] {
+              function: _+_
+              args: {
+                CALL [10] {
+                  function: _+_
+                  args: {
+                    CONSTANT [11] { value: 2 }
+                    IDENT [12] {
+                      name: @index1
+                    }
+                  }
+                }
+                IDENT [13] {
+                  name: @index1
+                }
+              }
+            }
+            CONSTANT [14] { value: 1 }
+          }
+        }
+      }
+    }
+    CALL [15] {
+      function: _==_
+      args: {
+        IDENT [16] {
+          name: @index2
+        }
+        CONSTANT [17] { value: 7 }
+      }
+    }
+  }
+}
+Test case: SIZE_3
+Source: size([0]) + size([0]) + size([1,2]) + size([1,2]) == 6
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_LIST [3] {
+          elements: {
+            CONSTANT [4] { value: 0 }
+          }
+        }
+        CALL [5] {
+          function: size
+          args: {
+            IDENT [6] {
+              name: @index0
+            }
+          }
+        }
+        CREATE_LIST [7] {
+          elements: {
+            CONSTANT [8] { value: 1 }
+            CONSTANT [9] { value: 2 }
+          }
+        }
+        CALL [10] {
+          function: size
+          args: {
+            IDENT [11] {
+              name: @index2
+            }
+          }
+        }
+        CALL [12] {
+          function: _+_
+          args: {
+            CALL [13] {
+              function: _+_
+              args: {
+                CALL [14] {
+                  function: _+_
+                  args: {
+                    IDENT [15] {
+                      name: @index1
+                    }
+                    IDENT [16] {
+                      name: @index1
+                    }
+                  }
+                }
+                IDENT [17] {
+                  name: @index3
+                }
+              }
+            }
+            IDENT [18] {
+              name: @index3
+            }
+          }
+        }
+      }
+    }
+    CALL [19] {
+      function: _==_
+      args: {
+        IDENT [20] {
+          name: @index4
+        }
+        CONSTANT [21] { value: 6 }
+      }
+    }
+  }
+}
+Test case: SIZE_4
+Source: 5 + size([0]) + size([0]) + size([1,2]) + size([1,2]) + size([1,2,3]) + size([1,2,3]) == 17
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_LIST [3] {
+          elements: {
+            CONSTANT [4] { value: 0 }
+          }
+        }
+        CALL [5] {
+          function: size
+          args: {
+            IDENT [6] {
+              name: @index0
+            }
+          }
+        }
+        CREATE_LIST [7] {
+          elements: {
+            CONSTANT [8] { value: 1 }
+            CONSTANT [9] { value: 2 }
+          }
+        }
+        CALL [10] {
+          function: size
+          args: {
+            IDENT [11] {
+              name: @index2
+            }
+          }
+        }
+        CREATE_LIST [12] {
+          elements: {
+            CONSTANT [13] { value: 1 }
+            CONSTANT [14] { value: 2 }
+            CONSTANT [15] { value: 3 }
+          }
+        }
+        CALL [16] {
+          function: size
+          args: {
+            IDENT [17] {
+              name: @index4
+            }
+          }
+        }
+        CALL [18] {
+          function: _+_
+          args: {
+            CALL [19] {
+              function: _+_
+              args: {
+                CALL [20] {
+                  function: _+_
+                  args: {
+                    CONSTANT [21] { value: 5 }
+                    IDENT [22] {
+                      name: @index1
+                    }
+                  }
+                }
+                IDENT [23] {
+                  name: @index1
+                }
+              }
+            }
+            IDENT [24] {
+              name: @index3
+            }
+          }
+        }
+        CALL [25] {
+          function: _+_
+          args: {
+            CALL [26] {
+              function: _+_
+              args: {
+                CALL [27] {
+                  function: _+_
+                  args: {
+                    IDENT [28] {
+                      name: @index6
+                    }
+                    IDENT [29] {
+                      name: @index3
+                    }
+                  }
+                }
+                IDENT [30] {
+                  name: @index5
+                }
+              }
+            }
+            IDENT [31] {
+              name: @index5
+            }
+          }
+        }
+      }
+    }
+    CALL [32] {
+      function: _==_
+      args: {
+        IDENT [33] {
+          name: @index7
+        }
+        CONSTANT [34] { value: 17 }
+      }
+    }
+  }
+}
+Test case: TIMESTAMP
+Source: timestamp(int(timestamp(1000000000))).getFullYear() + timestamp(int(timestamp(75))).getFullYear() +  timestamp(int(timestamp(50))).getFullYear() +  timestamp(int(timestamp(1000000000))).getFullYear() +  timestamp(int(timestamp(50))).getSeconds() +  timestamp(int(timestamp(200))).getFullYear() +  timestamp(int(timestamp(200))).getFullYear() +  timestamp(int(timestamp(75))).getMinutes() +  timestamp(int(timestamp(1000000000))).getFullYear() == 13934
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CALL [3] {
+          function: timestamp
+          args: {
+            CONSTANT [4] { value: 1000000000 }
+          }
+        }
+        CALL [5] {
+          function: int
+          args: {
+            IDENT [6] {
+              name: @index0
+            }
+          }
+        }
+        CALL [7] {
+          function: timestamp
+          args: {
+            IDENT [8] {
+              name: @index1
+            }
+          }
+        }
+        CALL [9] {
+          function: getFullYear
+          target: {
+            IDENT [10] {
+              name: @index2
+            }
+          }
+          args: {
+          }
+        }
+        CALL [11] {
+          function: timestamp
+          args: {
+            CONSTANT [12] { value: 50 }
+          }
+        }
+        CALL [13] {
+          function: int
+          args: {
+            IDENT [14] {
+              name: @index4
+            }
+          }
+        }
+        CALL [15] {
+          function: timestamp
+          args: {
+            IDENT [16] {
+              name: @index5
+            }
+          }
+        }
+        CALL [17] {
+          function: timestamp
+          args: {
+            CONSTANT [18] { value: 200 }
+          }
+        }
+        CALL [19] {
+          function: int
+          args: {
+            IDENT [20] {
+              name: @index7
+            }
+          }
+        }
+        CALL [21] {
+          function: timestamp
+          args: {
+            IDENT [22] {
+              name: @index8
+            }
+          }
+        }
+        CALL [23] {
+          function: getFullYear
+          target: {
+            IDENT [24] {
+              name: @index9
+            }
+          }
+          args: {
+          }
+        }
+        CALL [25] {
+          function: timestamp
+          args: {
+            CONSTANT [26] { value: 75 }
+          }
+        }
+        CALL [27] {
+          function: int
+          args: {
+            IDENT [28] {
+              name: @index11
+            }
+          }
+        }
+        CALL [29] {
+          function: timestamp
+          args: {
+            IDENT [30] {
+              name: @index12
+            }
+          }
+        }
+        CALL [31] {
+          function: getMinutes
+          target: {
+            IDENT [32] {
+              name: @index13
+            }
+          }
+          args: {
+          }
+        }
+        CALL [33] {
+          function: getSeconds
+          target: {
+            IDENT [34] {
+              name: @index6
+            }
+          }
+          args: {
+          }
+        }
+        CALL [35] {
+          function: _+_
+          args: {
+            CALL [36] {
+              function: _+_
+              args: {
+                IDENT [37] {
+                  name: @index3
+                }
+                CALL [38] {
+                  function: getFullYear
+                  target: {
+                    IDENT [39] {
+                      name: @index13
+                    }
+                  }
+                  args: {
+                  }
+                }
+              }
+            }
+            CALL [40] {
+              function: getFullYear
+              target: {
+                IDENT [41] {
+                  name: @index6
+                }
+              }
+              args: {
+              }
+            }
+          }
+        }
+        CALL [42] {
+          function: _+_
+          args: {
+            CALL [43] {
+              function: _+_
+              args: {
+                CALL [44] {
+                  function: _+_
+                  args: {
+                    IDENT [45] {
+                      name: @index16
+                    }
+                    IDENT [46] {
+                      name: @index3
+                    }
+                  }
+                }
+                IDENT [47] {
+                  name: @index15
+                }
+              }
+            }
+            IDENT [48] {
+              name: @index10
+            }
+          }
+        }
+        CALL [49] {
+          function: _+_
+          args: {
+            CALL [50] {
+              function: _+_
+              args: {
+                CALL [51] {
+                  function: _+_
+                  args: {
+                    IDENT [52] {
+                      name: @index17
+                    }
+                    IDENT [53] {
+                      name: @index10
+                    }
+                  }
+                }
+                IDENT [54] {
+                  name: @index14
+                }
+              }
+            }
+            IDENT [55] {
+              name: @index3
+            }
+          }
+        }
+      }
+    }
+    CALL [56] {
+      function: _==_
+      args: {
+        IDENT [57] {
+          name: @index18
+        }
+        CONSTANT [58] { value: 13934 }
+      }
+    }
+  }
+}
+Test case: MAP_INDEX
+Source: {"a": 2}["a"] + {"a": 2}["a"] * {"a": 2}["a"] == 6
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_MAP [3] {
+          MAP_ENTRY [4] {
+            key: {
+              CONSTANT [5] { value: "a" }
+            }
+            value: {
+              CONSTANT [6] { value: 2 }
+            }
+          }
+        }
+        CALL [7] {
+          function: _[_]
+          args: {
+            IDENT [8] {
+              name: @index0
+            }
+            CONSTANT [9] { value: "a" }
+          }
+        }
+        CALL [10] {
+          function: _+_
+          args: {
+            IDENT [11] {
+              name: @index1
+            }
+            CALL [12] {
+              function: _*_
+              args: {
+                IDENT [13] {
+                  name: @index1
+                }
+                IDENT [14] {
+                  name: @index1
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    CALL [15] {
+      function: _==_
+      args: {
+        IDENT [16] {
+          name: @index2
+        }
+        CONSTANT [17] { value: 6 }
+      }
+    }
+  }
+}
+Test case: NESTED_MAP_CONSTRUCTION
+Source: {'a': {'b': 1}, 'c': {'b': 1}, 'd': {'e': {'b': 1}}, 'e': {'e': {'b': 1}}}
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_MAP [3] {
+          MAP_ENTRY [4] {
+            key: {
+              CONSTANT [5] { value: "b" }
+            }
+            value: {
+              CONSTANT [6] { value: 1 }
+            }
+          }
+        }
+        CREATE_MAP [7] {
+          MAP_ENTRY [8] {
+            key: {
+              CONSTANT [9] { value: "e" }
+            }
+            value: {
+              IDENT [10] {
+                name: @index0
+              }
+            }
+          }
+        }
+      }
+    }
+    CREATE_MAP [11] {
+      MAP_ENTRY [12] {
+        key: {
+          CONSTANT [13] { value: "a" }
+        }
+        value: {
+          IDENT [14] {
+            name: @index0
+          }
+        }
+      }
+      MAP_ENTRY [15] {
+        key: {
+          CONSTANT [16] { value: "c" }
+        }
+        value: {
+          IDENT [17] {
+            name: @index0
+          }
+        }
+      }
+      MAP_ENTRY [18] {
+        key: {
+          CONSTANT [19] { value: "d" }
+        }
+        value: {
+          IDENT [20] {
+            name: @index1
+          }
+        }
+      }
+      MAP_ENTRY [21] {
+        key: {
+          CONSTANT [22] { value: "e" }
+        }
+        value: {
+          IDENT [23] {
+            name: @index1
+          }
+        }
+      }
+    }
+  }
+}
+Test case: NESTED_LIST_CONSTRUCTION
+Source: [1, [1,2,3,4], 2, [1,2,3,4], 5, [1,2,3,4], 7, [[1,2], [1,2,3,4]], [1,2]]
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_LIST [3] {
+          elements: {
+            CONSTANT [4] { value: 1 }
+            CONSTANT [5] { value: 2 }
+            CONSTANT [6] { value: 3 }
+            CONSTANT [7] { value: 4 }
+          }
+        }
+        CREATE_LIST [8] {
+          elements: {
+            CONSTANT [9] { value: 1 }
+            CONSTANT [10] { value: 2 }
+          }
+        }
+        CREATE_LIST [11] {
+          elements: {
+            IDENT [12] {
+              name: @index1
+            }
+            IDENT [13] {
+              name: @index0
+            }
+          }
+        }
+      }
+    }
+    CREATE_LIST [14] {
+      elements: {
+        CONSTANT [15] { value: 1 }
+        IDENT [16] {
+          name: @index0
+        }
+        CONSTANT [17] { value: 2 }
+        IDENT [18] {
+          name: @index0
+        }
+        CONSTANT [19] { value: 5 }
+        IDENT [20] {
+          name: @index0
+        }
+        CONSTANT [21] { value: 7 }
+        IDENT [22] {
+          name: @index2
+        }
+        IDENT [23] {
+          name: @index1
+        }
+      }
+    }
+  }
+}
+Test case: SELECT
+Source: msg.single_int64 + msg.single_int64 == 6
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          IDENT [4] {
+            name: msg
+          }.single_int64
+        }
+        CALL [5] {
+          function: _+_
+          args: {
+            IDENT [6] {
+              name: @index0
+            }
+            IDENT [7] {
+              name: @index0
+            }
+          }
+        }
+      }
+    }
+    CALL [8] {
+      function: _==_
+      args: {
+        IDENT [9] {
+          name: @index1
+        }
+        CONSTANT [10] { value: 6 }
+      }
+    }
+  }
+}
+Test case: SELECT_NESTED_1
+Source: msg.oneof_type.payload.single_int64 + msg.oneof_type.payload.single_int32 + msg.oneof_type.payload.single_int64 + msg.single_int64 + msg.oneof_type.payload.oneof_type.payload.single_int64 == 31
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          IDENT [4] {
+            name: msg
+          }.oneof_type
+        }
+        SELECT [5] {
+          IDENT [6] {
+            name: @index0
+          }.payload
+        }
+        SELECT [7] {
+          IDENT [8] {
+            name: @index1
+          }.single_int64
+        }
+        SELECT [9] {
+          SELECT [10] {
+            SELECT [11] {
+              IDENT [12] {
+                name: @index1
+              }.oneof_type
+            }.payload
+          }.single_int64
+        }
+        SELECT [13] {
+          IDENT [14] {
+            name: msg
+          }.single_int64
+        }
+        CALL [15] {
+          function: _+_
+          args: {
+            CALL [16] {
+              function: _+_
+              args: {
+                IDENT [17] {
+                  name: @index2
+                }
+                SELECT [18] {
+                  IDENT [19] {
+                    name: @index1
+                  }.single_int32
+                }
+              }
+            }
+            IDENT [20] {
+              name: @index2
+            }
+          }
+        }
+        CALL [21] {
+          function: _+_
+          args: {
+            CALL [22] {
+              function: _+_
+              args: {
+                IDENT [23] {
+                  name: @index5
+                }
+                IDENT [24] {
+                  name: @index4
+                }
+              }
+            }
+            IDENT [25] {
+              name: @index3
+            }
+          }
+        }
+      }
+    }
+    CALL [26] {
+      function: _==_
+      args: {
+        IDENT [27] {
+          name: @index6
+        }
+        CONSTANT [28] { value: 31 }
+      }
+    }
+  }
+}
+Test case: SELECT_NESTED_2
+Source: true || msg.oneof_type.payload.oneof_type.payload.oneof_type.payload.oneof_type.payload.single_bool || msg.oneof_type.payload.oneof_type.payload.oneof_type.child.child.payload.single_bool
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          IDENT [4] {
+            name: msg
+          }.oneof_type
+        }
+        SELECT [5] {
+          IDENT [6] {
+            name: @index0
+          }.payload
+        }
+        SELECT [7] {
+          IDENT [8] {
+            name: @index1
+          }.oneof_type
+        }
+        SELECT [9] {
+          IDENT [10] {
+            name: @index2
+          }.payload
+        }
+        SELECT [11] {
+          IDENT [12] {
+            name: @index3
+          }.oneof_type
+        }
+        SELECT [13] {
+          SELECT [14] {
+            SELECT [15] {
+              IDENT [16] {
+                name: @index4
+              }.child
+            }.child
+          }.payload
+        }
+        SELECT [17] {
+          IDENT [18] {
+            name: @index5
+          }.single_bool
+        }
+        SELECT [19] {
+          SELECT [20] {
+            SELECT [21] {
+              IDENT [22] {
+                name: @index4
+              }.payload
+            }.oneof_type
+          }.payload
+        }
+        CALL [23] {
+          function: _||_
+          args: {
+            CONSTANT [24] { value: true }
+            SELECT [25] {
+              IDENT [26] {
+                name: @index7
+              }.single_bool
+            }
+          }
+        }
+      }
+    }
+    CALL [27] {
+      function: _||_
+      args: {
+        IDENT [28] {
+          name: @index8
+        }
+        IDENT [29] {
+          name: @index6
+        }
+      }
+    }
+  }
+}
+Test case: SELECT_NESTED_MESSAGE_MAP_INDEX_1
+Source: msg.oneof_type.payload.map_int32_int64[1] + msg.oneof_type.payload.map_int32_int64[1] + msg.oneof_type.payload.map_int32_int64[1] == 15
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          IDENT [4] {
+            name: msg
+          }.oneof_type
+        }
+        SELECT [5] {
+          IDENT [6] {
+            name: @index0
+          }.payload
+        }
+        SELECT [7] {
+          IDENT [8] {
+            name: @index1
+          }.map_int32_int64
+        }
+        CALL [9] {
+          function: _[_]
+          args: {
+            IDENT [10] {
+              name: @index2
+            }
+            CONSTANT [11] { value: 1 }
+          }
+        }
+        CALL [12] {
+          function: _+_
+          args: {
+            CALL [13] {
+              function: _+_
+              args: {
+                IDENT [14] {
+                  name: @index3
+                }
+                IDENT [15] {
+                  name: @index3
+                }
+              }
+            }
+            IDENT [16] {
+              name: @index3
+            }
+          }
+        }
+      }
+    }
+    CALL [17] {
+      function: _==_
+      args: {
+        IDENT [18] {
+          name: @index4
+        }
+        CONSTANT [19] { value: 15 }
+      }
+    }
+  }
+}
+Test case: SELECT_NESTED_MESSAGE_MAP_INDEX_2
+Source: msg.oneof_type.payload.map_int32_int64[0] + msg.oneof_type.payload.map_int32_int64[1] + msg.oneof_type.payload.map_int32_int64[2] == 8
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          IDENT [4] {
+            name: msg
+          }.oneof_type
+        }
+        SELECT [5] {
+          IDENT [6] {
+            name: @index0
+          }.payload
+        }
+        SELECT [7] {
+          IDENT [8] {
+            name: @index1
+          }.map_int32_int64
+        }
+        CALL [9] {
+          function: _+_
+          args: {
+            CALL [10] {
+              function: _+_
+              args: {
+                CALL [11] {
+                  function: _[_]
+                  args: {
+                    IDENT [12] {
+                      name: @index2
+                    }
+                    CONSTANT [13] { value: 0 }
+                  }
+                }
+                CALL [14] {
+                  function: _[_]
+                  args: {
+                    IDENT [15] {
+                      name: @index2
+                    }
+                    CONSTANT [16] { value: 1 }
+                  }
+                }
+              }
+            }
+            CALL [17] {
+              function: _[_]
+              args: {
+                IDENT [18] {
+                  name: @index2
+                }
+                CONSTANT [19] { value: 2 }
+              }
+            }
+          }
+        }
+      }
+    }
+    CALL [20] {
+      function: _==_
+      args: {
+        IDENT [21] {
+          name: @index3
+        }
+        CONSTANT [22] { value: 8 }
+      }
+    }
+  }
+}
+Test case: SELECT_NESTED_NO_COMMON_SUBEXPR
+Source: msg.oneof_type.payload.oneof_type.payload.oneof_type.payload.oneof_type.payload.single_int64
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          SELECT [4] {
+            SELECT [5] {
+              IDENT [6] {
+                name: msg
+              }.oneof_type
+            }.payload
+          }.oneof_type
+        }
+        SELECT [7] {
+          SELECT [8] {
+            SELECT [9] {
+              IDENT [10] {
+                name: @index0
+              }.payload
+            }.oneof_type
+          }.payload
+        }
+        SELECT [11] {
+          SELECT [12] {
+            IDENT [13] {
+              name: @index1
+            }.oneof_type
+          }.payload
+        }
+      }
+    }
+    SELECT [14] {
+      IDENT [15] {
+        name: @index2
+      }.single_int64
+    }
+  }
+}
+Test case: TERNARY
+Source: (msg.single_int64 > 0 ? msg.single_int64 : 0) == 3
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          IDENT [4] {
+            name: msg
+          }.single_int64
+        }
+        CALL [5] {
+          function: _?_:_
+          args: {
+            CALL [6] {
+              function: _>_
+              args: {
+                IDENT [7] {
+                  name: @index0
+                }
+                CONSTANT [8] { value: 0 }
+              }
+            }
+            IDENT [9] {
+              name: @index0
+            }
+            CONSTANT [10] { value: 0 }
+          }
+        }
+      }
+    }
+    CALL [11] {
+      function: _==_
+      args: {
+        IDENT [12] {
+          name: @index1
+        }
+        CONSTANT [13] { value: 3 }
+      }
+    }
+  }
+}
+Test case: TERNARY_BIND_RHS_ONLY
+Source: false ? false : (msg.single_int64) + ((msg.single_int64 + 1) * 2) == 11
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          IDENT [4] {
+            name: msg
+          }.single_int64
+        }
+        CALL [5] {
+          function: _+_
+          args: {
+            IDENT [6] {
+              name: @index0
+            }
+            CALL [7] {
+              function: _*_
+              args: {
+                CALL [8] {
+                  function: _+_
+                  args: {
+                    IDENT [9] {
+                      name: @index0
+                    }
+                    CONSTANT [10] { value: 1 }
+                  }
+                }
+                CONSTANT [11] { value: 2 }
+              }
+            }
+          }
+        }
+        CALL [12] {
+          function: _==_
+          args: {
+            IDENT [13] {
+              name: @index1
+            }
+            CONSTANT [14] { value: 11 }
+          }
+        }
+      }
+    }
+    CALL [15] {
+      function: _?_:_
+      args: {
+        CONSTANT [16] { value: false }
+        CONSTANT [17] { value: false }
+        IDENT [18] {
+          name: @index2
+        }
+      }
+    }
+  }
+}
+Test case: NESTED_TERNARY
+Source: (msg.single_int64 > 0 ? (msg.single_int32 > 0 ? msg.single_int64 + msg.single_int32 : 0) : 0) == 8
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          IDENT [4] {
+            name: msg
+          }.single_int64
+        }
+        SELECT [5] {
+          IDENT [6] {
+            name: msg
+          }.single_int32
+        }
+        CALL [7] {
+          function: _?_:_
+          args: {
+            CALL [8] {
+              function: _>_
+              args: {
+                IDENT [9] {
+                  name: @index0
+                }
+                CONSTANT [10] { value: 0 }
+              }
+            }
+            CALL [11] {
+              function: _?_:_
+              args: {
+                CALL [12] {
+                  function: _>_
+                  args: {
+                    IDENT [13] {
+                      name: @index1
+                    }
+                    CONSTANT [14] { value: 0 }
+                  }
+                }
+                CALL [15] {
+                  function: _+_
+                  args: {
+                    IDENT [16] {
+                      name: @index0
+                    }
+                    IDENT [17] {
+                      name: @index1
+                    }
+                  }
+                }
+                CONSTANT [18] { value: 0 }
+              }
+            }
+            CONSTANT [19] { value: 0 }
+          }
+        }
+      }
+    }
+    CALL [20] {
+      function: _==_
+      args: {
+        IDENT [21] {
+          name: @index2
+        }
+        CONSTANT [22] { value: 8 }
+      }
+    }
+  }
+}
+Test case: MULTIPLE_MACROS_1
+Source: size([[1].exists(i, i > 0)]) + size([[1].exists(j, j > 0)]) + size([[2].exists(k, k > 1)]) + size([[2].exists(l, l > 1)]) == 4
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_LIST [3] {
+          elements: {
+            CONSTANT [4] { value: 1 }
+          }
+        }
+        CALL [5] {
+          function: _>_
+          args: {
+            IDENT [6] {
+              name: @c0:0
+            }
+            CONSTANT [7] { value: 0 }
+          }
+        }
+        CALL [8] {
+          function: _||_
+          args: {
+            IDENT [9] {
+              name: @x0:0
+            }
+            IDENT [10] {
+              name: @index1
+            }
+          }
+        }
+        COMPREHENSION [11] {
+          iter_var: @c0:0
+          iter_range: {
+            IDENT [12] {
+              name: @index0
+            }
+          }
+          accu_var: @x0:0
+          accu_init: {
+            CONSTANT [13] { value: false }
+          }
+          loop_condition: {
+            CALL [14] {
+              function: @not_strictly_false
+              args: {
+                CALL [15] {
+                  function: !_
+                  args: {
+                    IDENT [16] {
+                      name: @x0:0
+                    }
+                  }
+                }
+              }
+            }
+          }
+          loop_step: {
+            IDENT [17] {
+              name: @index2
+            }
+          }
+          result: {
+            IDENT [18] {
+              name: @x0:0
+            }
+          }
+        }
+        CREATE_LIST [19] {
+          elements: {
+            IDENT [20] {
+              name: @index3
+            }
+          }
+        }
+        CALL [21] {
+          function: size
+          args: {
+            IDENT [22] {
+              name: @index4
+            }
+          }
+        }
+        CREATE_LIST [23] {
+          elements: {
+            CONSTANT [24] { value: 2 }
+          }
+        }
+        CALL [25] {
+          function: _>_
+          args: {
+            IDENT [26] {
+              name: @c0:0
+            }
+            CONSTANT [27] { value: 1 }
+          }
+        }
+        CALL [28] {
+          function: _||_
+          args: {
+            IDENT [29] {
+              name: @x0:0
+            }
+            IDENT [30] {
+              name: @index7
+            }
+          }
+        }
+        COMPREHENSION [31] {
+          iter_var: @c0:0
+          iter_range: {
+            IDENT [32] {
+              name: @index6
+            }
+          }
+          accu_var: @x0:0
+          accu_init: {
+            CONSTANT [33] { value: false }
+          }
+          loop_condition: {
+            CALL [34] {
+              function: @not_strictly_false
+              args: {
+                CALL [35] {
+                  function: !_
+                  args: {
+                    IDENT [36] {
+                      name: @x0:0
+                    }
+                  }
+                }
+              }
+            }
+          }
+          loop_step: {
+            IDENT [37] {
+              name: @index8
+            }
+          }
+          result: {
+            IDENT [38] {
+              name: @x0:0
+            }
+          }
+        }
+        CREATE_LIST [39] {
+          elements: {
+            IDENT [40] {
+              name: @index9
+            }
+          }
+        }
+        CALL [41] {
+          function: size
+          args: {
+            IDENT [42] {
+              name: @index10
+            }
+          }
+        }
+        CALL [43] {
+          function: _+_
+          args: {
+            CALL [44] {
+              function: _+_
+              args: {
+                CALL [45] {
+                  function: _+_
+                  args: {
+                    IDENT [46] {
+                      name: @index5
+                    }
+                    IDENT [47] {
+                      name: @index5
+                    }
+                  }
+                }
+                IDENT [48] {
+                  name: @index11
+                }
+              }
+            }
+            IDENT [49] {
+              name: @index11
+            }
+          }
+        }
+      }
+    }
+    CALL [50] {
+      function: _==_
+      args: {
+        IDENT [51] {
+          name: @index12
+        }
+        CONSTANT [52] { value: 4 }
+      }
+    }
+  }
+}
+Test case: MULTIPLE_MACROS_2
+Source: [[1].exists(i, i > 0)] + [[1].exists(j, j > 0)] + [['a'].exists(k, k == 'a')] + [['a'].exists(l, l == 'a')] == [true, true, true, true]
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_LIST [3] {
+          elements: {
+            CONSTANT [4] { value: 1 }
+          }
+        }
+        CALL [5] {
+          function: _>_
+          args: {
+            IDENT [6] {
+              name: @c0:0
+            }
+            CONSTANT [7] { value: 0 }
+          }
+        }
+        CALL [8] {
+          function: _||_
+          args: {
+            IDENT [9] {
+              name: @x0:0
+            }
+            IDENT [10] {
+              name: @index1
+            }
+          }
+        }
+        COMPREHENSION [11] {
+          iter_var: @c0:0
+          iter_range: {
+            IDENT [12] {
+              name: @index0
+            }
+          }
+          accu_var: @x0:0
+          accu_init: {
+            CONSTANT [13] { value: false }
+          }
+          loop_condition: {
+            CALL [14] {
+              function: @not_strictly_false
+              args: {
+                CALL [15] {
+                  function: !_
+                  args: {
+                    IDENT [16] {
+                      name: @x0:0
+                    }
+                  }
+                }
+              }
+            }
+          }
+          loop_step: {
+            IDENT [17] {
+              name: @index2
+            }
+          }
+          result: {
+            IDENT [18] {
+              name: @x0:0
+            }
+          }
+        }
+        CREATE_LIST [19] {
+          elements: {
+            IDENT [20] {
+              name: @index3
+            }
+          }
+        }
+        CREATE_LIST [21] {
+          elements: {
+            CONSTANT [22] { value: "a" }
+          }
+        }
+        CALL [23] {
+          function: _==_
+          args: {
+            IDENT [24] {
+              name: @c0:1
+            }
+            CONSTANT [25] { value: "a" }
+          }
+        }
+        CALL [26] {
+          function: _||_
+          args: {
+            IDENT [27] {
+              name: @x0:1
+            }
+            IDENT [28] {
+              name: @index6
+            }
+          }
+        }
+        COMPREHENSION [29] {
+          iter_var: @c0:1
+          iter_range: {
+            IDENT [30] {
+              name: @index5
+            }
+          }
+          accu_var: @x0:1
+          accu_init: {
+            CONSTANT [31] { value: false }
+          }
+          loop_condition: {
+            CALL [32] {
+              function: @not_strictly_false
+              args: {
+                CALL [33] {
+                  function: !_
+                  args: {
+                    IDENT [34] {
+                      name: @x0:1
+                    }
+                  }
+                }
+              }
+            }
+          }
+          loop_step: {
+            IDENT [35] {
+              name: @index7
+            }
+          }
+          result: {
+            IDENT [36] {
+              name: @x0:1
+            }
+          }
+        }
+        CREATE_LIST [37] {
+          elements: {
+            IDENT [38] {
+              name: @index8
+            }
+          }
+        }
+        CREATE_LIST [39] {
+          elements: {
+            CONSTANT [40] { value: true }
+            CONSTANT [41] { value: true }
+            CONSTANT [42] { value: true }
+            CONSTANT [43] { value: true }
+          }
+        }
+        CALL [44] {
+          function: _+_
+          args: {
+            CALL [45] {
+              function: _+_
+              args: {
+                CALL [46] {
+                  function: _+_
+                  args: {
+                    IDENT [47] {
+                      name: @index4
+                    }
+                    IDENT [48] {
+                      name: @index4
+                    }
+                  }
+                }
+                IDENT [49] {
+                  name: @index9
+                }
+              }
+            }
+            IDENT [50] {
+              name: @index9
+            }
+          }
+        }
+      }
+    }
+    CALL [51] {
+      function: _==_
+      args: {
+        IDENT [52] {
+          name: @index11
+        }
+        IDENT [53] {
+          name: @index10
+        }
+      }
+    }
+  }
+}
+Test case: NESTED_MACROS
+Source: [1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [[2, 3, 4], [2, 3, 4], [2, 3, 4]]
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_LIST [3] {
+          elements: {
+            CONSTANT [4] { value: 1 }
+            CONSTANT [5] { value: 2 }
+            CONSTANT [6] { value: 3 }
+          }
+        }
+        CREATE_LIST [7] {
+          elements: {
+            CONSTANT [8] { value: 2 }
+            CONSTANT [9] { value: 3 }
+            CONSTANT [10] { value: 4 }
+          }
+        }
+        CREATE_LIST [11] {
+          elements: {
+            IDENT [12] {
+              name: @index1
+            }
+            IDENT [13] {
+              name: @index1
+            }
+            IDENT [14] {
+              name: @index1
+            }
+          }
+        }
+        CALL [15] {
+          function: _+_
+          args: {
+            IDENT [16] {
+              name: @x1:0
+            }
+            CREATE_LIST [17] {
+              elements: {
+                CALL [18] {
+                  function: _+_
+                  args: {
+                    IDENT [19] {
+                      name: @c1:0
+                    }
+                    CONSTANT [20] { value: 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+        CREATE_LIST [21] {
+          elements: {
+            COMPREHENSION [22] {
+              iter_var: @c1:0
+              iter_range: {
+                IDENT [23] {
+                  name: @index0
+                }
+              }
+              accu_var: @x1:0
+              accu_init: {
+                CREATE_LIST [24] {
+                  elements: {
+                  }
+                }
+              }
+              loop_condition: {
+                CONSTANT [25] { value: true }
+              }
+              loop_step: {
+                IDENT [26] {
+                  name: @index3
+                }
+              }
+              result: {
+                IDENT [27] {
+                  name: @x1:0
+                }
+              }
+            }
+          }
+        }
+        COMPREHENSION [28] {
+          iter_var: @c0:0
+          iter_range: {
+            IDENT [29] {
+              name: @index0
+            }
+          }
+          accu_var: @x0:0
+          accu_init: {
+            CREATE_LIST [30] {
+              elements: {
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [31] { value: true }
+          }
+          loop_step: {
+            CALL [32] {
+              function: _+_
+              args: {
+                IDENT [33] {
+                  name: @x0:0
+                }
+                IDENT [34] {
+                  name: @index4
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [35] {
+              name: @x0:0
+            }
+          }
+        }
+      }
+    }
+    CALL [36] {
+      function: _==_
+      args: {
+        IDENT [37] {
+          name: @index5
+        }
+        IDENT [38] {
+          name: @index2
+        }
+      }
+    }
+  }
+}
+Test case: NESTED_MACROS_2
+Source: [1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_LIST [3] {
+          elements: {
+            CREATE_LIST [4] {
+              elements: {
+                CONSTANT [5] { value: 1 }
+              }
+            }
+            CREATE_LIST [6] {
+              elements: {
+                CONSTANT [7] { value: 2 }
+              }
+            }
+          }
+        }
+        CALL [8] {
+          function: _?_:_
+          args: {
+            CALL [9] {
+              function: _==_
+              args: {
+                IDENT [10] {
+                  name: @c1:0
+                }
+                IDENT [11] {
+                  name: @c0:0
+                }
+              }
+            }
+            CALL [12] {
+              function: _+_
+              args: {
+                IDENT [13] {
+                  name: @x1:0
+                }
+                CREATE_LIST [14] {
+                  elements: {
+                    IDENT [15] {
+                      name: @c1:0
+                    }
+                  }
+                }
+              }
+            }
+            IDENT [16] {
+              name: @x1:0
+            }
+          }
+        }
+        CREATE_LIST [17] {
+          elements: {
+            COMPREHENSION [18] {
+              iter_var: @c1:0
+              iter_range: {
+                CREATE_LIST [19] {
+                  elements: {
+                    CONSTANT [20] { value: 1 }
+                    CONSTANT [21] { value: 2 }
+                    CONSTANT [22] { value: 3 }
+                  }
+                }
+              }
+              accu_var: @x1:0
+              accu_init: {
+                CREATE_LIST [23] {
+                  elements: {
+                  }
+                }
+              }
+              loop_condition: {
+                CONSTANT [24] { value: true }
+              }
+              loop_step: {
+                IDENT [25] {
+                  name: @index1
+                }
+              }
+              result: {
+                IDENT [26] {
+                  name: @x1:0
+                }
+              }
+            }
+          }
+        }
+        COMPREHENSION [27] {
+          iter_var: @c0:0
+          iter_range: {
+            CREATE_LIST [28] {
+              elements: {
+                CONSTANT [29] { value: 1 }
+                CONSTANT [30] { value: 2 }
+              }
+            }
+          }
+          accu_var: @x0:0
+          accu_init: {
+            CREATE_LIST [31] {
+              elements: {
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [32] { value: true }
+          }
+          loop_step: {
+            CALL [33] {
+              function: _+_
+              args: {
+                IDENT [34] {
+                  name: @x0:0
+                }
+                IDENT [35] {
+                  name: @index2
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [36] {
+              name: @x0:0
+            }
+          }
+        }
+      }
+    }
+    CALL [37] {
+      function: _==_
+      args: {
+        IDENT [38] {
+          name: @index3
+        }
+        IDENT [39] {
+          name: @index0
+        }
+      }
+    }
+  }
+}
+Test case: INCLUSION_LIST
+Source: 1 in [1,2,3] && 2 in [1,2,3] && 3 in [3, [1,2,3]] && 1 in [1,2,3]
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_LIST [3] {
+          elements: {
+            CONSTANT [4] { value: 1 }
+            CONSTANT [5] { value: 2 }
+            CONSTANT [6] { value: 3 }
+          }
+        }
+        CALL [7] {
+          function: @in
+          args: {
+            CONSTANT [8] { value: 1 }
+            IDENT [9] {
+              name: @index0
+            }
+          }
+        }
+        CALL [10] {
+          function: _&&_
+          args: {
+            CALL [11] {
+              function: @in
+              args: {
+                CONSTANT [12] { value: 3 }
+                CREATE_LIST [13] {
+                  elements: {
+                    CONSTANT [14] { value: 3 }
+                    IDENT [15] {
+                      name: @index0
+                    }
+                  }
+                }
+              }
+            }
+            IDENT [16] {
+              name: @index1
+            }
+          }
+        }
+        CALL [17] {
+          function: _&&_
+          args: {
+            IDENT [18] {
+              name: @index1
+            }
+            CALL [19] {
+              function: @in
+              args: {
+                CONSTANT [20] { value: 2 }
+                IDENT [21] {
+                  name: @index0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    CALL [22] {
+      function: _&&_
+      args: {
+        IDENT [23] {
+          name: @index3
+        }
+        IDENT [24] {
+          name: @index2
+        }
+      }
+    }
+  }
+}
+Test case: INCLUSION_MAP
+Source: 2 in {'a': 1, 2: {true: false}, 3: {true: false}}
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_MAP [3] {
+          MAP_ENTRY [4] {
+            key: {
+              CONSTANT [5] { value: true }
+            }
+            value: {
+              CONSTANT [6] { value: false }
+            }
+          }
+        }
+        CREATE_MAP [7] {
+          MAP_ENTRY [8] {
+            key: {
+              CONSTANT [9] { value: "a" }
+            }
+            value: {
+              CONSTANT [10] { value: 1 }
+            }
+          }
+          MAP_ENTRY [11] {
+            key: {
+              CONSTANT [12] { value: 2 }
+            }
+            value: {
+              IDENT [13] {
+                name: @index0
+              }
+            }
+          }
+          MAP_ENTRY [14] {
+            key: {
+              CONSTANT [15] { value: 3 }
+            }
+            value: {
+              IDENT [16] {
+                name: @index0
+              }
+            }
+          }
+        }
+      }
+    }
+    CALL [17] {
+      function: @in
+      args: {
+        CONSTANT [18] { value: 2 }
+        IDENT [19] {
+          name: @index1
+        }
+      }
+    }
+  }
+}
+Test case: MACRO_ITER_VAR_NOT_REFERENCED
+Source: [1,2].map(i, [1, 2].map(i, [3,4])) == [[[3, 4], [3, 4]], [[3, 4], [3, 4]]]
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_LIST [3] {
+          elements: {
+            CONSTANT [4] { value: 1 }
+            CONSTANT [5] { value: 2 }
+          }
+        }
+        CREATE_LIST [6] {
+          elements: {
+            CONSTANT [7] { value: 3 }
+            CONSTANT [8] { value: 4 }
+          }
+        }
+        CREATE_LIST [9] {
+          elements: {
+            IDENT [10] {
+              name: @index1
+            }
+            IDENT [11] {
+              name: @index1
+            }
+          }
+        }
+        CREATE_LIST [12] {
+          elements: {
+            IDENT [13] {
+              name: @index2
+            }
+            IDENT [14] {
+              name: @index2
+            }
+          }
+        }
+        COMPREHENSION [15] {
+          iter_var: @c1:0
+          iter_range: {
+            IDENT [16] {
+              name: @index0
+            }
+          }
+          accu_var: @x1:0
+          accu_init: {
+            CREATE_LIST [17] {
+              elements: {
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [18] { value: true }
+          }
+          loop_step: {
+            CALL [19] {
+              function: _+_
+              args: {
+                IDENT [20] {
+                  name: @x1:0
+                }
+                CREATE_LIST [21] {
+                  elements: {
+                    IDENT [22] {
+                      name: @index1
+                    }
+                  }
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [23] {
+              name: @x1:0
+            }
+          }
+        }
+        COMPREHENSION [24] {
+          iter_var: @c0:0
+          iter_range: {
+            IDENT [25] {
+              name: @index0
+            }
+          }
+          accu_var: @x0:0
+          accu_init: {
+            CREATE_LIST [26] {
+              elements: {
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [27] { value: true }
+          }
+          loop_step: {
+            CALL [28] {
+              function: _+_
+              args: {
+                IDENT [29] {
+                  name: @x0:0
+                }
+                CREATE_LIST [30] {
+                  elements: {
+                    IDENT [31] {
+                      name: @index4
+                    }
+                  }
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [32] {
+              name: @x0:0
+            }
+          }
+        }
+      }
+    }
+    CALL [33] {
+      function: _==_
+      args: {
+        IDENT [34] {
+          name: @index5
+        }
+        IDENT [35] {
+          name: @index3
+        }
+      }
+    }
+  }
+}
+Test case: MACRO_SHADOWED_VARIABLE
+Source: [x - 1 > 3 ? x - 1 : 5].exists(x, x - 1 > 3) || x - 1 > 3
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CALL [3] {
+          function: _-_
+          args: {
+            IDENT [4] {
+              name: x
+            }
+            CONSTANT [5] { value: 1 }
+          }
+        }
+        CALL [6] {
+          function: _>_
+          args: {
+            IDENT [7] {
+              name: @index0
+            }
+            CONSTANT [8] { value: 3 }
+          }
+        }
+        CALL [9] {
+          function: _||_
+          args: {
+            IDENT [10] {
+              name: @x0:0
+            }
+            CALL [11] {
+              function: _>_
+              args: {
+                CALL [12] {
+                  function: _-_
+                  args: {
+                    IDENT [13] {
+                      name: @c0:0
+                    }
+                    CONSTANT [14] { value: 1 }
+                  }
+                }
+                CONSTANT [15] { value: 3 }
+              }
+            }
+          }
+        }
+        COMPREHENSION [16] {
+          iter_var: @c0:0
+          iter_range: {
+            CREATE_LIST [17] {
+              elements: {
+                CALL [18] {
+                  function: _?_:_
+                  args: {
+                    IDENT [19] {
+                      name: @index1
+                    }
+                    IDENT [20] {
+                      name: @index0
+                    }
+                    CONSTANT [21] { value: 5 }
+                  }
+                }
+              }
+            }
+          }
+          accu_var: @x0:0
+          accu_init: {
+            CONSTANT [22] { value: false }
+          }
+          loop_condition: {
+            CALL [23] {
+              function: @not_strictly_false
+              args: {
+                CALL [24] {
+                  function: !_
+                  args: {
+                    IDENT [25] {
+                      name: @x0:0
+                    }
+                  }
+                }
+              }
+            }
+          }
+          loop_step: {
+            IDENT [26] {
+              name: @index2
+            }
+          }
+          result: {
+            IDENT [27] {
+              name: @x0:0
+            }
+          }
+        }
+      }
+    }
+    CALL [28] {
+      function: _||_
+      args: {
+        IDENT [29] {
+          name: @index3
+        }
+        IDENT [30] {
+          name: @index1
+        }
+      }
+    }
+  }
+}
+Test case: MACRO_SHADOWED_VARIABLE_2
+Source: ["foo", "bar"].map(x, [x + x, x + x]).map(x, [x + x, x + x])
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CALL [3] {
+          function: _+_
+          args: {
+            IDENT [4] {
+              name: @c1:0
+            }
+            IDENT [5] {
+              name: @c1:0
+            }
+          }
+        }
+        CALL [6] {
+          function: _+_
+          args: {
+            IDENT [7] {
+              name: @c0:0
+            }
+            IDENT [8] {
+              name: @c0:0
+            }
+          }
+        }
+        CALL [9] {
+          function: _+_
+          args: {
+            IDENT [10] {
+              name: @x0:0
+            }
+            CREATE_LIST [11] {
+              elements: {
+                CREATE_LIST [12] {
+                  elements: {
+                    IDENT [13] {
+                      name: @index1
+                    }
+                    IDENT [14] {
+                      name: @index1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        CALL [15] {
+          function: _+_
+          args: {
+            IDENT [16] {
+              name: @x1:0
+            }
+            CREATE_LIST [17] {
+              elements: {
+                CREATE_LIST [18] {
+                  elements: {
+                    IDENT [19] {
+                      name: @index0
+                    }
+                    IDENT [20] {
+                      name: @index0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        COMPREHENSION [21] {
+          iter_var: @c1:0
+          iter_range: {
+            CREATE_LIST [22] {
+              elements: {
+                CONSTANT [23] { value: "foo" }
+                CONSTANT [24] { value: "bar" }
+              }
+            }
+          }
+          accu_var: @x1:0
+          accu_init: {
+            CREATE_LIST [25] {
+              elements: {
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [26] { value: true }
+          }
+          loop_step: {
+            IDENT [27] {
+              name: @index3
+            }
+          }
+          result: {
+            IDENT [28] {
+              name: @x1:0
+            }
+          }
+        }
+      }
+    }
+    COMPREHENSION [29] {
+      iter_var: @c0:0
+      iter_range: {
+        IDENT [30] {
+          name: @index4
+        }
+      }
+      accu_var: @x0:0
+      accu_init: {
+        CREATE_LIST [31] {
+          elements: {
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [32] { value: true }
+      }
+      loop_step: {
+        IDENT [33] {
+          name: @index2
+        }
+      }
+      result: {
+        IDENT [34] {
+          name: @x0:0
+        }
+      }
+    }
+  }
+}
+Test case: PRESENCE_TEST
+Source: has({'a': true}.a) && {'a':true}['a']
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_MAP [3] {
+          MAP_ENTRY [4] {
+            key: {
+              CONSTANT [5] { value: "a" }
+            }
+            value: {
+              CONSTANT [6] { value: true }
+            }
+          }
+        }
+        CALL [7] {
+          function: _[_]
+          args: {
+            IDENT [8] {
+              name: @index0
+            }
+            CONSTANT [9] { value: "a" }
+          }
+        }
+      }
+    }
+    CALL [10] {
+      function: _&&_
+      args: {
+        SELECT [11] {
+          IDENT [12] {
+            name: @index0
+          }.a~presence_test
+        }
+        IDENT [13] {
+          name: @index1
+        }
+      }
+    }
+  }
+}
+Test case: PRESENCE_TEST_WITH_TERNARY
+Source: (has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : 0) == 10
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          IDENT [4] {
+            name: msg
+          }.oneof_type
+        }
+        CALL [5] {
+          function: _?_:_
+          args: {
+            SELECT [6] {
+              IDENT [7] {
+                name: @index0
+              }.payload~presence_test
+            }
+            SELECT [8] {
+              SELECT [9] {
+                IDENT [10] {
+                  name: @index0
+                }.payload
+              }.single_int64
+            }
+            CONSTANT [11] { value: 0 }
+          }
+        }
+      }
+    }
+    CALL [12] {
+      function: _==_
+      args: {
+        IDENT [13] {
+          name: @index1
+        }
+        CONSTANT [14] { value: 10 }
+      }
+    }
+  }
+}
+Test case: PRESENCE_TEST_WITH_TERNARY_2
+Source: (has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : msg.oneof_type.payload.single_int64 * 0) == 10
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          IDENT [4] {
+            name: msg
+          }.oneof_type
+        }
+        SELECT [5] {
+          IDENT [6] {
+            name: @index0
+          }.payload
+        }
+        SELECT [7] {
+          IDENT [8] {
+            name: @index1
+          }.single_int64
+        }
+        CALL [9] {
+          function: _?_:_
+          args: {
+            SELECT [10] {
+              IDENT [11] {
+                name: @index0
+              }.payload~presence_test
+            }
+            IDENT [12] {
+              name: @index2
+            }
+            CALL [13] {
+              function: _*_
+              args: {
+                IDENT [14] {
+                  name: @index2
+                }
+                CONSTANT [15] { value: 0 }
+              }
+            }
+          }
+        }
+      }
+    }
+    CALL [16] {
+      function: _==_
+      args: {
+        IDENT [17] {
+          name: @index3
+        }
+        CONSTANT [18] { value: 10 }
+      }
+    }
+  }
+}
+Test case: PRESENCE_TEST_WITH_TERNARY_3
+Source: (has(msg.oneof_type.payload.single_int64) ? msg.oneof_type.payload.single_int64 : msg.oneof_type.payload.single_int64 * 0) == 10
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          IDENT [4] {
+            name: msg
+          }.oneof_type
+        }
+        SELECT [5] {
+          IDENT [6] {
+            name: @index0
+          }.payload
+        }
+        SELECT [7] {
+          IDENT [8] {
+            name: @index1
+          }.single_int64
+        }
+        CALL [9] {
+          function: _?_:_
+          args: {
+            SELECT [10] {
+              IDENT [11] {
+                name: @index1
+              }.single_int64~presence_test
+            }
+            IDENT [12] {
+              name: @index2
+            }
+            CALL [13] {
+              function: _*_
+              args: {
+                IDENT [14] {
+                  name: @index2
+                }
+                CONSTANT [15] { value: 0 }
+              }
+            }
+          }
+        }
+      }
+    }
+    CALL [16] {
+      function: _==_
+      args: {
+        IDENT [17] {
+          name: @index3
+        }
+        CONSTANT [18] { value: 10 }
+      }
+    }
+  }
+}
+Test case: PRESENCE_TEST_WITH_TERNARY_NESTED
+Source: (has(msg.oneof_type) && has(msg.oneof_type.payload) && has(msg.oneof_type.payload.single_int64)) ? ((has(msg.oneof_type.payload.map_string_string) && has(msg.oneof_type.payload.map_string_string.key)) ? msg.oneof_type.payload.map_string_string.key == 'A' : false) : false
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          IDENT [4] {
+            name: msg
+          }.oneof_type
+        }
+        SELECT [5] {
+          IDENT [6] {
+            name: @index0
+          }.payload
+        }
+        SELECT [7] {
+          IDENT [8] {
+            name: @index1
+          }.map_string_string
+        }
+        CALL [9] {
+          function: _?_:_
+          args: {
+            CALL [10] {
+              function: _&&_
+              args: {
+                SELECT [11] {
+                  IDENT [12] {
+                    name: @index1
+                  }.map_string_string~presence_test
+                }
+                SELECT [13] {
+                  IDENT [14] {
+                    name: @index2
+                  }.key~presence_test
+                }
+              }
+            }
+            CALL [15] {
+              function: _==_
+              args: {
+                SELECT [16] {
+                  IDENT [17] {
+                    name: @index2
+                  }.key
+                }
+                CONSTANT [18] { value: "A" }
+              }
+            }
+            CONSTANT [19] { value: false }
+          }
+        }
+        CALL [20] {
+          function: _&&_
+          args: {
+            CALL [21] {
+              function: _&&_
+              args: {
+                SELECT [22] {
+                  IDENT [23] {
+                    name: msg
+                  }.oneof_type~presence_test
+                }
+                SELECT [24] {
+                  IDENT [25] {
+                    name: @index0
+                  }.payload~presence_test
+                }
+              }
+            }
+            SELECT [26] {
+              IDENT [27] {
+                name: @index1
+              }.single_int64~presence_test
+            }
+          }
+        }
+      }
+    }
+    CALL [28] {
+      function: _?_:_
+      args: {
+        IDENT [29] {
+          name: @index4
+        }
+        IDENT [30] {
+          name: @index3
+        }
+        CONSTANT [31] { value: false }
+      }
+    }
+  }
+}
+Test case: OPTIONAL_LIST
+Source: [10, ?optional.none(), [?optional.none(), ?opt_x], [?optional.none(), ?opt_x]] == [10, [5], [5]]
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CALL [3] {
+          function: optional.none
+          args: {
+          }
+        }
+        CREATE_LIST [4] {
+          elements: {
+            IDENT [5] {
+              name: @index0
+            }
+            IDENT [6] {
+              name: opt_x
+            }
+          }
+          optional_indices: [0, 1]
+        }
+        CREATE_LIST [7] {
+          elements: {
+            CONSTANT [8] { value: 5 }
+          }
+        }
+        CREATE_LIST [9] {
+          elements: {
+            CONSTANT [10] { value: 10 }
+            IDENT [11] {
+              name: @index2
+            }
+            IDENT [12] {
+              name: @index2
+            }
+          }
+        }
+        CREATE_LIST [13] {
+          elements: {
+            CONSTANT [14] { value: 10 }
+            IDENT [15] {
+              name: @index0
+            }
+            IDENT [16] {
+              name: @index1
+            }
+            IDENT [17] {
+              name: @index1
+            }
+          }
+          optional_indices: [0]
+        }
+      }
+    }
+    CALL [18] {
+      function: _==_
+      args: {
+        IDENT [19] {
+          name: @index4
+        }
+        IDENT [20] {
+          name: @index3
+        }
+      }
+    }
+  }
+}
+Test case: OPTIONAL_MAP
+Source: {?'hello': optional.of('hello')}['hello'] + {?'hello': optional.of('hello')}['hello'] == 'hellohello'
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CALL [3] {
+          function: optional.of
+          args: {
+            CONSTANT [4] { value: "hello" }
+          }
+        }
+        CREATE_MAP [5] {
+          MAP_ENTRY [6] {
+            key: {
+              CONSTANT [7] { value: "hello" }
+            }
+            optional_entry: true
+            value: {
+              IDENT [8] {
+                name: @index0
+              }
+            }
+          }
+        }
+        CALL [9] {
+          function: _[_]
+          args: {
+            IDENT [10] {
+              name: @index1
+            }
+            CONSTANT [11] { value: "hello" }
+          }
+        }
+        CALL [12] {
+          function: _+_
+          args: {
+            IDENT [13] {
+              name: @index2
+            }
+            IDENT [14] {
+              name: @index2
+            }
+          }
+        }
+      }
+    }
+    CALL [15] {
+      function: _==_
+      args: {
+        IDENT [16] {
+          name: @index3
+        }
+        CONSTANT [17] { value: "hellohello" }
+      }
+    }
+  }
+}
+Test case: OPTIONAL_MAP_CHAINED
+Source: {?'key': optional.of('test')}[?'bogus'].or({'key': 'test'}[?'bogus']).orValue({'key': 'test'}['key']) == 'test'
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_MAP [3] {
+          MAP_ENTRY [4] {
+            key: {
+              CONSTANT [5] { value: "key" }
+            }
+            value: {
+              CONSTANT [6] { value: "test" }
+            }
+          }
+        }
+        CALL [7] {
+          function: _[_]
+          args: {
+            IDENT [8] {
+              name: @index0
+            }
+            CONSTANT [9] { value: "key" }
+          }
+        }
+        CALL [10] {
+          function: _[?_]
+          args: {
+            IDENT [11] {
+              name: @index0
+            }
+            CONSTANT [12] { value: "bogus" }
+          }
+        }
+        CALL [13] {
+          function: _[?_]
+          args: {
+            CREATE_MAP [14] {
+              MAP_ENTRY [15] {
+                key: {
+                  CONSTANT [16] { value: "key" }
+                }
+                optional_entry: true
+                value: {
+                  CALL [17] {
+                    function: optional.of
+                    args: {
+                      CONSTANT [18] { value: "test" }
+                    }
+                  }
+                }
+              }
+            }
+            CONSTANT [19] { value: "bogus" }
+          }
+        }
+        CALL [20] {
+          function: orValue
+          target: {
+            CALL [21] {
+              function: or
+              target: {
+                IDENT [22] {
+                  name: @index3
+                }
+              }
+              args: {
+                IDENT [23] {
+                  name: @index2
+                }
+              }
+            }
+          }
+          args: {
+            IDENT [24] {
+              name: @index1
+            }
+          }
+        }
+      }
+    }
+    CALL [25] {
+      function: _==_
+      args: {
+        IDENT [26] {
+          name: @index4
+        }
+        CONSTANT [27] { value: "test" }
+      }
+    }
+  }
+}
+Test case: OPTIONAL_MESSAGE
+Source: TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}.single_int32 + TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}.single_int64 == 5
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CALL [3] {
+          function: optional.ofNonZeroValue
+          args: {
+            CONSTANT [4] { value: 1 }
+          }
+        }
+        CALL [5] {
+          function: optional.of
+          args: {
+            CONSTANT [6] { value: 4 }
+          }
+        }
+        CREATE_STRUCT [7] {
+          name: TestAllTypes
+          entries: {
+            ENTRY [8] {
+              field_key: single_int64
+              optional_entry: true
+              value: {
+                IDENT [9] {
+                  name: @index0
+                }
+              }
+            }
+            ENTRY [10] {
+              field_key: single_int32
+              optional_entry: true
+              value: {
+                IDENT [11] {
+                  name: @index1
+                }
+              }
+            }
+          }
+        }
+        CALL [12] {
+          function: _+_
+          args: {
+            SELECT [13] {
+              IDENT [14] {
+                name: @index2
+              }.single_int32
+            }
+            SELECT [15] {
+              IDENT [16] {
+                name: @index2
+              }.single_int64
+            }
+          }
+        }
+      }
+    }
+    CALL [17] {
+      function: _==_
+      args: {
+        IDENT [18] {
+          name: @index3
+        }
+        CONSTANT [19] { value: 5 }
+      }
+    }
+  }
+}
+Test case: CALL
+Source: ('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('h' + 'e' + 'l' + 'l' + 'o')
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CALL [3] {
+          function: _+_
+          args: {
+            CONSTANT [4] { value: "h" }
+            CONSTANT [5] { value: "e" }
+          }
+        }
+        CALL [6] {
+          function: _+_
+          args: {
+            IDENT [7] {
+              name: @index0
+            }
+            CONSTANT [8] { value: "l" }
+          }
+        }
+        CALL [9] {
+          function: _+_
+          args: {
+            IDENT [10] {
+              name: @index1
+            }
+            CONSTANT [11] { value: "l" }
+          }
+        }
+        CALL [12] {
+          function: _+_
+          args: {
+            IDENT [13] {
+              name: @index2
+            }
+            CONSTANT [14] { value: "o" }
+          }
+        }
+        CALL [15] {
+          function: _+_
+          args: {
+            IDENT [16] {
+              name: @index3
+            }
+            CONSTANT [17] { value: " world" }
+          }
+        }
+      }
+    }
+    CALL [18] {
+      function: matches
+      target: {
+        IDENT [19] {
+          name: @index4
+        }
+      }
+      args: {
+        IDENT [20] {
+          name: @index3
+        }
+      }
+    }
+  }
+}
+Test case: CALL_ARGUMENT_NESTED_NO_COMMON_SUBEXPR
+Source: 'hello world'.matches('h' + 'e' + 'l' + 'l' + 'o')
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CALL [3] {
+          function: _+_
+          args: {
+            CALL [4] {
+              function: _+_
+              args: {
+                CALL [5] {
+                  function: _+_
+                  args: {
+                    CONSTANT [6] { value: "h" }
+                    CONSTANT [7] { value: "e" }
+                  }
+                }
+                CONSTANT [8] { value: "l" }
+              }
+            }
+            CONSTANT [9] { value: "l" }
+          }
+        }
+        CALL [10] {
+          function: _+_
+          args: {
+            IDENT [11] {
+              name: @index0
+            }
+            CONSTANT [12] { value: "o" }
+          }
+        }
+      }
+    }
+    CALL [13] {
+      function: matches
+      target: {
+        CONSTANT [14] { value: "hello world" }
+      }
+      args: {
+        IDENT [15] {
+          name: @index1
+        }
+      }
+    }
+  }
+}
+Test case: CALL_TARGET_NESTED_NO_COMMON_SUBEXPR
+Source: ('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('hello')
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CALL [3] {
+          function: _+_
+          args: {
+            CALL [4] {
+              function: _+_
+              args: {
+                CALL [5] {
+                  function: _+_
+                  args: {
+                    CONSTANT [6] { value: "h" }
+                    CONSTANT [7] { value: "e" }
+                  }
+                }
+                CONSTANT [8] { value: "l" }
+              }
+            }
+            CONSTANT [9] { value: "l" }
+          }
+        }
+        CALL [10] {
+          function: _+_
+          args: {
+            CALL [11] {
+              function: _+_
+              args: {
+                IDENT [12] {
+                  name: @index0
+                }
+                CONSTANT [13] { value: "o" }
+              }
+            }
+            CONSTANT [14] { value: " world" }
+          }
+        }
+      }
+    }
+    CALL [15] {
+      function: matches
+      target: {
+        IDENT [16] {
+          name: @index1
+        }
+      }
+      args: {
+        CONSTANT [17] { value: "hello" }
+      }
+    }
+  }
+}
+Test case: CALL_BOTH_ARGUMENT_TARGET_NESTED_NO_COMMON_SUBEXPR
+Source: ('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('w' + 'o' + 'r' + 'l' + 'd')
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CALL [3] {
+          function: _+_
+          args: {
+            CALL [4] {
+              function: _+_
+              args: {
+                CALL [5] {
+                  function: _+_
+                  args: {
+                    CONSTANT [6] { value: "w" }
+                    CONSTANT [7] { value: "o" }
+                  }
+                }
+                CONSTANT [8] { value: "r" }
+              }
+            }
+            CONSTANT [9] { value: "l" }
+          }
+        }
+        CALL [10] {
+          function: _+_
+          args: {
+            IDENT [11] {
+              name: @index0
+            }
+            CONSTANT [12] { value: "d" }
+          }
+        }
+        CALL [13] {
+          function: _+_
+          args: {
+            CALL [14] {
+              function: _+_
+              args: {
+                CALL [15] {
+                  function: _+_
+                  args: {
+                    CONSTANT [16] { value: "h" }
+                    CONSTANT [17] { value: "e" }
+                  }
+                }
+                CONSTANT [18] { value: "l" }
+              }
+            }
+            CONSTANT [19] { value: "l" }
+          }
+        }
+        CALL [20] {
+          function: _+_
+          args: {
+            CALL [21] {
+              function: _+_
+              args: {
+                IDENT [22] {
+                  name: @index2
+                }
+                CONSTANT [23] { value: "o" }
+              }
+            }
+            CONSTANT [24] { value: " world" }
+          }
+        }
+      }
+    }
+    CALL [25] {
+      function: matches
+      target: {
+        IDENT [26] {
+          name: @index3
+        }
+      }
+      args: {
+        IDENT [27] {
+          name: @index1
+        }
+      }
+    }
+  }
+}

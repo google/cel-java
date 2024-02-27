@@ -1,0 +1,3894 @@
+Test case: SIZE_1
+Source: size([1,2]) + size([1,2]) + 1 == 5
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    CALL [2] {
+      function: _+_
+      args: {
+        COMPREHENSION [3] {
+          iter_var: #unused
+          iter_range: {
+            CREATE_LIST [4] {
+              elements: {
+              }
+            }
+          }
+          accu_var: @r0
+          accu_init: {
+            CALL [5] {
+              function: size
+              args: {
+                CREATE_LIST [6] {
+                  elements: {
+                    CONSTANT [7] { value: 1 }
+                    CONSTANT [8] { value: 2 }
+                  }
+                }
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [9] { value: false }
+          }
+          loop_step: {
+            IDENT [10] {
+              name: @r0
+            }
+          }
+          result: {
+            CALL [11] {
+              function: _+_
+              args: {
+                IDENT [12] {
+                  name: @r0
+                }
+                IDENT [13] {
+                  name: @r0
+                }
+              }
+            }
+          }
+        }
+        CONSTANT [14] { value: 1 }
+      }
+    }
+    CONSTANT [15] { value: 5 }
+  }
+}
+Test case: SIZE_2
+Source: 2 + size([1,2]) + size([1,2]) + 1 == 7
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    CALL [2] {
+      function: _+_
+      args: {
+        COMPREHENSION [3] {
+          iter_var: #unused
+          iter_range: {
+            CREATE_LIST [4] {
+              elements: {
+              }
+            }
+          }
+          accu_var: @r0
+          accu_init: {
+            CALL [5] {
+              function: size
+              args: {
+                CREATE_LIST [6] {
+                  elements: {
+                    CONSTANT [7] { value: 1 }
+                    CONSTANT [8] { value: 2 }
+                  }
+                }
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [9] { value: false }
+          }
+          loop_step: {
+            IDENT [10] {
+              name: @r0
+            }
+          }
+          result: {
+            CALL [11] {
+              function: _+_
+              args: {
+                CALL [12] {
+                  function: _+_
+                  args: {
+                    CONSTANT [13] { value: 2 }
+                    IDENT [14] {
+                      name: @r0
+                    }
+                  }
+                }
+                IDENT [15] {
+                  name: @r0
+                }
+              }
+            }
+          }
+        }
+        CONSTANT [16] { value: 1 }
+      }
+    }
+    CONSTANT [17] { value: 7 }
+  }
+}
+Test case: SIZE_3
+Source: size([0]) + size([0]) + size([1,2]) + size([1,2]) == 6
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r1
+      accu_init: {
+        CALL [4] {
+          function: size
+          args: {
+            CREATE_LIST [5] {
+              elements: {
+                CONSTANT [6] { value: 1 }
+                CONSTANT [7] { value: 2 }
+              }
+            }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [8] { value: false }
+      }
+      loop_step: {
+        IDENT [9] {
+          name: @r1
+        }
+      }
+      result: {
+        CALL [10] {
+          function: _+_
+          args: {
+            CALL [11] {
+              function: _+_
+              args: {
+                COMPREHENSION [12] {
+                  iter_var: #unused
+                  iter_range: {
+                    CREATE_LIST [13] {
+                      elements: {
+                      }
+                    }
+                  }
+                  accu_var: @r0
+                  accu_init: {
+                    CALL [14] {
+                      function: size
+                      args: {
+                        CREATE_LIST [15] {
+                          elements: {
+                            CONSTANT [16] { value: 0 }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  loop_condition: {
+                    CONSTANT [17] { value: false }
+                  }
+                  loop_step: {
+                    IDENT [18] {
+                      name: @r0
+                    }
+                  }
+                  result: {
+                    CALL [19] {
+                      function: _+_
+                      args: {
+                        IDENT [20] {
+                          name: @r0
+                        }
+                        IDENT [21] {
+                          name: @r0
+                        }
+                      }
+                    }
+                  }
+                }
+                IDENT [22] {
+                  name: @r1
+                }
+              }
+            }
+            IDENT [23] {
+              name: @r1
+            }
+          }
+        }
+      }
+    }
+    CONSTANT [24] { value: 6 }
+  }
+}
+Test case: SIZE_4
+Source: 5 + size([0]) + size([0]) + size([1,2]) + size([1,2]) + size([1,2,3]) + size([1,2,3]) == 17
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r2
+      accu_init: {
+        CALL [4] {
+          function: size
+          args: {
+            CREATE_LIST [5] {
+              elements: {
+                CONSTANT [6] { value: 1 }
+                CONSTANT [7] { value: 2 }
+                CONSTANT [8] { value: 3 }
+              }
+            }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [9] { value: false }
+      }
+      loop_step: {
+        IDENT [10] {
+          name: @r2
+        }
+      }
+      result: {
+        CALL [11] {
+          function: _+_
+          args: {
+            CALL [12] {
+              function: _+_
+              args: {
+                COMPREHENSION [13] {
+                  iter_var: #unused
+                  iter_range: {
+                    CREATE_LIST [14] {
+                      elements: {
+                      }
+                    }
+                  }
+                  accu_var: @r1
+                  accu_init: {
+                    CALL [15] {
+                      function: size
+                      args: {
+                        CREATE_LIST [16] {
+                          elements: {
+                            CONSTANT [17] { value: 1 }
+                            CONSTANT [18] { value: 2 }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  loop_condition: {
+                    CONSTANT [19] { value: false }
+                  }
+                  loop_step: {
+                    IDENT [20] {
+                      name: @r1
+                    }
+                  }
+                  result: {
+                    CALL [21] {
+                      function: _+_
+                      args: {
+                        CALL [22] {
+                          function: _+_
+                          args: {
+                            COMPREHENSION [23] {
+                              iter_var: #unused
+                              iter_range: {
+                                CREATE_LIST [24] {
+                                  elements: {
+                                  }
+                                }
+                              }
+                              accu_var: @r0
+                              accu_init: {
+                                CALL [25] {
+                                  function: size
+                                  args: {
+                                    CREATE_LIST [26] {
+                                      elements: {
+                                        CONSTANT [27] { value: 0 }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                              loop_condition: {
+                                CONSTANT [28] { value: false }
+                              }
+                              loop_step: {
+                                IDENT [29] {
+                                  name: @r0
+                                }
+                              }
+                              result: {
+                                CALL [30] {
+                                  function: _+_
+                                  args: {
+                                    CALL [31] {
+                                      function: _+_
+                                      args: {
+                                        CONSTANT [32] { value: 5 }
+                                        IDENT [33] {
+                                          name: @r0
+                                        }
+                                      }
+                                    }
+                                    IDENT [34] {
+                                      name: @r0
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                            IDENT [35] {
+                              name: @r1
+                            }
+                          }
+                        }
+                        IDENT [36] {
+                          name: @r1
+                        }
+                      }
+                    }
+                  }
+                }
+                IDENT [37] {
+                  name: @r2
+                }
+              }
+            }
+            IDENT [38] {
+              name: @r2
+            }
+          }
+        }
+      }
+    }
+    CONSTANT [39] { value: 17 }
+  }
+}
+Test case: TIMESTAMP
+Source: timestamp(int(timestamp(1000000000))).getFullYear() + timestamp(int(timestamp(75))).getFullYear() +  timestamp(int(timestamp(50))).getFullYear() +  timestamp(int(timestamp(1000000000))).getFullYear() +  timestamp(int(timestamp(50))).getSeconds() +  timestamp(int(timestamp(200))).getFullYear() +  timestamp(int(timestamp(200))).getFullYear() +  timestamp(int(timestamp(75))).getMinutes() +  timestamp(int(timestamp(1000000000))).getFullYear() == 13934
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        CALL [4] {
+          function: getFullYear
+          target: {
+            CALL [5] {
+              function: timestamp
+              args: {
+                CALL [6] {
+                  function: int
+                  args: {
+                    CALL [7] {
+                      function: timestamp
+                      args: {
+                        CONSTANT [8] { value: 1000000000 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          args: {
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [9] { value: false }
+      }
+      loop_step: {
+        IDENT [10] {
+          name: @r0
+        }
+      }
+      result: {
+        CALL [11] {
+          function: _+_
+          args: {
+            COMPREHENSION [12] {
+              iter_var: #unused
+              iter_range: {
+                CREATE_LIST [13] {
+                  elements: {
+                  }
+                }
+              }
+              accu_var: @r3
+              accu_init: {
+                CALL [14] {
+                  function: timestamp
+                  args: {
+                    CALL [15] {
+                      function: int
+                      args: {
+                        CALL [16] {
+                          function: timestamp
+                          args: {
+                            CONSTANT [17] { value: 75 }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              loop_condition: {
+                CONSTANT [18] { value: false }
+              }
+              loop_step: {
+                IDENT [19] {
+                  name: @r3
+                }
+              }
+              result: {
+                CALL [20] {
+                  function: _+_
+                  args: {
+                    COMPREHENSION [21] {
+                      iter_var: #unused
+                      iter_range: {
+                        CREATE_LIST [22] {
+                          elements: {
+                          }
+                        }
+                      }
+                      accu_var: @r2
+                      accu_init: {
+                        CALL [23] {
+                          function: getFullYear
+                          target: {
+                            CALL [24] {
+                              function: timestamp
+                              args: {
+                                CALL [25] {
+                                  function: int
+                                  args: {
+                                    CALL [26] {
+                                      function: timestamp
+                                      args: {
+                                        CONSTANT [27] { value: 200 }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                          args: {
+                          }
+                        }
+                      }
+                      loop_condition: {
+                        CONSTANT [28] { value: false }
+                      }
+                      loop_step: {
+                        IDENT [29] {
+                          name: @r2
+                        }
+                      }
+                      result: {
+                        CALL [30] {
+                          function: _+_
+                          args: {
+                            CALL [31] {
+                              function: _+_
+                              args: {
+                                COMPREHENSION [32] {
+                                  iter_var: #unused
+                                  iter_range: {
+                                    CREATE_LIST [33] {
+                                      elements: {
+                                      }
+                                    }
+                                  }
+                                  accu_var: @r1
+                                  accu_init: {
+                                    CALL [34] {
+                                      function: timestamp
+                                      args: {
+                                        CALL [35] {
+                                          function: int
+                                          args: {
+                                            CALL [36] {
+                                              function: timestamp
+                                              args: {
+                                                CONSTANT [37] { value: 50 }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                  loop_condition: {
+                                    CONSTANT [38] { value: false }
+                                  }
+                                  loop_step: {
+                                    IDENT [39] {
+                                      name: @r1
+                                    }
+                                  }
+                                  result: {
+                                    CALL [40] {
+                                      function: _+_
+                                      args: {
+                                        CALL [41] {
+                                          function: _+_
+                                          args: {
+                                            CALL [42] {
+                                              function: _+_
+                                              args: {
+                                                CALL [43] {
+                                                  function: _+_
+                                                  args: {
+                                                    IDENT [44] {
+                                                      name: @r0
+                                                    }
+                                                    CALL [45] {
+                                                      function: getFullYear
+                                                      target: {
+                                                        IDENT [46] {
+                                                          name: @r3
+                                                        }
+                                                      }
+                                                      args: {
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                                CALL [47] {
+                                                  function: getFullYear
+                                                  target: {
+                                                    IDENT [48] {
+                                                      name: @r1
+                                                    }
+                                                  }
+                                                  args: {
+                                                  }
+                                                }
+                                              }
+                                            }
+                                            IDENT [49] {
+                                              name: @r0
+                                            }
+                                          }
+                                        }
+                                        CALL [50] {
+                                          function: getSeconds
+                                          target: {
+                                            IDENT [51] {
+                                              name: @r1
+                                            }
+                                          }
+                                          args: {
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                                IDENT [52] {
+                                  name: @r2
+                                }
+                              }
+                            }
+                            IDENT [53] {
+                              name: @r2
+                            }
+                          }
+                        }
+                      }
+                    }
+                    CALL [54] {
+                      function: getMinutes
+                      target: {
+                        IDENT [55] {
+                          name: @r3
+                        }
+                      }
+                      args: {
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            IDENT [56] {
+              name: @r0
+            }
+          }
+        }
+      }
+    }
+    CONSTANT [57] { value: 13934 }
+  }
+}
+Test case: MAP_INDEX
+Source: {"a": 2}["a"] + {"a": 2}["a"] * {"a": 2}["a"] == 6
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        CALL [4] {
+          function: _[_]
+          args: {
+            CREATE_MAP [5] {
+              MAP_ENTRY [6] {
+                key: {
+                  CONSTANT [7] { value: "a" }
+                }
+                value: {
+                  CONSTANT [8] { value: 2 }
+                }
+              }
+            }
+            CONSTANT [9] { value: "a" }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [10] { value: false }
+      }
+      loop_step: {
+        IDENT [11] {
+          name: @r0
+        }
+      }
+      result: {
+        CALL [12] {
+          function: _+_
+          args: {
+            IDENT [13] {
+              name: @r0
+            }
+            CALL [14] {
+              function: _*_
+              args: {
+                IDENT [15] {
+                  name: @r0
+                }
+                IDENT [16] {
+                  name: @r0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    CONSTANT [17] { value: 6 }
+  }
+}
+Test case: NESTED_MAP_CONSTRUCTION
+Source: {'a': {'b': 1}, 'c': {'b': 1}, 'd': {'e': {'b': 1}}, 'e': {'e': {'b': 1}}}
+=====>
+COMPREHENSION [1] {
+  iter_var: #unused
+  iter_range: {
+    CREATE_LIST [2] {
+      elements: {
+      }
+    }
+  }
+  accu_var: @r0
+  accu_init: {
+    CREATE_MAP [3] {
+      MAP_ENTRY [4] {
+        key: {
+          CONSTANT [5] { value: "b" }
+        }
+        value: {
+          CONSTANT [6] { value: 1 }
+        }
+      }
+    }
+  }
+  loop_condition: {
+    CONSTANT [7] { value: false }
+  }
+  loop_step: {
+    IDENT [8] {
+      name: @r0
+    }
+  }
+  result: {
+    COMPREHENSION [9] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [10] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r1
+      accu_init: {
+        CREATE_MAP [11] {
+          MAP_ENTRY [12] {
+            key: {
+              CONSTANT [13] { value: "e" }
+            }
+            value: {
+              IDENT [14] {
+                name: @r0
+              }
+            }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [15] { value: false }
+      }
+      loop_step: {
+        IDENT [16] {
+          name: @r1
+        }
+      }
+      result: {
+        CREATE_MAP [17] {
+          MAP_ENTRY [18] {
+            key: {
+              CONSTANT [19] { value: "a" }
+            }
+            value: {
+              IDENT [20] {
+                name: @r0
+              }
+            }
+          }
+          MAP_ENTRY [21] {
+            key: {
+              CONSTANT [22] { value: "c" }
+            }
+            value: {
+              IDENT [23] {
+                name: @r0
+              }
+            }
+          }
+          MAP_ENTRY [24] {
+            key: {
+              CONSTANT [25] { value: "d" }
+            }
+            value: {
+              IDENT [26] {
+                name: @r1
+              }
+            }
+          }
+          MAP_ENTRY [27] {
+            key: {
+              CONSTANT [28] { value: "e" }
+            }
+            value: {
+              IDENT [29] {
+                name: @r1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Test case: NESTED_LIST_CONSTRUCTION
+Source: [1, [1,2,3,4], 2, [1,2,3,4], 5, [1,2,3,4], 7, [[1,2], [1,2,3,4]], [1,2]]
+=====>
+COMPREHENSION [1] {
+  iter_var: #unused
+  iter_range: {
+    CREATE_LIST [2] {
+      elements: {
+      }
+    }
+  }
+  accu_var: @r0
+  accu_init: {
+    CREATE_LIST [3] {
+      elements: {
+        CONSTANT [4] { value: 1 }
+        CONSTANT [5] { value: 2 }
+        CONSTANT [6] { value: 3 }
+        CONSTANT [7] { value: 4 }
+      }
+    }
+  }
+  loop_condition: {
+    CONSTANT [8] { value: false }
+  }
+  loop_step: {
+    IDENT [9] {
+      name: @r0
+    }
+  }
+  result: {
+    COMPREHENSION [10] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [11] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r1
+      accu_init: {
+        CREATE_LIST [12] {
+          elements: {
+            CONSTANT [13] { value: 1 }
+            CONSTANT [14] { value: 2 }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [15] { value: false }
+      }
+      loop_step: {
+        IDENT [16] {
+          name: @r1
+        }
+      }
+      result: {
+        CREATE_LIST [17] {
+          elements: {
+            CONSTANT [18] { value: 1 }
+            IDENT [19] {
+              name: @r0
+            }
+            CONSTANT [20] { value: 2 }
+            IDENT [21] {
+              name: @r0
+            }
+            CONSTANT [22] { value: 5 }
+            IDENT [23] {
+              name: @r0
+            }
+            CONSTANT [24] { value: 7 }
+            CREATE_LIST [25] {
+              elements: {
+                IDENT [26] {
+                  name: @r1
+                }
+                IDENT [27] {
+                  name: @r0
+                }
+              }
+            }
+            IDENT [28] {
+              name: @r1
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Test case: SELECT
+Source: msg.single_int64 + msg.single_int64 == 6
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        SELECT [4] {
+          IDENT [5] {
+            name: msg
+          }.single_int64
+        }
+      }
+      loop_condition: {
+        CONSTANT [6] { value: false }
+      }
+      loop_step: {
+        IDENT [7] {
+          name: @r0
+        }
+      }
+      result: {
+        CALL [8] {
+          function: _+_
+          args: {
+            IDENT [9] {
+              name: @r0
+            }
+            IDENT [10] {
+              name: @r0
+            }
+          }
+        }
+      }
+    }
+    CONSTANT [11] { value: 6 }
+  }
+}
+Test case: SELECT_NESTED_1
+Source: msg.oneof_type.payload.single_int64 + msg.oneof_type.payload.single_int32 + msg.oneof_type.payload.single_int64 + msg.single_int64 + msg.oneof_type.payload.oneof_type.payload.single_int64 == 31
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        SELECT [4] {
+          SELECT [5] {
+            IDENT [6] {
+              name: msg
+            }.oneof_type
+          }.payload
+        }
+      }
+      loop_condition: {
+        CONSTANT [7] { value: false }
+      }
+      loop_step: {
+        IDENT [8] {
+          name: @r0
+        }
+      }
+      result: {
+        CALL [9] {
+          function: _+_
+          args: {
+            CALL [10] {
+              function: _+_
+              args: {
+                COMPREHENSION [11] {
+                  iter_var: #unused
+                  iter_range: {
+                    CREATE_LIST [12] {
+                      elements: {
+                      }
+                    }
+                  }
+                  accu_var: @r1
+                  accu_init: {
+                    SELECT [13] {
+                      IDENT [14] {
+                        name: @r0
+                      }.single_int64
+                    }
+                  }
+                  loop_condition: {
+                    CONSTANT [15] { value: false }
+                  }
+                  loop_step: {
+                    IDENT [16] {
+                      name: @r1
+                    }
+                  }
+                  result: {
+                    CALL [17] {
+                      function: _+_
+                      args: {
+                        CALL [18] {
+                          function: _+_
+                          args: {
+                            IDENT [19] {
+                              name: @r1
+                            }
+                            SELECT [20] {
+                              IDENT [21] {
+                                name: @r0
+                              }.single_int32
+                            }
+                          }
+                        }
+                        IDENT [22] {
+                          name: @r1
+                        }
+                      }
+                    }
+                  }
+                }
+                SELECT [23] {
+                  IDENT [24] {
+                    name: msg
+                  }.single_int64
+                }
+              }
+            }
+            SELECT [25] {
+              SELECT [26] {
+                SELECT [27] {
+                  IDENT [28] {
+                    name: @r0
+                  }.oneof_type
+                }.payload
+              }.single_int64
+            }
+          }
+        }
+      }
+    }
+    CONSTANT [29] { value: 31 }
+  }
+}
+Test case: SELECT_NESTED_2
+Source: true || msg.oneof_type.payload.oneof_type.payload.oneof_type.payload.oneof_type.payload.single_bool || msg.oneof_type.payload.oneof_type.payload.oneof_type.child.child.payload.single_bool
+=====>
+COMPREHENSION [1] {
+  iter_var: #unused
+  iter_range: {
+    CREATE_LIST [2] {
+      elements: {
+      }
+    }
+  }
+  accu_var: @r0
+  accu_init: {
+    SELECT [3] {
+      SELECT [4] {
+        SELECT [5] {
+          SELECT [6] {
+            SELECT [7] {
+              IDENT [8] {
+                name: msg
+              }.oneof_type
+            }.payload
+          }.oneof_type
+        }.payload
+      }.oneof_type
+    }
+  }
+  loop_condition: {
+    CONSTANT [9] { value: false }
+  }
+  loop_step: {
+    IDENT [10] {
+      name: @r0
+    }
+  }
+  result: {
+    CALL [11] {
+      function: _||_
+      args: {
+        CALL [12] {
+          function: _||_
+          args: {
+            CONSTANT [13] { value: true }
+            SELECT [14] {
+              SELECT [15] {
+                SELECT [16] {
+                  SELECT [17] {
+                    IDENT [18] {
+                      name: @r0
+                    }.payload
+                  }.oneof_type
+                }.payload
+              }.single_bool
+            }
+          }
+        }
+        SELECT [19] {
+          SELECT [20] {
+            SELECT [21] {
+              SELECT [22] {
+                IDENT [23] {
+                  name: @r0
+                }.child
+              }.child
+            }.payload
+          }.single_bool
+        }
+      }
+    }
+  }
+}
+Test case: SELECT_NESTED_MESSAGE_MAP_INDEX_1
+Source: msg.oneof_type.payload.map_int32_int64[1] + msg.oneof_type.payload.map_int32_int64[1] + msg.oneof_type.payload.map_int32_int64[1] == 15
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        CALL [4] {
+          function: _[_]
+          args: {
+            SELECT [5] {
+              SELECT [6] {
+                SELECT [7] {
+                  IDENT [8] {
+                    name: msg
+                  }.oneof_type
+                }.payload
+              }.map_int32_int64
+            }
+            CONSTANT [9] { value: 1 }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [10] { value: false }
+      }
+      loop_step: {
+        IDENT [11] {
+          name: @r0
+        }
+      }
+      result: {
+        CALL [12] {
+          function: _+_
+          args: {
+            CALL [13] {
+              function: _+_
+              args: {
+                IDENT [14] {
+                  name: @r0
+                }
+                IDENT [15] {
+                  name: @r0
+                }
+              }
+            }
+            IDENT [16] {
+              name: @r0
+            }
+          }
+        }
+      }
+    }
+    CONSTANT [17] { value: 15 }
+  }
+}
+Test case: SELECT_NESTED_MESSAGE_MAP_INDEX_2
+Source: msg.oneof_type.payload.map_int32_int64[0] + msg.oneof_type.payload.map_int32_int64[1] + msg.oneof_type.payload.map_int32_int64[2] == 8
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        SELECT [4] {
+          SELECT [5] {
+            SELECT [6] {
+              IDENT [7] {
+                name: msg
+              }.oneof_type
+            }.payload
+          }.map_int32_int64
+        }
+      }
+      loop_condition: {
+        CONSTANT [8] { value: false }
+      }
+      loop_step: {
+        IDENT [9] {
+          name: @r0
+        }
+      }
+      result: {
+        CALL [10] {
+          function: _+_
+          args: {
+            CALL [11] {
+              function: _+_
+              args: {
+                CALL [12] {
+                  function: _[_]
+                  args: {
+                    IDENT [13] {
+                      name: @r0
+                    }
+                    CONSTANT [14] { value: 0 }
+                  }
+                }
+                CALL [15] {
+                  function: _[_]
+                  args: {
+                    IDENT [16] {
+                      name: @r0
+                    }
+                    CONSTANT [17] { value: 1 }
+                  }
+                }
+              }
+            }
+            CALL [18] {
+              function: _[_]
+              args: {
+                IDENT [19] {
+                  name: @r0
+                }
+                CONSTANT [20] { value: 2 }
+              }
+            }
+          }
+        }
+      }
+    }
+    CONSTANT [21] { value: 8 }
+  }
+}
+Test case: SELECT_NESTED_NO_COMMON_SUBEXPR
+Source: msg.oneof_type.payload.oneof_type.payload.oneof_type.payload.oneof_type.payload.single_int64
+=====>
+SELECT [10] {
+  SELECT [9] {
+    SELECT [8] {
+      SELECT [7] {
+        SELECT [6] {
+          SELECT [5] {
+            SELECT [4] {
+              SELECT [3] {
+                SELECT [2] {
+                  IDENT [1] {
+                    name: msg
+                  }.oneof_type
+                }.payload
+              }.oneof_type
+            }.payload
+          }.oneof_type
+        }.payload
+      }.oneof_type
+    }.payload
+  }.single_int64
+}
+Test case: TERNARY
+Source: (msg.single_int64 > 0 ? msg.single_int64 : 0) == 3
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        SELECT [4] {
+          IDENT [5] {
+            name: msg
+          }.single_int64
+        }
+      }
+      loop_condition: {
+        CONSTANT [6] { value: false }
+      }
+      loop_step: {
+        IDENT [7] {
+          name: @r0
+        }
+      }
+      result: {
+        CALL [8] {
+          function: _?_:_
+          args: {
+            CALL [9] {
+              function: _>_
+              args: {
+                IDENT [10] {
+                  name: @r0
+                }
+                CONSTANT [11] { value: 0 }
+              }
+            }
+            IDENT [12] {
+              name: @r0
+            }
+            CONSTANT [13] { value: 0 }
+          }
+        }
+      }
+    }
+    CONSTANT [14] { value: 3 }
+  }
+}
+Test case: TERNARY_BIND_RHS_ONLY
+Source: false ? false : (msg.single_int64) + ((msg.single_int64 + 1) * 2) == 11
+=====>
+CALL [1] {
+  function: _?_:_
+  args: {
+    CONSTANT [2] { value: false }
+    CONSTANT [3] { value: false }
+    CALL [4] {
+      function: _==_
+      args: {
+        COMPREHENSION [5] {
+          iter_var: #unused
+          iter_range: {
+            CREATE_LIST [6] {
+              elements: {
+              }
+            }
+          }
+          accu_var: @r0
+          accu_init: {
+            SELECT [7] {
+              IDENT [8] {
+                name: msg
+              }.single_int64
+            }
+          }
+          loop_condition: {
+            CONSTANT [9] { value: false }
+          }
+          loop_step: {
+            IDENT [10] {
+              name: @r0
+            }
+          }
+          result: {
+            CALL [11] {
+              function: _+_
+              args: {
+                IDENT [12] {
+                  name: @r0
+                }
+                CALL [13] {
+                  function: _*_
+                  args: {
+                    CALL [14] {
+                      function: _+_
+                      args: {
+                        IDENT [15] {
+                          name: @r0
+                        }
+                        CONSTANT [16] { value: 1 }
+                      }
+                    }
+                    CONSTANT [17] { value: 2 }
+                  }
+                }
+              }
+            }
+          }
+        }
+        CONSTANT [18] { value: 11 }
+      }
+    }
+  }
+}
+Test case: NESTED_TERNARY
+Source: (msg.single_int64 > 0 ? (msg.single_int32 > 0 ? msg.single_int64 + msg.single_int32 : 0) : 0) == 8
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        SELECT [4] {
+          IDENT [5] {
+            name: msg
+          }.single_int64
+        }
+      }
+      loop_condition: {
+        CONSTANT [6] { value: false }
+      }
+      loop_step: {
+        IDENT [7] {
+          name: @r0
+        }
+      }
+      result: {
+        CALL [8] {
+          function: _?_:_
+          args: {
+            CALL [9] {
+              function: _>_
+              args: {
+                IDENT [10] {
+                  name: @r0
+                }
+                CONSTANT [11] { value: 0 }
+              }
+            }
+            COMPREHENSION [12] {
+              iter_var: #unused
+              iter_range: {
+                CREATE_LIST [13] {
+                  elements: {
+                  }
+                }
+              }
+              accu_var: @r1
+              accu_init: {
+                SELECT [14] {
+                  IDENT [15] {
+                    name: msg
+                  }.single_int32
+                }
+              }
+              loop_condition: {
+                CONSTANT [16] { value: false }
+              }
+              loop_step: {
+                IDENT [17] {
+                  name: @r1
+                }
+              }
+              result: {
+                CALL [18] {
+                  function: _?_:_
+                  args: {
+                    CALL [19] {
+                      function: _>_
+                      args: {
+                        IDENT [20] {
+                          name: @r1
+                        }
+                        CONSTANT [21] { value: 0 }
+                      }
+                    }
+                    CALL [22] {
+                      function: _+_
+                      args: {
+                        IDENT [23] {
+                          name: @r0
+                        }
+                        IDENT [24] {
+                          name: @r1
+                        }
+                      }
+                    }
+                    CONSTANT [25] { value: 0 }
+                  }
+                }
+              }
+            }
+            CONSTANT [26] { value: 0 }
+          }
+        }
+      }
+    }
+    CONSTANT [27] { value: 8 }
+  }
+}
+Test case: MULTIPLE_MACROS_1
+Source: size([[1].exists(i, i > 0)]) + size([[1].exists(j, j > 0)]) + size([[2].exists(k, k > 1)]) + size([[2].exists(l, l > 1)]) == 4
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r1
+      accu_init: {
+        CALL [4] {
+          function: size
+          args: {
+            CREATE_LIST [5] {
+              elements: {
+                COMPREHENSION [6] {
+                  iter_var: @c0:0
+                  iter_range: {
+                    CREATE_LIST [7] {
+                      elements: {
+                        CONSTANT [8] { value: 2 }
+                      }
+                    }
+                  }
+                  accu_var: @x0:0
+                  accu_init: {
+                    CONSTANT [9] { value: false }
+                  }
+                  loop_condition: {
+                    CALL [10] {
+                      function: @not_strictly_false
+                      args: {
+                        CALL [11] {
+                          function: !_
+                          args: {
+                            IDENT [12] {
+                              name: @x0:0
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  loop_step: {
+                    CALL [13] {
+                      function: _||_
+                      args: {
+                        IDENT [14] {
+                          name: @x0:0
+                        }
+                        CALL [15] {
+                          function: _>_
+                          args: {
+                            IDENT [16] {
+                              name: @c0:0
+                            }
+                            CONSTANT [17] { value: 1 }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  result: {
+                    IDENT [18] {
+                      name: @x0:0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [19] { value: false }
+      }
+      loop_step: {
+        IDENT [20] {
+          name: @r1
+        }
+      }
+      result: {
+        CALL [21] {
+          function: _+_
+          args: {
+            CALL [22] {
+              function: _+_
+              args: {
+                COMPREHENSION [23] {
+                  iter_var: #unused
+                  iter_range: {
+                    CREATE_LIST [24] {
+                      elements: {
+                      }
+                    }
+                  }
+                  accu_var: @r0
+                  accu_init: {
+                    CALL [25] {
+                      function: size
+                      args: {
+                        CREATE_LIST [26] {
+                          elements: {
+                            COMPREHENSION [27] {
+                              iter_var: @c0:0
+                              iter_range: {
+                                CREATE_LIST [28] {
+                                  elements: {
+                                    CONSTANT [29] { value: 1 }
+                                  }
+                                }
+                              }
+                              accu_var: @x0:0
+                              accu_init: {
+                                CONSTANT [30] { value: false }
+                              }
+                              loop_condition: {
+                                CALL [31] {
+                                  function: @not_strictly_false
+                                  args: {
+                                    CALL [32] {
+                                      function: !_
+                                      args: {
+                                        IDENT [33] {
+                                          name: @x0:0
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                              loop_step: {
+                                CALL [34] {
+                                  function: _||_
+                                  args: {
+                                    IDENT [35] {
+                                      name: @x0:0
+                                    }
+                                    CALL [36] {
+                                      function: _>_
+                                      args: {
+                                        IDENT [37] {
+                                          name: @c0:0
+                                        }
+                                        CONSTANT [38] { value: 0 }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                              result: {
+                                IDENT [39] {
+                                  name: @x0:0
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  loop_condition: {
+                    CONSTANT [40] { value: false }
+                  }
+                  loop_step: {
+                    IDENT [41] {
+                      name: @r0
+                    }
+                  }
+                  result: {
+                    CALL [42] {
+                      function: _+_
+                      args: {
+                        IDENT [43] {
+                          name: @r0
+                        }
+                        IDENT [44] {
+                          name: @r0
+                        }
+                      }
+                    }
+                  }
+                }
+                IDENT [45] {
+                  name: @r1
+                }
+              }
+            }
+            IDENT [46] {
+              name: @r1
+            }
+          }
+        }
+      }
+    }
+    CONSTANT [47] { value: 4 }
+  }
+}
+Test case: MULTIPLE_MACROS_2
+Source: [[1].exists(i, i > 0)] + [[1].exists(j, j > 0)] + [['a'].exists(k, k == 'a')] + [['a'].exists(l, l == 'a')] == [true, true, true, true]
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r1
+      accu_init: {
+        CREATE_LIST [4] {
+          elements: {
+            COMPREHENSION [5] {
+              iter_var: @c0:1
+              iter_range: {
+                CREATE_LIST [6] {
+                  elements: {
+                    CONSTANT [7] { value: "a" }
+                  }
+                }
+              }
+              accu_var: @x0:1
+              accu_init: {
+                CONSTANT [8] { value: false }
+              }
+              loop_condition: {
+                CALL [9] {
+                  function: @not_strictly_false
+                  args: {
+                    CALL [10] {
+                      function: !_
+                      args: {
+                        IDENT [11] {
+                          name: @x0:1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              loop_step: {
+                CALL [12] {
+                  function: _||_
+                  args: {
+                    IDENT [13] {
+                      name: @x0:1
+                    }
+                    CALL [14] {
+                      function: _==_
+                      args: {
+                        IDENT [15] {
+                          name: @c0:1
+                        }
+                        CONSTANT [16] { value: "a" }
+                      }
+                    }
+                  }
+                }
+              }
+              result: {
+                IDENT [17] {
+                  name: @x0:1
+                }
+              }
+            }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [18] { value: false }
+      }
+      loop_step: {
+        IDENT [19] {
+          name: @r1
+        }
+      }
+      result: {
+        CALL [20] {
+          function: _+_
+          args: {
+            CALL [21] {
+              function: _+_
+              args: {
+                COMPREHENSION [22] {
+                  iter_var: #unused
+                  iter_range: {
+                    CREATE_LIST [23] {
+                      elements: {
+                      }
+                    }
+                  }
+                  accu_var: @r0
+                  accu_init: {
+                    CREATE_LIST [24] {
+                      elements: {
+                        COMPREHENSION [25] {
+                          iter_var: @c0:0
+                          iter_range: {
+                            CREATE_LIST [26] {
+                              elements: {
+                                CONSTANT [27] { value: 1 }
+                              }
+                            }
+                          }
+                          accu_var: @x0:0
+                          accu_init: {
+                            CONSTANT [28] { value: false }
+                          }
+                          loop_condition: {
+                            CALL [29] {
+                              function: @not_strictly_false
+                              args: {
+                                CALL [30] {
+                                  function: !_
+                                  args: {
+                                    IDENT [31] {
+                                      name: @x0:0
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                          loop_step: {
+                            CALL [32] {
+                              function: _||_
+                              args: {
+                                IDENT [33] {
+                                  name: @x0:0
+                                }
+                                CALL [34] {
+                                  function: _>_
+                                  args: {
+                                    IDENT [35] {
+                                      name: @c0:0
+                                    }
+                                    CONSTANT [36] { value: 0 }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                          result: {
+                            IDENT [37] {
+                              name: @x0:0
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  loop_condition: {
+                    CONSTANT [38] { value: false }
+                  }
+                  loop_step: {
+                    IDENT [39] {
+                      name: @r0
+                    }
+                  }
+                  result: {
+                    CALL [40] {
+                      function: _+_
+                      args: {
+                        IDENT [41] {
+                          name: @r0
+                        }
+                        IDENT [42] {
+                          name: @r0
+                        }
+                      }
+                    }
+                  }
+                }
+                IDENT [43] {
+                  name: @r1
+                }
+              }
+            }
+            IDENT [44] {
+              name: @r1
+            }
+          }
+        }
+      }
+    }
+    CREATE_LIST [45] {
+      elements: {
+        CONSTANT [46] { value: true }
+        CONSTANT [47] { value: true }
+        CONSTANT [48] { value: true }
+        CONSTANT [49] { value: true }
+      }
+    }
+  }
+}
+Test case: NESTED_MACROS
+Source: [1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [[2, 3, 4], [2, 3, 4], [2, 3, 4]]
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        CREATE_LIST [4] {
+          elements: {
+            CONSTANT [5] { value: 1 }
+            CONSTANT [6] { value: 2 }
+            CONSTANT [7] { value: 3 }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [8] { value: false }
+      }
+      loop_step: {
+        IDENT [9] {
+          name: @r0
+        }
+      }
+      result: {
+        COMPREHENSION [10] {
+          iter_var: @c0:0
+          iter_range: {
+            IDENT [11] {
+              name: @r0
+            }
+          }
+          accu_var: @x0:0
+          accu_init: {
+            CREATE_LIST [12] {
+              elements: {
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [13] { value: true }
+          }
+          loop_step: {
+            CALL [14] {
+              function: _+_
+              args: {
+                IDENT [15] {
+                  name: @x0:0
+                }
+                CREATE_LIST [16] {
+                  elements: {
+                    COMPREHENSION [17] {
+                      iter_var: @c1:0
+                      iter_range: {
+                        IDENT [18] {
+                          name: @r0
+                        }
+                      }
+                      accu_var: @x1:0
+                      accu_init: {
+                        CREATE_LIST [19] {
+                          elements: {
+                          }
+                        }
+                      }
+                      loop_condition: {
+                        CONSTANT [20] { value: true }
+                      }
+                      loop_step: {
+                        CALL [21] {
+                          function: _+_
+                          args: {
+                            IDENT [22] {
+                              name: @x1:0
+                            }
+                            CREATE_LIST [23] {
+                              elements: {
+                                CALL [24] {
+                                  function: _+_
+                                  args: {
+                                    IDENT [25] {
+                                      name: @c1:0
+                                    }
+                                    CONSTANT [26] { value: 1 }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                      result: {
+                        IDENT [27] {
+                          name: @x1:0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [28] {
+              name: @x0:0
+            }
+          }
+        }
+      }
+    }
+    COMPREHENSION [29] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [30] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r1
+      accu_init: {
+        CREATE_LIST [31] {
+          elements: {
+            CONSTANT [32] { value: 2 }
+            CONSTANT [33] { value: 3 }
+            CONSTANT [34] { value: 4 }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [35] { value: false }
+      }
+      loop_step: {
+        IDENT [36] {
+          name: @r1
+        }
+      }
+      result: {
+        CREATE_LIST [37] {
+          elements: {
+            IDENT [38] {
+              name: @r1
+            }
+            IDENT [39] {
+              name: @r1
+            }
+            IDENT [40] {
+              name: @r1
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Test case: NESTED_MACROS_2
+Source: [1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]
+=====>
+CALL [31] {
+  function: _==_
+  args: {
+    COMPREHENSION [30] {
+      iter_var: @c0:0
+      iter_range: {
+        CREATE_LIST [1] {
+          elements: {
+            CONSTANT [2] { value: 1 }
+            CONSTANT [3] { value: 2 }
+          }
+        }
+      }
+      accu_var: @x0:0
+      accu_init: {
+        CREATE_LIST [24] {
+          elements: {
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [25] { value: true }
+      }
+      loop_step: {
+        CALL [28] {
+          function: _+_
+          args: {
+            IDENT [26] {
+              name: @x0:0
+            }
+            CREATE_LIST [27] {
+              elements: {
+                COMPREHENSION [23] {
+                  iter_var: @c1:0
+                  iter_range: {
+                    CREATE_LIST [6] {
+                      elements: {
+                        CONSTANT [7] { value: 1 }
+                        CONSTANT [8] { value: 2 }
+                        CONSTANT [9] { value: 3 }
+                      }
+                    }
+                  }
+                  accu_var: @x1:0
+                  accu_init: {
+                    CREATE_LIST [15] {
+                      elements: {
+                      }
+                    }
+                  }
+                  loop_condition: {
+                    CONSTANT [16] { value: true }
+                  }
+                  loop_step: {
+                    CALL [21] {
+                      function: _?_:_
+                      args: {
+                        CALL [13] {
+                          function: _==_
+                          args: {
+                            IDENT [12] {
+                              name: @c1:0
+                            }
+                            IDENT [14] {
+                              name: @c0:0
+                            }
+                          }
+                        }
+                        CALL [19] {
+                          function: _+_
+                          args: {
+                            IDENT [17] {
+                              name: @x1:0
+                            }
+                            CREATE_LIST [18] {
+                              elements: {
+                                IDENT [11] {
+                                  name: @c1:0
+                                }
+                              }
+                            }
+                          }
+                        }
+                        IDENT [20] {
+                          name: @x1:0
+                        }
+                      }
+                    }
+                  }
+                  result: {
+                    IDENT [22] {
+                      name: @x1:0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      result: {
+        IDENT [29] {
+          name: @x0:0
+        }
+      }
+    }
+    CREATE_LIST [32] {
+      elements: {
+        CREATE_LIST [33] {
+          elements: {
+            CONSTANT [34] { value: 1 }
+          }
+        }
+        CREATE_LIST [35] {
+          elements: {
+            CONSTANT [36] { value: 2 }
+          }
+        }
+      }
+    }
+  }
+}
+Test case: INCLUSION_LIST
+Source: 1 in [1,2,3] && 2 in [1,2,3] && 3 in [3, [1,2,3]] && 1 in [1,2,3]
+=====>
+COMPREHENSION [1] {
+  iter_var: #unused
+  iter_range: {
+    CREATE_LIST [2] {
+      elements: {
+      }
+    }
+  }
+  accu_var: @r0
+  accu_init: {
+    CREATE_LIST [3] {
+      elements: {
+        CONSTANT [4] { value: 1 }
+        CONSTANT [5] { value: 2 }
+        CONSTANT [6] { value: 3 }
+      }
+    }
+  }
+  loop_condition: {
+    CONSTANT [7] { value: false }
+  }
+  loop_step: {
+    IDENT [8] {
+      name: @r0
+    }
+  }
+  result: {
+    COMPREHENSION [9] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [10] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r1
+      accu_init: {
+        CALL [11] {
+          function: @in
+          args: {
+            CONSTANT [12] { value: 1 }
+            IDENT [13] {
+              name: @r0
+            }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [14] { value: false }
+      }
+      loop_step: {
+        IDENT [15] {
+          name: @r1
+        }
+      }
+      result: {
+        CALL [16] {
+          function: _&&_
+          args: {
+            CALL [17] {
+              function: _&&_
+              args: {
+                IDENT [18] {
+                  name: @r1
+                }
+                CALL [19] {
+                  function: @in
+                  args: {
+                    CONSTANT [20] { value: 2 }
+                    IDENT [21] {
+                      name: @r0
+                    }
+                  }
+                }
+              }
+            }
+            CALL [22] {
+              function: _&&_
+              args: {
+                CALL [23] {
+                  function: @in
+                  args: {
+                    CONSTANT [24] { value: 3 }
+                    CREATE_LIST [25] {
+                      elements: {
+                        CONSTANT [26] { value: 3 }
+                        IDENT [27] {
+                          name: @r0
+                        }
+                      }
+                    }
+                  }
+                }
+                IDENT [28] {
+                  name: @r1
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Test case: INCLUSION_MAP
+Source: 2 in {'a': 1, 2: {true: false}, 3: {true: false}}
+=====>
+CALL [1] {
+  function: @in
+  args: {
+    CONSTANT [2] { value: 2 }
+    COMPREHENSION [3] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [4] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        CREATE_MAP [5] {
+          MAP_ENTRY [6] {
+            key: {
+              CONSTANT [7] { value: true }
+            }
+            value: {
+              CONSTANT [8] { value: false }
+            }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [9] { value: false }
+      }
+      loop_step: {
+        IDENT [10] {
+          name: @r0
+        }
+      }
+      result: {
+        CREATE_MAP [11] {
+          MAP_ENTRY [12] {
+            key: {
+              CONSTANT [13] { value: "a" }
+            }
+            value: {
+              CONSTANT [14] { value: 1 }
+            }
+          }
+          MAP_ENTRY [15] {
+            key: {
+              CONSTANT [16] { value: 2 }
+            }
+            value: {
+              IDENT [17] {
+                name: @r0
+              }
+            }
+          }
+          MAP_ENTRY [18] {
+            key: {
+              CONSTANT [19] { value: 3 }
+            }
+            value: {
+              IDENT [20] {
+                name: @r0
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Test case: MACRO_ITER_VAR_NOT_REFERENCED
+Source: [1,2].map(i, [1, 2].map(i, [3,4])) == [[[3, 4], [3, 4]], [[3, 4], [3, 4]]]
+=====>
+COMPREHENSION [1] {
+  iter_var: #unused
+  iter_range: {
+    CREATE_LIST [2] {
+      elements: {
+      }
+    }
+  }
+  accu_var: @r1
+  accu_init: {
+    CREATE_LIST [3] {
+      elements: {
+        CONSTANT [4] { value: 3 }
+        CONSTANT [5] { value: 4 }
+      }
+    }
+  }
+  loop_condition: {
+    CONSTANT [6] { value: false }
+  }
+  loop_step: {
+    IDENT [7] {
+      name: @r1
+    }
+  }
+  result: {
+    CALL [8] {
+      function: _==_
+      args: {
+        COMPREHENSION [9] {
+          iter_var: #unused
+          iter_range: {
+            CREATE_LIST [10] {
+              elements: {
+              }
+            }
+          }
+          accu_var: @r0
+          accu_init: {
+            CREATE_LIST [11] {
+              elements: {
+                CONSTANT [12] { value: 1 }
+                CONSTANT [13] { value: 2 }
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [14] { value: false }
+          }
+          loop_step: {
+            IDENT [15] {
+              name: @r0
+            }
+          }
+          result: {
+            COMPREHENSION [16] {
+              iter_var: @c0:0
+              iter_range: {
+                IDENT [17] {
+                  name: @r0
+                }
+              }
+              accu_var: @x0:0
+              accu_init: {
+                CREATE_LIST [18] {
+                  elements: {
+                  }
+                }
+              }
+              loop_condition: {
+                CONSTANT [19] { value: true }
+              }
+              loop_step: {
+                CALL [20] {
+                  function: _+_
+                  args: {
+                    IDENT [21] {
+                      name: @x0:0
+                    }
+                    CREATE_LIST [22] {
+                      elements: {
+                        COMPREHENSION [23] {
+                          iter_var: @c1:0
+                          iter_range: {
+                            IDENT [24] {
+                              name: @r0
+                            }
+                          }
+                          accu_var: @x1:0
+                          accu_init: {
+                            CREATE_LIST [25] {
+                              elements: {
+                              }
+                            }
+                          }
+                          loop_condition: {
+                            CONSTANT [26] { value: true }
+                          }
+                          loop_step: {
+                            CALL [27] {
+                              function: _+_
+                              args: {
+                                IDENT [28] {
+                                  name: @x1:0
+                                }
+                                CREATE_LIST [29] {
+                                  elements: {
+                                    IDENT [30] {
+                                      name: @r1
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                          result: {
+                            IDENT [31] {
+                              name: @x1:0
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              result: {
+                IDENT [32] {
+                  name: @x0:0
+                }
+              }
+            }
+          }
+        }
+        COMPREHENSION [33] {
+          iter_var: #unused
+          iter_range: {
+            CREATE_LIST [34] {
+              elements: {
+              }
+            }
+          }
+          accu_var: @r2
+          accu_init: {
+            CREATE_LIST [35] {
+              elements: {
+                IDENT [36] {
+                  name: @r1
+                }
+                IDENT [37] {
+                  name: @r1
+                }
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [38] { value: false }
+          }
+          loop_step: {
+            IDENT [39] {
+              name: @r2
+            }
+          }
+          result: {
+            CREATE_LIST [40] {
+              elements: {
+                IDENT [41] {
+                  name: @r2
+                }
+                IDENT [42] {
+                  name: @r2
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Test case: MACRO_SHADOWED_VARIABLE
+Source: [x - 1 > 3 ? x - 1 : 5].exists(x, x - 1 > 3) || x - 1 > 3
+=====>
+COMPREHENSION [1] {
+  iter_var: #unused
+  iter_range: {
+    CREATE_LIST [2] {
+      elements: {
+      }
+    }
+  }
+  accu_var: @r0
+  accu_init: {
+    CALL [3] {
+      function: _-_
+      args: {
+        IDENT [4] {
+          name: x
+        }
+        CONSTANT [5] { value: 1 }
+      }
+    }
+  }
+  loop_condition: {
+    CONSTANT [6] { value: false }
+  }
+  loop_step: {
+    IDENT [7] {
+      name: @r0
+    }
+  }
+  result: {
+    COMPREHENSION [8] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [9] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r1
+      accu_init: {
+        CALL [10] {
+          function: _>_
+          args: {
+            IDENT [11] {
+              name: @r0
+            }
+            CONSTANT [12] { value: 3 }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [13] { value: false }
+      }
+      loop_step: {
+        IDENT [14] {
+          name: @r1
+        }
+      }
+      result: {
+        CALL [15] {
+          function: _||_
+          args: {
+            COMPREHENSION [16] {
+              iter_var: @c0:0
+              iter_range: {
+                CREATE_LIST [17] {
+                  elements: {
+                    CALL [18] {
+                      function: _?_:_
+                      args: {
+                        IDENT [19] {
+                          name: @r1
+                        }
+                        IDENT [20] {
+                          name: @r0
+                        }
+                        CONSTANT [21] { value: 5 }
+                      }
+                    }
+                  }
+                }
+              }
+              accu_var: @x0:0
+              accu_init: {
+                CONSTANT [22] { value: false }
+              }
+              loop_condition: {
+                CALL [23] {
+                  function: @not_strictly_false
+                  args: {
+                    CALL [24] {
+                      function: !_
+                      args: {
+                        IDENT [25] {
+                          name: @x0:0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              loop_step: {
+                CALL [26] {
+                  function: _||_
+                  args: {
+                    IDENT [27] {
+                      name: @x0:0
+                    }
+                    CALL [28] {
+                      function: _>_
+                      args: {
+                        CALL [29] {
+                          function: _-_
+                          args: {
+                            IDENT [30] {
+                              name: @c0:0
+                            }
+                            CONSTANT [31] { value: 1 }
+                          }
+                        }
+                        CONSTANT [32] { value: 3 }
+                      }
+                    }
+                  }
+                }
+              }
+              result: {
+                IDENT [33] {
+                  name: @x0:0
+                }
+              }
+            }
+            IDENT [34] {
+              name: @r1
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Test case: MACRO_SHADOWED_VARIABLE_2
+Source: ["foo", "bar"].map(x, [x + x, x + x]).map(x, [x + x, x + x])
+=====>
+COMPREHENSION [1] {
+  iter_var: @c0:0
+  iter_range: {
+    COMPREHENSION [2] {
+      iter_var: @c1:0
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+            CONSTANT [4] { value: "foo" }
+            CONSTANT [5] { value: "bar" }
+          }
+        }
+      }
+      accu_var: @x1:0
+      accu_init: {
+        CREATE_LIST [6] {
+          elements: {
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [7] { value: true }
+      }
+      loop_step: {
+        CALL [8] {
+          function: _+_
+          args: {
+            IDENT [9] {
+              name: @x1:0
+            }
+            CREATE_LIST [10] {
+              elements: {
+                COMPREHENSION [11] {
+                  iter_var: #unused
+                  iter_range: {
+                    CREATE_LIST [12] {
+                      elements: {
+                      }
+                    }
+                  }
+                  accu_var: @r0
+                  accu_init: {
+                    CALL [13] {
+                      function: _+_
+                      args: {
+                        IDENT [14] {
+                          name: @c1:0
+                        }
+                        IDENT [15] {
+                          name: @c1:0
+                        }
+                      }
+                    }
+                  }
+                  loop_condition: {
+                    CONSTANT [16] { value: false }
+                  }
+                  loop_step: {
+                    IDENT [17] {
+                      name: @r0
+                    }
+                  }
+                  result: {
+                    CREATE_LIST [18] {
+                      elements: {
+                        IDENT [19] {
+                          name: @r0
+                        }
+                        IDENT [20] {
+                          name: @r0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      result: {
+        IDENT [21] {
+          name: @x1:0
+        }
+      }
+    }
+  }
+  accu_var: @x0:0
+  accu_init: {
+    CREATE_LIST [22] {
+      elements: {
+      }
+    }
+  }
+  loop_condition: {
+    CONSTANT [23] { value: true }
+  }
+  loop_step: {
+    CALL [24] {
+      function: _+_
+      args: {
+        IDENT [25] {
+          name: @x0:0
+        }
+        CREATE_LIST [26] {
+          elements: {
+            COMPREHENSION [27] {
+              iter_var: #unused
+              iter_range: {
+                CREATE_LIST [28] {
+                  elements: {
+                  }
+                }
+              }
+              accu_var: @r1
+              accu_init: {
+                CALL [29] {
+                  function: _+_
+                  args: {
+                    IDENT [30] {
+                      name: @c0:0
+                    }
+                    IDENT [31] {
+                      name: @c0:0
+                    }
+                  }
+                }
+              }
+              loop_condition: {
+                CONSTANT [32] { value: false }
+              }
+              loop_step: {
+                IDENT [33] {
+                  name: @r1
+                }
+              }
+              result: {
+                CREATE_LIST [34] {
+                  elements: {
+                    IDENT [35] {
+                      name: @r1
+                    }
+                    IDENT [36] {
+                      name: @r1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  result: {
+    IDENT [37] {
+      name: @x0:0
+    }
+  }
+}
+Test case: PRESENCE_TEST
+Source: has({'a': true}.a) && {'a':true}['a']
+=====>
+COMPREHENSION [1] {
+  iter_var: #unused
+  iter_range: {
+    CREATE_LIST [2] {
+      elements: {
+      }
+    }
+  }
+  accu_var: @r0
+  accu_init: {
+    CREATE_MAP [3] {
+      MAP_ENTRY [4] {
+        key: {
+          CONSTANT [5] { value: "a" }
+        }
+        value: {
+          CONSTANT [6] { value: true }
+        }
+      }
+    }
+  }
+  loop_condition: {
+    CONSTANT [7] { value: false }
+  }
+  loop_step: {
+    IDENT [8] {
+      name: @r0
+    }
+  }
+  result: {
+    CALL [9] {
+      function: _&&_
+      args: {
+        SELECT [10] {
+          IDENT [11] {
+            name: @r0
+          }.a~presence_test
+        }
+        CALL [12] {
+          function: _[_]
+          args: {
+            IDENT [13] {
+              name: @r0
+            }
+            CONSTANT [14] { value: "a" }
+          }
+        }
+      }
+    }
+  }
+}
+Test case: PRESENCE_TEST_WITH_TERNARY
+Source: (has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : 0) == 10
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        SELECT [4] {
+          IDENT [5] {
+            name: msg
+          }.oneof_type
+        }
+      }
+      loop_condition: {
+        CONSTANT [6] { value: false }
+      }
+      loop_step: {
+        IDENT [7] {
+          name: @r0
+        }
+      }
+      result: {
+        CALL [8] {
+          function: _?_:_
+          args: {
+            SELECT [9] {
+              IDENT [10] {
+                name: @r0
+              }.payload~presence_test
+            }
+            SELECT [11] {
+              SELECT [12] {
+                IDENT [13] {
+                  name: @r0
+                }.payload
+              }.single_int64
+            }
+            CONSTANT [14] { value: 0 }
+          }
+        }
+      }
+    }
+    CONSTANT [15] { value: 10 }
+  }
+}
+Test case: PRESENCE_TEST_WITH_TERNARY_2
+Source: (has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : msg.oneof_type.payload.single_int64 * 0) == 10
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        SELECT [4] {
+          IDENT [5] {
+            name: msg
+          }.oneof_type
+        }
+      }
+      loop_condition: {
+        CONSTANT [6] { value: false }
+      }
+      loop_step: {
+        IDENT [7] {
+          name: @r0
+        }
+      }
+      result: {
+        COMPREHENSION [8] {
+          iter_var: #unused
+          iter_range: {
+            CREATE_LIST [9] {
+              elements: {
+              }
+            }
+          }
+          accu_var: @r1
+          accu_init: {
+            SELECT [10] {
+              SELECT [11] {
+                IDENT [12] {
+                  name: @r0
+                }.payload
+              }.single_int64
+            }
+          }
+          loop_condition: {
+            CONSTANT [13] { value: false }
+          }
+          loop_step: {
+            IDENT [14] {
+              name: @r1
+            }
+          }
+          result: {
+            CALL [15] {
+              function: _?_:_
+              args: {
+                SELECT [16] {
+                  IDENT [17] {
+                    name: @r0
+                  }.payload~presence_test
+                }
+                IDENT [18] {
+                  name: @r1
+                }
+                CALL [19] {
+                  function: _*_
+                  args: {
+                    IDENT [20] {
+                      name: @r1
+                    }
+                    CONSTANT [21] { value: 0 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    CONSTANT [22] { value: 10 }
+  }
+}
+Test case: PRESENCE_TEST_WITH_TERNARY_3
+Source: (has(msg.oneof_type.payload.single_int64) ? msg.oneof_type.payload.single_int64 : msg.oneof_type.payload.single_int64 * 0) == 10
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        SELECT [4] {
+          SELECT [5] {
+            IDENT [6] {
+              name: msg
+            }.oneof_type
+          }.payload
+        }
+      }
+      loop_condition: {
+        CONSTANT [7] { value: false }
+      }
+      loop_step: {
+        IDENT [8] {
+          name: @r0
+        }
+      }
+      result: {
+        COMPREHENSION [9] {
+          iter_var: #unused
+          iter_range: {
+            CREATE_LIST [10] {
+              elements: {
+              }
+            }
+          }
+          accu_var: @r1
+          accu_init: {
+            SELECT [11] {
+              IDENT [12] {
+                name: @r0
+              }.single_int64
+            }
+          }
+          loop_condition: {
+            CONSTANT [13] { value: false }
+          }
+          loop_step: {
+            IDENT [14] {
+              name: @r1
+            }
+          }
+          result: {
+            CALL [15] {
+              function: _?_:_
+              args: {
+                SELECT [16] {
+                  IDENT [17] {
+                    name: @r0
+                  }.single_int64~presence_test
+                }
+                IDENT [18] {
+                  name: @r1
+                }
+                CALL [19] {
+                  function: _*_
+                  args: {
+                    IDENT [20] {
+                      name: @r1
+                    }
+                    CONSTANT [21] { value: 0 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    CONSTANT [22] { value: 10 }
+  }
+}
+Test case: PRESENCE_TEST_WITH_TERNARY_NESTED
+Source: (has(msg.oneof_type) && has(msg.oneof_type.payload) && has(msg.oneof_type.payload.single_int64)) ? ((has(msg.oneof_type.payload.map_string_string) && has(msg.oneof_type.payload.map_string_string.key)) ? msg.oneof_type.payload.map_string_string.key == 'A' : false) : false
+=====>
+COMPREHENSION [1] {
+  iter_var: #unused
+  iter_range: {
+    CREATE_LIST [2] {
+      elements: {
+      }
+    }
+  }
+  accu_var: @r0
+  accu_init: {
+    SELECT [3] {
+      IDENT [4] {
+        name: msg
+      }.oneof_type
+    }
+  }
+  loop_condition: {
+    CONSTANT [5] { value: false }
+  }
+  loop_step: {
+    IDENT [6] {
+      name: @r0
+    }
+  }
+  result: {
+    COMPREHENSION [7] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [8] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r1
+      accu_init: {
+        SELECT [9] {
+          IDENT [10] {
+            name: @r0
+          }.payload
+        }
+      }
+      loop_condition: {
+        CONSTANT [11] { value: false }
+      }
+      loop_step: {
+        IDENT [12] {
+          name: @r1
+        }
+      }
+      result: {
+        CALL [13] {
+          function: _?_:_
+          args: {
+            CALL [14] {
+              function: _&&_
+              args: {
+                CALL [15] {
+                  function: _&&_
+                  args: {
+                    SELECT [16] {
+                      IDENT [17] {
+                        name: msg
+                      }.oneof_type~presence_test
+                    }
+                    SELECT [18] {
+                      IDENT [19] {
+                        name: @r0
+                      }.payload~presence_test
+                    }
+                  }
+                }
+                SELECT [20] {
+                  IDENT [21] {
+                    name: @r1
+                  }.single_int64~presence_test
+                }
+              }
+            }
+            COMPREHENSION [22] {
+              iter_var: #unused
+              iter_range: {
+                CREATE_LIST [23] {
+                  elements: {
+                  }
+                }
+              }
+              accu_var: @r2
+              accu_init: {
+                SELECT [24] {
+                  IDENT [25] {
+                    name: @r1
+                  }.map_string_string
+                }
+              }
+              loop_condition: {
+                CONSTANT [26] { value: false }
+              }
+              loop_step: {
+                IDENT [27] {
+                  name: @r2
+                }
+              }
+              result: {
+                CALL [28] {
+                  function: _?_:_
+                  args: {
+                    CALL [29] {
+                      function: _&&_
+                      args: {
+                        SELECT [30] {
+                          IDENT [31] {
+                            name: @r1
+                          }.map_string_string~presence_test
+                        }
+                        SELECT [32] {
+                          IDENT [33] {
+                            name: @r2
+                          }.key~presence_test
+                        }
+                      }
+                    }
+                    CALL [34] {
+                      function: _==_
+                      args: {
+                        SELECT [35] {
+                          IDENT [36] {
+                            name: @r2
+                          }.key
+                        }
+                        CONSTANT [37] { value: "A" }
+                      }
+                    }
+                    CONSTANT [38] { value: false }
+                  }
+                }
+              }
+            }
+            CONSTANT [39] { value: false }
+          }
+        }
+      }
+    }
+  }
+}
+Test case: OPTIONAL_LIST
+Source: [10, ?optional.none(), [?optional.none(), ?opt_x], [?optional.none(), ?opt_x]] == [10, [5], [5]]
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        CALL [4] {
+          function: optional.none
+          args: {
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [5] { value: false }
+      }
+      loop_step: {
+        IDENT [6] {
+          name: @r0
+        }
+      }
+      result: {
+        COMPREHENSION [7] {
+          iter_var: #unused
+          iter_range: {
+            CREATE_LIST [8] {
+              elements: {
+              }
+            }
+          }
+          accu_var: @r1
+          accu_init: {
+            CREATE_LIST [9] {
+              elements: {
+                IDENT [10] {
+                  name: @r0
+                }
+                IDENT [11] {
+                  name: opt_x
+                }
+              }
+              optional_indices: [0, 1]
+            }
+          }
+          loop_condition: {
+            CONSTANT [12] { value: false }
+          }
+          loop_step: {
+            IDENT [13] {
+              name: @r1
+            }
+          }
+          result: {
+            CREATE_LIST [14] {
+              elements: {
+                CONSTANT [15] { value: 10 }
+                IDENT [16] {
+                  name: @r0
+                }
+                IDENT [17] {
+                  name: @r1
+                }
+                IDENT [18] {
+                  name: @r1
+                }
+              }
+              optional_indices: [0]
+            }
+          }
+        }
+      }
+    }
+    COMPREHENSION [19] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [20] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r2
+      accu_init: {
+        CREATE_LIST [21] {
+          elements: {
+            CONSTANT [22] { value: 5 }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [23] { value: false }
+      }
+      loop_step: {
+        IDENT [24] {
+          name: @r2
+        }
+      }
+      result: {
+        CREATE_LIST [25] {
+          elements: {
+            CONSTANT [26] { value: 10 }
+            IDENT [27] {
+              name: @r2
+            }
+            IDENT [28] {
+              name: @r2
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Test case: OPTIONAL_MAP
+Source: {?'hello': optional.of('hello')}['hello'] + {?'hello': optional.of('hello')}['hello'] == 'hellohello'
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        CALL [4] {
+          function: _[_]
+          args: {
+            CREATE_MAP [5] {
+              MAP_ENTRY [6] {
+                key: {
+                  CONSTANT [7] { value: "hello" }
+                }
+                optional_entry: true
+                value: {
+                  CALL [8] {
+                    function: optional.of
+                    args: {
+                      CONSTANT [9] { value: "hello" }
+                    }
+                  }
+                }
+              }
+            }
+            CONSTANT [10] { value: "hello" }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [11] { value: false }
+      }
+      loop_step: {
+        IDENT [12] {
+          name: @r0
+        }
+      }
+      result: {
+        CALL [13] {
+          function: _+_
+          args: {
+            IDENT [14] {
+              name: @r0
+            }
+            IDENT [15] {
+              name: @r0
+            }
+          }
+        }
+      }
+    }
+    CONSTANT [16] { value: "hellohello" }
+  }
+}
+Test case: OPTIONAL_MAP_CHAINED
+Source: {?'key': optional.of('test')}[?'bogus'].or({'key': 'test'}[?'bogus']).orValue({'key': 'test'}['key']) == 'test'
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        CREATE_MAP [4] {
+          MAP_ENTRY [5] {
+            key: {
+              CONSTANT [6] { value: "key" }
+            }
+            value: {
+              CONSTANT [7] { value: "test" }
+            }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [8] { value: false }
+      }
+      loop_step: {
+        IDENT [9] {
+          name: @r0
+        }
+      }
+      result: {
+        CALL [10] {
+          function: orValue
+          target: {
+            CALL [11] {
+              function: or
+              target: {
+                CALL [12] {
+                  function: _[?_]
+                  args: {
+                    CREATE_MAP [13] {
+                      MAP_ENTRY [14] {
+                        key: {
+                          CONSTANT [15] { value: "key" }
+                        }
+                        optional_entry: true
+                        value: {
+                          CALL [16] {
+                            function: optional.of
+                            args: {
+                              CONSTANT [17] { value: "test" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                    CONSTANT [18] { value: "bogus" }
+                  }
+                }
+              }
+              args: {
+                CALL [19] {
+                  function: _[?_]
+                  args: {
+                    IDENT [20] {
+                      name: @r0
+                    }
+                    CONSTANT [21] { value: "bogus" }
+                  }
+                }
+              }
+            }
+          }
+          args: {
+            CALL [22] {
+              function: _[_]
+              args: {
+                IDENT [23] {
+                  name: @r0
+                }
+                CONSTANT [24] { value: "key" }
+              }
+            }
+          }
+        }
+      }
+    }
+    CONSTANT [25] { value: "test" }
+  }
+}
+Test case: OPTIONAL_MESSAGE
+Source: TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}.single_int32 + TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}.single_int64 == 5
+=====>
+CALL [1] {
+  function: _==_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        CREATE_STRUCT [4] {
+          name: TestAllTypes
+          entries: {
+            ENTRY [5] {
+              field_key: single_int64
+              optional_entry: true
+              value: {
+                CALL [6] {
+                  function: optional.ofNonZeroValue
+                  args: {
+                    CONSTANT [7] { value: 1 }
+                  }
+                }
+              }
+            }
+            ENTRY [8] {
+              field_key: single_int32
+              optional_entry: true
+              value: {
+                CALL [9] {
+                  function: optional.of
+                  args: {
+                    CONSTANT [10] { value: 4 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [11] { value: false }
+      }
+      loop_step: {
+        IDENT [12] {
+          name: @r0
+        }
+      }
+      result: {
+        CALL [13] {
+          function: _+_
+          args: {
+            SELECT [14] {
+              IDENT [15] {
+                name: @r0
+              }.single_int32
+            }
+            SELECT [16] {
+              IDENT [17] {
+                name: @r0
+              }.single_int64
+            }
+          }
+        }
+      }
+    }
+    CONSTANT [18] { value: 5 }
+  }
+}
+Test case: CALL
+Source: ('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('h' + 'e' + 'l' + 'l' + 'o')
+=====>
+COMPREHENSION [1] {
+  iter_var: #unused
+  iter_range: {
+    CREATE_LIST [2] {
+      elements: {
+      }
+    }
+  }
+  accu_var: @r0
+  accu_init: {
+    CALL [3] {
+      function: _+_
+      args: {
+        CALL [4] {
+          function: _+_
+          args: {
+            CALL [5] {
+              function: _+_
+              args: {
+                CALL [6] {
+                  function: _+_
+                  args: {
+                    CONSTANT [7] { value: "h" }
+                    CONSTANT [8] { value: "e" }
+                  }
+                }
+                CONSTANT [9] { value: "l" }
+              }
+            }
+            CONSTANT [10] { value: "l" }
+          }
+        }
+        CONSTANT [11] { value: "o" }
+      }
+    }
+  }
+  loop_condition: {
+    CONSTANT [12] { value: false }
+  }
+  loop_step: {
+    IDENT [13] {
+      name: @r0
+    }
+  }
+  result: {
+    CALL [14] {
+      function: matches
+      target: {
+        CALL [15] {
+          function: _+_
+          args: {
+            IDENT [16] {
+              name: @r0
+            }
+            CONSTANT [17] { value: " world" }
+          }
+        }
+      }
+      args: {
+        IDENT [18] {
+          name: @r0
+        }
+      }
+    }
+  }
+}
+Test case: CALL_ARGUMENT_NESTED_NO_COMMON_SUBEXPR
+Source: 'hello world'.matches('h' + 'e' + 'l' + 'l' + 'o')
+=====>
+CALL [2] {
+  function: matches
+  target: {
+    CONSTANT [1] { value: "hello world" }
+  }
+  args: {
+    CALL [10] {
+      function: _+_
+      args: {
+        CALL [8] {
+          function: _+_
+          args: {
+            CALL [6] {
+              function: _+_
+              args: {
+                CALL [4] {
+                  function: _+_
+                  args: {
+                    CONSTANT [3] { value: "h" }
+                    CONSTANT [5] { value: "e" }
+                  }
+                }
+                CONSTANT [7] { value: "l" }
+              }
+            }
+            CONSTANT [9] { value: "l" }
+          }
+        }
+        CONSTANT [11] { value: "o" }
+      }
+    }
+  }
+}
+Test case: CALL_TARGET_NESTED_NO_COMMON_SUBEXPR
+Source: ('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('hello')
+=====>
+CALL [12] {
+  function: matches
+  target: {
+    CALL [10] {
+      function: _+_
+      args: {
+        CALL [8] {
+          function: _+_
+          args: {
+            CALL [6] {
+              function: _+_
+              args: {
+                CALL [4] {
+                  function: _+_
+                  args: {
+                    CALL [2] {
+                      function: _+_
+                      args: {
+                        CONSTANT [1] { value: "h" }
+                        CONSTANT [3] { value: "e" }
+                      }
+                    }
+                    CONSTANT [5] { value: "l" }
+                  }
+                }
+                CONSTANT [7] { value: "l" }
+              }
+            }
+            CONSTANT [9] { value: "o" }
+          }
+        }
+        CONSTANT [11] { value: " world" }
+      }
+    }
+  }
+  args: {
+    CONSTANT [13] { value: "hello" }
+  }
+}
+Test case: CALL_BOTH_ARGUMENT_TARGET_NESTED_NO_COMMON_SUBEXPR
+Source: ('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('w' + 'o' + 'r' + 'l' + 'd')
+=====>
+CALL [12] {
+  function: matches
+  target: {
+    CALL [10] {
+      function: _+_
+      args: {
+        CALL [8] {
+          function: _+_
+          args: {
+            CALL [6] {
+              function: _+_
+              args: {
+                CALL [4] {
+                  function: _+_
+                  args: {
+                    CALL [2] {
+                      function: _+_
+                      args: {
+                        CONSTANT [1] { value: "h" }
+                        CONSTANT [3] { value: "e" }
+                      }
+                    }
+                    CONSTANT [5] { value: "l" }
+                  }
+                }
+                CONSTANT [7] { value: "l" }
+              }
+            }
+            CONSTANT [9] { value: "o" }
+          }
+        }
+        CONSTANT [11] { value: " world" }
+      }
+    }
+  }
+  args: {
+    CALL [20] {
+      function: _+_
+      args: {
+        CALL [18] {
+          function: _+_
+          args: {
+            CALL [16] {
+              function: _+_
+              args: {
+                CALL [14] {
+                  function: _+_
+                  args: {
+                    CONSTANT [13] { value: "w" }
+                    CONSTANT [15] { value: "o" }
+                  }
+                }
+                CONSTANT [17] { value: "r" }
+              }
+            }
+            CONSTANT [19] { value: "l" }
+          }
+        }
+        CONSTANT [21] { value: "d" }
+      }
+    }
+  }
+}

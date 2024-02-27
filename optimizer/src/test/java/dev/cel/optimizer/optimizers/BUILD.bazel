@@ -6,6 +6,7 @@ java_library(
     name = "tests",
     testonly = 1,
     srcs = glob(["*.java"]),
+    resources = ["//optimizer/src/test/resources:baselines"],
     deps = [
         #         "//java/com/google/testing/testsize:annotations",
         "//bundle:cel",
@@ -28,6 +29,7 @@ java_library(
         "//parser:operator",
         "//parser:unparser",
         "//runtime",
+        "//testing:baseline_test_case",
         "@maven//:junit_junit",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "//:java_truth",
@@ -37,6 +39,7 @@ java_library(
 
 junit4_test_suites(
     name = "test_suites",
+    shard_count = 4,
     sizes = [
         "small",
         "medium",

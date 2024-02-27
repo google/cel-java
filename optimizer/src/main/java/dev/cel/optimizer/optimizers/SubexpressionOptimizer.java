@@ -339,16 +339,17 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       throw new IllegalStateException("Max iteration count reached.");
     }
 
+    if (!cseOptions.populateMacroCalls()) {
+      astToModify =
+          CelAbstractSyntaxTree.newParsedAst(astToModify.getExpr(), CelSource.newBuilder().build());
+    }
+
     if (iterCount == 0) {
       // No modification has been made.
       return astToModify;
     }
 
     astToModify = mutableAst.renumberIdsConsecutively(astToModify);
-    if (!cseOptions.populateMacroCalls()) {
-      astToModify =
-          CelAbstractSyntaxTree.newParsedAst(astToModify.getExpr(), CelSource.newBuilder().build());
-    }
 
     return astToModify;
   }

@@ -1,0 +1,623 @@
+Test case: SIZE_1
+Source: size([1,2]) + size([1,2]) + 1 == 5
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, size([1, 2]), @r0 + @r0) + 1 == 5
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([size([1, 2])], @index0 + @index0 + 1 == 5)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2], size(@index0), @index1 + @index1, @index2 + 1], @index3 == 5)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[1, 2], size(@index0), @index1 + @index1 + 1], @index2 == 5)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[1, 2], size(@index0), @index1 + @index1 + 1], @index2 == 5)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[1, 2], size(@index0), @index1 + @index1 + 1], @index2 == 5)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[1, 2], size(@index0), @index1 + @index1 + 1], @index2 == 5)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[1, 2], size(@index0), @index1 + @index1 + 1], @index2 == 5)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[1, 2], size(@index0), @index1 + @index1 + 1], @index2 == 5)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[1, 2], size(@index0), @index1 + @index1 + 1], @index2 == 5)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[1, 2], size(@index0), @index1 + @index1 + 1], @index2 == 5)
+
+Test case: SIZE_2
+Source: 2 + size([1,2]) + size([1,2]) + 1 == 7
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, size([1, 2]), 2 + @r0 + @r0) + 1 == 7
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([size([1, 2])], 2 + @index0 + @index0 + 1 == 7)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2], size(@index0), 2 + @index1, @index2 + @index1, @index3 + 1], @index4 == 7)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[1, 2], size(@index0), 2 + @index1 + @index1, @index2 + 1], @index3 == 7)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[1, 2], size(@index0), 2 + @index1 + @index1 + 1], @index2 == 7)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[1, 2], size(@index0), 2 + @index1 + @index1 + 1], @index2 == 7)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[1, 2], size(@index0), 2 + @index1 + @index1 + 1], @index2 == 7)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[1, 2], size(@index0), 2 + @index1 + @index1 + 1], @index2 == 7)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[1, 2], size(@index0), 2 + @index1 + @index1 + 1], @index2 == 7)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[1, 2], size(@index0), 2 + @index1 + @index1 + 1], @index2 == 7)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[1, 2], size(@index0), 2 + @index1 + @index1 + 1], @index2 == 7)
+
+Test case: SIZE_3
+Source: size([0]) + size([0]) + size([1,2]) + size([1,2]) == 6
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r1, size([1, 2]), cel.bind(@r0, size([0]), @r0 + @r0) + @r1 + @r1) == 6
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([size([0]), size([1, 2])], @index0 + @index0 + @index1 + @index1 == 6)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[0], size(@index0), [1, 2], size(@index2), @index1 + @index1, @index4 + @index3, @index5 + @index3], @index6 == 6)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[0], size(@index0), [1, 2], size(@index2), @index1 + @index1 + @index3, @index4 + @index3], @index5 == 6)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[0], size(@index0), [1, 2], size(@index2), @index1 + @index1 + @index3 + @index3], @index4 == 6)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[0], size(@index0), [1, 2], size(@index2), @index1 + @index1 + @index3 + @index3], @index4 == 6)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[0], size(@index0), [1, 2], size(@index2), @index1 + @index1 + @index3 + @index3], @index4 == 6)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[0], size(@index0), [1, 2], size(@index2), @index1 + @index1 + @index3 + @index3], @index4 == 6)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[0], size(@index0), [1, 2], size(@index2), @index1 + @index1 + @index3 + @index3], @index4 == 6)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[0], size(@index0), [1, 2], size(@index2), @index1 + @index1 + @index3 + @index3], @index4 == 6)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[0], size(@index0), [1, 2], size(@index2), @index1 + @index1 + @index3 + @index3], @index4 == 6)
+
+Test case: SIZE_4
+Source: 5 + size([0]) + size([0]) + size([1,2]) + size([1,2]) + size([1,2,3]) + size([1,2,3]) == 17
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r2, size([1, 2, 3]), cel.bind(@r1, size([1, 2]), cel.bind(@r0, size([0]), 5 + @r0 + @r0) + @r1 + @r1) + @r2 + @r2) == 17
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([size([0]), size([1, 2]), size([1, 2, 3])], 5 + @index0 + @index0 + @index1 + @index1 + @index2 + @index2 == 17)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[0], size(@index0), [1, 2], size(@index2), [1, 2, 3], size(@index4), 5 + @index1, @index6 + @index1, @index7 + @index3, @index8 + @index3, @index9 + @index5, @index10 + @index5], @index11 == 17)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[0], size(@index0), [1, 2], size(@index2), [1, 2, 3], size(@index4), 5 + @index1 + @index1, @index6 + @index3 + @index3, @index7 + @index5 + @index5], @index8 == 17)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[0], size(@index0), [1, 2], size(@index2), [1, 2, 3], size(@index4), 5 + @index1 + @index1 + @index3, @index6 + @index3 + @index5 + @index5], @index7 == 17)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[0], size(@index0), [1, 2], size(@index2), [1, 2, 3], size(@index4), 5 + @index1 + @index1 + @index3 + @index3, @index6 + @index5 + @index5], @index7 == 17)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[0], size(@index0), [1, 2], size(@index2), [1, 2, 3], size(@index4), 5 + @index1 + @index1 + @index3 + @index3 + @index5, @index6 + @index5], @index7 == 17)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[0], size(@index0), [1, 2], size(@index2), [1, 2, 3], size(@index4), 5 + @index1 + @index1 + @index3 + @index3 + @index5 + @index5], @index6 == 17)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[0], size(@index0), [1, 2], size(@index2), [1, 2, 3], size(@index4), 5 + @index1 + @index1 + @index3 + @index3 + @index5 + @index5], @index6 == 17)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[0], size(@index0), [1, 2], size(@index2), [1, 2, 3], size(@index4), 5 + @index1 + @index1 + @index3 + @index3 + @index5 + @index5], @index6 == 17)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[0], size(@index0), [1, 2], size(@index2), [1, 2, 3], size(@index4), 5 + @index1 + @index1 + @index3 + @index3 + @index5 + @index5], @index6 == 17)
+
+Test case: TIMESTAMP
+Source: timestamp(int(timestamp(1000000000))).getFullYear() + timestamp(int(timestamp(75))).getFullYear() +  timestamp(int(timestamp(50))).getFullYear() +  timestamp(int(timestamp(1000000000))).getFullYear() +  timestamp(int(timestamp(50))).getSeconds() +  timestamp(int(timestamp(200))).getFullYear() +  timestamp(int(timestamp(200))).getFullYear() +  timestamp(int(timestamp(75))).getMinutes() +  timestamp(int(timestamp(1000000000))).getFullYear() == 13934
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, timestamp(int(timestamp(1000000000))).getFullYear(), cel.bind(@r3, timestamp(int(timestamp(75))), cel.bind(@r2, timestamp(int(timestamp(200))).getFullYear(), cel.bind(@r1, timestamp(int(timestamp(50))), @r0 + @r3.getFullYear() + @r1.getFullYear() + @r0 + @r1.getSeconds()) + @r2 + @r2) + @r3.getMinutes()) + @r0) == 13934
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([timestamp(int(timestamp(1000000000))).getFullYear(), timestamp(int(timestamp(50))), timestamp(int(timestamp(200))).getFullYear(), timestamp(int(timestamp(75)))], @index0 + @index3.getFullYear() + @index1.getFullYear() + @index0 + @index1.getSeconds() + @index2 + @index2 + @index3.getMinutes() + @index0 == 13934)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([timestamp(1000000000), int(@index0), timestamp(@index1), @index2.getFullYear(), timestamp(50), int(@index4), timestamp(@index5), timestamp(200), int(@index7), timestamp(@index8), @index9.getFullYear(), timestamp(75), int(@index11), timestamp(@index12), @index13.getMinutes(), @index6.getSeconds(), @index6.getFullYear(), @index13.getFullYear(), @index3 + @index17, @index18 + @index16, @index19 + @index3, @index20 + @index15, @index21 + @index10, @index22 + @index10, @index23 + @index14, @index24 + @index3], @index25 == 13934)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([timestamp(1000000000), int(@index0), timestamp(@index1), @index2.getFullYear(), timestamp(50), int(@index4), timestamp(@index5), timestamp(200), int(@index7), timestamp(@index8), @index9.getFullYear(), timestamp(75), int(@index11), timestamp(@index12), @index13.getMinutes(), @index6.getSeconds(), @index6.getFullYear(), @index3 + @index13.getFullYear(), @index17 + @index16 + @index3, @index18 + @index15 + @index10, @index19 + @index10 + @index14, @index20 + @index3], @index21 == 13934)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([timestamp(1000000000), int(@index0), timestamp(@index1), @index2.getFullYear(), timestamp(50), int(@index4), timestamp(@index5), timestamp(200), int(@index7), timestamp(@index8), @index9.getFullYear(), timestamp(75), int(@index11), timestamp(@index12), @index13.getMinutes(), @index6.getSeconds(), @index3 + @index13.getFullYear() + @index6.getFullYear(), @index16 + @index3 + @index15 + @index10, @index17 + @index10 + @index14 + @index3], @index18 == 13934)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([timestamp(1000000000), int(@index0), timestamp(@index1), @index2.getFullYear(), timestamp(50), int(@index4), timestamp(@index5), timestamp(200), int(@index7), timestamp(@index8), @index9.getFullYear(), timestamp(75), int(@index11), timestamp(@index12), @index13.getMinutes(), @index6.getSeconds(), @index3 + @index13.getFullYear() + @index6.getFullYear() + @index3, @index16 + @index15 + @index10 + @index10 + @index14, @index17 + @index3], @index18 == 13934)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([timestamp(1000000000), int(@index0), timestamp(@index1), @index2.getFullYear(), timestamp(50), int(@index4), timestamp(@index5), timestamp(200), int(@index7), timestamp(@index8), @index9.getFullYear(), timestamp(75), int(@index11), timestamp(@index12), @index13.getMinutes(), @index3 + @index13.getFullYear() + @index6.getFullYear() + @index3 + @index6.getSeconds(), @index15 + @index10 + @index10 + @index14 + @index3], @index16 == 13934)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([timestamp(1000000000), int(@index0), timestamp(@index1), @index2.getFullYear(), timestamp(50), int(@index4), timestamp(@index5), timestamp(200), int(@index7), timestamp(@index8), @index9.getFullYear(), timestamp(75), int(@index11), timestamp(@index12), @index13.getMinutes(), @index3 + @index13.getFullYear() + @index6.getFullYear() + @index3 + @index6.getSeconds() + @index10, @index15 + @index10 + @index14 + @index3], @index16 == 13934)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([timestamp(1000000000), int(@index0), timestamp(@index1), @index2.getFullYear(), timestamp(50), int(@index4), timestamp(@index5), timestamp(200), int(@index7), timestamp(@index8), @index9.getFullYear(), timestamp(75), int(@index11), timestamp(@index12), @index13.getMinutes(), @index3 + @index13.getFullYear() + @index6.getFullYear() + @index3 + @index6.getSeconds() + @index10 + @index10, @index15 + @index14 + @index3], @index16 == 13934)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([timestamp(1000000000), int(@index0), timestamp(@index1), @index2.getFullYear(), timestamp(50), int(@index4), timestamp(@index5), timestamp(200), int(@index7), timestamp(@index8), @index9.getFullYear(), timestamp(75), int(@index11), timestamp(@index12), @index3 + @index13.getFullYear() + @index6.getFullYear() + @index3 + @index6.getSeconds() + @index10 + @index10 + @index13.getMinutes(), @index14 + @index3], @index15 == 13934)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([timestamp(1000000000), int(@index0), timestamp(@index1), @index2.getFullYear(), timestamp(50), int(@index4), timestamp(@index5), timestamp(200), int(@index7), timestamp(@index8), @index9.getFullYear(), timestamp(75), int(@index11), timestamp(@index12), @index3 + @index13.getFullYear() + @index6.getFullYear() + @index3 + @index6.getSeconds() + @index10 + @index10 + @index13.getMinutes() + @index3], @index14 == 13934)
+
+Test case: MAP_INDEX
+Source: {"a": 2}["a"] + {"a": 2}["a"] * {"a": 2}["a"] == 6
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, {"a": 2}["a"], @r0 + @r0 * @r0) == 6
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([{"a": 2}["a"]], @index0 + @index0 * @index0 == 6)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([{"a": 2}, @index0["a"], @index1 * @index1, @index1 + @index2], @index3 == 6)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([{"a": 2}, @index0["a"], @index1 + @index1 * @index1], @index2 == 6)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([{"a": 2}, @index0["a"], @index1 + @index1 * @index1], @index2 == 6)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([{"a": 2}, @index0["a"], @index1 + @index1 * @index1], @index2 == 6)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([{"a": 2}, @index0["a"], @index1 + @index1 * @index1], @index2 == 6)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([{"a": 2}, @index0["a"], @index1 + @index1 * @index1], @index2 == 6)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([{"a": 2}, @index0["a"], @index1 + @index1 * @index1], @index2 == 6)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([{"a": 2}, @index0["a"], @index1 + @index1 * @index1], @index2 == 6)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([{"a": 2}, @index0["a"], @index1 + @index1 * @index1], @index2 == 6)
+
+Test case: NESTED_MAP_CONSTRUCTION
+Source: {'a': {'b': 1}, 'c': {'b': 1}, 'd': {'e': {'b': 1}}, 'e': {'e': {'b': 1}}}
+=====>
+Result: {a={b=1}, c={b=1}, d={e={b=1}}, e={e={b=1}}}
+[CASCADED_BINDS]: cel.bind(@r0, {"b": 1}, cel.bind(@r1, {"e": @r0}, {"a": @r0, "c": @r0, "d": @r1, "e": @r1}))
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([{"b": 1}, {"e": @index0}], {"a": @index0, "c": @index0, "d": @index1, "e": @index1})
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([{"b": 1}, {"e": @index0}], {"a": @index0, "c": @index0, "d": @index1, "e": @index1})
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([{"b": 1}, {"e": @index0}], {"a": @index0, "c": @index0, "d": @index1, "e": @index1})
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([{"b": 1}, {"e": @index0}], {"a": @index0, "c": @index0, "d": @index1, "e": @index1})
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([{"b": 1}, {"e": @index0}], {"a": @index0, "c": @index0, "d": @index1, "e": @index1})
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([{"b": 1}, {"e": @index0}], {"a": @index0, "c": @index0, "d": @index1, "e": @index1})
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([{"b": 1}, {"e": @index0}], {"a": @index0, "c": @index0, "d": @index1, "e": @index1})
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([{"b": 1}, {"e": @index0}], {"a": @index0, "c": @index0, "d": @index1, "e": @index1})
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([{"b": 1}, {"e": @index0}], {"a": @index0, "c": @index0, "d": @index1, "e": @index1})
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([{"b": 1}, {"e": @index0}], {"a": @index0, "c": @index0, "d": @index1, "e": @index1})
+
+Test case: NESTED_LIST_CONSTRUCTION
+Source: [1, [1,2,3,4], 2, [1,2,3,4], 5, [1,2,3,4], 7, [[1,2], [1,2,3,4]], [1,2]]
+=====>
+Result: [1, [1, 2, 3, 4], 2, [1, 2, 3, 4], 5, [1, 2, 3, 4], 7, [[1, 2], [1, 2, 3, 4]], [1, 2]]
+[CASCADED_BINDS]: cel.bind(@r0, [1, 2, 3, 4], cel.bind(@r1, [1, 2], [1, @r0, 2, @r0, 5, @r0, 7, [@r1, @r0], @r1]))
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([[1, 2, 3, 4], [1, 2]], [1, @index0, 2, @index0, 5, @index0, 7, [@index1, @index0], @index1])
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2, 3, 4], [1, 2], [@index1, @index0]], [1, @index0, 2, @index0, 5, @index0, 7, @index2, @index1])
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[1, 2, 3, 4], [1, 2], [@index1, @index0]], [1, @index0, 2, @index0, 5, @index0, 7, @index2, @index1])
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[1, 2, 3, 4], [1, 2], [@index1, @index0]], [1, @index0, 2, @index0, 5, @index0, 7, @index2, @index1])
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[1, 2, 3, 4], [1, 2], [@index1, @index0]], [1, @index0, 2, @index0, 5, @index0, 7, @index2, @index1])
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[1, 2, 3, 4], [1, 2], [@index1, @index0]], [1, @index0, 2, @index0, 5, @index0, 7, @index2, @index1])
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[1, 2, 3, 4], [1, 2], [@index1, @index0]], [1, @index0, 2, @index0, 5, @index0, 7, @index2, @index1])
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[1, 2, 3, 4], [1, 2], [@index1, @index0]], [1, @index0, 2, @index0, 5, @index0, 7, @index2, @index1])
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[1, 2, 3, 4], [1, 2], [@index1, @index0]], [1, @index0, 2, @index0, 5, @index0, 7, @index2, @index1])
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[1, 2, 3, 4], [1, 2], [@index1, @index0]], [1, @index0, 2, @index0, 5, @index0, 7, @index2, @index1])
+
+Test case: SELECT
+Source: msg.single_int64 + msg.single_int64 == 6
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, msg.single_int64, @r0 + @r0) == 6
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.single_int64], @index0 + @index0 == 6)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.single_int64, @index0 + @index0], @index1 == 6)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.single_int64, @index0 + @index0], @index1 == 6)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.single_int64, @index0 + @index0], @index1 == 6)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.single_int64, @index0 + @index0], @index1 == 6)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.single_int64, @index0 + @index0], @index1 == 6)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.single_int64, @index0 + @index0], @index1 == 6)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([msg.single_int64, @index0 + @index0], @index1 == 6)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([msg.single_int64, @index0 + @index0], @index1 == 6)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([msg.single_int64, @index0 + @index0], @index1 == 6)
+
+Test case: SELECT_NESTED_1
+Source: msg.oneof_type.payload.single_int64 + msg.oneof_type.payload.single_int32 + msg.oneof_type.payload.single_int64 + msg.single_int64 + msg.oneof_type.payload.oneof_type.payload.single_int64 == 31
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, msg.oneof_type.payload, cel.bind(@r1, @r0.single_int64, @r1 + @r0.single_int32 + @r1) + msg.single_int64 + @r0.oneof_type.payload.single_int64) == 31
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.oneof_type.payload, @index0.single_int64], @index1 + @index0.single_int32 + @index1 + msg.single_int64 + @index0.oneof_type.payload.single_int64 == 31)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, @index1.oneof_type, @index3.payload, @index4.single_int64, msg.single_int64, @index1.single_int32, @index2 + @index7, @index8 + @index2, @index9 + @index6, @index10 + @index5], @index11 == 31)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, @index1.oneof_type.payload, @index3.single_int64, msg.single_int64, @index2 + @index1.single_int32, @index6 + @index2 + @index5, @index7 + @index4], @index8 == 31)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, @index1.oneof_type.payload.single_int64, msg.single_int64, @index2 + @index1.single_int32 + @index2, @index5 + @index4 + @index3], @index6 == 31)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, @index1.oneof_type.payload.single_int64, @index2 + @index1.single_int32 + @index2 + msg.single_int64, @index4 + @index3], @index5 == 31)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, @index2 + @index1.single_int32 + @index2 + msg.single_int64 + @index1.oneof_type.payload.single_int64], @index3 == 31)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, @index2 + @index1.single_int32 + @index2 + msg.single_int64 + @index1.oneof_type.payload.single_int64], @index3 == 31)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, @index2 + @index1.single_int32 + @index2 + msg.single_int64 + @index1.oneof_type.payload.single_int64], @index3 == 31)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, @index2 + @index1.single_int32 + @index2 + msg.single_int64 + @index1.oneof_type.payload.single_int64], @index3 == 31)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, @index2 + @index1.single_int32 + @index2 + msg.single_int64 + @index1.oneof_type.payload.single_int64], @index3 == 31)
+
+Test case: SELECT_NESTED_2
+Source: true || msg.oneof_type.payload.oneof_type.payload.oneof_type.payload.oneof_type.payload.single_bool || msg.oneof_type.payload.oneof_type.payload.oneof_type.child.child.payload.single_bool
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, msg.oneof_type.payload.oneof_type.payload.oneof_type, true || @r0.payload.oneof_type.payload.single_bool || @r0.child.child.payload.single_bool)
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.oneof_type.payload.oneof_type.payload.oneof_type], true || @index0.payload.oneof_type.payload.single_bool || @index0.child.child.payload.single_bool)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.oneof_type, @index2.payload, @index3.oneof_type, @index4.child, @index5.child, @index6.payload, @index7.single_bool, @index4.payload, @index9.oneof_type, @index10.payload, @index11.single_bool, true || @index12], @index13 || @index8)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type, @index0.payload, @index1.oneof_type, @index2.payload, @index3.oneof_type, @index4.child.child, @index5.payload.single_bool, @index4.payload.oneof_type, @index7.payload.single_bool, true || @index8], @index9 || @index6)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type, @index0.payload, @index1.oneof_type, @index2.payload, @index3.oneof_type, @index4.child.child.payload, @index5.single_bool, @index4.payload.oneof_type.payload, true || @index7.single_bool], @index8 || @index6)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.oneof_type, @index0.payload, @index1.oneof_type, @index2.payload, @index3.oneof_type, @index4.child.child.payload.single_bool, @index4.payload.oneof_type.payload.single_bool, true || @index6], @index7 || @index5)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.oneof_type, @index0.payload, @index1.oneof_type, @index2.payload, @index3.oneof_type, @index4.child.child.payload.single_bool, true || @index4.payload.oneof_type.payload.single_bool], @index6 || @index5)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.oneof_type, @index0.payload, @index1.oneof_type, @index2.payload, @index3.oneof_type, @index4.child.child.payload.single_bool, true || @index4.payload.oneof_type.payload.single_bool], @index6 || @index5)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([msg.oneof_type, @index0.payload, @index1.oneof_type, @index2.payload, @index3.oneof_type, @index4.child.child.payload.single_bool, true || @index4.payload.oneof_type.payload.single_bool], @index6 || @index5)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([msg.oneof_type, @index0.payload, @index1.oneof_type, @index2.payload, @index3.oneof_type, @index4.child.child.payload.single_bool, true || @index4.payload.oneof_type.payload.single_bool], @index6 || @index5)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([msg.oneof_type, @index0.payload, @index1.oneof_type, @index2.payload, @index3.oneof_type, @index4.child.child.payload.single_bool, true || @index4.payload.oneof_type.payload.single_bool], @index6 || @index5)
+
+Test case: SELECT_NESTED_MESSAGE_MAP_INDEX_1
+Source: msg.oneof_type.payload.map_int32_int64[1] + msg.oneof_type.payload.map_int32_int64[1] + msg.oneof_type.payload.map_int32_int64[1] == 15
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, msg.oneof_type.payload.map_int32_int64[1], @r0 + @r0 + @r0) == 15
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.oneof_type.payload.map_int32_int64[1]], @index0 + @index0 + @index0 == 15)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[1], @index3 + @index3, @index4 + @index3], @index5 == 15)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[1], @index3 + @index3 + @index3], @index4 == 15)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[1], @index3 + @index3 + @index3], @index4 == 15)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[1], @index3 + @index3 + @index3], @index4 == 15)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[1], @index3 + @index3 + @index3], @index4 == 15)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[1], @index3 + @index3 + @index3], @index4 == 15)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[1], @index3 + @index3 + @index3], @index4 == 15)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[1], @index3 + @index3 + @index3], @index4 == 15)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[1], @index3 + @index3 + @index3], @index4 == 15)
+
+Test case: SELECT_NESTED_MESSAGE_MAP_INDEX_2
+Source: msg.oneof_type.payload.map_int32_int64[0] + msg.oneof_type.payload.map_int32_int64[1] + msg.oneof_type.payload.map_int32_int64[2] == 8
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, msg.oneof_type.payload.map_int32_int64, @r0[0] + @r0[1] + @r0[2]) == 8
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.oneof_type.payload.map_int32_int64], @index0[0] + @index0[1] + @index0[2] == 8)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[2], @index2[1], @index2[0], @index5 + @index4, @index6 + @index3], @index7 == 8)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[2], @index2[0] + @index2[1], @index4 + @index3], @index5 == 8)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[0] + @index2[1] + @index2[2]], @index3 == 8)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[0] + @index2[1] + @index2[2]], @index3 == 8)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[0] + @index2[1] + @index2[2]], @index3 == 8)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[0] + @index2[1] + @index2[2]], @index3 == 8)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[0] + @index2[1] + @index2[2]], @index3 == 8)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[0] + @index2[1] + @index2[2]], @index3 == 8)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_int32_int64, @index2[0] + @index2[1] + @index2[2]], @index3 == 8)
+
+Test case: SELECT_NESTED_NO_COMMON_SUBEXPR
+Source: msg.oneof_type.payload.oneof_type.payload.oneof_type.payload.oneof_type.payload.single_int64
+=====>
+Result: 0
+[CASCADED_BINDS]: msg.oneof_type.payload.oneof_type.payload.oneof_type.payload.oneof_type.payload.single_int64
+[BLOCK_COMMON_SUBEXPR_ONLY]: msg.oneof_type.payload.oneof_type.payload.oneof_type.payload.oneof_type.payload.single_int64
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.oneof_type, @index2.payload, @index3.oneof_type, @index4.payload, @index5.oneof_type, @index6.payload], @index7.single_int64)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type.payload, @index0.oneof_type.payload, @index1.oneof_type.payload, @index2.oneof_type.payload], @index3.single_int64)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type.payload.oneof_type, @index0.payload.oneof_type.payload, @index1.oneof_type.payload], @index2.single_int64)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.oneof_type.payload.oneof_type.payload, @index0.oneof_type.payload.oneof_type.payload], @index1.single_int64)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.oneof_type.payload.oneof_type.payload.oneof_type, @index0.payload.oneof_type.payload], @index1.single_int64)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.oneof_type.payload.oneof_type.payload.oneof_type.payload, @index0.oneof_type.payload], @index1.single_int64)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([msg.oneof_type.payload.oneof_type.payload.oneof_type.payload.oneof_type, @index0.payload], @index1.single_int64)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([msg.oneof_type.payload.oneof_type.payload.oneof_type.payload.oneof_type.payload], @index0.single_int64)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([msg.oneof_type.payload.oneof_type.payload.oneof_type.payload.oneof_type.payload], @index0.single_int64)
+
+Test case: TERNARY
+Source: (msg.single_int64 > 0 ? msg.single_int64 : 0) == 3
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, msg.single_int64, (@r0 > 0) ? @r0 : 0) == 3
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.single_int64], ((@index0 > 0) ? @index0 : 0) == 3)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.single_int64, @index0 > 0, @index1 ? @index0 : 0], @index2 == 3)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.single_int64, (@index0 > 0) ? @index0 : 0], @index1 == 3)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.single_int64, (@index0 > 0) ? @index0 : 0], @index1 == 3)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.single_int64, (@index0 > 0) ? @index0 : 0], @index1 == 3)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.single_int64, (@index0 > 0) ? @index0 : 0], @index1 == 3)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.single_int64, (@index0 > 0) ? @index0 : 0], @index1 == 3)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([msg.single_int64, (@index0 > 0) ? @index0 : 0], @index1 == 3)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([msg.single_int64, (@index0 > 0) ? @index0 : 0], @index1 == 3)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([msg.single_int64, (@index0 > 0) ? @index0 : 0], @index1 == 3)
+
+Test case: TERNARY_BIND_RHS_ONLY
+Source: false ? false : (msg.single_int64) + ((msg.single_int64 + 1) * 2) == 11
+=====>
+Result: true
+[CASCADED_BINDS]: false ? false : (cel.bind(@r0, msg.single_int64, @r0 + (@r0 + 1) * 2) == 11)
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.single_int64], false ? false : (@index0 + (@index0 + 1) * 2 == 11))
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.single_int64, @index0 + 1, @index1 * 2, @index0 + @index2, @index3 == 11], false ? false : @index4)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.single_int64, (@index0 + 1) * 2, @index0 + @index1 == 11], false ? false : @index2)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.single_int64, @index0 + (@index0 + 1) * 2, @index1 == 11], false ? false : @index2)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.single_int64, @index0 + (@index0 + 1) * 2 == 11], false ? false : @index1)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.single_int64, @index0 + (@index0 + 1) * 2 == 11], false ? false : @index1)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.single_int64, @index0 + (@index0 + 1) * 2 == 11], false ? false : @index1)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([msg.single_int64, @index0 + (@index0 + 1) * 2 == 11], false ? false : @index1)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([msg.single_int64, @index0 + (@index0 + 1) * 2 == 11], false ? false : @index1)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([msg.single_int64, @index0 + (@index0 + 1) * 2 == 11], false ? false : @index1)
+
+Test case: NESTED_TERNARY
+Source: (msg.single_int64 > 0 ? (msg.single_int32 > 0 ? msg.single_int64 + msg.single_int32 : 0) : 0) == 8
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, msg.single_int64, (@r0 > 0) ? cel.bind(@r1, msg.single_int32, (@r1 > 0) ? (@r0 + @r1) : 0) : 0) == 8
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.single_int64, msg.single_int32], ((@index0 > 0) ? ((@index1 > 0) ? (@index0 + @index1) : 0) : 0) == 8)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.single_int64, msg.single_int32, @index0 + @index1, @index1 > 0, @index3 ? @index2 : 0, @index0 > 0, @index5 ? @index4 : 0], @index6 == 8)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.single_int64, msg.single_int32, (@index1 > 0) ? (@index0 + @index1) : 0, (@index0 > 0) ? @index2 : 0], @index3 == 8)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.single_int64, msg.single_int32, (@index0 > 0) ? ((@index1 > 0) ? (@index0 + @index1) : 0) : 0], @index2 == 8)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.single_int64, msg.single_int32, (@index0 > 0) ? ((@index1 > 0) ? (@index0 + @index1) : 0) : 0], @index2 == 8)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.single_int64, msg.single_int32, (@index0 > 0) ? ((@index1 > 0) ? (@index0 + @index1) : 0) : 0], @index2 == 8)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.single_int64, msg.single_int32, (@index0 > 0) ? ((@index1 > 0) ? (@index0 + @index1) : 0) : 0], @index2 == 8)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([msg.single_int64, msg.single_int32, (@index0 > 0) ? ((@index1 > 0) ? (@index0 + @index1) : 0) : 0], @index2 == 8)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([msg.single_int64, msg.single_int32, (@index0 > 0) ? ((@index1 > 0) ? (@index0 + @index1) : 0) : 0], @index2 == 8)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([msg.single_int64, msg.single_int32, (@index0 > 0) ? ((@index1 > 0) ? (@index0 + @index1) : 0) : 0], @index2 == 8)
+
+Test case: MULTIPLE_MACROS_1
+Source: size([[1].exists(i, i > 0)]) + size([[1].exists(j, j > 0)]) + size([[2].exists(k, k > 1)]) + size([[2].exists(l, l > 1)]) == 4
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r1, size([[2].exists(@c0:0, @c0:0 > 1)]), cel.bind(@r0, size([[1].exists(@c0:0, @c0:0 > 0)]), @r0 + @r0) + @r1 + @r1) == 4
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([size([[1].exists(@c0:0, @c0:0 > 0)]), size([[2].exists(@c0:0, @c0:0 > 1)])], @index0 + @index0 + @index1 + @index1 == 4)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, [2], @c0:0 > 1, @x0:0 || @index4], size([@index0.exists(@c0:0, @index1)]) + size([@index0.exists(@c0:0, @index1)]) + size([@index3.exists(@c0:0, @index4)]) + size([@index3.exists(@c0:0, @index4)]) == 4)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, [2], @c0:0 > 1, @x0:0 || @index4], size([@index0.exists(@c0:0, @index1)]) + size([@index0.exists(@c0:0, @index1)]) + size([@index3.exists(@c0:0, @index4)]) + size([@index3.exists(@c0:0, @index4)]) == 4)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, @index0.exists(@c0:0, @index1), [@index3], size(@index4), [2], @c0:0 > 1, @x0:0 || @index7, @index6.exists(@c0:0, @index7), [@index9], size(@index10), @index5 + @index5 + @index11 + @index11], @index12 == 4)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, @index0.exists(@c0:0, @index1), [@index3], size(@index4), [2], @c0:0 > 1, @x0:0 || @index7, @index6.exists(@c0:0, @index7), [@index9], size(@index10), @index5 + @index5 + @index11 + @index11], @index12 == 4)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, @index0.exists(@c0:0, @index1), [@index3], size(@index4), [2], @c0:0 > 1, @x0:0 || @index7, @index6.exists(@c0:0, @index7), [@index9], size(@index10), @index5 + @index5 + @index11 + @index11], @index12 == 4)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, @index0.exists(@c0:0, @index1), [@index3], size(@index4), [2], @c0:0 > 1, @x0:0 || @index7, @index6.exists(@c0:0, @index7), [@index9], size(@index10), @index5 + @index5 + @index11 + @index11], @index12 == 4)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, @index0.exists(@c0:0, @index1), [@index3], size(@index4), [2], @c0:0 > 1, @x0:0 || @index7, @index6.exists(@c0:0, @index7), [@index9], size(@index10), @index5 + @index5 + @index11 + @index11], @index12 == 4)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, @index0.exists(@c0:0, @index1), [@index3], size(@index4), [2], @c0:0 > 1, @x0:0 || @index7, @index6.exists(@c0:0, @index7), [@index9], size(@index10), @index5 + @index5 + @index11 + @index11], @index12 == 4)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, @index0.exists(@c0:0, @index1), [@index3], size(@index4), [2], @c0:0 > 1, @x0:0 || @index7, @index6.exists(@c0:0, @index7), [@index9], size(@index10), @index5 + @index5 + @index11 + @index11], @index12 == 4)
+
+Test case: MULTIPLE_MACROS_2
+Source: [[1].exists(i, i > 0)] + [[1].exists(j, j > 0)] + [['a'].exists(k, k == 'a')] + [['a'].exists(l, l == 'a')] == [true, true, true, true]
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r1, [["a"].exists(@c0:1, @c0:1 == "a")], cel.bind(@r0, [[1].exists(@c0:0, @c0:0 > 0)], @r0 + @r0) + @r1 + @r1) == [true, true, true, true]
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([[[1].exists(@c0:0, @c0:0 > 0)], [["a"].exists(@c0:1, @c0:1 == "a")]], @index0 + @index0 + @index1 + @index1 == [true, true, true, true])
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, ["a"], @c0:1 == "a", @x0:1 || @index4, [true, true, true, true]], [@index0.exists(@c0:0, @index1)] + [@index0.exists(@c0:0, @index1)] + [@index3.exists(@c0:1, @index4)] + [@index3.exists(@c0:1, @index4)] == @index6)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, ["a"], @c0:1 == "a", @x0:1 || @index4, [true, true, true, true]], [@index0.exists(@c0:0, @index1)] + [@index0.exists(@c0:0, @index1)] + [@index3.exists(@c0:1, @index4)] + [@index3.exists(@c0:1, @index4)] == @index6)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, @index0.exists(@c0:0, @index1), [@index3], ["a"], @c0:1 == "a", @x0:1 || @index6, @index5.exists(@c0:1, @index6), [@index8], [true, true, true, true], @index4 + @index4 + @index9 + @index9], @index11 == @index10)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, @index0.exists(@c0:0, @index1), [@index3], ["a"], @c0:1 == "a", @x0:1 || @index6, @index5.exists(@c0:1, @index6), [@index8], [true, true, true, true], @index4 + @index4 + @index9 + @index9], @index11 == @index10)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, @index0.exists(@c0:0, @index1), [@index3], ["a"], @c0:1 == "a", @x0:1 || @index6, @index5.exists(@c0:1, @index6), [@index8], [true, true, true, true], @index4 + @index4 + @index9 + @index9], @index11 == @index10)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, @index0.exists(@c0:0, @index1), [@index3], ["a"], @c0:1 == "a", @x0:1 || @index6, @index5.exists(@c0:1, @index6), [@index8], [true, true, true, true], @index4 + @index4 + @index9 + @index9], @index11 == @index10)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, @index0.exists(@c0:0, @index1), [@index3], ["a"], @c0:1 == "a", @x0:1 || @index6, @index5.exists(@c0:1, @index6), [@index8], [true, true, true, true], @index4 + @index4 + @index9 + @index9], @index11 == @index10)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, @index0.exists(@c0:0, @index1), [@index3], ["a"], @c0:1 == "a", @x0:1 || @index6, @index5.exists(@c0:1, @index6), [@index8], [true, true, true, true], @index4 + @index4 + @index9 + @index9], @index11 == @index10)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[1], @c0:0 > 0, @x0:0 || @index1, @index0.exists(@c0:0, @index1), [@index3], ["a"], @c0:1 == "a", @x0:1 || @index6, @index5.exists(@c0:1, @index6), [@index8], [true, true, true, true], @index4 + @index4 + @index9 + @index9], @index11 == @index10)
+
+Test case: NESTED_MACROS
+Source: [1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [[2, 3, 4], [2, 3, 4], [2, 3, 4]]
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, [1, 2, 3], @r0.map(@c0:0, @r0.map(@c1:0, @c1:0 + 1))) == cel.bind(@r1, [2, 3, 4], [@r1, @r1, @r1])
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([[1, 2, 3], [2, 3, 4]], @index0.map(@c0:0, @index0.map(@c1:0, @c1:0 + 1)) == [@index1, @index1, @index1])
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2, 3], [2, 3, 4], [@index1, @index1, @index1], @c1:0 + 1, [@index3], @x1:0 + @index4], @index0.map(@c0:0, @index0.map(@c1:0, @index3)) == @index2)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[1, 2, 3], [2, 3, 4], [@index1, @index1, @index1], [@c1:0 + 1], @index0.map(@c1:0, @c1:0 + 1), @x0:0 + [@index4], @index0.map(@c0:0, @index4)], @index6 == @index2)
+[BLOCK_RECURSION_DEPTH_3]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[1, 2, 3], [2, 3, 4], [@index1, @index1, @index1], @index0.map(@c1:0, @c1:0 + 1), @index0.map(@c0:0, @index3)], @index4 == @index2)
+[BLOCK_RECURSION_DEPTH_5]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
+[BLOCK_RECURSION_DEPTH_6]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[1, 2, 3], [2, 3, 4], [@index1, @index1, @index1], @index0.map(@c0:0, @index0.map(@c1:0, @c1:0 + 1))], @index3 == @index2)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[1, 2, 3], [2, 3, 4], [@index1, @index1, @index1], @index0.map(@c0:0, @index0.map(@c1:0, @c1:0 + 1))], @index3 == @index2)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[1, 2, 3], [2, 3, 4], [@index1, @index1, @index1], @index0.map(@c0:0, @index0.map(@c1:0, @c1:0 + 1))], @index3 == @index2)
+
+Test case: NESTED_MACROS_2
+Source: [1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]
+=====>
+Result: true
+[CASCADED_BINDS]: [1, 2].map(@c0:0, [1, 2, 3].filter(@c1:0, @c1:0 == @c0:0)) == [[1], [2]]
+[BLOCK_COMMON_SUBEXPR_ONLY]: [1, 2].map(@c0:0, [1, 2, 3].filter(@c1:0, @c1:0 == @c0:0)) == [[1], [2]]
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[2], [1], [@index1, @index0], [@c1:0], @x1:0 + @index3, @c1:0 == @c0:0, @index5 ? @index4 : @x1:0, [1, 2, 3], [1, 2]], @index8.map(@c0:0, @index7.filter(@c1:0, @index5)) == @index2)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[[1], [2]], @x1:0 + [@c1:0], (@c1:0 == @c0:0) ? @index1 : @x1:0, [1, 2, 3].filter(@c1:0, @c1:0 == @c0:0), @x0:0 + [@index3], [1, 2].map(@c0:0, @index3)], @index5 == @index0)
+[BLOCK_RECURSION_DEPTH_3]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[[1], [2]], [1, 2, 3].filter(@c1:0, @c1:0 == @c0:0), [1, 2].map(@c0:0, @index1)], @index2 == @index0)
+[BLOCK_RECURSION_DEPTH_5]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
+[BLOCK_RECURSION_DEPTH_6]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[[1], [2]], [1, 2].map(@c0:0, [1, 2, 3].filter(@c1:0, @c1:0 == @c0:0))], @index1 == @index0)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[[1], [2]], [1, 2].map(@c0:0, [1, 2, 3].filter(@c1:0, @c1:0 == @c0:0))], @index1 == @index0)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[[1], [2]], [1, 2].map(@c0:0, [1, 2, 3].filter(@c1:0, @c1:0 == @c0:0))], @index1 == @index0)
+
+Test case: INCLUSION_LIST
+Source: 1 in [1,2,3] && 2 in [1,2,3] && 3 in [3, [1,2,3]] && 1 in [1,2,3]
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, [1, 2, 3], cel.bind(@r1, 1 in @r0, @r1 && 2 in @r0 && 3 in [3, @r0] && @r1))
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([[1, 2, 3], 1 in @index0], @index1 && 2 in @index0 && 3 in [3, @index0] && @index1)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2, 3], 1 in @index0, [3, @index0], 3 in @index2, @index3 && @index1, 2 in @index0, @index1 && @index5], @index6 && @index4)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[1, 2, 3], 1 in @index0, 3 in [3, @index0], @index2 && @index1, @index1 && 2 in @index0], @index4 && @index3)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[1, 2, 3], 1 in @index0, 3 in [3, @index0] && @index1, @index1 && 2 in @index0], @index3 && @index2)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[1, 2, 3], 1 in @index0, 3 in [3, @index0] && @index1, @index1 && 2 in @index0], @index3 && @index2)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[1, 2, 3], 1 in @index0, 3 in [3, @index0] && @index1, @index1 && 2 in @index0], @index3 && @index2)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[1, 2, 3], 1 in @index0, 3 in [3, @index0] && @index1, @index1 && 2 in @index0], @index3 && @index2)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[1, 2, 3], 1 in @index0, 3 in [3, @index0] && @index1, @index1 && 2 in @index0], @index3 && @index2)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[1, 2, 3], 1 in @index0, 3 in [3, @index0] && @index1, @index1 && 2 in @index0], @index3 && @index2)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[1, 2, 3], 1 in @index0, 3 in [3, @index0] && @index1, @index1 && 2 in @index0], @index3 && @index2)
+
+Test case: INCLUSION_MAP
+Source: 2 in {'a': 1, 2: {true: false}, 3: {true: false}}
+=====>
+Result: true
+[CASCADED_BINDS]: 2 in cel.bind(@r0, {true: false}, {"a": 1, 2: @r0, 3: @r0})
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([{true: false}], 2 in {"a": 1, 2: @index0, 3: @index0})
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([{true: false}, {"a": 1, 2: @index0, 3: @index0}], 2 in @index1)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([{true: false}, {"a": 1, 2: @index0, 3: @index0}], 2 in @index1)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([{true: false}, {"a": 1, 2: @index0, 3: @index0}], 2 in @index1)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([{true: false}, {"a": 1, 2: @index0, 3: @index0}], 2 in @index1)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([{true: false}, {"a": 1, 2: @index0, 3: @index0}], 2 in @index1)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([{true: false}, {"a": 1, 2: @index0, 3: @index0}], 2 in @index1)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([{true: false}, {"a": 1, 2: @index0, 3: @index0}], 2 in @index1)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([{true: false}, {"a": 1, 2: @index0, 3: @index0}], 2 in @index1)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([{true: false}, {"a": 1, 2: @index0, 3: @index0}], 2 in @index1)
+
+Test case: MACRO_ITER_VAR_NOT_REFERENCED
+Source: [1,2].map(i, [1, 2].map(i, [3,4])) == [[[3, 4], [3, 4]], [[3, 4], [3, 4]]]
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r1, [3, 4], cel.bind(@r0, [1, 2], @r0.map(@c0:0, @r0.map(@c1:0, @r1))) == cel.bind(@r2, [@r1, @r1], [@r2, @r2]))
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([[1, 2], [3, 4], [@index1, @index1]], @index0.map(@c0:0, @index0.map(@c1:0, @index1)) == [@index2, @index2])
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2], [3, 4], [@index1, @index1], [@index2, @index2], [@index1], @x1:0 + @index4], @index0.map(@c0:0, @index0.map(@c1:0, @index1)) == @index3)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[1, 2], [3, 4], [@index1, @index1], [@index2, @index2], @x1:0 + [@index1], @index0.map(@c1:0, @index1), @x0:0 + [@index5], @index0.map(@c0:0, @index5)], @index7 == @index3)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[1, 2], [3, 4], [@index1, @index1], [@index2, @index2], @index0.map(@c1:0, @index1), @index0.map(@c0:0, @index4)], @index5 == @index3)
+[BLOCK_RECURSION_DEPTH_4]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
+[BLOCK_RECURSION_DEPTH_5]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[1, 2], [3, 4], [@index1, @index1], [@index2, @index2], @index0.map(@c0:0, @index0.map(@c1:0, @index1))], @index4 == @index3)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[1, 2], [3, 4], [@index1, @index1], [@index2, @index2], @index0.map(@c0:0, @index0.map(@c1:0, @index1))], @index4 == @index3)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[1, 2], [3, 4], [@index1, @index1], [@index2, @index2], @index0.map(@c0:0, @index0.map(@c1:0, @index1))], @index4 == @index3)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[1, 2], [3, 4], [@index1, @index1], [@index2, @index2], @index0.map(@c0:0, @index0.map(@c1:0, @index1))], @index4 == @index3)
+
+Test case: MACRO_SHADOWED_VARIABLE
+Source: [x - 1 > 3 ? x - 1 : 5].exists(x, x - 1 > 3) || x - 1 > 3
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, x - 1, cel.bind(@r1, @r0 > 3, [@r1 ? @r0 : 5].exists(@c0:0, @c0:0 - 1 > 3) || @r1))
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([x - 1, @index0 > 3], [@index1 ? @index0 : 5].exists(@c0:0, @c0:0 - 1 > 3) || @index1)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([x - 1, @index0 > 3, @c0:0 - 1, @index2 > 3, @x0:0 || @index3, @index1 ? @index0 : 5, [@index5]], @index6.exists(@c0:0, @index3) || @index1)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([x - 1, @index0 > 3, @c0:0 - 1 > 3, @x0:0 || @index2, [@index1 ? @index0 : 5]], @index4.exists(@c0:0, @index2) || @index1)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([x - 1, @index0 > 3, @x0:0 || @c0:0 - 1 > 3, [@index1 ? @index0 : 5].exists(@c0:0, @c0:0 - 1 > 3)], @index3 || @index1)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([x - 1, @index0 > 3, [@index1 ? @index0 : 5].exists(@c0:0, @c0:0 - 1 > 3)], @index2 || @index1)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([x - 1, @index0 > 3, [@index1 ? @index0 : 5].exists(@c0:0, @c0:0 - 1 > 3)], @index2 || @index1)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([x - 1, @index0 > 3, [@index1 ? @index0 : 5].exists(@c0:0, @c0:0 - 1 > 3)], @index2 || @index1)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([x - 1, @index0 > 3, [@index1 ? @index0 : 5].exists(@c0:0, @c0:0 - 1 > 3)], @index2 || @index1)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([x - 1, @index0 > 3, [@index1 ? @index0 : 5].exists(@c0:0, @c0:0 - 1 > 3)], @index2 || @index1)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([x - 1, @index0 > 3, [@index1 ? @index0 : 5].exists(@c0:0, @c0:0 - 1 > 3)], @index2 || @index1)
+
+Test case: MACRO_SHADOWED_VARIABLE_2
+Source: ["foo", "bar"].map(x, [x + x, x + x]).map(x, [x + x, x + x])
+=====>
+Result: [[[foofoo, foofoo, foofoo, foofoo], [foofoo, foofoo, foofoo, foofoo]], [[barbar, barbar, barbar, barbar], [barbar, barbar, barbar, barbar]]]
+[CASCADED_BINDS]: ["foo", "bar"].map(@c1:0, cel.bind(@r0, @c1:0 + @c1:0, [@r0, @r0])).map(@c0:0, cel.bind(@r1, @c0:0 + @c0:0, [@r1, @r1]))
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([@c1:0 + @c1:0, @c0:0 + @c0:0], ["foo", "bar"].map(@c1:0, [@index0, @index0]).map(@c0:0, [@index1, @index1]))
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([@c1:0 + @c1:0, @c0:0 + @c0:0, [@index1, @index1], [@index2], @x0:0 + @index3, [@index0, @index0], [@index5], @x1:0 + @index6, ["foo", "bar"]], @index8.map(@c1:0, @index5).map(@c0:0, @index2))
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([@c1:0 + @c1:0, @c0:0 + @c0:0, [[@index1, @index1]], @x0:0 + @index2, [[@index0, @index0]], ["foo", "bar"].map(@c1:0, [@index0, @index0])], @index5.map(@c0:0, [@index1, @index1]))
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([@c1:0 + @c1:0, @c0:0 + @c0:0, @x0:0 + [[@index1, @index1]], @x1:0 + [[@index0, @index0]], ["foo", "bar"].map(@c1:0, [@index0, @index0])], @index4.map(@c0:0, [@index1, @index1]))
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([@c1:0 + @c1:0, @c0:0 + @c0:0, @x0:0 + [[@index1, @index1]], ["foo", "bar"].map(@c1:0, [@index0, @index0])], @index3.map(@c0:0, [@index1, @index1]))
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([@c1:0 + @c1:0, @c0:0 + @c0:0, @x0:0 + [[@index1, @index1]], ["foo", "bar"].map(@c1:0, [@index0, @index0])], @index3.map(@c0:0, [@index1, @index1]))
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([@c1:0 + @c1:0, @c0:0 + @c0:0, @x0:0 + [[@index1, @index1]], ["foo", "bar"].map(@c1:0, [@index0, @index0])], @index3.map(@c0:0, [@index1, @index1]))
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([@c1:0 + @c1:0, @c0:0 + @c0:0, @x0:0 + [[@index1, @index1]], ["foo", "bar"].map(@c1:0, [@index0, @index0])], @index3.map(@c0:0, [@index1, @index1]))
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([@c1:0 + @c1:0, @c0:0 + @c0:0, @x0:0 + [[@index1, @index1]], ["foo", "bar"].map(@c1:0, [@index0, @index0])], @index3.map(@c0:0, [@index1, @index1]))
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([@c1:0 + @c1:0, @c0:0 + @c0:0, @x0:0 + [[@index1, @index1]], ["foo", "bar"].map(@c1:0, [@index0, @index0])], @index3.map(@c0:0, [@index1, @index1]))
+
+Test case: PRESENCE_TEST
+Source: has({'a': true}.a) && {'a':true}['a']
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, {"a": true}, has(@r0.a) && @r0["a"])
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([{"a": true}], has(@index0.a) && @index0["a"])
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([{"a": true}, @index0["a"]], has(@index0.a) && @index1)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([{"a": true}, @index0["a"]], has(@index0.a) && @index1)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([{"a": true}, @index0["a"]], has(@index0.a) && @index1)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([{"a": true}, @index0["a"]], has(@index0.a) && @index1)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([{"a": true}, @index0["a"]], has(@index0.a) && @index1)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([{"a": true}, @index0["a"]], has(@index0.a) && @index1)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([{"a": true}, @index0["a"]], has(@index0.a) && @index1)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([{"a": true}, @index0["a"]], has(@index0.a) && @index1)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([{"a": true}, @index0["a"]], has(@index0.a) && @index1)
+
+Test case: PRESENCE_TEST_WITH_TERNARY
+Source: (has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : 0) == 10
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, msg.oneof_type, has(@r0.payload) ? @r0.payload.single_int64 : 0) == 10
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.oneof_type], (has(@index0.payload) ? @index0.payload.single_int64 : 0) == 10)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64], (has(@index0.payload) ? @index2 : 0) == 10)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type, @index0.payload.single_int64, has(@index0.payload) ? @index1 : 0], @index2 == 10)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type, has(@index0.payload) ? @index0.payload.single_int64 : 0], @index1 == 10)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.oneof_type, has(@index0.payload) ? @index0.payload.single_int64 : 0], @index1 == 10)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.oneof_type, has(@index0.payload) ? @index0.payload.single_int64 : 0], @index1 == 10)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.oneof_type, has(@index0.payload) ? @index0.payload.single_int64 : 0], @index1 == 10)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([msg.oneof_type, has(@index0.payload) ? @index0.payload.single_int64 : 0], @index1 == 10)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([msg.oneof_type, has(@index0.payload) ? @index0.payload.single_int64 : 0], @index1 == 10)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([msg.oneof_type, has(@index0.payload) ? @index0.payload.single_int64 : 0], @index1 == 10)
+
+Test case: PRESENCE_TEST_WITH_TERNARY_2
+Source: (has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : msg.oneof_type.payload.single_int64 * 0) == 10
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, msg.oneof_type, cel.bind(@r1, @r0.payload.single_int64, has(@r0.payload) ? @r1 : (@r1 * 0))) == 10
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.oneof_type, @index0.payload.single_int64], (has(@index0.payload) ? @index1 : (@index1 * 0)) == 10)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, @index2 * 0], (has(@index0.payload) ? @index2 : @index3) == 10)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index0.payload) ? @index2 : (@index2 * 0)], @index3 == 10)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index0.payload) ? @index2 : (@index2 * 0)], @index3 == 10)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index0.payload) ? @index2 : (@index2 * 0)], @index3 == 10)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index0.payload) ? @index2 : (@index2 * 0)], @index3 == 10)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index0.payload) ? @index2 : (@index2 * 0)], @index3 == 10)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index0.payload) ? @index2 : (@index2 * 0)], @index3 == 10)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index0.payload) ? @index2 : (@index2 * 0)], @index3 == 10)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index0.payload) ? @index2 : (@index2 * 0)], @index3 == 10)
+
+Test case: PRESENCE_TEST_WITH_TERNARY_3
+Source: (has(msg.oneof_type.payload.single_int64) ? msg.oneof_type.payload.single_int64 : msg.oneof_type.payload.single_int64 * 0) == 10
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, msg.oneof_type.payload, cel.bind(@r1, @r0.single_int64, has(@r0.single_int64) ? @r1 : (@r1 * 0))) == 10
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.oneof_type.payload, @index0.single_int64], (has(@index0.single_int64) ? @index1 : (@index1 * 0)) == 10)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, @index2 * 0], (has(@index1.single_int64) ? @index2 : @index3) == 10)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index1.single_int64) ? @index2 : (@index2 * 0)], @index3 == 10)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index1.single_int64) ? @index2 : (@index2 * 0)], @index3 == 10)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index1.single_int64) ? @index2 : (@index2 * 0)], @index3 == 10)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index1.single_int64) ? @index2 : (@index2 * 0)], @index3 == 10)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index1.single_int64) ? @index2 : (@index2 * 0)], @index3 == 10)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index1.single_int64) ? @index2 : (@index2 * 0)], @index3 == 10)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index1.single_int64) ? @index2 : (@index2 * 0)], @index3 == 10)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index1.single_int64) ? @index2 : (@index2 * 0)], @index3 == 10)
+
+Test case: PRESENCE_TEST_WITH_TERNARY_NESTED
+Source: (has(msg.oneof_type) && has(msg.oneof_type.payload) && has(msg.oneof_type.payload.single_int64)) ? ((has(msg.oneof_type.payload.map_string_string) && has(msg.oneof_type.payload.map_string_string.key)) ? msg.oneof_type.payload.map_string_string.key == 'A' : false) : false
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, msg.oneof_type, cel.bind(@r1, @r0.payload, (has(msg.oneof_type) && has(@r0.payload) && has(@r1.single_int64)) ? cel.bind(@r2, @r1.map_string_string, (has(@r1.map_string_string) && has(@r2.key)) ? (@r2.key == "A") : false) : false))
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_string_string], (has(msg.oneof_type) && has(@index0.payload) && has(@index1.single_int64)) ? ((has(@index1.map_string_string) && has(@index2.key)) ? (@index2.key == "A") : false) : false)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_string_string, @index2.key, @index3 == "A"], (has(msg.oneof_type) && has(@index0.payload) && has(@index1.single_int64)) ? ((has(@index1.map_string_string) && has(@index2.key)) ? @index4 : false) : false)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_string_string, @index2.key == "A", has(@index1.map_string_string) && has(@index2.key), @index4 ? @index3 : false, has(msg.oneof_type) && has(@index0.payload), @index6 && has(@index1.single_int64)], @index7 ? @index5 : false)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_string_string, (has(@index1.map_string_string) && has(@index2.key)) ? (@index2.key == "A") : false, has(msg.oneof_type) && has(@index0.payload) && has(@index1.single_int64)], @index4 ? @index3 : false)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_string_string, (has(@index1.map_string_string) && has(@index2.key)) ? (@index2.key == "A") : false, has(msg.oneof_type) && has(@index0.payload) && has(@index1.single_int64)], @index4 ? @index3 : false)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_string_string, (has(@index1.map_string_string) && has(@index2.key)) ? (@index2.key == "A") : false, has(msg.oneof_type) && has(@index0.payload) && has(@index1.single_int64)], @index4 ? @index3 : false)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_string_string, (has(@index1.map_string_string) && has(@index2.key)) ? (@index2.key == "A") : false, has(msg.oneof_type) && has(@index0.payload) && has(@index1.single_int64)], @index4 ? @index3 : false)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_string_string, (has(@index1.map_string_string) && has(@index2.key)) ? (@index2.key == "A") : false, has(msg.oneof_type) && has(@index0.payload) && has(@index1.single_int64)], @index4 ? @index3 : false)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_string_string, (has(@index1.map_string_string) && has(@index2.key)) ? (@index2.key == "A") : false, has(msg.oneof_type) && has(@index0.payload) && has(@index1.single_int64)], @index4 ? @index3 : false)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_string_string, (has(@index1.map_string_string) && has(@index2.key)) ? (@index2.key == "A") : false, has(msg.oneof_type) && has(@index0.payload) && has(@index1.single_int64)], @index4 ? @index3 : false)
+
+Test case: OPTIONAL_LIST
+Source: [10, ?optional.none(), [?optional.none(), ?opt_x], [?optional.none(), ?opt_x]] == [10, [5], [5]]
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, optional.none(), cel.bind(@r1, [?@r0, ?opt_x], [10, ?@r0, @r1, @r1])) == cel.bind(@r2, [5], [10, @r2, @r2])
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([optional.none(), [?@index0, ?opt_x], [5]], [10, ?@index0, @index1, @index1] == [10, @index2, @index2])
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([optional.none(), [?@index0, ?opt_x], [5], [10, @index2, @index2], [10, ?@index0, @index1, @index1]], @index4 == @index3)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([optional.none(), [?@index0, ?opt_x], [5], [10, @index2, @index2], [10, ?@index0, @index1, @index1]], @index4 == @index3)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([optional.none(), [?@index0, ?opt_x], [5], [10, @index2, @index2], [10, ?@index0, @index1, @index1]], @index4 == @index3)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([optional.none(), [?@index0, ?opt_x], [5], [10, @index2, @index2], [10, ?@index0, @index1, @index1]], @index4 == @index3)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([optional.none(), [?@index0, ?opt_x], [5], [10, @index2, @index2], [10, ?@index0, @index1, @index1]], @index4 == @index3)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([optional.none(), [?@index0, ?opt_x], [5], [10, @index2, @index2], [10, ?@index0, @index1, @index1]], @index4 == @index3)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([optional.none(), [?@index0, ?opt_x], [5], [10, @index2, @index2], [10, ?@index0, @index1, @index1]], @index4 == @index3)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([optional.none(), [?@index0, ?opt_x], [5], [10, @index2, @index2], [10, ?@index0, @index1, @index1]], @index4 == @index3)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([optional.none(), [?@index0, ?opt_x], [5], [10, @index2, @index2], [10, ?@index0, @index1, @index1]], @index4 == @index3)
+
+Test case: OPTIONAL_MAP
+Source: {?'hello': optional.of('hello')}['hello'] + {?'hello': optional.of('hello')}['hello'] == 'hellohello'
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, {?"hello": optional.of("hello")}["hello"], @r0 + @r0) == "hellohello"
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([{?"hello": optional.of("hello")}["hello"]], @index0 + @index0 == "hellohello")
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([optional.of("hello"), {?"hello": @index0}, @index1["hello"], @index2 + @index2], @index3 == "hellohello")
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([optional.of("hello"), {?"hello": @index0}, @index1["hello"], @index2 + @index2], @index3 == "hellohello")
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([optional.of("hello"), {?"hello": @index0}, @index1["hello"], @index2 + @index2], @index3 == "hellohello")
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([optional.of("hello"), {?"hello": @index0}, @index1["hello"], @index2 + @index2], @index3 == "hellohello")
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([optional.of("hello"), {?"hello": @index0}, @index1["hello"], @index2 + @index2], @index3 == "hellohello")
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([optional.of("hello"), {?"hello": @index0}, @index1["hello"], @index2 + @index2], @index3 == "hellohello")
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([optional.of("hello"), {?"hello": @index0}, @index1["hello"], @index2 + @index2], @index3 == "hellohello")
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([optional.of("hello"), {?"hello": @index0}, @index1["hello"], @index2 + @index2], @index3 == "hellohello")
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([optional.of("hello"), {?"hello": @index0}, @index1["hello"], @index2 + @index2], @index3 == "hellohello")
+
+Test case: OPTIONAL_MAP_CHAINED
+Source: {?'key': optional.of('test')}[?'bogus'].or({'key': 'test'}[?'bogus']).orValue({'key': 'test'}['key']) == 'test'
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, {"key": "test"}, {?"key": optional.of("test")}[?"bogus"].or(@r0[?"bogus"]).orValue(@r0["key"])) == "test"
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([{"key": "test"}], {?"key": optional.of("test")}[?"bogus"].or(@index0[?"bogus"]).orValue(@index0["key"]) == "test")
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([{"key": "test"}, @index0["key"], @index0[?"bogus"], optional.of("test"), {?"key": @index3}, @index4[?"bogus"], @index5.or(@index2), @index6.orValue(@index1)], @index7 == "test")
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([{"key": "test"}, @index0["key"], @index0[?"bogus"], {?"key": optional.of("test")}, @index3[?"bogus"].or(@index2), @index4.orValue(@index1)], @index5 == "test")
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([{"key": "test"}, @index0["key"], @index0[?"bogus"], {?"key": optional.of("test")}[?"bogus"], @index3.or(@index2).orValue(@index1)], @index4 == "test")
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([{"key": "test"}, @index0["key"], {?"key": optional.of("test")}[?"bogus"].or(@index0[?"bogus"]), @index2.orValue(@index1)], @index3 == "test")
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([{"key": "test"}, {?"key": optional.of("test")}[?"bogus"].or(@index0[?"bogus"]).orValue(@index0["key"])], @index1 == "test")
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([{"key": "test"}, {?"key": optional.of("test")}[?"bogus"].or(@index0[?"bogus"]).orValue(@index0["key"])], @index1 == "test")
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([{"key": "test"}, {?"key": optional.of("test")}[?"bogus"].or(@index0[?"bogus"]).orValue(@index0["key"])], @index1 == "test")
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([{"key": "test"}, {?"key": optional.of("test")}[?"bogus"].or(@index0[?"bogus"]).orValue(@index0["key"])], @index1 == "test")
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([{"key": "test"}, {?"key": optional.of("test")}[?"bogus"].or(@index0[?"bogus"]).orValue(@index0["key"])], @index1 == "test")
+
+Test case: OPTIONAL_MESSAGE
+Source: TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}.single_int32 + TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}.single_int64 == 5
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}, @r0.single_int32 + @r0.single_int64) == 5
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([optional.ofNonZeroValue(1), optional.of(4), TestAllTypes{?single_int64: @index0, ?single_int32: @index1}, @index2.single_int64, @index2.single_int32, @index4 + @index3], @index5 == 5)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([optional.ofNonZeroValue(1), optional.of(4), TestAllTypes{?single_int64: @index0, ?single_int32: @index1}, @index2.single_int32 + @index2.single_int64], @index3 == 5)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([optional.ofNonZeroValue(1), optional.of(4), TestAllTypes{?single_int64: @index0, ?single_int32: @index1}, @index2.single_int32 + @index2.single_int64], @index3 == 5)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([optional.ofNonZeroValue(1), optional.of(4), TestAllTypes{?single_int64: @index0, ?single_int32: @index1}, @index2.single_int32 + @index2.single_int64], @index3 == 5)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([optional.ofNonZeroValue(1), optional.of(4), TestAllTypes{?single_int64: @index0, ?single_int32: @index1}, @index2.single_int32 + @index2.single_int64], @index3 == 5)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([optional.ofNonZeroValue(1), optional.of(4), TestAllTypes{?single_int64: @index0, ?single_int32: @index1}, @index2.single_int32 + @index2.single_int64], @index3 == 5)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([optional.ofNonZeroValue(1), optional.of(4), TestAllTypes{?single_int64: @index0, ?single_int32: @index1}, @index2.single_int32 + @index2.single_int64], @index3 == 5)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([optional.ofNonZeroValue(1), optional.of(4), TestAllTypes{?single_int64: @index0, ?single_int32: @index1}, @index2.single_int32 + @index2.single_int64], @index3 == 5)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([optional.ofNonZeroValue(1), optional.of(4), TestAllTypes{?single_int64: @index0, ?single_int32: @index1}, @index2.single_int32 + @index2.single_int64], @index3 == 5)
+
+Test case: CALL
+Source: ('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('h' + 'e' + 'l' + 'l' + 'o')
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, "h" + "e" + "l" + "l" + "o", (@r0 + " world").matches(@r0))
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block(["h" + "e" + "l" + "l" + "o"], (@index0 + " world").matches(@index0))
+[BLOCK_RECURSION_DEPTH_1]: cel.@block(["h" + "e", @index0 + "l", @index1 + "l", @index2 + "o", @index3 + " world"], @index4.matches(@index3))
+[BLOCK_RECURSION_DEPTH_2]: cel.@block(["h" + "e", @index0 + "l", @index1 + "l", @index2 + "o", @index3 + " world"], @index4.matches(@index3))
+[BLOCK_RECURSION_DEPTH_3]: cel.@block(["h" + "e", @index0 + "l", @index1 + "l", @index2 + "o", @index3 + " world"], @index4.matches(@index3))
+[BLOCK_RECURSION_DEPTH_4]: cel.@block(["h" + "e", @index0 + "l", @index1 + "l", @index2 + "o", @index3 + " world"], @index4.matches(@index3))
+[BLOCK_RECURSION_DEPTH_5]: cel.@block(["h" + "e", @index0 + "l", @index1 + "l", @index2 + "o", @index3 + " world"], @index4.matches(@index3))
+[BLOCK_RECURSION_DEPTH_6]: cel.@block(["h" + "e", @index0 + "l", @index1 + "l", @index2 + "o", @index3 + " world"], @index4.matches(@index3))
+[BLOCK_RECURSION_DEPTH_7]: cel.@block(["h" + "e", @index0 + "l", @index1 + "l", @index2 + "o", @index3 + " world"], @index4.matches(@index3))
+[BLOCK_RECURSION_DEPTH_8]: cel.@block(["h" + "e", @index0 + "l", @index1 + "l", @index2 + "o", @index3 + " world"], @index4.matches(@index3))
+[BLOCK_RECURSION_DEPTH_9]: cel.@block(["h" + "e", @index0 + "l", @index1 + "l", @index2 + "o", @index3 + " world"], @index4.matches(@index3))
+
+Test case: CALL_ARGUMENT_NESTED_NO_COMMON_SUBEXPR
+Source: 'hello world'.matches('h' + 'e' + 'l' + 'l' + 'o')
+=====>
+Result: true
+[CASCADED_BINDS]: "hello world".matches("h" + "e" + "l" + "l" + "o")
+[BLOCK_COMMON_SUBEXPR_ONLY]: "hello world".matches("h" + "e" + "l" + "l" + "o")
+[BLOCK_RECURSION_DEPTH_1]: cel.@block(["h" + "e", @index0 + "l", @index1 + "l", @index2 + "o"], "hello world".matches(@index3))
+[BLOCK_RECURSION_DEPTH_2]: cel.@block(["h" + "e" + "l", @index0 + "l" + "o"], "hello world".matches(@index1))
+[BLOCK_RECURSION_DEPTH_3]: cel.@block(["h" + "e" + "l" + "l", @index0 + "o"], "hello world".matches(@index1))
+[BLOCK_RECURSION_DEPTH_4]: cel.@block(["h" + "e" + "l" + "l" + "o"], "hello world".matches(@index0))
+[BLOCK_RECURSION_DEPTH_5]: cel.@block(["h" + "e" + "l" + "l" + "o"], "hello world".matches(@index0))
+[BLOCK_RECURSION_DEPTH_6]: cel.@block(["h" + "e" + "l" + "l" + "o"], "hello world".matches(@index0))
+[BLOCK_RECURSION_DEPTH_7]: cel.@block(["h" + "e" + "l" + "l" + "o"], "hello world".matches(@index0))
+[BLOCK_RECURSION_DEPTH_8]: cel.@block(["h" + "e" + "l" + "l" + "o"], "hello world".matches(@index0))
+[BLOCK_RECURSION_DEPTH_9]: cel.@block(["h" + "e" + "l" + "l" + "o"], "hello world".matches(@index0))
+
+Test case: CALL_TARGET_NESTED_NO_COMMON_SUBEXPR
+Source: ('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('hello')
+=====>
+Result: true
+[CASCADED_BINDS]: ("h" + "e" + "l" + "l" + "o" + " world").matches("hello")
+[BLOCK_COMMON_SUBEXPR_ONLY]: ("h" + "e" + "l" + "l" + "o" + " world").matches("hello")
+[BLOCK_RECURSION_DEPTH_1]: cel.@block(["h" + "e", @index0 + "l", @index1 + "l", @index2 + "o", @index3 + " world"], @index4.matches("hello"))
+[BLOCK_RECURSION_DEPTH_2]: cel.@block(["h" + "e" + "l", @index0 + "l" + "o", @index1 + " world"], @index2.matches("hello"))
+[BLOCK_RECURSION_DEPTH_3]: cel.@block(["h" + "e" + "l" + "l", @index0 + "o" + " world"], @index1.matches("hello"))
+[BLOCK_RECURSION_DEPTH_4]: cel.@block(["h" + "e" + "l" + "l" + "o", @index0 + " world"], @index1.matches("hello"))
+[BLOCK_RECURSION_DEPTH_5]: cel.@block(["h" + "e" + "l" + "l" + "o" + " world"], @index0.matches("hello"))
+[BLOCK_RECURSION_DEPTH_6]: cel.@block(["h" + "e" + "l" + "l" + "o" + " world"], @index0.matches("hello"))
+[BLOCK_RECURSION_DEPTH_7]: cel.@block(["h" + "e" + "l" + "l" + "o" + " world"], @index0.matches("hello"))
+[BLOCK_RECURSION_DEPTH_8]: cel.@block(["h" + "e" + "l" + "l" + "o" + " world"], @index0.matches("hello"))
+[BLOCK_RECURSION_DEPTH_9]: cel.@block(["h" + "e" + "l" + "l" + "o" + " world"], @index0.matches("hello"))
+
+Test case: CALL_BOTH_ARGUMENT_TARGET_NESTED_NO_COMMON_SUBEXPR
+Source: ('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('w' + 'o' + 'r' + 'l' + 'd')
+=====>
+Result: true
+[CASCADED_BINDS]: ("h" + "e" + "l" + "l" + "o" + " world").matches("w" + "o" + "r" + "l" + "d")
+[BLOCK_COMMON_SUBEXPR_ONLY]: ("h" + "e" + "l" + "l" + "o" + " world").matches("w" + "o" + "r" + "l" + "d")
+[BLOCK_RECURSION_DEPTH_1]: cel.@block(["w" + "o", @index0 + "r", @index1 + "l", @index2 + "d", "h" + "e", @index4 + "l", @index5 + "l", @index6 + "o", @index7 + " world"], @index8.matches(@index3))
+[BLOCK_RECURSION_DEPTH_2]: cel.@block(["w" + "o" + "r", @index0 + "l" + "d", "h" + "e" + "l", @index2 + "l" + "o", @index3 + " world"], @index4.matches(@index1))
+[BLOCK_RECURSION_DEPTH_3]: cel.@block(["w" + "o" + "r" + "l", @index0 + "d", "h" + "e" + "l" + "l", @index2 + "o" + " world"], @index3.matches(@index1))
+[BLOCK_RECURSION_DEPTH_4]: cel.@block(["w" + "o" + "r" + "l" + "d", "h" + "e" + "l" + "l" + "o", @index1 + " world"], @index2.matches(@index0))
+[BLOCK_RECURSION_DEPTH_5]: cel.@block(["w" + "o" + "r" + "l" + "d", "h" + "e" + "l" + "l" + "o" + " world"], @index1.matches(@index0))
+[BLOCK_RECURSION_DEPTH_6]: cel.@block(["w" + "o" + "r" + "l" + "d", "h" + "e" + "l" + "l" + "o" + " world"], @index1.matches(@index0))
+[BLOCK_RECURSION_DEPTH_7]: cel.@block(["w" + "o" + "r" + "l" + "d", "h" + "e" + "l" + "l" + "o" + " world"], @index1.matches(@index0))
+[BLOCK_RECURSION_DEPTH_8]: cel.@block(["w" + "o" + "r" + "l" + "d", "h" + "e" + "l" + "l" + "o" + " world"], @index1.matches(@index0))
+[BLOCK_RECURSION_DEPTH_9]: cel.@block(["w" + "o" + "r" + "l" + "d", "h" + "e" + "l" + "l" + "o" + " world"], @index1.matches(@index0))
