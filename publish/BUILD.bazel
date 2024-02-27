@@ -72,6 +72,9 @@ pom_file(
 
 java_export(
     name = "cel",
+    deploy_env = [
+        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
+    ],
     maven_coordinates = "dev.cel:cel:%s" % CEL_VERSION,
     pom_template = ":cel_pom",
     runtime_deps = ALL_TARGETS,
@@ -91,6 +94,9 @@ pom_file(
 
 java_export(
     name = "cel_compiler",
+    deploy_env = [
+        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
+    ],
     maven_coordinates = "dev.cel:compiler:%s" % CEL_VERSION,
     pom_template = ":cel_compiler_pom",
     runtime_deps = COMPILER_TARGETS,
@@ -110,6 +116,9 @@ pom_file(
 
 java_export(
     name = "cel_runtime",
+    deploy_env = [
+        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
+    ],
     maven_coordinates = "dev.cel:runtime:%s" % CEL_VERSION,
     pom_template = ":cel_runtime_pom",
     runtime_deps = RUNTIME_TARGETS,
@@ -129,6 +138,9 @@ pom_file(
 
 java_export(
     name = "cel_extensions",
+    deploy_env = [
+        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
+    ],
     maven_coordinates = "dev.cel:extensions:%s" % CEL_VERSION,
     pom_template = ":cel_extensions_pom",
     runtime_deps = EXTENSION_TARGETS,
@@ -148,6 +160,9 @@ pom_file(
 
 java_export(
     name = "cel_validators",
+    deploy_env = [
+        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
+    ],
     maven_coordinates = "dev.cel:validators:%s" % CEL_VERSION,
     pom_template = ":cel_validators_pom",
     runtime_deps = VALIDATOR_TARGETS,
@@ -167,6 +182,9 @@ pom_file(
 
 java_export(
     name = "cel_optimizers",
+    deploy_env = [
+        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
+    ],
     maven_coordinates = "dev.cel:optimizers:%s" % CEL_VERSION,
     pom_template = ":cel_optimizers_pom",
     runtime_deps = OPTIMIZER_TARGETS,
@@ -186,6 +204,9 @@ pom_file(
 
 java_export(
     name = "cel_v1alpha1",
+    deploy_env = [
+        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
+    ],
     maven_coordinates = "dev.cel:v1alpha1:%s" % CEL_VERSION,
     pom_template = ":cel_v1alpha1_pom",
     runtime_deps = V1ALPHA1_UTILITY_TARGETS,
