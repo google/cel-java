@@ -3892,3 +3892,218 @@ CALL [12] {
     }
   }
 }
+Test case: CUSTOM_FUNCTION_INELIMINABLE
+Source: non_pure_custom_func(msg.oneof_type.payload.single_int64) + non_pure_custom_func(msg.oneof_type.payload.single_int32) + non_pure_custom_func(msg.oneof_type.payload.single_int64) + non_pure_custom_func(msg.single_int64)
+=====>
+CALL [1] {
+  function: _+_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        SELECT [4] {
+          SELECT [5] {
+            IDENT [6] {
+              name: msg
+            }.oneof_type
+          }.payload
+        }
+      }
+      loop_condition: {
+        CONSTANT [7] { value: false }
+      }
+      loop_step: {
+        IDENT [8] {
+          name: @r0
+        }
+      }
+      result: {
+        COMPREHENSION [9] {
+          iter_var: #unused
+          iter_range: {
+            CREATE_LIST [10] {
+              elements: {
+              }
+            }
+          }
+          accu_var: @r1
+          accu_init: {
+            SELECT [11] {
+              IDENT [12] {
+                name: @r0
+              }.single_int64
+            }
+          }
+          loop_condition: {
+            CONSTANT [13] { value: false }
+          }
+          loop_step: {
+            IDENT [14] {
+              name: @r1
+            }
+          }
+          result: {
+            CALL [15] {
+              function: _+_
+              args: {
+                CALL [16] {
+                  function: _+_
+                  args: {
+                    CALL [17] {
+                      function: non_pure_custom_func
+                      args: {
+                        IDENT [18] {
+                          name: @r1
+                        }
+                      }
+                    }
+                    CALL [19] {
+                      function: non_pure_custom_func
+                      args: {
+                        SELECT [20] {
+                          IDENT [21] {
+                            name: @r0
+                          }.single_int32
+                        }
+                      }
+                    }
+                  }
+                }
+                CALL [22] {
+                  function: non_pure_custom_func
+                  args: {
+                    IDENT [23] {
+                      name: @r1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    CALL [24] {
+      function: non_pure_custom_func
+      args: {
+        SELECT [25] {
+          IDENT [26] {
+            name: msg
+          }.single_int64
+        }
+      }
+    }
+  }
+}
+Test case: CUSTOM_FUNCTION_ELIMINABLE
+Source: pure_custom_func(msg.oneof_type.payload.single_int64) + pure_custom_func(msg.oneof_type.payload.single_int32) + pure_custom_func(msg.oneof_type.payload.single_int64) + pure_custom_func(msg.single_int64)
+=====>
+CALL [1] {
+  function: _+_
+  args: {
+    COMPREHENSION [2] {
+      iter_var: #unused
+      iter_range: {
+        CREATE_LIST [3] {
+          elements: {
+          }
+        }
+      }
+      accu_var: @r0
+      accu_init: {
+        SELECT [4] {
+          SELECT [5] {
+            IDENT [6] {
+              name: msg
+            }.oneof_type
+          }.payload
+        }
+      }
+      loop_condition: {
+        CONSTANT [7] { value: false }
+      }
+      loop_step: {
+        IDENT [8] {
+          name: @r0
+        }
+      }
+      result: {
+        COMPREHENSION [9] {
+          iter_var: #unused
+          iter_range: {
+            CREATE_LIST [10] {
+              elements: {
+              }
+            }
+          }
+          accu_var: @r1
+          accu_init: {
+            CALL [11] {
+              function: pure_custom_func
+              args: {
+                SELECT [12] {
+                  IDENT [13] {
+                    name: @r0
+                  }.single_int64
+                }
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [14] { value: false }
+          }
+          loop_step: {
+            IDENT [15] {
+              name: @r1
+            }
+          }
+          result: {
+            CALL [16] {
+              function: _+_
+              args: {
+                CALL [17] {
+                  function: _+_
+                  args: {
+                    IDENT [18] {
+                      name: @r1
+                    }
+                    CALL [19] {
+                      function: pure_custom_func
+                      args: {
+                        SELECT [20] {
+                          IDENT [21] {
+                            name: @r0
+                          }.single_int32
+                        }
+                      }
+                    }
+                  }
+                }
+                IDENT [22] {
+                  name: @r1
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    CALL [23] {
+      function: pure_custom_func
+      args: {
+        SELECT [24] {
+          IDENT [25] {
+            name: msg
+          }.single_int64
+        }
+      }
+    }
+  }
+}

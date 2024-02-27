@@ -39,6 +39,7 @@ import dev.cel.optimizer.optimizers.SubexpressionOptimizer.SubexpressionOptimize
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparser;
 import dev.cel.parser.CelUnparserFactory;
+import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.testing.BaselineTestCase;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.NestedTestAllTypes;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
@@ -67,6 +68,13 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
                           .putMapStringString("key", "A")))
           .build();
   private static final Cel CEL = newCelBuilder().build();
+
+  private static final SubexpressionOptimizerOptions OPTIMIZER_COMMON_OPTIONS =
+      SubexpressionOptimizerOptions.newBuilder()
+          .populateMacroCalls(true)
+          .enableCelBlock(true)
+          .addEliminableFunctions("pure_custom_func")
+          .build();
 
   private String overriddenBaseFilePath = "";
 
@@ -287,8 +295,16 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
         .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
         .addFunctionDeclarations(
             CelFunctionDecl.newFunctionDeclaration(
-                "custom_func",
-                newGlobalOverload("custom_func_overload", SimpleType.INT, SimpleType.INT)))
+                "pure_custom_func",
+                newGlobalOverload("pure_custom_func_overload", SimpleType.INT, SimpleType.INT)),
+            CelFunctionDecl.newFunctionDeclaration(
+                "non_pure_custom_func",
+                newGlobalOverload("non_pure_custom_func_overload", SimpleType.INT, SimpleType.INT)))
+        .addFunctionBindings(
+            // This is pure, but for the purposes of excluding it as a CSE candidate, pretend that
+            // it isn't.
+            CelFunctionBinding.from("non_pure_custom_func_overload", Long.class, val -> val),
+            CelFunctionBinding.from("pure_custom_func_overload", Long.class, val -> val))
         .addVar("x", SimpleType.DYN)
         .addVar("opt_x", OptionalType.create(SimpleType.DYN))
         .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
@@ -302,70 +318,26 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
 
   @SuppressWarnings("Immutable") // Test only
   private enum CseTestOptimizer {
-    CASCADED_BINDS(
-        SubexpressionOptimizerOptions.newBuilder()
-            .populateMacroCalls(true)
-            .enableCelBlock(false)
-            .build()),
-    BLOCK_COMMON_SUBEXPR_ONLY(
-        SubexpressionOptimizerOptions.newBuilder()
-            .populateMacroCalls(true)
-            .enableCelBlock(true)
-            .build()),
+    CASCADED_BINDS(OPTIMIZER_COMMON_OPTIONS.toBuilder().enableCelBlock(false).build()),
+    BLOCK_COMMON_SUBEXPR_ONLY(OPTIMIZER_COMMON_OPTIONS),
     BLOCK_RECURSION_DEPTH_1(
-        SubexpressionOptimizerOptions.newBuilder()
-            .populateMacroCalls(true)
-            .enableCelBlock(true)
-            .subexpressionMaxRecursionDepth(1)
-            .build()),
+        OPTIMIZER_COMMON_OPTIONS.toBuilder().subexpressionMaxRecursionDepth(1).build()),
     BLOCK_RECURSION_DEPTH_2(
-        SubexpressionOptimizerOptions.newBuilder()
-            .populateMacroCalls(true)
-            .enableCelBlock(true)
-            .subexpressionMaxRecursionDepth(2)
-            .build()),
+        OPTIMIZER_COMMON_OPTIONS.toBuilder().subexpressionMaxRecursionDepth(2).build()),
     BLOCK_RECURSION_DEPTH_3(
-        SubexpressionOptimizerOptions.newBuilder()
-            .populateMacroCalls(true)
-            .enableCelBlock(true)
-            .subexpressionMaxRecursionDepth(3)
-            .build()),
+        OPTIMIZER_COMMON_OPTIONS.toBuilder().subexpressionMaxRecursionDepth(3).build()),
     BLOCK_RECURSION_DEPTH_4(
-        SubexpressionOptimizerOptions.newBuilder()
-            .populateMacroCalls(true)
-            .enableCelBlock(true)
-            .subexpressionMaxRecursionDepth(4)
-            .build()),
+        OPTIMIZER_COMMON_OPTIONS.toBuilder().subexpressionMaxRecursionDepth(4).build()),
     BLOCK_RECURSION_DEPTH_5(
-        SubexpressionOptimizerOptions.newBuilder()
-            .populateMacroCalls(true)
-            .enableCelBlock(true)
-            .subexpressionMaxRecursionDepth(5)
-            .build()),
+        OPTIMIZER_COMMON_OPTIONS.toBuilder().subexpressionMaxRecursionDepth(5).build()),
     BLOCK_RECURSION_DEPTH_6(
-        SubexpressionOptimizerOptions.newBuilder()
-            .populateMacroCalls(true)
-            .enableCelBlock(true)
-            .subexpressionMaxRecursionDepth(6)
-            .build()),
+        OPTIMIZER_COMMON_OPTIONS.toBuilder().subexpressionMaxRecursionDepth(6).build()),
     BLOCK_RECURSION_DEPTH_7(
-        SubexpressionOptimizerOptions.newBuilder()
-            .populateMacroCalls(true)
-            .enableCelBlock(true)
-            .subexpressionMaxRecursionDepth(7)
-            .build()),
+        OPTIMIZER_COMMON_OPTIONS.toBuilder().subexpressionMaxRecursionDepth(7).build()),
     BLOCK_RECURSION_DEPTH_8(
-        SubexpressionOptimizerOptions.newBuilder()
-            .populateMacroCalls(true)
-            .enableCelBlock(true)
-            .subexpressionMaxRecursionDepth(8)
-            .build()),
+        OPTIMIZER_COMMON_OPTIONS.toBuilder().subexpressionMaxRecursionDepth(8).build()),
     BLOCK_RECURSION_DEPTH_9(
-        SubexpressionOptimizerOptions.newBuilder()
-            .populateMacroCalls(true)
-            .enableCelBlock(true)
-            .subexpressionMaxRecursionDepth(9)
-            .build());
+        OPTIMIZER_COMMON_OPTIONS.toBuilder().subexpressionMaxRecursionDepth(9).build());
 
     private final CelOptimizer celOptimizer;
 
@@ -507,7 +479,16 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
         "('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('hello')"),
     CALL_BOTH_ARGUMENT_TARGET_NESTED_NO_COMMON_SUBEXPR(
         "('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('w' + 'o' + 'r' + 'l' + 'd')"),
-    ;
+    CUSTOM_FUNCTION_INELIMINABLE(
+        "non_pure_custom_func(msg.oneof_type.payload.single_int64) +"
+            + " non_pure_custom_func(msg.oneof_type.payload.single_int32) +"
+            + " non_pure_custom_func(msg.oneof_type.payload.single_int64) +"
+            + " non_pure_custom_func(msg.single_int64)"),
+    CUSTOM_FUNCTION_ELIMINABLE(
+        "pure_custom_func(msg.oneof_type.payload.single_int64) +"
+            + " pure_custom_func(msg.oneof_type.payload.single_int32) +"
+            + " pure_custom_func(msg.oneof_type.payload.single_int64) +"
+            + " pure_custom_func(msg.single_int64)");
     private final String source;
 
     CseTestCase(String source) {

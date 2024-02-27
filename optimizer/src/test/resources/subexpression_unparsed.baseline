@@ -621,3 +621,35 @@ Result: true
 [BLOCK_RECURSION_DEPTH_7]: cel.@block(["w" + "o" + "r" + "l" + "d", "h" + "e" + "l" + "l" + "o" + " world"], @index1.matches(@index0))
 [BLOCK_RECURSION_DEPTH_8]: cel.@block(["w" + "o" + "r" + "l" + "d", "h" + "e" + "l" + "l" + "o" + " world"], @index1.matches(@index0))
 [BLOCK_RECURSION_DEPTH_9]: cel.@block(["w" + "o" + "r" + "l" + "d", "h" + "e" + "l" + "l" + "o" + " world"], @index1.matches(@index0))
+
+Test case: CUSTOM_FUNCTION_INELIMINABLE
+Source: non_pure_custom_func(msg.oneof_type.payload.single_int64) + non_pure_custom_func(msg.oneof_type.payload.single_int32) + non_pure_custom_func(msg.oneof_type.payload.single_int64) + non_pure_custom_func(msg.single_int64)
+=====>
+Result: 31
+[CASCADED_BINDS]: cel.bind(@r0, msg.oneof_type.payload, cel.bind(@r1, @r0.single_int64, non_pure_custom_func(@r1) + non_pure_custom_func(@r0.single_int32) + non_pure_custom_func(@r1))) + non_pure_custom_func(msg.single_int64)
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.oneof_type.payload, @index0.single_int64], non_pure_custom_func(@index1) + non_pure_custom_func(@index0.single_int32) + non_pure_custom_func(@index1) + non_pure_custom_func(msg.single_int64))
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, msg.single_int64, @index1.single_int32], non_pure_custom_func(@index2) + non_pure_custom_func(@index4) + non_pure_custom_func(@index2) + non_pure_custom_func(@index3))
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, msg.single_int64, @index1.single_int32], non_pure_custom_func(@index2) + non_pure_custom_func(@index4) + non_pure_custom_func(@index2) + non_pure_custom_func(@index3))
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, msg.single_int64, @index1.single_int32], non_pure_custom_func(@index2) + non_pure_custom_func(@index4) + non_pure_custom_func(@index2) + non_pure_custom_func(@index3))
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, msg.single_int64, @index1.single_int32], non_pure_custom_func(@index2) + non_pure_custom_func(@index4) + non_pure_custom_func(@index2) + non_pure_custom_func(@index3))
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, msg.single_int64, @index1.single_int32], non_pure_custom_func(@index2) + non_pure_custom_func(@index4) + non_pure_custom_func(@index2) + non_pure_custom_func(@index3))
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, msg.single_int64, @index1.single_int32], non_pure_custom_func(@index2) + non_pure_custom_func(@index4) + non_pure_custom_func(@index2) + non_pure_custom_func(@index3))
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, msg.single_int64, @index1.single_int32], non_pure_custom_func(@index2) + non_pure_custom_func(@index4) + non_pure_custom_func(@index2) + non_pure_custom_func(@index3))
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, msg.single_int64, @index1.single_int32], non_pure_custom_func(@index2) + non_pure_custom_func(@index4) + non_pure_custom_func(@index2) + non_pure_custom_func(@index3))
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, msg.single_int64, @index1.single_int32], non_pure_custom_func(@index2) + non_pure_custom_func(@index4) + non_pure_custom_func(@index2) + non_pure_custom_func(@index3))
+
+Test case: CUSTOM_FUNCTION_ELIMINABLE
+Source: pure_custom_func(msg.oneof_type.payload.single_int64) + pure_custom_func(msg.oneof_type.payload.single_int32) + pure_custom_func(msg.oneof_type.payload.single_int64) + pure_custom_func(msg.single_int64)
+=====>
+Result: 31
+[CASCADED_BINDS]: cel.bind(@r0, msg.oneof_type.payload, cel.bind(@r1, pure_custom_func(@r0.single_int64), @r1 + pure_custom_func(@r0.single_int32) + @r1)) + pure_custom_func(msg.single_int64)
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.oneof_type.payload, pure_custom_func(@index0.single_int64)], @index1 + pure_custom_func(@index0.single_int32) + @index1 + pure_custom_func(msg.single_int64))
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, pure_custom_func(@index2), msg.single_int64, pure_custom_func(@index4), @index1.single_int32, pure_custom_func(@index6), @index3 + @index7, @index8 + @index3], @index9 + @index5)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, pure_custom_func(@index2), pure_custom_func(msg.single_int64), pure_custom_func(@index1.single_int32), @index3 + @index5 + @index3], @index6 + @index4)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, pure_custom_func(@index2), pure_custom_func(msg.single_int64), @index3 + pure_custom_func(@index1.single_int32), @index5 + @index3], @index6 + @index4)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, pure_custom_func(@index2), pure_custom_func(msg.single_int64), @index3 + pure_custom_func(@index1.single_int32) + @index3], @index5 + @index4)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, pure_custom_func(@index2), pure_custom_func(msg.single_int64), @index3 + pure_custom_func(@index1.single_int32) + @index3], @index5 + @index4)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, pure_custom_func(@index2), pure_custom_func(msg.single_int64), @index3 + pure_custom_func(@index1.single_int32) + @index3], @index5 + @index4)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, pure_custom_func(@index2), pure_custom_func(msg.single_int64), @index3 + pure_custom_func(@index1.single_int32) + @index3], @index5 + @index4)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, pure_custom_func(@index2), pure_custom_func(msg.single_int64), @index3 + pure_custom_func(@index1.single_int32) + @index3], @index5 + @index4)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, pure_custom_func(@index2), pure_custom_func(msg.single_int64), @index3 + pure_custom_func(@index1.single_int32) + @index3], @index5 + @index4)

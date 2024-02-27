@@ -2922,3 +2922,148 @@ CALL [12] {
     }
   }
 }
+Test case: CUSTOM_FUNCTION_INELIMINABLE
+Source: non_pure_custom_func(msg.oneof_type.payload.single_int64) + non_pure_custom_func(msg.oneof_type.payload.single_int32) + non_pure_custom_func(msg.oneof_type.payload.single_int64) + non_pure_custom_func(msg.single_int64)
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          SELECT [4] {
+            IDENT [5] {
+              name: msg
+            }.oneof_type
+          }.payload
+        }
+        SELECT [6] {
+          IDENT [7] {
+            name: @index0
+          }.single_int64
+        }
+      }
+    }
+    CALL [8] {
+      function: _+_
+      args: {
+        CALL [9] {
+          function: _+_
+          args: {
+            CALL [10] {
+              function: _+_
+              args: {
+                CALL [11] {
+                  function: non_pure_custom_func
+                  args: {
+                    IDENT [12] {
+                      name: @index1
+                    }
+                  }
+                }
+                CALL [13] {
+                  function: non_pure_custom_func
+                  args: {
+                    SELECT [14] {
+                      IDENT [15] {
+                        name: @index0
+                      }.single_int32
+                    }
+                  }
+                }
+              }
+            }
+            CALL [16] {
+              function: non_pure_custom_func
+              args: {
+                IDENT [17] {
+                  name: @index1
+                }
+              }
+            }
+          }
+        }
+        CALL [18] {
+          function: non_pure_custom_func
+          args: {
+            SELECT [19] {
+              IDENT [20] {
+                name: msg
+              }.single_int64
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Test case: CUSTOM_FUNCTION_ELIMINABLE
+Source: pure_custom_func(msg.oneof_type.payload.single_int64) + pure_custom_func(msg.oneof_type.payload.single_int32) + pure_custom_func(msg.oneof_type.payload.single_int64) + pure_custom_func(msg.single_int64)
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          SELECT [4] {
+            IDENT [5] {
+              name: msg
+            }.oneof_type
+          }.payload
+        }
+        CALL [6] {
+          function: pure_custom_func
+          args: {
+            SELECT [7] {
+              IDENT [8] {
+                name: @index0
+              }.single_int64
+            }
+          }
+        }
+      }
+    }
+    CALL [9] {
+      function: _+_
+      args: {
+        CALL [10] {
+          function: _+_
+          args: {
+            CALL [11] {
+              function: _+_
+              args: {
+                IDENT [12] {
+                  name: @index1
+                }
+                CALL [13] {
+                  function: pure_custom_func
+                  args: {
+                    SELECT [14] {
+                      IDENT [15] {
+                        name: @index0
+                      }.single_int32
+                    }
+                  }
+                }
+              }
+            }
+            IDENT [16] {
+              name: @index1
+            }
+          }
+        }
+        CALL [17] {
+          function: pure_custom_func
+          args: {
+            SELECT [18] {
+              IDENT [19] {
+                name: msg
+              }.single_int64
+            }
+          }
+        }
+      }
+    }
+  }
+}

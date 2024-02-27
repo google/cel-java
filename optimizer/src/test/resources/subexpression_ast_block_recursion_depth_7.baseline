@@ -3285,3 +3285,169 @@ CALL [1] {
     }
   }
 }
+Test case: CUSTOM_FUNCTION_INELIMINABLE
+Source: non_pure_custom_func(msg.oneof_type.payload.single_int64) + non_pure_custom_func(msg.oneof_type.payload.single_int32) + non_pure_custom_func(msg.oneof_type.payload.single_int64) + non_pure_custom_func(msg.single_int64)
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          IDENT [4] {
+            name: msg
+          }.oneof_type
+        }
+        SELECT [5] {
+          IDENT [6] {
+            name: @index0
+          }.payload
+        }
+        SELECT [7] {
+          IDENT [8] {
+            name: @index1
+          }.single_int64
+        }
+        SELECT [9] {
+          IDENT [10] {
+            name: msg
+          }.single_int64
+        }
+        SELECT [11] {
+          IDENT [12] {
+            name: @index1
+          }.single_int32
+        }
+      }
+    }
+    CALL [13] {
+      function: _+_
+      args: {
+        CALL [14] {
+          function: _+_
+          args: {
+            CALL [15] {
+              function: _+_
+              args: {
+                CALL [16] {
+                  function: non_pure_custom_func
+                  args: {
+                    IDENT [17] {
+                      name: @index2
+                    }
+                  }
+                }
+                CALL [18] {
+                  function: non_pure_custom_func
+                  args: {
+                    IDENT [19] {
+                      name: @index4
+                    }
+                  }
+                }
+              }
+            }
+            CALL [20] {
+              function: non_pure_custom_func
+              args: {
+                IDENT [21] {
+                  name: @index2
+                }
+              }
+            }
+          }
+        }
+        CALL [22] {
+          function: non_pure_custom_func
+          args: {
+            IDENT [23] {
+              name: @index3
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Test case: CUSTOM_FUNCTION_ELIMINABLE
+Source: pure_custom_func(msg.oneof_type.payload.single_int64) + pure_custom_func(msg.oneof_type.payload.single_int32) + pure_custom_func(msg.oneof_type.payload.single_int64) + pure_custom_func(msg.single_int64)
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          IDENT [4] {
+            name: msg
+          }.oneof_type
+        }
+        SELECT [5] {
+          IDENT [6] {
+            name: @index0
+          }.payload
+        }
+        SELECT [7] {
+          IDENT [8] {
+            name: @index1
+          }.single_int64
+        }
+        CALL [9] {
+          function: pure_custom_func
+          args: {
+            IDENT [10] {
+              name: @index2
+            }
+          }
+        }
+        CALL [11] {
+          function: pure_custom_func
+          args: {
+            SELECT [12] {
+              IDENT [13] {
+                name: msg
+              }.single_int64
+            }
+          }
+        }
+        CALL [14] {
+          function: _+_
+          args: {
+            CALL [15] {
+              function: _+_
+              args: {
+                IDENT [16] {
+                  name: @index3
+                }
+                CALL [17] {
+                  function: pure_custom_func
+                  args: {
+                    SELECT [18] {
+                      IDENT [19] {
+                        name: @index1
+                      }.single_int32
+                    }
+                  }
+                }
+              }
+            }
+            IDENT [20] {
+              name: @index3
+            }
+          }
+        }
+      }
+    }
+    CALL [21] {
+      function: _+_
+      args: {
+        IDENT [22] {
+          name: @index5
+        }
+        IDENT [23] {
+          name: @index4
+        }
+      }
+    }
+  }
+}

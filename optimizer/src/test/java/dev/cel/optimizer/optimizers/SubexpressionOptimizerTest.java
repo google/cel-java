@@ -41,11 +41,9 @@ import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.types.ListType;
-import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.extensions.CelExtensions;
-import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.optimizer.CelOptimizer;
 import dev.cel.optimizer.CelOptimizerFactory;
@@ -107,18 +105,15 @@ public class SubexpressionOptimizerTest {
   private static CelBuilder newCelBuilder() {
     return CelFactory.standardCelBuilder()
         .addMessageTypes(TestAllTypes.getDescriptor())
-        .setContainer("dev.cel.testing.testdata.proto3")
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .setOptions(
             CelOptions.current().enableTimestampEpoch(true).populateMacroCalls(true).build())
-        .addCompilerLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())
-        .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
+        .addCompilerLibraries(CelExtensions.bindings())
         .addFunctionDeclarations(
             CelFunctionDecl.newFunctionDeclaration(
-                "custom_func",
-                newGlobalOverload("custom_func_overload", SimpleType.INT, SimpleType.INT)))
+                "non_pure_custom_func",
+                newGlobalOverload("non_pure_custom_func_overload", SimpleType.INT, SimpleType.INT)))
         .addVar("x", SimpleType.DYN)
-        .addVar("opt_x", OptionalType.create(SimpleType.DYN))
         .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
   }
 
@@ -156,9 +151,10 @@ public class SubexpressionOptimizerTest {
     // Constants and identifiers within a function
     CONST_WITHIN_FUNCTION("size(\"hello\" + \"hello\" + \"hello\")"),
     IDENT_WITHIN_FUNCTION("string(x + x + x)"),
-    // Non-standard functions are considered non-pure for time being
-    NON_STANDARD_FUNCTION_1("custom_func(1) + custom_func(1)"),
-    NON_STANDARD_FUNCTION_2("1 + custom_func(1) + 1 + custom_func(1)"),
+    // Non-standard functions that have not been explicitly added as a candidate are not
+    // optimized.
+    NON_STANDARD_FUNCTION_1("non_pure_custom_func(1) + non_pure_custom_func(1)"),
+    NON_STANDARD_FUNCTION_2("1 + non_pure_custom_func(1) + 1 + non_pure_custom_func(1)"),
     // Duplicated but nested calls.
     NESTED_FUNCTION("int(timestamp(int(timestamp(1000000000))))"),
     // This cannot be optimized. Extracting the common subexpression would presence test

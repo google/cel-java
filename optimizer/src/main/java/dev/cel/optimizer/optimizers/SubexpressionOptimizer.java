@@ -14,6 +14,7 @@
 
 package dev.cel.optimizer.optimizers;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Arrays.stream;
@@ -25,6 +26,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.bundle.CelBuilder;
 import dev.cel.checker.Standard;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -52,6 +54,7 @@ import dev.cel.optimizer.MutableAst;
 import dev.cel.optimizer.MutableAst.MangledComprehensionAst;
 import dev.cel.parser.Operator;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -84,6 +87,12 @@ import java.util.stream.Stream;
  * </pre>
  */
 public class SubexpressionOptimizer implements CelAstOptimizer {
+  private static final ImmutableSet<String> CSE_DEFAULT_ELIMINABLE_FUNCTIONS =
+      Streams.concat(
+              stream(Operator.values()).map(Operator::getFunction),
+              stream(Standard.Function.values()).map(Standard.Function::getFunction),
+              stream(CelOptionalLibrary.Function.values()).map(Function::getFunction))
+          .collect(toImmutableSet());
   private static final SubexpressionOptimizer INSTANCE =
       new SubexpressionOptimizer(SubexpressionOptimizerOptions.newBuilder().build());
   private static final String BIND_IDENTIFIER_PREFIX = "@r";
@@ -91,18 +100,12 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   private static final String MANGLED_COMPREHENSION_RESULT_PREFIX = "@x";
   private static final String CEL_BLOCK_FUNCTION = "cel.@block";
   private static final String BLOCK_INDEX_PREFIX = "@index";
-  private static final ImmutableSet<String> CSE_ALLOWED_FUNCTIONS =
-      Streams.concat(
-              stream(Operator.values()).map(Operator::getFunction),
-              stream(Standard.Function.values()).map(Standard.Function::getFunction),
-              stream(CelOptionalLibrary.Function.values()).map(Function::getFunction))
-          .collect(toImmutableSet());
-
   private static final Extension CEL_BLOCK_AST_EXTENSION_TAG =
       Extension.create("cel_block", Version.of(1L, 1L), Component.COMPONENT_RUNTIME);
 
   private final SubexpressionOptimizerOptions cseOptions;
   private final MutableAst mutableAst;
+  private final ImmutableSet<String> cseEliminableFunctions;
 
   /**
    * Returns a default instance of common subexpression elimination optimizer with preconfigured
@@ -359,7 +362,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     return CelNavigableAst.fromAst(ast)
         .getRoot()
         .allNodes()
-        .filter(SubexpressionOptimizer::canEliminate)
+        .filter(this::canEliminate)
         .map(CelNavigableExpr::expr)
         .filter(expr -> areSemanticallyEqual(cseCandidate, expr));
   }
@@ -423,7 +426,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         CelNavigableAst.fromAst(ast)
             .getRoot()
             .allNodes(TraversalOrder.POST_ORDER)
-            .filter(SubexpressionOptimizer::canEliminate)
+            .filter(this::canEliminate)
             .filter(node -> node.height() <= recursionLimit)
             .filter(node -> !areSemanticallyEqual(ast.getExpr(), node.expr()))
             .collect(toImmutableList());
@@ -462,18 +465,18 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         CelNavigableAst.fromAst(ast)
             .getRoot()
             .allNodes(TraversalOrder.PRE_ORDER)
-            .filter(SubexpressionOptimizer::canEliminate)
+            .filter(this::canEliminate)
             .collect(toImmutableList());
 
     return findCseCandidateWithCommonSubexpr(allNodes);
   }
 
-  private static boolean canEliminate(CelNavigableExpr navigableExpr) {
+  private boolean canEliminate(CelNavigableExpr navigableExpr) {
     return !navigableExpr.getKind().equals(Kind.CONSTANT)
         && !navigableExpr.getKind().equals(Kind.IDENT)
         && !navigableExpr.expr().identOrDefault().name().startsWith(BIND_IDENTIFIER_PREFIX)
         && !navigableExpr.expr().selectOrDefault().testOnly()
-        && containsAllowedFunctionOnly(navigableExpr)
+        && containsEliminableFunctionOnly(navigableExpr)
         && isWithinInlineableComprehension(navigableExpr);
   }
 
@@ -507,13 +510,13 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     return normalizeForEquality(expr1).equals(normalizeForEquality(expr2));
   }
 
-  private static boolean containsAllowedFunctionOnly(CelNavigableExpr navigableExpr) {
+  private boolean containsEliminableFunctionOnly(CelNavigableExpr navigableExpr) {
     return navigableExpr
         .allNodes()
         .allMatch(
             node -> {
               if (node.getKind().equals(Kind.CALL)) {
-                return CSE_ALLOWED_FUNCTIONS.contains(node.expr().call().function());
+                return cseEliminableFunctions.contains(node.expr().call().function());
               }
 
               return true;
@@ -580,6 +583,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     public abstract int subexpressionMaxRecursionDepth();
 
+    public abstract ImmutableSet<String> eliminableFunctions();
+
     /** Builder for configuring the {@link SubexpressionOptimizerOptions}. */
     @AutoValue.Builder
     public abstract static class Builder {
@@ -630,10 +635,33 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
        */
       public abstract Builder subexpressionMaxRecursionDepth(int value);
 
+      abstract ImmutableSet.Builder<String> eliminableFunctionsBuilder();
+
+      /**
+       * Adds a collection of custom functions that will be a candidate for common subexpression
+       * elimination. By default, standard functions are eliminable.
+       *
+       * <p>Note that the implementation of custom functions must be free of side effects.
+       */
+      @CanIgnoreReturnValue
+      public Builder addEliminableFunctions(Iterable<String> functions) {
+        checkNotNull(functions);
+        this.eliminableFunctionsBuilder().addAll(functions);
+        return this;
+      }
+
+      /** See {@link #addEliminableFunctions(Iterable)}. */
+      @CanIgnoreReturnValue
+      public Builder addEliminableFunctions(String... functions) {
+        return addEliminableFunctions(Arrays.asList(functions));
+      }
+
       public abstract SubexpressionOptimizerOptions build();
 
       Builder() {}
     }
+
+    abstract Builder toBuilder();
 
     /** Returns a new options builder with recommended defaults pre-configured. */
     public static Builder newBuilder() {
@@ -650,5 +678,10 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   private SubexpressionOptimizer(SubexpressionOptimizerOptions cseOptions) {
     this.cseOptions = cseOptions;
     this.mutableAst = MutableAst.newInstance(cseOptions.iterationLimit());
+    this.cseEliminableFunctions =
+        ImmutableSet.<String>builder()
+            .addAll(CSE_DEFAULT_ELIMINABLE_FUNCTIONS)
+            .addAll(cseOptions.eliminableFunctions())
+            .build();
   }
 }
