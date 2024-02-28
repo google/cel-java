@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static dev.cel.common.CelOverloadDecl.newGlobalOverload;
 import static org.junit.Assert.assertThrows;
 
+import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameter;
@@ -479,6 +480,73 @@ public class SubexpressionOptimizerTest {
             () -> compileUsingInternalFunctions("cel.block([1], index)"));
 
     assertThat(e).hasMessageThat().contains("undeclared reference");
+  }
+
+  @Test
+  public void verifyOptimizedAstCorrectness_twoCelBlocks_throws() throws Exception {
+    CelAbstractSyntaxTree ast =
+        compileUsingInternalFunctions("cel.block([1, 2], cel.block([2], 3))");
+
+    VerifyException e =
+        assertThrows(
+            VerifyException.class, () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo("Expected 1 cel.block function to be present but found 2");
+  }
+
+  @Test
+  public void verifyOptimizedAstCorrectness_celBlockNotAtRoot_throws() throws Exception {
+    CelAbstractSyntaxTree ast = compileUsingInternalFunctions("1 + cel.block([1, 2], index0)");
+
+    VerifyException e =
+        assertThrows(
+            VerifyException.class, () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
+    assertThat(e).hasMessageThat().isEqualTo("Expected cel.block to be present at root");
+  }
+
+  @Test
+  public void verifyOptimizedAstCorrectness_blockContainsNoIndexResult_throws() throws Exception {
+    CelAbstractSyntaxTree ast = compileUsingInternalFunctions("cel.block([1, index0], 2)");
+
+    VerifyException e =
+        assertThrows(
+            VerifyException.class, () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo("Expected at least one reference of index in cel.block result");
+  }
+
+  @Test
+  @TestParameters("{source: 'cel.block([], index0)'}")
+  @TestParameters("{source: 'cel.block([1, 2], index2)'}")
+  public void verifyOptimizedAstCorrectness_indexOutOfBounds_throws(String source)
+      throws Exception {
+    CelAbstractSyntaxTree ast = compileUsingInternalFunctions(source);
+
+    VerifyException e =
+        assertThrows(
+            VerifyException.class, () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
+    assertThat(e)
+        .hasMessageThat()
+        .contains("Illegal block index found. The index value must be less than");
+  }
+
+  @Test
+  @TestParameters("{source: 'cel.block([index0], index0)'}")
+  @TestParameters("{source: 'cel.block([1, index1, 2], index2)'}")
+  @TestParameters("{source: 'cel.block([1, 2, index2], index2)'}")
+  @TestParameters("{source: 'cel.block([index2, 1, 2], index2)'}")
+  public void verifyOptimizedAstCorrectness_indexIsNotForwardReferencing_throws(String source)
+      throws Exception {
+    CelAbstractSyntaxTree ast = compileUsingInternalFunctions(source);
+
+    VerifyException e =
+        assertThrows(
+            VerifyException.class, () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
+    assertThat(e)
+        .hasMessageThat()
+        .contains("Illegal block index found. The index value must be less than");
   }
 
   /**

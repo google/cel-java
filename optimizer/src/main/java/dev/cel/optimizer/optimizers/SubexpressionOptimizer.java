@@ -22,6 +22,7 @@ import static java.util.Arrays.stream;
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -39,6 +40,7 @@ import dev.cel.common.CelSource.Extension.Version;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelExpr;
+import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelIdent;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.navigation.CelNavigableAst;
@@ -125,9 +127,14 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
   @Override
   public CelAbstractSyntaxTree optimize(CelNavigableAst navigableAst, CelBuilder celBuilder) {
-    return cseOptions.enableCelBlock()
-        ? optimizeUsingCelBlock(navigableAst, celBuilder)
-        : optimizeUsingCelBind(navigableAst);
+    CelAbstractSyntaxTree ast =
+        cseOptions.enableCelBlock()
+            ? optimizeUsingCelBlock(navigableAst, celBuilder)
+            : optimizeUsingCelBind(navigableAst);
+
+    verifyOptimizedAstCorrectness(ast);
+
+    return ast;
   }
 
   private CelAbstractSyntaxTree optimizeUsingCelBlock(
@@ -237,6 +244,73 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     celBuilder.setResultType(resultType);
 
     return tagAstExtension(astToModify);
+  }
+
+  /**
+   * Asserts that the optimized AST has no correctness issues.
+   *
+   * @throws com.google.common.base.VerifyException if the optimized AST is malformed.
+   */
+  @VisibleForTesting
+  static void verifyOptimizedAstCorrectness(CelAbstractSyntaxTree ast) {
+    CelNavigableAst celNavigableAst = CelNavigableAst.fromAst(ast);
+
+    ImmutableList<CelExpr> allCelBlocks =
+        celNavigableAst
+            .getRoot()
+            .allNodes()
+            .map(CelNavigableExpr::expr)
+            .filter(expr -> expr.callOrDefault().function().equals(CEL_BLOCK_FUNCTION))
+            .collect(toImmutableList());
+    if (allCelBlocks.isEmpty()) {
+      return;
+    }
+
+    CelExpr celBlockExpr = allCelBlocks.get(0);
+    Verify.verify(
+        allCelBlocks.size() == 1,
+        "Expected 1 cel.block function to be present but found %s",
+        allCelBlocks.size());
+    Verify.verify(
+        celNavigableAst.getRoot().expr().equals(celBlockExpr),
+        "Expected cel.block to be present at root");
+
+    // Assert correctness on block indices used in subexpressions
+    CelCall celBlockCall = celBlockExpr.call();
+    ImmutableList<CelExpr> subexprs = celBlockCall.args().get(0).createList().elements();
+    for (int i = 0; i < subexprs.size(); i++) {
+      verifyBlockIndex(subexprs.get(i), i);
+    }
+
+    // Assert correctness on block indices used in block result
+    CelExpr blockResult = celBlockCall.args().get(1);
+    verifyBlockIndex(blockResult, subexprs.size());
+    boolean resultHasAtLeastOneBlockIndex =
+        CelNavigableExpr.fromExpr(blockResult)
+            .allNodes()
+            .map(CelNavigableExpr::expr)
+            .anyMatch(expr -> expr.identOrDefault().name().startsWith(BLOCK_INDEX_PREFIX));
+    Verify.verify(
+        resultHasAtLeastOneBlockIndex,
+        "Expected at least one reference of index in cel.block result");
+  }
+
+  private static void verifyBlockIndex(CelExpr celExpr, int maxIndexValue) {
+    boolean areAllIndicesValid =
+        CelNavigableExpr.fromExpr(celExpr)
+            .allNodes()
+            .map(CelNavigableExpr::expr)
+            .filter(expr -> expr.identOrDefault().name().startsWith(BLOCK_INDEX_PREFIX))
+            .map(CelExpr::ident)
+            .allMatch(
+                blockIdent ->
+                    Integer.parseInt(blockIdent.name().substring(BLOCK_INDEX_PREFIX.length()))
+                        < maxIndexValue);
+    Verify.verify(
+        areAllIndicesValid,
+        "Illegal block index found. The index value must be less than %s. Expr: %s",
+        maxIndexValue,
+        celExpr);
   }
 
   private static CelAbstractSyntaxTree tagAstExtension(CelAbstractSyntaxTree ast) {
