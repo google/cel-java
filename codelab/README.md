@@ -20,7 +20,7 @@ Some key areas covered are:
 ### Prerequisites
 This codelab builds upon a basic understanding of Protocol Buffers and Java.
 
-If you're not familiar with Protocol Buffers, the first exercise will give you a sense of how CEL works, but because the more advanced examples use Protocol Buffers as the input into CEL, they may be harder to understand. Consider working through one of these tutorials, first.
+If you're not familiar with Protocol Buffers, the first exercise will give you a sense of how CEL works, but because the more advanced examples use Protocol Buffers as the input into CEL, they may be harder to understand. Consider working through one of these [tutorials](https://developers.google.com/protocol-buffers/docs/tutorials?authuser=0), first.
 
 Note that Protocol Buffers are not required to use CEL, but they are used extensively in this codelab.
 
