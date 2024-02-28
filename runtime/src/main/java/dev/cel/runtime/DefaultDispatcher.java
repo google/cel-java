@@ -43,44 +43,44 @@ import java.util.Map;
 @ThreadSafe
 @Internal
 public final class DefaultDispatcher implements Dispatcher, Registrar {
-  @SuppressWarnings("unused")
-  private final CelOptions celOptions;
-
   /**
-   * @deprecated use {@link DefaultDispatcher(CelOptions)} instead.
+   * Creates a new dispatcher with all standard functions.
+   *
+   * @deprecated Migrate to fluent APIs. See {@link CelRuntimeFactory}.
    */
   @Deprecated
-  public DefaultDispatcher(ImmutableSet<ExprFeatures> features) {
-    this(CelOptions.fromExprFeatures(features));
-  }
-
-  public DefaultDispatcher(CelOptions celOptions) {
-    this.celOptions = celOptions;
+  public static DefaultDispatcher create() {
+    return create(CelOptions.LEGACY);
   }
 
   /**
    * Creates a new dispatcher with all standard functions.
    *
-   * @deprecated use {@link #create(CelOptions)} instead.
+   * @deprecated Migrate to fluent APIs. See {@link CelRuntimeFactory}.
    */
   @Deprecated
   public static DefaultDispatcher create(ImmutableSet<ExprFeatures> features) {
     return create(CelOptions.fromExprFeatures(features));
   }
 
+  /**
+   * Creates a new dispatcher with all standard functions.
+   *
+   * @deprecated Migrate to fluent APIs. See {@link CelRuntimeFactory}.
+   */
+  @Deprecated
   public static DefaultDispatcher create(CelOptions celOptions) {
     DynamicProto dynamicProto = DynamicProto.create(DefaultMessageFactory.INSTANCE);
-    return create(celOptions, dynamicProto);
+    return create(celOptions, dynamicProto, true);
   }
 
-  public static DefaultDispatcher create(CelOptions celOptions, DynamicProto dynamicProto) {
-    DefaultDispatcher dispatcher = new DefaultDispatcher(celOptions);
-    StandardFunctions.add(dispatcher, dynamicProto, celOptions);
+  public static DefaultDispatcher create(
+      CelOptions celOptions, DynamicProto dynamicProto, boolean enableStandardEnvironment) {
+    DefaultDispatcher dispatcher = new DefaultDispatcher();
+    if (enableStandardEnvironment) {
+      StandardFunctions.add(dispatcher, dynamicProto, celOptions);
+    }
     return dispatcher;
-  }
-
-  public static DefaultDispatcher create() {
-    return create(CelOptions.LEGACY);
   }
 
   /** Internal representation of an overload. */
@@ -237,4 +237,6 @@ public final class DefaultDispatcher implements Dispatcher, Registrar {
       return this;
     }
   }
+
+  private DefaultDispatcher() {}
 }

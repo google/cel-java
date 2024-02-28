@@ -227,10 +227,8 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
       DynamicProto dynamicProto = DynamicProto.create(runtimeTypeFactory);
 
-      DefaultDispatcher dispatcher = DefaultDispatcher.create(options, dynamicProto);
-      if (standardEnvironmentEnabled) {
-        StandardFunctions.add(dispatcher, dynamicProto, options);
-      }
+      DefaultDispatcher dispatcher =
+          DefaultDispatcher.create(options, dynamicProto, standardEnvironmentEnabled);
 
       ImmutableMap<String, CelFunctionBinding> functionBindingMap =
           ImmutableMap.copyOf(functionBindings);
@@ -306,6 +304,8 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       this.options = builder.options;
       this.extensionRegistry = builder.extensionRegistry;
       this.customTypeFactory = builder.customTypeFactory;
+      this.standardEnvironmentEnabled = builder.standardEnvironmentEnabled;
+      this.celValueProvider = builder.celValueProvider;
       // The following needs to be deep copied as they are collection builders
       this.fileTypes = deepCopy(builder.fileTypes);
       this.celRuntimeLibraries = deepCopy(builder.celRuntimeLibraries);

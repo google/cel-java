@@ -15,6 +15,7 @@
 package dev.cel.runtime;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import com.google.api.expr.v1alpha1.Constant;
 import com.google.api.expr.v1alpha1.Expr;
@@ -397,5 +398,20 @@ public class CelRuntimeTest {
     String result = (String) cel.createProgram(ast).trace(resolver, listener);
 
     assertThat(result).isEqualTo("hello");
+  }
+
+  @Test
+  public void standardEnvironmentDisabledForRuntime_throws() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder().setStandardEnvironmentEnabled(true).build();
+    CelRuntime celRuntime =
+        CelRuntimeFactory.standardCelRuntimeBuilder().setStandardEnvironmentEnabled(false).build();
+    CelAbstractSyntaxTree ast = celCompiler.compile("size('hello')").getAst();
+
+    CelEvaluationException e =
+        assertThrows(CelEvaluationException.class, () -> celRuntime.createProgram(ast).eval());
+    assertThat(e)
+        .hasMessageThat()
+        .contains("Unknown overload id 'size_string' for function 'size'");
   }
 }
