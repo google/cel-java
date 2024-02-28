@@ -487,11 +487,8 @@ public final class ExprChecker {
   @CheckReturnValue
   private CelExpr visit(CelExpr expr, CelExpr.CelComprehension compre) {
     CelExpr visitedRange = visit(compre.iterRange());
-    if (namespacedDeclarations && !visitedRange.equals(compre.iterRange())) {
-      expr = replaceComprehensionRangeSubtree(expr, visitedRange);
-    }
-    CelExpr init = visit(compre.accuInit());
-    CelType accuType = env.getType(init);
+    CelExpr visitedInit = visit(compre.accuInit());
+    CelType accuType = env.getType(visitedInit);
     CelType rangeType = inferenceContext.specialize(env.getType(visitedRange));
     CelType varType;
     switch (rangeType.kind()) {
@@ -533,17 +530,25 @@ public final class ExprChecker {
     CelExpr condition = visit(compre.loopCondition());
     assertType(condition, SimpleType.BOOL);
     CelExpr visitedStep = visit(compre.loopStep());
-    if (namespacedDeclarations && !visitedStep.equals(compre.loopStep())) {
-      expr = replaceComprehensionStepSubtree(expr, visitedStep);
-    }
     assertType(visitedStep, accuType);
     // Forget iteration variable, as result expression must only depend on accu.
     env.exitScope();
     CelExpr visitedResult = visit(compre.result());
-    if (namespacedDeclarations && !visitedResult.equals(compre.result())) {
-      expr = replaceComprehensionResultSubtree(expr, visitedResult);
-    }
     env.exitScope();
+    if (namespacedDeclarations) {
+      if (!visitedRange.equals(compre.iterRange())) {
+        expr = replaceComprehensionRangeSubtree(expr, visitedRange);
+      }
+      if (!visitedInit.equals(compre.accuInit())) {
+        expr = replaceComprehensionAccuInitSubtree(expr, visitedInit);
+      }
+      if (!visitedStep.equals(compre.loopStep())) {
+        expr = replaceComprehensionStepSubtree(expr, visitedStep);
+      }
+      if (!visitedResult.equals(compre.result())) {
+        expr = replaceComprehensionResultSubtree(expr, visitedResult);
+      }
+    }
     env.setType(expr, inferenceContext.specialize(env.getType(visitedResult)));
     return expr;
   }
@@ -870,6 +875,12 @@ public final class ExprChecker {
         createMap.entries().get(index).toBuilder().setValue(newValue).build();
     createMap = createMap.toBuilder().setEntry(index, newEntry).build();
     return expr.toBuilder().setCreateMap(createMap).build();
+  }
+
+  private static CelExpr replaceComprehensionAccuInitSubtree(CelExpr expr, CelExpr newAccuInit) {
+    CelExpr.CelComprehension newComprehension =
+        expr.comprehension().toBuilder().setAccuInit(newAccuInit).build();
+    return expr.toBuilder().setComprehension(newComprehension).build();
   }
 
   private static CelExpr replaceComprehensionRangeSubtree(CelExpr expr, CelExpr newRange) {

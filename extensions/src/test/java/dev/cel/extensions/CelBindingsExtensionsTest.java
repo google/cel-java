@@ -46,10 +46,13 @@ public final class CelBindingsExtensionsTest {
   private static final CelCompiler COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-          .addLibraries(CelExtensions.bindings())
+          .addLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())
           .build();
 
-  private static final CelRuntime RUNTIME = CelRuntimeFactory.standardCelRuntimeBuilder().build();
+  private static final CelRuntime RUNTIME =
+      CelRuntimeFactory.standardCelRuntimeBuilder()
+          .addLibraries(CelOptionalLibrary.INSTANCE)
+          .build();
 
   private enum BindingTestCase {
     BOOL_LITERAL("cel.bind(t, true, t)"),
@@ -63,7 +66,8 @@ public final class CelBindingsExtensionsTest {
     BIND_WITH_EXISTS_TRUE(
         "cel.bind(valid_elems, [1, 2, 3], [3, 4, 5].exists(e, e in valid_elems))"),
     BIND_WITH_EXISTS_FALSE("cel.bind(valid_elems, [1, 2, 3], ![4, 5].exists(e, e in valid_elems))"),
-    BIND_WITH_MAP("[1,2,3].map(x, cel.bind(y, x + x, [y, y])) == [[2, 2], [4, 4], [6, 6]]");
+    BIND_WITH_MAP("[1,2,3].map(x, cel.bind(y, x + x, [y, y])) == [[2, 2], [4, 4], [6, 6]]"),
+    BIND_OPTIONAL_LIST("cel.bind(r0, optional.none(), [?r0, ?r0]) == []");
 
     private final String source;
 
