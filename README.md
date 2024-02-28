@@ -55,7 +55,7 @@ CEL-Java is available in Maven Central Repository. [Download the JARs here][8] o
 <dependency>
   <groupId>dev.cel</groupId>
   <artifactId>cel</artifactId>
-  <version>0.3.0</version>
+  <version>0.3.1</version>
 </dependency>
 ```
 
