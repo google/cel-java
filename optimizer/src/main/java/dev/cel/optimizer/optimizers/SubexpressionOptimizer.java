@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelBuilder;
 import dev.cel.checker.Standard;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -126,22 +127,18 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   }
 
   @Override
-  public CelAbstractSyntaxTree optimize(CelNavigableAst navigableAst, CelBuilder celBuilder) {
-    CelAbstractSyntaxTree ast =
+  public OptimizationResult optimize(CelNavigableAst navigableAst, Cel cel) {
+    OptimizationResult result =
         cseOptions.enableCelBlock()
-            ? optimizeUsingCelBlock(navigableAst, celBuilder)
+            ? optimizeUsingCelBlock(navigableAst, cel)
             : optimizeUsingCelBind(navigableAst);
 
-    verifyOptimizedAstCorrectness(ast);
+    verifyOptimizedAstCorrectness(result.optimizedAst());
 
-    return ast;
+    return result;
   }
 
-  private CelAbstractSyntaxTree optimizeUsingCelBlock(
-      CelNavigableAst navigableAst, CelBuilder celBuilder) {
-    // Retain the original expected result type, so that it can be reset in celBuilder at the end of
-    // the optimization pass.
-    CelType resultType = navigableAst.getAst().getResultType();
+  private OptimizationResult optimizeUsingCelBlock(CelNavigableAst navigableAst, Cel cel) {
     MangledComprehensionAst mangledComprehensionAst =
         mutableAst.mangleComprehensionIdentifierNames(
             navigableAst.getAst(),
@@ -209,8 +206,10 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     if (iterCount == 0) {
       // No modification has been made.
-      return astToModify;
+      return OptimizationResult.create(astToModify);
     }
+
+    ImmutableList.Builder<CelVarDecl> newVarDecls = ImmutableList.builder();
 
     // Add all mangled comprehension identifiers to the environment, so that the subexpressions can
     // retain context to them.
@@ -221,29 +220,31 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
               type.iterVarType()
                   .ifPresent(
                       iterVarType ->
-                          celBuilder.addVarDeclarations(
+                          newVarDecls.add(
                               CelVarDecl.newVarDeclaration(name.iterVarName(), iterVarType)));
               type.resultType()
                   .ifPresent(
                       comprehensionResultType ->
-                          celBuilder.addVarDeclarations(
+                          newVarDecls.add(
                               CelVarDecl.newVarDeclaration(
                                   name.resultName(), comprehensionResultType)));
             });
 
-    // Type-check all sub-expressions then add them as block identifiers to the CEL environment
-    addBlockIdentsToEnv(celBuilder, subexpressions);
+    // Type-check all sub-expressions then create new block index identifiers.
+    newVarDecls.addAll(newBlockIndexVariableDeclarations(cel, newVarDecls.build(), subexpressions));
 
     // Wrap the optimized expression in cel.block
-    celBuilder.addFunctionDeclarations(newCelBlockFunctionDecl(resultType));
     astToModify =
         mutableAst.wrapAstWithNewCelBlock(CEL_BLOCK_FUNCTION, astToModify, subexpressions);
     astToModify = mutableAst.renumberIdsConsecutively(astToModify);
 
-    // Restore the expected result type the environment had prior to optimization.
-    celBuilder.setResultType(resultType);
+    // Tag the AST with cel.block designated as an extension
+    astToModify = tagAstExtension(astToModify);
 
-    return tagAstExtension(astToModify);
+    return OptimizationResult.create(
+        astToModify,
+        newVarDecls.build(),
+        ImmutableList.of(newCelBlockFunctionDecl(navigableAst.getAst().getResultType())));
   }
 
   /**
@@ -322,15 +323,20 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   }
 
   /**
-   * Adds all subexpression as numbered identifiers that acts as an indexer to cel.block
-   * (ex: @index0, @index1..) Each subexpressions are type-checked, then its result type is used as
-   * the new identifiers' types.
+   * Creates a list of numbered identifiers from the subexpressions that act as an indexer to
+   * cel.block (ex: @index0, @index1..). Each subexpressions are type-checked, then its result type
+   * is used as the new identifiers' types.
    */
-  private static void addBlockIdentsToEnv(CelBuilder celBuilder, List<CelExpr> subexpressions) {
+  private static ImmutableList<CelVarDecl> newBlockIndexVariableDeclarations(
+      Cel cel, ImmutableList<CelVarDecl> mangledVarDecls, List<CelExpr> subexpressions) {
     // The resulting type of the subexpressions will likely be different from the
     // entire expression's expected result type.
-    celBuilder.setResultType(SimpleType.DYN);
+    CelBuilder celBuilder = cel.toCelBuilder().setResultType(SimpleType.DYN);
+    // Add the mangled comprehension variables to the environment for type-checking subexpressions
+    // to succeed
+    celBuilder.addVarDeclarations(mangledVarDecls);
 
+    ImmutableList.Builder<CelVarDecl> varDeclBuilder = ImmutableList.builder();
     for (int i = 0; i < subexpressions.size(); i++) {
       CelExpr subexpression = subexpressions.get(i);
 
@@ -343,11 +349,15 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         throw new IllegalStateException("Failed to type-check subexpression", e);
       }
 
-      celBuilder.addVar("@index" + i, subAst.getResultType());
+      CelVarDecl indexVar = CelVarDecl.newVarDeclaration("@index" + i, subAst.getResultType());
+      celBuilder.addVarDeclarations(indexVar);
+      varDeclBuilder.add(indexVar);
     }
+
+    return varDeclBuilder.build();
   }
 
-  private CelAbstractSyntaxTree optimizeUsingCelBind(CelNavigableAst navigableAst) {
+  private OptimizationResult optimizeUsingCelBind(CelNavigableAst navigableAst) {
     CelAbstractSyntaxTree astToModify =
         mutableAst
             .mangleComprehensionIdentifierNames(
@@ -423,12 +433,12 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     if (iterCount == 0) {
       // No modification has been made.
-      return astToModify;
+      return OptimizationResult.create(astToModify);
     }
 
     astToModify = mutableAst.renumberIdsConsecutively(astToModify);
 
-    return astToModify;
+    return OptimizationResult.create(astToModify);
   }
 
   private Stream<CelExpr> getAllCseCandidatesStream(

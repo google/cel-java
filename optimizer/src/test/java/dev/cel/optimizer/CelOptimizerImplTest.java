@@ -23,6 +23,7 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelSource;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.ast.CelExpr;
+import dev.cel.optimizer.CelAstOptimizer.OptimizationResult;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
@@ -41,7 +42,7 @@ public class CelOptimizerImplTest {
             .addAstOptimizers(
                 (navigableAst, cel) ->
                     // no-op
-                    navigableAst.getAst())
+                    OptimizationResult.create(navigableAst.getAst()))
             .build();
 
     assertThat(celOptimizer).isNotNull();
@@ -57,17 +58,17 @@ public class CelOptimizerImplTest {
             .addAstOptimizers(
                 (navigableAst, cel) -> {
                   list.add(1);
-                  return navigableAst.getAst();
+                  return OptimizationResult.create(navigableAst.getAst());
                 })
             .addAstOptimizers(
                 (navigableAst, cel) -> {
                   list.add(2);
-                  return navigableAst.getAst();
+                  return OptimizationResult.create(navigableAst.getAst());
                 })
             .addAstOptimizers(
                 (navigableAst, cel) -> {
                   list.add(3);
-                  return navigableAst.getAst();
+                  return OptimizationResult.create(navigableAst.getAst());
                 })
             .build();
 
@@ -112,8 +113,10 @@ public class CelOptimizerImplTest {
         CelOptimizerImpl.newBuilder(CEL)
             .addAstOptimizers(
                 (navigableAst, cel) ->
-                    CelAbstractSyntaxTree.newParsedAst(
-                        CelExpr.ofIdentExpr(1, "undeclared_ident"), CelSource.newBuilder().build()))
+                    OptimizationResult.create(
+                        CelAbstractSyntaxTree.newParsedAst(
+                            CelExpr.ofIdentExpr(1, "undeclared_ident"),
+                            CelSource.newBuilder().build())))
             .build();
 
     CelOptimizationException e =

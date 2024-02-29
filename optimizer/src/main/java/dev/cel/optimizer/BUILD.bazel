@@ -67,9 +67,12 @@ java_library(
     ],
     deps = [
         ":optimization_exception",
+        "//:auto_value",
         "//bundle:cel",
         "//common",
+        "//common:compiler_common",
         "//common/navigation",
+        "@maven//:com_google_guava_guava",
     ],
 )
 

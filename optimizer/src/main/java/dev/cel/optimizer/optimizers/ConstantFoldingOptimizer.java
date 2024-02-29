@@ -19,7 +19,6 @@ import static com.google.common.collect.MoreCollectors.onlyElement;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import dev.cel.bundle.Cel;
-import dev.cel.bundle.CelBuilder;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.ast.CelConstant;
@@ -77,9 +76,8 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   private final MutableAst mutableAst;
 
   @Override
-  public CelAbstractSyntaxTree optimize(CelNavigableAst navigableAst, CelBuilder celBuilder)
+  public OptimizationResult optimize(CelNavigableAst navigableAst, Cel cel)
       throws CelOptimizationException {
-    Cel cel = celBuilder.build();
     Set<CelExpr> visitedExprs = new HashSet<>();
     int iterCount = 0;
     while (true) {
@@ -120,7 +118,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
     // If the output is a list, map, or struct which contains optional entries, then prune it
     // to make sure that the optionals, if resolved, do not surface in the output literal.
     CelAbstractSyntaxTree newAst = pruneOptionalElements(navigableAst);
-    return mutableAst.renumberIdsConsecutively(newAst);
+    return OptimizationResult.create(mutableAst.renumberIdsConsecutively(newAst));
   }
 
   private static boolean canFold(CelNavigableExpr navigableExpr) {

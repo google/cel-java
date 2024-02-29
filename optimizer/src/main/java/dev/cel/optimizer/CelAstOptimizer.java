@@ -14,14 +14,49 @@
 
 package dev.cel.optimizer;
 
-import dev.cel.bundle.CelBuilder;
+import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
+import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelVarDecl;
 import dev.cel.common.navigation.CelNavigableAst;
 
 /** Public interface for performing a single, custom optimization on an AST. */
 public interface CelAstOptimizer {
 
   /** Optimizes a single AST. */
-  CelAbstractSyntaxTree optimize(CelNavigableAst navigableAst, CelBuilder cel)
+  OptimizationResult optimize(CelNavigableAst navigableAst, Cel cel)
       throws CelOptimizationException;
+
+  /**
+   * Denotes the result of a single optimization pass on an AST.
+   *
+   * <p>The optimizer may optionally populate new variable and function declarations generated as
+   * part of optimizing an AST.
+   */
+  @AutoValue
+  abstract class OptimizationResult {
+    public abstract CelAbstractSyntaxTree optimizedAst();
+
+    public abstract ImmutableList<CelVarDecl> newVarDecls();
+
+    public abstract ImmutableList<CelFunctionDecl> newFunctionDecls();
+
+    /**
+     * Create an optimization result with new declarations. The optimizer must populate these
+     * declarations after an optimization pass if they are required for type-checking to success.
+     */
+    public static OptimizationResult create(
+        CelAbstractSyntaxTree optimizedAst,
+        ImmutableList<CelVarDecl> newVarDecls,
+        ImmutableList<CelFunctionDecl> newFunctionDecls) {
+      return new AutoValue_CelAstOptimizer_OptimizationResult(
+          optimizedAst, newVarDecls, newFunctionDecls);
+    }
+
+    public static OptimizationResult create(CelAbstractSyntaxTree optimizedAst) {
+      return create(optimizedAst, ImmutableList.of(), ImmutableList.of());
+    }
+  }
 }

@@ -18,10 +18,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.bundle.Cel;
-import dev.cel.bundle.CelBuilder;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.navigation.CelNavigableAst;
+import dev.cel.optimizer.CelAstOptimizer.OptimizationResult;
 import java.util.Arrays;
 
 final class CelOptimizerImpl implements CelOptimizer {
@@ -39,13 +39,21 @@ final class CelOptimizerImpl implements CelOptimizer {
       throw new IllegalArgumentException("AST must be type-checked.");
     }
 
+    Cel celOptimizerEnv = cel;
     CelAbstractSyntaxTree optimizedAst = ast;
-    CelBuilder celBuilder = cel.toCelBuilder();
     try {
       for (CelAstOptimizer optimizer : astOptimizers) {
         CelNavigableAst navigableAst = CelNavigableAst.fromAst(optimizedAst);
-        optimizedAst = optimizer.optimize(navigableAst, celBuilder);
-        optimizedAst = celBuilder.build().check(optimizedAst).getAst();
+        OptimizationResult result = optimizer.optimize(navigableAst, celOptimizerEnv);
+        if (!result.newFunctionDecls().isEmpty() || !result.newVarDecls().isEmpty()) {
+          celOptimizerEnv =
+              celOptimizerEnv
+                  .toCelBuilder()
+                  .addVarDeclarations(result.newVarDecls())
+                  .addFunctionDeclarations(result.newFunctionDecls())
+                  .build();
+        }
+        optimizedAst = celOptimizerEnv.check(result.optimizedAst()).getAst();
       }
     } catch (CelValidationException e) {
       throw new CelOptimizationException(
