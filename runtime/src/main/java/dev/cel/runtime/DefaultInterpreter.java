@@ -672,7 +672,7 @@ public final class DefaultInterpreter implements Interpreter {
 
         argChecker.checkArg(evaluatedElement);
         Object value = evaluatedElement.value();
-        if (optionalIndicesSet.contains(i)) {
+        if (optionalIndicesSet.contains(i) && !isUnknownValue(value)) {
           Optional<?> optionalVal = (Optional<?>) value;
           if (!optionalVal.isPresent()) {
             continue;
@@ -712,7 +712,7 @@ public final class DefaultInterpreter implements Interpreter {
         }
 
         Object value = valueResult.value();
-        if (entry.optionalEntry()) {
+        if (entry.optionalEntry() && !isUnknownValue(value)) {
           Optional<?> optionalVal = (Optional<?>) value;
           if (!optionalVal.isPresent()) {
             // This is a no-op currently but will be semantically correct when extended proto

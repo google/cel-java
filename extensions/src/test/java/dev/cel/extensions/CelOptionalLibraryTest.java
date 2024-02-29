@@ -46,6 +46,7 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
+import dev.cel.runtime.InterpreterUtil;
 import dev.cel.testing.testdata.proto2.TestAllTypesProto.TestAllTypes;
 import dev.cel.testing.testdata.proto2.TestAllTypesProto.TestAllTypes.NestedMessage;
 import java.util.List;
@@ -767,6 +768,38 @@ public class CelOptionalLibraryTest {
   }
 
   @Test
+  @TestParameters("{source: '{?x: optional.of(1)}'}")
+  @TestParameters("{source: '{?1: x}'}")
+  @TestParameters("{source: '{?x: x}'}")
+  public void optionalIndex_onMapWithUnknownInput_returnsUnknownResult(String source)
+      throws Exception {
+    Cel cel = newCelBuilder().addVar("x", OptionalType.create(SimpleType.INT)).build();
+    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
+
+    Object result = cel.createProgram(ast).eval();
+
+    assertThat(InterpreterUtil.isUnknown(result)).isTrue();
+  }
+
+  @Test
+  public void optionalIndex_onOptionalMapUsingFieldSelection_returnsOptionalValue()
+      throws Exception {
+    Cel cel =
+        newCelBuilder()
+            .addVar(
+                "m",
+                MapType.create(
+                    SimpleType.STRING, MapType.create(SimpleType.STRING, SimpleType.STRING)))
+            .setResultType(OptionalType.create(SimpleType.STRING))
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("{?'key': optional.of('test')}.?key").getAst();
+
+    Object result = cel.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(Optional.of("test"));
+  }
+
+  @Test
   public void optionalIndex_onList_returnsOptionalEmpty() throws Exception {
     Cel cel =
         newCelBuilder()
@@ -822,6 +855,20 @@ public class CelOptionalLibraryTest {
             .eval(ImmutableMap.of("optl", Optional.of(ImmutableList.of("hello"))));
 
     assertThat(result).isEqualTo(Optional.of("hello"));
+  }
+
+  @Test
+  public void optionalIndex_onListWithUnknownInput_returnsUnknownResult() throws Exception {
+    Cel cel =
+        newCelBuilder()
+            .addVar("x", OptionalType.create(SimpleType.INT))
+            .setResultType(ListType.create(SimpleType.INT))
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("[?x]").getAst();
+
+    Object result = cel.createProgram(ast).eval();
+
+    assertThat(InterpreterUtil.isUnknown(result)).isTrue();
   }
 
   @Test

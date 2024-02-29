@@ -705,7 +705,7 @@ public final class ExprChecker {
     CelExpr visitedOperand = visit(operand);
     if (namespacedDeclarations && !operand.equals(visitedOperand)) {
       // Subtree has been rewritten. Replace the operand.
-      expr = replaceSelectOperandSubtree(expr, visitedOperand);
+      expr = replaceCallArgumentSubtree(expr, visitedOperand, 0);
     }
     CelType resultType = visitSelectField(expr, operand, field.constant().stringValue(), true);
     env.setType(expr, resultType);
