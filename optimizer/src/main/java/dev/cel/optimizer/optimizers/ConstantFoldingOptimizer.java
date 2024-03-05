@@ -85,22 +85,21 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       if (iterCount >= constantFoldingOptions.maxIterationLimit()) {
         throw new IllegalStateException("Max iteration count reached.");
       }
-      Optional<CelExpr> foldableExpr =
+      Optional<CelNavigableExpr> foldableExpr =
           navigableAst
               .getRoot()
               .allNodes()
               .filter(ConstantFoldingOptimizer::canFold)
-              .map(CelNavigableExpr::expr)
-              .filter(expr -> !visitedExprs.contains(expr))
+              .filter(node -> !visitedExprs.contains(node.expr()))
               .findAny();
       if (!foldableExpr.isPresent()) {
         break;
       }
-      visitedExprs.add(foldableExpr.get());
+      visitedExprs.add(foldableExpr.get().expr());
 
       Optional<CelAbstractSyntaxTree> mutatedAst;
       // Attempt to prune if it is a non-strict call
-      mutatedAst = maybePruneBranches(navigableAst.getAst(), foldableExpr.get());
+      mutatedAst = maybePruneBranches(navigableAst.getAst(), foldableExpr.get().expr());
       if (!mutatedAst.isPresent()) {
         // Evaluate the call then fold
         mutatedAst = maybeFold(cel, navigableAst.getAst(), foldableExpr.get());
@@ -150,7 +149,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
         }
 
         if (functionName.equals(Operator.IN.getFunction())) {
-          return true;
+          return canFoldInOperator(navigableExpr);
         }
 
         // Default case: all call arguments must be constants. If the argument is a container (ex:
@@ -164,6 +163,30 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       default:
         return false;
     }
+  }
+
+  private static boolean canFoldInOperator(CelNavigableExpr navigableExpr) {
+    ImmutableList<CelNavigableExpr> allIdents =
+        navigableExpr
+            .allNodes()
+            .filter(node -> node.getKind().equals(Kind.IDENT))
+            .collect(toImmutableList());
+    for (CelNavigableExpr identNode : allIdents) {
+      CelNavigableExpr parent = identNode.parent().orElse(null);
+      while (parent != null) {
+        if (parent.getKind().equals(Kind.COMPREHENSION)) {
+          if (parent.expr().comprehension().accuVar().equals(identNode.expr().ident().name())) {
+            // Prevent folding a subexpression if it contains a variable declared by a
+            // comprehension. The subexpression cannot be compiled without the full context of the
+            // surrounding comprehension.
+            return false;
+          }
+        }
+        parent = parent.parent().orElse(null);
+      }
+    }
+
+    return true;
   }
 
   private static boolean areChildrenArgConstant(CelNavigableExpr expr) {
@@ -195,10 +218,10 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   }
 
   private Optional<CelAbstractSyntaxTree> maybeFold(
-      Cel cel, CelAbstractSyntaxTree ast, CelExpr expr) throws CelOptimizationException {
+      Cel cel, CelAbstractSyntaxTree ast, CelNavigableExpr node) throws CelOptimizationException {
     Object result;
     try {
-      result = CelExprUtil.evaluateExpr(cel, expr);
+      result = CelExprUtil.evaluateExpr(cel, node.expr());
     } catch (CelValidationException | CelEvaluationException e) {
       throw new CelOptimizationException(
           "Constant folding failure. Failed to evaluate subtree due to: " + e.getMessage(), e);
@@ -209,11 +232,11 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
     // ex2: optional.ofNonZeroValue(5) -> optional.of(5)
     if (result instanceof Optional<?>) {
       Optional<?> optResult = ((Optional<?>) result);
-      return maybeRewriteOptional(optResult, ast, expr);
+      return maybeRewriteOptional(optResult, ast, node.expr());
     }
 
     return maybeAdaptEvaluatedResult(result)
-        .map(celExpr -> mutableAst.replaceSubtree(ast, celExpr, expr.id()));
+        .map(celExpr -> mutableAst.replaceSubtree(ast, celExpr, node.id()));
   }
 
   private Optional<CelExpr> maybeAdaptEvaluatedResult(Object result) {

@@ -26,6 +26,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
+import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.optimizer.CelOptimizer;
@@ -48,7 +49,7 @@ public class ConstantFoldingOptimizerTest {
           .addVar("map_var", MapType.create(SimpleType.STRING, SimpleType.STRING))
           .addMessageTypes(TestAllTypes.getDescriptor())
           .setContainer("dev.cel.testing.testdata.proto3")
-          .addCompilerLibraries(CelOptionalLibrary.INSTANCE)
+          .addCompilerLibraries(CelExtensions.bindings(), CelOptionalLibrary.INSTANCE)
           .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
           .build();
 
@@ -159,6 +160,8 @@ public class ConstantFoldingOptimizerTest {
       "{source: '{\"a\": dyn([1, 2]), \"b\": x}', expected: '{\"a\": [1, 2], \"b\": x}'}")
   @TestParameters("{source: 'map_var[?\"key\"]', expected: 'map_var[?\"key\"]'}")
   @TestParameters("{source: '\"abc\" in list_var', expected: '\"abc\" in list_var'}")
+  @TestParameters(
+      "{source: 'cel.bind(r0, [1, 2, 3], cel.bind(r1, 1 in r0, r1))', expected: 'true'}")
   // TODO: Support folding lists with mixed types. This requires mutable lists.
   // @TestParameters("{source: 'dyn([1]) + [1.0]'}")
   public void constantFold_success(String source, String expected) throws Exception {
@@ -198,6 +201,9 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters(
       "{source: '[{}, {\"a\": 1}, {\"b\": 2}].filter(m, has(x.a))', expected:"
           + " '[{}, {\"a\": 1}, {\"b\": 2}].filter(m, has(x.a))'}")
+  @TestParameters(
+      "{source: 'cel.bind(r0, [1, 2, 3], cel.bind(r1, 1 in r0 && 2 in x, r1))', expected:"
+          + " 'cel.bind(r0, [1, 2, 3], cel.bind(r1, 1 in r0 && 2 in x, r1))'}")
   public void constantFold_macros_macroCallMetadataPopulated(String source, String expected)
       throws Exception {
     Cel cel =
@@ -207,7 +213,7 @@ public class ConstantFoldingOptimizerTest {
             .addMessageTypes(TestAllTypes.getDescriptor())
             .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
             .setOptions(CelOptions.current().populateMacroCalls(true).build())
-            .addCompilerLibraries(CelOptionalLibrary.INSTANCE)
+            .addCompilerLibraries(CelExtensions.bindings(), CelOptionalLibrary.INSTANCE)
             .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
             .build();
     CelOptimizer celOptimizer =
