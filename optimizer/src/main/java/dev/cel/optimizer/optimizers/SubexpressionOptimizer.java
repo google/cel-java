@@ -25,7 +25,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.bundle.Cel;
@@ -58,6 +57,7 @@ import dev.cel.optimizer.MutableAst.MangledComprehensionAst;
 import dev.cel.parser.Operator;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -509,10 +509,11 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     ImmutableList<CelNavigableExpr> allNodes =
         CelNavigableAst.fromAst(ast)
             .getRoot()
-            .allNodes(TraversalOrder.POST_ORDER)
+            .allNodes(TraversalOrder.PRE_ORDER)
             .filter(this::canEliminate)
             .filter(node -> node.height() <= recursionLimit)
             .filter(node -> !areSemanticallyEqual(ast.getExpr(), node.expr()))
+            .sorted(Comparator.comparingInt(CelNavigableExpr::height).reversed())
             .collect(toImmutableList());
 
     if (allNodes.isEmpty()) {
@@ -523,9 +524,23 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     if (commonSubexpr.isPresent()) {
       return commonSubexpr;
     }
+
     // If there's no common subexpr, just return the one with the highest height that's still below
-    // the recursion limit.
-    return Optional.of(Iterables.getLast(allNodes));
+    // the recursion limit, but only if it actually needs to be extracted due to exceeding the
+    // recursion limit.
+    boolean astHasMoreExtractableSubexprs =
+        CelNavigableAst.fromAst(ast)
+            .getRoot()
+            .allNodes(TraversalOrder.POST_ORDER)
+            .filter(node -> node.height() > recursionLimit)
+            .anyMatch(this::canEliminate);
+    if (astHasMoreExtractableSubexprs) {
+      return Optional.of(allNodes.get(0));
+    }
+
+    // The height of the remaining subexpression is already below the recursion limit. No need to
+    // extract.
+    return Optional.empty();
   }
 
   private Optional<CelNavigableExpr> findCseCandidateWithCommonSubexpr(
@@ -705,13 +720,15 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
        * <p>Note that expressions containing no common subexpressions may become a candidate for
        * extraction to satisfy the max depth requirement.
        *
-       * <p>This is a no-op if {@link #enableCelBlock} is set to false, or the configured value is
-       * less than 1.
+       * <p>This is a no-op if {@link #enableCelBlock} is set to false, the configured value is less
+       * than 1, or no subexpression needs to be extracted because the entire expression is already
+       * under the designated limit.
        *
        * <p>Examples:
        *
        * <ol>
        *   <li>a.b.c with depth 1 -> cel.@block([x.b, @index0.c], @index1)
+       *   <li>a.b.c with depth 3 -> a.b.c
        *   <li>a.b + a.b.c.d with depth 3 -> cel.@block([a.b, @index0.c.d], @index0 + @index1)
        * </ol>
        *

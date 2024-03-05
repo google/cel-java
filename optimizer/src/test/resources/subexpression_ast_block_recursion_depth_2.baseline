@@ -6,46 +6,43 @@ CALL [1] {
   args: {
     CREATE_LIST [2] {
       elements: {
-        CREATE_LIST [3] {
-          elements: {
-            CONSTANT [4] { value: 1 }
-            CONSTANT [5] { value: 2 }
-          }
-        }
-        CALL [6] {
+        CALL [3] {
           function: size
           args: {
-            IDENT [7] {
-              name: @index0
+            CREATE_LIST [4] {
+              elements: {
+                CONSTANT [5] { value: 1 }
+                CONSTANT [6] { value: 2 }
+              }
             }
           }
         }
-        CALL [8] {
+        CALL [7] {
           function: _+_
           args: {
-            CALL [9] {
+            CALL [8] {
               function: _+_
               args: {
-                IDENT [10] {
-                  name: @index1
+                IDENT [9] {
+                  name: @index0
                 }
-                IDENT [11] {
-                  name: @index1
+                IDENT [10] {
+                  name: @index0
                 }
               }
             }
-            CONSTANT [12] { value: 1 }
+            CONSTANT [11] { value: 1 }
           }
         }
       }
     }
-    CALL [13] {
+    CALL [12] {
       function: _==_
       args: {
-        IDENT [14] {
-          name: @index2
+        IDENT [13] {
+          name: @index1
         }
-        CONSTANT [15] { value: 5 }
+        CONSTANT [14] { value: 5 }
       }
     }
   }
@@ -58,55 +55,49 @@ CALL [1] {
   args: {
     CREATE_LIST [2] {
       elements: {
-        CREATE_LIST [3] {
-          elements: {
-            CONSTANT [4] { value: 1 }
-            CONSTANT [5] { value: 2 }
-          }
-        }
-        CALL [6] {
+        CALL [3] {
           function: size
           args: {
-            IDENT [7] {
+            CREATE_LIST [4] {
+              elements: {
+                CONSTANT [5] { value: 1 }
+                CONSTANT [6] { value: 2 }
+              }
+            }
+          }
+        }
+        CALL [7] {
+          function: _+_
+          args: {
+            CALL [8] {
+              function: _+_
+              args: {
+                CONSTANT [9] { value: 2 }
+                IDENT [10] {
+                  name: @index0
+                }
+              }
+            }
+            IDENT [11] {
               name: @index0
             }
           }
         }
-        CALL [8] {
-          function: _+_
-          args: {
-            CALL [9] {
-              function: _+_
-              args: {
-                CONSTANT [10] { value: 2 }
-                IDENT [11] {
-                  name: @index1
-                }
-              }
-            }
-            IDENT [12] {
-              name: @index1
-            }
-          }
-        }
+      }
+    }
+    CALL [12] {
+      function: _==_
+      args: {
         CALL [13] {
           function: _+_
           args: {
             IDENT [14] {
-              name: @index2
+              name: @index1
             }
             CONSTANT [15] { value: 1 }
           }
         }
-      }
-    }
-    CALL [16] {
-      function: _==_
-      args: {
-        IDENT [17] {
-          name: @index3
-        }
-        CONSTANT [18] { value: 7 }
+        CONSTANT [16] { value: 7 }
       }
     }
   }
@@ -119,72 +110,63 @@ CALL [1] {
   args: {
     CREATE_LIST [2] {
       elements: {
-        CREATE_LIST [3] {
-          elements: {
-            CONSTANT [4] { value: 0 }
-          }
-        }
-        CALL [5] {
+        CALL [3] {
           function: size
           args: {
-            IDENT [6] {
-              name: @index0
+            CREATE_LIST [4] {
+              elements: {
+                CONSTANT [5] { value: 0 }
+              }
             }
           }
         }
-        CREATE_LIST [7] {
-          elements: {
-            CONSTANT [8] { value: 1 }
-            CONSTANT [9] { value: 2 }
+        CALL [6] {
+          function: size
+          args: {
+            CREATE_LIST [7] {
+              elements: {
+                CONSTANT [8] { value: 1 }
+                CONSTANT [9] { value: 2 }
+              }
+            }
           }
         }
         CALL [10] {
-          function: size
-          args: {
-            IDENT [11] {
-              name: @index2
-            }
-          }
-        }
-        CALL [12] {
           function: _+_
           args: {
-            CALL [13] {
+            CALL [11] {
               function: _+_
               args: {
-                IDENT [14] {
-                  name: @index1
+                IDENT [12] {
+                  name: @index0
                 }
-                IDENT [15] {
-                  name: @index1
+                IDENT [13] {
+                  name: @index0
                 }
               }
             }
-            IDENT [16] {
-              name: @index3
-            }
-          }
-        }
-        CALL [17] {
-          function: _+_
-          args: {
-            IDENT [18] {
-              name: @index4
-            }
-            IDENT [19] {
-              name: @index3
+            IDENT [14] {
+              name: @index1
             }
           }
         }
       }
     }
-    CALL [20] {
+    CALL [15] {
       function: _==_
       args: {
-        IDENT [21] {
-          name: @index5
+        CALL [16] {
+          function: _+_
+          args: {
+            IDENT [17] {
+              name: @index2
+            }
+            IDENT [18] {
+              name: @index1
+            }
+          }
         }
-        CONSTANT [22] { value: 6 }
+        CONSTANT [19] { value: 6 }
       }
     }
   }
@@ -197,112 +179,103 @@ CALL [1] {
   args: {
     CREATE_LIST [2] {
       elements: {
-        CREATE_LIST [3] {
-          elements: {
-            CONSTANT [4] { value: 0 }
-          }
-        }
-        CALL [5] {
+        CALL [3] {
           function: size
           args: {
-            IDENT [6] {
-              name: @index0
+            CREATE_LIST [4] {
+              elements: {
+                CONSTANT [5] { value: 0 }
+              }
             }
           }
         }
-        CREATE_LIST [7] {
-          elements: {
-            CONSTANT [8] { value: 1 }
-            CONSTANT [9] { value: 2 }
+        CALL [6] {
+          function: size
+          args: {
+            CREATE_LIST [7] {
+              elements: {
+                CONSTANT [8] { value: 1 }
+                CONSTANT [9] { value: 2 }
+              }
+            }
           }
         }
         CALL [10] {
           function: size
           args: {
-            IDENT [11] {
-              name: @index2
+            CREATE_LIST [11] {
+              elements: {
+                CONSTANT [12] { value: 1 }
+                CONSTANT [13] { value: 2 }
+                CONSTANT [14] { value: 3 }
+              }
             }
           }
         }
-        CREATE_LIST [12] {
-          elements: {
-            CONSTANT [13] { value: 1 }
-            CONSTANT [14] { value: 2 }
-            CONSTANT [15] { value: 3 }
-          }
-        }
-        CALL [16] {
-          function: size
-          args: {
-            IDENT [17] {
-              name: @index4
-            }
-          }
-        }
-        CALL [18] {
+        CALL [15] {
           function: _+_
           args: {
-            CALL [19] {
+            CALL [16] {
               function: _+_
               args: {
-                CONSTANT [20] { value: 5 }
-                IDENT [21] {
+                CONSTANT [17] { value: 5 }
+                IDENT [18] {
+                  name: @index0
+                }
+              }
+            }
+            IDENT [19] {
+              name: @index0
+            }
+          }
+        }
+        CALL [20] {
+          function: _+_
+          args: {
+            CALL [21] {
+              function: _+_
+              args: {
+                IDENT [22] {
+                  name: @index3
+                }
+                IDENT [23] {
                   name: @index1
                 }
               }
             }
-            IDENT [22] {
+            IDENT [24] {
               name: @index1
             }
           }
         }
-        CALL [23] {
+        CALL [25] {
           function: _+_
           args: {
-            CALL [24] {
+            CALL [26] {
               function: _+_
               args: {
-                IDENT [25] {
-                  name: @index6
+                IDENT [27] {
+                  name: @index4
                 }
-                IDENT [26] {
-                  name: @index3
+                IDENT [28] {
+                  name: @index2
                 }
               }
             }
-            IDENT [27] {
-              name: @index3
-            }
-          }
-        }
-        CALL [28] {
-          function: _+_
-          args: {
-            CALL [29] {
-              function: _+_
-              args: {
-                IDENT [30] {
-                  name: @index7
-                }
-                IDENT [31] {
-                  name: @index5
-                }
-              }
-            }
-            IDENT [32] {
-              name: @index5
+            IDENT [29] {
+              name: @index2
             }
           }
         }
       }
     }
-    CALL [33] {
+    CALL [30] {
       function: _==_
       args: {
-        IDENT [34] {
-          name: @index8
+        IDENT [31] {
+          name: @index5
         }
-        CONSTANT [35] { value: 17 }
+        CONSTANT [32] { value: 17 }
       }
     }
   }
@@ -316,70 +289,76 @@ CALL [1] {
     CREATE_LIST [2] {
       elements: {
         CALL [3] {
-          function: timestamp
-          args: {
-            CONSTANT [4] { value: 1000000000 }
-          }
-        }
-        CALL [5] {
           function: int
           args: {
-            IDENT [6] {
-              name: @index0
+            CALL [4] {
+              function: timestamp
+              args: {
+                CONSTANT [5] { value: 1000000000 }
+              }
             }
           }
         }
-        CALL [7] {
-          function: timestamp
-          args: {
-            IDENT [8] {
-              name: @index1
+        CALL [6] {
+          function: getFullYear
+          target: {
+            CALL [7] {
+              function: timestamp
+              args: {
+                IDENT [8] {
+                  name: @index0
+                }
+              }
             }
+          }
+          args: {
           }
         }
         CALL [9] {
-          function: getFullYear
-          target: {
-            IDENT [10] {
-              name: @index2
-            }
-          }
-          args: {
-          }
-        }
-        CALL [11] {
-          function: timestamp
-          args: {
-            CONSTANT [12] { value: 50 }
-          }
-        }
-        CALL [13] {
           function: int
           args: {
-            IDENT [14] {
-              name: @index4
+            CALL [10] {
+              function: timestamp
+              args: {
+                CONSTANT [11] { value: 50 }
+              }
+            }
+          }
+        }
+        CALL [12] {
+          function: int
+          args: {
+            CALL [13] {
+              function: timestamp
+              args: {
+                CONSTANT [14] { value: 200 }
+              }
             }
           }
         }
         CALL [15] {
-          function: timestamp
-          args: {
-            IDENT [16] {
-              name: @index5
+          function: getFullYear
+          target: {
+            CALL [16] {
+              function: timestamp
+              args: {
+                IDENT [17] {
+                  name: @index3
+                }
+              }
             }
           }
-        }
-        CALL [17] {
-          function: timestamp
           args: {
-            CONSTANT [18] { value: 200 }
           }
         }
-        CALL [19] {
+        CALL [18] {
           function: int
           args: {
-            IDENT [20] {
-              name: @index7
+            CALL [19] {
+              function: timestamp
+              args: {
+                CONSTANT [20] { value: 75 }
+              }
             }
           }
         }
@@ -387,83 +366,73 @@ CALL [1] {
           function: timestamp
           args: {
             IDENT [22] {
-              name: @index8
+              name: @index2
             }
           }
         }
         CALL [23] {
-          function: getFullYear
-          target: {
-            IDENT [24] {
-              name: @index9
-            }
-          }
+          function: timestamp
           args: {
+            IDENT [24] {
+              name: @index5
+            }
           }
         }
         CALL [25] {
-          function: timestamp
+          function: _+_
           args: {
-            CONSTANT [26] { value: 75 }
-          }
-        }
-        CALL [27] {
-          function: int
-          args: {
-            IDENT [28] {
-              name: @index11
+            IDENT [26] {
+              name: @index1
+            }
+            CALL [27] {
+              function: getFullYear
+              target: {
+                IDENT [28] {
+                  name: @index7
+                }
+              }
+              args: {
+              }
             }
           }
         }
         CALL [29] {
-          function: timestamp
+          function: _+_
           args: {
             IDENT [30] {
-              name: @index12
+              name: @index8
             }
-          }
-        }
-        CALL [31] {
-          function: getMinutes
-          target: {
-            IDENT [32] {
-              name: @index13
+            CALL [31] {
+              function: getFullYear
+              target: {
+                IDENT [32] {
+                  name: @index6
+                }
+              }
+              args: {
+              }
             }
-          }
-          args: {
           }
         }
         CALL [33] {
-          function: getSeconds
-          target: {
-            IDENT [34] {
-              name: @index6
-            }
-          }
-          args: {
-          }
-        }
-        CALL [35] {
-          function: getFullYear
-          target: {
-            IDENT [36] {
-              name: @index6
-            }
-          }
-          args: {
-          }
-        }
-        CALL [37] {
           function: _+_
           args: {
-            IDENT [38] {
-              name: @index3
+            CALL [34] {
+              function: _+_
+              args: {
+                IDENT [35] {
+                  name: @index9
+                }
+                IDENT [36] {
+                  name: @index1
+                }
+              }
             }
-            CALL [39] {
-              function: getFullYear
+            CALL [37] {
+              function: getSeconds
               target: {
-                IDENT [40] {
-                  name: @index13
+                IDENT [38] {
+                  name: @index6
                 }
               }
               args: {
@@ -471,83 +440,60 @@ CALL [1] {
             }
           }
         }
-        CALL [41] {
+        CALL [39] {
           function: _+_
           args: {
-            CALL [42] {
+            CALL [40] {
               function: _+_
               args: {
-                IDENT [43] {
-                  name: @index17
-                }
-                IDENT [44] {
-                  name: @index16
-                }
-              }
-            }
-            IDENT [45] {
-              name: @index3
-            }
-          }
-        }
-        CALL [46] {
-          function: _+_
-          args: {
-            CALL [47] {
-              function: _+_
-              args: {
-                IDENT [48] {
-                  name: @index18
-                }
-                IDENT [49] {
-                  name: @index15
-                }
-              }
-            }
-            IDENT [50] {
-              name: @index10
-            }
-          }
-        }
-        CALL [51] {
-          function: _+_
-          args: {
-            CALL [52] {
-              function: _+_
-              args: {
-                IDENT [53] {
-                  name: @index19
-                }
-                IDENT [54] {
+                IDENT [41] {
                   name: @index10
                 }
+                IDENT [42] {
+                  name: @index4
+                }
               }
             }
-            IDENT [55] {
-              name: @index14
+            IDENT [43] {
+              name: @index4
             }
           }
         }
-        CALL [56] {
+        CALL [44] {
           function: _+_
           args: {
-            IDENT [57] {
-              name: @index20
+            IDENT [45] {
+              name: @index11
             }
-            IDENT [58] {
-              name: @index3
+            CALL [46] {
+              function: getMinutes
+              target: {
+                IDENT [47] {
+                  name: @index7
+                }
+              }
+              args: {
+              }
             }
           }
         }
       }
     }
-    CALL [59] {
+    CALL [48] {
       function: _==_
       args: {
-        IDENT [60] {
-          name: @index21
+        CALL [49] {
+          function: _+_
+          args: {
+            IDENT [50] {
+              name: @index12
+            }
+            IDENT [51] {
+              name: @index1
+            }
+          }
         }
-        CONSTANT [61] { value: 13934 }
+        CONSTANT [52] { value: 13934 }
       }
     }
   }
@@ -560,39 +506,36 @@ CALL [1] {
   args: {
     CREATE_LIST [2] {
       elements: {
-        CREATE_MAP [3] {
-          MAP_ENTRY [4] {
-            key: {
-              CONSTANT [5] { value: "a" }
-            }
-            value: {
-              CONSTANT [6] { value: 2 }
-            }
-          }
-        }
-        CALL [7] {
+        CALL [3] {
           function: _[_]
           args: {
-            IDENT [8] {
-              name: @index0
+            CREATE_MAP [4] {
+              MAP_ENTRY [5] {
+                key: {
+                  CONSTANT [6] { value: "a" }
+                }
+                value: {
+                  CONSTANT [7] { value: 2 }
+                }
+              }
             }
-            CONSTANT [9] { value: "a" }
+            CONSTANT [8] { value: "a" }
           }
         }
-        CALL [10] {
+        CALL [9] {
           function: _+_
           args: {
-            IDENT [11] {
-              name: @index1
+            IDENT [10] {
+              name: @index0
             }
-            CALL [12] {
+            CALL [11] {
               function: _*_
               args: {
-                IDENT [13] {
-                  name: @index1
+                IDENT [12] {
+                  name: @index0
                 }
-                IDENT [14] {
-                  name: @index1
+                IDENT [13] {
+                  name: @index0
                 }
               }
             }
@@ -600,13 +543,13 @@ CALL [1] {
         }
       }
     }
-    CALL [15] {
+    CALL [14] {
       function: _==_
       args: {
-        IDENT [16] {
-          name: @index2
+        IDENT [15] {
+          name: @index1
         }
-        CONSTANT [17] { value: 6 }
+        CONSTANT [16] { value: 6 }
       }
     }
   }
@@ -622,51 +565,48 @@ CALL [1] {
         CREATE_MAP [3] {
           MAP_ENTRY [4] {
             key: {
-              CONSTANT [5] { value: "b" }
+              CONSTANT [5] { value: "e" }
             }
             value: {
-              CONSTANT [6] { value: 1 }
+              CREATE_MAP [6] {
+                MAP_ENTRY [7] {
+                  key: {
+                    CONSTANT [8] { value: "b" }
+                  }
+                  value: {
+                    CONSTANT [9] { value: 1 }
+                  }
+                }
+              }
             }
           }
         }
-        CREATE_MAP [7] {
-          MAP_ENTRY [8] {
+        CREATE_MAP [10] {
+          MAP_ENTRY [11] {
             key: {
-              CONSTANT [9] { value: "e" }
+              CONSTANT [12] { value: "b" }
             }
             value: {
-              IDENT [10] {
-                name: @index0
-              }
+              CONSTANT [13] { value: 1 }
             }
           }
         }
       }
     }
-    CREATE_MAP [11] {
-      MAP_ENTRY [12] {
-        key: {
-          CONSTANT [13] { value: "a" }
-        }
-        value: {
-          IDENT [14] {
-            name: @index0
-          }
-        }
-      }
+    CREATE_MAP [14] {
       MAP_ENTRY [15] {
         key: {
-          CONSTANT [16] { value: "c" }
+          CONSTANT [16] { value: "a" }
         }
         value: {
           IDENT [17] {
-            name: @index0
+            name: @index1
           }
         }
       }
       MAP_ENTRY [18] {
         key: {
-          CONSTANT [19] { value: "d" }
+          CONSTANT [19] { value: "c" }
         }
         value: {
           IDENT [20] {
@@ -676,11 +616,21 @@ CALL [1] {
       }
       MAP_ENTRY [21] {
         key: {
-          CONSTANT [22] { value: "e" }
+          CONSTANT [22] { value: "d" }
         }
         value: {
           IDENT [23] {
-            name: @index1
+            name: @index0
+          }
+        }
+      }
+      MAP_ENTRY [24] {
+        key: {
+          CONSTANT [25] { value: "e" }
+        }
+        value: {
+          IDENT [26] {
+            name: @index0
           }
         }
       }
@@ -709,37 +659,34 @@ CALL [1] {
             CONSTANT [10] { value: 2 }
           }
         }
-        CREATE_LIST [11] {
+      }
+    }
+    CREATE_LIST [11] {
+      elements: {
+        CONSTANT [12] { value: 1 }
+        IDENT [13] {
+          name: @index0
+        }
+        CONSTANT [14] { value: 2 }
+        IDENT [15] {
+          name: @index0
+        }
+        CONSTANT [16] { value: 5 }
+        IDENT [17] {
+          name: @index0
+        }
+        CONSTANT [18] { value: 7 }
+        CREATE_LIST [19] {
           elements: {
-            IDENT [12] {
+            IDENT [20] {
               name: @index1
             }
-            IDENT [13] {
+            IDENT [21] {
               name: @index0
             }
           }
         }
-      }
-    }
-    CREATE_LIST [14] {
-      elements: {
-        CONSTANT [15] { value: 1 }
-        IDENT [16] {
-          name: @index0
-        }
-        CONSTANT [17] { value: 2 }
-        IDENT [18] {
-          name: @index0
-        }
-        CONSTANT [19] { value: 5 }
-        IDENT [20] {
-          name: @index0
-        }
-        CONSTANT [21] { value: 7 }
         IDENT [22] {
-          name: @index2
-        }
-        IDENT [23] {
           name: @index1
         }
       }
@@ -759,26 +706,23 @@ CALL [1] {
             name: msg
           }.single_int64
         }
-        CALL [5] {
+      }
+    }
+    CALL [5] {
+      function: _==_
+      args: {
+        CALL [6] {
           function: _+_
           args: {
-            IDENT [6] {
+            IDENT [7] {
               name: @index0
             }
-            IDENT [7] {
+            IDENT [8] {
               name: @index0
             }
           }
         }
-      }
-    }
-    CALL [8] {
-      function: _==_
-      args: {
-        IDENT [9] {
-          name: @index1
-        }
-        CONSTANT [10] { value: 6 }
+        CONSTANT [9] { value: 6 }
       }
     }
   }
@@ -792,89 +736,80 @@ CALL [1] {
     CREATE_LIST [2] {
       elements: {
         SELECT [3] {
-          IDENT [4] {
-            name: msg
-          }.oneof_type
-        }
-        SELECT [5] {
-          IDENT [6] {
-            name: @index0
-          }.payload
-        }
-        SELECT [7] {
-          IDENT [8] {
-            name: @index1
-          }.single_int64
-        }
-        SELECT [9] {
-          SELECT [10] {
-            IDENT [11] {
-              name: @index1
+          SELECT [4] {
+            IDENT [5] {
+              name: msg
             }.oneof_type
           }.payload
         }
-        SELECT [12] {
-          IDENT [13] {
-            name: @index3
+        SELECT [6] {
+          IDENT [7] {
+            name: @index0
           }.single_int64
         }
-        SELECT [14] {
-          IDENT [15] {
-            name: msg
-          }.single_int64
-        }
-        CALL [16] {
+        CALL [8] {
           function: _+_
           args: {
-            IDENT [17] {
-              name: @index2
+            IDENT [9] {
+              name: @index1
             }
-            SELECT [18] {
-              IDENT [19] {
-                name: @index1
+            SELECT [10] {
+              IDENT [11] {
+                name: @index0
               }.single_int32
             }
           }
         }
-        CALL [20] {
+        CALL [12] {
           function: _+_
           args: {
-            CALL [21] {
+            CALL [13] {
               function: _+_
               args: {
-                IDENT [22] {
-                  name: @index6
-                }
-                IDENT [23] {
+                IDENT [14] {
                   name: @index2
+                }
+                IDENT [15] {
+                  name: @index1
                 }
               }
             }
-            IDENT [24] {
-              name: @index5
+            SELECT [16] {
+              IDENT [17] {
+                name: msg
+              }.single_int64
             }
           }
         }
-        CALL [25] {
+        SELECT [18] {
+          SELECT [19] {
+            IDENT [20] {
+              name: @index0
+            }.oneof_type
+          }.payload
+        }
+        CALL [21] {
           function: _+_
           args: {
-            IDENT [26] {
-              name: @index7
+            IDENT [22] {
+              name: @index3
             }
-            IDENT [27] {
-              name: @index4
+            SELECT [23] {
+              IDENT [24] {
+                name: @index4
+              }.single_int64
             }
           }
         }
       }
     }
-    CALL [28] {
+    CALL [25] {
       function: _==_
       args: {
-        IDENT [29] {
-          name: @index8
+        IDENT [26] {
+          name: @index5
         }
-        CONSTANT [30] { value: 31 }
+        CONSTANT [27] { value: 31 }
       }
     }
   }
@@ -888,76 +823,67 @@ CALL [1] {
     CREATE_LIST [2] {
       elements: {
         SELECT [3] {
-          IDENT [4] {
-            name: msg
-          }.oneof_type
-        }
-        SELECT [5] {
-          IDENT [6] {
-            name: @index0
+          SELECT [4] {
+            IDENT [5] {
+              name: msg
+            }.oneof_type
           }.payload
         }
-        SELECT [7] {
-          IDENT [8] {
-            name: @index1
-          }.oneof_type
+        SELECT [6] {
+          SELECT [7] {
+            IDENT [8] {
+              name: @index0
+            }.oneof_type
+          }.payload
         }
         SELECT [9] {
           IDENT [10] {
-            name: @index2
-          }.payload
-        }
-        SELECT [11] {
-          IDENT [12] {
-            name: @index3
+            name: @index1
           }.oneof_type
         }
-        SELECT [13] {
-          SELECT [14] {
-            IDENT [15] {
-              name: @index4
+        SELECT [11] {
+          SELECT [12] {
+            IDENT [13] {
+              name: @index2
+            }.payload
+          }.oneof_type
+        }
+        SELECT [14] {
+          SELECT [15] {
+            IDENT [16] {
+              name: @index3
+            }.payload
+          }.single_bool
+        }
+        SELECT [17] {
+          SELECT [18] {
+            IDENT [19] {
+              name: @index2
             }.child
           }.child
         }
-        SELECT [16] {
-          SELECT [17] {
-            IDENT [18] {
+        SELECT [20] {
+          SELECT [21] {
+            IDENT [22] {
               name: @index5
             }.payload
           }.single_bool
         }
-        SELECT [19] {
-          SELECT [20] {
-            IDENT [21] {
-              name: @index4
-            }.payload
-          }.oneof_type
-        }
-        SELECT [22] {
-          SELECT [23] {
-            IDENT [24] {
-              name: @index7
-            }.payload
-          }.single_bool
-        }
-        CALL [25] {
+      }
+    }
+    CALL [23] {
+      function: _||_
+      args: {
+        CALL [24] {
           function: _||_
           args: {
-            CONSTANT [26] { value: true }
-            IDENT [27] {
-              name: @index8
+            CONSTANT [25] { value: true }
+            IDENT [26] {
+              name: @index4
             }
           }
         }
-      }
-    }
-    CALL [28] {
-      function: _||_
-      args: {
-        IDENT [29] {
-          name: @index9
-        }
-        IDENT [30] {
+        IDENT [27] {
           name: @index6
         }
       }
@@ -973,57 +899,51 @@ CALL [1] {
     CREATE_LIST [2] {
       elements: {
         SELECT [3] {
-          IDENT [4] {
-            name: msg
-          }.oneof_type
-        }
-        SELECT [5] {
-          IDENT [6] {
-            name: @index0
+          SELECT [4] {
+            IDENT [5] {
+              name: msg
+            }.oneof_type
           }.payload
         }
-        SELECT [7] {
-          IDENT [8] {
-            name: @index1
-          }.map_int32_int64
-        }
-        CALL [9] {
+        CALL [6] {
           function: _[_]
           args: {
-            IDENT [10] {
-              name: @index2
+            SELECT [7] {
+              IDENT [8] {
+                name: @index0
+              }.map_int32_int64
             }
-            CONSTANT [11] { value: 1 }
+            CONSTANT [9] { value: 1 }
           }
         }
-        CALL [12] {
+        CALL [10] {
           function: _+_
           args: {
-            CALL [13] {
+            CALL [11] {
               function: _+_
               args: {
-                IDENT [14] {
-                  name: @index3
+                IDENT [12] {
+                  name: @index1
                 }
-                IDENT [15] {
-                  name: @index3
+                IDENT [13] {
+                  name: @index1
                 }
               }
             }
-            IDENT [16] {
-              name: @index3
+            IDENT [14] {
+              name: @index1
             }
           }
         }
       }
     }
-    CALL [17] {
+    CALL [15] {
       function: _==_
       args: {
-        IDENT [18] {
-          name: @index4
+        IDENT [16] {
+          name: @index2
         }
-        CONSTANT [19] { value: 15 }
+        CONSTANT [17] { value: 15 }
       }
     }
   }
@@ -1037,72 +957,66 @@ CALL [1] {
     CREATE_LIST [2] {
       elements: {
         SELECT [3] {
-          IDENT [4] {
-            name: msg
-          }.oneof_type
-        }
-        SELECT [5] {
-          IDENT [6] {
-            name: @index0
+          SELECT [4] {
+            IDENT [5] {
+              name: msg
+            }.oneof_type
           }.payload
         }
-        SELECT [7] {
-          IDENT [8] {
-            name: @index1
+        SELECT [6] {
+          IDENT [7] {
+            name: @index0
           }.map_int32_int64
         }
-        CALL [9] {
-          function: _[_]
+        CALL [8] {
+          function: _+_
           args: {
-            IDENT [10] {
+            CALL [9] {
+              function: _[_]
+              args: {
+                IDENT [10] {
+                  name: @index1
+                }
+                CONSTANT [11] { value: 0 }
+              }
+            }
+            CALL [12] {
+              function: _[_]
+              args: {
+                IDENT [13] {
+                  name: @index1
+                }
+                CONSTANT [14] { value: 1 }
+              }
+            }
+          }
+        }
+        CALL [15] {
+          function: _+_
+          args: {
+            IDENT [16] {
               name: @index2
             }
-            CONSTANT [11] { value: 2 }
-          }
-        }
-        CALL [12] {
-          function: _+_
-          args: {
-            CALL [13] {
+            CALL [17] {
               function: _[_]
               args: {
-                IDENT [14] {
-                  name: @index2
+                IDENT [18] {
+                  name: @index1
                 }
-                CONSTANT [15] { value: 0 }
+                CONSTANT [19] { value: 2 }
               }
-            }
-            CALL [16] {
-              function: _[_]
-              args: {
-                IDENT [17] {
-                  name: @index2
-                }
-                CONSTANT [18] { value: 1 }
-              }
-            }
-          }
-        }
-        CALL [19] {
-          function: _+_
-          args: {
-            IDENT [20] {
-              name: @index4
-            }
-            IDENT [21] {
-              name: @index3
             }
           }
         }
       }
     }
-    CALL [22] {
+    CALL [20] {
       function: _==_
       args: {
-        IDENT [23] {
-          name: @index5
+        IDENT [21] {
+          name: @index3
         }
-        CONSTANT [24] { value: 8 }
+        CONSTANT [22] { value: 8 }
       }
     }
   }
@@ -1338,18 +1252,21 @@ CALL [1] {
   args: {
     CREATE_LIST [2] {
       elements: {
-        CREATE_LIST [3] {
-          elements: {
-            CONSTANT [4] { value: 1 }
-          }
-        }
-        CALL [5] {
-          function: _>_
+        CALL [3] {
+          function: _||_
           args: {
-            IDENT [6] {
-              name: @c0:0
+            IDENT [4] {
+              name: @x0:0
             }
-            CONSTANT [7] { value: 0 }
+            CALL [5] {
+              function: _>_
+              args: {
+                IDENT [6] {
+                  name: @c0:0
+                }
+                CONSTANT [7] { value: 0 }
+              }
+            }
           }
         }
         CALL [8] {
@@ -1358,74 +1275,65 @@ CALL [1] {
             IDENT [9] {
               name: @x0:0
             }
-            IDENT [10] {
-              name: @index1
+            CALL [10] {
+              function: _>_
+              args: {
+                IDENT [11] {
+                  name: @c0:0
+                }
+                CONSTANT [12] { value: 1 }
+              }
             }
           }
         }
-        CREATE_LIST [11] {
+        CREATE_LIST [13] {
           elements: {
-            CONSTANT [12] { value: 2 }
+            CONSTANT [14] { value: 1 }
           }
         }
-        CALL [13] {
-          function: _>_
-          args: {
-            IDENT [14] {
-              name: @c0:0
-            }
-            CONSTANT [15] { value: 1 }
-          }
-        }
-        CALL [16] {
-          function: _||_
-          args: {
-            IDENT [17] {
-              name: @x0:0
-            }
-            IDENT [18] {
-              name: @index4
-            }
+        CREATE_LIST [15] {
+          elements: {
+            CONSTANT [16] { value: 2 }
           }
         }
       }
     }
-    CALL [19] {
+    CALL [17] {
       function: _==_
       args: {
-        CALL [20] {
+        CALL [18] {
           function: _+_
           args: {
-            CALL [21] {
+            CALL [19] {
               function: _+_
               args: {
-                CALL [22] {
+                CALL [20] {
                   function: _+_
                   args: {
-                    CALL [23] {
+                    CALL [21] {
                       function: size
                       args: {
-                        CREATE_LIST [24] {
+                        CREATE_LIST [22] {
                           elements: {
-                            COMPREHENSION [25] {
+                            COMPREHENSION [23] {
                               iter_var: @c0:0
                               iter_range: {
-                                IDENT [26] {
-                                  name: @index0
+                                IDENT [24] {
+                                  name: @index2
                                 }
                               }
                               accu_var: @x0:0
                               accu_init: {
-                                CONSTANT [27] { value: false }
+                                CONSTANT [25] { value: false }
                               }
                               loop_condition: {
-                                CALL [28] {
+                                CALL [26] {
                                   function: @not_strictly_false
                                   args: {
-                                    CALL [29] {
+                                    CALL [27] {
                                       function: !_
                                       args: {
-                                        IDENT [30] {
+                                        IDENT [28] {
                                           name: @x0:0
                                         }
                                       }
@@ -1434,12 +1342,12 @@ CALL [1] {
                                 }
                               }
                               loop_step: {
-                                IDENT [31] {
-                                  name: @index2
+                                IDENT [29] {
+                                  name: @index0
                                 }
                               }
                               result: {
-                                IDENT [32] {
+                                IDENT [30] {
                                   name: @x0:0
                                 }
                               }
@@ -1448,30 +1356,30 @@ CALL [1] {
                         }
                       }
                     }
-                    CALL [33] {
+                    CALL [31] {
                       function: size
                       args: {
-                        CREATE_LIST [34] {
+                        CREATE_LIST [32] {
                           elements: {
-                            COMPREHENSION [35] {
+                            COMPREHENSION [33] {
                               iter_var: @c0:0
                               iter_range: {
-                                IDENT [36] {
-                                  name: @index0
+                                IDENT [34] {
+                                  name: @index2
                                 }
                               }
                               accu_var: @x0:0
                               accu_init: {
-                                CONSTANT [37] { value: false }
+                                CONSTANT [35] { value: false }
                               }
                               loop_condition: {
-                                CALL [38] {
+                                CALL [36] {
                                   function: @not_strictly_false
                                   args: {
-                                    CALL [39] {
+                                    CALL [37] {
                                       function: !_
                                       args: {
-                                        IDENT [40] {
+                                        IDENT [38] {
                                           name: @x0:0
                                         }
                                       }
@@ -1480,12 +1388,12 @@ CALL [1] {
                                 }
                               }
                               loop_step: {
-                                IDENT [41] {
-                                  name: @index2
+                                IDENT [39] {
+                                  name: @index0
                                 }
                               }
                               result: {
-                                IDENT [42] {
+                                IDENT [40] {
                                   name: @x0:0
                                 }
                               }
@@ -1496,30 +1404,30 @@ CALL [1] {
                     }
                   }
                 }
-                CALL [43] {
+                CALL [41] {
                   function: size
                   args: {
-                    CREATE_LIST [44] {
+                    CREATE_LIST [42] {
                       elements: {
-                        COMPREHENSION [45] {
+                        COMPREHENSION [43] {
                           iter_var: @c0:0
                           iter_range: {
-                            IDENT [46] {
+                            IDENT [44] {
                               name: @index3
                             }
                           }
                           accu_var: @x0:0
                           accu_init: {
-                            CONSTANT [47] { value: false }
+                            CONSTANT [45] { value: false }
                           }
                           loop_condition: {
-                            CALL [48] {
+                            CALL [46] {
                               function: @not_strictly_false
                               args: {
-                                CALL [49] {
+                                CALL [47] {
                                   function: !_
                                   args: {
-                                    IDENT [50] {
+                                    IDENT [48] {
                                       name: @x0:0
                                     }
                                   }
@@ -1528,12 +1436,12 @@ CALL [1] {
                             }
                           }
                           loop_step: {
-                            IDENT [51] {
-                              name: @index5
+                            IDENT [49] {
+                              name: @index1
                             }
                           }
                           result: {
-                            IDENT [52] {
+                            IDENT [50] {
                               name: @x0:0
                             }
                           }
@@ -1544,30 +1452,30 @@ CALL [1] {
                 }
               }
             }
-            CALL [53] {
+            CALL [51] {
               function: size
               args: {
-                CREATE_LIST [54] {
+                CREATE_LIST [52] {
                   elements: {
-                    COMPREHENSION [55] {
+                    COMPREHENSION [53] {
                       iter_var: @c0:0
                       iter_range: {
-                        IDENT [56] {
+                        IDENT [54] {
                           name: @index3
                         }
                       }
                       accu_var: @x0:0
                       accu_init: {
-                        CONSTANT [57] { value: false }
+                        CONSTANT [55] { value: false }
                       }
                       loop_condition: {
-                        CALL [58] {
+                        CALL [56] {
                           function: @not_strictly_false
                           args: {
-                            CALL [59] {
+                            CALL [57] {
                               function: !_
                               args: {
-                                IDENT [60] {
+                                IDENT [58] {
                                   name: @x0:0
                                 }
                               }
@@ -1576,12 +1484,12 @@ CALL [1] {
                         }
                       }
                       loop_step: {
-                        IDENT [61] {
-                          name: @index5
+                        IDENT [59] {
+                          name: @index1
                         }
                       }
                       result: {
-                        IDENT [62] {
+                        IDENT [60] {
                           name: @x0:0
                         }
                       }
@@ -1592,7 +1500,7 @@ CALL [1] {
             }
           }
         }
-        CONSTANT [63] { value: 4 }
+        CONSTANT [61] { value: 4 }
       }
     }
   }
@@ -1605,99 +1513,93 @@ CALL [1] {
   args: {
     CREATE_LIST [2] {
       elements: {
-        CREATE_LIST [3] {
-          elements: {
-            CONSTANT [4] { value: 1 }
-          }
-        }
-        CALL [5] {
-          function: _>_
+        CALL [3] {
+          function: _||_
           args: {
-            IDENT [6] {
-              name: @c0:0
+            IDENT [4] {
+              name: @x0:0
             }
-            CONSTANT [7] { value: 0 }
+            CALL [5] {
+              function: _>_
+              args: {
+                IDENT [6] {
+                  name: @c0:0
+                }
+                CONSTANT [7] { value: 0 }
+              }
+            }
           }
         }
         CALL [8] {
           function: _||_
           args: {
             IDENT [9] {
-              name: @x0:0
-            }
-            IDENT [10] {
-              name: @index1
-            }
-          }
-        }
-        CREATE_LIST [11] {
-          elements: {
-            CONSTANT [12] { value: "a" }
-          }
-        }
-        CALL [13] {
-          function: _==_
-          args: {
-            IDENT [14] {
-              name: @c0:1
-            }
-            CONSTANT [15] { value: "a" }
-          }
-        }
-        CALL [16] {
-          function: _||_
-          args: {
-            IDENT [17] {
               name: @x0:1
             }
-            IDENT [18] {
-              name: @index4
+            CALL [10] {
+              function: _==_
+              args: {
+                IDENT [11] {
+                  name: @c0:1
+                }
+                CONSTANT [12] { value: "a" }
+              }
             }
           }
         }
-        CREATE_LIST [19] {
+        CREATE_LIST [13] {
           elements: {
+            CONSTANT [14] { value: 1 }
+          }
+        }
+        CREATE_LIST [15] {
+          elements: {
+            CONSTANT [16] { value: "a" }
+          }
+        }
+        CREATE_LIST [17] {
+          elements: {
+            CONSTANT [18] { value: true }
+            CONSTANT [19] { value: true }
             CONSTANT [20] { value: true }
             CONSTANT [21] { value: true }
-            CONSTANT [22] { value: true }
-            CONSTANT [23] { value: true }
           }
         }
       }
     }
-    CALL [24] {
+    CALL [22] {
       function: _==_
       args: {
-        CALL [25] {
+        CALL [23] {
           function: _+_
           args: {
-            CALL [26] {
+            CALL [24] {
               function: _+_
               args: {
-                CALL [27] {
+                CALL [25] {
                   function: _+_
                   args: {
-                    CREATE_LIST [28] {
+                    CREATE_LIST [26] {
                       elements: {
-                        COMPREHENSION [29] {
+                        COMPREHENSION [27] {
                           iter_var: @c0:0
                           iter_range: {
-                            IDENT [30] {
-                              name: @index0
+                            IDENT [28] {
+                              name: @index2
                             }
                           }
                           accu_var: @x0:0
                           accu_init: {
-                            CONSTANT [31] { value: false }
+                            CONSTANT [29] { value: false }
                           }
                           loop_condition: {
-                            CALL [32] {
+                            CALL [30] {
                               function: @not_strictly_false
                               args: {
-                                CALL [33] {
+                                CALL [31] {
                                   function: !_
                                   args: {
-                                    IDENT [34] {
+                                    IDENT [32] {
                                       name: @x0:0
                                     }
                                   }
@@ -1706,39 +1608,39 @@ CALL [1] {
                             }
                           }
                           loop_step: {
-                            IDENT [35] {
-                              name: @index2
+                            IDENT [33] {
+                              name: @index0
                             }
                           }
                           result: {
-                            IDENT [36] {
+                            IDENT [34] {
                               name: @x0:0
                             }
                           }
                         }
                       }
                     }
-                    CREATE_LIST [37] {
+                    CREATE_LIST [35] {
                       elements: {
-                        COMPREHENSION [38] {
+                        COMPREHENSION [36] {
                           iter_var: @c0:0
                           iter_range: {
-                            IDENT [39] {
-                              name: @index0
+                            IDENT [37] {
+                              name: @index2
                             }
                           }
                           accu_var: @x0:0
                           accu_init: {
-                            CONSTANT [40] { value: false }
+                            CONSTANT [38] { value: false }
                           }
                           loop_condition: {
-                            CALL [41] {
+                            CALL [39] {
                               function: @not_strictly_false
                               args: {
-                                CALL [42] {
+                                CALL [40] {
                                   function: !_
                                   args: {
-                                    IDENT [43] {
+                                    IDENT [41] {
                                       name: @x0:0
                                     }
                                   }
@@ -1747,12 +1649,12 @@ CALL [1] {
                             }
                           }
                           loop_step: {
-                            IDENT [44] {
-                              name: @index2
+                            IDENT [42] {
+                              name: @index0
                             }
                           }
                           result: {
-                            IDENT [45] {
+                            IDENT [43] {
                               name: @x0:0
                             }
                           }
@@ -1761,27 +1663,27 @@ CALL [1] {
                     }
                   }
                 }
-                CREATE_LIST [46] {
+                CREATE_LIST [44] {
                   elements: {
-                    COMPREHENSION [47] {
+                    COMPREHENSION [45] {
                       iter_var: @c0:1
                       iter_range: {
-                        IDENT [48] {
+                        IDENT [46] {
                           name: @index3
                         }
                       }
                       accu_var: @x0:1
                       accu_init: {
-                        CONSTANT [49] { value: false }
+                        CONSTANT [47] { value: false }
                       }
                       loop_condition: {
-                        CALL [50] {
+                        CALL [48] {
                           function: @not_strictly_false
                           args: {
-                            CALL [51] {
+                            CALL [49] {
                               function: !_
                               args: {
-                                IDENT [52] {
+                                IDENT [50] {
                                   name: @x0:1
                                 }
                               }
@@ -1790,12 +1692,12 @@ CALL [1] {
                         }
                       }
                       loop_step: {
-                        IDENT [53] {
-                          name: @index5
+                        IDENT [51] {
+                          name: @index1
                         }
                       }
                       result: {
-                        IDENT [54] {
+                        IDENT [52] {
                           name: @x0:1
                         }
                       }
@@ -1804,27 +1706,27 @@ CALL [1] {
                 }
               }
             }
-            CREATE_LIST [55] {
+            CREATE_LIST [53] {
               elements: {
-                COMPREHENSION [56] {
+                COMPREHENSION [54] {
                   iter_var: @c0:1
                   iter_range: {
-                    IDENT [57] {
+                    IDENT [55] {
                       name: @index3
                     }
                   }
                   accu_var: @x0:1
                   accu_init: {
-                    CONSTANT [58] { value: false }
+                    CONSTANT [56] { value: false }
                   }
                   loop_condition: {
-                    CALL [59] {
+                    CALL [57] {
                       function: @not_strictly_false
                       args: {
-                        CALL [60] {
+                        CALL [58] {
                           function: !_
                           args: {
-                            IDENT [61] {
+                            IDENT [59] {
                               name: @x0:1
                             }
                           }
@@ -1833,12 +1735,12 @@ CALL [1] {
                     }
                   }
                   loop_step: {
-                    IDENT [62] {
-                      name: @index5
+                    IDENT [60] {
+                      name: @index1
                     }
                   }
                   result: {
-                    IDENT [63] {
+                    IDENT [61] {
                       name: @x0:1
                     }
                   }
@@ -1847,8 +1749,8 @@ CALL [1] {
             }
           }
         }
-        IDENT [64] {
-          name: @index6
+        IDENT [62] {
+          name: @index4
         }
       }
     }
@@ -1878,119 +1780,116 @@ CALL [1] {
         }
         CREATE_LIST [11] {
           elements: {
-            IDENT [12] {
-              name: @index1
-            }
-            IDENT [13] {
-              name: @index1
-            }
-            IDENT [14] {
-              name: @index1
-            }
-          }
-        }
-        CREATE_LIST [15] {
-          elements: {
-            CALL [16] {
+            CALL [12] {
               function: _+_
               args: {
-                IDENT [17] {
+                IDENT [13] {
                   name: @c1:0
                 }
-                CONSTANT [18] { value: 1 }
+                CONSTANT [14] { value: 1 }
               }
             }
           }
         }
-        COMPREHENSION [19] {
+        COMPREHENSION [15] {
           iter_var: @c1:0
           iter_range: {
-            IDENT [20] {
+            IDENT [16] {
               name: @index0
             }
           }
           accu_var: @x1:0
           accu_init: {
-            CREATE_LIST [21] {
+            CREATE_LIST [17] {
               elements: {
               }
             }
           }
           loop_condition: {
-            CONSTANT [22] { value: true }
+            CONSTANT [18] { value: true }
           }
           loop_step: {
-            CALL [23] {
+            CALL [19] {
               function: _+_
               args: {
-                IDENT [24] {
+                IDENT [20] {
                   name: @x1:0
                 }
-                IDENT [25] {
+                IDENT [21] {
+                  name: @index2
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [22] {
+              name: @x1:0
+            }
+          }
+        }
+        CALL [23] {
+          function: _+_
+          args: {
+            IDENT [24] {
+              name: @x0:0
+            }
+            CREATE_LIST [25] {
+              elements: {
+                IDENT [26] {
                   name: @index3
                 }
               }
             }
           }
-          result: {
-            IDENT [26] {
-              name: @x1:0
-            }
-          }
         }
-        CALL [27] {
-          function: _+_
-          args: {
-            IDENT [28] {
-              name: @x0:0
-            }
-            CREATE_LIST [29] {
-              elements: {
-                IDENT [30] {
-                  name: @index4
-                }
-              }
-            }
-          }
-        }
-        COMPREHENSION [31] {
+        COMPREHENSION [27] {
           iter_var: @c0:0
           iter_range: {
-            IDENT [32] {
+            IDENT [28] {
               name: @index0
             }
           }
           accu_var: @x0:0
           accu_init: {
-            CREATE_LIST [33] {
+            CREATE_LIST [29] {
               elements: {
               }
             }
           }
           loop_condition: {
-            CONSTANT [34] { value: true }
+            CONSTANT [30] { value: true }
           }
           loop_step: {
-            IDENT [35] {
-              name: @index5
+            IDENT [31] {
+              name: @index4
             }
           }
           result: {
-            IDENT [36] {
+            IDENT [32] {
               name: @x0:0
             }
           }
         }
       }
     }
-    CALL [37] {
+    CALL [33] {
       function: _==_
       args: {
-        IDENT [38] {
-          name: @index6
+        IDENT [34] {
+          name: @index5
         }
-        IDENT [39] {
-          name: @index2
+        CREATE_LIST [35] {
+          elements: {
+            IDENT [36] {
+              name: @index1
+            }
+            IDENT [37] {
+              name: @index1
+            }
+            IDENT [38] {
+              name: @index1
+            }
+          }
         }
       }
     }
@@ -2004,132 +1903,132 @@ CALL [1] {
   args: {
     CREATE_LIST [2] {
       elements: {
-        CREATE_LIST [3] {
-          elements: {
-            CREATE_LIST [4] {
-              elements: {
-                CONSTANT [5] { value: 1 }
-              }
-            }
-            CREATE_LIST [6] {
-              elements: {
-                CONSTANT [7] { value: 2 }
-              }
-            }
-          }
-        }
-        CALL [8] {
+        CALL [3] {
           function: _+_
           args: {
-            IDENT [9] {
+            IDENT [4] {
               name: @x1:0
             }
-            CREATE_LIST [10] {
+            CREATE_LIST [5] {
               elements: {
-                IDENT [11] {
+                IDENT [6] {
                   name: @c1:0
                 }
               }
             }
           }
         }
-        CALL [12] {
+        CALL [7] {
           function: _?_:_
           args: {
-            CALL [13] {
+            CALL [8] {
               function: _==_
               args: {
-                IDENT [14] {
+                IDENT [9] {
                   name: @c1:0
                 }
-                IDENT [15] {
+                IDENT [10] {
                   name: @c0:0
                 }
               }
             }
-            IDENT [16] {
-              name: @index1
+            IDENT [11] {
+              name: @index0
             }
-            IDENT [17] {
+            IDENT [12] {
               name: @x1:0
             }
           }
         }
-        COMPREHENSION [18] {
+        COMPREHENSION [13] {
           iter_var: @c1:0
           iter_range: {
-            CREATE_LIST [19] {
+            CREATE_LIST [14] {
               elements: {
-                CONSTANT [20] { value: 1 }
-                CONSTANT [21] { value: 2 }
-                CONSTANT [22] { value: 3 }
+                CONSTANT [15] { value: 1 }
+                CONSTANT [16] { value: 2 }
+                CONSTANT [17] { value: 3 }
               }
             }
           }
           accu_var: @x1:0
           accu_init: {
-            CREATE_LIST [23] {
+            CREATE_LIST [18] {
               elements: {
               }
             }
           }
           loop_condition: {
-            CONSTANT [24] { value: true }
+            CONSTANT [19] { value: true }
           }
           loop_step: {
-            IDENT [25] {
-              name: @index2
+            IDENT [20] {
+              name: @index1
             }
           }
           result: {
-            IDENT [26] {
+            IDENT [21] {
               name: @x1:0
             }
           }
         }
-        CALL [27] {
+        CALL [22] {
           function: _+_
           args: {
-            IDENT [28] {
+            IDENT [23] {
               name: @x0:0
             }
-            CREATE_LIST [29] {
+            CREATE_LIST [24] {
               elements: {
-                IDENT [30] {
-                  name: @index3
+                IDENT [25] {
+                  name: @index2
                 }
               }
             }
           }
         }
-        COMPREHENSION [31] {
+        COMPREHENSION [26] {
           iter_var: @c0:0
           iter_range: {
-            CREATE_LIST [32] {
+            CREATE_LIST [27] {
               elements: {
-                CONSTANT [33] { value: 1 }
-                CONSTANT [34] { value: 2 }
+                CONSTANT [28] { value: 1 }
+                CONSTANT [29] { value: 2 }
               }
             }
           }
           accu_var: @x0:0
           accu_init: {
-            CREATE_LIST [35] {
+            CREATE_LIST [30] {
               elements: {
               }
             }
           }
           loop_condition: {
-            CONSTANT [36] { value: true }
+            CONSTANT [31] { value: true }
           }
           loop_step: {
-            IDENT [37] {
-              name: @index4
+            IDENT [32] {
+              name: @index3
             }
           }
           result: {
-            IDENT [38] {
+            IDENT [33] {
               name: @x0:0
+            }
+          }
+        }
+        CREATE_LIST [34] {
+          elements: {
+            CREATE_LIST [35] {
+              elements: {
+                CONSTANT [36] { value: 1 }
+              }
+            }
+            CREATE_LIST [37] {
+              elements: {
+                CONSTANT [38] { value: 2 }
+              }
             }
           }
         }
@@ -2139,10 +2038,10 @@ CALL [1] {
       function: _==_
       args: {
         IDENT [40] {
-          name: @index5
+          name: @index4
         }
         IDENT [41] {
-          name: @index0
+          name: @index5
         }
       }
     }
@@ -2156,59 +2055,52 @@ CALL [1] {
   args: {
     CREATE_LIST [2] {
       elements: {
-        CREATE_LIST [3] {
-          elements: {
-            CONSTANT [4] { value: 1 }
-            CONSTANT [5] { value: 2 }
-            CONSTANT [6] { value: 3 }
-          }
-        }
-        CALL [7] {
+        CALL [3] {
           function: @in
           args: {
-            CONSTANT [8] { value: 1 }
-            IDENT [9] {
-              name: @index0
+            CONSTANT [4] { value: 1 }
+            CREATE_LIST [5] {
+              elements: {
+                CONSTANT [6] { value: 1 }
+                CONSTANT [7] { value: 2 }
+                CONSTANT [8] { value: 3 }
+              }
             }
           }
         }
-        CALL [10] {
-          function: @in
+        CREATE_LIST [9] {
+          elements: {
+            CONSTANT [10] { value: 1 }
+            CONSTANT [11] { value: 2 }
+            CONSTANT [12] { value: 3 }
+          }
+        }
+        CALL [13] {
+          function: _&&_
           args: {
-            CONSTANT [11] { value: 3 }
-            CREATE_LIST [12] {
-              elements: {
-                CONSTANT [13] { value: 3 }
-                IDENT [14] {
-                  name: @index0
+            IDENT [14] {
+              name: @index0
+            }
+            CALL [15] {
+              function: @in
+              args: {
+                CONSTANT [16] { value: 2 }
+                IDENT [17] {
+                  name: @index1
                 }
               }
             }
           }
         }
-        CALL [15] {
-          function: _&&_
-          args: {
-            IDENT [16] {
-              name: @index2
-            }
-            IDENT [17] {
-              name: @index1
-            }
-          }
-        }
         CALL [18] {
-          function: _&&_
+          function: @in
           args: {
-            IDENT [19] {
-              name: @index1
-            }
-            CALL [20] {
-              function: @in
-              args: {
-                CONSTANT [21] { value: 2 }
+            CONSTANT [19] { value: 3 }
+            CREATE_LIST [20] {
+              elements: {
+                CONSTANT [21] { value: 3 }
                 IDENT [22] {
-                  name: @index0
+                  name: @index1
                 }
               }
             }
@@ -2220,10 +2112,18 @@ CALL [1] {
       function: _&&_
       args: {
         IDENT [24] {
-          name: @index4
+          name: @index2
         }
-        IDENT [25] {
-          name: @index3
+        CALL [25] {
+          function: _&&_
+          args: {
+            IDENT [26] {
+              name: @index3
+            }
+            IDENT [27] {
+              name: @index0
+            }
+          }
         }
       }
     }
@@ -2247,44 +2147,41 @@ CALL [1] {
             }
           }
         }
-        CREATE_MAP [7] {
-          MAP_ENTRY [8] {
-            key: {
-              CONSTANT [9] { value: "a" }
-            }
-            value: {
-              CONSTANT [10] { value: 1 }
-            }
-          }
-          MAP_ENTRY [11] {
-            key: {
-              CONSTANT [12] { value: 2 }
-            }
-            value: {
-              IDENT [13] {
-                name: @index0
-              }
-            }
-          }
-          MAP_ENTRY [14] {
-            key: {
-              CONSTANT [15] { value: 3 }
-            }
-            value: {
-              IDENT [16] {
-                name: @index0
-              }
-            }
-          }
-        }
       }
     }
-    CALL [17] {
+    CALL [7] {
       function: @in
       args: {
-        CONSTANT [18] { value: 2 }
-        IDENT [19] {
-          name: @index1
+        CONSTANT [8] { value: 2 }
+        CREATE_MAP [9] {
+          MAP_ENTRY [10] {
+            key: {
+              CONSTANT [11] { value: "a" }
+            }
+            value: {
+              CONSTANT [12] { value: 1 }
+            }
+          }
+          MAP_ENTRY [13] {
+            key: {
+              CONSTANT [14] { value: 2 }
+            }
+            value: {
+              IDENT [15] {
+                name: @index0
+              }
+            }
+          }
+          MAP_ENTRY [16] {
+            key: {
+              CONSTANT [17] { value: 3 }
+            }
+            value: {
+              IDENT [18] {
+                name: @index0
+              }
+            }
+          }
         }
       }
     }
@@ -2300,71 +2197,64 @@ CALL [1] {
       elements: {
         CREATE_LIST [3] {
           elements: {
-            CONSTANT [4] { value: 1 }
-            CONSTANT [5] { value: 2 }
-          }
-        }
-        CREATE_LIST [6] {
-          elements: {
-            CONSTANT [7] { value: 3 }
-            CONSTANT [8] { value: 4 }
-          }
-        }
-        CREATE_LIST [9] {
-          elements: {
-            IDENT [10] {
-              name: @index1
-            }
-            IDENT [11] {
-              name: @index1
-            }
-          }
-        }
-        CREATE_LIST [12] {
-          elements: {
-            IDENT [13] {
-              name: @index2
-            }
-            IDENT [14] {
-              name: @index2
-            }
-          }
-        }
-        CALL [15] {
-          function: _+_
-          args: {
-            IDENT [16] {
-              name: @x1:0
-            }
-            CREATE_LIST [17] {
+            CREATE_LIST [4] {
               elements: {
-                IDENT [18] {
-                  name: @index1
-                }
+                CONSTANT [5] { value: 3 }
+                CONSTANT [6] { value: 4 }
+              }
+            }
+            CREATE_LIST [7] {
+              elements: {
+                CONSTANT [8] { value: 3 }
+                CONSTANT [9] { value: 4 }
               }
             }
           }
         }
-        COMPREHENSION [19] {
+        CREATE_LIST [10] {
+          elements: {
+            CONSTANT [11] { value: 1 }
+            CONSTANT [12] { value: 2 }
+          }
+        }
+        CREATE_LIST [13] {
+          elements: {
+            CREATE_LIST [14] {
+              elements: {
+                CONSTANT [15] { value: 3 }
+                CONSTANT [16] { value: 4 }
+              }
+            }
+          }
+        }
+        COMPREHENSION [17] {
           iter_var: @c1:0
           iter_range: {
-            IDENT [20] {
-              name: @index0
+            IDENT [18] {
+              name: @index1
             }
           }
           accu_var: @x1:0
           accu_init: {
-            CREATE_LIST [21] {
+            CREATE_LIST [19] {
               elements: {
               }
             }
           }
           loop_condition: {
-            CONSTANT [22] { value: true }
+            CONSTANT [20] { value: true }
           }
           loop_step: {
-            IDENT [23] {
-              name: @index4
+            CALL [21] {
+              function: _+_
+              args: {
+                IDENT [22] {
+                  name: @x1:0
+                }
+                IDENT [23] {
+                  name: @index2
+                }
+              }
             }
           }
           result: {
@@ -2382,7 +2272,7 @@ CALL [1] {
             CREATE_LIST [27] {
               elements: {
                 IDENT [28] {
-                  name: @index5
+                  name: @index3
                 }
               }
             }
@@ -2392,7 +2282,7 @@ CALL [1] {
           iter_var: @c0:0
           iter_range: {
             IDENT [30] {
-              name: @index0
+              name: @index1
             }
           }
           accu_var: @x0:0
@@ -2407,7 +2297,7 @@ CALL [1] {
           }
           loop_step: {
             IDENT [33] {
-              name: @index6
+              name: @index4
             }
           }
           result: {
@@ -2422,10 +2312,17 @@ CALL [1] {
       function: _==_
       args: {
         IDENT [36] {
-          name: @index7
+          name: @index5
         }
-        IDENT [37] {
-          name: @index3
+        CREATE_LIST [37] {
+          elements: {
+            IDENT [38] {
+              name: @index0
+            }
+            IDENT [39] {
+              name: @index0
+            }
+          }
         }
       }
     }
@@ -2440,89 +2337,95 @@ CALL [1] {
     CREATE_LIST [2] {
       elements: {
         CALL [3] {
-          function: _-_
-          args: {
-            IDENT [4] {
-              name: x
-            }
-            CONSTANT [5] { value: 1 }
-          }
-        }
-        CALL [6] {
           function: _>_
           args: {
-            IDENT [7] {
+            CALL [4] {
+              function: _-_
+              args: {
+                IDENT [5] {
+                  name: x
+                }
+                CONSTANT [6] { value: 1 }
+              }
+            }
+            CONSTANT [7] { value: 3 }
+          }
+        }
+        CALL [8] {
+          function: _?_:_
+          args: {
+            IDENT [9] {
               name: @index0
             }
-            CONSTANT [8] { value: 3 }
-          }
-        }
-        CALL [9] {
-          function: _>_
-          args: {
             CALL [10] {
               function: _-_
               args: {
                 IDENT [11] {
-                  name: @c0:0
+                  name: x
                 }
                 CONSTANT [12] { value: 1 }
               }
             }
-            CONSTANT [13] { value: 3 }
+            CONSTANT [13] { value: 5 }
           }
         }
         CALL [14] {
-          function: _||_
+          function: _>_
           args: {
-            IDENT [15] {
-              name: @x0:0
+            CALL [15] {
+              function: _-_
+              args: {
+                IDENT [16] {
+                  name: @c0:0
+                }
+                CONSTANT [17] { value: 1 }
+              }
             }
-            IDENT [16] {
-              name: @index2
+            CONSTANT [18] { value: 3 }
+          }
+        }
+        CREATE_LIST [19] {
+          elements: {
+            IDENT [20] {
+              name: @index1
             }
           }
         }
-        CREATE_LIST [17] {
-          elements: {
-            CALL [18] {
-              function: _?_:_
-              args: {
-                IDENT [19] {
-                  name: @index1
-                }
-                IDENT [20] {
-                  name: @index0
-                }
-                CONSTANT [21] { value: 5 }
-              }
+        CALL [21] {
+          function: _||_
+          args: {
+            IDENT [22] {
+              name: @x0:0
+            }
+            IDENT [23] {
+              name: @index2
             }
           }
         }
       }
     }
-    CALL [22] {
+    CALL [24] {
       function: _||_
       args: {
-        COMPREHENSION [23] {
+        COMPREHENSION [25] {
           iter_var: @c0:0
           iter_range: {
-            IDENT [24] {
-              name: @index4
+            IDENT [26] {
+              name: @index3
             }
           }
           accu_var: @x0:0
           accu_init: {
-            CONSTANT [25] { value: false }
+            CONSTANT [27] { value: false }
           }
           loop_condition: {
-            CALL [26] {
+            CALL [28] {
               function: @not_strictly_false
               args: {
-                CALL [27] {
+                CALL [29] {
                   function: !_
                   args: {
-                    IDENT [28] {
+                    IDENT [30] {
                       name: @x0:0
                     }
                   }
@@ -2531,18 +2434,18 @@ CALL [1] {
             }
           }
           loop_step: {
-            IDENT [29] {
-              name: @index3
+            IDENT [31] {
+              name: @index4
             }
           }
           result: {
-            IDENT [30] {
+            IDENT [32] {
               name: @x0:0
             }
           }
         }
-        IDENT [31] {
-          name: @index1
+        IDENT [33] {
+          name: @index0
         }
       }
     }
@@ -2583,105 +2486,102 @@ CALL [1] {
             CREATE_LIST [10] {
               elements: {
                 IDENT [11] {
-                  name: @index1
+                  name: @index0
                 }
                 IDENT [12] {
-                  name: @index1
-                }
-              }
-            }
-          }
-        }
-        CALL [13] {
-          function: _+_
-          args: {
-            IDENT [14] {
-              name: @x0:0
-            }
-            IDENT [15] {
-              name: @index2
-            }
-          }
-        }
-        CREATE_LIST [16] {
-          elements: {
-            CREATE_LIST [17] {
-              elements: {
-                IDENT [18] {
-                  name: @index0
-                }
-                IDENT [19] {
                   name: @index0
                 }
               }
             }
           }
         }
-        COMPREHENSION [20] {
+        COMPREHENSION [13] {
           iter_var: @c1:0
           iter_range: {
-            CREATE_LIST [21] {
+            CREATE_LIST [14] {
               elements: {
-                CONSTANT [22] { value: "foo" }
-                CONSTANT [23] { value: "bar" }
+                CONSTANT [15] { value: "foo" }
+                CONSTANT [16] { value: "bar" }
               }
             }
           }
           accu_var: @x1:0
           accu_init: {
-            CREATE_LIST [24] {
+            CREATE_LIST [17] {
               elements: {
               }
             }
           }
           loop_condition: {
-            CONSTANT [25] { value: true }
+            CONSTANT [18] { value: true }
           }
           loop_step: {
-            CALL [26] {
+            CALL [19] {
               function: _+_
               args: {
-                IDENT [27] {
+                IDENT [20] {
                   name: @x1:0
                 }
-                IDENT [28] {
-                  name: @index4
+                IDENT [21] {
+                  name: @index2
                 }
               }
             }
           }
           result: {
-            IDENT [29] {
+            IDENT [22] {
               name: @x1:0
+            }
+          }
+        }
+        CREATE_LIST [23] {
+          elements: {
+            CREATE_LIST [24] {
+              elements: {
+                IDENT [25] {
+                  name: @index1
+                }
+                IDENT [26] {
+                  name: @index1
+                }
+              }
             }
           }
         }
       }
     }
-    COMPREHENSION [30] {
+    COMPREHENSION [27] {
       iter_var: @c0:0
       iter_range: {
-        IDENT [31] {
-          name: @index5
+        IDENT [28] {
+          name: @index3
         }
       }
       accu_var: @x0:0
       accu_init: {
-        CREATE_LIST [32] {
+        CREATE_LIST [29] {
           elements: {
           }
         }
       }
       loop_condition: {
-        CONSTANT [33] { value: true }
+        CONSTANT [30] { value: true }
       }
       loop_step: {
-        IDENT [34] {
-          name: @index3
+        CALL [31] {
+          function: _+_
+          args: {
+            IDENT [32] {
+              name: @x0:0
+            }
+            IDENT [33] {
+              name: @index4
+            }
+          }
         }
       }
       result: {
-        IDENT [35] {
+        IDENT [34] {
           name: @x0:0
         }
       }
@@ -2706,27 +2606,24 @@ CALL [1] {
             }
           }
         }
-        CALL [7] {
-          function: _[_]
-          args: {
-            IDENT [8] {
-              name: @index0
-            }
-            CONSTANT [9] { value: "a" }
-          }
-        }
       }
     }
-    CALL [10] {
+    CALL [7] {
       function: _&&_
       args: {
-        SELECT [11] {
-          IDENT [12] {
+        SELECT [8] {
+          IDENT [9] {
             name: @index0
           }.a~presence_test
         }
-        IDENT [13] {
-          name: @index1
+        CALL [10] {
+          function: _[_]
+          args: {
+            IDENT [11] {
+              name: @index0
+            }
+            CONSTANT [12] { value: "a" }
+          }
         }
       }
     }
@@ -2788,51 +2685,53 @@ CALL [1] {
     CREATE_LIST [2] {
       elements: {
         SELECT [3] {
-          IDENT [4] {
+          SELECT [4] {
+            IDENT [5] {
+              name: msg
+            }.oneof_type
+          }.payload
+        }
+        SELECT [6] {
+          IDENT [7] {
+            name: @index0
+          }.single_int64
+        }
+        SELECT [8] {
+          IDENT [9] {
             name: msg
           }.oneof_type
         }
-        SELECT [5] {
-          IDENT [6] {
-            name: @index0
-          }.payload
-        }
-        SELECT [7] {
-          IDENT [8] {
-            name: @index1
-          }.single_int64
-        }
-        CALL [9] {
+        CALL [10] {
           function: _?_:_
           args: {
-            SELECT [10] {
-              IDENT [11] {
-                name: @index0
+            SELECT [11] {
+              IDENT [12] {
+                name: @index2
               }.payload~presence_test
             }
-            IDENT [12] {
-              name: @index2
+            IDENT [13] {
+              name: @index1
             }
-            CALL [13] {
+            CALL [14] {
               function: _*_
               args: {
-                IDENT [14] {
-                  name: @index2
+                IDENT [15] {
+                  name: @index1
                 }
-                CONSTANT [15] { value: 0 }
+                CONSTANT [16] { value: 0 }
               }
             }
           }
         }
       }
     }
-    CALL [16] {
+    CALL [17] {
       function: _==_
       args: {
-        IDENT [17] {
+        IDENT [18] {
           name: @index3
         }
-        CONSTANT [18] { value: 10 }
+        CONSTANT [19] { value: 10 }
       }
     }
   }
@@ -2846,51 +2745,48 @@ CALL [1] {
     CREATE_LIST [2] {
       elements: {
         SELECT [3] {
-          IDENT [4] {
-            name: msg
-          }.oneof_type
-        }
-        SELECT [5] {
-          IDENT [6] {
-            name: @index0
+          SELECT [4] {
+            IDENT [5] {
+              name: msg
+            }.oneof_type
           }.payload
         }
-        SELECT [7] {
-          IDENT [8] {
-            name: @index1
+        SELECT [6] {
+          IDENT [7] {
+            name: @index0
           }.single_int64
         }
-        CALL [9] {
+        CALL [8] {
           function: _?_:_
           args: {
-            SELECT [10] {
-              IDENT [11] {
-                name: @index1
+            SELECT [9] {
+              IDENT [10] {
+                name: @index0
               }.single_int64~presence_test
             }
-            IDENT [12] {
-              name: @index2
+            IDENT [11] {
+              name: @index1
             }
-            CALL [13] {
+            CALL [12] {
               function: _*_
               args: {
-                IDENT [14] {
-                  name: @index2
+                IDENT [13] {
+                  name: @index1
                 }
-                CONSTANT [15] { value: 0 }
+                CONSTANT [14] { value: 0 }
               }
             }
           }
         }
       }
     }
-    CALL [16] {
+    CALL [15] {
       function: _==_
       args: {
-        IDENT [17] {
-          name: @index3
+        IDENT [16] {
+          name: @index2
         }
-        CONSTANT [18] { value: 10 }
+        CONSTANT [17] { value: 10 }
       }
     }
   }
@@ -2904,96 +2800,95 @@ CALL [1] {
     CREATE_LIST [2] {
       elements: {
         SELECT [3] {
-          IDENT [4] {
-            name: msg
-          }.oneof_type
-        }
-        SELECT [5] {
-          IDENT [6] {
-            name: @index0
+          SELECT [4] {
+            IDENT [5] {
+              name: msg
+            }.oneof_type
           }.payload
         }
-        SELECT [7] {
-          IDENT [8] {
-            name: @index1
+        SELECT [6] {
+          IDENT [7] {
+            name: @index0
           }.map_string_string
         }
-        CALL [9] {
-          function: _==_
-          args: {
-            SELECT [10] {
-              IDENT [11] {
-                name: @index2
-              }.key
-            }
-            CONSTANT [12] { value: "A" }
-          }
-        }
-        CALL [13] {
+        CALL [8] {
           function: _&&_
           args: {
-            SELECT [14] {
-              IDENT [15] {
-                name: @index1
+            SELECT [9] {
+              IDENT [10] {
+                name: @index0
               }.map_string_string~presence_test
             }
-            SELECT [16] {
-              IDENT [17] {
-                name: @index2
+            SELECT [11] {
+              IDENT [12] {
+                name: @index1
               }.key~presence_test
             }
           }
         }
-        CALL [18] {
-          function: _?_:_
+        CALL [13] {
+          function: _==_
           args: {
-            IDENT [19] {
-              name: @index4
+            SELECT [14] {
+              IDENT [15] {
+                name: @index1
+              }.key
             }
-            IDENT [20] {
-              name: @index3
-            }
-            CONSTANT [21] { value: false }
+            CONSTANT [16] { value: "A" }
           }
         }
-        CALL [22] {
+        SELECT [17] {
+          IDENT [18] {
+            name: msg
+          }.oneof_type
+        }
+        CALL [19] {
           function: _&&_
           args: {
-            SELECT [23] {
-              IDENT [24] {
+            SELECT [20] {
+              IDENT [21] {
                 name: msg
               }.oneof_type~presence_test
             }
-            SELECT [25] {
-              IDENT [26] {
-                name: @index0
+            SELECT [22] {
+              IDENT [23] {
+                name: @index4
               }.payload~presence_test
             }
           }
         }
-        CALL [27] {
+        CALL [24] {
           function: _&&_
           args: {
-            IDENT [28] {
-              name: @index6
+            IDENT [25] {
+              name: @index5
             }
-            SELECT [29] {
-              IDENT [30] {
-                name: @index1
+            SELECT [26] {
+              IDENT [27] {
+                name: @index0
               }.single_int64~presence_test
             }
           }
         }
       }
     }
-    CALL [31] {
+    CALL [28] {
       function: _?_:_
       args: {
-        IDENT [32] {
-          name: @index7
+        IDENT [29] {
+          name: @index6
         }
-        IDENT [33] {
-          name: @index5
+        CALL [30] {
+          function: _?_:_
+          args: {
+            IDENT [31] {
+              name: @index2
+            }
+            IDENT [32] {
+              name: @index3
+            }
+            CONSTANT [33] { value: false }
+          }
         }
         CONSTANT [34] { value: false }
       }
@@ -3008,63 +2903,59 @@ CALL [1] {
   args: {
     CREATE_LIST [2] {
       elements: {
-        CALL [3] {
-          function: optional.none
-          args: {
-          }
-        }
-        CREATE_LIST [4] {
+        CREATE_LIST [3] {
           elements: {
-            IDENT [5] {
-              name: @index0
+            CALL [4] {
+              function: optional.none
+              args: {
+              }
             }
-            IDENT [6] {
+            IDENT [5] {
               name: opt_x
             }
           }
           optional_indices: [0, 1]
         }
-        CREATE_LIST [7] {
+        CREATE_LIST [6] {
           elements: {
-            CONSTANT [8] { value: 5 }
+            CONSTANT [7] { value: 5 }
           }
         }
-        CREATE_LIST [9] {
+        CREATE_LIST [8] {
           elements: {
-            CONSTANT [10] { value: 10 }
+            CONSTANT [9] { value: 10 }
+            CALL [10] {
+              function: optional.none
+              args: {
+              }
+            }
             IDENT [11] {
-              name: @index2
-            }
-            IDENT [12] {
-              name: @index2
-            }
-          }
-        }
-        CREATE_LIST [13] {
-          elements: {
-            CONSTANT [14] { value: 10 }
-            IDENT [15] {
               name: @index0
             }
-            IDENT [16] {
-              name: @index1
-            }
-            IDENT [17] {
-              name: @index1
+            IDENT [12] {
+              name: @index0
             }
           }
           optional_indices: [0]
         }
       }
     }
-    CALL [18] {
+    CALL [13] {
       function: _==_
       args: {
-        IDENT [19] {
-          name: @index4
+        IDENT [14] {
+          name: @index2
         }
-        IDENT [20] {
-          name: @index3
+        CREATE_LIST [15] {
+          elements: {
+            CONSTANT [16] { value: 10 }
+            IDENT [17] {
+              name: @index1
+            }
+            IDENT [18] {
+              name: @index1
+            }
+          }
         }
       }
     }
@@ -3078,54 +2969,48 @@ CALL [1] {
   args: {
     CREATE_LIST [2] {
       elements: {
-        CALL [3] {
-          function: optional.of
-          args: {
-            CONSTANT [4] { value: "hello" }
-          }
-        }
-        CREATE_MAP [5] {
-          MAP_ENTRY [6] {
+        CREATE_MAP [3] {
+          MAP_ENTRY [4] {
             key: {
-              CONSTANT [7] { value: "hello" }
+              CONSTANT [5] { value: "hello" }
             }
             optional_entry: true
             value: {
-              IDENT [8] {
-                name: @index0
+              CALL [6] {
+                function: optional.of
+                args: {
+                  CONSTANT [7] { value: "hello" }
+                }
               }
             }
           }
         }
-        CALL [9] {
+        CALL [8] {
           function: _[_]
           args: {
-            IDENT [10] {
-              name: @index1
+            IDENT [9] {
+              name: @index0
             }
-            CONSTANT [11] { value: "hello" }
-          }
-        }
-        CALL [12] {
-          function: _+_
-          args: {
-            IDENT [13] {
-              name: @index2
-            }
-            IDENT [14] {
-              name: @index2
-            }
+            CONSTANT [10] { value: "hello" }
           }
         }
       }
     }
-    CALL [15] {
+    CALL [11] {
       function: _==_
       args: {
-        IDENT [16] {
-          name: @index3
+        CALL [12] {
+          function: _+_
+          args: {
+            IDENT [13] {
+              name: @index1
+            }
+            IDENT [14] {
+              name: @index1
+            }
+          }
         }
-        CONSTANT [17] { value: "hellohello" }
+        CONSTANT [15] { value: "hellohello" }
       }
     }
   }
@@ -3148,81 +3033,75 @@ CALL [1] {
             }
           }
         }
-        CALL [7] {
-          function: _[_]
-          args: {
-            IDENT [8] {
-              name: @index0
-            }
-            CONSTANT [9] { value: "key" }
-          }
-        }
-        CALL [10] {
-          function: _[?_]
-          args: {
-            IDENT [11] {
-              name: @index0
-            }
-            CONSTANT [12] { value: "bogus" }
-          }
-        }
-        CREATE_MAP [13] {
-          MAP_ENTRY [14] {
+        CREATE_MAP [7] {
+          MAP_ENTRY [8] {
             key: {
-              CONSTANT [15] { value: "key" }
+              CONSTANT [9] { value: "key" }
             }
             optional_entry: true
             value: {
-              CALL [16] {
+              CALL [10] {
                 function: optional.of
                 args: {
-                  CONSTANT [17] { value: "test" }
+                  CONSTANT [11] { value: "test" }
                 }
               }
             }
           }
         }
-        CALL [18] {
+        CALL [12] {
           function: or
           target: {
-            CALL [19] {
+            CALL [13] {
               function: _[?_]
               args: {
-                IDENT [20] {
-                  name: @index3
+                IDENT [14] {
+                  name: @index1
                 }
-                CONSTANT [21] { value: "bogus" }
+                CONSTANT [15] { value: "bogus" }
               }
             }
           }
           args: {
-            IDENT [22] {
+            CALL [16] {
+              function: _[?_]
+              args: {
+                IDENT [17] {
+                  name: @index0
+                }
+                CONSTANT [18] { value: "bogus" }
+              }
+            }
+          }
+        }
+        CALL [19] {
+          function: orValue
+          target: {
+            IDENT [20] {
               name: @index2
             }
           }
-        }
-        CALL [23] {
-          function: orValue
-          target: {
-            IDENT [24] {
-              name: @index4
-            }
-          }
           args: {
-            IDENT [25] {
-              name: @index1
+            CALL [21] {
+              function: _[_]
+              args: {
+                IDENT [22] {
+                  name: @index0
+                }
+                CONSTANT [23] { value: "key" }
+              }
             }
           }
         }
       }
     }
-    CALL [26] {
+    CALL [24] {
       function: _==_
       args: {
-        IDENT [27] {
-          name: @index5
+        IDENT [25] {
+          name: @index3
         }
-        CONSTANT [28] { value: "test" }
+        CONSTANT [26] { value: "test" }
       }
     }
   }
@@ -3235,65 +3114,59 @@ CALL [1] {
   args: {
     CREATE_LIST [2] {
       elements: {
-        CALL [3] {
-          function: optional.ofNonZeroValue
-          args: {
-            CONSTANT [4] { value: 1 }
-          }
-        }
-        CALL [5] {
-          function: optional.of
-          args: {
-            CONSTANT [6] { value: 4 }
-          }
-        }
-        CREATE_STRUCT [7] {
+        CREATE_STRUCT [3] {
           name: TestAllTypes
           entries: {
-            ENTRY [8] {
+            ENTRY [4] {
               field_key: single_int64
               optional_entry: true
               value: {
-                IDENT [9] {
-                  name: @index0
+                CALL [5] {
+                  function: optional.ofNonZeroValue
+                  args: {
+                    CONSTANT [6] { value: 1 }
+                  }
                 }
               }
             }
-            ENTRY [10] {
+            ENTRY [7] {
               field_key: single_int32
               optional_entry: true
               value: {
-                IDENT [11] {
-                  name: @index1
+                CALL [8] {
+                  function: optional.of
+                  args: {
+                    CONSTANT [9] { value: 4 }
+                  }
                 }
               }
             }
           }
         }
-        CALL [12] {
+        CALL [10] {
           function: _+_
           args: {
-            SELECT [13] {
-              IDENT [14] {
-                name: @index2
+            SELECT [11] {
+              IDENT [12] {
+                name: @index0
               }.single_int32
             }
-            SELECT [15] {
-              IDENT [16] {
-                name: @index2
+            SELECT [13] {
+              IDENT [14] {
+                name: @index0
               }.single_int64
             }
           }
         }
       }
     }
-    CALL [17] {
+    CALL [15] {
       function: _==_
       args: {
-        IDENT [18] {
-          name: @index3
+        IDENT [16] {
+          name: @index1
         }
-        CONSTANT [19] { value: 5 }
+        CONSTANT [17] { value: 5 }
       }
     }
   }
@@ -3309,58 +3182,49 @@ CALL [1] {
         CALL [3] {
           function: _+_
           args: {
-            CONSTANT [4] { value: "h" }
-            CONSTANT [5] { value: "e" }
+            CALL [4] {
+              function: _+_
+              args: {
+                CONSTANT [5] { value: "h" }
+                CONSTANT [6] { value: "e" }
+              }
+            }
+            CONSTANT [7] { value: "l" }
           }
         }
-        CALL [6] {
+        CALL [8] {
           function: _+_
           args: {
-            IDENT [7] {
-              name: @index0
+            CALL [9] {
+              function: _+_
+              args: {
+                IDENT [10] {
+                  name: @index0
+                }
+                CONSTANT [11] { value: "l" }
+              }
             }
-            CONSTANT [8] { value: "l" }
-          }
-        }
-        CALL [9] {
-          function: _+_
-          args: {
-            IDENT [10] {
-              name: @index1
-            }
-            CONSTANT [11] { value: "l" }
-          }
-        }
-        CALL [12] {
-          function: _+_
-          args: {
-            IDENT [13] {
-              name: @index2
-            }
-            CONSTANT [14] { value: "o" }
-          }
-        }
-        CALL [15] {
-          function: _+_
-          args: {
-            IDENT [16] {
-              name: @index3
-            }
-            CONSTANT [17] { value: " world" }
+            CONSTANT [12] { value: "o" }
           }
         }
       }
     }
-    CALL [18] {
+    CALL [13] {
       function: matches
       target: {
-        IDENT [19] {
-          name: @index4
+        CALL [14] {
+          function: _+_
+          args: {
+            IDENT [15] {
+              name: @index1
+            }
+            CONSTANT [16] { value: " world" }
+          }
         }
       }
       args: {
-        IDENT [20] {
-          name: @index3
+        IDENT [17] {
+          name: @index1
         }
       }
     }
@@ -3453,26 +3317,23 @@ CALL [1] {
             CONSTANT [12] { value: "o" }
           }
         }
-        CALL [13] {
+      }
+    }
+    CALL [13] {
+      function: matches
+      target: {
+        CALL [14] {
           function: _+_
           args: {
-            IDENT [14] {
+            IDENT [15] {
               name: @index1
             }
-            CONSTANT [15] { value: " world" }
+            CONSTANT [16] { value: " world" }
           }
         }
       }
-    }
-    CALL [16] {
-      function: matches
-      target: {
-        IDENT [17] {
-          name: @index2
-        }
-      }
       args: {
-        CONSTANT [18] { value: "hello" }
+        CONSTANT [17] { value: "hello" }
       }
     }
   }
@@ -3491,11 +3352,11 @@ CALL [1] {
             CALL [4] {
               function: _+_
               args: {
-                CONSTANT [5] { value: "w" }
-                CONSTANT [6] { value: "o" }
+                CONSTANT [5] { value: "h" }
+                CONSTANT [6] { value: "e" }
               }
             }
-            CONSTANT [7] { value: "r" }
+            CONSTANT [7] { value: "l" }
           }
         }
         CALL [8] {
@@ -3510,7 +3371,7 @@ CALL [1] {
                 CONSTANT [11] { value: "l" }
               }
             }
-            CONSTANT [12] { value: "d" }
+            CONSTANT [12] { value: "o" }
           }
         }
         CALL [13] {
@@ -3519,11 +3380,11 @@ CALL [1] {
             CALL [14] {
               function: _+_
               args: {
-                CONSTANT [15] { value: "h" }
-                CONSTANT [16] { value: "e" }
+                CONSTANT [15] { value: "w" }
+                CONSTANT [16] { value: "o" }
               }
             }
-            CONSTANT [17] { value: "l" }
+            CONSTANT [17] { value: "r" }
           }
         }
         CALL [18] {
@@ -3538,30 +3399,27 @@ CALL [1] {
                 CONSTANT [21] { value: "l" }
               }
             }
-            CONSTANT [22] { value: "o" }
-          }
-        }
-        CALL [23] {
-          function: _+_
-          args: {
-            IDENT [24] {
-              name: @index3
-            }
-            CONSTANT [25] { value: " world" }
+            CONSTANT [22] { value: "d" }
           }
         }
       }
     }
-    CALL [26] {
+    CALL [23] {
       function: matches
       target: {
-        IDENT [27] {
-          name: @index4
+        CALL [24] {
+          function: _+_
+          args: {
+            IDENT [25] {
+              name: @index1
+            }
+            CONSTANT [26] { value: " world" }
+          }
         }
       }
       args: {
-        IDENT [28] {
-          name: @index1
+        IDENT [27] {
+          name: @index3
         }
       }
     }
@@ -3576,74 +3434,65 @@ CALL [1] {
     CREATE_LIST [2] {
       elements: {
         SELECT [3] {
-          IDENT [4] {
-            name: msg
-          }.oneof_type
-        }
-        SELECT [5] {
-          IDENT [6] {
-            name: @index0
+          SELECT [4] {
+            IDENT [5] {
+              name: msg
+            }.oneof_type
           }.payload
         }
-        SELECT [7] {
-          IDENT [8] {
-            name: @index1
+        SELECT [6] {
+          IDENT [7] {
+            name: @index0
           }.single_int64
-        }
-        SELECT [9] {
-          IDENT [10] {
-            name: msg
-          }.single_int64
-        }
-        SELECT [11] {
-          IDENT [12] {
-            name: @index1
-          }.single_int32
         }
       }
     }
-    CALL [13] {
+    CALL [8] {
       function: _+_
       args: {
-        CALL [14] {
+        CALL [9] {
           function: _+_
           args: {
-            CALL [15] {
+            CALL [10] {
               function: _+_
               args: {
-                CALL [16] {
+                CALL [11] {
                   function: non_pure_custom_func
                   args: {
-                    IDENT [17] {
-                      name: @index2
+                    IDENT [12] {
+                      name: @index1
                     }
                   }
                 }
-                CALL [18] {
+                CALL [13] {
                   function: non_pure_custom_func
                   args: {
-                    IDENT [19] {
-                      name: @index4
+                    SELECT [14] {
+                      IDENT [15] {
+                        name: @index0
+                      }.single_int32
                     }
                   }
                 }
               }
             }
-            CALL [20] {
+            CALL [16] {
               function: non_pure_custom_func
               args: {
-                IDENT [21] {
-                  name: @index2
+                IDENT [17] {
+                  name: @index1
                 }
               }
             }
           }
         }
-        CALL [22] {
+        CALL [18] {
           function: non_pure_custom_func
           args: {
-            IDENT [23] {
-              name: @index3
+            SELECT [19] {
+              IDENT [20] {
+                name: msg
+              }.single_int64
             }
           }
         }
@@ -3660,76 +3509,70 @@ CALL [1] {
     CREATE_LIST [2] {
       elements: {
         SELECT [3] {
-          IDENT [4] {
-            name: msg
-          }.oneof_type
-        }
-        SELECT [5] {
-          IDENT [6] {
-            name: @index0
+          SELECT [4] {
+            IDENT [5] {
+              name: msg
+            }.oneof_type
           }.payload
         }
-        SELECT [7] {
-          IDENT [8] {
-            name: @index1
-          }.single_int64
+        CALL [6] {
+          function: pure_custom_func
+          args: {
+            SELECT [7] {
+              IDENT [8] {
+                name: @index0
+              }.single_int64
+            }
+          }
         }
         CALL [9] {
           function: pure_custom_func
           args: {
-            IDENT [10] {
-              name: @index2
+            SELECT [10] {
+              IDENT [11] {
+                name: @index0
+              }.single_int32
             }
           }
         }
-        CALL [11] {
+        CALL [12] {
+          function: _+_
+          args: {
+            CALL [13] {
+              function: _+_
+              args: {
+                IDENT [14] {
+                  name: @index1
+                }
+                IDENT [15] {
+                  name: @index2
+                }
+              }
+            }
+            IDENT [16] {
+              name: @index1
+            }
+          }
+        }
+        CALL [17] {
           function: pure_custom_func
           args: {
-            SELECT [12] {
-              IDENT [13] {
+            SELECT [18] {
+              IDENT [19] {
                 name: msg
               }.single_int64
             }
           }
         }
-        CALL [14] {
-          function: pure_custom_func
-          args: {
-            SELECT [15] {
-              IDENT [16] {
-                name: @index1
-              }.single_int32
-            }
-          }
-        }
-        CALL [17] {
-          function: _+_
-          args: {
-            CALL [18] {
-              function: _+_
-              args: {
-                IDENT [19] {
-                  name: @index3
-                }
-                IDENT [20] {
-                  name: @index5
-                }
-              }
-            }
-            IDENT [21] {
-              name: @index3
-            }
-          }
-        }
       }
     }
-    CALL [22] {
+    CALL [20] {
       function: _+_
       args: {
-        IDENT [23] {
-          name: @index6
+        IDENT [21] {
+          name: @index3
         }
-        IDENT [24] {
+        IDENT [22] {
           name: @index4
         }
       }
