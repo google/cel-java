@@ -130,7 +130,11 @@ public final class MutableAst {
       CelAbstractSyntaxTree ast, CelExpr newExpr, long exprIdToReplace) {
     return replaceSubtreeWithNewAst(
         ast,
-        CelAbstractSyntaxTree.newParsedAst(newExpr, CelSource.newBuilder().build()),
+        CelAbstractSyntaxTree.newParsedAst(
+            newExpr,
+            // Copy the macro call information to the new AST such that macro call map can be
+            // normalized post-replacement.
+            CelSource.newBuilder().addAllMacroCalls(ast.getSource().getMacroCalls()).build()),
         exprIdToReplace);
   }
 

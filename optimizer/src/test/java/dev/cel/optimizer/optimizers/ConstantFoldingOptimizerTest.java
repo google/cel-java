@@ -204,6 +204,7 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters(
       "{source: 'cel.bind(r0, [1, 2, 3], cel.bind(r1, 1 in r0 && 2 in x, r1))', expected:"
           + " 'cel.bind(r0, [1, 2, 3], cel.bind(r1, 1 in r0 && 2 in x, r1))'}")
+  @TestParameters("{source: 'false ? false : cel.bind(a, x, a)', expected: 'cel.bind(a, x, a)'}")
   public void constantFold_macros_macroCallMetadataPopulated(String source, String expected)
       throws Exception {
     Cel cel =
@@ -247,6 +248,8 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters(
       "{source: '[{}, {\"a\": 1}, {\"b\": 2}].filter(m, has({\"a\": true}.a)) == "
           + " [{}, {\"a\": 1}, {\"b\": 2}]'}")
+  @TestParameters("{source: 'cel.bind(r0, [1, 2, 3], cel.bind(r1, 1 in r0 && 2 in r0, r1))'}")
+  @TestParameters("{source: 'false ? false : cel.bind(a, true, a)'}")
   public void constantFold_macros_withoutMacroCallMetadata(String source) throws Exception {
     Cel cel =
         CelFactory.standardCelBuilder()
@@ -255,7 +258,7 @@ public class ConstantFoldingOptimizerTest {
             .addMessageTypes(TestAllTypes.getDescriptor())
             .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
             .setOptions(CelOptions.current().populateMacroCalls(false).build())
-            .addCompilerLibraries(CelOptionalLibrary.INSTANCE)
+            .addCompilerLibraries(CelExtensions.bindings(), CelOptionalLibrary.INSTANCE)
             .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
             .build();
     CelOptimizer celOptimizer =
