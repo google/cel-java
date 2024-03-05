@@ -122,7 +122,7 @@ public class MutableAstTest {
   }
 
   @Test
-  public void mutableAst_astContainsTaggedExtension_retained() throws Exception {
+  public void replaceSubtree_astContainsTaggedExtension_retained() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("has(TestAllTypes{}.single_int32)").getAst();
     Extension extension = Extension.create("test", Version.of(1, 1));
     CelSource celSource = ast.getSource().toBuilder().addAllExtensions(extension).build();
@@ -134,6 +134,64 @@ public class MutableAstTest {
         MUTABLE_AST.replaceSubtree(
             ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(true)).build(), 1);
 
+    assertThat(mutatedAst.getSource().getExtensions()).containsExactly(extension);
+  }
+
+  @Test
+  public void replaceSubtreeWithNewAst_astsContainTaggedExtension_retained() throws Exception {
+    // Setup first AST with a test extension
+    CelAbstractSyntaxTree ast = CEL.compile("has(TestAllTypes{}.single_int32)").getAst();
+    Extension extension = Extension.create("test", Version.of(1, 1));
+    ast =
+        CelAbstractSyntaxTree.newCheckedAst(
+            ast.getExpr(),
+            ast.getSource().toBuilder().addAllExtensions(extension).build(),
+            ast.getReferenceMap(),
+            ast.getTypeMap());
+    // Setup second AST with another test extension
+    CelAbstractSyntaxTree astToReplaceWith = CEL.compile("cel.bind(a, true, a)").getAst();
+    Extension extension2 = Extension.create("test2", Version.of(2, 2));
+    astToReplaceWith =
+        CelAbstractSyntaxTree.newCheckedAst(
+            astToReplaceWith.getExpr(),
+            astToReplaceWith.getSource().toBuilder().addAllExtensions(extension2).build(),
+            astToReplaceWith.getReferenceMap(),
+            astToReplaceWith.getTypeMap());
+
+    // Mutate the original AST with the new AST at the root
+    CelAbstractSyntaxTree mutatedAst =
+        MUTABLE_AST.replaceSubtreeWithNewAst(ast, astToReplaceWith, ast.getExpr().id());
+
+    // Expect that both the extensions are merged
+    assertThat(mutatedAst.getSource().getExtensions()).containsExactly(extension, extension2);
+  }
+
+  @Test
+  public void replaceSubtreeWithNewAst_astsContainSameExtensions_deduped() throws Exception {
+    // Setup first AST with a test extension
+    CelAbstractSyntaxTree ast = CEL.compile("has(TestAllTypes{}.single_int32)").getAst();
+    Extension extension = Extension.create("test", Version.of(1, 1));
+    ast =
+        CelAbstractSyntaxTree.newCheckedAst(
+            ast.getExpr(),
+            ast.getSource().toBuilder().addAllExtensions(extension).build(),
+            ast.getReferenceMap(),
+            ast.getTypeMap());
+    // Setup second AST with the same test extension as above
+    CelAbstractSyntaxTree astToReplaceWith = CEL.compile("cel.bind(a, true, a)").getAst();
+    Extension extension2 = Extension.create("test", Version.of(1, 1));
+    astToReplaceWith =
+        CelAbstractSyntaxTree.newCheckedAst(
+            astToReplaceWith.getExpr(),
+            astToReplaceWith.getSource().toBuilder().addAllExtensions(extension2).build(),
+            astToReplaceWith.getReferenceMap(),
+            astToReplaceWith.getTypeMap());
+
+    // Mutate the original AST with the new AST at the root
+    CelAbstractSyntaxTree mutatedAst =
+        MUTABLE_AST.replaceSubtreeWithNewAst(ast, astToReplaceWith, ast.getExpr().id());
+
+    // Expect that the extension is deduped
     assertThat(mutatedAst.getSource().getExtensions()).containsExactly(extension);
   }
 

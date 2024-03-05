@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.antlr.v4.runtime.IntStream.UNKNOWN_SOURCE_NAME;
 import static org.junit.Assert.assertThrows;
 
+import com.google.common.collect.Iterables;
 import dev.cel.common.CelSource.Extension;
 import dev.cel.common.CelSource.Extension.Component;
 import dev.cel.common.CelSource.Extension.Version;
@@ -172,7 +173,7 @@ public final class CelSourceTest {
                     Component.COMPONENT_TYPE_CHECKER))
             .build();
 
-    Extension extension = celSource.getExtensions().get(0);
+    Extension extension = Iterables.getOnlyElement(celSource.getExtensions());
     assertThat(extension.id()).isEqualTo("extension_id");
     assertThat(extension.version().major()).isEqualTo(5L);
     assertThat(extension.version().minor()).isEqualTo(3L);

@@ -21,6 +21,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
@@ -43,7 +44,7 @@ public final class CelSource {
   private final ImmutableList<Integer> lineOffsets;
   private final ImmutableMap<Long, Integer> positions;
   private final ImmutableMap<Long, CelExpr> macroCalls;
-  private final ImmutableList<Extension> extensions;
+  private final ImmutableSet<Extension> extensions;
 
   private CelSource(Builder builder) {
     this.codePoints = checkNotNull(builder.codePoints);
@@ -80,7 +81,7 @@ public final class CelSource {
     return macroCalls;
   }
 
-  public ImmutableList<Extension> getExtensions() {
+  public ImmutableSet<Extension> getExtensions() {
     return extensions;
   }
 
@@ -209,7 +210,7 @@ public final class CelSource {
     private final List<Integer> lineOffsets;
     private final ImmutableMap.Builder<Long, Integer> positions;
     private final Map<Long, CelExpr> macroCalls;
-    private final ImmutableList.Builder<Extension> extensions;
+    private final ImmutableSet.Builder<Extension> extensions;
 
     private String description;
 
@@ -222,7 +223,7 @@ public final class CelSource {
       this.lineOffsets = checkNotNull(lineOffsets);
       this.positions = ImmutableMap.builder();
       this.macroCalls = new HashMap<>();
-      this.extensions = ImmutableList.builder();
+      this.extensions = ImmutableSet.builder();
       this.description = "";
     }
 
@@ -278,6 +279,10 @@ public final class CelSource {
       return this;
     }
 
+    /**
+     * Adds one or more {@link Extension}s to the source information. Extensions implement set
+     * semantics and deduped if same ones are provided.
+     */
     @CanIgnoreReturnValue
     public Builder addAllExtensions(Iterable<? extends Extension> extensions) {
       checkNotNull(extensions);
@@ -285,6 +290,10 @@ public final class CelSource {
       return this;
     }
 
+    /**
+     * Adds one or more {@link Extension}s to the source information. Extensions implement set
+     * semantics and deduped if same ones are provided.
+     */
     @CanIgnoreReturnValue
     public Builder addAllExtensions(Extension... extensions) {
       return addAllExtensions(Arrays.asList(extensions));
