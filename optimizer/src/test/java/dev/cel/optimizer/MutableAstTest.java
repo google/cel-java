@@ -18,6 +18,7 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
@@ -47,6 +48,7 @@ import dev.cel.parser.CelUnparser;
 import dev.cel.parser.CelUnparserFactory;
 import dev.cel.parser.Operator;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -437,6 +439,46 @@ public class MutableAstTest {
     assertThat(mutatedAst.getSource().getMacroCalls()).isEmpty();
     assertThat(CEL_UNPARSER.unparse(mutatedAst)).isEqualTo("1");
     assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(1);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked") // Test only
+  public void replaceSubtree_replaceExtraneousListCreatedByMacro_unparseSuccess() throws Exception {
+    // Certain macros such as `map` or `filter` generates an extraneous list_expr in the loop step's
+    // argument that does not exist in the original expression.
+    // For example, the loop step of this expression looks like:
+    // CALL [10] {
+    //    function: _+_
+    //    args: {
+    //      IDENT [8] {
+    //        name: __result__
+    //      }
+    //      CREATE_LIST [9] {
+    //        elements: {
+    //          CONSTANT [5] { value: 1 }
+    //        }
+    //      }
+    //    }
+    //  }
+    CelAbstractSyntaxTree ast = CEL.compile("[1].map(x, 1)").getAst();
+
+    // These two mutation are equivalent.
+    CelAbstractSyntaxTree mutatedAstWithList =
+        MUTABLE_AST.replaceSubtree(
+            ast,
+            CelExpr.ofCreateListExpr(
+                0,
+                ImmutableList.of(CelExpr.newBuilder().setConstant(CelConstant.ofValue(2L)).build()),
+                ImmutableList.of()),
+            9L);
+    CelAbstractSyntaxTree mutatedAstWithConstant =
+        MUTABLE_AST.replaceSubtree(
+            ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(2L)).build(), 5L);
+
+    assertThat(CEL_UNPARSER.unparse(mutatedAstWithList)).isEqualTo("[1].map(x, 2)");
+    assertThat(CEL_UNPARSER.unparse(mutatedAstWithConstant)).isEqualTo("[1].map(x, 2)");
+    assertThat((List<Long>) CEL.createProgram(CEL.check(mutatedAstWithList).getAst()).eval())
+        .containsExactly(2L);
   }
 
   @Test

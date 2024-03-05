@@ -310,10 +310,10 @@ Result: true
 [BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([[1, 2, 3], [2, 3, 4]], @index0.map(@c0:0, @index0.map(@c1:0, @c1:0 + 1)) == [@index1, @index1, @index1])
 [BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2, 3], [2, 3, 4], @c1:0 + 1, [@index2], @x1:0 + @index3, [@index1, @index1, @index1]], @index0.map(@c0:0, @index0.map(@c1:0, @index2)) == @index5)
 [BLOCK_RECURSION_DEPTH_2]: cel.@block([[1, 2, 3], [2, 3, 4], [@c1:0 + 1], @index0.map(@c1:0, @c1:0 + 1), @x0:0 + [@index3], @index0.map(@c0:0, @index3)], @index5 == [@index1, @index1, @index1])
-[BLOCK_RECURSION_DEPTH_3]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[1, 2, 3], [2, 3, 4], @x1:0 + [@c1:0 + 1], [@index0.map(@c1:0, @c1:0 + 1)]], @index0.map(@c0:0) == [@index1, @index1, @index1])
 [BLOCK_RECURSION_DEPTH_4]: cel.@block([[1, 2, 3], [2, 3, 4], @index0.map(@c1:0, @c1:0 + 1)], @index0.map(@c0:0, @index2) == [@index1, @index1, @index1])
-[BLOCK_RECURSION_DEPTH_5]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
-[BLOCK_RECURSION_DEPTH_6]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[1, 2, 3], [2, 3, 4], [@index0.map(@c1:0, @c1:0 + 1)]], @index0.map(@c0:0) == [@index1, @index1, @index1])
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[1, 2, 3], [2, 3, 4], @x0:0 + [@index0.map(@c1:0, @c1:0 + 1)]], @index0.map(@c0:0) == [@index1, @index1, @index1])
 [BLOCK_RECURSION_DEPTH_7]: cel.@block([[1, 2, 3], [2, 3, 4], @index0.map(@c0:0, @index0.map(@c1:0, @c1:0 + 1))], @index2 == [@index1, @index1, @index1])
 [BLOCK_RECURSION_DEPTH_8]: cel.@block([[1, 2, 3], [2, 3, 4]], @index0.map(@c0:0, @index0.map(@c1:0, @c1:0 + 1)) == [@index1, @index1, @index1])
 [BLOCK_RECURSION_DEPTH_9]: cel.@block([[1, 2, 3], [2, 3, 4]], @index0.map(@c0:0, @index0.map(@c1:0, @c1:0 + 1)) == [@index1, @index1, @index1])
@@ -326,10 +326,10 @@ Result: true
 [BLOCK_COMMON_SUBEXPR_ONLY]: [1, 2].map(@c0:0, [1, 2, 3].filter(@c1:0, @c1:0 == @c0:0)) == [[1], [2]]
 [BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2], [1, 2, 3], @c1:0 == @c0:0, [@c1:0], @x1:0 + @index3, @index2 ? @index4 : @x1:0, [1], [2], [@index6, @index7]], @index0.map(@c0:0, @index1.filter(@c1:0, @index2)) == @index8)
 [BLOCK_RECURSION_DEPTH_2]: cel.@block([@x1:0 + [@c1:0], (@c1:0 == @c0:0) ? @index0 : @x1:0, [1, 2, 3].filter(@c1:0, @c1:0 == @c0:0), @x0:0 + [@index2], [1, 2].map(@c0:0, @index2), [[1], [2]]], @index4 == @index5)
-[BLOCK_RECURSION_DEPTH_3]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([(@c1:0 == @c0:0) ? (@x1:0 + [@c1:0]) : @x1:0, [[1, 2, 3].filter(@c1:0, @c1:0 == @c0:0)]], [1, 2].map(@c0:0) == [[1], [2]])
 [BLOCK_RECURSION_DEPTH_4]: cel.@block([[1, 2, 3].filter(@c1:0, @c1:0 == @c0:0)], [1, 2].map(@c0:0, @index0) == [[1], [2]])
-[BLOCK_RECURSION_DEPTH_5]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
-[BLOCK_RECURSION_DEPTH_6]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[[1, 2, 3].filter(@c1:0, @c1:0 == @c0:0)]], [1, 2].map(@c0:0) == [[1], [2]])
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([@x0:0 + [[1, 2, 3].filter(@c1:0, @c1:0 == @c0:0)]], [1, 2].map(@c0:0) == [[1], [2]])
 [BLOCK_RECURSION_DEPTH_7]: cel.@block([[1, 2].map(@c0:0, [1, 2, 3].filter(@c1:0, @c1:0 == @c0:0))], @index0 == [[1], [2]])
 [BLOCK_RECURSION_DEPTH_8]: [1, 2].map(@c0:0, [1, 2, 3].filter(@c1:0, @c1:0 == @c0:0)) == [[1], [2]]
 [BLOCK_RECURSION_DEPTH_9]: [1, 2].map(@c0:0, [1, 2, 3].filter(@c1:0, @c1:0 == @c0:0)) == [[1], [2]]
@@ -374,10 +374,10 @@ Result: true
 [BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([[1, 2], [3, 4], [@index1, @index1]], @index0.map(@c0:0, @index0.map(@c1:0, @index1)) == [@index2, @index2])
 [BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2], [3, 4], [@index1, @index1], [@index1], @x1:0 + @index3, [@index2, @index2]], @index0.map(@c0:0, @index0.map(@c1:0, @index1)) == @index5)
 [BLOCK_RECURSION_DEPTH_2]: cel.@block([[[3, 4], [3, 4]], [1, 2], [[3, 4]], @index1.map(@c1:0, [3, 4]), @x0:0 + [@index3], @index1.map(@c0:0, @index3)], @index5 == [@index0, @index0])
-[BLOCK_RECURSION_DEPTH_3]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[[3, 4], [3, 4]], [1, 2], @x1:0 + [[3, 4]], [@index1.map(@c1:0, [3, 4])]], @index1.map(@c0:0) == [@index0, @index0])
 [BLOCK_RECURSION_DEPTH_4]: cel.@block([[[3, 4], [3, 4]], [1, 2], @index1.map(@c1:0, [3, 4])], @index1.map(@c0:0, @index2) == [@index0, @index0])
-[BLOCK_RECURSION_DEPTH_5]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
-[BLOCK_RECURSION_DEPTH_6]: Unparse Error: java.lang.IllegalArgumentException: unexpected expr kind: NOT_SET
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[[3, 4], [3, 4]], [1, 2], [@index1.map(@c1:0, [3, 4])]], @index1.map(@c0:0) == [@index0, @index0])
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[[3, 4], [3, 4]], [1, 2], @x0:0 + [@index1.map(@c1:0, [3, 4])]], @index1.map(@c0:0) == [@index0, @index0])
 [BLOCK_RECURSION_DEPTH_7]: cel.@block([[[3, 4], [3, 4]], [1, 2], @index1.map(@c0:0, @index1.map(@c1:0, [3, 4]))], @index2 == [@index0, @index0])
 [BLOCK_RECURSION_DEPTH_8]: cel.@block([[[3, 4], [3, 4]], [1, 2]], @index1.map(@c0:0, @index1.map(@c1:0, [3, 4])) == [@index0, @index0])
 [BLOCK_RECURSION_DEPTH_9]: cel.@block([[[3, 4], [3, 4]], [1, 2]], @index1.map(@c0:0, @index1.map(@c1:0, [3, 4])) == [@index0, @index0])

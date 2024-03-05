@@ -645,16 +645,18 @@ public final class MutableAst {
                     }));
 
     // Update the macro call IDs and their call references
-    for (Entry<Long, CelExpr> macroCall : celSource.getMacroCalls().entrySet()) {
-      long macroId = macroCall.getKey();
+    for (Entry<Long, CelExpr> existingMacroCall : celSource.getMacroCalls().entrySet()) {
+      long macroId = existingMacroCall.getKey();
       long callId = idGenerator.generate(macroId);
 
       if (!allExprs.containsKey(callId)) {
         continue;
       }
 
-      CelExpr.Builder newCall = renumberExprIds(idGenerator, macroCall.getValue().toBuilder());
-      CelNavigableExpr callNav = CelNavigableExpr.fromExpr(newCall.build());
+      CelExpr.Builder newMacroCallExpr =
+          renumberExprIds(idGenerator, existingMacroCall.getValue().toBuilder());
+
+      CelNavigableExpr callNav = CelNavigableExpr.fromExpr(newMacroCallExpr.build());
       ImmutableList<CelExpr> callDescendants =
           callNav.descendants().map(CelNavigableExpr::expr).collect(toImmutableList());
 
@@ -665,10 +667,24 @@ public final class MutableAst {
 
         CelExpr mutatedExpr = allExprs.get(callChild.id());
         if (!callChild.equals(mutatedExpr)) {
-          newCall = mutateExpr((arg) -> arg, newCall, mutatedExpr.toBuilder(), callChild.id());
+          newMacroCallExpr =
+              mutateExpr(
+                  NO_OP_ID_GENERATOR, newMacroCallExpr, mutatedExpr.toBuilder(), callChild.id());
         }
       }
-      sourceBuilder.addMacroCalls(callId, newCall.build());
+
+      if (exprIdToReplace > 0) {
+        long replacedId = idGenerator.generate(exprIdToReplace);
+        boolean isListExprBeingReplaced =
+            allExprs.containsKey(replacedId)
+                && allExprs.get(replacedId).exprKind().getKind().equals(Kind.CREATE_LIST);
+        if (isListExprBeingReplaced) {
+          unwrapListArgumentsInMacroCallExpr(
+              allExprs.get(callId).comprehension(), newMacroCallExpr);
+        }
+      }
+
+      sourceBuilder.addMacroCalls(callId, newMacroCallExpr.build());
     }
 
     // Replace comprehension nodes with a NOT_SET reference to reduce AST size.
@@ -688,9 +704,68 @@ public final class MutableAst {
                         node.id());
                 macroCall.setValue(mutatedNode.build());
               });
+
+      // Prune any NOT_SET (comprehension) nodes that no longer exist in the main AST
+      // This can occur from pulling out a nested comprehension into a separate cel.block index
+      CelNavigableExpr.fromExpr(macroCallExpr)
+          .allNodes()
+          .filter(node -> node.getKind().equals(Kind.NOT_SET))
+          .map(CelNavigableExpr::id)
+          .filter(id -> !allExprs.containsKey(id))
+          .forEach(
+              id -> {
+                ImmutableList<CelExpr> newCallArgs =
+                    macroCallExpr.call().args().stream()
+                        .filter(node -> node.id() != id)
+                        .collect(toImmutableList());
+                CelCall.Builder call =
+                    macroCallExpr.call().toBuilder().clearArgs().addArgs(newCallArgs);
+
+                macroCall.setValue(macroCallExpr.toBuilder().setCall(call.build()).build());
+              });
     }
 
     return sourceBuilder.build();
+  }
+
+  /**
+   * Unwraps the arguments in the extraneous list_expr which is present in the AST but does not
+   * exist in the macro call map. `map`, `filter` are examples of such.
+   *
+   * <p>This method inspects the comprehension's accumulator initializer to infer that the list_expr
+   * solely exists to match the expected result type of the macro call signature.
+   *
+   * @param comprehension Comprehension in the main AST to extract the macro call arguments from
+   *     (loop step).
+   * @param newMacroCallExpr (Output parameter) Modified macro call expression with the call
+   *     arguments unwrapped.
+   */
+  private static void unwrapListArgumentsInMacroCallExpr(
+      CelComprehension comprehension, CelExpr.Builder newMacroCallExpr) {
+    CelExpr accuInit = comprehension.accuInit();
+    if (!accuInit.exprKind().getKind().equals(Kind.CREATE_LIST)
+        || !accuInit.createList().elements().isEmpty()) {
+      // Does not contain an extraneous list.
+      return;
+    }
+
+    CelExpr loopStepExpr = comprehension.loopStep();
+    ImmutableList<CelExpr> args = loopStepExpr.call().args();
+    if (args.size() != 2) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Expected exactly 2 arguments but got %d instead on expr id: %d",
+              args.size(), loopStepExpr.id()));
+    }
+
+    CelCall newMacroCall = newMacroCallExpr.call();
+    newMacroCallExpr.setCall(
+        newMacroCallExpr.call().toBuilder()
+            .clearArgs()
+            .addArgs(
+                newMacroCall.args().get(0)) // iter_var is first argument of the call by convention
+            .addArgs(args.get(1).createList().elements())
+            .build());
   }
 
   private CelExpr.Builder mutateExpr(

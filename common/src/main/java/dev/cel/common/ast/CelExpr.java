@@ -525,6 +525,13 @@ public abstract class CelExpr {
         return mutableArgs.stream().map(CelExpr::toBuilder).collect(toImmutableList());
       }
 
+      @CanIgnoreReturnValue
+      public Builder clearArgs() {
+        mutableArgs.clear();
+        return this;
+      }
+
+      @CanIgnoreReturnValue
       public Builder setArg(int index, CelExpr arg) {
         checkNotNull(arg);
         mutableArgs.set(index, arg);
