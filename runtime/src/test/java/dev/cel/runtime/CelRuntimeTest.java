@@ -20,6 +20,7 @@ import static org.junit.Assert.assertThrows;
 import com.google.api.expr.v1alpha1.Constant;
 import com.google.api.expr.v1alpha1.Expr;
 import com.google.api.expr.v1alpha1.Type.PrimitiveType;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
@@ -27,6 +28,8 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.DynamicMessage;
 import com.google.rpc.context.AttributeContext;
+import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -50,9 +53,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
-@RunWith(JUnit4.class)
+@RunWith(TestParameterInjector.class)
 public class CelRuntimeTest {
 
   @Test
@@ -398,6 +400,141 @@ public class CelRuntimeTest {
     String result = (String) cel.createProgram(ast).trace(resolver, listener);
 
     assertThat(result).isEqualTo("hello");
+  }
+
+  @Test
+  public void trace_shortCircuitingDisabled_logicalAndAllBranchesVisited() throws Exception {
+    ImmutableList.Builder<Boolean> branchResults = ImmutableList.builder();
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          if (expr.constantOrDefault().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE)) {
+            branchResults.add((Boolean) res);
+          }
+        };
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("false && true && false").getAst();
+
+    boolean result = (boolean) cel.createProgram(ast).trace(listener);
+
+    assertThat(result).isFalse();
+    assertThat(branchResults.build()).containsExactly(false, true, false);
+  }
+
+  @Test
+  public void trace_shortCircuitingDisabled_logicalAndWithUnknowns() throws Exception {
+    ImmutableList.Builder<Object> branchResults = ImmutableList.builder();
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          if (expr.constantOrDefault().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE)
+              || expr.identOrDefault().name().equals("x")) {
+            branchResults.add(res);
+          }
+        };
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addVar("x", SimpleType.BOOL)
+            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("false && false && x").getAst();
+
+    Object unknownResult = cel.createProgram(ast).trace(listener);
+
+    assertThat(InterpreterUtil.isUnknown(unknownResult)).isTrue();
+    assertThat(branchResults.build()).containsExactly(false, false, unknownResult);
+  }
+
+  @Test
+  public void trace_shortCircuitingDisabled_logicalOrAllBranchesVisited() throws Exception {
+    ImmutableList.Builder<Boolean> branchResults = ImmutableList.builder();
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          if (expr.constantOrDefault().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE)) {
+            branchResults.add((Boolean) res);
+          }
+        };
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("true || false || true").getAst();
+
+    boolean result = (boolean) cel.createProgram(ast).trace(listener);
+
+    assertThat(result).isTrue();
+    assertThat(branchResults.build()).containsExactly(true, false, true);
+  }
+
+  @Test
+  public void trace_shortCircuitingDisabled_logicalOrWithUnknowns() throws Exception {
+    ImmutableList.Builder<Object> branchResults = ImmutableList.builder();
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          if (expr.constantOrDefault().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE)
+              || expr.identOrDefault().name().equals("x")) {
+            branchResults.add(res);
+          }
+        };
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addVar("x", SimpleType.BOOL)
+            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("false || false || x").getAst();
+
+    Object unknownResult = cel.createProgram(ast).trace(listener);
+
+    assertThat(InterpreterUtil.isUnknown(unknownResult)).isTrue();
+    assertThat(branchResults.build()).containsExactly(false, false, unknownResult);
+  }
+
+  @Test
+  public void trace_shortCircuitingDisabled_ternaryAllBranchesVisited() throws Exception {
+    ImmutableList.Builder<Boolean> branchResults = ImmutableList.builder();
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          if (expr.constantOrDefault().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE)) {
+            branchResults.add((Boolean) res);
+          }
+        };
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("true ? false : true").getAst();
+
+    boolean result = (boolean) cel.createProgram(ast).trace(listener);
+
+    assertThat(result).isFalse();
+    assertThat(branchResults.build()).containsExactly(true, false, true);
+  }
+
+  @Test
+  @TestParameters("{source: 'false ? true : x'}")
+  @TestParameters("{source: 'true ? x : false'}")
+  @TestParameters("{source: 'x ? true : false'}")
+  public void trace_shortCircuitingDisabled_ternaryWithUnknowns(String source) throws Exception {
+    ImmutableList.Builder<Object> branchResults = ImmutableList.builder();
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          if (expr.constantOrDefault().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE)
+              || expr.identOrDefault().name().equals("x")) {
+            branchResults.add(res);
+          }
+        };
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addVar("x", SimpleType.BOOL)
+            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
+
+    Object unknownResult = cel.createProgram(ast).trace(listener);
+
+    assertThat(InterpreterUtil.isUnknown(unknownResult)).isTrue();
+    assertThat(branchResults.build()).containsExactly(false, unknownResult, true);
   }
 
   @Test

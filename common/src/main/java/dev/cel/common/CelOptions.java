@@ -71,6 +71,8 @@ public abstract class CelOptions {
 
   public abstract boolean disableCelStandardEquality();
 
+  public abstract boolean enableShortCircuiting();
+
   public abstract boolean enableRegexPartialMatch();
 
   public abstract boolean enableUnsignedComparisonAndArithmeticIsUnsigned();
@@ -170,6 +172,7 @@ public abstract class CelOptions {
         .enableNamespacedDeclarations(true)
         // Evaluation options
         .disableCelStandardEquality(true)
+        .enableShortCircuiting(true)
         .enableRegexPartialMatch(false)
         .enableUnsignedComparisonAndArithmeticIsUnsigned(false)
         .enableUnsignedLongs(false)
@@ -363,6 +366,17 @@ public abstract class CelOptions {
      * a continuous number line.
      */
     public abstract Builder disableCelStandardEquality(boolean value);
+
+    /**
+     * Enable short-circuiting of the logical operator evaluation. If enabled, AND, OR, and TERNARY
+     * do not evaluate the entire expression once the resulting value is known from the left-hand
+     * side.
+     *
+     * <p>This option is enabled by default. In most cases, this should not be disabled except for
+     * debugging purposes or collecting results for all evaluated branches through {@link
+     * dev.cel.runtime.CelEvaluationListener}.
+     */
+    public abstract Builder enableShortCircuiting(boolean value);
 
     /**
      * Treat regex {@code matches} calls as substring (unanchored) match patterns.
