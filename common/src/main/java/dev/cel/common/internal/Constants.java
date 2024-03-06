@@ -497,7 +497,15 @@ public final class Constants {
     while (position + quote.length() <= text.length()) {
       char codeUnit = text.charAt(position);
       if (codeUnit != '\\') {
-        if (text.substring(position).startsWith(quote)) {
+        boolean quoteMatches = true;
+        for (int i = 0; i < quote.length(); i++) {
+          if (text.charAt(position + i) != quote.charAt(i)) {
+            quoteMatches = false;
+            break;
+          }
+        }
+
+        if (quoteMatches) {
           isClosed = position + quote.length() == text.length();
           break;
         }
