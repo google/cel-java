@@ -44,6 +44,7 @@ OPTIMIZER_TARGETS = [
     "//optimizer/src/main/java/dev/cel/optimizer:mutable_ast",
     "//optimizer/src/main/java/dev/cel/optimizer:optimizer_impl",
     "//optimizer/src/main/java/dev/cel/optimizer/optimizers:constant_folding",
+    "//optimizer/src/main/java/dev/cel/optimizer/optimizers:common_subexpression_elimination",
 ]
 
 V1ALPHA1_UTILITY_TARGETS = [
