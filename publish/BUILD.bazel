@@ -16,6 +16,7 @@ RUNTIME_TARGETS = [
 COMPILER_TARGETS = [
     "//parser/src/main/java/dev/cel/parser",
     "//parser/src/main/java/dev/cel/parser:parser_builder",
+    "//parser/src/main/java/dev/cel/parser:unparser",
     "//checker/src/main/java/dev/cel/checker:checker",
     "//checker/src/main/java/dev/cel/checker:checker_builder",
     "//checker/src/main/java/dev/cel/checker:proto_type_mask",
