@@ -52,7 +52,12 @@ public abstract class CelNavigableExpr {
   public abstract MutableExpr mutableExpr();
 
   public long id() {
-    return expr().id();
+    // TODO
+    if (mutableExpr().exprKind().equals(ExprKind.Kind.NOT_SET)) {
+      return expr().id();
+    } else {
+      return mutableExpr().id();
+    }
   }
 
   public abstract Optional<CelNavigableExpr> parent();
@@ -140,7 +145,12 @@ public abstract class CelNavigableExpr {
 
   /** Returns the underlying kind of the {@link CelExpr}. */
   public ExprKind.Kind getKind() {
-    return expr().exprKind().getKind();
+    // TODO
+    if (mutableExpr().exprKind().equals(ExprKind.Kind.NOT_SET)) {
+      return expr().exprKind().getKind();
+    } else {
+      return mutableExpr().exprKind();
+    }
   }
 
   /** Create a new builder to construct a {@link CelNavigableExpr} instance. */

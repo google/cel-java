@@ -290,6 +290,10 @@ public final class CelSource {
       return this;
     }
 
+    public ImmutableSet<Extension> getExtensions() {
+      return extensions.build();
+    }
+
     /**
      * Adds one or more {@link Extension}s to the source information. Extensions implement set
      * semantics and deduped if same ones are provided.

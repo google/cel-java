@@ -22,7 +22,16 @@ import dev.cel.common.ast.CelExpr.CelCreateList;
 import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct;
 import dev.cel.common.ast.CelExpr.CelSelect;
+import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.navigation.CelNavigableExpr.TraversalOrder;
+import dev.cel.common.navigation.MutableExpr.MutableCall;
+import dev.cel.common.navigation.MutableExpr.MutableComprehension;
+import dev.cel.common.navigation.MutableExpr.MutableCreateList;
+import dev.cel.common.navigation.MutableExpr.MutableCreateMap;
+import dev.cel.common.navigation.MutableExpr.MutableCreateStruct;
+import dev.cel.common.navigation.MutableExpr.MutableSelect;
+
+import java.util.List;
 import java.util.stream.Stream;
 
 /** Visitor implementation to navigate an AST. */
@@ -89,9 +98,53 @@ final class CelNavigableExprVisitor {
     CelNavigableExprVisitor visitor =
         new CelNavigableExprVisitor(maxDepth, exprHeightCalculator, traversalOrder);
 
-    visitor.visit(navigableExpr);
+    // TODO
+    if (navigableExpr.mutableExpr().exprKind().equals(Kind.NOT_SET)) {
+      visitor.visit(navigableExpr);
+    } else {
+      visitor.visitMutable(navigableExpr);
+    }
 
     return visitor.streamBuilder.build();
+  }
+
+  private void visitMutable(CelNavigableExpr navigableExpr) {
+    if (navigableExpr.depth() > MAX_DESCENDANTS_RECURSION_DEPTH - 1) {
+      throw new IllegalStateException("Max recursion depth reached.");
+    }
+
+    boolean addToStream = navigableExpr.depth() <= maxDepth;
+    if (addToStream && traversalOrder.equals(TraversalOrder.PRE_ORDER)) {
+      streamBuilder.add(navigableExpr);
+    }
+
+    MutableExpr mutableExpr = navigableExpr.mutableExpr();
+    switch (navigableExpr.getKind()) {
+      case CALL:
+        visitMutable(navigableExpr, mutableExpr.call());
+        break;
+      case CREATE_LIST:
+        visitMutable(navigableExpr, mutableExpr.createList());
+        break;
+      case SELECT:
+        visitMutable(navigableExpr, mutableExpr.select());
+        break;
+      case CREATE_STRUCT:
+        visitMutableStruct(navigableExpr, mutableExpr.createStruct());
+        break;
+      case CREATE_MAP:
+        visitMutableMap(navigableExpr, mutableExpr.createMap());
+        break;
+      case COMPREHENSION:
+        visitMutable(navigableExpr, mutableExpr.comprehension());
+        break;
+      default:
+        break;
+    }
+
+    if (addToStream && traversalOrder.equals(TraversalOrder.POST_ORDER)) {
+      streamBuilder.add(navigableExpr);
+    }
   }
 
   private void visit(CelNavigableExpr navigableExpr) {
@@ -179,12 +232,70 @@ final class CelNavigableExprVisitor {
     }
   }
 
+  private void visitMutable(CelNavigableExpr navigableExpr, MutableCall call) {
+    if (call.target().isPresent()) {
+      visitMutable(newNavigableChild(navigableExpr, call.target().get()));
+    }
+
+    visitMutableExprList(call.args(), navigableExpr);
+  }
+
+  private void visitMutable(CelNavigableExpr navigableExpr, MutableCreateList createList) {
+    visitMutableExprList(createList.elements(), navigableExpr);
+  }
+
+  private void visitMutable(CelNavigableExpr navigableExpr, MutableSelect selectExpr) {
+    CelNavigableExpr operand = newNavigableChild(navigableExpr, selectExpr.operand());
+    visitMutable(operand);
+  }
+
+  private void visitMutable(CelNavigableExpr navigableExpr, MutableComprehension comprehension) {
+    visitMutable(newNavigableChild(navigableExpr, comprehension.getIterRange()));
+    visitMutable(newNavigableChild(navigableExpr, comprehension.getAccuInit()));
+    visitMutable(newNavigableChild(navigableExpr, comprehension.getLoopCondition()));
+    visitMutable(newNavigableChild(navigableExpr, comprehension.getLoopStep()));
+    visitMutable(newNavigableChild(navigableExpr, comprehension.getResult()));
+  }
+
+  private void visitMutableStruct(CelNavigableExpr navigableExpr, MutableCreateStruct struct) {
+    for (MutableCreateStruct.Entry entry : struct.entries()) {
+      visit(newNavigableChild(navigableExpr, entry.value()));
+    }
+  }
+
+  private void visitMutableMap(CelNavigableExpr navigableExpr, MutableCreateMap map) {
+    for (MutableCreateMap.Entry entry : map.entries()) {
+      CelNavigableExpr key = newNavigableChild(navigableExpr, entry.key());
+      visitMutable(key);
+
+      CelNavigableExpr value = newNavigableChild(navigableExpr, entry.value());
+      visitMutable(value);
+    }
+  }
+
+  private void visitMutableExprList(List<MutableExpr> createListExpr, CelNavigableExpr parent) {
+    for (MutableExpr expr : createListExpr) {
+      visitMutable(newNavigableChild(parent, expr));
+    }
+  }
+
+  private CelNavigableExpr newNavigableChild(CelNavigableExpr parent, MutableExpr expr) {
+    CelNavigableExpr.Builder navigableExpr =
+            CelNavigableExpr.builder()
+                    .setMutableExpr(expr)
+                    .setDepth(parent.depth() + 1)
+//                    .setHeight(exprHeightCalculator.getHeight(expr.id()))
+                    .setParent(parent);
+
+    return navigableExpr.build();
+  }
+
   private CelNavigableExpr newNavigableChild(CelNavigableExpr parent, CelExpr expr) {
     CelNavigableExpr.Builder navigableExpr =
         CelNavigableExpr.builder()
             .setExpr(expr)
             .setDepth(parent.depth() + 1)
-            .setHeight(exprHeightCalculator.getHeight(expr.id()))
+//            .setHeight(exprHeightCalculator.getHeight(expr.id()))
             .setParent(parent);
 
     return navigableExpr.build();

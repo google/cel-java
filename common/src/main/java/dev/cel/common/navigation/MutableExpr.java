@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public final class MutableExpr {
   private long id;
   private ExprKind.Kind exprKind;
@@ -26,7 +29,7 @@ public final class MutableExpr {
     return id;
   }
 
-  void setId(long id) {
+  public void setId(long id) {
     this.id = id;
   }
 
@@ -56,16 +59,16 @@ public final class MutableExpr {
     return call;
   }
 
-  void setCall(MutableCall call) {
+  public void setCall(MutableCall call) {
     this.exprKind = ExprKind.Kind.CALL;
     this.call = call;
   }
 
-  MutableSelect select() {
+  public MutableSelect select() {
     return select;
   }
 
-  void setSelect(MutableSelect select) {
+  public void setSelect(MutableSelect select) {
     this.exprKind = ExprKind.Kind.SELECT;
     this.select = select;
   }
@@ -74,34 +77,34 @@ public final class MutableExpr {
     return createList;
   }
 
-  void setCreateList(MutableCreateList createList) {
+  public void setCreateList(MutableCreateList createList) {
     this.exprKind = ExprKind.Kind.CREATE_LIST;
     this.createList = createList;
   }
 
-  MutableCreateStruct createStruct() {
+  public MutableCreateStruct createStruct() {
     return createStruct;
   }
 
-  void setCreateStruct(MutableCreateStruct createStruct) {
+  public void setCreateStruct(MutableCreateStruct createStruct) {
     this.exprKind = ExprKind.Kind.CREATE_STRUCT;
     this.createStruct = createStruct;
   }
 
-  MutableCreateMap createMap() {
+  public MutableCreateMap createMap() {
     return createMap;
   }
 
-  void setCreateMap(MutableCreateMap createMap) {
+  public void setCreateMap(MutableCreateMap createMap) {
     this.exprKind = ExprKind.Kind.CREATE_MAP;
     this.createMap = createMap;
   }
 
-  MutableComprehension comprehension() {
+  public MutableComprehension comprehension() {
     return comprehension;
   }
 
-  void setComprehension(MutableComprehension comprehension) {
+  public void setComprehension(MutableComprehension comprehension) {
     this.exprKind = ExprKind.Kind.COMPREHENSION;
     this.comprehension = comprehension;
   }
@@ -187,11 +190,11 @@ public final class MutableExpr {
       this.bytesValue = bytesValue;
     }
 
-    static MutableConstant ofValue(NullValue value) {
+    public static MutableConstant ofValue(NullValue value) {
       return new MutableConstant(value);
     }
 
-    static MutableConstant ofValue(boolean value) {
+    public static MutableConstant ofValue(boolean value) {
       return new MutableConstant(value);
     }
 
@@ -199,19 +202,19 @@ public final class MutableExpr {
       return new MutableConstant(value);
     }
 
-    static MutableConstant ofValue(UnsignedLong value) {
+    public static MutableConstant ofValue(UnsignedLong value) {
       return new MutableConstant(value);
     }
 
-    static MutableConstant ofValue(double value) {
+    public static MutableConstant ofValue(double value) {
       return new MutableConstant(value);
     }
 
-    static MutableConstant ofValue(String value) {
+    public static MutableConstant ofValue(String value) {
       return new MutableConstant(value);
     }
 
-    static MutableConstant ofValue(ByteString value) {
+    public static MutableConstant ofValue(ByteString value) {
       return new MutableConstant(value);
     }
 
@@ -256,7 +259,7 @@ public final class MutableExpr {
       this.name = name;
     }
 
-    static MutableIdent create(String name) {
+    public static MutableIdent create(String name) {
       return new MutableIdent(name);
     }
 
@@ -265,16 +268,16 @@ public final class MutableExpr {
     }
   }
 
-  final static class MutableSelect {
+  public final static class MutableSelect {
     private MutableExpr operand;
     private String field;
     private boolean testOnly;
 
-    MutableExpr operand() {
+    public MutableExpr operand() {
       return operand;
     }
 
-    void setOperand(MutableExpr operand) {
+    public void setOperand(MutableExpr operand) {
       this.operand = operand;
     }
 
@@ -294,7 +297,11 @@ public final class MutableExpr {
       this.testOnly = testOnly;
     }
 
-    static MutableSelect create(MutableExpr operand, String field, boolean testOnly) {
+    public static MutableSelect create(MutableExpr operand, String field) {
+      return new MutableSelect(operand, field, false);
+    }
+
+    public static MutableSelect create(MutableExpr operand, String field, boolean testOnly) {
       return new MutableSelect(operand, field, testOnly);
     }
 
@@ -310,11 +317,11 @@ public final class MutableExpr {
     private String function;
     private List<MutableExpr> args;
 
-    Optional<MutableExpr> target() {
+    public Optional<MutableExpr> target() {
       return target;
     }
 
-    void setTarget(MutableExpr target) {
+    public void setTarget(MutableExpr target) {
       this.target = Optional.of(target);
     }
 
@@ -331,6 +338,12 @@ public final class MutableExpr {
 
     void setArgs(List<MutableExpr> args) {
       this.args = args;
+    }
+
+    public void setArg(int index, MutableExpr arg) {
+      checkNotNull(arg);
+      checkArgument(index >= 0 && index < args.size());
+      args.set(index, arg);
     }
 
     static MutableCall create(String function, List<MutableExpr> args) {
@@ -365,6 +378,12 @@ public final class MutableExpr {
       this.elements = elements;
     }
 
+    public void setElement(int index, MutableExpr element) {
+      checkNotNull(element);
+      checkArgument(index >= 0 && index < elements().size());
+      elements.set(index, element);
+    }
+
     List<Integer> optionalIndices() {
       return optionalIndices;
     }
@@ -387,7 +406,7 @@ public final class MutableExpr {
     }
   }
 
-  final static class MutableCreateStruct {
+  public final static class MutableCreateStruct {
     private String messageName;
     private List<Entry> entries;
 
@@ -408,7 +427,14 @@ public final class MutableExpr {
       this.entries = entries;
     }
 
-    final static class Entry {
+    public void setEntry(int index, Entry entry) {
+      checkNotNull(entry);
+      checkArgument(index >= 0 && index < entries().size());
+      entries.set(index, entry);
+    }
+
+
+    public final static class Entry {
       private long id;
       private String fieldKey;
       private MutableExpr value;
@@ -472,7 +498,7 @@ public final class MutableExpr {
     }
   }
 
-  final static class MutableCreateMap {
+  public final static class MutableCreateMap {
     private List<Entry> entries;
 
     public List<Entry> entries() {
@@ -483,7 +509,13 @@ public final class MutableExpr {
       this.entries = entries;
     }
 
-    final static class Entry {
+    public void setEntry(int index, Entry entry) {
+      checkNotNull(entry);
+      checkArgument(index >= 0 && index < entries().size());
+      entries.set(index, entry);
+    }
+
+    public final static class Entry {
       private long id;
       private MutableExpr key;
       private MutableExpr value;
@@ -546,18 +578,19 @@ public final class MutableExpr {
     }
   }
 
-  final static class MutableComprehension {
+  public final static class MutableComprehension {
+
     /** The name of the iteration variable. */
-    public String iterVar;
+    private String iterVar;
 
     /** The range over which var iterates. */
-    public MutableExpr iterRange;
+    private MutableExpr iterRange;
 
     /** The name of the variable used for accumulation of the result. */
-    public String accuVar;
+    private String accuVar;
 
     /** The initial value of the accumulator. */
-    public MutableExpr accuInit;
+    private MutableExpr accuInit;
 
     /**
      * An expression which can contain iter_var and accu_var.
@@ -565,21 +598,78 @@ public final class MutableExpr {
      * <p>Returns false when the result has been computed and may be used as a hint to short-circuit
      * the remainder of the comprehension.
      */
-    public MutableExpr loopCondition;
+    private MutableExpr loopCondition;
 
     /**
      * An expression which can contain iter_var and accu_var.
      *
      * <p>Computes the next value of accu_var.
      */
-    public MutableExpr loopStep;
+    private MutableExpr loopStep;
 
     /**
      * An expression which can contain accu_var.
      *
      * <p>Computes the result.
      */
-    public MutableExpr result;
+    private MutableExpr result;
+
+    public String getIterVar() {
+      return iterVar;
+    }
+
+    public void setIterVar(String iterVar) {
+      this.iterVar = iterVar;
+    }
+
+    public MutableExpr getIterRange() {
+      return iterRange;
+    }
+
+    public void setIterRange(MutableExpr iterRange) {
+      this.iterRange = iterRange;
+    }
+
+    public String getAccuVar() {
+      return accuVar;
+    }
+
+    public void setAccuVar(String accuVar) {
+      this.accuVar = accuVar;
+    }
+
+    public MutableExpr getAccuInit() {
+      return accuInit;
+    }
+
+    public void setAccuInit(MutableExpr accuInit) {
+      this.accuInit = accuInit;
+    }
+
+    public MutableExpr getLoopCondition() {
+      return loopCondition;
+    }
+
+    public void setLoopCondition(MutableExpr loopCondition) {
+      this.loopCondition = loopCondition;
+    }
+
+    public MutableExpr getLoopStep() {
+      return loopStep;
+    }
+
+    public void setLoopStep(MutableExpr loopStep) {
+      this.loopStep = loopStep;
+    }
+
+    public MutableExpr getResult() {
+      return result;
+    }
+
+    public void setResult(MutableExpr result) {
+      this.result = result;
+    }
+
 
     public static MutableComprehension create(String iterVar, MutableExpr iterRange, String accuVar,
         MutableExpr accuInit, MutableExpr loopCondition, MutableExpr loopStep, MutableExpr result) {
@@ -599,74 +689,118 @@ public final class MutableExpr {
   }
 
   public static MutableExpr ofConstant(MutableConstant mutableConstant) {
-    return new MutableExpr(mutableConstant);
+    return new MutableExpr(0, mutableConstant);
   }
 
-  static MutableExpr ofIdent(MutableIdent mutableIdent) {
-    return new MutableExpr(mutableIdent);
+  public static MutableExpr ofConstant(long id, MutableConstant mutableConstant) {
+    return new MutableExpr(id, mutableConstant);
   }
 
-  static MutableExpr ofCall(MutableCall mutableCall) {
-    return new MutableExpr(mutableCall);
+  public static MutableExpr ofIdent(String name) {
+    return new MutableExpr(0, MutableIdent.create(name));
   }
 
-  static MutableExpr ofSelect(MutableSelect mutableSelect) {
-    return new MutableExpr(mutableSelect);
+  public static MutableExpr ofIdent(long id, String name) {
+    return new MutableExpr(id, MutableIdent.create(name));
+  }
+
+  public static MutableExpr ofCall(MutableCall mutableCall) {
+    return new MutableExpr(0, mutableCall);
+  }
+
+  public static MutableExpr ofCall(long id, MutableCall mutableCall) {
+    return new MutableExpr(id, mutableCall);
+  }
+
+  public static MutableExpr ofSelect(MutableSelect mutableSelect) {
+    return new MutableExpr(0, mutableSelect);
+  }
+
+  public static MutableExpr ofSelect(long id, MutableSelect mutableSelect) {
+    return new MutableExpr(id, mutableSelect);
   }
 
   public static MutableExpr ofCreateList(MutableCreateList mutableCreateList) {
-    return new MutableExpr(mutableCreateList);
+    return new MutableExpr(0, mutableCreateList);
   }
 
-  static MutableExpr ofCreateStruct(MutableCreateStruct mutableCreateStruct) {
-    return new MutableExpr(mutableCreateStruct);
+  public static MutableExpr ofCreateList(long id, MutableCreateList mutableCreateList) {
+    return new MutableExpr(id, mutableCreateList);
   }
 
-  static MutableExpr ofCreateMap(MutableCreateMap mutableCreateMap) {
-    return new MutableExpr(mutableCreateMap);
+  public static MutableExpr ofCreateStruct(MutableCreateStruct mutableCreateStruct) {
+    return new MutableExpr(0, mutableCreateStruct);
   }
 
-  static MutableExpr ofComprehension(MutableComprehension mutableComprehension) {
-    return new MutableExpr(mutableComprehension);
+  public static MutableExpr ofCreateStruct(long id, MutableCreateStruct mutableCreateStruct) {
+    return new MutableExpr(id, mutableCreateStruct);
   }
 
+  public static MutableExpr ofCreateMap(MutableCreateMap mutableCreateMap) {
+    return new MutableExpr(0, mutableCreateMap);
+  }
+
+  public static MutableExpr ofCreateMap(long id, MutableCreateMap mutableCreateMap) {
+    return new MutableExpr(id, mutableCreateMap);
+  }
+
+  public static MutableExpr ofComprehension(long id, MutableComprehension mutableComprehension) {
+    return new MutableExpr(id, mutableComprehension);
+  }
   static MutableExpr ofNotSet() {
     return new MutableExpr();
   }
 
-  private MutableExpr(MutableConstant mutableConstant) {
+  private MutableExpr(long id, MutableConstant mutableConstant) {
+    this(id);
     setConstant(mutableConstant);
   }
 
-  private MutableExpr(MutableIdent mutableIdent) {
+  private MutableExpr(long id, MutableIdent mutableIdent) {
+    this(id);
     setIdent(mutableIdent);
   }
 
-  private MutableExpr(MutableCall mutableCall) {
+  private MutableExpr(long id, MutableCall mutableCall) {
+    this(id);
     setCall(mutableCall);
   }
 
-  private MutableExpr(MutableSelect mutableSelect) {
+  private MutableExpr(long id, MutableSelect mutableSelect) {
+    this(id);
     setSelect(mutableSelect);
   }
 
-  private MutableExpr(MutableCreateList mutableCreateList) {
+  private MutableExpr(long id, MutableCreateList mutableCreateList) {
+    this(id);
     setCreateList(mutableCreateList);
   }
 
-  private MutableExpr(MutableCreateStruct mutableCreateStruct) {
+  private MutableExpr(long id, MutableCreateStruct mutableCreateStruct) {
+    this(id);
     setCreateStruct(mutableCreateStruct);
   }
 
-  private MutableExpr(MutableCreateMap mutableCreateMap) {
+  private MutableExpr(long id, MutableCreateMap mutableCreateMap) {
+    this(id);
     setCreateMap(mutableCreateMap);
   }
 
-  private MutableExpr(MutableComprehension mutableComprehension) {
+  private MutableExpr(long id, MutableComprehension mutableComprehension) {
+    this(id);
     setComprehension(mutableComprehension);
+  }
+
+  private MutableExpr(long id) {
+    this.id = id;
   }
 
   private MutableExpr() {
     this.exprKind = ExprKind.Kind.NOT_SET;
+  }
+
+  @Override
+  public String toString() {
+    return MutableExprConverter.fromMutableExpr(this).toString();
   }
 }
