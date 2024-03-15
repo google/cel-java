@@ -32,6 +32,7 @@ java_library(
         "//common/types:type_providers",
         "//compiler",
         "//compiler:compiler_builder",
+        "//java/com/google/protobuf/contrib/immutablejs:options_java_proto",
         "//parser",
         "//parser:macro",
         "//runtime",

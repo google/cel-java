@@ -15,6 +15,13 @@
 # Includes package-wide build definitions for maven imported java targets
 # that needs to be defined separately.
 
+load(
+    "@bazel_tools//tools/jdk:default_java_toolchain.bzl",
+    "BASE_JDK9_JVM_OPTS",
+    "DEFAULT_JAVACOPTS",
+    "DEFAULT_TOOLCHAIN_CONFIGURATION",
+    "default_java_toolchain",
+)
 load("@rules_license//rules:license.bzl", "license")
 
 licenses(["notice"])  # Apache License 2.0
@@ -80,14 +87,6 @@ java_library(
         "@maven//:com_google_truth_extensions_truth_java8_extension",
         "@maven//:com_google_truth_truth",
     ],
-)
-
-load(
-    "@bazel_tools//tools/jdk:default_java_toolchain.bzl",
-    "BASE_JDK9_JVM_OPTS",
-    "DEFAULT_JAVACOPTS",
-    "DEFAULT_TOOLCHAIN_CONFIGURATION",
-    "default_java_toolchain",
 )
 
 default_java_toolchain(
