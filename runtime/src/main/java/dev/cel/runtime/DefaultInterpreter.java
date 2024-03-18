@@ -19,7 +19,6 @@ import dev.cel.expr.Value;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -43,6 +42,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -852,14 +852,12 @@ public final class DefaultInterpreter implements Interpreter {
         }
         i++;
 
-        ImmutableMap<String, IntermediateResult> loopVars =
-            ImmutableMap.of(
-                iterVar,
-                IntermediateResult.create(iterAttr, RuntimeHelpers.maybeAdaptPrimitive(elem)),
-                accuVar,
-                accuValue);
+        Map<String, IntermediateResult> loopVars = new HashMap<>();
+        loopVars.put(
+            iterVar, IntermediateResult.create(iterAttr, RuntimeHelpers.maybeAdaptPrimitive(elem)));
+        loopVars.put(accuVar, accuValue);
 
-        frame.pushScope(loopVars);
+        frame.pushScope(Collections.unmodifiableMap(loopVars));
         IntermediateResult evalObject = evalBooleanStrict(frame, compre.loopCondition());
         if (!isUnknownValue(evalObject.value()) && !(boolean) evalObject.value()) {
           frame.popScope();
@@ -869,7 +867,7 @@ public final class DefaultInterpreter implements Interpreter {
         frame.popScope();
       }
 
-      frame.pushScope(ImmutableMap.of(accuVar, accuValue));
+      frame.pushScope(Collections.singletonMap(accuVar, accuValue));
       IntermediateResult result = evalInternal(frame, compre.result());
       frame.popScope();
       return result;
@@ -878,14 +876,14 @@ public final class DefaultInterpreter implements Interpreter {
     private IntermediateResult evalCelBlock(
         ExecutionFrame frame, CelExpr unusedExpr, CelCall blockCall) throws InterpreterException {
       CelCreateList exprList = blockCall.args().get(0).createList();
-      ImmutableMap.Builder<String, IntermediateResult> blockList = ImmutableMap.builder();
+      Map<String, IntermediateResult> blockList = new HashMap<>();
       for (int index = 0; index < exprList.elements().size(); index++) {
         // Register the block indices as lazily evaluated expressions stored as unique identifiers.
         blockList.put(
             "@index" + index,
             IntermediateResult.create(new LazyExpression(exprList.elements().get(index))));
       }
-      frame.pushScope(blockList.buildOrThrow());
+      frame.pushScope(Collections.unmodifiableMap(blockList));
 
       return evalInternal(frame, blockCall.args().get(1));
     }
@@ -970,7 +968,8 @@ public final class DefaultInterpreter implements Interpreter {
       currentResolver.cacheLazilyEvaluatedResult(name, result);
     }
 
-    private void pushScope(ImmutableMap<String, IntermediateResult> scope) {
+    /** Note: we utilize a HashMap instead of ImmutableMap to make lookups faster on string keys. */
+    private void pushScope(Map<String, IntermediateResult> scope) {
       RuntimeUnknownResolver scopedResolver = currentResolver.withScope(scope);
       currentResolver = scopedResolver;
       resolvers.addLast(scopedResolver);
