@@ -28,6 +28,7 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.DynamicMessage;
 import com.google.rpc.context.AttributeContext;
+import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
@@ -403,7 +404,10 @@ public class CelRuntimeTest {
   }
 
   @Test
-  public void trace_shortCircuitingDisabled_logicalAndAllBranchesVisited() throws Exception {
+  public void trace_shortCircuitingDisabled_logicalAndAllBranchesVisited(
+      @TestParameter boolean first, @TestParameter boolean second, @TestParameter boolean third)
+      throws Exception {
+    String expression = String.format("%s && %s && %s", first, second, third);
     ImmutableList.Builder<Boolean> branchResults = ImmutableList.builder();
     CelEvaluationListener listener =
         (expr, res) -> {
@@ -411,20 +415,64 @@ public class CelRuntimeTest {
             branchResults.add((Boolean) res);
           }
         };
+    Cel celWithShortCircuit =
+        CelFactory.standardCelBuilder()
+            .setOptions(CelOptions.current().enableShortCircuiting(true).build())
+            .build();
     Cel cel =
         CelFactory.standardCelBuilder()
             .setOptions(CelOptions.current().enableShortCircuiting(false).build())
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("false && true && false").getAst();
+    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+
+    boolean result = (boolean) cel.createProgram(ast).trace(listener);
+    boolean shortCircuitedResult =
+        (boolean)
+            celWithShortCircuit
+                .createProgram(celWithShortCircuit.compile(expression).getAst())
+                .eval();
+
+    assertThat(result).isEqualTo(shortCircuitedResult);
+    assertThat(branchResults.build()).containsExactly(first, second, third).inOrder();
+  }
+
+  @Test
+  @TestParameters("{source: 'false && false && x'}")
+  @TestParameters("{source: 'false && x && false'}")
+  @TestParameters("{source: 'x && false && false'}")
+  public void trace_shortCircuitingDisabledWithUnknownsAndedToFalse_returnsFalse(String source)
+      throws Exception {
+    ImmutableList.Builder<Object> branchResults = ImmutableList.builder();
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          if (expr.constantOrDefault().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE)
+              || expr.identOrDefault().name().equals("x")) {
+            if (InterpreterUtil.isUnknown(res)) {
+              branchResults.add("x"); // Swap unknown result with a sentinel value for testing
+            } else {
+              branchResults.add(res);
+            }
+          }
+        };
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addVar("x", SimpleType.BOOL)
+            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
     boolean result = (boolean) cel.createProgram(ast).trace(listener);
 
     assertThat(result).isFalse();
-    assertThat(branchResults.build()).containsExactly(false, true, false);
+    assertThat(branchResults.build()).containsExactly(false, false, "x");
   }
 
   @Test
-  public void trace_shortCircuitingDisabled_logicalAndWithUnknowns() throws Exception {
+  @TestParameters("{source: 'true && true && x'}")
+  @TestParameters("{source: 'true && x && true'}")
+  @TestParameters("{source: 'x && true && true'}")
+  public void trace_shortCircuitingDisabledWithUnknownAndedToTrue_returnsUnknown(String source)
+      throws Exception {
     ImmutableList.Builder<Object> branchResults = ImmutableList.builder();
     CelEvaluationListener listener =
         (expr, res) -> {
@@ -438,16 +486,19 @@ public class CelRuntimeTest {
             .addVar("x", SimpleType.BOOL)
             .setOptions(CelOptions.current().enableShortCircuiting(false).build())
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("false && false && x").getAst();
+    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
     Object unknownResult = cel.createProgram(ast).trace(listener);
 
     assertThat(InterpreterUtil.isUnknown(unknownResult)).isTrue();
-    assertThat(branchResults.build()).containsExactly(false, false, unknownResult);
+    assertThat(branchResults.build()).containsExactly(true, true, unknownResult);
   }
 
   @Test
-  public void trace_shortCircuitingDisabled_logicalOrAllBranchesVisited() throws Exception {
+  public void trace_shortCircuitingDisabled_logicalOrAllBranchesVisited(
+      @TestParameter boolean first, @TestParameter boolean second, @TestParameter boolean third)
+      throws Exception {
+    String expression = String.format("%s || %s || %s", first, second, third);
     ImmutableList.Builder<Boolean> branchResults = ImmutableList.builder();
     CelEvaluationListener listener =
         (expr, res) -> {
@@ -455,20 +506,33 @@ public class CelRuntimeTest {
             branchResults.add((Boolean) res);
           }
         };
+    Cel celWithShortCircuit =
+        CelFactory.standardCelBuilder()
+            .setOptions(CelOptions.current().enableShortCircuiting(true).build())
+            .build();
     Cel cel =
         CelFactory.standardCelBuilder()
             .setOptions(CelOptions.current().enableShortCircuiting(false).build())
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("true || false || true").getAst();
+    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
 
     boolean result = (boolean) cel.createProgram(ast).trace(listener);
+    boolean shortCircuitedResult =
+        (boolean)
+            celWithShortCircuit
+                .createProgram(celWithShortCircuit.compile(expression).getAst())
+                .eval();
 
-    assertThat(result).isTrue();
-    assertThat(branchResults.build()).containsExactly(true, false, true);
+    assertThat(result).isEqualTo(shortCircuitedResult);
+    assertThat(branchResults.build()).containsExactly(first, second, third).inOrder();
   }
 
   @Test
-  public void trace_shortCircuitingDisabled_logicalOrWithUnknowns() throws Exception {
+  @TestParameters("{source: 'false || false || x'}")
+  @TestParameters("{source: 'false || x || false'}")
+  @TestParameters("{source: 'x || false || false'}")
+  public void trace_shortCircuitingDisabledWithUnknownsOredToFalse_returnsUnknown(String source)
+      throws Exception {
     ImmutableList.Builder<Object> branchResults = ImmutableList.builder();
     CelEvaluationListener listener =
         (expr, res) -> {
@@ -482,12 +546,43 @@ public class CelRuntimeTest {
             .addVar("x", SimpleType.BOOL)
             .setOptions(CelOptions.current().enableShortCircuiting(false).build())
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("false || false || x").getAst();
+    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
 
     Object unknownResult = cel.createProgram(ast).trace(listener);
 
     assertThat(InterpreterUtil.isUnknown(unknownResult)).isTrue();
     assertThat(branchResults.build()).containsExactly(false, false, unknownResult);
+  }
+
+  @Test
+  @TestParameters("{source: 'true || true || x'}")
+  @TestParameters("{source: 'true || x || true'}")
+  @TestParameters("{source: 'x || true || true'}")
+  public void trace_shortCircuitingDisabledWithUnknownOredToTrue_returnsTrue(String source)
+      throws Exception {
+    ImmutableList.Builder<Object> branchResults = ImmutableList.builder();
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          if (expr.constantOrDefault().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE)
+              || expr.identOrDefault().name().equals("x")) {
+            if (InterpreterUtil.isUnknown(res)) {
+              branchResults.add("x"); // Swap unknown result with a sentinel value for testing
+            } else {
+              branchResults.add(res);
+            }
+          }
+        };
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addVar("x", SimpleType.BOOL)
+            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
+
+    boolean result = (boolean) cel.createProgram(ast).trace(listener);
+
+    assertThat(result).isTrue();
+    assertThat(branchResults.build()).containsExactly(true, true, "x");
   }
 
   @Test
@@ -535,6 +630,45 @@ public class CelRuntimeTest {
 
     assertThat(InterpreterUtil.isUnknown(unknownResult)).isTrue();
     assertThat(branchResults.build()).containsExactly(false, unknownResult, true);
+  }
+
+  @Test
+  @TestParameters(
+      "{expression: 'false ? (1 / 0) > 2 : false', firstVisited: false, secondVisited: false}")
+  @TestParameters(
+      "{expression: 'false ? (1 / 0) > 2 : true', firstVisited: false, secondVisited: true}")
+  @TestParameters(
+      "{expression: 'true ? false : (1 / 0) > 2', firstVisited: true, secondVisited: false}")
+  @TestParameters(
+      "{expression: 'true ? true : (1 / 0) > 2', firstVisited: true, secondVisited: true}")
+  public void trace_shortCircuitingDisabled_ternaryWithError(
+      String expression, boolean firstVisited, boolean secondVisited) throws Exception {
+    ImmutableList.Builder<Object> branchResults = ImmutableList.builder();
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          if (expr.constantOrDefault().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE)) {
+            branchResults.add(res);
+          }
+        };
+    Cel celWithShortCircuit =
+        CelFactory.standardCelBuilder()
+            .setOptions(CelOptions.current().enableShortCircuiting(true).build())
+            .build();
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .setOptions(CelOptions.current().enableShortCircuiting(false).build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+
+    boolean result = (boolean) cel.createProgram(ast).trace(listener);
+    boolean shortCircuitedResult =
+        (boolean)
+            celWithShortCircuit
+                .createProgram(celWithShortCircuit.compile(expression).getAst())
+                .eval();
+
+    assertThat(result).isEqualTo(shortCircuitedResult);
+    assertThat(branchResults.build()).containsExactly(firstVisited, secondVisited).inOrder();
   }
 
   @Test

@@ -464,12 +464,14 @@ public final class DefaultInterpreter implements Interpreter {
         }
         return evalInternal(frame, callExpr.args().get(2));
       } else {
-        IntermediateResult lhs = evalInternal(frame, callExpr.args().get(1));
-        IntermediateResult rhs = evalInternal(frame, callExpr.args().get(2));
+        IntermediateResult lhs = evalNonstrictly(frame, callExpr.args().get(1));
+        IntermediateResult rhs = evalNonstrictly(frame, callExpr.args().get(2));
         if (isUnknownValue(condition.value())) {
           return condition;
         }
-        return (boolean) condition.value() ? lhs : rhs;
+        Object result =
+            InterpreterUtil.strict((boolean) condition.value() ? lhs.value() : rhs.value());
+        return IntermediateResult.create(result);
       }
     }
 
@@ -497,7 +499,7 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private boolean canShortCircuit(IntermediateResult result, ShortCircuitableOperators operator) {
-      if (!celOptions.enableShortCircuiting() || !(result.value() instanceof Boolean)) {
+      if (!(result.value() instanceof Boolean)) {
         return false;
       }
 
@@ -511,19 +513,32 @@ public final class DefaultInterpreter implements Interpreter {
 
     private IntermediateResult evalLogicalOr(ExecutionFrame frame, CelCall callExpr)
         throws InterpreterException {
-      IntermediateResult left = evalBooleanNonstrict(frame, callExpr.args().get(0));
-      if (canShortCircuit(left, ShortCircuitableOperators.LOGICAL_OR)) {
-        return left;
+      IntermediateResult left;
+      IntermediateResult right;
+      if (celOptions.enableShortCircuiting()) {
+        left = evalBooleanNonstrict(frame, callExpr.args().get(0));
+        if (canShortCircuit(left, ShortCircuitableOperators.LOGICAL_OR)) {
+          return left;
+        }
+
+        right = evalBooleanNonstrict(frame, callExpr.args().get(1));
+        if (canShortCircuit(right, ShortCircuitableOperators.LOGICAL_OR)) {
+          return right;
+        }
+      } else {
+        left = evalBooleanNonstrict(frame, callExpr.args().get(0));
+        right = evalBooleanNonstrict(frame, callExpr.args().get(1));
+        if (canShortCircuit(left, ShortCircuitableOperators.LOGICAL_OR)) {
+          return left;
+        }
+        if (canShortCircuit(right, ShortCircuitableOperators.LOGICAL_OR)) {
+          return right;
+        }
       }
 
-      IntermediateResult right = evalBooleanNonstrict(frame, callExpr.args().get(1));
-      if (canShortCircuit(right, ShortCircuitableOperators.LOGICAL_OR)) {
-        return right;
-      }
-
-      // both false.
+      // both are booleans.
       if (right.value() instanceof Boolean && left.value() instanceof Boolean) {
-        return left;
+        return IntermediateResult.create((Boolean) right.value() || (Boolean) left.value());
       }
 
       return mergeBooleanUnknowns(left, right);
@@ -531,19 +546,32 @@ public final class DefaultInterpreter implements Interpreter {
 
     private IntermediateResult evalLogicalAnd(ExecutionFrame frame, CelCall callExpr)
         throws InterpreterException {
-      IntermediateResult left = evalBooleanNonstrict(frame, callExpr.args().get(0));
-      if (canShortCircuit(left, ShortCircuitableOperators.LOGICAL_AND)) {
-        return left;
+      IntermediateResult left;
+      IntermediateResult right;
+      if (celOptions.enableShortCircuiting()) {
+        left = evalBooleanNonstrict(frame, callExpr.args().get(0));
+        if (canShortCircuit(left, ShortCircuitableOperators.LOGICAL_AND)) {
+          return left;
+        }
+
+        right = evalBooleanNonstrict(frame, callExpr.args().get(1));
+        if (canShortCircuit(right, ShortCircuitableOperators.LOGICAL_AND)) {
+          return right;
+        }
+      } else {
+        left = evalBooleanNonstrict(frame, callExpr.args().get(0));
+        right = evalBooleanNonstrict(frame, callExpr.args().get(1));
+        if (canShortCircuit(left, ShortCircuitableOperators.LOGICAL_AND)) {
+          return left;
+        }
+        if (canShortCircuit(right, ShortCircuitableOperators.LOGICAL_AND)) {
+          return right;
+        }
       }
 
-      IntermediateResult right = evalBooleanNonstrict(frame, callExpr.args().get(1));
-      if (canShortCircuit(right, ShortCircuitableOperators.LOGICAL_AND)) {
-        return right;
-      }
-
-      // both true.
+      // both are booleans.
       if (right.value() instanceof Boolean && left.value() instanceof Boolean) {
-        return left;
+        return IntermediateResult.create((Boolean) right.value() && (Boolean) left.value());
       }
 
       return mergeBooleanUnknowns(left, right);
