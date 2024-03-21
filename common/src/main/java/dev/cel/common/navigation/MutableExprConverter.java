@@ -88,6 +88,8 @@ public final class MutableExprConverter {
                 fromCelExpr(celComprehension.result())
         );
         return MutableExpr.ofComprehension(celExpr.id(), mutableComprehension);
+      case NOT_SET:
+        return MutableExpr.ofNotSet(celExpr.id());
       default:
         throw new IllegalArgumentException(
                 "Unexpected expression kind case: " + celExpr.exprKind().getKind());
@@ -144,7 +146,7 @@ public final class MutableExprConverter {
       case CONSTANT:
         return CelExpr.ofConstantExpr(id, fromMutableConstant(mutableExpr.constant()));
       case IDENT:
-        return CelExpr.ofIdentExpr(id, mutableExpr.ident().Name());
+        return CelExpr.ofIdentExpr(id, mutableExpr.ident().name());
       case SELECT:
         MutableSelect select = mutableExpr.select();
         CelExpr operand = fromMutableExpr(select.operand());
@@ -177,6 +179,8 @@ public final class MutableExprConverter {
                 fromMutableExpr(mutableComprehension.getLoopStep()),
                 fromMutableExpr(mutableComprehension.getResult())
         );
+      case NOT_SET:
+        return CelExpr.ofNotSet(id);
       default:
         throw new IllegalArgumentException(
                 "Unexpected expression kind case: " + mutableExpr.exprKind());

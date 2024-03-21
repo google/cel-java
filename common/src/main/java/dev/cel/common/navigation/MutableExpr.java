@@ -38,6 +38,9 @@ public final class MutableExpr {
   }
 
   public MutableConstant constant() {
+    if (!this.exprKind.equals(ExprKind.Kind.CONSTANT)) {
+      throw new IllegalStateException("Invalid ExprKind: " + this.exprKind);
+    }
     return constant;
   }
 
@@ -47,6 +50,9 @@ public final class MutableExpr {
   }
 
   public MutableIdent ident() {
+    if (!this.exprKind.equals(ExprKind.Kind.IDENT)) {
+      throw new IllegalStateException("Invalid ExprKind: " + this.exprKind);
+    }
     return ident;
   }
 
@@ -56,6 +62,9 @@ public final class MutableExpr {
   }
 
   public MutableCall call() {
+    if (!this.exprKind.equals(ExprKind.Kind.CALL)) {
+      throw new IllegalStateException("Invalid ExprKind: " + this.exprKind);
+    }
     return call;
   }
 
@@ -65,6 +74,9 @@ public final class MutableExpr {
   }
 
   public MutableSelect select() {
+    if (!this.exprKind.equals(ExprKind.Kind.SELECT)) {
+      throw new IllegalStateException("Invalid ExprKind: " + this.exprKind);
+    }
     return select;
   }
 
@@ -74,6 +86,9 @@ public final class MutableExpr {
   }
 
   public MutableCreateList createList() {
+    if (!this.exprKind.equals(ExprKind.Kind.CREATE_LIST)) {
+      throw new IllegalStateException("Invalid ExprKind: " + this.exprKind);
+    }
     return createList;
   }
 
@@ -83,6 +98,9 @@ public final class MutableExpr {
   }
 
   public MutableCreateStruct createStruct() {
+    if (!this.exprKind.equals(ExprKind.Kind.CREATE_STRUCT)) {
+      throw new IllegalStateException("Invalid ExprKind: " + this.exprKind);
+    }
     return createStruct;
   }
 
@@ -92,6 +110,9 @@ public final class MutableExpr {
   }
 
   public MutableCreateMap createMap() {
+    if (!this.exprKind.equals(ExprKind.Kind.CREATE_MAP)) {
+      throw new IllegalStateException("Invalid ExprKind: " + this.exprKind);
+    }
     return createMap;
   }
 
@@ -101,6 +122,9 @@ public final class MutableExpr {
   }
 
   public MutableComprehension comprehension() {
+    if (!this.exprKind.equals(ExprKind.Kind.COMPREHENSION)) {
+      throw new IllegalStateException("Invalid ExprKind: " + this.exprKind);
+    }
     return comprehension;
   }
 
@@ -251,7 +275,7 @@ public final class MutableExpr {
   public final static class MutableIdent {
     private String name;
 
-    String Name() {
+    public String name() {
       return name;
     }
 
@@ -747,8 +771,13 @@ public final class MutableExpr {
   public static MutableExpr ofComprehension(long id, MutableComprehension mutableComprehension) {
     return new MutableExpr(id, mutableComprehension);
   }
-  static MutableExpr ofNotSet() {
+
+  public static MutableExpr ofNotSet() {
     return new MutableExpr();
+  }
+
+  public static MutableExpr ofNotSet(long id) {
+    return new MutableExpr(id);
   }
 
   private MutableExpr(long id, MutableConstant mutableConstant) {
@@ -792,6 +821,7 @@ public final class MutableExpr {
   }
 
   private MutableExpr(long id) {
+    this();
     this.id = id;
   }
 

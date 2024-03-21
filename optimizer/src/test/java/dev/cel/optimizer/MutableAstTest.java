@@ -36,6 +36,7 @@ import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelIdent;
+import dev.cel.common.ast.CelExpr.ExprKind;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
@@ -800,9 +801,10 @@ public class MutableAstTest {
   @Test
   public void mangleComprehensionVariable_singleMacro() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("[false].exists(i, i)").getAst();
+    MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
 
     CelAbstractSyntaxTree mangledAst =
-        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c", "@x").ast();
+        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, root, "@c", "@x").ast();
 
     assertThat(mangledAst.getExpr().toString())
         .isEqualTo(
@@ -861,9 +863,10 @@ public class MutableAstTest {
   @Test
   public void mangleComprehensionVariable_nestedMacroWithShadowedVariables() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("[x].exists(x, [x].exists(x, x == 1))").getAst();
+    MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
 
     CelAbstractSyntaxTree mangledAst =
-        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c", "@x").ast();
+        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, root, "@c", "@x").ast();
 
     assertThat(mangledAst.getExpr().toString())
         .isEqualTo(

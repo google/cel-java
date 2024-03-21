@@ -36,6 +36,7 @@ import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.navigation.CelNavigableExpr.TraversalOrder;
 import dev.cel.common.navigation.MutableExpr;
+import dev.cel.common.navigation.MutableExpr.MutableComprehension;
 import dev.cel.common.navigation.MutableExprConverter;
 import dev.cel.common.types.CelType;
 
@@ -216,6 +217,153 @@ public final class MutableAst {
 //    return CelAbstractSyntaxTree.newParsedAst(root.build(), newSource);
   }
 
+  public MangledComprehensionAst mangleComprehensionIdentifierNames(
+      CelAbstractSyntaxTree ast, MutableExpr mutableExpr, String newIterVarPrefix, String newResultPrefix) {
+    CelNavigableExpr newNavigableExpr = CelNavigableExpr.fromMutableExpr(mutableExpr);
+    Predicate<CelNavigableExpr> comprehensionIdentifierPredicate = x -> true;
+    comprehensionIdentifierPredicate =
+        comprehensionIdentifierPredicate
+            .and(node -> node.getKind().equals(Kind.COMPREHENSION))
+            .and(node -> !node.mutableExpr().comprehension().getIterVar().startsWith(newIterVarPrefix))
+            .and(node -> !node.mutableExpr().comprehension().getAccuVar().startsWith(newResultPrefix));
+
+    LinkedHashMap<CelNavigableExpr, MangledComprehensionType> comprehensionsToMangle =
+        newNavigableExpr
+            // This is important - mangling needs to happen bottom-up to avoid stepping over
+            // shadowed variables that are not part of the comprehension being mangled.
+            .allNodes(TraversalOrder.POST_ORDER)
+            .filter(comprehensionIdentifierPredicate)
+            .filter(
+                node -> {
+                  // Ensure the iter_var or the comprehension result is actually referenced in the
+                  // loop_step. If it's not, we
+                  // can skip mangling.
+                  String iterVar = node.mutableExpr().comprehension().getIterVar();
+                  String result = node.mutableExpr().comprehension().getResult().ident().name();
+                  return CelNavigableExpr.fromMutableExpr(node.mutableExpr().comprehension().getLoopStep())
+                      .allNodes()
+                      .filter(subNode -> subNode.getKind().equals(Kind.IDENT))
+                      .map(subNode -> subNode.mutableExpr().ident())
+                      .anyMatch(
+                          ident -> ident.name().contains(iterVar) || ident.name().contains(result));
+                })
+            .collect(
+                Collectors.toMap(
+                    k -> k,
+                    v -> {
+                      MutableComprehension comprehension = v.mutableExpr().comprehension();
+                      String iterVar = comprehension.getIterVar();
+                      // Identifiers to mangle could be the iteration variable, comprehension result
+                      // or both, but at least one has to exist.
+                      // As an example, [1,2].map(i, 3) would produce an optional.empty because `i`
+                      // is not actually used.
+                      Optional<Long> iterVarId =
+                          CelNavigableExpr.fromMutableExpr(comprehension.getLoopStep())
+                              .allNodes()
+                              .filter(
+                                  loopStepNode ->
+                                      loopStepNode.mutableExpr().ident().name().equals(iterVar))
+                              .map(CelNavigableExpr::id)
+                              .findAny();
+                      Optional<CelType> iterVarType =
+                          iterVarId.map(
+                              id ->
+                                  ast.getType(id)
+                                      .orElseThrow(
+                                          () ->
+                                              new NoSuchElementException(
+                                                  "Checked type not present for iteration variable:"
+                                                      + " "
+                                                      + iterVarId)));
+                      Optional<CelType> resultType = ast.getType(comprehension.getResult().id());
+
+                      return MangledComprehensionType.of(iterVarType, resultType);
+                    },
+                    (x, y) -> {
+                      throw new IllegalStateException("Unexpected CelNavigableExpr collision");
+                    },
+                    LinkedHashMap::new));
+    int iterCount = 0;
+
+    // The map that we'll eventually return to the caller.
+    HashMap<MangledComprehensionName, MangledComprehensionType> mangledIdentNamesToType =
+        new HashMap<>();
+    // Intermediary table used for the purposes of generating a unique mangled variable name.
+    Table<Integer, MangledComprehensionType, MangledComprehensionName> comprehensionLevelToType =
+        HashBasedTable.create();
+    MutableExpr mutatedComprehensionExpr = newNavigableExpr.mutableExpr();
+    CelSource.Builder newSource = ast.getSource().toBuilder();
+    for (Entry<CelNavigableExpr, MangledComprehensionType> comprehensionEntry :
+        comprehensionsToMangle.entrySet()) {
+      iterCount++;
+      CelNavigableExpr comprehensionNode = comprehensionEntry.getKey();
+      // // Refetch the comprehension node as mutating the AST could have renumbered its IDs.
+      // CelNavigableExpr comprehensionNode =
+      //     newNavigableExpr
+      //         .allNodes(TraversalOrder.POST_ORDER)
+      //         .filter(comprehensionIdentifierPredicate)
+      //         .findAny()
+      //         .orElseThrow(
+      //             () -> new NoSuchElementException("Failed to refetch mutated comprehension"));
+      MangledComprehensionType comprehensionEntryType = comprehensionEntry.getValue();
+
+      MutableExpr comprehensionExpr = comprehensionNode.mutableExpr();
+      int comprehensionNestingLevel = countComprehensionNestingLevel(comprehensionNode);
+      MangledComprehensionName mangledComprehensionName;
+      if (comprehensionLevelToType.contains(comprehensionNestingLevel, comprehensionEntryType)) {
+        mangledComprehensionName =
+            comprehensionLevelToType.get(comprehensionNestingLevel, comprehensionEntryType);
+      } else {
+        // First time encountering the pair of <ComprehensionLevel, CelType>. Generate a unique
+        // mangled variable name for this.
+        int uniqueTypeIdx = comprehensionLevelToType.row(comprehensionNestingLevel).size();
+        String mangledIterVarName =
+            newIterVarPrefix + comprehensionNestingLevel + ":" + uniqueTypeIdx;
+        String mangledResultName =
+            newResultPrefix + comprehensionNestingLevel + ":" + uniqueTypeIdx;
+        mangledComprehensionName =
+            MangledComprehensionName.of(mangledIterVarName, mangledResultName);
+        comprehensionLevelToType.put(
+            comprehensionNestingLevel, comprehensionEntryType, mangledComprehensionName);
+      }
+      mangledIdentNamesToType.put(mangledComprehensionName, comprehensionEntryType);
+
+      String iterVar = comprehensionExpr.comprehension().getIterVar();
+      String accuVar = comprehensionExpr.comprehension().getAccuVar();
+      mutatedComprehensionExpr =
+          mangleIdentsInComprehensionExpr(
+              mutatedComprehensionExpr,
+              comprehensionExpr,
+              iterVar,
+              accuVar,
+              mangledComprehensionName);
+      // Repeat the mangling process for the macro source.
+      newSource =
+          mangleIdentsInMacroSource(
+              newSource,
+              mutatedComprehensionExpr,
+              iterVar,
+              mangledComprehensionName,
+              comprehensionExpr.id());
+    }
+
+    if (iterCount >= iterationLimit) {
+      // Note that it's generally impossible to reach this for a well-formed AST. The nesting level
+      // of AST being mutated is always deeper than the number of identifiers being mangled, thus
+      // the mutation operation should throw before we ever reach here.
+      throw new IllegalStateException("Max iteration count reached.");
+    }
+
+    CelAbstractSyntaxTree newAst =
+        MutatedResult.of(mutatedComprehensionExpr,newSource).toParsedAst();
+        // CelNavigableAst.fromAst(;
+        //     CelAbstractSyntaxTree.newParsedAst(mutatedComprehensionExpr, newSource));
+
+    // TODO
+    return MangledComprehensionAst.of(
+        newAst, ImmutableMap.copyOf(mangledIdentNamesToType));
+  }
+
   /**
    * Replaces all comprehension identifier names with a unique name based on the given prefix.
    *
@@ -249,146 +397,7 @@ public final class MutableAst {
    */
   public MangledComprehensionAst mangleComprehensionIdentifierNames(
       CelAbstractSyntaxTree ast, String newIterVarPrefix, String newResultPrefix) {
-    CelNavigableAst newNavigableAst = CelNavigableAst.fromAst(ast);
-    Predicate<CelNavigableExpr> comprehensionIdentifierPredicate = x -> true;
-    comprehensionIdentifierPredicate =
-        comprehensionIdentifierPredicate
-            .and(node -> node.getKind().equals(Kind.COMPREHENSION))
-            .and(node -> !node.expr().comprehension().iterVar().startsWith(newIterVarPrefix))
-            .and(node -> !node.expr().comprehension().accuVar().startsWith(newResultPrefix));
-
-    LinkedHashMap<CelNavigableExpr, MangledComprehensionType> comprehensionsToMangle =
-        newNavigableAst
-            .getRoot()
-            // This is important - mangling needs to happen bottom-up to avoid stepping over
-            // shadowed variables that are not part of the comprehension being mangled.
-            .allNodes(TraversalOrder.POST_ORDER)
-            .filter(comprehensionIdentifierPredicate)
-            .filter(
-                node -> {
-                  // Ensure the iter_var or the comprehension result is actually referenced in the
-                  // loop_step. If it's not, we
-                  // can skip mangling.
-                  String iterVar = node.expr().comprehension().iterVar();
-                  String result = node.expr().comprehension().result().ident().name();
-                  return CelNavigableExpr.fromExpr(node.expr().comprehension().loopStep())
-                      .allNodes()
-                      .filter(subNode -> subNode.getKind().equals(Kind.IDENT))
-                      .map(subNode -> subNode.expr().ident())
-                      .anyMatch(
-                          ident -> ident.name().contains(iterVar) || ident.name().contains(result));
-                })
-            .collect(
-                Collectors.toMap(
-                    k -> k,
-                    v -> {
-                      CelComprehension comprehension = v.expr().comprehension();
-                      String iterVar = comprehension.iterVar();
-                      // Identifiers to mangle could be the iteration variable, comprehension result
-                      // or both, but at least one has to exist.
-                      // As an example, [1,2].map(i, 3) would produce an optional.empty because `i`
-                      // is not actually used.
-                      Optional<Long> iterVarId =
-                          CelNavigableExpr.fromExpr(comprehension.loopStep())
-                              .allNodes()
-                              .filter(
-                                  loopStepNode ->
-                                      loopStepNode.expr().identOrDefault().name().equals(iterVar))
-                              .map(CelNavigableExpr::id)
-                              .findAny();
-                      Optional<CelType> iterVarType =
-                          iterVarId.map(
-                              id ->
-                                  ast.getType(id)
-                                      .orElseThrow(
-                                          () ->
-                                              new NoSuchElementException(
-                                                  "Checked type not present for iteration variable:"
-                                                      + " "
-                                                      + iterVarId)));
-                      Optional<CelType> resultType = ast.getType(comprehension.result().id());
-
-                      return MangledComprehensionType.of(iterVarType, resultType);
-                    },
-                    (x, y) -> {
-                      throw new IllegalStateException("Unexpected CelNavigableExpr collision");
-                    },
-                    LinkedHashMap::new));
-    int iterCount = 0;
-
-    // The map that we'll eventually return to the caller.
-    HashMap<MangledComprehensionName, MangledComprehensionType> mangledIdentNamesToType =
-        new HashMap<>();
-    // Intermediary table used for the purposes of generating a unique mangled variable name.
-    Table<Integer, MangledComprehensionType, MangledComprehensionName> comprehensionLevelToType =
-        HashBasedTable.create();
-    for (Entry<CelNavigableExpr, MangledComprehensionType> comprehensionEntry :
-        comprehensionsToMangle.entrySet()) {
-      iterCount++;
-      // Refetch the comprehension node as mutating the AST could have renumbered its IDs.
-      CelNavigableExpr comprehensionNode =
-          newNavigableAst
-              .getRoot()
-              .allNodes(TraversalOrder.POST_ORDER)
-              .filter(comprehensionIdentifierPredicate)
-              .findAny()
-              .orElseThrow(
-                  () -> new NoSuchElementException("Failed to refetch mutated comprehension"));
-      MangledComprehensionType comprehensionEntryType = comprehensionEntry.getValue();
-
-      CelExpr.Builder comprehensionExpr = comprehensionNode.expr().toBuilder();
-      int comprehensionNestingLevel = countComprehensionNestingLevel(comprehensionNode);
-      MangledComprehensionName mangledComprehensionName;
-      if (comprehensionLevelToType.contains(comprehensionNestingLevel, comprehensionEntryType)) {
-        mangledComprehensionName =
-            comprehensionLevelToType.get(comprehensionNestingLevel, comprehensionEntryType);
-      } else {
-        // First time encountering the pair of <ComprehensionLevel, CelType>. Generate a unique
-        // mangled variable name for this.
-        int uniqueTypeIdx = comprehensionLevelToType.row(comprehensionNestingLevel).size();
-        String mangledIterVarName =
-            newIterVarPrefix + comprehensionNestingLevel + ":" + uniqueTypeIdx;
-        String mangledResultName =
-            newResultPrefix + comprehensionNestingLevel + ":" + uniqueTypeIdx;
-        mangledComprehensionName =
-            MangledComprehensionName.of(mangledIterVarName, mangledResultName);
-        comprehensionLevelToType.put(
-            comprehensionNestingLevel, comprehensionEntryType, mangledComprehensionName);
-      }
-      mangledIdentNamesToType.put(mangledComprehensionName, comprehensionEntryType);
-
-      String iterVar = comprehensionExpr.comprehension().iterVar();
-      String accuVar = comprehensionExpr.comprehension().accuVar();
-      CelExpr.Builder mutatedComprehensionExpr =
-          mangleIdentsInComprehensionExpr(
-              newNavigableAst.getAst().getExpr().toBuilder(),
-              comprehensionExpr,
-              iterVar,
-              accuVar,
-              mangledComprehensionName);
-      // Repeat the mangling process for the macro source.
-      CelSource newSource =
-          mangleIdentsInMacroSource(
-              newNavigableAst.getAst(),
-              mutatedComprehensionExpr,
-              iterVar,
-              mangledComprehensionName,
-              comprehensionExpr.id());
-
-      newNavigableAst =
-          CelNavigableAst.fromAst(
-              CelAbstractSyntaxTree.newParsedAst(mutatedComprehensionExpr.build(), newSource));
-    }
-
-    if (iterCount >= iterationLimit) {
-      // Note that it's generally impossible to reach this for a well-formed AST. The nesting level
-      // of AST being mutated is always deeper than the number of identifiers being mangled, thus
-      // the mutation operation should throw before we ever reach here.
-      throw new IllegalStateException("Max iteration count reached.");
-    }
-
-    return MangledComprehensionAst.of(
-        newNavigableAst.getAst(), ImmutableMap.copyOf(mangledIdentNamesToType));
+    throw new UnsupportedOperationException("Unsupported!");
   }
 
   /**
@@ -527,69 +536,103 @@ public final class MutableAst {
     }
   }
 
-  private CelExpr.Builder mangleIdentsInComprehensionExpr(
-      CelExpr.Builder root,
-      CelExpr.Builder comprehensionExpr,
+  private MutableExpr mangleIdentsInComprehensionExpr(
+      MutableExpr root,
+      MutableExpr comprehensionExpr,
       String originalIterVar,
       String originalAccuVar,
       MangledComprehensionName mangledComprehensionName) {
-//    CelExpr.Builder modifiedLoopStep =
-//        replaceIdentName(
-//            comprehensionExpr.comprehension().loopStep().toBuilder(),
-//            originalIterVar,
-//            mangledComprehensionName.iterVarName());
-//    comprehensionExpr.setComprehension(
-//        comprehensionExpr.comprehension().toBuilder()
-//            .setLoopStep(modifiedLoopStep.build())
-//            .build());
-//    comprehensionExpr =
-//        replaceIdentName(comprehensionExpr, originalAccuVar, mangledComprehensionName.resultName());
-//
-//    CelComprehension.Builder newComprehension =
-//        comprehensionExpr.comprehension().toBuilder()
-//            .setIterVar(mangledComprehensionName.iterVarName());
-//    // Most standard macros set accu_var as __result__, but not all (ex: cel.bind).
-//    if (newComprehension.accuVar().equals(originalAccuVar)) {
-//      newComprehension.setAccuVar(mangledComprehensionName.resultName());
-//    }
-//
-//    return mutateExpr(
-//        NO_OP_ID_GENERATOR,
-//        root,
-//        comprehensionExpr.setComprehension(newComprehension.build()),
-//        comprehensionExpr.id());
+    MutableComprehension comprehension = comprehensionExpr.comprehension();
+    replaceIdentName(
+        comprehension.getLoopStep(),
+        originalIterVar,
+        mangledComprehensionName.iterVarName());
+    replaceIdentName(comprehensionExpr, originalAccuVar, mangledComprehensionName.resultName());
 
-    return null;
+    comprehension.setIterVar(mangledComprehensionName.iterVarName());
+    // Most standard macros set accu_var as __result__, but not all (ex: cel.bind).
+    if (comprehension.getAccuVar().equals(originalAccuVar)) {
+      comprehension.setAccuVar(mangledComprehensionName.resultName());
+    }
+
+    return mutateExpr(
+        NO_OP_ID_GENERATOR,
+        root,
+        comprehensionExpr,
+        comprehensionExpr.id());
+  }
+
+  private void replaceIdentName(
+      MutableExpr comprehensionExpr, String originalIdentName, String newIdentName) {
+   int iterCount;
+   for (iterCount = 0; iterCount < iterationLimit; iterCount++) {
+     MutableExpr identToMangle =
+         CelNavigableExpr.fromMutableExpr(comprehensionExpr)
+             .descendants()
+             .map(CelNavigableExpr::mutableExpr)
+             .filter(node -> node.exprKind().equals(Kind.IDENT) && node.ident().name().equals(originalIdentName))
+             .findAny().orElse(null);
+     if (identToMangle == null) {
+       break;
+     }
+
+     comprehensionExpr =
+         mutateExpr(
+             NO_OP_ID_GENERATOR,
+             comprehensionExpr,
+             MutableExpr.ofIdent(newIdentName),
+             identToMangle.id());
+   }
+
+   if (iterCount >= iterationLimit) {
+     throw new IllegalStateException("Max iteration count reached.");
+   }
   }
 
   private CelExpr.Builder replaceIdentName(
       CelExpr.Builder comprehensionExpr, String originalIdentName, String newIdentName) {
-//    int iterCount;
-//    for (iterCount = 0; iterCount < iterationLimit; iterCount++) {
-//      Optional<CelExpr> identToMangle =
-//          CelNavigableExpr.fromExpr(comprehensionExpr.build())
-//              .descendants()
-//              .map(CelNavigableExpr::expr)
-//              .filter(node -> node.identOrDefault().name().equals(originalIdentName))
-//              .findAny();
-//      if (!identToMangle.isPresent()) {
-//        break;
-//      }
-//
-//      comprehensionExpr =
-//          mutateExpr(
-//              NO_OP_ID_GENERATOR,
-//              comprehensionExpr,
-//              CelExpr.newBuilder().setIdent(CelIdent.newBuilder().setName(newIdentName).build()),
-//              identToMangle.get().id());
-//    }
-//
-//    if (iterCount >= iterationLimit) {
-//      throw new IllegalStateException("Max iteration count reached.");
-//    }
-//
-//    return comprehensionExpr;
-    return null;
+    throw new UnsupportedOperationException("Unsupported!");
+  }
+
+  private CelSource.Builder mangleIdentsInMacroSource(
+      CelSource.Builder sourceBuilder,
+      MutableExpr mutatedComprehensionExpr,
+      String originalIterVar,
+      MangledComprehensionName mangledComprehensionName,
+      long originalComprehensionId) {
+   if (!sourceBuilder.getMacroCalls().containsKey(originalComprehensionId)) {
+     return sourceBuilder;
+   }
+
+   // First, normalize the macro source.
+   // ex: [x].exists(x, [x].exists(x, x == 1)) -> [x].exists(x, [@c1].exists(x, @c0 == 1)).
+   CelSource.Builder newSource =
+       normalizeMacroSource(mutatedComprehensionExpr, -1, sourceBuilder, (id) -> id);
+
+   // Note that in the above example, the iteration variable is not replaced after normalization.
+   // This is because populating a macro call map upon parse generates a new unique identifier
+   // that does not exist in the main AST. Thus, we need to manually replace the identifier.
+   // Also note that this only applies when the macro is at leaf. For nested macros, the iteration
+   // variable actually exists in the main AST thus, this step isn't needed.
+   // ex: [1].map(x, [2].filter(y, x == y). Here, the variable declaration `x` exists in the AST
+   // but not `y`.
+   MutableExpr macroExpr = MutableExprConverter.fromCelExpr(newSource.getMacroCalls().get(originalComprehensionId));
+   // By convention, the iteration variable is always the first argument of the
+   // macro call expression.
+   MutableExpr identToMangle = macroExpr.call().args().get(0);
+    if (identToMangle.ident().name().equals(originalIterVar)) {
+   // if (identToMangle.identOrDefault().name().equals(originalIterVar)) {
+     macroExpr =
+         mutateExpr(
+             NO_OP_ID_GENERATOR,
+             macroExpr,
+             MutableExpr.ofIdent(mangledComprehensionName.iterVarName()),
+             identToMangle.id());
+   }
+
+   newSource.addMacroCalls(originalComprehensionId, MutableExprConverter.fromMutableExpr(macroExpr));
+
+   return newSource;
   }
 
   private CelSource mangleIdentsInMacroSource(
@@ -598,43 +641,7 @@ public final class MutableAst {
       String originalIterVar,
       MangledComprehensionName mangledComprehensionName,
       long originalComprehensionId) {
-//    if (!ast.getSource().getMacroCalls().containsKey(originalComprehensionId)) {
-//      return ast.getSource();
-//    }
-//
-//    // First, normalize the macro source.
-//    // ex: [x].exists(x, [x].exists(x, x == 1)) -> [x].exists(x, [@c1].exists(x, @c0 == 1)).
-//    CelSource.Builder newSource =
-//        normalizeMacroSource(ast.getSource(), -1, mutatedComprehensionExpr, (id) -> id).toBuilder();
-//
-//    // Note that in the above example, the iteration variable is not replaced after normalization.
-//    // This is because populating a macro call map upon parse generates a new unique identifier
-//    // that does not exist in the main AST. Thus, we need to manually replace the identifier.
-//    // Also note that this only applies when the macro is at leaf. For nested macros, the iteration
-//    // variable actually exists in the main AST thus, this step isn't needed.
-//    // ex: [1].map(x, [2].filter(y, x == y). Here, the variable declaration `x` exists in the AST
-//    // but not `y`.
-//    CelExpr.Builder macroExpr = newSource.getMacroCalls().get(originalComprehensionId).toBuilder();
-//    // By convention, the iteration variable is always the first argument of the
-//    // macro call expression.
-//    CelExpr identToMangle = macroExpr.call().args().get(0);
-//    if (identToMangle.identOrDefault().name().equals(originalIterVar)) {
-//      macroExpr =
-//          mutateExpr(
-//              NO_OP_ID_GENERATOR,
-//              macroExpr,
-//              CelExpr.newBuilder()
-//                  .setIdent(
-//                      CelIdent.newBuilder()
-//                          .setName(mangledComprehensionName.iterVarName())
-//                          .build()),
-//              identToMangle.id());
-//    }
-//
-//    newSource.addMacroCalls(originalComprehensionId, macroExpr.build());
-//    return newSource.build();
-
-    return null;
+    throw new UnsupportedOperationException("Unsupported!");
   }
 
   private BindMacro newBindMacro(
