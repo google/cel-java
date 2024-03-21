@@ -1,17 +1,19 @@
 package dev.cel.common.navigation;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.primitives.UnsignedLong;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.NullValue;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelConstant.Kind;
 import dev.cel.common.ast.CelExpr.ExprKind;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class MutableExpr {
   private long id;
@@ -360,9 +362,25 @@ public final class MutableExpr {
       return args;
     }
 
+    public void clearArgs() {
+      args.clear();
+    }
+
     void setArgs(List<MutableExpr> args) {
       this.args = args;
     }
+
+    public void addArgs(MutableExpr... exprs) {
+      checkNotNull(exprs);
+      addArgs(Arrays.asList(exprs));
+    }
+
+    @CanIgnoreReturnValue
+    public void addArgs(Iterable<MutableExpr> exprs) {
+      checkNotNull(exprs);
+      exprs.forEach(args::add);
+    }
+
 
     public void setArg(int index, MutableExpr arg) {
       checkNotNull(arg);
@@ -370,18 +388,26 @@ public final class MutableExpr {
       args.set(index, arg);
     }
 
-    static MutableCall create(String function, List<MutableExpr> args) {
+    public static MutableCall create(String function, MutableExpr... args) {
+      return create(function, Arrays.asList(args));
+    }
+
+    public static MutableCall create(String function, List<MutableExpr> args) {
       return new MutableCall(function, args);
     }
 
-    static MutableCall create(MutableExpr mutableExpr, String function, List<MutableExpr> args) {
-      return new MutableCall(mutableExpr, function, args);
+    public static MutableCall create(MutableExpr target, String function, MutableExpr... args) {
+      return create(target, function, Arrays.asList(args));
+    }
+
+    public static MutableCall create(MutableExpr target, String function, List<MutableExpr> args) {
+      return new MutableCall(target, function, args);
     }
 
     private MutableCall(String function, List<MutableExpr> args) {
       this.target = Optional.empty();
       this.function = function;
-      this.args = args;
+      this.args = new ArrayList<>(args);
     }
 
     private MutableCall(MutableExpr target, String function, List<MutableExpr> args) {
@@ -416,8 +442,12 @@ public final class MutableExpr {
       this.optionalIndices = optionalIndices;
     }
 
-    public static MutableCreateList create(List<MutableExpr> mutableExprList) {
-      return new MutableCreateList(mutableExprList, new ArrayList<>());
+    public static MutableCreateList create(MutableExpr... elements) {
+      return create(Arrays.asList(elements));
+    }
+
+    public static MutableCreateList create(List<MutableExpr> elements) {
+      return create(elements, new ArrayList<>());
     }
 
     static MutableCreateList create(List<MutableExpr> mutableExprList, List<Integer> optionalIndices) {

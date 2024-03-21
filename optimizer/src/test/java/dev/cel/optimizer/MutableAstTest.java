@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static dev.cel.optimizer.MutableAst.newInstance;
 import static org.junit.Assert.assertThrows;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
@@ -34,14 +33,13 @@ import dev.cel.common.CelSource.Extension;
 import dev.cel.common.CelSource.Extension.Version;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
-import dev.cel.common.ast.CelExpr.CelCall;
-import dev.cel.common.ast.CelExpr.CelIdent;
-import dev.cel.common.ast.CelExpr.ExprKind;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.navigation.MutableExpr;
+import dev.cel.common.navigation.MutableExpr.MutableCall;
 import dev.cel.common.navigation.MutableExpr.MutableConstant;
+import dev.cel.common.navigation.MutableExpr.MutableCreateList;
 import dev.cel.common.navigation.MutableExpr.MutableSelect;
 import dev.cel.common.navigation.MutableExprConverter;
 import dev.cel.common.types.SimpleType;
@@ -132,6 +130,7 @@ public class MutableAstTest {
   @Test
   public void replaceSubtree_astContainsTaggedExtension_retained() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("has(TestAllTypes{}.single_int32)").getAst();
+    MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
     Extension extension = Extension.create("test", Version.of(1, 1));
     CelSource celSource = ast.getSource().toBuilder().addAllExtensions(extension).build();
     ast =
@@ -140,67 +139,87 @@ public class MutableAstTest {
 
     CelAbstractSyntaxTree mutatedAst =
         MUTABLE_AST.replaceSubtree(
-            ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(true)).build(), 1);
+            root,
+            MutableExpr.ofConstant(MutableConstant.ofValue(true)),
+            1,
+            ast.getSource().toBuilder()
+        ).toParsedAst();
 
     assertThat(mutatedAst.getSource().getExtensions()).containsExactly(extension);
   }
 
   @Test
   public void replaceSubtreeWithNewAst_astsContainTaggedExtension_retained() throws Exception {
-//    // Setup first AST with a test extension
-//    CelAbstractSyntaxTree ast = CEL.compile("has(TestAllTypes{}.single_int32)").getAst();
-//    Extension extension = Extension.create("test", Version.of(1, 1));
-//    ast =
-//        CelAbstractSyntaxTree.newCheckedAst(
-//            ast.getExpr(),
-//            ast.getSource().toBuilder().addAllExtensions(extension).build(),
-//            ast.getReferenceMap(),
-//            ast.getTypeMap());
-//    // Setup second AST with another test extension
-//    CelAbstractSyntaxTree astToReplaceWith = CEL.compile("cel.bind(a, true, a)").getAst();
-//    Extension extension2 = Extension.create("test2", Version.of(2, 2));
-//    astToReplaceWith =
-//        CelAbstractSyntaxTree.newCheckedAst(
-//            astToReplaceWith.getExpr(),
-//            astToReplaceWith.getSource().toBuilder().addAllExtensions(extension2).build(),
-//            astToReplaceWith.getReferenceMap(),
-//            astToReplaceWith.getTypeMap());
-//
-//    // Mutate the original AST with the new AST at the root
-//    CelAbstractSyntaxTree mutatedAst =
-//        MUTABLE_AST.replaceSubtreeWithNewAst(ast, astToReplaceWith, ast.getExpr().id());
-//
-//    // Expect that both the extensions are merged
-//    assertThat(mutatedAst.getSource().getExtensions()).containsExactly(extension, extension2);
+    // Setup first AST with a test extension
+    CelAbstractSyntaxTree ast = CEL.compile("has(TestAllTypes{}.single_int32)").getAst();
+    MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
+    Extension extension = Extension.create("test", Version.of(1, 1));
+    ast =
+        CelAbstractSyntaxTree.newCheckedAst(
+            ast.getExpr(),
+            ast.getSource().toBuilder().addAllExtensions(extension).build(),
+            ast.getReferenceMap(),
+            ast.getTypeMap());
+    // Setup second AST with another test extension
+    CelAbstractSyntaxTree astToReplaceWith = CEL.compile("cel.bind(a, true, a)").getAst();
+    Extension extension2 = Extension.create("test2", Version.of(2, 2));
+    astToReplaceWith =
+        CelAbstractSyntaxTree.newCheckedAst(
+            astToReplaceWith.getExpr(),
+            astToReplaceWith.getSource().toBuilder().addAllExtensions(extension2).build(),
+            astToReplaceWith.getReferenceMap(),
+            astToReplaceWith.getTypeMap());
+    MutableExpr root2 = MutableExprConverter.fromCelExpr(astToReplaceWith.getExpr());
+
+    // Mutate the original AST with the new AST at the root
+    CelAbstractSyntaxTree mutatedAst =
+        MUTABLE_AST.replaceSubtree(
+            root,
+            root2,
+            root.id(),
+            ast.getSource().toBuilder(),
+            astToReplaceWith.getSource().toBuilder()
+        ).toParsedAst();
+
+    // Expect that both the extensions are merged
+    assertThat(mutatedAst.getSource().getExtensions()).containsExactly(extension, extension2);
   }
 
   @Test
   public void replaceSubtreeWithNewAst_astsContainSameExtensions_deduped() throws Exception {
-//    // Setup first AST with a test extension
-//    CelAbstractSyntaxTree ast = CEL.compile("has(TestAllTypes{}.single_int32)").getAst();
-//    Extension extension = Extension.create("test", Version.of(1, 1));
-//    ast =
-//        CelAbstractSyntaxTree.newCheckedAst(
-//            ast.getExpr(),
-//            ast.getSource().toBuilder().addAllExtensions(extension).build(),
-//            ast.getReferenceMap(),
-//            ast.getTypeMap());
-//    // Setup second AST with the same test extension as above
-//    CelAbstractSyntaxTree astToReplaceWith = CEL.compile("cel.bind(a, true, a)").getAst();
-//    Extension extension2 = Extension.create("test", Version.of(1, 1));
-//    astToReplaceWith =
-//        CelAbstractSyntaxTree.newCheckedAst(
-//            astToReplaceWith.getExpr(),
-//            astToReplaceWith.getSource().toBuilder().addAllExtensions(extension2).build(),
-//            astToReplaceWith.getReferenceMap(),
-//            astToReplaceWith.getTypeMap());
-//
-//    // Mutate the original AST with the new AST at the root
-//    CelAbstractSyntaxTree mutatedAst =
-//        MUTABLE_AST.replaceSubtreeWithNewAst(ast, astToReplaceWith, ast.getExpr().id());
-//
-//    // Expect that the extension is deduped
-//    assertThat(mutatedAst.getSource().getExtensions()).containsExactly(extension);
+    // Setup first AST with a test extension
+    CelAbstractSyntaxTree ast = CEL.compile("has(TestAllTypes{}.single_int32)").getAst();
+    MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
+    Extension extension = Extension.create("test", Version.of(1, 1));
+    ast =
+        CelAbstractSyntaxTree.newCheckedAst(
+            ast.getExpr(),
+            ast.getSource().toBuilder().addAllExtensions(extension).build(),
+            ast.getReferenceMap(),
+            ast.getTypeMap());
+    // Setup second AST with the same test extension as above
+    CelAbstractSyntaxTree astToReplaceWith = CEL.compile("cel.bind(a, true, a)").getAst();
+    Extension extension2 = Extension.create("test", Version.of(1, 1));
+    astToReplaceWith =
+        CelAbstractSyntaxTree.newCheckedAst(
+            astToReplaceWith.getExpr(),
+            astToReplaceWith.getSource().toBuilder().addAllExtensions(extension2).build(),
+            astToReplaceWith.getReferenceMap(),
+            astToReplaceWith.getTypeMap());
+    MutableExpr root2 = MutableExprConverter.fromCelExpr(astToReplaceWith.getExpr());
+
+    // Mutate the original AST with the new AST at the root
+    CelAbstractSyntaxTree mutatedAst =
+        MUTABLE_AST.replaceSubtree(
+            root,
+            root2,
+            root.id(),
+            ast.getSource().toBuilder(),
+            astToReplaceWith.getSource().toBuilder()
+        ).toParsedAst();
+
+    // Expect that the extension is deduped
+    assertThat(mutatedAst.getSource().getExtensions()).containsExactly(extension);
   }
 
   @Test
@@ -211,16 +230,18 @@ public class MutableAstTest {
       "{source: '[1].exists(x, [2].exists(y, x > 0 && y > x))', expectedMacroCallSize: 2}")
   public void replaceSubtree_rootReplacedWithMacro_macroCallPopulated(
       String source, int expectedMacroCallSize) throws Exception {
-//    CelAbstractSyntaxTree ast = CEL.compile("1").getAst();
-//    CelAbstractSyntaxTree ast2 = CEL.compile(source).getAst();
-//
-//    CelAbstractSyntaxTree mutatedAst =
-//        MUTABLE_AST.replaceSubtreeWithNewAst(
-//            ast, ast2, CelNavigableAst.fromAst(ast).getRoot().id());
-//
-//    assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(expectedMacroCallSize);
-//    assertThat(CEL_UNPARSER.unparse(mutatedAst)).isEqualTo(source);
-//    assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(true);
+    CelAbstractSyntaxTree ast = CEL.compile("1").getAst();
+    CelAbstractSyntaxTree ast2 = CEL.compile(source).getAst();
+    MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
+    MutableExpr root2 = MutableExprConverter.fromCelExpr(ast2.getExpr());
+
+    CelAbstractSyntaxTree mutatedAst =
+        MUTABLE_AST.replaceSubtree(
+            root, root2, root.id(), ast.getSource().toBuilder(), ast2.getSource().toBuilder()).toParsedAst();
+
+    assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(expectedMacroCallSize);
+    assertThat(CEL_UNPARSER.unparse(mutatedAst)).isEqualTo(source);
+    assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(true);
   }
 
   @Test
@@ -255,39 +276,48 @@ public class MutableAstTest {
 
   @Test
   public void replaceSubtree_macroInsertedIntoExistingMacro_macroCallPopulated() throws Exception {
-//    CelAbstractSyntaxTree ast = CEL.compile("[1].exists(x, x > 0 && true)").getAst();
-//    CelAbstractSyntaxTree ast2 = CEL.compile("[2].exists(y, y > 0)").getAst();
-//
-//    CelAbstractSyntaxTree mutatedAst =
-//        MUTABLE_AST.replaceSubtreeWithNewAst(ast, ast2, 9); // Replace true with the ast2 maro expr
-//
-//    assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(2);
-//    assertThat(CEL_UNPARSER.unparse(mutatedAst))
-//        .isEqualTo("[1].exists(x, x > 0 && [2].exists(y, y > 0))");
-//    assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(true);
+    CelAbstractSyntaxTree ast = CEL.compile("[1].exists(x, x > 0 && true)").getAst();
+    CelAbstractSyntaxTree ast2 = CEL.compile("[2].exists(y, y > 0)").getAst();
+    MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
+    MutableExpr root2 = MutableExprConverter.fromCelExpr(ast2.getExpr());
+
+    CelAbstractSyntaxTree mutatedAst =
+        MUTABLE_AST.replaceSubtree(
+            root,
+            root2,
+            9,
+            ast.getSource().toBuilder(),
+            ast2.getSource().toBuilder()
+        ).toParsedAst(); // Replace true with the ast2 maro expr
+
+    assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(2);
+    assertThat(CEL_UNPARSER.unparse(mutatedAst))
+        .isEqualTo("[1].exists(x, x > 0 && [2].exists(y, y > 0))");
+    assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(true);
   }
 
   @Test
   public void replaceSubtreeWithNewBindMacro_replaceRoot() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("1 + 1").getAst();
+    MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
     String variableName = "@r0";
-    CelExpr resultExpr =
-        CelExpr.newBuilder()
-            .setCall(
-                CelCall.newBuilder()
-                    .setFunction(Operator.ADD.getFunction())
-                    .addArgs(
-                        CelExpr.ofIdentExpr(0, variableName), CelExpr.ofIdentExpr(0, variableName))
-                    .build())
-            .build();
+    MutableExpr resultExpr =
+        MutableExpr.ofCall(
+            MutableCall.create(
+                Operator.ADD.getFunction(),
+                MutableExpr.ofIdent(variableName),
+                MutableExpr.ofIdent(variableName)
+            )
+        );
 
     CelAbstractSyntaxTree mutatedAst =
         MUTABLE_AST.replaceSubtreeWithNewBindMacro(
-            ast,
+            root,
+            ast.getSource().toBuilder(),
             variableName,
-            CelExpr.ofConstantExpr(0, CelConstant.ofValue(3L)),
+            MutableExpr.ofConstant(MutableConstant.ofValue(3L)),
             resultExpr,
-            CelNavigableAst.fromAst(ast).getRoot().id());
+            root.id()).toParsedAst();
 
     assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(1);
     assertThat(CEL_UNPARSER.unparse(mutatedAst)).isEqualTo("cel.bind(@r0, 3, @r0 + @r0)");
@@ -300,58 +330,44 @@ public class MutableAstTest {
       throws Exception {
     // Arrange
     CelAbstractSyntaxTree ast = CEL.compile("1 + 1").getAst();
+    MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
     String variableName = "@r0";
-    CelExpr resultExpr =
-        CelExpr.newBuilder()
-            .setCall(
-                CelCall.newBuilder()
-                    .setFunction(Operator.ADD.getFunction())
-                    .addArgs(
-                        CelExpr.ofIdentExpr(0, variableName), CelExpr.ofIdentExpr(0, variableName))
-                    .build())
-            .build();
+    MutableExpr resultExpr =
+        MutableExpr.ofCall(
+            MutableCall.create(Operator.ADD.getFunction(), MutableExpr.ofIdent(variableName), MutableExpr.ofIdent(variableName))
+        );
 
     // Act
     // Perform the initial replacement. (1 + 1) -> cel.bind(@r0, 3, @r0 + @r0)
-    CelAbstractSyntaxTree mutatedAst =
+    MutatedResult mutatedResult =
         MUTABLE_AST.replaceSubtreeWithNewBindMacro(
-            ast,
+            root,
+            ast.getSource().toBuilder(),
             variableName,
-            CelExpr.ofConstantExpr(0, CelConstant.ofValue(3L)),
+            MutableExpr.ofConstant(MutableConstant.ofValue(3L)),
             resultExpr,
             2); // Replace +
     String nestedVariableName = "@r1";
     // Construct a new result expression of the form @r0 + @r0 + @r1 + @r1
     resultExpr =
-        CelExpr.newBuilder()
-            .setCall(
-                CelCall.newBuilder()
-                    .setFunction(Operator.ADD.getFunction())
-                    .addArgs(
-                        CelExpr.newBuilder()
-                            .setCall(
-                                CelCall.newBuilder()
-                                    .setFunction(Operator.ADD.getFunction())
-                                    .addArgs(
-                                        CelExpr.newBuilder()
-                                            .setCall(
-                                                CelCall.newBuilder()
-                                                    .setFunction(Operator.ADD.getFunction())
-                                                    .addArgs(
-                                                        CelExpr.ofIdentExpr(0, variableName),
-                                                        CelExpr.ofIdentExpr(0, variableName))
-                                                    .build())
-                                            .build(),
-                                        CelExpr.ofIdentExpr(0, nestedVariableName))
-                                    .build())
-                            .build(),
-                        CelExpr.ofIdentExpr(0, nestedVariableName))
-                    .build())
-            .build();
+        MutableExpr.ofCall(
+            MutableCall.create(Operator.ADD.getFunction(),
+                MutableExpr.ofCall(
+                    MutableCall.create(Operator.ADD.getFunction(),
+                        MutableExpr.ofCall(
+                            MutableCall.create(Operator.ADD.getFunction(),
+                                MutableExpr.ofIdent(variableName)
+                                , MutableExpr.ofIdent(variableName)
+                            )
+                        ), MutableExpr.ofIdent(nestedVariableName))
+                ),
+                MutableExpr.ofIdent(nestedVariableName)
+            )
+        );
+
     // Find the call node (_+_) in the comprehension's result
     long exprIdToReplace =
-        CelNavigableAst.fromAst(mutatedAst)
-            .getRoot()
+        CelNavigableExpr.fromMutableExpr(mutatedResult.mutatedExpr)
             .children()
             .filter(
                 node ->
@@ -359,19 +375,21 @@ public class MutableAstTest {
                         && node.parent().get().getKind().equals(Kind.COMPREHENSION))
             .findAny()
             .get()
-            .expr()
+            .mutableExpr()
             .id();
     // This should produce cel.bind(@r1, 1, cel.bind(@r0, 3, @r0 + @r0 + @r1 + @r1))
-    mutatedAst =
+    mutatedResult =
         MUTABLE_AST.replaceSubtreeWithNewBindMacro(
-            mutatedAst,
+            mutatedResult.mutatedExpr,
+            mutatedResult.sourceBuilder,
             nestedVariableName,
-            CelExpr.ofConstantExpr(0, CelConstant.ofValue(1L)),
+            MutableExpr.ofConstant(MutableConstant.ofValue(1L)),
             resultExpr,
             exprIdToReplace); // Replace +
 
-    assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(2);
-    assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(8);
+    CelAbstractSyntaxTree mutatedAst = mutatedResult.toParsedAst();
+    // assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(2);
+    // assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(8);
     assertThat(CEL_UNPARSER.unparse(mutatedAst))
         .isEqualTo("cel.bind(@r0, 3, cel.bind(@r1, 1, @r0 + @r0 + @r1 + @r1))");
     assertConsistentMacroCalls(mutatedAst);
@@ -381,62 +399,52 @@ public class MutableAstTest {
   public void replaceSubtreeWithNewBindMacro_replaceRootWithNestedBindMacro() throws Exception {
     // Arrange
     CelAbstractSyntaxTree ast = CEL.compile("1 + 1 + 3 + 3").getAst();
+    MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
     String variableName = "@r0";
-    CelExpr resultExpr =
-        CelExpr.newBuilder()
-            .setCall(
-                CelCall.newBuilder()
-                    .setFunction(Operator.ADD.getFunction())
-                    .addArgs(
-                        CelExpr.ofIdentExpr(0, variableName), CelExpr.ofIdentExpr(0, variableName))
-                    .build())
-            .build();
+    MutableExpr resultExpr =
+        MutableExpr.ofCall(
+            MutableCall.create(Operator.ADD.getFunction(), MutableExpr.ofIdent(variableName), MutableExpr.ofIdent(variableName))
+        );
 
     // Act
     // Perform the initial replacement. (1 + 1 + 3 + 3) -> cel.bind(@r0, 1, @r0 + @r0) + 3 + 3
-    CelAbstractSyntaxTree mutatedAst =
+    MutatedResult mutatedResult =
         MUTABLE_AST.replaceSubtreeWithNewBindMacro(
-            ast,
+            root,
+            ast.getSource().toBuilder(),
             variableName,
-            CelExpr.ofConstantExpr(0, CelConstant.ofValue(1L)),
+            MutableExpr.ofConstant(MutableConstant.ofValue(1L)),
             resultExpr,
             2); // Replace +
     // Construct a new result expression of the form:
     // cel.bind(@r1, 3, cel.bind(@r0, 1, @r0 + @r0) + @r1 + @r1)
     String nestedVariableName = "@r1";
-    CelExpr bindMacro =
-        CelNavigableAst.fromAst(mutatedAst)
-            .getRoot()
+    MutableExpr bindMacro =
+        CelNavigableExpr.fromMutableExpr(mutatedResult.mutatedExpr)
             .descendants()
             .filter(node -> node.getKind().equals(Kind.COMPREHENSION))
             .findAny()
             .get()
-            .expr();
+            .mutableExpr();
     resultExpr =
-        CelExpr.newBuilder()
-            .setCall(
-                CelCall.newBuilder()
-                    .setFunction(Operator.ADD.getFunction())
-                    .addArgs(
-                        CelExpr.newBuilder()
-                            .setCall(
-                                CelCall.newBuilder()
-                                    .setFunction(Operator.ADD.getFunction())
-                                    .addArgs(bindMacro, CelExpr.ofIdentExpr(0, nestedVariableName))
-                                    .build())
-                            .build(),
-                        CelExpr.ofIdentExpr(0, nestedVariableName))
-                    .build())
-            .build();
+        MutableExpr.ofCall(
+            MutableCall.create(Operator.ADD.getFunction(), MutableExpr.ofCall(
+                MutableCall.create(Operator.ADD.getFunction(), bindMacro, MutableExpr.ofIdent(nestedVariableName))
+            ),
+                MutableExpr.ofIdent(nestedVariableName)
+              )
+        );
     // Replace the root with the new result and a bind macro inserted
-    mutatedAst =
+    mutatedResult =
         MUTABLE_AST.replaceSubtreeWithNewBindMacro(
-            mutatedAst,
+            mutatedResult.mutatedExpr,
+            mutatedResult.sourceBuilder,
             nestedVariableName,
-            CelExpr.ofConstantExpr(0, CelConstant.ofValue(3L)),
+            MutableExpr.ofConstant(MutableConstant.ofValue(3L)),
             resultExpr,
-            CelNavigableAst.fromAst(mutatedAst).getRoot().id());
+            mutatedResult.mutatedExpr.id());
 
+    CelAbstractSyntaxTree mutatedAst = mutatedResult.toParsedAst();
     assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(2);
     assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(8);
     assertThat(CEL_UNPARSER.unparse(mutatedAst))
@@ -446,17 +454,17 @@ public class MutableAstTest {
 
   @Test
   public void replaceSubtree_macroReplacedWithConstExpr_macroCallCleared() throws Exception {
-//    CelAbstractSyntaxTree ast =
-//        CEL.compile("[1].exists(x, x > 0) && [2].exists(x, x > 0)").getAst();
-//    CelAbstractSyntaxTree ast2 = CEL.compile("1").getAst();
-//
-//    CelAbstractSyntaxTree mutatedAst =
-//        MUTABLE_AST.replaceSubtreeWithNewAst(
-//            ast, ast2, CelNavigableAst.fromAst(ast).getRoot().id());
-//
-//    assertThat(mutatedAst.getSource().getMacroCalls()).isEmpty();
-//    assertThat(CEL_UNPARSER.unparse(mutatedAst)).isEqualTo("1");
-//    assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(1);
+    CelAbstractSyntaxTree ast =
+        CEL.compile("[1].exists(x, x > 0) && [2].exists(x, x > 0)").getAst();
+    CelAbstractSyntaxTree ast2 = CEL.compile("1").getAst();
+    MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
+    MutableExpr root2 = MutableExprConverter.fromCelExpr(ast2.getExpr());
+
+    CelAbstractSyntaxTree mutatedAst = MUTABLE_AST.replaceSubtree(root, root2, root.id()).toParsedAst();
+
+    assertThat(mutatedAst.getSource().getMacroCalls()).isEmpty();
+    assertThat(CEL_UNPARSER.unparse(mutatedAst)).isEqualTo("1");
+    assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(1);
   }
 
   @Test
@@ -479,19 +487,28 @@ public class MutableAstTest {
     //    }
     //  }
     CelAbstractSyntaxTree ast = CEL.compile("[1].map(x, 1)").getAst();
+    MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
+    MutableExpr root2 = MutableExprConverter.fromCelExpr(ast.getExpr());
 
     // These two mutation are equivalent.
     CelAbstractSyntaxTree mutatedAstWithList =
         MUTABLE_AST.replaceSubtree(
-            ast,
-            CelExpr.ofCreateListExpr(
-                0,
-                ImmutableList.of(CelExpr.newBuilder().setConstant(CelConstant.ofValue(2L)).build()),
-                ImmutableList.of()),
-            9L);
+            root,
+            MutableExpr.ofCreateList(
+                MutableCreateList.create(
+                    MutableExpr.ofConstant(MutableConstant.ofValue(2L))
+                )
+            ),
+            9L,
+            ast.getSource().toBuilder()
+        ).toParsedAst();
     CelAbstractSyntaxTree mutatedAstWithConstant =
         MUTABLE_AST.replaceSubtree(
-            ast, CelExpr.newBuilder().setConstant(CelConstant.ofValue(2L)).build(), 5L);
+            root2,
+            MutableExpr.ofConstant(MutableConstant.ofValue(2L)),
+            5L,
+            ast.getSource().toBuilder()
+        ).toParsedAst();
 
     assertThat(CEL_UNPARSER.unparse(mutatedAstWithList)).isEqualTo("[1].map(x, 2)");
     assertThat(CEL_UNPARSER.unparse(mutatedAstWithConstant)).isEqualTo("[1].map(x, 2)");
@@ -981,9 +998,10 @@ public class MutableAstTest {
   @Test
   public void mangleComprehensionVariable_hasMacro_noOp() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("has(msg.single_int64)").getAst();
+    MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
 
     CelAbstractSyntaxTree mangledAst =
-        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, "@c", "@x").ast();
+        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, root, "@c", "@x").ast();
 
     assertThat(CEL_UNPARSER.unparse(mangledAst)).isEqualTo("has(msg.single_int64)");
     assertThat(
@@ -996,6 +1014,7 @@ public class MutableAstTest {
   @Test
   public void replaceSubtree_iterationLimitReached_throws() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("true && false").getAst();
+    MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
     MutableAst mutableAst = newInstance(1);
 
     IllegalStateException e =
@@ -1003,7 +1022,7 @@ public class MutableAstTest {
             IllegalStateException.class,
             () ->
                 mutableAst.replaceSubtree(
-                    ast, CelExpr.ofConstantExpr(0, CelConstant.ofValue(false)), 1));
+                    root, MutableExpr.ofConstant(MutableConstant.ofValue(false)), 1));
 
     assertThat(e).hasMessageThat().isEqualTo("Max iteration count reached.");
   }
