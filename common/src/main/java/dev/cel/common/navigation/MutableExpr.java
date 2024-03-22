@@ -208,7 +208,8 @@ public final class MutableExpr {
       this.stringValue = stringValue;
     }
 
-    ByteString bytesValue() { return bytesValue;
+    ByteString bytesValue() {
+      return bytesValue;
     }
 
     void setBytesValue(ByteString bytesValue) {
@@ -271,7 +272,6 @@ public final class MutableExpr {
     public static MutableConstant ofValue(ByteString value) {
       return new MutableConstant(value);
     }
-
 
     MutableConstant(NullValue value) {
       setNullValue(value);
@@ -699,7 +699,7 @@ public final class MutableExpr {
      */
     private MutableExpr result;
 
-    public String getIterVar() {
+    public String iterVar() {
       return iterVar;
     }
 
@@ -707,7 +707,7 @@ public final class MutableExpr {
       this.iterVar = iterVar;
     }
 
-    public MutableExpr getIterRange() {
+    public MutableExpr iterRange() {
       return iterRange;
     }
 
@@ -715,7 +715,7 @@ public final class MutableExpr {
       this.iterRange = iterRange;
     }
 
-    public String getAccuVar() {
+    public String accuVar() {
       return accuVar;
     }
 
@@ -723,7 +723,7 @@ public final class MutableExpr {
       this.accuVar = accuVar;
     }
 
-    public MutableExpr getAccuInit() {
+    public MutableExpr accuInit() {
       return accuInit;
     }
 
@@ -731,7 +731,7 @@ public final class MutableExpr {
       this.accuInit = accuInit;
     }
 
-    public MutableExpr getLoopCondition() {
+    public MutableExpr loopCondition() {
       return loopCondition;
     }
 
@@ -739,7 +739,7 @@ public final class MutableExpr {
       this.loopCondition = loopCondition;
     }
 
-    public MutableExpr getLoopStep() {
+    public MutableExpr loopStep() {
       return loopStep;
     }
 
@@ -747,7 +747,7 @@ public final class MutableExpr {
       this.loopStep = loopStep;
     }
 
-    public MutableExpr getResult() {
+    public MutableExpr result() {
       return result;
     }
 

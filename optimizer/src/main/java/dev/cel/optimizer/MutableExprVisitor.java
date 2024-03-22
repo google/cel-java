@@ -151,11 +151,11 @@ final class MutableExprVisitor {
   }
 
   private MutableExpr visit(MutableExpr expr, MutableComprehension comprehension) {
-    comprehension.setIterRange(visit(comprehension.getIterRange()));
-    comprehension.setAccuInit(visit(comprehension.getAccuInit()));
-    comprehension.setLoopCondition(visit(comprehension.getLoopCondition()));
-    comprehension.setLoopStep(visit(comprehension.getLoopStep()));
-    comprehension.setResult(visit(comprehension.getResult()));
+    comprehension.setIterRange(visit(comprehension.iterRange()));
+    comprehension.setAccuInit(visit(comprehension.accuInit()));
+    comprehension.setLoopCondition(visit(comprehension.loopCondition()));
+    comprehension.setLoopStep(visit(comprehension.loopStep()));
+    comprehension.setResult(visit(comprehension.result()));
 
     expr.setComprehension(comprehension);
     return expr;

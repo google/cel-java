@@ -252,8 +252,8 @@ public final class AstMutator {
     comprehensionIdentifierPredicate =
         comprehensionIdentifierPredicate
             .and(node -> node.getKind().equals(Kind.COMPREHENSION))
-            .and(node -> !node.mutableExpr().comprehension().getIterVar().startsWith(newIterVarPrefix))
-            .and(node -> !node.mutableExpr().comprehension().getAccuVar().startsWith(newResultPrefix));
+            .and(node -> !node.mutableExpr().comprehension().iterVar().startsWith(newIterVarPrefix))
+            .and(node -> !node.mutableExpr().comprehension().accuVar().startsWith(newResultPrefix));
 
     LinkedHashMap<CelNavigableExpr, MangledComprehensionType> comprehensionsToMangle =
         newNavigableExpr
@@ -266,9 +266,9 @@ public final class AstMutator {
                   // Ensure the iter_var or the comprehension result is actually referenced in the
                   // loop_step. If it's not, we
                   // can skip mangling.
-                  String iterVar = node.mutableExpr().comprehension().getIterVar();
-                  String result = node.mutableExpr().comprehension().getResult().ident().name();
-                  return CelNavigableExpr.fromMutableExpr(node.mutableExpr().comprehension().getLoopStep())
+                  String iterVar = node.mutableExpr().comprehension().iterVar();
+                  String result = node.mutableExpr().comprehension().result().ident().name();
+                  return CelNavigableExpr.fromMutableExpr(node.mutableExpr().comprehension().loopStep())
                       .allNodes()
                       .filter(subNode -> subNode.getKind().equals(Kind.IDENT))
                       .map(subNode -> subNode.mutableExpr().ident())
@@ -280,13 +280,13 @@ public final class AstMutator {
                     k -> k,
                     v -> {
                       MutableComprehension comprehension = v.mutableExpr().comprehension();
-                      String iterVar = comprehension.getIterVar();
+                      String iterVar = comprehension.iterVar();
                       // Identifiers to mangle could be the iteration variable, comprehension result
                       // or both, but at least one has to exist.
                       // As an example, [1,2].map(i, 3) would produce an optional.empty because `i`
                       // is not actually used.
                       Optional<Long> iterVarId =
-                          CelNavigableExpr.fromMutableExpr(comprehension.getLoopStep())
+                          CelNavigableExpr.fromMutableExpr(comprehension.loopStep())
                               .allNodes()
                               .filter(
                                   loopStepNode ->
@@ -303,7 +303,7 @@ public final class AstMutator {
                                                   "Checked type not present for iteration variable:"
                                                       + " "
                                                       + iterVarId)));
-                      Optional<CelType> resultType = ast.getType(comprehension.getResult().id());
+                      Optional<CelType> resultType = ast.getType(comprehension.result().id());
 
                       return MangledComprehensionType.of(iterVarType, resultType);
                     },
@@ -348,8 +348,8 @@ public final class AstMutator {
       }
       mangledIdentNamesToType.put(mangledComprehensionName, comprehensionEntryType);
 
-      String iterVar = comprehensionExpr.comprehension().getIterVar();
-      String accuVar = comprehensionExpr.comprehension().getAccuVar();
+      String iterVar = comprehensionExpr.comprehension().iterVar();
+      String accuVar = comprehensionExpr.comprehension().accuVar();
       mutatedComprehensionExpr =
           mangleIdentsInComprehensionExpr(
               mutatedComprehensionExpr,
@@ -571,14 +571,14 @@ public final class AstMutator {
       MangledComprehensionName mangledComprehensionName) {
     MutableComprehension comprehension = comprehensionExpr.comprehension();
     replaceIdentName(
-        comprehension.getLoopStep(),
+        comprehension.loopStep(),
         originalIterVar,
         mangledComprehensionName.iterVarName());
     replaceIdentName(comprehensionExpr, originalAccuVar, mangledComprehensionName.resultName());
 
     comprehension.setIterVar(mangledComprehensionName.iterVarName());
     // Most standard macros set accu_var as __result__, but not all (ex: cel.bind).
-    if (comprehension.getAccuVar().equals(originalAccuVar)) {
+    if (comprehension.accuVar().equals(originalAccuVar)) {
       comprehension.setAccuVar(mangledComprehensionName.resultName());
     }
 
@@ -700,8 +700,8 @@ public final class AstMutator {
                MutableExpr.ofIdent(stableIdGenerator.nextExprId(), "cel"),
                "bind",
                MutableExpr.ofIdent(stableIdGenerator.nextExprId(), varName),
-               bindMacroExpr.comprehension().getAccuInit(),
-               bindMacroExpr.comprehension().getResult()
+               bindMacroExpr.comprehension().accuInit(),
+               bindMacroExpr.comprehension().result()
            )
        );
 
@@ -926,14 +926,14 @@ public final class AstMutator {
    */
   private static void unwrapListArgumentsInMacroCallExpr(
       MutableComprehension comprehension, MutableExpr newMacroCallExpr) {
-    MutableExpr accuInit = comprehension.getAccuInit();
+    MutableExpr accuInit = comprehension.accuInit();
     if (!accuInit.exprKind().equals(Kind.CREATE_LIST)
         || !accuInit.createList().elements().isEmpty()) {
       // Does not contain an extraneous list.
       return;
     }
 
-    MutableExpr loopStepExpr = comprehension.getLoopStep();
+    MutableExpr loopStepExpr = comprehension.loopStep();
     List<MutableExpr> loopStepArgs = loopStepExpr.call().args();
     if (loopStepArgs.size() != 2) {
       throw new IllegalArgumentException(

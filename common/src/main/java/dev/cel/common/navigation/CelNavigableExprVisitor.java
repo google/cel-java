@@ -250,11 +250,11 @@ final class CelNavigableExprVisitor {
   }
 
   private void visitMutable(CelNavigableExpr navigableExpr, MutableComprehension comprehension) {
-    visitMutable(newNavigableChild(navigableExpr, comprehension.getIterRange()));
-    visitMutable(newNavigableChild(navigableExpr, comprehension.getAccuInit()));
-    visitMutable(newNavigableChild(navigableExpr, comprehension.getLoopCondition()));
-    visitMutable(newNavigableChild(navigableExpr, comprehension.getLoopStep()));
-    visitMutable(newNavigableChild(navigableExpr, comprehension.getResult()));
+    visitMutable(newNavigableChild(navigableExpr, comprehension.iterRange()));
+    visitMutable(newNavigableChild(navigableExpr, comprehension.accuInit()));
+    visitMutable(newNavigableChild(navigableExpr, comprehension.loopCondition()));
+    visitMutable(newNavigableChild(navigableExpr, comprehension.loopStep()));
+    visitMutable(newNavigableChild(navigableExpr, comprehension.result()));
   }
 
   private void visitMutableStruct(CelNavigableExpr navigableExpr, MutableCreateStruct struct) {

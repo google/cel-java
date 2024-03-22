@@ -171,13 +171,13 @@ public final class MutableExprConverter {
         MutableComprehension mutableComprehension = mutableExpr.comprehension();
         return CelExpr.ofComprehension(
                 id,
-                mutableComprehension.getIterVar(),
-                fromMutableExpr(mutableComprehension.getIterRange()),
-                mutableComprehension.getAccuVar(),
-                fromMutableExpr(mutableComprehension.getAccuInit()),
-                fromMutableExpr(mutableComprehension.getLoopCondition()),
-                fromMutableExpr(mutableComprehension.getLoopStep()),
-                fromMutableExpr(mutableComprehension.getResult())
+                mutableComprehension.iterVar(),
+                fromMutableExpr(mutableComprehension.iterRange()),
+                mutableComprehension.accuVar(),
+                fromMutableExpr(mutableComprehension.accuInit()),
+                fromMutableExpr(mutableComprehension.loopCondition()),
+                fromMutableExpr(mutableComprehension.loopStep()),
+                fromMutableExpr(mutableComprehension.result())
         );
       case NOT_SET:
         return CelExpr.ofNotSet(id);
