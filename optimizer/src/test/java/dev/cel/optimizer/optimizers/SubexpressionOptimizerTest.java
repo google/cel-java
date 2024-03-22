@@ -48,7 +48,7 @@ import dev.cel.extensions.CelExtensions;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.optimizer.CelOptimizer;
 import dev.cel.optimizer.CelOptimizerFactory;
-import dev.cel.optimizer.MutableAst;
+import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.optimizers.SubexpressionOptimizer.SubexpressionOptimizerOptions;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparser;
@@ -555,7 +555,7 @@ public class SubexpressionOptimizerTest {
    */
   private static CelAbstractSyntaxTree compileUsingInternalFunctions(String expression)
       throws CelValidationException {
-    MutableAst mutableAst = MutableAst.newInstance(1000);
+    AstMutator astMutator = AstMutator.newInstance(1000);
     CelAbstractSyntaxTree astToModify = CEL_FOR_EVALUATING_BLOCK.compile(expression).getAst();
     while (true) {
       CelExpr celExpr =
@@ -571,7 +571,7 @@ public class SubexpressionOptimizerTest {
         break;
       }
       astToModify =
-          mutableAst.replaceSubtree(
+          astMutator.replaceSubtree(
               astToModify,
               celExpr.toBuilder()
                   .setCall(celExpr.call().toBuilder().setFunction("cel.@block").build())
@@ -594,7 +594,7 @@ public class SubexpressionOptimizerTest {
       }
       String internalIdentName = "@" + celExpr.ident().name();
       astToModify =
-          mutableAst.replaceSubtree(
+          astMutator.replaceSubtree(
               astToModify,
               celExpr.toBuilder()
                   .setIdent(celExpr.ident().toBuilder().setName(internalIdentName).build())

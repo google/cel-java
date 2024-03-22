@@ -52,8 +52,8 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.extensions.CelOptionalLibrary.Function;
 import dev.cel.optimizer.CelAstOptimizer;
-import dev.cel.optimizer.MutableAst;
-import dev.cel.optimizer.MutableAst.MangledComprehensionAst;
+import dev.cel.optimizer.AstMutator;
+import dev.cel.optimizer.AstMutator.MangledComprehensionAst;
 import dev.cel.parser.Operator;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -107,7 +107,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       Extension.create("cel_block", Version.of(1L, 1L), Component.COMPONENT_RUNTIME);
 
   private final SubexpressionOptimizerOptions cseOptions;
-  private final MutableAst mutableAst;
+  private final AstMutator astMutator;
   private final ImmutableSet<String> cseEliminableFunctions;
 
   /**
@@ -140,7 +140,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
   private OptimizationResult optimizeUsingCelBlock(CelNavigableAst navigableAst, Cel cel) {
     MangledComprehensionAst mangledComprehensionAst =
-        mutableAst.mangleComprehensionIdentifierNames(
+        astMutator.mangleComprehensionIdentifierNames(
             navigableAst.getAst(),
             MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
             MANGLED_COMPREHENSION_RESULT_PREFIX);
@@ -176,7 +176,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
                             "No value present for expr ID: " + semanticallyEqualNode.id()));
 
         astToModify =
-            mutableAst.replaceSubtree(
+            astMutator.replaceSubtree(
                 astToModify,
                 CelExpr.newBuilder()
                     .setIdent(CelIdent.newBuilder().setName(blockIdentifier).build())
@@ -235,8 +235,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     // Wrap the optimized expression in cel.block
     astToModify =
-        mutableAst.wrapAstWithNewCelBlock(CEL_BLOCK_FUNCTION, astToModify, subexpressions);
-    astToModify = mutableAst.renumberIdsConsecutively(astToModify);
+        astMutator.wrapAstWithNewCelBlock(CEL_BLOCK_FUNCTION, astToModify, subexpressions);
+    astToModify = astMutator.renumberIdsConsecutively(astToModify);
 
     // Tag the AST with cel.block designated as an extension
     astToModify = tagAstExtension(astToModify);
@@ -359,7 +359,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
   private OptimizationResult optimizeUsingCelBind(CelNavigableAst navigableAst) {
     CelAbstractSyntaxTree astToModify =
-        mutableAst
+        astMutator
             .mangleComprehensionIdentifierNames(
                 navigableAst.getAst(),
                 MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
@@ -395,7 +395,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
                             "No value present for expr ID: " + semanticallyEqualNode.id()));
 
         astToModify =
-            mutableAst.replaceSubtree(
+            astMutator.replaceSubtree(
                 astToModify,
                 CelExpr.newBuilder()
                     .setIdent(CelIdent.newBuilder().setName(bindIdentifier).build())
@@ -414,7 +414,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
       // Insert the new bind call
       astToModify =
-          mutableAst.replaceSubtreeWithNewBindMacro(
+          astMutator.replaceSubtreeWithNewBindMacro(
               astToModify, bindIdentifier, cseCandidate, lca.expr(), lca.id());
 
       // Retain the existing macro calls in case if the bind identifiers are replacing a subtree
@@ -436,7 +436,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       return OptimizationResult.create(astToModify);
     }
 
-    astToModify = mutableAst.renumberIdsConsecutively(astToModify);
+    astToModify = astMutator.renumberIdsConsecutively(astToModify);
 
     return OptimizationResult.create(astToModify);
   }
@@ -653,14 +653,14 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
               .setSelect(presenceTestExpr.select().toBuilder().setTestOnly(false).build())
               .build();
 
-      celExpr = mutableAst.replaceSubtree(celExpr, newExpr, newExpr.id());
+      celExpr = astMutator.replaceSubtree(celExpr, newExpr, newExpr.id());
     }
 
     if (iterCount >= cseOptions.iterationLimit()) {
       throw new IllegalStateException("Max iteration count reached.");
     }
 
-    return mutableAst.clearExprIds(celExpr);
+    return astMutator.clearExprIds(celExpr);
   }
 
   @VisibleForTesting
@@ -778,7 +778,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
   private SubexpressionOptimizer(SubexpressionOptimizerOptions cseOptions) {
     this.cseOptions = cseOptions;
-    this.mutableAst = MutableAst.newInstance(cseOptions.iterationLimit());
+    this.astMutator = AstMutator.newInstance(cseOptions.iterationLimit());
     this.cseEliminableFunctions =
         ImmutableSet.<String>builder()
             .addAll(CSE_DEFAULT_ELIMINABLE_FUNCTIONS)

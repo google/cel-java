@@ -462,7 +462,7 @@ public final class MutableExpr {
       elements.set(index, element);
     }
 
-    List<Integer> optionalIndices() {
+    public List<Integer> optionalIndices() {
       return optionalIndices;
     }
 
@@ -478,7 +478,7 @@ public final class MutableExpr {
       return create(elements, new ArrayList<>());
     }
 
-    static MutableCreateList create(List<MutableExpr> mutableExprList, List<Integer> optionalIndices) {
+    public static MutableCreateList create(List<MutableExpr> mutableExprList, List<Integer> optionalIndices) {
       return new MutableCreateList(mutableExprList, optionalIndices);
     }
 
@@ -514,7 +514,6 @@ public final class MutableExpr {
       checkArgument(index >= 0 && index < entries().size());
       entries.set(index, entry);
     }
-
 
     public final static class Entry {
       private long id;
@@ -554,11 +553,11 @@ public final class MutableExpr {
         this.optionalEntry = optionalEntry;
       }
 
-      static Entry create(long id, String fieldKey, MutableExpr value) {
+      public static Entry create(long id, String fieldKey, MutableExpr value) {
         return new Entry(id, fieldKey, value, false);
       }
 
-      static Entry create(long id, String fieldKey, MutableExpr value, boolean optionalEntry) {
+      public static Entry create(long id, String fieldKey, MutableExpr value, boolean optionalEntry) {
         return new Entry(id, fieldKey, value, optionalEntry);
       }
 
@@ -570,7 +569,7 @@ public final class MutableExpr {
       }
     }
 
-    static MutableCreateStruct create(String messageName, List<MutableCreateStruct.Entry> entries) {
+    public static MutableCreateStruct create(String messageName, List<MutableCreateStruct.Entry> entries) {
       return new MutableCreateStruct(messageName, entries);
     }
 
