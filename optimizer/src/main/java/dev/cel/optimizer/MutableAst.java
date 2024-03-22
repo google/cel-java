@@ -225,15 +225,19 @@ public final class MutableAst {
 
   /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */
   public CelAbstractSyntaxTree renumberIdsConsecutively(CelAbstractSyntaxTree ast) {
-    return null;
-//    StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(0);
-//    CelExpr.Builder root =
-//        renumberExprIds(stableIdGenerator::renumberId, ast.getExpr().toBuilder());
-//    CelSource newSource =
-//        normalizeMacroSource(
-//            ast.getSource(), Integer.MIN_VALUE, root, stableIdGenerator::renumberId);
-//
-//    return CelAbstractSyntaxTree.newParsedAst(root.build(), newSource);
+    throw new UnsupportedOperationException("Unsupported!");
+  }
+
+  /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */
+  public MutatedResult renumberIdsConsecutively(MutableExpr root, CelSource.Builder source) {
+   StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(0);
+   MutableExpr mutableExpr =
+       renumberExprIds(stableIdGenerator::renumberId, root);
+   CelSource.Builder newSource =
+       normalizeMacroSource(
+           source, Integer.MIN_VALUE, root, stableIdGenerator::renumberId);
+
+   return MutatedResult.of(mutableExpr, newSource);
   }
 
   public MangledComprehensionAst mangleComprehensionIdentifierNames(
@@ -465,14 +469,14 @@ public final class MutableAst {
     throw new UnsupportedOperationException("Unsupported!");
   }
 
-  MutatedResult replaceSubtree(
+  public MutatedResult replaceSubtree(
           MutableExpr root,
           MutableExpr newExpr,
           long exprIdToReplace) {
     return replaceSubtree(root, newExpr, exprIdToReplace, CelSource.newBuilder());
   }
 
-  MutatedResult replaceSubtree(
+  public MutatedResult replaceSubtree(
           MutableExpr root,
           MutableExpr newExpr,
           long exprIdToReplace,
@@ -481,7 +485,7 @@ public final class MutableAst {
     return replaceSubtree(root, newExpr, exprIdToReplace, rootSource, CelSource.newBuilder());
   }
 
-  MutatedResult replaceSubtree(
+  public MutatedResult replaceSubtree(
           MutableExpr root,
           MutableExpr newExpr,
           long exprIdToReplace,
@@ -518,22 +522,25 @@ public final class MutableAst {
       newAstSource = combine(newAstSource, newSource);
     }
 
-    // TODO
+    // TODO: pass in macro source directly instead of source builder?
     newAstSource = normalizeMacroSource(newAstSource, exprIdToReplace, mutatedRoot, stableIdGenerator::renumberId);
-//    newAstSource =
-//        normalizeMacroSource(
-//            newAstSource, exprIdToReplace, mutatedRoot, stableIdGenerator::renumberId);
-
-//    return CelAbstractSyntaxTree.newParsedAst(MutableExprConverter.fromMutableExpr(mutatedRoot), newAstSource);
 
     return MutatedResult.of(mutatedRoot, newAstSource);
   }
 
-  static class MutatedResult {
-    MutableExpr mutatedExpr;
-    CelSource.Builder sourceBuilder;
+  public static class MutatedResult {
+    private final MutableExpr mutatedExpr;
+    private final CelSource.Builder sourceBuilder;
 
-    CelAbstractSyntaxTree toParsedAst() {
+    public MutableExpr getMutatedExpr() {
+      return mutatedExpr;
+    }
+
+    public CelSource.Builder getSourceBuilder() {
+      return sourceBuilder;
+    }
+
+    public CelAbstractSyntaxTree toParsedAst() {
       return CelAbstractSyntaxTree.newParsedAst(MutableExprConverter.fromMutableExpr(mutatedExpr), sourceBuilder.build());
     }
 

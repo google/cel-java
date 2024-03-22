@@ -216,6 +216,34 @@ public final class MutableExpr {
       this.bytesValue = bytesValue;
     }
 
+
+    /**
+     * Converts the given Java object into a CelConstant value. This is equivalent of calling {@link
+     * MutableConstant#ofValue} with concrete types.
+     *
+     * @throws IllegalArgumentException If the value is not a supported CelConstant. This includes the
+     *     deprecated duration and timestamp values.
+     */
+    public static MutableConstant ofObjectValue(Object value) {
+      if (value instanceof NullValue) {
+        return ofValue((NullValue) value);
+      } else if (value instanceof Boolean) {
+        return ofValue((boolean) value);
+      } else if (value instanceof Long) {
+        return ofValue((long) value);
+      } else if (value instanceof UnsignedLong) {
+        return ofValue((UnsignedLong) value);
+      } else if (value instanceof Double) {
+        return ofValue((double) value);
+      } else if (value instanceof String) {
+        return ofValue((String) value);
+      } else if (value instanceof ByteString) {
+        return ofValue((ByteString) value);
+      }
+
+      throw new IllegalArgumentException("Value is not a CelConstant: " + value);
+    }
+
     public static MutableConstant ofValue(NullValue value) {
       return new MutableConstant(value);
     }
@@ -607,11 +635,15 @@ public final class MutableExpr {
         this.optionalEntry = optionalEntry;
       }
 
-      static Entry create(long id, MutableExpr key, MutableExpr value) {
-        return new Entry(id, key, value, false);
+      public static Entry create(MutableExpr key, MutableExpr value) {
+        return create(0, key, value, false);
       }
 
-      static Entry create(long id, MutableExpr key, MutableExpr value, boolean optionalEntry) {
+      public static Entry create(long id, MutableExpr key, MutableExpr value) {
+        return create(id, key, value, false);
+      }
+
+      public static Entry create(long id, MutableExpr key, MutableExpr value, boolean optionalEntry) {
         return new Entry(id, key, value, optionalEntry);
       }
 
@@ -623,7 +655,7 @@ public final class MutableExpr {
       }
     }
 
-    static MutableCreateMap create(List<MutableCreateMap.Entry> entries) {
+    public static MutableCreateMap create(List<MutableCreateMap.Entry> entries) {
       return new MutableCreateMap(entries);
     }
 
