@@ -27,7 +27,6 @@ import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.navigation.MutableExpr;
 import dev.cel.common.navigation.MutableExpr.MutableCall;
-import dev.cel.common.navigation.MutableExpr.MutableConstant;
 import dev.cel.common.navigation.MutableExpr.MutableCreateList;
 import dev.cel.common.navigation.MutableExpr.MutableCreateMap;
 import dev.cel.common.navigation.MutableExpr.MutableCreateStruct;
@@ -151,7 +150,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
           MutableExpr cond = mutableCall.args().get(0);
 
           // A ternary with a constant condition is trivially foldable
-          return cond.constant().constantKind().equals(CelConstant.Kind.BOOLEAN_VALUE);
+          return cond.constant().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE);
         }
 
         if (functionName.equals(Operator.IN.getFunction())) {
@@ -248,7 +247,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   private Optional<MutableExpr> maybeAdaptEvaluatedResult(Object result) {
     if (CelConstant.isConstantValue(result)) {
       return Optional.of(
-          MutableExpr.ofConstant(MutableConstant.ofObjectValue(result)));
+          MutableExpr.ofConstant(CelConstant.ofObjectValue(result)));
     } else if (result instanceof Collection<?>) {
       Collection<?> collection = (Collection<?>) result;
       List<MutableExpr> listElements = new ArrayList<>();
@@ -307,7 +306,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
           MutableExpr.ofCall(
               MutableCall.create(
               Function.OPTIONAL_NONE.getFunction(),
-              MutableExpr.ofConstant(MutableConstant.ofObjectValue(unwrappedResult))
+              MutableExpr.ofConstant(CelConstant.ofObjectValue(unwrappedResult))
           ));
 
       return Optional.of(astMutator.replaceSubtree(mutableAst.mutableExpr(), newOptionalOfCall, expr.id(), mutableAst.sourceBuilder()));
@@ -351,7 +350,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
         return Optional.of(
             astMutator.replaceSubtree(
                 mutableAst.mutableExpr(),
-                MutableExpr.ofConstant(MutableConstant.ofValue(false)),
+                MutableExpr.ofConstant(CelConstant.ofValue(false)),
                 expr.id(),
                 mutableAst.sourceBuilder()
             ));
@@ -368,7 +367,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
             return Optional.of(
                 astMutator.replaceSubtree(
                     mutableAst.mutableExpr(),
-                    MutableExpr.ofConstant(MutableConstant.ofValue(true)),
+                    MutableExpr.ofConstant(CelConstant.ofValue(true)),
                     expr.id(),
                     mutableAst.sourceBuilder()
                 )

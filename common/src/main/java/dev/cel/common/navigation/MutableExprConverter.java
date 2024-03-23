@@ -1,56 +1,35 @@
 package dev.cel.common.navigation;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
 import com.google.common.collect.ImmutableList;
-import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
+import dev.cel.common.ast.CelExpr.CelCreateList;
 import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct;
 import dev.cel.common.ast.CelExpr.CelSelect;
 import dev.cel.common.navigation.MutableExpr.MutableCall;
 import dev.cel.common.navigation.MutableExpr.MutableComprehension;
-import dev.cel.common.navigation.MutableExpr.MutableConstant;
 import dev.cel.common.navigation.MutableExpr.MutableCreateList;
 import dev.cel.common.navigation.MutableExpr.MutableCreateMap;
 import dev.cel.common.navigation.MutableExpr.MutableCreateStruct;
 import dev.cel.common.navigation.MutableExpr.MutableSelect;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public final class MutableExprConverter {
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
-  private static MutableConstant fromCelConstant(CelConstant celConstant) {
-    switch (celConstant.getKind()) {
-      case NULL_VALUE:
-        return new MutableConstant(celConstant.nullValue());
-      case BOOLEAN_VALUE:
-        return new MutableConstant(celConstant.booleanValue());
-      case INT64_VALUE:
-        return new MutableConstant(celConstant.int64Value());
-      case UINT64_VALUE:
-        return new MutableConstant(celConstant.uint64Value());
-      case DOUBLE_VALUE:
-        return new MutableConstant(celConstant.doubleValue());
-      case STRING_VALUE:
-        return new MutableConstant(celConstant.stringValue());
-      case BYTES_VALUE:
-        return new MutableConstant(celConstant.bytesValue());
-      default:
-        throw new UnsupportedOperationException("Unsupported constant kind: " + celConstant.getKind());
-    }
-  }
+public final class MutableExprConverter {
 
 
   public static MutableExpr fromCelExpr(CelExpr celExpr) {
     CelExpr.ExprKind celExprKind = celExpr.exprKind();
     switch (celExprKind.getKind()) {
       case CONSTANT:
-        return MutableExpr.ofConstant(celExpr.id(), fromCelConstant(celExpr.constant()));
+        return MutableExpr.ofConstant(celExpr.id(), celExpr.constant());
       case IDENT:
         return MutableExpr.ofIdent(celExpr.id(), celExpr.ident().name());
       case SELECT:
@@ -69,8 +48,9 @@ public final class MutableExprConverter {
 
         return MutableExpr.ofCall(celExpr.id(), mutableCall);
       case CREATE_LIST:
+        CelCreateList createList = celExpr.createList();
         return MutableExpr.ofCreateList(celExpr.id(),
-                MutableCreateList.create(fromCelExprList(celExpr.createList().elements()))
+                MutableCreateList.create(fromCelExprList(createList.elements()), createList.optionalIndices())
         );
       case CREATE_STRUCT:
         return MutableExpr.ofCreateStruct(celExpr.id(), fromCelStructToMutableStruct(celExpr.createStruct()));
@@ -106,7 +86,7 @@ public final class MutableExprConverter {
 
   private static MutableCreateStruct fromCelStructToMutableStruct(CelCreateStruct celCreateStruct) {
     List<MutableCreateStruct.Entry> entries = new ArrayList<>();
-    for (CelExpr.CelCreateStruct.Entry celStructExprEntry : celCreateStruct.entries()) {
+    for (CelCreateStruct.Entry celStructExprEntry : celCreateStruct.entries()) {
       entries.add(
           MutableCreateStruct.Entry.create(
               celStructExprEntry.id(),
@@ -122,7 +102,7 @@ public final class MutableExprConverter {
 
   private static MutableCreateMap fromCelMapToMutableMap(CelCreateMap celCreateMap) {
     List<MutableCreateMap.Entry> entries = new ArrayList<MutableCreateMap.Entry>();
-    for (CelExpr.CelCreateMap.Entry celMapExprEntry : celCreateMap.entries()) {
+    for (CelCreateMap.Entry celMapExprEntry : celCreateMap.entries()) {
       entries.add(
           MutableCreateMap.Entry.create(
               celMapExprEntry.id(),
@@ -144,7 +124,7 @@ public final class MutableExprConverter {
     long id = mutableExpr.id();
     switch (mutableExpr.exprKind()) {
       case CONSTANT:
-        return CelExpr.ofConstantExpr(id, fromMutableConstant(mutableExpr.constant()));
+        return CelExpr.ofConstantExpr(id, mutableExpr.constant());
       case IDENT:
         return CelExpr.ofIdentExpr(id, mutableExpr.ident().name());
       case SELECT:
@@ -184,28 +164,6 @@ public final class MutableExprConverter {
       default:
         throw new IllegalArgumentException(
                 "Unexpected expression kind case: " + mutableExpr.exprKind());
-    }
-  }
-
-  private static CelConstant fromMutableConstant(MutableConstant mutableConstant) {
-    switch (mutableConstant.constantKind()) {
-      case NULL_VALUE:
-        return CelConstant.ofValue(mutableConstant.nullValue());
-      case BOOLEAN_VALUE:
-        return CelConstant.ofValue(mutableConstant.booleanValue());
-      case INT64_VALUE:
-        return CelConstant.ofValue(mutableConstant.int64Value());
-      case UINT64_VALUE:
-        return CelConstant.ofValue(mutableConstant.uint64Value());
-      case DOUBLE_VALUE:
-        return CelConstant.ofValue(mutableConstant.doubleValue());
-      case STRING_VALUE:
-        return CelConstant.ofValue(mutableConstant.stringValue());
-      case BYTES_VALUE:
-        return CelConstant.ofValue(mutableConstant.bytesValue());
-      default:
-        throw new UnsupportedOperationException(
-                "Unsupported constant kind: " + mutableConstant.constantKind());
     }
   }
 

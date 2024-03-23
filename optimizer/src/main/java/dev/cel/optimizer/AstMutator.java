@@ -28,6 +28,7 @@ import com.google.common.collect.Table;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelSource;
+import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
@@ -40,7 +41,6 @@ import dev.cel.common.navigation.CelNavigableExpr.TraversalOrder;
 import dev.cel.common.navigation.MutableExpr;
 import dev.cel.common.navigation.MutableExpr.MutableCall;
 import dev.cel.common.navigation.MutableExpr.MutableComprehension;
-import dev.cel.common.navigation.MutableExpr.MutableConstant;
 import dev.cel.common.navigation.MutableExpr.MutableCreateList;
 import dev.cel.common.navigation.MutableExprConverter;
 import dev.cel.common.types.CelType;
@@ -687,7 +687,7 @@ public final class AstMutator {
            MutableExpr.ofCreateList(stableIdGenerator.nextExprId(), MutableCreateList.create()),
            varName,
            varInit,
-           MutableExpr.ofConstant(stableIdGenerator.nextExprId(), MutableConstant.ofValue(false)),
+           MutableExpr.ofConstant(stableIdGenerator.nextExprId(), CelConstant.ofValue(false)),
            MutableExpr.ofIdent(stableIdGenerator.nextExprId(), varName),
            resultExpr
        )

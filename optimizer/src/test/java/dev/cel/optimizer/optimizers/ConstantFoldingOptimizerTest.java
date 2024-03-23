@@ -174,14 +174,14 @@ public class ConstantFoldingOptimizerTest {
 
   @Test
   public void smokeTest() throws Exception {
-    String source = "5 in [1, x, y, 5]";
+    String source = "[?optional.ofNonZeroValue(3)]";
     CelAbstractSyntaxTree ast = CEL.compile(source).getAst();
 
     CelAbstractSyntaxTree optimizedAst = CEL_OPTIMIZER.optimize(ast);
 
-    assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo(true);
+//    assertThat(CEL.createProgram(optimizedAst).eval()).isEqualTo(true);
+    assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo("[3]");
   }
-
 
   @Test
   @TestParameters("{source: '[1 + 1, 1 + 2].exists(i, i < 10)', expected: 'true'}")

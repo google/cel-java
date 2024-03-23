@@ -1,24 +1,24 @@
 package dev.cel.common.navigation;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.NullValue;
 import dev.cel.common.ast.CelConstant;
-import dev.cel.common.ast.CelConstant.Kind;
+import dev.cel.common.ast.CelExpr;
+import dev.cel.common.ast.CelExpr.CelNotSet;
 import dev.cel.common.ast.CelExpr.ExprKind;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public final class MutableExpr {
   private long id;
   private ExprKind.Kind exprKind;
-  private MutableConstant constant;
+  private CelNotSet notSet;
+  private CelConstant constant;
   private MutableIdent ident;
   private MutableCall call;
   private MutableSelect select;
@@ -39,14 +39,22 @@ public final class MutableExpr {
     return exprKind;
   }
 
-  public MutableConstant constant() {
+  public CelNotSet notSet() {
+    if (!this.exprKind.equals(ExprKind.Kind.NOT_SET)) {
+      throw new IllegalStateException("Invalid ExprKind: " + this.exprKind);
+    }
+    return notSet;
+  }
+
+
+  public CelConstant constant() {
     if (!this.exprKind.equals(ExprKind.Kind.CONSTANT)) {
       throw new IllegalStateException("Invalid ExprKind: " + this.exprKind);
     }
     return constant;
   }
 
-  void setConstant(MutableConstant constant) {
+  void setConstant(CelConstant constant) {
     this.exprKind = ExprKind.Kind.CONSTANT;
     this.constant = constant;
   }
@@ -135,173 +143,6 @@ public final class MutableExpr {
     this.comprehension = comprehension;
   }
 
-  public final static class MutableConstant {
-    private CelConstant.Kind constantKind;
-    private NullValue nullValue;
-
-    private boolean booleanValue;
-
-    private long int64Value;
-
-    private UnsignedLong uint64Value;
-
-    private double doubleValue;
-
-    private String stringValue;
-
-    private ByteString bytesValue;
-
-    public Kind constantKind() {
-      return constantKind;
-    }
-
-    public boolean booleanValue() {
-      return booleanValue;
-    }
-
-    void setBooleanValue(boolean booleanValue) {
-      this.constantKind = Kind.BOOLEAN_VALUE;
-      this.booleanValue = booleanValue;
-    }
-
-    public long int64Value() {
-      return int64Value;
-    }
-
-    public void setInt64Value(long int64Value) {
-      this.constantKind = Kind.INT64_VALUE;
-      this.int64Value = int64Value;
-    }
-
-    NullValue nullValue() {
-      return nullValue;
-    }
-
-    void setNullValue(NullValue nullValue) {
-      this.constantKind = Kind.NULL_VALUE;
-      this.nullValue = nullValue;
-    }
-
-    UnsignedLong uint64Value() { return uint64Value;
-    }
-
-    void setUint64Value(UnsignedLong uint64Value) {
-      this.constantKind = Kind.UINT64_VALUE;
-      this.uint64Value = uint64Value;
-    }
-
-    double doubleValue() {
-      return doubleValue;
-    }
-
-    void setDoubleValue(double doubleValue) {
-      this.constantKind = Kind.DOUBLE_VALUE;
-      this.doubleValue = doubleValue;
-    }
-
-    String stringValue() {
-      return stringValue;
-    }
-
-    void setStringValue(String stringValue) {
-      this.constantKind = Kind.STRING_VALUE;
-      this.stringValue = stringValue;
-    }
-
-    ByteString bytesValue() {
-      return bytesValue;
-    }
-
-    void setBytesValue(ByteString bytesValue) {
-      this.constantKind = Kind.BYTES_VALUE;
-      this.bytesValue = bytesValue;
-    }
-
-
-    /**
-     * Converts the given Java object into a CelConstant value. This is equivalent of calling {@link
-     * MutableConstant#ofValue} with concrete types.
-     *
-     * @throws IllegalArgumentException If the value is not a supported CelConstant. This includes the
-     *     deprecated duration and timestamp values.
-     */
-    public static MutableConstant ofObjectValue(Object value) {
-      if (value instanceof NullValue) {
-        return ofValue((NullValue) value);
-      } else if (value instanceof Boolean) {
-        return ofValue((boolean) value);
-      } else if (value instanceof Long) {
-        return ofValue((long) value);
-      } else if (value instanceof UnsignedLong) {
-        return ofValue((UnsignedLong) value);
-      } else if (value instanceof Double) {
-        return ofValue((double) value);
-      } else if (value instanceof String) {
-        return ofValue((String) value);
-      } else if (value instanceof ByteString) {
-        return ofValue((ByteString) value);
-      }
-
-      throw new IllegalArgumentException("Value is not a CelConstant: " + value);
-    }
-
-    public static MutableConstant ofValue(NullValue value) {
-      return new MutableConstant(value);
-    }
-
-    public static MutableConstant ofValue(boolean value) {
-      return new MutableConstant(value);
-    }
-
-    public static MutableConstant ofValue(long value) {
-      return new MutableConstant(value);
-    }
-
-    public static MutableConstant ofValue(UnsignedLong value) {
-      return new MutableConstant(value);
-    }
-
-    public static MutableConstant ofValue(double value) {
-      return new MutableConstant(value);
-    }
-
-    public static MutableConstant ofValue(String value) {
-      return new MutableConstant(value);
-    }
-
-    public static MutableConstant ofValue(ByteString value) {
-      return new MutableConstant(value);
-    }
-
-    MutableConstant(NullValue value) {
-      setNullValue(value);
-    }
-
-    MutableConstant(boolean value) {
-      setBooleanValue(value);
-    }
-
-    MutableConstant(long value) {
-      setInt64Value(value);
-    }
-
-    MutableConstant(UnsignedLong value) {
-      setUint64Value(value);
-    }
-
-    MutableConstant(double value) {
-      setDoubleValue(value);
-    }
-
-    MutableConstant(String value) {
-      setStringValue(value);
-    }
-
-    MutableConstant(ByteString value) {
-      setBytesValue(value);
-    }
-  }
-
   public final static class MutableIdent {
     private String name;
 
@@ -315,6 +156,24 @@ public final class MutableExpr {
 
     public static MutableIdent create(String name) {
       return new MutableIdent(name);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      }
+      if (obj instanceof MutableIdent) {
+        MutableIdent that = (MutableIdent) obj;
+        return this.name.equals(that.name);
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      return name.hashCode();
     }
 
     private MutableIdent(String name) {
@@ -483,8 +342,8 @@ public final class MutableExpr {
     }
 
     private MutableCreateList(List<MutableExpr> mutableExprList, List<Integer> optionalIndices) {
-      this.elements = mutableExprList;
-      this.optionalIndices = optionalIndices;
+      this.elements = new ArrayList<>(mutableExprList);
+      this.optionalIndices = new ArrayList<>(optionalIndices);
     }
   }
 
@@ -773,12 +632,12 @@ public final class MutableExpr {
     }
   }
 
-  public static MutableExpr ofConstant(MutableConstant mutableConstant) {
-    return new MutableExpr(0, mutableConstant);
+  public static MutableExpr ofConstant(CelConstant constant) {
+    return new MutableExpr(0, constant);
   }
 
-  public static MutableExpr ofConstant(long id, MutableConstant mutableConstant) {
-    return new MutableExpr(id, mutableConstant);
+  public static MutableExpr ofConstant(long id, CelConstant constant) {
+    return new MutableExpr(id, constant);
   }
 
   public static MutableExpr ofIdent(String name) {
@@ -841,43 +700,43 @@ public final class MutableExpr {
     return new MutableExpr(id);
   }
 
-  private MutableExpr(long id, MutableConstant mutableConstant) {
-    this(id);
+  private MutableExpr(long id, CelConstant mutableConstant) {
+    this.id = id;
     setConstant(mutableConstant);
   }
 
   private MutableExpr(long id, MutableIdent mutableIdent) {
-    this(id);
+    this.id = id;
     setIdent(mutableIdent);
   }
 
   private MutableExpr(long id, MutableCall mutableCall) {
-    this(id);
+    this.id = id;
     setCall(mutableCall);
   }
 
   private MutableExpr(long id, MutableSelect mutableSelect) {
-    this(id);
+    this.id = id;
     setSelect(mutableSelect);
   }
 
   private MutableExpr(long id, MutableCreateList mutableCreateList) {
-    this(id);
+    this.id = id;
     setCreateList(mutableCreateList);
   }
 
   private MutableExpr(long id, MutableCreateStruct mutableCreateStruct) {
-    this(id);
+    this.id = id;
     setCreateStruct(mutableCreateStruct);
   }
 
   private MutableExpr(long id, MutableCreateMap mutableCreateMap) {
-    this(id);
+    this.id = id;
     setCreateMap(mutableCreateMap);
   }
 
   private MutableExpr(long id, MutableComprehension mutableComprehension) {
-    this(id);
+    this.id = id;
     setComprehension(mutableComprehension);
   }
 
@@ -887,6 +746,7 @@ public final class MutableExpr {
   }
 
   private MutableExpr() {
+    this.notSet = CelExpr.newBuilder().build().exprKind().notSet();
     this.exprKind = ExprKind.Kind.NOT_SET;
   }
 
@@ -894,4 +754,56 @@ public final class MutableExpr {
   public String toString() {
     return MutableExprConverter.fromMutableExpr(this).toString();
   }
+
+  private Object exprValue() {
+    switch (this.exprKind) {
+      case NOT_SET:
+        return notSet();
+      case CONSTANT:
+        return constant();
+      case IDENT:
+        return ident();
+      case SELECT:
+        return select();
+      case CALL:
+        return call();
+      case CREATE_LIST:
+        return createList();
+      case CREATE_STRUCT:
+        return createStruct();
+      case CREATE_MAP:
+        return createMap();
+      case COMPREHENSION:
+        return comprehension();
+    }
+
+    throw new IllegalStateException("Unexpected expr kind: " + this.exprKind);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj instanceof MutableExpr) {
+      MutableExpr that = (MutableExpr) obj;
+      if (this.id != that.id() || !this.exprKind.equals(that.exprKind())) {
+        return false;
+      }
+      return this.exprValue().equals(that.exprValue());
+    }
+
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    int h = 1;
+    h *= 1000003;
+    h ^= (int) ((id >>> 32) ^ id);
+    h *= 1000003;
+    h ^= this.exprValue().hashCode();
+    return h;
+  }
+
 }

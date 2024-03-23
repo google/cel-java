@@ -38,7 +38,6 @@ import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.navigation.MutableExpr;
 import dev.cel.common.navigation.MutableExpr.MutableCall;
-import dev.cel.common.navigation.MutableExpr.MutableConstant;
 import dev.cel.common.navigation.MutableExpr.MutableCreateList;
 import dev.cel.common.navigation.MutableExpr.MutableSelect;
 import dev.cel.common.navigation.MutableExprConverter;
@@ -77,7 +76,7 @@ public class AstMutatorTest {
   public void replaceSubtree_replaceConst() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("10").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newBooleanConst = MutableExpr.ofConstant(1, MutableConstant.ofValue(true));
+    MutableExpr newBooleanConst = MutableExpr.ofConstant(1, CelConstant.ofValue(true));
 
     MutableAst result = MUTABLE_AST.replaceSubtree(root, newBooleanConst, root.id());
 
@@ -88,7 +87,7 @@ public class AstMutatorTest {
   public void astMutator_returnsParsedAst() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("10").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newBooleanConst = MutableExpr.ofConstant(1, MutableConstant.ofValue(true));
+    MutableExpr newBooleanConst = MutableExpr.ofConstant(1, CelConstant.ofValue(true));
 
     MutableAst result = MUTABLE_AST.replaceSubtree(root, newBooleanConst, root.id());
 
@@ -100,7 +99,7 @@ public class AstMutatorTest {
   public void astMutator_nonMacro_sourceCleared() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("10").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newBooleanConst = MutableExpr.ofConstant(1, MutableConstant.ofValue(true));
+    MutableExpr newBooleanConst = MutableExpr.ofConstant(1, CelConstant.ofValue(true));
 
     CelAbstractSyntaxTree mutatedAst =
         MUTABLE_AST.replaceSubtree(root, newBooleanConst, root.id()).toParsedAst();
@@ -116,7 +115,7 @@ public class AstMutatorTest {
   public void astMutator_macro_sourceMacroCallsPopulated() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("has(TestAllTypes{}.single_int32)").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newBooleanConst = MutableExpr.ofConstant(1, MutableConstant.ofValue(true));
+    MutableExpr newBooleanConst = MutableExpr.ofConstant(1, CelConstant.ofValue(true));
 
     CelAbstractSyntaxTree mutatedAst = MUTABLE_AST.replaceSubtree(root, newBooleanConst, -1, ast.getSource().toBuilder()).toParsedAst(); // no_op
 
@@ -140,7 +139,7 @@ public class AstMutatorTest {
     CelAbstractSyntaxTree mutatedAst =
         MUTABLE_AST.replaceSubtree(
             root,
-            MutableExpr.ofConstant(MutableConstant.ofValue(true)),
+            MutableExpr.ofConstant(CelConstant.ofValue(true)),
             1,
             ast.getSource().toBuilder()
         ).toParsedAst();
@@ -315,7 +314,7 @@ public class AstMutatorTest {
             root,
             ast.getSource().toBuilder(),
             variableName,
-            MutableExpr.ofConstant(MutableConstant.ofValue(3L)),
+            MutableExpr.ofConstant(CelConstant.ofValue(3L)),
             resultExpr,
             root.id()).toParsedAst();
 
@@ -344,7 +343,7 @@ public class AstMutatorTest {
             root,
             ast.getSource().toBuilder(),
             variableName,
-            MutableExpr.ofConstant(MutableConstant.ofValue(3L)),
+            MutableExpr.ofConstant(CelConstant.ofValue(3L)),
             resultExpr,
             2); // Replace +
     String nestedVariableName = "@r1";
@@ -383,7 +382,7 @@ public class AstMutatorTest {
             mutableAst.mutableExpr(),
             mutableAst.sourceBuilder(),
             nestedVariableName,
-            MutableExpr.ofConstant(MutableConstant.ofValue(1L)),
+            MutableExpr.ofConstant(CelConstant.ofValue(1L)),
             resultExpr,
             exprIdToReplace); // Replace +
 
@@ -413,7 +412,7 @@ public class AstMutatorTest {
             root,
             ast.getSource().toBuilder(),
             variableName,
-            MutableExpr.ofConstant(MutableConstant.ofValue(1L)),
+            MutableExpr.ofConstant(CelConstant.ofValue(1L)),
             resultExpr,
             2); // Replace +
     // Construct a new result expression of the form:
@@ -440,7 +439,7 @@ public class AstMutatorTest {
             mutableAst.mutableExpr(),
             mutableAst.sourceBuilder(),
             nestedVariableName,
-            MutableExpr.ofConstant(MutableConstant.ofValue(3L)),
+            MutableExpr.ofConstant(CelConstant.ofValue(3L)),
             resultExpr,
             mutableAst.mutableExpr().id());
 
@@ -496,7 +495,7 @@ public class AstMutatorTest {
             root,
             MutableExpr.ofCreateList(
                 MutableCreateList.create(
-                    MutableExpr.ofConstant(MutableConstant.ofValue(2L))
+                    MutableExpr.ofConstant(CelConstant.ofValue(2L))
                 )
             ),
             9L,
@@ -505,7 +504,7 @@ public class AstMutatorTest {
     CelAbstractSyntaxTree mutatedAstWithConstant =
         MUTABLE_AST.replaceSubtree(
             root2,
-            MutableExpr.ofConstant(MutableConstant.ofValue(2L)),
+            MutableExpr.ofConstant(CelConstant.ofValue(2L)),
             5L,
             ast.getSource().toBuilder()
         ).toParsedAst();
@@ -524,7 +523,7 @@ public class AstMutatorTest {
     //  1 [1]     2 [3]
     CelAbstractSyntaxTree ast = CEL.compile("1 + 2 + x").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newExpr = MutableExpr.ofConstant(MutableConstant.ofValue(10));
+    MutableExpr newExpr = MutableExpr.ofConstant(CelConstant.ofValue(10));
 
     MutableAst result =
         MUTABLE_AST.replaceSubtree(root, newExpr, root.id());
@@ -540,7 +539,7 @@ public class AstMutatorTest {
     //  1 [1]     2 [3]
     CelAbstractSyntaxTree ast = CEL.compile("1 + 2 + x").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newExpr = MutableExpr.ofConstant(MutableConstant.ofValue(10));
+    MutableExpr newExpr = MutableExpr.ofConstant(CelConstant.ofValue(10));
 
     MutableAst result =
             MUTABLE_AST.replaceSubtree(root, newExpr, 1);
@@ -556,7 +555,7 @@ public class AstMutatorTest {
     //  1 [1]     2 [3]
     CelAbstractSyntaxTree ast = CEL.compile("1 + 2 + x").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newExpr = MutableExpr.ofConstant(MutableConstant.ofValue(10));
+    MutableExpr newExpr = MutableExpr.ofConstant(CelConstant.ofValue(10));
 
     MutableAst result =
             MUTABLE_AST.replaceSubtree(root, newExpr, 2);
@@ -596,7 +595,7 @@ public class AstMutatorTest {
             .build();
     CelAbstractSyntaxTree ast = cel.compile("10.func(4.func(5))").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newExpr = MutableExpr.ofConstant(MutableConstant.ofValue(20));
+    MutableExpr newExpr = MutableExpr.ofConstant(CelConstant.ofValue(20));
 
     MutableAst result = MUTABLE_AST.replaceSubtree(root, newExpr, 3);
 
@@ -619,7 +618,7 @@ public class AstMutatorTest {
             .build();
     CelAbstractSyntaxTree ast = cel.compile("10.func(4.func(5))").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newExpr = MutableExpr.ofConstant(MutableConstant.ofValue(20));
+    MutableExpr newExpr = MutableExpr.ofConstant(CelConstant.ofValue(20));
 
     MutableAst result = MUTABLE_AST.replaceSubtree(root, newExpr, 5);
 
@@ -642,7 +641,7 @@ public class AstMutatorTest {
                     .build();
     CelAbstractSyntaxTree ast = cel.compile("10.func(4.func(5))").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newExpr = MutableExpr.ofConstant(MutableConstant.ofValue(20));
+    MutableExpr newExpr = MutableExpr.ofConstant(CelConstant.ofValue(20));
 
     MutableAst result = MUTABLE_AST.replaceSubtree(root, newExpr, 1);
 
@@ -665,7 +664,7 @@ public class AstMutatorTest {
                     .build();
     CelAbstractSyntaxTree ast = cel.compile("10.func(4.func(5))").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newExpr = MutableExpr.ofConstant(MutableConstant.ofValue(20));
+    MutableExpr newExpr = MutableExpr.ofConstant(CelConstant.ofValue(20));
 
     MutableAst result = MUTABLE_AST.replaceSubtree(root, newExpr, 4);
 
@@ -711,7 +710,7 @@ public class AstMutatorTest {
     //  2 [2]  3 [3]  4 [4]
     CelAbstractSyntaxTree ast = CEL.compile("[2, 3, 4]").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newExpr = MutableExpr.ofConstant(MutableConstant.ofValue(5));
+    MutableExpr newExpr = MutableExpr.ofConstant(CelConstant.ofValue(5));
 
     MutableAst result = MUTABLE_AST.replaceSubtree(root, newExpr, 4);
 
@@ -726,7 +725,7 @@ public class AstMutatorTest {
     //                  2 [3]
     CelAbstractSyntaxTree ast = CEL.compile("TestAllTypes{single_int64: 2}").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newExpr = MutableExpr.ofConstant(MutableConstant.ofValue(5));
+    MutableExpr newExpr = MutableExpr.ofConstant(CelConstant.ofValue(5));
 
     MutableAst result = MUTABLE_AST.replaceSubtree(root, newExpr, 3);
 
@@ -741,7 +740,7 @@ public class AstMutatorTest {
     //     'a' [3] : 1 [4]
     CelAbstractSyntaxTree ast = CEL.compile("{'a': 1}").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newExpr = MutableExpr.ofConstant(MutableConstant.ofValue(5));
+    MutableExpr newExpr = MutableExpr.ofConstant(CelConstant.ofValue(5));
 
     MutableAst result = MUTABLE_AST.replaceSubtree(root, newExpr, 3);
 
@@ -756,7 +755,7 @@ public class AstMutatorTest {
     //     'a' [3] : 1 [4]
     CelAbstractSyntaxTree ast = CEL.compile("{'a': 1}").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newExpr = MutableExpr.ofConstant(MutableConstant.ofValue(5));
+    MutableExpr newExpr = MutableExpr.ofConstant(CelConstant.ofValue(5));
 
     MutableAst result = MUTABLE_AST.replaceSubtree(root, newExpr, 4);
 
@@ -767,7 +766,7 @@ public class AstMutatorTest {
   public void comprehension_replaceIterRange() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("[true].exists(i, i)").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newExpr = MutableExpr.ofConstant(MutableConstant.ofValue(false));
+    MutableExpr newExpr = MutableExpr.ofConstant(CelConstant.ofValue(false));
 
     CelAbstractSyntaxTree replacedAst = MUTABLE_AST.replaceSubtree(
             root,
@@ -785,7 +784,7 @@ public class AstMutatorTest {
   public void comprehension_replaceAccuInit() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("[false].exists(i, i)").getAst();
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
-    MutableExpr newExpr = MutableExpr.ofConstant(MutableConstant.ofValue(true));
+    MutableExpr newExpr = MutableExpr.ofConstant(CelConstant.ofValue(true));
 
     CelAbstractSyntaxTree replacedAst = MUTABLE_AST.replaceSubtree(root, newExpr, 6, ast.getSource().toBuilder()).toParsedAst();
 
@@ -1022,7 +1021,7 @@ public class AstMutatorTest {
             IllegalStateException.class,
             () ->
                 astMutator.replaceSubtree(
-                    root, MutableExpr.ofConstant(MutableConstant.ofValue(false)), 1));
+                    root, MutableExpr.ofConstant(CelConstant.ofValue(false)), 1));
 
     assertThat(e).hasMessageThat().isEqualTo("Max iteration count reached.");
   }
