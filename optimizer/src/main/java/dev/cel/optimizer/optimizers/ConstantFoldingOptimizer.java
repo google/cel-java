@@ -121,8 +121,8 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
 
     // If the output is a list, map, or struct which contains optional entries, then prune it
     // to make sure that the optionals, if resolved, do not surface in the output literal.
-    MutableAst newAst = pruneOptionalElements(mutableAst);
-    return OptimizationResult.create(astMutator.renumberIdsConsecutively(newAst).toParsedAst());
+    mutableAst = pruneOptionalElements(mutableAst);
+    return OptimizationResult.create(astMutator.renumberIdsConsecutively(mutableAst).toParsedAst());
   }
 
   private static boolean canFold(CelNavigableExpr navigableExpr) {
@@ -150,7 +150,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
           MutableExpr cond = mutableCall.args().get(0);
 
           // A ternary with a constant condition is trivially foldable
-          return cond.constant().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE);
+          return cond.exprKind().equals(Kind.CONSTANT) && cond.constant().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE);
         }
 
         if (functionName.equals(Operator.IN.getFunction())) {
@@ -279,7 +279,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
         ));
       }
 
-      MutableExpr.ofCreateMap(MutableCreateMap.create(mapEntries));
+      return Optional.of(MutableExpr.ofCreateMap(MutableCreateMap.create(mapEntries)));
     }
 
     // Evaluated result cannot be folded (e.g: unknowns)
@@ -305,7 +305,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       MutableExpr newOptionalOfCall =
           MutableExpr.ofCall(
               MutableCall.create(
-              Function.OPTIONAL_NONE.getFunction(),
+              Function.OPTIONAL_OF.getFunction(),
               MutableExpr.ofConstant(CelConstant.ofObjectValue(unwrappedResult))
           ));
 

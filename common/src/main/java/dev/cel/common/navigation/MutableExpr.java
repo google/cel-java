@@ -434,7 +434,7 @@ public final class MutableExpr {
 
     private MutableCreateStruct(String messageName, List<MutableCreateStruct.Entry> entries) {
       this.messageName = messageName;
-      this.entries = entries;
+      this.entries = new ArrayList<>(entries);
     }
   }
 
@@ -514,7 +514,7 @@ public final class MutableExpr {
     }
 
     public static MutableCreateMap create(List<MutableCreateMap.Entry> entries) {
-      return new MutableCreateMap(entries);
+      return new MutableCreateMap(new ArrayList<>(entries));
     }
 
     private MutableCreateMap(List<MutableCreateMap.Entry> entries) {

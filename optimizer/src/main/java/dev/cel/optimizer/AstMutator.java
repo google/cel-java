@@ -230,17 +230,12 @@ public final class AstMutator {
 
   /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */
   public MutableAst renumberIdsConsecutively(MutableAst mutableAst) {
-    return MutableAst.of(mutableAst.mutableExpr(), mutableAst.sourceBuilder());
-  }
-
-  /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */
-  private MutableAst renumberIdsConsecutively(MutableExpr root, CelSource.Builder source) {
     StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(0);
     MutableExpr mutableExpr =
-        renumberExprIds(stableIdGenerator::renumberId, root);
+            renumberExprIds(stableIdGenerator::renumberId, mutableAst.mutableExpr());
     CelSource.Builder newSource =
-        normalizeMacroSource(
-            source, Integer.MIN_VALUE, root, stableIdGenerator::renumberId);
+            normalizeMacroSource(
+                    mutableAst.sourceBuilder(), Integer.MIN_VALUE, mutableExpr, stableIdGenerator::renumberId);
 
     return MutableAst.of(mutableExpr, newSource);
   }
@@ -487,7 +482,10 @@ public final class AstMutator {
           long exprIdToReplace,
           CelSource.Builder rootSource
           ) {
-    return replaceSubtree(root, newExpr, exprIdToReplace, rootSource, CelSource.newBuilder());
+    return replaceSubtree(root, newExpr, exprIdToReplace, rootSource,
+            // Copy the macro call information to the new AST such that macro call map can be
+            // normalized post-replacement.
+            CelSource.newBuilder().addAllMacroCalls(rootSource.getMacroCalls()));
   }
 
   public MutableAst replaceSubtree(

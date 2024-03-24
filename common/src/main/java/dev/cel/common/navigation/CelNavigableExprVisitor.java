@@ -259,7 +259,7 @@ final class CelNavigableExprVisitor {
 
   private void visitMutableStruct(CelNavigableExpr navigableExpr, MutableCreateStruct struct) {
     for (MutableCreateStruct.Entry entry : struct.entries()) {
-      visit(newNavigableChild(navigableExpr, entry.value()));
+      visitMutable(newNavigableChild(navigableExpr, entry.value()));
     }
   }
 
