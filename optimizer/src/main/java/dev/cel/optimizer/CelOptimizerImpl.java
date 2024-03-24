@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.ast.MutableAst;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.optimizer.CelAstOptimizer.OptimizationResult;
 import java.util.Arrays;
@@ -43,7 +44,7 @@ final class CelOptimizerImpl implements CelOptimizer {
     CelAbstractSyntaxTree optimizedAst = ast;
     try {
       for (CelAstOptimizer optimizer : astOptimizers) {
-        CelNavigableAst navigableAst = CelNavigableAst.fromAstToMutable(optimizedAst);
+        CelNavigableAst navigableAst = CelNavigableAst.fromMutableAst(MutableAst.fromCelAst(optimizedAst));
         OptimizationResult result = optimizer.optimize(navigableAst, celOptimizerEnv);
         if (!result.newFunctionDecls().isEmpty() || !result.newVarDecls().isEmpty()) {
           celOptimizerEnv =

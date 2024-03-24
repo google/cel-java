@@ -15,6 +15,7 @@
 package dev.cel.common.navigation;
 
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.ast.MutableAst;
 
 /**
  * Decorates a {@link CelAbstractSyntaxTree} with navigational properties. This allows us to visit a
@@ -22,22 +23,29 @@ import dev.cel.common.CelAbstractSyntaxTree;
  */
 public final class CelNavigableAst {
   private final CelAbstractSyntaxTree ast;
+  private final MutableAst mutableAst;
   private final CelNavigableExpr root;
 
-  private CelNavigableAst(CelAbstractSyntaxTree ast, boolean isMutable) {
+  private CelNavigableAst(CelAbstractSyntaxTree ast) {
     this.ast = ast;
-    this.root = isMutable ?
-        CelNavigableExpr.fromMutableExpr(MutableExprConverter.fromCelExpr(ast.getExpr())) :
-        CelNavigableExpr.fromExpr(ast.getExpr());
+    this.mutableAst = MutableAst.fromCelAst()
+    this.root = CelNavigableExpr.fromExpr(ast.getExpr());
+  }
+
+  private CelNavigableAst(MutableAst mutableAst) {
+    this.ast = mutableAst.toParsedAst();
+    this.mutableAst = mutableAst;
+    this.root =
+            CelNavigableExpr.fromMutableExpr(mutableAst.mutableExpr());
   }
 
   /** Constructs a new instance of {@link CelNavigableAst} from {@link CelAbstractSyntaxTree}. */
   public static CelNavigableAst fromAst(CelAbstractSyntaxTree ast) {
-    return new CelNavigableAst(ast, false);
+    return new CelNavigableAst(ast);
   }
 
-  public static CelNavigableAst fromAstToMutable(CelAbstractSyntaxTree ast) {
-    return new CelNavigableAst(ast, true);
+  public static CelNavigableAst fromMutableAst(MutableAst ast) {
+    return new CelNavigableAst(ast);
   }
 
   /** Returns the root of the AST. */

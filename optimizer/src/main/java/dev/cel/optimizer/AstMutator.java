@@ -36,13 +36,14 @@ import dev.cel.common.ast.CelExprIdGeneratorFactory;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.ExprIdGenerator;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.MonotonicIdGenerator;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.StableIdGenerator;
+import dev.cel.common.ast.MutableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.navigation.CelNavigableExpr.TraversalOrder;
-import dev.cel.common.navigation.MutableExpr;
-import dev.cel.common.navigation.MutableExpr.MutableCall;
-import dev.cel.common.navigation.MutableExpr.MutableComprehension;
-import dev.cel.common.navigation.MutableExpr.MutableCreateList;
-import dev.cel.common.navigation.MutableExprConverter;
+import dev.cel.common.ast.MutableExpr;
+import dev.cel.common.ast.MutableExpr.MutableCall;
+import dev.cel.common.ast.MutableExpr.MutableComprehension;
+import dev.cel.common.ast.MutableExpr.MutableCreateList;
+import dev.cel.common.ast.MutableExprConverter;
 import dev.cel.common.types.CelType;
 import java.util.Collection;
 import java.util.HashMap;
@@ -499,8 +500,8 @@ public final class AstMutator {
     long maxId = max(getMaxId(root), getMaxId(newExpr));
     MutableAst stablizedAst = stabilizeAst(newExpr, newSource, maxId);
     long stablizedNewExprRootId = newExpr.id();
-    newExpr = stablizedAst.mutatedExpr;
-    newSource = stablizedAst.sourceBuilder;
+    newExpr = stablizedAst.mutableExpr();
+    newSource = stablizedAst.sourceBuilder();
 
     // Mutate the AST root with the new subtree. All the existing expr IDs are renumbered in the
     // process, but its original IDs are memoized so that we can normalize the expr IDs
@@ -529,36 +530,6 @@ public final class AstMutator {
     newAstSource = normalizeMacroSource(newAstSource, exprIdToReplace, mutatedRoot, stableIdGenerator::renumberId);
 
     return MutableAst.of(mutatedRoot, newAstSource);
-  }
-
-  public static class MutableAst {
-    private final MutableExpr mutatedExpr;
-    private final CelSource.Builder sourceBuilder;
-
-    public MutableExpr mutableExpr() {
-      return mutatedExpr;
-    }
-
-    public CelSource.Builder sourceBuilder() {
-      return sourceBuilder;
-    }
-
-    public CelAbstractSyntaxTree toParsedAst() {
-      return CelAbstractSyntaxTree.newParsedAst(MutableExprConverter.fromMutableExpr(mutatedExpr), sourceBuilder.build());
-    }
-
-    public static MutableAst fromCelAst(CelAbstractSyntaxTree ast) {
-      return of(MutableExprConverter.fromCelExpr(ast.getExpr()), ast.getSource().toBuilder());
-    }
-
-    private static MutableAst of(MutableExpr mutableExpr, CelSource.Builder sourceBuilder) {
-      return new MutableAst(mutableExpr, sourceBuilder);
-    }
-
-    private MutableAst(MutableExpr mutatedExpr, CelSource.Builder sourceBuilder) {
-      this.mutatedExpr = mutatedExpr;
-      this.sourceBuilder = sourceBuilder;
-    }
   }
 
   private MutableExpr mangleIdentsInComprehensionExpr(
@@ -986,8 +957,8 @@ public final class AstMutator {
   }
 
   private static long getMaxId(MutableAst mutableAst) {
-    long maxId = getMaxId(mutableAst.mutatedExpr);
-    for (Entry<Long, CelExpr> macroCall : mutableAst.sourceBuilder.getMacroCalls().entrySet()) {
+    long maxId = getMaxId(mutableAst.mutableExpr());
+    for (Entry<Long, CelExpr> macroCall : mutableAst.sourceBuilder().getMacroCalls().entrySet()) {
       maxId = max(maxId, getMaxId(macroCall.getValue()));
     }
 

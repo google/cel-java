@@ -18,6 +18,8 @@ import com.google.auto.value.AutoValue;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.ExprKind;
+import dev.cel.common.ast.MutableExpr;
+
 import java.util.Optional;
 import java.util.stream.Stream;
 

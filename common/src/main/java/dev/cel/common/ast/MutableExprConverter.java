@@ -1,19 +1,18 @@
-package dev.cel.common.navigation;
+package dev.cel.common.ast;
 
 import com.google.common.collect.ImmutableList;
-import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.CelCreateList;
 import dev.cel.common.ast.CelExpr.CelCreateMap;
 import dev.cel.common.ast.CelExpr.CelCreateStruct;
 import dev.cel.common.ast.CelExpr.CelSelect;
-import dev.cel.common.navigation.MutableExpr.MutableCall;
-import dev.cel.common.navigation.MutableExpr.MutableComprehension;
-import dev.cel.common.navigation.MutableExpr.MutableCreateList;
-import dev.cel.common.navigation.MutableExpr.MutableCreateMap;
-import dev.cel.common.navigation.MutableExpr.MutableCreateStruct;
-import dev.cel.common.navigation.MutableExpr.MutableSelect;
+import dev.cel.common.ast.MutableExpr.MutableCall;
+import dev.cel.common.ast.MutableExpr.MutableComprehension;
+import dev.cel.common.ast.MutableExpr.MutableCreateList;
+import dev.cel.common.ast.MutableExpr.MutableCreateMap;
+import dev.cel.common.ast.MutableExpr.MutableCreateStruct;
+import dev.cel.common.ast.MutableExpr.MutableSelect;
 
 import java.util.ArrayList;
 import java.util.List;

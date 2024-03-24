@@ -18,14 +18,14 @@ import com.google.common.base.Preconditions;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.ExprIdGenerator;
-import dev.cel.common.navigation.MutableExpr;
+import dev.cel.common.ast.MutableExpr;
 
-import dev.cel.common.navigation.MutableExpr.MutableCall;
-import dev.cel.common.navigation.MutableExpr.MutableComprehension;
-import dev.cel.common.navigation.MutableExpr.MutableCreateList;
-import dev.cel.common.navigation.MutableExpr.MutableCreateMap;
-import dev.cel.common.navigation.MutableExpr.MutableCreateStruct;
-import dev.cel.common.navigation.MutableExpr.MutableSelect;
+import dev.cel.common.ast.MutableExpr.MutableCall;
+import dev.cel.common.ast.MutableExpr.MutableComprehension;
+import dev.cel.common.ast.MutableExpr.MutableCreateList;
+import dev.cel.common.ast.MutableExpr.MutableCreateMap;
+import dev.cel.common.ast.MutableExpr.MutableCreateStruct;
+import dev.cel.common.ast.MutableExpr.MutableSelect;
 import java.util.List;
 
 /**

@@ -1,8 +1,6 @@
-package dev.cel.common.navigation;
+package dev.cel.common.ast;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import dev.cel.common.ast.CelConstant;
-import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelNotSet;
 import dev.cel.common.ast.CelExpr.ExprKind;
 
