@@ -255,11 +255,11 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
    */
   @VisibleForTesting
   static void verifyOptimizedAstCorrectness(CelAbstractSyntaxTree ast) {
-    CelNavigableAst celNavigableAst = CelNavigableAst.fromAst(ast);
+    // TODO
+    CelNavigableExpr celNavigableExpr = CelNavigableExpr.fromExpr(ast.getExpr());
 
     ImmutableList<CelExpr> allCelBlocks =
-        celNavigableAst
-            .getRoot()
+        celNavigableExpr
             .allNodes()
             .map(CelNavigableExpr::expr)
             .filter(expr -> expr.callOrDefault().function().equals(CEL_BLOCK_FUNCTION))
@@ -274,7 +274,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         "Expected 1 cel.block function to be present but found %s",
         allCelBlocks.size());
     Verify.verify(
-        celNavigableAst.getRoot().expr().equals(celBlockExpr),
+        celNavigableExpr.expr().equals(celBlockExpr),
         "Expected cel.block to be present at root");
 
     // Assert correctness on block indices used in subexpressions
@@ -367,7 +367,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
                 MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
                 MANGLED_COMPREHENSION_RESULT_PREFIX)
             .mutableAst();
-    CelSource.Builder sourceToModify = astToModify.source();
+    CelSource.Builder sourceToModify = cseOptions.populateMacroCalls() ? astToModify.source() : CelSource.newBuilder();
 
     int bindIdentifierIndex = 0;
     int iterCount;

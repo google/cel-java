@@ -189,7 +189,8 @@ public class SubexpressionOptimizerTest {
 
   @Test
   public void smokeTest() throws Exception {
-    String source = "[1,2,3].map(i, [1, 2, 3])";
+    String source = "[1].map(i, [1])";
+    // String source = "[1].map(i, [1].map(i, [1]))";
     CelAbstractSyntaxTree ast = CEL.compile(source).getAst();
 
     CelAbstractSyntaxTree optimizedAst =
@@ -200,7 +201,8 @@ public class SubexpressionOptimizerTest {
                 .build())
             .optimize(ast);
 
-    assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo("cel.@block([[1, 2, 3]], @index0.map(@c0:0, @index0.map(@c1:0, @index0.map(@c2:0, @index0.map(@c3:0, @index0.map(@c4:0, @index0.map(@c5:0, @index0.map(@c6:0, @index0.map(@c7:0, @index0)))))))))");
+    assertThat(CEL_UNPARSER.unparse(optimizedAst))
+        .isEqualTo("cel.@block([[1]], @index0.map(@c0:0, @index0))");
   }
 
   @Test
