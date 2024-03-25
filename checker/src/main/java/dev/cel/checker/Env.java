@@ -966,7 +966,7 @@ public class Env {
         overloadBuilder.setResultType(getWellKnownType(resultType));
       }
 
-      ImmutableSet.Builder<CelType> parameterTypeBuilder = ImmutableSet.builder();
+      ImmutableList.Builder<CelType> parameterTypeBuilder = ImmutableList.builder();
       for (CelType paramType : overloadBuilder.parameterTypes()) {
         if (isWellKnownType(paramType)) {
           parameterTypeBuilder.add(getWellKnownType(paramType));

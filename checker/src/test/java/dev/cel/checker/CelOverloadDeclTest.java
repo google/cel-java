@@ -20,6 +20,7 @@ import static dev.cel.common.CelOverloadDecl.newGlobalOverload;
 import static dev.cel.common.CelOverloadDecl.newMemberOverload;
 
 import dev.cel.expr.Decl.FunctionDecl.Overload;
+import com.google.common.collect.ImmutableList;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.SimpleType;
@@ -84,5 +85,22 @@ public class CelOverloadDeclTest {
     assertThat(protoOverload.getParamsList())
         .containsExactly(CelTypes.STRING, CelTypes.DOUBLE, CelTypes.createTypeParam("B"));
     assertThat(protoOverload.getTypeParamsList()).containsExactly("A", "B");
+  }
+
+  @Test
+  public void setParameterTypes_doesNotDedupe() {
+    CelOverloadDecl overloadDecl =
+        CelOverloadDecl.newBuilder()
+            .setParameterTypes(
+                ImmutableList.of(
+                    SimpleType.STRING, SimpleType.STRING, SimpleType.STRING, SimpleType.INT))
+            .setOverloadId("overload_id")
+            .setIsInstanceFunction(true)
+            .setResultType(SimpleType.DYN)
+            .build();
+
+    assertThat(overloadDecl.parameterTypes())
+        .containsExactly(SimpleType.STRING, SimpleType.STRING, SimpleType.STRING, SimpleType.INT)
+        .inOrder();
   }
 }

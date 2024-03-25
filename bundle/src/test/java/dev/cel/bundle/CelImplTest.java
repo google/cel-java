@@ -16,6 +16,9 @@ package dev.cel.bundle;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
+import static dev.cel.common.CelFunctionDecl.newFunctionDeclaration;
+import static dev.cel.common.CelOverloadDecl.newGlobalOverload;
+import static dev.cel.common.CelOverloadDecl.newMemberOverload;
 import static org.junit.Assert.assertThrows;
 
 import dev.cel.expr.CheckedExpr;
@@ -55,10 +58,8 @@ import dev.cel.checker.DescriptorTypeProvider;
 import dev.cel.checker.ProtoTypeMask;
 import dev.cel.checker.TypeProvider;
 import dev.cel.common.CelAbstractSyntaxTree;
-import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelValidationResult;
@@ -97,6 +98,7 @@ import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -1800,9 +1802,9 @@ public final class CelImplTest {
         CelFactory.standardCelBuilder()
             .addVar("x", SimpleType.INT)
             .addFunctionDeclarations(
-                CelFunctionDecl.newFunctionDeclaration(
+                newFunctionDeclaration(
                     "print",
-                    CelOverloadDecl.newGlobalOverload(
+                    newGlobalOverload(
                         "print_overload",
                         SimpleType.STRING,
                         customType))) // The overload would accept either Int or CustomType
@@ -1814,6 +1816,36 @@ public final class CelImplTest {
     String result = (String) cel.createProgram(ast).eval(ImmutableMap.of("x", 5));
 
     assertThat(result).isEqualTo("5");
+  }
+
+  @Test
+  @SuppressWarnings("unchecked") // test only
+  public void program_functionParamWithWellKnownType() throws Exception {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addFunctionDeclarations(
+                newFunctionDeclaration(
+                    "hasStringValue",
+                    newMemberOverload(
+                        "struct_hasStringValue_string_string",
+                        SimpleType.BOOL,
+                        StructTypeReference.create("google.protobuf.Struct"),
+                        SimpleType.STRING,
+                        SimpleType.STRING)))
+            .addFunctionBindings(
+                CelFunctionBinding.from(
+                    "struct_hasStringValue_string_string",
+                    ImmutableList.of(Map.class, String.class, String.class),
+                    args -> {
+                      Map<String, String> map = (Map<String, String>) args[0];
+                      return map.containsKey(args[1]) && map.containsValue(args[2]);
+                    }))
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("{'a': 'b'}.hasStringValue('a', 'b')").getAst();
+
+    boolean result = (boolean) cel.createProgram(ast).eval();
+
+    assertThat(result).isTrue();
   }
 
   @Test
