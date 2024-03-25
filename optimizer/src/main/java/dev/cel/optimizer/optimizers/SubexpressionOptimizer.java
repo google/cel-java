@@ -154,6 +154,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     int iterCount;
     ArrayList<MutableExpr> subexpressions = new ArrayList<>();
     for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
+      // TODO: Iterate directly on candidates rather than refetching
       MutableExpr cseCandidate = findCseCandidate(astToModify).map(CelNavigableExpr::mutableExpr).orElse(null);
       if (cseCandidate == null) {
         break;
@@ -206,7 +207,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     if (iterCount == 0) {
       // No modification has been made.
-      return OptimizationResult.create(astToModify.toParsedAst());
+      return OptimizationResult.create(navigableAst.getAst());
     }
 
     ImmutableList.Builder<CelVarDecl> newVarDecls = ImmutableList.builder();
@@ -424,13 +425,12 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     }
 
     if (!cseOptions.populateMacroCalls()) {
-      astToModify =
-          MutableAst.of(astToModify.mutableExpr(), CelSource.newBuilder());
+      astToModify = MutableAst.of(astToModify.mutableExpr(), CelSource.newBuilder());
     }
 
     if (iterCount == 0) {
       // No modification has been made.
-      return OptimizationResult.create(astToModify.toParsedAst());
+      return OptimizationResult.create(navigableAst.getAst());
     }
 
     astToModify = astMutator.renumberIdsConsecutively(astToModify);
@@ -542,10 +542,10 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
   private Optional<CelNavigableExpr> findCseCandidateWithCommonSubexpr(
       ImmutableList<CelNavigableExpr> allNodes) {
-    HashSet<CelExpr> encounteredNodes = new HashSet<>();
+    HashSet<MutableExpr> encounteredNodes = new HashSet<>();
     for (CelNavigableExpr node : allNodes) {
       // Normalize the expr to test semantic equivalence.
-      CelExpr celExpr = normalizeForEquality(node.expr());
+      MutableExpr celExpr = normalizeForEquality(node.mutableExpr());
       if (encounteredNodes.contains(celExpr)) {
         return Optional.of(node);
       }
@@ -585,16 +585,16 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
                 // If the expression is within a comprehension, it is eligible for CSE iff is in
                 // result, loopStep or iterRange. While result is not human authored, it needs to be
                 // included to extract subexpressions that are already in cel.bind macro.
-                CelNavigableExpr.fromExpr(parent.expr().comprehension().result()).descendants(),
-                CelNavigableExpr.fromExpr(parent.expr().comprehension().loopStep()).allNodes(),
-                CelNavigableExpr.fromExpr(parent.expr().comprehension().iterRange()).allNodes())
+                CelNavigableExpr.fromMutableExpr(parent.mutableExpr().comprehension().result()).descendants(),
+                CelNavigableExpr.fromMutableExpr(parent.mutableExpr().comprehension().loopStep()).allNodes(),
+                CelNavigableExpr.fromMutableExpr(parent.mutableExpr().comprehension().iterRange()).allNodes())
             .filter(
                 node ->
                     // Exclude empty lists (cel.bind sets this for iterRange).
                     !node.getKind().equals(Kind.CREATE_LIST)
-                        || !node.expr().createList().elements().isEmpty())
-            .map(CelNavigableExpr::expr)
-            .anyMatch(node -> node.equals(expr.expr()));
+                        || !node.mutableExpr().createList().elements().isEmpty())
+            .map(CelNavigableExpr::mutableExpr)
+            .anyMatch(node -> node.equals(expr.mutableExpr()));
       }
       maybeParent = parent.parent();
     }
@@ -603,8 +603,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   }
 
   private boolean areSemanticallyEqual(MutableExpr expr1, MutableExpr expr2) {
-    // TODO: Custom compare?
-    return normalizeForEquality(MutableExprConverter.fromMutableExpr(expr1)).equals(normalizeForEquality(MutableExprConverter.fromMutableExpr(expr2)));
+    // TODO: implement separate AST walker for comparisno rather than converting to CelExpr
+    return normalizeForEquality(expr1).equals(normalizeForEquality(expr2));
   }
 
   private boolean containsEliminableFunctionOnly(CelNavigableExpr navigableExpr) {
@@ -613,7 +613,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         .allMatch(
             node -> {
               if (node.getKind().equals(Kind.CALL)) {
-                return cseEliminableFunctions.contains(node.expr().call().function());
+                return cseEliminableFunctions.contains(node.mutableExpr().call().function());
               }
 
               return true;
@@ -632,33 +632,31 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
    *       CelExpr.ExprKind.Kind#SELECT}
    * </ul>
    */
-  private CelExpr normalizeForEquality(CelExpr celExpr) {
+  private MutableExpr normalizeForEquality(MutableExpr mutableExpr) {
+    // TODO: Is there a way to do this without deep copy?
+    MutableExpr copiedExpr = mutableExpr.deepCopy();
     int iterCount;
     for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
-      CelExpr presenceTestExpr =
-          CelNavigableExpr.fromExpr(celExpr)
+      // TODO: Iterate without refetch
+      MutableExpr presenceTestExpr =
+          CelNavigableExpr.fromMutableExpr(copiedExpr)
               .allNodes()
-              .map(CelNavigableExpr::expr)
-              .filter(expr -> expr.selectOrDefault().testOnly())
+              .map(CelNavigableExpr::mutableExpr)
+              .filter(expr -> expr.exprKind().equals(Kind.SELECT) && expr.select().isTestOnly())
               .findAny()
               .orElse(null);
       if (presenceTestExpr == null) {
         break;
       }
 
-      CelExpr newExpr =
-          presenceTestExpr.toBuilder()
-              .setSelect(presenceTestExpr.select().toBuilder().setTestOnly(false).build())
-              .build();
-
-      celExpr = astMutator.replaceSubtree(celExpr, newExpr, newExpr.id());
+      presenceTestExpr.select().setTestOnly(false);
     }
 
     if (iterCount >= cseOptions.iterationLimit()) {
       throw new IllegalStateException("Max iteration count reached.");
     }
 
-    return astMutator.clearExprIds(celExpr);
+    return astMutator.clearExprIds(copiedExpr);
   }
 
   @VisibleForTesting

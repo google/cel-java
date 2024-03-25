@@ -117,7 +117,7 @@ public class AstMutatorTest {
     MutableExpr root = MutableExprConverter.fromCelExpr(ast.getExpr());
     MutableExpr newBooleanConst = MutableExpr.ofConstant(1, CelConstant.ofValue(true));
 
-    CelAbstractSyntaxTree mutatedAst = MUTABLE_AST.replaceSubtree(root, newBooleanConst, -1, ast.getSource().toBuilder()).toParsedAst(); // no_op
+    CelAbstractSyntaxTree mutatedAst = MUTABLE_AST.replaceSubtree(root, newBooleanConst, 1, ast.getSource().toBuilder()).toParsedAst(); // no_op
 
     assertThat(mutatedAst.getSource().getDescription()).isEmpty();
     assertThat(mutatedAst.getSource().getLineOffsets()).isEmpty();

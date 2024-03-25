@@ -16,6 +16,7 @@ package dev.cel.common.navigation;
 
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.ast.MutableAst;
+import dev.cel.common.ast.MutableExprConverter;
 
 /**
  * Decorates a {@link CelAbstractSyntaxTree} with navigational properties. This allows us to visit a
@@ -29,7 +30,8 @@ public final class CelNavigableAst {
   private CelNavigableAst(CelAbstractSyntaxTree ast) {
     this.ast = ast;
     this.mutableAst = MutableAst.fromCelAst(ast);
-    this.root = CelNavigableExpr.fromExpr(ast.getExpr());
+    // this.root = CelNavigableExpr.fromExpr(ast.getExpr());
+    this.root = CelNavigableExpr.fromMutableExpr(MutableExprConverter.fromCelExpr(ast.getExpr()));
   }
 
   private CelNavigableAst(MutableAst mutableAst) {

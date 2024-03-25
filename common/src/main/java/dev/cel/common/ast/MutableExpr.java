@@ -148,7 +148,7 @@ public final class MutableExpr {
       return name;
     }
 
-    void setName(String name) {
+    public void setName(String name) {
       this.name = name;
     }
 
@@ -200,11 +200,11 @@ public final class MutableExpr {
       this.field = field;
     }
 
-    boolean isTestOnly() {
+    public boolean isTestOnly() {
       return testOnly;
     }
 
-    void setTestOnly(boolean testOnly) {
+    public void setTestOnly(boolean testOnly) {
       this.testOnly = testOnly;
     }
 
@@ -239,7 +239,7 @@ public final class MutableExpr {
     public String function() { return function;
     }
 
-    void setFunction(String function) {
+    public void setFunction(String function) {
       this.function = function;
     }
 
@@ -271,6 +271,33 @@ public final class MutableExpr {
       checkNotNull(arg);
       checkArgument(index >= 0 && index < args.size());
       args.set(index, arg);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      }
+      if (obj instanceof MutableCall) {
+        MutableCall that = (MutableCall) obj;
+        return this.target.equals(that.target())
+          && this.function.equals(that.function())
+          && this.args.equals(that.args());
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      int h = 1;
+      h *= 1000003;
+      h ^= target.hashCode();
+      h *= 1000003;
+      h ^= function.hashCode();
+      h *= 1000003;
+      h ^= args.hashCode();
+      return h;
     }
 
     public static MutableCall create(String function, MutableExpr... args) {
@@ -325,6 +352,30 @@ public final class MutableExpr {
 
     void setOptionalIndices(List<Integer> optionalIndices) {
       this.optionalIndices = optionalIndices;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      }
+      if (obj instanceof MutableCreateList) {
+        MutableCreateList that = (MutableCreateList) obj;
+        return this.elements.equals(that.elements())
+          && this.optionalIndices.equals(that.optionalIndices());
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      int h = 1;
+      h *= 1000003;
+      h ^= elements.hashCode();
+      h *= 1000003;
+      h ^= optionalIndices.hashCode();
+      return h;
     }
 
     public static MutableCreateList create(MutableExpr... elements) {
@@ -776,6 +827,11 @@ public final class MutableExpr {
     }
 
     throw new IllegalStateException("Unexpected expr kind: " + this.exprKind);
+  }
+
+  public MutableExpr deepCopy() {
+    // TODO: Perform a proper direct copy
+    return MutableExprConverter.fromCelExpr(MutableExprConverter.fromMutableExpr(this));
   }
 
   @Override

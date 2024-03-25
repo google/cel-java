@@ -39,16 +39,18 @@ import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
+import dev.cel.common.ast.MutableAst;
+import dev.cel.common.ast.MutableExpr;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.extensions.CelExtensions;
+import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.optimizer.CelOptimizer;
 import dev.cel.optimizer.CelOptimizerFactory;
-import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.optimizers.SubexpressionOptimizer.SubexpressionOptimizerOptions;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparser;
@@ -183,6 +185,22 @@ public class SubexpressionOptimizerTest {
 
     assertThat(ast.getExpr()).isEqualTo(optimizedAst.getExpr());
     assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo(testCase.source);
+  }
+
+  @Test
+  public void smokeTest() throws Exception {
+    String source = "[1,2,3].map(i, [1, 2, 3])";
+    CelAbstractSyntaxTree ast = CEL.compile(source).getAst();
+
+    CelAbstractSyntaxTree optimizedAst =
+        newCseOptimizer(
+            SubexpressionOptimizerOptions.newBuilder()
+                .populateMacroCalls(true)
+                .enableCelBlock(true)
+                .build())
+            .optimize(ast);
+
+    assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo("cel.@block([[1, 2, 3]], @index0.map(@c0:0, @index0.map(@c1:0, @index0.map(@c2:0, @index0.map(@c3:0, @index0.map(@c4:0, @index0.map(@c5:0, @index0.map(@c6:0, @index0.map(@c7:0, @index0)))))))))");
   }
 
   @Test
@@ -557,51 +575,57 @@ public class SubexpressionOptimizerTest {
       throws CelValidationException {
     AstMutator astMutator = AstMutator.newInstance(1000);
     CelAbstractSyntaxTree astToModify = CEL_FOR_EVALUATING_BLOCK.compile(expression).getAst();
+    MutableAst mutableAst = MutableAst.fromCelAst(astToModify);
     while (true) {
-      CelExpr celExpr =
-          CelNavigableAst.fromAst(astToModify)
+      MutableExpr celBlockExpr =
+          CelNavigableAst.fromMutableAst(mutableAst)
               .getRoot()
               .allNodes()
               .filter(node -> node.getKind().equals(Kind.CALL))
-              .map(CelNavigableExpr::expr)
+              .map(CelNavigableExpr::mutableExpr)
               .filter(expr -> expr.call().function().equals("cel.block"))
               .findAny()
               .orElse(null);
-      if (celExpr == null) {
+      if (celBlockExpr == null) {
         break;
       }
-      astToModify =
-          astMutator.replaceSubtree(
-              astToModify,
-              celExpr.toBuilder()
-                  .setCall(celExpr.call().toBuilder().setFunction("cel.@block").build())
-                  .build(),
-              celExpr.id());
+
+      celBlockExpr.call().setFunction("cel.@block");
+      // astToModify =
+      //     astMutator.replaceSubtree(
+      //         mutableAst.mutableExpr(),
+      //         celBlockExpr.toBuilder()
+      //             .setCall(celBlockExpr.call().toBuilder().setFunction("cel.@block").build())
+      //             .build(),
+      //         celBlockExpr.id(),
+      //         mutableAst.source(),
+      //         );
     }
 
     while (true) {
-      CelExpr celExpr =
-          CelNavigableAst.fromAst(astToModify)
+      MutableExpr indexExpr =
+          CelNavigableAst.fromMutableAst(mutableAst)
               .getRoot()
               .allNodes()
               .filter(node -> node.getKind().equals(Kind.IDENT))
-              .map(CelNavigableExpr::expr)
+              .map(CelNavigableExpr::mutableExpr)
               .filter(expr -> expr.ident().name().startsWith("index"))
               .findAny()
               .orElse(null);
-      if (celExpr == null) {
+      if (indexExpr == null) {
         break;
       }
-      String internalIdentName = "@" + celExpr.ident().name();
-      astToModify =
-          astMutator.replaceSubtree(
-              astToModify,
-              celExpr.toBuilder()
-                  .setIdent(celExpr.ident().toBuilder().setName(internalIdentName).build())
-                  .build(),
-              celExpr.id());
+      String internalIdentName = "@" + indexExpr.ident().name();
+      indexExpr.ident().setName(internalIdentName);
+      // astToModify =
+      //     astMutator.replaceSubtree(
+      //         astToModify,
+      //         indexExpr.toBuilder()
+      //             .setIdent(indexExpr.ident().toBuilder().setName(internalIdentName).build())
+      //             .build(),
+      //         indexExpr.id());
     }
 
-    return CEL_FOR_EVALUATING_BLOCK.check(astToModify).getAst();
+    return CEL_FOR_EVALUATING_BLOCK.check(mutableAst.toParsedAst()).getAst();
   }
 }

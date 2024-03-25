@@ -16,6 +16,7 @@ package dev.cel.optimizer;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static java.lang.Math.exp;
 import static java.lang.Math.max;
 
 import com.google.auto.value.AutoValue;
@@ -79,9 +80,8 @@ public final class AstMutator {
   }
 
   /** Replaces all the expression IDs in the expression tree with 0. */
-  public CelExpr clearExprIds(CelExpr celExpr) {
-//    return renumberExprIds((unused) -> 0, celExpr.toBuilder()).build();
-    return null;
+  public MutableExpr clearExprIds(MutableExpr expr) {
+   return renumberExprIds((unused) -> 0, expr);
   }
 
   /**
@@ -156,7 +156,8 @@ public final class AstMutator {
                 MutableExpr.ofCreateList(
                     ++maxId,
                     MutableCreateList.create(subexpressions)
-                )
+                ),
+                ast.mutableExpr()
             )
         );
 
@@ -183,6 +184,9 @@ public final class AstMutator {
       MutableExpr varInit,
       MutableExpr resultExpr,
       long exprIdToReplace) {
+    // Copy the incoming expressions to prevent modifying the root
+    varInit = varInit.deepCopy();
+    resultExpr = resultExpr.deepCopy();
     long maxId = max(getMaxId(varInit), getMaxId(root));
     StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(maxId);
     BindMacro bindMacro = newBindMacro(varName, varInit, resultExpr, stableIdGenerator);
@@ -197,7 +201,9 @@ public final class AstMutator {
             stableIdGenerator::renumberId)
             .addMacroCalls(bindMacro.bindExpr().id(), MutableExprConverter.fromMutableExpr(bindMacro.bindMacroExpr()));
 
-    return replaceSubtree(root, bindMacro.bindExpr(), exprIdToReplace, rootSource, celSource);
+    MutableAst ast = replaceSubtree(root, bindMacro.bindExpr(), exprIdToReplace, rootSource, celSource);
+
+    return ast;
   }
 
   /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */
@@ -293,6 +299,7 @@ public final class AstMutator {
                               .allNodes()
                               .filter(
                                   loopStepNode ->
+                                      loopStepNode.getKind().equals(Kind.IDENT) &&
                                       loopStepNode.mutableExpr().ident().name().equals(iterVar))
                               .map(CelNavigableExpr::id)
                               .findAny();

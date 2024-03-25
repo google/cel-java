@@ -44,7 +44,7 @@ final class CelOptimizerImpl implements CelOptimizer {
     CelAbstractSyntaxTree optimizedAst = ast;
     try {
       for (CelAstOptimizer optimizer : astOptimizers) {
-        CelNavigableAst navigableAst = CelNavigableAst.fromMutableAst(MutableAst.fromCelAst(optimizedAst));
+        CelNavigableAst navigableAst = CelNavigableAst.fromAst(optimizedAst);
         OptimizationResult result = optimizer.optimize(navigableAst, celOptimizerEnv);
         if (!result.newFunctionDecls().isEmpty() || !result.newVarDecls().isEmpty()) {
           celOptimizerEnv =
