@@ -41,8 +41,10 @@ import dev.cel.common.CelValidationException;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
-import dev.cel.common.ast.CelExpr.CelIdent;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
+import dev.cel.common.ast.MutableAst;
+import dev.cel.common.ast.MutableExpr;
+import dev.cel.common.ast.MutableExprConverter;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.navigation.CelNavigableExpr.TraversalOrder;
@@ -51,9 +53,9 @@ import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.extensions.CelOptionalLibrary.Function;
-import dev.cel.optimizer.CelAstOptimizer;
 import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.AstMutator.MangledComprehensionAst;
+import dev.cel.optimizer.CelAstOptimizer;
 import dev.cel.parser.Operator;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -142,16 +144,17 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     MangledComprehensionAst mangledComprehensionAst =
         astMutator.mangleComprehensionIdentifierNames(
             navigableAst.getAst(),
+            navigableAst.getRoot().mutableExpr(),
             MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
             MANGLED_COMPREHENSION_RESULT_PREFIX);
-    CelAbstractSyntaxTree astToModify = mangledComprehensionAst.ast();
-    CelSource sourceToModify = astToModify.getSource();
+    MutableAst astToModify = mangledComprehensionAst.mutableAst();
+    CelSource.Builder sourceToModify = astToModify.source();
 
     int blockIdentifierIndex = 0;
     int iterCount;
-    ArrayList<CelExpr> subexpressions = new ArrayList<>();
+    ArrayList<MutableExpr> subexpressions = new ArrayList<>();
     for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
-      CelExpr cseCandidate = findCseCandidate(astToModify).map(CelNavigableExpr::expr).orElse(null);
+      MutableExpr cseCandidate = findCseCandidate(astToModify).map(CelNavigableExpr::mutableExpr).orElse(null);
       if (cseCandidate == null) {
         break;
       }
@@ -160,14 +163,15 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       String blockIdentifier = BLOCK_INDEX_PREFIX + blockIdentifierIndex++;
 
       // Using the CSE candidate, fetch all semantically equivalent subexpressions ahead of time.
-      ImmutableList<CelExpr> allCseCandidates =
+      ImmutableList<MutableExpr> allCseCandidates =
           getAllCseCandidatesStream(astToModify, cseCandidate).collect(toImmutableList());
 
       // Replace all CSE candidates with new block index identifier
-      for (CelExpr semanticallyEqualNode : allCseCandidates) {
+      for (MutableExpr semanticallyEqualNode : allCseCandidates) {
         iterCount++;
         // Refetch the candidate expr as mutating the AST could have renumbered its IDs.
-        CelExpr exprToReplace =
+        // TODO: Probably not needed
+        MutableExpr exprToReplace =
             getAllCseCandidatesStream(astToModify, semanticallyEqualNode)
                 .findAny()
                 .orElseThrow(
@@ -177,22 +181,19 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
         astToModify =
             astMutator.replaceSubtree(
-                astToModify,
-                CelExpr.newBuilder()
-                    .setIdent(CelIdent.newBuilder().setName(blockIdentifier).build())
-                    .build(),
-                exprToReplace.id());
+                astToModify.mutableExpr(),
+                MutableExpr.ofIdent(blockIdentifier),
+                exprToReplace.id(),
+                astToModify.source()
+                );
       }
 
-      sourceToModify =
-          sourceToModify.toBuilder()
-              .addAllMacroCalls(astToModify.getSource().getMacroCalls())
-              .build();
-      astToModify = CelAbstractSyntaxTree.newParsedAst(astToModify.getExpr(), sourceToModify);
+      sourceToModify.addAllMacroCalls(astToModify.source().getMacroCalls());
+      // astToModify = CelAbstractSyntaxTree.newParsedAst(astToModify, sourceToModify);
 
       // Retain the existing macro calls in case if the block identifiers are replacing a subtree
       // that contains a comprehension.
-      sourceToModify = astToModify.getSource();
+      // sourceToModify = astToModify.getSource();
     }
 
     if (iterCount >= cseOptions.iterationLimit()) {
@@ -200,13 +201,12 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     }
 
     if (!cseOptions.populateMacroCalls()) {
-      astToModify =
-          CelAbstractSyntaxTree.newParsedAst(astToModify.getExpr(), CelSource.newBuilder().build());
+      astToModify = MutableAst.of(astToModify.mutableExpr(), CelSource.newBuilder());
     }
 
     if (iterCount == 0) {
       // No modification has been made.
-      return OptimizationResult.create(astToModify);
+      return OptimizationResult.create(astToModify.toParsedAst());
     }
 
     ImmutableList.Builder<CelVarDecl> newVarDecls = ImmutableList.builder();
@@ -239,10 +239,10 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     astToModify = astMutator.renumberIdsConsecutively(astToModify);
 
     // Tag the AST with cel.block designated as an extension
-    astToModify = tagAstExtension(astToModify);
+    CelAbstractSyntaxTree optimizedAst = tagAstExtension(astToModify.toParsedAst());
 
     return OptimizationResult.create(
-        astToModify,
+        optimizedAst,
         newVarDecls.build(),
         ImmutableList.of(newCelBlockFunctionDecl(navigableAst.getAst().getResultType())));
   }
@@ -328,7 +328,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
    * is used as the new identifiers' types.
    */
   private static ImmutableList<CelVarDecl> newBlockIndexVariableDeclarations(
-      Cel cel, ImmutableList<CelVarDecl> mangledVarDecls, List<CelExpr> subexpressions) {
+      Cel cel, ImmutableList<CelVarDecl> mangledVarDecls, List<MutableExpr> subexpressions) {
     // The resulting type of the subexpressions will likely be different from the
     // entire expression's expected result type.
     CelBuilder celBuilder = cel.toCelBuilder().setResultType(SimpleType.DYN);
@@ -338,10 +338,10 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     ImmutableList.Builder<CelVarDecl> varDeclBuilder = ImmutableList.builder();
     for (int i = 0; i < subexpressions.size(); i++) {
-      CelExpr subexpression = subexpressions.get(i);
+      MutableExpr subexpression = subexpressions.get(i);
 
       CelAbstractSyntaxTree subAst =
-          CelAbstractSyntaxTree.newParsedAst(subexpression, CelSource.newBuilder().build());
+          CelAbstractSyntaxTree.newParsedAst(MutableExprConverter.fromMutableExpr(subexpression), CelSource.newBuilder().build());
 
       try {
         subAst = celBuilder.build().check(subAst).getAst();
@@ -358,19 +358,20 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   }
 
   private OptimizationResult optimizeUsingCelBind(CelNavigableAst navigableAst) {
-    CelAbstractSyntaxTree astToModify =
+    MutableAst astToModify =
         astMutator
             .mangleComprehensionIdentifierNames(
                 navigableAst.getAst(),
+                navigableAst.getRoot().mutableExpr(),
                 MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
                 MANGLED_COMPREHENSION_RESULT_PREFIX)
-            .ast();
-    CelSource sourceToModify = astToModify.getSource();
+            .mutableAst();
+    CelSource.Builder sourceToModify = astToModify.source();
 
     int bindIdentifierIndex = 0;
     int iterCount;
     for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
-      CelExpr cseCandidate = findCseCandidate(astToModify).map(CelNavigableExpr::expr).orElse(null);
+      MutableExpr cseCandidate = findCseCandidate(astToModify).map(CelNavigableExpr::mutableExpr).orElse(null);
       if (cseCandidate == null) {
         break;
       }
@@ -379,14 +380,14 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       bindIdentifierIndex++;
 
       // Using the CSE candidate, fetch all semantically equivalent subexpressions ahead of time.
-      ImmutableList<CelExpr> allCseCandidates =
+      ImmutableList<MutableExpr> allCseCandidates =
           getAllCseCandidatesStream(astToModify, cseCandidate).collect(toImmutableList());
 
       // Replace all CSE candidates with new bind identifier
-      for (CelExpr semanticallyEqualNode : allCseCandidates) {
+      for (MutableExpr semanticallyEqualNode : allCseCandidates) {
         iterCount++;
         // Refetch the candidate expr as mutating the AST could have renumbered its IDs.
-        CelExpr exprToReplace =
+        MutableExpr exprToReplace =
             getAllCseCandidatesStream(astToModify, semanticallyEqualNode)
                 .findAny()
                 .orElseThrow(
@@ -396,30 +397,26 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
         astToModify =
             astMutator.replaceSubtree(
-                astToModify,
-                CelExpr.newBuilder()
-                    .setIdent(CelIdent.newBuilder().setName(bindIdentifier).build())
-                    .build(),
-                exprToReplace.id());
+                astToModify.mutableExpr(),
+                MutableExpr.ofIdent(bindIdentifier),
+                exprToReplace.id(),
+                astToModify.source()
+                );
       }
 
       // Find LCA to insert the new cel.bind macro into.
       CelNavigableExpr lca = getLca(astToModify, bindIdentifier);
 
-      sourceToModify =
-          sourceToModify.toBuilder()
-              .addAllMacroCalls(astToModify.getSource().getMacroCalls())
-              .build();
-      astToModify = CelAbstractSyntaxTree.newParsedAst(astToModify.getExpr(), sourceToModify);
+      sourceToModify.addAllMacroCalls(astToModify.source().getMacroCalls());
 
       // Insert the new bind call
       astToModify =
           astMutator.replaceSubtreeWithNewBindMacro(
-              astToModify, bindIdentifier, cseCandidate, lca.expr(), lca.id());
+              astToModify.mutableExpr(), astToModify.source(), bindIdentifier, cseCandidate, lca.mutableExpr(), lca.id());
 
       // Retain the existing macro calls in case if the bind identifiers are replacing a subtree
       // that contains a comprehension.
-      sourceToModify = astToModify.getSource();
+      // sourceToModify = astToModify.getSource();
     }
 
     if (iterCount >= cseOptions.iterationLimit()) {
@@ -428,34 +425,34 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     if (!cseOptions.populateMacroCalls()) {
       astToModify =
-          CelAbstractSyntaxTree.newParsedAst(astToModify.getExpr(), CelSource.newBuilder().build());
+          MutableAst.of(astToModify.mutableExpr(), CelSource.newBuilder());
     }
 
     if (iterCount == 0) {
       // No modification has been made.
-      return OptimizationResult.create(astToModify);
+      return OptimizationResult.create(astToModify.toParsedAst());
     }
 
     astToModify = astMutator.renumberIdsConsecutively(astToModify);
 
-    return OptimizationResult.create(astToModify);
+    return OptimizationResult.create(astToModify.toParsedAst());
   }
 
-  private Stream<CelExpr> getAllCseCandidatesStream(
-      CelAbstractSyntaxTree ast, CelExpr cseCandidate) {
-    return CelNavigableAst.fromAst(ast)
+  private Stream<MutableExpr> getAllCseCandidatesStream(
+      MutableAst ast, MutableExpr cseCandidate) {
+    return CelNavigableAst.fromMutableAst(ast)
         .getRoot()
         .allNodes()
         .filter(this::canEliminate)
-        .map(CelNavigableExpr::expr)
+        .map(CelNavigableExpr::mutableExpr)
         .filter(expr -> areSemanticallyEqual(cseCandidate, expr));
   }
 
-  private static CelNavigableExpr getLca(CelAbstractSyntaxTree ast, String boundIdentifier) {
-    CelNavigableExpr root = CelNavigableAst.fromAst(ast).getRoot();
+  private static CelNavigableExpr getLca(MutableAst ast, String boundIdentifier) {
+    CelNavigableExpr root = CelNavigableAst.fromMutableAst(ast).getRoot();
     ImmutableList<CelNavigableExpr> allNodesWithIdentifier =
         root.allNodes()
-            .filter(node -> node.expr().identOrDefault().name().equals(boundIdentifier))
+            .filter(node -> node.getKind().equals(Kind.IDENT) && node.mutableExpr().ident().name().equals(boundIdentifier))
             .collect(toImmutableList());
 
     if (allNodesWithIdentifier.size() < 2) {
@@ -489,7 +486,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     return lca;
   }
 
-  private Optional<CelNavigableExpr> findCseCandidate(CelAbstractSyntaxTree ast) {
+  private Optional<CelNavigableExpr> findCseCandidate(MutableAst ast) {
     if (cseOptions.enableCelBlock() && cseOptions.subexpressionMaxRecursionDepth() > 0) {
       return findCseCandidateWithRecursionDepth(ast, cseOptions.subexpressionMaxRecursionDepth());
     } else {
@@ -504,15 +501,15 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
    * <p>TODO: Improve the extraction logic using a suffix tree.
    */
   private Optional<CelNavigableExpr> findCseCandidateWithRecursionDepth(
-      CelAbstractSyntaxTree ast, int recursionLimit) {
+      MutableAst ast, int recursionLimit) {
     Preconditions.checkArgument(recursionLimit > 0);
     ImmutableList<CelNavigableExpr> allNodes =
-        CelNavigableAst.fromAst(ast)
+        CelNavigableAst.fromMutableAst(ast)
             .getRoot()
             .allNodes(TraversalOrder.PRE_ORDER)
             .filter(this::canEliminate)
             .filter(node -> node.height() <= recursionLimit)
-            .filter(node -> !areSemanticallyEqual(ast.getExpr(), node.expr()))
+            .filter(node -> !areSemanticallyEqual(ast.mutableExpr(), node.mutableExpr()))
             .sorted(Comparator.comparingInt(CelNavigableExpr::height).reversed())
             .collect(toImmutableList());
 
@@ -529,7 +526,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     // the recursion limit, but only if it actually needs to be extracted due to exceeding the
     // recursion limit.
     boolean astHasMoreExtractableSubexprs =
-        CelNavigableAst.fromAst(ast)
+        CelNavigableAst.fromMutableAst(ast)
             .getRoot()
             .allNodes(TraversalOrder.POST_ORDER)
             .filter(node -> node.height() > recursionLimit)
@@ -559,9 +556,9 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     return Optional.empty();
   }
 
-  private Optional<CelNavigableExpr> findCseCandidateWithCommonSubexpr(CelAbstractSyntaxTree ast) {
+  private Optional<CelNavigableExpr> findCseCandidateWithCommonSubexpr(MutableAst ast) {
     ImmutableList<CelNavigableExpr> allNodes =
-        CelNavigableAst.fromAst(ast)
+        CelNavigableAst.fromMutableAst(ast)
             .getRoot()
             .allNodes(TraversalOrder.PRE_ORDER)
             .filter(this::canEliminate)
@@ -605,8 +602,9 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     return true;
   }
 
-  private boolean areSemanticallyEqual(CelExpr expr1, CelExpr expr2) {
-    return normalizeForEquality(expr1).equals(normalizeForEquality(expr2));
+  private boolean areSemanticallyEqual(MutableExpr expr1, MutableExpr expr2) {
+    // TODO: Custom compare?
+    return normalizeForEquality(MutableExprConverter.fromMutableExpr(expr1)).equals(normalizeForEquality(MutableExprConverter.fromMutableExpr(expr2)));
   }
 
   private boolean containsEliminableFunctionOnly(CelNavigableExpr navigableExpr) {
@@ -624,7 +622,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
   /**
    * Converts the {@link CelExpr} to make it suitable for performing semantically equals check in
-   * {@link #areSemanticallyEqual(CelExpr, CelExpr)}.
+   * {@link #areSemanticallyEqual(MutableExpr, MutableExpr)}.
    *
    * <p>Specifically, this will:
    *

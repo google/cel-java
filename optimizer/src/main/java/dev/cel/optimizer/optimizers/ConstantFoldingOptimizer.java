@@ -241,7 +241,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
     }
 
     return maybeAdaptEvaluatedResult(result)
-        .map(celExpr -> astMutator.replaceSubtree(mutableAst.mutableExpr(), celExpr, node.id(), mutableAst.sourceBuilder()));
+        .map(celExpr -> astMutator.replaceSubtree(mutableAst.mutableExpr(), celExpr, node.id(), mutableAst.source()));
   }
 
   private Optional<MutableExpr> maybeAdaptEvaluatedResult(Object result) {
@@ -293,7 +293,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
         // An empty optional value was encountered. Rewrite the tree with optional.none call.
         // This is to account for other optional functions returning an empty optional value
         // e.g: optional.ofNonZeroValue(0)
-        return Optional.of(astMutator.replaceSubtree(mutableAst.mutableExpr(), newOptionalNoneExpr(), expr.id(), mutableAst.sourceBuilder()));
+        return Optional.of(astMutator.replaceSubtree(mutableAst.mutableExpr(), newOptionalNoneExpr(), expr.id(), mutableAst.source()));
       }
     } else if (!expr.call().function().equals(Function.OPTIONAL_OF.getFunction())) {
       Object unwrappedResult = optResult.get();
@@ -309,7 +309,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
               MutableExpr.ofConstant(CelConstant.ofObjectValue(unwrappedResult))
           ));
 
-      return Optional.of(astMutator.replaceSubtree(mutableAst.mutableExpr(), newOptionalOfCall, expr.id(), mutableAst.sourceBuilder()));
+      return Optional.of(astMutator.replaceSubtree(mutableAst.mutableExpr(), newOptionalOfCall, expr.id(), mutableAst.source()));
     }
 
     return Optional.empty();
@@ -338,7 +338,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       }
       MutableExpr result = cond.constant().booleanValue() ? truthy : falsy;
 
-      return Optional.of(astMutator.replaceSubtree(mutableAst.mutableExpr(), result, expr.id(), mutableAst.sourceBuilder()));
+      return Optional.of(astMutator.replaceSubtree(mutableAst.mutableExpr(), result, expr.id(), mutableAst.source()));
     } else if (function.equals(Operator.IN.getFunction())) {
       MutableExpr callArg = call.args().get(1);
       if (!callArg.exprKind().equals(Kind.CREATE_LIST)) {
@@ -352,7 +352,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
                 mutableAst.mutableExpr(),
                 MutableExpr.ofConstant(CelConstant.ofValue(false)),
                 expr.id(),
-                mutableAst.sourceBuilder()
+                mutableAst.source()
             ));
       }
 
@@ -369,7 +369,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
                     mutableAst.mutableExpr(),
                     MutableExpr.ofConstant(CelConstant.ofValue(true)),
                     expr.id(),
-                    mutableAst.sourceBuilder()
+                    mutableAst.source()
                 )
             );
           }
@@ -402,16 +402,16 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
 
       if (arg.constant().booleanValue() == shortCircuit) {
         return Optional.of(astMutator.replaceSubtree(mutableAst.mutableExpr(), arg, expr.id(),
-            mutableAst.sourceBuilder()));
+            mutableAst.source()));
       }
     }
 
     ImmutableList<MutableExpr> newArgs = newArgsBuilder.build();
     if (newArgs.isEmpty()) {
-      return Optional.of(astMutator.replaceSubtree(mutableAst.mutableExpr(), call.args().get(0), expr.id(), mutableAst.sourceBuilder()));
+      return Optional.of(astMutator.replaceSubtree(mutableAst.mutableExpr(), call.args().get(0), expr.id(), mutableAst.source()));
     }
     if (newArgs.size() == 1) {
-      return Optional.of(astMutator.replaceSubtree(mutableAst.mutableExpr(), newArgs.get(0), expr.id(), mutableAst.sourceBuilder()));
+      return Optional.of(astMutator.replaceSubtree(mutableAst.mutableExpr(), newArgs.get(0), expr.id(), mutableAst.source()));
     }
 
     // TODO: Support folding variadic AND/ORs.
@@ -497,7 +497,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
             )
         ),
         expr.id(),
-        mutableAst.sourceBuilder()
+        mutableAst.source()
     );
   }
 
@@ -545,7 +545,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
               )
           ),
           expr.id(),
-          ast.sourceBuilder()
+          ast.source()
           );
     }
 
@@ -592,7 +592,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
               MutableCreateStruct.create(createStruct.messageName(), updatedEntryBuilder.build())
           ),
           expr.id(),
-          ast.sourceBuilder()
+          ast.source()
       );
     }
 

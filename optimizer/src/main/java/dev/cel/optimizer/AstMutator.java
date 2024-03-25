@@ -30,7 +30,6 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelSource;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
-import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelExprIdGeneratorFactory;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.ExprIdGenerator;
@@ -45,7 +44,6 @@ import dev.cel.common.ast.MutableExpr.MutableComprehension;
 import dev.cel.common.ast.MutableExpr.MutableCreateList;
 import dev.cel.common.ast.MutableExprConverter;
 import dev.cel.common.types.CelType;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -147,23 +145,22 @@ public final class AstMutator {
   }
 
   /** Wraps the given AST and its subexpressions with a new cel.@block call. */
-  public CelAbstractSyntaxTree wrapAstWithNewCelBlock(
-      String celBlockFunction, CelAbstractSyntaxTree ast, Collection<CelExpr> subexpressions) {
+  public MutableAst wrapAstWithNewCelBlock(
+      String celBlockFunction, MutableAst ast, List<MutableExpr> subexpressions) {
     long maxId = getMaxId(ast);
-    CelExpr blockExpr =
-        CelExpr.newBuilder()
-            .setId(++maxId)
-            .setCall(
-                CelCall.newBuilder()
-                    .setFunction(celBlockFunction)
-                    .addArgs(
-                        CelExpr.ofCreateListExpr(
-                            ++maxId, ImmutableList.copyOf(subexpressions), ImmutableList.of()),
-                        ast.getExpr())
-                    .build())
-            .build();
+    MutableExpr blockExpr =
+        MutableExpr.ofCall(
+            ++maxId,
+            MutableCall.create(
+                celBlockFunction,
+                MutableExpr.ofCreateList(
+                    ++maxId,
+                    MutableCreateList.create(subexpressions)
+                )
+            )
+        );
 
-    return CelAbstractSyntaxTree.newParsedAst(blockExpr, ast.getSource());
+    return MutableAst.of(blockExpr, ast.source());
   }
 
   /**
@@ -203,27 +200,6 @@ public final class AstMutator {
     return replaceSubtree(root, bindMacro.bindExpr(), exprIdToReplace, rootSource, celSource);
   }
 
-  /**
-   * Generates a new bind macro using the provided initialization and result expression, then
-   * replaces the subtree using the new bind expr at the designated expr ID.
-   *
-   * <p>The bind call takes the format of: {@code cel.bind(varInit, varName, resultExpr)}
-   *
-   * @param ast Original ast to mutate.
-   * @param varName New variable name for the bind macro call.
-   * @param varInit Initialization expression to bind to the local variable.
-   * @param resultExpr Result expression
-   * @param exprIdToReplace Expression ID of the subtree that is getting replaced.
-   */
-  public CelAbstractSyntaxTree replaceSubtreeWithNewBindMacro(
-      CelAbstractSyntaxTree ast,
-      String varName,
-      CelExpr varInit,
-      CelExpr resultExpr,
-      long exprIdToReplace) {
-    throw new UnsupportedOperationException("Unsupported combine!");
-  }
-
   /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */
   public CelAbstractSyntaxTree renumberIdsConsecutively(CelAbstractSyntaxTree ast) {
     throw new UnsupportedOperationException("Unsupported!");
@@ -236,11 +212,42 @@ public final class AstMutator {
             renumberExprIds(stableIdGenerator::renumberId, mutableAst.mutableExpr());
     CelSource.Builder newSource =
             normalizeMacroSource(
-                    mutableAst.sourceBuilder(), Integer.MIN_VALUE, mutableExpr, stableIdGenerator::renumberId);
+                    mutableAst.source(), Integer.MIN_VALUE, mutableExpr, stableIdGenerator::renumberId);
 
     return MutableAst.of(mutableExpr, newSource);
   }
 
+  /**
+   * Replaces all comprehension identifier names with a unique name based on the given prefix.
+   *
+   * <p>The purpose of this is to avoid errors that can be caused by shadowed variables while
+   * augmenting an AST. As an example: {@code [2, 3].exists(x, x - 1 > 3) || x - 1 > 3}. Note that
+   * the scoping of `x - 1` is different between th two LOGICAL_OR branches. Iteration variable `x`
+   * in `exists` will be mangled to {@code [2, 3].exists(@c0, @c0 - 1 > 3) || x - 1 > 3} to avoid
+   * erroneously extracting x - 1 as common subexpression.
+   *
+   * <p>The expression IDs are not modified when the identifier names are changed.
+   *
+   * <p>Mangling occurs only if the iteration variable is referenced within the loop step.
+   *
+   * <p>Iteration variables in comprehensions are numbered based on their comprehension nesting
+   * levels and the iteration variable's type. Examples:
+   *
+   * <ul>
+   *   <li>{@code [true].exists(i, i) && [true].exists(j, j)} -> {@code [true].exists(@c0:0, @c0:0)
+   *       && [true].exists(@c0:0, @c0:0)} // Note that i,j gets replaced to the same @c0:0 in this
+   *       example as they share the same nesting level and type.
+   *   <li>{@code [1].exists(i, i > 0) && [1u].exists(j, j > 0u)} -> {@code [1].exists(@c0:0, @c0:0
+   *       > 0) && [1u].exists(@c0:1, @c0:1 > 0u)}
+   *   <li>{@code [true].exists(i, i && [true].exists(j, j))} -> {@code [true].exists(@c0:0, @c0:0
+   *       && [true].exists(@c1:0, @c1:0))}
+   * </ul>
+   *
+   * @param ast AST to mutate
+   * @param newIterVarPrefix Prefix to use for new iteration variable identifier name. For example,
+   *     providing @c will produce @c0:0, @c0:1, @c1:0, @c2:0... as new names.
+   * @param newResultPrefix Prefix to use for new comprehensin result identifier names.
+   */
   public MangledComprehensionAst mangleComprehensionIdentifierNames(
       CelAbstractSyntaxTree ast, MutableExpr mutableExpr, String newIterVarPrefix, String newResultPrefix) {
     CelNavigableExpr newNavigableExpr = CelNavigableExpr.fromMutableExpr(mutableExpr);
@@ -370,50 +377,9 @@ public final class AstMutator {
       throw new IllegalStateException("Max iteration count reached.");
     }
 
-    CelAbstractSyntaxTree newAst =
-        MutableAst.of(mutatedComprehensionExpr,newSource).toParsedAst();
-        // CelNavigableAst.fromAst(;
-        //     CelAbstractSyntaxTree.newParsedAst(mutatedComprehensionExpr, newSource));
-
     // TODO
     return MangledComprehensionAst.of(
-        newAst, ImmutableMap.copyOf(mangledIdentNamesToType));
-  }
-
-  /**
-   * Replaces all comprehension identifier names with a unique name based on the given prefix.
-   *
-   * <p>The purpose of this is to avoid errors that can be caused by shadowed variables while
-   * augmenting an AST. As an example: {@code [2, 3].exists(x, x - 1 > 3) || x - 1 > 3}. Note that
-   * the scoping of `x - 1` is different between th two LOGICAL_OR branches. Iteration variable `x`
-   * in `exists` will be mangled to {@code [2, 3].exists(@c0, @c0 - 1 > 3) || x - 1 > 3} to avoid
-   * erroneously extracting x - 1 as common subexpression.
-   *
-   * <p>The expression IDs are not modified when the identifier names are changed.
-   *
-   * <p>Mangling occurs only if the iteration variable is referenced within the loop step.
-   *
-   * <p>Iteration variables in comprehensions are numbered based on their comprehension nesting
-   * levels and the iteration variable's type. Examples:
-   *
-   * <ul>
-   *   <li>{@code [true].exists(i, i) && [true].exists(j, j)} -> {@code [true].exists(@c0:0, @c0:0)
-   *       && [true].exists(@c0:0, @c0:0)} // Note that i,j gets replaced to the same @c0:0 in this
-   *       example as they share the same nesting level and type.
-   *   <li>{@code [1].exists(i, i > 0) && [1u].exists(j, j > 0u)} -> {@code [1].exists(@c0:0, @c0:0
-   *       > 0) && [1u].exists(@c0:1, @c0:1 > 0u)}
-   *   <li>{@code [true].exists(i, i && [true].exists(j, j))} -> {@code [true].exists(@c0:0, @c0:0
-   *       && [true].exists(@c1:0, @c1:0))}
-   * </ul>
-   *
-   * @param ast AST to mutate
-   * @param newIterVarPrefix Prefix to use for new iteration variable identifier name. For example,
-   *     providing @c will produce @c0:0, @c0:1, @c1:0, @c2:0... as new names.
-   * @param newResultPrefix Prefix to use for new comprehensin result identifier names.
-   */
-  public MangledComprehensionAst mangleComprehensionIdentifierNames(
-      CelAbstractSyntaxTree ast, String newIterVarPrefix, String newResultPrefix) {
-    throw new UnsupportedOperationException("Unsupported!");
+        MutableAst.of(mutatedComprehensionExpr,newSource), ImmutableMap.copyOf(mangledIdentNamesToType));
   }
 
   /**
@@ -501,7 +467,7 @@ public final class AstMutator {
     MutableAst stablizedAst = stabilizeAst(newExpr, newSource, maxId);
     long stablizedNewExprRootId = newExpr.id();
     newExpr = stablizedAst.mutableExpr();
-    newSource = stablizedAst.sourceBuilder();
+    newSource = stablizedAst.source();
 
     // Mutate the AST root with the new subtree. All the existing expr IDs are renumbered in the
     // process, but its original IDs are memoized so that we can normalize the expr IDs
@@ -958,7 +924,7 @@ public final class AstMutator {
 
   private static long getMaxId(MutableAst mutableAst) {
     long maxId = getMaxId(mutableAst.mutableExpr());
-    for (Entry<Long, CelExpr> macroCall : mutableAst.sourceBuilder().getMacroCalls().entrySet()) {
+    for (Entry<Long, CelExpr> macroCall : mutableAst.source().getMacroCalls().entrySet()) {
       maxId = max(maxId, getMaxId(macroCall.getValue()));
     }
 
@@ -995,14 +961,14 @@ public final class AstMutator {
   public abstract static class MangledComprehensionAst {
 
     /** AST after the iteration variables have been mangled. */
-    public abstract CelAbstractSyntaxTree ast();
+    public abstract MutableAst mutableAst();
 
     /** Map containing the mangled identifier names to their types. */
     public abstract ImmutableMap<MangledComprehensionName, MangledComprehensionType>
         mangledComprehensionMap();
 
     private static MangledComprehensionAst of(
-        CelAbstractSyntaxTree ast,
+        MutableAst ast,
         ImmutableMap<MangledComprehensionName, MangledComprehensionType> mangledComprehensionMap) {
       return new AutoValue_AstMutator_MangledComprehensionAst(ast, mangledComprehensionMap);
     }

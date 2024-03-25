@@ -28,15 +28,14 @@ public final class CelNavigableAst {
 
   private CelNavigableAst(CelAbstractSyntaxTree ast) {
     this.ast = ast;
-    this.mutableAst = MutableAst.fromCelAst()
+    this.mutableAst = MutableAst.fromCelAst(ast);
     this.root = CelNavigableExpr.fromExpr(ast.getExpr());
   }
 
   private CelNavigableAst(MutableAst mutableAst) {
     this.ast = mutableAst.toParsedAst();
     this.mutableAst = mutableAst;
-    this.root =
-            CelNavigableExpr.fromMutableExpr(mutableAst.mutableExpr());
+    this.root = CelNavigableExpr.fromMutableExpr(mutableAst.mutableExpr());
   }
 
   /** Constructs a new instance of {@link CelNavigableAst} from {@link CelAbstractSyntaxTree}. */
@@ -56,5 +55,9 @@ public final class CelNavigableAst {
   /** Returns the underlying {@link CelAbstractSyntaxTree}. */
   public CelAbstractSyntaxTree getAst() {
     return ast;
+  }
+
+  public MutableAst getMutableAst() {
+    return mutableAst;
   }
 }

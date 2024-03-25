@@ -5,18 +5,18 @@ import dev.cel.common.CelSource;
 
 public final class MutableAst {
     private final MutableExpr mutatedExpr;
-    private final CelSource.Builder sourceBuilder;
+    private final CelSource.Builder source;
 
     public MutableExpr mutableExpr() {
       return mutatedExpr;
     }
 
-    public CelSource.Builder sourceBuilder() {
-      return sourceBuilder;
+    public CelSource.Builder source() {
+      return source;
     }
 
     public CelAbstractSyntaxTree toParsedAst() {
-      return CelAbstractSyntaxTree.newParsedAst(MutableExprConverter.fromMutableExpr(mutatedExpr), sourceBuilder.build());
+      return CelAbstractSyntaxTree.newParsedAst(MutableExprConverter.fromMutableExpr(mutatedExpr), source.build());
     }
 
     public static MutableAst fromCelAst(CelAbstractSyntaxTree ast) {
@@ -27,8 +27,8 @@ public final class MutableAst {
       return new MutableAst(mutableExpr, sourceBuilder);
     }
 
-    private MutableAst(MutableExpr mutatedExpr, CelSource.Builder sourceBuilder) {
+    private MutableAst(MutableExpr mutatedExpr, CelSource.Builder source) {
       this.mutatedExpr = mutatedExpr;
-      this.sourceBuilder = sourceBuilder;
+      this.source = source;
     }
   }
