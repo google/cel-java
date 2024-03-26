@@ -54,8 +54,11 @@ public final class RuntimeEquality {
       return true;
     }
     if (value instanceof Number) {
-      // Ensure that list elements are properly unwrapped and compared for equality.
-      return list.stream().anyMatch(elem -> objectEquals(elem, value, celOptions));
+      for (A elem : list) {
+        if (objectEquals(elem, value, celOptions)) {
+          return true;
+        }
+      }
     }
     return false;
   }
