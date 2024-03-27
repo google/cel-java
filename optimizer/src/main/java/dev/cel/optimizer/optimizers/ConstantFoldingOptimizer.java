@@ -510,7 +510,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       Kind keyKind = key.exprKind();
       MutableExpr value = entry.value();
       Kind valueKind = value.exprKind();
-      if (!entry.isOptionalEntry()
+      if (!entry.optionalEntry()
           || !keyKind.equals(Kind.CONSTANT)
           || !valueKind.equals(Kind.CALL)) {
         updatedEntryBuilder.add(entry);
@@ -560,7 +560,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
     for (MutableCreateStruct.Entry entry : createStruct.entries()) {
       MutableExpr value = entry.value();
       Kind valueKind = value.exprKind();
-      if (!entry.isOptionalEntry() || !valueKind.equals(Kind.CALL)) {
+      if (!entry.optionalEntry() || !valueKind.equals(Kind.CALL)) {
         // Preserve the entry as is
         updatedEntryBuilder.add(entry);
         continue;

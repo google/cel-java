@@ -412,8 +412,7 @@ public final class MutableExpr {
       return entries;
     }
 
-    public void setEntries(
-        List<Entry> entries) {
+    public void setEntries(List<Entry> entries) {
       this.entries = entries;
     }
 
@@ -453,7 +452,7 @@ public final class MutableExpr {
         this.value = value;
       }
 
-      public boolean isOptionalEntry() {
+      public boolean optionalEntry() {
         return optionalEntry;
       }
 
@@ -469,12 +468,65 @@ public final class MutableExpr {
         return new Entry(id, fieldKey, value, optionalEntry);
       }
 
+
+      @Override
+      public boolean equals(Object obj) {
+        if (obj == this) {
+          return true;
+        }
+        if (obj instanceof Entry) {
+          Entry that = (Entry) obj;
+          return this.id == that.id()
+              && this.fieldKey.equals(that.fieldKey())
+              && this.value.equals(that.value())
+              && this.optionalEntry == that.optionalEntry();
+        }
+        return false;
+      }
+
+      @Override
+      public int hashCode() {
+        int h = 1;
+        h *= 1000003;
+        h ^= (int) ((id >>> 32) ^ id);
+        h *= 1000003;
+        h ^= fieldKey.hashCode();
+        h *= 1000003;
+        h ^= value.hashCode();
+        h *= 1000003;
+        h ^= optionalEntry ? 1231 : 1237;
+        return h;
+      }
+
       private Entry(long id, String fieldKey, MutableExpr value, boolean optionalEntry) {
         this.id = id;
         this.fieldKey = fieldKey;
         this.value = value;
         this.optionalEntry = optionalEntry;
       }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      }
+      if (obj instanceof MutableCreateStruct) {
+        MutableCreateStruct that = (MutableCreateStruct) obj;
+        return this.messageName.equals(that.messageName())
+            && this.entries.equals(that.entries());
+      }
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      int h = 1;
+      h *= 1000003;
+      h ^= messageName.hashCode();
+      h *= 1000003;
+      h ^= entries.hashCode();
+      return h;
     }
 
     public static MutableCreateStruct create(String messageName, List<MutableCreateStruct.Entry> entries) {
@@ -534,12 +586,41 @@ public final class MutableExpr {
         this.value = value;
       }
 
-      public boolean isOptionalEntry() {
+      public boolean optionalEntry() {
         return optionalEntry;
       }
 
       public void setOptionalEntry(boolean optionalEntry) {
         this.optionalEntry = optionalEntry;
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+        if (obj == this) {
+          return true;
+        }
+        if (obj instanceof Entry) {
+          Entry that = (Entry) obj;
+          return this.id == that.id()
+              && this.key.equals(that.key())
+              && this.value.equals(that.value())
+              && this.optionalEntry == that.optionalEntry();
+        }
+        return false;
+      }
+
+      @Override
+      public int hashCode() {
+        int h = 1;
+        h *= 1000003;
+        h ^= (int) ((id >>> 32) ^ id);
+        h *= 1000003;
+        h ^= key.hashCode();
+        h *= 1000003;
+        h ^= value.hashCode();
+        h *= 1000003;
+        h ^= optionalEntry ? 1231 : 1237;
+        return h;
       }
 
       public static Entry create(MutableExpr key, MutableExpr value) {
@@ -560,6 +641,26 @@ public final class MutableExpr {
         this.value = value;
         this.optionalEntry = optionalEntry;
       }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      }
+      if (obj instanceof MutableCreateMap) {
+        MutableCreateMap that = (MutableCreateMap) obj;
+        return this.entries.equals(that.entries());
+      }
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      int h = 1;
+      h *= 1000003;
+      h ^= entries.hashCode();
+      return h;
     }
 
     public static MutableCreateMap create(List<MutableCreateMap.Entry> entries) {
@@ -663,6 +764,43 @@ public final class MutableExpr {
       this.result = result;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      }
+      if (obj instanceof MutableComprehension) {
+        MutableComprehension that = (MutableComprehension) obj;
+        return this.iterVar.equals(that.iterVar())
+            && this.iterRange.equals(that.iterRange())
+            && this.accuVar.equals(that.accuVar())
+            && this.accuInit.equals(that.accuInit())
+            && this.loopCondition.equals(that.loopCondition())
+            && this.loopStep.equals(that.loopStep())
+            && this.result.equals(that.result());
+      }
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      int h = 1;
+      h *= 1000003;
+      h ^= iterVar.hashCode();
+      h *= 1000003;
+      h ^= iterRange.hashCode();
+      h *= 1000003;
+      h ^= accuVar.hashCode();
+      h *= 1000003;
+      h ^= accuInit.hashCode();
+      h *= 1000003;
+      h ^= loopCondition.hashCode();
+      h *= 1000003;
+      h ^= loopStep.hashCode();
+      h *= 1000003;
+      h ^= result.hashCode();
+      return h;
+    }
 
     public static MutableComprehension create(String iterVar, MutableExpr iterRange, String accuVar,
         MutableExpr accuInit, MutableExpr loopCondition, MutableExpr loopStep, MutableExpr result) {

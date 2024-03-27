@@ -182,7 +182,7 @@ public final class MutableExprConverter {
                       mutableStructEntry.id(),
                       mutableStructEntry.fieldKey(),
                       fromMutableExpr(mutableStructEntry.value()),
-                      mutableStructEntry.isOptionalEntry()));
+                      mutableStructEntry.optionalEntry()));
     }
 
     return CelCreateStruct.newBuilder().setMessageName(mutableCreateStruct.messageName()).addEntries(entries).build();
@@ -196,7 +196,7 @@ public final class MutableExprConverter {
                       mutableMapEntry.id(),
                       fromMutableExpr(mutableMapEntry.key()),
                       fromMutableExpr(mutableMapEntry.value()),
-                      mutableMapEntry.isOptionalEntry())
+                      mutableMapEntry.optionalEntry())
       );
     }
 
