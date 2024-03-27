@@ -41,12 +41,15 @@ import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.MutableAst;
 import dev.cel.common.ast.MutableExpr;
+import dev.cel.common.ast.MutableExpr.MutableIdent;
+import dev.cel.common.ast.MutableExpr.MutableSelect;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.extensions.CelExtensions;
+import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.optimizer.CelOptimizer;
@@ -60,6 +63,7 @@ import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeFactory;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
@@ -189,8 +193,8 @@ public class SubexpressionOptimizerTest {
 
   @Test
   public void smokeTest() throws Exception {
-    String source = "[1].map(i, [1])";
-    // String source = "[1].map(i, [1].map(i, [1]))";
+    // String source = "[1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]";
+    String source = "(has(msg.oneof_type.payload.single_int64) ? msg.oneof_type.payload.single_int64 : msg.oneof_type.payload.single_int64 * 0) == 10";
     CelAbstractSyntaxTree ast = CEL.compile(source).getAst();
 
     CelAbstractSyntaxTree optimizedAst =
@@ -198,11 +202,12 @@ public class SubexpressionOptimizerTest {
             SubexpressionOptimizerOptions.newBuilder()
                 .populateMacroCalls(true)
                 .enableCelBlock(true)
+                // .subexpressionMaxRecursionDepth(1)
                 .build())
             .optimize(ast);
 
     assertThat(CEL_UNPARSER.unparse(optimizedAst))
-        .isEqualTo("cel.@block([[1]], @index0.map(@c0:0, @index0))");
+        .isEqualTo("cel.@block([msg.oneof_type.payload, @index0.single_int64], (has(@index0.single_int64) ? @index1 : (@index1 * 0)) == 10)");
   }
 
   @Test

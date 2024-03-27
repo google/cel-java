@@ -793,24 +793,23 @@ public final class AstMutator {
                macroCall.setValue(MutableExprConverter.fromMutableExpr(mutatedNode));
              });
 
-     // // Prune any NOT_SET (comprehension) nodes that no longer exist in the main AST
-     // // This can occur from pulling out a nested comprehension into a separate cel.block index
-     // CelNavigableExpr.fromExpr(macroCallExpr)
-     //     .allNodes()
-     //     .filter(node -> node.getKind().equals(Kind.NOT_SET))
-     //     .map(CelNavigableExpr::id)
-     //     .filter(id -> !allExprs.containsKey(id))
-     //     .forEach(
-     //         id -> {
-     //           ImmutableList<CelExpr> newCallArgs =
-     //               macroCallExpr.call().args().stream()
-     //                   .filter(node -> node.id() != id)
-     //                   .collect(toImmutableList());
-     //           CelCall.Builder call =
-     //               macroCallExpr.call().toBuilder().clearArgs().addArgs(newCallArgs);
-     //
-     //           macroCall.setValue(macroCallExpr.toBuilder().setCall(call.build()).build());
-     //         });
+     // Prune any NOT_SET (comprehension) nodes that no longer exist in the main AST
+     // This can occur from pulling out a nested comprehension into a separate cel.block index
+     CelNavigableExpr.fromMutableExpr(macroCallExpr)
+         .allNodes()
+         .filter(node -> node.getKind().equals(Kind.NOT_SET))
+         .map(CelNavigableExpr::id)
+         .filter(id -> !allExprs.containsKey(id))
+         .forEach(
+             id -> {
+               ImmutableList<MutableExpr> newCallArgs =
+                   macroCallExpr.call().args().stream()
+                       .filter(node -> node.id() != id)
+                       .collect(toImmutableList());
+               MutableCall call = macroCallExpr.call();
+               call.clearArgs();
+               call.addArgs(newCallArgs);
+             });
    }
 
     return sourceBuilder;

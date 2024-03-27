@@ -200,12 +200,38 @@ public final class MutableExpr {
       this.field = field;
     }
 
-    public boolean isTestOnly() {
+    public boolean testOnly() {
       return testOnly;
     }
 
     public void setTestOnly(boolean testOnly) {
       this.testOnly = testOnly;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      }
+      if (obj instanceof MutableSelect) {
+        MutableSelect that = (MutableSelect) obj;
+        return this.operand.equals(that.operand())
+            && this.field.equals(that.field())
+            && this.testOnly == that.testOnly();
+      }
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      int h = 1;
+      h *= 1000003;
+      h ^= operand.hashCode();
+      h *= 1000003;
+      h ^= field.hashCode();
+      h *= 1000003;
+      h ^= testOnly ? 1231 : 1237;
+      return h;
     }
 
     public static MutableSelect create(MutableExpr operand, String field) {

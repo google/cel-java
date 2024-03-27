@@ -129,7 +129,7 @@ public final class MutableExprConverter {
       case SELECT:
         MutableSelect select = mutableExpr.select();
         CelExpr operand = fromMutableExpr(select.operand());
-        return CelExpr.ofSelectExpr(id, operand, select.field(), select.isTestOnly());
+        return CelExpr.ofSelectExpr(id, operand, select.field(), select.testOnly());
       case CALL:
         MutableCall mutableCall = mutableExpr.call();
         ImmutableList<CelExpr> args = mutableCall.args().stream()

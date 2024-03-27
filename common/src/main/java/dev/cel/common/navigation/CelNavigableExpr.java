@@ -75,22 +75,22 @@ public abstract class CelNavigableExpr {
 
   /** Constructs a new instance of {@link CelNavigableExpr} from {@link CelExpr}. */
   public static CelNavigableExpr fromExpr(CelExpr expr) {
-    ExprHeightCalculator exprHeightCalculator = new ExprHeightCalculator(expr);
+    // ExprHeightCalculator exprHeightCalculator = new ExprHeightCalculator(expr);
 
     return CelNavigableExpr.builder()
         .setExpr(expr)
-        .setHeight(exprHeightCalculator.getHeight(expr.id()))
+        // .setHeight(exprHeightCalculator.getHeight(expr.id()))
         .build();
   }
 
 
   /** Constructs a new instance of {@link CelNavigableExpr} from {@link CelExpr}. */
   public static CelNavigableExpr fromMutableExpr(MutableExpr expr) {
-    // ExprHeightCalculator exprHeightCalculator = new ExprHeightCalculator(expr);
+    ExprHeightCalculator exprHeightCalculator = new ExprHeightCalculator(expr);
 
     return CelNavigableExpr.builder()
         .setMutableExpr(expr)
-        // .setHeight(exprHeightCalculator.getHeight(expr.id()))
+        .setHeight(exprHeightCalculator.getHeight(expr.id()))
         .build();
   }
 

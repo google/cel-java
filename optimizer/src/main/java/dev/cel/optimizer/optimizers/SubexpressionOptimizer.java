@@ -189,11 +189,12 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
                 );
       }
 
-      sourceToModify.addAllMacroCalls(astToModify.source().getMacroCalls());
-      // astToModify = CelAbstractSyntaxTree.newParsedAst(astToModify, sourceToModify);
-
       // Retain the existing macro calls in case if the block identifiers are replacing a subtree
       // that contains a comprehension.
+      sourceToModify.addAllMacroCalls(astToModify.source().getMacroCalls());
+      astToModify = MutableAst.of(astToModify.mutableExpr(), sourceToModify);
+      // astToModify = CelAbstractSyntaxTree.newParsedAst(astToModify, sourceToModify);
+
       // sourceToModify = astToModify.getSource();
     }
 
@@ -502,6 +503,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
    */
   private Optional<CelNavigableExpr> findCseCandidateWithRecursionDepth(
       MutableAst ast, int recursionLimit) {
+    // TODO: Accept a navigable ast with mutable ast (no need to refetch for their heights)
     Preconditions.checkArgument(recursionLimit > 0);
     ImmutableList<CelNavigableExpr> allNodes =
         CelNavigableAst.fromMutableAst(ast)
@@ -545,12 +547,12 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     HashSet<MutableExpr> encounteredNodes = new HashSet<>();
     for (CelNavigableExpr node : allNodes) {
       // Normalize the expr to test semantic equivalence.
-      MutableExpr celExpr = normalizeForEquality(node.mutableExpr());
-      if (encounteredNodes.contains(celExpr)) {
+      MutableExpr mutableExpr = normalizeForEquality(node.mutableExpr());
+      if (encounteredNodes.contains(mutableExpr)) {
         return Optional.of(node);
       }
 
-      encounteredNodes.add(celExpr);
+      encounteredNodes.add(mutableExpr);
     }
 
     return Optional.empty();
@@ -570,8 +572,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   private boolean canEliminate(CelNavigableExpr navigableExpr) {
     return !navigableExpr.getKind().equals(Kind.CONSTANT)
         && !navigableExpr.getKind().equals(Kind.IDENT)
-        && !navigableExpr.expr().identOrDefault().name().startsWith(BIND_IDENTIFIER_PREFIX)
-        && !navigableExpr.expr().selectOrDefault().testOnly()
+        && !(navigableExpr.getKind().equals(Kind.IDENT) && navigableExpr.mutableExpr().ident().name().startsWith(BIND_IDENTIFIER_PREFIX))
+        && !(navigableExpr.getKind().equals(Kind.SELECT) && navigableExpr.mutableExpr().select().testOnly())
         && containsEliminableFunctionOnly(navigableExpr)
         && isWithinInlineableComprehension(navigableExpr);
   }
@@ -642,7 +644,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
           CelNavigableExpr.fromMutableExpr(copiedExpr)
               .allNodes()
               .map(CelNavigableExpr::mutableExpr)
-              .filter(expr -> expr.exprKind().equals(Kind.SELECT) && expr.select().isTestOnly())
+              .filter(expr -> expr.exprKind().equals(Kind.SELECT) && expr.select().testOnly())
               .findAny()
               .orElse(null);
       if (presenceTestExpr == null) {

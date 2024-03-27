@@ -95,7 +95,7 @@ final class CelNavigableExprVisitor {
    */
   static Stream<CelNavigableExpr> collect(
       CelNavigableExpr navigableExpr, int maxDepth, TraversalOrder traversalOrder) {
-    ExprHeightCalculator exprHeightCalculator = new ExprHeightCalculator(navigableExpr.expr());
+    ExprHeightCalculator exprHeightCalculator = new ExprHeightCalculator(navigableExpr.mutableExpr());
     CelNavigableExprVisitor visitor =
         new CelNavigableExprVisitor(maxDepth, exprHeightCalculator, traversalOrder);
 
@@ -285,7 +285,7 @@ final class CelNavigableExprVisitor {
             CelNavigableExpr.builder()
                     .setMutableExpr(expr)
                     .setDepth(parent.depth() + 1)
-//                    .setHeight(exprHeightCalculator.getHeight(expr.id()))
+                   .setHeight(exprHeightCalculator.getHeight(expr.id()))
                     .setParent(parent);
 
     return navigableExpr.build();
@@ -296,7 +296,7 @@ final class CelNavigableExprVisitor {
         CelNavigableExpr.builder()
             .setExpr(expr)
             .setDepth(parent.depth() + 1)
-//            .setHeight(exprHeightCalculator.getHeight(expr.id()))
+           // .setHeight(exprHeightCalculator.getHeight(expr.id()))
             .setParent(parent);
 
     return navigableExpr.build();

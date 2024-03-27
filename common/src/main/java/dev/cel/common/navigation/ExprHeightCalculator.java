@@ -16,15 +16,15 @@ package dev.cel.common.navigation;
 
 import static java.lang.Math.max;
 
-import com.google.common.collect.ImmutableList;
-import dev.cel.common.ast.CelExpr;
-import dev.cel.common.ast.CelExpr.CelCall;
-import dev.cel.common.ast.CelExpr.CelComprehension;
-import dev.cel.common.ast.CelExpr.CelCreateList;
-import dev.cel.common.ast.CelExpr.CelCreateMap;
-import dev.cel.common.ast.CelExpr.CelCreateStruct;
-import dev.cel.common.ast.CelExpr.CelSelect;
+import dev.cel.common.ast.MutableExpr;
+import dev.cel.common.ast.MutableExpr.MutableCall;
+import dev.cel.common.ast.MutableExpr.MutableComprehension;
+import dev.cel.common.ast.MutableExpr.MutableCreateList;
+import dev.cel.common.ast.MutableExpr.MutableCreateMap;
+import dev.cel.common.ast.MutableExpr.MutableCreateStruct;
+import dev.cel.common.ast.MutableExpr.MutableSelect;
 import java.util.HashMap;
+import java.util.List;
 
 /** Package-private class to assist computing the height of expression nodes. */
 final class ExprHeightCalculator {
@@ -32,7 +32,7 @@ final class ExprHeightCalculator {
   // instantiated faster.
   private final HashMap<Long, Integer> idToHeight;
 
-  ExprHeightCalculator(CelExpr celExpr) {
+  ExprHeightCalculator(MutableExpr celExpr) {
     this.idToHeight = new HashMap<>();
     visit(celExpr);
   }
@@ -45,9 +45,9 @@ final class ExprHeightCalculator {
     return idToHeight.get(exprId);
   }
 
-  private int visit(CelExpr celExpr) {
+  private int visit(MutableExpr celExpr) {
     int height = 1;
-    switch (celExpr.exprKind().getKind()) {
+    switch (celExpr.exprKind()) {
       case CALL:
         height += visit(celExpr.call());
         break;
@@ -76,7 +76,7 @@ final class ExprHeightCalculator {
     return height;
   }
 
-  private int visit(CelCall call) {
+  private int visit(MutableCall call) {
     int targetHeight = 0;
     if (call.target().isPresent()) {
       targetHeight = visit(call.target().get());
@@ -86,15 +86,15 @@ final class ExprHeightCalculator {
     return max(targetHeight, argumentHeight);
   }
 
-  private int visit(CelCreateList createList) {
+  private int visit(MutableCreateList createList) {
     return visitExprList(createList.elements());
   }
 
-  private int visit(CelSelect selectExpr) {
+  private int visit(MutableSelect selectExpr) {
     return visit(selectExpr.operand());
   }
 
-  private int visit(CelComprehension comprehension) {
+  private int visit(MutableComprehension comprehension) {
     int maxHeight = 0;
     maxHeight = max(visit(comprehension.iterRange()), maxHeight);
     maxHeight = max(visit(comprehension.accuInit()), maxHeight);
@@ -105,26 +105,26 @@ final class ExprHeightCalculator {
     return maxHeight;
   }
 
-  private int visitStruct(CelCreateStruct struct) {
+  private int visitStruct(MutableCreateStruct struct) {
     int maxHeight = 0;
-    for (CelCreateStruct.Entry entry : struct.entries()) {
+    for (MutableCreateStruct.Entry entry : struct.entries()) {
       maxHeight = max(visit(entry.value()), maxHeight);
     }
     return maxHeight;
   }
 
-  private int visitMap(CelCreateMap map) {
+  private int visitMap(MutableCreateMap map) {
     int maxHeight = 0;
-    for (CelCreateMap.Entry entry : map.entries()) {
+    for (MutableCreateMap.Entry entry : map.entries()) {
       maxHeight = max(visit(entry.key()), maxHeight);
       maxHeight = max(visit(entry.value()), maxHeight);
     }
     return maxHeight;
   }
 
-  private int visitExprList(ImmutableList<CelExpr> createListExpr) {
+  private int visitExprList(List<MutableExpr> createListExpr) {
     int maxHeight = 0;
-    for (CelExpr expr : createListExpr) {
+    for (MutableExpr expr : createListExpr) {
       maxHeight = max(visit(expr), maxHeight);
     }
     return maxHeight;
