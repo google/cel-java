@@ -188,11 +188,9 @@ public final class AstMutator {
     root = null;
     rootSource = null;
     // Copy the incoming expressions to prevent modifying the root
-    // varInit = varInit.deepCopy();
-    // resultExpr = resultExpr.deepCopy();
-    long maxId = max(getMaxId(varInit.deepCopy()), getMaxId(rootAst));
+    long maxId = max(getMaxId(varInit), getMaxId(rootAst));
     StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(maxId);
-    BindMacro bindMacro = newBindMacro(varName, varInit.deepCopy(), resultExpr.deepCopy(), stableIdGenerator);
+    BindMacro bindMacro = newBindMacro(varName, varInit, resultExpr.deepCopy(), stableIdGenerator);
     // In situations where the existing AST already contains a macro call (ex: nested cel.binds),
     // its macro source must be normalized to make it consistent with the newly generated bind
     // macro.
@@ -753,9 +751,8 @@ public final class AstMutator {
 
       MutableExpr existingMacroCallExpr = MutableExprConverter.fromCelExpr(existingMacroCall.getValue());
       MutableExpr newMacroCallExpr =
-          renumberExprIds(idGenerator, existingMacroCallExpr.deepCopy());
+          renumberExprIds(idGenerator, existingMacroCallExpr);
 
-//      CelNavigableExpr callNav = CelNavigableExpr.fromExpr(newMacroCallExpr.build());
       CelNavigableExpr callNav = CelNavigableExpr.fromMutableExpr(newMacroCallExpr);
       ImmutableList<MutableExpr> callDescendants =
           callNav.descendants().map(CelNavigableExpr::mutableExpr).collect(toImmutableList());

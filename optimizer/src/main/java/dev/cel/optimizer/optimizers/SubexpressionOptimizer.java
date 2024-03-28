@@ -451,7 +451,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         .allNodes()
         .filter(this::canEliminate)
         .map(CelNavigableExpr::mutableExpr)
-        .map(MutableExpr::deepCopy)
         .filter(expr -> areSemanticallyEqual(cseCandidate, expr));
   }
 

@@ -193,27 +193,6 @@ public class SubexpressionOptimizerTest {
   }
 
   @Test
-  public void smokeTest() throws Exception {
-    String source = "[10, ?optional.none(), [?optional.none(), ?opt_x], [?optional.none(), ?opt_x]] == [10, [5], [5]]";
-    // String source = "[1].exists(i, i > 0) && [1].exists(j, j > 0) && [1].exists(k, k > 1) && [2].exists(l, l > 1)";
-    CelAbstractSyntaxTree ast = CEL.compile(source).getAst();
-
-    CelOptimizer optimizer = CelOptimizerFactory.standardCelOptimizerBuilder(CEL)
-        .addAstOptimizers(
-            ConstantFoldingOptimizer.getInstance())
-            // SubexpressionOptimizer.newInstance(SubexpressionOptimizerOptions.newBuilder()
-            //     .populateMacroCalls(true)
-            //     .enableCelBlock(false)
-            //     // .subexpressionMaxRecursionDepth(3)
-            //     .build()))
-        .build();
-    CelAbstractSyntaxTree optimizedAst = optimizer.optimize(ast);
-
-    assertThat(CEL_UNPARSER.unparse(optimizedAst))
-        .isEqualTo("cel.bind(@r0, optional.none(), [10, ?@r0, [?opt_x], [?@r0, ?opt_x]]) == cel.bind(@r1, [5], [10, @r1, @r1])");
-  }
-
-  @Test
   public void cse_withCelBlock_noop(@TestParameter CseNoOpTestCase testCase) throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile(testCase.source).getAst();
 
