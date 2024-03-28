@@ -14,12 +14,7 @@
 
 package dev.cel.optimizer;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
-import static java.lang.Math.max;
-
 import com.google.auto.value.AutoValue;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
@@ -33,7 +28,6 @@ import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelExprIdGeneratorFactory;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.ExprIdGenerator;
-import dev.cel.common.ast.CelExprIdGeneratorFactory.MonotonicIdGenerator;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.StableIdGenerator;
 import dev.cel.common.ast.MutableAst;
 import dev.cel.common.ast.MutableExpr;
@@ -44,6 +38,7 @@ import dev.cel.common.ast.MutableExprConverter;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.navigation.CelNavigableExpr.TraversalOrder;
 import dev.cel.common.types.CelType;
+
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -52,6 +47,10 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static java.lang.Math.max;
 
 /** AstMutator contains logic for mutating a {@link CelAbstractSyntaxTree}. */
 @Immutable
@@ -81,66 +80,6 @@ public final class AstMutator {
   /** Replaces all the expression IDs in the expression tree with 0. */
   public MutableExpr clearExprIds(MutableExpr expr) {
    return renumberExprIds((unused) -> 0, expr);
-  }
-
-  /**
-   * Replaces a subtree in the given expression node. This operation is intended for AST
-   * optimization purposes.
-   *
-   * <p>This is a very dangerous operation. Callers should re-typecheck the mutated AST and
-   * additionally verify that the resulting AST is semantically valid.
-   *
-   * <p>All expression IDs will be renumbered in a stable manner to ensure there's no ID collision
-   * between the nodes. The renumbering occurs even if the subtree was not replaced.
-   *
-   * <p>If the ability to unparse an expression containing a macro call must be retained, use {@link
-   * #replaceSubtree(CelAbstractSyntaxTree, CelExpr, long) instead.}
-   *
-   * @param celExpr Original expression node to rewrite.
-   * @param newExpr New CelExpr to replace the subtree with.
-   * @param exprIdToReplace Expression id of the subtree that is getting replaced.
-   */
-  public CelExpr replaceSubtree(CelExpr celExpr, CelExpr newExpr, long exprIdToReplace) {
-    MonotonicIdGenerator monotonicIdGenerator =
-        CelExprIdGeneratorFactory.newMonotonicIdGenerator(0);
-    return null;
-//    return mutateExpr(
-//            unused -> monotonicIdGenerator.nextExprId(),
-//            celExpr.toBuilder(),
-//            newExpr.toBuilder(),
-//            exprIdToReplace)
-//        .build();
-  }
-
-  /**
-   * Replaces a subtree in the given AST. This operation is intended for AST optimization purposes.
-   *
-   * <p>This is a very dangerous operation. Callers should re-typecheck the mutated AST and
-   * additionally verify that the resulting AST is semantically valid.
-   *
-   * <p>All expression IDs will be renumbered in a stable manner to ensure there's no ID collision
-   * between the nodes. The renumbering occurs even if the subtree was not replaced.
-   *
-   * <p>This will scrub out the description, positions and line offsets from {@code CelSource}. If
-   * the source contains macro calls, its call IDs will be to be consistent with the renumbered IDs
-   * in the AST.
-   *
-   * @param ast Original ast to mutate.
-   * @param newExpr New CelExpr to replace the subtree with.
-   * @param exprIdToReplace Expression id of the subtree that is getting replaced.
-   */
-  public CelAbstractSyntaxTree replaceSubtree(
-      CelAbstractSyntaxTree ast, CelExpr newExpr, long exprIdToReplace) {
-    return replaceSubtreeWithNewAst(
-        ast,
-        MutableExprConverter.fromCelExpr(ast.getExpr()),
-        CelAbstractSyntaxTree.newParsedAst(
-            newExpr,
-            // Copy the macro call information to the new AST such that macro call map can be
-            // normalized post-replacement.
-            CelSource.newBuilder().addAllMacroCalls(ast.getSource().getMacroCalls()).build()),
-        MutableExprConverter.fromCelExpr(newExpr),
-        exprIdToReplace);
   }
 
   /** Wraps the given AST and its subexpressions with a new cel.@block call. */
@@ -203,11 +142,6 @@ public final class AstMutator {
             .addMacroCalls(bindMacro.bindExpr().id(), MutableExprConverter.fromMutableExpr(bindMacro.bindMacroExpr()));
 
     return replaceSubtree(rootAst.mutableExpr(), bindMacro.bindExpr(), exprIdToReplace, rootAst.source(), celSource);
-  }
-
-  /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */
-  public CelAbstractSyntaxTree renumberIdsConsecutively(CelAbstractSyntaxTree ast) {
-    throw new UnsupportedOperationException("Unsupported!");
   }
 
   /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */
@@ -388,60 +322,6 @@ public final class AstMutator {
         MutableAst.of(mutatedComprehensionExpr,newSource), ImmutableMap.copyOf(mangledIdentNamesToType));
   }
 
-  /**
-   * Mutates the given AST by replacing a subtree at a given index.
-   *
-   * @param ast Existing AST being mutated
-   * @param newAst New subtree to perform the replacement with. If the subtree has a macro map
-   *     populated, its macro source is merged with the existing AST's after normalization.
-   * @param exprIdToReplace The expr ID in the existing AST to replace the subtree at.
-   */
-  @VisibleForTesting
-  CelAbstractSyntaxTree replaceSubtreeWithNewAst(
-      CelAbstractSyntaxTree ast,
-      MutableExpr astExpr,
-      CelAbstractSyntaxTree newAst,
-      MutableExpr newExpr,
-      long exprIdToReplace) {
-//     // Stabilize the incoming AST by renumbering all of its expression IDs.
-//     long maxId = max(getMaxId(ast), getMaxId(newAst));
-//     // TODO
-// //    newAst = stabilizeAst(newAst, maxId);
-//
-//     // Mutate the AST root with the new subtree. All the existing expr IDs are renumbered in the
-//     // process, but its original IDs are memoized so that we can normalize the expr IDs
-//     // in the macro source map.
-//     StableIdGenerator stableIdGenerator =
-//         CelExprIdGeneratorFactory.newStableIdGenerator(getMaxId(newAst));
-//     MutableExpr mutatedRoot =
-//         mutateExpr(
-//             stableIdGenerator::renumberId,
-//             astExpr,
-//             newExpr,
-//             exprIdToReplace);
-//
-//     CelSource newAstSource = ast.getSource();
-//     if (!newAst.getSource().getMacroCalls().isEmpty()) {
-//       // The root is mutated, but the expr IDs in the macro map needs to be normalized.
-//       // In situations where an AST with a new macro map is being inserted (ex: new bind call),
-//       // the new subtree's expr ID is not memoized in the stable ID generator because the ID never
-//       // existed in the main AST.
-//       // In this case, we forcibly memoize the new subtree ID with a newly generated ID so
-//       // that the macro map IDs can be normalized properly.
-//       stableIdGenerator.memoize(
-//           newAst.getExpr().id(), stableIdGenerator.renumberId(exprIdToReplace));
-//       newAstSource = combine(newAstSource, newAst.getSource());
-//     }
-//
-//     // TODO
-// //    newAstSource =
-// //        normalizeMacroSource(
-// //            newAstSource, exprIdToReplace, mutatedRoot, stableIdGenerator::renumberId);
-//
-//     return CelAbstractSyntaxTree.newParsedAst(MutableExprConverter.fromMutableExpr(mutatedRoot), newAstSource);
-    throw new UnsupportedOperationException("Unsupported!");
-  }
-
   public MutableAst replaceSubtree(
           MutableExpr root,
           MutableExpr newExpr,
@@ -560,11 +440,6 @@ public final class AstMutator {
    }
   }
 
-  private CelExpr.Builder replaceIdentName(
-      CelExpr.Builder comprehensionExpr, String originalIdentName, String newIdentName) {
-    throw new UnsupportedOperationException("Unsupported!");
-  }
-
   private CelSource.Builder mangleIdentsInMacroSource(
       CelSource.Builder sourceBuilder,
       MutableExpr mutatedComprehensionExpr,
@@ -604,15 +479,6 @@ public final class AstMutator {
    newSource.addMacroCalls(originalComprehensionId, MutableExprConverter.fromMutableExpr(macroExpr));
 
    return newSource;
-  }
-
-  private CelSource mangleIdentsInMacroSource(
-      CelAbstractSyntaxTree ast,
-      CelExpr.Builder mutatedComprehensionExpr,
-      String originalIterVar,
-      MangledComprehensionName mangledComprehensionName,
-      long originalComprehensionId) {
-    throw new UnsupportedOperationException("Unsupported!");
   }
 
   private BindMacro newBindMacro(
@@ -658,10 +524,6 @@ public final class AstMutator {
     stableIdGenerator.nextExprId();
 
     return BindMacro.of(bindMacroExpr, bindMacroCallExpr);
-  }
-
-  private static CelSource combine(CelSource celSource1, CelSource celSource2) {
-    throw new UnsupportedOperationException("Unsupported combine!");
   }
 
   private static CelSource.Builder combine(CelSource.Builder celSource1, CelSource.Builder celSource2) {
@@ -881,15 +743,6 @@ public final class AstMutator {
     MutableExprVisitor mutableAst =
         MutableExprVisitor.newInstance(idGenerator, root, Integer.MIN_VALUE, iterationLimit);
     return mutableAst.visit(root);
-  }
-
-  private static long getMaxId(CelAbstractSyntaxTree ast) {
-    long maxId = getMaxId(ast.getExpr());
-    for (Entry<Long, CelExpr> macroCall : ast.getSource().getMacroCalls().entrySet()) {
-      maxId = max(maxId, getMaxId(macroCall.getValue()));
-    }
-
-    return maxId;
   }
 
   private static long getMaxId(CelExpr newExpr) {
