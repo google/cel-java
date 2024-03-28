@@ -183,24 +183,28 @@ public final class AstMutator {
       MutableExpr varInit,
       MutableExpr resultExpr,
       long exprIdToReplace) {
+    // TODO: Accept the mutableast directly
+    MutableAst rootAst = MutableAst.of(root, rootSource);
+    root = null;
+    rootSource = null;
     // Copy the incoming expressions to prevent modifying the root
-    varInit = varInit.deepCopy();
-    resultExpr = resultExpr.deepCopy();
-    long maxId = max(getMaxId(varInit), getMaxId(root));
+    // varInit = varInit.deepCopy();
+    // resultExpr = resultExpr.deepCopy();
+    long maxId = max(getMaxId(varInit.deepCopy()), getMaxId(rootAst));
     StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(maxId);
-    BindMacro bindMacro = newBindMacro(varName, varInit, resultExpr, stableIdGenerator);
+    BindMacro bindMacro = newBindMacro(varName, varInit.deepCopy(), resultExpr.deepCopy(), stableIdGenerator);
     // In situations where the existing AST already contains a macro call (ex: nested cel.binds),
     // its macro source must be normalized to make it consistent with the newly generated bind
     // macro.
     CelSource.Builder celSource =
         normalizeMacroSource(
-            rootSource,
+            rootAst.source(),
             -1, // Do not replace any of the subexpr in the macro map.
             bindMacro.bindMacroExpr(),
             stableIdGenerator::renumberId)
             .addMacroCalls(bindMacro.bindExpr().id(), MutableExprConverter.fromMutableExpr(bindMacro.bindMacroExpr()));
 
-    return replaceSubtree(root, bindMacro.bindExpr(), exprIdToReplace, rootSource, celSource);
+    return replaceSubtree(rootAst.mutableExpr(), bindMacro.bindExpr(), exprIdToReplace, rootAst.source(), celSource);
   }
 
   /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */
@@ -615,39 +619,47 @@ public final class AstMutator {
 
   private BindMacro newBindMacro(
       String varName, MutableExpr varInit, MutableExpr resultExpr, StableIdGenerator stableIdGenerator) {
-   // Renumber incoming expression IDs in the init and result expression to avoid collision with
-   // the main AST. Existing IDs are memoized for a macro source sanitization pass at the end
-   // (e.g: inserting a bind macro to an existing macro expr)
-   varInit = renumberExprIds(stableIdGenerator::nextExprId, varInit);
-   resultExpr = renumberExprIds(stableIdGenerator::nextExprId, resultExpr);
+    // Renumber incoming expression IDs in the init and result expression to avoid collision with
+    // the main AST. Existing IDs are memoized for a macro source sanitization pass at the end
+    // (e.g: inserting a bind macro to an existing macro expr)
+    varInit = renumberExprIds(stableIdGenerator::nextExprId, varInit);
+    resultExpr = renumberExprIds(stableIdGenerator::nextExprId, resultExpr);
 
-   // TODO: make this a factory?
-   MutableExpr bindMacroExpr = MutableExpr.ofComprehension(
-       stableIdGenerator.nextExprId(),
-       MutableComprehension.create(
-           "#unused",
-           MutableExpr.ofCreateList(stableIdGenerator.nextExprId(), MutableCreateList.create()),
-           varName,
-           varInit,
-           MutableExpr.ofConstant(stableIdGenerator.nextExprId(), CelConstant.ofValue(false)),
-           MutableExpr.ofIdent(stableIdGenerator.nextExprId(), varName),
-           resultExpr
-       )
-   );
+    long iterRangeId = stableIdGenerator.nextExprId();
+    long loopConditionId = stableIdGenerator.nextExprId();
+    long loopStepId = stableIdGenerator.nextExprId();
+    long comprehensionId = stableIdGenerator.nextExprId();
 
-   MutableExpr bindMacroCallExpr =
-       MutableExpr.ofCall(
-           0, // Required sentinel value for macro call
-           MutableCall.create(
-               MutableExpr.ofIdent(stableIdGenerator.nextExprId(), "cel"),
-               "bind",
-               MutableExpr.ofIdent(stableIdGenerator.nextExprId(), varName),
-               bindMacroExpr.comprehension().accuInit(),
-               bindMacroExpr.comprehension().result()
-           )
-       );
+    // TODO: make this a factory?
+    MutableExpr bindMacroExpr = MutableExpr.ofComprehension(
+        comprehensionId,
+        MutableComprehension.create(
+            "#unused",
+            MutableExpr.ofCreateList(iterRangeId, MutableCreateList.create()),
+            varName,
+            varInit,
+            MutableExpr.ofConstant(loopConditionId, CelConstant.ofValue(false)),
+            MutableExpr.ofIdent(loopStepId, varName),
+            resultExpr
+        )
+    );
 
-   return BindMacro.of(bindMacroExpr, bindMacroCallExpr);
+    MutableExpr bindMacroCallExpr =
+        MutableExpr.ofCall(
+            0, // Required sentinel value for macro call
+            MutableCall.create(
+                MutableExpr.ofIdent(stableIdGenerator.nextExprId(), "cel"),
+                "bind",
+                MutableExpr.ofIdent(stableIdGenerator.nextExprId(), varName),
+                bindMacroExpr.comprehension().accuInit(),
+                bindMacroExpr.comprehension().result()
+            )
+        );
+
+    // TODO: Remove?
+    stableIdGenerator.nextExprId();
+
+    return BindMacro.of(bindMacroExpr, bindMacroCallExpr);
   }
 
   private static CelSource combine(CelSource celSource1, CelSource celSource2) {
@@ -761,16 +773,16 @@ public final class AstMutator {
         }
       }
 
-     if (exprIdToReplace > 0) {
-       long replacedId = idGenerator.generate(exprIdToReplace);
-       boolean isListExprBeingReplaced =
-           allExprs.containsKey(replacedId)
-               && allExprs.get(replacedId).exprKind().equals(Kind.CREATE_LIST);
-       if (isListExprBeingReplaced) {
-         unwrapListArgumentsInMacroCallExpr(
-             allExprs.get(callId).comprehension(), newMacroCallExpr);
-       }
-     }
+      if (exprIdToReplace > 0) {
+        long replacedId = idGenerator.generate(exprIdToReplace);
+        boolean isListExprBeingReplaced =
+            allExprs.containsKey(replacedId)
+                && allExprs.get(replacedId).exprKind().equals(Kind.CREATE_LIST);
+        if (isListExprBeingReplaced) {
+          unwrapListArgumentsInMacroCallExpr(
+              allExprs.get(callId).comprehension(), newMacroCallExpr);
+        }
+      }
 
       sourceBuilder.addMacroCalls(callId, MutableExprConverter.fromMutableExpr(newMacroCallExpr));
     }
@@ -809,6 +821,7 @@ public final class AstMutator {
                MutableCall call = macroCallExpr.call();
                call.clearArgs();
                call.addArgs(newCallArgs);
+               macroCall.setValue(MutableExprConverter.fromMutableExpr(macroCallExpr));
              });
    }
 

@@ -41,11 +41,10 @@ import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.MutableAst;
 import dev.cel.common.ast.MutableExpr;
-import dev.cel.common.ast.MutableExpr.MutableIdent;
-import dev.cel.common.ast.MutableExpr.MutableSelect;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.types.ListType;
+import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.extensions.CelExtensions;
@@ -63,7 +62,6 @@ import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeFactory;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
@@ -113,6 +111,8 @@ public class SubexpressionOptimizerTest {
     return CelFactory.standardCelBuilder()
         .addMessageTypes(TestAllTypes.getDescriptor())
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+        .addCompilerLibraries(CelOptionalLibrary.INSTANCE)
+        .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
         .setOptions(
             CelOptions.current().enableTimestampEpoch(true).populateMacroCalls(true).build())
         .addCompilerLibraries(CelExtensions.bindings())
@@ -121,6 +121,7 @@ public class SubexpressionOptimizerTest {
                 "non_pure_custom_func",
                 newGlobalOverload("non_pure_custom_func_overload", SimpleType.INT, SimpleType.INT)))
         .addVar("x", SimpleType.DYN)
+        .addVar("opt_x", OptionalType.create(SimpleType.DYN))
         .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
   }
 
@@ -193,21 +194,23 @@ public class SubexpressionOptimizerTest {
 
   @Test
   public void smokeTest() throws Exception {
-    // String source = "[1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]";
-    String source = "(has(msg.oneof_type.payload.single_int64) ? msg.oneof_type.payload.single_int64 : msg.oneof_type.payload.single_int64 * 0) == 10";
+    String source = "[10, ?optional.none(), [?optional.none(), ?opt_x], [?optional.none(), ?opt_x]] == [10, [5], [5]]";
+    // String source = "[1].exists(i, i > 0) && [1].exists(j, j > 0) && [1].exists(k, k > 1) && [2].exists(l, l > 1)";
     CelAbstractSyntaxTree ast = CEL.compile(source).getAst();
 
-    CelAbstractSyntaxTree optimizedAst =
-        newCseOptimizer(
-            SubexpressionOptimizerOptions.newBuilder()
-                .populateMacroCalls(true)
-                .enableCelBlock(true)
-                // .subexpressionMaxRecursionDepth(1)
-                .build())
-            .optimize(ast);
+    CelOptimizer optimizer = CelOptimizerFactory.standardCelOptimizerBuilder(CEL)
+        .addAstOptimizers(
+            ConstantFoldingOptimizer.getInstance())
+            // SubexpressionOptimizer.newInstance(SubexpressionOptimizerOptions.newBuilder()
+            //     .populateMacroCalls(true)
+            //     .enableCelBlock(false)
+            //     // .subexpressionMaxRecursionDepth(3)
+            //     .build()))
+        .build();
+    CelAbstractSyntaxTree optimizedAst = optimizer.optimize(ast);
 
     assertThat(CEL_UNPARSER.unparse(optimizedAst))
-        .isEqualTo("cel.@block([msg.oneof_type.payload, @index0.single_int64], (has(@index0.single_int64) ? @index1 : (@index1 * 0)) == 10)");
+        .isEqualTo("cel.bind(@r0, optional.none(), [10, ?@r0, [?opt_x], [?@r0, ?opt_x]]) == cel.bind(@r1, [5], [10, @r1, @r1])");
   }
 
   @Test

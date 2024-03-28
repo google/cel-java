@@ -55,7 +55,7 @@ public abstract class CelNavigableExpr {
 
   public long id() {
     // TODO
-    if (mutableExpr().exprKind().equals(ExprKind.Kind.NOT_SET)) {
+    if (mutableExpr().exprKind().equals(ExprKind.Kind.NOT_SET) && mutableExpr().id() == 0L) {
       return expr().id();
     } else {
       return mutableExpr().id();

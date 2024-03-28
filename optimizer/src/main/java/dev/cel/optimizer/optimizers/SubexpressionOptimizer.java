@@ -155,7 +155,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     ArrayList<MutableExpr> subexpressions = new ArrayList<>();
     for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
       // TODO: Iterate directly on candidates rather than refetching
-      MutableExpr cseCandidate = findCseCandidate(astToModify).map(CelNavigableExpr::mutableExpr).orElse(null);
+      MutableExpr cseCandidate = findCseCandidate(astToModify).map(CelNavigableExpr::mutableExpr).map(
+          MutableExpr::deepCopy).orElse(null);
       if (cseCandidate == null) {
         break;
       }
@@ -208,7 +209,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     if (iterCount == 0) {
       // No modification has been made.
-      return OptimizationResult.create(navigableAst.getAst());
+      return OptimizationResult.create(astToModify.toParsedAst());
+      // return OptimizationResult.create(navigableAst.getAst());
     }
 
     ImmutableList.Builder<CelVarDecl> newVarDecls = ImmutableList.builder();
@@ -368,12 +370,14 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
                 MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
                 MANGLED_COMPREHENSION_RESULT_PREFIX)
             .mutableAst();
-    CelSource.Builder sourceToModify = cseOptions.populateMacroCalls() ? astToModify.source() : CelSource.newBuilder();
+    CelSource.Builder sourceToModify = cseOptions.populateMacroCalls() ? CelSource.newBuilder().addAllMacroCalls(astToModify.source()
+        .getMacroCalls()) : CelSource.newBuilder();
 
     int bindIdentifierIndex = 0;
     int iterCount;
     for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
-      MutableExpr cseCandidate = findCseCandidate(astToModify).map(CelNavigableExpr::mutableExpr).orElse(null);
+      MutableExpr cseCandidate = findCseCandidate(astToModify).map(CelNavigableExpr::mutableExpr).map(
+          MutableExpr::deepCopy).orElse(null);
       if (cseCandidate == null) {
         break;
       }
@@ -409,16 +413,17 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       // Find LCA to insert the new cel.bind macro into.
       CelNavigableExpr lca = getLca(astToModify, bindIdentifier);
 
+      // Retain the existing macro calls in case if the block identifiers are replacing a subtree
+      // that contains a comprehension.
       sourceToModify.addAllMacroCalls(astToModify.source().getMacroCalls());
+      astToModify = MutableAst.of(astToModify.mutableExpr(), sourceToModify.build().toBuilder());
 
       // Insert the new bind call
       astToModify =
           astMutator.replaceSubtreeWithNewBindMacro(
               astToModify.mutableExpr(), astToModify.source(), bindIdentifier, cseCandidate, lca.mutableExpr(), lca.id());
 
-      // Retain the existing macro calls in case if the bind identifiers are replacing a subtree
-      // that contains a comprehension.
-      // sourceToModify = astToModify.getSource();
+      sourceToModify = astToModify.source();
     }
 
     if (iterCount >= cseOptions.iterationLimit()) {
@@ -431,7 +436,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     if (iterCount == 0) {
       // No modification has been made.
-      return OptimizationResult.create(navigableAst.getAst());
+      return OptimizationResult.create(astToModify.toParsedAst());
     }
 
     astToModify = astMutator.renumberIdsConsecutively(astToModify);
@@ -446,6 +451,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         .allNodes()
         .filter(this::canEliminate)
         .map(CelNavigableExpr::mutableExpr)
+        .map(MutableExpr::deepCopy)
         .filter(expr -> areSemanticallyEqual(cseCandidate, expr));
   }
 
