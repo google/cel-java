@@ -171,21 +171,12 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       // Replace all CSE candidates with new block index identifier
       for (MutableExpr semanticallyEqualNode : allCseCandidates) {
         iterCount++;
-        // Refetch the candidate expr as mutating the AST could have renumbered its IDs.
-        // TODO: Probably not needed
-        MutableExpr exprToReplace =
-            getAllCseCandidatesStream(astToModify, semanticallyEqualNode)
-                .findAny()
-                .orElseThrow(
-                    () ->
-                        new NoSuchElementException(
-                            "No value present for expr ID: " + semanticallyEqualNode.id()));
 
         astToModify =
             astMutator.replaceSubtree(
                 astToModify.mutableExpr(),
                 MutableExpr.ofIdent(blockIdentifier),
-                exprToReplace.id(),
+                semanticallyEqualNode.id(),
                 astToModify.source()
                 );
       }
@@ -194,9 +185,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       // that contains a comprehension.
       sourceToModify.addAllMacroCalls(astToModify.source().getMacroCalls());
       astToModify = MutableAst.of(astToModify.mutableExpr(), sourceToModify);
-      // astToModify = CelAbstractSyntaxTree.newParsedAst(astToModify, sourceToModify);
-
-      // sourceToModify = astToModify.getSource();
     }
 
     if (iterCount >= cseOptions.iterationLimit()) {
@@ -503,8 +491,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   /**
    * This retrieves a subexpr candidate based on the recursion limit even if there's no duplicate
    * subexpr found.
-   *
-   * <p>TODO: Improve the extraction logic using a suffix tree.
    */
   private Optional<CelNavigableExpr> findCseCandidateWithRecursionDepth(
       MutableAst ast, int recursionLimit) {

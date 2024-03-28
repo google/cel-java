@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static dev.cel.common.CelOverloadDecl.newGlobalOverload;
 
 import com.google.common.base.Ascii;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
@@ -238,6 +239,7 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
     runLargeTestCases(celOptimizer);
   }
 
+
   @Test
   public void large_expressions_block_common_subexpr() throws Exception {
     CelOptimizer celOptimizer =
@@ -300,7 +302,10 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
       testOutput().println("=====>");
       CelAbstractSyntaxTree ast = CEL.compile(cseTestCase.source).getAst();
 
+      Stopwatch sw = Stopwatch.createStarted();
       CelAbstractSyntaxTree optimizedAst = celOptimizer.optimize(ast);
+      sw.stop();
+      System.err.println("Elapsed: " + sw);
       Object optimizedEvalResult =
           CEL.createProgram(optimizedAst)
               .eval(
