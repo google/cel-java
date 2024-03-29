@@ -129,7 +129,8 @@ public final class AstMutator {
     // Copy the incoming expressions to prevent modifying the root
     long maxId = max(getMaxId(varInit), getMaxId(rootAst));
     StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(maxId);
-    BindMacro bindMacro = newBindMacro(varName, varInit, resultExpr.deepCopy(), stableIdGenerator);
+    MutableExpr newBindMacroExpr = newBindMacroExpr(varName, varInit, resultExpr.deepCopy(), stableIdGenerator);
+    MutableExpr newBindMacroSourceExpr = newBindMacroSourceExpr(newBindMacroExpr, varName, stableIdGenerator);
     // In situations where the existing AST already contains a macro call (ex: nested cel.binds),
     // its macro source must be normalized to make it consistent with the newly generated bind
     // macro.
@@ -137,11 +138,11 @@ public final class AstMutator {
         normalizeMacroSource(
             rootAst.source(),
             -1, // Do not replace any of the subexpr in the macro map.
-            bindMacro.bindMacroExpr(),
+            newBindMacroSourceExpr,
             stableIdGenerator::renumberId)
-            .addMacroCalls(bindMacro.bindExpr().id(), MutableExprConverter.fromMutableExpr(bindMacro.bindMacroExpr()));
+            .addMacroCalls(newBindMacroExpr.id(), MutableExprConverter.fromMutableExpr(newBindMacroSourceExpr));
 
-    return replaceSubtree(rootAst.mutableExpr(), bindMacro.bindExpr(), exprIdToReplace, rootAst.source(), celSource);
+    return replaceSubtree(rootAst.mutableExpr(), newBindMacroExpr, exprIdToReplace, rootAst.source(), celSource);
   }
 
   /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */
@@ -481,8 +482,7 @@ public final class AstMutator {
    return newSource;
   }
 
-  private BindMacro newBindMacro(
-      String varName, MutableExpr varInit, MutableExpr resultExpr, StableIdGenerator stableIdGenerator) {
+  private MutableExpr newBindMacroExpr(String varName, MutableExpr varInit, MutableExpr resultExpr, StableIdGenerator stableIdGenerator) {
     // Renumber incoming expression IDs in the init and result expression to avoid collision with
     // the main AST. Existing IDs are memoized for a macro source sanitization pass at the end
     // (e.g: inserting a bind macro to an existing macro expr)
@@ -496,18 +496,22 @@ public final class AstMutator {
 
     // TODO: make this a factory?
     MutableExpr bindMacroExpr = MutableExpr.ofComprehension(
-        comprehensionId,
-        MutableComprehension.create(
-            "#unused",
-            MutableExpr.ofCreateList(iterRangeId, MutableCreateList.create()),
-            varName,
-            varInit,
-            MutableExpr.ofConstant(loopConditionId, CelConstant.ofValue(false)),
-            MutableExpr.ofIdent(loopStepId, varName),
-            resultExpr
-        )
+            comprehensionId,
+            MutableComprehension.create(
+                    "#unused",
+                    MutableExpr.ofCreateList(iterRangeId, MutableCreateList.create()),
+                    varName,
+                    varInit,
+                    MutableExpr.ofConstant(loopConditionId, CelConstant.ofValue(false)),
+                    MutableExpr.ofIdent(loopStepId, varName),
+                    resultExpr
+            )
     );
 
+    return bindMacroExpr;
+  }
+
+  private MutableExpr newBindMacroSourceExpr(MutableExpr bindMacroExpr, String varName, StableIdGenerator stableIdGenerator) {
     MutableExpr bindMacroCallExpr =
         MutableExpr.ofCall(
             0, // Required sentinel value for macro call
@@ -523,7 +527,7 @@ public final class AstMutator {
     // TODO: Remove?
     stableIdGenerator.nextExprId();
 
-    return BindMacro.of(bindMacroExpr, bindMacroCallExpr);
+    return bindMacroCallExpr;
   }
 
   private static CelSource.Builder combine(CelSource.Builder celSource1, CelSource.Builder celSource2) {
