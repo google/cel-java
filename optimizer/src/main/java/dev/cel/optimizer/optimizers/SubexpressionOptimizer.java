@@ -156,17 +156,17 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     ArrayList<MutableExpr> subexpressions = new ArrayList<>();
 
     for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
-      List<MutableExpr> allCseCandidates = getCseCandidates(astToModify);
-      if (allCseCandidates.isEmpty()) {
+      List<MutableExpr> cseCandidates = getCseCandidates(astToModify);
+      if (cseCandidates.isEmpty()) {
         break;
       }
 
-      subexpressions.add(allCseCandidates.get(0));
+      subexpressions.add(cseCandidates.get(0));
 
       String blockIdentifier = BLOCK_INDEX_PREFIX + blockIdentifierIndex++;
 
       // Replace all CSE candidates with new block index identifier
-      for (MutableExpr cseCandidate : allCseCandidates) {
+      for (MutableExpr cseCandidate : cseCandidates) {
         iterCount++;
 
         astToModify =
@@ -361,37 +361,24 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     int bindIdentifierIndex = 0;
     int iterCount;
     for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
-      MutableExpr cseCandidate = findCseCandidate(astToModify).map(CelNavigableExpr::mutableExpr).map(
-          MutableExpr::deepCopy).orElse(null);
-      if (cseCandidate == null) {
+      List<MutableExpr> cseCandidates = getCseCandidates(astToModify);
+      if (cseCandidates.isEmpty()) {
         break;
       }
 
       String bindIdentifier = BIND_IDENTIFIER_PREFIX + bindIdentifierIndex;
       bindIdentifierIndex++;
 
-      // Using the CSE candidate, fetch all semantically equivalent subexpressions ahead of time.
-      ImmutableList<MutableExpr> allCseCandidates =
-          getAllCseCandidatesStream(astToModify, cseCandidate).collect(toImmutableList());
-
       // Replace all CSE candidates with new bind identifier
-      for (MutableExpr semanticallyEqualNode : allCseCandidates) {
+      for (MutableExpr cseCandidate : cseCandidates) {
         iterCount++;
-        // Refetch the candidate expr as mutating the AST could have renumbered its IDs.
-        MutableExpr exprToReplace =
-            getAllCseCandidatesStream(astToModify, semanticallyEqualNode)
-                .findAny()
-                .orElseThrow(
-                    () ->
-                        new NoSuchElementException(
-                            "No value present for expr ID: " + semanticallyEqualNode.id()));
 
         astToModify =
-            astMutator.replaceSubtree(
-                astToModify.mutableExpr(),
-                MutableExpr.ofIdent(bindIdentifier),
-                exprToReplace.id(),
-                astToModify.source()
+                astMutator.replaceSubtree(
+                        astToModify.mutableExpr(),
+                        MutableExpr.ofIdent(bindIdentifier),
+                        cseCandidate.id(),
+                        astToModify.source()
                 );
       }
 
@@ -404,9 +391,10 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       astToModify = MutableAst.of(astToModify.mutableExpr(), sourceToModify.build().toBuilder());
 
       // Insert the new bind call
+      MutableExpr subexpressionToBind = cseCandidates.get(0);
       astToModify =
           astMutator.replaceSubtreeWithNewBindMacro(
-                  astToModify.mutableExpr(), astToModify.source(), bindIdentifier, cseCandidate, lca.mutableExpr(), lca.id(), cseOptions.populateMacroCalls());
+                  astToModify.mutableExpr(), astToModify.source(), bindIdentifier, subexpressionToBind, lca.mutableExpr(), lca.id(), cseOptions.populateMacroCalls());
       sourceToModify = astToModify.source();
     }
 
