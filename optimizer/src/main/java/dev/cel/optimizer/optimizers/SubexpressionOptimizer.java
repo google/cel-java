@@ -241,7 +241,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
    */
   @VisibleForTesting
   static void verifyOptimizedAstCorrectness(CelAbstractSyntaxTree ast) {
-    // TODO
     CelNavigableExpr celNavigableExpr = CelNavigableExpr.fromExpr(ast.getExpr());
 
     ImmutableList<CelExpr> allCelBlocks =
@@ -453,7 +452,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   }
 
   private List<MutableExpr> getCseCandidates(CelNavigableAst navAst) {
-    // TODO: Accept a navigable ast with mutable ast (no need to refetch for their heights)
     if (cseOptions.enableCelBlock() && cseOptions.subexpressionMaxRecursionDepth() > 0) {
       return getCseCandidatesWithRecursionDepth(navAst, cseOptions.subexpressionMaxRecursionDepth());
     } else {
@@ -463,7 +461,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
   private List<MutableExpr> getCseCandidatesWithRecursionDepth(
           CelNavigableAst navAst, int recursionLimit) {
-    // TODO: Accept a navigable ast with mutable ast (no need to refetch for their heights)
     Preconditions.checkArgument(recursionLimit > 0);
     ImmutableList<CelNavigableExpr> allNodes =
             navAst
@@ -602,29 +599,16 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
    * </ul>
    */
   private MutableExpr normalizeForEquality(MutableExpr mutableExpr) {
-    // TODO: Is there a way to do this without deep copy?
+    // TODO: Avoid deep copy if possible.
     MutableExpr copiedExpr = mutableExpr.deepCopy();
-    int iterCount;
-    for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
-      // TODO: Iterate without refetch
-      // TODO: Provide some hint globally to avoid doing this for an expression without presence test?
-      MutableExpr presenceTestExpr =
-          CelNavigableExpr.fromMutableExpr(copiedExpr)
+//    if (false) {
+      CelNavigableExpr.fromMutableExpr(copiedExpr)
               .allNodes()
-              .map(CelNavigableExpr::mutableExpr)
-              .filter(expr -> expr.exprKind().equals(Kind.SELECT) && expr.select().testOnly())
-              .findAny()
-              .orElse(null);
-      if (presenceTestExpr == null) {
-        break;
-      }
-
-      presenceTestExpr.select().setTestOnly(false);
-    }
-
-    if (iterCount >= cseOptions.iterationLimit()) {
-      throw new IllegalStateException("Max iteration count reached.");
-    }
+              .filter(node -> node.getKind().equals(Kind.SELECT))
+              .map(node -> node.mutableExpr().select())
+              .filter(MutableExpr.MutableSelect::testOnly)
+              .forEach(select -> select.setTestOnly(false));
+//    }
 
     return astMutator.clearExprIds(copiedExpr);
   }
