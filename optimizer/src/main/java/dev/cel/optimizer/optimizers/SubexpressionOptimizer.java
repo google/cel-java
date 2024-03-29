@@ -14,11 +14,6 @@
 
 package dev.cel.optimizer.optimizers;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static java.util.Arrays.stream;
-
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -57,6 +52,7 @@ import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.AstMutator.MangledComprehensionAst;
 import dev.cel.optimizer.CelAstOptimizer;
 import dev.cel.parser.Operator;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -66,6 +62,11 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static java.util.Arrays.stream;
 
 /**
  * Performs Common Subexpression Elimination.
@@ -155,30 +156,25 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     ArrayList<MutableExpr> subexpressions = new ArrayList<>();
 
     for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
-      // TODO: Iterate directly on candidates rather than refetching
-      MutableExpr cseCandidate = findCseCandidate(astToModify).map(CelNavigableExpr::mutableExpr).map(
-          MutableExpr::deepCopy).orElse(null);
-      if (cseCandidate == null) {
+      List<MutableExpr> allCseCandidates = getCseCandidates(astToModify);
+      if (allCseCandidates.isEmpty()) {
         break;
       }
-      subexpressions.add(cseCandidate);
+
+      subexpressions.add(allCseCandidates.get(0));
 
       String blockIdentifier = BLOCK_INDEX_PREFIX + blockIdentifierIndex++;
 
-      // Using the CSE candidate, fetch all semantically equivalent subexpressions ahead of time.
-      ImmutableList<MutableExpr> allCseCandidates =
-          getAllCseCandidatesStream(astToModify, cseCandidate).collect(toImmutableList());
-
       // Replace all CSE candidates with new block index identifier
-      for (MutableExpr semanticallyEqualNode : allCseCandidates) {
+      for (MutableExpr cseCandidate : allCseCandidates) {
         iterCount++;
 
         astToModify =
-            astMutator.replaceSubtree(
-                astToModify.mutableExpr(),
-                MutableExpr.ofIdent(blockIdentifier),
-                semanticallyEqualNode.id(),
-                astToModify.source()
+                astMutator.replaceSubtree(
+                        astToModify.mutableExpr(),
+                        MutableExpr.ofIdent(blockIdentifier),
+                        cseCandidate.id(),
+                        astToModify.source()
                 );
       }
 
@@ -480,6 +476,96 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     return lca;
   }
 
+  private List<MutableExpr> getCseCandidates(MutableAst ast) {
+    // TODO: Accept a navigable ast with mutable ast (no need to refetch for their heights)
+    if (cseOptions.enableCelBlock() && cseOptions.subexpressionMaxRecursionDepth() > 0) {
+      return getCseCandidatesWithRecursionDepth(ast, cseOptions.subexpressionMaxRecursionDepth());
+    } else {
+      return getCseCandidatesWithCommonSubexpr(ast);
+    }
+  }
+
+  private List<MutableExpr> getCseCandidatesWithRecursionDepth(
+          MutableAst ast, int recursionLimit) {
+    // TODO: Accept a navigable ast with mutable ast (no need to refetch for their heights)
+    Preconditions.checkArgument(recursionLimit > 0);
+    ImmutableList<CelNavigableExpr> allNodes =
+            CelNavigableAst.fromMutableAst(ast)
+                    .getRoot()
+                    .descendants(TraversalOrder.PRE_ORDER)
+                    .filter(this::canEliminate)
+                    .filter(node -> node.height() <= recursionLimit)
+                    .sorted(Comparator.comparingInt(CelNavigableExpr::height).reversed())
+                    .collect(toImmutableList());
+    if (allNodes.isEmpty()) {
+      return new ArrayList<>();
+    }
+
+    List<MutableExpr> cseCandidates = getCseCandidatesWithCommonSubexpr(allNodes);
+    if (!cseCandidates.isEmpty()) {
+      return cseCandidates;
+    }
+
+    // If there's no common subexpr, just return the one with the highest height that's still below
+    // the recursion limit, but only if it actually needs to be extracted due to exceeding the
+    // recursion limit.
+    boolean astHasMoreExtractableSubexprs =
+            CelNavigableAst.fromMutableAst(ast)
+                    .getRoot()
+                    .allNodes(TraversalOrder.POST_ORDER)
+                    .filter(node -> node.height() > recursionLimit)
+                    .anyMatch(this::canEliminate);
+    if (astHasMoreExtractableSubexprs) {
+      cseCandidates.add(allNodes.get(0).mutableExpr());
+      return cseCandidates;
+    }
+
+    // The height of the remaining subexpression is already below the recursion limit. No need to
+    // extract.
+    return new ArrayList<>();
+  }
+
+  private List<MutableExpr> getCseCandidatesWithCommonSubexpr(MutableAst ast) {
+    ImmutableList<CelNavigableExpr> allNodes =
+            CelNavigableAst.fromMutableAst(ast)
+                    .getRoot()
+                    .allNodes(TraversalOrder.PRE_ORDER)
+                    .filter(this::canEliminate)
+                    .collect(toImmutableList());
+
+    return getCseCandidatesWithCommonSubexpr(allNodes);
+  }
+
+  private List<MutableExpr> getCseCandidatesWithCommonSubexpr(ImmutableList<CelNavigableExpr> allNodes) {
+    MutableExpr semanticallyEqualCandidate = null;
+    HashSet<MutableExpr> semanticallyEqualNodes = new HashSet<>();
+    for (CelNavigableExpr node : allNodes) {
+      // Normalize the expr to test semantic equivalence.
+      MutableExpr normalizedExpr = normalizeForEquality(node.mutableExpr());
+      if (semanticallyEqualNodes.contains(normalizedExpr)) {
+        semanticallyEqualCandidate = normalizedExpr;
+        break;
+      }
+
+      semanticallyEqualNodes.add(normalizedExpr);
+    }
+
+    List<MutableExpr> cseCandidates = new ArrayList<>();
+    if (semanticallyEqualCandidate == null) {
+      return cseCandidates;
+    }
+
+    for (CelNavigableExpr node : allNodes) {
+      // Normalize the expr to test semantic equivalence.
+      MutableExpr normalizedExpr = normalizeForEquality(node.mutableExpr());
+      if (normalizedExpr.equals(semanticallyEqualCandidate)) {
+        cseCandidates.add(node.mutableExpr());
+      }
+    }
+
+    return cseCandidates;
+  }
+
   private Optional<CelNavigableExpr> findCseCandidate(MutableAst ast) {
     if (cseOptions.enableCelBlock() && cseOptions.subexpressionMaxRecursionDepth() > 0) {
       return findCseCandidateWithRecursionDepth(ast, cseOptions.subexpressionMaxRecursionDepth());
@@ -631,6 +717,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     int iterCount;
     for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
       // TODO: Iterate without refetch
+      // TODO: Provide some hint globally to avoid doing this for an expression without presence test?
       MutableExpr presenceTestExpr =
           CelNavigableExpr.fromMutableExpr(copiedExpr)
               .allNodes()

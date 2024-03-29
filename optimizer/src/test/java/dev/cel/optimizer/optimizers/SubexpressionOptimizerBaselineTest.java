@@ -239,7 +239,6 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
     runLargeTestCases(celOptimizer);
   }
 
-
   @Test
   public void large_expressions_block_common_subexpr() throws Exception {
     CelOptimizer celOptimizer =

@@ -540,6 +540,29 @@ public class SubexpressionOptimizerTest {
   }
 
   @Test
+  public void smokeTest() throws Exception {
+//    String expression = "size([1,2]) + size([1,2]) + 1 == 5";
+    String expression = "{'a': {'b': 1}, 'c': {'b': 1}, 'd': {'e': {'b': 1}}, 'e': {'e': {'b': 1}}}";
+    Cel cel = newCelBuilder().build();
+    CelOptimizer celOptimizer =
+            CelOptimizerFactory.standardCelOptimizerBuilder(cel)
+                    .addAstOptimizers(
+                            SubexpressionOptimizer.newInstance(
+                                    SubexpressionOptimizerOptions.newBuilder()
+                                            .populateMacroCalls(true)
+                                            .subexpressionMaxRecursionDepth(2)
+                                            .enableCelBlock(true).build()))
+                    .build();
+    CelAbstractSyntaxTree ast = CEL.compile(expression).getAst();
+
+    CelAbstractSyntaxTree optimizedAst = celOptimizer.optimize(ast);
+
+//    assertThat(CEL.createProgram(optimizedAst).eval()).isEqualTo(true);
+    assertThat(CEL_UNPARSER.unparse(optimizedAst))
+            .isEqualTo("cel.@block([{\"e\": {\"b\": 1}}, {\"b\": 1}], {\"a\": @index1, \"c\": @index1, \"d\": @index0, \"e\": @index0})");
+  }
+
+  @Test
   @TestParameters("{source: 'cel.block([index0], index0)'}")
   @TestParameters("{source: 'cel.block([1, index1, 2], index2)'}")
   @TestParameters("{source: 'cel.block([1, 2, index2], index2)'}")
