@@ -410,8 +410,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       // Insert the new bind call
       astToModify =
           astMutator.replaceSubtreeWithNewBindMacro(
-              astToModify.mutableExpr(), astToModify.source(), bindIdentifier, cseCandidate, lca.mutableExpr(), lca.id());
-
+                  astToModify.mutableExpr(), astToModify.source(), bindIdentifier, cseCandidate, lca.mutableExpr(), lca.id(), cseOptions.populateMacroCalls());
       sourceToModify = astToModify.source();
     }
 

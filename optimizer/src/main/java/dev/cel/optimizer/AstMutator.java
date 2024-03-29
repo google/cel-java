@@ -121,7 +121,9 @@ public final class AstMutator {
       String varName,
       MutableExpr varInit,
       MutableExpr resultExpr,
-      long exprIdToReplace) {
+      long exprIdToReplace,
+      boolean populateMacroSource
+      ) {
     // TODO: Accept the mutableast directly
     MutableAst rootAst = MutableAst.of(root, rootSource);
     root = null;
@@ -130,17 +132,19 @@ public final class AstMutator {
     long maxId = max(getMaxId(varInit), getMaxId(rootAst));
     StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(maxId);
     MutableExpr newBindMacroExpr = newBindMacroExpr(varName, varInit, resultExpr.deepCopy(), stableIdGenerator);
-    MutableExpr newBindMacroSourceExpr = newBindMacroSourceExpr(newBindMacroExpr, varName, stableIdGenerator);
-    // In situations where the existing AST already contains a macro call (ex: nested cel.binds),
-    // its macro source must be normalized to make it consistent with the newly generated bind
-    // macro.
-    CelSource.Builder celSource =
-        normalizeMacroSource(
-            rootAst.source(),
-            -1, // Do not replace any of the subexpr in the macro map.
-            newBindMacroSourceExpr,
-            stableIdGenerator::renumberId)
-            .addMacroCalls(newBindMacroExpr.id(), MutableExprConverter.fromMutableExpr(newBindMacroSourceExpr));
+    CelSource.Builder celSource = CelSource.newBuilder();
+    if (populateMacroSource) {
+      MutableExpr newBindMacroSourceExpr = newBindMacroSourceExpr(newBindMacroExpr, varName, stableIdGenerator);
+      // In situations where the existing AST already contains a macro call (ex: nested cel.binds),
+      // its macro source must be normalized to make it consistent with the newly generated bind
+      // macro.
+      celSource = normalizeMacroSource(
+          rootAst.source(),
+          -1, // Do not replace any of the subexpr in the macro map.
+          newBindMacroSourceExpr,
+          stableIdGenerator::renumberId)
+          .addMacroCalls(newBindMacroExpr.id(), MutableExprConverter.fromMutableExpr(newBindMacroSourceExpr));
+    }
 
     return replaceSubtree(rootAst.mutableExpr(), newBindMacroExpr, exprIdToReplace, rootAst.source(), celSource);
   }
@@ -844,26 +848,6 @@ public final class AstMutator {
 
     private static MangledComprehensionName of(String iterVarName, String resultName) {
       return new AutoValue_AstMutator_MangledComprehensionName(iterVarName, resultName);
-    }
-  }
-
-  /**
-   * Intermediate value class to store the generated CelExpr for the bind macro and the macro call
-   * information.
-   */
-  @AutoValue
-  abstract static class BindMacro {
-    /** Comprehension expr for the generated cel.bind macro. */
-    abstract MutableExpr bindExpr();
-
-    /**
-     * Call expr representation that will be stored in the macro call map of the AST. This is
-     * typically used for the purposes of supporting unparse.
-     */
-    abstract MutableExpr bindMacroExpr();
-
-    private static BindMacro of(MutableExpr bindExpr, MutableExpr bindMacro) {
-      return new AutoValue_AstMutator_BindMacro(bindExpr, bindMacro);
     }
   }
 }
