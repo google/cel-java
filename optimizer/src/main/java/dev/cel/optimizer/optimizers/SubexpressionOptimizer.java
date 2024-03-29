@@ -59,9 +59,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
@@ -416,16 +414,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     return OptimizationResult.create(astToModify.toParsedAst());
   }
 
-  private Stream<MutableExpr> getAllCseCandidatesStream(
-      MutableAst ast, MutableExpr cseCandidate) {
-    return CelNavigableAst.fromMutableAst(ast)
-        .getRoot()
-        .allNodes()
-        .filter(this::canEliminate)
-        .map(CelNavigableExpr::mutableExpr)
-        .filter(expr -> areSemanticallyEqual(cseCandidate, expr));
-  }
-
   private static CelNavigableExpr getLca(MutableAst ast, String boundIdentifier) {
     CelNavigableExpr root = CelNavigableAst.fromMutableAst(ast).getRoot();
     ImmutableList<CelNavigableExpr> allNodesWithIdentifier =
@@ -525,13 +513,13 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   }
 
   private List<MutableExpr> getCseCandidatesWithCommonSubexpr(ImmutableList<CelNavigableExpr> allNodes) {
-    MutableExpr semanticallyEqualCandidate = null;
+    MutableExpr normalizedCseCandidate = null;
     HashSet<MutableExpr> semanticallyEqualNodes = new HashSet<>();
     for (CelNavigableExpr node : allNodes) {
       // Normalize the expr to test semantic equivalence.
       MutableExpr normalizedExpr = normalizeForEquality(node.mutableExpr());
       if (semanticallyEqualNodes.contains(normalizedExpr)) {
-        semanticallyEqualCandidate = normalizedExpr;
+        normalizedCseCandidate = normalizedExpr;
         break;
       }
 
@@ -539,99 +527,19 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     }
 
     List<MutableExpr> cseCandidates = new ArrayList<>();
-    if (semanticallyEqualCandidate == null) {
+    if (normalizedCseCandidate == null) {
       return cseCandidates;
     }
 
     for (CelNavigableExpr node : allNodes) {
       // Normalize the expr to test semantic equivalence.
       MutableExpr normalizedExpr = normalizeForEquality(node.mutableExpr());
-      if (normalizedExpr.equals(semanticallyEqualCandidate)) {
+      if (normalizedExpr.equals(normalizedCseCandidate)) {
         cseCandidates.add(node.mutableExpr());
       }
     }
 
     return cseCandidates;
-  }
-
-  private Optional<CelNavigableExpr> findCseCandidate(MutableAst ast) {
-    if (cseOptions.enableCelBlock() && cseOptions.subexpressionMaxRecursionDepth() > 0) {
-      return findCseCandidateWithRecursionDepth(ast, cseOptions.subexpressionMaxRecursionDepth());
-    } else {
-      return findCseCandidateWithCommonSubexpr(ast);
-    }
-  }
-
-  /**
-   * This retrieves a subexpr candidate based on the recursion limit even if there's no duplicate
-   * subexpr found.
-   */
-  private Optional<CelNavigableExpr> findCseCandidateWithRecursionDepth(
-      MutableAst ast, int recursionLimit) {
-    // TODO: Accept a navigable ast with mutable ast (no need to refetch for their heights)
-    Preconditions.checkArgument(recursionLimit > 0);
-    ImmutableList<CelNavigableExpr> allNodes =
-        CelNavigableAst.fromMutableAst(ast)
-            .getRoot()
-            .allNodes(TraversalOrder.PRE_ORDER)
-            .filter(this::canEliminate)
-            .filter(node -> node.height() <= recursionLimit)
-            .filter(node -> !areSemanticallyEqual(ast.mutableExpr(), node.mutableExpr()))
-            .sorted(Comparator.comparingInt(CelNavigableExpr::height).reversed())
-            .collect(toImmutableList());
-
-    if (allNodes.isEmpty()) {
-      return Optional.empty();
-    }
-
-    Optional<CelNavigableExpr> commonSubexpr = findCseCandidateWithCommonSubexpr(allNodes);
-    if (commonSubexpr.isPresent()) {
-      return commonSubexpr;
-    }
-
-    // If there's no common subexpr, just return the one with the highest height that's still below
-    // the recursion limit, but only if it actually needs to be extracted due to exceeding the
-    // recursion limit.
-    boolean astHasMoreExtractableSubexprs =
-        CelNavigableAst.fromMutableAst(ast)
-            .getRoot()
-            .allNodes(TraversalOrder.POST_ORDER)
-            .filter(node -> node.height() > recursionLimit)
-            .anyMatch(this::canEliminate);
-    if (astHasMoreExtractableSubexprs) {
-      return Optional.of(allNodes.get(0));
-    }
-
-    // The height of the remaining subexpression is already below the recursion limit. No need to
-    // extract.
-    return Optional.empty();
-  }
-
-  private Optional<CelNavigableExpr> findCseCandidateWithCommonSubexpr(
-      ImmutableList<CelNavigableExpr> allNodes) {
-    HashSet<MutableExpr> encounteredNodes = new HashSet<>();
-    for (CelNavigableExpr node : allNodes) {
-      // Normalize the expr to test semantic equivalence.
-      MutableExpr mutableExpr = normalizeForEquality(node.mutableExpr());
-      if (encounteredNodes.contains(mutableExpr)) {
-        return Optional.of(node);
-      }
-
-      encounteredNodes.add(mutableExpr);
-    }
-
-    return Optional.empty();
-  }
-
-  private Optional<CelNavigableExpr> findCseCandidateWithCommonSubexpr(MutableAst ast) {
-    ImmutableList<CelNavigableExpr> allNodes =
-        CelNavigableAst.fromMutableAst(ast)
-            .getRoot()
-            .allNodes(TraversalOrder.PRE_ORDER)
-            .filter(this::canEliminate)
-            .collect(toImmutableList());
-
-    return findCseCandidateWithCommonSubexpr(allNodes);
   }
 
   private boolean canEliminate(CelNavigableExpr navigableExpr) {
@@ -667,11 +575,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     }
 
     return true;
-  }
-
-  private boolean areSemanticallyEqual(MutableExpr expr1, MutableExpr expr2) {
-    // TODO: implement separate AST walker for comparisno rather than converting to CelExpr
-    return normalizeForEquality(expr1).equals(normalizeForEquality(expr2));
   }
 
   private boolean containsEliminableFunctionOnly(CelNavigableExpr navigableExpr) {
