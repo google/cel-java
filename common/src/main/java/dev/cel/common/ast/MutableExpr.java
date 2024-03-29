@@ -208,6 +208,10 @@ public final class MutableExpr {
       this.testOnly = testOnly;
     }
 
+    public MutableSelect deepCopy() {
+      return create(operand().deepCopy(), field, testOnly);
+    }
+
     @Override
     public boolean equals(Object obj) {
       if (obj == this) {
@@ -277,10 +281,6 @@ public final class MutableExpr {
       args.clear();
     }
 
-    void setArgs(List<MutableExpr> args) {
-      this.args = args;
-    }
-
     public void addArgs(MutableExpr... exprs) {
       checkNotNull(exprs);
       addArgs(Arrays.asList(exprs));
@@ -291,7 +291,6 @@ public final class MutableExpr {
       checkNotNull(exprs);
       exprs.forEach(args::add);
     }
-
 
     public void setArg(int index, MutableExpr arg) {
       checkNotNull(arg);
@@ -324,6 +323,11 @@ public final class MutableExpr {
       h *= 1000003;
       h ^= args.hashCode();
       return h;
+    }
+
+    public MutableCall deepCopy() {
+      List<MutableExpr> copiedArgs = deepCopyList(args);
+      return target().isPresent() ? create(target.get().deepCopy(), function, copiedArgs) : create(function, copiedArgs);
     }
 
     public static MutableCall create(String function, MutableExpr... args) {
@@ -362,10 +366,6 @@ public final class MutableExpr {
       return elements;
     }
 
-    void setElements(List<MutableExpr> elements) {
-      this.elements = elements;
-    }
-
     public void setElement(int index, MutableExpr element) {
       checkNotNull(element);
       checkArgument(index >= 0 && index < elements().size());
@@ -374,10 +374,6 @@ public final class MutableExpr {
 
     public List<Integer> optionalIndices() {
       return optionalIndices;
-    }
-
-    void setOptionalIndices(List<Integer> optionalIndices) {
-      this.optionalIndices = optionalIndices;
     }
 
     @Override
@@ -402,6 +398,10 @@ public final class MutableExpr {
       h *= 1000003;
       h ^= optionalIndices.hashCode();
       return h;
+    }
+
+    public MutableCreateList deepCopy() {
+      return create(deepCopyList(elements), optionalIndices);
     }
 
     public static MutableCreateList create(MutableExpr... elements) {
@@ -486,6 +486,10 @@ public final class MutableExpr {
         this.optionalEntry = optionalEntry;
       }
 
+      public Entry deepCopy() {
+        return create(id, fieldKey, value.deepCopy(), optionalEntry);
+      }
+
       public static Entry create(long id, String fieldKey, MutableExpr value) {
         return new Entry(id, fieldKey, value, false);
       }
@@ -493,7 +497,6 @@ public final class MutableExpr {
       public static Entry create(long id, String fieldKey, MutableExpr value, boolean optionalEntry) {
         return new Entry(id, fieldKey, value, optionalEntry);
       }
-
 
       @Override
       public boolean equals(Object obj) {
@@ -553,6 +556,15 @@ public final class MutableExpr {
       h *= 1000003;
       h ^= entries.hashCode();
       return h;
+    }
+
+    public MutableCreateStruct deepCopy() {
+      ArrayList<Entry> copiedEntries = new ArrayList<>();
+      for (Entry entry : entries) {
+        copiedEntries.add(entry.deepCopy());
+      }
+
+      return create(messageName, copiedEntries);
     }
 
     public static MutableCreateStruct create(String messageName, List<MutableCreateStruct.Entry> entries) {
@@ -649,6 +661,10 @@ public final class MutableExpr {
         return h;
       }
 
+      public Entry deepCopy() {
+        return create(id, key.deepCopy(), value.deepCopy(), optionalEntry);
+      }
+
       public static Entry create(MutableExpr key, MutableExpr value) {
         return create(0, key, value, false);
       }
@@ -687,6 +703,15 @@ public final class MutableExpr {
       h *= 1000003;
       h ^= entries.hashCode();
       return h;
+    }
+
+    public MutableCreateMap deepCopy() {
+      ArrayList<Entry> copiedEntries = new ArrayList<>();
+      for (Entry entry : entries) {
+        copiedEntries.add(entry.deepCopy());
+      }
+
+      return create(copiedEntries);
     }
 
     public static MutableCreateMap create(List<MutableCreateMap.Entry> entries) {
@@ -826,6 +851,18 @@ public final class MutableExpr {
       h *= 1000003;
       h ^= result.hashCode();
       return h;
+    }
+
+    public MutableComprehension deepCopy() {
+      return create(
+              iterVar,
+              iterRange.deepCopy(),
+              accuVar,
+              accuInit.deepCopy(),
+              loopCondition.deepCopy(),
+              loopStep.deepCopy(),
+              result.deepCopy()
+      );
     }
 
     public static MutableComprehension create(String iterVar, MutableExpr iterRange, String accuVar,
@@ -995,7 +1032,38 @@ public final class MutableExpr {
 
   public MutableExpr deepCopy() {
     // TODO: Perform a proper direct copy
-    return MutableExprConverter.fromCelExpr(MutableExprConverter.fromMutableExpr(this));
+//    return MutableExprConverter.fromCelExpr(MutableExprConverter.fromMutableExpr(this));
+    switch (exprKind()) {
+      case NOT_SET:
+        return ofNotSet(id);
+      case CONSTANT:
+        return ofConstant(id, constant);
+      case IDENT:
+        return ofIdent(id, ident.name());
+      case SELECT:
+        return ofSelect(id, select.deepCopy());
+      case CALL:
+        return ofCall(id, call.deepCopy());
+      case CREATE_LIST:
+        return ofCreateList(id, createList.deepCopy());
+      case CREATE_STRUCT:
+        return ofCreateStruct(id, createStruct.deepCopy());
+      case CREATE_MAP:
+        return ofCreateMap(id, createMap.deepCopy());
+      case COMPREHENSION:
+        return ofComprehension(id, comprehension.deepCopy());
+    }
+
+    throw new IllegalStateException("Unexpected expr kind: " + this.exprKind);
+  }
+
+  private static List<MutableExpr> deepCopyList(List<MutableExpr> elements) {
+    ArrayList<MutableExpr> copiedArgs = new ArrayList<>();
+    for (MutableExpr arg : elements) {
+      copiedArgs.add(arg.deepCopy());
+    }
+
+    return copiedArgs;
   }
 
   @Override

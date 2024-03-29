@@ -153,6 +153,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     int blockIdentifierIndex = 0;
     int iterCount;
     ArrayList<MutableExpr> subexpressions = new ArrayList<>();
+
     for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
       // TODO: Iterate directly on candidates rather than refetching
       MutableExpr cseCandidate = findCseCandidate(astToModify).map(CelNavigableExpr::mutableExpr).map(

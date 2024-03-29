@@ -30,7 +30,6 @@ public final class CelNavigableAst {
   private CelNavigableAst(CelAbstractSyntaxTree ast) {
     this.ast = ast;
     this.mutableAst = MutableAst.fromCelAst(ast);
-    // this.root = CelNavigableExpr.fromExpr(ast.getExpr());
     this.root = CelNavigableExpr.fromMutableExpr(MutableExprConverter.fromCelExpr(ast.getExpr()));
   }
 
