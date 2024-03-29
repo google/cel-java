@@ -154,7 +154,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     ArrayList<MutableExpr> subexpressions = new ArrayList<>();
 
     for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
-      List<MutableExpr> cseCandidates = getCseCandidates(astToModify);
+      CelNavigableAst navAst = CelNavigableAst.fromMutableAst(astToModify);
+      List<MutableExpr> cseCandidates = getCseCandidates(navAst);
       if (cseCandidates.isEmpty()) {
         break;
       }
@@ -359,7 +360,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     int bindIdentifierIndex = 0;
     int iterCount;
     for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
-      List<MutableExpr> cseCandidates = getCseCandidates(astToModify);
+      CelNavigableAst navAst = CelNavigableAst.fromMutableAst(astToModify);
+      List<MutableExpr> cseCandidates = getCseCandidates(navAst);
       if (cseCandidates.isEmpty()) {
         break;
       }
@@ -452,21 +454,21 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     return lca;
   }
 
-  private List<MutableExpr> getCseCandidates(MutableAst ast) {
+  private List<MutableExpr> getCseCandidates(CelNavigableAst navAst) {
     // TODO: Accept a navigable ast with mutable ast (no need to refetch for their heights)
     if (cseOptions.enableCelBlock() && cseOptions.subexpressionMaxRecursionDepth() > 0) {
-      return getCseCandidatesWithRecursionDepth(ast, cseOptions.subexpressionMaxRecursionDepth());
+      return getCseCandidatesWithRecursionDepth(navAst, cseOptions.subexpressionMaxRecursionDepth());
     } else {
-      return getCseCandidatesWithCommonSubexpr(ast);
+      return getCseCandidatesWithCommonSubexpr(navAst);
     }
   }
 
   private List<MutableExpr> getCseCandidatesWithRecursionDepth(
-          MutableAst ast, int recursionLimit) {
+          CelNavigableAst navAst, int recursionLimit) {
     // TODO: Accept a navigable ast with mutable ast (no need to refetch for their heights)
     Preconditions.checkArgument(recursionLimit > 0);
     ImmutableList<CelNavigableExpr> allNodes =
-            CelNavigableAst.fromMutableAst(ast)
+            navAst
                     .getRoot()
                     .descendants(TraversalOrder.PRE_ORDER)
                     .filter(this::canEliminate)
@@ -486,7 +488,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     // the recursion limit, but only if it actually needs to be extracted due to exceeding the
     // recursion limit.
     boolean astHasMoreExtractableSubexprs =
-            CelNavigableAst.fromMutableAst(ast)
+            navAst
                     .getRoot()
                     .allNodes(TraversalOrder.POST_ORDER)
                     .filter(node -> node.height() > recursionLimit)
@@ -501,9 +503,9 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     return new ArrayList<>();
   }
 
-  private List<MutableExpr> getCseCandidatesWithCommonSubexpr(MutableAst ast) {
+  private List<MutableExpr> getCseCandidatesWithCommonSubexpr(CelNavigableAst navAst) {
     ImmutableList<CelNavigableExpr> allNodes =
-            CelNavigableAst.fromMutableAst(ast)
+            navAst
                     .getRoot()
                     .allNodes(TraversalOrder.PRE_ORDER)
                     .filter(this::canEliminate)
@@ -591,8 +593,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   }
 
   /**
-   * Converts the {@link CelExpr} to make it suitable for performing semantically equals check in
-   * {@link #areSemanticallyEqual(MutableExpr, MutableExpr)}.
+   * Converts the {@link CelExpr} to make it suitable for performing a semantically equals check.
    *
    * <p>Specifically, this will:
    *
