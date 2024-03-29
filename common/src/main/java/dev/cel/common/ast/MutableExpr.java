@@ -25,6 +25,8 @@ public final class MutableExpr {
   private MutableCreateMap createMap;
   private MutableComprehension comprehension;
 
+  private int hash = 0;
+
   public long id() {
     return id;
   }
@@ -397,6 +399,7 @@ public final class MutableExpr {
       h ^= elements.hashCode();
       h *= 1000003;
       h ^= optionalIndices.hashCode();
+
       return h;
     }
 
@@ -1084,12 +1087,20 @@ public final class MutableExpr {
 
   @Override
   public int hashCode() {
-    int h = 1;
-    h *= 1000003;
-    h ^= (int) ((id >>> 32) ^ id);
-    h *= 1000003;
-    h ^= this.exprValue().hashCode();
-    return h;
-  }
+    if (hash == 0) {
+      int h = 1;
+      h *= 1000003;
+      h ^= (int) ((id >>> 32) ^ id);
+      h *= 1000003;
+      h ^= this.exprValue().hashCode();
 
+      if (h == 0) {
+        h = 1;
+      }
+
+      hash = h;
+    }
+
+    return hash;
+  }
 }
