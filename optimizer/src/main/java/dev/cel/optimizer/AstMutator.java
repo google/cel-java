@@ -108,28 +108,22 @@ public final class AstMutator {
    *
    * <p>The bind call takes the format of: {@code cel.bind(varInit, varName, resultExpr)}
    *
-   * @param root TODO
-   * @param rootSource TODO
+   * @param ast TODO
    * @param varName New variable name for the bind macro call.
    * @param varInit Initialization expression to bind to the local variable.
    * @param resultExpr Result expression
    * @param exprIdToReplace Expression ID of the subtree that is getting replaced.
    */
   public MutableAst replaceSubtreeWithNewBindMacro(
-      MutableExpr root,
-      CelSource.Builder rootSource,
+      MutableAst ast,
       String varName,
       MutableExpr varInit,
       MutableExpr resultExpr,
       long exprIdToReplace,
       boolean populateMacroSource
       ) {
-    // TODO: Accept the mutableast directly
-    MutableAst rootAst = MutableAst.of(root, rootSource);
-    root = null;
-    rootSource = null;
     // Copy the incoming expressions to prevent modifying the root
-    long maxId = max(getMaxId(varInit), getMaxId(rootAst));
+    long maxId = max(getMaxId(varInit), getMaxId(ast));
     StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(maxId);
     MutableExpr newBindMacroExpr = newBindMacroExpr(varName, varInit, resultExpr.deepCopy(), stableIdGenerator);
     CelSource.Builder celSource = CelSource.newBuilder();
@@ -139,14 +133,16 @@ public final class AstMutator {
       // its macro source must be normalized to make it consistent with the newly generated bind
       // macro.
       celSource = normalizeMacroSource(
-          rootAst.source(),
+          ast.source(),
           -1, // Do not replace any of the subexpr in the macro map.
           newBindMacroSourceExpr,
           stableIdGenerator::renumberId)
           .addMacroCalls(newBindMacroExpr.id(), MutableExprConverter.fromMutableExpr(newBindMacroSourceExpr));
     }
 
-    return replaceSubtree(rootAst.mutableExpr(), newBindMacroExpr, exprIdToReplace, rootAst.source(), celSource);
+    MutableAst newBindAst = MutableAst.of(newBindMacroExpr, celSource);
+
+    return replaceSubtree(ast, newBindAst, exprIdToReplace);
   }
 
   /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */
@@ -187,6 +183,7 @@ public final class AstMutator {
    *       && [true].exists(@c1:0, @c1:0))}
    * </ul>
    *
+   * @param mutableExpr TODO
    * @param ast AST to mutate
    * @param newIterVarPrefix Prefix to use for new iteration variable identifier name. For example,
    *     providing @c will produce @c0:0, @c0:1, @c1:0, @c2:0... as new names.
@@ -331,33 +328,28 @@ public final class AstMutator {
           MutableExpr root,
           MutableExpr newExpr,
           long exprIdToReplace) {
-    return replaceSubtree(root, newExpr, exprIdToReplace, CelSource.newBuilder());
+    return replaceSubtree(MutableAst.of(root, CelSource.newBuilder()), newExpr, exprIdToReplace);
   }
 
   public MutableAst replaceSubtree(
-          MutableExpr root,
+          MutableAst ast,
           MutableExpr newExpr,
-          long exprIdToReplace,
-          CelSource.Builder rootSource
+          long exprIdToReplace
           ) {
-    return replaceSubtree(root, newExpr, exprIdToReplace, rootSource,
-            // Copy the macro call information to the new AST such that macro call map can be
-            // normalized post-replacement.
-            CelSource.newBuilder().addAllMacroCalls(rootSource.getMacroCalls()));
+    return replaceSubtree(ast,
+        MutableAst.of(newExpr,
+                // Copy the macro call information to the new AST such that macro call map can be
+                // normalized post-replacement.
+                CelSource.newBuilder().addAllMacroCalls(ast.source().getMacroCalls())),
+        exprIdToReplace);
   }
 
   public MutableAst replaceSubtree(
-          MutableExpr root,
-          MutableExpr newExpr,
-          long exprIdToReplace,
-          CelSource.Builder rootSource,
-          CelSource.Builder newSource
+          MutableAst ast,
+          MutableAst newAst,
+          long exprIdToReplace
           ) {
     // TODO: Make this a part of API
-    MutableAst ast = MutableAst.of(root, rootSource);
-    MutableAst newAst = MutableAst.of(newExpr, newSource);
-    rootSource = null;
-    newSource = null;
     // Stabilize the incoming AST by renumbering all of its expression IDs.
     long maxId = max(getMaxId(ast), getMaxId(newAst));
     newAst = stabilizeAst(newAst, maxId);
@@ -371,7 +363,7 @@ public final class AstMutator {
     MutableExpr mutatedRoot =
         mutateExpr(
             stableIdGenerator::renumberId,
-            root,
+            ast.mutableExpr(),
             newAst.mutableExpr(),
             exprIdToReplace);
 

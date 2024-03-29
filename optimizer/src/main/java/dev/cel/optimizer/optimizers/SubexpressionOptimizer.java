@@ -170,10 +170,9 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
         astToModify =
                 astMutator.replaceSubtree(
-                        astToModify.mutableExpr(),
+                        astToModify,
                         MutableExpr.ofIdent(blockIdentifier),
-                        cseCandidate.id(),
-                        astToModify.source()
+                        cseCandidate.id()
                 );
       }
 
@@ -375,10 +374,9 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
         astToModify =
                 astMutator.replaceSubtree(
-                        astToModify.mutableExpr(),
+                        astToModify,
                         MutableExpr.ofIdent(bindIdentifier),
-                        cseCandidate.id(),
-                        astToModify.source()
+                        cseCandidate.id()
                 );
       }
 
@@ -394,7 +392,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       MutableExpr subexpressionToBind = cseCandidates.get(0);
       astToModify =
           astMutator.replaceSubtreeWithNewBindMacro(
-                  astToModify.mutableExpr(), astToModify.source(), bindIdentifier, subexpressionToBind, lca.mutableExpr(), lca.id(), cseOptions.populateMacroCalls());
+                  astToModify, bindIdentifier, subexpressionToBind, lca.mutableExpr(), lca.id(), cseOptions.populateMacroCalls());
       sourceToModify = astToModify.source();
     }
 
