@@ -240,7 +240,8 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
                     UNUSED_ITER_VAR,
                     exprFactory.newList(),
                     varName,
-                    exprFactory.newReceiverCall(Function.VALUE.getFunction(), target),
+                    exprFactory.newReceiverCall(
+                        Function.VALUE.getFunction(), exprFactory.copy(target)),
                     exprFactory.newBoolLiteral(true),
                     exprFactory.newIdentifier(varName),
                     mapExpr)),
@@ -272,7 +273,7 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
                 UNUSED_ITER_VAR,
                 exprFactory.newList(),
                 varName,
-                exprFactory.newReceiverCall(Function.VALUE.getFunction(), target),
+                exprFactory.newReceiverCall(Function.VALUE.getFunction(), exprFactory.copy(target)),
                 exprFactory.newBoolLiteral(true),
                 exprFactory.newIdentifier(varName),
                 mapExpr),

@@ -56,6 +56,102 @@ public abstract class CelMacroExprFactory extends CelExprFactory {
     return getSourceLocation(expr.id());
   }
 
+  /** Duplicates {@link CelExpr} with a brand new set of identifiers. */
+  public final CelExpr copy(CelExpr expr) {
+    CelExpr.Builder builder = CelExpr.newBuilder().setId(copyExprId(expr.id()));
+    switch (expr.exprKind().getKind()) {
+      case CONSTANT:
+        builder.setConstant(expr.constant());
+        break;
+      case IDENT:
+        builder.setIdent(expr.ident());
+        break;
+      case SELECT:
+        builder.setSelect(
+            CelExpr.CelSelect.newBuilder()
+                .setOperand(copy(expr.select().operand()))
+                .setField(expr.select().field())
+                .setTestOnly(expr.select().testOnly())
+                .build());
+        break;
+      case CALL:
+        {
+          CelExpr.CelCall.Builder callBuilder =
+              CelExpr.CelCall.newBuilder().setFunction(expr.call().function());
+          expr.call().target().ifPresent(target -> callBuilder.setTarget(copy(target)));
+          for (CelExpr arg : expr.call().args()) {
+            callBuilder.addArgs(copy(arg));
+          }
+          builder.setCall(callBuilder.build());
+        }
+        break;
+      case CREATE_LIST:
+        {
+          CelExpr.CelCreateList.Builder listBuilder =
+              CelExpr.CelCreateList.newBuilder()
+                  .addOptionalIndices(expr.createList().optionalIndices());
+          for (CelExpr element : expr.createList().elements()) {
+            listBuilder.addElements(copy(element));
+          }
+          builder.setCreateList(listBuilder.build());
+        }
+        break;
+      case CREATE_STRUCT:
+        {
+          CelExpr.CelCreateStruct.Builder structBuilder =
+              CelExpr.CelCreateStruct.newBuilder()
+                  .setMessageName(expr.createStruct().messageName());
+          for (CelExpr.CelCreateStruct.Entry entry : expr.createStruct().entries()) {
+            structBuilder.addEntries(
+                CelExpr.CelCreateStruct.Entry.newBuilder()
+                    .setId(copyExprId(entry.id()))
+                    .setFieldKey(entry.fieldKey())
+                    .setValue(copy(entry.value()))
+                    .setOptionalEntry(entry.optionalEntry())
+                    .build());
+          }
+          builder.setCreateStruct(structBuilder.build());
+        }
+        break;
+      case CREATE_MAP:
+        {
+          CelExpr.CelCreateMap.Builder mapBuilder = CelExpr.CelCreateMap.newBuilder();
+          for (CelExpr.CelCreateMap.Entry entry : expr.createMap().entries()) {
+            mapBuilder.addEntries(
+                CelExpr.CelCreateMap.Entry.newBuilder()
+                    .setId(copyExprId(entry.id()))
+                    .setKey(copy(entry.key()))
+                    .setValue(copy(entry.value()))
+                    .setOptionalEntry(entry.optionalEntry())
+                    .build());
+          }
+          builder.setCreateMap(mapBuilder.build());
+        }
+        break;
+      case COMPREHENSION:
+        builder.setComprehension(
+            CelExpr.CelComprehension.newBuilder()
+                .setIterVar(expr.comprehension().iterVar())
+                .setIterRange(copy(expr.comprehension().iterRange()))
+                .setAccuVar(expr.comprehension().accuVar())
+                .setAccuInit(copy(expr.comprehension().accuInit()))
+                .setLoopCondition(copy(expr.comprehension().loopCondition()))
+                .setLoopStep(copy(expr.comprehension().loopStep()))
+                .setResult(copy(expr.comprehension().result()))
+                .build());
+        break;
+      case NOT_SET:
+        break;
+    }
+    return builder.build();
+  }
+
+  /**
+   * Returns the next unique expression ID which is associated with the same metadata (i.e. source
+   * location, types, references, etc.) as `id`.
+   */
+  protected abstract long copyExprId(long id);
+
   /** Retrieves the source location for the given {@link CelExpr} ID. */
   protected abstract CelSourceLocation getSourceLocation(long exprId);
 

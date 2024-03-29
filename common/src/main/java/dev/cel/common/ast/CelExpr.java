@@ -297,34 +297,42 @@ public abstract class CelExpr {
       return exprKind().comprehension();
     }
 
+    @CanIgnoreReturnValue
     public Builder setConstant(CelConstant constant) {
       return setExprKind(AutoOneOf_CelExpr_ExprKind.constant(constant));
     }
 
+    @CanIgnoreReturnValue
     public Builder setIdent(CelIdent ident) {
       return setExprKind(AutoOneOf_CelExpr_ExprKind.ident(ident));
     }
 
+    @CanIgnoreReturnValue
     public Builder setCall(CelCall call) {
       return setExprKind(AutoOneOf_CelExpr_ExprKind.call(call));
     }
 
+    @CanIgnoreReturnValue
     public Builder setSelect(CelSelect select) {
       return setExprKind(AutoOneOf_CelExpr_ExprKind.select(select));
     }
 
+    @CanIgnoreReturnValue
     public Builder setCreateList(CelCreateList createList) {
       return setExprKind(AutoOneOf_CelExpr_ExprKind.createList(createList));
     }
 
+    @CanIgnoreReturnValue
     public Builder setCreateStruct(CelCreateStruct createStruct) {
       return setExprKind(AutoOneOf_CelExpr_ExprKind.createStruct(createStruct));
     }
 
+    @CanIgnoreReturnValue
     public Builder setCreateMap(CelCreateMap createMap) {
       return setExprKind(AutoOneOf_CelExpr_ExprKind.createMap(createMap));
     }
 
+    @CanIgnoreReturnValue
     public Builder setComprehension(CelComprehension comprehension) {
       return setExprKind(AutoOneOf_CelExpr_ExprKind.comprehension(comprehension));
     }

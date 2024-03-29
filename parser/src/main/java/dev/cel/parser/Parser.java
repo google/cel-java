@@ -1111,6 +1111,11 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     }
 
     @Override
+    public long copyExprId(long id) {
+      return nextExprId(getPosition(id));
+    }
+
+    @Override
     public long nextExprId() {
       checkState(!positions.isEmpty()); // Should only be called while expanding macros.
       // Do not call this method directly from within the parser, use nextExprId(int).

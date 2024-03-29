@@ -42,6 +42,11 @@ public final class CelMacroExprFactoryTest {
     }
 
     @Override
+    public long copyExprId(long unused) {
+      return nextExprId();
+    }
+
+    @Override
     public long nextExprId() {
       return ++exprId;
     }
