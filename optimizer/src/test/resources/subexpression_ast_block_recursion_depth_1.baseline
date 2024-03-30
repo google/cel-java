@@ -2820,26 +2820,67 @@ CALL [1] {
             }
           }
         }
-        CALL [7] {
+        SELECT [7] {
+          IDENT [8] {
+            name: @index0
+          }.a~presence_test
+        }
+        CALL [9] {
           function: _[_]
           args: {
-            IDENT [8] {
+            IDENT [10] {
               name: @index0
             }
-            CONSTANT [9] { value: "a" }
+            CONSTANT [11] { value: "a" }
           }
         }
       }
     }
-    CALL [10] {
+    CALL [12] {
       function: _&&_
       args: {
-        SELECT [11] {
-          IDENT [12] {
+        IDENT [13] {
+          name: @index1
+        }
+        IDENT [14] {
+          name: @index2
+        }
+      }
+    }
+  }
+}
+Test case: PRESENCE_TEST_2
+Source: has({'a': true}.a) && has({'a': true}.a)
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        CREATE_MAP [3] {
+          MAP_ENTRY [4] {
+            key: {
+              CONSTANT [5] { value: "a" }
+            }
+            value: {
+              CONSTANT [6] { value: true }
+            }
+          }
+        }
+        SELECT [7] {
+          IDENT [8] {
             name: @index0
           }.a~presence_test
         }
-        IDENT [13] {
+      }
+    }
+    CALL [9] {
+      function: _&&_
+      args: {
+        IDENT [10] {
+          name: @index1
+        }
+        IDENT [11] {
           name: @index1
         }
       }
@@ -2862,33 +2903,39 @@ CALL [1] {
         SELECT [5] {
           IDENT [6] {
             name: @index0
-          }.payload
+          }.payload~presence_test
         }
         SELECT [7] {
           IDENT [8] {
-            name: @index1
+            name: @index0
+          }.payload
+        }
+        SELECT [9] {
+          IDENT [10] {
+            name: @index2
           }.single_int64
         }
-      }
-    }
-    CALL [9] {
-      function: _==_
-      args: {
-        CALL [10] {
+        CALL [11] {
           function: _?_:_
           args: {
-            SELECT [11] {
-              IDENT [12] {
-                name: @index0
-              }.payload~presence_test
+            IDENT [12] {
+              name: @index1
             }
             IDENT [13] {
-              name: @index2
+              name: @index3
             }
             CONSTANT [14] { value: 0 }
           }
         }
-        CONSTANT [15] { value: 10 }
+      }
+    }
+    CALL [15] {
+      function: _==_
+      args: {
+        IDENT [16] {
+          name: @index4
+        }
+        CONSTANT [17] { value: 10 }
       }
     }
   }
@@ -2916,37 +2963,43 @@ CALL [1] {
             name: @index1
           }.single_int64
         }
-        CALL [9] {
+        SELECT [9] {
+          IDENT [10] {
+            name: @index0
+          }.payload~presence_test
+        }
+        CALL [11] {
           function: _*_
           args: {
-            IDENT [10] {
+            IDENT [12] {
               name: @index2
             }
-            CONSTANT [11] { value: 0 }
+            CONSTANT [13] { value: 0 }
           }
         }
-      }
-    }
-    CALL [12] {
-      function: _==_
-      args: {
-        CALL [13] {
+        CALL [14] {
           function: _?_:_
           args: {
-            SELECT [14] {
-              IDENT [15] {
-                name: @index0
-              }.payload~presence_test
+            IDENT [15] {
+              name: @index3
             }
             IDENT [16] {
               name: @index2
             }
             IDENT [17] {
-              name: @index3
+              name: @index4
             }
           }
         }
-        CONSTANT [18] { value: 10 }
+      }
+    }
+    CALL [18] {
+      function: _==_
+      args: {
+        IDENT [19] {
+          name: @index5
+        }
+        CONSTANT [20] { value: 10 }
       }
     }
   }
@@ -2974,37 +3027,43 @@ CALL [1] {
             name: @index1
           }.single_int64
         }
-        CALL [9] {
+        SELECT [9] {
+          IDENT [10] {
+            name: @index1
+          }.single_int64~presence_test
+        }
+        CALL [11] {
           function: _*_
           args: {
-            IDENT [10] {
+            IDENT [12] {
               name: @index2
             }
-            CONSTANT [11] { value: 0 }
+            CONSTANT [13] { value: 0 }
           }
         }
-      }
-    }
-    CALL [12] {
-      function: _==_
-      args: {
-        CALL [13] {
+        CALL [14] {
           function: _?_:_
           args: {
-            SELECT [14] {
-              IDENT [15] {
-                name: @index1
-              }.single_int64~presence_test
+            IDENT [15] {
+              name: @index3
             }
             IDENT [16] {
               name: @index2
             }
             IDENT [17] {
-              name: @index3
+              name: @index4
             }
           }
         }
-        CONSTANT [18] { value: 10 }
+      }
+    }
+    CALL [18] {
+      function: _==_
+      args: {
+        IDENT [19] {
+          name: @index5
+        }
+        CONSTANT [20] { value: 10 }
       }
     }
   }
@@ -3034,73 +3093,100 @@ CALL [1] {
         }
         SELECT [9] {
           IDENT [10] {
+            name: msg
+          }.oneof_type~presence_test
+        }
+        SELECT [11] {
+          IDENT [12] {
+            name: @index0
+          }.payload~presence_test
+        }
+        CALL [13] {
+          function: _&&_
+          args: {
+            IDENT [14] {
+              name: @index3
+            }
+            IDENT [15] {
+              name: @index4
+            }
+          }
+        }
+        SELECT [16] {
+          IDENT [17] {
+            name: @index1
+          }.single_int64~presence_test
+        }
+        CALL [18] {
+          function: _&&_
+          args: {
+            IDENT [19] {
+              name: @index5
+            }
+            IDENT [20] {
+              name: @index6
+            }
+          }
+        }
+        SELECT [21] {
+          IDENT [22] {
+            name: @index1
+          }.map_string_string~presence_test
+        }
+        SELECT [23] {
+          IDENT [24] {
+            name: @index2
+          }.key~presence_test
+        }
+        CALL [25] {
+          function: _&&_
+          args: {
+            IDENT [26] {
+              name: @index8
+            }
+            IDENT [27] {
+              name: @index9
+            }
+          }
+        }
+        SELECT [28] {
+          IDENT [29] {
             name: @index2
           }.key
         }
-        CALL [11] {
+        CALL [30] {
           function: _==_
           args: {
-            IDENT [12] {
-              name: @index3
+            IDENT [31] {
+              name: @index11
             }
-            CONSTANT [13] { value: "A" }
+            CONSTANT [32] { value: "A" }
+          }
+        }
+        CALL [33] {
+          function: _?_:_
+          args: {
+            IDENT [34] {
+              name: @index10
+            }
+            IDENT [35] {
+              name: @index12
+            }
+            CONSTANT [36] { value: false }
           }
         }
       }
     }
-    CALL [14] {
+    CALL [37] {
       function: _?_:_
       args: {
-        CALL [15] {
-          function: _&&_
-          args: {
-            CALL [16] {
-              function: _&&_
-              args: {
-                SELECT [17] {
-                  IDENT [18] {
-                    name: msg
-                  }.oneof_type~presence_test
-                }
-                SELECT [19] {
-                  IDENT [20] {
-                    name: @index0
-                  }.payload~presence_test
-                }
-              }
-            }
-            SELECT [21] {
-              IDENT [22] {
-                name: @index1
-              }.single_int64~presence_test
-            }
-          }
+        IDENT [38] {
+          name: @index7
         }
-        CALL [23] {
-          function: _?_:_
-          args: {
-            CALL [24] {
-              function: _&&_
-              args: {
-                SELECT [25] {
-                  IDENT [26] {
-                    name: @index1
-                  }.map_string_string~presence_test
-                }
-                SELECT [27] {
-                  IDENT [28] {
-                    name: @index2
-                  }.key~presence_test
-                }
-              }
-            }
-            IDENT [29] {
-              name: @index4
-            }
-            CONSTANT [30] { value: false }
-          }
+        IDENT [39] {
+          name: @index13
         }
-        CONSTANT [31] { value: false }
+        CONSTANT [40] { value: false }
       }
     }
   }

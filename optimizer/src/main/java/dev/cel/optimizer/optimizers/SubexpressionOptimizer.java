@@ -543,7 +543,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     return !navigableExpr.getKind().equals(Kind.CONSTANT)
         && !navigableExpr.getKind().equals(Kind.IDENT)
         && !(navigableExpr.getKind().equals(Kind.IDENT) && navigableExpr.mutableExpr().ident().name().startsWith(BIND_IDENTIFIER_PREFIX))
-        && !(navigableExpr.getKind().equals(Kind.SELECT) && navigableExpr.mutableExpr().select().testOnly())
         && containsEliminableFunctionOnly(navigableExpr)
         && isWithinInlineableComprehension(navigableExpr);
   }
@@ -588,27 +587,13 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   }
 
   /**
-   * Converts the {@link CelExpr} to make it suitable for performing a semantically equals check.
+   * Converts the {@link MutableExpr} to make it suitable for performing a semantically equals check.
    *
-   * <p>Specifically, this will:
-   *
-   * <ul>
-   *   <li>Set all expr IDs in the expression tree to 0.
-   *   <li>Strip all presence tests (i.e: testOnly is marked as false on {@link
-   *       CelExpr.ExprKind.Kind#SELECT}
-   * </ul>
+   * Specifically, this will deep copy the mutable expr then set all expr IDs in the expression tree to 0.
    */
   private MutableExpr normalizeForEquality(MutableExpr mutableExpr) {
     // TODO: Avoid deep copy if possible.
     MutableExpr copiedExpr = mutableExpr.deepCopy();
-//    if (false) {
-      CelNavigableExpr.fromMutableExpr(copiedExpr)
-              .allNodes()
-              .filter(node -> node.getKind().equals(Kind.SELECT))
-              .map(node -> node.mutableExpr().select())
-              .filter(MutableExpr.MutableSelect::testOnly)
-              .forEach(select -> select.setTestOnly(false));
-//    }
 
     return astMutator.clearExprIds(copiedExpr);
   }

@@ -420,7 +420,7 @@ Source: has({'a': true}.a) && {'a':true}['a']
 Result: true
 [CASCADED_BINDS]: cel.bind(@r0, {"a": true}, has(@r0.a) && @r0["a"])
 [BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([{"a": true}], has(@index0.a) && @index0["a"])
-[BLOCK_RECURSION_DEPTH_1]: cel.@block([{"a": true}, @index0["a"]], has(@index0.a) && @index1)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([{"a": true}, has(@index0.a), @index0["a"]], @index1 && @index2)
 [BLOCK_RECURSION_DEPTH_2]: cel.@block([{"a": true}], has(@index0.a) && @index0["a"])
 [BLOCK_RECURSION_DEPTH_3]: cel.@block([{"a": true}], has(@index0.a) && @index0["a"])
 [BLOCK_RECURSION_DEPTH_4]: cel.@block([{"a": true}], has(@index0.a) && @index0["a"])
@@ -430,13 +430,29 @@ Result: true
 [BLOCK_RECURSION_DEPTH_8]: cel.@block([{"a": true}], has(@index0.a) && @index0["a"])
 [BLOCK_RECURSION_DEPTH_9]: cel.@block([{"a": true}], has(@index0.a) && @index0["a"])
 
+Test case: PRESENCE_TEST_2
+Source: has({'a': true}.a) && has({'a': true}.a)
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, has({"a": true}.a), @r0 && @r0)
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([has({"a": true}.a)], @index0 && @index0)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([{"a": true}, has(@index0.a)], @index1 && @index1)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([has({"a": true}.a)], @index0 && @index0)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([has({"a": true}.a)], @index0 && @index0)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([has({"a": true}.a)], @index0 && @index0)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([has({"a": true}.a)], @index0 && @index0)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([has({"a": true}.a)], @index0 && @index0)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([has({"a": true}.a)], @index0 && @index0)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([has({"a": true}.a)], @index0 && @index0)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([has({"a": true}.a)], @index0 && @index0)
+
 Test case: PRESENCE_TEST_WITH_TERNARY
 Source: (has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : 0) == 10
 =====>
 Result: true
 [CASCADED_BINDS]: cel.bind(@r0, msg.oneof_type, has(@r0.payload) ? @r0.payload.single_int64 : 0) == 10
 [BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.oneof_type], (has(@index0.payload) ? @index0.payload.single_int64 : 0) == 10)
-[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64], (has(@index0.payload) ? @index2 : 0) == 10)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, has(@index0.payload), @index0.payload, @index2.single_int64, @index1 ? @index3 : 0], @index4 == 10)
 [BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type, @index0.payload.single_int64, has(@index0.payload) ? @index1 : 0], @index2 == 10)
 [BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type, has(@index0.payload) ? @index0.payload.single_int64 : 0], @index1 == 10)
 [BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.oneof_type], (has(@index0.payload) ? @index0.payload.single_int64 : 0) == 10)
@@ -452,8 +468,8 @@ Source: (has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : msg
 Result: true
 [CASCADED_BINDS]: cel.bind(@r0, msg.oneof_type, cel.bind(@r1, @r0.payload.single_int64, has(@r0.payload) ? @r1 : (@r1 * 0))) == 10
 [BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.oneof_type, @index0.payload.single_int64], (has(@index0.payload) ? @index1 : (@index1 * 0)) == 10)
-[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, @index2 * 0], (has(@index0.payload) ? @index2 : @index3) == 10)
-[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type.payload, @index0.single_int64, msg.oneof_type, has(@index2.payload) ? @index1 : (@index1 * 0)], @index3 == 10)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index0.payload), @index2 * 0, @index3 ? @index2 : @index4], @index5 == 10)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type.payload, @index0.single_int64, has(msg.oneof_type.payload), @index2 ? @index1 : (@index1 * 0)], @index3 == 10)
 [BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type.payload.single_int64, has(msg.oneof_type.payload) ? @index0 : (@index0 * 0)], @index1 == 10)
 [BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.oneof_type.payload.single_int64], (has(msg.oneof_type.payload) ? @index0 : (@index0 * 0)) == 10)
 [BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.oneof_type.payload.single_int64], (has(msg.oneof_type.payload) ? @index0 : (@index0 * 0)) == 10)
@@ -468,9 +484,9 @@ Source: (has(msg.oneof_type.payload.single_int64) ? msg.oneof_type.payload.singl
 Result: true
 [CASCADED_BINDS]: cel.bind(@r0, msg.oneof_type.payload, cel.bind(@r1, @r0.single_int64, has(@r0.single_int64) ? @r1 : (@r1 * 0))) == 10
 [BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.oneof_type.payload, @index0.single_int64], (has(@index0.single_int64) ? @index1 : (@index1 * 0)) == 10)
-[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, @index2 * 0], (has(@index1.single_int64) ? @index2 : @index3) == 10)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.single_int64, has(@index1.single_int64), @index2 * 0, @index3 ? @index2 : @index4], @index5 == 10)
 [BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type.payload, @index0.single_int64, has(@index0.single_int64) ? @index1 : (@index1 * 0)], @index2 == 10)
-[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type.payload.single_int64, msg.oneof_type.payload], (has(@index1.single_int64) ? @index0 : (@index0 * 0)) == 10)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type.payload.single_int64, has(msg.oneof_type.payload.single_int64)], (@index1 ? @index0 : (@index0 * 0)) == 10)
 [BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.oneof_type.payload.single_int64, has(msg.oneof_type.payload.single_int64) ? @index0 : (@index0 * 0)], @index1 == 10)
 [BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.oneof_type.payload.single_int64], (has(msg.oneof_type.payload.single_int64) ? @index0 : (@index0 * 0)) == 10)
 [BLOCK_RECURSION_DEPTH_6]: cel.@block([msg.oneof_type.payload.single_int64], (has(msg.oneof_type.payload.single_int64) ? @index0 : (@index0 * 0)) == 10)
@@ -484,8 +500,8 @@ Source: (has(msg.oneof_type) && has(msg.oneof_type.payload) && has(msg.oneof_typ
 Result: true
 [CASCADED_BINDS]: cel.bind(@r0, msg.oneof_type, cel.bind(@r1, @r0.payload, (has(msg.oneof_type) && has(@r0.payload) && has(@r1.single_int64)) ? cel.bind(@r2, @r1.map_string_string, (has(@r1.map_string_string) && has(@r2.key)) ? (@r2.key == "A") : false) : false))
 [BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_string_string], (has(msg.oneof_type) && has(@index0.payload) && has(@index1.single_int64)) ? ((has(@index1.map_string_string) && has(@index2.key)) ? (@index2.key == "A") : false) : false)
-[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_string_string, @index2.key, @index3 == "A"], (has(msg.oneof_type) && has(@index0.payload) && has(@index1.single_int64)) ? ((has(@index1.map_string_string) && has(@index2.key)) ? @index4 : false) : false)
-[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type.payload, @index0.map_string_string, has(@index0.map_string_string) && has(@index1.key), @index1.key == "A", msg.oneof_type, has(msg.oneof_type) && has(@index4.payload), @index5 && has(@index0.single_int64)], @index6 ? (@index2 ? @index3 : false) : false)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([msg.oneof_type, @index0.payload, @index1.map_string_string, has(msg.oneof_type), has(@index0.payload), @index3 && @index4, has(@index1.single_int64), @index5 && @index6, has(@index1.map_string_string), has(@index2.key), @index8 && @index9, @index2.key, @index11 == "A", @index10 ? @index12 : false], @index7 ? @index13 : false)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([msg.oneof_type.payload, @index0.map_string_string, has(msg.oneof_type.payload), has(msg.oneof_type) && @index2, @index3 && has(@index0.single_int64), has(@index0.map_string_string) && has(@index1.key), @index1.key == "A"], @index4 ? (@index5 ? @index6 : false) : false)
 [BLOCK_RECURSION_DEPTH_3]: cel.@block([msg.oneof_type.payload.map_string_string, msg.oneof_type.payload, has(msg.oneof_type) && has(msg.oneof_type.payload), (has(@index1.map_string_string) && has(@index0.key)) ? (@index0.key == "A") : false], (@index2 && has(@index1.single_int64)) ? @index3 : false)
 [BLOCK_RECURSION_DEPTH_4]: cel.@block([msg.oneof_type.payload.map_string_string, msg.oneof_type.payload, has(msg.oneof_type) && has(msg.oneof_type.payload) && has(@index1.single_int64)], @index2 ? ((has(@index1.map_string_string) && has(@index0.key)) ? (@index0.key == "A") : false) : false)
 [BLOCK_RECURSION_DEPTH_5]: cel.@block([msg.oneof_type.payload.map_string_string, msg.oneof_type.payload], (has(msg.oneof_type) && has(msg.oneof_type.payload) && has(@index1.single_int64)) ? ((has(@index1.map_string_string) && has(@index0.key)) ? (@index0.key == "A") : false) : false)

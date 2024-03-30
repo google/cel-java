@@ -2629,6 +2629,41 @@ CALL [1] {
     }
   }
 }
+Test case: PRESENCE_TEST_2
+Source: has({'a': true}.a) && has({'a': true}.a)
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          CREATE_MAP [4] {
+            MAP_ENTRY [5] {
+              key: {
+                CONSTANT [6] { value: "a" }
+              }
+              value: {
+                CONSTANT [7] { value: true }
+              }
+            }
+          }.a~presence_test
+        }
+      }
+    }
+    CALL [8] {
+      function: _&&_
+      args: {
+        IDENT [9] {
+          name: @index0
+        }
+        IDENT [10] {
+          name: @index0
+        }
+      }
+    }
+  }
+}
 Test case: PRESENCE_TEST_WITH_TERNARY
 Source: (has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : 0) == 10
 =====>
@@ -2697,17 +2732,17 @@ CALL [1] {
           }.single_int64
         }
         SELECT [8] {
-          IDENT [9] {
-            name: msg
-          }.oneof_type
+          SELECT [9] {
+            IDENT [10] {
+              name: msg
+            }.oneof_type
+          }.payload~presence_test
         }
-        CALL [10] {
+        CALL [11] {
           function: _?_:_
           args: {
-            SELECT [11] {
-              IDENT [12] {
-                name: @index2
-              }.payload~presence_test
+            IDENT [12] {
+              name: @index2
             }
             IDENT [13] {
               name: @index1
@@ -2811,63 +2846,63 @@ CALL [1] {
             name: @index0
           }.map_string_string
         }
-        CALL [8] {
+        SELECT [8] {
+          SELECT [9] {
+            IDENT [10] {
+              name: msg
+            }.oneof_type
+          }.payload~presence_test
+        }
+        CALL [11] {
           function: _&&_
           args: {
-            SELECT [9] {
-              IDENT [10] {
-                name: @index0
-              }.map_string_string~presence_test
+            SELECT [12] {
+              IDENT [13] {
+                name: msg
+              }.oneof_type~presence_test
             }
-            SELECT [11] {
-              IDENT [12] {
-                name: @index1
-              }.key~presence_test
+            IDENT [14] {
+              name: @index2
             }
           }
         }
-        CALL [13] {
-          function: _==_
+        CALL [15] {
+          function: _&&_
           args: {
-            SELECT [14] {
-              IDENT [15] {
-                name: @index1
-              }.key
+            IDENT [16] {
+              name: @index3
             }
-            CONSTANT [16] { value: "A" }
+            SELECT [17] {
+              IDENT [18] {
+                name: @index0
+              }.single_int64~presence_test
+            }
           }
-        }
-        SELECT [17] {
-          IDENT [18] {
-            name: msg
-          }.oneof_type
         }
         CALL [19] {
           function: _&&_
           args: {
             SELECT [20] {
               IDENT [21] {
-                name: msg
-              }.oneof_type~presence_test
+                name: @index0
+              }.map_string_string~presence_test
             }
             SELECT [22] {
               IDENT [23] {
-                name: @index4
-              }.payload~presence_test
+                name: @index1
+              }.key~presence_test
             }
           }
         }
         CALL [24] {
-          function: _&&_
+          function: _==_
           args: {
-            IDENT [25] {
-              name: @index5
+            SELECT [25] {
+              IDENT [26] {
+                name: @index1
+              }.key
             }
-            SELECT [26] {
-              IDENT [27] {
-                name: @index0
-              }.single_int64~presence_test
-            }
+            CONSTANT [27] { value: "A" }
           }
         }
       }
@@ -2876,16 +2911,16 @@ CALL [1] {
       function: _?_:_
       args: {
         IDENT [29] {
-          name: @index6
+          name: @index4
         }
         CALL [30] {
           function: _?_:_
           args: {
             IDENT [31] {
-              name: @index2
+              name: @index5
             }
             IDENT [32] {
-              name: @index3
+              name: @index6
             }
             CONSTANT [33] { value: false }
           }

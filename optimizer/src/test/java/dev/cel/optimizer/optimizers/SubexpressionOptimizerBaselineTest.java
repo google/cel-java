@@ -469,6 +469,7 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
     MACRO_SHADOWED_VARIABLE("[x - 1 > 3 ? x - 1 : 5].exists(x, x - 1 > 3) || x - 1 > 3"),
     MACRO_SHADOWED_VARIABLE_2("[\"foo\", \"bar\"].map(x, [x + x, x + x]).map(x, [x + x, x + x])"),
     PRESENCE_TEST("has({'a': true}.a) && {'a':true}['a']"),
+    PRESENCE_TEST_2("has({'a': true}.a) && has({'a': true}.a)"),
     PRESENCE_TEST_WITH_TERNARY(
         "(has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : 0) == 10"),
     PRESENCE_TEST_WITH_TERNARY_2(

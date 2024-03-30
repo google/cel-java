@@ -2264,6 +2264,41 @@ CALL [1] {
     }
   }
 }
+Test case: PRESENCE_TEST_2
+Source: has({'a': true}.a) && has({'a': true}.a)
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    CREATE_LIST [2] {
+      elements: {
+        SELECT [3] {
+          CREATE_MAP [4] {
+            MAP_ENTRY [5] {
+              key: {
+                CONSTANT [6] { value: "a" }
+              }
+              value: {
+                CONSTANT [7] { value: true }
+              }
+            }
+          }.a~presence_test
+        }
+      }
+    }
+    CALL [8] {
+      function: _&&_
+      args: {
+        IDENT [9] {
+          name: @index0
+        }
+        IDENT [10] {
+          name: @index0
+        }
+      }
+    }
+  }
+}
 Test case: PRESENCE_TEST_WITH_TERNARY
 Source: (has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : 0) == 10
 =====>

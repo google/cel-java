@@ -542,7 +542,7 @@ public class SubexpressionOptimizerTest {
   @Test
   public void smokeTest() throws Exception {
 //    String expression = "size([1,2]) + size([1,2]) + 1 == 5";
-    String expression = "{'a': {'b': 1}, 'c': {'b': 1}, 'd': {'e': {'b': 1}}, 'e': {'e': {'b': 1}}}";
+    String expression = "has(msg.single_any) && has(msg.single_any.test)" ;
     Cel cel = newCelBuilder().build();
     CelOptimizer celOptimizer =
             CelOptimizerFactory.standardCelOptimizerBuilder(cel)
@@ -550,7 +550,7 @@ public class SubexpressionOptimizerTest {
                             SubexpressionOptimizer.newInstance(
                                     SubexpressionOptimizerOptions.newBuilder()
                                             .populateMacroCalls(true)
-                                            .subexpressionMaxRecursionDepth(2)
+//                                            .subexpressionMaxRecursionDepth(2)
                                             .enableCelBlock(true).build()))
                     .build();
     CelAbstractSyntaxTree ast = CEL.compile(expression).getAst();
