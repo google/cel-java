@@ -142,8 +142,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   private OptimizationResult optimizeUsingCelBlock(CelNavigableAst navigableAst, Cel cel) {
     MangledComprehensionAst mangledComprehensionAst =
         astMutator.mangleComprehensionIdentifierNames(
-            navigableAst.getAst(),
             navigableAst.getRoot().mutableExpr(),
+            navigableAst.getAst(),
             MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
             MANGLED_COMPREHENSION_RESULT_PREFIX);
     MutableAst astToModify = mangledComprehensionAst.mutableAst();
@@ -347,8 +347,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     MutableAst astToModify =
         astMutator
             .mangleComprehensionIdentifierNames(
-                navigableAst.getAst(),
                 navigableAst.getRoot().mutableExpr(),
+                navigableAst.getAst(),
                 MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
                 MANGLED_COMPREHENSION_RESULT_PREFIX)
             .mutableAst();

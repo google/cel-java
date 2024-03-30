@@ -805,7 +805,7 @@ public class AstMutatorTest {
     MutableAst mutableAst = MutableAst.fromCelAst(ast);
 
     CelAbstractSyntaxTree mangledAst =
-        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, mutableAst.mutableExpr(), "@c", "@x").mutableAst().toParsedAst();
+        MUTABLE_AST.mangleComprehensionIdentifierNames(mutableAst.mutableExpr(), ast, "@c", "@x").mutableAst().toParsedAst();
 
     assertThat(mangledAst.getExpr().toString())
         .isEqualTo(
@@ -867,7 +867,7 @@ public class AstMutatorTest {
     MutableAst mutableAst = MutableAst.fromCelAst(ast);
 
     CelAbstractSyntaxTree mangledAst =
-        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, mutableAst.mutableExpr(), "@c", "@x").mutableAst().toParsedAst();
+        MUTABLE_AST.mangleComprehensionIdentifierNames(mutableAst.mutableExpr(), ast, "@c", "@x").mutableAst().toParsedAst();
 
     assertThat(mangledAst.getExpr().toString())
         .isEqualTo(
@@ -985,7 +985,7 @@ public class AstMutatorTest {
     MutableAst mutableAst = MutableAst.fromCelAst(ast);
 
     CelAbstractSyntaxTree mangledAst =
-        MUTABLE_AST.mangleComprehensionIdentifierNames(ast, mutableAst.mutableExpr(), "@c", "@x").mutableAst().toParsedAst();
+        MUTABLE_AST.mangleComprehensionIdentifierNames(mutableAst.mutableExpr(), ast, "@c", "@x").mutableAst().toParsedAst();
 
     assertThat(CEL_UNPARSER.unparse(mangledAst)).isEqualTo("has(msg.single_int64)");
     assertThat(

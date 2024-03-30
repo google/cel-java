@@ -184,13 +184,13 @@ public final class AstMutator {
    * </ul>
    *
    * @param mutableExpr TODO
-   * @param ast AST to mutate
+   * @param ast AST containing type-checked references
    * @param newIterVarPrefix Prefix to use for new iteration variable identifier name. For example,
    *     providing @c will produce @c0:0, @c0:1, @c1:0, @c2:0... as new names.
    * @param newResultPrefix Prefix to use for new comprehensin result identifier names.
    */
   public MangledComprehensionAst mangleComprehensionIdentifierNames(
-      CelAbstractSyntaxTree ast, MutableExpr mutableExpr, String newIterVarPrefix, String newResultPrefix) {
+          MutableExpr mutableExpr, CelAbstractSyntaxTree ast, String newIterVarPrefix, String newResultPrefix) {
     CelNavigableExpr newNavigableExpr = CelNavigableExpr.fromMutableExpr(mutableExpr);
     Predicate<CelNavigableExpr> comprehensionIdentifierPredicate = x -> true;
     comprehensionIdentifierPredicate =
@@ -319,7 +319,6 @@ public final class AstMutator {
       throw new IllegalStateException("Max iteration count reached.");
     }
 
-    // TODO
     return MangledComprehensionAst.of(
         MutableAst.of(mutatedComprehensionExpr,newSource), ImmutableMap.copyOf(mangledIdentNamesToType));
   }
@@ -490,8 +489,7 @@ public final class AstMutator {
     long loopStepId = stableIdGenerator.nextExprId();
     long comprehensionId = stableIdGenerator.nextExprId();
 
-    // TODO: make this a factory?
-    MutableExpr bindMacroExpr = MutableExpr.ofComprehension(
+      return MutableExpr.ofComprehension(
             comprehensionId,
             MutableComprehension.create(
                     "#unused",
@@ -503,8 +501,6 @@ public final class AstMutator {
                     resultExpr
             )
     );
-
-    return bindMacroExpr;
   }
 
   private MutableExpr newBindMacroSourceExpr(MutableExpr bindMacroExpr, String varName, StableIdGenerator stableIdGenerator) {
