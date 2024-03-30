@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Performs optimization for inlining constant scalar and aggregate literal values within function
@@ -84,39 +85,38 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   public OptimizationResult optimize(CelNavigableAst navigableAst, Cel cel)
       throws CelOptimizationException {
     MutableAst mutableAst = MutableAst.fromCelAst(navigableAst.getAst());
-    Set<MutableExpr> visitedExprs = new HashSet<>();
     int iterCount = 0;
-    while (true) {
-      iterCount++;
+    boolean continueFolding = true;
+    while (continueFolding) {
       if (iterCount >= constantFoldingOptions.maxIterationLimit()) {
         throw new IllegalStateException("Max iteration count reached.");
       }
-      Optional<CelNavigableExpr> foldableExpr =
-          CelNavigableExpr.fromMutableExpr(mutableAst.mutableExpr())
-              .allNodes()
-              .filter(ConstantFoldingOptimizer::canFold)
-              .filter(node -> !visitedExprs.contains(node.mutableExpr()))
-              .findAny();
-      if (!foldableExpr.isPresent()) {
-        break;
-      }
-      visitedExprs.add(foldableExpr.get().mutableExpr());
+      iterCount++;
+      continueFolding = false;
 
-      Optional<MutableAst> mutatedResult;
-      // Attempt to prune if it is a non-strict call
-      mutatedResult = maybePruneBranches(mutableAst, foldableExpr.get().mutableExpr());
-      if (!mutatedResult.isPresent()) {
-        // Evaluate the call then fold
-        mutatedResult = maybeFold(cel, mutableAst, foldableExpr.get());
-      }
+      List<CelNavigableExpr> foldableExprs =
+              CelNavigableExpr.fromMutableExpr(mutableAst.mutableExpr())
+                      .allNodes()
+                      .filter(ConstantFoldingOptimizer::canFold).collect(Collectors.toList());
+      for (CelNavigableExpr foldableExpr : foldableExprs) {
+        iterCount++;
 
-      if (!mutatedResult.isPresent()) {
-        // Skip this expr. It's neither prune-able nor foldable.
-        continue;
-      }
+        Optional<MutableAst> mutatedResult;
+        // Attempt to prune if it is a non-strict call
+        mutatedResult = maybePruneBranches(mutableAst, foldableExpr.mutableExpr());
+        if (!mutatedResult.isPresent()) {
+          // Evaluate the call then fold
+          mutatedResult = maybeFold(cel, mutableAst, foldableExpr);
+        }
 
-      visitedExprs.clear();
-      mutableAst = mutatedResult.get();
+        if (!mutatedResult.isPresent()) {
+          // Skip this expr. It's neither prune-able nor foldable.
+          continue;
+        }
+
+        continueFolding = true;
+        mutableAst = mutatedResult.get();
+      }
     }
 
     // If the output is a list, map, or struct which contains optional entries, then prune it
