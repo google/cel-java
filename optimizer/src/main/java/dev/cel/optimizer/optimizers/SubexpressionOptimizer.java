@@ -380,7 +380,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       }
 
       // Find LCA to insert the new cel.bind macro into.
-      CelNavigableExpr lca = getLca(astToModify, bindIdentifier);
+      CelNavigableExpr lca = getLca(navAst, bindIdentifier);
 
       // Retain the existing macro calls in case if the block identifiers are replacing a subtree
       // that contains a comprehension.
@@ -413,8 +413,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     return OptimizationResult.create(astToModify.toParsedAst());
   }
 
-  private static CelNavigableExpr getLca(MutableAst ast, String boundIdentifier) {
-    CelNavigableExpr root = CelNavigableAst.fromMutableAst(ast).getRoot();
+  private static CelNavigableExpr getLca(CelNavigableAst navAst, String boundIdentifier) {
+    CelNavigableExpr root = navAst.getRoot();
     ImmutableList<CelNavigableExpr> allNodesWithIdentifier =
         root.allNodes()
             .filter(node -> node.getKind().equals(Kind.IDENT) && node.mutableExpr().ident().name().equals(boundIdentifier))
