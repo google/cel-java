@@ -54,7 +54,7 @@ public abstract class CelNavigableExpr {
   public abstract MutableExpr mutableExpr();
 
   public long id() {
-    // TODO
+    // TODO: Hack. Separate CelNavigableExpr between immutable/mutable exprs via generic
     if (mutableExpr().exprKind().equals(ExprKind.Kind.NOT_SET) && mutableExpr().id() == 0L) {
       return expr().id();
     } else {
@@ -147,7 +147,7 @@ public abstract class CelNavigableExpr {
 
   /** Returns the underlying kind of the {@link CelExpr}. */
   public ExprKind.Kind getKind() {
-    // TODO
+    // TODO: Hack. Separate CelNavigableExpr between immutable/mutable exprs via generic
     if (mutableExpr().exprKind().equals(ExprKind.Kind.NOT_SET)) {
       return expr().exprKind().getKind();
     } else {
