@@ -31,10 +31,15 @@ final class ExprHeightCalculator {
   // Store hashmap instead of immutable map for performance, such that this helper class can be
   // instantiated faster.
   private final HashMap<Long, Integer> idToHeight;
+  private long maxId = 0;
 
   ExprHeightCalculator(MutableExpr celExpr) {
     this.idToHeight = new HashMap<>();
     visit(celExpr);
+  }
+
+  long getMaxId() {
+    return maxId;
   }
 
   int getHeight(Long exprId) {
@@ -70,6 +75,10 @@ final class ExprHeightCalculator {
         // This is a leaf node
         height = 0;
         break;
+    }
+
+    if (maxId < celExpr.id()) {
+      maxId = celExpr.id();
     }
 
     idToHeight.put(celExpr.id(), height);

@@ -73,6 +73,8 @@ public abstract class CelNavigableExpr {
    */
   public abstract int height();
 
+  public abstract long maxId();
+
   /** Constructs a new instance of {@link CelNavigableExpr} from {@link CelExpr}. */
   public static CelNavigableExpr fromExpr(CelExpr expr) {
     // ExprHeightCalculator exprHeightCalculator = new ExprHeightCalculator(expr);
@@ -91,6 +93,7 @@ public abstract class CelNavigableExpr {
     return CelNavigableExpr.builder()
         .setMutableExpr(expr)
         .setHeight(exprHeightCalculator.getHeight(expr.id()))
+        .setMaxId(exprHeightCalculator.getMaxId())
         .build();
   }
 
@@ -159,7 +162,7 @@ public abstract class CelNavigableExpr {
   public static Builder builder() {
     return new AutoValue_CelNavigableExpr.Builder()
         .setExpr(CelExpr.ofNotSet(0))
-        .setMutableExpr(MutableExpr.ofNotSet()).setDepth(0).setHeight(0);
+        .setMutableExpr(MutableExpr.ofNotSet()).setDepth(0).setHeight(0).setMaxId(0);
   }
 
   /** Builder to configure {@link CelNavigableExpr}. */
@@ -182,6 +185,7 @@ public abstract class CelNavigableExpr {
     public abstract Builder setDepth(int value);
 
     public abstract Builder setHeight(int value);
+    public abstract Builder setMaxId(long value);
 
     public abstract CelNavigableExpr build();
   }

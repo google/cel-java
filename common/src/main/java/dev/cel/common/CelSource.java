@@ -274,6 +274,12 @@ public final class CelSource {
     }
 
     @CanIgnoreReturnValue
+    public Builder clearMacroCalls() {
+      this.macroCalls.clear();
+      return this;
+    }
+
+    @CanIgnoreReturnValue
     public Builder clearMacroCall(long exprId) {
       this.macroCalls.remove(exprId);
       return this;

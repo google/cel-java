@@ -14,6 +14,11 @@
 
 package dev.cel.optimizer.optimizers;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static java.util.Arrays.stream;
+
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -52,7 +57,6 @@ import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.AstMutator.MangledComprehensionAst;
 import dev.cel.optimizer.CelAstOptimizer;
 import dev.cel.parser.Operator;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -60,11 +64,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static java.util.Arrays.stream;
 
 /**
  * Performs Common Subexpression Elimination.
@@ -169,17 +168,19 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         iterCount++;
 
         astToModify =
-                astMutator.replaceSubtree(
-                        astToModify,
-                        MutableExpr.ofIdent(blockIdentifier),
-                        cseCandidate.id()
-                );
-      }
+            astMutator.replaceSubtree(
+                navAst,
+                CelNavigableAst.fromMutableAst(MutableAst.of(MutableExpr.ofIdent(blockIdentifier),
+                    CelSource.newBuilder().addAllMacroCalls(navAst.getMutableAst().source().getMacroCalls())
+                )),
+                cseCandidate.id()
+            );
 
-      // Retain the existing macro calls in case if the block identifiers are replacing a subtree
-      // that contains a comprehension.
-      sourceToModify.addAllMacroCalls(astToModify.source().getMacroCalls());
-      astToModify = MutableAst.of(astToModify.mutableExpr(), sourceToModify);
+        // Retain the existing macro calls in case if the block identifiers are replacing a subtree
+        // that contains a comprehension.
+        sourceToModify.addAllMacroCalls(astToModify.source().getMacroCalls());
+        astToModify = MutableAst.of(astToModify.mutableExpr(), sourceToModify);
+      }
     }
 
     if (iterCount >= cseOptions.iterationLimit()) {
@@ -193,7 +194,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     if (iterCount == 0) {
       // No modification has been made.
       return OptimizationResult.create(astToModify.toParsedAst());
-      // return OptimizationResult.create(navigableAst.getAst());
     }
 
     ImmutableList.Builder<CelVarDecl> newVarDecls = ImmutableList.builder();
@@ -382,16 +382,14 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       // Find LCA to insert the new cel.bind macro into.
       CelNavigableExpr lca = getLca(navAst, bindIdentifier);
 
-      // Retain the existing macro calls in case if the block identifiers are replacing a subtree
-      // that contains a comprehension.
-      sourceToModify.addAllMacroCalls(astToModify.source().getMacroCalls());
-      astToModify = MutableAst.of(astToModify.mutableExpr(), sourceToModify.build().toBuilder());
-
       // Insert the new bind call
       MutableExpr subexpressionToBind = cseCandidates.get(0);
+      astToModify.source().addAllMacroCalls(sourceToModify.getMacroCalls());
       astToModify =
           astMutator.replaceSubtreeWithNewBindMacro(
                   astToModify, bindIdentifier, subexpressionToBind, lca.mutableExpr(), lca.id(), cseOptions.populateMacroCalls());
+      // Retain the existing macro calls in case if the block identifiers are replacing a subtree
+      // that contains a comprehension.
       sourceToModify = astToModify.source();
     }
 
@@ -595,7 +593,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     // TODO: Avoid deep copy if possible.
     MutableExpr copiedExpr = mutableExpr.deepCopy();
 
-    return astMutator.clearExprIds(copiedExpr);
+    MutableExpr clearedExpr = astMutator.clearExprIds(copiedExpr);
+    return clearedExpr;
   }
 
   @VisibleForTesting

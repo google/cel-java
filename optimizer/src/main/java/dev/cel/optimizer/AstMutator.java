@@ -35,6 +35,7 @@ import dev.cel.common.ast.MutableExpr.MutableCall;
 import dev.cel.common.ast.MutableExpr.MutableComprehension;
 import dev.cel.common.ast.MutableExpr.MutableCreateList;
 import dev.cel.common.ast.MutableExprConverter;
+import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.navigation.CelNavigableExpr.TraversalOrder;
 import dev.cel.common.types.CelType;
@@ -348,9 +349,22 @@ public final class AstMutator {
           MutableAst newAst,
           long exprIdToReplace
           ) {
-    // TODO: Make this a part of API
+    return replaceSubtree(
+        CelNavigableAst.fromMutableAst(ast),
+        CelNavigableAst.fromMutableAst(newAst),
+        exprIdToReplace
+    );
+  }
+
+  public MutableAst replaceSubtree(
+      CelNavigableAst navAst,
+      CelNavigableAst navNewAst,
+      long exprIdToReplace
+  ) {
     // Stabilize the incoming AST by renumbering all of its expression IDs.
-    long maxId = max(getMaxId(ast), getMaxId(newAst));
+    long maxId = max(getMaxId(navAst), getMaxId(navNewAst));
+    MutableAst ast = navAst.getMutableAst();
+    MutableAst newAst = navNewAst.getMutableAst();
     newAst = stabilizeAst(newAst, maxId);
     long stablizedNewExprRootId = newAst.mutableExpr().id();
 
@@ -359,6 +373,7 @@ public final class AstMutator {
     // in the macro source map.
     StableIdGenerator stableIdGenerator =
         CelExprIdGeneratorFactory.newStableIdGenerator(getMaxId(newAst));
+
     MutableExpr mutatedRoot =
         mutateExpr(
             stableIdGenerator::renumberId,
@@ -373,7 +388,7 @@ public final class AstMutator {
 
     if (!newAst.source().getMacroCalls().isEmpty()) {
       stableIdGenerator.memoize(
-              stablizedNewExprRootId, stableIdGenerator.renumberId(exprIdToReplace));
+          stablizedNewExprRootId, stableIdGenerator.renumberId(exprIdToReplace));
       newAstSource = combine(newAstSource, newAst.source());
     }
 
@@ -749,8 +764,19 @@ public final class AstMutator {
         .orElseThrow(NoSuchElementException::new);
   }
 
+  private static long getMaxId(CelNavigableAst navAst) {
+    long maxId = navAst.getRoot().maxId();
+    for (Entry<Long, CelExpr> macroCall : navAst.getMutableAst().source().getMacroCalls().entrySet()) {
+      maxId = max(maxId, getMaxId(macroCall.getValue()));
+    }
+
+    return maxId;
+  }
+
+
   private static long getMaxId(MutableAst mutableAst) {
-    long maxId = getMaxId(mutableAst.mutableExpr());
+    // long maxId = getMaxId(mutableAst.mutableExpr());
+    long maxId = CelNavigableAst.fromMutableAst(mutableAst).getRoot().maxId();
     for (Entry<Long, CelExpr> macroCall : mutableAst.source().getMacroCalls().entrySet()) {
       maxId = max(maxId, getMaxId(macroCall.getValue()));
     }

@@ -285,7 +285,8 @@ final class CelNavigableExprVisitor {
             CelNavigableExpr.builder()
                     .setMutableExpr(expr)
                     .setDepth(parent.depth() + 1)
-                   .setHeight(exprHeightCalculator.getHeight(expr.id()))
+                    .setHeight(exprHeightCalculator.getHeight(expr.id()))
+                    .setMaxId(exprHeightCalculator.getMaxId())
                     .setParent(parent);
 
     return navigableExpr.build();

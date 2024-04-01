@@ -276,11 +276,11 @@ public class AstMutatorTest {
     MutableAst mutableAst2 = MutableAst.fromCelAst(ast2);
 
     CelAbstractSyntaxTree mutatedAst =
-        MUTABLE_AST.replaceSubtree(
+        MUTABLE_AST.renumberIdsConsecutively(MUTABLE_AST.replaceSubtree(
             mutableAst,
             mutableAst2,
             9
-        ).toParsedAst(); // Replace true with the ast2 maro expr
+        )).toParsedAst(); // Replace true with the ast2 maro expr
 
     assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(2);
     assertThat(CEL_UNPARSER.unparse(mutatedAst))
@@ -377,8 +377,8 @@ public class AstMutatorTest {
             exprIdToReplace, true); // Replace +
 
     CelAbstractSyntaxTree mutatedAst = mutableAst.toParsedAst();
-    // assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(2);
-    // assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(8);
+    assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(2);
+    assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(8);
     assertThat(CEL_UNPARSER.unparse(mutatedAst))
         .isEqualTo("cel.bind(@r0, 3, cel.bind(@r1, 1, @r0 + @r0 + @r1 + @r1))");
     assertConsistentMacroCalls(mutatedAst);
