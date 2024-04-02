@@ -34,6 +34,7 @@ import dev.cel.common.types.CelType;
 import dev.cel.common.types.TypeType;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import org.jspecify.nullness.Nullable;
 
 /**
@@ -76,6 +77,8 @@ public final class StandardTypeResolver implements TypeResolver {
         // Aggregate types.
         .put(createType("list"), Collection.class)
         .put(createType("map"), Map.class)
+        // Optional type
+        .put(createType("optional_type"), Optional.class)
         .buildOrThrow();
   }
 

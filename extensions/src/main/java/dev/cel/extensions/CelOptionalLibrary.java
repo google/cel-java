@@ -28,12 +28,14 @@ import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelOverloadDecl;
+import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
+import dev.cel.common.types.TypeType;
 import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelMacroExprFactory;
@@ -93,6 +95,11 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
     OptionalType optionalTypeV = OptionalType.create(paramTypeV);
     ListType listTypeV = ListType.create(paramTypeV);
     MapType mapTypeKv = MapType.create(paramTypeK, paramTypeV);
+
+    // Type declaration for optional_type -> type(optional_type(V))
+    checkerBuilder.addVarDeclarations(
+        CelVarDecl.newVarDeclaration(OptionalType.NAME, TypeType.create(optionalTypeV)));
+
     checkerBuilder.addFunctionDeclarations(
         CelFunctionDecl.newFunctionDeclaration(
             Function.OPTIONAL_OF.getFunction(),

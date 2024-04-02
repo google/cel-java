@@ -17,6 +17,7 @@ package dev.cel.extensions;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import dev.cel.expr.Value;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
@@ -1408,5 +1409,24 @@ public class CelOptionalLibraryTest {
     assertThat(e)
         .hasMessageThat()
         .contains("optFlatMap() variable name must be a simple identifier");
+  }
+
+  @Test
+  public void optionalType_typeResolution() throws Exception {
+    Cel cel = newCelBuilder().build();
+
+    CelAbstractSyntaxTree ast = cel.compile("optional_type").getAst();
+
+    assertThat(cel.createProgram(ast).eval())
+        .isEqualTo(Value.newBuilder().setTypeValue("optional_type").build());
+  }
+
+  @Test
+  public void optionalType_typeComparison() throws Exception {
+    Cel cel = newCelBuilder().build();
+
+    CelAbstractSyntaxTree ast = cel.compile("type(optional.none()) == optional_type").getAst();
+
+    assertThat(cel.createProgram(ast).eval()).isEqualTo(true);
   }
 }
