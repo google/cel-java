@@ -15,14 +15,12 @@
 package dev.cel.runtime.async;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.util.concurrent.Futures.immediateFuture;
 import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertThrows;
 
-import dev.cel.expr.Type;
-import dev.cel.expr.Type.ListType;
-import dev.cel.expr.Type.PrimitiveType;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.testing.junit.testparameterinjector.TestParameter;
@@ -33,6 +31,9 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.testing.RepeatedTestProvider;
 import dev.cel.common.types.SimpleType;
+import dev.cel.expr.Type;
+import dev.cel.expr.Type.ListType;
+import dev.cel.expr.Type.PrimitiveType;
 import dev.cel.runtime.CelAttributeParser;
 import dev.cel.runtime.CelAttributePattern;
 import dev.cel.runtime.CelEvaluationException;
@@ -153,6 +154,51 @@ public final class CelAsyncRuntimeImplTest {
     // Assert
     assertThat(result).isInstanceOf(Boolean.class);
     assertThat(result).isEqualTo(true);
+  }
+
+  @Test
+  public void asyncProgram_resolvesDoneFuturesFirst_withSyncStyleResolvers() throws Exception {
+    // Arrange
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .setOptions(CelOptions.current().enableUnknownTracking(true).build())
+            .addVar("com.google.var1", SimpleType.BOOL)
+            .addVar("com.google.var2", SimpleType.BOOL)
+            .setResultType(SimpleType.BOOL)
+            .setContainer("com.google")
+            .build();
+
+    CelAsyncRuntime asyncRuntime =
+        CelAsyncRuntimeFactory.defaultAsyncRuntime()
+            .setRuntime(cel)
+            .addResolvableAttributePattern(
+                CelAttributePattern.fromQualifiedIdentifier("com.google.var1"),
+                CelUnknownAttributeValueResolver.fromResolver((attr) -> {
+                  try {
+                    Thread.sleep(Long.MAX_VALUE);
+                    throw new IllegalStateException("Should never fire");
+                  } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                  }
+                }))
+            .addResolvableAttributePattern(
+                CelAttributePattern.fromQualifiedIdentifier("com.google.var2"),
+                CelUnknownAttributeValueResolver.fromAsyncResolver((attr) -> immediateFuture(true)))
+            .setExecutorService(Executors.newFixedThreadPool(2))
+            .build();
+
+    CelAbstractSyntaxTree ast = cel.compile("var1 || var2").getAst();
+
+    AsyncProgram program = asyncRuntime.createProgram(ast);
+    // empty starting context
+    UnknownContext context = asyncRuntime.newAsyncContext();
+
+    // Act
+    ListenableFuture<Object> future = program.evaluateToCompletion(context);
+    boolean result = (boolean) future.get(1, SECONDS);
+
+    // Assert
+    assertThat(result).isTrue();
   }
 
   @Test

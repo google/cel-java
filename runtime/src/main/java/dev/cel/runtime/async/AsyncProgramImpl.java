@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
-import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.runtime.CelAttribute;
 import dev.cel.runtime.CelAttributePattern;
 import dev.cel.runtime.CelEvaluationException;
@@ -36,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Default runtime implementation for {@link CelAsyncRuntime.AsyncProgram}.
@@ -104,10 +104,17 @@ final class AsyncProgramImpl implements CelAsyncRuntime.AsyncProgram {
   private ListenableFuture<Object> resolveAndReevaluate(
       CelUnknownSet unknowns, UnknownContext ctx, int iteration) {
     Map<CelAttribute, ListenableFuture<Object>> futureMap = new LinkedHashMap<>();
+    Map<CelAttribute, ListenableFuture<Object>> completedFutureMap = new LinkedHashMap<>();
     for (CelAttribute attr : unknowns.attributes()) {
       Optional<CelUnknownAttributeValueResolver> maybeResolver = lookupResolver(attr);
 
-      maybeResolver.ifPresent((resolver) -> futureMap.put(attr, resolver.resolve(executor, attr)));
+      maybeResolver.ifPresent((resolver) -> {
+        ListenableFuture<Object> futureToResolve = resolver.resolve(executor, attr);
+        futureMap.put(attr, futureToResolve);
+        if (futureToResolve.isDone()) {
+          completedFutureMap.put(attr, futureToResolve);
+        }
+      });
     }
 
     if (futureMap.isEmpty()) {
@@ -116,17 +123,45 @@ final class AsyncProgramImpl implements CelAsyncRuntime.AsyncProgram {
               String.format("Unknown resolution failed -- no resolvers for: %s", unknowns)));
     }
 
-    // TODO: lookup fails on any failure. Fine for prototyping, but this would likely
-    // need to be configurable in the future.
+    if (completedFutureMap.isEmpty()) {
+      return resolveFutureMap(ctx, iteration, futureMap, unknowns);
+    }
+
+    // Evaluate done futures in advance to avoid making unnecessary async calls if we have enough resolved attributes to return a result
+    return transformAsync(
+        allAsMapOnSuccess(completedFutureMap),
+        (result) -> {
+          Object intermediateResult;
+          try {
+            intermediateResult = program.advanceEvaluation(ctx.withResolvedAttributes(result));
+          } catch (CelEvaluationException e) {
+            return immediateFailedFuture(e);
+          }
+          if (!(intermediateResult instanceof CelUnknownSet)) {
+            return immediateFuture(intermediateResult);
+          }
+
+          CelUnknownSet newUnknowns = (CelUnknownSet) intermediateResult;
+
+          // Rerun with full map
+          return resolveFutureMap(ctx, iteration, futureMap, newUnknowns);
+        },
+        executor);
+  }
+
+  private ListenableFuture<Object> resolveFutureMap(UnknownContext ctx, int iteration,
+      Map<CelAttribute, ListenableFuture<Object>> futureMap, CelUnknownSet newUnknowns) {
     return transformAsync(
         allAsMapOnSuccess(futureMap),
-        (result) -> evalPass(ctx.withResolvedAttributes(result), unknowns, iteration),
-        executor);
+        (r) ->
+            evalPass(ctx.withResolvedAttributes(r), newUnknowns, iteration),
+        executor
+    );
   }
 
   private ListenableFuture<Object> evalPass(
       UnknownContext ctx, CelUnknownSet lastSet, int iteration) {
-    Object result = null;
+    Object result;
     try {
       result = program.advanceEvaluation(ctx);
     } catch (CelEvaluationException e) {
