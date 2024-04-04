@@ -542,6 +542,31 @@ public class CelOptionalLibraryTest {
   }
 
   @Test
+  public void optionalFieldSelection_onProtoMessage_listValue() throws Exception {
+    Cel cel = newCelBuilder().build();
+    CelAbstractSyntaxTree ast =
+        cel.compile("optional.of(TestAllTypes{repeated_string: ['foo']}).?repeated_string.value()")
+            .getAst();
+
+    List<String> result = (List<String>) cel.createProgram(ast).eval();
+
+    assertThat(result).containsExactly("foo");
+  }
+
+  @Test
+  public void optionalFieldSelection_onProtoMessage_indexValue() throws Exception {
+    Cel cel = newCelBuilder().build();
+    CelAbstractSyntaxTree ast =
+        cel.compile(
+                "optional.of(TestAllTypes{repeated_string: ['foo']}).?repeated_string[0].value()")
+            .getAst();
+
+    String result = (String) cel.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo("foo");
+  }
+
+  @Test
   public void optionalFieldSelection_onProtoMessage_chainedSuccess() throws Exception {
     Cel cel =
         newCelBuilder()

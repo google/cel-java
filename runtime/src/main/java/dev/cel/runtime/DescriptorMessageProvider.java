@@ -140,28 +140,32 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
   @Nullable
   @SuppressWarnings("unchecked")
   public Object selectField(Object message, String fieldName) {
+    boolean isOptionalMessage = false;
     if (message instanceof Optional) {
-      Optional<Map<?, ?>> optionalMap = (Optional<Map<?, ?>>) message;
-      if (!optionalMap.isPresent()) {
+      isOptionalMessage = true;
+      Optional<Object> optionalMessage = (Optional<Object>) message;
+      if (!optionalMessage.isPresent()) {
         return Optional.empty();
       }
 
-      Map<?, ?> unwrappedMap = optionalMap.get();
-      if (!unwrappedMap.containsKey(fieldName)) {
-        return Optional.empty();
-      }
-
-      return Optional.of(unwrappedMap.get(fieldName));
+      message = optionalMessage.get();
     }
 
     if (message instanceof Map) {
       Map<?, ?> map = (Map<?, ?>) message;
       if (map.containsKey(fieldName)) {
-        return map.get(fieldName);
+        Object mapValue = map.get(fieldName);
+        return isOptionalMessage ? Optional.of(mapValue) : mapValue;
       }
-      throw new CelRuntimeException(
-          new IllegalArgumentException(String.format("key '%s' is not present in map.", fieldName)),
-          CelErrorCode.ATTRIBUTE_NOT_FOUND);
+
+      if (isOptionalMessage) {
+        return Optional.empty();
+      } else {
+        throw new CelRuntimeException(
+            new IllegalArgumentException(
+                String.format("key '%s' is not present in map.", fieldName)),
+            CelErrorCode.ATTRIBUTE_NOT_FOUND);
+      }
     }
 
     MessageOrBuilder typedMessage = assertFullProtoMessage(message);
