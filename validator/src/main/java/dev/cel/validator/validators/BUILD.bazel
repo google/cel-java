@@ -1,9 +1,6 @@
 package(
     default_applicable_licenses = ["//:license"],
-    default_visibility = [
-        "//publish:__pkg__",
-        "//validator/validators:__pkg__",
-    ],
+    default_visibility = ["//validator/validators:__pkg__"],
 )
 
 java_library(
