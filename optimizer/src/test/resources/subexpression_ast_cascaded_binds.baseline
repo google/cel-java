@@ -2949,6 +2949,56 @@ COMPREHENSION [1] {
     }
   }
 }
+Test case: PRESENCE_TEST_2
+Source: has({'a': true}.a) && has({'a': true}.a)
+=====>
+COMPREHENSION [1] {
+  iter_var: #unused
+  iter_range: {
+    CREATE_LIST [2] {
+      elements: {
+      }
+    }
+  }
+  accu_var: @r0
+  accu_init: {
+    CREATE_MAP [3] {
+      MAP_ENTRY [4] {
+        key: {
+          CONSTANT [5] { value: "a" }
+        }
+        value: {
+          CONSTANT [6] { value: true }
+        }
+      }
+    }
+  }
+  loop_condition: {
+    CONSTANT [7] { value: false }
+  }
+  loop_step: {
+    IDENT [8] {
+      name: @r0
+    }
+  }
+  result: {
+    CALL [9] {
+      function: _&&_
+      args: {
+        SELECT [10] {
+          IDENT [11] {
+            name: @r0
+          }.a~presence_test
+        }
+        SELECT [12] {
+          IDENT [13] {
+            name: @r0
+          }.a~presence_test
+        }
+      }
+    }
+  }
+}
 Test case: PRESENCE_TEST_WITH_TERNARY
 Source: (has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : 0) == 10
 =====>

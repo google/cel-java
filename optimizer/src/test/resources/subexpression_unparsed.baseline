@@ -430,6 +430,22 @@ Result: true
 [BLOCK_RECURSION_DEPTH_8]: cel.@block([{"a": true}], has(@index0.a) && @index0["a"])
 [BLOCK_RECURSION_DEPTH_9]: cel.@block([{"a": true}], has(@index0.a) && @index0["a"])
 
+Test case: PRESENCE_TEST_2
+Source: has({'a': true}.a) && has({'a': true}.a)
+=====>
+Result: true
+[CASCADED_BINDS]: cel.bind(@r0, {"a": true}, has(@r0.a) && has(@r0.a))
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([{"a": true}], has(@index0.a) && has(@index0.a))
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([{"a": true}], has(@index0.a) && has(@index0.a))
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([{"a": true}], has(@index0.a) && has(@index0.a))
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([{"a": true}], has(@index0.a) && has(@index0.a))
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([{"a": true}], has(@index0.a) && has(@index0.a))
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([{"a": true}], has(@index0.a) && has(@index0.a))
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([{"a": true}], has(@index0.a) && has(@index0.a))
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([{"a": true}], has(@index0.a) && has(@index0.a))
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([{"a": true}], has(@index0.a) && has(@index0.a))
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([{"a": true}], has(@index0.a) && has(@index0.a))
+
 Test case: PRESENCE_TEST_WITH_TERNARY
 Source: (has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : 0) == 10
 =====>
