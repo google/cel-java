@@ -13,8 +13,9 @@
 # limitations under the License.
 
 # From: https://github.com/google/guice/blob/master/test_defs.bzl
-
 """starlark macros to generate test suites."""
+
+load("@rules_java//java:defs.bzl", "java_test")
 
 _TEMPLATE = """package {VAR_PACKAGE};
 import org.junit.runners.Suite;
@@ -84,7 +85,7 @@ def junit4_test_suites(
         package_name = package_name.replace("/", "."),
     )
 
-    native.java_test(
+    java_test(
         name = "AllTestsSuite",
         test_class = (package_name + "/" + suite_name).replace("/", "."),
         srcs = [":" + suite_name],
