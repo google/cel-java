@@ -53,7 +53,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public class MutableAstTest {
+public class AstMutatorTest {
   private static final Cel CEL =
       CelFactory.standardCelBuilder()
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
@@ -67,7 +67,7 @@ public class MutableAstTest {
           .build();
 
   private static final CelUnparser CEL_UNPARSER = CelUnparserFactory.newUnparser();
-  private static final MutableAst MUTABLE_AST = MutableAst.newInstance(1000);
+  private static final AstMutator MUTABLE_AST = AstMutator.newInstance(1000);
 
   @Test
   public void constExpr() throws Exception {
@@ -82,7 +82,7 @@ public class MutableAstTest {
   }
 
   @Test
-  public void mutableAst_returnsParsedAst() throws Exception {
+  public void astMutator_returnsParsedAst() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("10").getAst();
 
     CelAbstractSyntaxTree mutatedAst =
@@ -94,7 +94,7 @@ public class MutableAstTest {
   }
 
   @Test
-  public void mutableAst_nonMacro_sourceCleared() throws Exception {
+  public void astMutator_nonMacro_sourceCleared() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("10").getAst();
 
     CelAbstractSyntaxTree mutatedAst =
@@ -109,7 +109,7 @@ public class MutableAstTest {
   }
 
   @Test
-  public void mutableAst_macro_sourceMacroCallsPopulated() throws Exception {
+  public void astMutator_macro_sourceMacroCallsPopulated() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("has(TestAllTypes{}.single_int32)").getAst();
 
     CelAbstractSyntaxTree mutatedAst =
@@ -973,13 +973,13 @@ public class MutableAstTest {
   @Test
   public void replaceSubtree_iterationLimitReached_throws() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("true && false").getAst();
-    MutableAst mutableAst = MutableAst.newInstance(1);
+    AstMutator astMutator = AstMutator.newInstance(1);
 
     IllegalStateException e =
         assertThrows(
             IllegalStateException.class,
             () ->
-                mutableAst.replaceSubtree(
+                astMutator.replaceSubtree(
                     ast, CelExpr.ofConstantExpr(0, CelConstant.ofValue(false)), 1));
 
     assertThat(e).hasMessageThat().isEqualTo("Max iteration count reached.");

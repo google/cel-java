@@ -79,7 +79,7 @@ java_library(
 java_library(
     name = "mutable_ast",
     srcs = [
-        "MutableAst.java",
+        "AstMutator.java",
         "MutableExprVisitor.java",
     ],
     tags = [

@@ -51,14 +51,14 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-/** MutableAst contains logic for mutating a {@link CelAbstractSyntaxTree}. */
+/** AstMutator contains logic for mutating a {@link CelAbstractSyntaxTree}. */
 @Immutable
-public final class MutableAst {
+public final class AstMutator {
   private static final ExprIdGenerator NO_OP_ID_GENERATOR = id -> id;
   private final long iterationLimit;
 
   /**
-   * Returns a new instance of a Mutable AST with the iteration limit set.
+   * Returns a new instance of a AST Mutator with the iteration limit set.
    *
    * <p>Mutation is performed by walking the existing AST until the expression node to replace is
    * found, then the new subtree is walked to complete the mutation. Visiting of each node
@@ -67,11 +67,11 @@ public final class MutableAst {
    *
    * @param iterationLimit Must be greater than 0.
    */
-  public static MutableAst newInstance(long iterationLimit) {
-    return new MutableAst(iterationLimit);
+  public static AstMutator newInstance(long iterationLimit) {
+    return new AstMutator(iterationLimit);
   }
 
-  private MutableAst(long iterationLimit) {
+  private AstMutator(long iterationLimit) {
     Preconditions.checkState(iterationLimit > 0L);
     this.iterationLimit = iterationLimit;
   }
@@ -773,15 +773,15 @@ public final class MutableAst {
       CelExpr.Builder root,
       CelExpr.Builder newExpr,
       long exprIdToReplace) {
-    MutableExprVisitor mutableAst =
+    MutableExprVisitor astMutator =
         MutableExprVisitor.newInstance(idGenerator, newExpr, exprIdToReplace, iterationLimit);
-    return mutableAst.visit(root);
+    return astMutator.visit(root);
   }
 
   private CelExpr.Builder renumberExprIds(ExprIdGenerator idGenerator, CelExpr.Builder root) {
-    MutableExprVisitor mutableAst =
+    MutableExprVisitor astMutator =
         MutableExprVisitor.newInstance(idGenerator, root, Integer.MIN_VALUE, iterationLimit);
-    return mutableAst.visit(root);
+    return astMutator.visit(root);
   }
 
   private static long getMaxId(CelAbstractSyntaxTree ast) {
@@ -831,7 +831,7 @@ public final class MutableAst {
     private static MangledComprehensionAst of(
         CelAbstractSyntaxTree ast,
         ImmutableMap<MangledComprehensionName, MangledComprehensionType> mangledComprehensionMap) {
-      return new AutoValue_MutableAst_MangledComprehensionAst(ast, mangledComprehensionMap);
+      return new AutoValue_AstMutator_MangledComprehensionAst(ast, mangledComprehensionMap);
     }
   }
 
@@ -851,7 +851,7 @@ public final class MutableAst {
     private static MangledComprehensionType of(
         Optional<CelType> iterVarType, Optional<CelType> resultType) {
       Preconditions.checkArgument(iterVarType.isPresent() || resultType.isPresent());
-      return new AutoValue_MutableAst_MangledComprehensionType(iterVarType, resultType);
+      return new AutoValue_AstMutator_MangledComprehensionType(iterVarType, resultType);
     }
   }
 
@@ -869,7 +869,7 @@ public final class MutableAst {
     public abstract String resultName();
 
     private static MangledComprehensionName of(String iterVarName, String resultName) {
-      return new AutoValue_MutableAst_MangledComprehensionName(iterVarName, resultName);
+      return new AutoValue_AstMutator_MangledComprehensionName(iterVarName, resultName);
     }
   }
 
@@ -889,7 +889,7 @@ public final class MutableAst {
     abstract CelExpr bindMacro();
 
     private static BindMacro of(CelExpr bindExpr, CelExpr bindMacro) {
-      return new AutoValue_MutableAst_BindMacro(bindExpr, bindMacro);
+      return new AutoValue_AstMutator_BindMacro(bindExpr, bindMacro);
     }
   }
 }
