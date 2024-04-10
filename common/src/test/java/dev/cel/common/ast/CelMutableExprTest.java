@@ -22,6 +22,7 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelMutableExpr.CelMutableIdent;
+import dev.cel.common.ast.CelMutableExpr.CelMutableSelect;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -86,6 +87,44 @@ public class CelMutableExprTest {
   }
 
   @Test
+  public void ofSelect() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofSelect(CelMutableSelect.create(CelMutableExpr.ofIdent("x"), "field"));
+
+    assertThat(mutableExpr.id()).isEqualTo(0L);
+    assertThat(mutableExpr.select().testOnly()).isFalse();
+    assertThat(mutableExpr.select().field()).isEqualTo("field");
+    assertThat(mutableExpr.select().operand()).isEqualTo(CelMutableExpr.ofIdent("x"));
+  }
+
+  @Test
+  public void ofSelect_withId() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofSelect(
+            1L,
+            CelMutableSelect.create(CelMutableExpr.ofIdent("x"), "field", /* testOnly= */ true));
+
+    assertThat(mutableExpr.id()).isEqualTo(1L);
+    assertThat(mutableExpr.select().testOnly()).isTrue();
+    assertThat(mutableExpr.select().field()).isEqualTo("field");
+    assertThat(mutableExpr.select().operand()).isEqualTo(CelMutableExpr.ofIdent("x"));
+  }
+
+  @Test
+  public void mutableSelect_setters() {
+    CelMutableSelect select =
+        CelMutableSelect.create(CelMutableExpr.ofIdent("x"), "field", /* testOnly= */ true);
+
+    select.setOperand(CelMutableExpr.ofConstant(CelConstant.ofValue(1L)));
+    select.setField("field2");
+    select.setTestOnly(false);
+
+    assertThat(select.operand()).isEqualTo(CelMutableExpr.ofConstant(CelConstant.ofValue(1L)));
+    assertThat(select.field()).isEqualTo("field2");
+    assertThat(select.testOnly()).isFalse();
+  }
+
+  @Test
   public void setId_success() {
     CelMutableExpr mutableExpr = CelMutableExpr.ofConstant(CelConstant.ofValue(5L));
 
@@ -105,6 +144,13 @@ public class CelMutableExprTest {
             CelMutableExpr.ofConstant(5L, CelConstant.ofValue("hello")))
         .addEqualityGroup(CelMutableExpr.ofIdent("x"))
         .addEqualityGroup(CelMutableExpr.ofIdent(2L, "y"), CelMutableExpr.ofIdent(2L, "y"))
+        .addEqualityGroup(
+            CelMutableExpr.ofSelect(CelMutableSelect.create(CelMutableExpr.ofIdent("y"), "field")))
+        .addEqualityGroup(
+            CelMutableExpr.ofSelect(
+                4L, CelMutableSelect.create(CelMutableExpr.ofIdent("x"), "test")),
+            CelMutableExpr.ofSelect(
+                4L, CelMutableSelect.create(CelMutableExpr.ofIdent("x"), "test")))
         .testEquals();
   }
 
@@ -113,6 +159,7 @@ public class CelMutableExprTest {
     NOT_SET(CelMutableExpr.ofNotSet(1L)),
     CONSTANT(CelMutableExpr.ofConstant(CelConstant.ofValue(2L))),
     IDENT(CelMutableExpr.ofIdent("test")),
+    SELECT(CelMutableExpr.ofSelect(CelMutableSelect.create(CelMutableExpr.ofNotSet(), "field"))),
     ;
 
     private final CelMutableExpr mutableExpr;
@@ -134,6 +181,9 @@ public class CelMutableExprTest {
     if (!testCaseKind.equals(Kind.IDENT)) {
       assertThrows(IllegalArgumentException.class, testCase.mutableExpr::ident);
     }
+    if (!testCaseKind.equals(Kind.SELECT)) {
+      assertThrows(IllegalArgumentException.class, testCase.mutableExpr::select);
+    }
   }
 
   @SuppressWarnings("Immutable") // Mutable by design
@@ -141,6 +191,11 @@ public class CelMutableExprTest {
     NOT_SET(CelMutableExpr.ofNotSet(1L), -722379961),
     CONSTANT(CelMutableExpr.ofConstant(2L, CelConstant.ofValue("test")), -724279919),
     IDENT(CelMutableExpr.ofIdent("x"), -721379855),
+    SELECT(
+        CelMutableExpr.ofSelect(
+            4L,
+            CelMutableSelect.create(CelMutableExpr.ofIdent("y"), "field", /* testOnly= */ true)),
+        1458249843),
     ;
 
     private final CelMutableExpr mutableExpr;

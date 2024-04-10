@@ -36,6 +36,7 @@ public final class CelMutableExpr {
   private CelNotSet notSet;
   private CelConstant constant;
   private CelMutableIdent ident;
+  private CelMutableSelect select;
   private int hash = 0;
 
   public long id() {
@@ -65,6 +66,11 @@ public final class CelMutableExpr {
     return ident;
   }
 
+  public CelMutableSelect select() {
+    checkExprKind(Kind.SELECT);
+    return select;
+  }
+
   public void setConstant(CelConstant constant) {
     this.exprKind = ExprKind.Kind.CONSTANT;
     this.constant = checkNotNull(constant);
@@ -73,6 +79,11 @@ public final class CelMutableExpr {
   public void setIdent(CelMutableIdent ident) {
     this.exprKind = ExprKind.Kind.IDENT;
     this.ident = checkNotNull(ident);
+  }
+
+  public void setSelect(CelMutableSelect select) {
+    this.exprKind = ExprKind.Kind.SELECT;
+    this.select = checkNotNull(select);
   }
 
   /** A mutable identifier expression. */
@@ -114,6 +125,77 @@ public final class CelMutableExpr {
     }
   }
 
+  /** A mutable field selection expression. e.g. `request.auth`. */
+  public static final class CelMutableSelect {
+    private CelMutableExpr operand;
+    private String field = "";
+    private boolean testOnly;
+
+    public CelMutableExpr operand() {
+      return operand;
+    }
+
+    public void setOperand(CelMutableExpr operand) {
+      this.operand = checkNotNull(operand);
+    }
+
+    public String field() {
+      return field;
+    }
+
+    public void setField(String field) {
+      this.field = checkNotNull(field);
+    }
+
+    public boolean testOnly() {
+      return testOnly;
+    }
+
+    public void setTestOnly(boolean testOnly) {
+      this.testOnly = testOnly;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      }
+      if (obj instanceof CelMutableSelect) {
+        CelMutableSelect that = (CelMutableSelect) obj;
+        return this.operand.equals(that.operand())
+            && this.field.equals(that.field())
+            && this.testOnly == that.testOnly();
+      }
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      int h = 1;
+      h *= 1000003;
+      h ^= operand.hashCode();
+      h *= 1000003;
+      h ^= field.hashCode();
+      h *= 1000003;
+      h ^= testOnly ? 1231 : 1237;
+      return h;
+    }
+
+    public static CelMutableSelect create(CelMutableExpr operand, String field) {
+      return new CelMutableSelect(operand, field, false);
+    }
+
+    public static CelMutableSelect create(CelMutableExpr operand, String field, boolean testOnly) {
+      return new CelMutableSelect(operand, field, testOnly);
+    }
+
+    private CelMutableSelect(CelMutableExpr operand, String field, boolean testOnly) {
+      this.operand = checkNotNull(operand);
+      this.field = checkNotNull(field);
+      this.testOnly = testOnly;
+    }
+  }
+
   public static CelMutableExpr ofNotSet() {
     return ofNotSet(0L);
   }
@@ -138,6 +220,14 @@ public final class CelMutableExpr {
     return new CelMutableExpr(id, CelMutableIdent.create(name));
   }
 
+  public static CelMutableExpr ofSelect(CelMutableSelect mutableSelect) {
+    return ofSelect(0, mutableSelect);
+  }
+
+  public static CelMutableExpr ofSelect(long id, CelMutableSelect mutableSelect) {
+    return new CelMutableExpr(id, mutableSelect);
+  }
+
   private CelMutableExpr(long id, CelConstant mutableConstant) {
     this.id = id;
     setConstant(mutableConstant);
@@ -146,6 +236,11 @@ public final class CelMutableExpr {
   private CelMutableExpr(long id, CelMutableIdent mutableIdent) {
     this.id = id;
     setIdent(mutableIdent);
+  }
+
+  private CelMutableExpr(long id, CelMutableSelect mutableSelect) {
+    this.id = id;
+    setSelect(mutableSelect);
   }
 
   private CelMutableExpr(long id) {
@@ -167,6 +262,7 @@ public final class CelMutableExpr {
       case IDENT:
         return ident();
       case SELECT:
+        return select();
       case CALL:
       case CREATE_LIST:
       case CREATE_STRUCT:
