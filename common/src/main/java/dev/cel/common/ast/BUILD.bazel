@@ -31,6 +31,11 @@ EXPR_FACTORY_SOURCES = [
     "CelExprIdGeneratorFactory.java",
 ]
 
+# keep sorted
+MUTABLE_AST_SOURCES = [
+    "CelMutableExpr.java",
+]
+
 java_library(
     name = "ast",
     srcs = AST_SOURCES,
@@ -106,6 +111,17 @@ java_library(
         "//common:compiler_common",
         "//runtime",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "mutable_ast",
+    srcs = MUTABLE_AST_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":ast",
         "@maven//:com_google_guava_guava",
     ],
 )
