@@ -17,12 +17,15 @@ package dev.cel.common.ast;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.testing.EqualsTester;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
+import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
 import dev.cel.common.ast.CelMutableExpr.CelMutableIdent;
 import dev.cel.common.ast.CelMutableExpr.CelMutableSelect;
+import java.util.ArrayList;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -125,12 +128,126 @@ public class CelMutableExprTest {
   }
 
   @Test
+  public void ofCall() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofCall(
+            CelMutableCall.create(
+                CelMutableExpr.ofConstant(CelConstant.ofValue("target")),
+                "function",
+                CelMutableExpr.ofConstant(CelConstant.ofValue("arg"))));
+
+    assertThat(mutableExpr.id()).isEqualTo(0L);
+    assertThat(mutableExpr.call().target())
+        .hasValue(CelMutableExpr.ofConstant(CelConstant.ofValue("target")));
+    assertThat(mutableExpr.call().function()).isEqualTo("function");
+    assertThat(mutableExpr.call().args())
+        .containsExactly(CelMutableExpr.ofConstant(CelConstant.ofValue("arg")));
+  }
+
+  @Test
+  public void ofCall_withId() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofCall(
+            1L,
+            CelMutableCall.create(
+                CelMutableExpr.ofConstant(CelConstant.ofValue("target")),
+                "function",
+                CelMutableExpr.ofConstant(CelConstant.ofValue("arg"))));
+
+    assertThat(mutableExpr.id()).isEqualTo(1L);
+    assertThat(mutableExpr.call().target())
+        .hasValue(CelMutableExpr.ofConstant(CelConstant.ofValue("target")));
+    assertThat(mutableExpr.call().function()).isEqualTo("function");
+    assertThat(mutableExpr.call().args())
+        .containsExactly(CelMutableExpr.ofConstant(CelConstant.ofValue("arg")));
+  }
+
+  @Test
   public void setId_success() {
     CelMutableExpr mutableExpr = CelMutableExpr.ofConstant(CelConstant.ofValue(5L));
 
     mutableExpr.setId(2L);
 
     assertThat(mutableExpr.id()).isEqualTo(2L);
+  }
+
+  @Test
+  public void mutableCall_setArgumentAtIndex() {
+    CelMutableCall call =
+        CelMutableCall.create("function", CelMutableExpr.ofConstant(CelConstant.ofValue(1L)));
+
+    call.setArg(0, CelMutableExpr.ofConstant(CelConstant.ofValue("hello")));
+
+    assertThat(call.args())
+        .containsExactly(CelMutableExpr.ofConstant(CelConstant.ofValue("hello")));
+    assertThat(call.args()).isInstanceOf(ArrayList.class);
+  }
+
+  @Test
+  public void mutableCall_setArguments() {
+    CelMutableCall call =
+        CelMutableCall.create("function", CelMutableExpr.ofConstant(CelConstant.ofValue(1L)));
+
+    call.setArgs(
+        ImmutableList.of(
+            CelMutableExpr.ofConstant(CelConstant.ofValue(2)),
+            CelMutableExpr.ofConstant(CelConstant.ofValue(3))));
+
+    assertThat(call.args())
+        .containsExactly(
+            CelMutableExpr.ofConstant(CelConstant.ofValue(2)),
+            CelMutableExpr.ofConstant(CelConstant.ofValue(3)))
+        .inOrder();
+    assertThat(call.args()).isInstanceOf(ArrayList.class);
+  }
+
+  @Test
+  public void mutableCall_addArguments() {
+    CelMutableCall call =
+        CelMutableCall.create("function", CelMutableExpr.ofConstant(CelConstant.ofValue(1L)));
+
+    call.addArgs(
+        CelMutableExpr.ofConstant(CelConstant.ofValue(2)),
+        CelMutableExpr.ofConstant(CelConstant.ofValue(3)));
+
+    assertThat(call.args())
+        .containsExactly(
+            CelMutableExpr.ofConstant(CelConstant.ofValue(1)),
+            CelMutableExpr.ofConstant(CelConstant.ofValue(2)),
+            CelMutableExpr.ofConstant(CelConstant.ofValue(3)))
+        .inOrder();
+    assertThat(call.args()).isInstanceOf(ArrayList.class);
+  }
+
+  @Test
+  public void mutableCall_clearArguments() {
+    CelMutableCall call =
+        CelMutableCall.create(
+            "function",
+            CelMutableExpr.ofConstant(CelConstant.ofValue(1L)),
+            CelMutableExpr.ofConstant(CelConstant.ofValue(2L)));
+
+    call.clearArgs();
+
+    assertThat(call.args()).isEmpty();
+  }
+
+  @Test
+  public void mutableCall_setTarget() {
+    CelMutableCall call = CelMutableCall.create("function");
+
+    call.setTarget(CelMutableExpr.ofConstant(CelConstant.ofValue("hello")));
+
+    assertThat(call.target()).hasValue(CelMutableExpr.ofConstant(CelConstant.ofValue("hello")));
+  }
+
+  @Test
+  public void mutableCall_setFunction() {
+    CelMutableCall call = CelMutableCall.create("function");
+
+    call.setFunction("function2");
+
+    assertThat(call.function()).isEqualTo("function2");
   }
 
   @Test
@@ -151,6 +268,20 @@ public class CelMutableExprTest {
                 4L, CelMutableSelect.create(CelMutableExpr.ofIdent("x"), "test")),
             CelMutableExpr.ofSelect(
                 4L, CelMutableSelect.create(CelMutableExpr.ofIdent("x"), "test")))
+        .addEqualityGroup(CelMutableExpr.ofCall(CelMutableCall.create("function")))
+        .addEqualityGroup(
+            CelMutableExpr.ofCall(
+                5L,
+                CelMutableCall.create(
+                    CelMutableExpr.ofConstant(CelConstant.ofValue("target")),
+                    "function",
+                    CelMutableExpr.ofConstant(CelConstant.ofValue("arg")))),
+            CelMutableExpr.ofCall(
+                5L,
+                CelMutableCall.create(
+                    CelMutableExpr.ofConstant(CelConstant.ofValue("target")),
+                    "function",
+                    CelMutableExpr.ofConstant(CelConstant.ofValue("arg")))))
         .testEquals();
   }
 
@@ -160,6 +291,7 @@ public class CelMutableExprTest {
     CONSTANT(CelMutableExpr.ofConstant(CelConstant.ofValue(2L))),
     IDENT(CelMutableExpr.ofIdent("test")),
     SELECT(CelMutableExpr.ofSelect(CelMutableSelect.create(CelMutableExpr.ofNotSet(), "field"))),
+    CALL(CelMutableExpr.ofCall(CelMutableCall.create("call"))),
     ;
 
     private final CelMutableExpr mutableExpr;
@@ -184,6 +316,9 @@ public class CelMutableExprTest {
     if (!testCaseKind.equals(Kind.SELECT)) {
       assertThrows(IllegalArgumentException.class, testCase.mutableExpr::select);
     }
+    if (!testCaseKind.equals(Kind.CALL)) {
+      assertThrows(IllegalArgumentException.class, testCase.mutableExpr::call);
+    }
   }
 
   @SuppressWarnings("Immutable") // Mutable by design
@@ -196,6 +331,14 @@ public class CelMutableExprTest {
             4L,
             CelMutableSelect.create(CelMutableExpr.ofIdent("y"), "field", /* testOnly= */ true)),
         1458249843),
+    CALL(
+        CelMutableExpr.ofCall(
+            5L,
+            CelMutableCall.create(
+                CelMutableExpr.ofConstant(CelConstant.ofValue("target")),
+                "function",
+                CelMutableExpr.ofConstant(CelConstant.ofValue("arg")))),
+        -1735261193),
     ;
 
     private final CelMutableExpr mutableExpr;

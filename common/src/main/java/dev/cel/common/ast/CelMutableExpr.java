@@ -20,6 +20,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import dev.cel.common.ast.CelExpr.CelNotSet;
 import dev.cel.common.ast.CelExpr.ExprKind;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * An abstract representation of a common expression that allows mutation in any of its properties.
@@ -37,6 +42,7 @@ public final class CelMutableExpr {
   private CelConstant constant;
   private CelMutableIdent ident;
   private CelMutableSelect select;
+  private CelMutableCall call;
   private int hash = 0;
 
   public long id() {
@@ -71,6 +77,11 @@ public final class CelMutableExpr {
     return select;
   }
 
+  public CelMutableCall call() {
+    checkExprKind(Kind.CALL);
+    return call;
+  }
+
   public void setConstant(CelConstant constant) {
     this.exprKind = ExprKind.Kind.CONSTANT;
     this.constant = checkNotNull(constant);
@@ -84,6 +95,11 @@ public final class CelMutableExpr {
   public void setSelect(CelMutableSelect select) {
     this.exprKind = ExprKind.Kind.SELECT;
     this.select = checkNotNull(select);
+  }
+
+  public void setCall(CelMutableCall call) {
+    this.exprKind = ExprKind.Kind.CALL;
+    this.call = checkNotNull(call);
   }
 
   /** A mutable identifier expression. */
@@ -196,6 +212,110 @@ public final class CelMutableExpr {
     }
   }
 
+  /** A mutable call expression, including calls to predefined functions and operators. */
+  public static final class CelMutableCall {
+    private Optional<CelMutableExpr> target;
+    private String function;
+    private List<CelMutableExpr> args;
+
+    public Optional<CelMutableExpr> target() {
+      return target;
+    }
+
+    public void setTarget(CelMutableExpr target) {
+      this.target = Optional.of(target);
+    }
+
+    public String function() {
+      return function;
+    }
+
+    public void setFunction(String function) {
+      this.function = checkNotNull(function);
+    }
+
+    public List<CelMutableExpr> args() {
+      return args;
+    }
+
+    public void clearArgs() {
+      args.clear();
+    }
+
+    public void addArgs(CelMutableExpr... exprs) {
+      addArgs(Arrays.asList(checkNotNull(exprs)));
+    }
+
+    public void addArgs(Iterable<CelMutableExpr> exprs) {
+      exprs.forEach(e -> args.add(checkNotNull(e)));
+    }
+
+    public void setArgs(Collection<CelMutableExpr> exprs) {
+      this.args = new ArrayList<>(checkNotNull(exprs));
+    }
+
+    public void setArg(int index, CelMutableExpr arg) {
+      checkArgument(index >= 0 && index < args.size());
+      args.set(index, checkNotNull(arg));
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      }
+      if (obj instanceof CelMutableCall) {
+        CelMutableCall that = (CelMutableCall) obj;
+        return this.target.equals(that.target())
+            && this.function.equals(that.function())
+            && this.args.equals(that.args());
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      int h = 1;
+      h *= 1000003;
+      h ^= target.hashCode();
+      h *= 1000003;
+      h ^= function.hashCode();
+      h *= 1000003;
+      h ^= args.hashCode();
+      return h;
+    }
+
+    public static CelMutableCall create(String function, CelMutableExpr... args) {
+      return create(function, Arrays.asList(checkNotNull(args)));
+    }
+
+    public static CelMutableCall create(String function, List<CelMutableExpr> args) {
+      return new CelMutableCall(function, args);
+    }
+
+    public static CelMutableCall create(
+        CelMutableExpr target, String function, CelMutableExpr... args) {
+      return create(target, function, Arrays.asList(checkNotNull(args)));
+    }
+
+    public static CelMutableCall create(
+        CelMutableExpr target, String function, List<CelMutableExpr> args) {
+      return new CelMutableCall(target, function, args);
+    }
+
+    private CelMutableCall(String function, List<CelMutableExpr> args) {
+      this.target = Optional.empty();
+      this.function = checkNotNull(function);
+      this.args = new ArrayList<>(checkNotNull(args));
+    }
+
+    private CelMutableCall(CelMutableExpr target, String function, List<CelMutableExpr> args) {
+      this(function, args);
+      this.target = Optional.of(target);
+    }
+  }
+
   public static CelMutableExpr ofNotSet() {
     return ofNotSet(0L);
   }
@@ -228,6 +348,14 @@ public final class CelMutableExpr {
     return new CelMutableExpr(id, mutableSelect);
   }
 
+  public static CelMutableExpr ofCall(CelMutableCall mutableCall) {
+    return ofCall(0, mutableCall);
+  }
+
+  public static CelMutableExpr ofCall(long id, CelMutableCall mutableCall) {
+    return new CelMutableExpr(id, mutableCall);
+  }
+
   private CelMutableExpr(long id, CelConstant mutableConstant) {
     this.id = id;
     setConstant(mutableConstant);
@@ -241,6 +369,11 @@ public final class CelMutableExpr {
   private CelMutableExpr(long id, CelMutableSelect mutableSelect) {
     this.id = id;
     setSelect(mutableSelect);
+  }
+
+  private CelMutableExpr(long id, CelMutableCall mutableCall) {
+    this.id = id;
+    setCall(mutableCall);
   }
 
   private CelMutableExpr(long id) {
@@ -264,6 +397,7 @@ public final class CelMutableExpr {
       case SELECT:
         return select();
       case CALL:
+        return call();
       case CREATE_LIST:
       case CREATE_STRUCT:
       case CREATE_MAP:
