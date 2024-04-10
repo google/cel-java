@@ -21,6 +21,7 @@ import com.google.common.testing.EqualsTester;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
+import dev.cel.common.ast.CelMutableExpr.CelMutableIdent;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -60,6 +61,31 @@ public class CelMutableExprTest {
   }
 
   @Test
+  public void ofIdent() {
+    CelMutableExpr mutableExpr = CelMutableExpr.ofIdent("x");
+
+    assertThat(mutableExpr.id()).isEqualTo(0L);
+    assertThat(mutableExpr.ident().name()).isEqualTo("x");
+  }
+
+  @Test
+  public void ofIdent_withId() {
+    CelMutableExpr mutableExpr = CelMutableExpr.ofIdent(1L, "x");
+
+    assertThat(mutableExpr.id()).isEqualTo(1L);
+    assertThat(mutableExpr.ident().name()).isEqualTo("x");
+  }
+
+  @Test
+  public void mutableIdent_setName() {
+    CelMutableIdent ident = CelMutableIdent.create("x");
+
+    ident.setName("y");
+
+    assertThat(ident.name()).isEqualTo("y");
+  }
+
+  @Test
   public void setId_success() {
     CelMutableExpr mutableExpr = CelMutableExpr.ofConstant(CelConstant.ofValue(5L));
 
@@ -77,13 +103,17 @@ public class CelMutableExprTest {
         .addEqualityGroup(
             CelMutableExpr.ofConstant(5L, CelConstant.ofValue("hello")),
             CelMutableExpr.ofConstant(5L, CelConstant.ofValue("hello")))
+        .addEqualityGroup(CelMutableExpr.ofIdent("x"))
+        .addEqualityGroup(CelMutableExpr.ofIdent(2L, "y"), CelMutableExpr.ofIdent(2L, "y"))
         .testEquals();
   }
 
   @SuppressWarnings("Immutable") // Mutable by design
   private enum MutableExprKindTestCase {
     NOT_SET(CelMutableExpr.ofNotSet(1L)),
-    CONSTANT(CelMutableExpr.ofConstant(CelConstant.ofValue(2L)));
+    CONSTANT(CelMutableExpr.ofConstant(CelConstant.ofValue(2L))),
+    IDENT(CelMutableExpr.ofIdent("test")),
+    ;
 
     private final CelMutableExpr mutableExpr;
 
@@ -101,12 +131,17 @@ public class CelMutableExprTest {
     if (!testCaseKind.equals(Kind.CONSTANT)) {
       assertThrows(IllegalArgumentException.class, testCase.mutableExpr::constant);
     }
+    if (!testCaseKind.equals(Kind.IDENT)) {
+      assertThrows(IllegalArgumentException.class, testCase.mutableExpr::ident);
+    }
   }
 
   @SuppressWarnings("Immutable") // Mutable by design
   private enum HashCodeTestCase {
     NOT_SET(CelMutableExpr.ofNotSet(1L), -722379961),
-    CONSTANT(CelMutableExpr.ofConstant(2L, CelConstant.ofValue("test")), -724279919);
+    CONSTANT(CelMutableExpr.ofConstant(2L, CelConstant.ofValue("test")), -724279919),
+    IDENT(CelMutableExpr.ofIdent("x"), -721379855),
+    ;
 
     private final CelMutableExpr mutableExpr;
     private final int expectedHashCode;

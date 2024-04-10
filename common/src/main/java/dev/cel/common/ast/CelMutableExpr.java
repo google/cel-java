@@ -15,6 +15,7 @@
 package dev.cel.common.ast;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import dev.cel.common.ast.CelExpr.CelNotSet;
 import dev.cel.common.ast.CelExpr.ExprKind;
@@ -34,6 +35,7 @@ public final class CelMutableExpr {
   private ExprKind.Kind exprKind;
   private CelNotSet notSet;
   private CelConstant constant;
+  private CelMutableIdent ident;
   private int hash = 0;
 
   public long id() {
@@ -58,17 +60,58 @@ public final class CelMutableExpr {
     return constant;
   }
 
+  public CelMutableIdent ident() {
+    checkExprKind(Kind.IDENT);
+    return ident;
+  }
+
   public void setConstant(CelConstant constant) {
     this.exprKind = ExprKind.Kind.CONSTANT;
-    this.constant = constant;
+    this.constant = checkNotNull(constant);
   }
 
-  public static CelMutableExpr ofConstant(CelConstant constant) {
-    return ofConstant(0L, constant);
+  public void setIdent(CelMutableIdent ident) {
+    this.exprKind = ExprKind.Kind.IDENT;
+    this.ident = checkNotNull(ident);
   }
 
-  public static CelMutableExpr ofConstant(long id, CelConstant constant) {
-    return new CelMutableExpr(id, constant);
+  /** A mutable identifier expression. */
+  public static final class CelMutableIdent {
+    private String name = "";
+
+    public String name() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = checkNotNull(name);
+    }
+
+    public static CelMutableIdent create(String name) {
+      return new CelMutableIdent(name);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      }
+      if (obj instanceof CelMutableIdent) {
+        CelMutableIdent that = (CelMutableIdent) obj;
+        return this.name.equals(that.name);
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      return name.hashCode();
+    }
+
+    private CelMutableIdent(String name) {
+      this.name = checkNotNull(name);
+    }
   }
 
   public static CelMutableExpr ofNotSet() {
@@ -79,9 +122,30 @@ public final class CelMutableExpr {
     return new CelMutableExpr(id);
   }
 
+  public static CelMutableExpr ofConstant(CelConstant constant) {
+    return ofConstant(0L, constant);
+  }
+
+  public static CelMutableExpr ofConstant(long id, CelConstant constant) {
+    return new CelMutableExpr(id, constant);
+  }
+
+  public static CelMutableExpr ofIdent(String name) {
+    return ofIdent(0, name);
+  }
+
+  public static CelMutableExpr ofIdent(long id, String name) {
+    return new CelMutableExpr(id, CelMutableIdent.create(name));
+  }
+
   private CelMutableExpr(long id, CelConstant mutableConstant) {
     this.id = id;
     setConstant(mutableConstant);
+  }
+
+  private CelMutableExpr(long id, CelMutableIdent mutableIdent) {
+    this.id = id;
+    setIdent(mutableIdent);
   }
 
   private CelMutableExpr(long id) {
@@ -101,6 +165,7 @@ public final class CelMutableExpr {
       case CONSTANT:
         return constant();
       case IDENT:
+        return ident();
       case SELECT:
       case CALL:
       case CREATE_LIST:
