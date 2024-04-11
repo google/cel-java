@@ -783,4 +783,14 @@ public class CelMutableExprTest {
     // Run it twice to ensure cached value is stable
     assertThat(testCase.mutableExpr.hashCode()).isEqualTo(testCase.expectedHashCode);
   }
+
+  @Test
+  public void propertyMutated_hashCodeChanged() {
+    CelMutableExpr mutableExpr = CelMutableExpr.ofIdent("x");
+    int originalHash = mutableExpr.hashCode();
+
+    mutableExpr.ident().setName("y");
+
+    assertThat(originalHash).isNotEqualTo(mutableExpr.hashCode());
+  }
 }

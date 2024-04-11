@@ -39,7 +39,6 @@ public final class CelMutableExpr {
   private long id;
   private ExprKind.Kind exprKind;
   private Object exprValue;
-  private int hash = 0;
 
   public long id() {
     return id;
@@ -1016,19 +1015,12 @@ public final class CelMutableExpr {
 
   @Override
   public int hashCode() {
-    if (hash == 0) {
-      int h = 1;
-      h *= 1000003;
-      h ^= (int) ((id >>> 32) ^ id);
-      h *= 1000003;
-      h ^= this.exprValue().hashCode();
+    int h = 1;
+    h *= 1000003;
+    h ^= (int) ((id >>> 32) ^ id);
+    h *= 1000003;
+    h ^= this.exprValue().hashCode();
 
-      if (h == 0) {
-        h = 1;
-      }
-      hash = h;
-    }
-
-    return hash;
+    return h;
   }
 }
