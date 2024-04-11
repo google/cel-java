@@ -171,6 +171,10 @@ public final class CelMutableExpr {
       return name.hashCode();
     }
 
+    private CelMutableIdent deepCopy() {
+      return new CelMutableIdent(name);
+    }
+
     private CelMutableIdent(String name) {
       this.name = checkNotNull(name);
     }
@@ -204,6 +208,10 @@ public final class CelMutableExpr {
 
     public void setTestOnly(boolean testOnly) {
       this.testOnly = testOnly;
+    }
+
+    private CelMutableSelect deepCopy() {
+      return create(newInstance(operand()), field, testOnly);
     }
 
     @Override
@@ -321,6 +329,13 @@ public final class CelMutableExpr {
       return h;
     }
 
+    private CelMutableCall deepCopy() {
+      List<CelMutableExpr> copiedArgs = deepCopyList(args);
+      return target().isPresent()
+          ? create(newInstance(target.get()), function, copiedArgs)
+          : create(function, copiedArgs);
+    }
+
     public static CelMutableCall create(String function, CelMutableExpr... args) {
       return create(function, Arrays.asList(checkNotNull(args)));
     }
@@ -397,6 +412,10 @@ public final class CelMutableExpr {
       h ^= optionalIndices.hashCode();
 
       return h;
+    }
+
+    private CelMutableCreateList deepCopy() {
+      return create(deepCopyList(elements), optionalIndices);
     }
 
     public static CelMutableCreateList create(CelMutableExpr... elements) {
@@ -489,6 +508,10 @@ public final class CelMutableExpr {
         this.optionalEntry = optionalEntry;
       }
 
+      private Entry deepCopy() {
+        return create(id, fieldKey, newInstance(value), optionalEntry);
+      }
+
       public static Entry create(long id, String fieldKey, CelMutableExpr value) {
         return create(id, fieldKey, value, false);
       }
@@ -555,6 +578,15 @@ public final class CelMutableExpr {
       h *= 1000003;
       h ^= entries.hashCode();
       return h;
+    }
+
+    private CelMutableCreateStruct deepCopy() {
+      ArrayList<CelMutableCreateStruct.Entry> copiedEntries = new ArrayList<>();
+      for (CelMutableCreateStruct.Entry entry : entries) {
+        copiedEntries.add(entry.deepCopy());
+      }
+
+      return create(messageName, copiedEntries);
     }
 
     public static CelMutableCreateStruct create(
@@ -657,6 +689,10 @@ public final class CelMutableExpr {
         return h;
       }
 
+      private Entry deepCopy() {
+        return create(id, newInstance(key), newInstance(value), optionalEntry);
+      }
+
       public static Entry create(CelMutableExpr key, CelMutableExpr value) {
         return create(0, key, value, false);
       }
@@ -696,6 +732,15 @@ public final class CelMutableExpr {
       h *= 1000003;
       h ^= entries.hashCode();
       return h;
+    }
+
+    private CelMutableCreateMap deepCopy() {
+      ArrayList<CelMutableCreateMap.Entry> copiedEntries = new ArrayList<>();
+      for (CelMutableCreateMap.Entry entry : entries) {
+        copiedEntries.add(entry.deepCopy());
+      }
+
+      return create(copiedEntries);
     }
 
     public static CelMutableCreateMap create(List<CelMutableCreateMap.Entry> entries) {
@@ -818,6 +863,17 @@ public final class CelMutableExpr {
       return h;
     }
 
+    private CelMutableComprehension deepCopy() {
+      return create(
+          iterVar,
+          newInstance(iterRange),
+          accuVar,
+          newInstance(accuInit),
+          newInstance(loopCondition),
+          newInstance(loopStep),
+          newInstance(result));
+    }
+
     public static CelMutableComprehension create(
         String iterVar,
         CelMutableExpr iterRange,
@@ -917,6 +973,11 @@ public final class CelMutableExpr {
     return new CelMutableExpr(id, mutableComprehension);
   }
 
+  /** Constructs a deep copy of the mutable expression. */
+  public static CelMutableExpr newInstance(CelMutableExpr other) {
+    return new CelMutableExpr(other);
+  }
+
   private CelMutableExpr(long id, CelConstant mutableConstant) {
     this.id = id;
     setConstant(mutableConstant);
@@ -967,6 +1028,40 @@ public final class CelMutableExpr {
     this.exprKind = ExprKind.Kind.NOT_SET;
   }
 
+  private CelMutableExpr(CelMutableExpr other) {
+    checkNotNull(other);
+    this.id = other.id;
+    this.exprKind = other.exprKind;
+    switch (other.getKind()) {
+      case CONSTANT:
+        this.exprValue = other.exprValue; // Constant is immutable.
+        break;
+      case IDENT:
+        this.exprValue = other.ident().deepCopy();
+        break;
+      case SELECT:
+        this.exprValue = other.select().deepCopy();
+        break;
+      case CALL:
+        this.exprValue = other.call().deepCopy();
+        break;
+      case CREATE_LIST:
+        this.exprValue = other.createList().deepCopy();
+        break;
+      case CREATE_STRUCT:
+        this.exprValue = other.createStruct().deepCopy();
+        break;
+      case CREATE_MAP:
+        this.exprValue = other.createMap().deepCopy();
+        break;
+      case COMPREHENSION:
+        this.exprValue = other.comprehension().deepCopy();
+        break;
+      default:
+        throw new IllegalStateException("Unexpected expr kind: " + this.exprKind);
+    }
+  }
+
   private Object exprValue() {
     switch (this.exprKind) {
       case NOT_SET:
@@ -990,6 +1085,15 @@ public final class CelMutableExpr {
     }
 
     throw new IllegalStateException("Unexpected expr kind: " + this.exprKind);
+  }
+
+  private static List<CelMutableExpr> deepCopyList(List<CelMutableExpr> elements) {
+    ArrayList<CelMutableExpr> copiedArgs = new ArrayList<>();
+    for (CelMutableExpr arg : elements) {
+      copiedArgs.add(newInstance(arg));
+    }
+
+    return copiedArgs;
   }
 
   private void checkExprKind(ExprKind.Kind exprKind) {

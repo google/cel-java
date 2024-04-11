@@ -19,6 +19,7 @@ import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.testing.EqualsTester;
+import com.google.common.truth.Correspondence;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
@@ -69,6 +70,19 @@ public class CelMutableExprTest {
   }
 
   @Test
+  public void mutableConstant_deepCopy() {
+    CelMutableExpr mutableExpr = CelMutableExpr.ofConstant(1L, CelConstant.ofValue(5L));
+
+    CelMutableExpr deepCopiedExpr = CelMutableExpr.newInstance(mutableExpr);
+
+    assertThat(mutableExpr).isEqualTo(deepCopiedExpr);
+    assertThat(mutableExpr.constant()).isEqualTo(deepCopiedExpr.constant());
+    assertThat(mutableExpr).isNotSameInstanceAs(deepCopiedExpr);
+    // The stored constant itself is immutable, thus remain referentially equal when copied.
+    assertThat(mutableExpr.constant()).isSameInstanceAs(deepCopiedExpr.constant());
+  }
+
+  @Test
   public void ofIdent() {
     CelMutableExpr mutableExpr = CelMutableExpr.ofIdent("x");
 
@@ -91,6 +105,18 @@ public class CelMutableExprTest {
     ident.setName("y");
 
     assertThat(ident.name()).isEqualTo("y");
+  }
+
+  @Test
+  public void mutableIdent_deepCopy() {
+    CelMutableExpr mutableExpr = CelMutableExpr.ofIdent(1L, "x");
+
+    CelMutableExpr deepCopiedExpr = CelMutableExpr.newInstance(mutableExpr);
+
+    assertThat(mutableExpr).isEqualTo(deepCopiedExpr);
+    assertThat(mutableExpr.ident()).isEqualTo(deepCopiedExpr.ident());
+    assertThat(mutableExpr).isNotSameInstanceAs(deepCopiedExpr);
+    assertThat(mutableExpr.ident()).isNotSameInstanceAs(deepCopiedExpr.ident());
   }
 
   @Test
@@ -129,6 +155,21 @@ public class CelMutableExprTest {
     assertThat(select.operand()).isEqualTo(CelMutableExpr.ofConstant(CelConstant.ofValue(1L)));
     assertThat(select.field()).isEqualTo("field2");
     assertThat(select.testOnly()).isFalse();
+  }
+
+  @Test
+  public void mutableSelect_deepCopy() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofSelect(
+            1L,
+            CelMutableSelect.create(CelMutableExpr.ofIdent("x"), "field", /* testOnly= */ true));
+
+    CelMutableExpr deepCopiedExpr = CelMutableExpr.newInstance(mutableExpr);
+
+    assertThat(mutableExpr).isEqualTo(deepCopiedExpr);
+    assertThat(mutableExpr.select()).isEqualTo(deepCopiedExpr.select());
+    assertThat(mutableExpr).isNotSameInstanceAs(deepCopiedExpr);
+    assertThat(mutableExpr.select()).isNotSameInstanceAs(deepCopiedExpr.select());
   }
 
   @Test
@@ -246,6 +287,24 @@ public class CelMutableExprTest {
   }
 
   @Test
+  public void mutableCall_deepCopy() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofCall(
+            1L,
+            CelMutableCall.create(
+                CelMutableExpr.ofConstant(CelConstant.ofValue("target")),
+                "function",
+                CelMutableExpr.ofConstant(CelConstant.ofValue("arg"))));
+
+    CelMutableExpr deepCopiedExpr = CelMutableExpr.newInstance(mutableExpr);
+
+    assertThat(mutableExpr).isEqualTo(deepCopiedExpr);
+    assertThat(mutableExpr.call()).isEqualTo(deepCopiedExpr.call());
+    assertThat(mutableExpr).isNotSameInstanceAs(deepCopiedExpr);
+    assertThat(mutableExpr.call()).isNotSameInstanceAs(deepCopiedExpr.call());
+  }
+
+  @Test
   public void mutableCall_setFunction() {
     CelMutableCall call = CelMutableCall.create("function");
 
@@ -301,6 +360,29 @@ public class CelMutableExprTest {
     assertThat(createList.elements())
         .containsExactly(CelMutableExpr.ofConstant(CelConstant.ofValue("hello")));
     assertThat(createList.elements()).isInstanceOf(ArrayList.class);
+  }
+
+  @Test
+  @SuppressWarnings("ReferenceEquality") // test only on iterating through elements
+  public void mutableCreateList_deepCopy() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofCreateList(
+            CelMutableCreateList.create(
+                CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
+                CelMutableExpr.ofConstant(CelConstant.ofValue("element2"))));
+
+    CelMutableExpr deepCopiedExpr = CelMutableExpr.newInstance(mutableExpr);
+
+    assertThat(mutableExpr).isEqualTo(deepCopiedExpr);
+    assertThat(mutableExpr.createList()).isEqualTo(deepCopiedExpr.createList());
+    assertThat(mutableExpr).isNotSameInstanceAs(deepCopiedExpr);
+    assertThat(mutableExpr.createList()).isNotSameInstanceAs(deepCopiedExpr.createList());
+    assertThat(mutableExpr.createList().elements())
+        .comparingElementsUsing(
+            Correspondence.from(
+                (e1, e2) -> e1 != e2 && e1.equals(e2),
+                "are only value equal and not referentially equal"))
+        .containsExactlyElementsIn(deepCopiedExpr.createList().elements());
   }
 
   @Test
@@ -373,6 +455,41 @@ public class CelMutableExprTest {
         .isEqualTo(
             CelMutableCreateStruct.Entry.create(
                 2L, "field2", CelMutableExpr.ofConstant(CelConstant.ofValue("value2")), true));
+  }
+
+  @Test
+  @SuppressWarnings("ReferenceEquality") // test only on iterating through elements
+  public void mutableCreateStruct_deepCopy() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofCreateStruct(
+            8L,
+            CelMutableCreateStruct.create(
+                "message",
+                ImmutableList.of(
+                    CelMutableCreateStruct.Entry.create(
+                        8L,
+                        "field",
+                        CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
+                        /* optionalEntry= */ true))));
+
+    CelMutableExpr deepCopiedExpr = CelMutableExpr.newInstance(mutableExpr);
+
+    assertThat(mutableExpr).isEqualTo(deepCopiedExpr);
+    assertThat(mutableExpr.createStruct()).isEqualTo(deepCopiedExpr.createStruct());
+    assertThat(mutableExpr).isNotSameInstanceAs(deepCopiedExpr);
+    assertThat(mutableExpr.createStruct()).isNotSameInstanceAs(deepCopiedExpr.createStruct());
+    assertThat(mutableExpr.createStruct().entries())
+        .isNotSameInstanceAs(deepCopiedExpr.createStruct().entries());
+    assertThat(mutableExpr.createStruct().entries())
+        .comparingElementsUsing(
+            Correspondence.<CelMutableCreateStruct.Entry, CelMutableCreateStruct.Entry>from(
+                (e1, e2) ->
+                    e1 != e2
+                        && e1.equals(e2)
+                        && e1.value() != e2.value()
+                        && e1.value().equals(e2.value()),
+                "are only value equal and not referentially equal"))
+        .containsExactlyElementsIn(deepCopiedExpr.createStruct().entries());
   }
 
   @Test
@@ -451,6 +568,40 @@ public class CelMutableExprTest {
   }
 
   @Test
+  @SuppressWarnings("ReferenceEquality") // test only on iterating through elements
+  public void mutableCreateMap_deepCopy() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofCreateMap(
+            9L,
+            CelMutableCreateMap.create(
+                ImmutableList.of(
+                    CelMutableCreateMap.Entry.create(
+                        10L,
+                        CelMutableExpr.ofConstant(CelConstant.ofValue("key")),
+                        CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
+                        /* optionalEntry= */ true))));
+
+    CelMutableExpr deepCopiedExpr = CelMutableExpr.newInstance(mutableExpr);
+
+    assertThat(mutableExpr).isEqualTo(deepCopiedExpr);
+    assertThat(mutableExpr.createMap()).isEqualTo(deepCopiedExpr.createMap());
+    assertThat(mutableExpr).isNotSameInstanceAs(deepCopiedExpr);
+    assertThat(mutableExpr.createMap()).isNotSameInstanceAs(deepCopiedExpr.createMap());
+    assertThat(mutableExpr.createMap().entries())
+        .comparingElementsUsing(
+            Correspondence.<CelMutableCreateMap.Entry, CelMutableCreateMap.Entry>from(
+                (e1, e2) ->
+                    e1 != e2
+                        && e1.equals(e2)
+                        && e1.key() != e2.key()
+                        && e1.key().equals(e2.key())
+                        && e1.value() != e2.value()
+                        && e1.value().equals(e2.value()),
+                "are only value equal and not referentially equal"))
+        .containsExactlyElementsIn(deepCopiedExpr.createMap().entries());
+  }
+
+  @Test
   public void ofComprehension_withId() {
     CelMutableExpr mutableExpr =
         CelMutableExpr.ofComprehension(
@@ -515,6 +666,50 @@ public class CelMutableExprTest {
                 CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
                 CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
                 CelMutableExpr.ofIdent("__result__")));
+  }
+
+  @Test
+  public void mutableComprehension_deepCopy() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofComprehension(
+            10L,
+            CelMutableComprehension.create(
+                "iterVar",
+                CelMutableExpr.ofCreateList(
+                    CelMutableCreateList.create(
+                        CelMutableExpr.ofConstant(CelConstant.ofValue(true)))),
+                "accuVar",
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofIdent("__result__")));
+
+    CelMutableExpr deepCopiedExpr = CelMutableExpr.newInstance(mutableExpr);
+
+    assertThat(mutableExpr).isEqualTo(deepCopiedExpr);
+    assertThat(mutableExpr).isNotSameInstanceAs(deepCopiedExpr);
+    assertThat(mutableExpr.comprehension()).isEqualTo(deepCopiedExpr.comprehension());
+    assertThat(mutableExpr.comprehension()).isNotSameInstanceAs(deepCopiedExpr.comprehension());
+    assertThat(mutableExpr.comprehension().accuInit())
+        .isEqualTo(deepCopiedExpr.comprehension().accuInit());
+    assertThat(mutableExpr.comprehension().accuInit())
+        .isNotSameInstanceAs(deepCopiedExpr.comprehension().accuInit());
+    assertThat(mutableExpr.comprehension().iterRange())
+        .isEqualTo(deepCopiedExpr.comprehension().iterRange());
+    assertThat(mutableExpr.comprehension().iterRange())
+        .isNotSameInstanceAs(deepCopiedExpr.comprehension().iterRange());
+    assertThat(mutableExpr.comprehension().loopCondition())
+        .isEqualTo(deepCopiedExpr.comprehension().loopCondition());
+    assertThat(mutableExpr.comprehension().loopCondition())
+        .isNotSameInstanceAs(deepCopiedExpr.comprehension().loopCondition());
+    assertThat(mutableExpr.comprehension().loopStep())
+        .isEqualTo(deepCopiedExpr.comprehension().loopStep());
+    assertThat(mutableExpr.comprehension().loopStep())
+        .isNotSameInstanceAs(deepCopiedExpr.comprehension().loopStep());
+    assertThat(mutableExpr.comprehension().result())
+        .isEqualTo(deepCopiedExpr.comprehension().result());
+    assertThat(mutableExpr.comprehension().result())
+        .isNotSameInstanceAs(deepCopiedExpr.comprehension().result());
   }
 
   @Test
