@@ -38,12 +38,7 @@ import java.util.Optional;
 public final class CelMutableExpr {
   private long id;
   private ExprKind.Kind exprKind;
-  private CelNotSet notSet;
-  private CelConstant constant;
-  private CelMutableIdent ident;
-  private CelMutableSelect select;
-  private CelMutableCall call;
-  private CelMutableCreateList createList;
+  private Object exprValue;
   private int hash = 0;
 
   public long id() {
@@ -60,57 +55,67 @@ public final class CelMutableExpr {
 
   public CelNotSet notSet() {
     checkExprKind(Kind.NOT_SET);
-    return notSet;
+    return (CelNotSet) exprValue;
   }
 
   public CelConstant constant() {
     checkExprKind(Kind.CONSTANT);
-    return constant;
+    return (CelConstant) exprValue;
   }
 
   public CelMutableIdent ident() {
     checkExprKind(Kind.IDENT);
-    return ident;
+    return (CelMutableIdent) exprValue;
   }
 
   public CelMutableSelect select() {
     checkExprKind(Kind.SELECT);
-    return select;
+    return (CelMutableSelect) exprValue;
   }
 
   public CelMutableCall call() {
     checkExprKind(Kind.CALL);
-    return call;
+    return (CelMutableCall) exprValue;
   }
 
   public CelMutableCreateList createList() {
     checkExprKind(Kind.CREATE_LIST);
-    return createList;
+    return (CelMutableCreateList) exprValue;
+  }
+
+  public CelMutableCreateStruct createStruct() {
+    checkExprKind(Kind.CREATE_STRUCT);
+    return (CelMutableCreateStruct) exprValue;
   }
 
   public void setConstant(CelConstant constant) {
     this.exprKind = ExprKind.Kind.CONSTANT;
-    this.constant = checkNotNull(constant);
+    this.exprValue = checkNotNull(constant);
   }
 
   public void setIdent(CelMutableIdent ident) {
     this.exprKind = ExprKind.Kind.IDENT;
-    this.ident = checkNotNull(ident);
+    this.exprValue = checkNotNull(ident);
   }
 
   public void setSelect(CelMutableSelect select) {
     this.exprKind = ExprKind.Kind.SELECT;
-    this.select = checkNotNull(select);
+    this.exprValue = checkNotNull(select);
   }
 
   public void setCall(CelMutableCall call) {
     this.exprKind = ExprKind.Kind.CALL;
-    this.call = checkNotNull(call);
+    this.exprValue = checkNotNull(call);
   }
 
   public void setCreateList(CelMutableCreateList createList) {
     this.exprKind = ExprKind.Kind.CREATE_LIST;
-    this.createList = checkNotNull(createList);
+    this.exprValue = checkNotNull(createList);
+  }
+
+  public void setCreateStruct(CelMutableCreateStruct createStruct) {
+    this.exprKind = ExprKind.Kind.CREATE_STRUCT;
+    this.exprValue = checkNotNull(createStruct);
   }
 
   /** A mutable identifier expression. */
@@ -395,6 +400,155 @@ public final class CelMutableExpr {
     }
   }
 
+  /**
+   * A mutable list creation expression.
+   *
+   * <p>Lists may either be homogenous, e.g. `[1, 2, 3]`, or heterogeneous, e.g. `dyn([1, 'hello',
+   * 2.0])`
+   */
+  public static final class CelMutableCreateStruct {
+    private String messageName = "";
+    private List<CelMutableCreateStruct.Entry> entries;
+
+    public String messageName() {
+      return messageName;
+    }
+
+    public void setMessageName(String messageName) {
+      this.messageName = checkNotNull(messageName);
+    }
+
+    public List<CelMutableCreateStruct.Entry> entries() {
+      return entries;
+    }
+
+    public void setEntries(List<CelMutableCreateStruct.Entry> entries) {
+      this.entries = checkNotNull(entries);
+    }
+
+    public void setEntry(int index, CelMutableCreateStruct.Entry entry) {
+      checkArgument(index >= 0 && index < entries().size());
+      entries.set(index, checkNotNull(entry));
+    }
+
+    /** Represents a mutable entry of the struct */
+    public static final class Entry {
+      private long id;
+      private String fieldKey = "";
+      private CelMutableExpr value;
+      private boolean optionalEntry;
+
+      public long id() {
+        return id;
+      }
+
+      public void setId(long id) {
+        this.id = id;
+      }
+
+      public String fieldKey() {
+        return fieldKey;
+      }
+
+      public void setFieldKey(String fieldKey) {
+        this.fieldKey = checkNotNull(fieldKey);
+      }
+
+      public CelMutableExpr value() {
+        return value;
+      }
+
+      public void setValue(CelMutableExpr value) {
+        this.value = checkNotNull(value);
+      }
+
+      public boolean optionalEntry() {
+        return optionalEntry;
+      }
+
+      public void setOptionalEntry(boolean optionalEntry) {
+        this.optionalEntry = optionalEntry;
+      }
+
+      public static Entry create(long id, String fieldKey, CelMutableExpr value) {
+        return create(id, fieldKey, value, false);
+      }
+
+      public static Entry create(
+          long id, String fieldKey, CelMutableExpr value, boolean optionalEntry) {
+        return new Entry(id, fieldKey, value, optionalEntry);
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+        if (obj == this) {
+          return true;
+        }
+        if (obj instanceof Entry) {
+          Entry that = (Entry) obj;
+          return this.id == that.id()
+              && this.fieldKey.equals(that.fieldKey())
+              && this.value.equals(that.value())
+              && this.optionalEntry == that.optionalEntry();
+        }
+        return false;
+      }
+
+      @Override
+      public int hashCode() {
+        int h = 1;
+        h *= 1000003;
+        h ^= (int) ((id >>> 32) ^ id);
+        h *= 1000003;
+        h ^= fieldKey.hashCode();
+        h *= 1000003;
+        h ^= value.hashCode();
+        h *= 1000003;
+        h ^= optionalEntry ? 1231 : 1237;
+        return h;
+      }
+
+      private Entry(long id, String fieldKey, CelMutableExpr value, boolean optionalEntry) {
+        this.id = id;
+        this.fieldKey = checkNotNull(fieldKey);
+        this.value = checkNotNull(value);
+        this.optionalEntry = optionalEntry;
+      }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      }
+      if (obj instanceof CelMutableCreateStruct) {
+        CelMutableCreateStruct that = (CelMutableCreateStruct) obj;
+        return this.messageName.equals(that.messageName()) && this.entries.equals(that.entries());
+      }
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      int h = 1;
+      h *= 1000003;
+      h ^= messageName.hashCode();
+      h *= 1000003;
+      h ^= entries.hashCode();
+      return h;
+    }
+
+    public static CelMutableCreateStruct create(
+        String messageName, List<CelMutableCreateStruct.Entry> entries) {
+      return new CelMutableCreateStruct(messageName, entries);
+    }
+
+    private CelMutableCreateStruct(String messageName, List<CelMutableCreateStruct.Entry> entries) {
+      this.messageName = checkNotNull(messageName);
+      this.entries = new ArrayList<>(checkNotNull(entries));
+    }
+  }
+
   public static CelMutableExpr ofNotSet() {
     return ofNotSet(0L);
   }
@@ -443,6 +597,14 @@ public final class CelMutableExpr {
     return new CelMutableExpr(id, mutableCreateList);
   }
 
+  public static CelMutableExpr ofCreateStruct(CelMutableCreateStruct mutableCreateStruct) {
+    return ofCreateStruct(0, mutableCreateStruct);
+  }
+
+  public static CelMutableExpr ofCreateStruct(long id, CelMutableCreateStruct mutableCreateStruct) {
+    return new CelMutableExpr(id, mutableCreateStruct);
+  }
+
   private CelMutableExpr(long id, CelConstant mutableConstant) {
     this.id = id;
     setConstant(mutableConstant);
@@ -468,13 +630,18 @@ public final class CelMutableExpr {
     setCreateList(mutableCreateList);
   }
 
+  private CelMutableExpr(long id, CelMutableCreateStruct mutableCreateStruct) {
+    this.id = id;
+    setCreateStruct(mutableCreateStruct);
+  }
+
   private CelMutableExpr(long id) {
     this();
     this.id = id;
   }
 
   private CelMutableExpr() {
-    this.notSet = CelExpr.newBuilder().build().exprKind().notSet();
+    this.exprValue = CelExpr.newBuilder().build().exprKind().notSet();
     this.exprKind = ExprKind.Kind.NOT_SET;
   }
 
@@ -493,6 +660,7 @@ public final class CelMutableExpr {
       case CREATE_LIST:
         return createList();
       case CREATE_STRUCT:
+        return createStruct();
       case CREATE_MAP:
       case COMPREHENSION:
         // fall-through (not implemented yet)

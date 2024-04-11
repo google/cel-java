@@ -24,6 +24,7 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
+import dev.cel.common.ast.CelMutableExpr.CelMutableCreateStruct;
 import dev.cel.common.ast.CelMutableExpr.CelMutableIdent;
 import dev.cel.common.ast.CelMutableExpr.CelMutableSelect;
 import java.util.ArrayList;
@@ -301,6 +302,78 @@ public class CelMutableExprTest {
   }
 
   @Test
+  public void ofCreateStruct() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofCreateStruct(CelMutableCreateStruct.create("message", ImmutableList.of()));
+
+    assertThat(mutableExpr.id()).isEqualTo(0L);
+    assertThat(mutableExpr.createStruct().messageName()).isEqualTo("message");
+    assertThat(mutableExpr.createStruct().entries()).isEmpty();
+  }
+
+  @Test
+  public void ofCreateStruct_withId() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofCreateStruct(
+            8L,
+            CelMutableCreateStruct.create(
+                "message",
+                ImmutableList.of(
+                    CelMutableCreateStruct.Entry.create(
+                        9L,
+                        "field",
+                        CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
+                        /* optionalEntry= */ true))));
+
+    assertThat(mutableExpr.id()).isEqualTo(8L);
+    assertThat(mutableExpr.createStruct().messageName()).isEqualTo("message");
+    assertThat(mutableExpr.createStruct().entries())
+        .containsExactly(
+            CelMutableCreateStruct.Entry.create(
+                9L,
+                "field",
+                CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
+                /* optionalEntry= */ true));
+  }
+
+  @Test
+  public void mutableCreateStruct_setEntryAtIndex() {
+    CelMutableCreateStruct createStruct =
+        CelMutableCreateStruct.create(
+            "message",
+            ImmutableList.of(
+                CelMutableCreateStruct.Entry.create(
+                    1L, "field", CelMutableExpr.ofConstant(CelConstant.ofValue("value")))));
+    CelMutableCreateStruct.Entry newEntry =
+        CelMutableCreateStruct.Entry.create(
+            2L,
+            "field2",
+            CelMutableExpr.ofConstant(CelConstant.ofValue("value2")),
+            /* optionalEntry= */ true);
+
+    createStruct.setEntry(0, newEntry);
+
+    assertThat(createStruct.entries()).containsExactly(newEntry);
+  }
+
+  @Test
+  public void mutableCreateStructEntry_setters() {
+    CelMutableCreateStruct.Entry createStructEntry =
+        CelMutableCreateStruct.Entry.create(
+            1L, "field", CelMutableExpr.ofConstant(CelConstant.ofValue("value")));
+
+    createStructEntry.setId(2L);
+    createStructEntry.setFieldKey("field2");
+    createStructEntry.setValue(CelMutableExpr.ofConstant(CelConstant.ofValue("value2")));
+    createStructEntry.setOptionalEntry(true);
+
+    assertThat(createStructEntry)
+        .isEqualTo(
+            CelMutableCreateStruct.Entry.create(
+                2L, "field2", CelMutableExpr.ofConstant(CelConstant.ofValue("value2")), true));
+  }
+
+  @Test
   public void equalityTest() {
     new EqualsTester()
         .addEqualityGroup(CelMutableExpr.ofNotSet())
@@ -344,6 +417,30 @@ public class CelMutableExprTest {
                 CelMutableCreateList.create(
                     CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
                     CelMutableExpr.ofConstant(CelConstant.ofValue("element2")))))
+        .addEqualityGroup(
+            CelMutableExpr.ofCreateStruct(
+                CelMutableCreateStruct.create("message", ImmutableList.of())))
+        .addEqualityGroup(
+            CelMutableExpr.ofCreateStruct(
+                7L,
+                CelMutableCreateStruct.create(
+                    "message",
+                    ImmutableList.of(
+                        CelMutableCreateStruct.Entry.create(
+                            8L,
+                            "field",
+                            CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
+                            /* optionalEntry= */ true)))),
+            CelMutableExpr.ofCreateStruct(
+                7L,
+                CelMutableCreateStruct.create(
+                    "message",
+                    ImmutableList.of(
+                        CelMutableCreateStruct.Entry.create(
+                            8L,
+                            "field",
+                            CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
+                            /* optionalEntry= */ true)))))
         .testEquals();
   }
 
@@ -354,7 +451,10 @@ public class CelMutableExprTest {
     IDENT(CelMutableExpr.ofIdent("test")),
     SELECT(CelMutableExpr.ofSelect(CelMutableSelect.create(CelMutableExpr.ofNotSet(), "field"))),
     CALL(CelMutableExpr.ofCall(CelMutableCall.create("call"))),
-    CREATE_LIST(CelMutableExpr.ofCreateList(CelMutableCreateList.create()));
+    CREATE_LIST(CelMutableExpr.ofCreateList(CelMutableCreateList.create())),
+    CREATE_STRUCT(
+        CelMutableExpr.ofCreateStruct(
+            CelMutableCreateStruct.create("message", ImmutableList.of())));
 
     private final CelMutableExpr mutableExpr;
 
@@ -384,6 +484,9 @@ public class CelMutableExprTest {
     if (!testCaseKind.equals(Kind.CREATE_LIST)) {
       assertThrows(IllegalArgumentException.class, testCase.mutableExpr::createList);
     }
+    if (!testCaseKind.equals(Kind.CREATE_STRUCT)) {
+      assertThrows(IllegalArgumentException.class, testCase.mutableExpr::createStruct);
+    }
   }
 
   @SuppressWarnings("Immutable") // Mutable by design
@@ -411,6 +514,18 @@ public class CelMutableExprTest {
                 CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
                 CelMutableExpr.ofConstant(CelConstant.ofValue("element2")))),
         165341403),
+    CREATE_STRUCT(
+        CelMutableExpr.ofCreateStruct(
+            7L,
+            CelMutableCreateStruct.create(
+                "message",
+                ImmutableList.of(
+                    CelMutableCreateStruct.Entry.create(
+                        8L,
+                        "field",
+                        CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
+                        /* optionalEntry= */ true)))),
+        2064611987),
     ;
 
     private final CelMutableExpr mutableExpr;
