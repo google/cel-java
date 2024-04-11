@@ -23,6 +23,7 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
+import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
 import dev.cel.common.ast.CelMutableExpr.CelMutableIdent;
 import dev.cel.common.ast.CelMutableExpr.CelMutableSelect;
 import java.util.ArrayList;
@@ -251,6 +252,55 @@ public class CelMutableExprTest {
   }
 
   @Test
+  public void ofCreateList() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofCreateList(
+            CelMutableCreateList.create(
+                CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
+                CelMutableExpr.ofConstant(CelConstant.ofValue("element2"))));
+
+    assertThat(mutableExpr.id()).isEqualTo(0L);
+    assertThat(mutableExpr.createList().elements())
+        .containsExactly(
+            CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
+            CelMutableExpr.ofConstant(CelConstant.ofValue("element2")))
+        .inOrder();
+    assertThat(mutableExpr.createList().optionalIndices()).isEmpty();
+  }
+
+  @Test
+  public void ofCreateList_withId() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofCreateList(
+            1L,
+            CelMutableCreateList.create(
+                ImmutableList.of(
+                    CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
+                    CelMutableExpr.ofConstant(CelConstant.ofValue("element2"))),
+                ImmutableList.of(0, 1)));
+
+    assertThat(mutableExpr.id()).isEqualTo(1L);
+    assertThat(mutableExpr.createList().elements())
+        .containsExactly(
+            CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
+            CelMutableExpr.ofConstant(CelConstant.ofValue("element2")))
+        .inOrder();
+    assertThat(mutableExpr.createList().optionalIndices()).containsExactly(0, 1).inOrder();
+  }
+
+  @Test
+  public void mutableCreateList_setElementAtIndex() {
+    CelMutableCreateList createList =
+        CelMutableCreateList.create(CelMutableExpr.ofConstant(CelConstant.ofValue("element1")));
+
+    createList.setElement(0, CelMutableExpr.ofConstant(CelConstant.ofValue("hello")));
+
+    assertThat(createList.elements())
+        .containsExactly(CelMutableExpr.ofConstant(CelConstant.ofValue("hello")));
+    assertThat(createList.elements()).isInstanceOf(ArrayList.class);
+  }
+
+  @Test
   public void equalityTest() {
     new EqualsTester()
         .addEqualityGroup(CelMutableExpr.ofNotSet())
@@ -282,6 +332,18 @@ public class CelMutableExprTest {
                     CelMutableExpr.ofConstant(CelConstant.ofValue("target")),
                     "function",
                     CelMutableExpr.ofConstant(CelConstant.ofValue("arg")))))
+        .addEqualityGroup(CelMutableExpr.ofCreateList(CelMutableCreateList.create()))
+        .addEqualityGroup(
+            CelMutableExpr.ofCreateList(
+                6L,
+                CelMutableCreateList.create(
+                    CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
+                    CelMutableExpr.ofConstant(CelConstant.ofValue("element2")))),
+            CelMutableExpr.ofCreateList(
+                6L,
+                CelMutableCreateList.create(
+                    CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
+                    CelMutableExpr.ofConstant(CelConstant.ofValue("element2")))))
         .testEquals();
   }
 
@@ -292,7 +354,7 @@ public class CelMutableExprTest {
     IDENT(CelMutableExpr.ofIdent("test")),
     SELECT(CelMutableExpr.ofSelect(CelMutableSelect.create(CelMutableExpr.ofNotSet(), "field"))),
     CALL(CelMutableExpr.ofCall(CelMutableCall.create("call"))),
-    ;
+    CREATE_LIST(CelMutableExpr.ofCreateList(CelMutableCreateList.create()));
 
     private final CelMutableExpr mutableExpr;
 
@@ -319,6 +381,9 @@ public class CelMutableExprTest {
     if (!testCaseKind.equals(Kind.CALL)) {
       assertThrows(IllegalArgumentException.class, testCase.mutableExpr::call);
     }
+    if (!testCaseKind.equals(Kind.CREATE_LIST)) {
+      assertThrows(IllegalArgumentException.class, testCase.mutableExpr::createList);
+    }
   }
 
   @SuppressWarnings("Immutable") // Mutable by design
@@ -339,6 +404,13 @@ public class CelMutableExprTest {
                 "function",
                 CelMutableExpr.ofConstant(CelConstant.ofValue("arg")))),
         -1735261193),
+    CREATE_LIST(
+        CelMutableExpr.ofCreateList(
+            6L,
+            CelMutableCreateList.create(
+                CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
+                CelMutableExpr.ofConstant(CelConstant.ofValue("element2")))),
+        165341403),
     ;
 
     private final CelMutableExpr mutableExpr;

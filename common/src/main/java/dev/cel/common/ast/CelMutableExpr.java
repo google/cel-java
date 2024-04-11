@@ -43,6 +43,7 @@ public final class CelMutableExpr {
   private CelMutableIdent ident;
   private CelMutableSelect select;
   private CelMutableCall call;
+  private CelMutableCreateList createList;
   private int hash = 0;
 
   public long id() {
@@ -82,6 +83,11 @@ public final class CelMutableExpr {
     return call;
   }
 
+  public CelMutableCreateList createList() {
+    checkExprKind(Kind.CREATE_LIST);
+    return createList;
+  }
+
   public void setConstant(CelConstant constant) {
     this.exprKind = ExprKind.Kind.CONSTANT;
     this.constant = checkNotNull(constant);
@@ -100,6 +106,11 @@ public final class CelMutableExpr {
   public void setCall(CelMutableCall call) {
     this.exprKind = ExprKind.Kind.CALL;
     this.call = checkNotNull(call);
+  }
+
+  public void setCreateList(CelMutableCreateList createList) {
+    this.exprKind = ExprKind.Kind.CREATE_LIST;
+    this.createList = checkNotNull(createList);
   }
 
   /** A mutable identifier expression. */
@@ -316,6 +327,74 @@ public final class CelMutableExpr {
     }
   }
 
+  /**
+   * A mutable list creation expression.
+   *
+   * <p>Lists may either be homogenous, e.g. `[1, 2, 3]`, or heterogeneous, e.g. `dyn([1, 'hello',
+   * 2.0])`
+   */
+  public static final class CelMutableCreateList {
+    private final List<CelMutableExpr> elements;
+    private final List<Integer> optionalIndices;
+
+    public List<CelMutableExpr> elements() {
+      return elements;
+    }
+
+    public void setElement(int index, CelMutableExpr element) {
+      checkArgument(index >= 0 && index < elements().size());
+      elements.set(index, checkNotNull(element));
+    }
+
+    public List<Integer> optionalIndices() {
+      return optionalIndices;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      }
+      if (obj instanceof CelMutableCreateList) {
+        CelMutableCreateList that = (CelMutableCreateList) obj;
+        return this.elements.equals(that.elements())
+            && this.optionalIndices.equals(that.optionalIndices());
+      }
+
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      int h = 1;
+      h *= 1000003;
+      h ^= elements.hashCode();
+      h *= 1000003;
+      h ^= optionalIndices.hashCode();
+
+      return h;
+    }
+
+    public static CelMutableCreateList create(CelMutableExpr... elements) {
+      return create(Arrays.asList(checkNotNull(elements)));
+    }
+
+    public static CelMutableCreateList create(List<CelMutableExpr> elements) {
+      return create(elements, new ArrayList<>());
+    }
+
+    public static CelMutableCreateList create(
+        List<CelMutableExpr> mutableExprList, List<Integer> optionalIndices) {
+      return new CelMutableCreateList(mutableExprList, optionalIndices);
+    }
+
+    private CelMutableCreateList(
+        List<CelMutableExpr> mutableExprList, List<Integer> optionalIndices) {
+      this.elements = new ArrayList<>(checkNotNull(mutableExprList));
+      this.optionalIndices = new ArrayList<>(checkNotNull(optionalIndices));
+    }
+  }
+
   public static CelMutableExpr ofNotSet() {
     return ofNotSet(0L);
   }
@@ -356,6 +435,14 @@ public final class CelMutableExpr {
     return new CelMutableExpr(id, mutableCall);
   }
 
+  public static CelMutableExpr ofCreateList(CelMutableCreateList mutableCreateList) {
+    return ofCreateList(0, mutableCreateList);
+  }
+
+  public static CelMutableExpr ofCreateList(long id, CelMutableCreateList mutableCreateList) {
+    return new CelMutableExpr(id, mutableCreateList);
+  }
+
   private CelMutableExpr(long id, CelConstant mutableConstant) {
     this.id = id;
     setConstant(mutableConstant);
@@ -374,6 +461,11 @@ public final class CelMutableExpr {
   private CelMutableExpr(long id, CelMutableCall mutableCall) {
     this.id = id;
     setCall(mutableCall);
+  }
+
+  private CelMutableExpr(long id, CelMutableCreateList mutableCreateList) {
+    this.id = id;
+    setCreateList(mutableCreateList);
   }
 
   private CelMutableExpr(long id) {
@@ -399,6 +491,7 @@ public final class CelMutableExpr {
       case CALL:
         return call();
       case CREATE_LIST:
+        return createList();
       case CREATE_STRUCT:
       case CREATE_MAP:
       case COMPREHENSION:
