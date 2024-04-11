@@ -88,6 +88,11 @@ public final class CelMutableExpr {
     return (CelMutableCreateStruct) exprValue;
   }
 
+  public CelMutableCreateMap createMap() {
+    checkExprKind(Kind.CREATE_MAP);
+    return (CelMutableCreateMap) exprValue;
+  }
+
   public void setConstant(CelConstant constant) {
     this.exprKind = ExprKind.Kind.CONSTANT;
     this.exprValue = checkNotNull(constant);
@@ -116,6 +121,11 @@ public final class CelMutableExpr {
   public void setCreateStruct(CelMutableCreateStruct createStruct) {
     this.exprKind = ExprKind.Kind.CREATE_STRUCT;
     this.exprValue = checkNotNull(createStruct);
+  }
+
+  public void setCreateMap(CelMutableCreateMap createMap) {
+    this.exprKind = ExprKind.Kind.CREATE_MAP;
+    this.exprValue = checkNotNull(createMap);
   }
 
   /** A mutable identifier expression. */
@@ -549,6 +559,145 @@ public final class CelMutableExpr {
     }
   }
 
+  /**
+   * A mutable map creation expression.
+   *
+   * <p>Maps are constructed as `{'key_name': 'value'}`.
+   */
+  public static final class CelMutableCreateMap {
+    private List<CelMutableCreateMap.Entry> entries;
+
+    public List<CelMutableCreateMap.Entry> entries() {
+      return entries;
+    }
+
+    public void setEntries(List<CelMutableCreateMap.Entry> entries) {
+      this.entries = checkNotNull(entries);
+    }
+
+    public void setEntry(int index, CelMutableCreateMap.Entry entry) {
+      checkArgument(index >= 0 && index < entries().size());
+      entries.set(index, checkNotNull(entry));
+    }
+
+    /** Represents an entry of the map */
+    public static final class Entry {
+      private long id;
+      private CelMutableExpr key;
+      private CelMutableExpr value;
+      private boolean optionalEntry;
+
+      public long id() {
+        return id;
+      }
+
+      public void setId(long id) {
+        this.id = id;
+      }
+
+      public CelMutableExpr key() {
+        return key;
+      }
+
+      public void setKey(CelMutableExpr key) {
+        this.key = checkNotNull(key);
+      }
+
+      public CelMutableExpr value() {
+        return value;
+      }
+
+      public void setValue(CelMutableExpr value) {
+        this.value = checkNotNull(value);
+      }
+
+      public boolean optionalEntry() {
+        return optionalEntry;
+      }
+
+      public void setOptionalEntry(boolean optionalEntry) {
+        this.optionalEntry = optionalEntry;
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+        if (obj == this) {
+          return true;
+        }
+        if (obj instanceof Entry) {
+          Entry that = (Entry) obj;
+          return this.id == that.id()
+              && this.key.equals(that.key())
+              && this.value.equals(that.value())
+              && this.optionalEntry == that.optionalEntry();
+        }
+        return false;
+      }
+
+      @Override
+      public int hashCode() {
+        int h = 1;
+        h *= 1000003;
+        h ^= (int) ((id >>> 32) ^ id);
+        h *= 1000003;
+        h ^= key.hashCode();
+        h *= 1000003;
+        h ^= value.hashCode();
+        h *= 1000003;
+        h ^= optionalEntry ? 1231 : 1237;
+        return h;
+      }
+
+      public static Entry create(CelMutableExpr key, CelMutableExpr value) {
+        return create(0, key, value, false);
+      }
+
+      public static Entry create(long id, CelMutableExpr key, CelMutableExpr value) {
+        return create(id, key, value, false);
+      }
+
+      public static Entry create(
+          long id, CelMutableExpr key, CelMutableExpr value, boolean optionalEntry) {
+        return new Entry(id, key, value, optionalEntry);
+      }
+
+      private Entry(long id, CelMutableExpr key, CelMutableExpr value, boolean optionalEntry) {
+        this.id = id;
+        this.key = checkNotNull(key);
+        this.value = checkNotNull(value);
+        this.optionalEntry = optionalEntry;
+      }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      }
+      if (obj instanceof CelMutableCreateMap) {
+        CelMutableCreateMap that = (CelMutableCreateMap) obj;
+        return this.entries.equals(that.entries());
+      }
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      int h = 1;
+      h *= 1000003;
+      h ^= entries.hashCode();
+      return h;
+    }
+
+    public static CelMutableCreateMap create(List<CelMutableCreateMap.Entry> entries) {
+      return new CelMutableCreateMap(new ArrayList<>(entries));
+    }
+
+    private CelMutableCreateMap(List<CelMutableCreateMap.Entry> entries) {
+      this.entries = checkNotNull(entries);
+    }
+  }
+
   public static CelMutableExpr ofNotSet() {
     return ofNotSet(0L);
   }
@@ -605,6 +754,14 @@ public final class CelMutableExpr {
     return new CelMutableExpr(id, mutableCreateStruct);
   }
 
+  public static CelMutableExpr ofCreateMap(CelMutableCreateMap mutableCreateMap) {
+    return ofCreateMap(0, mutableCreateMap);
+  }
+
+  public static CelMutableExpr ofCreateMap(long id, CelMutableCreateMap mutableCreateMap) {
+    return new CelMutableExpr(id, mutableCreateMap);
+  }
+
   private CelMutableExpr(long id, CelConstant mutableConstant) {
     this.id = id;
     setConstant(mutableConstant);
@@ -635,6 +792,11 @@ public final class CelMutableExpr {
     setCreateStruct(mutableCreateStruct);
   }
 
+  private CelMutableExpr(long id, CelMutableCreateMap mutableCreateMap) {
+    this.id = id;
+    setCreateMap(mutableCreateMap);
+  }
+
   private CelMutableExpr(long id) {
     this();
     this.id = id;
@@ -662,6 +824,7 @@ public final class CelMutableExpr {
       case CREATE_STRUCT:
         return createStruct();
       case CREATE_MAP:
+        return createMap();
       case COMPREHENSION:
         // fall-through (not implemented yet)
     }

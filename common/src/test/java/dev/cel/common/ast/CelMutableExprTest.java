@@ -24,6 +24,7 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
+import dev.cel.common.ast.CelMutableExpr.CelMutableCreateMap;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCreateStruct;
 import dev.cel.common.ast.CelMutableExpr.CelMutableIdent;
 import dev.cel.common.ast.CelMutableExpr.CelMutableSelect;
@@ -374,6 +375,81 @@ public class CelMutableExprTest {
   }
 
   @Test
+  public void ofCreateMap() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofCreateMap(CelMutableCreateMap.create(ImmutableList.of()));
+
+    assertThat(mutableExpr.id()).isEqualTo(0L);
+    assertThat(mutableExpr.createMap().entries()).isEmpty();
+  }
+
+  @Test
+  public void ofCreateMap_withId() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofCreateMap(
+            9L,
+            CelMutableCreateMap.create(
+                ImmutableList.of(
+                    CelMutableCreateMap.Entry.create(
+                        10L,
+                        CelMutableExpr.ofConstant(CelConstant.ofValue("key")),
+                        CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
+                        /* optionalEntry= */ true))));
+
+    assertThat(mutableExpr.id()).isEqualTo(9L);
+    assertThat(mutableExpr.createMap().entries())
+        .containsExactly(
+            CelMutableCreateMap.Entry.create(
+                10L,
+                CelMutableExpr.ofConstant(CelConstant.ofValue("key")),
+                CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
+                /* optionalEntry= */ true));
+  }
+
+  @Test
+  public void mutableCreateMap_setEntryAtIndex() {
+    CelMutableCreateMap createMap =
+        CelMutableCreateMap.create(
+            ImmutableList.of(
+                CelMutableCreateMap.Entry.create(
+                    10L,
+                    CelMutableExpr.ofConstant(CelConstant.ofValue("key")),
+                    CelMutableExpr.ofConstant(CelConstant.ofValue("value")))));
+    CelMutableCreateMap.Entry newEntry =
+        CelMutableCreateMap.Entry.create(
+            2L,
+            CelMutableExpr.ofConstant(CelConstant.ofValue("key2")),
+            CelMutableExpr.ofConstant(CelConstant.ofValue("value2")),
+            /* optionalEntry= */ true);
+
+    createMap.setEntry(0, newEntry);
+
+    assertThat(createMap.entries()).containsExactly(newEntry);
+  }
+
+  @Test
+  public void mutableCreateMapEntry_setters() {
+    CelMutableCreateMap.Entry createMapEntry =
+        CelMutableCreateMap.Entry.create(
+            1L,
+            CelMutableExpr.ofConstant(CelConstant.ofValue("key")),
+            CelMutableExpr.ofConstant(CelConstant.ofValue("value")));
+
+    createMapEntry.setId(2L);
+    createMapEntry.setKey(CelMutableExpr.ofConstant(CelConstant.ofValue("key2")));
+    createMapEntry.setValue(CelMutableExpr.ofConstant(CelConstant.ofValue("value2")));
+    createMapEntry.setOptionalEntry(true);
+
+    assertThat(createMapEntry)
+        .isEqualTo(
+            CelMutableCreateMap.Entry.create(
+                2L,
+                CelMutableExpr.ofConstant(CelConstant.ofValue("key2")),
+                CelMutableExpr.ofConstant(CelConstant.ofValue("value2")),
+                true));
+  }
+
+  @Test
   public void equalityTest() {
     new EqualsTester()
         .addEqualityGroup(CelMutableExpr.ofNotSet())
@@ -441,6 +517,23 @@ public class CelMutableExprTest {
                             "field",
                             CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
                             /* optionalEntry= */ true)))))
+        .addEqualityGroup(
+            CelMutableExpr.ofCreateMap(CelMutableCreateMap.create(ImmutableList.of())))
+        .addEqualityGroup(
+            CelMutableCreateMap.create(
+                ImmutableList.of(
+                    CelMutableCreateMap.Entry.create(
+                        9L,
+                        CelMutableExpr.ofConstant(CelConstant.ofValue("key")),
+                        CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
+                        /* optionalEntry= */ true))),
+            CelMutableCreateMap.create(
+                ImmutableList.of(
+                    CelMutableCreateMap.Entry.create(
+                        9L,
+                        CelMutableExpr.ofConstant(CelConstant.ofValue("key")),
+                        CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
+                        /* optionalEntry= */ true))))
         .testEquals();
   }
 
@@ -454,7 +547,9 @@ public class CelMutableExprTest {
     CREATE_LIST(CelMutableExpr.ofCreateList(CelMutableCreateList.create())),
     CREATE_STRUCT(
         CelMutableExpr.ofCreateStruct(
-            CelMutableCreateStruct.create("message", ImmutableList.of())));
+            CelMutableCreateStruct.create("message", ImmutableList.of()))),
+    CREATE_MAP(CelMutableExpr.ofCreateMap(CelMutableCreateMap.create(ImmutableList.of()))),
+    ;
 
     private final CelMutableExpr mutableExpr;
 
@@ -486,6 +581,9 @@ public class CelMutableExprTest {
     }
     if (!testCaseKind.equals(Kind.CREATE_STRUCT)) {
       assertThrows(IllegalArgumentException.class, testCase.mutableExpr::createStruct);
+    }
+    if (!testCaseKind.equals(Kind.CREATE_MAP)) {
+      assertThrows(IllegalArgumentException.class, testCase.mutableExpr::createMap);
     }
   }
 
@@ -526,6 +624,17 @@ public class CelMutableExprTest {
                         CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
                         /* optionalEntry= */ true)))),
         2064611987),
+    CREATE_MAP(
+        CelMutableExpr.ofCreateMap(
+            8L,
+            CelMutableCreateMap.create(
+                ImmutableList.of(
+                    CelMutableCreateMap.Entry.create(
+                        9L,
+                        CelMutableExpr.ofConstant(CelConstant.ofValue("key")),
+                        CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
+                        /* optionalEntry= */ true)))),
+        1260717292),
     ;
 
     private final CelMutableExpr mutableExpr;
