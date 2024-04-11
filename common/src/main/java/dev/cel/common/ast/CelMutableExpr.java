@@ -93,6 +93,11 @@ public final class CelMutableExpr {
     return (CelMutableCreateMap) exprValue;
   }
 
+  public CelMutableComprehension comprehension() {
+    checkExprKind(Kind.COMPREHENSION);
+    return (CelMutableComprehension) exprValue;
+  }
+
   public void setConstant(CelConstant constant) {
     this.exprKind = ExprKind.Kind.CONSTANT;
     this.exprValue = checkNotNull(constant);
@@ -126,6 +131,11 @@ public final class CelMutableExpr {
   public void setCreateMap(CelMutableCreateMap createMap) {
     this.exprKind = ExprKind.Kind.CREATE_MAP;
     this.exprValue = checkNotNull(createMap);
+  }
+
+  public void setComprehension(CelMutableComprehension comprehension) {
+    this.exprKind = ExprKind.Kind.COMPREHENSION;
+    this.exprValue = checkNotNull(comprehension);
   }
 
   /** A mutable identifier expression. */
@@ -698,6 +708,147 @@ public final class CelMutableExpr {
     }
   }
 
+  /** A mutable comprehension expression applied to a list or map. */
+  public static final class CelMutableComprehension {
+
+    private String iterVar;
+
+    private CelMutableExpr iterRange;
+
+    private String accuVar;
+
+    private CelMutableExpr accuInit;
+
+    private CelMutableExpr loopCondition;
+
+    private CelMutableExpr loopStep;
+
+    private CelMutableExpr result;
+
+    public String iterVar() {
+      return iterVar;
+    }
+
+    public void setIterVar(String iterVar) {
+      this.iterVar = checkNotNull(iterVar);
+    }
+
+    public CelMutableExpr iterRange() {
+      return iterRange;
+    }
+
+    public void setIterRange(CelMutableExpr iterRange) {
+      this.iterRange = checkNotNull(iterRange);
+    }
+
+    public String accuVar() {
+      return accuVar;
+    }
+
+    public void setAccuVar(String accuVar) {
+      this.accuVar = checkNotNull(accuVar);
+    }
+
+    public CelMutableExpr accuInit() {
+      return accuInit;
+    }
+
+    public void setAccuInit(CelMutableExpr accuInit) {
+      this.accuInit = checkNotNull(accuInit);
+    }
+
+    public CelMutableExpr loopCondition() {
+      return loopCondition;
+    }
+
+    public void setLoopCondition(CelMutableExpr loopCondition) {
+      this.loopCondition = checkNotNull(loopCondition);
+    }
+
+    public CelMutableExpr loopStep() {
+      return loopStep;
+    }
+
+    public void setLoopStep(CelMutableExpr loopStep) {
+      this.loopStep = checkNotNull(loopStep);
+    }
+
+    public CelMutableExpr result() {
+      return result;
+    }
+
+    public void setResult(CelMutableExpr result) {
+      this.result = checkNotNull(result);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      }
+      if (obj instanceof CelMutableComprehension) {
+        CelMutableComprehension that = (CelMutableComprehension) obj;
+        return this.iterVar.equals(that.iterVar())
+            && this.accuVar.equals(that.accuVar())
+            && this.iterRange.equals(that.iterRange())
+            && this.accuInit.equals(that.accuInit())
+            && this.loopCondition.equals(that.loopCondition())
+            && this.loopStep.equals(that.loopStep())
+            && this.result.equals(that.result());
+      }
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      int h = 1;
+      h *= 1000003;
+      h ^= iterVar.hashCode();
+      h *= 1000003;
+      h ^= iterRange.hashCode();
+      h *= 1000003;
+      h ^= accuVar.hashCode();
+      h *= 1000003;
+      h ^= accuInit.hashCode();
+      h *= 1000003;
+      h ^= loopCondition.hashCode();
+      h *= 1000003;
+      h ^= loopStep.hashCode();
+      h *= 1000003;
+      h ^= result.hashCode();
+      return h;
+    }
+
+    public static CelMutableComprehension create(
+        String iterVar,
+        CelMutableExpr iterRange,
+        String accuVar,
+        CelMutableExpr accuInit,
+        CelMutableExpr loopCondition,
+        CelMutableExpr loopStep,
+        CelMutableExpr result) {
+      return new CelMutableComprehension(
+          iterVar, iterRange, accuVar, accuInit, loopCondition, loopStep, result);
+    }
+
+    private CelMutableComprehension(
+        String iterVar,
+        CelMutableExpr iterRange,
+        String accuVar,
+        CelMutableExpr accuInit,
+        CelMutableExpr loopCondition,
+        CelMutableExpr loopStep,
+        CelMutableExpr result) {
+      this.iterVar = checkNotNull(iterVar);
+      this.iterRange = checkNotNull(iterRange);
+      this.accuVar = checkNotNull(accuVar);
+      this.accuInit = checkNotNull(accuInit);
+      this.loopCondition = checkNotNull(loopCondition);
+      this.loopStep = checkNotNull(loopStep);
+      this.result = checkNotNull(result);
+    }
+  }
+
   public static CelMutableExpr ofNotSet() {
     return ofNotSet(0L);
   }
@@ -762,6 +913,11 @@ public final class CelMutableExpr {
     return new CelMutableExpr(id, mutableCreateMap);
   }
 
+  public static CelMutableExpr ofComprehension(
+      long id, CelMutableComprehension mutableComprehension) {
+    return new CelMutableExpr(id, mutableComprehension);
+  }
+
   private CelMutableExpr(long id, CelConstant mutableConstant) {
     this.id = id;
     setConstant(mutableConstant);
@@ -797,6 +953,11 @@ public final class CelMutableExpr {
     setCreateMap(mutableCreateMap);
   }
 
+  private CelMutableExpr(long id, CelMutableComprehension mutableComprehension) {
+    this.id = id;
+    setComprehension(mutableComprehension);
+  }
+
   private CelMutableExpr(long id) {
     this();
     this.id = id;
@@ -826,7 +987,7 @@ public final class CelMutableExpr {
       case CREATE_MAP:
         return createMap();
       case COMPREHENSION:
-        // fall-through (not implemented yet)
+        return comprehension();
     }
 
     throw new IllegalStateException("Unexpected expr kind: " + this.exprKind);
@@ -846,10 +1007,7 @@ public final class CelMutableExpr {
       if (this.id != that.id() || !this.exprKind.equals(that.getKind())) {
         return false;
       }
-      // When both objects' hashes are cached and they do not match, they can never be equal.
-      if (this.hash != 0 && that.hash != 0 && this.hash != that.hash) {
-        return false;
-      }
+
       return this.exprValue().equals(that.exprValue());
     }
 

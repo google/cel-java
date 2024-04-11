@@ -23,6 +23,7 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
+import dev.cel.common.ast.CelMutableExpr.CelMutableComprehension;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCreateMap;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCreateStruct;
@@ -450,6 +451,73 @@ public class CelMutableExprTest {
   }
 
   @Test
+  public void ofComprehension_withId() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofComprehension(
+            10L,
+            CelMutableComprehension.create(
+                "iterVar",
+                CelMutableExpr.ofCreateList(
+                    CelMutableCreateList.create(
+                        CelMutableExpr.ofConstant(CelConstant.ofValue(true)))),
+                "accuVar",
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofIdent("__result__")));
+
+    assertThat(mutableExpr.id()).isEqualTo(10L);
+    assertThat(mutableExpr.comprehension())
+        .isEqualTo(
+            CelMutableComprehension.create(
+                "iterVar",
+                CelMutableExpr.ofCreateList(
+                    CelMutableCreateList.create(
+                        CelMutableExpr.ofConstant(CelConstant.ofValue(true)))),
+                "accuVar",
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofIdent("__result__")));
+  }
+
+  @Test
+  public void mutableComprehension_setters() {
+    CelMutableComprehension mutableComprehension =
+        CelMutableComprehension.create(
+            "iterVar",
+            CelMutableExpr.ofNotSet(),
+            "accuVar",
+            CelMutableExpr.ofNotSet(),
+            CelMutableExpr.ofNotSet(),
+            CelMutableExpr.ofNotSet(),
+            CelMutableExpr.ofNotSet());
+
+    mutableComprehension.setIterVar("iterVar2");
+    mutableComprehension.setAccuVar("accuVar2");
+    mutableComprehension.setIterRange(
+        CelMutableExpr.ofCreateList(
+            CelMutableCreateList.create(CelMutableExpr.ofConstant(CelConstant.ofValue(true)))));
+    mutableComprehension.setAccuInit(CelMutableExpr.ofConstant(CelConstant.ofValue(true)));
+    mutableComprehension.setLoopCondition(CelMutableExpr.ofConstant(CelConstant.ofValue(true)));
+    mutableComprehension.setLoopStep(CelMutableExpr.ofConstant(CelConstant.ofValue(true)));
+    mutableComprehension.setResult(CelMutableExpr.ofIdent("__result__"));
+
+    assertThat(mutableComprehension)
+        .isEqualTo(
+            CelMutableComprehension.create(
+                "iterVar2",
+                CelMutableExpr.ofCreateList(
+                    CelMutableCreateList.create(
+                        CelMutableExpr.ofConstant(CelConstant.ofValue(true)))),
+                "accuVar2",
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofIdent("__result__")));
+  }
+
+  @Test
   public void equalityTest() {
     new EqualsTester()
         .addEqualityGroup(CelMutableExpr.ofNotSet())
@@ -534,6 +602,42 @@ public class CelMutableExprTest {
                         CelMutableExpr.ofConstant(CelConstant.ofValue("key")),
                         CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
                         /* optionalEntry= */ true))))
+        .addEqualityGroup(
+            CelMutableExpr.ofComprehension(
+                10L,
+                CelMutableComprehension.create(
+                    "iterVar",
+                    CelMutableExpr.ofNotSet(),
+                    "accuVar",
+                    CelMutableExpr.ofNotSet(),
+                    CelMutableExpr.ofNotSet(),
+                    CelMutableExpr.ofNotSet(),
+                    CelMutableExpr.ofNotSet())))
+        .addEqualityGroup(
+            CelMutableExpr.ofComprehension(
+                11L,
+                CelMutableComprehension.create(
+                    "iterVar",
+                    CelMutableExpr.ofCreateList(
+                        CelMutableCreateList.create(
+                            CelMutableExpr.ofConstant(CelConstant.ofValue(true)))),
+                    "accuVar",
+                    CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                    CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                    CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                    CelMutableExpr.ofIdent("__result__"))),
+            CelMutableExpr.ofComprehension(
+                11L,
+                CelMutableComprehension.create(
+                    "iterVar",
+                    CelMutableExpr.ofCreateList(
+                        CelMutableCreateList.create(
+                            CelMutableExpr.ofConstant(CelConstant.ofValue(true)))),
+                    "accuVar",
+                    CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                    CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                    CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                    CelMutableExpr.ofIdent("__result__"))))
         .testEquals();
   }
 
@@ -549,6 +653,17 @@ public class CelMutableExprTest {
         CelMutableExpr.ofCreateStruct(
             CelMutableCreateStruct.create("message", ImmutableList.of()))),
     CREATE_MAP(CelMutableExpr.ofCreateMap(CelMutableCreateMap.create(ImmutableList.of()))),
+    COMPREHENSION(
+        CelMutableExpr.ofComprehension(
+            10L,
+            CelMutableComprehension.create(
+                "iterVar",
+                CelMutableExpr.ofNotSet(),
+                "accuVar",
+                CelMutableExpr.ofNotSet(),
+                CelMutableExpr.ofNotSet(),
+                CelMutableExpr.ofNotSet(),
+                CelMutableExpr.ofNotSet()))),
     ;
 
     private final CelMutableExpr mutableExpr;
@@ -584,6 +699,9 @@ public class CelMutableExprTest {
     }
     if (!testCaseKind.equals(Kind.CREATE_MAP)) {
       assertThrows(IllegalArgumentException.class, testCase.mutableExpr::createMap);
+    }
+    if (!testCaseKind.equals(Kind.COMPREHENSION)) {
+      assertThrows(IllegalArgumentException.class, testCase.mutableExpr::comprehension);
     }
   }
 
@@ -635,7 +753,20 @@ public class CelMutableExprTest {
                         CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
                         /* optionalEntry= */ true)))),
         1260717292),
-    ;
+    COMPREHENSION(
+        CelMutableExpr.ofComprehension(
+            10L,
+            CelMutableComprehension.create(
+                "iterVar",
+                CelMutableExpr.ofCreateList(
+                    CelMutableCreateList.create(
+                        CelMutableExpr.ofConstant(CelConstant.ofValue(true)))),
+                "accuVar",
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofIdent("__result__"))),
+        -1006359408);
 
     private final CelMutableExpr mutableExpr;
     private final int expectedHashCode;
