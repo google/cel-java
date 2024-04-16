@@ -1600,6 +1600,21 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     runTest(Activation.EMPTY);
   }
 
+  @Test
+  public void dyn_error() throws Exception {
+    source = "dyn('hello').invalid";
+    runTest(Activation.EMPTY);
+
+    source = "has(dyn('hello').invalid)";
+    runTest(Activation.EMPTY);
+
+    source = "dyn([]).invalid";
+    runTest(Activation.EMPTY);
+
+    source = "has(dyn([]).invalid)";
+    runTest(Activation.EMPTY);
+  }
+
   // This lambda implements @Immutable interface 'Function', but 'InterpreterTest' has field 'eval'
   // of type 'com.google.api.expr.cel.testing.Eval', the declaration of
   // type

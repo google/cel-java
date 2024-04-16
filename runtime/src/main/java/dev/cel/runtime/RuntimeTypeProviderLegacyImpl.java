@@ -19,7 +19,9 @@ import dev.cel.expr.Value;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelDescriptorPool;
 import dev.cel.common.internal.DynamicProto;
@@ -69,8 +71,18 @@ public final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider 
   @Override
   @SuppressWarnings("unchecked")
   public Object selectField(Object message, String fieldName) {
-    SelectableValue<CelValue> selectableValue =
-        (SelectableValue<CelValue>) protoCelValueConverter.fromJavaObjectToCelValue(message);
+    CelValue convertedCelValue = protoCelValueConverter.fromJavaObjectToCelValue(message);
+    if (!(convertedCelValue instanceof SelectableValue)) {
+      throw new CelRuntimeException(
+          new IllegalArgumentException(
+              String.format(
+                  "Error resolving field '%s'. Field selections must be performed on messages or"
+                      + " maps.",
+                  fieldName)),
+          CelErrorCode.ATTRIBUTE_NOT_FOUND);
+    }
+
+    SelectableValue<CelValue> selectableValue = (SelectableValue<CelValue>) convertedCelValue;
 
     return unwrapCelValue(selectableValue.select(StringValue.create(fieldName)));
   }
@@ -78,8 +90,18 @@ public final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider 
   @Override
   @SuppressWarnings("unchecked")
   public Object hasField(Object message, String fieldName) {
-    SelectableValue<CelValue> selectableValue =
-        (SelectableValue<CelValue>) protoCelValueConverter.fromJavaObjectToCelValue(message);
+    CelValue convertedCelValue = protoCelValueConverter.fromJavaObjectToCelValue(message);
+    if (!(convertedCelValue instanceof SelectableValue)) {
+      throw new CelRuntimeException(
+          new IllegalArgumentException(
+              String.format(
+                  "Error resolving field '%s'. Field selections must be performed on messages or"
+                      + " maps.",
+                  fieldName)),
+          CelErrorCode.ATTRIBUTE_NOT_FOUND);
+    }
+
+    SelectableValue<CelValue> selectableValue = (SelectableValue<CelValue>) convertedCelValue;
 
     return selectableValue.find(StringValue.create(fieldName)).isPresent();
   }

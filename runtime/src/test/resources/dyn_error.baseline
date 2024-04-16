@@ -1,0 +1,23 @@
+Source: dyn('hello').invalid
+=====>
+bindings: {}
+error:    evaluation error at test_location:12: Error resolving field 'invalid'. Field selections must be performed on messages or maps.
+error_code:    ATTRIBUTE_NOT_FOUND
+
+Source: has(dyn('hello').invalid)
+=====>
+bindings: {}
+error:    evaluation error at test_location:3: Error resolving field 'invalid'. Field selections must be performed on messages or maps.
+error_code:    ATTRIBUTE_NOT_FOUND
+
+Source: dyn([]).invalid
+=====>
+bindings: {}
+error:    evaluation error at test_location:7: Error resolving field 'invalid'. Field selections must be performed on messages or maps.
+error_code:    ATTRIBUTE_NOT_FOUND
+
+Source: has(dyn([]).invalid)
+=====>
+bindings: {}
+error:    evaluation error at test_location:3: Error resolving field 'invalid'. Field selections must be performed on messages or maps.
+error_code:    ATTRIBUTE_NOT_FOUND

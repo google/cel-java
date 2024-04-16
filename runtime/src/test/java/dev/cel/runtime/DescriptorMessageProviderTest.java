@@ -165,8 +165,8 @@ public final class DescriptorMessageProviderTest {
     CelRuntimeException e =
         Assert.assertThrows(
             CelRuntimeException.class, () -> provider.selectField("hello", "not_a_field"));
-    assertThat(e).hasCauseThat().isInstanceOf(IllegalStateException.class);
-    assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.INTERNAL_ERROR);
+    assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
+    assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.ATTRIBUTE_NOT_FOUND);
   }
 
   @Test

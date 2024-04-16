@@ -168,7 +168,7 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
       }
     }
 
-    MessageOrBuilder typedMessage = assertFullProtoMessage(message);
+    MessageOrBuilder typedMessage = assertFullProtoMessage(message, fieldName);
     FieldDescriptor fieldDescriptor = findField(typedMessage.getDescriptorForType(), fieldName);
     // check whether the field is a wrapper type, then test has and return null
     if (isWrapperType(fieldDescriptor) && !typedMessage.hasField(fieldDescriptor)) {
@@ -202,7 +202,7 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
       return map.containsKey(fieldName);
     }
 
-    MessageOrBuilder typedMessage = assertFullProtoMessage(message);
+    MessageOrBuilder typedMessage = assertFullProtoMessage(message, fieldName);
     FieldDescriptor fieldDescriptor = findField(typedMessage.getDescriptorForType(), fieldName);
     if (fieldDescriptor.isRepeated()) {
       return typedMessage.getRepeatedFieldCount(fieldDescriptor) > 0;
@@ -228,16 +228,16 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
     return fieldDescriptor;
   }
 
-  private static MessageOrBuilder assertFullProtoMessage(Object candidate) {
+  private static MessageOrBuilder assertFullProtoMessage(Object candidate, String fieldName) {
     if (!(candidate instanceof MessageOrBuilder)) {
-      // This is an internal error. It should not happen for type checked expressions.
+      // This can happen when the field selection is done on dyn, and it is not a message.
       throw new CelRuntimeException(
-          new IllegalStateException(
+          new IllegalArgumentException(
               String.format(
-                  "[internal] expected an instance of 'com.google.protobuf.MessageOrBuilder' "
-                      + "but found '%s'",
-                  candidate.getClass().getName())),
-          CelErrorCode.INTERNAL_ERROR);
+                  "Error resolving field '%s'. Field selections must be performed on messages or"
+                      + " maps.",
+                  fieldName)),
+          CelErrorCode.ATTRIBUTE_NOT_FOUND);
     }
     return (MessageOrBuilder) candidate;
   }
