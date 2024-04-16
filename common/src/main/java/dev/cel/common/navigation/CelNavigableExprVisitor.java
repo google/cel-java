@@ -15,6 +15,7 @@
 package dev.cel.common.navigation;
 
 import dev.cel.common.ast.Expression;
+import dev.cel.common.navigation.ExprPropertyCalculator.ExprProperty;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -23,12 +24,14 @@ final class CelNavigableExprVisitor<E extends Expression, T extends BaseNavigabl
   private static final int MAX_DESCENDANTS_RECURSION_DEPTH = 500;
 
   private final Stream.Builder<T> streamBuilder;
-  private final ExprHeightCalculator<E> exprPropertyCalculator;
+  private final ExprPropertyCalculator<E> exprPropertyCalculator;
   private final TraversalOrder traversalOrder;
   private final int maxDepth;
 
   private CelNavigableExprVisitor(
-      int maxDepth, ExprHeightCalculator<E> exprPropertyCalculator, TraversalOrder traversalOrder) {
+      int maxDepth,
+      ExprPropertyCalculator<E> exprPropertyCalculator,
+      TraversalOrder traversalOrder) {
     this.maxDepth = maxDepth;
     this.exprPropertyCalculator = exprPropertyCalculator;
     this.traversalOrder = traversalOrder;
@@ -78,7 +81,8 @@ final class CelNavigableExprVisitor<E extends Expression, T extends BaseNavigabl
    */
   static <E extends Expression, T extends BaseNavigableExpr<E>> Stream<T> collect(
       T navigableExpr, int maxDepth, TraversalOrder traversalOrder) {
-    ExprHeightCalculator<E> exprHeightCalculator = new ExprHeightCalculator<>(navigableExpr.expr());
+    ExprPropertyCalculator<E> exprHeightCalculator =
+        new ExprPropertyCalculator<>(navigableExpr.expr());
     CelNavigableExprVisitor<E, T> visitor =
         new CelNavigableExprVisitor<>(maxDepth, exprHeightCalculator, traversalOrder);
 
@@ -174,11 +178,14 @@ final class CelNavigableExprVisitor<E extends Expression, T extends BaseNavigabl
   }
 
   private T newNavigableChild(T parent, E expr) {
+    ExprProperty exprProperty = exprPropertyCalculator.getProperty(expr.id());
+
     return parent
         .<T>builderFromInstance()
         .setExpr(expr)
         .setDepth(parent.depth() + 1)
-        .setHeight(exprPropertyCalculator.getHeight(expr.id()))
+        .setHeight(exprProperty.height())
+        .setMaxId(exprProperty.maxId())
         .setParent(parent)
         .build();
   }

@@ -41,6 +41,12 @@ abstract class BaseNavigableExpr<E extends Expression> {
   public abstract int depth();
 
   /**
+   * Represents the maximum ID of the tree. Note that if the underlying expression tree held by this
+   * navigable expression is mutated, its max ID becomes stale and must be recomputed.
+   */
+  public abstract long maxId();
+
+  /**
    * Represents the maximum count of children from any of its branches. Height of a leaf node is 0.
    * For example, the height of the call node 'func' in expression `(1 + 2 + 3).func(4 + 5)` is 3.
    */
@@ -124,6 +130,9 @@ abstract class BaseNavigableExpr<E extends Expression> {
 
     @CanIgnoreReturnValue
     Builder<E, T> setHeight(int value);
+
+    @CanIgnoreReturnValue
+    Builder<E, T> setMaxId(long value);
 
     @CheckReturnValue
     T build();

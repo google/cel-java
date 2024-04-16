@@ -128,6 +128,26 @@ public class CelNavigableExprVisitorTest {
   }
 
   @Test
+  public void add_preOrder_maxIdsSet() throws Exception {
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder().addVar("a", SimpleType.INT).build();
+    // Tree shape (brackets are IDs):
+    //             + [4]
+    //      + [2]          2 [5]
+    //  1 [1]    a [3]
+    CelAbstractSyntaxTree ast = compiler.compile("1 + a + 2").getAst();
+    CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
+
+    ImmutableList<Long> allNodeMaxIds =
+        navigableAst
+            .getRoot()
+            .allNodes(TraversalOrder.PRE_ORDER)
+            .map(CelNavigableExpr::maxId)
+            .collect(toImmutableList());
+    assertThat(allNodeMaxIds).containsExactly(5L, 3L, 1L, 3L, 5L).inOrder(); // +, +, 1, a, 2
+  }
+
+  @Test
   public void add_postOrder_heightSet() throws Exception {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder().addVar("a", SimpleType.INT).build();
@@ -145,6 +165,26 @@ public class CelNavigableExprVisitorTest {
             .map(CelNavigableExpr::height)
             .collect(toImmutableList());
     assertThat(allNodeHeights).containsExactly(0, 0, 1, 0, 2).inOrder(); // 1, a, +, 2, +
+  }
+
+  @Test
+  public void add_postOrder_maxIdsSet() throws Exception {
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder().addVar("a", SimpleType.INT).build();
+    // Tree shape (brackets are IDs):
+    //             + [4]
+    //      + [2]          2 [5]
+    //  1 [1]    a [3]
+    CelAbstractSyntaxTree ast = compiler.compile("1 + a + 2").getAst();
+    CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
+
+    ImmutableList<Long> allNodeMaxIds =
+        navigableAst
+            .getRoot()
+            .allNodes(TraversalOrder.POST_ORDER)
+            .map(CelNavigableExpr::maxId)
+            .collect(toImmutableList());
+    assertThat(allNodeMaxIds).containsExactly(1L, 3L, 3L, 5L, 5L).inOrder(); // 1, a, +, 2, +
   }
 
   @Test
@@ -177,6 +217,35 @@ public class CelNavigableExprVisitorTest {
   }
 
   @Test
+  public void add_fromLeaf_maxIdsSetForParents() throws Exception {
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder().addVar("a", SimpleType.INT).build();
+    // Tree shape:
+    //              +
+    //         +         3
+    //     +        2
+    //  a     1
+    CelAbstractSyntaxTree ast = compiler.compile("1 + a + 2 + 3").getAst();
+    CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
+
+    ImmutableList.Builder<Long> heights = ImmutableList.builder();
+    CelNavigableExpr navigableExpr =
+        navigableAst
+            .getRoot()
+            .allNodes()
+            .filter(node -> node.expr().identOrDefault().name().equals("a"))
+            .findAny()
+            .get();
+    heights.add(navigableExpr.maxId());
+    while (navigableExpr.parent().isPresent()) {
+      navigableExpr = navigableExpr.parent().get();
+      heights.add(navigableExpr.maxId());
+    }
+
+    assertThat(heights.build()).containsExactly(3L, 3L, 5L, 7L).inOrder();
+  }
+
+  @Test
   public void add_children_heightSet(@TestParameter TraversalOrder traversalOrder)
       throws Exception {
     CelCompiler compiler =
@@ -196,6 +265,30 @@ public class CelNavigableExprVisitorTest {
             .map(CelNavigableExpr::height)
             .collect(toImmutableList());
     assertThat(allNodeHeights).containsExactly(2, 0).inOrder(); // + (2), 2 (0) regardless of order
+  }
+
+  @Test
+  public void add_children_maxIdsSet(@TestParameter TraversalOrder traversalOrder)
+      throws Exception {
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder().addVar("a", SimpleType.INT).build();
+    // Tree shape:
+    //              +
+    //         +         3
+    //     +        2
+    //  a     1
+    CelAbstractSyntaxTree ast = compiler.compile("1 + a + 2 + 3").getAst();
+    CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
+
+    ImmutableList<Long> allNodeHeights =
+        navigableAst
+            .getRoot()
+            .children(traversalOrder)
+            .map(CelNavigableExpr::maxId)
+            .collect(toImmutableList());
+    assertThat(allNodeHeights)
+        .containsExactly(5L, 7L)
+        .inOrder(); // + (5), 3 (7) regardless of order
   }
 
   @Test
@@ -582,6 +675,27 @@ public class CelNavigableExprVisitorTest {
   }
 
   @Test
+  public void messageConstruction_maxIdsSet(@TestParameter TraversalOrder traversalOrder)
+      throws Exception {
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .setContainer("dev.cel.testing.testdata.proto3")
+            .build();
+    CelAbstractSyntaxTree ast = compiler.compile("TestAllTypes{single_int64: 1}").getAst();
+    CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
+
+    ImmutableList<Long> allNodes =
+        navigableAst
+            .getRoot()
+            .allNodes(traversalOrder)
+            .map(CelNavigableExpr::maxId)
+            .collect(toImmutableList());
+
+    assertThat(allNodes).containsExactly(3L, 3L).inOrder();
+  }
+
+  @Test
   public void mapConstruction_allNodesReturned() throws Exception {
     CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
     CelAbstractSyntaxTree ast = compiler.compile("{'key': 2}").getAst();
@@ -657,6 +771,38 @@ public class CelNavigableExprVisitorTest {
             .collect(toImmutableList());
 
     assertThat(allNodes).containsExactly(0, 0, 1).inOrder();
+  }
+
+  @Test
+  public void mapConstruction_preOrder_maxIdsSet() throws Exception {
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelAbstractSyntaxTree ast = compiler.compile("{'key': 2}").getAst();
+    CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
+
+    ImmutableList<Long> allNodes =
+        navigableAst
+            .getRoot()
+            .allNodes(TraversalOrder.PRE_ORDER)
+            .map(CelNavigableExpr::maxId)
+            .collect(toImmutableList());
+
+    assertThat(allNodes).containsExactly(4L, 3L, 4L).inOrder();
+  }
+
+  @Test
+  public void mapConstruction_postOrder_maxIdsSet() throws Exception {
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelAbstractSyntaxTree ast = compiler.compile("{'key': 2}").getAst();
+    CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
+
+    ImmutableList<Long> allNodes =
+        navigableAst
+            .getRoot()
+            .allNodes(TraversalOrder.POST_ORDER)
+            .map(CelNavigableExpr::maxId)
+            .collect(toImmutableList());
+
+    assertThat(allNodes).containsExactly(3L, 4L, 4L).inOrder();
   }
 
   @Test
@@ -832,6 +978,44 @@ public class CelNavigableExprVisitorTest {
             .collect(toImmutableList());
 
     assertThat(allNodes).containsExactly(0, 1, 0, 0, 1, 2, 0, 0, 1, 0, 3).inOrder();
+  }
+
+  @Test
+  public void comprehension_preOrder_maxIdsSet() throws Exception {
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setStandardMacros(CelStandardMacro.EXISTS)
+            .build();
+    CelAbstractSyntaxTree ast = compiler.compile("[true].exists(i, i)").getAst();
+    CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
+
+    ImmutableList<Long> allNodes =
+        navigableAst
+            .getRoot()
+            .allNodes(TraversalOrder.PRE_ORDER)
+            .map(CelNavigableExpr::maxId)
+            .collect(toImmutableList());
+
+    assertThat(allNodes).containsExactly(13L, 2L, 2L, 6L, 9L, 8L, 7L, 11L, 10L, 5L, 12L).inOrder();
+  }
+
+  @Test
+  public void comprehension_postOrder_maxIdsSet() throws Exception {
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setStandardMacros(CelStandardMacro.EXISTS)
+            .build();
+    CelAbstractSyntaxTree ast = compiler.compile("[true].exists(i, i)").getAst();
+    CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
+
+    ImmutableList<Long> allNodes =
+        navigableAst
+            .getRoot()
+            .allNodes(TraversalOrder.POST_ORDER)
+            .map(CelNavigableExpr::maxId)
+            .collect(toImmutableList());
+
+    assertThat(allNodes).containsExactly(2L, 2L, 6L, 7L, 8L, 9L, 10L, 5L, 11L, 12L, 13L).inOrder();
   }
 
   @Test
@@ -1073,6 +1257,66 @@ public class CelNavigableExprVisitorTest {
   }
 
   @Test
+  public void callExpr_preOrder_maxIdsSet() throws Exception {
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addFunctionDeclarations(
+                newFunctionDeclaration(
+                    "test",
+                    newMemberOverload(
+                        "test_overload",
+                        SimpleType.STRING,
+                        SimpleType.STRING,
+                        SimpleType.INT,
+                        SimpleType.UINT)))
+            .build();
+    CelAbstractSyntaxTree ast =
+        compiler.compile("('a' + 'b' + 'c' + 'd').test((1 + 2 + 3), 6u)").getAst();
+    CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
+
+    ImmutableList<Long> allNodes =
+        navigableAst
+            .getRoot()
+            .allNodes(TraversalOrder.PRE_ORDER)
+            .map(CelNavigableExpr::maxId)
+            .collect(toImmutableList());
+
+    assertThat(allNodes)
+        .containsExactly(14L, 7L, 5L, 3L, 1L, 3L, 5L, 7L, 13L, 11L, 9L, 11L, 13L, 14L)
+        .inOrder();
+  }
+
+  @Test
+  public void callExpr_postOrder_maxIdsSet() throws Exception {
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addFunctionDeclarations(
+                newFunctionDeclaration(
+                    "test",
+                    newMemberOverload(
+                        "test_overload",
+                        SimpleType.STRING,
+                        SimpleType.STRING,
+                        SimpleType.INT,
+                        SimpleType.UINT)))
+            .build();
+    CelAbstractSyntaxTree ast =
+        compiler.compile("('a' + 'b' + 'c' + 'd').test((1 + 2 + 3), 6u)").getAst();
+    CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
+
+    ImmutableList<Long> allNodes =
+        navigableAst
+            .getRoot()
+            .allNodes(TraversalOrder.POST_ORDER)
+            .map(CelNavigableExpr::maxId)
+            .collect(toImmutableList());
+
+    assertThat(allNodes)
+        .containsExactly(1L, 3L, 3L, 5L, 5L, 7L, 7L, 9L, 11L, 11L, 13L, 13L, 14L, 14L)
+        .inOrder();
+  }
+
+  @Test
   public void createList_children_heightSet(@TestParameter TraversalOrder traversalOrder)
       throws Exception {
     CelCompiler compiler =
@@ -1088,6 +1332,24 @@ public class CelNavigableExprVisitorTest {
             .map(CelNavigableExpr::height)
             .collect(toImmutableList());
     assertThat(allNodeHeights).containsExactly(0, 0, 1, 2).inOrder();
+  }
+
+  @Test
+  public void createList_children_maxIdsSet(@TestParameter TraversalOrder traversalOrder)
+      throws Exception {
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder().addVar("a", SimpleType.INT).build();
+    CelAbstractSyntaxTree ast = compiler.compile("[1, a, (2 + 2), (3 + 4 + 5)]").getAst();
+
+    CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
+
+    ImmutableList<Long> allNodeHeights =
+        navigableAst
+            .getRoot()
+            .children(traversalOrder)
+            .map(CelNavigableExpr::maxId)
+            .collect(toImmutableList());
+    assertThat(allNodeHeights).containsExactly(2L, 3L, 6L, 11L).inOrder();
   }
 
   @Test

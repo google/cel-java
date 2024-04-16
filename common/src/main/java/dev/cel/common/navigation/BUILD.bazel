@@ -14,7 +14,7 @@ java_library(
         "CelNavigableAst.java",
         "CelNavigableExpr.java",
         "CelNavigableExprVisitor.java",
-        "ExprHeightCalculator.java",
+        "ExprPropertyCalculator.java",
         "TraversalOrder.java",
     ],
     tags = [

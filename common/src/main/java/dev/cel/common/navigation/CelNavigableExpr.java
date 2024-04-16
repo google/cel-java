@@ -16,6 +16,7 @@ package dev.cel.common.navigation;
 
 import com.google.auto.value.AutoValue;
 import dev.cel.common.ast.CelExpr;
+import dev.cel.common.navigation.ExprPropertyCalculator.ExprProperty;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -28,10 +29,17 @@ import java.util.stream.Stream;
 // redundant override: Overriding is required to specify the return type to a concrete type.
 @SuppressWarnings({"unchecked", "RedundantOverride"})
 public abstract class CelNavigableExpr extends BaseNavigableExpr<CelExpr> {
+
   /** Constructs a new instance of {@link CelNavigableExpr} from {@link CelExpr}. */
   public static CelNavigableExpr fromExpr(CelExpr expr) {
-    ExprHeightCalculator<CelExpr> exprHeightCalculator = new ExprHeightCalculator<>(expr);
-    return builder().setExpr(expr).setHeight(exprHeightCalculator.getHeight(expr.id())).build();
+    ExprPropertyCalculator<CelExpr> exprHeightCalculator = new ExprPropertyCalculator<>(expr);
+    ExprProperty exprProperty = exprHeightCalculator.getProperty(expr.id());
+
+    return builder()
+        .setExpr(expr)
+        .setHeight(exprProperty.height())
+        .setMaxId(exprProperty.maxId())
+        .build();
   }
 
   @Override
@@ -74,7 +82,7 @@ public abstract class CelNavigableExpr extends BaseNavigableExpr<CelExpr> {
 
   /** Create a new builder to construct a {@link CelNavigableExpr} instance. */
   public static Builder builder() {
-    return new AutoValue_CelNavigableExpr.Builder().setDepth(0).setHeight(0);
+    return new AutoValue_CelNavigableExpr.Builder().setDepth(0).setHeight(0).setMaxId(0);
   }
 
   /** Builder to configure {@link CelNavigableExpr}. */
@@ -90,6 +98,9 @@ public abstract class CelNavigableExpr extends BaseNavigableExpr<CelExpr> {
 
     @Override
     public abstract Builder setDepth(int value);
+
+    @Override
+    public abstract Builder setMaxId(long value);
 
     @Override
     public abstract Builder setHeight(int value);
