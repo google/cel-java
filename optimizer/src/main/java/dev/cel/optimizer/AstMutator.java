@@ -40,7 +40,7 @@ import dev.cel.common.ast.CelExprIdGeneratorFactory.MonotonicIdGenerator;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.StableIdGenerator;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
-import dev.cel.common.navigation.CelNavigableExpr.TraversalOrder;
+import dev.cel.common.navigation.TraversalOrder;
 import dev.cel.common.types.CelType;
 import java.util.Collection;
 import java.util.HashMap;

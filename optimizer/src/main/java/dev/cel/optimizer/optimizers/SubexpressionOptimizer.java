@@ -45,7 +45,7 @@ import dev.cel.common.ast.CelExpr.CelIdent;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
-import dev.cel.common.navigation.CelNavigableExpr.TraversalOrder;
+import dev.cel.common.navigation.TraversalOrder;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;

@@ -14,30 +14,23 @@
 
 package dev.cel.common.navigation;
 
-import com.google.common.collect.ImmutableList;
-import dev.cel.common.ast.CelExpr;
-import dev.cel.common.ast.CelExpr.CelCall;
-import dev.cel.common.ast.CelExpr.CelComprehension;
-import dev.cel.common.ast.CelExpr.CelCreateList;
-import dev.cel.common.ast.CelExpr.CelCreateMap;
-import dev.cel.common.ast.CelExpr.CelCreateStruct;
-import dev.cel.common.ast.CelExpr.CelSelect;
-import dev.cel.common.navigation.CelNavigableExpr.TraversalOrder;
+import dev.cel.common.ast.Expression;
+import java.util.List;
 import java.util.stream.Stream;
 
 /** Visitor implementation to navigate an AST. */
-final class CelNavigableExprVisitor {
+final class CelNavigableExprVisitor<E extends Expression, T extends BaseNavigableExpr<E>> {
   private static final int MAX_DESCENDANTS_RECURSION_DEPTH = 500;
 
-  private final Stream.Builder<CelNavigableExpr> streamBuilder;
-  private final ExprHeightCalculator exprHeightCalculator;
+  private final Stream.Builder<T> streamBuilder;
+  private final ExprHeightCalculator<E> exprPropertyCalculator;
   private final TraversalOrder traversalOrder;
   private final int maxDepth;
 
   private CelNavigableExprVisitor(
-      int maxDepth, ExprHeightCalculator exprHeightCalculator, TraversalOrder traversalOrder) {
+      int maxDepth, ExprHeightCalculator<E> exprPropertyCalculator, TraversalOrder traversalOrder) {
     this.maxDepth = maxDepth;
-    this.exprHeightCalculator = exprHeightCalculator;
+    this.exprPropertyCalculator = exprPropertyCalculator;
     this.traversalOrder = traversalOrder;
     this.streamBuilder = Stream.builder();
   }
@@ -60,8 +53,8 @@ final class CelNavigableExprVisitor {
    * maxDepth of 2: a, b, d, e, c
    * </pre>
    */
-  static Stream<CelNavigableExpr> collect(
-      CelNavigableExpr navigableExpr, TraversalOrder traversalOrder) {
+  static <E extends Expression, T extends BaseNavigableExpr<E>> Stream<T> collect(
+      T navigableExpr, TraversalOrder traversalOrder) {
     return collect(navigableExpr, MAX_DESCENDANTS_RECURSION_DEPTH, traversalOrder);
   }
 
@@ -83,18 +76,18 @@ final class CelNavigableExprVisitor {
    * maxDepth of 2: a, b, d, e, c
    * </pre>
    */
-  static Stream<CelNavigableExpr> collect(
-      CelNavigableExpr navigableExpr, int maxDepth, TraversalOrder traversalOrder) {
-    ExprHeightCalculator exprHeightCalculator = new ExprHeightCalculator(navigableExpr.expr());
-    CelNavigableExprVisitor visitor =
-        new CelNavigableExprVisitor(maxDepth, exprHeightCalculator, traversalOrder);
+  static <E extends Expression, T extends BaseNavigableExpr<E>> Stream<T> collect(
+      T navigableExpr, int maxDepth, TraversalOrder traversalOrder) {
+    ExprHeightCalculator<E> exprHeightCalculator = new ExprHeightCalculator<>(navigableExpr.expr());
+    CelNavigableExprVisitor<E, T> visitor =
+        new CelNavigableExprVisitor<>(maxDepth, exprHeightCalculator, traversalOrder);
 
     visitor.visit(navigableExpr);
 
     return visitor.streamBuilder.build();
   }
 
-  private void visit(CelNavigableExpr navigableExpr) {
+  private void visit(T navigableExpr) {
     if (navigableExpr.depth() > MAX_DESCENDANTS_RECURSION_DEPTH - 1) {
       throw new IllegalStateException("Max recursion depth reached.");
     }
@@ -132,7 +125,7 @@ final class CelNavigableExprVisitor {
     }
   }
 
-  private void visit(CelNavigableExpr navigableExpr, CelCall call) {
+  private void visit(T navigableExpr, Expression.Call<E> call) {
     if (call.target().isPresent()) {
       visit(newNavigableChild(navigableExpr, call.target().get()));
     }
@@ -140,16 +133,16 @@ final class CelNavigableExprVisitor {
     visitExprList(call.args(), navigableExpr);
   }
 
-  private void visit(CelNavigableExpr navigableExpr, CelCreateList createList) {
+  private void visit(T navigableExpr, Expression.CreateList<E> createList) {
     visitExprList(createList.elements(), navigableExpr);
   }
 
-  private void visit(CelNavigableExpr navigableExpr, CelSelect selectExpr) {
-    CelNavigableExpr operand = newNavigableChild(navigableExpr, selectExpr.operand());
+  private void visit(T navigableExpr, Expression.Select<E> selectExpr) {
+    T operand = newNavigableChild(navigableExpr, selectExpr.operand());
     visit(operand);
   }
 
-  private void visit(CelNavigableExpr navigableExpr, CelComprehension comprehension) {
+  private void visit(T navigableExpr, Expression.Comprehension<E> comprehension) {
     visit(newNavigableChild(navigableExpr, comprehension.iterRange()));
     visit(newNavigableChild(navigableExpr, comprehension.accuInit()));
     visit(newNavigableChild(navigableExpr, comprehension.loopCondition()));
@@ -157,36 +150,36 @@ final class CelNavigableExprVisitor {
     visit(newNavigableChild(navigableExpr, comprehension.result()));
   }
 
-  private void visitStruct(CelNavigableExpr navigableExpr, CelCreateStruct struct) {
-    for (CelCreateStruct.Entry entry : struct.entries()) {
+  private void visitStruct(
+      T navigableExpr, Expression.CreateStruct<Expression.CreateStruct.Entry<E>> struct) {
+    for (Expression.CreateStruct.Entry<E> entry : struct.entries()) {
       visit(newNavigableChild(navigableExpr, entry.value()));
     }
   }
 
-  private void visitMap(CelNavigableExpr navigableExpr, CelCreateMap map) {
-    for (CelCreateMap.Entry entry : map.entries()) {
-      CelNavigableExpr key = newNavigableChild(navigableExpr, entry.key());
+  private void visitMap(T navigableExpr, Expression.CreateMap<Expression.CreateMap.Entry<E>> map) {
+    for (Expression.CreateMap.Entry<E> entry : map.entries()) {
+      T key = newNavigableChild(navigableExpr, entry.key());
       visit(key);
 
-      CelNavigableExpr value = newNavigableChild(navigableExpr, entry.value());
+      T value = newNavigableChild(navigableExpr, entry.value());
       visit(value);
     }
   }
 
-  private void visitExprList(ImmutableList<CelExpr> createListExpr, CelNavigableExpr parent) {
-    for (CelExpr expr : createListExpr) {
+  private void visitExprList(List<E> createListExpr, T parent) {
+    for (E expr : createListExpr) {
       visit(newNavigableChild(parent, expr));
     }
   }
 
-  private CelNavigableExpr newNavigableChild(CelNavigableExpr parent, CelExpr expr) {
-    CelNavigableExpr.Builder navigableExpr =
-        CelNavigableExpr.builder()
-            .setExpr(expr)
-            .setDepth(parent.depth() + 1)
-            .setHeight(exprHeightCalculator.getHeight(expr.id()))
-            .setParent(parent);
-
-    return navigableExpr.build();
+  private T newNavigableChild(T parent, E expr) {
+    return parent
+        .<T>builderFromInstance()
+        .setExpr(expr)
+        .setDepth(parent.depth() + 1)
+        .setHeight(exprPropertyCalculator.getHeight(expr.id()))
+        .setParent(parent)
+        .build();
   }
 }

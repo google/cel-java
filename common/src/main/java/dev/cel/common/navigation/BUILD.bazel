@@ -10,10 +10,12 @@ package(
 java_library(
     name = "navigation",
     srcs = [
+        "BaseNavigableExpr.java",
         "CelNavigableAst.java",
         "CelNavigableExpr.java",
         "CelNavigableExprVisitor.java",
         "ExprHeightCalculator.java",
+        "TraversalOrder.java",
     ],
     tags = [
     ],

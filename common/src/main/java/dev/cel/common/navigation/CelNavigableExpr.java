@@ -16,118 +16,60 @@ package dev.cel.common.navigation;
 
 import com.google.auto.value.AutoValue;
 import dev.cel.common.ast.CelExpr;
-import dev.cel.common.ast.CelExpr.CelComprehension;
-import dev.cel.common.ast.CelExpr.ExprKind;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
- * CelNavigableExpr represents the base navigable expression value with methods to inspect the
- * parent and child expressions.
+ * CelNavigableExpr decorates {@link CelExpr} with capabilities to inspect the parent and its
+ * descendants with ease.
  */
 @AutoValue
-public abstract class CelNavigableExpr {
-
-  /**
-   * Specifies the traversal order of AST navigation.
-   *
-   * <p>For call expressions, the target is visited before its arguments.
-   *
-   * <p>For comprehensions, the visiting order is as follows:
-   *
-   * <ol>
-   *   <li>{@link CelComprehension#iterRange}
-   *   <li>{@link CelComprehension#accuInit}
-   *   <li>{@link CelComprehension#loopCondition}
-   *   <li>{@link CelComprehension#loopStep}
-   *   <li>{@link CelComprehension#result}
-   * </ol>
-   */
-  public enum TraversalOrder {
-    PRE_ORDER,
-    POST_ORDER
-  }
-
-  public abstract CelExpr expr();
-
-  public long id() {
-    return expr().id();
-  }
-
-  public abstract Optional<CelNavigableExpr> parent();
-
-  /** Represents the count of transitive parents. Depth of an AST's root is 0. */
-  public abstract int depth();
-
-  /**
-   * Represents the maximum count of children from any of its branches. Height of a leaf node is 0.
-   * For example, the height of the call node 'func' in expression `(1 + 2 + 3).func(4 + 5)` is 3.
-   */
-  public abstract int height();
-
+// unchecked: Generic types are properly bound to BaseNavigableExpr
+// redundant override: Overriding is required to specify the return type to a concrete type.
+@SuppressWarnings({"unchecked", "RedundantOverride"})
+public abstract class CelNavigableExpr extends BaseNavigableExpr<CelExpr> {
   /** Constructs a new instance of {@link CelNavigableExpr} from {@link CelExpr}. */
   public static CelNavigableExpr fromExpr(CelExpr expr) {
-    ExprHeightCalculator exprHeightCalculator = new ExprHeightCalculator(expr);
-
-    return CelNavigableExpr.builder()
-        .setExpr(expr)
-        .setHeight(exprHeightCalculator.getHeight(expr.id()))
-        .build();
+    ExprHeightCalculator<CelExpr> exprHeightCalculator = new ExprHeightCalculator<>(expr);
+    return builder().setExpr(expr).setHeight(exprHeightCalculator.getHeight(expr.id())).build();
   }
 
-  /**
-   * Returns a stream of {@link CelNavigableExpr} collected from the current node down to the last
-   * leaf-level member using post-order traversal.
-   */
+  @Override
   public Stream<CelNavigableExpr> allNodes() {
-    return allNodes(TraversalOrder.POST_ORDER);
+    return super.allNodes();
   }
 
-  /**
-   * Returns a stream of {@link CelNavigableExpr} collected from the current node down to the last
-   * leaf-level member using the specified traversal order.
-   */
+  @Override
   public Stream<CelNavigableExpr> allNodes(TraversalOrder traversalOrder) {
-    return CelNavigableExprVisitor.collect(this, traversalOrder);
+    return super.allNodes(traversalOrder);
   }
 
-  /**
-   * Returns a stream of {@link CelNavigableExpr} collected down to the last leaf-level member using
-   * post-order traversal.
-   */
+  @Override
+  public abstract Optional<CelNavigableExpr> parent();
+
+  @Override
   public Stream<CelNavigableExpr> descendants() {
-    return descendants(TraversalOrder.POST_ORDER);
+    return super.descendants();
   }
 
-  /**
-   * Returns a stream of {@link CelNavigableExpr} collected down to the last leaf-level member using
-   * the specified traversal order.
-   */
+  @Override
   public Stream<CelNavigableExpr> descendants(TraversalOrder traversalOrder) {
-    return CelNavigableExprVisitor.collect(this, traversalOrder)
-        .filter(node -> node.depth() > this.depth());
+    return super.descendants(traversalOrder);
   }
 
-  /**
-   * Returns a stream of {@link CelNavigableExpr} collected from its immediate children using
-   * post-order traversal.
-   */
+  @Override
   public Stream<CelNavigableExpr> children() {
-    return children(TraversalOrder.POST_ORDER);
+    return super.children();
   }
 
-  /**
-   * Returns a stream of {@link CelNavigableExpr} collected from its immediate children using the
-   * specified traversal order.
-   */
+  @Override
   public Stream<CelNavigableExpr> children(TraversalOrder traversalOrder) {
-    return CelNavigableExprVisitor.collect(this, this.depth() + 1, traversalOrder)
-        .filter(node -> node.depth() > this.depth());
+    return super.children(traversalOrder);
   }
 
-  /** Returns the underlying kind of the {@link CelExpr}. */
-  public ExprKind.Kind getKind() {
-    return expr().exprKind().getKind();
+  @Override
+  public Builder builderFromInstance() {
+    return builder();
   }
 
   /** Create a new builder to construct a {@link CelNavigableExpr} instance. */
@@ -137,25 +79,20 @@ public abstract class CelNavigableExpr {
 
   /** Builder to configure {@link CelNavigableExpr}. */
   @AutoValue.Builder
-  public abstract static class Builder {
+  public abstract static class Builder
+      implements BaseNavigableExpr.Builder<CelExpr, CelNavigableExpr> {
 
-    public abstract CelExpr expr();
+    @Override
+    public abstract Builder setParent(CelNavigableExpr value);
 
-    public abstract int depth();
-
-    public ExprKind.Kind getKind() {
-      return expr().exprKind().getKind();
-    }
-
+    @Override
     public abstract Builder setExpr(CelExpr value);
 
-    abstract Builder setParent(CelNavigableExpr value);
-
+    @Override
     public abstract Builder setDepth(int value);
 
+    @Override
     public abstract Builder setHeight(int value);
-
-    public abstract CelNavigableExpr build();
   }
 
   public abstract Builder toBuilder();

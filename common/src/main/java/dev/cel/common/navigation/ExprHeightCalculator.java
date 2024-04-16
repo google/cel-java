@@ -16,25 +16,21 @@ package dev.cel.common.navigation;
 
 import static java.lang.Math.max;
 
-import com.google.common.collect.ImmutableList;
-import dev.cel.common.ast.CelExpr;
-import dev.cel.common.ast.CelExpr.CelCall;
-import dev.cel.common.ast.CelExpr.CelComprehension;
-import dev.cel.common.ast.CelExpr.CelCreateList;
-import dev.cel.common.ast.CelExpr.CelCreateMap;
-import dev.cel.common.ast.CelExpr.CelCreateStruct;
-import dev.cel.common.ast.CelExpr.CelSelect;
+import dev.cel.common.ast.Expression;
+import dev.cel.common.ast.Expression.CreateMap;
+import dev.cel.common.ast.Expression.CreateStruct;
 import java.util.HashMap;
+import java.util.List;
 
 /** Package-private class to assist computing the height of expression nodes. */
-final class ExprHeightCalculator {
+final class ExprHeightCalculator<E extends Expression> {
   // Store hashmap instead of immutable map for performance, such that this helper class can be
   // instantiated faster.
   private final HashMap<Long, Integer> idToHeight;
 
-  ExprHeightCalculator(CelExpr celExpr) {
+  ExprHeightCalculator(E expr) {
     this.idToHeight = new HashMap<>();
-    visit(celExpr);
+    visit(expr);
   }
 
   int getHeight(Long exprId) {
@@ -45,26 +41,26 @@ final class ExprHeightCalculator {
     return idToHeight.get(exprId);
   }
 
-  private int visit(CelExpr celExpr) {
+  private int visit(E expr) {
     int height = 1;
-    switch (celExpr.exprKind().getKind()) {
+    switch (expr.getKind()) {
       case CALL:
-        height += visit(celExpr.call());
+        height += visit(expr.call());
         break;
       case CREATE_LIST:
-        height += visit(celExpr.createList());
+        height += visit(expr.createList());
         break;
       case SELECT:
-        height += visit(celExpr.select());
+        height += visit(expr.select());
         break;
       case CREATE_STRUCT:
-        height += visitStruct(celExpr.createStruct());
+        height += visitStruct(expr.createStruct());
         break;
       case CREATE_MAP:
-        height += visitMap(celExpr.createMap());
+        height += visitMap(expr.createMap());
         break;
       case COMPREHENSION:
-        height += visit(celExpr.comprehension());
+        height += visit(expr.comprehension());
         break;
       default:
         // This is a leaf node
@@ -72,11 +68,11 @@ final class ExprHeightCalculator {
         break;
     }
 
-    idToHeight.put(celExpr.id(), height);
+    idToHeight.put(expr.id(), height);
     return height;
   }
 
-  private int visit(CelCall call) {
+  private int visit(Expression.Call<E> call) {
     int targetHeight = 0;
     if (call.target().isPresent()) {
       targetHeight = visit(call.target().get());
@@ -86,15 +82,15 @@ final class ExprHeightCalculator {
     return max(targetHeight, argumentHeight);
   }
 
-  private int visit(CelCreateList createList) {
+  private int visit(Expression.CreateList<E> createList) {
     return visitExprList(createList.elements());
   }
 
-  private int visit(CelSelect selectExpr) {
+  private int visit(Expression.Select<E> selectExpr) {
     return visit(selectExpr.operand());
   }
 
-  private int visit(CelComprehension comprehension) {
+  private int visit(Expression.Comprehension<E> comprehension) {
     int maxHeight = 0;
     maxHeight = max(visit(comprehension.iterRange()), maxHeight);
     maxHeight = max(visit(comprehension.accuInit()), maxHeight);
@@ -105,26 +101,26 @@ final class ExprHeightCalculator {
     return maxHeight;
   }
 
-  private int visitStruct(CelCreateStruct struct) {
+  private int visitStruct(Expression.CreateStruct<CreateStruct.Entry<E>> struct) {
     int maxHeight = 0;
-    for (CelCreateStruct.Entry entry : struct.entries()) {
+    for (CreateStruct.Entry<E> entry : struct.entries()) {
       maxHeight = max(visit(entry.value()), maxHeight);
     }
     return maxHeight;
   }
 
-  private int visitMap(CelCreateMap map) {
+  private int visitMap(Expression.CreateMap<CreateMap.Entry<E>> map) {
     int maxHeight = 0;
-    for (CelCreateMap.Entry entry : map.entries()) {
+    for (CreateMap.Entry<E> entry : map.entries()) {
       maxHeight = max(visit(entry.key()), maxHeight);
       maxHeight = max(visit(entry.value()), maxHeight);
     }
     return maxHeight;
   }
 
-  private int visitExprList(ImmutableList<CelExpr> createListExpr) {
+  private int visitExprList(List<E> createListExpr) {
     int maxHeight = 0;
-    for (CelExpr expr : createListExpr) {
+    for (E expr : createListExpr) {
       maxHeight = max(visit(expr), maxHeight);
     }
     return maxHeight;

@@ -31,7 +31,6 @@ import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
-import dev.cel.common.navigation.CelNavigableExpr.TraversalOrder;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
@@ -336,7 +335,7 @@ public class CelNavigableExprVisitorTest {
     // Assert that the children of add call in the middle branch are const(1) and ident("a")
     assertThat(children).hasSize(2);
     assertThat(children.get(0).expr()).isEqualTo(CelExpr.ofConstantExpr(1, CelConstant.ofValue(1)));
-    assertThat(children.get(1)).isEqualTo(ident);
+    assertThat(children.get(1).expr()).isEqualTo(ident.expr());
   }
 
   @Test
