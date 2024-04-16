@@ -4,6 +4,16 @@ package(
 )
 
 java_library(
+    name = "common",
+    exports = ["//common/src/main/java/dev/cel/common/navigation:common"],
+)
+
+java_library(
     name = "navigation",
     exports = ["//common/src/main/java/dev/cel/common/navigation"],
+)
+
+java_library(
+    name = "mutable_navigation",
+    exports = ["//common/src/main/java/dev/cel/common/navigation:mutable_navigation"],
 )

@@ -8,11 +8,9 @@ package(
 )
 
 java_library(
-    name = "navigation",
+    name = "common",
     srcs = [
         "BaseNavigableExpr.java",
-        "CelNavigableAst.java",
-        "CelNavigableExpr.java",
         "CelNavigableExprVisitor.java",
         "ExprPropertyCalculator.java",
         "TraversalOrder.java",
@@ -21,9 +19,46 @@ java_library(
     ],
     deps = [
         "//:auto_value",
+        "//common/ast",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "navigation",
+    srcs = [
+        "CelNavigableAst.java",
+        "CelNavigableExpr.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":common",
+        "//:auto_value",
         "//common",
         "//common/ast",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "mutable_navigation",
+    srcs = [
+        "CelNavigableMutableAst.java",
+        "CelNavigableMutableExpr.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":common",
+        "//:auto_value",
+        "//common/ast:mutable_ast",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
     ],
 )

@@ -46,6 +46,7 @@ java_library(
         "//common:compiler_common",
         "//common/ast",
         "//common/navigation",
+        "//common/navigation:common",
         "//common/types",
         "//common/types:type_providers",
         "//extensions:optional_library",
