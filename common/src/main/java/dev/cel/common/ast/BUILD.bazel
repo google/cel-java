@@ -34,6 +34,7 @@ EXPR_FACTORY_SOURCES = [
 # keep sorted
 MUTABLE_AST_SOURCES = [
     "CelMutableExpr.java",
+    "CelMutableExprConverter.java",
 ]
 
 java_library(
