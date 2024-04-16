@@ -28,18 +28,21 @@ import java.util.Optional;
 
 /**
  * An abstract representation of a common expression that allows mutation in any of its properties.
- * The expressions are semantically the same as that of the immutable {@link CelExpr}.
+ * The expressions are semantically the same as that of the immutable {@link CelExpr}. Refer to
+ * {@link Expression} for details.
  *
  * <p>This allows for an efficient optimization of an AST without having to traverse and rebuild the
  * entire tree.
  *
  * <p>This class is not thread-safe by design.
  */
-public final class CelMutableExpr {
+@SuppressWarnings("unchecked") // Class ensures only the super type is used
+public final class CelMutableExpr implements Expression {
   private long id;
   private ExprKind.Kind exprKind;
   private Object exprValue;
 
+  @Override
   public long id() {
     return id;
   }
@@ -48,6 +51,7 @@ public final class CelMutableExpr {
     this.id = id;
   }
 
+  @Override
   public ExprKind.Kind getKind() {
     return exprKind;
   }
@@ -57,41 +61,49 @@ public final class CelMutableExpr {
     return (CelNotSet) exprValue;
   }
 
+  @Override
   public CelConstant constant() {
     checkExprKind(Kind.CONSTANT);
     return (CelConstant) exprValue;
   }
 
+  @Override
   public CelMutableIdent ident() {
     checkExprKind(Kind.IDENT);
     return (CelMutableIdent) exprValue;
   }
 
+  @Override
   public CelMutableSelect select() {
     checkExprKind(Kind.SELECT);
     return (CelMutableSelect) exprValue;
   }
 
+  @Override
   public CelMutableCall call() {
     checkExprKind(Kind.CALL);
     return (CelMutableCall) exprValue;
   }
 
+  @Override
   public CelMutableCreateList createList() {
     checkExprKind(Kind.CREATE_LIST);
     return (CelMutableCreateList) exprValue;
   }
 
+  @Override
   public CelMutableCreateStruct createStruct() {
     checkExprKind(Kind.CREATE_STRUCT);
     return (CelMutableCreateStruct) exprValue;
   }
 
+  @Override
   public CelMutableCreateMap createMap() {
     checkExprKind(Kind.CREATE_MAP);
     return (CelMutableCreateMap) exprValue;
   }
 
+  @Override
   public CelMutableComprehension comprehension() {
     checkExprKind(Kind.COMPREHENSION);
     return (CelMutableComprehension) exprValue;
@@ -138,9 +150,10 @@ public final class CelMutableExpr {
   }
 
   /** A mutable identifier expression. */
-  public static final class CelMutableIdent {
+  public static final class CelMutableIdent implements Ident {
     private String name = "";
 
+    @Override
     public String name() {
       return name;
     }
@@ -181,11 +194,12 @@ public final class CelMutableExpr {
   }
 
   /** A mutable field selection expression. e.g. `request.auth`. */
-  public static final class CelMutableSelect {
+  public static final class CelMutableSelect implements Expression.Select<CelMutableExpr> {
     private CelMutableExpr operand;
     private String field = "";
     private boolean testOnly;
 
+    @Override
     public CelMutableExpr operand() {
       return operand;
     }
@@ -194,6 +208,7 @@ public final class CelMutableExpr {
       this.operand = checkNotNull(operand);
     }
 
+    @Override
     public String field() {
       return field;
     }
@@ -202,6 +217,7 @@ public final class CelMutableExpr {
       this.field = checkNotNull(field);
     }
 
+    @Override
     public boolean testOnly() {
       return testOnly;
     }
@@ -255,12 +271,13 @@ public final class CelMutableExpr {
     }
   }
 
-  /** A mutable call expression, including calls to predefined functions and operators. */
-  public static final class CelMutableCall {
+  /** A mutable call expression. See {@link Expression.Call} */
+  public static final class CelMutableCall implements Expression.Call<CelMutableExpr> {
     private Optional<CelMutableExpr> target;
     private String function;
     private List<CelMutableExpr> args;
 
+    @Override
     public Optional<CelMutableExpr> target() {
       return target;
     }
@@ -269,6 +286,7 @@ public final class CelMutableExpr {
       this.target = Optional.of(target);
     }
 
+    @Override
     public String function() {
       return function;
     }
@@ -277,6 +295,7 @@ public final class CelMutableExpr {
       this.function = checkNotNull(function);
     }
 
+    @Override
     public List<CelMutableExpr> args() {
       return args;
     }
@@ -366,16 +385,12 @@ public final class CelMutableExpr {
     }
   }
 
-  /**
-   * A mutable list creation expression.
-   *
-   * <p>Lists may either be homogenous, e.g. `[1, 2, 3]`, or heterogeneous, e.g. `dyn([1, 'hello',
-   * 2.0])`
-   */
-  public static final class CelMutableCreateList {
+  /** A mutable list creation expression. See {@link Expression.CreateList} */
+  public static final class CelMutableCreateList implements Expression.CreateList<CelMutableExpr> {
     private final List<CelMutableExpr> elements;
     private final List<Integer> optionalIndices;
 
+    @Override
     public List<CelMutableExpr> elements() {
       return elements;
     }
@@ -385,6 +400,7 @@ public final class CelMutableExpr {
       elements.set(index, checkNotNull(element));
     }
 
+    @Override
     public List<Integer> optionalIndices() {
       return optionalIndices;
     }
@@ -438,16 +454,13 @@ public final class CelMutableExpr {
     }
   }
 
-  /**
-   * A mutable list creation expression.
-   *
-   * <p>Lists may either be homogenous, e.g. `[1, 2, 3]`, or heterogeneous, e.g. `dyn([1, 'hello',
-   * 2.0])`
-   */
-  public static final class CelMutableCreateStruct {
+  /** A mutable list creation expression. See {@link Expression.CreateStruct} */
+  public static final class CelMutableCreateStruct
+      implements Expression.CreateStruct<CelMutableCreateStruct.Entry> {
     private String messageName = "";
     private List<CelMutableCreateStruct.Entry> entries;
 
+    @Override
     public String messageName() {
       return messageName;
     }
@@ -456,6 +469,7 @@ public final class CelMutableExpr {
       this.messageName = checkNotNull(messageName);
     }
 
+    @Override
     public List<CelMutableCreateStruct.Entry> entries() {
       return entries;
     }
@@ -469,13 +483,14 @@ public final class CelMutableExpr {
       entries.set(index, checkNotNull(entry));
     }
 
-    /** Represents a mutable entry of the struct */
-    public static final class Entry {
+    /** Represents a mutable entry of the struct. */
+    public static final class Entry implements Expression.CreateStruct.Entry<CelMutableExpr> {
       private long id;
       private String fieldKey = "";
       private CelMutableExpr value;
       private boolean optionalEntry;
 
+      @Override
       public long id() {
         return id;
       }
@@ -484,6 +499,7 @@ public final class CelMutableExpr {
         this.id = id;
       }
 
+      @Override
       public String fieldKey() {
         return fieldKey;
       }
@@ -492,6 +508,7 @@ public final class CelMutableExpr {
         this.fieldKey = checkNotNull(fieldKey);
       }
 
+      @Override
       public CelMutableExpr value() {
         return value;
       }
@@ -500,6 +517,7 @@ public final class CelMutableExpr {
         this.value = checkNotNull(value);
       }
 
+      @Override
       public boolean optionalEntry() {
         return optionalEntry;
       }
@@ -600,14 +618,12 @@ public final class CelMutableExpr {
     }
   }
 
-  /**
-   * A mutable map creation expression.
-   *
-   * <p>Maps are constructed as `{'key_name': 'value'}`.
-   */
-  public static final class CelMutableCreateMap {
+  /** A mutable map creation expression. See {@link Expression.CreateMap} */
+  public static final class CelMutableCreateMap
+      implements Expression.CreateMap<CelMutableCreateMap.Entry> {
     private List<CelMutableCreateMap.Entry> entries;
 
+    @Override
     public List<CelMutableCreateMap.Entry> entries() {
       return entries;
     }
@@ -622,12 +638,13 @@ public final class CelMutableExpr {
     }
 
     /** Represents an entry of the map */
-    public static final class Entry {
+    public static final class Entry implements Expression.CreateMap.Entry<CelMutableExpr> {
       private long id;
       private CelMutableExpr key;
       private CelMutableExpr value;
       private boolean optionalEntry;
 
+      @Override
       public long id() {
         return id;
       }
@@ -636,6 +653,7 @@ public final class CelMutableExpr {
         this.id = id;
       }
 
+      @Override
       public CelMutableExpr key() {
         return key;
       }
@@ -644,6 +662,7 @@ public final class CelMutableExpr {
         this.key = checkNotNull(key);
       }
 
+      @Override
       public CelMutableExpr value() {
         return value;
       }
@@ -652,6 +671,7 @@ public final class CelMutableExpr {
         this.value = checkNotNull(value);
       }
 
+      @Override
       public boolean optionalEntry() {
         return optionalEntry;
       }
@@ -752,8 +772,12 @@ public final class CelMutableExpr {
     }
   }
 
-  /** A mutable comprehension expression applied to a list or map. */
-  public static final class CelMutableComprehension {
+  /**
+   * A mutable comprehension expression applied to a list or map. See {@link
+   * Expression.Comprehension}
+   */
+  public static final class CelMutableComprehension
+      implements Expression.Comprehension<CelMutableExpr> {
 
     private String iterVar;
 
@@ -769,6 +793,7 @@ public final class CelMutableExpr {
 
     private CelMutableExpr result;
 
+    @Override
     public String iterVar() {
       return iterVar;
     }
@@ -777,6 +802,7 @@ public final class CelMutableExpr {
       this.iterVar = checkNotNull(iterVar);
     }
 
+    @Override
     public CelMutableExpr iterRange() {
       return iterRange;
     }
@@ -785,6 +811,7 @@ public final class CelMutableExpr {
       this.iterRange = checkNotNull(iterRange);
     }
 
+    @Override
     public String accuVar() {
       return accuVar;
     }
@@ -793,6 +820,7 @@ public final class CelMutableExpr {
       this.accuVar = checkNotNull(accuVar);
     }
 
+    @Override
     public CelMutableExpr accuInit() {
       return accuInit;
     }
@@ -801,6 +829,7 @@ public final class CelMutableExpr {
       this.accuInit = checkNotNull(accuInit);
     }
 
+    @Override
     public CelMutableExpr loopCondition() {
       return loopCondition;
     }
@@ -809,6 +838,7 @@ public final class CelMutableExpr {
       this.loopCondition = checkNotNull(loopCondition);
     }
 
+    @Override
     public CelMutableExpr loopStep() {
       return loopStep;
     }
@@ -817,6 +847,7 @@ public final class CelMutableExpr {
       this.loopStep = checkNotNull(loopStep);
     }
 
+    @Override
     public CelMutableExpr result() {
       return result;
     }

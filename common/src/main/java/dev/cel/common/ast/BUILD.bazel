@@ -13,6 +13,7 @@ AST_SOURCES = [
     "CelExpr.java",
     "CelExprFormatter.java",
     "CelReference.java",
+    "Expression.java",
 ]
 
 # keep sorted

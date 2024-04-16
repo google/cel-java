@@ -31,104 +31,102 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * An abstract representation of a common expression.
+ * An abstract representation of a common expression. Refer to {@link Expression} for details.
  *
  * <p>This is the native type equivalent of Expr message in syntax.proto.
- *
- * <p>Expressions are abstractly represented as a collection of identifiers, select statements,
- * function calls, literals, and comprehensions. All operators with the exception of the '.'
- * operator are modelled as function calls. This makes it easy to represent new operators into the
- * existing AST.
- *
- * <p>All references within expressions must resolve to a [Decl][] provided at type-check for an
- * expression to be valid. A reference may either be a bare identifier `name` or a qualified
- * identifier `google.api.name`. References may either refer to a value or a function declaration.
- *
- * <p>For example, the expression `google.api.name.startsWith('expr')` references the declaration
- * `google.api.name` within a [Expr.Select][] expression, and the function declaration `startsWith`.
  */
 @AutoValue
 @Internal
 @Immutable
-public abstract class CelExpr {
+public abstract class CelExpr implements Expression {
 
-  /**
-   * Required. An id assigned to this node by the parser which is unique in a given expression tree.
-   * This is used to associate type information and other attributes to a node in the parse tree.
-   */
+  @Override
   public abstract long id();
 
   /** Represents the variant of the expression. */
   public abstract ExprKind exprKind();
 
+  @Override
+  public ExprKind.Kind getKind() {
+    return exprKind().getKind();
+  }
+
   /**
-   * Gets the underlying constant expression.
+   * {@inheritDoc}
    *
    * @throws UnsupportedOperationException if expression is not {@link Kind#CONSTANT}.
    */
+  @Override
   public CelConstant constant() {
     return exprKind().constant();
   }
 
   /**
-   * Gets the underlying identifier expression.
+   * {@inheritDoc}
    *
    * @throws UnsupportedOperationException if expression is not {@link Kind#IDENT}.
    */
+  @Override
   public CelIdent ident() {
     return exprKind().ident();
   }
 
   /**
-   * Gets the underlying select expression.
+   * {@inheritDoc}
    *
    * @throws UnsupportedOperationException if expression is not {@link Kind#SELECT}.
    */
+  @Override
   public CelSelect select() {
     return exprKind().select();
   }
 
   /**
-   * Gets the underlying call expression.
+   * {@inheritDoc}
    *
    * @throws UnsupportedOperationException if expression is not {@link Kind#CALL}.
    */
+  @Override
   public CelCall call() {
     return exprKind().call();
   }
 
   /**
-   * Gets the underlying createList expression.
+   * {@inheritDoc}
    *
    * @throws UnsupportedOperationException if expression is not {@link Kind#CREATE_LIST}.
    */
+  @Override
   public CelCreateList createList() {
     return exprKind().createList();
   }
 
   /**
-   * Gets the underlying createStruct expression.
+   * {@inheritDoc}
    *
    * @throws UnsupportedOperationException if expression is not {@link Kind#CREATE_STRUCT}.
    */
+  @Override
   public CelCreateStruct createStruct() {
     return exprKind().createStruct();
   }
 
   /**
-   * Gets the underlying createMap expression.
+   * {@inheritDoc}
    *
    * @throws UnsupportedOperationException if expression is not {@link Kind#createMap}.
    */
+  @Override
   public CelCreateMap createMap() {
     return exprKind().createMap();
   }
 
   /**
-   * Gets the underlying comprehension expression.
+   * {@inheritDoc}
    *
    * @throws UnsupportedOperationException if expression is not {@link Kind#COMPREHENSION}.
    */
+  @Override
   public CelComprehension comprehension() {
     return exprKind().comprehension();
   }
@@ -401,12 +399,9 @@ public abstract class CelExpr {
   /** An identifier expression. e.g. `request`. */
   @AutoValue
   @Immutable
-  public abstract static class CelIdent {
-    /**
-     * Required. Holds a single, unqualified identifier, possibly preceded by a '.'.
-     *
-     * <p>Qualified names are represented by the [Expr.Select][] expression.
-     */
+  public abstract static class CelIdent implements Ident {
+
+    @Override
     public abstract String name();
 
     /** Builder for CelIdent. */
@@ -429,29 +424,15 @@ public abstract class CelExpr {
   /** A field selection expression. e.g. `request.auth`. */
   @AutoValue
   @Immutable
-  public abstract static class CelSelect {
+  public abstract static class CelSelect implements Expression.Select<CelExpr> {
 
-    /**
-     * Required. The target of the selection expression.
-     *
-     * <p>For example, in the select expression `request.auth`, the `request` portion of the
-     * expression is the `operand`.
-     */
+    @Override
     public abstract CelExpr operand();
 
-    /**
-     * Required. The name of the field to select.
-     *
-     * <p>For example, in the select expression `request.auth`, the `auth` portion of the expression
-     * would be the `field`.
-     */
+    @Override
     public abstract String field();
 
-    /**
-     * Whether the select is to be interpreted as a field presence test.
-     *
-     * <p>This results from the macro `has(request.auth)`.
-     */
+    @Override
     public abstract boolean testOnly();
 
     /** Builder for CelSelect. */
@@ -483,25 +464,18 @@ public abstract class CelExpr {
     }
   }
 
-  /**
-   * A call expression, including calls to predefined functions and operators.
-   *
-   * <p>For example, `value == 10`, `size(map_value)`.
-   */
+  /** A call expression. See {@link Expression.Call} */
   @AutoValue
   @Immutable
-  public abstract static class CelCall {
+  public abstract static class CelCall implements Expression.Call<CelExpr> {
 
-    /**
-     * The target of a method call-style expression.
-     *
-     * <p>For example, `x` in `x.f()`.
-     */
+    @Override
     public abstract Optional<CelExpr> target();
 
-    /** Required. The name of the function or method being called. */
+    @Override
     public abstract String function();
 
+    @Override
     public abstract ImmutableList<CelExpr> args();
 
     /** Builder for CelCall. */
@@ -587,24 +561,14 @@ public abstract class CelExpr {
     }
   }
 
-  /**
-   * A list creation expression.
-   *
-   * <p>Lists may either be homogenous, e.g. `[1, 2, 3]`, or heterogeneous, e.g. `dyn([1, 'hello',
-   * 2.0])`
-   */
+  /** A list creation expression. See {@link Expression.CreateList} */
   @AutoValue
   @Immutable
-  public abstract static class CelCreateList {
-    /** The elements part of the list */
+  public abstract static class CelCreateList implements Expression.CreateList<CelExpr> {
+    @Override
     public abstract ImmutableList<CelExpr> elements();
 
-    /**
-     * The indices within the elements list which are marked as optional elements.
-     *
-     * <p>When an optional-typed value is present, the value it contains is included in the list. If
-     * the optional-typed value is absent, the list element is omitted from the CreateList result.
-     */
+    @Override
     public abstract ImmutableList<Integer> optionalIndices();
 
     /** Builder for CelCreateList. */
@@ -689,19 +653,15 @@ public abstract class CelExpr {
     }
   }
 
-  /**
-   * A message creation expression.
-   *
-   * <p>Messages are constructed with a type name and composed of field ids: `types.MyType{field_id:
-   * 'value'}`.
-   */
+  /** A message creation expression. See {@link Expression.CreateStruct} */
   @AutoValue
   @Immutable
-  public abstract static class CelCreateStruct {
-    /** The type name of the message to be created, empty when creating map literals. */
+  public abstract static class CelCreateStruct
+      implements Expression.CreateStruct<CelCreateStruct.Entry> {
+    @Override
     public abstract String messageName();
 
-    /** The entries in the creation expression. */
+    @Override
     public abstract ImmutableList<CelCreateStruct.Entry> entries();
 
     /** Builder for CelCreateStruct. */
@@ -777,26 +737,18 @@ public abstract class CelExpr {
     /** Represents an entry of the struct */
     @AutoValue
     @Immutable
-    public abstract static class Entry {
-      /**
-       * Required. An id assigned to this node by the parser which is unique in a given expression
-       * tree. This is used to associate type information and other attributes to the node.
-       */
+    public abstract static class Entry implements Expression.CreateStruct.Entry<CelExpr> {
+
+      @Override
       public abstract long id();
 
-      /** Entry key kind. */
+      @Override
       public abstract String fieldKey();
 
-      /**
-       * Required. The value assigned to the key.
-       *
-       * <p>If the optional_entry field is true, the expression must resolve to an optional-typed
-       * value. If the optional value is present, the key will be set; however, if the optional
-       * value is absent, the key will be unset.
-       */
+      @Override
       public abstract CelExpr value();
 
-      /** Whether the key-value pair is optional. */
+      @Override
       public abstract boolean optionalEntry();
 
       /** Builder for CelCreateStruct.Entry. */
@@ -829,15 +781,12 @@ public abstract class CelExpr {
     }
   }
 
-  /**
-   * A map creation expression.
-   *
-   * <p>Maps are constructed as `{'key_name': 'value'}`.
-   */
+  /** A map creation expression. See {@link Expression.CreateMap} */
   @AutoValue
   @Immutable
-  public abstract static class CelCreateMap {
+  public abstract static class CelCreateMap implements Expression.CreateMap<CelCreateMap.Entry> {
     /** The entries in the creation expression. */
+    @Override
     public abstract ImmutableList<CelCreateMap.Entry> entries();
 
     /** Builder for CelCreateMap. */
@@ -908,29 +857,21 @@ public abstract class CelExpr {
       return new AutoValue_CelExpr_CelCreateMap.Builder();
     }
 
-    /** Represents an entry of the map */
+    /** Represents an entry of the map. */
     @AutoValue
     @Immutable
-    public abstract static class Entry {
-      /**
-       * Required. An id assigned to this node by the parser which is unique in a given expression
-       * tree. This is used to associate type information and other attributes to the node.
-       */
+    public abstract static class Entry implements Expression.CreateMap.Entry<CelExpr> {
+
+      @Override
       public abstract long id();
 
-      /** Required. The key. */
+      @Override
       public abstract CelExpr key();
 
-      /**
-       * Required. The value assigned to the key.
-       *
-       * <p>If the optional_entry field is true, the expression must resolve to an optional-typed
-       * value. If the optional value is present, the key will be set; however, if the optional
-       * value is absent, the key will be unset.
-       */
+      @Override
       public abstract CelExpr value();
 
-      /** Whether the key-value pair is optional. */
+      @Override
       public abstract boolean optionalEntry();
 
       /** Builder for CelCreateMap.Entry. */
@@ -962,65 +903,29 @@ public abstract class CelExpr {
     }
   }
 
-  /**
-   * A comprehension expression applied to a list or map.
-   *
-   * <p>Comprehensions are not part of the core syntax, but enabled with macros. A macro matches a
-   * specific call signature within a parsed AST and replaces the call with an alternate AST block.
-   * Macro expansion happens at parse time.
-   *
-   * <p>The following macros are supported within CEL:
-   *
-   * <p>Aggregate type macros may be applied to all elements in a list or all keys in a map:
-   *
-   * <p>`all`, `exists`, `exists_one` - test a predicate expression against the inputs and return
-   * `true` if the predicate is satisfied for all, any, or only one value `list.all(x, x < 10)`.
-   * `filter` - test a predicate expression against the inputs and return the subset of elements
-   * which satisfy the predicate: `payments.filter(p, p > 1000)`. `map` - apply an expression to all
-   * elements in the input and return the output aggregate type: `[1, 2, 3].map(i, i * i)`.
-   *
-   * <p>The `has(m.x)` macro tests whether the property `x` is present in struct `m`. The semantics
-   * of this macro depend on the type of `m`. For proto2 messages `has(m.x)` is defined as 'defined,
-   * but not set`. For proto3, the macro tests whether the property is set to its default. For map
-   * and struct types, the macro tests whether the property `x` is defined on `m`.
-   *
-   * <p>Comprehension evaluation can be best visualized as the following pseudocode:
-   */
+  /** A comprehension expression applied to a list or map. See {@link Expression.Comprehension} */
   @AutoValue
   @Immutable
-  public abstract static class CelComprehension {
-    /** The name of the iteration variable. */
+  public abstract static class CelComprehension implements Expression.Comprehension<CelExpr> {
+    @Override
     public abstract String iterVar();
 
-    /** The range over which var iterates. */
+    @Override
     public abstract CelExpr iterRange();
 
-    /** The name of the variable used for accumulation of the result. */
+    @Override
     public abstract String accuVar();
 
-    /** The initial value of the accumulator. */
+    @Override
     public abstract CelExpr accuInit();
 
-    /**
-     * An expression which can contain iter_var and accu_var.
-     *
-     * <p>Returns false when the result has been computed and may be used as a hint to short-circuit
-     * the remainder of the comprehension.
-     */
+    @Override
     public abstract CelExpr loopCondition();
 
-    /**
-     * An expression which can contain iter_var and accu_var.
-     *
-     * <p>Computes the next value of accu_var.
-     */
+    @Override
     public abstract CelExpr loopStep();
 
-    /**
-     * An expression which can contain accu_var.
-     *
-     * <p>Computes the result.
-     */
+    @Override
     public abstract CelExpr result();
 
     /** Builder for Comprehension. */
