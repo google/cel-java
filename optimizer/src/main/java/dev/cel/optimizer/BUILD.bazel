@@ -90,6 +90,7 @@ java_library(
         "//common/annotations",
         "//common/ast",
         "//common/ast:expr_factory",
+        "//common/ast:mutable_ast",
         "//common/navigation",
         "//common/types:type_providers",
         "@maven//:com_google_errorprone_error_prone_annotations",

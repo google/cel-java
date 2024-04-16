@@ -15,38 +15,51 @@
 package dev.cel.optimizer;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelExpr;
-import dev.cel.common.ast.CelExpr.CelCall;
-import dev.cel.common.ast.CelExpr.CelComprehension;
-import dev.cel.common.ast.CelExpr.CelCreateList;
-import dev.cel.common.ast.CelExpr.CelCreateMap;
-import dev.cel.common.ast.CelExpr.CelCreateStruct;
-import dev.cel.common.ast.CelExpr.CelSelect;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.ExprIdGenerator;
+import dev.cel.common.ast.CelMutableExpr;
+import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
+import dev.cel.common.ast.CelMutableExpr.CelMutableComprehension;
+import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
+import dev.cel.common.ast.CelMutableExpr.CelMutableCreateMap;
+import dev.cel.common.ast.CelMutableExpr.CelMutableCreateStruct;
+import dev.cel.common.ast.CelMutableExpr.CelMutableSelect;
+import dev.cel.common.ast.CelMutableExprConverter;
+import java.util.List;
 
 /**
- * MutableExprVisitor performs mutation of {@link CelExpr} based on its configured parameters.
+ * MutableExprVisitor performs mutation of {@link CelMutableExpr} based on its configured
+ * parameters.
  *
  * <p>This class is NOT thread-safe. Callers should spawn a new instance of this class each time the
  * expression is being mutated.
- *
- * <p>Note that CelExpr is immutable by design. Therefore, the logic here doesn't actually mutate
- * the existing expression tree. Instead, a brand new CelExpr is produced with the subtree swapped
- * at the desired expression ID to replace.
  */
 @Internal
 final class MutableExprVisitor {
-  private final CelExpr.Builder newExpr;
+  private final CelMutableExpr newExpr;
   private final ExprIdGenerator celExprIdGenerator;
   private final long iterationLimit;
   private int iterationCount;
   private long exprIdToReplace;
 
+  /** TODO: Temporarily kept to retain method signature. Remove in the upcoming CLs. */
   static MutableExprVisitor newInstance(
       ExprIdGenerator idGenerator,
       CelExpr.Builder newExpr,
+      long exprIdToReplace,
+      long iterationLimit) {
+    return newInstance(
+        idGenerator,
+        CelMutableExprConverter.fromCelExpr(newExpr.build()),
+        exprIdToReplace,
+        iterationLimit);
+  }
+
+  static MutableExprVisitor newInstance(
+      ExprIdGenerator idGenerator,
+      CelMutableExpr newExpr,
       long exprIdToReplace,
       long iterationLimit) {
     // iterationLimit * 2, because the expr can be walked twice due to the immutable nature of
@@ -54,107 +67,114 @@ final class MutableExprVisitor {
     return new MutableExprVisitor(idGenerator, newExpr, exprIdToReplace, iterationLimit * 2);
   }
 
+  /** TODO: Temporarily kept to retain method signature. Remove in the upcoming CLs. */
   CelExpr.Builder visit(CelExpr.Builder root) {
+    CelMutableExpr mutatedRoot = visit(CelMutableExprConverter.fromCelExpr(root.build()));
+    return CelMutableExprConverter.fromMutableExpr(mutatedRoot).toBuilder();
+  }
+
+  CelMutableExpr visit(CelMutableExpr root) {
     if (++iterationCount > iterationLimit) {
       throw new IllegalStateException("Max iteration count reached.");
     }
 
     if (root.id() == exprIdToReplace) {
       exprIdToReplace = Integer.MIN_VALUE; // Marks that the subtree has been replaced.
-      return visit(this.newExpr.setId(root.id()));
+      this.newExpr.setId(root.id());
+      return visit(this.newExpr);
     }
 
     root.setId(celExprIdGenerator.generate(root.id()));
 
-    switch (root.exprKind().getKind()) {
+    switch (root.getKind()) {
       case SELECT:
-        return visit(root, root.select().toBuilder());
+        return visit(root, root.select());
       case CALL:
-        return visit(root, root.call().toBuilder());
+        return visit(root, root.call());
       case CREATE_LIST:
-        return visit(root, root.createList().toBuilder());
+        return visit(root, root.createList());
       case CREATE_STRUCT:
-        return visit(root, root.createStruct().toBuilder());
+        return visit(root, root.createStruct());
       case CREATE_MAP:
-        return visit(root, root.createMap().toBuilder());
+        return visit(root, root.createMap());
       case COMPREHENSION:
-        return visit(root, root.comprehension().toBuilder());
+        return visit(root, root.comprehension());
       case CONSTANT: // Fall-through is intended
       case IDENT:
       case NOT_SET: // Note: comprehension arguments can contain a not set root.
         return root;
     }
-    throw new IllegalArgumentException("unexpected root kind: " + root.exprKind().getKind());
+    throw new IllegalArgumentException("unexpected root kind: " + root.getKind());
   }
 
-  private CelExpr.Builder visit(CelExpr.Builder expr, CelSelect.Builder select) {
-    select.setOperand(visit(select.operand().toBuilder()).build());
-    return expr.setSelect(select.build());
+  @CanIgnoreReturnValue
+  private CelMutableExpr visit(CelMutableExpr expr, CelMutableSelect select) {
+    select.setOperand(visit(select.operand()));
+    return expr;
   }
 
-  private CelExpr.Builder visit(CelExpr.Builder expr, CelCall.Builder call) {
+  @CanIgnoreReturnValue
+  private CelMutableExpr visit(CelMutableExpr expr, CelMutableCall call) {
     if (call.target().isPresent()) {
-      call.setTarget(visit(call.target().get().toBuilder()).build());
+      call.setTarget(visit(call.target().get()));
     }
-    ImmutableList<CelExpr.Builder> argsBuilders = call.getArgsBuilders();
+    List<CelMutableExpr> argsBuilders = call.args();
     for (int i = 0; i < argsBuilders.size(); i++) {
-      CelExpr.Builder arg = argsBuilders.get(i);
-      call.setArg(i, visit(arg).build());
+      CelMutableExpr arg = argsBuilders.get(i);
+      call.setArg(i, visit(arg));
     }
 
-    return expr.setCall(call.build());
+    return expr;
   }
 
-  private CelExpr.Builder visit(CelExpr.Builder expr, CelCreateStruct.Builder createStruct) {
-    ImmutableList<CelCreateStruct.Entry.Builder> entries = createStruct.getEntriesBuilders();
-    for (int i = 0; i < entries.size(); i++) {
-      CelCreateStruct.Entry.Builder entry = entries.get(i);
+  @CanIgnoreReturnValue
+  private CelMutableExpr visit(CelMutableExpr expr, CelMutableCreateStruct createStruct) {
+    List<CelMutableCreateStruct.Entry> entries = createStruct.entries();
+    for (CelMutableCreateStruct.Entry entry : entries) {
       entry.setId(celExprIdGenerator.generate(entry.id()));
-      entry.setValue(visit(entry.value().toBuilder()).build());
-
-      createStruct.setEntry(i, entry.build());
+      entry.setValue(visit(entry.value()));
     }
 
-    return expr.setCreateStruct(createStruct.build());
+    return expr;
   }
 
-  private CelExpr.Builder visit(CelExpr.Builder expr, CelCreateMap.Builder createMap) {
-    ImmutableList<CelCreateMap.Entry.Builder> entriesBuilders = createMap.getEntriesBuilders();
-    for (int i = 0; i < entriesBuilders.size(); i++) {
-      CelCreateMap.Entry.Builder entry = entriesBuilders.get(i);
+  @CanIgnoreReturnValue
+  private CelMutableExpr visit(CelMutableExpr expr, CelMutableCreateMap createMap) {
+    List<CelMutableCreateMap.Entry> entriesBuilders = createMap.entries();
+    for (CelMutableCreateMap.Entry entry : entriesBuilders) {
       entry.setId(celExprIdGenerator.generate(entry.id()));
-      entry.setKey(visit(entry.key().toBuilder()).build());
-      entry.setValue(visit(entry.value().toBuilder()).build());
-
-      createMap.setEntry(i, entry.build());
+      entry.setKey(visit(entry.key()));
+      entry.setValue(visit(entry.value()));
     }
 
-    return expr.setCreateMap(createMap.build());
+    return expr;
   }
 
-  private CelExpr.Builder visit(CelExpr.Builder expr, CelCreateList.Builder createList) {
-    ImmutableList<CelExpr.Builder> elementsBuilders = createList.getElementsBuilders();
+  @CanIgnoreReturnValue
+  private CelMutableExpr visit(CelMutableExpr expr, CelMutableCreateList createList) {
+    List<CelMutableExpr> elementsBuilders = createList.elements();
     for (int i = 0; i < elementsBuilders.size(); i++) {
-      CelExpr.Builder elem = elementsBuilders.get(i);
-      createList.setElement(i, visit(elem).build());
+      CelMutableExpr elem = elementsBuilders.get(i);
+      createList.setElement(i, visit(elem));
     }
 
-    return expr.setCreateList(createList.build());
+    return expr;
   }
 
-  private CelExpr.Builder visit(CelExpr.Builder expr, CelComprehension.Builder comprehension) {
-    comprehension.setIterRange(visit(comprehension.iterRange().toBuilder()).build());
-    comprehension.setAccuInit(visit(comprehension.accuInit().toBuilder()).build());
-    comprehension.setLoopCondition(visit(comprehension.loopCondition().toBuilder()).build());
-    comprehension.setLoopStep(visit(comprehension.loopStep().toBuilder()).build());
-    comprehension.setResult(visit(comprehension.result().toBuilder()).build());
+  @CanIgnoreReturnValue
+  private CelMutableExpr visit(CelMutableExpr expr, CelMutableComprehension comprehension) {
+    comprehension.setIterRange(visit(comprehension.iterRange()));
+    comprehension.setAccuInit(visit(comprehension.accuInit()));
+    comprehension.setLoopCondition(visit(comprehension.loopCondition()));
+    comprehension.setLoopStep(visit(comprehension.loopStep()));
+    comprehension.setResult(visit(comprehension.result()));
 
-    return expr.setComprehension(comprehension.build());
+    return expr;
   }
 
   private MutableExprVisitor(
       ExprIdGenerator celExprIdGenerator,
-      CelExpr.Builder newExpr,
+      CelMutableExpr newExpr,
       long exprId,
       long iterationLimit) {
     Preconditions.checkState(iterationLimit > 0L);
