@@ -13,6 +13,7 @@ java_library(
         "//:java_truth",
         "//common",
         "//common:compiler_common",
+        "//common:options",
         "//common/ast",
         "//common/ast:cel_expr_visitor",
         "//common/ast:expr_converter",

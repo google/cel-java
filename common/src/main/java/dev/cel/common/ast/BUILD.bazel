@@ -34,6 +34,7 @@ EXPR_FACTORY_SOURCES = [
 
 # keep sorted
 MUTABLE_AST_SOURCES = [
+    "CelMutableAst.java",
     "CelMutableExpr.java",
     "CelMutableExprConverter.java",
 ]
@@ -124,6 +125,8 @@ java_library(
     ],
     deps = [
         ":ast",
+        "//common",
+        "//common/types:type_providers",
         "@maven//:com_google_guava_guava",
     ],
 )
