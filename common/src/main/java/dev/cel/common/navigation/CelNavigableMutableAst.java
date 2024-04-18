@@ -15,6 +15,8 @@
 package dev.cel.common.navigation;
 
 import dev.cel.common.ast.CelMutableAst;
+import dev.cel.common.types.CelType;
+import java.util.Optional;
 
 /**
  * Decorates a {@link CelMutableAst} with navigational properties. This allows us to visit a node's
@@ -43,5 +45,16 @@ public final class CelNavigableMutableAst {
   /** Returns the underlying {@link CelMutableAst}. */
   public CelMutableAst getAst() {
     return ast;
+  }
+
+  /**
+   * Returns the type of the expression node for a type-checked AST. This simply proxies down the
+   * call to {@link CelMutableAst#getType(long)}.
+   *
+   * @return Optional of {@link CelType} or {@link Optional#empty} if the type does not exist at the
+   *     ID.
+   */
+  public Optional<CelType> getType(long exprId) {
+    return ast.getType(exprId);
   }
 }

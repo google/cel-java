@@ -222,12 +222,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
                       iterVarType ->
                           newVarDecls.add(
                               CelVarDecl.newVarDeclaration(name.iterVarName(), iterVarType)));
-              type.resultType()
-                  .ifPresent(
-                      comprehensionResultType ->
-                          newVarDecls.add(
-                              CelVarDecl.newVarDeclaration(
-                                  name.resultName(), comprehensionResultType)));
+              newVarDecls.add(CelVarDecl.newVarDeclaration(name.resultName(), type.resultType()));
             });
 
     // Type-check all sub-expressions then create new block index identifiers.
