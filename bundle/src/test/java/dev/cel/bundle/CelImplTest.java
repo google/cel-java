@@ -41,12 +41,15 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.Duration;
 import com.google.protobuf.FieldMask;
 import com.google.protobuf.Message;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.Struct;
+import com.google.protobuf.TextFormat;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Timestamps;
 import com.google.rpc.context.AttributeContext;
@@ -1019,6 +1022,34 @@ public final class CelImplTest {
             CelValidationException.class,
             () -> cel.compile("Value{null_value: NullValue.NULL_VALUE}").getAst());
     assertThat(e).hasMessageThat().contains("undeclared reference to 'NullValue'");
+  }
+
+  @Test
+  public void compile_multipleInstancesOfEnumDescriptor_dedupedByFullName() throws Exception {
+    String enumTextProto =
+        "name: \"standalone_global_enum.proto\"\n"
+            + "package: \"dev.cel.testing.testdata.proto3\"\n"
+            + "enum_type {\n"
+            + "  name: \"StandaloneGlobalEnum\"\n"
+            + "  value {\n"
+            + "    name: \"SGOO\"\n"
+            + "    number: 0\n"
+            + "  }\n"
+            + "}\n"
+            + "syntax: \"proto3\"\n";
+    FileDescriptorProto enumFileDescriptorProto =
+        TextFormat.parse(enumTextProto, FileDescriptorProto.class);
+    FileDescriptor enumFileDescriptor =
+        FileDescriptor.buildFrom(enumFileDescriptorProto, new FileDescriptor[] {});
+    Cel cel =
+        standardCelBuilderWithMacros()
+            .setContainer("dev.cel.testing.testdata")
+            .addFileTypes(enumFileDescriptor)
+            .addFileTypes(StandaloneGlobalEnum.getDescriptor().getFile())
+            .build();
+
+    assertThat(cel.compile("dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGOO").getAst())
+        .isNotNull();
   }
 
   @Test

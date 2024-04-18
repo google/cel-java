@@ -142,8 +142,11 @@ public final class ProtoMessageTypeProvider implements CelTypeProvider {
 
   private ImmutableMap<String, CelType> createEnumTypes(
       Collection<EnumDescriptor> enumDescriptors) {
-    ImmutableMap.Builder<String, CelType> enumTypes = ImmutableMap.builder();
+    HashMap<String, CelType> enumTypes = new HashMap<>();
     for (EnumDescriptor enumDescriptor : enumDescriptors) {
+      if (enumTypes.containsKey(enumDescriptor.getFullName())) {
+        continue;
+      }
       ImmutableMap<String, Integer> values =
           enumDescriptor.getValues().stream()
               .collect(
@@ -151,7 +154,7 @@ public final class ProtoMessageTypeProvider implements CelTypeProvider {
       enumTypes.put(
           enumDescriptor.getFullName(), EnumType.create(enumDescriptor.getFullName(), values));
     }
-    return enumTypes.buildOrThrow();
+    return ImmutableMap.copyOf(enumTypes);
   }
 
   private static class FieldResolver {
