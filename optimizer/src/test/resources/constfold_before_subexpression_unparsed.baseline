@@ -514,17 +514,17 @@ Test case: OPTIONAL_LIST
 Source: [10, ?optional.none(), [?optional.none(), ?opt_x], [?optional.none(), ?opt_x]] == [10, [5], [5]]
 =====>
 Result: true
-[CASCADED_BINDS]: cel.bind(@r0, optional.none(), [10, ?@r0, [?opt_x], [?@r0, ?opt_x]]) == cel.bind(@r1, [5], [10, @r1, @r1])
-[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([optional.none(), [5]], [10, ?@index0, [?opt_x], [?@index0, ?opt_x]] == [10, @index1, @index1])
-[BLOCK_RECURSION_DEPTH_1]: cel.@block([optional.none(), [5], [?opt_x], [?@index0, ?opt_x], [10, ?@index0, @index2, @index3], [10, @index1, @index1]], @index4 == @index5)
-[BLOCK_RECURSION_DEPTH_2]: cel.@block([optional.none(), [5], [10, ?@index0, [?opt_x], [?@index0, ?opt_x]]], @index2 == [10, @index1, @index1])
-[BLOCK_RECURSION_DEPTH_3]: cel.@block([optional.none(), [5]], [10, ?@index0, [?opt_x], [?@index0, ?opt_x]] == [10, @index1, @index1])
-[BLOCK_RECURSION_DEPTH_4]: cel.@block([optional.none(), [5]], [10, ?@index0, [?opt_x], [?@index0, ?opt_x]] == [10, @index1, @index1])
-[BLOCK_RECURSION_DEPTH_5]: cel.@block([optional.none(), [5]], [10, ?@index0, [?opt_x], [?@index0, ?opt_x]] == [10, @index1, @index1])
-[BLOCK_RECURSION_DEPTH_6]: cel.@block([optional.none(), [5]], [10, ?@index0, [?opt_x], [?@index0, ?opt_x]] == [10, @index1, @index1])
-[BLOCK_RECURSION_DEPTH_7]: cel.@block([optional.none(), [5]], [10, ?@index0, [?opt_x], [?@index0, ?opt_x]] == [10, @index1, @index1])
-[BLOCK_RECURSION_DEPTH_8]: cel.@block([optional.none(), [5]], [10, ?@index0, [?opt_x], [?@index0, ?opt_x]] == [10, @index1, @index1])
-[BLOCK_RECURSION_DEPTH_9]: cel.@block([optional.none(), [5]], [10, ?@index0, [?opt_x], [?@index0, ?opt_x]] == [10, @index1, @index1])
+[CASCADED_BINDS]: cel.bind(@r0, [?opt_x], [10, @r0, @r0]) == cel.bind(@r1, [5], [10, @r1, @r1])
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([[?opt_x], [5]], [10, @index0, @index0] == [10, @index1, @index1])
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[?opt_x], [5], [10, @index0, @index0], [10, @index1, @index1]], @index2 == @index3)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[?opt_x], [5]], [10, @index0, @index0] == [10, @index1, @index1])
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[?opt_x], [5]], [10, @index0, @index0] == [10, @index1, @index1])
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[?opt_x], [5]], [10, @index0, @index0] == [10, @index1, @index1])
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[?opt_x], [5]], [10, @index0, @index0] == [10, @index1, @index1])
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[?opt_x], [5]], [10, @index0, @index0] == [10, @index1, @index1])
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[?opt_x], [5]], [10, @index0, @index0] == [10, @index1, @index1])
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[?opt_x], [5]], [10, @index0, @index0] == [10, @index1, @index1])
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[?opt_x], [5]], [10, @index0, @index0] == [10, @index1, @index1])
 
 Test case: OPTIONAL_MAP
 Source: {?'hello': optional.of('hello')}['hello'] + {?'hello': optional.of('hello')}['hello'] == 'hellohello'

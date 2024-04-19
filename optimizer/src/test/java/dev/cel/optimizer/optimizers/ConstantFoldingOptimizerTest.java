@@ -160,6 +160,7 @@ public class ConstantFoldingOptimizerTest {
       "{source: '{\"a\": dyn([1, 2]), \"b\": x}', expected: '{\"a\": [1, 2], \"b\": x}'}")
   @TestParameters("{source: 'map_var[?\"key\"]', expected: 'map_var[?\"key\"]'}")
   @TestParameters("{source: '\"abc\" in list_var', expected: '\"abc\" in list_var'}")
+  @TestParameters("{source: '[?optional.none(), [?optional.none()]]', expected: '[[]]'}")
   @TestParameters(
       "{source: 'cel.bind(r0, [1, 2, 3], cel.bind(r1, 1 in r0, r1))', expected: 'true'}")
   // TODO: Support folding lists with mixed types. This requires mutable lists.
