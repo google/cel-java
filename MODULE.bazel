@@ -16,12 +16,13 @@ module(
   name = "cel_java"
 )
 
-bazel_dep(name = "bazel_skylib", version = "1.3.0")
+bazel_dep(name = "bazel_skylib", version = "1.4.2")
 bazel_dep(name = "rules_jvm_external", version = "6.0")
-bazel_dep(name = "protobuf", repo_name="com_google_protobuf", version = "21.7") ## TODO UPGRADE
+bazel_dep(name = "protobuf", repo_name="com_google_protobuf", version = "23.1")
 bazel_dep(name = "googleapis", repo_name="com_google_googleapis", version = "0.0.0-20240326-1c8d509c5")
 bazel_dep(name = "rules_pkg", version = "0.7.0")
 bazel_dep(name = "rules_license", version = "0.0.8")
+bazel_dep(name = "rules_java", version = "7.4.0")
 bazel_dep(name = "cel-spec", repo_name="cel_spec", version = "0.14.0")
 
 switched_rules = use_extension("@com_google_googleapis//:extensions.bzl", "switched_rules")
@@ -30,6 +31,7 @@ use_repo(switched_rules, "com_google_googleapis_imports")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 
+# run 'bazel run @unpinned_maven//:pin' after updating versions below to generate a new lock file.
 maven.install(
     # keep sorted
     artifacts = [
@@ -62,3 +64,9 @@ use_repo(maven, "maven", "unpinned_maven")
 
 non_module_dependencies = use_extension("//:repositories.bzl", "non_module_dependencies")
 use_repo(non_module_dependencies, "antlr4_jar")
+use_repo(non_module_dependencies, "bazel_common")
+
+# google_common_workspace_rules = use_extension("@bazel_common//:workspace_defs.bzl", "google_common_workspace_rules")
+# google_common_workspace_rules()
+
+
