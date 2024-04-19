@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_jar")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 
 def antlr4_jar_dependency():
     http_jar(
@@ -21,10 +21,22 @@ def antlr4_jar_dependency():
         urls = ["https://www.antlr.org/download/antlr-4.11.1-complete.jar"],
     )
 
+def bazel_common_dependency():
+    bazel_common_tag = "aaa4d801588f7744c6f4428e4f133f26b8518f42"
+    bazel_common_sha = "1f85abb0043f3589b9bf13a80319dc48a5f01a052c68bab3c08015a56d92ab7f"
+    http_archive(
+        name = "bazel_common",
+        sha256 = bazel_common_sha,
+        strip_prefix = "bazel-common-%s" % bazel_common_tag,
+        url = "https://github.com/google/bazel-common/archive/%s.tar.gz" % bazel_common_tag,
+    )
+
 def _non_module_dependencies_impl(_ctx):
     antlr4_jar_dependency()
+    bazel_common_dependency()
 
 non_module_dependencies = module_extension(
     implementation = _non_module_dependencies_impl,
 )
+
 
