@@ -1,2 +1,5 @@
 # Enable Bzlmod for every Bazel command
 common --enable_bzlmod
+
+# Remove after https://github.com/bazelbuild/rules_jvm_external/issues/1048 is fixed
+build --host_cxxopt=-std=c++14
