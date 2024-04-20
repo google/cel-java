@@ -17,13 +17,20 @@ module(
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.4.2")
-bazel_dep(name = "rules_jvm_external", version = "6.0")
+bazel_dep(name = "rules_jvm_external", version = "5.3") 
 bazel_dep(name = "protobuf", repo_name="com_google_protobuf", version = "23.1")
 bazel_dep(name = "googleapis", repo_name="com_google_googleapis", version = "0.0.0-20240326-1c8d509c5")
-bazel_dep(name = "rules_pkg", version = "0.7.0")
+bazel_dep(name = "rules_pkg", version = "0.10.1")
 bazel_dep(name = "rules_license", version = "0.0.8")
-bazel_dep(name = "rules_java", version = "7.4.0")
+bazel_dep(name = "rules_java", version = "7.2.0")
 bazel_dep(name = "cel-spec", repo_name="cel_spec", version = "0.14.0")
+
+# The following versions need to be pinned until https://github.com/bazelbuild/rules_jvm_external/issues/1048 is fixed
+
+single_version_override(
+    module_name = "rules_jvm_external",
+    version = "5.3"
+)
 
 switched_rules = use_extension("@com_google_googleapis//:extensions.bzl", "switched_rules")
 switched_rules.use_languages(java = True)
