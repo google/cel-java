@@ -25,7 +25,7 @@
 # 2. You will need to enter the key's password. The prompt appears in GUI, not in terminal. The publish operation will eventually timeout if the password is not entered.
 
 
-ALL_TARGETS=("//publish:cel.publish" "//publish:cel_compiler.publish" "//publish:cel_runtime.publish" "//publish:cel_extensions.publish" "//publish:cel_optimizers.publish" "//publish:cel_validators.publish" "//publish:cel_v1alpha1.publish")
+ALL_TARGETS=("//publish:cel.publish" "//publish:cel_compiler.publish" "//publish:cel_runtime.publish" "//publish:cel_v1alpha1.publish")
 
 function publish_maven_remote() {
   maven_repo_url=$1
