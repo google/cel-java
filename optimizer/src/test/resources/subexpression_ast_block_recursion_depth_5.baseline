@@ -2299,30 +2299,28 @@ CALL [1] {
   args: {
     CREATE_LIST [2] {
       elements: {
-        CREATE_MAP [3] {
-          MAP_ENTRY [4] {
-            key: {
-              CONSTANT [5] { value: "a" }
+        SELECT [3] {
+          CREATE_MAP [4] {
+            MAP_ENTRY [5] {
+              key: {
+                CONSTANT [6] { value: "a" }
+              }
+              value: {
+                CONSTANT [7] { value: true }
+              }
             }
-            value: {
-              CONSTANT [6] { value: true }
-            }
-          }
+          }.a~presence_test
         }
       }
     }
-    CALL [7] {
+    CALL [8] {
       function: _&&_
       args: {
-        SELECT [8] {
-          IDENT [9] {
-            name: @index0
-          }.a~presence_test
+        IDENT [9] {
+          name: @index0
         }
-        SELECT [10] {
-          IDENT [11] {
-            name: @index0
-          }.a~presence_test
+        IDENT [10] {
+          name: @index0
         }
       }
     }

@@ -555,8 +555,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         && !navigableExpr.getKind().equals(Kind.IDENT)
         && !(navigableExpr.getKind().equals(Kind.IDENT)
             && navigableExpr.expr().ident().name().startsWith(BIND_IDENTIFIER_PREFIX))
-        && !(navigableExpr.getKind().equals(Kind.SELECT)
-            && navigableExpr.expr().select().testOnly())
         && containsEliminableFunctionOnly(navigableExpr)
         && isWithinInlineableComprehension(navigableExpr);
   }

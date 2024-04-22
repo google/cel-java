@@ -2962,38 +2962,36 @@ COMPREHENSION [1] {
   }
   accu_var: @r0
   accu_init: {
-    CREATE_MAP [3] {
-      MAP_ENTRY [4] {
-        key: {
-          CONSTANT [5] { value: "a" }
+    SELECT [3] {
+      CREATE_MAP [4] {
+        MAP_ENTRY [5] {
+          key: {
+            CONSTANT [6] { value: "a" }
+          }
+          value: {
+            CONSTANT [7] { value: true }
+          }
         }
-        value: {
-          CONSTANT [6] { value: true }
-        }
-      }
+      }.a~presence_test
     }
   }
   loop_condition: {
-    CONSTANT [7] { value: false }
+    CONSTANT [8] { value: false }
   }
   loop_step: {
-    IDENT [8] {
+    IDENT [9] {
       name: @r0
     }
   }
   result: {
-    CALL [9] {
+    CALL [10] {
       function: _&&_
       args: {
-        SELECT [10] {
-          IDENT [11] {
-            name: @r0
-          }.a~presence_test
+        IDENT [11] {
+          name: @r0
         }
-        SELECT [12] {
-          IDENT [13] {
-            name: @r0
-          }.a~presence_test
+        IDENT [12] {
+          name: @r0
         }
       }
     }
