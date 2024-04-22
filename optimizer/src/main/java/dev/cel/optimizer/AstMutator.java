@@ -242,9 +242,8 @@ public final class AstMutator {
    * @param newResultPrefix Prefix to use for new comprehensin result identifier names.
    */
   public MangledComprehensionAst mangleComprehensionIdentifierNames(
-      CelAbstractSyntaxTree ast, String newIterVarPrefix, String newResultPrefix) {
-    CelNavigableMutableAst navigableMutableAst =
-        CelNavigableMutableAst.fromAst(CelMutableAst.fromCelAst(ast));
+      CelMutableAst ast, String newIterVarPrefix, String newResultPrefix) {
+    CelNavigableMutableAst navigableMutableAst = CelNavigableMutableAst.fromAst(ast);
     Predicate<CelNavigableMutableExpr> comprehensionIdentifierPredicate = x -> true;
     comprehensionIdentifierPredicate =
         comprehensionIdentifierPredicate

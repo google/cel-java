@@ -801,7 +801,10 @@ public class AstMutatorTest {
     CelAbstractSyntaxTree ast = CEL.compile("[false].exists(i, i)").getAst();
 
     CelAbstractSyntaxTree mangledAst =
-        AST_MUTATOR.mangleComprehensionIdentifierNames(ast, "@c", "@x").mutableAst().toParsedAst();
+        AST_MUTATOR
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@c", "@x")
+            .mutableAst()
+            .toParsedAst();
 
     assertThat(mangledAst.getExpr().toString())
         .isEqualTo(
@@ -868,7 +871,10 @@ public class AstMutatorTest {
     CelAbstractSyntaxTree ast = cel.compile("[false].exists(i, i)").getAst();
 
     CelAbstractSyntaxTree mangledAst =
-        AST_MUTATOR.mangleComprehensionIdentifierNames(ast, "@c", "@x").mutableAst().toParsedAst();
+        AST_MUTATOR
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@c", "@x")
+            .mutableAst()
+            .toParsedAst();
 
     assertThat(mangledAst.getSource().getMacroCalls()).isEmpty();
   }
@@ -878,7 +884,10 @@ public class AstMutatorTest {
     CelAbstractSyntaxTree ast = CEL.compile("[x].exists(x, [x].exists(x, x == 1))").getAst();
 
     CelAbstractSyntaxTree mangledAst =
-        AST_MUTATOR.mangleComprehensionIdentifierNames(ast, "@c", "@x").mutableAst().toParsedAst();
+        AST_MUTATOR
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@c", "@x")
+            .mutableAst()
+            .toParsedAst();
 
     assertThat(mangledAst.getExpr().toString())
         .isEqualTo(
@@ -995,7 +1004,10 @@ public class AstMutatorTest {
     CelAbstractSyntaxTree ast = CEL.compile("has(msg.single_int64)").getAst();
 
     CelAbstractSyntaxTree mangledAst =
-        AST_MUTATOR.mangleComprehensionIdentifierNames(ast, "@c", "@x").mutableAst().toParsedAst();
+        AST_MUTATOR
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@c", "@x")
+            .mutableAst()
+            .toParsedAst();
 
     assertThat(CEL_UNPARSER.unparse(mangledAst)).isEqualTo("has(msg.single_int64)");
     assertThat(
