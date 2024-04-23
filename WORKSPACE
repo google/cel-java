@@ -52,29 +52,29 @@ load("@rules_jvm_external//:setup.bzl", "rules_jvm_external_setup")
 
 rules_jvm_external_setup()
 
-ANTLR4_VERSION = "4.11.1"
+ANTLR4_VERSION = "4.13.1"
 
 # Important: there can only be one maven_install rule. Add new maven deps here.
 maven_install(
     # keep sorted
     artifacts = [
-        "com.google.api.grpc:proto-google-common-protos:2.27.0",
+        "com.google.api.grpc:proto-google-common-protos:2.38.0",
         "com.google.auto.value:auto-value:1.10.4",
         "com.google.auto.value:auto-value-annotations:1.10.4",
         "com.google.code.findbugs:annotations:3.0.1",
-        "com.google.errorprone:error_prone_annotations:2.23.0",
-        "com.google.guava:guava:33.0.0-jre",
-        "com.google.guava:guava-testlib:33.0.0-jre",
-        "com.google.protobuf:protobuf-java:3.24.4",
-        "com.google.protobuf:protobuf-java-util:3.24.4",
+        "com.google.errorprone:error_prone_annotations:2.26.1",
+        "com.google.guava:guava:33.1.0-jre",
+        "com.google.guava:guava-testlib:33.1.0-jre",
+        "com.google.protobuf:protobuf-java:3.25.3",
+        "com.google.protobuf:protobuf-java-util:3.25.3",
         "com.google.re2j:re2j:1.7",
         "com.google.testparameterinjector:test-parameter-injector:1.15",
-        "com.google.truth.extensions:truth-java8-extension:1.4.0",
-        "com.google.truth.extensions:truth-proto-extension:1.4.0",
-        "com.google.truth:truth:1.4.0",
+        "com.google.truth.extensions:truth-java8-extension:1.4.2",
+        "com.google.truth.extensions:truth-proto-extension:1.4.2",
+        "com.google.truth:truth:1.4.2",
         "org.antlr:antlr4-runtime:" + ANTLR4_VERSION,
         "org.jspecify:jspecify:0.2.0",
-        "org.threeten:threeten-extra:1.7.2",
+        "org.threeten:threeten-extra:1.8.0",
     ],
     repositories = [
         "https://maven.google.com",
@@ -138,10 +138,10 @@ http_archive(
 # cel-spec api/expr canonical protos
 http_archive(
     name = "cel_spec",
-    sha256 = "3579c97b13548714f9059ef6f30c5264d439efef4b438e76e7180709efd93a6b",
-    strip_prefix = "cel-spec-0.14.0",
+    sha256 = "3ee09eb69dbe77722e9dee23dc48dc2cd9f765869fcf5ffb1226587c81791a0b",
+    strip_prefix = "cel-spec-0.15.0",
     urls = [
-        "https://github.com/google/cel-spec/archive/refs/tags/v0.14.0.tar.gz",
+        "https://github.com/google/cel-spec/archive/refs/tags/v0.15.0.tar.gz",
     ],
 )
 
@@ -157,7 +157,7 @@ http_archive(
 
 http_jar(
     name = "antlr4_jar",
-    sha256 = "62975e192b4af2622b72b5f0131553ee3cbce97f76dc2a41632dcc55e25473e1",
+    sha256 = "bc13a9c57a8dd7d5196888211e5ede657cb64a3ce968608697e4f668251a8487",
     urls = ["https://www.antlr.org/download/antlr-" + ANTLR4_VERSION + "-complete.jar"],
 )
 
