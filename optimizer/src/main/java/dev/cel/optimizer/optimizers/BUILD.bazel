@@ -14,7 +14,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "//bundle:cel",
         "//common:compiler_common",
         "//common/ast",
@@ -40,7 +40,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "//bundle:cel",
         "//checker:checker_legacy_environment",
         "//common",

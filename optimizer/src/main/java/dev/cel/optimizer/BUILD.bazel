@@ -66,8 +66,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":optimization_exception",
-        "//:auto_value",
         "//bundle:cel",
         "//common",
         "//common:compiler_common",
@@ -85,7 +85,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "//common",
         "//common/annotations",
         "//common/ast",

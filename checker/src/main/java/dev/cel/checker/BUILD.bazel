@@ -44,7 +44,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "//common/annotations",
         "//common/internal:file_descriptor_converter",
         "//common/types",
@@ -64,12 +64,12 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":cel_ident_decl",
         ":checker_builder",
         ":checker_legacy_environment",
         ":proto_type_mask",
         ":type_provider_legacy_impl",
-        "//:auto_value",
         "//common",
         "//common:compiler_common",
         "//common:options",
@@ -112,7 +112,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -127,7 +127,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "//common/annotations",
         "//common/ast",
         "//common/ast:expr_converter",
@@ -145,8 +145,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":checker_legacy_environment",
-        "//:auto_value",
         "//common/annotations",
         "//common/types",
         "//common/types:cel_types",
@@ -164,8 +164,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":cel_ident_decl",
-        "//:auto_value",
         "//common:compiler_common",
         "//common:features",
         "//common:options",
@@ -194,7 +194,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "//common/types",
         "//common/types:type_providers",
         "@maven//:com_google_errorprone_error_prone_annotations",

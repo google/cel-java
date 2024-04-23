@@ -38,8 +38,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":error_codes",
-        "//:auto_value",
         "//common/annotations",
         "//common/ast",
         "//common/ast:expr_converter",
@@ -61,8 +61,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":common",
-        "//:auto_value",
         "//common/annotations",
         "//common/internal:safe_string_formatter",
         "//common/types:cel_types",
@@ -80,8 +80,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":features",
-        "//:auto_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],

@@ -43,8 +43,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":type_providers",
-        "//:auto_value",
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -55,8 +55,8 @@ java_library(
     name = "cel_internal_types",
     srcs = CEL_INTERNAL_TYPE_SOURCES,
     deps = [
+        ":auto_value",
         ":type_providers",
-        "//:auto_value",
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -100,9 +100,9 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":type_providers",
         ":types",
-        "//:auto_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
@@ -126,10 +126,10 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":cel_types",
         ":type_providers",
         ":types",
-        "//:auto_value",
         "//common",
         "//common/internal:file_descriptor_converter",
         "@maven//:com_google_errorprone_error_prone_annotations",

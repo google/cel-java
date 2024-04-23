@@ -10,8 +10,8 @@ java_library(
     srcs = glob(["*Test.java"]),
     resources = ["//parser/src/test/resources:baselines"],
     deps = [
-        "//:auto_value",
-        "//:java_truth",
+        ":auto_value",
+        ":java_truth",
         "//common",
         "//common:compiler_common",
         "//common:options",

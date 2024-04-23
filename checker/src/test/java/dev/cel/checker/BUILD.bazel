@@ -11,7 +11,7 @@ java_library(
     resources = ["//checker/src/test/resources:baselines"],
     deps = [
         #         "//java/com/google/testing/testsize:annotations",
-        "//:auto_value",
+        ":auto_value",
         "//checker",
         "//checker:cel_ident_decl",
         "//checker:checker_builder",
@@ -45,7 +45,7 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:org_jspecify_jspecify",
         "@maven//:junit_junit",
-        "//:java_truth",
+        ":java_truth",
         "@maven//:com_google_truth_extensions_truth_proto_extension",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_api_grpc_proto_google_common_protos",

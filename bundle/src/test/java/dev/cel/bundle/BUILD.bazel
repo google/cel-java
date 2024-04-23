@@ -9,8 +9,8 @@ java_library(
     testonly = True,
     srcs = glob(["*Test.java"]),
     deps = [
-        "//:auto_value",
-        "//:java_truth",
+        ":auto_value",
+        ":java_truth",
         "//bundle:cel",
         "//checker",
         "//checker:checker_legacy_environment",

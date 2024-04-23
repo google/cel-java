@@ -7,7 +7,7 @@ java_test(
     srcs = ["Exercise1Test.java"],
     test_class = "codelab.solutions.Exercise1Test",
     deps = [
-        "//:java_truth",
+        ":java_truth",
         "//codelab:solutions",
         "//common",
         "//compiler",
@@ -21,7 +21,7 @@ java_test(
     srcs = ["Exercise2Test.java"],
     test_class = "codelab.solutions.Exercise2Test",
     deps = [
-        "//:java_truth",
+        ":java_truth",
         "//codelab:solutions",
         "//common",
         "//common/types",
@@ -38,7 +38,7 @@ java_test(
     srcs = ["Exercise3Test.java"],
     test_class = "codelab.solutions.Exercise3Test",
     deps = [
-        "//:java_truth",
+        ":java_truth",
         "//codelab:solutions",
         "//runtime",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
@@ -51,7 +51,7 @@ java_test(
     srcs = ["Exercise4Test.java"],
     test_class = "codelab.solutions.Exercise4Test",
     deps = [
-        "//:java_truth",
+        ":java_truth",
         "//codelab:solutions",
         "//common",
         "@maven//:com_google_api_grpc_proto_google_common_protos",

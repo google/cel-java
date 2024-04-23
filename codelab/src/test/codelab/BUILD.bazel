@@ -8,7 +8,7 @@ java_test(
     tags = ["notap"],
     test_class = "codelab.Exercise1Test",
     deps = [
-        "//:java_truth",
+        ":java_truth",
         "//codelab",
         "//common",
         "//compiler",
@@ -23,7 +23,7 @@ java_test(
     tags = ["notap"],
     test_class = "codelab.Exercise2Test",
     deps = [
-        "//:java_truth",
+        ":java_truth",
         "//codelab",
         "//common",
         "//common/types",
@@ -41,7 +41,7 @@ java_test(
     tags = ["notap"],
     test_class = "codelab.Exercise3Test",
     deps = [
-        "//:java_truth",
+        ":java_truth",
         "//codelab",
         "//runtime",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
@@ -55,7 +55,7 @@ java_test(
     tags = ["notap"],
     test_class = "codelab.Exercise4Test",
     deps = [
-        "//:java_truth",
+        ":java_truth",
         "//codelab",
         "//common",
         "@maven//:com_google_api_grpc_proto_google_common_protos",

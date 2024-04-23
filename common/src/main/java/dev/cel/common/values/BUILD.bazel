@@ -70,9 +70,9 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":cel_byte_string",
         ":cel_value",
-        "//:auto_value",
         "//common:error_codes",
         "//common:options",
         "//common:runtime_exception",
@@ -102,9 +102,9 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":cel_value",
         ":values",
-        "//:auto_value",
         "//common:options",
         "//common/annotations",
         "//common/internal:cel_descriptor_pools",

@@ -23,7 +23,7 @@ java_library(
     name = "async",
     srcs = ASYNC_RUNTIME_SOURCES,
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "//common",
         "//runtime",
         "//runtime:unknown_attributes",

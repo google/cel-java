@@ -55,7 +55,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "//checker:checker_builder",
         "//checker:checker_legacy_environment",
         "//checker:proto_type_mask",

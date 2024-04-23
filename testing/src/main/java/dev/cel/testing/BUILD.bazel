@@ -28,7 +28,7 @@ java_library(
     name = "line_differ",
     srcs = ["LineDiffer.java"],
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
@@ -64,8 +64,8 @@ java_library(
     srcs = ["CelBaselineTestCase.java"],
     deps = [
         ":baseline_test_case",
+        ":java_truth",
         ":test_decls",
-        "//:java_truth",
         "//common",
         "//common:compiler_common",
         "//common:options",
@@ -145,7 +145,7 @@ java_library(
     deps = [
         ":cel_baseline_test_case",
         ":eval",
-        "//:java_truth",
+        ":java_truth",
         "//common",
         "//common/internal:cel_descriptor_pools",
         "//common/resources/testdata/proto3:standalone_global_enum_java_proto",

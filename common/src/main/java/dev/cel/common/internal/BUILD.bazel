@@ -37,7 +37,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "//common/annotations",
         "//common/ast",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -53,7 +53,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -70,7 +70,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:org_jspecify_jspecify",
@@ -83,7 +83,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -116,10 +116,10 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":converter",
         ":proto_message_factory",
         ":well_known_proto",
-        "//:auto_value",
         "//common:error_codes",
         "//common:runtime_exception",
         "//common/annotations",
@@ -138,8 +138,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":dynamic_proto",
-        "//:auto_value",
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -156,7 +156,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",

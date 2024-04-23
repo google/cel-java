@@ -78,8 +78,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":operator",
-        "//:auto_value",
         "//common",
         "//common:compiler_common",
         "//common/ast",

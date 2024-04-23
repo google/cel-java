@@ -44,8 +44,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":runtime_helper",
-        "//:auto_value",
         "//common",
         "//common:error_codes",
         "//common:options",
@@ -75,11 +75,11 @@ java_library(
     ],
     exports = [":base"],
     deps = [
+        ":auto_value",
         ":base",
         ":evaluation_listener",
         ":runtime_helper",
         ":unknown_attributes",
-        "//:auto_value",
         "//common",
         "//common:error_codes",
         "//common:features",
@@ -148,10 +148,10 @@ java_library(
     tags = [
     ],
     deps = [
+        ":auto_value",
         ":evaluation_listener",
         ":runtime_type_provider_legacy",
         ":unknown_attributes",
-        "//:auto_value",
         "//common",
         "//common:error_codes",
         "//common:options",
@@ -208,7 +208,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//:auto_value",
+        ":auto_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_re2j_re2j",

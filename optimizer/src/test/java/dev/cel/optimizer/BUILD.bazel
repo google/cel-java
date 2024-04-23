@@ -7,7 +7,7 @@ java_library(
     testonly = 1,
     srcs = glob(["*.java"]),
     deps = [
-        "//:java_truth",
+        ":java_truth",
         "//bundle:cel",
         "//common",
         "//common:compiler_common",

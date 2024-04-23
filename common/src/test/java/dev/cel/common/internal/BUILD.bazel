@@ -10,7 +10,7 @@ java_library(
     srcs = glob(["*.java"]),
     resources = ["//common/src/test/resources"],
     deps = [
-        "//:java_truth",
+        ":java_truth",
         "//common",
         "//common:options",
         "//common/ast",

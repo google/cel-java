@@ -7,7 +7,7 @@ java_library(
     testonly = True,
     srcs = glob(["*.java"]),
     deps = [
-        "//:java_truth",
+        ":java_truth",
         "//common/resources/testdata/proto2:messages_extensions_proto2_java_proto",
         "//common/resources/testdata/proto2:messages_proto2_java_proto",
         "//common/resources/testdata/proto3:test_all_types_java_proto",

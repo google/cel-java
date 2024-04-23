@@ -13,8 +13,8 @@ java_library(
         ],
     ),
     deps = [
-        "//:auto_value",
-        "//:java_truth",
+        ":auto_value",
+        ":java_truth",
         "//bundle:cel",
         "//common",
         "//common:error_codes",

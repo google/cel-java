@@ -32,7 +32,7 @@ java_library(
         "//testing:baseline_test_case",
         "@maven//:junit_junit",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
-        "//:java_truth",
+        ":java_truth",
         "@maven//:com_google_guava_guava",
     ],
 )

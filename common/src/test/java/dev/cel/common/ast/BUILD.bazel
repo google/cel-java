@@ -9,8 +9,8 @@ java_library(
     testonly = True,
     srcs = glob(["*.java"]),
     deps = [
-        "//:auto_value",
-        "//:java_truth",
+        ":auto_value",
+        ":java_truth",
         "//common",
         "//common:compiler_common",
         "//common:options",
