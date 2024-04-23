@@ -6,8 +6,6 @@ bazel-cel-java
 bazel-out
 bazel-testlogs
 
-MODULE.bazel*
-
 # IntelliJ IDEA
 .idea
 *.iml
@@ -30,3 +28,6 @@ target
 
 # Temporary output dir for artifacts
 mvn-artifacts
+
+*.swp
+*.lock
