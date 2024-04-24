@@ -983,14 +983,14 @@ public abstract class CelExpr implements Expression {
         .build();
   }
 
-  public static CelExpr ofConstantExpr(long id, CelConstant celConstant) {
+  public static CelExpr ofConstant(long id, CelConstant celConstant) {
     return newBuilder()
         .setId(id)
         .setExprKind(AutoOneOf_CelExpr_ExprKind.constant(celConstant))
         .build();
   }
 
-  public static CelExpr ofIdentExpr(long id, String identName) {
+  public static CelExpr ofIdent(long id, String identName) {
     return newBuilder()
         .setId(id)
         .setExprKind(
@@ -998,8 +998,7 @@ public abstract class CelExpr implements Expression {
         .build();
   }
 
-  public static CelExpr ofSelectExpr(
-      long id, CelExpr operandExpr, String field, boolean isTestOnly) {
+  public static CelExpr ofSelect(long id, CelExpr operandExpr, String field, boolean isTestOnly) {
     return newBuilder()
         .setId(id)
         .setExprKind(
@@ -1012,7 +1011,7 @@ public abstract class CelExpr implements Expression {
         .build();
   }
 
-  public static CelExpr ofCallExpr(
+  public static CelExpr ofCall(
       long id, Optional<CelExpr> targetExpr, String function, ImmutableList<CelExpr> arguments) {
 
     CelCall.Builder celCallBuilder = CelCall.newBuilder().setFunction(function).addArgs(arguments);
@@ -1023,7 +1022,7 @@ public abstract class CelExpr implements Expression {
         .build();
   }
 
-  public static CelExpr ofCreateListExpr(
+  public static CelExpr ofCreateList(
       long id, ImmutableList<CelExpr> elements, ImmutableList<Integer> optionalIndices) {
     return newBuilder()
         .setId(id)
@@ -1036,7 +1035,7 @@ public abstract class CelExpr implements Expression {
         .build();
   }
 
-  public static CelExpr ofCreateStructExpr(
+  public static CelExpr ofCreateStruct(
       long id, String messageName, ImmutableList<CelCreateStruct.Entry> entries) {
     return newBuilder()
         .setId(id)
@@ -1049,7 +1048,7 @@ public abstract class CelExpr implements Expression {
         .build();
   }
 
-  public static CelExpr ofCreateMapExpr(long id, ImmutableList<CelCreateMap.Entry> entries) {
+  public static CelExpr ofCreateMap(long id, ImmutableList<CelCreateMap.Entry> entries) {
     return newBuilder()
         .setId(id)
         .setExprKind(
@@ -1058,7 +1057,7 @@ public abstract class CelExpr implements Expression {
         .build();
   }
 
-  public static CelCreateStruct.Entry ofCreateStructEntryExpr(
+  public static CelCreateStruct.Entry ofCreateStructEntry(
       long id, String fieldKey, CelExpr value, boolean isOptionalEntry) {
     return CelCreateStruct.Entry.newBuilder()
         .setId(id)
@@ -1068,7 +1067,7 @@ public abstract class CelExpr implements Expression {
         .build();
   }
 
-  public static CelCreateMap.Entry ofCreateMapEntryExpr(
+  public static CelCreateMap.Entry ofCreateMapEntry(
       long id, CelExpr mapKey, CelExpr value, boolean isOptionalEntry) {
     return CelCreateMap.Entry.newBuilder()
         .setId(id)

@@ -27,7 +27,7 @@ public class CelNavigableExprTest {
 
   @Test
   public void construct_withoutParent_success() {
-    CelExpr constExpr = CelExpr.ofConstantExpr(1, CelConstant.ofValue("test"));
+    CelExpr constExpr = CelExpr.ofConstant(1, CelConstant.ofValue("test"));
     CelNavigableExpr navigableExpr =
         CelNavigableExpr.builder().setExpr(constExpr).setDepth(2).build();
 
@@ -38,8 +38,8 @@ public class CelNavigableExprTest {
 
   @Test
   public void construct_withParent_success() {
-    CelExpr constExpr = CelExpr.ofConstantExpr(1, CelConstant.ofValue("test"));
-    CelExpr identExpr = CelExpr.ofIdentExpr(2, "a");
+    CelExpr constExpr = CelExpr.ofConstant(1, CelConstant.ofValue("test"));
+    CelExpr identExpr = CelExpr.ofIdent(2, "a");
     CelNavigableExpr parentExpr = CelNavigableExpr.builder().setExpr(identExpr).setDepth(1).build();
     CelNavigableExpr navigableExpr =
         CelNavigableExpr.builder().setExpr(constExpr).setDepth(2).setParent(parentExpr).build();

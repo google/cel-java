@@ -115,7 +115,7 @@ public class CelOptimizerImplTest {
                 (navigableAst, cel) ->
                     OptimizationResult.create(
                         CelAbstractSyntaxTree.newParsedAst(
-                            CelExpr.ofIdentExpr(1, "undeclared_ident"),
+                            CelExpr.ofIdent(1, "undeclared_ident"),
                             CelSource.newBuilder().build())))
             .build();
 

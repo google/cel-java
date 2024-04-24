@@ -488,7 +488,7 @@ public final class CelImplTest {
 
     CelCreateList createList = ast.getExpr().createList();
     assertThat(createList.optionalIndices()).containsExactly(0);
-    assertThat(createList.elements()).containsExactly(CelExpr.ofIdentExpr(2, "a"));
+    assertThat(createList.elements()).containsExactly(CelExpr.ofIdent(2, "a"));
   }
 
   @Test

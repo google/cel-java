@@ -138,13 +138,13 @@ public final class CelMutableExprConverter {
     long id = mutableExpr.id();
     switch (mutableExpr.getKind()) {
       case CONSTANT:
-        return CelExpr.ofConstantExpr(id, mutableExpr.constant());
+        return CelExpr.ofConstant(id, mutableExpr.constant());
       case IDENT:
-        return CelExpr.ofIdentExpr(id, mutableExpr.ident().name());
+        return CelExpr.ofIdent(id, mutableExpr.ident().name());
       case SELECT:
         CelMutableSelect select = mutableExpr.select();
         CelExpr operand = fromMutableExpr(select.operand());
-        return CelExpr.ofSelectExpr(id, operand, select.field(), select.testOnly());
+        return CelExpr.ofSelect(id, operand, select.field(), select.testOnly());
       case CALL:
         CelMutableCall mutableCall = mutableExpr.call();
         ImmutableList<CelExpr> args =
@@ -153,10 +153,10 @@ public final class CelMutableExprConverter {
                 .collect(toImmutableList());
         Optional<CelExpr> targetExpr =
             mutableCall.target().map(CelMutableExprConverter::fromMutableExpr);
-        return CelExpr.ofCallExpr(id, targetExpr, mutableCall.function(), args);
+        return CelExpr.ofCall(id, targetExpr, mutableCall.function(), args);
       case CREATE_LIST:
         CelMutableCreateList mutableCreateList = mutableExpr.createList();
-        return CelExpr.ofCreateListExpr(
+        return CelExpr.ofCreateList(
             id,
             fromMutableExprList(mutableCreateList.elements()),
             ImmutableList.copyOf(mutableCreateList.optionalIndices()));
@@ -204,7 +204,7 @@ public final class CelMutableExprConverter {
     List<CelCreateStruct.Entry> entries = new ArrayList<>();
     for (CelMutableCreateStruct.Entry mutableStructEntry : mutableCreateStruct.entries()) {
       entries.add(
-          CelExpr.ofCreateStructEntryExpr(
+          CelExpr.ofCreateStructEntry(
               mutableStructEntry.id(),
               mutableStructEntry.fieldKey(),
               fromMutableExpr(mutableStructEntry.value()),
@@ -221,7 +221,7 @@ public final class CelMutableExprConverter {
     List<CelCreateMap.Entry> entries = new ArrayList<>();
     for (CelMutableCreateMap.Entry mutableMapEntry : mutableCreateMap.entries()) {
       entries.add(
-          CelExpr.ofCreateMapEntryExpr(
+          CelExpr.ofCreateMapEntry(
               mutableMapEntry.id(),
               fromMutableExpr(mutableMapEntry.key()),
               fromMutableExpr(mutableMapEntry.value()),

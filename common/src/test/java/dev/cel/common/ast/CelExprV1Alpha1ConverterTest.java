@@ -43,50 +43,50 @@ public class CelExprV1Alpha1ConverterTest {
   private enum ConstantTestCase {
     NOT_SET(
         Expr.newBuilder().setId(1).setConstExpr(Constant.getDefaultInstance()).build(),
-        CelExpr.ofConstantExpr(1, CelConstant.ofNotSet())),
+        CelExpr.ofConstant(1, CelConstant.ofNotSet())),
     NULL(
         Expr.newBuilder()
             .setId(1)
             .setConstExpr(Constant.newBuilder().setNullValue(NullValue.NULL_VALUE).build())
             .build(),
-        CelExpr.ofConstantExpr(1, CelConstant.ofValue(NullValue.NULL_VALUE))),
+        CelExpr.ofConstant(1, CelConstant.ofValue(NullValue.NULL_VALUE))),
     BOOLEAN(
         Expr.newBuilder()
             .setId(1)
             .setConstExpr(Constant.newBuilder().setBoolValue(true).build())
             .build(),
-        CelExpr.ofConstantExpr(1, CelConstant.ofValue(true))),
+        CelExpr.ofConstant(1, CelConstant.ofValue(true))),
     INT64(
         Expr.newBuilder()
             .setId(1)
             .setConstExpr(Constant.newBuilder().setInt64Value(10).build())
             .build(),
-        CelExpr.ofConstantExpr(1, CelConstant.ofValue(10))),
+        CelExpr.ofConstant(1, CelConstant.ofValue(10))),
     UINT64(
         Expr.newBuilder()
             .setId(1)
             .setConstExpr(Constant.newBuilder().setUint64Value(15).build())
             .build(),
-        CelExpr.ofConstantExpr(1, CelConstant.ofValue(UnsignedLong.valueOf(15)))),
+        CelExpr.ofConstant(1, CelConstant.ofValue(UnsignedLong.valueOf(15)))),
     DOUBLE(
         Expr.newBuilder()
             .setId(1)
             .setConstExpr(Constant.newBuilder().setDoubleValue(1.5).build())
             .build(),
-        CelExpr.ofConstantExpr(1, CelConstant.ofValue(1.5))),
+        CelExpr.ofConstant(1, CelConstant.ofValue(1.5))),
     STRING(
         Expr.newBuilder()
             .setId(1)
             .setConstExpr(Constant.newBuilder().setStringValue("Test").build())
             .build(),
-        CelExpr.ofConstantExpr(1, CelConstant.ofValue("Test"))),
+        CelExpr.ofConstant(1, CelConstant.ofValue("Test"))),
     BYTES(
         Expr.newBuilder()
             .setId(1)
             .setConstExpr(
                 Constant.newBuilder().setBytesValue(ByteString.copyFromUtf8("TEST")).build())
             .build(),
-        CelExpr.ofConstantExpr(1, CelConstant.ofValue(ByteString.copyFromUtf8("TEST"))));
+        CelExpr.ofConstant(1, CelConstant.ofValue(ByteString.copyFromUtf8("TEST"))));
 
     final Expr protoExpr;
     final CelExpr celExpr;
@@ -122,7 +122,7 @@ public class CelExprV1Alpha1ConverterTest {
 
     CelExpr celExpr = CelExprV1Alpha1Converter.fromExpr(expr);
 
-    assertThat(celExpr).isEqualTo(CelExpr.ofIdentExpr(2, "Test"));
+    assertThat(celExpr).isEqualTo(CelExpr.ofIdent(2, "Test"));
   }
 
   @Test
@@ -146,8 +146,8 @@ public class CelExprV1Alpha1ConverterTest {
 
     assertThat(celExpr)
         .isEqualTo(
-            CelExpr.ofSelectExpr(
-                3, CelExpr.ofConstantExpr(4, CelConstant.ofValue(true)), "field", isTestOnly));
+            CelExpr.ofSelect(
+                3, CelExpr.ofConstant(4, CelConstant.ofValue(true)), "field", isTestOnly));
   }
 
   @Test
@@ -167,11 +167,11 @@ public class CelExprV1Alpha1ConverterTest {
 
     assertThat(celExpr)
         .isEqualTo(
-            CelExpr.ofCallExpr(
+            CelExpr.ofCall(
                 1,
-                Optional.of(CelExpr.ofConstantExpr(2, CelConstant.ofValue(10))),
+                Optional.of(CelExpr.ofConstant(2, CelConstant.ofValue(10))),
                 "func",
-                ImmutableList.of(CelExpr.ofConstantExpr(3, CelConstant.ofValue(20)))));
+                ImmutableList.of(CelExpr.ofConstant(3, CelConstant.ofValue(20)))));
   }
 
   @Test
@@ -191,11 +191,11 @@ public class CelExprV1Alpha1ConverterTest {
 
     assertThat(celExpr)
         .isEqualTo(
-            CelExpr.ofCreateListExpr(
+            CelExpr.ofCreateList(
                 1,
                 ImmutableList.of(
-                    CelExpr.ofConstantExpr(2, CelConstant.ofValue(10)),
-                    CelExpr.ofConstantExpr(3, CelConstant.ofValue(15))),
+                    CelExpr.ofConstant(2, CelConstant.ofValue(10)),
+                    CelExpr.ofConstant(3, CelConstant.ofValue(15))),
                 ImmutableList.of(1)));
   }
 
@@ -221,12 +221,12 @@ public class CelExprV1Alpha1ConverterTest {
 
     assertThat(celExpr)
         .isEqualTo(
-            CelExpr.ofCreateStructExpr(
+            CelExpr.ofCreateStruct(
                 1,
                 "messageName",
                 ImmutableList.of(
-                    CelExpr.ofCreateStructEntryExpr(
-                        2, "fieldKey", CelExpr.ofConstantExpr(3, CelConstant.ofValue(10)), true))));
+                    CelExpr.ofCreateStructEntry(
+                        2, "fieldKey", CelExpr.ofConstant(3, CelConstant.ofValue(10)), true))));
   }
 
   @Test
@@ -299,13 +299,13 @@ public class CelExprV1Alpha1ConverterTest {
 
     assertThat(celExpr)
         .isEqualTo(
-            CelExpr.ofCreateMapExpr(
+            CelExpr.ofCreateMap(
                 1,
                 ImmutableList.of(
-                    CelExpr.ofCreateMapEntryExpr(
+                    CelExpr.ofCreateMapEntry(
                         2,
-                        CelExpr.ofConstantExpr(3, CelConstant.ofValue(15)),
-                        CelExpr.ofConstantExpr(4, CelConstant.ofValue(10)),
+                        CelExpr.ofConstant(3, CelConstant.ofValue(15)),
+                        CelExpr.ofConstant(4, CelConstant.ofValue(10)),
                         true))));
   }
 
@@ -341,12 +341,12 @@ public class CelExprV1Alpha1ConverterTest {
             CelExpr.ofComprehension(
                 1,
                 "iterVar",
-                CelExpr.ofConstantExpr(2, CelConstant.ofValue(10)),
+                CelExpr.ofConstant(2, CelConstant.ofValue(10)),
                 "accuVar",
-                CelExpr.ofConstantExpr(3, CelConstant.ofValue(20)),
-                CelExpr.ofCallExpr(4, Optional.empty(), "testCondition", ImmutableList.of()),
-                CelExpr.ofCallExpr(5, Optional.empty(), "testStep", ImmutableList.of()),
-                CelExpr.ofConstantExpr(6, CelConstant.ofValue(30))));
+                CelExpr.ofConstant(3, CelConstant.ofValue(20)),
+                CelExpr.ofCall(4, Optional.empty(), "testCondition", ImmutableList.of()),
+                CelExpr.ofCall(5, Optional.empty(), "testStep", ImmutableList.of()),
+                CelExpr.ofConstant(6, CelConstant.ofValue(30))));
   }
 
   @Test
@@ -390,7 +390,7 @@ public class CelExprV1Alpha1ConverterTest {
 
   @Test
   public void convertCelIdent_toExprIdent() {
-    CelExpr celExpr = CelExpr.ofIdentExpr(2, "Test");
+    CelExpr celExpr = CelExpr.ofIdent(2, "Test");
 
     Expr expr = CelExprV1Alpha1Converter.fromCelExpr(celExpr);
 
@@ -407,8 +407,7 @@ public class CelExprV1Alpha1ConverterTest {
   @TestParameters("{isTestOnly: false}")
   public void convertCelSelect_toExprSelect(boolean isTestOnly) {
     CelExpr celExpr =
-        CelExpr.ofSelectExpr(
-            3, CelExpr.ofConstantExpr(4, CelConstant.ofValue(true)), "field", isTestOnly);
+        CelExpr.ofSelect(3, CelExpr.ofConstant(4, CelConstant.ofValue(true)), "field", isTestOnly);
 
     Expr expr = CelExprV1Alpha1Converter.fromCelExpr(celExpr);
 
@@ -430,11 +429,11 @@ public class CelExprV1Alpha1ConverterTest {
   @Test
   public void convertCelCall_toExprCall() {
     CelExpr celExpr =
-        CelExpr.ofCallExpr(
+        CelExpr.ofCall(
             1,
-            Optional.of(CelExpr.ofConstantExpr(2, CelConstant.ofValue(10))),
+            Optional.of(CelExpr.ofConstant(2, CelConstant.ofValue(10))),
             "func",
-            ImmutableList.of(CelExpr.ofConstantExpr(3, CelConstant.ofValue(20))));
+            ImmutableList.of(CelExpr.ofConstant(3, CelConstant.ofValue(20))));
 
     Expr expr = CelExprV1Alpha1Converter.fromCelExpr(celExpr);
 
@@ -454,11 +453,11 @@ public class CelExprV1Alpha1ConverterTest {
   @Test
   public void convertCelList_toExprList() {
     CelExpr celExpr =
-        CelExpr.ofCreateListExpr(
+        CelExpr.ofCreateList(
             1,
             ImmutableList.of(
-                CelExpr.ofConstantExpr(2, CelConstant.ofValue(10)),
-                CelExpr.ofConstantExpr(3, CelConstant.ofValue(15))),
+                CelExpr.ofConstant(2, CelConstant.ofValue(10)),
+                CelExpr.ofConstant(3, CelConstant.ofValue(15))),
             ImmutableList.of(1));
 
     Expr expr = CelExprV1Alpha1Converter.fromCelExpr(celExpr);
@@ -479,12 +478,12 @@ public class CelExprV1Alpha1ConverterTest {
   @Test
   public void convertCelStructExpr_toExprStruct_withFieldKey() {
     CelExpr celExpr =
-        CelExpr.ofCreateStructExpr(
+        CelExpr.ofCreateStruct(
             1,
             "messageName",
             ImmutableList.of(
-                CelExpr.ofCreateStructEntryExpr(
-                    2, "fieldKey", CelExpr.ofConstantExpr(3, CelConstant.ofValue(10)), true)));
+                CelExpr.ofCreateStructEntry(
+                    2, "fieldKey", CelExpr.ofConstant(3, CelConstant.ofValue(10)), true)));
 
     Expr expr = CelExprV1Alpha1Converter.fromCelExpr(celExpr);
 
@@ -509,13 +508,13 @@ public class CelExprV1Alpha1ConverterTest {
   @Test
   public void convertCelMapExpr_toExprStruct() {
     CelExpr celExpr =
-        CelExpr.ofCreateMapExpr(
+        CelExpr.ofCreateMap(
             1,
             ImmutableList.of(
-                CelExpr.ofCreateMapEntryExpr(
+                CelExpr.ofCreateMapEntry(
                     2,
-                    CelExpr.ofConstantExpr(3, CelConstant.ofValue(15)),
-                    CelExpr.ofConstantExpr(4, CelConstant.ofValue(10)),
+                    CelExpr.ofConstant(3, CelConstant.ofValue(15)),
+                    CelExpr.ofConstant(4, CelConstant.ofValue(10)),
                     true)));
 
     Expr expr = CelExprV1Alpha1Converter.fromCelExpr(celExpr);
@@ -543,12 +542,12 @@ public class CelExprV1Alpha1ConverterTest {
         CelExpr.ofComprehension(
             1,
             "iterVar",
-            CelExpr.ofConstantExpr(2, CelConstant.ofValue(10)),
+            CelExpr.ofConstant(2, CelConstant.ofValue(10)),
             "accuVar",
-            CelExpr.ofConstantExpr(3, CelConstant.ofValue(20)),
-            CelExpr.ofCallExpr(4, Optional.empty(), "testCondition", ImmutableList.of()),
-            CelExpr.ofCallExpr(5, Optional.empty(), "testStep", ImmutableList.of()),
-            CelExpr.ofConstantExpr(6, CelConstant.ofValue(30)));
+            CelExpr.ofConstant(3, CelConstant.ofValue(20)),
+            CelExpr.ofCall(4, Optional.empty(), "testCondition", ImmutableList.of()),
+            CelExpr.ofCall(5, Optional.empty(), "testStep", ImmutableList.of()),
+            CelExpr.ofConstant(6, CelConstant.ofValue(30)));
 
     Expr expr = CelExprV1Alpha1Converter.fromCelExpr(celExpr);
 

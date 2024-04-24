@@ -218,13 +218,12 @@ public class SubexpressionOptimizerTest {
 
     assertThat(optimizedAst.getExpr())
         .isEqualTo(
-            CelExpr.ofCallExpr(
+            CelExpr.ofCall(
                 1L,
                 Optional.empty(),
                 Operator.ADD.getFunction(),
                 ImmutableList.of(
-                    CelExpr.ofConstantExpr(2L, CelConstant.ofValue(6L)),
-                    CelExpr.ofIdentExpr(3L, "x"))));
+                    CelExpr.ofConstant(2L, CelConstant.ofValue(6L)), CelExpr.ofIdent(3L, "x"))));
     assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo("6 + x");
   }
 

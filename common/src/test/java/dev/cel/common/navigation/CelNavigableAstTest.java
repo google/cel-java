@@ -37,7 +37,7 @@ public class CelNavigableAstTest {
 
     assertThat(navigableAst.getAst()).isEqualTo(ast);
     assertThat(navigableAst.getRoot().expr())
-        .isEqualTo(CelExpr.ofConstantExpr(1, CelConstant.ofValue("Hello World")));
+        .isEqualTo(CelExpr.ofConstant(1, CelConstant.ofValue("Hello World")));
     assertThat(navigableAst.getRoot().parent()).isEmpty();
     assertThat(navigableAst.getRoot().depth()).isEqualTo(0);
   }

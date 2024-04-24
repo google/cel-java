@@ -237,10 +237,10 @@ public class CelExprVisitorTest {
                 .setCall(
                     CelCall.newBuilder()
                         .setFunction("contains")
-                        .setTarget(CelExpr.ofConstantExpr(1, CelConstant.ofValue("hi")))
-                        .addArgs(CelExpr.ofConstantExpr(3, stringVal))
+                        .setTarget(CelExpr.ofConstant(1, CelConstant.ofValue("hi")))
+                        .addArgs(CelExpr.ofConstant(3, stringVal))
                         .build())
-                .addArguments(CelExpr.ofConstantExpr(3, stringVal))
+                .addArguments(CelExpr.ofConstant(3, stringVal))
                 .build());
   }
 
@@ -267,7 +267,7 @@ public class CelExprVisitorTest {
                             Entry.newBuilder()
                                 .setId(2)
                                 .setFieldKey("single_int64")
-                                .setValue(CelExpr.ofConstantExpr(3, longConstant))
+                                .setValue(CelExpr.ofConstant(3, longConstant))
                                 .build())
                         .setMessageName("TestAllTypes")
                         .build())
@@ -291,8 +291,8 @@ public class CelExprVisitorTest {
                         .addEntries(
                             CelCreateMap.Entry.newBuilder()
                                 .setId(2)
-                                .setKey(CelExpr.ofConstantExpr(3, CelConstant.ofValue("a")))
-                                .setValue(CelExpr.ofConstantExpr(4, CelConstant.ofValue("b")))
+                                .setKey(CelExpr.ofConstant(3, CelConstant.ofValue("a")))
+                                .setValue(CelExpr.ofConstant(4, CelConstant.ofValue("b")))
                                 .build())
                         .build())
                 .build());
@@ -333,8 +333,8 @@ public class CelExprVisitorTest {
     CelComprehension comprehension = visitedReference.comprehension().get();
     ImmutableList<CelExpr> iterRangeElements =
         ImmutableList.of(
-            CelExpr.ofConstantExpr(2, CelConstant.ofValue(1)),
-            CelExpr.ofConstantExpr(3, CelConstant.ofValue(1)));
+            CelExpr.ofConstant(2, CelConstant.ofValue(1)),
+            CelExpr.ofConstant(3, CelConstant.ofValue(1)));
 
     assertThat(comprehension.iterVar()).isEqualTo("x");
     assertThat(comprehension.iterRange().createList().elements()).isEqualTo(iterRangeElements);

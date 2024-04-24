@@ -82,7 +82,7 @@ public class AstMutatorTest {
         AST_MUTATOR.replaceSubtree(mutableAst, newBooleanConst, mutableAst.expr().id());
 
     assertThat(result.toParsedAst().getExpr())
-        .isEqualTo(CelExpr.ofConstantExpr(3, CelConstant.ofValue(true)));
+        .isEqualTo(CelExpr.ofConstant(3, CelConstant.ofValue(true)));
   }
 
   @Test
@@ -519,7 +519,7 @@ public class AstMutatorTest {
     CelMutableAst result = AST_MUTATOR.replaceSubtree(mutableAst, newExpr, mutableAst.expr().id());
 
     assertThat(result.toParsedAst().getExpr())
-        .isEqualTo(CelExpr.ofConstantExpr(7, CelConstant.ofValue(10)));
+        .isEqualTo(CelExpr.ofConstant(7, CelConstant.ofValue(10)));
   }
 
   @Test

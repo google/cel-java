@@ -141,7 +141,7 @@ public class CelExprTest {
     CelCall celCall =
         CelCall.newBuilder()
             .setFunction("function")
-            .setTarget(CelExpr.ofConstantExpr(1, CelConstant.ofValue("test")))
+            .setTarget(CelExpr.ofConstant(1, CelConstant.ofValue("test")))
             .build();
     CelExpr celExpr =
         CelExpr.newBuilder().setCall(celCall.toBuilder().clearTarget().build()).build();
@@ -156,11 +156,11 @@ public class CelExprTest {
     CelCall celCall =
         CelCall.newBuilder()
             .setFunction("function")
-            .addArgs(CelExpr.ofConstantExpr(1, CelConstant.ofValue("test")))
+            .addArgs(CelExpr.ofConstant(1, CelConstant.ofValue("test")))
             .build();
 
     assertThat(celCall.toBuilder().getArgs())
-        .containsExactly(CelExpr.ofConstantExpr(1, CelConstant.ofValue("test")));
+        .containsExactly(CelExpr.ofConstant(1, CelConstant.ofValue("test")));
   }
 
   @Test
@@ -169,15 +169,15 @@ public class CelExprTest {
         CelCall.newBuilder()
             .setFunction("function")
             .addArgs(
-                CelExpr.ofConstantExpr(5, CelConstant.ofValue("hello")),
-                CelExpr.ofConstantExpr(6, CelConstant.ofValue(5)))
+                CelExpr.ofConstant(5, CelConstant.ofValue("hello")),
+                CelExpr.ofConstant(6, CelConstant.ofValue(5)))
             .build();
 
     CelExpr celExpr =
         CelExpr.newBuilder()
             .setCall(
                 celCall.toBuilder()
-                    .setArg(1, CelExpr.ofConstantExpr(7, CelConstant.ofValue("world")))
+                    .setArg(1, CelExpr.ofConstant(7, CelConstant.ofValue("world")))
                     .build())
             .build();
 
@@ -186,8 +186,8 @@ public class CelExprTest {
             CelCall.newBuilder()
                 .setFunction("function")
                 .addArgs(
-                    CelExpr.ofConstantExpr(5, CelConstant.ofValue("hello")),
-                    CelExpr.ofConstantExpr(7, CelConstant.ofValue("world")))
+                    CelExpr.ofConstant(5, CelConstant.ofValue("hello")),
+                    CelExpr.ofConstant(7, CelConstant.ofValue("world")))
                 .build());
   }
 
@@ -206,7 +206,7 @@ public class CelExprTest {
   public void celExprBuilder_setCreateList() {
     CelCreateList celCreateList =
         CelCreateList.newBuilder()
-            .addElements(CelExpr.ofConstantExpr(1, CelConstant.ofValue(2)))
+            .addElements(CelExpr.ofConstant(1, CelConstant.ofValue(2)))
             .build();
     CelExpr celExpr = CelExpr.newBuilder().setCreateList(celCreateList).build();
 
@@ -218,11 +218,11 @@ public class CelExprTest {
   public void createListBuilder_getArgs() {
     CelCreateList celCreateList =
         CelCreateList.newBuilder()
-            .addElements(CelExpr.ofConstantExpr(1, CelConstant.ofValue(2)))
+            .addElements(CelExpr.ofConstant(1, CelConstant.ofValue(2)))
             .build();
 
     assertThat(celCreateList.toBuilder().getElements())
-        .containsExactly(CelExpr.ofConstantExpr(1, CelConstant.ofValue(2)));
+        .containsExactly(CelExpr.ofConstant(1, CelConstant.ofValue(2)));
   }
 
   @Test
@@ -230,15 +230,15 @@ public class CelExprTest {
     CelCreateList celCreateList =
         CelCreateList.newBuilder()
             .addElements(
-                CelExpr.ofConstantExpr(5, CelConstant.ofValue("hello")),
-                CelExpr.ofConstantExpr(6, CelConstant.ofValue(5)))
+                CelExpr.ofConstant(5, CelConstant.ofValue("hello")),
+                CelExpr.ofConstant(6, CelConstant.ofValue(5)))
             .build();
 
     CelExpr celExpr =
         CelExpr.newBuilder()
             .setCreateList(
                 celCreateList.toBuilder()
-                    .setElement(1, CelExpr.ofConstantExpr(7, CelConstant.ofValue("world")))
+                    .setElement(1, CelExpr.ofConstant(7, CelConstant.ofValue("world")))
                     .build())
             .build();
 
@@ -246,8 +246,8 @@ public class CelExprTest {
         .isEqualTo(
             CelCreateList.newBuilder()
                 .addElements(
-                    CelExpr.ofConstantExpr(5, CelConstant.ofValue("hello")),
-                    CelExpr.ofConstantExpr(7, CelConstant.ofValue("world")))
+                    CelExpr.ofConstant(5, CelConstant.ofValue("hello")),
+                    CelExpr.ofConstant(7, CelConstant.ofValue("world")))
                 .build());
   }
 
@@ -298,13 +298,13 @@ public class CelExprTest {
                 CelCreateStruct.Entry.newBuilder()
                     .setId(2)
                     .setValue(
-                        CelExpr.ofConstantExpr(5, CelConstant.ofValue("hello")).toBuilder().build())
+                        CelExpr.ofConstant(5, CelConstant.ofValue("hello")).toBuilder().build())
                     .setFieldKey("field_key")
                     .build(),
                 CelCreateStruct.Entry.newBuilder()
                     .setId(3)
                     .setValue(
-                        CelExpr.ofConstantExpr(6, CelConstant.ofValue(100)).toBuilder().build())
+                        CelExpr.ofConstant(6, CelConstant.ofValue(100)).toBuilder().build())
                     .setFieldKey("field_key")
                     .build())
             .build();
@@ -318,7 +318,7 @@ public class CelExprTest {
                         CelCreateStruct.Entry.newBuilder()
                             .setId(4)
                             .setValue(
-                                CelExpr.ofConstantExpr(6, CelConstant.ofValue("world")).toBuilder()
+                                CelExpr.ofConstant(6, CelConstant.ofValue("world")).toBuilder()
                                     .build())
                             .setFieldKey("field_key")
                             .build())
@@ -332,14 +332,14 @@ public class CelExprTest {
                     CelCreateStruct.Entry.newBuilder()
                         .setId(2)
                         .setValue(
-                            CelExpr.ofConstantExpr(5, CelConstant.ofValue("hello")).toBuilder()
+                            CelExpr.ofConstant(5, CelConstant.ofValue("hello")).toBuilder()
                                 .build())
                         .setFieldKey("field_key")
                         .build(),
                     CelCreateStruct.Entry.newBuilder()
                         .setId(4)
                         .setValue(
-                            CelExpr.ofConstantExpr(6, CelConstant.ofValue("world")).toBuilder()
+                            CelExpr.ofConstant(6, CelConstant.ofValue("world")).toBuilder()
                                 .build())
                         .setFieldKey("field_key")
                         .build())
