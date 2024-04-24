@@ -55,7 +55,6 @@ java_library(
         "//bundle:cel",
         "//common",
         "//common:compiler_common",
-        "//common/navigation",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -71,7 +70,6 @@ java_library(
         "//bundle:cel",
         "//common",
         "//common:compiler_common",
-        "//common/navigation",
         "@maven//:com_google_guava_guava",
     ],
 )

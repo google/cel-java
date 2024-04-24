@@ -17,7 +17,6 @@ package dev.cel.optimizer;
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.common.annotations.Internal;
-import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.ExprIdGenerator;
 import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
@@ -26,7 +25,6 @@ import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCreateMap;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCreateStruct;
 import dev.cel.common.ast.CelMutableExpr.CelMutableSelect;
-import dev.cel.common.ast.CelMutableExprConverter;
 import java.util.List;
 
 /**
@@ -44,19 +42,6 @@ final class MutableExprVisitor {
   private int iterationCount;
   private long exprIdToReplace;
 
-  /** TODO: Temporarily kept to retain method signature. Remove in the upcoming CLs. */
-  static MutableExprVisitor newInstance(
-      ExprIdGenerator idGenerator,
-      CelExpr.Builder newExpr,
-      long exprIdToReplace,
-      long iterationLimit) {
-    return newInstance(
-        idGenerator,
-        CelMutableExprConverter.fromCelExpr(newExpr.build()),
-        exprIdToReplace,
-        iterationLimit);
-  }
-
   static MutableExprVisitor newInstance(
       ExprIdGenerator idGenerator,
       CelMutableExpr newExpr,
@@ -65,12 +50,6 @@ final class MutableExprVisitor {
     // iterationLimit * 2, because the expr can be walked twice due to the immutable nature of
     // CelExpr.
     return new MutableExprVisitor(idGenerator, newExpr, exprIdToReplace, iterationLimit * 2);
-  }
-
-  /** TODO: Temporarily kept to retain method signature. Remove in the upcoming CLs. */
-  CelExpr.Builder visit(CelExpr.Builder root) {
-    CelMutableExpr mutatedRoot = visit(CelMutableExprConverter.fromCelExpr(root.build()));
-    return CelMutableExprConverter.fromMutableExpr(mutatedRoot).toBuilder();
   }
 
   CelMutableExpr visit(CelMutableExpr root) {

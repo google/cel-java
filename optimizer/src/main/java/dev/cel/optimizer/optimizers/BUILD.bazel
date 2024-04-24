@@ -16,11 +16,11 @@ java_library(
     deps = [
         "//:auto_value",
         "//bundle:cel",
+        "//common",
         "//common:compiler_common",
         "//common/ast",
         "//common/ast:expr_util",
         "//common/ast:mutable_ast",
-        "//common/navigation",
         "//common/navigation:mutable_navigation",
         "//extensions:optional_library",
         "//optimizer:ast_optimizer",

@@ -45,7 +45,6 @@ import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelMutableAst;
 import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.common.ast.CelMutableExprConverter;
-import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.navigation.CelNavigableMutableAst;
 import dev.cel.common.navigation.CelNavigableMutableExpr;
@@ -129,11 +128,9 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   }
 
   @Override
-  public OptimizationResult optimize(CelNavigableAst ast, Cel cel) {
+  public OptimizationResult optimize(CelAbstractSyntaxTree ast, Cel cel) {
     OptimizationResult result =
-        cseOptions.enableCelBlock()
-            ? optimizeUsingCelBlock(ast.getAst(), cel)
-            : optimizeUsingCelBind(ast.getAst());
+        cseOptions.enableCelBlock() ? optimizeUsingCelBlock(ast, cel) : optimizeUsingCelBind(ast);
 
     verifyOptimizedAstCorrectness(result.optimizedAst());
 

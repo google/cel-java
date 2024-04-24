@@ -38,6 +38,7 @@ import java.util.Optional;
 @AutoValue
 @Internal
 @Immutable
+@SuppressWarnings("unchecked") // Class ensures only the super type is used
 public abstract class CelExpr implements Expression {
 
   @Override

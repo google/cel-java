@@ -39,13 +39,13 @@ import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
-import dev.cel.common.navigation.CelNavigableAst;
-import dev.cel.common.navigation.CelNavigableExpr;
+import dev.cel.common.ast.CelMutableAst;
+import dev.cel.common.navigation.CelNavigableMutableAst;
+import dev.cel.common.navigation.CelNavigableMutableExpr;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.extensions.CelExtensions;
-import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.optimizer.CelOptimizer;
 import dev.cel.optimizer.CelOptimizerFactory;
@@ -555,53 +555,28 @@ public class SubexpressionOptimizerTest {
    */
   private static CelAbstractSyntaxTree compileUsingInternalFunctions(String expression)
       throws CelValidationException {
-    AstMutator astMutator = AstMutator.newInstance(1000);
     CelAbstractSyntaxTree astToModify = CEL_FOR_EVALUATING_BLOCK.compile(expression).getAst();
-    while (true) {
-      CelExpr celExpr =
-          CelNavigableAst.fromAst(astToModify)
-              .getRoot()
-              .allNodes()
-              .filter(node -> node.getKind().equals(Kind.CALL))
-              .map(CelNavigableExpr::expr)
-              .filter(expr -> expr.call().function().equals("cel.block"))
-              .findAny()
-              .orElse(null);
-      if (celExpr == null) {
-        break;
-      }
-      astToModify =
-          astMutator.replaceSubtree(
-              astToModify,
-              celExpr.toBuilder()
-                  .setCall(celExpr.call().toBuilder().setFunction("cel.@block").build())
-                  .build(),
-              celExpr.id());
-    }
+    CelMutableAst mutableAst = CelMutableAst.fromCelAst(astToModify);
+    CelNavigableMutableAst.fromAst(mutableAst)
+        .getRoot()
+        .allNodes()
+        .filter(node -> node.getKind().equals(Kind.CALL))
+        .map(CelNavigableMutableExpr::expr)
+        .filter(expr -> expr.call().function().equals("cel.block"))
+        .forEach(expr -> expr.call().setFunction("cel.@block"));
 
-    while (true) {
-      CelExpr celExpr =
-          CelNavigableAst.fromAst(astToModify)
-              .getRoot()
-              .allNodes()
-              .filter(node -> node.getKind().equals(Kind.IDENT))
-              .map(CelNavigableExpr::expr)
-              .filter(expr -> expr.ident().name().startsWith("index"))
-              .findAny()
-              .orElse(null);
-      if (celExpr == null) {
-        break;
-      }
-      String internalIdentName = "@" + celExpr.ident().name();
-      astToModify =
-          astMutator.replaceSubtree(
-              astToModify,
-              celExpr.toBuilder()
-                  .setIdent(celExpr.ident().toBuilder().setName(internalIdentName).build())
-                  .build(),
-              celExpr.id());
-    }
+    CelNavigableMutableAst.fromAst(mutableAst)
+        .getRoot()
+        .allNodes()
+        .filter(node -> node.getKind().equals(Kind.IDENT))
+        .map(CelNavigableMutableExpr::expr)
+        .filter(expr -> expr.ident().name().startsWith("index"))
+        .forEach(
+            indexExpr -> {
+              String internalIdentName = "@" + indexExpr.ident().name();
+              indexExpr.ident().setName(internalIdentName);
+            });
 
-    return CEL_FOR_EVALUATING_BLOCK.check(astToModify).getAst();
+    return CEL_FOR_EVALUATING_BLOCK.check(mutableAst.toParsedAst()).getAst();
   }
 }

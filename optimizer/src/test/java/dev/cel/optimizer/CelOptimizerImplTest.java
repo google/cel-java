@@ -40,9 +40,9 @@ public class CelOptimizerImplTest {
     CelOptimizer celOptimizer =
         CelOptimizerImpl.newBuilder(CEL)
             .addAstOptimizers(
-                (navigableAst, cel) ->
+                (ast, cel) ->
                     // no-op
-                    OptimizationResult.create(navigableAst.getAst()))
+                    OptimizationResult.create(ast))
             .build();
 
     assertThat(celOptimizer).isNotNull();
@@ -56,19 +56,19 @@ public class CelOptimizerImplTest {
     CelOptimizer celOptimizer =
         CelOptimizerImpl.newBuilder(CEL)
             .addAstOptimizers(
-                (navigableAst, cel) -> {
+                (ast, cel) -> {
                   list.add(1);
-                  return OptimizationResult.create(navigableAst.getAst());
+                  return OptimizationResult.create(ast);
                 })
             .addAstOptimizers(
-                (navigableAst, cel) -> {
+                (ast, cel) -> {
                   list.add(2);
-                  return OptimizationResult.create(navigableAst.getAst());
+                  return OptimizationResult.create(ast);
                 })
             .addAstOptimizers(
-                (navigableAst, cel) -> {
+                (ast, cel) -> {
                   list.add(3);
-                  return OptimizationResult.create(navigableAst.getAst());
+                  return OptimizationResult.create(ast);
                 })
             .build();
 

@@ -20,14 +20,12 @@ import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelVarDecl;
-import dev.cel.common.navigation.CelNavigableAst;
 
 /** Public interface for performing a single, custom optimization on an AST. */
 public interface CelAstOptimizer {
 
   /** Optimizes a single AST. */
-  OptimizationResult optimize(CelNavigableAst navigableAst, Cel cel)
-      throws CelOptimizationException;
+  OptimizationResult optimize(CelAbstractSyntaxTree ast, Cel cel) throws CelOptimizationException;
 
   /**
    * Denotes the result of a single optimization pass on an AST.

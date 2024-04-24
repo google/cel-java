@@ -55,7 +55,6 @@ import java.util.stream.Collectors;
 
 /** AstMutator contains logic for mutating a {@link CelAbstractSyntaxTree}. */
 @Immutable
-@SuppressWarnings("InlineMeSuggester") // Deprecated methods are not used and will be removed.
 public final class AstMutator {
   private static final ExprIdGenerator NO_OP_ID_GENERATOR = id -> id;
   private static final ExprIdGenerator UNSET_ID_GENERATOR = id -> 0;
@@ -80,37 +79,9 @@ public final class AstMutator {
     this.iterationLimit = iterationLimit;
   }
 
-  /**
-   * TODO: Temporarily kept to retain method signature. Remove in the upcoming CLs.
-   *
-   * @deprecated Use MutableExpr based APIs instead.
-   */
-  @Deprecated
-  public CelExpr clearExprIds(CelExpr expr) {
-    return CelMutableExprConverter.fromMutableExpr(
-        clearExprIds(CelMutableExprConverter.fromCelExpr(expr)));
-  }
-
   /** Replaces all the expression IDs in the expression tree with 0. */
   public CelMutableExpr clearExprIds(CelMutableExpr expr) {
     return renumberExprIds(UNSET_ID_GENERATOR, expr);
-  }
-
-  /**
-   * TODO: Temporarily kept to retain method signature. Remove in the upcoming CLs.
-   *
-   * @deprecated Use MutableExpr based APIs instead.
-   */
-  @Deprecated
-  public CelAbstractSyntaxTree wrapAstWithNewCelBlock(
-      String celBlockFunction, CelAbstractSyntaxTree ast, List<CelExpr> subexpressions) {
-    return wrapAstWithNewCelBlock(
-            celBlockFunction,
-            CelMutableAst.fromCelAst(ast),
-            subexpressions.stream()
-                .map(CelMutableExprConverter::fromCelExpr)
-                .collect(toCollection(ArrayList::new)))
-        .toParsedAst();
   }
 
   /** Wraps the given AST and its subexpressions with a new cel.@block call. */
@@ -126,24 +97,6 @@ public final class AstMutator {
                 ast.expr()));
 
     return CelMutableAst.of(blockExpr, ast.source());
-  }
-
-  /**
-   * TODO: Temporarily kept to retain method signature. Remove in the upcoming CLs.
-   *
-   * @deprecated Use MutableExpr based APIs instead.
-   */
-  @Deprecated
-  public CelAbstractSyntaxTree replaceSubtreeWithNewBindMacro(
-      CelAbstractSyntaxTree ast, String varName, CelExpr varInit, CelExpr resultExpr, long id) {
-    return replaceSubtreeWithNewBindMacro(
-            CelMutableAst.fromCelAst(ast),
-            varName,
-            CelMutableExprConverter.fromCelExpr(varInit),
-            CelMutableExprConverter.fromCelExpr(resultExpr),
-            id,
-            true)
-        .toParsedAst();
   }
 
   /**
@@ -193,10 +146,6 @@ public final class AstMutator {
     CelMutableAst newBindAst = CelMutableAst.of(newBindMacroExpr, celSource);
 
     return replaceSubtree(ast, newBindAst, exprIdToReplace);
-  }
-
-  public CelAbstractSyntaxTree renumberIdsConsecutively(CelAbstractSyntaxTree ast) {
-    return renumberIdsConsecutively(CelMutableAst.fromCelAst(ast)).toParsedAst();
   }
 
   /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */
@@ -383,34 +332,6 @@ public final class AstMutator {
     return MangledComprehensionAst.of(
         CelMutableAst.of(mutatedComprehensionExpr, newSource),
         ImmutableMap.copyOf(mangledIdentNamesToType));
-  }
-
-  /**
-   * TODO: Temporarily kept to retain method signature. Remove in the upcoming CLs.
-   *
-   * @deprecated Use MutableExpr based APIs instead.
-   */
-  @Deprecated
-  public CelExpr replaceSubtree(CelExpr celExpr, CelExpr newExpr, long id) {
-    return replaceSubtree(
-            CelMutableExprConverter.fromCelExpr(celExpr),
-            CelMutableExprConverter.fromCelExpr(newExpr),
-            id)
-        .toParsedAst()
-        .getExpr();
-  }
-
-  /**
-   * TODO: Temporarily kept to retain method signature. Remove in the upcoming CLs.
-   *
-   * @deprecated Use MutableExpr based APIs instead.
-   */
-  @Deprecated
-  public CelAbstractSyntaxTree replaceSubtree(
-      CelAbstractSyntaxTree root, CelExpr newExpr, long id) {
-    return replaceSubtree(
-            CelMutableAst.fromCelAst(root), CelMutableExprConverter.fromCelExpr(newExpr), id)
-        .toParsedAst();
   }
 
   /**
@@ -947,16 +868,6 @@ public final class AstMutator {
     /** Map containing the mangled identifier names to their types. */
     public abstract ImmutableMap<MangledComprehensionName, MangledComprehensionType>
         mangledComprehensionMap();
-
-    /**
-     * TODO: Temporarily kept to retain method signature. Remove in the upcoming CLs.
-     *
-     * @deprecated Use MutableExpr based APIs instead.
-     */
-    @Deprecated
-    public CelAbstractSyntaxTree ast() {
-      return mutableAst().toParsedAst();
-    }
 
     private static MangledComprehensionAst of(
         CelMutableAst ast,

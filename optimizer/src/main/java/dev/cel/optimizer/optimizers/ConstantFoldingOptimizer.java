@@ -19,6 +19,7 @@ import static com.google.common.collect.MoreCollectors.onlyElement;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import dev.cel.bundle.Cel;
+import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
@@ -30,7 +31,6 @@ import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCreateMap;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCreateStruct;
 import dev.cel.common.ast.CelMutableExprConverter;
-import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableMutableAst;
 import dev.cel.common.navigation.CelNavigableMutableExpr;
 import dev.cel.extensions.CelOptionalLibrary.Function;
@@ -79,8 +79,9 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   }
 
   @Override
-  public OptimizationResult optimize(CelNavigableAst ast, Cel cel) throws CelOptimizationException {
-    CelMutableAst mutableAst = CelMutableAst.fromCelAst(ast.getAst());
+  public OptimizationResult optimize(CelAbstractSyntaxTree ast, Cel cel)
+      throws CelOptimizationException {
+    CelMutableAst mutableAst = CelMutableAst.fromCelAst(ast);
     int iterCount = 0;
     boolean continueFolding = true;
     while (continueFolding) {
