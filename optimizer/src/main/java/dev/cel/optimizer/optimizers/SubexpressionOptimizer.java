@@ -33,6 +33,8 @@ import dev.cel.bundle.CelBuilder;
 import dev.cel.checker.Standard;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelMutableAst;
+import dev.cel.common.CelMutableSource;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelSource;
 import dev.cel.common.CelSource.Extension;
@@ -43,7 +45,6 @@ import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
-import dev.cel.common.ast.CelMutableAst;
 import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.common.ast.CelMutableExprConverter;
 import dev.cel.common.navigation.CelNavigableExpr;
@@ -151,7 +152,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
             MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
             MANGLED_COMPREHENSION_RESULT_PREFIX);
     astToModify = mangledComprehensionAst.mutableAst();
-    CelSource.Builder sourceToModify = astToModify.source();
+    CelMutableSource sourceToModify = astToModify.source();
 
     int blockIdentifierIndex = 0;
     int iterCount;
@@ -177,9 +178,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
                 navAst,
                 CelNavigableMutableAst.fromAst(
                     CelMutableAst.of(
-                        CelMutableExpr.ofIdent(blockIdentifier),
-                        CelSource.newBuilder()
-                            .addAllMacroCalls(navAst.getAst().source().getMacroCalls()))),
+                        CelMutableExpr.ofIdent(blockIdentifier), navAst.getAst().source())),
                 cseCandidate.id());
 
         // Retain the existing macro calls in case if the block identifiers are replacing a subtree
@@ -354,7 +353,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
                 MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
                 MANGLED_COMPREHENSION_RESULT_PREFIX)
             .mutableAst();
-    CelSource.Builder sourceToModify = astToModify.source();
+    CelMutableSource sourceToModify = astToModify.source();
 
     int bindIdentifierIndex = 0;
     int iterCount;

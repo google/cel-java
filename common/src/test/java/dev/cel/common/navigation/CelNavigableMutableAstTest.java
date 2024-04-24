@@ -16,8 +16,8 @@ package dev.cel.common.navigation;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import dev.cel.common.CelMutableAst;
 import dev.cel.common.ast.CelConstant;
-import dev.cel.common.ast.CelMutableAst;
 import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;

@@ -56,7 +56,8 @@ java_library(
     deps = [
         ":common",
         "//:auto_value",
-        "//common/ast:mutable_ast",
+        "//common:mutable_ast",
+        "//common/ast:mutable_expr",
         "//common/types:type_providers",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",

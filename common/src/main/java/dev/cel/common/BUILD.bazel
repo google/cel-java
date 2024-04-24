@@ -134,3 +134,31 @@ java_library(
         "//common/annotations",
     ],
 )
+
+java_library(
+    name = "mutable_ast",
+    srcs = ["CelMutableAst.java"],
+    tags = [
+    ],
+    deps = [
+        ":mutable_source",
+        "//common",
+        "//common/ast",
+        "//common/ast:mutable_expr",
+        "//common/types:type_providers",
+    ],
+)
+
+java_library(
+    name = "mutable_source",
+    srcs = ["CelMutableSource.java"],
+    tags = [
+    ],
+    deps = [
+        ":common",
+        "//:auto_value",
+        "//common/ast:mutable_expr",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)

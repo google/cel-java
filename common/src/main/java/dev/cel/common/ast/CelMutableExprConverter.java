@@ -134,8 +134,6 @@ public final class CelMutableExprConverter {
     return CelMutableCreateMap.create(entries);
   }
 
-  ///////////////////////
-
   public static CelExpr fromMutableExpr(CelMutableExpr mutableExpr) {
     long id = mutableExpr.id();
     switch (mutableExpr.getKind()) {

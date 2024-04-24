@@ -14,7 +14,7 @@
 
 package dev.cel.common.navigation;
 
-import dev.cel.common.ast.CelMutableAst;
+import dev.cel.common.CelMutableAst;
 import dev.cel.common.types.CelType;
 import java.util.Optional;
 

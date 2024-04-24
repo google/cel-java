@@ -34,6 +34,6 @@ java_library(
 )
 
 java_library(
-    name = "mutable_ast",
-    exports = ["//common/src/main/java/dev/cel/common/ast:mutable_ast"],
+    name = "mutable_expr",
+    exports = ["//common/src/main/java/dev/cel/common/ast:mutable_expr"],
 )

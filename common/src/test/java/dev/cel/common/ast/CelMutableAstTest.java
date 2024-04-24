@@ -17,8 +17,9 @@ package dev.cel.common.ast;
 import static com.google.common.truth.Truth.assertThat;
 
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelMutableAst;
+import dev.cel.common.CelMutableSource;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelSource;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
@@ -33,12 +34,12 @@ public final class CelMutableAstTest {
   @Test
   public void constructMutableAst() {
     CelMutableExpr mutableExpr = CelMutableExpr.ofConstant(1L, CelConstant.ofValue("hello world"));
-    CelSource.Builder sourceBuilder = CelSource.newBuilder();
+    CelMutableSource mutableSource = CelMutableSource.newInstance();
 
-    CelMutableAst celMutableAst = CelMutableAst.of(mutableExpr, sourceBuilder);
+    CelMutableAst celMutableAst = CelMutableAst.of(mutableExpr, mutableSource);
 
     assertThat(celMutableAst.expr()).isEqualTo(mutableExpr);
-    assertThat(celMutableAst.source()).isSameInstanceAs(sourceBuilder);
+    assertThat(celMutableAst.source()).isSameInstanceAs(mutableSource);
   }
 
   @Test

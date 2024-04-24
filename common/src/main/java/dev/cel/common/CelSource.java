@@ -279,12 +279,6 @@ public final class CelSource {
       return this;
     }
 
-    @CanIgnoreReturnValue
-    public Builder clearMacroCalls() {
-      this.macroCalls.clear();
-      return this;
-    }
-
     public ImmutableSet<Extension> getExtensions() {
       return extensions.build();
     }

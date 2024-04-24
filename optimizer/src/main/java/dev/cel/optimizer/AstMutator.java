@@ -25,20 +25,17 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
-import dev.cel.common.CelSource;
+import dev.cel.common.CelMutableAst;
+import dev.cel.common.CelMutableSource;
 import dev.cel.common.ast.CelConstant;
-import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelExprIdGeneratorFactory;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.ExprIdGenerator;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.StableIdGenerator;
-import dev.cel.common.ast.CelMutableAst;
 import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
 import dev.cel.common.ast.CelMutableExpr.CelMutableComprehension;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
-import dev.cel.common.ast.CelMutableExprConverter;
-import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.navigation.CelNavigableMutableAst;
 import dev.cel.common.navigation.CelNavigableMutableExpr;
 import dev.cel.common.navigation.TraversalOrder;
@@ -125,7 +122,7 @@ public final class AstMutator {
     CelMutableExpr newBindMacroExpr =
         newBindMacroExpr(
             varName, varInit, CelMutableExpr.newInstance(resultExpr), stableIdGenerator);
-    CelSource.Builder celSource = CelSource.newBuilder();
+    CelMutableSource celSource = CelMutableSource.newInstance();
     if (populateMacroSource) {
       CelMutableExpr newBindMacroSourceExpr =
           newBindMacroSourceExpr(newBindMacroExpr, varName, stableIdGenerator);
@@ -134,13 +131,11 @@ public final class AstMutator {
       // macro.
       celSource =
           normalizeMacroSource(
-                  ast.source(),
-                  -1, // Do not replace any of the subexpr in the macro map.
-                  newBindMacroSourceExpr,
-                  stableIdGenerator::renumberId)
-              .addMacroCalls(
-                  newBindMacroExpr.id(),
-                  CelMutableExprConverter.fromMutableExpr(newBindMacroSourceExpr));
+              ast.source(),
+              -1, // Do not replace any of the subexpr in the macro map.
+              newBindMacroSourceExpr,
+              stableIdGenerator::renumberId);
+      celSource.addMacroCalls(newBindMacroExpr.id(), newBindMacroSourceExpr);
     }
 
     CelMutableAst newBindAst = CelMutableAst.of(newBindMacroExpr, celSource);
@@ -152,7 +147,7 @@ public final class AstMutator {
   public CelMutableAst renumberIdsConsecutively(CelMutableAst mutableAst) {
     StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(0);
     CelMutableExpr mutableExpr = renumberExprIds(stableIdGenerator::renumberId, mutableAst.expr());
-    CelSource.Builder newSource =
+    CelMutableSource newSource =
         normalizeMacroSource(
             mutableAst.source(), Integer.MIN_VALUE, mutableExpr, stableIdGenerator::renumberId);
 
@@ -275,7 +270,7 @@ public final class AstMutator {
     Table<Integer, MangledComprehensionType, MangledComprehensionName> comprehensionLevelToType =
         HashBasedTable.create();
     CelMutableExpr mutatedComprehensionExpr = navigableMutableAst.getAst().expr();
-    CelSource.Builder newSource = navigableMutableAst.getAst().source();
+    CelMutableSource newSource = navigableMutableAst.getAst().source();
     for (Entry<CelNavigableMutableExpr, MangledComprehensionType> comprehensionEntry :
         comprehensionsToMangle.entrySet()) {
       iterCount++;
@@ -353,7 +348,8 @@ public final class AstMutator {
    */
   public CelMutableAst replaceSubtree(
       CelMutableExpr root, CelMutableExpr newExpr, long exprIdToReplace) {
-    return replaceSubtree(CelMutableAst.of(root, CelSource.newBuilder()), newExpr, exprIdToReplace);
+    return replaceSubtree(
+        CelMutableAst.of(root, CelMutableSource.newInstance()), newExpr, exprIdToReplace);
   }
 
   /**
@@ -381,7 +377,7 @@ public final class AstMutator {
             newExpr,
             // Copy the macro call information to the new AST such that macro call map can be
             // normalized post-replacement.
-            CelSource.newBuilder().addAllMacroCalls(ast.source().getMacroCalls())),
+            ast.source()),
         exprIdToReplace);
   }
 
@@ -444,7 +440,7 @@ public final class AstMutator {
 
     CelMutableExpr mutatedRoot =
         mutateExpr(stableIdGenerator::renumberId, ast.expr(), newAst.expr(), exprIdToReplace);
-    CelSource.Builder newAstSource = CelSource.newBuilder();
+    CelMutableSource newAstSource = CelMutableSource.newInstance();
     if (!ast.source().getMacroCalls().isEmpty()) {
       newAstSource = combine(newAstSource, ast.source());
     }
@@ -512,8 +508,8 @@ public final class AstMutator {
     }
   }
 
-  private CelSource.Builder mangleIdentsInMacroSource(
-      CelSource.Builder sourceBuilder,
+  private CelMutableSource mangleIdentsInMacroSource(
+      CelMutableSource sourceBuilder,
       CelMutableExpr mutatedComprehensionExpr,
       String originalIterVar,
       MangledComprehensionName mangledComprehensionName,
@@ -524,7 +520,7 @@ public final class AstMutator {
 
     // First, normalize the macro source.
     // ex: [x].exists(x, [x].exists(x, x == 1)) -> [x].exists(x, [@c1].exists(x, @c0 == 1)).
-    CelSource.Builder newSource =
+    CelMutableSource newSource =
         normalizeMacroSource(sourceBuilder, -1, mutatedComprehensionExpr, (id) -> id);
 
     // Note that in the above example, the iteration variable is not replaced after normalization.
@@ -534,8 +530,7 @@ public final class AstMutator {
     // variable actually exists in the main AST thus, this step isn't needed.
     // ex: [1].map(x, [2].filter(y, x == y). Here, the variable declaration `x` exists in the AST
     // but not `y`.
-    CelMutableExpr macroExpr =
-        CelMutableExprConverter.fromCelExpr(newSource.getMacroCalls().get(originalComprehensionId));
+    CelMutableExpr macroExpr = newSource.getMacroCalls().get(originalComprehensionId);
     // By convention, the iteration variable is always the first argument of the
     // macro call expression.
     CelMutableExpr identToMangle = macroExpr.call().args().get(0);
@@ -549,8 +544,7 @@ public final class AstMutator {
               identToMangle.id());
     }
 
-    newSource.addMacroCalls(
-        originalComprehensionId, CelMutableExprConverter.fromMutableExpr(macroExpr));
+    newSource.addMacroCalls(originalComprehensionId, macroExpr);
 
     return newSource;
   }
@@ -595,16 +589,13 @@ public final class AstMutator {
             bindMacroExpr.comprehension().result()));
   }
 
-  private static CelSource.Builder combine(
-      CelSource.Builder celSource1, CelSource.Builder celSource2) {
-    ImmutableMap.Builder<Long, CelExpr> macroMap = ImmutableMap.builder();
-    macroMap.putAll(celSource1.getMacroCalls());
-    macroMap.putAll(celSource2.getMacroCalls());
-
-    return CelSource.newBuilder()
+  private static CelMutableSource combine(
+      CelMutableSource celSource1, CelMutableSource celSource2) {
+    return CelMutableSource.newInstance()
         .addAllExtensions(celSource1.getExtensions())
         .addAllExtensions(celSource2.getExtensions())
-        .addAllMacroCalls(macroMap.buildOrThrow());
+        .addAllMacroCalls(celSource1.getMacroCalls())
+        .addAllMacroCalls(celSource2.getMacroCalls());
   }
 
   /**
@@ -614,40 +605,37 @@ public final class AstMutator {
    */
   private CelMutableAst stabilizeAst(CelMutableAst mutableAst, long seedExprId) {
     CelMutableExpr mutableExpr = mutableAst.expr();
-    CelSource.Builder source = mutableAst.source();
+    CelMutableSource source = mutableAst.source();
     StableIdGenerator stableIdGenerator =
         CelExprIdGeneratorFactory.newStableIdGenerator(seedExprId);
     CelMutableExpr mutatedExpr = renumberExprIds(stableIdGenerator::nextExprId, mutableExpr);
 
-    CelSource.Builder sourceBuilder =
-        CelSource.newBuilder().addAllExtensions(source.getExtensions());
+    CelMutableSource sourceBuilder =
+        CelMutableSource.newInstance().addAllExtensions(source.getExtensions());
     // Update the macro call IDs and their call IDs
-    for (Entry<Long, CelExpr> macroCall : source.getMacroCalls().entrySet()) {
+    for (Entry<Long, CelMutableExpr> macroCall : source.getMacroCalls().entrySet()) {
       long macroId = macroCall.getKey();
       long newCallId = stableIdGenerator.renumberId(macroId);
-      CelMutableExpr existingMacroCallExpr =
-          CelMutableExprConverter.fromCelExpr(macroCall.getValue());
+      CelMutableExpr existingMacroCallExpr = CelMutableExpr.newInstance(macroCall.getValue());
 
       CelMutableExpr newCall =
           renumberExprIds(stableIdGenerator::renumberId, existingMacroCallExpr);
 
-      sourceBuilder.addMacroCalls(newCallId, CelMutableExprConverter.fromMutableExpr(newCall));
+      sourceBuilder.addMacroCalls(newCallId, newCall);
     }
 
     return CelMutableAst.of(mutatedExpr, sourceBuilder);
   }
 
-  private CelSource.Builder normalizeMacroSource(
-      CelSource.Builder celSource,
+  private CelMutableSource normalizeMacroSource(
+      CelMutableSource source,
       long exprIdToReplace,
       CelMutableExpr mutatedRoot,
       ExprIdGenerator idGenerator) {
     // Remove the macro metadata that no longer exists in the AST due to being replaced.
-    celSource.clearMacroCall(exprIdToReplace);
-    CelSource.Builder sourceBuilder =
-        CelSource.newBuilder().addAllExtensions(celSource.getExtensions());
-    if (celSource.getMacroCalls().isEmpty()) {
-      return sourceBuilder;
+    source.clearMacroCall(exprIdToReplace);
+    if (source.getMacroCalls().isEmpty()) {
+      return source;
     }
 
     ImmutableMap<Long, CelMutableExpr> allExprs =
@@ -668,8 +656,10 @@ public final class AstMutator {
                           "Expected expressions to be the same for id: " + expr1.id());
                     }));
 
+    CelMutableSource newMacroSource =
+        CelMutableSource.newInstance().addAllExtensions(source.getExtensions());
     // Update the macro call IDs and their call references
-    for (Entry<Long, CelExpr> existingMacroCall : celSource.getMacroCalls().entrySet()) {
+    for (Entry<Long, CelMutableExpr> existingMacroCall : source.getMacroCalls().entrySet()) {
       long macroId = existingMacroCall.getKey();
       long callId = idGenerator.generate(macroId);
 
@@ -678,7 +668,7 @@ public final class AstMutator {
       }
 
       CelMutableExpr existingMacroCallExpr =
-          CelMutableExprConverter.fromCelExpr(existingMacroCall.getValue());
+          CelMutableExpr.newInstance(existingMacroCall.getValue());
       CelMutableExpr newMacroCallExpr = renumberExprIds(idGenerator, existingMacroCallExpr);
 
       CelNavigableMutableExpr callNav = CelNavigableMutableExpr.fromExpr(newMacroCallExpr);
@@ -711,13 +701,12 @@ public final class AstMutator {
         }
       }
 
-      sourceBuilder.addMacroCalls(
-          callId, CelMutableExprConverter.fromMutableExpr(newMacroCallExpr));
+      newMacroSource.addMacroCalls(callId, newMacroCallExpr);
     }
 
     // Replace comprehension nodes with a NOT_SET reference to reduce AST size.
-    for (Entry<Long, CelExpr> macroCall : sourceBuilder.getMacroCalls().entrySet()) {
-      CelMutableExpr macroCallExpr = CelMutableExprConverter.fromCelExpr(macroCall.getValue());
+    for (Entry<Long, CelMutableExpr> macroCall : newMacroSource.getMacroCalls().entrySet()) {
+      CelMutableExpr macroCallExpr = macroCall.getValue();
       CelNavigableMutableExpr.fromExpr(macroCallExpr)
           .allNodes()
           .filter(node -> node.getKind().equals(Kind.COMPREHENSION))
@@ -730,7 +719,7 @@ public final class AstMutator {
                         macroCallExpr,
                         CelMutableExpr.ofNotSet(node.id()),
                         node.id());
-                macroCall.setValue(CelMutableExprConverter.fromMutableExpr(mutatedNode));
+                macroCall.setValue(mutatedNode);
               });
 
       // Prune any NOT_SET (comprehension) nodes that no longer exist in the main AST
@@ -748,11 +737,10 @@ public final class AstMutator {
                         .collect(toCollection(ArrayList::new));
                 CelMutableCall call = macroCallExpr.call();
                 call.setArgs(newCallArgs);
-                macroCall.setValue(CelMutableExprConverter.fromMutableExpr(macroCallExpr));
               });
     }
 
-    return sourceBuilder;
+    return newMacroSource;
   }
 
   /**
@@ -813,21 +801,14 @@ public final class AstMutator {
     return mutableAst.visit(root);
   }
 
-  private static long getMaxId(CelExpr newExpr) {
-    return CelNavigableExpr.fromExpr(newExpr)
-        .allNodes()
-        .mapToLong(CelNavigableExpr::id)
-        .max()
-        .orElseThrow(NoSuchElementException::new);
-  }
-
   private static long getMaxId(CelMutableAst mutableAst) {
     return getMaxId(CelNavigableMutableAst.fromAst(mutableAst));
   }
 
   private static long getMaxId(CelNavigableMutableAst navAst) {
     long maxId = navAst.getRoot().maxId();
-    for (Entry<Long, CelExpr> macroCall : navAst.getAst().source().getMacroCalls().entrySet()) {
+    for (Entry<Long, CelMutableExpr> macroCall :
+        navAst.getAst().source().getMacroCalls().entrySet()) {
       maxId = max(maxId, getMaxId(macroCall.getValue()));
     }
 

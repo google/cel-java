@@ -40,6 +40,16 @@ java_library(
 )
 
 java_library(
+    name = "mutable_ast",
+    exports = ["//common/src/main/java/dev/cel/common:mutable_ast"],
+)
+
+java_library(
+    name = "mutable_source",
+    exports = ["//common/src/main/java/dev/cel/common:mutable_source"],
+)
+
+java_library(
     name = "runtime_exception",
     visibility = ["//visibility:public"],
     exports = ["//common/src/main/java/dev/cel/common:runtime_exception"],

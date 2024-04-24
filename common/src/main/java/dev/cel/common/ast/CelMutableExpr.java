@@ -1064,6 +1064,9 @@ public final class CelMutableExpr implements Expression {
     this.id = other.id;
     this.exprKind = other.exprKind;
     switch (other.getKind()) {
+      case NOT_SET:
+        this.exprValue = CelExpr.newBuilder().build().exprKind().notSet();
+        break;
       case CONSTANT:
         this.exprValue = other.exprValue; // Constant is immutable.
         break;

@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.common.ast;
+package dev.cel.common;
 
-import dev.cel.common.CelAbstractSyntaxTree;
-import dev.cel.common.CelSource;
+import dev.cel.common.ast.CelMutableExpr;
+import dev.cel.common.ast.CelMutableExprConverter;
+import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelType;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +31,7 @@ import java.util.Optional;
  */
 public final class CelMutableAst {
   private final CelMutableExpr mutatedExpr;
-  private final CelSource.Builder source;
+  private final CelMutableSource source;
   private final Map<Long, CelReference> references;
   private final Map<Long, CelType> types;
 
@@ -40,9 +41,10 @@ public final class CelMutableAst {
   }
 
   /**
-   * Returns the {@link CelSource} that was used during construction of the abstract syntax tree.
+   * Returns the {@link CelMutableSource} that was used during construction of the abstract syntax
+   * tree.
    */
-  public CelSource.Builder source() {
+  public CelMutableSource source() {
     return source;
   }
 
@@ -69,7 +71,7 @@ public final class CelMutableAst {
   /** Converts this mutable AST into a parsed {@link CelAbstractSyntaxTree}. */
   public CelAbstractSyntaxTree toParsedAst() {
     return CelAbstractSyntaxTree.newParsedAst(
-        CelMutableExprConverter.fromMutableExpr(mutatedExpr), source.build());
+        CelMutableExprConverter.fromMutableExpr(mutatedExpr), source.toCelSource());
   }
 
   /**
@@ -79,7 +81,7 @@ public final class CelMutableAst {
   public static CelMutableAst fromCelAst(CelAbstractSyntaxTree ast) {
     return new CelMutableAst(
         CelMutableExprConverter.fromCelExpr(ast.getExpr()),
-        ast.getSource().toBuilder(),
+        CelMutableSource.fromCelSource(ast.getSource()),
         ast.getReferenceMap(),
         ast.getTypeMap());
   }
@@ -88,21 +90,21 @@ public final class CelMutableAst {
    * Constructs an instance of {@link CelMutableAst} with the mutable expression and its source
    * builder.
    */
-  public static CelMutableAst of(CelMutableExpr mutableExpr, CelSource.Builder sourceBuilder) {
-    return new CelMutableAst(mutableExpr, sourceBuilder);
+  public static CelMutableAst of(CelMutableExpr mutableExpr, CelMutableSource mutableSource) {
+    return new CelMutableAst(mutableExpr, mutableSource);
   }
 
-  private CelMutableAst(CelMutableExpr mutatedExpr, CelSource.Builder source) {
-    this(mutatedExpr, source, new HashMap<>(), new HashMap<>());
+  private CelMutableAst(CelMutableExpr mutatedExpr, CelMutableSource mutableSource) {
+    this(mutatedExpr, mutableSource, new HashMap<>(), new HashMap<>());
   }
 
   private CelMutableAst(
       CelMutableExpr mutatedExpr,
-      CelSource.Builder source,
+      CelMutableSource mutableSource,
       Map<Long, CelReference> references,
       Map<Long, CelType> types) {
     this.mutatedExpr = mutatedExpr;
-    this.source = source;
+    this.source = mutableSource;
     this.references = new HashMap<>(references);
     this.types = new HashMap<>(types);
   }
