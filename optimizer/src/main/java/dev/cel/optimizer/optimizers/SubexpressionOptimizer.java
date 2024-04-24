@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toCollection;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
@@ -65,6 +66,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Performs Common Subexpression Elimination.
@@ -469,11 +471,12 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   private List<CelMutableExpr> getCseCandidatesWithRecursionDepth(
       CelNavigableMutableAst navAst, int recursionLimit) {
     Preconditions.checkArgument(recursionLimit > 0);
+    Set<CelMutableExpr> ineligibleExprs = getIneligibleExprsFromComprehensionBranches(navAst);
     ImmutableList<CelNavigableMutableExpr> descendants =
         navAst
             .getRoot()
             .descendants(TraversalOrder.PRE_ORDER)
-            .filter(this::canEliminate)
+            .filter(node -> canEliminate(node, ineligibleExprs))
             .filter(node -> node.height() <= recursionLimit)
             .sorted(Comparator.comparingInt(CelNavigableMutableExpr::height).reversed())
             .collect(toImmutableList());
@@ -494,7 +497,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
             .getRoot()
             .allNodes(TraversalOrder.POST_ORDER)
             .filter(node -> node.height() > recursionLimit)
-            .anyMatch(this::canEliminate);
+            .anyMatch(node -> canEliminate(node, ineligibleExprs));
     if (astHasMoreExtractableSubexprs) {
       cseCandidates.add(descendants.get(0).expr());
       return cseCandidates;
@@ -506,11 +509,12 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   }
 
   private List<CelMutableExpr> getCseCandidatesWithCommonSubexpr(CelNavigableMutableAst navAst) {
+    Set<CelMutableExpr> ineligibleExprs = getIneligibleExprsFromComprehensionBranches(navAst);
     ImmutableList<CelNavigableMutableExpr> allNodes =
         navAst
             .getRoot()
             .allNodes(TraversalOrder.PRE_ORDER)
-            .filter(this::canEliminate)
+            .filter(node -> canEliminate(node, ineligibleExprs))
             .collect(toImmutableList());
 
     return getCseCandidatesWithCommonSubexpr(allNodes);
@@ -547,42 +551,48 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     return cseCandidates;
   }
 
-  private boolean canEliminate(CelNavigableMutableExpr navigableExpr) {
+  private boolean canEliminate(
+      CelNavigableMutableExpr navigableExpr, Set<CelMutableExpr> ineligibleExprs) {
     return !navigableExpr.getKind().equals(Kind.CONSTANT)
         && !navigableExpr.getKind().equals(Kind.IDENT)
         && !(navigableExpr.getKind().equals(Kind.IDENT)
             && navigableExpr.expr().ident().name().startsWith(BIND_IDENTIFIER_PREFIX))
+        // Exclude empty lists (cel.bind sets this for iterRange).
+        && !(navigableExpr.getKind().equals(Kind.CREATE_LIST)
+            && navigableExpr.expr().createList().elements().isEmpty())
         && containsEliminableFunctionOnly(navigableExpr)
-        && isWithinInlineableComprehension(navigableExpr);
+        && !ineligibleExprs.contains(navigableExpr.expr());
   }
 
-  private static boolean isWithinInlineableComprehension(CelNavigableMutableExpr expr) {
-    Optional<CelNavigableMutableExpr> maybeParent = expr.parent();
-    while (maybeParent.isPresent()) {
-      CelNavigableMutableExpr parent = maybeParent.get();
-      if (parent.getKind().equals(Kind.COMPREHENSION)) {
-        return Streams.concat(
-                // If the expression is within a comprehension, it is eligible for CSE iff is in
-                // result, loopStep or iterRange. While result is not human authored, it needs to be
-                // included to extract subexpressions that are already in cel.bind macro.
-                CelNavigableMutableExpr.fromExpr(parent.expr().comprehension().result())
-                    .descendants(),
-                CelNavigableMutableExpr.fromExpr(parent.expr().comprehension().loopStep())
-                    .allNodes(),
-                CelNavigableMutableExpr.fromExpr(parent.expr().comprehension().iterRange())
-                    .allNodes())
-            .filter(
-                node ->
-                    // Exclude empty lists (cel.bind sets this for iterRange).
-                    !node.getKind().equals(Kind.CREATE_LIST)
-                        || !node.expr().createList().elements().isEmpty())
-            .map(CelNavigableMutableExpr::expr)
-            .anyMatch(node -> node.equals(expr.expr()));
-      }
-      maybeParent = parent.parent();
-    }
+  /**
+   * Collects a set of nodes that are not eligible to be optimized from comprehension branches.
+   *
+   * <p>All nodes from accumulator initializer and loop condition are not eligible to be optimized
+   * as that can interfere with scoping of shadowed variables.
+   */
+  private static Set<CelMutableExpr> getIneligibleExprsFromComprehensionBranches(
+      CelNavigableMutableAst navAst) {
+    HashSet<CelMutableExpr> ineligibleExprs = new HashSet<>();
+    navAst
+        .getRoot()
+        .allNodes()
+        .filter(node -> node.getKind().equals(Kind.COMPREHENSION))
+        .forEach(
+            node -> {
+              Set<CelMutableExpr> nodes =
+                  Streams.concat(
+                          CelNavigableMutableExpr.fromExpr(node.expr().comprehension().accuInit())
+                              .allNodes(),
+                          CelNavigableMutableExpr.fromExpr(
+                                  node.expr().comprehension().loopCondition())
+                              .allNodes())
+                      .map(CelNavigableMutableExpr::expr)
+                      .collect(toCollection(HashSet::new));
 
-    return true;
+              ineligibleExprs.addAll(nodes);
+            });
+
+    return ineligibleExprs;
   }
 
   private boolean containsEliminableFunctionOnly(CelNavigableMutableExpr navigableExpr) {

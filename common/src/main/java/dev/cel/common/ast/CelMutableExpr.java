@@ -1149,6 +1149,11 @@ public final class CelMutableExpr implements Expression {
   }
 
   @Override
+  public String toString() {
+    return CelMutableExprConverter.fromMutableExpr(this).toString();
+  }
+
+  @Override
   public int hashCode() {
     int h = 1;
     h *= 1000003;
