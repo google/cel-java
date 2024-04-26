@@ -1726,6 +1726,16 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   }
 
   @Test
+  public void jsonConversions() throws Exception {
+    declareVariable("ts", CelTypes.TIMESTAMP);
+    declareVariable("du", CelTypes.DURATION);
+    source = "google.protobuf.Struct { fields: {'timestamp': ts, 'duration': du } }";
+    runTest(
+        Activation.copyOf(
+            ImmutableMap.of("ts", Timestamps.fromSeconds(100), "du", Durations.fromMillis(200))));
+  }
+
+  @Test
   public void typeComparisons() throws Exception {
     container = TestAllTypes.getDescriptor().getFile().getPackage();
 

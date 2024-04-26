@@ -1,0 +1,12 @@
+Source: google.protobuf.Struct { fields: {'timestamp': ts, 'duration': du } }
+declare ts {
+  value google.protobuf.Timestamp
+}
+declare du {
+  value google.protobuf.Duration
+}
+=====>
+bindings: {ts=seconds: 100
+, du=nanos: 200000000
+}
+result:   {timestamp=1970-01-01T00:01:40Z, duration=0.200s}

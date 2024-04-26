@@ -50,6 +50,8 @@ import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
+import com.google.protobuf.util.Durations;
+import com.google.protobuf.util.Timestamps;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
@@ -474,6 +476,15 @@ public final class ProtoAdapter {
       if (listValue != null) {
         return json.setListValue(listValue).build();
       }
+    }
+    if (value instanceof Timestamp) {
+      // CEL follows the proto3 to JSON conversion which formats as an RFC 3339 encoded JSON string.
+      String ts = Timestamps.toString((Timestamp) value);
+      return json.setStringValue(ts).build();
+    }
+    if (value instanceof Duration) {
+      String duration = Durations.toString((Duration) value);
+      return json.setStringValue(duration).build();
     }
     return null;
   }
