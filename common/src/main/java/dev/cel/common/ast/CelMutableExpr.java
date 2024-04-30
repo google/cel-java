@@ -23,7 +23,6 @@ import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -275,7 +274,7 @@ public final class CelMutableExpr implements Expression {
   public static final class CelMutableCall implements Expression.Call<CelMutableExpr> {
     private Optional<CelMutableExpr> target;
     private String function;
-    private List<CelMutableExpr> args;
+    private java.util.List<CelMutableExpr> args;
 
     @Override
     public Optional<CelMutableExpr> target() {
@@ -296,7 +295,7 @@ public final class CelMutableExpr implements Expression {
     }
 
     @Override
-    public List<CelMutableExpr> args() {
+    public java.util.List<CelMutableExpr> args() {
       return args;
     }
 
@@ -349,7 +348,7 @@ public final class CelMutableExpr implements Expression {
     }
 
     private CelMutableCall deepCopy() {
-      List<CelMutableExpr> copiedArgs = deepCopyList(args);
+      java.util.List<CelMutableExpr> copiedArgs = deepCopyList(args);
       return target().isPresent()
           ? create(newInstance(target.get()), function, copiedArgs)
           : create(function, copiedArgs);
@@ -359,7 +358,7 @@ public final class CelMutableExpr implements Expression {
       return create(function, Arrays.asList(checkNotNull(args)));
     }
 
-    public static CelMutableCall create(String function, List<CelMutableExpr> args) {
+    public static CelMutableCall create(String function, java.util.List<CelMutableExpr> args) {
       return new CelMutableCall(function, args);
     }
 
@@ -369,29 +368,30 @@ public final class CelMutableExpr implements Expression {
     }
 
     public static CelMutableCall create(
-        CelMutableExpr target, String function, List<CelMutableExpr> args) {
+        CelMutableExpr target, String function, java.util.List<CelMutableExpr> args) {
       return new CelMutableCall(target, function, args);
     }
 
-    private CelMutableCall(String function, List<CelMutableExpr> args) {
+    private CelMutableCall(String function, java.util.List<CelMutableExpr> args) {
       this.target = Optional.empty();
       this.function = checkNotNull(function);
       this.args = new ArrayList<>(checkNotNull(args));
     }
 
-    private CelMutableCall(CelMutableExpr target, String function, List<CelMutableExpr> args) {
+    private CelMutableCall(
+        CelMutableExpr target, String function, java.util.List<CelMutableExpr> args) {
       this(function, args);
       this.target = Optional.of(target);
     }
   }
 
-  /** A mutable list creation expression. See {@link Expression.CreateList} */
-  public static final class CelMutableList implements Expression.CreateList<CelMutableExpr> {
-    private final List<CelMutableExpr> elements;
-    private final List<Integer> optionalIndices;
+  /** A mutable list creation expression. See {@link List} */
+  public static final class CelMutableList implements List<CelMutableExpr> {
+    private final java.util.List<CelMutableExpr> elements;
+    private final java.util.List<Integer> optionalIndices;
 
     @Override
-    public List<CelMutableExpr> elements() {
+    public java.util.List<CelMutableExpr> elements() {
       return elements;
     }
 
@@ -401,7 +401,7 @@ public final class CelMutableExpr implements Expression {
     }
 
     @Override
-    public List<Integer> optionalIndices() {
+    public java.util.List<Integer> optionalIndices() {
       return optionalIndices;
     }
 
@@ -438,26 +438,26 @@ public final class CelMutableExpr implements Expression {
       return create(Arrays.asList(checkNotNull(elements)));
     }
 
-    public static CelMutableList create(List<CelMutableExpr> elements) {
+    public static CelMutableList create(java.util.List<CelMutableExpr> elements) {
       return create(elements, new ArrayList<>());
     }
 
     public static CelMutableList create(
-        List<CelMutableExpr> mutableExprList, List<Integer> optionalIndices) {
+        java.util.List<CelMutableExpr> mutableExprList, java.util.List<Integer> optionalIndices) {
       return new CelMutableList(mutableExprList, optionalIndices);
     }
 
-    private CelMutableList(List<CelMutableExpr> mutableExprList, List<Integer> optionalIndices) {
+    private CelMutableList(
+        java.util.List<CelMutableExpr> mutableExprList, java.util.List<Integer> optionalIndices) {
       this.elements = new ArrayList<>(checkNotNull(mutableExprList));
       this.optionalIndices = new ArrayList<>(checkNotNull(optionalIndices));
     }
   }
 
-  /** A mutable list creation expression. See {@link Expression.CreateStruct} */
-  public static final class CelMutableStruct
-      implements Expression.CreateStruct<CelMutableStruct.Entry> {
+  /** A mutable list creation expression. See {@link Expression.Struct} */
+  public static final class CelMutableStruct implements Expression.Struct<CelMutableStruct.Entry> {
     private String messageName = "";
-    private List<CelMutableStruct.Entry> entries;
+    private java.util.List<CelMutableStruct.Entry> entries;
 
     @Override
     public String messageName() {
@@ -469,11 +469,11 @@ public final class CelMutableExpr implements Expression {
     }
 
     @Override
-    public List<CelMutableStruct.Entry> entries() {
+    public java.util.List<CelMutableStruct.Entry> entries() {
       return entries;
     }
 
-    public void setEntries(List<CelMutableStruct.Entry> entries) {
+    public void setEntries(java.util.List<CelMutableStruct.Entry> entries) {
       this.entries = checkNotNull(entries);
     }
 
@@ -483,7 +483,7 @@ public final class CelMutableExpr implements Expression {
     }
 
     /** Represents a mutable entry of the struct. */
-    public static final class Entry implements Expression.CreateStruct.Entry<CelMutableExpr> {
+    public static final class Entry implements Expression.Struct.Entry<CelMutableExpr> {
       private long id;
       private String fieldKey = "";
       private CelMutableExpr value;
@@ -607,26 +607,26 @@ public final class CelMutableExpr implements Expression {
     }
 
     public static CelMutableStruct create(
-        String messageName, List<CelMutableStruct.Entry> entries) {
+        String messageName, java.util.List<CelMutableStruct.Entry> entries) {
       return new CelMutableStruct(messageName, entries);
     }
 
-    private CelMutableStruct(String messageName, List<CelMutableStruct.Entry> entries) {
+    private CelMutableStruct(String messageName, java.util.List<CelMutableStruct.Entry> entries) {
       this.messageName = checkNotNull(messageName);
       this.entries = new ArrayList<>(checkNotNull(entries));
     }
   }
 
-  /** A mutable map creation expression. See {@link Expression.CreateMap} */
-  public static final class CelMutableMap implements Expression.CreateMap<CelMutableMap.Entry> {
-    private List<CelMutableMap.Entry> entries;
+  /** A mutable map creation expression. See {@link Expression.Map} */
+  public static final class CelMutableMap implements Expression.Map<CelMutableMap.Entry> {
+    private java.util.List<CelMutableMap.Entry> entries;
 
     @Override
-    public List<CelMutableMap.Entry> entries() {
+    public java.util.List<CelMutableMap.Entry> entries() {
       return entries;
     }
 
-    public void setEntries(List<CelMutableMap.Entry> entries) {
+    public void setEntries(java.util.List<CelMutableMap.Entry> entries) {
       this.entries = checkNotNull(entries);
     }
 
@@ -636,7 +636,7 @@ public final class CelMutableExpr implements Expression {
     }
 
     /** Represents an entry of the map */
-    public static final class Entry implements Expression.CreateMap.Entry<CelMutableExpr> {
+    public static final class Entry implements Expression.Map.Entry<CelMutableExpr> {
       private long id;
       private CelMutableExpr key;
       private CelMutableExpr value;
@@ -761,11 +761,11 @@ public final class CelMutableExpr implements Expression {
       return create(copiedEntries);
     }
 
-    public static CelMutableMap create(List<CelMutableMap.Entry> entries) {
+    public static CelMutableMap create(java.util.List<CelMutableMap.Entry> entries) {
       return new CelMutableMap(new ArrayList<>(entries));
     }
 
-    private CelMutableMap(List<CelMutableMap.Entry> entries) {
+    private CelMutableMap(java.util.List<CelMutableMap.Entry> entries) {
       this.entries = checkNotNull(entries);
     }
   }
@@ -1119,7 +1119,8 @@ public final class CelMutableExpr implements Expression {
     throw new IllegalStateException("Unexpected expr kind: " + this.exprKind);
   }
 
-  private static List<CelMutableExpr> deepCopyList(List<CelMutableExpr> elements) {
+  private static java.util.List<CelMutableExpr> deepCopyList(
+      java.util.List<CelMutableExpr> elements) {
     ArrayList<CelMutableExpr> copiedArgs = new ArrayList<>();
     for (CelMutableExpr arg : elements) {
       copiedArgs.add(newInstance(arg));

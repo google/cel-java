@@ -15,8 +15,8 @@
 package dev.cel.common.navigation;
 
 import dev.cel.common.ast.Expression;
+import dev.cel.common.ast.Expression.List;
 import dev.cel.common.navigation.ExprPropertyCalculator.ExprProperty;
-import java.util.List;
 import java.util.stream.Stream;
 
 /** Visitor implementation to navigate an AST. */
@@ -137,7 +137,7 @@ final class CelNavigableExprVisitor<E extends Expression, T extends BaseNavigabl
     visitExprList(call.args(), navigableExpr);
   }
 
-  private void visit(T navigableExpr, Expression.CreateList<E> createList) {
+  private void visit(T navigableExpr, List<E> createList) {
     visitExprList(createList.elements(), navigableExpr);
   }
 
@@ -154,15 +154,14 @@ final class CelNavigableExprVisitor<E extends Expression, T extends BaseNavigabl
     visit(newNavigableChild(navigableExpr, comprehension.result()));
   }
 
-  private void visitStruct(
-      T navigableExpr, Expression.CreateStruct<Expression.CreateStruct.Entry<E>> struct) {
-    for (Expression.CreateStruct.Entry<E> entry : struct.entries()) {
+  private void visitStruct(T navigableExpr, Expression.Struct<Expression.Struct.Entry<E>> struct) {
+    for (Expression.Struct.Entry<E> entry : struct.entries()) {
       visit(newNavigableChild(navigableExpr, entry.value()));
     }
   }
 
-  private void visitMap(T navigableExpr, Expression.CreateMap<Expression.CreateMap.Entry<E>> map) {
-    for (Expression.CreateMap.Entry<E> entry : map.entries()) {
+  private void visitMap(T navigableExpr, Expression.Map<Expression.Map.Entry<E>> map) {
+    for (Expression.Map.Entry<E> entry : map.entries()) {
       T key = newNavigableChild(navigableExpr, entry.key());
       visit(key);
 
@@ -171,7 +170,7 @@ final class CelNavigableExprVisitor<E extends Expression, T extends BaseNavigabl
     }
   }
 
-  private void visitExprList(List<E> createListExpr, T parent) {
+  private void visitExprList(java.util.List<E> createListExpr, T parent) {
     for (E expr : createListExpr) {
       visit(newNavigableChild(parent, expr));
     }

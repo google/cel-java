@@ -15,7 +15,6 @@
 package dev.cel.common.ast;
 
 import dev.cel.common.annotations.Internal;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -55,16 +54,16 @@ public interface Expression {
   <E extends Expression> Call<E> call();
 
   /** Gets the underlying identifier expression. */
-  <E extends Expression> CreateList<E> createList();
+  <E extends Expression> List<E> createList();
 
   /** Gets the underlying select expression. */
   <E extends Expression> Select<E> select();
 
   /** Gets the underlying createStruct expression. */
-  <E extends Expression> CreateStruct<CreateStruct.Entry<E>> createStruct();
+  <E extends Expression> Struct<Struct.Entry<E>> createStruct();
 
   /** Gets the underlying createMap expression. */
-  <E extends Expression> CreateMap<CreateMap.Entry<E>> createMap();
+  <E extends Expression> Map<Map.Entry<E>> createMap();
 
   /** Gets the underlying comprehension expression. */
   <E extends Expression> Comprehension<E> comprehension();
@@ -97,7 +96,7 @@ public interface Expression {
      *
      * <p>For example, `foo` in `f(foo)` or `x.f(foo)`.
      */
-    List<E> args();
+    java.util.List<E> args();
   }
 
   /**
@@ -106,10 +105,10 @@ public interface Expression {
    * <p>Lists may either be homogenous, e.g. `[1, 2, 3]`, or heterogeneous, e.g. `dyn([1, 'hello',
    * 2.0])`
    */
-  interface CreateList<E extends Expression> {
+  interface List<E extends Expression> {
 
     /** The elements part of the list */
-    List<E> elements();
+    java.util.List<E> elements();
 
     /**
      * The indices within the elements list which are marked as optional elements.
@@ -117,7 +116,7 @@ public interface Expression {
      * <p>When an optional-typed value is present, the value it contains is included in the list. If
      * the optional-typed value is absent, the list element is omitted from the CreateList result.
      */
-    List<Integer> optionalIndices();
+    java.util.List<Integer> optionalIndices();
   }
 
   /** A field selection expression. e.g. `request.auth`. */
@@ -152,13 +151,13 @@ public interface Expression {
    * <p>Messages are constructed with a type name and composed of field ids: `types.MyType{field_id:
    * 'value'}`.
    */
-  interface CreateStruct<E extends Expression.CreateStruct.Entry<?>> {
+  interface Struct<E extends Expression.Struct.Entry<?>> {
 
     /** The type name of the message to be created, empty when creating map literals. */
     String messageName();
 
     /** The entries in the creation expression. */
-    List<E> entries();
+    java.util.List<E> entries();
 
     /** Represents an entry of the struct */
     interface Entry<T extends Expression> {
@@ -190,9 +189,9 @@ public interface Expression {
    *
    * <p>Maps are constructed as `{'key_name': 'value'}`.
    */
-  interface CreateMap<E extends Expression.CreateMap.Entry<?>> {
+  interface Map<E extends Expression.Map.Entry<?>> {
 
-    List<E> entries();
+    java.util.List<E> entries();
 
     /** Represents an entry of the map. */
     interface Entry<T extends Expression> {

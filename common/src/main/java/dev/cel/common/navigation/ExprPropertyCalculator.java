@@ -18,10 +18,10 @@ import static java.lang.Math.max;
 
 import com.google.auto.value.AutoValue;
 import dev.cel.common.ast.Expression;
-import dev.cel.common.ast.Expression.CreateMap;
-import dev.cel.common.ast.Expression.CreateStruct;
+import dev.cel.common.ast.Expression.List;
+import dev.cel.common.ast.Expression.Map;
+import dev.cel.common.ast.Expression.Struct;
 import java.util.HashMap;
-import java.util.List;
 
 /** Package-private class to assist computing the height and the max ID of expression nodes. */
 final class ExprPropertyCalculator<E extends Expression> {
@@ -94,7 +94,7 @@ final class ExprPropertyCalculator<E extends Expression> {
     return ExprProperty.merge(visitedArgument, visitedTarget);
   }
 
-  private ExprProperty visit(Expression.CreateList<E> createList) {
+  private ExprProperty visit(List<E> createList) {
     return visitExprList(createList.elements());
   }
 
@@ -112,24 +112,24 @@ final class ExprPropertyCalculator<E extends Expression> {
     return visitedProperty;
   }
 
-  private ExprProperty visitStruct(Expression.CreateStruct<CreateStruct.Entry<E>> struct) {
+  private ExprProperty visitStruct(Expression.Struct<Struct.Entry<E>> struct) {
     ExprProperty visitedProperty = ExprProperty.create(0, 0);
-    for (CreateStruct.Entry<E> entry : struct.entries()) {
+    for (Struct.Entry<E> entry : struct.entries()) {
       visitedProperty = ExprProperty.merge(visitedProperty, visit(entry.value()));
     }
     return visitedProperty;
   }
 
-  private ExprProperty visitMap(Expression.CreateMap<CreateMap.Entry<E>> map) {
+  private ExprProperty visitMap(Expression.Map<Map.Entry<E>> map) {
     ExprProperty visitedProperty = ExprProperty.create(0, 0);
-    for (CreateMap.Entry<E> entry : map.entries()) {
+    for (Map.Entry<E> entry : map.entries()) {
       visitedProperty = ExprProperty.merge(visitedProperty, visit(entry.key()));
       visitedProperty = ExprProperty.merge(visitedProperty, visit(entry.value()));
     }
     return visitedProperty;
   }
 
-  private ExprProperty visitExprList(List<E> createListExpr) {
+  private ExprProperty visitExprList(java.util.List<E> createListExpr) {
     ExprProperty visitedProperty = ExprProperty.create(0, 0);
     for (E expr : createListExpr) {
       visitedProperty = ExprProperty.merge(visitedProperty, visit(expr));

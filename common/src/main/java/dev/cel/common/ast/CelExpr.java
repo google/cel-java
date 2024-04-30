@@ -27,7 +27,6 @@ import com.google.errorprone.annotations.InlineMe;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -508,7 +507,7 @@ public abstract class CelExpr implements Expression {
     /** Builder for CelCall. */
     @AutoValue.Builder
     public abstract static class Builder {
-      private List<CelExpr> mutableArgs = new ArrayList<>();
+      private java.util.List<CelExpr> mutableArgs = new ArrayList<>();
 
       // Not public. This only exists to make AutoValue.Builder work.
       abstract ImmutableList<CelExpr> args();
@@ -588,10 +587,10 @@ public abstract class CelExpr implements Expression {
     }
   }
 
-  /** A list creation expression. See {@link Expression.CreateList} */
+  /** A list creation expression. See {@link List} */
   @AutoValue
   @Immutable
-  public abstract static class CelList implements Expression.CreateList<CelExpr> {
+  public abstract static class CelList implements List<CelExpr> {
     @Override
     public abstract ImmutableList<CelExpr> elements();
 
@@ -601,7 +600,7 @@ public abstract class CelExpr implements Expression {
     /** Builder for CelList. */
     @AutoValue.Builder
     public abstract static class Builder {
-      private List<CelExpr> mutableElements = new ArrayList<>();
+      private java.util.List<CelExpr> mutableElements = new ArrayList<>();
 
       // Not public. This only exists to make AutoValue.Builder work.
       abstract ImmutableList<CelExpr> elements();
@@ -680,10 +679,10 @@ public abstract class CelExpr implements Expression {
     }
   }
 
-  /** A message creation expression. See {@link Expression.CreateStruct} */
+  /** A message creation expression. See {@link Expression.Struct} */
   @AutoValue
   @Immutable
-  public abstract static class CelStruct implements Expression.CreateStruct<CelStruct.Entry> {
+  public abstract static class CelStruct implements Expression.Struct<CelStruct.Entry> {
     @Override
     public abstract String messageName();
 
@@ -693,7 +692,7 @@ public abstract class CelExpr implements Expression {
     /** Builder for CelStruct. */
     @AutoValue.Builder
     public abstract static class Builder {
-      private List<CelStruct.Entry> mutableEntries = new ArrayList<>();
+      private java.util.List<CelStruct.Entry> mutableEntries = new ArrayList<>();
 
       // Not public. This only exists to make AutoValue.Builder work.
       abstract ImmutableList<CelStruct.Entry> entries();
@@ -761,7 +760,7 @@ public abstract class CelExpr implements Expression {
     /** Represents an entry of the struct */
     @AutoValue
     @Immutable
-    public abstract static class Entry implements Expression.CreateStruct.Entry<CelExpr> {
+    public abstract static class Entry implements Expression.Struct.Entry<CelExpr> {
 
       @Override
       public abstract long id();
@@ -803,10 +802,10 @@ public abstract class CelExpr implements Expression {
     }
   }
 
-  /** A map creation expression. See {@link Expression.CreateMap} */
+  /** A map creation expression. See {@link Expression.Map} */
   @AutoValue
   @Immutable
-  public abstract static class CelMap implements Expression.CreateMap<CelMap.Entry> {
+  public abstract static class CelMap implements Expression.Map<CelMap.Entry> {
     /** The entries in the creation expression. */
     @Override
     public abstract ImmutableList<CelMap.Entry> entries();
@@ -815,7 +814,7 @@ public abstract class CelExpr implements Expression {
     @AutoValue.Builder
     public abstract static class Builder {
 
-      private List<CelMap.Entry> mutableEntries = new ArrayList<>();
+      private java.util.List<CelMap.Entry> mutableEntries = new ArrayList<>();
 
       // Not public. This only exists to make AutoValue.Builder work.
       abstract ImmutableList<CelMap.Entry> entries();
@@ -880,7 +879,7 @@ public abstract class CelExpr implements Expression {
     /** Represents an entry of the map. */
     @AutoValue
     @Immutable
-    public abstract static class Entry implements Expression.CreateMap.Entry<CelExpr> {
+    public abstract static class Entry implements Expression.Map.Entry<CelExpr> {
 
       @Override
       public abstract long id();
