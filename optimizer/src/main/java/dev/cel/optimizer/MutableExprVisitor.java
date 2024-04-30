@@ -21,10 +21,10 @@ import dev.cel.common.ast.CelExprIdGeneratorFactory.ExprIdGenerator;
 import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
 import dev.cel.common.ast.CelMutableExpr.CelMutableComprehension;
-import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
-import dev.cel.common.ast.CelMutableExpr.CelMutableCreateMap;
-import dev.cel.common.ast.CelMutableExpr.CelMutableCreateStruct;
+import dev.cel.common.ast.CelMutableExpr.CelMutableList;
+import dev.cel.common.ast.CelMutableExpr.CelMutableMap;
 import dev.cel.common.ast.CelMutableExpr.CelMutableSelect;
+import dev.cel.common.ast.CelMutableExpr.CelMutableStruct;
 import java.util.List;
 
 /**
@@ -107,9 +107,9 @@ final class MutableExprVisitor {
   }
 
   @CanIgnoreReturnValue
-  private CelMutableExpr visit(CelMutableExpr expr, CelMutableCreateStruct createStruct) {
-    List<CelMutableCreateStruct.Entry> entries = createStruct.entries();
-    for (CelMutableCreateStruct.Entry entry : entries) {
+  private CelMutableExpr visit(CelMutableExpr expr, CelMutableStruct createStruct) {
+    List<CelMutableStruct.Entry> entries = createStruct.entries();
+    for (CelMutableStruct.Entry entry : entries) {
       entry.setId(celExprIdGenerator.generate(entry.id()));
       entry.setValue(visit(entry.value()));
     }
@@ -118,9 +118,9 @@ final class MutableExprVisitor {
   }
 
   @CanIgnoreReturnValue
-  private CelMutableExpr visit(CelMutableExpr expr, CelMutableCreateMap createMap) {
-    List<CelMutableCreateMap.Entry> entriesBuilders = createMap.entries();
-    for (CelMutableCreateMap.Entry entry : entriesBuilders) {
+  private CelMutableExpr visit(CelMutableExpr expr, CelMutableMap createMap) {
+    List<CelMutableMap.Entry> entriesBuilders = createMap.entries();
+    for (CelMutableMap.Entry entry : entriesBuilders) {
       entry.setId(celExprIdGenerator.generate(entry.id()));
       entry.setKey(visit(entry.key()));
       entry.setValue(visit(entry.value()));
@@ -130,7 +130,7 @@ final class MutableExprVisitor {
   }
 
   @CanIgnoreReturnValue
-  private CelMutableExpr visit(CelMutableExpr expr, CelMutableCreateList createList) {
+  private CelMutableExpr visit(CelMutableExpr expr, CelMutableList createList) {
     List<CelMutableExpr> elementsBuilders = createList.elements();
     for (int i = 0; i < elementsBuilders.size(); i++) {
       CelMutableExpr elem = elementsBuilders.get(i);

@@ -27,10 +27,10 @@ import dev.cel.common.ast.CelExpr.CelList;
 import dev.cel.common.ast.CelExpr.CelStruct;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
 import dev.cel.common.ast.CelMutableExpr.CelMutableComprehension;
-import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
-import dev.cel.common.ast.CelMutableExpr.CelMutableCreateMap;
-import dev.cel.common.ast.CelMutableExpr.CelMutableCreateStruct;
+import dev.cel.common.ast.CelMutableExpr.CelMutableList;
+import dev.cel.common.ast.CelMutableExpr.CelMutableMap;
 import dev.cel.common.ast.CelMutableExpr.CelMutableSelect;
+import dev.cel.common.ast.CelMutableExpr.CelMutableStruct;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -203,7 +203,7 @@ public class CelMutableExprConverterTest {
     CelMutableExpr mutableExpr =
         CelMutableExpr.ofCreateList(
             1L,
-            CelMutableCreateList.create(
+            CelMutableList.create(
                 ImmutableList.of(
                     CelMutableExpr.ofConstant(2L, CelConstant.ofValue("element1")),
                     CelMutableExpr.ofConstant(3L, CelConstant.ofValue("element2"))),
@@ -237,7 +237,7 @@ public class CelMutableExprConverterTest {
         .isEqualTo(
             CelMutableExpr.ofCreateList(
                 1L,
-                CelMutableCreateList.create(
+                CelMutableList.create(
                     ImmutableList.of(
                         CelMutableExpr.ofConstant(2L, CelConstant.ofValue("element1")),
                         CelMutableExpr.ofConstant(3L, CelConstant.ofValue("element2"))),
@@ -249,10 +249,10 @@ public class CelMutableExprConverterTest {
     CelMutableExpr mutableExpr =
         CelMutableExpr.ofCreateStruct(
             8L,
-            CelMutableCreateStruct.create(
+            CelMutableStruct.create(
                 "message",
                 ImmutableList.of(
-                    CelMutableCreateStruct.Entry.create(
+                    CelMutableStruct.Entry.create(
                         9L,
                         "field",
                         CelMutableExpr.ofConstant(10L, CelConstant.ofValue("value")),
@@ -294,10 +294,10 @@ public class CelMutableExprConverterTest {
         .isEqualTo(
             CelMutableExpr.ofCreateStruct(
                 8L,
-                CelMutableCreateStruct.create(
+                CelMutableStruct.create(
                     "message",
                     ImmutableList.of(
-                        CelMutableCreateStruct.Entry.create(
+                        CelMutableStruct.Entry.create(
                             9L,
                             "field",
                             CelMutableExpr.ofConstant(10L, CelConstant.ofValue("value")),
@@ -309,9 +309,9 @@ public class CelMutableExprConverterTest {
     CelMutableExpr mutableExpr =
         CelMutableExpr.ofCreateMap(
             9L,
-            CelMutableCreateMap.create(
+            CelMutableMap.create(
                 ImmutableList.of(
-                    CelMutableCreateMap.Entry.create(
+                    CelMutableMap.Entry.create(
                         10L,
                         CelMutableExpr.ofConstant(11L, CelConstant.ofValue("key")),
                         CelMutableExpr.ofConstant(12L, CelConstant.ofValue("value")),
@@ -349,9 +349,9 @@ public class CelMutableExprConverterTest {
         .isEqualTo(
             CelMutableExpr.ofCreateMap(
                 9L,
-                CelMutableCreateMap.create(
+                CelMutableMap.create(
                     ImmutableList.of(
-                        CelMutableCreateMap.Entry.create(
+                        CelMutableMap.Entry.create(
                             10L,
                             CelMutableExpr.ofConstant(11L, CelConstant.ofValue("key")),
                             CelMutableExpr.ofConstant(12L, CelConstant.ofValue("value")),
@@ -367,7 +367,7 @@ public class CelMutableExprConverterTest {
                 "iterVar",
                 CelMutableExpr.ofCreateList(
                     2L,
-                    CelMutableCreateList.create(
+                    CelMutableList.create(
                         CelMutableExpr.ofConstant(3L, CelConstant.ofValue(true)))),
                 "accuVar",
                 CelMutableExpr.ofConstant(4L, CelConstant.ofValue(true)),
@@ -425,7 +425,7 @@ public class CelMutableExprConverterTest {
                     "iterVar",
                     CelMutableExpr.ofCreateList(
                         2L,
-                        CelMutableCreateList.create(
+                        CelMutableList.create(
                             CelMutableExpr.ofConstant(3L, CelConstant.ofValue(true)))),
                     "accuVar",
                     CelMutableExpr.ofConstant(4L, CelConstant.ofValue(true)),

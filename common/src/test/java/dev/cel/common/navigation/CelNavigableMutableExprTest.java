@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelMutableExpr;
-import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
+import dev.cel.common.ast.CelMutableExpr.CelMutableList;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -81,10 +81,10 @@ public class CelNavigableMutableExprTest {
     CelNavigableMutableExpr mutableExpr =
         CelNavigableMutableExpr.fromExpr(
             CelMutableExpr.ofCreateList(
-                CelMutableCreateList.create(
+                CelMutableList.create(
                     CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
                     CelMutableExpr.ofCreateList(
-                        CelMutableCreateList.create(
+                        CelMutableList.create(
                             CelMutableExpr.ofConstant(CelConstant.ofValue("element2")))))));
 
     ImmutableList<CelMutableExpr> allNodes =
@@ -106,10 +106,10 @@ public class CelNavigableMutableExprTest {
     CelNavigableMutableExpr mutableExpr =
         CelNavigableMutableExpr.fromExpr(
             CelMutableExpr.ofCreateList(
-                CelMutableCreateList.create(
+                CelMutableList.create(
                     CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
                     CelMutableExpr.ofCreateList(
-                        CelMutableCreateList.create(
+                        CelMutableList.create(
                             CelMutableExpr.ofConstant(CelConstant.ofValue("element2")))))));
 
     ImmutableList<CelMutableExpr> allNodes =
@@ -131,10 +131,10 @@ public class CelNavigableMutableExprTest {
     CelNavigableMutableExpr mutableExpr =
         CelNavigableMutableExpr.fromExpr(
             CelMutableExpr.ofCreateList(
-                CelMutableCreateList.create(
+                CelMutableList.create(
                     CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
                     CelMutableExpr.ofCreateList(
-                        CelMutableCreateList.create(
+                        CelMutableList.create(
                             CelMutableExpr.ofConstant(CelConstant.ofValue("element2")))))));
 
     ImmutableList<CelMutableExpr> allNodes =

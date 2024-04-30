@@ -36,7 +36,7 @@ import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
-import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
+import dev.cel.common.ast.CelMutableExpr.CelMutableList;
 import dev.cel.common.ast.CelMutableExpr.CelMutableSelect;
 import dev.cel.common.ast.CelMutableExprConverter;
 import dev.cel.common.navigation.CelNavigableAst;
@@ -491,8 +491,7 @@ public class AstMutatorTest {
             .replaceSubtree(
                 mutableAst,
                 CelMutableExpr.ofCreateList(
-                    CelMutableCreateList.create(
-                        CelMutableExpr.ofConstant(CelConstant.ofValue(2L)))),
+                    CelMutableList.create(CelMutableExpr.ofConstant(CelConstant.ofValue(2L)))),
                 9L)
             .toParsedAst();
     CelAbstractSyntaxTree mutatedAstWithConstant =

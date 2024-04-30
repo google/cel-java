@@ -27,9 +27,9 @@ import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelExprUtil;
 import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
-import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
-import dev.cel.common.ast.CelMutableExpr.CelMutableCreateMap;
-import dev.cel.common.ast.CelMutableExpr.CelMutableCreateStruct;
+import dev.cel.common.ast.CelMutableExpr.CelMutableList;
+import dev.cel.common.ast.CelMutableExpr.CelMutableMap;
+import dev.cel.common.ast.CelMutableExpr.CelMutableStruct;
 import dev.cel.common.ast.CelMutableExprConverter;
 import dev.cel.common.navigation.CelNavigableMutableAst;
 import dev.cel.common.navigation.CelNavigableMutableExpr;
@@ -258,10 +258,10 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
         listElements.add(adaptedExpr);
       }
 
-      return Optional.of(CelMutableExpr.ofCreateList(CelMutableCreateList.create(listElements)));
+      return Optional.of(CelMutableExpr.ofCreateList(CelMutableList.create(listElements)));
     } else if (result instanceof Map<?, ?>) {
       Map<?, ?> map = (Map<?, ?>) result;
-      List<CelMutableCreateMap.Entry> mapEntries = new ArrayList<>();
+      List<CelMutableMap.Entry> mapEntries = new ArrayList<>();
       for (Entry<?, ?> entry : map.entrySet()) {
         CelMutableExpr adaptedKey = maybeAdaptEvaluatedResult(entry.getKey()).orElse(null);
         if (adaptedKey == null) {
@@ -272,10 +272,10 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
           return Optional.empty();
         }
 
-        mapEntries.add(CelMutableCreateMap.Entry.create(adaptedKey, adaptedValue));
+        mapEntries.add(CelMutableMap.Entry.create(adaptedKey, adaptedValue));
       }
 
-      return Optional.of(CelMutableExpr.ofCreateMap(CelMutableCreateMap.create(mapEntries)));
+      return Optional.of(CelMutableExpr.ofCreateMap(CelMutableMap.create(mapEntries)));
     }
 
     // Evaluated result cannot be folded (e.g: unknowns)
@@ -339,7 +339,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
         return Optional.empty();
       }
 
-      CelMutableCreateList haystack = callArg.createList();
+      CelMutableList haystack = callArg.createList();
       if (haystack.elements().isEmpty()) {
         return Optional.of(
             astMutator.replaceSubtree(
@@ -438,7 +438,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   }
 
   private CelMutableAst pruneOptionalListElements(CelMutableAst mutableAst, CelMutableExpr expr) {
-    CelMutableCreateList createList = expr.createList();
+    CelMutableList createList = expr.createList();
     if (createList.optionalIndices().isEmpty()) {
       return mutableAst;
     }
@@ -478,16 +478,15 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
     return astMutator.replaceSubtree(
         mutableAst,
         CelMutableExpr.ofCreateList(
-            CelMutableCreateList.create(updatedElemBuilder.build(), updatedIndicesBuilder.build())),
+            CelMutableList.create(updatedElemBuilder.build(), updatedIndicesBuilder.build())),
         expr.id());
   }
 
   private CelMutableAst pruneOptionalMapElements(CelMutableAst ast, CelMutableExpr expr) {
-    CelMutableCreateMap createMap = expr.createMap();
-    ImmutableList.Builder<CelMutableCreateMap.Entry> updatedEntryBuilder =
-        new ImmutableList.Builder<>();
+    CelMutableMap createMap = expr.createMap();
+    ImmutableList.Builder<CelMutableMap.Entry> updatedEntryBuilder = new ImmutableList.Builder<>();
     boolean modified = false;
-    for (CelMutableCreateMap.Entry entry : createMap.entries()) {
+    for (CelMutableMap.Entry entry : createMap.entries()) {
       CelMutableExpr key = entry.key();
       Kind keyKind = key.getKind();
       CelMutableExpr value = entry.value();
@@ -521,7 +520,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
     if (modified) {
       return astMutator.replaceSubtree(
           ast,
-          CelMutableExpr.ofCreateMap(CelMutableCreateMap.create(updatedEntryBuilder.build())),
+          CelMutableExpr.ofCreateMap(CelMutableMap.create(updatedEntryBuilder.build())),
           expr.id());
     }
 
@@ -529,11 +528,11 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   }
 
   private CelMutableAst pruneOptionalStructElements(CelMutableAst ast, CelMutableExpr expr) {
-    CelMutableCreateStruct createStruct = expr.createStruct();
-    ImmutableList.Builder<CelMutableCreateStruct.Entry> updatedEntryBuilder =
+    CelMutableStruct createStruct = expr.createStruct();
+    ImmutableList.Builder<CelMutableStruct.Entry> updatedEntryBuilder =
         new ImmutableList.Builder<>();
     boolean modified = false;
-    for (CelMutableCreateStruct.Entry entry : createStruct.entries()) {
+    for (CelMutableStruct.Entry entry : createStruct.entries()) {
       CelMutableExpr value = entry.value();
       Kind valueKind = value.getKind();
       if (!entry.optionalEntry() || !valueKind.equals(Kind.CALL)) {
@@ -565,8 +564,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       return astMutator.replaceSubtree(
           ast,
           CelMutableExpr.ofCreateStruct(
-              CelMutableCreateStruct.create(
-                  createStruct.messageName(), updatedEntryBuilder.build())),
+              CelMutableStruct.create(createStruct.messageName(), updatedEntryBuilder.build())),
           expr.id());
     }
 

@@ -86,21 +86,21 @@ public final class CelMutableExpr implements Expression {
   }
 
   @Override
-  public CelMutableCreateList createList() {
+  public CelMutableList createList() {
     checkExprKind(Kind.LIST);
-    return (CelMutableCreateList) exprValue;
+    return (CelMutableList) exprValue;
   }
 
   @Override
-  public CelMutableCreateStruct createStruct() {
+  public CelMutableStruct createStruct() {
     checkExprKind(Kind.STRUCT);
-    return (CelMutableCreateStruct) exprValue;
+    return (CelMutableStruct) exprValue;
   }
 
   @Override
-  public CelMutableCreateMap createMap() {
+  public CelMutableMap createMap() {
     checkExprKind(Kind.MAP);
-    return (CelMutableCreateMap) exprValue;
+    return (CelMutableMap) exprValue;
   }
 
   @Override
@@ -129,17 +129,17 @@ public final class CelMutableExpr implements Expression {
     this.exprValue = checkNotNull(call);
   }
 
-  public void setCreateList(CelMutableCreateList createList) {
+  public void setCreateList(CelMutableList createList) {
     this.exprKind = ExprKind.Kind.LIST;
     this.exprValue = checkNotNull(createList);
   }
 
-  public void setCreateStruct(CelMutableCreateStruct createStruct) {
+  public void setCreateStruct(CelMutableStruct createStruct) {
     this.exprKind = ExprKind.Kind.STRUCT;
     this.exprValue = checkNotNull(createStruct);
   }
 
-  public void setCreateMap(CelMutableCreateMap createMap) {
+  public void setCreateMap(CelMutableMap createMap) {
     this.exprKind = ExprKind.Kind.MAP;
     this.exprValue = checkNotNull(createMap);
   }
@@ -386,7 +386,7 @@ public final class CelMutableExpr implements Expression {
   }
 
   /** A mutable list creation expression. See {@link Expression.CreateList} */
-  public static final class CelMutableCreateList implements Expression.CreateList<CelMutableExpr> {
+  public static final class CelMutableList implements Expression.CreateList<CelMutableExpr> {
     private final List<CelMutableExpr> elements;
     private final List<Integer> optionalIndices;
 
@@ -410,8 +410,8 @@ public final class CelMutableExpr implements Expression {
       if (obj == this) {
         return true;
       }
-      if (obj instanceof CelMutableCreateList) {
-        CelMutableCreateList that = (CelMutableCreateList) obj;
+      if (obj instanceof CelMutableList) {
+        CelMutableList that = (CelMutableList) obj;
         return this.elements.equals(that.elements())
             && this.optionalIndices.equals(that.optionalIndices());
       }
@@ -430,35 +430,34 @@ public final class CelMutableExpr implements Expression {
       return h;
     }
 
-    private CelMutableCreateList deepCopy() {
+    private CelMutableList deepCopy() {
       return create(deepCopyList(elements), optionalIndices);
     }
 
-    public static CelMutableCreateList create(CelMutableExpr... elements) {
+    public static CelMutableList create(CelMutableExpr... elements) {
       return create(Arrays.asList(checkNotNull(elements)));
     }
 
-    public static CelMutableCreateList create(List<CelMutableExpr> elements) {
+    public static CelMutableList create(List<CelMutableExpr> elements) {
       return create(elements, new ArrayList<>());
     }
 
-    public static CelMutableCreateList create(
+    public static CelMutableList create(
         List<CelMutableExpr> mutableExprList, List<Integer> optionalIndices) {
-      return new CelMutableCreateList(mutableExprList, optionalIndices);
+      return new CelMutableList(mutableExprList, optionalIndices);
     }
 
-    private CelMutableCreateList(
-        List<CelMutableExpr> mutableExprList, List<Integer> optionalIndices) {
+    private CelMutableList(List<CelMutableExpr> mutableExprList, List<Integer> optionalIndices) {
       this.elements = new ArrayList<>(checkNotNull(mutableExprList));
       this.optionalIndices = new ArrayList<>(checkNotNull(optionalIndices));
     }
   }
 
   /** A mutable list creation expression. See {@link Expression.CreateStruct} */
-  public static final class CelMutableCreateStruct
-      implements Expression.CreateStruct<CelMutableCreateStruct.Entry> {
+  public static final class CelMutableStruct
+      implements Expression.CreateStruct<CelMutableStruct.Entry> {
     private String messageName = "";
-    private List<CelMutableCreateStruct.Entry> entries;
+    private List<CelMutableStruct.Entry> entries;
 
     @Override
     public String messageName() {
@@ -470,15 +469,15 @@ public final class CelMutableExpr implements Expression {
     }
 
     @Override
-    public List<CelMutableCreateStruct.Entry> entries() {
+    public List<CelMutableStruct.Entry> entries() {
       return entries;
     }
 
-    public void setEntries(List<CelMutableCreateStruct.Entry> entries) {
+    public void setEntries(List<CelMutableStruct.Entry> entries) {
       this.entries = checkNotNull(entries);
     }
 
-    public void setEntry(int index, CelMutableCreateStruct.Entry entry) {
+    public void setEntry(int index, CelMutableStruct.Entry entry) {
       checkArgument(index >= 0 && index < entries().size());
       entries.set(index, checkNotNull(entry));
     }
@@ -581,8 +580,8 @@ public final class CelMutableExpr implements Expression {
       if (obj == this) {
         return true;
       }
-      if (obj instanceof CelMutableCreateStruct) {
-        CelMutableCreateStruct that = (CelMutableCreateStruct) obj;
+      if (obj instanceof CelMutableStruct) {
+        CelMutableStruct that = (CelMutableStruct) obj;
         return this.messageName.equals(that.messageName()) && this.entries.equals(that.entries());
       }
       return false;
@@ -598,41 +597,40 @@ public final class CelMutableExpr implements Expression {
       return h;
     }
 
-    private CelMutableCreateStruct deepCopy() {
-      ArrayList<CelMutableCreateStruct.Entry> copiedEntries = new ArrayList<>();
-      for (CelMutableCreateStruct.Entry entry : entries) {
+    private CelMutableStruct deepCopy() {
+      ArrayList<CelMutableStruct.Entry> copiedEntries = new ArrayList<>();
+      for (CelMutableStruct.Entry entry : entries) {
         copiedEntries.add(entry.deepCopy());
       }
 
       return create(messageName, copiedEntries);
     }
 
-    public static CelMutableCreateStruct create(
-        String messageName, List<CelMutableCreateStruct.Entry> entries) {
-      return new CelMutableCreateStruct(messageName, entries);
+    public static CelMutableStruct create(
+        String messageName, List<CelMutableStruct.Entry> entries) {
+      return new CelMutableStruct(messageName, entries);
     }
 
-    private CelMutableCreateStruct(String messageName, List<CelMutableCreateStruct.Entry> entries) {
+    private CelMutableStruct(String messageName, List<CelMutableStruct.Entry> entries) {
       this.messageName = checkNotNull(messageName);
       this.entries = new ArrayList<>(checkNotNull(entries));
     }
   }
 
   /** A mutable map creation expression. See {@link Expression.CreateMap} */
-  public static final class CelMutableCreateMap
-      implements Expression.CreateMap<CelMutableCreateMap.Entry> {
-    private List<CelMutableCreateMap.Entry> entries;
+  public static final class CelMutableMap implements Expression.CreateMap<CelMutableMap.Entry> {
+    private List<CelMutableMap.Entry> entries;
 
     @Override
-    public List<CelMutableCreateMap.Entry> entries() {
+    public List<CelMutableMap.Entry> entries() {
       return entries;
     }
 
-    public void setEntries(List<CelMutableCreateMap.Entry> entries) {
+    public void setEntries(List<CelMutableMap.Entry> entries) {
       this.entries = checkNotNull(entries);
     }
 
-    public void setEntry(int index, CelMutableCreateMap.Entry entry) {
+    public void setEntry(int index, CelMutableMap.Entry entry) {
       checkArgument(index >= 0 && index < entries().size());
       entries.set(index, checkNotNull(entry));
     }
@@ -739,8 +737,8 @@ public final class CelMutableExpr implements Expression {
       if (obj == this) {
         return true;
       }
-      if (obj instanceof CelMutableCreateMap) {
-        CelMutableCreateMap that = (CelMutableCreateMap) obj;
+      if (obj instanceof CelMutableMap) {
+        CelMutableMap that = (CelMutableMap) obj;
         return this.entries.equals(that.entries());
       }
       return false;
@@ -754,20 +752,20 @@ public final class CelMutableExpr implements Expression {
       return h;
     }
 
-    private CelMutableCreateMap deepCopy() {
-      ArrayList<CelMutableCreateMap.Entry> copiedEntries = new ArrayList<>();
-      for (CelMutableCreateMap.Entry entry : entries) {
+    private CelMutableMap deepCopy() {
+      ArrayList<CelMutableMap.Entry> copiedEntries = new ArrayList<>();
+      for (CelMutableMap.Entry entry : entries) {
         copiedEntries.add(entry.deepCopy());
       }
 
       return create(copiedEntries);
     }
 
-    public static CelMutableCreateMap create(List<CelMutableCreateMap.Entry> entries) {
-      return new CelMutableCreateMap(new ArrayList<>(entries));
+    public static CelMutableMap create(List<CelMutableMap.Entry> entries) {
+      return new CelMutableMap(new ArrayList<>(entries));
     }
 
-    private CelMutableCreateMap(List<CelMutableCreateMap.Entry> entries) {
+    private CelMutableMap(List<CelMutableMap.Entry> entries) {
       this.entries = checkNotNull(entries);
     }
   }
@@ -975,27 +973,27 @@ public final class CelMutableExpr implements Expression {
     return new CelMutableExpr(id, mutableCall);
   }
 
-  public static CelMutableExpr ofCreateList(CelMutableCreateList mutableCreateList) {
+  public static CelMutableExpr ofCreateList(CelMutableList mutableCreateList) {
     return ofCreateList(0, mutableCreateList);
   }
 
-  public static CelMutableExpr ofCreateList(long id, CelMutableCreateList mutableCreateList) {
+  public static CelMutableExpr ofCreateList(long id, CelMutableList mutableCreateList) {
     return new CelMutableExpr(id, mutableCreateList);
   }
 
-  public static CelMutableExpr ofCreateStruct(CelMutableCreateStruct mutableCreateStruct) {
+  public static CelMutableExpr ofCreateStruct(CelMutableStruct mutableCreateStruct) {
     return ofCreateStruct(0, mutableCreateStruct);
   }
 
-  public static CelMutableExpr ofCreateStruct(long id, CelMutableCreateStruct mutableCreateStruct) {
+  public static CelMutableExpr ofCreateStruct(long id, CelMutableStruct mutableCreateStruct) {
     return new CelMutableExpr(id, mutableCreateStruct);
   }
 
-  public static CelMutableExpr ofCreateMap(CelMutableCreateMap mutableCreateMap) {
+  public static CelMutableExpr ofCreateMap(CelMutableMap mutableCreateMap) {
     return ofCreateMap(0, mutableCreateMap);
   }
 
-  public static CelMutableExpr ofCreateMap(long id, CelMutableCreateMap mutableCreateMap) {
+  public static CelMutableExpr ofCreateMap(long id, CelMutableMap mutableCreateMap) {
     return new CelMutableExpr(id, mutableCreateMap);
   }
 
@@ -1029,17 +1027,17 @@ public final class CelMutableExpr implements Expression {
     setCall(mutableCall);
   }
 
-  private CelMutableExpr(long id, CelMutableCreateList mutableCreateList) {
+  private CelMutableExpr(long id, CelMutableList mutableCreateList) {
     this.id = id;
     setCreateList(mutableCreateList);
   }
 
-  private CelMutableExpr(long id, CelMutableCreateStruct mutableCreateStruct) {
+  private CelMutableExpr(long id, CelMutableStruct mutableCreateStruct) {
     this.id = id;
     setCreateStruct(mutableCreateStruct);
   }
 
-  private CelMutableExpr(long id, CelMutableCreateMap mutableCreateMap) {
+  private CelMutableExpr(long id, CelMutableMap mutableCreateMap) {
     this.id = id;
     setCreateMap(mutableCreateMap);
   }

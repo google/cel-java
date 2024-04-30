@@ -35,7 +35,7 @@ import dev.cel.common.ast.CelExprIdGeneratorFactory.StableIdGenerator;
 import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
 import dev.cel.common.ast.CelMutableExpr.CelMutableComprehension;
-import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
+import dev.cel.common.ast.CelMutableExpr.CelMutableList;
 import dev.cel.common.navigation.CelNavigableMutableAst;
 import dev.cel.common.navigation.CelNavigableMutableExpr;
 import dev.cel.common.navigation.TraversalOrder;
@@ -90,7 +90,7 @@ public final class AstMutator {
             ++maxId,
             CelMutableCall.create(
                 celBlockFunction,
-                CelMutableExpr.ofCreateList(++maxId, CelMutableCreateList.create(subexpressions)),
+                CelMutableExpr.ofCreateList(++maxId, CelMutableList.create(subexpressions)),
                 ast.expr()));
 
     return CelMutableAst.of(blockExpr, ast.source());
@@ -569,7 +569,7 @@ public final class AstMutator {
         comprehensionId,
         CelMutableComprehension.create(
             "#unused",
-            CelMutableExpr.ofCreateList(iterRangeId, CelMutableCreateList.create()),
+            CelMutableExpr.ofCreateList(iterRangeId, CelMutableList.create()),
             varName,
             varInit,
             CelMutableExpr.ofConstant(loopConditionId, CelConstant.ofValue(false)),
