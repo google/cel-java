@@ -355,7 +355,7 @@ public class ConstantFoldingOptimizerTest {
             "CALL [0] {\n"
                 + "  function: map\n"
                 + "  target: {\n"
-                + "    CREATE_LIST [3] {\n"
+                + "    LIST [3] {\n"
                 + "      elements: {\n"
                 + "        CONSTANT [4] { value: 1 }\n"
                 + "        CONSTANT [5] { value: 2 }\n"
@@ -382,7 +382,7 @@ public class ConstantFoldingOptimizerTest {
 
     assertThat(optimizedAst.getExpr().toString())
         .isEqualTo(
-            "CREATE_LIST [1] {\n"
+            "LIST [1] {\n"
                 + "  elements: {\n"
                 + "    CONSTANT [2] { value: 1 }\n"
                 + "    CONSTANT [3] { value: 2 }\n"

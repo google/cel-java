@@ -10,7 +10,7 @@ CALL [1] {
         COMPREHENSION [3] {
           iter_var: #unused
           iter_range: {
-            CREATE_LIST [4] {
+            LIST [4] {
               elements: {
               }
             }
@@ -20,7 +20,7 @@ CALL [1] {
             CALL [5] {
               function: size
               args: {
-                CREATE_LIST [6] {
+                LIST [6] {
                   elements: {
                     CONSTANT [7] { value: 1 }
                     CONSTANT [8] { value: 2 }
@@ -69,7 +69,7 @@ CALL [1] {
         COMPREHENSION [3] {
           iter_var: #unused
           iter_range: {
-            CREATE_LIST [4] {
+            LIST [4] {
               elements: {
               }
             }
@@ -79,7 +79,7 @@ CALL [1] {
             CALL [5] {
               function: size
               args: {
-                CREATE_LIST [6] {
+                LIST [6] {
                   elements: {
                     CONSTANT [7] { value: 1 }
                     CONSTANT [8] { value: 2 }
@@ -131,7 +131,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -141,7 +141,7 @@ CALL [1] {
         CALL [4] {
           function: size
           args: {
-            CREATE_LIST [5] {
+            LIST [5] {
               elements: {
                 CONSTANT [6] { value: 1 }
                 CONSTANT [7] { value: 2 }
@@ -168,7 +168,7 @@ CALL [1] {
                 COMPREHENSION [12] {
                   iter_var: #unused
                   iter_range: {
-                    CREATE_LIST [13] {
+                    LIST [13] {
                       elements: {
                       }
                     }
@@ -178,7 +178,7 @@ CALL [1] {
                     CALL [14] {
                       function: size
                       args: {
-                        CREATE_LIST [15] {
+                        LIST [15] {
                           elements: {
                             CONSTANT [16] { value: 0 }
                           }
@@ -232,7 +232,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -242,7 +242,7 @@ CALL [1] {
         CALL [4] {
           function: size
           args: {
-            CREATE_LIST [5] {
+            LIST [5] {
               elements: {
                 CONSTANT [6] { value: 1 }
                 CONSTANT [7] { value: 2 }
@@ -270,7 +270,7 @@ CALL [1] {
                 COMPREHENSION [13] {
                   iter_var: #unused
                   iter_range: {
-                    CREATE_LIST [14] {
+                    LIST [14] {
                       elements: {
                       }
                     }
@@ -280,7 +280,7 @@ CALL [1] {
                     CALL [15] {
                       function: size
                       args: {
-                        CREATE_LIST [16] {
+                        LIST [16] {
                           elements: {
                             CONSTANT [17] { value: 1 }
                             CONSTANT [18] { value: 2 }
@@ -307,7 +307,7 @@ CALL [1] {
                             COMPREHENSION [23] {
                               iter_var: #unused
                               iter_range: {
-                                CREATE_LIST [24] {
+                                LIST [24] {
                                   elements: {
                                   }
                                 }
@@ -317,7 +317,7 @@ CALL [1] {
                                 CALL [25] {
                                   function: size
                                   args: {
-                                    CREATE_LIST [26] {
+                                    LIST [26] {
                                       elements: {
                                         CONSTANT [27] { value: 0 }
                                       }
@@ -389,7 +389,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -435,7 +435,7 @@ CALL [1] {
             COMPREHENSION [12] {
               iter_var: #unused
               iter_range: {
-                CREATE_LIST [13] {
+                LIST [13] {
                   elements: {
                   }
                 }
@@ -474,7 +474,7 @@ CALL [1] {
                     COMPREHENSION [21] {
                       iter_var: #unused
                       iter_range: {
-                        CREATE_LIST [22] {
+                        LIST [22] {
                           elements: {
                           }
                         }
@@ -523,7 +523,7 @@ CALL [1] {
                                 COMPREHENSION [32] {
                                   iter_var: #unused
                                   iter_range: {
-                                    CREATE_LIST [33] {
+                                    LIST [33] {
                                       elements: {
                                       }
                                     }
@@ -659,7 +659,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -669,7 +669,7 @@ CALL [1] {
         CALL [4] {
           function: _[_]
           args: {
-            CREATE_MAP [5] {
+            MAP [5] {
               MAP_ENTRY [6] {
                 key: {
                   CONSTANT [7] { value: "a" }
@@ -722,14 +722,14 @@ Source: {'a': {'b': 1}, 'c': {'b': 1}, 'd': {'e': {'b': 1}}, 'e': {'e': {'b': 1}
 COMPREHENSION [1] {
   iter_var: #unused
   iter_range: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
       }
     }
   }
   accu_var: @r0
   accu_init: {
-    CREATE_MAP [3] {
+    MAP [3] {
       MAP_ENTRY [4] {
         key: {
           CONSTANT [5] { value: "b" }
@@ -752,14 +752,14 @@ COMPREHENSION [1] {
     COMPREHENSION [9] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [10] {
+        LIST [10] {
           elements: {
           }
         }
       }
       accu_var: @r1
       accu_init: {
-        CREATE_MAP [11] {
+        MAP [11] {
           MAP_ENTRY [12] {
             key: {
               CONSTANT [13] { value: "e" }
@@ -781,7 +781,7 @@ COMPREHENSION [1] {
         }
       }
       result: {
-        CREATE_MAP [17] {
+        MAP [17] {
           MAP_ENTRY [18] {
             key: {
               CONSTANT [19] { value: "a" }
@@ -833,14 +833,14 @@ Source: [1, [1,2,3,4], 2, [1,2,3,4], 5, [1,2,3,4], 7, [[1,2], [1,2,3,4]], [1,2]]
 COMPREHENSION [1] {
   iter_var: #unused
   iter_range: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
       }
     }
   }
   accu_var: @r0
   accu_init: {
-    CREATE_LIST [3] {
+    LIST [3] {
       elements: {
         CONSTANT [4] { value: 1 }
         CONSTANT [5] { value: 2 }
@@ -861,14 +861,14 @@ COMPREHENSION [1] {
     COMPREHENSION [10] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [11] {
+        LIST [11] {
           elements: {
           }
         }
       }
       accu_var: @r1
       accu_init: {
-        CREATE_LIST [12] {
+        LIST [12] {
           elements: {
             CONSTANT [13] { value: 1 }
             CONSTANT [14] { value: 2 }
@@ -884,7 +884,7 @@ COMPREHENSION [1] {
         }
       }
       result: {
-        CREATE_LIST [17] {
+        LIST [17] {
           elements: {
             CONSTANT [18] { value: 1 }
             IDENT [19] {
@@ -899,7 +899,7 @@ COMPREHENSION [1] {
               name: @r0
             }
             CONSTANT [24] { value: 7 }
-            CREATE_LIST [25] {
+            LIST [25] {
               elements: {
                 IDENT [26] {
                   name: @r1
@@ -927,7 +927,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -974,7 +974,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -1007,7 +1007,7 @@ CALL [1] {
                 COMPREHENSION [11] {
                   iter_var: #unused
                   iter_range: {
-                    CREATE_LIST [12] {
+                    LIST [12] {
                       elements: {
                       }
                     }
@@ -1081,7 +1081,7 @@ Source: true || msg.oneof_type.payload.oneof_type.payload.oneof_type.payload.one
 COMPREHENSION [1] {
   iter_var: #unused
   iter_range: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
       }
     }
@@ -1155,7 +1155,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -1220,7 +1220,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -1321,7 +1321,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -1380,7 +1380,7 @@ CALL [1] {
         COMPREHENSION [5] {
           iter_var: #unused
           iter_range: {
-            CREATE_LIST [6] {
+            LIST [6] {
               elements: {
               }
             }
@@ -1441,7 +1441,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -1478,7 +1478,7 @@ CALL [1] {
             COMPREHENSION [12] {
               iter_var: #unused
               iter_range: {
-                CREATE_LIST [13] {
+                LIST [13] {
                   elements: {
                   }
                 }
@@ -1545,7 +1545,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -1555,12 +1555,12 @@ CALL [1] {
         CALL [4] {
           function: size
           args: {
-            CREATE_LIST [5] {
+            LIST [5] {
               elements: {
                 COMPREHENSION [6] {
                   iter_var: @c0:0
                   iter_range: {
-                    CREATE_LIST [7] {
+                    LIST [7] {
                       elements: {
                         CONSTANT [8] { value: 2 }
                       }
@@ -1633,7 +1633,7 @@ CALL [1] {
                 COMPREHENSION [23] {
                   iter_var: #unused
                   iter_range: {
-                    CREATE_LIST [24] {
+                    LIST [24] {
                       elements: {
                       }
                     }
@@ -1643,12 +1643,12 @@ CALL [1] {
                     CALL [25] {
                       function: size
                       args: {
-                        CREATE_LIST [26] {
+                        LIST [26] {
                           elements: {
                             COMPREHENSION [27] {
                               iter_var: @c0:0
                               iter_range: {
-                                CREATE_LIST [28] {
+                                LIST [28] {
                                   elements: {
                                     CONSTANT [29] { value: 1 }
                                   }
@@ -1749,19 +1749,19 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
       }
       accu_var: @r1
       accu_init: {
-        CREATE_LIST [4] {
+        LIST [4] {
           elements: {
             COMPREHENSION [5] {
               iter_var: @c0:1
               iter_range: {
-                CREATE_LIST [6] {
+                LIST [6] {
                   elements: {
                     CONSTANT [7] { value: "a" }
                   }
@@ -1832,19 +1832,19 @@ CALL [1] {
                 COMPREHENSION [22] {
                   iter_var: #unused
                   iter_range: {
-                    CREATE_LIST [23] {
+                    LIST [23] {
                       elements: {
                       }
                     }
                   }
                   accu_var: @r0
                   accu_init: {
-                    CREATE_LIST [24] {
+                    LIST [24] {
                       elements: {
                         COMPREHENSION [25] {
                           iter_var: @c0:0
                           iter_range: {
-                            CREATE_LIST [26] {
+                            LIST [26] {
                               elements: {
                                 CONSTANT [27] { value: 1 }
                               }
@@ -1931,7 +1931,7 @@ CALL [1] {
         }
       }
     }
-    CREATE_LIST [45] {
+    LIST [45] {
       elements: {
         CONSTANT [46] { value: true }
         CONSTANT [47] { value: true }
@@ -1950,14 +1950,14 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
       }
       accu_var: @r0
       accu_init: {
-        CREATE_LIST [4] {
+        LIST [4] {
           elements: {
             CONSTANT [5] { value: 1 }
             CONSTANT [6] { value: 2 }
@@ -1983,7 +1983,7 @@ CALL [1] {
           }
           accu_var: @x0:0
           accu_init: {
-            CREATE_LIST [12] {
+            LIST [12] {
               elements: {
               }
             }
@@ -1998,7 +1998,7 @@ CALL [1] {
                 IDENT [15] {
                   name: @x0:0
                 }
-                CREATE_LIST [16] {
+                LIST [16] {
                   elements: {
                     COMPREHENSION [17] {
                       iter_var: @c1:0
@@ -2009,7 +2009,7 @@ CALL [1] {
                       }
                       accu_var: @x1:0
                       accu_init: {
-                        CREATE_LIST [19] {
+                        LIST [19] {
                           elements: {
                           }
                         }
@@ -2024,7 +2024,7 @@ CALL [1] {
                             IDENT [22] {
                               name: @x1:0
                             }
-                            CREATE_LIST [23] {
+                            LIST [23] {
                               elements: {
                                 CALL [24] {
                                   function: _+_
@@ -2062,14 +2062,14 @@ CALL [1] {
     COMPREHENSION [29] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [30] {
+        LIST [30] {
           elements: {
           }
         }
       }
       accu_var: @r1
       accu_init: {
-        CREATE_LIST [31] {
+        LIST [31] {
           elements: {
             CONSTANT [32] { value: 2 }
             CONSTANT [33] { value: 3 }
@@ -2086,7 +2086,7 @@ CALL [1] {
         }
       }
       result: {
-        CREATE_LIST [37] {
+        LIST [37] {
           elements: {
             IDENT [38] {
               name: @r1
@@ -2112,7 +2112,7 @@ CALL [31] {
     COMPREHENSION [30] {
       iter_var: @c0:0
       iter_range: {
-        CREATE_LIST [1] {
+        LIST [1] {
           elements: {
             CONSTANT [2] { value: 1 }
             CONSTANT [3] { value: 2 }
@@ -2121,7 +2121,7 @@ CALL [31] {
       }
       accu_var: @x0:0
       accu_init: {
-        CREATE_LIST [24] {
+        LIST [24] {
           elements: {
           }
         }
@@ -2136,12 +2136,12 @@ CALL [31] {
             IDENT [26] {
               name: @x0:0
             }
-            CREATE_LIST [27] {
+            LIST [27] {
               elements: {
                 COMPREHENSION [23] {
                   iter_var: @c1:0
                   iter_range: {
-                    CREATE_LIST [6] {
+                    LIST [6] {
                       elements: {
                         CONSTANT [7] { value: 1 }
                         CONSTANT [8] { value: 2 }
@@ -2151,7 +2151,7 @@ CALL [31] {
                   }
                   accu_var: @x1:0
                   accu_init: {
-                    CREATE_LIST [15] {
+                    LIST [15] {
                       elements: {
                       }
                     }
@@ -2180,7 +2180,7 @@ CALL [31] {
                             IDENT [17] {
                               name: @x1:0
                             }
-                            CREATE_LIST [18] {
+                            LIST [18] {
                               elements: {
                                 IDENT [11] {
                                   name: @c1:0
@@ -2212,14 +2212,14 @@ CALL [31] {
         }
       }
     }
-    CREATE_LIST [32] {
+    LIST [32] {
       elements: {
-        CREATE_LIST [33] {
+        LIST [33] {
           elements: {
             CONSTANT [34] { value: 1 }
           }
         }
-        CREATE_LIST [35] {
+        LIST [35] {
           elements: {
             CONSTANT [36] { value: 2 }
           }
@@ -2234,14 +2234,14 @@ Source: 1 in [1,2,3] && 2 in [1,2,3] && 3 in [3, [1,2,3]] && 1 in [1,2,3]
 COMPREHENSION [1] {
   iter_var: #unused
   iter_range: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
       }
     }
   }
   accu_var: @r0
   accu_init: {
-    CREATE_LIST [3] {
+    LIST [3] {
       elements: {
         CONSTANT [4] { value: 1 }
         CONSTANT [5] { value: 2 }
@@ -2261,7 +2261,7 @@ COMPREHENSION [1] {
     COMPREHENSION [9] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [10] {
+        LIST [10] {
           elements: {
           }
         }
@@ -2314,7 +2314,7 @@ COMPREHENSION [1] {
                   function: @in
                   args: {
                     CONSTANT [24] { value: 3 }
-                    CREATE_LIST [25] {
+                    LIST [25] {
                       elements: {
                         CONSTANT [26] { value: 3 }
                         IDENT [27] {
@@ -2345,14 +2345,14 @@ CALL [1] {
     COMPREHENSION [3] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [4] {
+        LIST [4] {
           elements: {
           }
         }
       }
       accu_var: @r0
       accu_init: {
-        CREATE_MAP [5] {
+        MAP [5] {
           MAP_ENTRY [6] {
             key: {
               CONSTANT [7] { value: true }
@@ -2372,7 +2372,7 @@ CALL [1] {
         }
       }
       result: {
-        CREATE_MAP [11] {
+        MAP [11] {
           MAP_ENTRY [12] {
             key: {
               CONSTANT [13] { value: "a" }
@@ -2412,14 +2412,14 @@ Source: [1,2].map(i, [1, 2].map(i, [3,4])) == [[[3, 4], [3, 4]], [[3, 4], [3, 4]
 COMPREHENSION [1] {
   iter_var: #unused
   iter_range: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
       }
     }
   }
   accu_var: @r1
   accu_init: {
-    CREATE_LIST [3] {
+    LIST [3] {
       elements: {
         CONSTANT [4] { value: 3 }
         CONSTANT [5] { value: 4 }
@@ -2441,14 +2441,14 @@ COMPREHENSION [1] {
         COMPREHENSION [9] {
           iter_var: #unused
           iter_range: {
-            CREATE_LIST [10] {
+            LIST [10] {
               elements: {
               }
             }
           }
           accu_var: @r0
           accu_init: {
-            CREATE_LIST [11] {
+            LIST [11] {
               elements: {
                 CONSTANT [12] { value: 1 }
                 CONSTANT [13] { value: 2 }
@@ -2473,7 +2473,7 @@ COMPREHENSION [1] {
               }
               accu_var: @x0:0
               accu_init: {
-                CREATE_LIST [18] {
+                LIST [18] {
                   elements: {
                   }
                 }
@@ -2488,7 +2488,7 @@ COMPREHENSION [1] {
                     IDENT [21] {
                       name: @x0:0
                     }
-                    CREATE_LIST [22] {
+                    LIST [22] {
                       elements: {
                         COMPREHENSION [23] {
                           iter_var: @c1:0
@@ -2499,7 +2499,7 @@ COMPREHENSION [1] {
                           }
                           accu_var: @x1:0
                           accu_init: {
-                            CREATE_LIST [25] {
+                            LIST [25] {
                               elements: {
                               }
                             }
@@ -2514,7 +2514,7 @@ COMPREHENSION [1] {
                                 IDENT [28] {
                                   name: @x1:0
                                 }
-                                CREATE_LIST [29] {
+                                LIST [29] {
                                   elements: {
                                     IDENT [30] {
                                       name: @r1
@@ -2546,14 +2546,14 @@ COMPREHENSION [1] {
         COMPREHENSION [33] {
           iter_var: #unused
           iter_range: {
-            CREATE_LIST [34] {
+            LIST [34] {
               elements: {
               }
             }
           }
           accu_var: @r2
           accu_init: {
-            CREATE_LIST [35] {
+            LIST [35] {
               elements: {
                 IDENT [36] {
                   name: @r1
@@ -2573,7 +2573,7 @@ COMPREHENSION [1] {
             }
           }
           result: {
-            CREATE_LIST [40] {
+            LIST [40] {
               elements: {
                 IDENT [41] {
                   name: @r2
@@ -2595,7 +2595,7 @@ Source: [x - 1 > 3 ? x - 1 : 5].exists(x, x - 1 > 3) || x - 1 > 3
 COMPREHENSION [1] {
   iter_var: #unused
   iter_range: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
       }
     }
@@ -2624,7 +2624,7 @@ COMPREHENSION [1] {
     COMPREHENSION [8] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [9] {
+        LIST [9] {
           elements: {
           }
         }
@@ -2656,7 +2656,7 @@ COMPREHENSION [1] {
             COMPREHENSION [16] {
               iter_var: @c0:0
               iter_range: {
-                CREATE_LIST [17] {
+                LIST [17] {
                   elements: {
                     CALL [18] {
                       function: _?_:_
@@ -2741,7 +2741,7 @@ COMPREHENSION [1] {
     COMPREHENSION [2] {
       iter_var: @c1:0
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
             CONSTANT [4] { value: "foo" }
             CONSTANT [5] { value: "bar" }
@@ -2750,7 +2750,7 @@ COMPREHENSION [1] {
       }
       accu_var: @x1:0
       accu_init: {
-        CREATE_LIST [6] {
+        LIST [6] {
           elements: {
           }
         }
@@ -2765,12 +2765,12 @@ COMPREHENSION [1] {
             IDENT [9] {
               name: @x1:0
             }
-            CREATE_LIST [10] {
+            LIST [10] {
               elements: {
                 COMPREHENSION [11] {
                   iter_var: #unused
                   iter_range: {
-                    CREATE_LIST [12] {
+                    LIST [12] {
                       elements: {
                       }
                     }
@@ -2798,7 +2798,7 @@ COMPREHENSION [1] {
                     }
                   }
                   result: {
-                    CREATE_LIST [18] {
+                    LIST [18] {
                       elements: {
                         IDENT [19] {
                           name: @r0
@@ -2824,7 +2824,7 @@ COMPREHENSION [1] {
   }
   accu_var: @x0:0
   accu_init: {
-    CREATE_LIST [22] {
+    LIST [22] {
       elements: {
       }
     }
@@ -2839,12 +2839,12 @@ COMPREHENSION [1] {
         IDENT [25] {
           name: @x0:0
         }
-        CREATE_LIST [26] {
+        LIST [26] {
           elements: {
             COMPREHENSION [27] {
               iter_var: #unused
               iter_range: {
-                CREATE_LIST [28] {
+                LIST [28] {
                   elements: {
                   }
                 }
@@ -2872,7 +2872,7 @@ COMPREHENSION [1] {
                 }
               }
               result: {
-                CREATE_LIST [34] {
+                LIST [34] {
                   elements: {
                     IDENT [35] {
                       name: @r1
@@ -2901,14 +2901,14 @@ Source: has({'a': true}.a) && {'a':true}['a']
 COMPREHENSION [1] {
   iter_var: #unused
   iter_range: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
       }
     }
   }
   accu_var: @r0
   accu_init: {
-    CREATE_MAP [3] {
+    MAP [3] {
       MAP_ENTRY [4] {
         key: {
           CONSTANT [5] { value: "a" }
@@ -2955,7 +2955,7 @@ Source: has({'a': true}.a) && has({'a': true}.a)
 COMPREHENSION [1] {
   iter_var: #unused
   iter_range: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
       }
     }
@@ -2963,7 +2963,7 @@ COMPREHENSION [1] {
   accu_var: @r0
   accu_init: {
     SELECT [3] {
-      CREATE_MAP [4] {
+      MAP [4] {
         MAP_ENTRY [5] {
           key: {
             CONSTANT [6] { value: "a" }
@@ -3006,7 +3006,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -3060,7 +3060,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -3085,7 +3085,7 @@ CALL [1] {
         COMPREHENSION [8] {
           iter_var: #unused
           iter_range: {
-            CREATE_LIST [9] {
+            LIST [9] {
               elements: {
               }
             }
@@ -3147,7 +3147,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -3174,7 +3174,7 @@ CALL [1] {
         COMPREHENSION [9] {
           iter_var: #unused
           iter_range: {
-            CREATE_LIST [10] {
+            LIST [10] {
               elements: {
               }
             }
@@ -3231,7 +3231,7 @@ Source: (has(msg.oneof_type) && has(msg.oneof_type.payload) && has(msg.oneof_typ
 COMPREHENSION [1] {
   iter_var: #unused
   iter_range: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
       }
     }
@@ -3256,7 +3256,7 @@ COMPREHENSION [1] {
     COMPREHENSION [7] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [8] {
+        LIST [8] {
           elements: {
           }
         }
@@ -3309,7 +3309,7 @@ COMPREHENSION [1] {
             COMPREHENSION [22] {
               iter_var: #unused
               iter_range: {
-                CREATE_LIST [23] {
+                LIST [23] {
                   elements: {
                   }
                 }
@@ -3381,7 +3381,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -3406,14 +3406,14 @@ CALL [1] {
         COMPREHENSION [7] {
           iter_var: #unused
           iter_range: {
-            CREATE_LIST [8] {
+            LIST [8] {
               elements: {
               }
             }
           }
           accu_var: @r1
           accu_init: {
-            CREATE_LIST [9] {
+            LIST [9] {
               elements: {
                 IDENT [10] {
                   name: @r0
@@ -3434,7 +3434,7 @@ CALL [1] {
             }
           }
           result: {
-            CREATE_LIST [14] {
+            LIST [14] {
               elements: {
                 CONSTANT [15] { value: 10 }
                 IDENT [16] {
@@ -3456,14 +3456,14 @@ CALL [1] {
     COMPREHENSION [19] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [20] {
+        LIST [20] {
           elements: {
           }
         }
       }
       accu_var: @r2
       accu_init: {
-        CREATE_LIST [21] {
+        LIST [21] {
           elements: {
             CONSTANT [22] { value: 5 }
           }
@@ -3478,7 +3478,7 @@ CALL [1] {
         }
       }
       result: {
-        CREATE_LIST [25] {
+        LIST [25] {
           elements: {
             CONSTANT [26] { value: 10 }
             IDENT [27] {
@@ -3502,7 +3502,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -3512,7 +3512,7 @@ CALL [1] {
         CALL [4] {
           function: _[_]
           args: {
-            CREATE_MAP [5] {
+            MAP [5] {
               MAP_ENTRY [6] {
                 key: {
                   CONSTANT [7] { value: "hello" }
@@ -3566,14 +3566,14 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
       }
       accu_var: @r0
       accu_init: {
-        CREATE_MAP [4] {
+        MAP [4] {
           MAP_ENTRY [5] {
             key: {
               CONSTANT [6] { value: "key" }
@@ -3602,7 +3602,7 @@ CALL [1] {
                 CALL [12] {
                   function: _[?_]
                   args: {
-                    CREATE_MAP [13] {
+                    MAP [13] {
                       MAP_ENTRY [14] {
                         key: {
                           CONSTANT [15] { value: "key" }
@@ -3661,14 +3661,14 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
       }
       accu_var: @r0
       accu_init: {
-        CREATE_STRUCT [4] {
+        STRUCT [4] {
           name: TestAllTypes
           entries: {
             ENTRY [5] {
@@ -3733,7 +3733,7 @@ Source: ('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('h' + 'e' + 'l' + 'l' +
 COMPREHENSION [1] {
   iter_var: #unused
   iter_range: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
       }
     }
@@ -3949,7 +3949,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -3976,7 +3976,7 @@ CALL [1] {
         COMPREHENSION [9] {
           iter_var: #unused
           iter_range: {
-            CREATE_LIST [10] {
+            LIST [10] {
               elements: {
               }
             }
@@ -4059,7 +4059,7 @@ CALL [1] {
     COMPREHENSION [2] {
       iter_var: #unused
       iter_range: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
           }
         }
@@ -4086,7 +4086,7 @@ CALL [1] {
         COMPREHENSION [9] {
           iter_var: #unused
           iter_range: {
-            CREATE_LIST [10] {
+            LIST [10] {
               elements: {
               }
             }

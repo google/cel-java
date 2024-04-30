@@ -4,12 +4,12 @@ Source: size([1,2]) + size([1,2]) + 1 == 5
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         CALL [3] {
           function: size
           args: {
-            CREATE_LIST [4] {
+            LIST [4] {
               elements: {
                 CONSTANT [5] { value: 1 }
                 CONSTANT [6] { value: 2 }
@@ -50,12 +50,12 @@ Source: 2 + size([1,2]) + size([1,2]) + 1 == 7
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         CALL [3] {
           function: size
           args: {
-            CREATE_LIST [4] {
+            LIST [4] {
               elements: {
                 CONSTANT [5] { value: 1 }
                 CONSTANT [6] { value: 2 }
@@ -105,12 +105,12 @@ Source: size([0]) + size([0]) + size([1,2]) + size([1,2]) == 6
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         CALL [3] {
           function: size
           args: {
-            CREATE_LIST [4] {
+            LIST [4] {
               elements: {
                 CONSTANT [5] { value: 0 }
               }
@@ -120,7 +120,7 @@ CALL [1] {
         CALL [6] {
           function: size
           args: {
-            CREATE_LIST [7] {
+            LIST [7] {
               elements: {
                 CONSTANT [8] { value: 1 }
                 CONSTANT [9] { value: 2 }
@@ -174,12 +174,12 @@ Source: 5 + size([0]) + size([0]) + size([1,2]) + size([1,2]) + size([1,2,3]) + 
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         CALL [3] {
           function: size
           args: {
-            CREATE_LIST [4] {
+            LIST [4] {
               elements: {
                 CONSTANT [5] { value: 0 }
               }
@@ -189,7 +189,7 @@ CALL [1] {
         CALL [6] {
           function: size
           args: {
-            CREATE_LIST [7] {
+            LIST [7] {
               elements: {
                 CONSTANT [8] { value: 1 }
                 CONSTANT [9] { value: 2 }
@@ -200,7 +200,7 @@ CALL [1] {
         CALL [10] {
           function: size
           args: {
-            CREATE_LIST [11] {
+            LIST [11] {
               elements: {
                 CONSTANT [12] { value: 1 }
                 CONSTANT [13] { value: 2 }
@@ -280,7 +280,7 @@ Source: timestamp(int(timestamp(1000000000))).getFullYear() + timestamp(int(time
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         CALL [3] {
           function: timestamp
@@ -486,12 +486,12 @@ Source: {"a": 2}["a"] + {"a": 2}["a"] * {"a": 2}["a"] == 6
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         CALL [3] {
           function: _[_]
           args: {
-            CREATE_MAP [4] {
+            MAP [4] {
               MAP_ENTRY [5] {
                 key: {
                   CONSTANT [6] { value: "a" }
@@ -539,15 +539,15 @@ Source: {'a': {'b': 1}, 'c': {'b': 1}, 'd': {'e': {'b': 1}}, 'e': {'e': {'b': 1}
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
-        CREATE_MAP [3] {
+        MAP [3] {
           MAP_ENTRY [4] {
             key: {
               CONSTANT [5] { value: "e" }
             }
             value: {
-              CREATE_MAP [6] {
+              MAP [6] {
                 MAP_ENTRY [7] {
                   key: {
                     CONSTANT [8] { value: "b" }
@@ -560,7 +560,7 @@ CALL [1] {
             }
           }
         }
-        CREATE_MAP [10] {
+        MAP [10] {
           MAP_ENTRY [11] {
             key: {
               CONSTANT [12] { value: "b" }
@@ -572,7 +572,7 @@ CALL [1] {
         }
       }
     }
-    CREATE_MAP [14] {
+    MAP [14] {
       MAP_ENTRY [15] {
         key: {
           CONSTANT [16] { value: "a" }
@@ -622,9 +622,9 @@ Source: [1, [1,2,3,4], 2, [1,2,3,4], 5, [1,2,3,4], 7, [[1,2], [1,2,3,4]], [1,2]]
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
             CONSTANT [4] { value: 1 }
             CONSTANT [5] { value: 2 }
@@ -632,7 +632,7 @@ CALL [1] {
             CONSTANT [7] { value: 4 }
           }
         }
-        CREATE_LIST [8] {
+        LIST [8] {
           elements: {
             CONSTANT [9] { value: 1 }
             CONSTANT [10] { value: 2 }
@@ -640,7 +640,7 @@ CALL [1] {
         }
       }
     }
-    CREATE_LIST [11] {
+    LIST [11] {
       elements: {
         CONSTANT [12] { value: 1 }
         IDENT [13] {
@@ -655,7 +655,7 @@ CALL [1] {
           name: @index0
         }
         CONSTANT [18] { value: 7 }
-        CREATE_LIST [19] {
+        LIST [19] {
           elements: {
             IDENT [20] {
               name: @index1
@@ -678,7 +678,7 @@ Source: msg.single_int64 + msg.single_int64 == 6
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
           IDENT [4] {
@@ -712,7 +712,7 @@ Source: msg.oneof_type.payload.single_int64 + msg.oneof_type.payload.single_int3
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
           SELECT [4] {
@@ -800,7 +800,7 @@ Source: true || msg.oneof_type.payload.oneof_type.payload.oneof_type.payload.one
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
           SELECT [4] {
@@ -867,7 +867,7 @@ Source: msg.oneof_type.payload.map_int32_int64[1] + msg.oneof_type.payload.map_i
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
           SELECT [4] {
@@ -922,7 +922,7 @@ Source: msg.oneof_type.payload.map_int32_int64[0] + msg.oneof_type.payload.map_i
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
           SELECT [4] {
@@ -989,7 +989,7 @@ Source: msg.oneof_type.payload.oneof_type.payload.oneof_type.payload.oneof_type.
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
           SELECT [4] {
@@ -1028,7 +1028,7 @@ Source: (msg.single_int64 > 0 ? msg.single_int64 : 0) == 3
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
           IDENT [4] {
@@ -1069,7 +1069,7 @@ Source: false ? false : (msg.single_int64) + ((msg.single_int64 + 1) * 2) == 11
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
           IDENT [4] {
@@ -1125,7 +1125,7 @@ Source: (msg.single_int64 > 0 ? (msg.single_int32 > 0 ? msg.single_int64 + msg.s
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
           IDENT [4] {
@@ -1197,12 +1197,12 @@ Source: size([[1].exists(i, i > 0)]) + size([[1].exists(j, j > 0)]) + size([[2].
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         COMPREHENSION [3] {
           iter_var: @c0:0
           iter_range: {
-            CREATE_LIST [4] {
+            LIST [4] {
               elements: {
                 CONSTANT [5] { value: 1 }
               }
@@ -1255,7 +1255,7 @@ CALL [1] {
         COMPREHENSION [16] {
           iter_var: @c0:0
           iter_range: {
-            CREATE_LIST [17] {
+            LIST [17] {
               elements: {
                 CONSTANT [18] { value: 2 }
               }
@@ -1308,7 +1308,7 @@ CALL [1] {
         CALL [29] {
           function: size
           args: {
-            CREATE_LIST [30] {
+            LIST [30] {
               elements: {
                 IDENT [31] {
                   name: @index0
@@ -1320,7 +1320,7 @@ CALL [1] {
         CALL [32] {
           function: size
           args: {
-            CREATE_LIST [33] {
+            LIST [33] {
               elements: {
                 IDENT [34] {
                   name: @index1
@@ -1375,12 +1375,12 @@ Source: [[1].exists(i, i > 0)] + [[1].exists(j, j > 0)] + [['a'].exists(k, k == 
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         COMPREHENSION [3] {
           iter_var: @c0:0
           iter_range: {
-            CREATE_LIST [4] {
+            LIST [4] {
               elements: {
                 CONSTANT [5] { value: 1 }
               }
@@ -1433,7 +1433,7 @@ CALL [1] {
         COMPREHENSION [16] {
           iter_var: @c0:1
           iter_range: {
-            CREATE_LIST [17] {
+            LIST [17] {
               elements: {
                 CONSTANT [18] { value: "a" }
               }
@@ -1483,14 +1483,14 @@ CALL [1] {
             }
           }
         }
-        CREATE_LIST [29] {
+        LIST [29] {
           elements: {
             IDENT [30] {
               name: @index0
             }
           }
         }
-        CREATE_LIST [31] {
+        LIST [31] {
           elements: {
             IDENT [32] {
               name: @index1
@@ -1532,7 +1532,7 @@ CALL [1] {
         IDENT [41] {
           name: @index4
         }
-        CREATE_LIST [42] {
+        LIST [42] {
           elements: {
             CONSTANT [43] { value: true }
             CONSTANT [44] { value: true }
@@ -1550,16 +1550,16 @@ Source: [1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [[2, 3, 4], [2, 3, 4], [2, 3,
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
             CONSTANT [4] { value: 1 }
             CONSTANT [5] { value: 2 }
             CONSTANT [6] { value: 3 }
           }
         }
-        CREATE_LIST [7] {
+        LIST [7] {
           elements: {
             CONSTANT [8] { value: 2 }
             CONSTANT [9] { value: 3 }
@@ -1572,7 +1572,7 @@ CALL [1] {
             IDENT [12] {
               name: @x1:0
             }
-            CREATE_LIST [13] {
+            LIST [13] {
               elements: {
                 CALL [14] {
                   function: _+_
@@ -1587,7 +1587,7 @@ CALL [1] {
             }
           }
         }
-        CREATE_LIST [17] {
+        LIST [17] {
           elements: {
             COMPREHENSION [18] {
               iter_var: @c1:0
@@ -1598,7 +1598,7 @@ CALL [1] {
               }
               accu_var: @x1:0
               accu_init: {
-                CREATE_LIST [20] {
+                LIST [20] {
                   elements: {
                   }
                 }
@@ -1633,7 +1633,7 @@ CALL [1] {
           }
           accu_var: @x0:0
           accu_init: {
-            CREATE_LIST [27] {
+            LIST [27] {
               elements: {
               }
             }
@@ -1660,7 +1660,7 @@ CALL [1] {
             }
           }
         }
-        CREATE_LIST [33] {
+        LIST [33] {
           elements: {
             IDENT [34] {
               name: @index1
@@ -1683,7 +1683,7 @@ Source: [1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         CALL [3] {
           function: _?_:_
@@ -1705,7 +1705,7 @@ CALL [1] {
                 IDENT [8] {
                   name: @x1:0
                 }
-                CREATE_LIST [9] {
+                LIST [9] {
                   elements: {
                     IDENT [10] {
                       name: @c1:0
@@ -1719,12 +1719,12 @@ CALL [1] {
             }
           }
         }
-        CREATE_LIST [12] {
+        LIST [12] {
           elements: {
             COMPREHENSION [13] {
               iter_var: @c1:0
               iter_range: {
-                CREATE_LIST [14] {
+                LIST [14] {
                   elements: {
                     CONSTANT [15] { value: 1 }
                     CONSTANT [16] { value: 2 }
@@ -1734,7 +1734,7 @@ CALL [1] {
               }
               accu_var: @x1:0
               accu_init: {
-                CREATE_LIST [18] {
+                LIST [18] {
                   elements: {
                   }
                 }
@@ -1763,7 +1763,7 @@ CALL [1] {
         COMPREHENSION [23] {
           iter_var: @c0:0
           iter_range: {
-            CREATE_LIST [24] {
+            LIST [24] {
               elements: {
                 CONSTANT [25] { value: 1 }
                 CONSTANT [26] { value: 2 }
@@ -1772,7 +1772,7 @@ CALL [1] {
           }
           accu_var: @x0:0
           accu_init: {
-            CREATE_LIST [27] {
+            LIST [27] {
               elements: {
               }
             }
@@ -1799,14 +1799,14 @@ CALL [1] {
             }
           }
         }
-        CREATE_LIST [33] {
+        LIST [33] {
           elements: {
-            CREATE_LIST [34] {
+            LIST [34] {
               elements: {
                 CONSTANT [35] { value: 1 }
               }
             }
-            CREATE_LIST [36] {
+            LIST [36] {
               elements: {
                 CONSTANT [37] { value: 2 }
               }
@@ -1823,13 +1823,13 @@ Source: 1 in [1,2,3] && 2 in [1,2,3] && 3 in [3, [1,2,3]] && 1 in [1,2,3]
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         CALL [3] {
           function: @in
           args: {
             CONSTANT [4] { value: 1 }
-            CREATE_LIST [5] {
+            LIST [5] {
               elements: {
                 CONSTANT [6] { value: 1 }
                 CONSTANT [7] { value: 2 }
@@ -1838,7 +1838,7 @@ CALL [1] {
             }
           }
         }
-        CREATE_LIST [9] {
+        LIST [9] {
           elements: {
             CONSTANT [10] { value: 1 }
             CONSTANT [11] { value: 2 }
@@ -1852,7 +1852,7 @@ CALL [1] {
               function: @in
               args: {
                 CONSTANT [15] { value: 3 }
-                CREATE_LIST [16] {
+                LIST [16] {
                   elements: {
                     CONSTANT [17] { value: 3 }
                     IDENT [18] {
@@ -1902,9 +1902,9 @@ Source: 2 in {'a': 1, 2: {true: false}, 3: {true: false}}
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
-        CREATE_MAP [3] {
+        MAP [3] {
           MAP_ENTRY [4] {
             key: {
               CONSTANT [5] { value: true }
@@ -1920,7 +1920,7 @@ CALL [1] {
       function: @in
       args: {
         CONSTANT [8] { value: 2 }
-        CREATE_MAP [9] {
+        MAP [9] {
           MAP_ENTRY [10] {
             key: {
               CONSTANT [11] { value: "a" }
@@ -1960,17 +1960,17 @@ Source: [1,2].map(i, [1, 2].map(i, [3,4])) == [[[3, 4], [3, 4]], [[3, 4], [3, 4]
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
-            CREATE_LIST [4] {
+            LIST [4] {
               elements: {
                 CONSTANT [5] { value: 3 }
                 CONSTANT [6] { value: 4 }
               }
             }
-            CREATE_LIST [7] {
+            LIST [7] {
               elements: {
                 CONSTANT [8] { value: 3 }
                 CONSTANT [9] { value: 4 }
@@ -1978,7 +1978,7 @@ CALL [1] {
             }
           }
         }
-        CREATE_LIST [10] {
+        LIST [10] {
           elements: {
             CONSTANT [11] { value: 1 }
             CONSTANT [12] { value: 2 }
@@ -1990,9 +1990,9 @@ CALL [1] {
             IDENT [14] {
               name: @x1:0
             }
-            CREATE_LIST [15] {
+            LIST [15] {
               elements: {
-                CREATE_LIST [16] {
+                LIST [16] {
                   elements: {
                     CONSTANT [17] { value: 3 }
                     CONSTANT [18] { value: 4 }
@@ -2002,7 +2002,7 @@ CALL [1] {
             }
           }
         }
-        CREATE_LIST [19] {
+        LIST [19] {
           elements: {
             COMPREHENSION [20] {
               iter_var: @c1:0
@@ -2013,7 +2013,7 @@ CALL [1] {
               }
               accu_var: @x1:0
               accu_init: {
-                CREATE_LIST [22] {
+                LIST [22] {
                   elements: {
                   }
                 }
@@ -2048,7 +2048,7 @@ CALL [1] {
           }
           accu_var: @x0:0
           accu_init: {
-            CREATE_LIST [29] {
+            LIST [29] {
               elements: {
               }
             }
@@ -2075,7 +2075,7 @@ CALL [1] {
             }
           }
         }
-        CREATE_LIST [35] {
+        LIST [35] {
           elements: {
             IDENT [36] {
               name: @index0
@@ -2095,7 +2095,7 @@ Source: [x - 1 > 3 ? x - 1 : 5].exists(x, x - 1 > 3) || x - 1 > 3
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         CALL [3] {
           function: _>_
@@ -2112,7 +2112,7 @@ CALL [1] {
             CONSTANT [7] { value: 3 }
           }
         }
-        CREATE_LIST [8] {
+        LIST [8] {
           elements: {
             CALL [9] {
               function: _?_:_
@@ -2215,7 +2215,7 @@ Source: ["foo", "bar"].map(x, [x + x, x + x]).map(x, [x + x, x + x])
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         CALL [3] {
           function: _+_
@@ -2245,9 +2245,9 @@ CALL [1] {
             IDENT [10] {
               name: @x1:0
             }
-            CREATE_LIST [11] {
+            LIST [11] {
               elements: {
-                CREATE_LIST [12] {
+                LIST [12] {
                   elements: {
                     IDENT [13] {
                       name: @index0
@@ -2267,9 +2267,9 @@ CALL [1] {
             IDENT [16] {
               name: @x0:0
             }
-            CREATE_LIST [17] {
+            LIST [17] {
               elements: {
-                CREATE_LIST [18] {
+                LIST [18] {
                   elements: {
                     IDENT [19] {
                       name: @index1
@@ -2291,7 +2291,7 @@ CALL [1] {
         COMPREHENSION [22] {
           iter_var: @c1:0
           iter_range: {
-            CREATE_LIST [23] {
+            LIST [23] {
               elements: {
                 CONSTANT [24] { value: "foo" }
                 CONSTANT [25] { value: "bar" }
@@ -2300,7 +2300,7 @@ CALL [1] {
           }
           accu_var: @x1:0
           accu_init: {
-            CREATE_LIST [26] {
+            LIST [26] {
               elements: {
               }
             }
@@ -2322,7 +2322,7 @@ CALL [1] {
       }
       accu_var: @x0:0
       accu_init: {
-        CREATE_LIST [30] {
+        LIST [30] {
           elements: {
           }
         }
@@ -2349,9 +2349,9 @@ Source: has({'a': true}.a) && {'a':true}['a']
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
-        CREATE_MAP [3] {
+        MAP [3] {
           MAP_ENTRY [4] {
             key: {
               CONSTANT [5] { value: "a" }
@@ -2390,10 +2390,10 @@ Source: has({'a': true}.a) && has({'a': true}.a)
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
-          CREATE_MAP [4] {
+          MAP [4] {
             MAP_ENTRY [5] {
               key: {
                 CONSTANT [6] { value: "a" }
@@ -2425,7 +2425,7 @@ Source: (has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : 0) 
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
           IDENT [4] {
@@ -2469,7 +2469,7 @@ Source: (has(msg.oneof_type.payload) ? msg.oneof_type.payload.single_int64 : msg
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
           SELECT [4] {
@@ -2523,7 +2523,7 @@ Source: (has(msg.oneof_type.payload.single_int64) ? msg.oneof_type.payload.singl
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
           SELECT [4] {
@@ -2579,7 +2579,7 @@ Source: (has(msg.oneof_type) && has(msg.oneof_type.payload) && has(msg.oneof_typ
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
           SELECT [4] {
@@ -2678,9 +2678,9 @@ Source: [10, ?optional.none(), [?optional.none(), ?opt_x], [?optional.none(), ?o
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
-        CREATE_LIST [3] {
+        LIST [3] {
           elements: {
             CALL [4] {
               function: optional.none
@@ -2693,7 +2693,7 @@ CALL [1] {
           }
           optional_indices: [0, 1]
         }
-        CREATE_LIST [6] {
+        LIST [6] {
           elements: {
             CONSTANT [7] { value: 5 }
           }
@@ -2703,7 +2703,7 @@ CALL [1] {
     CALL [8] {
       function: _==_
       args: {
-        CREATE_LIST [9] {
+        LIST [9] {
           elements: {
             CONSTANT [10] { value: 10 }
             CALL [11] {
@@ -2720,7 +2720,7 @@ CALL [1] {
           }
           optional_indices: [0]
         }
-        CREATE_LIST [14] {
+        LIST [14] {
           elements: {
             CONSTANT [15] { value: 10 }
             IDENT [16] {
@@ -2741,12 +2741,12 @@ Source: {?'hello': optional.of('hello')}['hello'] + {?'hello': optional.of('hell
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         CALL [3] {
           function: _[_]
           args: {
-            CREATE_MAP [4] {
+            MAP [4] {
               MAP_ENTRY [5] {
                 key: {
                   CONSTANT [6] { value: "hello" }
@@ -2792,9 +2792,9 @@ Source: {?'key': optional.of('test')}[?'bogus'].or({'key': 'test'}[?'bogus']).or
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
-        CREATE_MAP [3] {
+        MAP [3] {
           MAP_ENTRY [4] {
             key: {
               CONSTANT [5] { value: "key" }
@@ -2807,7 +2807,7 @@ CALL [1] {
         CALL [7] {
           function: _[?_]
           args: {
-            CREATE_MAP [8] {
+            MAP [8] {
               MAP_ENTRY [9] {
                 key: {
                   CONSTANT [10] { value: "key" }
@@ -2880,9 +2880,9 @@ Source: TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: o
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
-        CREATE_STRUCT [3] {
+        STRUCT [3] {
           name: TestAllTypes
           entries: {
             ENTRY [4] {
@@ -2942,7 +2942,7 @@ Source: ('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('h' + 'e' + 'l' + 'l' +
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         CALL [3] {
           function: _+_
@@ -3001,7 +3001,7 @@ Source: 'hello world'.matches('h' + 'e' + 'l' + 'l' + 'o')
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         CALL [3] {
           function: _+_
@@ -3049,7 +3049,7 @@ Source: ('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('hello')
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         CALL [3] {
           function: _+_
@@ -3103,7 +3103,7 @@ Source: ('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('w' + 'o' + 'r' + 'l' +
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         CALL [3] {
           function: _+_
@@ -3184,7 +3184,7 @@ Source: non_pure_custom_func(msg.oneof_type.payload.single_int64) + non_pure_cus
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
           SELECT [4] {
@@ -3260,7 +3260,7 @@ Source: pure_custom_func(msg.oneof_type.payload.single_int64) + pure_custom_func
 CALL [1] {
   function: cel.@block
   args: {
-    CREATE_LIST [2] {
+    LIST [2] {
       elements: {
         SELECT [3] {
           SELECT [4] {

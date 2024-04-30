@@ -33,23 +33,7 @@ final class CelExprFormatter {
 
   private void formatExpr(CelExpr celExpr) {
     CelExpr.ExprKind.Kind exprKind = celExpr.exprKind().getKind();
-    String kindFormattedText;
-    // Temporarily retain existing formatted expr kinds until callers are migrated
-    switch (exprKind) {
-      case LIST:
-        kindFormattedText = "CREATE_LIST";
-        break;
-      case STRUCT:
-        kindFormattedText = "CREATE_STRUCT";
-        break;
-      case MAP:
-        kindFormattedText = "CREATE_MAP";
-        break;
-      default:
-        kindFormattedText = exprKind.toString();
-        break;
-    }
-    append(String.format("%s [%d] {", kindFormattedText, celExpr.id()));
+    append(String.format("%s [%d] {", exprKind, celExpr.id()));
     if (!EXCLUDED_NEWLINE_KINDS.contains(exprKind)) {
       appendNewline();
     }

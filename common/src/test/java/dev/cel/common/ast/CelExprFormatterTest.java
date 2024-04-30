@@ -148,7 +148,7 @@ public class CelExprFormatterTest {
 
     assertThat(formattedExpr)
         .isEqualTo(
-            "CREATE_LIST [1] {\n"
+            "LIST [1] {\n"
                 + "  elements: {\n"
                 + "    CONSTANT [2] { value: 1 }\n"
                 + "    CONSTANT [3] { value: 2 }\n"
@@ -188,7 +188,7 @@ public class CelExprFormatterTest {
 
     assertThat(formattedExpr)
         .isEqualTo(
-            "CREATE_STRUCT [1] {\n"
+            "STRUCT [1] {\n"
                 + "  name: TestAllTypes\n"
                 + "  entries: {\n"
                 + "    ENTRY [2] {\n"
@@ -234,7 +234,7 @@ public class CelExprFormatterTest {
 
     assertThat(formattedExpr)
         .isEqualTo(
-            "CREATE_MAP [1] {\n"
+            "MAP [1] {\n"
                 + "  MAP_ENTRY [2] {\n"
                 + "    key: {\n"
                 + "      CONSTANT [3] { value: 1 }\n"
@@ -283,7 +283,7 @@ public class CelExprFormatterTest {
             "COMPREHENSION [17] {\n"
                 + "  iter_var: x\n"
                 + "  iter_range: {\n"
-                + "    CREATE_LIST [1] {\n"
+                + "    LIST [1] {\n"
                 + "      elements: {\n"
                 + "        CONSTANT [2] { value: 1 }\n"
                 + "        CONSTANT [3] { value: 2 }\n"

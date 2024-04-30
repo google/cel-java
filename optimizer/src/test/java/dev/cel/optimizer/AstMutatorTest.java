@@ -474,7 +474,7 @@ public class AstMutatorTest {
     //      IDENT [8] {
     //        name: __result__
     //      }
-    //      CREATE_LIST [9] {
+    //      LIST [9] {
     //        elements: {
     //          CONSTANT [5] { value: 1 }
     //        }
@@ -810,7 +810,7 @@ public class AstMutatorTest {
             "COMPREHENSION [13] {\n"
                 + "  iter_var: @c0:0\n"
                 + "  iter_range: {\n"
-                + "    CREATE_LIST [1] {\n"
+                + "    LIST [1] {\n"
                 + "      elements: {\n"
                 + "        CONSTANT [2] { value: false }\n"
                 + "      }\n"
@@ -893,7 +893,7 @@ public class AstMutatorTest {
             "COMPREHENSION [27] {\n"
                 + "  iter_var: @c0:0\n"
                 + "  iter_range: {\n"
-                + "    CREATE_LIST [1] {\n"
+                + "    LIST [1] {\n"
                 + "      elements: {\n"
                 + "        IDENT [2] {\n"
                 + "          name: x\n"
@@ -930,7 +930,7 @@ public class AstMutatorTest {
                 + "        COMPREHENSION [19] {\n"
                 + "          iter_var: @c1:0\n"
                 + "          iter_range: {\n"
-                + "            CREATE_LIST [5] {\n"
+                + "            LIST [5] {\n"
                 + "              elements: {\n"
                 + "                IDENT [6] {\n"
                 + "                  name: @c0:0\n"
