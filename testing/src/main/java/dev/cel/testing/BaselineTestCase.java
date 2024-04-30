@@ -16,13 +16,18 @@ package dev.cel.testing;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.common.base.Strings;
+import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.nio.charset.Charset;
 import junit.framework.AssertionFailedError;
 import org.junit.Before;
 import org.junit.Rule;
@@ -37,6 +42,7 @@ public abstract class BaselineTestCase {
   public static class BaselineComparisonError extends AssertionFailedError {
     private final String testName;
     private final String actual;
+    private final String actualFileLocation;
     private final LineDiffer.Diff lineDiff;
     private final String baselineFileName;
 
@@ -48,23 +54,41 @@ public abstract class BaselineTestCase {
      * @param lineDiff the diff between the expected and {@code actual}.
      */
     public BaselineComparisonError(
-        String testName, String baselineFileName, String actual, LineDiffer.Diff lineDiff) {
+        String testName,
+        String baselineFileName,
+        String actual,
+        String actualFileLocation,
+        LineDiffer.Diff lineDiff) {
       this.testName = testName;
       this.actual = actual;
+      this.actualFileLocation = actualFileLocation;
       this.lineDiff = lineDiff;
       this.baselineFileName = baselineFileName;
     }
 
     @Override
     public String getMessage() {
-      return String.format(
-          "Expected for '%s' differs from actual:%n%n\"******New baseline content"
-              + " is******%n%s%nExpected File: %s%nDiff:\n%s",
-          testName, actual, baselineFileName, lineDiff);
+      String resultMessage =
+          String.format(
+              "Expected for '%s' differs from actual:%n%n\"******New baseline content"
+                  + " is******%n%s%nExpected File: %s%nActual File: %s%nDiff:\n%s",
+              testName, actual, baselineFileName, actualFileLocation, lineDiff);
+
+      return resultMessage;
     }
   }
 
   @Rule public TestName testName = new TestName();
+
+  private static final String DIRECTORY_TO_COPY_NEW_BASELINE;
+
+  static {
+    if (!Strings.isNullOrEmpty(System.getenv("COPY_BASELINE_TO_DIR"))) {
+      DIRECTORY_TO_COPY_NEW_BASELINE = System.getenv("COPY_BASELINE_TO_DIR");
+    } else {
+      DIRECTORY_TO_COPY_NEW_BASELINE = "/tmp";
+    }
+  }
 
   private OutputStream output;
   private PrintWriter writer;
@@ -126,8 +150,9 @@ public abstract class BaselineTestCase {
       String expected = getExpected().trim();
       LineDiffer.Diff lineDiff = LineDiffer.diffLines(expected, actual);
       if (!lineDiff.isEmpty()) {
+        String actualFileLocation = tryCreateNewBaseline(actual);
         throw new BaselineComparisonError(
-            testName.getMethodName(), baselineFileName(), actual, lineDiff);
+            testName.getMethodName(), baselineFileName(), actual, actualFileLocation, lineDiff);
       }
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -137,5 +162,24 @@ public abstract class BaselineTestCase {
   /** Disables verification of the baseline for the given test case. */
   protected void skipBaselineVerification() {
     isVerified = true;
+  }
+
+  /**
+   * Creates a baseline file that will need to be used to make the current test pass.
+   *
+   * <p>If the test is failing for a valid reason (e.g. developer changed some output text), then
+   * this file provides a convenient way for the developer to overwrite the old baseline and keep
+   * the test passing.
+   *
+   * <p>The created file is stored under /tmp or location specified by the environment variable
+   * DIRECTORY_TO_COPY_NEW_BASELINE. Information where the file is stored is returned as a string.
+   */
+  private String tryCreateNewBaseline(String actual) throws IOException {
+    File file =
+        new File(
+            File.separator + DIRECTORY_TO_COPY_NEW_BASELINE + File.separator + baselineFileName());
+    Files.createParentDirs(file);
+    Files.asCharSink(file, Charset.defaultCharset()).write(actual);
+    return file.toString();
   }
 }
