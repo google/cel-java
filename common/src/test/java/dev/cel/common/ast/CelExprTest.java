@@ -66,11 +66,10 @@ public class CelExprTest {
                     .build())
             .build(),
         Kind.SELECT),
-    CREATE_MAP(CelExpr.newBuilder().setCreateMap(CelMap.newBuilder().build()).build(), Kind.MAP),
-    CREATE_LIST(
-        CelExpr.newBuilder().setCreateList(CelList.newBuilder().build()).build(), Kind.LIST),
+    CREATE_MAP(CelExpr.newBuilder().setMap(CelMap.newBuilder().build()).build(), Kind.MAP),
+    CREATE_LIST(CelExpr.newBuilder().setList(CelList.newBuilder().build()).build(), Kind.LIST),
     CREATE_STRUCT(
-        CelExpr.newBuilder().setCreateStruct(CelStruct.newBuilder().build()).build(), Kind.STRUCT),
+        CelExpr.newBuilder().setStruct(CelStruct.newBuilder().build()).build(), Kind.STRUCT),
     COMPREHENSION(
         CelExpr.newBuilder()
             .setComprehension(
@@ -202,10 +201,10 @@ public class CelExprTest {
   public void celExprBuilder_setCreateList() {
     CelList celCreateList =
         CelList.newBuilder().addElements(CelExpr.ofConstant(1, CelConstant.ofValue(2))).build();
-    CelExpr celExpr = CelExpr.newBuilder().setCreateList(celCreateList).build();
+    CelExpr celExpr = CelExpr.newBuilder().setList(celCreateList).build();
 
-    assertThat(celExpr.createList()).isEqualTo(celCreateList);
-    assertThat(celExpr.toBuilder().createList()).isEqualTo(celCreateList);
+    assertThat(celExpr.list()).isEqualTo(celCreateList);
+    assertThat(celExpr.toBuilder().list()).isEqualTo(celCreateList);
   }
 
   @Test
@@ -228,13 +227,13 @@ public class CelExprTest {
 
     CelExpr celExpr =
         CelExpr.newBuilder()
-            .setCreateList(
+            .setList(
                 celCreateList.toBuilder()
                     .setElement(1, CelExpr.ofConstant(7, CelConstant.ofValue("world")))
                     .build())
             .build();
 
-    assertThat(celExpr.createList())
+    assertThat(celExpr.list())
         .isEqualTo(
             CelList.newBuilder()
                 .addElements(
@@ -254,11 +253,11 @@ public class CelExprTest {
                     .setFieldKey("field_key")
                     .build())
             .build();
-    CelExpr celExpr = CelExpr.newBuilder().setCreateStruct(celCreateStruct).build();
+    CelExpr celExpr = CelExpr.newBuilder().setStruct(celCreateStruct).build();
 
-    assertThat(celExpr.createStruct().entries().get(0).optionalEntry()).isFalse();
-    assertThat(celExpr.createStruct()).isEqualTo(celCreateStruct);
-    assertThat(celExpr.toBuilder().createStruct()).isEqualTo(celCreateStruct);
+    assertThat(celExpr.struct().entries().get(0).optionalEntry()).isFalse();
+    assertThat(celExpr.struct()).isEqualTo(celCreateStruct);
+    assertThat(celExpr.toBuilder().struct()).isEqualTo(celCreateStruct);
   }
 
   @Test
@@ -302,7 +301,7 @@ public class CelExprTest {
 
     CelExpr celExpr =
         CelExpr.newBuilder()
-            .setCreateStruct(
+            .setStruct(
                 celCreateStruct.toBuilder()
                     .setEntry(
                         1,
@@ -316,7 +315,7 @@ public class CelExprTest {
                     .build())
             .build();
 
-    assertThat(celExpr.createStruct())
+    assertThat(celExpr.struct())
         .isEqualTo(
             CelStruct.newBuilder()
                 .addEntries(
@@ -378,19 +377,16 @@ public class CelExprTest {
       assertThrows(UnsupportedOperationException.class, () -> testCase.expr.toBuilder().call());
     }
     if (!testCase.expectedExprKind.equals(Kind.LIST)) {
-      assertThrows(UnsupportedOperationException.class, testCase.expr::createList);
-      assertThrows(
-          UnsupportedOperationException.class, () -> testCase.expr.toBuilder().createList());
+      assertThrows(UnsupportedOperationException.class, testCase.expr::list);
+      assertThrows(UnsupportedOperationException.class, () -> testCase.expr.toBuilder().list());
     }
     if (!testCase.expectedExprKind.equals(Kind.STRUCT)) {
-      assertThrows(UnsupportedOperationException.class, testCase.expr::createStruct);
-      assertThrows(
-          UnsupportedOperationException.class, () -> testCase.expr.toBuilder().createStruct());
+      assertThrows(UnsupportedOperationException.class, testCase.expr::struct);
+      assertThrows(UnsupportedOperationException.class, () -> testCase.expr.toBuilder().struct());
     }
     if (!testCase.expectedExprKind.equals(Kind.MAP)) {
-      assertThrows(UnsupportedOperationException.class, testCase.expr::createMap);
-      assertThrows(
-          UnsupportedOperationException.class, () -> testCase.expr.toBuilder().createMap());
+      assertThrows(UnsupportedOperationException.class, testCase.expr::map);
+      assertThrows(UnsupportedOperationException.class, () -> testCase.expr.toBuilder().map());
     }
     if (!testCase.expectedExprKind.equals(Kind.COMPREHENSION)) {
       assertThrows(UnsupportedOperationException.class, testCase.expr::comprehension);
@@ -415,13 +411,13 @@ public class CelExprTest {
       assertThat(testCase.expr.callOrDefault()).isEqualTo(CelCall.newBuilder().build());
     }
     if (!testCase.expectedExprKind.equals(Kind.LIST)) {
-      assertThat(testCase.expr.createListOrDefault()).isEqualTo(CelList.newBuilder().build());
+      assertThat(testCase.expr.listOrDefault()).isEqualTo(CelList.newBuilder().build());
     }
     if (!testCase.expectedExprKind.equals(Kind.STRUCT)) {
-      assertThat(testCase.expr.createStructOrDefault()).isEqualTo(CelStruct.newBuilder().build());
+      assertThat(testCase.expr.structOrDefault()).isEqualTo(CelStruct.newBuilder().build());
     }
     if (!testCase.expectedExprKind.equals(Kind.MAP)) {
-      assertThat(testCase.expr.createMapOrDefault()).isEqualTo(CelMap.newBuilder().build());
+      assertThat(testCase.expr.mapOrDefault()).isEqualTo(CelMap.newBuilder().build());
     }
     if (!testCase.expectedExprKind.equals(Kind.COMPREHENSION)) {
       assertThat(testCase.expr.comprehensionOrDefault())
@@ -449,13 +445,13 @@ public class CelExprTest {
         assertThat(testCase.expr.callOrDefault()).isEqualTo(testCase.expr.call());
         break;
       case LIST:
-        assertThat(testCase.expr.createListOrDefault()).isEqualTo(testCase.expr.createList());
+        assertThat(testCase.expr.listOrDefault()).isEqualTo(testCase.expr.list());
         break;
       case STRUCT:
-        assertThat(testCase.expr.createStructOrDefault()).isEqualTo(testCase.expr.createStruct());
+        assertThat(testCase.expr.structOrDefault()).isEqualTo(testCase.expr.struct());
         break;
       case MAP:
-        assertThat(testCase.expr.createMapOrDefault()).isEqualTo(testCase.expr.createMap());
+        assertThat(testCase.expr.mapOrDefault()).isEqualTo(testCase.expr.map());
         break;
       case COMPREHENSION:
         assertThat(testCase.expr.comprehensionOrDefault()).isEqualTo(testCase.expr.comprehension());

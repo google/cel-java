@@ -71,11 +71,11 @@ final class MutableExprVisitor {
       case CALL:
         return visit(root, root.call());
       case LIST:
-        return visit(root, root.createList());
+        return visit(root, root.list());
       case STRUCT:
-        return visit(root, root.createStruct());
+        return visit(root, root.struct());
       case MAP:
-        return visit(root, root.createMap());
+        return visit(root, root.map());
       case COMPREHENSION:
         return visit(root, root.comprehension());
       case CONSTANT: // Fall-through is intended

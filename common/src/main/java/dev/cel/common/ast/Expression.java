@@ -54,16 +54,16 @@ public interface Expression {
   <E extends Expression> Call<E> call();
 
   /** Gets the underlying identifier expression. */
-  <E extends Expression> List<E> createList();
+  <E extends Expression> List<E> list();
 
   /** Gets the underlying select expression. */
   <E extends Expression> Select<E> select();
 
-  /** Gets the underlying createStruct expression. */
-  <E extends Expression> Struct<Struct.Entry<E>> createStruct();
+  /** Gets the underlying struct expression. */
+  <E extends Expression> Struct<Struct.Entry<E>> struct();
 
-  /** Gets the underlying createMap expression. */
-  <E extends Expression> Map<Map.Entry<E>> createMap();
+  /** Gets the underlying map expression. */
+  <E extends Expression> Map<Map.Entry<E>> map();
 
   /** Gets the underlying comprehension expression. */
   <E extends Expression> Comprehension<E> comprehension();

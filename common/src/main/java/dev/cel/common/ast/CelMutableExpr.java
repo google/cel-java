@@ -85,19 +85,19 @@ public final class CelMutableExpr implements Expression {
   }
 
   @Override
-  public CelMutableList createList() {
+  public CelMutableList list() {
     checkExprKind(Kind.LIST);
     return (CelMutableList) exprValue;
   }
 
   @Override
-  public CelMutableStruct createStruct() {
+  public CelMutableStruct struct() {
     checkExprKind(Kind.STRUCT);
     return (CelMutableStruct) exprValue;
   }
 
   @Override
-  public CelMutableMap createMap() {
+  public CelMutableMap map() {
     checkExprKind(Kind.MAP);
     return (CelMutableMap) exprValue;
   }
@@ -128,19 +128,19 @@ public final class CelMutableExpr implements Expression {
     this.exprValue = checkNotNull(call);
   }
 
-  public void setCreateList(CelMutableList createList) {
+  public void setList(CelMutableList list) {
     this.exprKind = ExprKind.Kind.LIST;
-    this.exprValue = checkNotNull(createList);
+    this.exprValue = checkNotNull(list);
   }
 
-  public void setCreateStruct(CelMutableStruct createStruct) {
+  public void setStruct(CelMutableStruct struct) {
     this.exprKind = ExprKind.Kind.STRUCT;
-    this.exprValue = checkNotNull(createStruct);
+    this.exprValue = checkNotNull(struct);
   }
 
-  public void setCreateMap(CelMutableMap createMap) {
+  public void setMap(CelMutableMap map) {
     this.exprKind = ExprKind.Kind.MAP;
-    this.exprValue = checkNotNull(createMap);
+    this.exprValue = checkNotNull(map);
   }
 
   public void setComprehension(CelMutableComprehension comprehension) {
@@ -973,27 +973,27 @@ public final class CelMutableExpr implements Expression {
     return new CelMutableExpr(id, mutableCall);
   }
 
-  public static CelMutableExpr ofCreateList(CelMutableList mutableCreateList) {
-    return ofCreateList(0, mutableCreateList);
+  public static CelMutableExpr ofList(CelMutableList mutableCreateList) {
+    return ofList(0, mutableCreateList);
   }
 
-  public static CelMutableExpr ofCreateList(long id, CelMutableList mutableCreateList) {
+  public static CelMutableExpr ofList(long id, CelMutableList mutableCreateList) {
     return new CelMutableExpr(id, mutableCreateList);
   }
 
-  public static CelMutableExpr ofCreateStruct(CelMutableStruct mutableCreateStruct) {
-    return ofCreateStruct(0, mutableCreateStruct);
+  public static CelMutableExpr ofStruct(CelMutableStruct mutableCreateStruct) {
+    return ofStruct(0, mutableCreateStruct);
   }
 
-  public static CelMutableExpr ofCreateStruct(long id, CelMutableStruct mutableCreateStruct) {
+  public static CelMutableExpr ofStruct(long id, CelMutableStruct mutableCreateStruct) {
     return new CelMutableExpr(id, mutableCreateStruct);
   }
 
-  public static CelMutableExpr ofCreateMap(CelMutableMap mutableCreateMap) {
-    return ofCreateMap(0, mutableCreateMap);
+  public static CelMutableExpr ofMap(CelMutableMap mutableCreateMap) {
+    return ofMap(0, mutableCreateMap);
   }
 
-  public static CelMutableExpr ofCreateMap(long id, CelMutableMap mutableCreateMap) {
+  public static CelMutableExpr ofMap(long id, CelMutableMap mutableCreateMap) {
     return new CelMutableExpr(id, mutableCreateMap);
   }
 
@@ -1029,17 +1029,17 @@ public final class CelMutableExpr implements Expression {
 
   private CelMutableExpr(long id, CelMutableList mutableCreateList) {
     this.id = id;
-    setCreateList(mutableCreateList);
+    setList(mutableCreateList);
   }
 
   private CelMutableExpr(long id, CelMutableStruct mutableCreateStruct) {
     this.id = id;
-    setCreateStruct(mutableCreateStruct);
+    setStruct(mutableCreateStruct);
   }
 
   private CelMutableExpr(long id, CelMutableMap mutableCreateMap) {
     this.id = id;
-    setCreateMap(mutableCreateMap);
+    setMap(mutableCreateMap);
   }
 
   private CelMutableExpr(long id, CelMutableComprehension mutableComprehension) {
@@ -1078,13 +1078,13 @@ public final class CelMutableExpr implements Expression {
         this.exprValue = other.call().deepCopy();
         break;
       case LIST:
-        this.exprValue = other.createList().deepCopy();
+        this.exprValue = other.list().deepCopy();
         break;
       case STRUCT:
-        this.exprValue = other.createStruct().deepCopy();
+        this.exprValue = other.struct().deepCopy();
         break;
       case MAP:
-        this.exprValue = other.createMap().deepCopy();
+        this.exprValue = other.map().deepCopy();
         break;
       case COMPREHENSION:
         this.exprValue = other.comprehension().deepCopy();
@@ -1107,11 +1107,11 @@ public final class CelMutableExpr implements Expression {
       case CALL:
         return call();
       case LIST:
-        return createList();
+        return list();
       case STRUCT:
-        return createStruct();
+        return struct();
       case MAP:
-        return createMap();
+        return map();
       case COMPREHENSION:
         return comprehension();
     }

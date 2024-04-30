@@ -88,18 +88,18 @@ public abstract class CelMacroExprFactory extends CelExprFactory {
       case LIST:
         {
           CelExpr.CelList.Builder listBuilder =
-              CelExpr.CelList.newBuilder().addOptionalIndices(expr.createList().optionalIndices());
-          for (CelExpr element : expr.createList().elements()) {
+              CelExpr.CelList.newBuilder().addOptionalIndices(expr.list().optionalIndices());
+          for (CelExpr element : expr.list().elements()) {
             listBuilder.addElements(copy(element));
           }
-          builder.setCreateList(listBuilder.build());
+          builder.setList(listBuilder.build());
         }
         break;
       case STRUCT:
         {
           CelExpr.CelStruct.Builder structBuilder =
-              CelExpr.CelStruct.newBuilder().setMessageName(expr.createStruct().messageName());
-          for (CelExpr.CelStruct.Entry entry : expr.createStruct().entries()) {
+              CelExpr.CelStruct.newBuilder().setMessageName(expr.struct().messageName());
+          for (CelExpr.CelStruct.Entry entry : expr.struct().entries()) {
             structBuilder.addEntries(
                 CelExpr.CelStruct.Entry.newBuilder()
                     .setId(copyExprId(entry.id()))
@@ -108,13 +108,13 @@ public abstract class CelMacroExprFactory extends CelExprFactory {
                     .setOptionalEntry(entry.optionalEntry())
                     .build());
           }
-          builder.setCreateStruct(structBuilder.build());
+          builder.setStruct(structBuilder.build());
         }
         break;
       case MAP:
         {
           CelExpr.CelMap.Builder mapBuilder = CelExpr.CelMap.newBuilder();
-          for (CelExpr.CelMap.Entry entry : expr.createMap().entries()) {
+          for (CelExpr.CelMap.Entry entry : expr.map().entries()) {
             mapBuilder.addEntries(
                 CelExpr.CelMap.Entry.newBuilder()
                     .setId(copyExprId(entry.id()))
@@ -123,7 +123,7 @@ public abstract class CelMacroExprFactory extends CelExprFactory {
                     .setOptionalEntry(entry.optionalEntry())
                     .build());
           }
-          builder.setCreateMap(mapBuilder.build());
+          builder.setMap(mapBuilder.build());
         }
         break;
       case COMPREHENSION:

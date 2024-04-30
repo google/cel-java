@@ -80,10 +80,10 @@ public class CelNavigableMutableExprTest {
   public void allNodes_filteredConstants_returnsAllConstants() {
     CelNavigableMutableExpr mutableExpr =
         CelNavigableMutableExpr.fromExpr(
-            CelMutableExpr.ofCreateList(
+            CelMutableExpr.ofList(
                 CelMutableList.create(
                     CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
-                    CelMutableExpr.ofCreateList(
+                    CelMutableExpr.ofList(
                         CelMutableList.create(
                             CelMutableExpr.ofConstant(CelConstant.ofValue("element2")))))));
 
@@ -105,10 +105,10 @@ public class CelNavigableMutableExprTest {
   public void descendants_filteredConstants_returnsAllConstants() {
     CelNavigableMutableExpr mutableExpr =
         CelNavigableMutableExpr.fromExpr(
-            CelMutableExpr.ofCreateList(
+            CelMutableExpr.ofList(
                 CelMutableList.create(
                     CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
-                    CelMutableExpr.ofCreateList(
+                    CelMutableExpr.ofList(
                         CelMutableList.create(
                             CelMutableExpr.ofConstant(CelConstant.ofValue("element2")))))));
 
@@ -130,10 +130,10 @@ public class CelNavigableMutableExprTest {
   public void children_filteredConstants_returnsSingleConstant() {
     CelNavigableMutableExpr mutableExpr =
         CelNavigableMutableExpr.fromExpr(
-            CelMutableExpr.ofCreateList(
+            CelMutableExpr.ofList(
                 CelMutableList.create(
                     CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
-                    CelMutableExpr.ofCreateList(
+                    CelMutableExpr.ofList(
                         CelMutableList.create(
                             CelMutableExpr.ofConstant(CelConstant.ofValue("element2")))))));
 

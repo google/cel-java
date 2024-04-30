@@ -61,13 +61,13 @@ public class CelExprVisitor {
         visit(expr, expr.call());
         break;
       case LIST:
-        visit(expr, expr.createList());
+        visit(expr, expr.list());
         break;
       case STRUCT:
-        visit(expr, expr.createStruct());
+        visit(expr, expr.struct());
         break;
       case MAP:
-        visit(expr, expr.createMap());
+        visit(expr, expr.map());
         break;
       case COMPREHENSION:
         visit(expr, expr.comprehension());

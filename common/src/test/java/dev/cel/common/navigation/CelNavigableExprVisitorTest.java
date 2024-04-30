@@ -592,11 +592,10 @@ public class CelNavigableExprVisitorTest {
     assertThat(allNodes)
         .containsExactly(
             constExpr,
-            CelExpr.ofCreateStruct(
+            CelExpr.ofStruct(
                 1,
                 "TestAllTypes",
-                ImmutableList.of(
-                    CelExpr.ofCreateStructEntry(2, "single_int64", constExpr, false))));
+                ImmutableList.of(CelExpr.ofStructEntry(2, "single_int64", constExpr, false))));
   }
 
   @Test
@@ -619,11 +618,11 @@ public class CelNavigableExprVisitorTest {
     assertThat(allNodes).hasSize(1);
     assertThat(allNodes.get(0).expr())
         .isEqualTo(
-            CelExpr.ofCreateStruct(
+            CelExpr.ofStruct(
                 1,
                 "TestAllTypes",
                 ImmutableList.of(
-                    CelExpr.ofCreateStructEntry(
+                    CelExpr.ofStructEntry(
                         2, "single_int64", CelExpr.ofConstant(3, CelConstant.ofValue(1)), false))));
   }
 
@@ -704,8 +703,8 @@ public class CelNavigableExprVisitorTest {
         .containsExactly(
             mapKeyExpr,
             mapValueExpr,
-            CelExpr.ofCreateMap(
-                1, ImmutableList.of(CelExpr.ofCreateMapEntry(2, mapKeyExpr, mapValueExpr, false))));
+            CelExpr.ofMap(
+                1, ImmutableList.of(CelExpr.ofMapEntry(2, mapKeyExpr, mapValueExpr, false))));
   }
 
   @Test
@@ -726,8 +725,8 @@ public class CelNavigableExprVisitorTest {
     CelExpr mapValueExpr = CelExpr.ofConstant(4, CelConstant.ofValue(2));
     assertThat(allNodes.get(0).expr())
         .isEqualTo(
-            CelExpr.ofCreateMap(
-                1, ImmutableList.of(CelExpr.ofCreateMapEntry(2, mapKeyExpr, mapValueExpr, false))));
+            CelExpr.ofMap(
+                1, ImmutableList.of(CelExpr.ofMapEntry(2, mapKeyExpr, mapValueExpr, false))));
   }
 
   @Test
@@ -804,7 +803,7 @@ public class CelNavigableExprVisitorTest {
         navigableAst.getRoot().allNodes().collect(toImmutableList());
 
     assertThat(allNodes).hasSize(1);
-    assertThat(allNodes.get(0).expr()).isEqualTo(CelExpr.ofCreateMap(1, ImmutableList.of()));
+    assertThat(allNodes.get(0).expr()).isEqualTo(CelExpr.ofMap(1, ImmutableList.of()));
   }
 
   @Test
@@ -824,8 +823,7 @@ public class CelNavigableExprVisitorTest {
             .collect(toImmutableList());
 
     CelExpr iterRangeConstExpr = CelExpr.ofConstant(2, CelConstant.ofValue(true));
-    CelExpr iterRange =
-        CelExpr.ofCreateList(1, ImmutableList.of(iterRangeConstExpr), ImmutableList.of());
+    CelExpr iterRange = CelExpr.ofList(1, ImmutableList.of(iterRangeConstExpr), ImmutableList.of());
     CelExpr accuInit = CelExpr.ofConstant(6, CelConstant.ofValue(false));
     CelExpr loopConditionIdentExpr = CelExpr.ofIdent(7, "__result__");
     CelExpr loopConditionCallExpr =
@@ -886,8 +884,7 @@ public class CelNavigableExprVisitorTest {
             .collect(toImmutableList());
 
     CelExpr iterRangeConstExpr = CelExpr.ofConstant(2, CelConstant.ofValue(true));
-    CelExpr iterRange =
-        CelExpr.ofCreateList(1, ImmutableList.of(iterRangeConstExpr), ImmutableList.of());
+    CelExpr iterRange = CelExpr.ofList(1, ImmutableList.of(iterRangeConstExpr), ImmutableList.of());
     CelExpr accuInit = CelExpr.ofConstant(6, CelConstant.ofValue(false));
     CelExpr loopConditionIdentExpr = CelExpr.ofIdent(7, "__result__");
     CelExpr loopConditionCallExpr =
@@ -1019,8 +1016,7 @@ public class CelNavigableExprVisitorTest {
     ImmutableList<CelNavigableExpr> allNodes =
         navigableAst.getRoot().allNodes(TraversalOrder.PRE_ORDER).collect(toImmutableList());
     CelExpr iterRangeConstExpr = CelExpr.ofConstant(2, CelConstant.ofValue(true));
-    CelExpr iterRange =
-        CelExpr.ofCreateList(1, ImmutableList.of(iterRangeConstExpr), ImmutableList.of());
+    CelExpr iterRange = CelExpr.ofList(1, ImmutableList.of(iterRangeConstExpr), ImmutableList.of());
     CelExpr accuInit = CelExpr.ofConstant(6, CelConstant.ofValue(false));
     CelExpr loopConditionIdentExpr = CelExpr.ofIdent(7, "__result__");
     CelExpr loopConditionCallExpr =
@@ -1083,8 +1079,7 @@ public class CelNavigableExprVisitorTest {
             .collect(toImmutableList());
 
     CelExpr iterRangeConstExpr = CelExpr.ofConstant(2, CelConstant.ofValue(true));
-    CelExpr iterRange =
-        CelExpr.ofCreateList(1, ImmutableList.of(iterRangeConstExpr), ImmutableList.of());
+    CelExpr iterRange = CelExpr.ofList(1, ImmutableList.of(iterRangeConstExpr), ImmutableList.of());
     CelExpr accuInit = CelExpr.ofConstant(6, CelConstant.ofValue(false));
     CelExpr loopConditionIdentExpr = CelExpr.ofIdent(7, "__result__");
     CelExpr loopConditionCallExpr =

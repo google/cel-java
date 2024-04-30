@@ -52,13 +52,13 @@ final class CelExprFormatter {
         appendCall(celExpr.call());
         break;
       case LIST:
-        appendCreateList(celExpr.createList());
+        appendCreateList(celExpr.list());
         break;
       case STRUCT:
-        appendCreateStruct(celExpr.createStruct());
+        appendCreateStruct(celExpr.struct());
         break;
       case MAP:
-        appendCreateMap(celExpr.createMap());
+        appendCreateMap(celExpr.map());
         break;
       case COMPREHENSION:
         appendComprehension(celExpr.comprehension());

@@ -490,7 +490,7 @@ public class AstMutatorTest {
         AST_MUTATOR
             .replaceSubtree(
                 mutableAst,
-                CelMutableExpr.ofCreateList(
+                CelMutableExpr.ofList(
                     CelMutableList.create(CelMutableExpr.ofConstant(CelConstant.ofValue(2L)))),
                 9L)
             .toParsedAst();

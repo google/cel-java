@@ -202,13 +202,13 @@ public final class DefaultInterpreter implements Interpreter {
             result = evalCall(frame, expr, expr.call());
             break;
           case LIST:
-            result = evalList(frame, expr, expr.createList());
+            result = evalList(frame, expr, expr.list());
             break;
           case STRUCT:
-            result = evalStruct(frame, expr, expr.createStruct());
+            result = evalStruct(frame, expr, expr.struct());
             break;
           case MAP:
-            result = evalMap(frame, expr.createMap());
+            result = evalMap(frame, expr.map());
             break;
           case COMPREHENSION:
             result = evalComprehension(frame, expr, expr.comprehension());
@@ -901,7 +901,7 @@ public final class DefaultInterpreter implements Interpreter {
 
     private IntermediateResult evalCelBlock(
         ExecutionFrame frame, CelExpr unusedExpr, CelCall blockCall) throws InterpreterException {
-      CelList exprList = blockCall.args().get(0).createList();
+      CelList exprList = blockCall.args().get(0).list();
       Map<String, IntermediateResult> blockList = new HashMap<>();
       for (int index = 0; index < exprList.elements().size(); index++) {
         // Register the block indices as lazily evaluated expressions stored as unique identifiers.
@@ -934,7 +934,7 @@ public final class DefaultInterpreter implements Interpreter {
           && !comprehension.loopCondition().constant().booleanValue()
           && comprehension.iterVar().equals("#unused")
           && comprehension.iterRange().exprKind().getKind().equals(ExprKind.Kind.LIST)
-          && comprehension.iterRange().createList().elements().isEmpty();
+          && comprehension.iterRange().list().elements().isEmpty();
     }
 
     private LazyExpression(CelExpr celExpr) {

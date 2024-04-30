@@ -91,13 +91,31 @@ public abstract class CelExpr implements Expression {
   }
 
   /**
+   * @deprecated Use {@link #list()} instead.
+   */
+  @Deprecated
+  @InlineMe(replacement = "this.list()")
+  public final CelList createList() {
+    return list();
+  }
+
+  /**
    * {@inheritDoc}
    *
    * @throws UnsupportedOperationException if expression is not {@link Kind#LIST}.
    */
   @Override
-  public CelList createList() {
+  public CelList list() {
     return exprKind().createList();
+  }
+
+  /**
+   * @deprecated Use {@link #list()} instead.
+   */
+  @Deprecated
+  @InlineMe(replacement = "this.struct()")
+  public final CelStruct createStruct() {
+    return struct();
   }
 
   /**
@@ -106,8 +124,17 @@ public abstract class CelExpr implements Expression {
    * @throws UnsupportedOperationException if expression is not {@link Kind#STRUCT}.
    */
   @Override
-  public CelStruct createStruct() {
+  public CelStruct struct() {
     return exprKind().createStruct();
+  }
+
+  /**
+   * @deprecated Use {@link #list()} instead.
+   */
+  @Deprecated
+  @InlineMe(replacement = "this.map()")
+  public final CelMap createMap() {
+    return map();
   }
 
   /**
@@ -116,7 +143,7 @@ public abstract class CelExpr implements Expression {
    * @throws UnsupportedOperationException if expression is not {@link Kind#createMap}.
    */
   @Override
-  public CelMap createMap() {
+  public CelMap map() {
     return exprKind().createMap();
   }
 
@@ -171,30 +198,30 @@ public abstract class CelExpr implements Expression {
   }
 
   /**
-   * Gets the underlying createList expression or a default instance of one if expression is not
-   * {@link Kind#LIST}.
+   * Gets the underlying list expression or a default instance of one if expression is not {@link
+   * Kind#LIST}.
    */
-  public CelList createListOrDefault() {
+  public CelList listOrDefault() {
     return exprKind().getKind().equals(ExprKind.Kind.LIST)
         ? exprKind().createList()
         : CelList.newBuilder().build();
   }
 
   /**
-   * Gets the underlying createStruct expression or a default instance of one if expression is not
-   * {@link Kind#STRUCT}.
+   * Gets the underlying struct expression or a default instance of one if expression is not {@link
+   * Kind#STRUCT}.
    */
-  public CelStruct createStructOrDefault() {
+  public CelStruct structOrDefault() {
     return exprKind().getKind().equals(ExprKind.Kind.STRUCT)
         ? exprKind().createStruct()
         : CelStruct.newBuilder().build();
   }
 
   /**
-   * Gets the underlying createMap expression or a default instance of one if expression is not
-   * {@link Kind#MAP}.
+   * Gets the underlying map expression or a default instance of one if expression is not {@link
+   * Kind#MAP}.
    */
-  public CelMap createMapOrDefault() {
+  public CelMap mapOrDefault() {
     return exprKind().getKind().equals(ExprKind.Kind.MAP)
         ? exprKind().createMap()
         : CelMap.newBuilder().build();
@@ -259,30 +286,30 @@ public abstract class CelExpr implements Expression {
     }
 
     /**
-     * Gets the underlying createList expression.
+     * Gets the underlying list expression.
      *
      * @throws UnsupportedOperationException if expression is not {@link Kind#LIST}.
      */
-    public CelList createList() {
-      return exprKind().createList();
+    public CelList list() {
+      return exprKind().list();
     }
 
     /**
-     * Gets the underlying createStruct expression.
+     * Gets the underlying struct expression.
      *
      * @throws UnsupportedOperationException if expression is not {@link Kind#STRUCT}.
      */
-    public CelStruct createStruct() {
-      return exprKind().createStruct();
+    public CelStruct struct() {
+      return exprKind().struct();
     }
 
     /**
-     * Gets the underlying createMap expression.
+     * Gets the underlying map expression.
      *
-     * @throws UnsupportedOperationException if expression is not {@link Kind#createMap}.
+     * @throws UnsupportedOperationException if expression is not {@link Kind#MAP}.
      */
-    public CelMap createMap() {
-      return exprKind().createMap();
+    public CelMap map() {
+      return exprKind().map();
     }
 
     /**
@@ -315,18 +342,18 @@ public abstract class CelExpr implements Expression {
     }
 
     @CanIgnoreReturnValue
-    public Builder setCreateList(CelList createList) {
-      return setExprKind(AutoOneOf_CelExpr_ExprKind.list(createList));
+    public Builder setList(CelList list) {
+      return setExprKind(AutoOneOf_CelExpr_ExprKind.list(list));
     }
 
     @CanIgnoreReturnValue
-    public Builder setCreateStruct(CelStruct createStruct) {
-      return setExprKind(AutoOneOf_CelExpr_ExprKind.struct(createStruct));
+    public Builder setStruct(CelStruct struct) {
+      return setExprKind(AutoOneOf_CelExpr_ExprKind.struct(struct));
     }
 
     @CanIgnoreReturnValue
-    public Builder setCreateMap(CelMap createMap) {
-      return setExprKind(AutoOneOf_CelExpr_ExprKind.map(createMap));
+    public Builder setMap(CelMap map) {
+      return setExprKind(AutoOneOf_CelExpr_ExprKind.map(map));
     }
 
     @CanIgnoreReturnValue
@@ -1040,7 +1067,7 @@ public abstract class CelExpr implements Expression {
         .build();
   }
 
-  public static CelExpr ofCreateList(
+  public static CelExpr ofList(
       long id, ImmutableList<CelExpr> elements, ImmutableList<Integer> optionalIndices) {
     return newBuilder()
         .setId(id)
@@ -1053,7 +1080,7 @@ public abstract class CelExpr implements Expression {
         .build();
   }
 
-  public static CelExpr ofCreateStruct(
+  public static CelExpr ofStruct(
       long id, String messageName, ImmutableList<CelStruct.Entry> entries) {
     return newBuilder()
         .setId(id)
@@ -1063,7 +1090,7 @@ public abstract class CelExpr implements Expression {
         .build();
   }
 
-  public static CelExpr ofCreateMap(long id, ImmutableList<CelMap.Entry> entries) {
+  public static CelExpr ofMap(long id, ImmutableList<CelMap.Entry> entries) {
     return newBuilder()
         .setId(id)
         .setExprKind(
@@ -1071,7 +1098,7 @@ public abstract class CelExpr implements Expression {
         .build();
   }
 
-  public static CelStruct.Entry ofCreateStructEntry(
+  public static CelStruct.Entry ofStructEntry(
       long id, String fieldKey, CelExpr value, boolean isOptionalEntry) {
     return CelStruct.Entry.newBuilder()
         .setId(id)
@@ -1081,7 +1108,7 @@ public abstract class CelExpr implements Expression {
         .build();
   }
 
-  public static CelMap.Entry ofCreateMapEntry(
+  public static CelMap.Entry ofMapEntry(
       long id, CelExpr mapKey, CelExpr value, boolean isOptionalEntry) {
     return CelMap.Entry.newBuilder()
         .setId(id)

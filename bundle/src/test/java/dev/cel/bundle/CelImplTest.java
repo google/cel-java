@@ -486,7 +486,7 @@ public final class CelImplTest {
 
     CelAbstractSyntaxTree ast = cel.compile("[?a]").getAst();
 
-    CelList createList = ast.getExpr().createList();
+    CelList createList = ast.getExpr().list();
     assertThat(createList.optionalIndices()).containsExactly(0);
     assertThat(createList.elements()).containsExactly(CelExpr.ofIdent(2, "a"));
   }

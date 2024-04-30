@@ -73,8 +73,8 @@ public final class HomogeneousLiteralValidator implements CelAstValidator {
 
   private void validateList(CelAbstractSyntaxTree ast, IssuesFactory issuesFactory, CelExpr expr) {
     CelType previousType = null;
-    HashSet<Integer> optionalIndices = new HashSet<>(expr.createList().optionalIndices());
-    ImmutableList<CelExpr> elements = expr.createList().elements();
+    HashSet<Integer> optionalIndices = new HashSet<>(expr.list().optionalIndices());
+    ImmutableList<CelExpr> elements = expr.list().elements();
     for (int i = 0; i < elements.size(); i++) {
       CelExpr element = elements.get(i);
       CelType currentType = ast.getType(element.id()).get();
@@ -94,7 +94,7 @@ public final class HomogeneousLiteralValidator implements CelAstValidator {
   private void validateMap(CelAbstractSyntaxTree ast, IssuesFactory issuesFactory, CelExpr expr) {
     CelType previousKeyType = null;
     CelType previousValueType = null;
-    for (CelMap.Entry entry : expr.createMap().entries()) {
+    for (CelMap.Entry entry : expr.map().entries()) {
       CelType currentKeyType = ast.getType(entry.key().id()).get();
       CelType currentValueType = ast.getType(entry.value().id()).get();
       if (entry.optionalEntry()) {

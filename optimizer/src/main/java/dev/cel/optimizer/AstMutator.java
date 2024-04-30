@@ -90,7 +90,7 @@ public final class AstMutator {
             ++maxId,
             CelMutableCall.create(
                 celBlockFunction,
-                CelMutableExpr.ofCreateList(++maxId, CelMutableList.create(subexpressions)),
+                CelMutableExpr.ofList(++maxId, CelMutableList.create(subexpressions)),
                 ast.expr()));
 
     return CelMutableAst.of(blockExpr, ast.source());
@@ -569,7 +569,7 @@ public final class AstMutator {
         comprehensionId,
         CelMutableComprehension.create(
             "#unused",
-            CelMutableExpr.ofCreateList(iterRangeId, CelMutableList.create()),
+            CelMutableExpr.ofList(iterRangeId, CelMutableList.create()),
             varName,
             varInit,
             CelMutableExpr.ofConstant(loopConditionId, CelConstant.ofValue(false)),
@@ -758,7 +758,7 @@ public final class AstMutator {
   private static void unwrapListArgumentsInMacroCallExpr(
       CelMutableComprehension comprehension, CelMutableExpr newMacroCallExpr) {
     CelMutableExpr accuInit = comprehension.accuInit();
-    if (!accuInit.getKind().equals(Kind.LIST) || !accuInit.createList().elements().isEmpty()) {
+    if (!accuInit.getKind().equals(Kind.LIST) || !accuInit.list().elements().isEmpty()) {
       // Does not contain an extraneous list.
       return;
     }
@@ -779,7 +779,7 @@ public final class AstMutator {
             : CelMutableCall.create(existingMacroCall.function());
     newMacroCall.addArgs(
         existingMacroCall.args().get(0)); // iter_var is first argument of the call by convention
-    newMacroCall.addArgs(loopStepArgs.get(1).createList().elements());
+    newMacroCall.addArgs(loopStepArgs.get(1).list().elements());
 
     newMacroCallExpr.setCall(newMacroCall);
   }

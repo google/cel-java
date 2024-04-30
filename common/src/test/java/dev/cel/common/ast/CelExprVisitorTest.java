@@ -53,11 +53,11 @@ public class CelExprVisitorTest {
 
     public abstract Optional<CelCall> call();
 
-    public abstract Optional<CelStruct> createStruct();
+    public abstract Optional<CelStruct> struct();
 
-    public abstract Optional<CelMap> createMap();
+    public abstract Optional<CelMap> map();
 
-    public abstract Optional<CelList> createList();
+    public abstract Optional<CelList> list();
 
     public abstract Optional<CelComprehension> comprehension();
 
@@ -73,11 +73,11 @@ public class CelExprVisitorTest {
 
       public abstract Builder setCall(CelCall value);
 
-      public abstract Builder setCreateStruct(CelStruct value);
+      public abstract Builder setStruct(CelStruct value);
 
-      public abstract Builder setCreateMap(CelMap value);
+      public abstract Builder setMap(CelMap value);
 
-      public abstract Builder setCreateList(CelList value);
+      public abstract Builder setList(CelList value);
 
       public abstract Builder setComprehension(CelComprehension value);
 
@@ -125,19 +125,19 @@ public class CelExprVisitorTest {
 
     @Override
     protected void visit(CelExpr expr, CelStruct createStruct) {
-      visitedReference.setCreateStruct(createStruct);
+      visitedReference.setStruct(createStruct);
       super.visit(expr, createStruct);
     }
 
     @Override
     protected void visit(CelExpr expr, CelMap createMap) {
-      visitedReference.setCreateMap(createMap);
+      visitedReference.setMap(createMap);
       super.visit(expr, createMap);
     }
 
     @Override
     protected void visit(CelExpr expr, CelList createList) {
-      visitedReference.setCreateList(createList);
+      visitedReference.setList(createList);
       super.visit(expr, createList);
     }
 
@@ -204,13 +204,13 @@ public class CelExprVisitorTest {
     assertThat(visited)
         .isEqualTo(
             VisitedReference.newBuilder()
-                .setCreateStruct(CelStruct.newBuilder().setMessageName("TestAllTypes").build())
+                .setStruct(CelStruct.newBuilder().setMessageName("TestAllTypes").build())
                 .setSelect(
                     CelSelect.newBuilder()
                         .setOperand(
                             CelExpr.newBuilder()
                                 .setId(1)
-                                .setCreateStruct(
+                                .setStruct(
                                     CelStruct.newBuilder().setMessageName("TestAllTypes").build())
                                 .build())
                         .setField("single_int64")
@@ -242,7 +242,7 @@ public class CelExprVisitorTest {
   }
 
   @Test
-  public void visitCreateStruct_fieldkey() throws Exception {
+  public void visitStruct_fieldkey() throws Exception {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
@@ -258,7 +258,7 @@ public class CelExprVisitorTest {
         .isEqualTo(
             VisitedReference.newBuilder()
                 .setConstant(longConstant)
-                .setCreateStruct(
+                .setStruct(
                     CelStruct.newBuilder()
                         .addEntries(
                             Entry.newBuilder()
@@ -272,7 +272,7 @@ public class CelExprVisitorTest {
   }
 
   @Test
-  public void visitCreateMap() throws Exception {
+  public void visitMap() throws Exception {
     CelCompiler celCompiler = CelCompilerFactory.standardCelCompilerBuilder().build();
     CelAbstractSyntaxTree ast = celCompiler.compile("{'a': 'b'}").getAst();
 
@@ -283,7 +283,7 @@ public class CelExprVisitorTest {
         .isEqualTo(
             VisitedReference.newBuilder()
                 .setConstant(CelConstant.ofValue("b"))
-                .setCreateMap(
+                .setMap(
                     CelMap.newBuilder()
                         .addEntries(
                             CelMap.Entry.newBuilder()
@@ -296,7 +296,7 @@ public class CelExprVisitorTest {
   }
 
   @Test
-  public void visitCreateList() throws Exception {
+  public void visitList() throws Exception {
     CelCompiler celCompiler = CelCompilerFactory.standardCelCompilerBuilder().build();
     CelAbstractSyntaxTree ast = celCompiler.compile("[1, 1]").getAst();
 
@@ -308,7 +308,7 @@ public class CelExprVisitorTest {
         .isEqualTo(
             VisitedReference.newBuilder()
                 .setConstant(integerVal)
-                .setCreateList(
+                .setList(
                     CelList.newBuilder()
                         .addElements(CelExpr.newBuilder().setId(2).setConstant(integerVal).build())
                         .addElements(CelExpr.newBuilder().setId(3).setConstant(integerVal).build())
@@ -334,14 +334,14 @@ public class CelExprVisitorTest {
             CelExpr.ofConstant(3, CelConstant.ofValue(1)));
 
     assertThat(comprehension.iterVar()).isEqualTo("x");
-    assertThat(comprehension.iterRange().createList().elements()).isEqualTo(iterRangeElements);
+    assertThat(comprehension.iterRange().list().elements()).isEqualTo(iterRangeElements);
     assertThat(comprehension.accuInit().constant()).isEqualTo(CelConstant.ofValue(true));
     assertThat(comprehension.loopCondition().call().function())
         .isEqualTo(Operator.NOT_STRICTLY_FALSE.getFunction());
     assertThat(comprehension.loopStep().call().function())
         .isEqualTo(Operator.LOGICAL_AND.getFunction());
     assertThat(comprehension.loopStep().call().args()).hasSize(2);
-    assertThat(visitedReference.createList().get().elements()).isEqualTo(iterRangeElements);
+    assertThat(visitedReference.list().get().elements()).isEqualTo(iterRangeElements);
     assertThat(visitedReference.identifier())
         .hasValue(CelIdent.newBuilder().setName("__result__").build());
     assertThat(visitedReference.arguments()).hasSize(10);

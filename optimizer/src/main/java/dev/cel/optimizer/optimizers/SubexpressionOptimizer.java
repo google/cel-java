@@ -259,7 +259,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     // Assert correctness on block indices used in subexpressions
     CelCall celBlockCall = celBlockExpr.call();
-    ImmutableList<CelExpr> subexprs = celBlockCall.args().get(0).createList().elements();
+    ImmutableList<CelExpr> subexprs = celBlockCall.args().get(0).list().elements();
     for (int i = 0; i < subexprs.size(); i++) {
       verifyBlockIndex(subexprs.get(i), i);
     }
@@ -558,7 +558,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
             && navigableExpr.expr().ident().name().startsWith(BIND_IDENTIFIER_PREFIX))
         // Exclude empty lists (cel.bind sets this for iterRange).
         && !(navigableExpr.getKind().equals(Kind.LIST)
-            && navigableExpr.expr().createList().elements().isEmpty())
+            && navigableExpr.expr().list().elements().isEmpty())
         && containsEliminableFunctionOnly(navigableExpr)
         && !ineligibleExprs.contains(navigableExpr.expr());
   }

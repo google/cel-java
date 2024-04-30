@@ -191,7 +191,7 @@ public class CelExprConverterTest {
 
     assertThat(celExpr)
         .isEqualTo(
-            CelExpr.ofCreateList(
+            CelExpr.ofList(
                 1,
                 ImmutableList.of(
                     CelExpr.ofConstant(2, CelConstant.ofValue(10)),
@@ -221,11 +221,11 @@ public class CelExprConverterTest {
 
     assertThat(celExpr)
         .isEqualTo(
-            CelExpr.ofCreateStruct(
+            CelExpr.ofStruct(
                 1,
                 "messageName",
                 ImmutableList.of(
-                    CelExpr.ofCreateStructEntry(
+                    CelExpr.ofStructEntry(
                         2, "fieldKey", CelExpr.ofConstant(3, CelConstant.ofValue(10)), true))));
   }
 
@@ -299,10 +299,10 @@ public class CelExprConverterTest {
 
     assertThat(celExpr)
         .isEqualTo(
-            CelExpr.ofCreateMap(
+            CelExpr.ofMap(
                 1,
                 ImmutableList.of(
-                    CelExpr.ofCreateMapEntry(
+                    CelExpr.ofMapEntry(
                         2,
                         CelExpr.ofConstant(3, CelConstant.ofValue(15)),
                         CelExpr.ofConstant(4, CelConstant.ofValue(10)),
@@ -453,7 +453,7 @@ public class CelExprConverterTest {
   @Test
   public void convertCelList_toExprList() {
     CelExpr celExpr =
-        CelExpr.ofCreateList(
+        CelExpr.ofList(
             1,
             ImmutableList.of(
                 CelExpr.ofConstant(2, CelConstant.ofValue(10)),
@@ -478,11 +478,11 @@ public class CelExprConverterTest {
   @Test
   public void convertCelStructExpr_toExprStruct_withFieldKey() {
     CelExpr celExpr =
-        CelExpr.ofCreateStruct(
+        CelExpr.ofStruct(
             1,
             "messageName",
             ImmutableList.of(
-                CelExpr.ofCreateStructEntry(
+                CelExpr.ofStructEntry(
                     2, "fieldKey", CelExpr.ofConstant(3, CelConstant.ofValue(10)), true)));
 
     Expr expr = CelExprConverter.fromCelExpr(celExpr);
@@ -508,10 +508,10 @@ public class CelExprConverterTest {
   @Test
   public void convertCelMapExpr_toExprStruct() {
     CelExpr celExpr =
-        CelExpr.ofCreateMap(
+        CelExpr.ofMap(
             1,
             ImmutableList.of(
-                CelExpr.ofCreateMapEntry(
+                CelExpr.ofMapEntry(
                     2,
                     CelExpr.ofConstant(3, CelConstant.ofValue(15)),
                     CelExpr.ofConstant(4, CelConstant.ofValue(10)),

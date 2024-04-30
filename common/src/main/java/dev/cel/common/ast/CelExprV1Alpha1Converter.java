@@ -121,7 +121,7 @@ public final class CelExprV1Alpha1Converter {
             fromExprList(callExpr.getArgsList()));
       case LIST_EXPR:
         CreateList createListExpr = expr.getListExpr();
-        return CelExpr.ofCreateList(
+        return CelExpr.ofList(
             expr.getId(),
             fromExprList(createListExpr.getElementsList()),
             ImmutableList.copyOf(createListExpr.getOptionalIndicesList()));
@@ -209,14 +209,14 @@ public final class CelExprV1Alpha1Converter {
               "Unexpected struct key kind case: " + structExprEntry.getKeyKindCase());
         }
         entries.add(
-            CelExpr.ofCreateStructEntry(
+            CelExpr.ofStructEntry(
                 structExprEntry.getId(),
                 structExprEntry.getFieldKey(),
                 fromExpr(structExprEntry.getValue()),
                 structExprEntry.getOptionalEntry()));
       }
 
-      return CelExpr.ofCreateStruct(id, structExpr.getMessageName(), entries.build());
+      return CelExpr.ofStruct(id, structExpr.getMessageName(), entries.build());
     } else {
       ImmutableList.Builder<CelExpr.CelMap.Entry> entries = ImmutableList.builder();
       for (Entry mapExprEntry : structExpr.getEntriesList()) {
@@ -225,14 +225,14 @@ public final class CelExprV1Alpha1Converter {
               "Unexpected map key kind case: " + mapExprEntry.getKeyKindCase());
         }
         entries.add(
-            CelExpr.ofCreateMapEntry(
+            CelExpr.ofMapEntry(
                 mapExprEntry.getId(),
                 fromExpr(mapExprEntry.getMapKey()),
                 fromExpr(mapExprEntry.getValue()),
                 mapExprEntry.getOptionalEntry()));
       }
 
-      return CelExpr.ofCreateMap(id, entries.build());
+      return CelExpr.ofMap(id, entries.build());
     }
   }
 

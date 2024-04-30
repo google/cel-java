@@ -527,12 +527,12 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
   private static Optional<CelExpr> checkInvalidArgumentSingleArg(
       CelMacroExprFactory exprFactory, String functionName, CelExpr argument) {
     if (argument.exprKind().getKind() == Kind.LIST) {
-      if (argument.createList().elements().isEmpty()) {
+      if (argument.list().elements().isEmpty()) {
         return newError(
             exprFactory, String.format("%s invalid single argument value", functionName), argument);
       }
 
-      return checkInvalidArgument(exprFactory, functionName, argument.createList().elements());
+      return checkInvalidArgument(exprFactory, functionName, argument.list().elements());
     }
     if (isArgumentValidType(argument)) {
       return Optional.empty();

@@ -525,7 +525,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
 
     CelExpr.Builder exprBuilder = exprFactory.newExprBuilder(context.op);
     CelExpr.CelStruct.Builder structExpr = visitStructFields(context.entries);
-    return exprBuilder.setCreateStruct(structExpr.setMessageName(messageName).build()).build();
+    return exprBuilder.setStruct(structExpr.setMessageName(messageName).build()).build();
   }
 
   @Override
@@ -566,7 +566,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     CelExpr.Builder exprBuilder = exprFactory.newExprBuilder(context.op);
     CelExpr.CelList createListExpr = visitListInitElements(context.listInit());
 
-    return exprBuilder.setCreateList(createListExpr).build();
+    return exprBuilder.setList(createListExpr).build();
   }
 
   private CelExpr.CelList visitListInitElements(ListInitContext context) {
@@ -596,7 +596,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     checkNotNull(context);
     CelExpr.Builder exprBuilder = exprFactory.newExprBuilder(context.op);
     CelExpr.CelMap.Builder createMapExpr = visitMapEntries(context.entries);
-    return exprBuilder.setCreateMap(createMapExpr.build()).build();
+    return exprBuilder.setMap(createMapExpr.build()).build();
   }
 
   private CelExpr buildMacroCallArgs(CelExpr expr) {

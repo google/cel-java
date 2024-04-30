@@ -196,7 +196,7 @@ public final class CelUnparserImplTest {
                       .build())
               .build(), // bad args
           CelExpr.newBuilder()
-              .setCreateStruct(
+              .setStruct(
                   CelStruct.newBuilder()
                       .setMessageName("Msg")
                       .addEntries(
@@ -208,7 +208,7 @@ public final class CelUnparserImplTest {
                       .build())
               .build(), // bad struct
           CelExpr.newBuilder()
-              .setCreateMap(
+              .setMap(
                   CelMap.newBuilder()
                       .addEntries(
                           CelMap.Entry.newBuilder()

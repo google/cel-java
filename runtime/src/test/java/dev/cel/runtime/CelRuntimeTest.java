@@ -293,7 +293,7 @@ public class CelRuntimeTest {
     CelEvaluationListener listener =
         (expr, res) -> {
           assertThat(res).isEqualTo(TestAllTypes.getDefaultInstance());
-          assertThat(expr.createStruct().messageName()).isEqualTo("TestAllTypes");
+          assertThat(expr.struct().messageName()).isEqualTo("TestAllTypes");
         };
     Cel cel =
         CelFactory.standardCelBuilder()
@@ -314,7 +314,7 @@ public class CelRuntimeTest {
         (expr, res) -> {
           if (expr.exprKind().getKind().equals(Kind.LIST)) {
             assertThat((List<Long>) res).containsExactly(1L, 2L, 3L);
-            assertThat(expr.createList().elements()).hasSize(3);
+            assertThat(expr.list().elements()).hasSize(3);
           }
         };
     Cel cel = CelFactory.standardCelBuilder().build();
@@ -332,7 +332,7 @@ public class CelRuntimeTest {
         (expr, res) -> {
           if (expr.exprKind().getKind().equals(Kind.MAP)) {
             assertThat((Map<Long, String>) res).containsExactly(1L, "a");
-            assertThat(expr.createMap().entries()).hasSize(1);
+            assertThat(expr.map().entries()).hasSize(1);
           }
         };
     Cel cel = CelFactory.standardCelBuilder().build();

@@ -156,8 +156,8 @@ public final class CelMacroExprFactoryTest {
     CelExpr expr = exprFactory.newList(element);
     assertThat(expr.id()).isEqualTo(2L);
     assertThat(expr.exprKind().getKind()).isEqualTo(Kind.LIST);
-    assertThat(expr.createList().elements()).hasSize(1);
-    assertThat(expr.createList().elements()).containsExactly(element);
+    assertThat(expr.list().elements()).hasSize(1);
+    assertThat(expr.list().elements()).containsExactly(element);
   }
 
   @Test
@@ -169,7 +169,7 @@ public final class CelMacroExprFactoryTest {
     CelExpr expr = exprFactory.newMap(entry);
     assertThat(expr.id()).isEqualTo(4L);
     assertThat(expr.exprKind().getKind()).isEqualTo(Kind.MAP);
-    assertThat(expr.createMap().entries()).containsExactly(entry);
+    assertThat(expr.map().entries()).containsExactly(entry);
   }
 
   @Test
@@ -189,8 +189,8 @@ public final class CelMacroExprFactoryTest {
     CelExpr expr = exprFactory.newMessage("google.example.Baz", field);
     assertThat(expr.id()).isEqualTo(3L);
     assertThat(expr.exprKind().getKind()).isEqualTo(Kind.STRUCT);
-    assertThat(expr.createStruct().messageName()).isEqualTo("google.example.Baz");
-    assertThat(expr.createStruct().entries()).containsExactly(field);
+    assertThat(expr.struct().messageName()).isEqualTo("google.example.Baz");
+    assertThat(expr.struct().entries()).containsExactly(field);
   }
 
   @Test

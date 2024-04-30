@@ -96,7 +96,7 @@ public class CelExprFactory {
   public final CelExpr newList(Iterable<CelExpr> elements) {
     return CelExpr.newBuilder()
         .setId(nextExprId())
-        .setCreateList(CelExpr.CelList.newBuilder().addElements(elements).build())
+        .setList(CelExpr.CelList.newBuilder().addElements(elements).build())
         .build();
   }
 
@@ -109,7 +109,7 @@ public class CelExprFactory {
   public final CelExpr newMap(Iterable<CelExpr.CelMap.Entry> entries) {
     return CelExpr.newBuilder()
         .setId(nextExprId())
-        .setCreateMap(CelExpr.CelMap.newBuilder().addEntries(entries).build())
+        .setMap(CelExpr.CelMap.newBuilder().addEntries(entries).build())
         .build();
   }
 
@@ -132,7 +132,7 @@ public class CelExprFactory {
     checkArgument(!isNullOrEmpty(typeName));
     return CelExpr.newBuilder()
         .setId(nextExprId())
-        .setCreateStruct(
+        .setStruct(
             CelExpr.CelStruct.newBuilder().setMessageName(typeName).addEntries(fields).build())
         .build();
   }

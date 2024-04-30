@@ -181,11 +181,11 @@ public final class ExprChecker {
       case CALL:
         return visit(expr, expr.call());
       case LIST:
-        return visit(expr, expr.createList());
+        return visit(expr, expr.list());
       case STRUCT:
-        return visit(expr, expr.createStruct());
+        return visit(expr, expr.struct());
       case MAP:
-        return visit(expr, expr.createMap());
+        return visit(expr, expr.map());
       case COMPREHENSION:
         return visit(expr, expr.comprehension());
       default:
@@ -848,32 +848,32 @@ public final class ExprChecker {
   }
 
   private static CelExpr replaceListElementSubtree(CelExpr expr, CelExpr element, int index) {
-    CelExpr.CelList newList = expr.createList().toBuilder().setElement(index, element).build();
-    return expr.toBuilder().setCreateList(newList).build();
+    CelExpr.CelList newList = expr.list().toBuilder().setElement(index, element).build();
+    return expr.toBuilder().setList(newList).build();
   }
 
   private static CelExpr replaceStructEntryValueSubtree(CelExpr expr, CelExpr newValue, int index) {
-    CelExpr.CelStruct createStruct = expr.createStruct();
+    CelExpr.CelStruct createStruct = expr.struct();
     CelExpr.CelStruct.Entry newEntry =
         createStruct.entries().get(index).toBuilder().setValue(newValue).build();
     createStruct = createStruct.toBuilder().setEntry(index, newEntry).build();
-    return expr.toBuilder().setCreateStruct(createStruct).build();
+    return expr.toBuilder().setStruct(createStruct).build();
   }
 
   private static CelExpr replaceMapEntryKeySubtree(CelExpr expr, CelExpr newKey, int index) {
-    CelExpr.CelMap createMap = expr.createMap();
+    CelExpr.CelMap createMap = expr.map();
     CelExpr.CelMap.Entry newEntry =
         createMap.entries().get(index).toBuilder().setKey(newKey).build();
     createMap = createMap.toBuilder().setEntry(index, newEntry).build();
-    return expr.toBuilder().setCreateMap(createMap).build();
+    return expr.toBuilder().setMap(createMap).build();
   }
 
   private static CelExpr replaceMapEntryValueSubtree(CelExpr expr, CelExpr newValue, int index) {
-    CelExpr.CelMap createMap = expr.createMap();
+    CelExpr.CelMap createMap = expr.map();
     CelExpr.CelMap.Entry newEntry =
         createMap.entries().get(index).toBuilder().setValue(newValue).build();
     createMap = createMap.toBuilder().setEntry(index, newEntry).build();
-    return expr.toBuilder().setCreateMap(createMap).build();
+    return expr.toBuilder().setMap(createMap).build();
   }
 
   private static CelExpr replaceComprehensionAccuInitSubtree(CelExpr expr, CelExpr newAccuInit) {
