@@ -706,7 +706,7 @@ public class AstMutatorTest {
   }
 
   @Test
-  public void createStruct_replaceValue() throws Exception {
+  public void struct_replaceValue() throws Exception {
     // Tree shape (brackets are expr IDs):
     //        TestAllTypes [1]
     //             single_int64 [2]
@@ -722,7 +722,7 @@ public class AstMutatorTest {
   }
 
   @Test
-  public void createMap_replaceKey() throws Exception {
+  public void map_replaceKey() throws Exception {
     // Tree shape (brackets are expr IDs):
     //        map [1]
     //       map_entry [2]
@@ -737,7 +737,7 @@ public class AstMutatorTest {
   }
 
   @Test
-  public void createMap_replaceValue() throws Exception {
+  public void map_replaceValue() throws Exception {
     // Tree shape (brackets are expr IDs):
     //        map [1]
     //       map_entry [2]
@@ -808,7 +808,7 @@ public class AstMutatorTest {
     assertThat(mangledAst.getExpr().toString())
         .isEqualTo(
             "COMPREHENSION [13] {\n"
-                + "  iter_var: @c0:0\n"
+                + "  iter_var: @c:0\n"
                 + "  iter_range: {\n"
                 + "    LIST [1] {\n"
                 + "      elements: {\n"
@@ -816,7 +816,7 @@ public class AstMutatorTest {
                 + "      }\n"
                 + "    }\n"
                 + "  }\n"
-                + "  accu_var: @x0:0\n"
+                + "  accu_var: @x:0\n"
                 + "  accu_init: {\n"
                 + "    CONSTANT [6] { value: false }\n"
                 + "  }\n"
@@ -828,7 +828,7 @@ public class AstMutatorTest {
                 + "          function: !_\n"
                 + "          args: {\n"
                 + "            IDENT [7] {\n"
-                + "              name: @x0:0\n"
+                + "              name: @x:0\n"
                 + "            }\n"
                 + "          }\n"
                 + "        }\n"
@@ -840,21 +840,22 @@ public class AstMutatorTest {
                 + "      function: _||_\n"
                 + "      args: {\n"
                 + "        IDENT [10] {\n"
-                + "          name: @x0:0\n"
+                + "          name: @x:0\n"
                 + "        }\n"
                 + "        IDENT [5] {\n"
-                + "          name: @c0:0\n"
+                + "          name: @c:0\n"
                 + "        }\n"
                 + "      }\n"
                 + "    }\n"
                 + "  }\n"
                 + "  result: {\n"
                 + "    IDENT [12] {\n"
-                + "      name: @x0:0\n"
+                + "      name: @x:0\n"
                 + "    }\n"
                 + "  }\n"
                 + "}");
-    assertThat(CEL_UNPARSER.unparse(mangledAst)).isEqualTo("[false].exists(@c0:0, @c0:0)");
+
+    assertThat(CEL_UNPARSER.unparse(mangledAst)).isEqualTo("[false].exists(@c:0, @c:0)");
     assertThat(CEL.createProgram(CEL.check(mangledAst).getAst()).eval()).isEqualTo(false);
     assertConsistentMacroCalls(ast);
   }
@@ -891,7 +892,7 @@ public class AstMutatorTest {
     assertThat(mangledAst.getExpr().toString())
         .isEqualTo(
             "COMPREHENSION [27] {\n"
-                + "  iter_var: @c0:0\n"
+                + "  iter_var: @c:1\n"
                 + "  iter_range: {\n"
                 + "    LIST [1] {\n"
                 + "      elements: {\n"
@@ -901,7 +902,7 @@ public class AstMutatorTest {
                 + "      }\n"
                 + "    }\n"
                 + "  }\n"
-                + "  accu_var: @x0:0\n"
+                + "  accu_var: @x:1\n"
                 + "  accu_init: {\n"
                 + "    CONSTANT [20] { value: false }\n"
                 + "  }\n"
@@ -913,7 +914,7 @@ public class AstMutatorTest {
                 + "          function: !_\n"
                 + "          args: {\n"
                 + "            IDENT [21] {\n"
-                + "              name: @x0:0\n"
+                + "              name: @x:1\n"
                 + "            }\n"
                 + "          }\n"
                 + "        }\n"
@@ -925,20 +926,20 @@ public class AstMutatorTest {
                 + "      function: _||_\n"
                 + "      args: {\n"
                 + "        IDENT [24] {\n"
-                + "          name: @x0:0\n"
+                + "          name: @x:1\n"
                 + "        }\n"
                 + "        COMPREHENSION [19] {\n"
-                + "          iter_var: @c1:0\n"
+                + "          iter_var: @c:0\n"
                 + "          iter_range: {\n"
                 + "            LIST [5] {\n"
                 + "              elements: {\n"
                 + "                IDENT [6] {\n"
-                + "                  name: @c0:0\n"
+                + "                  name: @c:1\n"
                 + "                }\n"
                 + "              }\n"
                 + "            }\n"
                 + "          }\n"
-                + "          accu_var: @x1:0\n"
+                + "          accu_var: @x:0\n"
                 + "          accu_init: {\n"
                 + "            CONSTANT [12] { value: false }\n"
                 + "          }\n"
@@ -950,7 +951,7 @@ public class AstMutatorTest {
                 + "                  function: !_\n"
                 + "                  args: {\n"
                 + "                    IDENT [13] {\n"
-                + "                      name: @x1:0\n"
+                + "                      name: @x:0\n"
                 + "                    }\n"
                 + "                  }\n"
                 + "                }\n"
@@ -962,13 +963,13 @@ public class AstMutatorTest {
                 + "              function: _||_\n"
                 + "              args: {\n"
                 + "                IDENT [16] {\n"
-                + "                  name: @x1:0\n"
+                + "                  name: @x:0\n"
                 + "                }\n"
                 + "                CALL [10] {\n"
                 + "                  function: _==_\n"
                 + "                  args: {\n"
                 + "                    IDENT [9] {\n"
-                + "                      name: @c1:0\n"
+                + "                      name: @c:0\n"
                 + "                    }\n"
                 + "                    CONSTANT [11] { value: 1 }\n"
                 + "                  }\n"
@@ -978,7 +979,7 @@ public class AstMutatorTest {
                 + "          }\n"
                 + "          result: {\n"
                 + "            IDENT [18] {\n"
-                + "              name: @x1:0\n"
+                + "              name: @x:0\n"
                 + "            }\n"
                 + "          }\n"
                 + "        }\n"
@@ -987,12 +988,13 @@ public class AstMutatorTest {
                 + "  }\n"
                 + "  result: {\n"
                 + "    IDENT [26] {\n"
-                + "      name: @x0:0\n"
+                + "      name: @x:1\n"
                 + "    }\n"
                 + "  }\n"
                 + "}");
+
     assertThat(CEL_UNPARSER.unparse(mangledAst))
-        .isEqualTo("[x].exists(@c0:0, [@c0:0].exists(@c1:0, @c1:0 == 1))");
+        .isEqualTo("[x].exists(@c:1, [@c:1].exists(@c:0, @c:0 == 1))");
     assertThat(CEL.createProgram(CEL.check(mangledAst).getAst()).eval(ImmutableMap.of("x", 1)))
         .isEqualTo(true);
     assertConsistentMacroCalls(ast);

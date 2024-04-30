@@ -20,9 +20,7 @@ import static java.util.stream.Collectors.toCollection;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Table;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelMutableAst;
@@ -261,43 +259,22 @@ public final class AstMutator {
                           "Unexpected CelNavigableMutableExpr collision");
                     },
                     LinkedHashMap::new));
-    int iterCount = 0;
 
     // The map that we'll eventually return to the caller.
     HashMap<MangledComprehensionName, MangledComprehensionType> mangledIdentNamesToType =
         new HashMap<>();
-    // Intermediary table used for the purposes of generating a unique mangled variable name.
-    Table<Integer, MangledComprehensionType, MangledComprehensionName> comprehensionLevelToType =
-        HashBasedTable.create();
     CelMutableExpr mutatedComprehensionExpr = navigableMutableAst.getAst().expr();
     CelMutableSource newSource = navigableMutableAst.getAst().source();
+    int iterCount = 0;
     for (Entry<CelNavigableMutableExpr, MangledComprehensionType> comprehensionEntry :
         comprehensionsToMangle.entrySet()) {
-      iterCount++;
-      CelNavigableMutableExpr comprehensionNode = comprehensionEntry.getKey();
-      MangledComprehensionType comprehensionEntryType = comprehensionEntry.getValue();
+      String mangledIterVarName = newIterVarPrefix + ":" + iterCount;
+      String mangledResultName = newResultPrefix + ":" + iterCount;
+      MangledComprehensionName mangledComprehensionName =
+          MangledComprehensionName.of(mangledIterVarName, mangledResultName);
+      mangledIdentNamesToType.put(mangledComprehensionName, comprehensionEntry.getValue());
 
-      CelMutableExpr comprehensionExpr = comprehensionNode.expr();
-      int comprehensionNestingLevel = countComprehensionNestingLevel(comprehensionNode);
-      MangledComprehensionName mangledComprehensionName;
-      if (comprehensionLevelToType.contains(comprehensionNestingLevel, comprehensionEntryType)) {
-        mangledComprehensionName =
-            comprehensionLevelToType.get(comprehensionNestingLevel, comprehensionEntryType);
-      } else {
-        // First time encountering the pair of <ComprehensionLevel, CelType>. Generate a unique
-        // mangled variable name for this.
-        int uniqueTypeIdx = comprehensionLevelToType.row(comprehensionNestingLevel).size();
-        String mangledIterVarName =
-            newIterVarPrefix + comprehensionNestingLevel + ":" + uniqueTypeIdx;
-        String mangledResultName =
-            newResultPrefix + comprehensionNestingLevel + ":" + uniqueTypeIdx;
-        mangledComprehensionName =
-            MangledComprehensionName.of(mangledIterVarName, mangledResultName);
-        comprehensionLevelToType.put(
-            comprehensionNestingLevel, comprehensionEntryType, mangledComprehensionName);
-      }
-      mangledIdentNamesToType.put(mangledComprehensionName, comprehensionEntryType);
-
+      CelMutableExpr comprehensionExpr = comprehensionEntry.getKey().expr();
       String iterVar = comprehensionExpr.comprehension().iterVar();
       String accuVar = comprehensionExpr.comprehension().accuVar();
       mutatedComprehensionExpr =
@@ -315,6 +292,7 @@ public final class AstMutator {
               iterVar,
               mangledComprehensionName,
               comprehensionExpr.id());
+      iterCount++;
     }
 
     if (iterCount >= iterationLimit) {
@@ -820,19 +798,6 @@ public final class AstMutator {
         .mapToLong(CelNavigableMutableExpr::id)
         .max()
         .orElseThrow(NoSuchElementException::new);
-  }
-
-  private static int countComprehensionNestingLevel(CelNavigableMutableExpr comprehensionExpr) {
-    int nestedLevel = 0;
-    Optional<CelNavigableMutableExpr> maybeParent = comprehensionExpr.parent();
-    while (maybeParent.isPresent()) {
-      if (maybeParent.get().getKind().equals(Kind.COMPREHENSION)) {
-        nestedLevel++;
-      }
-
-      maybeParent = maybeParent.get().parent();
-    }
-    return nestedLevel;
   }
 
   /**

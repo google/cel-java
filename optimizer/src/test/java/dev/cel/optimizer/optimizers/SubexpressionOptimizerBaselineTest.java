@@ -456,6 +456,9 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
     MULTIPLE_MACROS_2(
         "[[1].exists(i, i > 0)] + [[1].exists(j, j > 0)] + [['a'].exists(k, k == 'a')] +"
             + " [['a'].exists(l, l == 'a')] == [true, true, true, true]"),
+    MULTIPLE_MACROS_3(
+        "[1].exists(i, i > 0) && [1].exists(j, j > 0) && [1].exists(k, k > 1) && [2].exists(l, l >"
+            + " 1)"),
     NESTED_MACROS("[1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [[2, 3, 4], [2, 3, 4], [2, 3, 4]]"),
     NESTED_MACROS_2("[1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]"),
     INCLUSION_LIST("1 in [1,2,3] && 2 in [1,2,3] && 3 in [3, [1,2,3]] && 1 in [1,2,3]"),

@@ -790,7 +790,7 @@ public final class DefaultInterpreter implements Interpreter {
               .orElseThrow(
                   () ->
                       new IllegalStateException(
-                          "Could not find a reference for CelStruct expresison at ID: "
+                          "Could not find a reference for CelStruct expression at ID: "
                               + expr.id()));
 
       // Message creation.
