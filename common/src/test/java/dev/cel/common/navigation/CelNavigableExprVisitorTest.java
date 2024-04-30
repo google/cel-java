@@ -446,12 +446,12 @@ public class CelNavigableExprVisitorTest {
         navigableAst
             .getRoot()
             .allNodes()
-            .filter(x -> x.getKind().equals(Kind.CREATE_LIST))
+            .filter(x -> x.getKind().equals(Kind.LIST))
             .collect(toImmutableList());
 
     assertThat(allConstants).hasSize(1);
     CelNavigableExpr listExpr = allConstants.get(0);
-    assertThat(listExpr.getKind()).isEqualTo(Kind.CREATE_LIST);
+    assertThat(listExpr.getKind()).isEqualTo(Kind.LIST);
     assertThat(listExpr.parent()).isPresent();
     CelNavigableExpr stringFormatExpr = listExpr.parent().get();
     assertThat(stringFormatExpr.getKind()).isEqualTo(Kind.CALL);
@@ -613,7 +613,7 @@ public class CelNavigableExprVisitorTest {
         navigableAst
             .getRoot()
             .allNodes()
-            .filter(x -> x.getKind().equals(Kind.CREATE_STRUCT))
+            .filter(x -> x.getKind().equals(Kind.STRUCT))
             .collect(toImmutableList());
 
     assertThat(allNodes).hasSize(1);
@@ -718,7 +718,7 @@ public class CelNavigableExprVisitorTest {
         navigableAst
             .getRoot()
             .allNodes()
-            .filter(x -> x.getKind().equals(Kind.CREATE_MAP))
+            .filter(x -> x.getKind().equals(Kind.MAP))
             .collect(toImmutableList());
 
     assertThat(allNodes).hasSize(1);

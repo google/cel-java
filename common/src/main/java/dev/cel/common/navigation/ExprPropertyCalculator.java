@@ -54,16 +54,16 @@ final class ExprPropertyCalculator<E extends Expression> {
       case CALL:
         visitedProperty = visit(expr.call());
         break;
-      case CREATE_LIST:
+      case LIST:
         visitedProperty = visit(expr.createList());
         break;
       case SELECT:
         visitedProperty = visit(expr.select());
         break;
-      case CREATE_STRUCT:
+      case STRUCT:
         visitedProperty = visitStruct(expr.createStruct());
         break;
-      case CREATE_MAP:
+      case MAP:
         visitedProperty = visitMap(expr.createMap());
         break;
       case COMPREHENSION:

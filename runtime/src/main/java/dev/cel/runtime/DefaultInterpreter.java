@@ -30,10 +30,10 @@ import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
-import dev.cel.common.ast.CelExpr.CelCreateList;
-import dev.cel.common.ast.CelExpr.CelCreateMap;
-import dev.cel.common.ast.CelExpr.CelCreateStruct;
+import dev.cel.common.ast.CelExpr.CelList;
+import dev.cel.common.ast.CelExpr.CelMap;
 import dev.cel.common.ast.CelExpr.CelSelect;
+import dev.cel.common.ast.CelExpr.CelStruct;
 import dev.cel.common.ast.CelExpr.ExprKind;
 import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelKind;
@@ -201,13 +201,13 @@ public final class DefaultInterpreter implements Interpreter {
           case CALL:
             result = evalCall(frame, expr, expr.call());
             break;
-          case CREATE_LIST:
+          case LIST:
             result = evalList(frame, expr, expr.createList());
             break;
-          case CREATE_STRUCT:
+          case STRUCT:
             result = evalStruct(frame, expr, expr.createStruct());
             break;
-          case CREATE_MAP:
+          case MAP:
             result = evalMap(frame, expr.createMap());
             break;
           case COMPREHENSION:
@@ -709,8 +709,7 @@ public final class DefaultInterpreter implements Interpreter {
       return evalBoolean(frame, expr, /* strict= */ false);
     }
 
-    private IntermediateResult evalList(
-        ExecutionFrame frame, CelExpr unusedExpr, CelCreateList listExpr)
+    private IntermediateResult evalList(ExecutionFrame frame, CelExpr unusedExpr, CelList listExpr)
         throws InterpreterException {
 
       CallArgumentChecker argChecker = CallArgumentChecker.create(frame.getResolver());
@@ -742,14 +741,14 @@ public final class DefaultInterpreter implements Interpreter {
       return IntermediateResult.create(argChecker.maybeUnknowns().orElse(result));
     }
 
-    private IntermediateResult evalMap(ExecutionFrame frame, CelCreateMap mapExpr)
+    private IntermediateResult evalMap(ExecutionFrame frame, CelMap mapExpr)
         throws InterpreterException {
 
       CallArgumentChecker argChecker = CallArgumentChecker.create(frame.getResolver());
 
       Map<Object, Object> result = new LinkedHashMap<>();
 
-      for (CelCreateMap.Entry entry : mapExpr.entries()) {
+      for (CelMap.Entry entry : mapExpr.entries()) {
         IntermediateResult keyResult = evalInternal(frame, entry.key());
         argChecker.checkArg(keyResult);
 
@@ -784,21 +783,20 @@ public final class DefaultInterpreter implements Interpreter {
       return IntermediateResult.create(argChecker.maybeUnknowns().orElse(result));
     }
 
-    private IntermediateResult evalStruct(
-        ExecutionFrame frame, CelExpr expr, CelCreateStruct structExpr)
+    private IntermediateResult evalStruct(ExecutionFrame frame, CelExpr expr, CelStruct structExpr)
         throws InterpreterException {
       CelReference reference =
           ast.getReference(expr.id())
               .orElseThrow(
                   () ->
                       new IllegalStateException(
-                          "Could not find a reference for CelCreateStruct expresison at ID: "
+                          "Could not find a reference for CelStruct expresison at ID: "
                               + expr.id()));
 
       // Message creation.
       CallArgumentChecker argChecker = CallArgumentChecker.create(frame.getResolver());
       Map<String, Object> fields = new HashMap<>();
-      for (CelCreateStruct.Entry entry : structExpr.entries()) {
+      for (CelStruct.Entry entry : structExpr.entries()) {
         IntermediateResult fieldResult = evalInternal(frame, entry.value());
         // TODO: remove support for IncompleteData
         InterpreterUtil.completeDataOnly(
@@ -903,7 +901,7 @@ public final class DefaultInterpreter implements Interpreter {
 
     private IntermediateResult evalCelBlock(
         ExecutionFrame frame, CelExpr unusedExpr, CelCall blockCall) throws InterpreterException {
-      CelCreateList exprList = blockCall.args().get(0).createList();
+      CelList exprList = blockCall.args().get(0).createList();
       Map<String, IntermediateResult> blockList = new HashMap<>();
       for (int index = 0; index < exprList.elements().size(); index++) {
         // Register the block indices as lazily evaluated expressions stored as unique identifiers.
@@ -935,7 +933,7 @@ public final class DefaultInterpreter implements Interpreter {
               .equals(CelConstant.Kind.BOOLEAN_VALUE)
           && !comprehension.loopCondition().constant().booleanValue()
           && comprehension.iterVar().equals("#unused")
-          && comprehension.iterRange().exprKind().getKind().equals(ExprKind.Kind.CREATE_LIST)
+          && comprehension.iterRange().exprKind().getKind().equals(ExprKind.Kind.LIST)
           && comprehension.iterRange().createList().elements().isEmpty();
     }
 

@@ -20,10 +20,10 @@ import static java.util.stream.Collectors.toCollection;
 import com.google.common.collect.ImmutableList;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
-import dev.cel.common.ast.CelExpr.CelCreateList;
-import dev.cel.common.ast.CelExpr.CelCreateMap;
-import dev.cel.common.ast.CelExpr.CelCreateStruct;
+import dev.cel.common.ast.CelExpr.CelList;
+import dev.cel.common.ast.CelExpr.CelMap;
 import dev.cel.common.ast.CelExpr.CelSelect;
+import dev.cel.common.ast.CelExpr.CelStruct;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
 import dev.cel.common.ast.CelMutableExpr.CelMutableComprehension;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
@@ -65,16 +65,16 @@ public final class CelMutableExprConverter {
                 : CelMutableCall.create(celCall.function(), args);
 
         return CelMutableExpr.ofCall(celExpr.id(), mutableCall);
-      case CREATE_LIST:
-        CelCreateList createList = celExpr.createList();
+      case LIST:
+        CelList createList = celExpr.createList();
         return CelMutableExpr.ofCreateList(
             celExpr.id(),
             CelMutableCreateList.create(
                 fromCelExprList(createList.elements()), createList.optionalIndices()));
-      case CREATE_STRUCT:
+      case STRUCT:
         return CelMutableExpr.ofCreateStruct(
             celExpr.id(), fromCelStructToMutableStruct(celExpr.createStruct()));
-      case CREATE_MAP:
+      case MAP:
         return CelMutableExpr.ofCreateMap(
             celExpr.id(), fromCelMapToMutableMap(celExpr.createMap()));
       case COMPREHENSION:
@@ -105,10 +105,9 @@ public final class CelMutableExprConverter {
     return mutableExprList;
   }
 
-  private static CelMutableCreateStruct fromCelStructToMutableStruct(
-      CelCreateStruct celCreateStruct) {
+  private static CelMutableCreateStruct fromCelStructToMutableStruct(CelStruct celCreateStruct) {
     List<CelMutableCreateStruct.Entry> entries = new ArrayList<>();
-    for (CelCreateStruct.Entry celStructExprEntry : celCreateStruct.entries()) {
+    for (CelStruct.Entry celStructExprEntry : celCreateStruct.entries()) {
       entries.add(
           CelMutableCreateStruct.Entry.create(
               celStructExprEntry.id(),
@@ -120,9 +119,9 @@ public final class CelMutableExprConverter {
     return CelMutableCreateStruct.create(celCreateStruct.messageName(), entries);
   }
 
-  private static CelMutableCreateMap fromCelMapToMutableMap(CelCreateMap celCreateMap) {
+  private static CelMutableCreateMap fromCelMapToMutableMap(CelMap celCreateMap) {
     List<CelMutableCreateMap.Entry> entries = new ArrayList<>();
-    for (CelCreateMap.Entry celMapExprEntry : celCreateMap.entries()) {
+    for (CelMap.Entry celMapExprEntry : celCreateMap.entries()) {
       entries.add(
           CelMutableCreateMap.Entry.create(
               celMapExprEntry.id(),
@@ -154,19 +153,19 @@ public final class CelMutableExprConverter {
         Optional<CelExpr> targetExpr =
             mutableCall.target().map(CelMutableExprConverter::fromMutableExpr);
         return CelExpr.ofCall(id, targetExpr, mutableCall.function(), args);
-      case CREATE_LIST:
+      case LIST:
         CelMutableCreateList mutableCreateList = mutableExpr.createList();
         return CelExpr.ofCreateList(
             id,
             fromMutableExprList(mutableCreateList.elements()),
             ImmutableList.copyOf(mutableCreateList.optionalIndices()));
-      case CREATE_STRUCT:
+      case STRUCT:
         CelMutableCreateStruct mutableCreateStruct = mutableExpr.createStruct();
         return CelExpr.newBuilder()
             .setId(id)
             .setCreateStruct(fromMutableStructToCelStruct(mutableCreateStruct))
             .build();
-      case CREATE_MAP:
+      case MAP:
         CelMutableCreateMap mutableCreateMap = mutableExpr.createMap();
         return CelExpr.newBuilder()
             .setId(id)
@@ -199,9 +198,9 @@ public final class CelMutableExprConverter {
     return celExprList.build();
   }
 
-  private static CelCreateStruct fromMutableStructToCelStruct(
+  private static CelStruct fromMutableStructToCelStruct(
       CelMutableCreateStruct mutableCreateStruct) {
-    List<CelCreateStruct.Entry> entries = new ArrayList<>();
+    List<CelStruct.Entry> entries = new ArrayList<>();
     for (CelMutableCreateStruct.Entry mutableStructEntry : mutableCreateStruct.entries()) {
       entries.add(
           CelExpr.ofCreateStructEntry(
@@ -211,14 +210,14 @@ public final class CelMutableExprConverter {
               mutableStructEntry.optionalEntry()));
     }
 
-    return CelCreateStruct.newBuilder()
+    return CelStruct.newBuilder()
         .setMessageName(mutableCreateStruct.messageName())
         .addEntries(entries)
         .build();
   }
 
-  private static CelCreateMap fromMutableMapToCelMap(CelMutableCreateMap mutableCreateMap) {
-    List<CelCreateMap.Entry> entries = new ArrayList<>();
+  private static CelMap fromMutableMapToCelMap(CelMutableCreateMap mutableCreateMap) {
+    List<CelMap.Entry> entries = new ArrayList<>();
     for (CelMutableCreateMap.Entry mutableMapEntry : mutableCreateMap.entries()) {
       entries.add(
           CelExpr.ofCreateMapEntry(
@@ -228,7 +227,7 @@ public final class CelMutableExprConverter {
               mutableMapEntry.optionalEntry()));
     }
 
-    return CelCreateMap.newBuilder().addEntries(entries).build();
+    return CelMap.newBuilder().addEntries(entries).build();
   }
 
   private CelMutableExprConverter() {}

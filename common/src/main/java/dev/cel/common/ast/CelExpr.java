@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.annotations.Internal;
+import com.google.errorprone.annotations.InlineMe;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +36,6 @@ import java.util.Optional;
  * <p>This is the native type equivalent of Expr message in syntax.proto.
  */
 @AutoValue
-@Internal
 @Immutable
 @SuppressWarnings("unchecked") // Class ensures only the super type is used
 public abstract class CelExpr implements Expression {
@@ -95,20 +94,20 @@ public abstract class CelExpr implements Expression {
   /**
    * {@inheritDoc}
    *
-   * @throws UnsupportedOperationException if expression is not {@link Kind#CREATE_LIST}.
+   * @throws UnsupportedOperationException if expression is not {@link Kind#LIST}.
    */
   @Override
-  public CelCreateList createList() {
+  public CelList createList() {
     return exprKind().createList();
   }
 
   /**
    * {@inheritDoc}
    *
-   * @throws UnsupportedOperationException if expression is not {@link Kind#CREATE_STRUCT}.
+   * @throws UnsupportedOperationException if expression is not {@link Kind#STRUCT}.
    */
   @Override
-  public CelCreateStruct createStruct() {
+  public CelStruct createStruct() {
     return exprKind().createStruct();
   }
 
@@ -118,7 +117,7 @@ public abstract class CelExpr implements Expression {
    * @throws UnsupportedOperationException if expression is not {@link Kind#createMap}.
    */
   @Override
-  public CelCreateMap createMap() {
+  public CelMap createMap() {
     return exprKind().createMap();
   }
 
@@ -174,32 +173,32 @@ public abstract class CelExpr implements Expression {
 
   /**
    * Gets the underlying createList expression or a default instance of one if expression is not
-   * {@link Kind#CREATE_LIST}.
+   * {@link Kind#LIST}.
    */
-  public CelCreateList createListOrDefault() {
-    return exprKind().getKind().equals(ExprKind.Kind.CREATE_LIST)
+  public CelList createListOrDefault() {
+    return exprKind().getKind().equals(ExprKind.Kind.LIST)
         ? exprKind().createList()
-        : CelCreateList.newBuilder().build();
+        : CelList.newBuilder().build();
   }
 
   /**
    * Gets the underlying createStruct expression or a default instance of one if expression is not
-   * {@link Kind#CREATE_STRUCT}.
+   * {@link Kind#STRUCT}.
    */
-  public CelCreateStruct createStructOrDefault() {
-    return exprKind().getKind().equals(ExprKind.Kind.CREATE_STRUCT)
+  public CelStruct createStructOrDefault() {
+    return exprKind().getKind().equals(ExprKind.Kind.STRUCT)
         ? exprKind().createStruct()
-        : CelCreateStruct.newBuilder().build();
+        : CelStruct.newBuilder().build();
   }
 
   /**
    * Gets the underlying createMap expression or a default instance of one if expression is not
-   * {@link Kind#CREATE_MAP}.
+   * {@link Kind#MAP}.
    */
-  public CelCreateMap createMapOrDefault() {
-    return exprKind().getKind().equals(ExprKind.Kind.CREATE_MAP)
+  public CelMap createMapOrDefault() {
+    return exprKind().getKind().equals(ExprKind.Kind.MAP)
         ? exprKind().createMap()
-        : CelCreateMap.newBuilder().build();
+        : CelMap.newBuilder().build();
   }
 
   /**
@@ -263,18 +262,18 @@ public abstract class CelExpr implements Expression {
     /**
      * Gets the underlying createList expression.
      *
-     * @throws UnsupportedOperationException if expression is not {@link Kind#CREATE_LIST}.
+     * @throws UnsupportedOperationException if expression is not {@link Kind#LIST}.
      */
-    public CelCreateList createList() {
+    public CelList createList() {
       return exprKind().createList();
     }
 
     /**
      * Gets the underlying createStruct expression.
      *
-     * @throws UnsupportedOperationException if expression is not {@link Kind#CREATE_STRUCT}.
+     * @throws UnsupportedOperationException if expression is not {@link Kind#STRUCT}.
      */
-    public CelCreateStruct createStruct() {
+    public CelStruct createStruct() {
       return exprKind().createStruct();
     }
 
@@ -283,7 +282,7 @@ public abstract class CelExpr implements Expression {
      *
      * @throws UnsupportedOperationException if expression is not {@link Kind#createMap}.
      */
-    public CelCreateMap createMap() {
+    public CelMap createMap() {
       return exprKind().createMap();
     }
 
@@ -317,18 +316,18 @@ public abstract class CelExpr implements Expression {
     }
 
     @CanIgnoreReturnValue
-    public Builder setCreateList(CelCreateList createList) {
-      return setExprKind(AutoOneOf_CelExpr_ExprKind.createList(createList));
+    public Builder setCreateList(CelList createList) {
+      return setExprKind(AutoOneOf_CelExpr_ExprKind.list(createList));
     }
 
     @CanIgnoreReturnValue
-    public Builder setCreateStruct(CelCreateStruct createStruct) {
-      return setExprKind(AutoOneOf_CelExpr_ExprKind.createStruct(createStruct));
+    public Builder setCreateStruct(CelStruct createStruct) {
+      return setExprKind(AutoOneOf_CelExpr_ExprKind.struct(createStruct));
     }
 
     @CanIgnoreReturnValue
-    public Builder setCreateMap(CelCreateMap createMap) {
-      return setExprKind(AutoOneOf_CelExpr_ExprKind.createMap(createMap));
+    public Builder setCreateMap(CelMap createMap) {
+      return setExprKind(AutoOneOf_CelExpr_ExprKind.map(createMap));
     }
 
     @CanIgnoreReturnValue
@@ -360,9 +359,9 @@ public abstract class CelExpr implements Expression {
       IDENT,
       SELECT,
       CALL,
-      CREATE_LIST,
-      CREATE_STRUCT,
-      CREATE_MAP,
+      LIST,
+      STRUCT,
+      MAP,
       COMPREHENSION,
     }
 
@@ -378,11 +377,38 @@ public abstract class CelExpr implements Expression {
 
     public abstract CelCall call();
 
-    public abstract CelCreateList createList();
+    public abstract CelList list();
 
-    public abstract CelCreateStruct createStruct();
+    /**
+     * @deprecated Use {@link #list()} instead.
+     */
+    @Deprecated
+    @InlineMe(replacement = "this.list()")
+    public final CelList createList() {
+      return list();
+    }
 
-    public abstract CelCreateMap createMap();
+    public abstract CelStruct struct();
+
+    /**
+     * @deprecated Use {@link #struct()} instead.
+     */
+    @Deprecated
+    @InlineMe(replacement = "this.struct()")
+    public final CelStruct createStruct() {
+      return struct();
+    }
+
+    public abstract CelMap map();
+
+    /**
+     * @deprecated Use {@link #map()} instead.
+     */
+    @Deprecated
+    @InlineMe(replacement = "this.map()")
+    public final CelMap createMap() {
+      return map();
+    }
 
     public abstract CelComprehension comprehension();
   }
@@ -565,14 +591,14 @@ public abstract class CelExpr implements Expression {
   /** A list creation expression. See {@link Expression.CreateList} */
   @AutoValue
   @Immutable
-  public abstract static class CelCreateList implements Expression.CreateList<CelExpr> {
+  public abstract static class CelList implements Expression.CreateList<CelExpr> {
     @Override
     public abstract ImmutableList<CelExpr> elements();
 
     @Override
     public abstract ImmutableList<Integer> optionalIndices();
 
-    /** Builder for CelCreateList. */
+    /** Builder for CelList. */
     @AutoValue.Builder
     public abstract static class Builder {
       private List<CelExpr> mutableElements = new ArrayList<>();
@@ -631,10 +657,10 @@ public abstract class CelExpr implements Expression {
       }
 
       // Not public due to overridden build logic.
-      abstract CelCreateList autoBuild();
+      abstract CelList autoBuild();
 
       @CheckReturnValue
-      public CelCreateList build() {
+      public CelList build() {
         setElements(ImmutableList.copyOf(mutableElements));
         return autoBuild();
       }
@@ -650,73 +676,70 @@ public abstract class CelExpr implements Expression {
     }
 
     public static Builder newBuilder() {
-      return new AutoValue_CelExpr_CelCreateList.Builder();
+      return new AutoValue_CelExpr_CelList.Builder();
     }
   }
 
   /** A message creation expression. See {@link Expression.CreateStruct} */
   @AutoValue
   @Immutable
-  public abstract static class CelCreateStruct
-      implements Expression.CreateStruct<CelCreateStruct.Entry> {
+  public abstract static class CelStruct implements Expression.CreateStruct<CelStruct.Entry> {
     @Override
     public abstract String messageName();
 
     @Override
-    public abstract ImmutableList<CelCreateStruct.Entry> entries();
+    public abstract ImmutableList<CelStruct.Entry> entries();
 
-    /** Builder for CelCreateStruct. */
+    /** Builder for CelStruct. */
     @AutoValue.Builder
     public abstract static class Builder {
-      private List<CelCreateStruct.Entry> mutableEntries = new ArrayList<>();
+      private List<CelStruct.Entry> mutableEntries = new ArrayList<>();
 
       // Not public. This only exists to make AutoValue.Builder work.
-      abstract ImmutableList<CelCreateStruct.Entry> entries();
+      abstract ImmutableList<CelStruct.Entry> entries();
 
       @CanIgnoreReturnValue
       public abstract Builder setMessageName(String value);
 
       // Not public. This only exists to make AutoValue.Builder work.
       @CanIgnoreReturnValue
-      abstract Builder setEntries(ImmutableList<CelCreateStruct.Entry> entries);
+      abstract Builder setEntries(ImmutableList<CelStruct.Entry> entries);
 
       /** Returns an immutable copy of the current mutable entries present in the builder. */
-      public ImmutableList<CelCreateStruct.Entry> getEntries() {
+      public ImmutableList<CelStruct.Entry> getEntries() {
         return ImmutableList.copyOf(mutableEntries);
       }
 
       /** Returns an immutable copy of the builders from the current mutable entries. */
-      public ImmutableList<CelCreateStruct.Entry.Builder> getEntriesBuilders() {
-        return mutableEntries.stream()
-            .map(CelCreateStruct.Entry::toBuilder)
-            .collect(toImmutableList());
+      public ImmutableList<CelStruct.Entry.Builder> getEntriesBuilders() {
+        return mutableEntries.stream().map(CelStruct.Entry::toBuilder).collect(toImmutableList());
       }
 
       @CanIgnoreReturnValue
-      public Builder setEntry(int index, CelCreateStruct.Entry entry) {
+      public Builder setEntry(int index, CelStruct.Entry entry) {
         checkNotNull(entry);
         mutableEntries.set(index, entry);
         return this;
       }
 
       @CanIgnoreReturnValue
-      public Builder addEntries(CelCreateStruct.Entry... entries) {
+      public Builder addEntries(CelStruct.Entry... entries) {
         checkNotNull(entries);
         return addEntries(Arrays.asList(entries));
       }
 
       @CanIgnoreReturnValue
-      public Builder addEntries(Iterable<CelCreateStruct.Entry> entries) {
+      public Builder addEntries(Iterable<CelStruct.Entry> entries) {
         checkNotNull(entries);
         entries.forEach(mutableEntries::add);
         return this;
       }
 
       // Not public due to overridden build logic.
-      abstract CelCreateStruct autoBuild();
+      abstract CelStruct autoBuild();
 
       @CheckReturnValue
-      public CelCreateStruct build() {
+      public CelStruct build() {
         setEntries(ImmutableList.copyOf(mutableEntries));
         return autoBuild();
       }
@@ -732,7 +755,7 @@ public abstract class CelExpr implements Expression {
     }
 
     public static Builder newBuilder() {
-      return new AutoValue_CelExpr_CelCreateStruct.Builder().setMessageName("");
+      return new AutoValue_CelExpr_CelStruct.Builder().setMessageName("");
     }
 
     /** Represents an entry of the struct */
@@ -752,7 +775,7 @@ public abstract class CelExpr implements Expression {
       @Override
       public abstract boolean optionalEntry();
 
-      /** Builder for CelCreateStruct.Entry. */
+      /** Builder for CelStruct.Entry. */
       @AutoValue.Builder
       public abstract static class Builder {
 
@@ -769,15 +792,13 @@ public abstract class CelExpr implements Expression {
         public abstract Builder setOptionalEntry(boolean value);
 
         @CheckReturnValue
-        public abstract CelCreateStruct.Entry build();
+        public abstract CelStruct.Entry build();
       }
 
       public abstract Builder toBuilder();
 
       public static Builder newBuilder() {
-        return new AutoValue_CelExpr_CelCreateStruct_Entry.Builder()
-            .setId(0)
-            .setOptionalEntry(false);
+        return new AutoValue_CelExpr_CelStruct_Entry.Builder().setId(0).setOptionalEntry(false);
       }
     }
   }
@@ -785,61 +806,59 @@ public abstract class CelExpr implements Expression {
   /** A map creation expression. See {@link Expression.CreateMap} */
   @AutoValue
   @Immutable
-  public abstract static class CelCreateMap implements Expression.CreateMap<CelCreateMap.Entry> {
+  public abstract static class CelMap implements Expression.CreateMap<CelMap.Entry> {
     /** The entries in the creation expression. */
     @Override
-    public abstract ImmutableList<CelCreateMap.Entry> entries();
+    public abstract ImmutableList<CelMap.Entry> entries();
 
-    /** Builder for CelCreateMap. */
+    /** Builder for CelMap. */
     @AutoValue.Builder
     public abstract static class Builder {
 
-      private List<CelCreateMap.Entry> mutableEntries = new ArrayList<>();
+      private List<CelMap.Entry> mutableEntries = new ArrayList<>();
 
       // Not public. This only exists to make AutoValue.Builder work.
-      abstract ImmutableList<CelCreateMap.Entry> entries();
+      abstract ImmutableList<CelMap.Entry> entries();
 
       // Not public. This only exists to make AutoValue.Builder work.
       @CanIgnoreReturnValue
-      abstract Builder setEntries(ImmutableList<CelCreateMap.Entry> entries);
+      abstract Builder setEntries(ImmutableList<CelMap.Entry> entries);
 
       /** Returns an immutable copy of the current mutable entries present in the builder. */
-      public ImmutableList<CelCreateMap.Entry> getEntries() {
+      public ImmutableList<CelMap.Entry> getEntries() {
         return ImmutableList.copyOf(mutableEntries);
       }
 
       /** Returns an immutable copy of the builders from the current mutable entries. */
-      public ImmutableList<CelCreateMap.Entry.Builder> getEntriesBuilders() {
-        return mutableEntries.stream()
-            .map(CelCreateMap.Entry::toBuilder)
-            .collect(toImmutableList());
+      public ImmutableList<CelMap.Entry.Builder> getEntriesBuilders() {
+        return mutableEntries.stream().map(CelMap.Entry::toBuilder).collect(toImmutableList());
       }
 
       @CanIgnoreReturnValue
-      public Builder setEntry(int index, CelCreateMap.Entry entry) {
+      public Builder setEntry(int index, CelMap.Entry entry) {
         checkNotNull(entry);
         mutableEntries.set(index, entry);
         return this;
       }
 
       @CanIgnoreReturnValue
-      public Builder addEntries(CelCreateMap.Entry... entries) {
+      public Builder addEntries(CelMap.Entry... entries) {
         checkNotNull(entries);
         return addEntries(Arrays.asList(entries));
       }
 
       @CanIgnoreReturnValue
-      public Builder addEntries(Iterable<CelCreateMap.Entry> entries) {
+      public Builder addEntries(Iterable<CelMap.Entry> entries) {
         checkNotNull(entries);
         entries.forEach(mutableEntries::add);
         return this;
       }
 
       // Not public due to overridden build logic.
-      abstract CelCreateMap autoBuild();
+      abstract CelMap autoBuild();
 
       @CheckReturnValue
-      public CelCreateMap build() {
+      public CelMap build() {
         setEntries(ImmutableList.copyOf(mutableEntries));
         return autoBuild();
       }
@@ -855,7 +874,7 @@ public abstract class CelExpr implements Expression {
     }
 
     public static Builder newBuilder() {
-      return new AutoValue_CelExpr_CelCreateMap.Builder();
+      return new AutoValue_CelExpr_CelMap.Builder();
     }
 
     /** Represents an entry of the map. */
@@ -875,7 +894,7 @@ public abstract class CelExpr implements Expression {
       @Override
       public abstract boolean optionalEntry();
 
-      /** Builder for CelCreateMap.Entry. */
+      /** Builder for CelMap.Entry. */
       @AutoValue.Builder
       public abstract static class Builder {
         public abstract long id();
@@ -884,22 +903,22 @@ public abstract class CelExpr implements Expression {
 
         public abstract CelExpr value();
 
-        public abstract CelCreateMap.Entry.Builder setId(long value);
+        public abstract CelMap.Entry.Builder setId(long value);
 
-        public abstract CelCreateMap.Entry.Builder setKey(CelExpr value);
+        public abstract CelMap.Entry.Builder setKey(CelExpr value);
 
-        public abstract CelCreateMap.Entry.Builder setValue(CelExpr value);
+        public abstract CelMap.Entry.Builder setValue(CelExpr value);
 
-        public abstract CelCreateMap.Entry.Builder setOptionalEntry(boolean value);
+        public abstract CelMap.Entry.Builder setOptionalEntry(boolean value);
 
         @CheckReturnValue
-        public abstract CelCreateMap.Entry build();
+        public abstract CelMap.Entry build();
       }
 
-      public abstract CelCreateMap.Entry.Builder toBuilder();
+      public abstract CelMap.Entry.Builder toBuilder();
 
-      public static CelCreateMap.Entry.Builder newBuilder() {
-        return new AutoValue_CelExpr_CelCreateMap_Entry.Builder().setId(0).setOptionalEntry(false);
+      public static CelMap.Entry.Builder newBuilder() {
+        return new AutoValue_CelExpr_CelMap_Entry.Builder().setId(0).setOptionalEntry(false);
       }
     }
   }
@@ -1027,8 +1046,8 @@ public abstract class CelExpr implements Expression {
     return newBuilder()
         .setId(id)
         .setExprKind(
-            AutoOneOf_CelExpr_ExprKind.createList(
-                CelCreateList.newBuilder()
+            AutoOneOf_CelExpr_ExprKind.list(
+                CelList.newBuilder()
                     .addElements(elements)
                     .addOptionalIndices(optionalIndices)
                     .build()))
@@ -1036,30 +1055,26 @@ public abstract class CelExpr implements Expression {
   }
 
   public static CelExpr ofCreateStruct(
-      long id, String messageName, ImmutableList<CelCreateStruct.Entry> entries) {
+      long id, String messageName, ImmutableList<CelStruct.Entry> entries) {
     return newBuilder()
         .setId(id)
         .setExprKind(
-            AutoOneOf_CelExpr_ExprKind.createStruct(
-                CelCreateStruct.newBuilder()
-                    .setMessageName(messageName)
-                    .addEntries(entries)
-                    .build()))
+            AutoOneOf_CelExpr_ExprKind.struct(
+                CelStruct.newBuilder().setMessageName(messageName).addEntries(entries).build()))
         .build();
   }
 
-  public static CelExpr ofCreateMap(long id, ImmutableList<CelCreateMap.Entry> entries) {
+  public static CelExpr ofCreateMap(long id, ImmutableList<CelMap.Entry> entries) {
     return newBuilder()
         .setId(id)
         .setExprKind(
-            AutoOneOf_CelExpr_ExprKind.createMap(
-                CelCreateMap.newBuilder().addEntries(entries).build()))
+            AutoOneOf_CelExpr_ExprKind.map(CelMap.newBuilder().addEntries(entries).build()))
         .build();
   }
 
-  public static CelCreateStruct.Entry ofCreateStructEntry(
+  public static CelStruct.Entry ofCreateStructEntry(
       long id, String fieldKey, CelExpr value, boolean isOptionalEntry) {
-    return CelCreateStruct.Entry.newBuilder()
+    return CelStruct.Entry.newBuilder()
         .setId(id)
         .setFieldKey(fieldKey)
         .setValue(value)
@@ -1067,9 +1082,9 @@ public abstract class CelExpr implements Expression {
         .build();
   }
 
-  public static CelCreateMap.Entry ofCreateMapEntry(
+  public static CelMap.Entry ofCreateMapEntry(
       long id, CelExpr mapKey, CelExpr value, boolean isOptionalEntry) {
-    return CelCreateMap.Entry.newBuilder()
+    return CelMap.Entry.newBuilder()
         .setId(id)
         .setKey(mapKey)
         .setValue(value)

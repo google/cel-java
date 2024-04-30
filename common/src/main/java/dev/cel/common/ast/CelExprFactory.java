@@ -96,28 +96,26 @@ public class CelExprFactory {
   public final CelExpr newList(Iterable<CelExpr> elements) {
     return CelExpr.newBuilder()
         .setId(nextExprId())
-        .setCreateList(CelExpr.CelCreateList.newBuilder().addElements(elements).build())
+        .setCreateList(CelExpr.CelList.newBuilder().addElements(elements).build())
         .build();
   }
 
   /** Creates a new map {@link CelExpr} comprised of the entries. */
-  public final CelExpr newMap(CelExpr.CelCreateMap.Entry... entries) {
+  public final CelExpr newMap(CelExpr.CelMap.Entry... entries) {
     return newMap(Arrays.asList(entries));
   }
 
   /** Creates a new map {@link CelExpr} comprised of the entries. */
-  public final CelExpr newMap(Iterable<CelExpr.CelCreateMap.Entry> entries) {
+  public final CelExpr newMap(Iterable<CelExpr.CelMap.Entry> entries) {
     return CelExpr.newBuilder()
         .setId(nextExprId())
-        .setCreateMap(CelExpr.CelCreateMap.newBuilder().addEntries(entries).build())
+        .setCreateMap(CelExpr.CelMap.newBuilder().addEntries(entries).build())
         .build();
   }
 
-  /**
-   * Creates a new map {@link CelExpr.CelCreateStruct.Entry} comprised of the given key and value.
-   */
-  public final CelExpr.CelCreateMap.Entry newMapEntry(CelExpr key, CelExpr value) {
-    return CelExpr.CelCreateMap.Entry.newBuilder()
+  /** Creates a new map {@link CelExpr.CelStruct.Entry} comprised of the given key and value. */
+  public final CelExpr.CelMap.Entry newMapEntry(CelExpr key, CelExpr value) {
+    return CelExpr.CelMap.Entry.newBuilder()
         .setId(nextExprId())
         .setKey(key)
         .setValue(value)
@@ -125,30 +123,26 @@ public class CelExprFactory {
   }
 
   /** Creates a new message {@link CelExpr} of the given type comprised of the given fields. */
-  public final CelExpr newMessage(String typeName, CelExpr.CelCreateStruct.Entry... fields) {
+  public final CelExpr newMessage(String typeName, CelExpr.CelStruct.Entry... fields) {
     return newMessage(typeName, Arrays.asList(fields));
   }
 
   /** Creates a new message {@link CelExpr} of the given type comprised of the given fields. */
-  public final CelExpr newMessage(String typeName, Iterable<CelExpr.CelCreateStruct.Entry> fields) {
+  public final CelExpr newMessage(String typeName, Iterable<CelExpr.CelStruct.Entry> fields) {
     checkArgument(!isNullOrEmpty(typeName));
     return CelExpr.newBuilder()
         .setId(nextExprId())
         .setCreateStruct(
-            CelExpr.CelCreateStruct.newBuilder()
-                .setMessageName(typeName)
-                .addEntries(fields)
-                .build())
+            CelExpr.CelStruct.newBuilder().setMessageName(typeName).addEntries(fields).build())
         .build();
   }
 
   /**
-   * Creates a new message {@link CelExpr.CelCreateStruct.Entry} comprised of the given field and
-   * value.
+   * Creates a new message {@link CelExpr.CelStruct.Entry} comprised of the given field and value.
    */
-  public final CelExpr.CelCreateStruct.Entry newMessageField(String field, CelExpr value) {
+  public final CelExpr.CelStruct.Entry newMessageField(String field, CelExpr value) {
     checkArgument(!isNullOrEmpty(field));
-    return CelExpr.CelCreateStruct.Entry.newBuilder()
+    return CelExpr.CelStruct.Entry.newBuilder()
         .setId(nextExprId())
         .setFieldKey(field)
         .setValue(value)

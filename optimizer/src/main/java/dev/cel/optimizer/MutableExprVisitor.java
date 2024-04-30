@@ -70,11 +70,11 @@ final class MutableExprVisitor {
         return visit(root, root.select());
       case CALL:
         return visit(root, root.call());
-      case CREATE_LIST:
+      case LIST:
         return visit(root, root.createList());
-      case CREATE_STRUCT:
+      case STRUCT:
         return visit(root, root.createStruct());
-      case CREATE_MAP:
+      case MAP:
         return visit(root, root.createMap());
       case COMPREHENSION:
         return visit(root, root.comprehension());

@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.ast.CelExpr;
-import dev.cel.common.ast.CelExpr.CelCreateMap;
+import dev.cel.common.ast.CelExpr.CelMap;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
@@ -58,16 +58,14 @@ public final class HomogeneousLiteralValidator implements CelAstValidator {
     navigableAst
         .getRoot()
         .allNodes()
-        .filter(
-            node ->
-                node.getKind().equals(Kind.CREATE_LIST) || node.getKind().equals(Kind.CREATE_MAP))
+        .filter(node -> node.getKind().equals(Kind.LIST) || node.getKind().equals(Kind.MAP))
         .filter(node -> !isExemptFunction(node))
         .map(CelNavigableExpr::expr)
         .forEach(
             expr -> {
-              if (expr.exprKind().getKind().equals(Kind.CREATE_LIST)) {
+              if (expr.exprKind().getKind().equals(Kind.LIST)) {
                 validateList(navigableAst.getAst(), issuesFactory, expr);
-              } else if (expr.exprKind().getKind().equals(Kind.CREATE_MAP)) {
+              } else if (expr.exprKind().getKind().equals(Kind.MAP)) {
                 validateMap(navigableAst.getAst(), issuesFactory, expr);
               }
             });
@@ -96,7 +94,7 @@ public final class HomogeneousLiteralValidator implements CelAstValidator {
   private void validateMap(CelAbstractSyntaxTree ast, IssuesFactory issuesFactory, CelExpr expr) {
     CelType previousKeyType = null;
     CelType previousValueType = null;
-    for (CelCreateMap.Entry entry : expr.createMap().entries()) {
+    for (CelMap.Entry entry : expr.createMap().entries()) {
       CelType currentKeyType = ast.getType(entry.key().id()).get();
       CelType currentValueType = ast.getType(entry.value().id()).get();
       if (entry.optionalEntry()) {

@@ -105,16 +105,16 @@ final class CelNavigableExprVisitor<E extends Expression, T extends BaseNavigabl
       case CALL:
         visit(navigableExpr, navigableExpr.expr().call());
         break;
-      case CREATE_LIST:
+      case LIST:
         visit(navigableExpr, navigableExpr.expr().createList());
         break;
       case SELECT:
         visit(navigableExpr, navigableExpr.expr().select());
         break;
-      case CREATE_STRUCT:
+      case STRUCT:
         visitStruct(navigableExpr, navigableExpr.expr().createStruct());
         break;
-      case CREATE_MAP:
+      case MAP:
         visitMap(navigableExpr, navigableExpr.expr().createMap());
         break;
       case COMPREHENSION:

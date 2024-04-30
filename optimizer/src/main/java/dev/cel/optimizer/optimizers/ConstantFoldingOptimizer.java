@@ -199,9 +199,9 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
     }
 
     if (expr.getKind().equals(Kind.CALL)
-        || expr.getKind().equals(Kind.CREATE_LIST)
-        || expr.getKind().equals(Kind.CREATE_MAP)
-        || expr.getKind().equals(Kind.CREATE_STRUCT)) {
+        || expr.getKind().equals(Kind.LIST)
+        || expr.getKind().equals(Kind.MAP)
+        || expr.getKind().equals(Kind.STRUCT)) {
       return expr.children().allMatch(ConstantFoldingOptimizer::areChildrenArgConstant);
     }
 
@@ -335,7 +335,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       return Optional.of(astMutator.replaceSubtree(mutableAst, result, expr.id()));
     } else if (function.equals(Operator.IN.getFunction())) {
       CelMutableExpr callArg = call.args().get(1);
-      if (!callArg.getKind().equals(Kind.CREATE_LIST)) {
+      if (!callArg.getKind().equals(Kind.LIST)) {
         return Optional.empty();
       }
 
@@ -412,21 +412,21 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
             .allNodes()
             .filter(
                 node ->
-                    node.getKind().equals(Kind.CREATE_LIST)
-                        || node.getKind().equals(Kind.CREATE_MAP)
-                        || node.getKind().equals(Kind.CREATE_STRUCT))
+                    node.getKind().equals(Kind.LIST)
+                        || node.getKind().equals(Kind.MAP)
+                        || node.getKind().equals(Kind.STRUCT))
             .map(CelNavigableMutableExpr::expr)
             .collect(toImmutableList());
 
     for (CelMutableExpr expr : aggregateLiterals) {
       switch (expr.getKind()) {
-        case CREATE_LIST:
+        case LIST:
           ast = pruneOptionalListElements(ast, expr);
           break;
-        case CREATE_MAP:
+        case MAP:
           ast = pruneOptionalMapElements(ast, expr);
           break;
-        case CREATE_STRUCT:
+        case STRUCT:
           ast = pruneOptionalStructElements(ast, expr);
           break;
         default:

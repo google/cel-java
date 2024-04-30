@@ -526,7 +526,7 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
 
   private static Optional<CelExpr> checkInvalidArgumentSingleArg(
       CelMacroExprFactory exprFactory, String functionName, CelExpr argument) {
-    if (argument.exprKind().getKind() == Kind.CREATE_LIST) {
+    if (argument.exprKind().getKind() == Kind.LIST) {
       if (argument.createList().elements().isEmpty()) {
         return newError(
             exprFactory, String.format("%s invalid single argument value", functionName), argument);
@@ -548,9 +548,9 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
       return constant.getKind() == CelConstant.Kind.INT64_VALUE
           || constant.getKind() == CelConstant.Kind.UINT64_VALUE
           || constant.getKind() == CelConstant.Kind.DOUBLE_VALUE;
-    } else if (argument.exprKind().getKind().equals(Kind.CREATE_LIST)
-        || argument.exprKind().getKind().equals(Kind.CREATE_STRUCT)
-        || argument.exprKind().getKind().equals(Kind.CREATE_MAP)) {
+    } else if (argument.exprKind().getKind().equals(Kind.LIST)
+        || argument.exprKind().getKind().equals(Kind.STRUCT)
+        || argument.exprKind().getKind().equals(Kind.MAP)) {
       return false;
     }
 

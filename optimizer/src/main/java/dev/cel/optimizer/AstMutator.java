@@ -694,7 +694,7 @@ public final class AstMutator {
         long replacedId = idGenerator.generate(exprIdToReplace);
         boolean isListExprBeingReplaced =
             allExprs.containsKey(replacedId)
-                && allExprs.get(replacedId).getKind().equals(Kind.CREATE_LIST);
+                && allExprs.get(replacedId).getKind().equals(Kind.LIST);
         if (isListExprBeingReplaced) {
           unwrapListArgumentsInMacroCallExpr(
               allExprs.get(callId).comprehension(), newMacroCallExpr);
@@ -758,8 +758,7 @@ public final class AstMutator {
   private static void unwrapListArgumentsInMacroCallExpr(
       CelMutableComprehension comprehension, CelMutableExpr newMacroCallExpr) {
     CelMutableExpr accuInit = comprehension.accuInit();
-    if (!accuInit.getKind().equals(Kind.CREATE_LIST)
-        || !accuInit.createList().elements().isEmpty()) {
+    if (!accuInit.getKind().equals(Kind.LIST) || !accuInit.createList().elements().isEmpty()) {
       // Does not contain an extraneous list.
       return;
     }

@@ -85,25 +85,23 @@ public abstract class CelMacroExprFactory extends CelExprFactory {
           builder.setCall(callBuilder.build());
         }
         break;
-      case CREATE_LIST:
+      case LIST:
         {
-          CelExpr.CelCreateList.Builder listBuilder =
-              CelExpr.CelCreateList.newBuilder()
-                  .addOptionalIndices(expr.createList().optionalIndices());
+          CelExpr.CelList.Builder listBuilder =
+              CelExpr.CelList.newBuilder().addOptionalIndices(expr.createList().optionalIndices());
           for (CelExpr element : expr.createList().elements()) {
             listBuilder.addElements(copy(element));
           }
           builder.setCreateList(listBuilder.build());
         }
         break;
-      case CREATE_STRUCT:
+      case STRUCT:
         {
-          CelExpr.CelCreateStruct.Builder structBuilder =
-              CelExpr.CelCreateStruct.newBuilder()
-                  .setMessageName(expr.createStruct().messageName());
-          for (CelExpr.CelCreateStruct.Entry entry : expr.createStruct().entries()) {
+          CelExpr.CelStruct.Builder structBuilder =
+              CelExpr.CelStruct.newBuilder().setMessageName(expr.createStruct().messageName());
+          for (CelExpr.CelStruct.Entry entry : expr.createStruct().entries()) {
             structBuilder.addEntries(
-                CelExpr.CelCreateStruct.Entry.newBuilder()
+                CelExpr.CelStruct.Entry.newBuilder()
                     .setId(copyExprId(entry.id()))
                     .setFieldKey(entry.fieldKey())
                     .setValue(copy(entry.value()))
@@ -113,12 +111,12 @@ public abstract class CelMacroExprFactory extends CelExprFactory {
           builder.setCreateStruct(structBuilder.build());
         }
         break;
-      case CREATE_MAP:
+      case MAP:
         {
-          CelExpr.CelCreateMap.Builder mapBuilder = CelExpr.CelCreateMap.newBuilder();
-          for (CelExpr.CelCreateMap.Entry entry : expr.createMap().entries()) {
+          CelExpr.CelMap.Builder mapBuilder = CelExpr.CelMap.newBuilder();
+          for (CelExpr.CelMap.Entry entry : expr.createMap().entries()) {
             mapBuilder.addEntries(
-                CelExpr.CelCreateMap.Entry.newBuilder()
+                CelExpr.CelMap.Entry.newBuilder()
                     .setId(copyExprId(entry.id()))
                     .setKey(copy(entry.key()))
                     .setValue(copy(entry.value()))

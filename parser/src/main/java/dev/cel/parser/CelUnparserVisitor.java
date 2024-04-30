@@ -20,11 +20,11 @@ import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
-import dev.cel.common.ast.CelExpr.CelCreateList;
-import dev.cel.common.ast.CelExpr.CelCreateMap;
-import dev.cel.common.ast.CelExpr.CelCreateStruct;
 import dev.cel.common.ast.CelExpr.CelIdent;
+import dev.cel.common.ast.CelExpr.CelList;
+import dev.cel.common.ast.CelExpr.CelMap;
 import dev.cel.common.ast.CelExpr.CelSelect;
+import dev.cel.common.ast.CelExpr.CelStruct;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelExprVisitor;
 import java.util.HashSet;
@@ -163,7 +163,7 @@ public class CelUnparserVisitor extends CelExprVisitor {
   }
 
   @Override
-  protected void visit(CelExpr expr, CelCreateList createList) {
+  protected void visit(CelExpr expr, CelList createList) {
     stringBuilder.append(LEFT_BRACKET);
     HashSet<Integer> optionalIndices = new HashSet<>(createList.optionalIndices());
     for (int i = 0; i < createList.elements().size(); i++) {
@@ -179,7 +179,7 @@ public class CelUnparserVisitor extends CelExprVisitor {
   }
 
   @Override
-  protected void visit(CelExpr expr, CelCreateStruct createStruct) {
+  protected void visit(CelExpr expr, CelStruct createStruct) {
     stringBuilder.append(createStruct.messageName());
     stringBuilder.append(LEFT_BRACE);
     for (int i = 0; i < createStruct.entries().size(); i++) {
@@ -187,7 +187,7 @@ public class CelUnparserVisitor extends CelExprVisitor {
         stringBuilder.append(COMMA).append(SPACE);
       }
 
-      CelCreateStruct.Entry e = createStruct.entries().get(i);
+      CelStruct.Entry e = createStruct.entries().get(i);
       if (e.optionalEntry()) {
         stringBuilder.append(QUESTION_MARK);
       }
@@ -199,14 +199,14 @@ public class CelUnparserVisitor extends CelExprVisitor {
   }
 
   @Override
-  protected void visit(CelExpr expr, CelCreateMap createMap) {
+  protected void visit(CelExpr expr, CelMap createMap) {
     stringBuilder.append(LEFT_BRACE);
     for (int i = 0; i < createMap.entries().size(); i++) {
       if (i > 0) {
         stringBuilder.append(COMMA).append(SPACE);
       }
 
-      CelCreateMap.Entry e = createMap.entries().get(i);
+      CelMap.Entry e = createMap.entries().get(i);
       if (e.optionalEntry()) {
         stringBuilder.append(QUESTION_MARK);
       }

@@ -23,8 +23,8 @@ import com.google.protobuf.NullValue;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.ast.CelExpr.CelCall;
-import dev.cel.common.ast.CelExpr.CelCreateList;
-import dev.cel.common.ast.CelExpr.CelCreateStruct;
+import dev.cel.common.ast.CelExpr.CelList;
+import dev.cel.common.ast.CelExpr.CelStruct;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
 import dev.cel.common.ast.CelMutableExpr.CelMutableComprehension;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCreateList;
@@ -199,7 +199,7 @@ public class CelMutableExprConverterTest {
   }
 
   @Test
-  public void convertMutableCreateList_toCelCreateList() {
+  public void convertMutableCreateList_toCelList() {
     CelMutableExpr mutableExpr =
         CelMutableExpr.ofCreateList(
             1L,
@@ -222,7 +222,7 @@ public class CelMutableExprConverterTest {
   }
 
   @Test
-  public void convertCelCreateList_toMutableCreateList() {
+  public void convertCelList_toMutableCreateList() {
     CelExpr celExpr =
         CelExpr.ofCreateList(
             1L,
@@ -245,7 +245,7 @@ public class CelMutableExprConverterTest {
   }
 
   @Test
-  public void convertMutableCreateStruct_toCelCreateStruct() {
+  public void convertMutableCreateStruct_toCelStruct() {
     CelMutableExpr mutableExpr =
         CelMutableExpr.ofCreateStruct(
             8L,
@@ -266,7 +266,7 @@ public class CelMutableExprConverterTest {
                 8L,
                 "message",
                 ImmutableList.of(
-                    CelCreateStruct.Entry.newBuilder()
+                    CelStruct.Entry.newBuilder()
                         .setId(9L)
                         .setFieldKey("field")
                         .setValue(CelExpr.ofConstant(10L, CelConstant.ofValue("value")))
@@ -275,13 +275,13 @@ public class CelMutableExprConverterTest {
   }
 
   @Test
-  public void convertCelCreateStruct_toMutableCreateStruct() {
+  public void convertCelStruct_toMutableCreateStruct() {
     CelExpr celExpr =
         CelExpr.ofCreateStruct(
             8L,
             "message",
             ImmutableList.of(
-                CelCreateStruct.Entry.newBuilder()
+                CelStruct.Entry.newBuilder()
                     .setId(9L)
                     .setFieldKey("field")
                     .setValue(CelExpr.ofConstant(10L, CelConstant.ofValue("value")))
@@ -305,7 +305,7 @@ public class CelMutableExprConverterTest {
   }
 
   @Test
-  public void convertMutableCreateMap_toCelCreateMap() {
+  public void convertMutableCreateMap_toCelMap() {
     CelMutableExpr mutableExpr =
         CelMutableExpr.ofCreateMap(
             9L,
@@ -332,7 +332,7 @@ public class CelMutableExprConverterTest {
   }
 
   @Test
-  public void convertCelCreateMap_toMutableCreateMap() {
+  public void convertCelMap_toMutableCreateMap() {
     CelExpr celExpr =
         CelExpr.ofCreateMap(
             9L,
@@ -385,7 +385,7 @@ public class CelMutableExprConverterTest {
                 CelExpr.newBuilder()
                     .setId(2L)
                     .setCreateList(
-                        CelCreateList.newBuilder()
+                        CelList.newBuilder()
                             .addElements(CelExpr.ofConstant(3L, CelConstant.ofValue(true)))
                             .build())
                     .build(),
@@ -405,7 +405,7 @@ public class CelMutableExprConverterTest {
             CelExpr.newBuilder()
                 .setId(2L)
                 .setCreateList(
-                    CelCreateList.newBuilder()
+                    CelList.newBuilder()
                         .addElements(CelExpr.ofConstant(3L, CelConstant.ofValue(true)))
                         .build())
                 .build(),

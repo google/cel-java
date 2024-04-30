@@ -22,8 +22,8 @@ import dev.cel.common.CelIssue;
 import dev.cel.common.CelSourceLocation;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
-import dev.cel.common.ast.CelExpr.CelCreateMap;
-import dev.cel.common.ast.CelExpr.CelCreateStruct.Entry;
+import dev.cel.common.ast.CelExpr.CelMap;
+import dev.cel.common.ast.CelExpr.CelStruct.Entry;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.internal.Constants;
 import org.junit.Test;
@@ -155,7 +155,7 @@ public final class CelMacroExprFactoryTest {
     CelExpr element = exprFactory.newStringLiteral("foo");
     CelExpr expr = exprFactory.newList(element);
     assertThat(expr.id()).isEqualTo(2L);
-    assertThat(expr.exprKind().getKind()).isEqualTo(Kind.CREATE_LIST);
+    assertThat(expr.exprKind().getKind()).isEqualTo(Kind.LIST);
     assertThat(expr.createList().elements()).hasSize(1);
     assertThat(expr.createList().elements()).containsExactly(element);
   }
@@ -163,12 +163,12 @@ public final class CelMacroExprFactoryTest {
   @Test
   public void newMap_returnsMap() {
     TestCelExprFactory exprFactory = new TestCelExprFactory();
-    CelCreateMap.Entry entry =
+    CelMap.Entry entry =
         exprFactory.newMapEntry(
             exprFactory.newStringLiteral("foo"), exprFactory.newStringLiteral("bar"));
     CelExpr expr = exprFactory.newMap(entry);
     assertThat(expr.id()).isEqualTo(4L);
-    assertThat(expr.exprKind().getKind()).isEqualTo(Kind.CREATE_MAP);
+    assertThat(expr.exprKind().getKind()).isEqualTo(Kind.MAP);
     assertThat(expr.createMap().entries()).containsExactly(entry);
   }
 
@@ -177,7 +177,7 @@ public final class CelMacroExprFactoryTest {
     TestCelExprFactory exprFactory = new TestCelExprFactory();
     CelExpr key = exprFactory.newStringLiteral("foo");
     CelExpr value = exprFactory.newStringLiteral("bar");
-    CelCreateMap.Entry entry = exprFactory.newMapEntry(key, value);
+    CelMap.Entry entry = exprFactory.newMapEntry(key, value);
     assertThat(entry.id()).isEqualTo(3L);
     assertThat(entry.value()).isEqualTo(value);
   }
@@ -188,7 +188,7 @@ public final class CelMacroExprFactoryTest {
     Entry field = exprFactory.newMessageField("foo", exprFactory.newStringLiteral("bar"));
     CelExpr expr = exprFactory.newMessage("google.example.Baz", field);
     assertThat(expr.id()).isEqualTo(3L);
-    assertThat(expr.exprKind().getKind()).isEqualTo(Kind.CREATE_STRUCT);
+    assertThat(expr.exprKind().getKind()).isEqualTo(Kind.STRUCT);
     assertThat(expr.createStruct().messageName()).isEqualTo("google.example.Baz");
     assertThat(expr.createStruct().entries()).containsExactly(field);
   }

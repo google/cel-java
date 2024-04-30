@@ -312,7 +312,7 @@ public class CelRuntimeTest {
   public void trace_createList() throws Exception {
     CelEvaluationListener listener =
         (expr, res) -> {
-          if (expr.exprKind().getKind().equals(Kind.CREATE_LIST)) {
+          if (expr.exprKind().getKind().equals(Kind.LIST)) {
             assertThat((List<Long>) res).containsExactly(1L, 2L, 3L);
             assertThat(expr.createList().elements()).hasSize(3);
           }
@@ -330,7 +330,7 @@ public class CelRuntimeTest {
   public void trace_createMap() throws Exception {
     CelEvaluationListener listener =
         (expr, res) -> {
-          if (expr.exprKind().getKind().equals(Kind.CREATE_MAP)) {
+          if (expr.exprKind().getKind().equals(Kind.MAP)) {
             assertThat((Map<Long, String>) res).containsExactly(1L, "a");
             assertThat(expr.createMap().entries()).hasSize(1);
           }

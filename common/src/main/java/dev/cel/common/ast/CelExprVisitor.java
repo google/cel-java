@@ -17,11 +17,11 @@ package dev.cel.common.ast;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
-import dev.cel.common.ast.CelExpr.CelCreateList;
-import dev.cel.common.ast.CelExpr.CelCreateMap;
-import dev.cel.common.ast.CelExpr.CelCreateStruct;
 import dev.cel.common.ast.CelExpr.CelIdent;
+import dev.cel.common.ast.CelExpr.CelList;
+import dev.cel.common.ast.CelExpr.CelMap;
 import dev.cel.common.ast.CelExpr.CelSelect;
+import dev.cel.common.ast.CelExpr.CelStruct;
 
 /** CEL expression visitor implementation using Cel native types. */
 public class CelExprVisitor {
@@ -60,13 +60,13 @@ public class CelExprVisitor {
       case CALL:
         visit(expr, expr.call());
         break;
-      case CREATE_LIST:
+      case LIST:
         visit(expr, expr.createList());
         break;
-      case CREATE_STRUCT:
+      case STRUCT:
         visit(expr, expr.createStruct());
         break;
-      case CREATE_MAP:
+      case MAP:
         visit(expr, expr.createMap());
         break;
       case COMPREHENSION:
@@ -107,23 +107,23 @@ public class CelExprVisitor {
     }
   }
 
-  /** Visit a {@code CelCreateStruct} expression. */
-  protected void visit(CelExpr expr, CelCreateStruct createStruct) {
-    for (CelCreateStruct.Entry entry : createStruct.entries()) {
+  /** Visit a {@code CelStruct} expression. */
+  protected void visit(CelExpr expr, CelStruct createStruct) {
+    for (CelStruct.Entry entry : createStruct.entries()) {
       visit(entry.value());
     }
   }
 
-  /** Visit a {@code CelCreateMap} expression. */
-  protected void visit(CelExpr expr, CelCreateMap createMap) {
-    for (CelCreateMap.Entry entry : createMap.entries()) {
+  /** Visit a {@code CelMap} expression. */
+  protected void visit(CelExpr expr, CelMap createMap) {
+    for (CelMap.Entry entry : createMap.entries()) {
       visit(entry.key());
       visit(entry.value());
     }
   }
 
-  /** Visit a {@code CelCreateList} expression. */
-  protected void visit(CelExpr expr, CelCreateList createList) {
+  /** Visit a {@code CelList} expression. */
+  protected void visit(CelExpr expr, CelList createList) {
     for (CelExpr elem : createList.elements()) {
       visit(elem);
     }

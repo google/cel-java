@@ -557,7 +557,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         && !(navigableExpr.getKind().equals(Kind.IDENT)
             && navigableExpr.expr().ident().name().startsWith(BIND_IDENTIFIER_PREFIX))
         // Exclude empty lists (cel.bind sets this for iterRange).
-        && !(navigableExpr.getKind().equals(Kind.CREATE_LIST)
+        && !(navigableExpr.getKind().equals(Kind.LIST)
             && navigableExpr.expr().createList().elements().isEmpty())
         && containsEliminableFunctionOnly(navigableExpr)
         && !ineligibleExprs.contains(navigableExpr.expr());

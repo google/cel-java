@@ -68,16 +68,16 @@ public final class CelExprV1Alpha1Converter {
                 .addAllArgs(fromCelExprList(celCall.args()));
         celCall.target().ifPresent(target -> callBuilder.setTarget(fromCelExpr(target)));
         return expr.setCallExpr(callBuilder).build();
-      case CREATE_LIST:
-        CelExpr.CelCreateList celCreateList = celExprKind.createList();
+      case LIST:
+        CelExpr.CelList celCreateList = celExprKind.list();
         return expr.setListExpr(
                 CreateList.newBuilder()
                     .addAllElements(fromCelExprList(celCreateList.elements()))
                     .addAllOptionalIndices(celCreateList.optionalIndices()))
             .build();
-      case CREATE_STRUCT:
+      case STRUCT:
         return expr.setStructExpr(celStructToExprStruct(celExprKind.createStruct())).build();
-      case CREATE_MAP:
+      case MAP:
         return expr.setStructExpr(celMapToExprStruct(celExprKind.createMap())).build();
       case COMPREHENSION:
         CelExpr.CelComprehension celComprehension = celExprKind.comprehension();
@@ -202,7 +202,7 @@ public final class CelExprV1Alpha1Converter {
 
   private static CelExpr exprStructToCelStruct(long id, CreateStruct structExpr) {
     if (!structExpr.getMessageName().isEmpty()) {
-      ImmutableList.Builder<CelExpr.CelCreateStruct.Entry> entries = ImmutableList.builder();
+      ImmutableList.Builder<CelExpr.CelStruct.Entry> entries = ImmutableList.builder();
       for (Entry structExprEntry : structExpr.getEntriesList()) {
         if (!structExprEntry.getKeyKindCase().equals(KeyKindCase.FIELD_KEY)) {
           throw new IllegalArgumentException(
@@ -218,7 +218,7 @@ public final class CelExprV1Alpha1Converter {
 
       return CelExpr.ofCreateStruct(id, structExpr.getMessageName(), entries.build());
     } else {
-      ImmutableList.Builder<CelExpr.CelCreateMap.Entry> entries = ImmutableList.builder();
+      ImmutableList.Builder<CelExpr.CelMap.Entry> entries = ImmutableList.builder();
       for (Entry mapExprEntry : structExpr.getEntriesList()) {
         if (!mapExprEntry.getKeyKindCase().equals(KeyKindCase.MAP_KEY)) {
           throw new IllegalArgumentException(
@@ -270,9 +270,9 @@ public final class CelExprV1Alpha1Converter {
     throw new IllegalStateException("unsupported constant case: " + celConstant.getKind());
   }
 
-  private static CreateStruct celStructToExprStruct(CelExpr.CelCreateStruct celCreateStruct) {
+  private static CreateStruct celStructToExprStruct(CelExpr.CelStruct celCreateStruct) {
     ImmutableList.Builder<CreateStruct.Entry> entries = ImmutableList.builder();
-    for (CelExpr.CelCreateStruct.Entry celStructExprEntry : celCreateStruct.entries()) {
+    for (CelExpr.CelStruct.Entry celStructExprEntry : celCreateStruct.entries()) {
       entries.add(
           CreateStruct.Entry.newBuilder()
               .setId(celStructExprEntry.id())
@@ -288,9 +288,9 @@ public final class CelExprV1Alpha1Converter {
         .build();
   }
 
-  private static CreateStruct celMapToExprStruct(CelExpr.CelCreateMap celCreateMap) {
+  private static CreateStruct celMapToExprStruct(CelExpr.CelMap celCreateMap) {
     ImmutableList.Builder<CreateStruct.Entry> entries = ImmutableList.builder();
-    for (CelExpr.CelCreateMap.Entry celMapEntry : celCreateMap.entries()) {
+    for (CelExpr.CelMap.Entry celMapEntry : celCreateMap.entries()) {
       CreateStruct.Entry exprMapEntry =
           CreateStruct.Entry.newBuilder()
               .setId(celMapEntry.id())

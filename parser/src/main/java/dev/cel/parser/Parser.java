@@ -524,7 +524,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     }
 
     CelExpr.Builder exprBuilder = exprFactory.newExprBuilder(context.op);
-    CelExpr.CelCreateStruct.Builder structExpr = visitStructFields(context.entries);
+    CelExpr.CelStruct.Builder structExpr = visitStructFields(context.entries);
     return exprBuilder.setCreateStruct(structExpr.setMessageName(messageName).build()).build();
   }
 
@@ -564,13 +564,13 @@ final class Parser extends CELBaseVisitor<CelExpr> {
   public CelExpr visitCreateList(CreateListContext context) {
     checkNotNull(context);
     CelExpr.Builder exprBuilder = exprFactory.newExprBuilder(context.op);
-    CelExpr.CelCreateList createListExpr = visitListInitElements(context.listInit());
+    CelExpr.CelList createListExpr = visitListInitElements(context.listInit());
 
     return exprBuilder.setCreateList(createListExpr).build();
   }
 
-  private CelExpr.CelCreateList visitListInitElements(ListInitContext context) {
-    CelExpr.CelCreateList.Builder listExpr = CelExpr.CelCreateList.newBuilder();
+  private CelExpr.CelList visitListInitElements(ListInitContext context) {
+    CelExpr.CelList.Builder listExpr = CelExpr.CelList.newBuilder();
     if (context == null) {
       return listExpr.build();
     }
@@ -595,8 +595,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
   public CelExpr visitCreateMap(CreateMapContext context) {
     checkNotNull(context);
     CelExpr.Builder exprBuilder = exprFactory.newExprBuilder(context.op);
-    CelExpr.CelCreateMap.Builder createMapExpr = visitMapEntries(context.entries);
-    // CelExpr.CelCreateStruct.Builder structExpr = visitMapEntries(context.entries);
+    CelExpr.CelMap.Builder createMapExpr = visitMapEntries(context.entries);
     return exprBuilder.setCreateMap(createMapExpr.build()).build();
   }
 
@@ -664,15 +663,15 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     return expandedMacro;
   }
 
-  private CelExpr.CelCreateStruct.Builder visitStructFields(FieldInitializerListContext context) {
+  private CelExpr.CelStruct.Builder visitStructFields(FieldInitializerListContext context) {
     if (context == null
         || context.cols == null
         || context.fields == null
         || context.values == null) {
-      return CelExpr.CelCreateStruct.newBuilder();
+      return CelExpr.CelStruct.newBuilder();
     }
     int entryCount = min(context.cols.size(), context.fields.size(), context.values.size());
-    CelExpr.CelCreateStruct.Builder structExpr = CelExpr.CelCreateStruct.newBuilder();
+    CelExpr.CelStruct.Builder structExpr = CelExpr.CelStruct.newBuilder();
     for (int index = 0; index < entryCount; index++) {
       OptFieldContext fieldContext = context.fields.get(index);
       boolean isOptionalEntry = false;
@@ -686,12 +685,12 @@ final class Parser extends CELBaseVisitor<CelExpr> {
 
       // The field may be empty due to a prior error.
       if (fieldContext.IDENTIFIER() == null) {
-        return CelExpr.CelCreateStruct.newBuilder();
+        return CelExpr.CelStruct.newBuilder();
       }
       String fieldName = fieldContext.IDENTIFIER().getText();
 
-      CelExpr.CelCreateStruct.Entry.Builder exprBuilder =
-          CelExpr.CelCreateStruct.Entry.newBuilder()
+      CelExpr.CelStruct.Entry.Builder exprBuilder =
+          CelExpr.CelStruct.Entry.newBuilder()
               .setId(exprFactory.newExprId(exprFactory.getPosition(context.cols.get(index))));
       structExpr.addEntries(
           exprBuilder
@@ -703,12 +702,12 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     return structExpr;
   }
 
-  private CelExpr.CelCreateMap.Builder visitMapEntries(MapInitializerListContext context) {
+  private CelExpr.CelMap.Builder visitMapEntries(MapInitializerListContext context) {
     if (context == null || context.cols == null || context.keys == null || context.values == null) {
-      return CelExpr.CelCreateMap.newBuilder();
+      return CelExpr.CelMap.newBuilder();
     }
     int entryCount = min(context.cols.size(), context.keys.size(), context.values.size());
-    CelExpr.CelCreateMap.Builder mapExpr = CelExpr.CelCreateMap.newBuilder();
+    CelExpr.CelMap.Builder mapExpr = CelExpr.CelMap.newBuilder();
     for (int index = 0; index < entryCount; index++) {
       OptExprContext keyContext = context.keys.get(index);
       boolean isOptionalEntry = false;
@@ -719,8 +718,8 @@ final class Parser extends CELBaseVisitor<CelExpr> {
           isOptionalEntry = true;
         }
       }
-      CelExpr.CelCreateMap.Entry.Builder exprBuilder =
-          CelExpr.CelCreateMap.Entry.newBuilder()
+      CelExpr.CelMap.Entry.Builder exprBuilder =
+          CelExpr.CelMap.Entry.newBuilder()
               .setId(exprFactory.newExprId(exprFactory.getPosition(context.cols.get(index))));
       mapExpr.addEntries(
           exprBuilder

@@ -32,8 +32,24 @@ final class CelExprFormatter {
   }
 
   private void formatExpr(CelExpr celExpr) {
-    append(String.format("%s [%d] {", celExpr.exprKind().getKind(), celExpr.id()));
     CelExpr.ExprKind.Kind exprKind = celExpr.exprKind().getKind();
+    String kindFormattedText;
+    // Temporarily retain existing formatted expr kinds until callers are migrated
+    switch (exprKind) {
+      case LIST:
+        kindFormattedText = "CREATE_LIST";
+        break;
+      case STRUCT:
+        kindFormattedText = "CREATE_STRUCT";
+        break;
+      case MAP:
+        kindFormattedText = "CREATE_MAP";
+        break;
+      default:
+        kindFormattedText = exprKind.toString();
+        break;
+    }
+    append(String.format("%s [%d] {", kindFormattedText, celExpr.id()));
     if (!EXCLUDED_NEWLINE_KINDS.contains(exprKind)) {
       appendNewline();
     }
@@ -51,13 +67,13 @@ final class CelExprFormatter {
       case CALL:
         appendCall(celExpr.call());
         break;
-      case CREATE_LIST:
+      case LIST:
         appendCreateList(celExpr.createList());
         break;
-      case CREATE_STRUCT:
+      case STRUCT:
         appendCreateStruct(celExpr.createStruct());
         break;
-      case CREATE_MAP:
+      case MAP:
         appendCreateMap(celExpr.createMap());
         break;
       case COMPREHENSION:
@@ -152,7 +168,7 @@ final class CelExprFormatter {
     outdent();
   }
 
-  private void appendCreateList(CelExpr.CelCreateList celCreateList) {
+  private void appendCreateList(CelExpr.CelList celCreateList) {
     indent();
     append("elements: {");
     indent();
@@ -177,12 +193,12 @@ final class CelExprFormatter {
     outdent();
   }
 
-  private void appendCreateStruct(CelExpr.CelCreateStruct celCreateStruct) {
+  private void appendCreateStruct(CelExpr.CelStruct celCreateStruct) {
     indent();
     appendWithNewline("name: " + celCreateStruct.messageName());
     append("entries: {");
     indent();
-    for (CelExpr.CelCreateStruct.Entry entry : celCreateStruct.entries()) {
+    for (CelExpr.CelStruct.Entry entry : celCreateStruct.entries()) {
       appendNewline();
       appendWithNewline(String.format("ENTRY [%d] {", entry.id()));
       indent();
@@ -205,10 +221,10 @@ final class CelExprFormatter {
     outdent();
   }
 
-  private void appendCreateMap(CelExpr.CelCreateMap celCreateMap) {
+  private void appendCreateMap(CelExpr.CelMap celCreateMap) {
     indent();
     boolean firstLine = true;
-    for (CelExpr.CelCreateMap.Entry entry : celCreateMap.entries()) {
+    for (CelExpr.CelMap.Entry entry : celCreateMap.entries()) {
       if (!firstLine) {
         appendNewline();
       } else {

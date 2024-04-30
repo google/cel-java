@@ -22,12 +22,12 @@ import com.google.common.collect.ImmutableList;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
-import dev.cel.common.ast.CelExpr.CelCreateList;
-import dev.cel.common.ast.CelExpr.CelCreateMap;
-import dev.cel.common.ast.CelExpr.CelCreateStruct;
-import dev.cel.common.ast.CelExpr.CelCreateStruct.Entry;
 import dev.cel.common.ast.CelExpr.CelIdent;
+import dev.cel.common.ast.CelExpr.CelList;
+import dev.cel.common.ast.CelExpr.CelMap;
 import dev.cel.common.ast.CelExpr.CelSelect;
+import dev.cel.common.ast.CelExpr.CelStruct;
+import dev.cel.common.ast.CelExpr.CelStruct.Entry;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
@@ -53,11 +53,11 @@ public class CelExprVisitorTest {
 
     public abstract Optional<CelCall> call();
 
-    public abstract Optional<CelCreateStruct> createStruct();
+    public abstract Optional<CelStruct> createStruct();
 
-    public abstract Optional<CelCreateMap> createMap();
+    public abstract Optional<CelMap> createMap();
 
-    public abstract Optional<CelCreateList> createList();
+    public abstract Optional<CelList> createList();
 
     public abstract Optional<CelComprehension> comprehension();
 
@@ -73,11 +73,11 @@ public class CelExprVisitorTest {
 
       public abstract Builder setCall(CelCall value);
 
-      public abstract Builder setCreateStruct(CelCreateStruct value);
+      public abstract Builder setCreateStruct(CelStruct value);
 
-      public abstract Builder setCreateMap(CelCreateMap value);
+      public abstract Builder setCreateMap(CelMap value);
 
-      public abstract Builder setCreateList(CelCreateList value);
+      public abstract Builder setCreateList(CelList value);
 
       public abstract Builder setComprehension(CelComprehension value);
 
@@ -124,19 +124,19 @@ public class CelExprVisitorTest {
     }
 
     @Override
-    protected void visit(CelExpr expr, CelCreateStruct createStruct) {
+    protected void visit(CelExpr expr, CelStruct createStruct) {
       visitedReference.setCreateStruct(createStruct);
       super.visit(expr, createStruct);
     }
 
     @Override
-    protected void visit(CelExpr expr, CelCreateMap createMap) {
+    protected void visit(CelExpr expr, CelMap createMap) {
       visitedReference.setCreateMap(createMap);
       super.visit(expr, createMap);
     }
 
     @Override
-    protected void visit(CelExpr expr, CelCreateList createList) {
+    protected void visit(CelExpr expr, CelList createList) {
       visitedReference.setCreateList(createList);
       super.visit(expr, createList);
     }
@@ -204,17 +204,14 @@ public class CelExprVisitorTest {
     assertThat(visited)
         .isEqualTo(
             VisitedReference.newBuilder()
-                .setCreateStruct(
-                    CelCreateStruct.newBuilder().setMessageName("TestAllTypes").build())
+                .setCreateStruct(CelStruct.newBuilder().setMessageName("TestAllTypes").build())
                 .setSelect(
                     CelSelect.newBuilder()
                         .setOperand(
                             CelExpr.newBuilder()
                                 .setId(1)
                                 .setCreateStruct(
-                                    CelCreateStruct.newBuilder()
-                                        .setMessageName("TestAllTypes")
-                                        .build())
+                                    CelStruct.newBuilder().setMessageName("TestAllTypes").build())
                                 .build())
                         .setField("single_int64")
                         .build())
@@ -262,7 +259,7 @@ public class CelExprVisitorTest {
             VisitedReference.newBuilder()
                 .setConstant(longConstant)
                 .setCreateStruct(
-                    CelCreateStruct.newBuilder()
+                    CelStruct.newBuilder()
                         .addEntries(
                             Entry.newBuilder()
                                 .setId(2)
@@ -287,9 +284,9 @@ public class CelExprVisitorTest {
             VisitedReference.newBuilder()
                 .setConstant(CelConstant.ofValue("b"))
                 .setCreateMap(
-                    CelCreateMap.newBuilder()
+                    CelMap.newBuilder()
                         .addEntries(
-                            CelCreateMap.Entry.newBuilder()
+                            CelMap.Entry.newBuilder()
                                 .setId(2)
                                 .setKey(CelExpr.ofConstant(3, CelConstant.ofValue("a")))
                                 .setValue(CelExpr.ofConstant(4, CelConstant.ofValue("b")))
@@ -312,7 +309,7 @@ public class CelExprVisitorTest {
             VisitedReference.newBuilder()
                 .setConstant(integerVal)
                 .setCreateList(
-                    CelCreateList.newBuilder()
+                    CelList.newBuilder()
                         .addElements(CelExpr.newBuilder().setId(2).setConstant(integerVal).build())
                         .addElements(CelExpr.newBuilder().setId(3).setConstant(integerVal).build())
                         .build())

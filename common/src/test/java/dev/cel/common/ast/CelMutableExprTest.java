@@ -886,13 +886,13 @@ public class CelMutableExprTest {
     if (!testCaseKind.equals(Kind.CALL)) {
       assertThrows(IllegalArgumentException.class, testCase.mutableExpr::call);
     }
-    if (!testCaseKind.equals(Kind.CREATE_LIST)) {
+    if (!testCaseKind.equals(Kind.LIST)) {
       assertThrows(IllegalArgumentException.class, testCase.mutableExpr::createList);
     }
-    if (!testCaseKind.equals(Kind.CREATE_STRUCT)) {
+    if (!testCaseKind.equals(Kind.STRUCT)) {
       assertThrows(IllegalArgumentException.class, testCase.mutableExpr::createStruct);
     }
-    if (!testCaseKind.equals(Kind.CREATE_MAP)) {
+    if (!testCaseKind.equals(Kind.MAP)) {
       assertThrows(IllegalArgumentException.class, testCase.mutableExpr::createMap);
     }
     if (!testCaseKind.equals(Kind.COMPREHENSION)) {

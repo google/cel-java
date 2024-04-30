@@ -87,19 +87,19 @@ public final class CelMutableExpr implements Expression {
 
   @Override
   public CelMutableCreateList createList() {
-    checkExprKind(Kind.CREATE_LIST);
+    checkExprKind(Kind.LIST);
     return (CelMutableCreateList) exprValue;
   }
 
   @Override
   public CelMutableCreateStruct createStruct() {
-    checkExprKind(Kind.CREATE_STRUCT);
+    checkExprKind(Kind.STRUCT);
     return (CelMutableCreateStruct) exprValue;
   }
 
   @Override
   public CelMutableCreateMap createMap() {
-    checkExprKind(Kind.CREATE_MAP);
+    checkExprKind(Kind.MAP);
     return (CelMutableCreateMap) exprValue;
   }
 
@@ -130,17 +130,17 @@ public final class CelMutableExpr implements Expression {
   }
 
   public void setCreateList(CelMutableCreateList createList) {
-    this.exprKind = ExprKind.Kind.CREATE_LIST;
+    this.exprKind = ExprKind.Kind.LIST;
     this.exprValue = checkNotNull(createList);
   }
 
   public void setCreateStruct(CelMutableCreateStruct createStruct) {
-    this.exprKind = ExprKind.Kind.CREATE_STRUCT;
+    this.exprKind = ExprKind.Kind.STRUCT;
     this.exprValue = checkNotNull(createStruct);
   }
 
   public void setCreateMap(CelMutableCreateMap createMap) {
-    this.exprKind = ExprKind.Kind.CREATE_MAP;
+    this.exprKind = ExprKind.Kind.MAP;
     this.exprValue = checkNotNull(createMap);
   }
 
@@ -1079,13 +1079,13 @@ public final class CelMutableExpr implements Expression {
       case CALL:
         this.exprValue = other.call().deepCopy();
         break;
-      case CREATE_LIST:
+      case LIST:
         this.exprValue = other.createList().deepCopy();
         break;
-      case CREATE_STRUCT:
+      case STRUCT:
         this.exprValue = other.createStruct().deepCopy();
         break;
-      case CREATE_MAP:
+      case MAP:
         this.exprValue = other.createMap().deepCopy();
         break;
       case COMPREHENSION:
@@ -1108,11 +1108,11 @@ public final class CelMutableExpr implements Expression {
         return select();
       case CALL:
         return call();
-      case CREATE_LIST:
+      case LIST:
         return createList();
-      case CREATE_STRUCT:
+      case STRUCT:
         return createStruct();
-      case CREATE_MAP:
+      case MAP:
         return createMap();
       case COMPREHENSION:
         return comprehension();

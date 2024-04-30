@@ -68,7 +68,7 @@ import dev.cel.common.CelValidationException;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelExpr;
-import dev.cel.common.ast.CelExpr.CelCreateList;
+import dev.cel.common.ast.CelExpr.CelList;
 import dev.cel.common.testing.RepeatedTestProvider;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelType;
@@ -486,7 +486,7 @@ public final class CelImplTest {
 
     CelAbstractSyntaxTree ast = cel.compile("[?a]").getAst();
 
-    CelCreateList createList = ast.getExpr().createList();
+    CelList createList = ast.getExpr().createList();
     assertThat(createList.optionalIndices()).containsExactly(0);
     assertThat(createList.elements()).containsExactly(CelExpr.ofIdent(2, "a"));
   }
