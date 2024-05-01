@@ -54,3 +54,8 @@ java_library(
     visibility = ["//visibility:public"],
     exports = ["//common/src/main/java/dev/cel/common:runtime_exception"],
 )
+
+java_library(
+    name = "proto_json_adapter",
+    exports = ["//common/src/main/java/dev/cel/common:proto_json_adapter"],
+)

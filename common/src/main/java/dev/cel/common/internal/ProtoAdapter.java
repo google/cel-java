@@ -50,13 +50,11 @@ import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
-import com.google.protobuf.util.Durations;
-import com.google.protobuf.util.Timestamps;
 import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelProtoJsonAdapter;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -324,6 +322,7 @@ public final class ProtoAdapter {
    * protoTypeName} will indicate an alternative packaging of the value which needs to be
    * considered, such as a packing an {@code google.protobuf.StringValue} into a {@code Any} value.
    */
+  @SuppressWarnings("unchecked")
   public Optional<Message> adaptValueToProto(Object value, String protoTypeName) {
     WellKnownProto wellKnownProto = WellKnownProto.getByDescriptorName(protoTypeName);
     if (wellKnownProto == null) {
@@ -336,11 +335,24 @@ public final class ProtoAdapter {
       case ANY_VALUE:
         return Optional.ofNullable(adaptValueToAny(value));
       case JSON_VALUE:
-        return Optional.ofNullable(adaptValueToJsonValue(value));
+        try {
+          return Optional.of(CelProtoJsonAdapter.adaptValueToJsonValue(value));
+        } catch (RuntimeException e) {
+          return Optional.empty();
+        }
       case JSON_LIST_VALUE:
-        return Optional.ofNullable(adaptValueToJsonListValue(value));
+        try {
+          return Optional.of(CelProtoJsonAdapter.adaptToJsonListValue((Iterable<Object>) value));
+        } catch (RuntimeException e) {
+          return Optional.empty();
+        }
       case JSON_STRUCT_VALUE:
-        return Optional.ofNullable(adaptValueToJsonStructValue(value));
+        try {
+          return Optional.of(
+              CelProtoJsonAdapter.adaptToJsonStructValue((Map<String, Object>) value));
+        } catch (RuntimeException e) {
+          return Optional.empty();
+        }
       case BOOL_VALUE:
         if (value instanceof Boolean) {
           return Optional.of(BoolValue.of((Boolean) value));
@@ -422,101 +434,7 @@ public final class ProtoAdapter {
 
   private @Nullable Any maybePackAny(Object value, WellKnownProto wellKnownProto) {
     Optional<Message> protoValue = adaptValueToProto(value, wellKnownProto.typeName());
-    if (protoValue.isPresent()) {
-      return Any.pack(protoValue.get());
-    }
-    return null;
-  }
-
-  private static final long JSON_MAX_INT_VALUE = (1L << 53) - 1;
-  private static final long JSON_MIN_INT_VALUE = -JSON_MAX_INT_VALUE;
-  private static final UnsignedLong JSON_MAX_UINT_VALUE =
-      UnsignedLong.fromLongBits(JSON_MAX_INT_VALUE);
-
-  private @Nullable Value adaptValueToJsonValue(Object value) {
-    Value.Builder json = Value.newBuilder();
-    if (value == null || value instanceof NullValue) {
-      return json.setNullValue(NullValue.NULL_VALUE).build();
-    }
-    if (value instanceof Boolean) {
-      return json.setBoolValue((Boolean) value).build();
-    }
-    if (value instanceof Integer || value instanceof Long) {
-      long longValue = ((Number) value).longValue();
-      if (longValue < JSON_MIN_INT_VALUE || longValue > JSON_MAX_INT_VALUE) {
-        return json.setStringValue(Long.toString(longValue)).build();
-      }
-      return json.setNumberValue((double) longValue).build();
-    }
-    if (value instanceof UnsignedLong) {
-      if (((UnsignedLong) value).compareTo(JSON_MAX_UINT_VALUE) > 0) {
-        return json.setStringValue(((UnsignedLong) value).toString()).build();
-      }
-      return json.setNumberValue((double) ((UnsignedLong) value).longValue()).build();
-    }
-    if (value instanceof Float || value instanceof Double) {
-      return json.setNumberValue(((Number) value).doubleValue()).build();
-    }
-    if (value instanceof ByteString) {
-      return json.setStringValue(
-              Base64.getEncoder().encodeToString(((ByteString) value).toByteArray()))
-          .build();
-    }
-    if (value instanceof String) {
-      return json.setStringValue((String) value).build();
-    }
-    if (value instanceof Map) {
-      Struct struct = adaptValueToJsonStructValue(value);
-      if (struct != null) {
-        return json.setStructValue(struct).build();
-      }
-    }
-    if (value instanceof Iterable) {
-      ListValue listValue = adaptValueToJsonListValue(value);
-      if (listValue != null) {
-        return json.setListValue(listValue).build();
-      }
-    }
-    if (value instanceof Timestamp) {
-      // CEL follows the proto3 to JSON conversion which formats as an RFC 3339 encoded JSON string.
-      String ts = Timestamps.toString((Timestamp) value);
-      return json.setStringValue(ts).build();
-    }
-    if (value instanceof Duration) {
-      String duration = Durations.toString((Duration) value);
-      return json.setStringValue(duration).build();
-    }
-    return null;
-  }
-
-  private @Nullable ListValue adaptValueToJsonListValue(Object value) {
-    if (!(value instanceof Iterable)) {
-      return null;
-    }
-    Iterable<?> list = (Iterable<?>) value;
-    ListValue.Builder jsonList = ListValue.newBuilder();
-    for (Object elem : list) {
-      jsonList.addValues(adaptValueToJsonValue(elem));
-    }
-    return jsonList.build();
-  }
-
-  private @Nullable Struct adaptValueToJsonStructValue(Object value) {
-    if (!(value instanceof Map)) {
-      return null;
-    }
-    Map<?, ?> map = (Map<?, ?>) value;
-    Struct.Builder struct = Struct.newBuilder();
-    for (Map.Entry<?, ?> entry : map.entrySet()) {
-      Object key = entry.getKey();
-      Object keyValue = entry.getValue();
-      if (!(key instanceof String)) {
-        // Not a valid map key type for JSON.
-        return null;
-      }
-      struct.putFields((String) key, adaptValueToJsonValue(keyValue));
-    }
-    return struct.build();
+    return protoValue.map(Any::pack).orElse(null);
   }
 
   private @Nullable Message adaptValueToDouble(Object value) {

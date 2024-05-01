@@ -61,3 +61,49 @@ java_test(
         "@maven//:junit_junit",
     ],
 )
+
+java_test(
+    name = "Exercise5Test",
+    srcs = ["Exercise5Test.java"],
+    test_class = "codelab.solutions.Exercise5Test",
+    deps = [
+        "//:java_truth",
+        "//codelab:solutions",
+        "//common",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java_util",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_test(
+    name = "Exercise6Test",
+    srcs = ["Exercise6Test.java"],
+    test_class = "codelab.solutions.Exercise6Test",
+    deps = [
+        "//:java_truth",
+        "//codelab:solutions",
+        "//common",
+        "@maven//:com_google_api_grpc_proto_google_common_protos",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_protobuf_protobuf_java_util",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_test(
+    name = "Exercise7Test",
+    srcs = ["Exercise7Test.java"],
+    test_class = "codelab.solutions.Exercise7Test",
+    deps = [
+        "//:java_truth",
+        "//codelab:solutions",
+        "//common",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)

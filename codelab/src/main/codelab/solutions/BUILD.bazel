@@ -11,12 +11,16 @@ java_library(
     deps = [
         "//common",
         "//common:compiler_common",
+        "//common:proto_json_adapter",
         "//common/types",
         "//common/types:type_providers",
         "//compiler",
         "//compiler:compiler_builder",
+        "//parser:macro",
         "//runtime",
         "@maven//:com_google_api_grpc_proto_google_common_protos",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_protobuf_protobuf_java_util",
     ],
 )

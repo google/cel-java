@@ -121,6 +121,7 @@ java_library(
         ":well_known_proto",
         "//:auto_value",
         "//common:error_codes",
+        "//common:proto_json_adapter",
         "//common:runtime_exception",
         "//common/annotations",
         "@cel_spec//proto/cel/expr:expr_java_proto",
@@ -128,7 +129,6 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:org_jspecify_jspecify",
     ],
 )
