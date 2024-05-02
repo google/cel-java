@@ -100,6 +100,21 @@ java_test(
     ],
 )
 
+java_test(
+    name = "Exercise7Test",
+    srcs = ["Exercise7Test.java"],
+    tags = ["notap"],
+    test_class = "codelab.Exercise7Test",
+    deps = [
+        "//:java_truth",
+        "//codelab",
+        "//common",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
 test_suite(
     name = "exercise_test_suite",
     tags = ["notap"],

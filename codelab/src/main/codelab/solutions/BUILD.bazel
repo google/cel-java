@@ -16,6 +16,7 @@ java_library(
         "//common/types:type_providers",
         "//compiler",
         "//compiler:compiler_builder",
+        "//parser:macro",
         "//runtime",
         "@maven//:com_google_api_grpc_proto_google_common_protos",
         "@maven//:com_google_guava_guava",
