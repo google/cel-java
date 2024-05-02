@@ -32,6 +32,7 @@ import com.google.protobuf.Descriptors.EnumDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Descriptors.OneofDescriptor;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.CelSource;
@@ -248,6 +249,11 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
     runTest(parserWithoutOptionalSupport, "[?a, ?b]");
   }
 
+  @Test
+  public void source_info() throws Exception {
+    runSourceInfoTest("[{}, {'field': true}].exists(i, has(i.field))");
+  }
+
   private void runTest(CelParser parser, String expression) {
     runTest(parser, expression, true);
   }
@@ -285,6 +291,15 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
     }
 
     testOutput().println();
+  }
+
+  private void runSourceInfoTest(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = PARSER.parse(expression).getAst();
+    SourceInfo sourceInfo =
+        CelProtoAbstractSyntaxTree.fromCelAst(ast).toParsedExpr().getSourceInfo();
+    testOutput().println("I: " + expression);
+    testOutput().println("=====>");
+    testOutput().println("S: " + sourceInfo);
   }
 
   private String convertMacroCallsToString(SourceInfo sourceInfo) {

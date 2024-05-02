@@ -25,16 +25,10 @@ import java.util.Arrays;
 /** Factory for generating expression nodes. */
 @Internal
 public class CelExprFactory {
-
-  private final CelExprIdGeneratorFactory.ExprIdGenerator idGenerator;
+  private long exprId = 0L;
 
   public static CelExprFactory newInstance() {
     return new CelExprFactory();
-  }
-
-  public static CelExprFactory newInstance(
-      CelExprIdGeneratorFactory.ExprIdGenerator exprIdGenerator) {
-    return new CelExprFactory(exprIdGenerator);
   }
 
   /** Create a new constant expression. */
@@ -545,19 +539,15 @@ public class CelExprFactory {
 
   /** Returns the next unique expression ID. */
   protected long nextExprId() {
-    return idGenerator.generate(
-        /* exprId= */ -1); // Unconditionally generate next unique ID (i.e: no renumbering).
+    return ++exprId;
   }
 
-  protected CelExprFactory() {
-    this(CelExprIdGeneratorFactory.newMonotonicIdGenerator(0));
+  /** Attempts to decrement the next expr ID if possible. */
+  protected void maybeDeleteId(long id) {
+    if (id == exprId - 1) {
+      exprId--;
+    }
   }
 
-  private CelExprFactory(CelExprIdGeneratorFactory.MonotonicIdGenerator idGenerator) {
-    this((unused) -> idGenerator.nextExprId());
-  }
-
-  private CelExprFactory(CelExprIdGeneratorFactory.ExprIdGenerator exprIdGenerator) {
-    idGenerator = exprIdGenerator;
-  }
+  protected CelExprFactory() {}
 }

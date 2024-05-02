@@ -660,6 +660,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
           CelExpr.newBuilder().setCall(callExpr.build()).build());
     }
 
+    exprFactory.maybeDeleteId(expr.id());
     return expandedMacro;
   }
 
@@ -895,6 +896,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     ImmutableList<CelExpr> arguments = visitExprListContext(args);
     Optional<CelExpr> errorArg = arguments.stream().filter(ERROR::equals).findAny();
     if (errorArg.isPresent()) {
+      sourceInfo.clearPositions();
       // Any arguments passed in to the macro may fail parsing.
       // Stop the macro expansion in this case as the result of the macro will be a parse failure.
       return ERROR;
@@ -1107,6 +1109,12 @@ final class Parser extends CELBaseVisitor<CelExpr> {
         sourceInfo.addPositions(exprId, position);
       }
       return exprId;
+    }
+
+    @Override
+    protected void maybeDeleteId(long id) {
+      sourceInfo.removePositions(id);
+      super.maybeDeleteId(id);
     }
 
     @Override

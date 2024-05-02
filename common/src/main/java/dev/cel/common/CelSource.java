@@ -49,7 +49,7 @@ public final class CelSource {
   private CelSource(Builder builder) {
     this.codePoints = checkNotNull(builder.codePoints);
     this.description = checkNotNull(builder.description);
-    this.positions = checkNotNull(builder.positions.buildOrThrow());
+    this.positions = checkNotNull(ImmutableMap.copyOf(builder.positions));
     this.lineOffsets = checkNotNull(ImmutableList.copyOf(builder.lineOffsets));
     this.macroCalls = checkNotNull(ImmutableMap.copyOf(builder.macroCalls));
     this.extensions = checkNotNull(builder.extensions.build());
@@ -208,7 +208,7 @@ public final class CelSource {
 
     private final CelCodePointArray codePoints;
     private final List<Integer> lineOffsets;
-    private final ImmutableMap.Builder<Long, Integer> positions;
+    private final Map<Long, Integer> positions;
     private final Map<Long, CelExpr> macroCalls;
     private final ImmutableSet.Builder<Extension> extensions;
 
@@ -221,7 +221,7 @@ public final class CelSource {
     private Builder(CelCodePointArray codePoints, List<Integer> lineOffsets) {
       this.codePoints = checkNotNull(codePoints);
       this.lineOffsets = checkNotNull(lineOffsets);
-      this.positions = ImmutableMap.builder();
+      this.positions = new HashMap<>();
       this.macroCalls = new HashMap<>();
       this.extensions = ImmutableSet.builder();
       this.description = "";
@@ -258,6 +258,18 @@ public final class CelSource {
     @CanIgnoreReturnValue
     public Builder addPositions(long exprId, int position) {
       this.positions.put(exprId, position);
+      return this;
+    }
+
+    @CanIgnoreReturnValue
+    public Builder clearPositions() {
+      this.positions.clear();
+      return this;
+    }
+
+    @CanIgnoreReturnValue
+    public Builder removePositions(long exprId) {
+      this.positions.remove(exprId);
       return this;
     }
 
@@ -329,8 +341,8 @@ public final class CelSource {
     }
 
     @CheckReturnValue
-    public ImmutableMap<Long, Integer> getPositionsMap() {
-      return this.positions.buildOrThrow();
+    public Map<Long, Integer> getPositionsMap() {
+      return this.positions;
     }
 
     @CheckReturnValue

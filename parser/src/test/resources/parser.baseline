@@ -1543,7 +1543,7 @@ L: noop_macro(
 I: get_constant_macro()
 =====>
 P: 10^#1:int64#
-L: 10^#1[1,18]#
+L: 10^#1[NO_POS]#
 M: get_constant_macro()^#0:Expr.Call#
 
 I: a.?b[?0] && a[?c]
