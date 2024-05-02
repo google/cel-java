@@ -298,7 +298,8 @@ CelAbstractSyntaxTree compile(String expression, String variableName, CelType va
 
 The compiler's `addVar` method allows us to declare variables. Note that you must supply the type of the variable being declared. Supported CEL types can be found [here](https://github.com/google/cel-java/tree/main/common/src/main/java/dev/cel/common/types).
 
-Best practice: You may have noticed addVar has an overloaded method which accepts a proto based Type instead of the CEL-Java native CelType used in this example. While the two types are functionally equivalent, we recommend using the native types whenever possible.
+> [!TIP]
+> Best practice: You may have noticed addVar has an overloaded method which accepts a proto based Type instead of the CEL-Java native CelType used in this example. While the two types are functionally equivalent, we recommend using the native types whenever possible.
 
 Let's make the evaluation work now. Copy into the eval method:
 
@@ -628,7 +629,9 @@ private static boolean mapContainsKeyValue(Object[] args) {
 }
 ```
 
-Best practice: Use `Unary<T>` or `Binary<T1, T2>` helper interfaces to improve compile-time correctness for any overload implementations with 2 arguments or fewer.
+> [!TIP]
+> Best practice: Use `Unary<T>` or `Binary<T1, T2>` helper interfaces to improve compile-time correctness for any overload implementations with 2 arguments or fewer.
 
-Best practice: Declare overload ids according to their types and function names. e.g. targetType_func_argType_argType. In the case where argType is a type param, use a descriptive name instead of the simple type name.
+> [!TIP]
+> Best practice: Declare overload ids according to their types and function names. e.g. targetType_func_argType_argType. In the case where argType is a type param, use a descriptive name instead of the simple type name.
 

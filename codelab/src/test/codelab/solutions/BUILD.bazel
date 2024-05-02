@@ -61,3 +61,18 @@ java_test(
         "@maven//:junit_junit",
     ],
 )
+
+java_test(
+    name = "Exercise5Test",
+    srcs = ["Exercise5Test.java"],
+    test_class = "codelab.solutions.Exercise5Test",
+    deps = [
+        "//:java_truth",
+        "//codelab:solutions",
+        "//common",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java_util",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)

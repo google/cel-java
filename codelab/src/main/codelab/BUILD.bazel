@@ -9,15 +9,18 @@ java_library(
     name = "codelab",
     srcs = glob(["*.java"]),
     deps = [
+        "@maven//:com_google_protobuf_protobuf_java",  # unuseddeps: keep
         "@maven//:com_google_api_grpc_proto_google_common_protos",  # unuseddeps: keep
         "@maven//:com_google_guava_guava",  # unuseddeps: keep
         "//common",  # unuseddeps: keep
         "//common:compiler_common",  # unuseddeps: keep
+        "//common:proto_json_adapter",  # unuseddeps: keep
         "//common/types",  # unuseddeps: keep
         "//common/types:type_providers",  # unuseddeps: keep
         "//compiler",  # unuseddeps: keep
         "//compiler:compiler_builder",  # unuseddeps: keep
         "//runtime",  # unuseddeps: keep
+        "@maven//:com_google_protobuf_protobuf_java_util",  # unuseddeps: keep
         #
     ],
 )
