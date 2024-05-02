@@ -170,20 +170,22 @@ public enum CelStandardMacro {
       return Optional.of(reportArgumentError(exprFactory, arg0));
     }
     CelExpr arg1 = checkNotNull(arguments.get(1));
-    CelExpr zeroExpr = exprFactory.newIntLiteral(0);
-    CelExpr oneExpr = exprFactory.newIntLiteral(1);
-    CelExpr accuInit = zeroExpr;
+    CelExpr accuInit = exprFactory.newIntLiteral(0);
     CelExpr condition = exprFactory.newBoolLiteral(true);
     CelExpr step =
         exprFactory.newGlobalCall(
             Operator.CONDITIONAL.getFunction(),
             arg1,
             exprFactory.newGlobalCall(
-                Operator.ADD.getFunction(), exprFactory.newIdentifier(ACCUMULATOR_VAR), oneExpr),
+                Operator.ADD.getFunction(),
+                exprFactory.newIdentifier(ACCUMULATOR_VAR),
+                exprFactory.newIntLiteral(1)),
             exprFactory.newIdentifier(ACCUMULATOR_VAR));
     CelExpr result =
         exprFactory.newGlobalCall(
-            Operator.EQUALS.getFunction(), exprFactory.newIdentifier(ACCUMULATOR_VAR), oneExpr);
+            Operator.EQUALS.getFunction(),
+            exprFactory.newIdentifier(ACCUMULATOR_VAR),
+            exprFactory.newIntLiteral(1));
     return Optional.of(
         exprFactory.fold(
             arg0.ident().name(), target, ACCUMULATOR_VAR, accuInit, condition, step, result));

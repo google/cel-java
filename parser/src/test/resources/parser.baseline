@@ -739,21 +739,21 @@ P: __comprehension__(
   // Init
   0^#5:int64#,
   // LoopCondition
-  true^#7:bool#,
+  true^#6:bool#,
   // LoopStep
   _?_:_(
     f^#4:Expr.Ident#,
     _+_(
-      __result__^#8:Expr.Ident#,
-      1^#6:int64#
+      __result__^#7:Expr.Ident#,
+      1^#8:int64#
     )^#9:Expr.Call#,
     __result__^#10:Expr.Ident#
   )^#11:Expr.Call#,
   // Result
   _==_(
     __result__^#12:Expr.Ident#,
-    1^#6:int64#
-  )^#13:Expr.Call#)^#14:Expr.Comprehension#
+    1^#13:int64#
+  )^#14:Expr.Call#)^#15:Expr.Comprehension#
 L: __comprehension__(
   // Variable
   v,
@@ -764,21 +764,21 @@ L: __comprehension__(
   // Init
   0^#5[1,12]#,
   // LoopCondition
-  true^#7[1,12]#,
+  true^#6[1,12]#,
   // LoopStep
   _?_:_(
     f^#4[1,16]#,
     _+_(
-      __result__^#8[1,12]#,
-      1^#6[1,12]#
+      __result__^#7[1,12]#,
+      1^#8[1,12]#
     )^#9[1,12]#,
     __result__^#10[1,12]#
   )^#11[1,12]#,
   // Result
   _==_(
     __result__^#12[1,12]#,
-    1^#6[1,12]#
-  )^#13[1,12]#)^#14[1,12]#
+    1^#13[1,12]#
+  )^#14[1,12]#)^#15[1,12]#
 M: m^#1:Expr.Ident#.exists_one(
   v^#3:Expr.Ident#,
   f^#4:Expr.Ident#
