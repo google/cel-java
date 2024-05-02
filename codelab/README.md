@@ -16,6 +16,7 @@ Some key areas covered are:
 * [Creating variables](#creating-variables)
 * [Commutatibe logical AND/OR](#logical-andor)
 * [Adding custom functions](#custom-functions)
+* [Building Protos](#building-protos)
 
 ### Prerequisites
 This codelab builds upon a basic understanding of Protocol Buffers and Java.
@@ -299,7 +300,7 @@ CelAbstractSyntaxTree compile(String expression, String variableName, CelType va
 The compiler's `addVar` method allows us to declare variables. Note that you must supply the type of the variable being declared. Supported CEL types can be found [here](https://github.com/google/cel-java/tree/main/common/src/main/java/dev/cel/common/types).
 
 > [!TIP]
-> Best practice: You may have noticed addVar has an overloaded method which accepts a proto based Type instead of the CEL-Java native CelType used in this example. While the two types are functionally equivalent, we recommend using the native types whenever possible.
+> Best practice: You may have noticed `addVar` has an overloaded method which accepts a proto based Type instead of the CEL-Java native CelType used in this example. While the two types are functionally equivalent, we recommend using the native types whenever possible.
 
 Let's make the evaluation work now. Copy into the eval method:
 
@@ -635,3 +636,6 @@ private static boolean mapContainsKeyValue(Object[] args) {
 > [!TIP]
 > Best practice: Declare overload ids according to their types and function names. e.g. targetType_func_argType_argType. In the case where argType is a type param, use a descriptive name instead of the simple type name.
 
+## Building Protos
+
+CEL can also build protobuf messages for any message type compiled into the application.
