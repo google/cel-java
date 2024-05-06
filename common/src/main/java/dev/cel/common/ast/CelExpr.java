@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
-import com.google.errorprone.annotations.InlineMe;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -91,31 +90,13 @@ public abstract class CelExpr implements Expression {
   }
 
   /**
-   * @deprecated Use {@link #list()} instead.
-   */
-  @Deprecated
-  @InlineMe(replacement = "this.list()")
-  public final CelList createList() {
-    return list();
-  }
-
-  /**
    * {@inheritDoc}
    *
    * @throws UnsupportedOperationException if expression is not {@link Kind#LIST}.
    */
   @Override
   public CelList list() {
-    return exprKind().createList();
-  }
-
-  /**
-   * @deprecated Use {@link #list()} instead.
-   */
-  @Deprecated
-  @InlineMe(replacement = "this.struct()")
-  public final CelStruct createStruct() {
-    return struct();
+    return exprKind().list();
   }
 
   /**
@@ -125,16 +106,7 @@ public abstract class CelExpr implements Expression {
    */
   @Override
   public CelStruct struct() {
-    return exprKind().createStruct();
-  }
-
-  /**
-   * @deprecated Use {@link #list()} instead.
-   */
-  @Deprecated
-  @InlineMe(replacement = "this.map()")
-  public final CelMap createMap() {
-    return map();
+    return exprKind().struct();
   }
 
   /**
@@ -144,7 +116,7 @@ public abstract class CelExpr implements Expression {
    */
   @Override
   public CelMap map() {
-    return exprKind().createMap();
+    return exprKind().map();
   }
 
   /**
@@ -203,7 +175,7 @@ public abstract class CelExpr implements Expression {
    */
   public CelList listOrDefault() {
     return exprKind().getKind().equals(ExprKind.Kind.LIST)
-        ? exprKind().createList()
+        ? exprKind().list()
         : CelList.newBuilder().build();
   }
 
@@ -213,7 +185,7 @@ public abstract class CelExpr implements Expression {
    */
   public CelStruct structOrDefault() {
     return exprKind().getKind().equals(ExprKind.Kind.STRUCT)
-        ? exprKind().createStruct()
+        ? exprKind().struct()
         : CelStruct.newBuilder().build();
   }
 
@@ -223,7 +195,7 @@ public abstract class CelExpr implements Expression {
    */
   public CelMap mapOrDefault() {
     return exprKind().getKind().equals(ExprKind.Kind.MAP)
-        ? exprKind().createMap()
+        ? exprKind().map()
         : CelMap.newBuilder().build();
   }
 
@@ -405,36 +377,9 @@ public abstract class CelExpr implements Expression {
 
     public abstract CelList list();
 
-    /**
-     * @deprecated Use {@link #list()} instead.
-     */
-    @Deprecated
-    @InlineMe(replacement = "this.list()")
-    public final CelList createList() {
-      return list();
-    }
-
     public abstract CelStruct struct();
 
-    /**
-     * @deprecated Use {@link #struct()} instead.
-     */
-    @Deprecated
-    @InlineMe(replacement = "this.struct()")
-    public final CelStruct createStruct() {
-      return struct();
-    }
-
     public abstract CelMap map();
-
-    /**
-     * @deprecated Use {@link #map()} instead.
-     */
-    @Deprecated
-    @InlineMe(replacement = "this.map()")
-    public final CelMap createMap() {
-      return map();
-    }
 
     public abstract CelComprehension comprehension();
   }

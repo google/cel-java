@@ -76,9 +76,9 @@ public final class CelExprConverter {
                     .addAllOptionalIndices(celCreateList.optionalIndices()))
             .build();
       case STRUCT:
-        return expr.setStructExpr(celStructToExprStruct(celExprKind.createStruct())).build();
+        return expr.setStructExpr(celStructToExprStruct(celExprKind.struct())).build();
       case MAP:
-        return expr.setStructExpr(celMapToExprStruct(celExprKind.createMap())).build();
+        return expr.setStructExpr(celMapToExprStruct(celExprKind.map())).build();
       case COMPREHENSION:
         CelExpr.CelComprehension celComprehension = celExprKind.comprehension();
         return expr.setComprehensionExpr(
