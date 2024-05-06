@@ -136,7 +136,7 @@ public class CelExprFormatterTest {
   }
 
   @Test
-  public void create_list() throws Exception {
+  public void list() throws Exception {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addLibraries(CelOptionalLibrary.INSTANCE)
@@ -170,7 +170,7 @@ public class CelExprFormatterTest {
   }
 
   @Test
-  public void create_struct() throws Exception {
+  public void struct() throws Exception {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .setContainer("dev.cel.testing.testdata.proto3")
@@ -220,7 +220,7 @@ public class CelExprFormatterTest {
   }
 
   @Test
-  public void create_map() throws Exception {
+  public void map() throws Exception {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .setContainer("dev.cel.testing.testdata.proto3")

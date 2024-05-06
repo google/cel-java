@@ -199,7 +199,7 @@ public class CelMutableExprConverterTest {
   }
 
   @Test
-  public void convertMutableCreateList_toCelList() {
+  public void convertMutableList_toCelList() {
     CelMutableExpr mutableExpr =
         CelMutableExpr.ofList(
             1L,
@@ -222,7 +222,7 @@ public class CelMutableExprConverterTest {
   }
 
   @Test
-  public void convertCelList_toMutableCreateList() {
+  public void convertCelList_toMutableList() {
     CelExpr celExpr =
         CelExpr.ofList(
             1L,
@@ -245,7 +245,7 @@ public class CelMutableExprConverterTest {
   }
 
   @Test
-  public void convertMutableCreateStruct_toCelStruct() {
+  public void convertMutableStruct_toCelStruct() {
     CelMutableExpr mutableExpr =
         CelMutableExpr.ofStruct(
             8L,
@@ -275,7 +275,7 @@ public class CelMutableExprConverterTest {
   }
 
   @Test
-  public void convertCelStruct_toMutableCreateStruct() {
+  public void convertCelStruct_toMutableStruct() {
     CelExpr celExpr =
         CelExpr.ofStruct(
             8L,
@@ -305,7 +305,7 @@ public class CelMutableExprConverterTest {
   }
 
   @Test
-  public void convertMutableCreateMap_toCelMap() {
+  public void convertMutableMap_toCelMap() {
     CelMutableExpr mutableExpr =
         CelMutableExpr.ofMap(
             9L,
@@ -332,7 +332,7 @@ public class CelMutableExprConverterTest {
   }
 
   @Test
-  public void convertCelMap_toMutableCreateMap() {
+  public void convertCelMap_toMutableMap() {
     CelExpr celExpr =
         CelExpr.ofMap(
             9L,

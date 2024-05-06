@@ -289,7 +289,7 @@ public class CelRuntimeTest {
   }
 
   @Test
-  public void trace_createStruct() throws Exception {
+  public void trace_struct() throws Exception {
     CelEvaluationListener listener =
         (expr, res) -> {
           assertThat(res).isEqualTo(TestAllTypes.getDefaultInstance());
@@ -309,7 +309,7 @@ public class CelRuntimeTest {
 
   @Test
   @SuppressWarnings("unchecked") // Test only
-  public void trace_createList() throws Exception {
+  public void trace_list() throws Exception {
     CelEvaluationListener listener =
         (expr, res) -> {
           if (expr.exprKind().getKind().equals(Kind.LIST)) {
@@ -327,7 +327,7 @@ public class CelRuntimeTest {
 
   @Test
   @SuppressWarnings("unchecked") // Test only
-  public void trace_createMap() throws Exception {
+  public void trace_map() throws Exception {
     CelEvaluationListener listener =
         (expr, res) -> {
           if (expr.exprKind().getKind().equals(Kind.MAP)) {

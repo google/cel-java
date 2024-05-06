@@ -108,23 +108,23 @@ public class CelExprVisitor {
   }
 
   /** Visit a {@code CelStruct} expression. */
-  protected void visit(CelExpr expr, CelStruct createStruct) {
-    for (CelStruct.Entry entry : createStruct.entries()) {
+  protected void visit(CelExpr expr, CelStruct struct) {
+    for (CelStruct.Entry entry : struct.entries()) {
       visit(entry.value());
     }
   }
 
   /** Visit a {@code CelMap} expression. */
-  protected void visit(CelExpr expr, CelMap createMap) {
-    for (CelMap.Entry entry : createMap.entries()) {
+  protected void visit(CelExpr expr, CelMap map) {
+    for (CelMap.Entry entry : map.entries()) {
       visit(entry.key());
       visit(entry.value());
     }
   }
 
   /** Visit a {@code CelList} expression. */
-  protected void visit(CelExpr expr, CelList createList) {
-    for (CelExpr elem : createList.elements()) {
+  protected void visit(CelExpr expr, CelList list) {
+    for (CelExpr elem : list.elements()) {
       visit(elem);
     }
   }

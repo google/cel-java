@@ -124,21 +124,21 @@ public class CelExprVisitorTest {
     }
 
     @Override
-    protected void visit(CelExpr expr, CelStruct createStruct) {
-      visitedReference.setStruct(createStruct);
-      super.visit(expr, createStruct);
+    protected void visit(CelExpr expr, CelStruct struct) {
+      visitedReference.setStruct(struct);
+      super.visit(expr, struct);
     }
 
     @Override
-    protected void visit(CelExpr expr, CelMap createMap) {
-      visitedReference.setMap(createMap);
-      super.visit(expr, createMap);
+    protected void visit(CelExpr expr, CelMap map) {
+      visitedReference.setMap(map);
+      super.visit(expr, map);
     }
 
     @Override
-    protected void visit(CelExpr expr, CelList createList) {
-      visitedReference.setList(createList);
-      super.visit(expr, createList);
+    protected void visit(CelExpr expr, CelList list) {
+      visitedReference.setList(list);
+      super.visit(expr, list);
     }
 
     @Override

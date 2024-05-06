@@ -351,20 +351,20 @@ public class CelMutableExprTest {
   }
 
   @Test
-  public void mutableCreateList_setElementAtIndex() {
-    CelMutableList createList =
+  public void mutableList_setElementAtIndex() {
+    CelMutableList list =
         CelMutableList.create(CelMutableExpr.ofConstant(CelConstant.ofValue("element1")));
 
-    createList.setElement(0, CelMutableExpr.ofConstant(CelConstant.ofValue("hello")));
+    list.setElement(0, CelMutableExpr.ofConstant(CelConstant.ofValue("hello")));
 
-    assertThat(createList.elements())
+    assertThat(list.elements())
         .containsExactly(CelMutableExpr.ofConstant(CelConstant.ofValue("hello")));
-    assertThat(createList.elements()).isInstanceOf(ArrayList.class);
+    assertThat(list.elements()).isInstanceOf(ArrayList.class);
   }
 
   @Test
   @SuppressWarnings("ReferenceEquality") // test only on iterating through elements
-  public void mutableCreateList_deepCopy() {
+  public void mutableList_deepCopy() {
     CelMutableExpr mutableExpr =
         CelMutableExpr.ofList(
             CelMutableList.create(
@@ -421,8 +421,8 @@ public class CelMutableExprTest {
   }
 
   @Test
-  public void mutableCreateStruct_setEntryAtIndex() {
-    CelMutableStruct createStruct =
+  public void mutableStruct_setEntryAtIndex() {
+    CelMutableStruct struct =
         CelMutableStruct.create(
             "message",
             ImmutableList.of(
@@ -435,23 +435,23 @@ public class CelMutableExprTest {
             CelMutableExpr.ofConstant(CelConstant.ofValue("value2")),
             /* optionalEntry= */ true);
 
-    createStruct.setEntry(0, newEntry);
+    struct.setEntry(0, newEntry);
 
-    assertThat(createStruct.entries()).containsExactly(newEntry);
+    assertThat(struct.entries()).containsExactly(newEntry);
   }
 
   @Test
-  public void mutableCreateStructEntry_setters() {
-    CelMutableStruct.Entry createStructEntry =
+  public void mutableStructEntry_setters() {
+    CelMutableStruct.Entry structEntry =
         CelMutableStruct.Entry.create(
             1L, "field", CelMutableExpr.ofConstant(CelConstant.ofValue("value")));
 
-    createStructEntry.setId(2L);
-    createStructEntry.setFieldKey("field2");
-    createStructEntry.setValue(CelMutableExpr.ofConstant(CelConstant.ofValue("value2")));
-    createStructEntry.setOptionalEntry(true);
+    structEntry.setId(2L);
+    structEntry.setFieldKey("field2");
+    structEntry.setValue(CelMutableExpr.ofConstant(CelConstant.ofValue("value2")));
+    structEntry.setOptionalEntry(true);
 
-    assertThat(createStructEntry)
+    assertThat(structEntry)
         .isEqualTo(
             CelMutableStruct.Entry.create(
                 2L, "field2", CelMutableExpr.ofConstant(CelConstant.ofValue("value2")), true));
@@ -459,7 +459,7 @@ public class CelMutableExprTest {
 
   @Test
   @SuppressWarnings("ReferenceEquality") // test only on iterating through elements
-  public void mutableCreateStruct_deepCopy() {
+  public void mutableStruct_deepCopy() {
     CelMutableExpr mutableExpr =
         CelMutableExpr.ofStruct(
             8L,
@@ -524,8 +524,8 @@ public class CelMutableExprTest {
   }
 
   @Test
-  public void mutableCreateMap_setEntryAtIndex() {
-    CelMutableMap createMap =
+  public void mutableMap_setEntryAtIndex() {
+    CelMutableMap map =
         CelMutableMap.create(
             ImmutableList.of(
                 CelMutableMap.Entry.create(
@@ -539,25 +539,25 @@ public class CelMutableExprTest {
             CelMutableExpr.ofConstant(CelConstant.ofValue("value2")),
             /* optionalEntry= */ true);
 
-    createMap.setEntry(0, newEntry);
+    map.setEntry(0, newEntry);
 
-    assertThat(createMap.entries()).containsExactly(newEntry);
+    assertThat(map.entries()).containsExactly(newEntry);
   }
 
   @Test
-  public void mutableCreateMapEntry_setters() {
-    CelMutableMap.Entry createMapEntry =
+  public void mutableMapEntry_setters() {
+    CelMutableMap.Entry mapEntry =
         CelMutableMap.Entry.create(
             1L,
             CelMutableExpr.ofConstant(CelConstant.ofValue("key")),
             CelMutableExpr.ofConstant(CelConstant.ofValue("value")));
 
-    createMapEntry.setId(2L);
-    createMapEntry.setKey(CelMutableExpr.ofConstant(CelConstant.ofValue("key2")));
-    createMapEntry.setValue(CelMutableExpr.ofConstant(CelConstant.ofValue("value2")));
-    createMapEntry.setOptionalEntry(true);
+    mapEntry.setId(2L);
+    mapEntry.setKey(CelMutableExpr.ofConstant(CelConstant.ofValue("key2")));
+    mapEntry.setValue(CelMutableExpr.ofConstant(CelConstant.ofValue("value2")));
+    mapEntry.setOptionalEntry(true);
 
-    assertThat(createMapEntry)
+    assertThat(mapEntry)
         .isEqualTo(
             CelMutableMap.Entry.create(
                 2L,
@@ -568,7 +568,7 @@ public class CelMutableExprTest {
 
   @Test
   @SuppressWarnings("ReferenceEquality") // test only on iterating through elements
-  public void mutableCreateMap_deepCopy() {
+  public void mutableMap_deepCopy() {
     CelMutableExpr mutableExpr =
         CelMutableExpr.ofMap(
             9L,
@@ -836,9 +836,9 @@ public class CelMutableExprTest {
     IDENT(CelMutableExpr.ofIdent("test")),
     SELECT(CelMutableExpr.ofSelect(CelMutableSelect.create(CelMutableExpr.ofNotSet(), "field"))),
     CALL(CelMutableExpr.ofCall(CelMutableCall.create("call"))),
-    CREATE_LIST(CelMutableExpr.ofList(CelMutableList.create())),
-    CREATE_STRUCT(CelMutableExpr.ofStruct(CelMutableStruct.create("message", ImmutableList.of()))),
-    CREATE_MAP(CelMutableExpr.ofMap(CelMutableMap.create(ImmutableList.of()))),
+    LIST(CelMutableExpr.ofList(CelMutableList.create())),
+    STRUCT(CelMutableExpr.ofStruct(CelMutableStruct.create("message", ImmutableList.of()))),
+    MAP(CelMutableExpr.ofMap(CelMutableMap.create(ImmutableList.of()))),
     COMPREHENSION(
         CelMutableExpr.ofComprehension(
             10L,
@@ -909,14 +909,14 @@ public class CelMutableExprTest {
                 "function",
                 CelMutableExpr.ofConstant(CelConstant.ofValue("arg")))),
         -1735261193),
-    CREATE_LIST(
+    LIST(
         CelMutableExpr.ofList(
             6L,
             CelMutableList.create(
                 CelMutableExpr.ofConstant(CelConstant.ofValue("element1")),
                 CelMutableExpr.ofConstant(CelConstant.ofValue("element2")))),
         165341403),
-    CREATE_STRUCT(
+    STRUCT(
         CelMutableExpr.ofStruct(
             7L,
             CelMutableStruct.create(
@@ -928,7 +928,7 @@ public class CelMutableExprTest {
                         CelMutableExpr.ofConstant(CelConstant.ofValue("value")),
                         /* optionalEntry= */ true)))),
         2064611987),
-    CREATE_MAP(
+    MAP(
         CelMutableExpr.ofMap(
             8L,
             CelMutableMap.create(

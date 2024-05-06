@@ -107,8 +107,8 @@ final class MutableExprVisitor {
   }
 
   @CanIgnoreReturnValue
-  private CelMutableExpr visit(CelMutableExpr expr, CelMutableStruct createStruct) {
-    List<CelMutableStruct.Entry> entries = createStruct.entries();
+  private CelMutableExpr visit(CelMutableExpr expr, CelMutableStruct struct) {
+    List<CelMutableStruct.Entry> entries = struct.entries();
     for (CelMutableStruct.Entry entry : entries) {
       entry.setId(celExprIdGenerator.generate(entry.id()));
       entry.setValue(visit(entry.value()));
@@ -118,8 +118,8 @@ final class MutableExprVisitor {
   }
 
   @CanIgnoreReturnValue
-  private CelMutableExpr visit(CelMutableExpr expr, CelMutableMap createMap) {
-    List<CelMutableMap.Entry> entriesBuilders = createMap.entries();
+  private CelMutableExpr visit(CelMutableExpr expr, CelMutableMap map) {
+    List<CelMutableMap.Entry> entriesBuilders = map.entries();
     for (CelMutableMap.Entry entry : entriesBuilders) {
       entry.setId(celExprIdGenerator.generate(entry.id()));
       entry.setKey(visit(entry.key()));
@@ -130,11 +130,11 @@ final class MutableExprVisitor {
   }
 
   @CanIgnoreReturnValue
-  private CelMutableExpr visit(CelMutableExpr expr, CelMutableList createList) {
-    List<CelMutableExpr> elementsBuilders = createList.elements();
+  private CelMutableExpr visit(CelMutableExpr expr, CelMutableList list) {
+    List<CelMutableExpr> elementsBuilders = list.elements();
     for (int i = 0; i < elementsBuilders.size(); i++) {
       CelMutableExpr elem = elementsBuilders.get(i);
-      createList.setElement(i, visit(elem));
+      list.setElement(i, visit(elem));
     }
 
     return expr;

@@ -112,7 +112,7 @@ public abstract class CelExpr implements Expression {
   /**
    * {@inheritDoc}
    *
-   * @throws UnsupportedOperationException if expression is not {@link Kind#createMap}.
+   * @throws UnsupportedOperationException if expression is not {@link Kind#MAP}.
    */
   @Override
   public CelMap map() {

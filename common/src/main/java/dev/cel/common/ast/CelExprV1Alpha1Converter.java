@@ -69,11 +69,11 @@ public final class CelExprV1Alpha1Converter {
         celCall.target().ifPresent(target -> callBuilder.setTarget(fromCelExpr(target)));
         return expr.setCallExpr(callBuilder).build();
       case LIST:
-        CelExpr.CelList celCreateList = celExprKind.list();
+        CelExpr.CelList celList = celExprKind.list();
         return expr.setListExpr(
                 CreateList.newBuilder()
-                    .addAllElements(fromCelExprList(celCreateList.elements()))
-                    .addAllOptionalIndices(celCreateList.optionalIndices()))
+                    .addAllElements(fromCelExprList(celList.elements()))
+                    .addAllOptionalIndices(celList.optionalIndices()))
             .build();
       case STRUCT:
         return expr.setStructExpr(celStructToExprStruct(celExprKind.struct())).build();
@@ -270,9 +270,9 @@ public final class CelExprV1Alpha1Converter {
     throw new IllegalStateException("unsupported constant case: " + celConstant.getKind());
   }
 
-  private static CreateStruct celStructToExprStruct(CelExpr.CelStruct celCreateStruct) {
+  private static CreateStruct celStructToExprStruct(CelExpr.CelStruct celStruct) {
     ImmutableList.Builder<CreateStruct.Entry> entries = ImmutableList.builder();
-    for (CelExpr.CelStruct.Entry celStructExprEntry : celCreateStruct.entries()) {
+    for (CelExpr.CelStruct.Entry celStructExprEntry : celStruct.entries()) {
       entries.add(
           CreateStruct.Entry.newBuilder()
               .setId(celStructExprEntry.id())
@@ -283,14 +283,14 @@ public final class CelExprV1Alpha1Converter {
     }
 
     return Expr.CreateStruct.newBuilder()
-        .setMessageName(celCreateStruct.messageName())
+        .setMessageName(celStruct.messageName())
         .addAllEntries(entries.build())
         .build();
   }
 
-  private static CreateStruct celMapToExprStruct(CelExpr.CelMap celCreateMap) {
+  private static CreateStruct celMapToExprStruct(CelExpr.CelMap celMap) {
     ImmutableList.Builder<CreateStruct.Entry> entries = ImmutableList.builder();
-    for (CelExpr.CelMap.Entry celMapEntry : celCreateMap.entries()) {
+    for (CelExpr.CelMap.Entry celMapEntry : celMap.entries()) {
       CreateStruct.Entry exprMapEntry =
           CreateStruct.Entry.newBuilder()
               .setId(celMapEntry.id())

@@ -163,31 +163,31 @@ public class CelUnparserVisitor extends CelExprVisitor {
   }
 
   @Override
-  protected void visit(CelExpr expr, CelList createList) {
+  protected void visit(CelExpr expr, CelList list) {
     stringBuilder.append(LEFT_BRACKET);
-    HashSet<Integer> optionalIndices = new HashSet<>(createList.optionalIndices());
-    for (int i = 0; i < createList.elements().size(); i++) {
+    HashSet<Integer> optionalIndices = new HashSet<>(list.optionalIndices());
+    for (int i = 0; i < list.elements().size(); i++) {
       if (i > 0) {
         stringBuilder.append(COMMA).append(SPACE);
       }
       if (optionalIndices.contains(i)) {
         stringBuilder.append(QUESTION_MARK);
       }
-      visit(createList.elements().get(i));
+      visit(list.elements().get(i));
     }
     stringBuilder.append(RIGHT_BRACKET);
   }
 
   @Override
-  protected void visit(CelExpr expr, CelStruct createStruct) {
-    stringBuilder.append(createStruct.messageName());
+  protected void visit(CelExpr expr, CelStruct struct) {
+    stringBuilder.append(struct.messageName());
     stringBuilder.append(LEFT_BRACE);
-    for (int i = 0; i < createStruct.entries().size(); i++) {
+    for (int i = 0; i < struct.entries().size(); i++) {
       if (i > 0) {
         stringBuilder.append(COMMA).append(SPACE);
       }
 
-      CelStruct.Entry e = createStruct.entries().get(i);
+      CelStruct.Entry e = struct.entries().get(i);
       if (e.optionalEntry()) {
         stringBuilder.append(QUESTION_MARK);
       }
@@ -199,14 +199,14 @@ public class CelUnparserVisitor extends CelExprVisitor {
   }
 
   @Override
-  protected void visit(CelExpr expr, CelMap createMap) {
+  protected void visit(CelExpr expr, CelMap map) {
     stringBuilder.append(LEFT_BRACE);
-    for (int i = 0; i < createMap.entries().size(); i++) {
+    for (int i = 0; i < map.entries().size(); i++) {
       if (i > 0) {
         stringBuilder.append(COMMA).append(SPACE);
       }
 
-      CelMap.Entry e = createMap.entries().get(i);
+      CelMap.Entry e = map.entries().get(i);
       if (e.optionalEntry()) {
         stringBuilder.append(QUESTION_MARK);
       }

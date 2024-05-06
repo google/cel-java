@@ -973,28 +973,28 @@ public final class CelMutableExpr implements Expression {
     return new CelMutableExpr(id, mutableCall);
   }
 
-  public static CelMutableExpr ofList(CelMutableList mutableCreateList) {
-    return ofList(0, mutableCreateList);
+  public static CelMutableExpr ofList(CelMutableList mutableList) {
+    return ofList(0, mutableList);
   }
 
-  public static CelMutableExpr ofList(long id, CelMutableList mutableCreateList) {
-    return new CelMutableExpr(id, mutableCreateList);
+  public static CelMutableExpr ofList(long id, CelMutableList mutableList) {
+    return new CelMutableExpr(id, mutableList);
   }
 
-  public static CelMutableExpr ofStruct(CelMutableStruct mutableCreateStruct) {
-    return ofStruct(0, mutableCreateStruct);
+  public static CelMutableExpr ofStruct(CelMutableStruct mutableStruct) {
+    return ofStruct(0, mutableStruct);
   }
 
-  public static CelMutableExpr ofStruct(long id, CelMutableStruct mutableCreateStruct) {
-    return new CelMutableExpr(id, mutableCreateStruct);
+  public static CelMutableExpr ofStruct(long id, CelMutableStruct mutableStruct) {
+    return new CelMutableExpr(id, mutableStruct);
   }
 
-  public static CelMutableExpr ofMap(CelMutableMap mutableCreateMap) {
-    return ofMap(0, mutableCreateMap);
+  public static CelMutableExpr ofMap(CelMutableMap mutableMap) {
+    return ofMap(0, mutableMap);
   }
 
-  public static CelMutableExpr ofMap(long id, CelMutableMap mutableCreateMap) {
-    return new CelMutableExpr(id, mutableCreateMap);
+  public static CelMutableExpr ofMap(long id, CelMutableMap mutableMap) {
+    return new CelMutableExpr(id, mutableMap);
   }
 
   public static CelMutableExpr ofComprehension(
@@ -1027,19 +1027,19 @@ public final class CelMutableExpr implements Expression {
     setCall(mutableCall);
   }
 
-  private CelMutableExpr(long id, CelMutableList mutableCreateList) {
+  private CelMutableExpr(long id, CelMutableList mutableList) {
     this.id = id;
-    setList(mutableCreateList);
+    setList(mutableList);
   }
 
-  private CelMutableExpr(long id, CelMutableStruct mutableCreateStruct) {
+  private CelMutableExpr(long id, CelMutableStruct mutableStruct) {
     this.id = id;
-    setStruct(mutableCreateStruct);
+    setStruct(mutableStruct);
   }
 
-  private CelMutableExpr(long id, CelMutableMap mutableCreateMap) {
+  private CelMutableExpr(long id, CelMutableMap mutableMap) {
     this.id = id;
-    setMap(mutableCreateMap);
+    setMap(mutableMap);
   }
 
   private CelMutableExpr(long id, CelMutableComprehension mutableComprehension) {

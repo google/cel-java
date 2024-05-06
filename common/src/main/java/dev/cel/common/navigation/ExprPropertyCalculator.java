@@ -94,8 +94,8 @@ final class ExprPropertyCalculator<E extends Expression> {
     return ExprProperty.merge(visitedArgument, visitedTarget);
   }
 
-  private ExprProperty visit(List<E> createList) {
-    return visitExprList(createList.elements());
+  private ExprProperty visit(List<E> list) {
+    return visitExprList(list.elements());
   }
 
   private ExprProperty visit(Expression.Select<E> selectExpr) {
@@ -129,9 +129,9 @@ final class ExprPropertyCalculator<E extends Expression> {
     return visitedProperty;
   }
 
-  private ExprProperty visitExprList(java.util.List<E> createListExpr) {
+  private ExprProperty visitExprList(java.util.List<E> list) {
     ExprProperty visitedProperty = ExprProperty.create(0, 0);
-    for (E expr : createListExpr) {
+    for (E expr : list) {
       visitedProperty = ExprProperty.merge(visitedProperty, visit(expr));
     }
     return visitedProperty;

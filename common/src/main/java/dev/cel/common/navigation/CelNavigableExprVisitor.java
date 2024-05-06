@@ -137,8 +137,8 @@ final class CelNavigableExprVisitor<E extends Expression, T extends BaseNavigabl
     visitExprList(call.args(), navigableExpr);
   }
 
-  private void visit(T navigableExpr, List<E> createList) {
-    visitExprList(createList.elements(), navigableExpr);
+  private void visit(T navigableExpr, List<E> list) {
+    visitExprList(list.elements(), navigableExpr);
   }
 
   private void visit(T navigableExpr, Expression.Select<E> selectExpr) {
@@ -170,8 +170,8 @@ final class CelNavigableExprVisitor<E extends Expression, T extends BaseNavigabl
     }
   }
 
-  private void visitExprList(java.util.List<E> createListExpr, T parent) {
-    for (E expr : createListExpr) {
+  private void visitExprList(java.util.List<E> list, T parent) {
+    for (E expr : list) {
       visit(newNavigableChild(parent, expr));
     }
   }

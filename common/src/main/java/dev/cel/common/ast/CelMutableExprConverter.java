@@ -104,9 +104,9 @@ public final class CelMutableExprConverter {
     return mutableExprList;
   }
 
-  private static CelMutableStruct fromCelStructToMutableStruct(CelStruct celCreateStruct) {
+  private static CelMutableStruct fromCelStructToMutableStruct(CelStruct celStruct) {
     List<CelMutableStruct.Entry> entries = new ArrayList<>();
-    for (CelStruct.Entry celStructExprEntry : celCreateStruct.entries()) {
+    for (CelStruct.Entry celStructExprEntry : celStruct.entries()) {
       entries.add(
           CelMutableStruct.Entry.create(
               celStructExprEntry.id(),
@@ -115,12 +115,12 @@ public final class CelMutableExprConverter {
               celStructExprEntry.optionalEntry()));
     }
 
-    return CelMutableStruct.create(celCreateStruct.messageName(), entries);
+    return CelMutableStruct.create(celStruct.messageName(), entries);
   }
 
-  private static CelMutableMap fromCelMapToMutableMap(CelMap celCreateMap) {
+  private static CelMutableMap fromCelMapToMutableMap(CelMap celMap) {
     List<CelMutableMap.Entry> entries = new ArrayList<>();
-    for (CelMap.Entry celMapExprEntry : celCreateMap.entries()) {
+    for (CelMap.Entry celMapExprEntry : celMap.entries()) {
       entries.add(
           CelMutableMap.Entry.create(
               celMapExprEntry.id(),
@@ -153,23 +153,20 @@ public final class CelMutableExprConverter {
             mutableCall.target().map(CelMutableExprConverter::fromMutableExpr);
         return CelExpr.ofCall(id, targetExpr, mutableCall.function(), args);
       case LIST:
-        CelMutableList mutableCreateList = mutableExpr.list();
+        CelMutableList mutableList = mutableExpr.list();
         return CelExpr.ofList(
             id,
-            fromMutableExprList(mutableCreateList.elements()),
-            ImmutableList.copyOf(mutableCreateList.optionalIndices()));
+            fromMutableExprList(mutableList.elements()),
+            ImmutableList.copyOf(mutableList.optionalIndices()));
       case STRUCT:
-        CelMutableStruct mutableCreateStruct = mutableExpr.struct();
+        CelMutableStruct mutableStruct = mutableExpr.struct();
         return CelExpr.newBuilder()
             .setId(id)
-            .setStruct(fromMutableStructToCelStruct(mutableCreateStruct))
+            .setStruct(fromMutableStructToCelStruct(mutableStruct))
             .build();
       case MAP:
-        CelMutableMap mutableCreateMap = mutableExpr.map();
-        return CelExpr.newBuilder()
-            .setId(id)
-            .setMap(fromMutableMapToCelMap(mutableCreateMap))
-            .build();
+        CelMutableMap mutableMap = mutableExpr.map();
+        return CelExpr.newBuilder().setId(id).setMap(fromMutableMapToCelMap(mutableMap)).build();
       case COMPREHENSION:
         CelMutableComprehension mutableComprehension = mutableExpr.comprehension();
         return CelExpr.ofComprehension(
@@ -197,9 +194,9 @@ public final class CelMutableExprConverter {
     return celExprList.build();
   }
 
-  private static CelStruct fromMutableStructToCelStruct(CelMutableStruct mutableCreateStruct) {
+  private static CelStruct fromMutableStructToCelStruct(CelMutableStruct mutableStruct) {
     List<CelStruct.Entry> entries = new ArrayList<>();
-    for (CelMutableStruct.Entry mutableStructEntry : mutableCreateStruct.entries()) {
+    for (CelMutableStruct.Entry mutableStructEntry : mutableStruct.entries()) {
       entries.add(
           CelExpr.ofStructEntry(
               mutableStructEntry.id(),
@@ -209,14 +206,14 @@ public final class CelMutableExprConverter {
     }
 
     return CelStruct.newBuilder()
-        .setMessageName(mutableCreateStruct.messageName())
+        .setMessageName(mutableStruct.messageName())
         .addEntries(entries)
         .build();
   }
 
-  private static CelMap fromMutableMapToCelMap(CelMutableMap mutableCreateMap) {
+  private static CelMap fromMutableMapToCelMap(CelMutableMap mutableMap) {
     List<CelMap.Entry> entries = new ArrayList<>();
-    for (CelMutableMap.Entry mutableMapEntry : mutableCreateMap.entries()) {
+    for (CelMutableMap.Entry mutableMapEntry : mutableMap.entries()) {
       entries.add(
           CelExpr.ofMapEntry(
               mutableMapEntry.id(),

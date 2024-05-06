@@ -355,10 +355,10 @@ public final class ExprChecker {
   }
 
   @CheckReturnValue
-  private CelExpr visit(CelExpr expr, CelExpr.CelStruct createStruct) {
+  private CelExpr visit(CelExpr expr, CelExpr.CelStruct struct) {
     // Determine the type of the message.
     CelType messageType = SimpleType.ERROR;
-    CelIdentDecl decl = env.lookupIdent(getPosition(expr), inContainer, createStruct.messageName());
+    CelIdentDecl decl = env.lookupIdent(getPosition(expr), inContainer, struct.messageName());
     env.setRef(expr, CelReference.newBuilder().setName(decl.name()).build());
     CelType type = decl.type();
     if (type.kind() != CelKind.ERROR) {
@@ -383,7 +383,7 @@ public final class ExprChecker {
     }
 
     // Check the field initializers.
-    ImmutableList<CelExpr.CelStruct.Entry> entriesList = createStruct.entries();
+    ImmutableList<CelExpr.CelStruct.Entry> entriesList = struct.entries();
     for (int i = 0; i < entriesList.size(); i++) {
       CelExpr.CelStruct.Entry entry = entriesList.get(i);
       CelExpr visitedValueExpr = visit(entry.value());
@@ -414,10 +414,10 @@ public final class ExprChecker {
   }
 
   @CheckReturnValue
-  private CelExpr visit(CelExpr expr, CelExpr.CelMap createMap) {
+  private CelExpr visit(CelExpr expr, CelExpr.CelMap map) {
     CelType mapKeyType = null;
     CelType mapValueType = null;
-    ImmutableList<CelExpr.CelMap.Entry> entriesList = createMap.entries();
+    ImmutableList<CelExpr.CelMap.Entry> entriesList = map.entries();
     for (int i = 0; i < entriesList.size(); i++) {
       CelExpr.CelMap.Entry entry = entriesList.get(i);
       CelExpr visitedMapKeyExpr = visit(entry.key());
@@ -455,10 +455,10 @@ public final class ExprChecker {
   }
 
   @CheckReturnValue
-  private CelExpr visit(CelExpr expr, CelExpr.CelList createList) {
+  private CelExpr visit(CelExpr expr, CelExpr.CelList list) {
     CelType elemsType = null;
-    ImmutableList<CelExpr> elementsList = createList.elements();
-    HashSet<Integer> optionalIndices = new HashSet<>(createList.optionalIndices());
+    ImmutableList<CelExpr> elementsList = list.elements();
+    HashSet<Integer> optionalIndices = new HashSet<>(list.optionalIndices());
     for (int i = 0; i < elementsList.size(); i++) {
       CelExpr visitedElem = visit(elementsList.get(i));
       if (namespacedDeclarations && !visitedElem.equals(elementsList.get(i))) {
@@ -853,27 +853,25 @@ public final class ExprChecker {
   }
 
   private static CelExpr replaceStructEntryValueSubtree(CelExpr expr, CelExpr newValue, int index) {
-    CelExpr.CelStruct createStruct = expr.struct();
+    CelExpr.CelStruct struct = expr.struct();
     CelExpr.CelStruct.Entry newEntry =
-        createStruct.entries().get(index).toBuilder().setValue(newValue).build();
-    createStruct = createStruct.toBuilder().setEntry(index, newEntry).build();
-    return expr.toBuilder().setStruct(createStruct).build();
+        struct.entries().get(index).toBuilder().setValue(newValue).build();
+    struct = struct.toBuilder().setEntry(index, newEntry).build();
+    return expr.toBuilder().setStruct(struct).build();
   }
 
   private static CelExpr replaceMapEntryKeySubtree(CelExpr expr, CelExpr newKey, int index) {
-    CelExpr.CelMap createMap = expr.map();
-    CelExpr.CelMap.Entry newEntry =
-        createMap.entries().get(index).toBuilder().setKey(newKey).build();
-    createMap = createMap.toBuilder().setEntry(index, newEntry).build();
-    return expr.toBuilder().setMap(createMap).build();
+    CelExpr.CelMap map = expr.map();
+    CelExpr.CelMap.Entry newEntry = map.entries().get(index).toBuilder().setKey(newKey).build();
+    map = map.toBuilder().setEntry(index, newEntry).build();
+    return expr.toBuilder().setMap(map).build();
   }
 
   private static CelExpr replaceMapEntryValueSubtree(CelExpr expr, CelExpr newValue, int index) {
-    CelExpr.CelMap createMap = expr.map();
-    CelExpr.CelMap.Entry newEntry =
-        createMap.entries().get(index).toBuilder().setValue(newValue).build();
-    createMap = createMap.toBuilder().setEntry(index, newEntry).build();
-    return expr.toBuilder().setMap(createMap).build();
+    CelExpr.CelMap map = expr.map();
+    CelExpr.CelMap.Entry newEntry = map.entries().get(index).toBuilder().setValue(newValue).build();
+    map = map.toBuilder().setEntry(index, newEntry).build();
+    return expr.toBuilder().setMap(map).build();
   }
 
   private static CelExpr replaceComprehensionAccuInitSubtree(CelExpr expr, CelExpr newAccuInit) {

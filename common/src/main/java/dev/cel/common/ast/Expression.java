@@ -114,7 +114,7 @@ public interface Expression {
      * The indices within the elements list which are marked as optional elements.
      *
      * <p>When an optional-typed value is present, the value it contains is included in the list. If
-     * the optional-typed value is absent, the list element is omitted from the CreateList result.
+     * the optional-typed value is absent, the list element is omitted from the list result.
      */
     java.util.List<Integer> optionalIndices();
   }

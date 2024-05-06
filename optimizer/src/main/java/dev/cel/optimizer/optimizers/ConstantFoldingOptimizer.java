@@ -438,18 +438,18 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   }
 
   private CelMutableAst pruneOptionalListElements(CelMutableAst mutableAst, CelMutableExpr expr) {
-    CelMutableList createList = expr.list();
-    if (createList.optionalIndices().isEmpty()) {
+    CelMutableList list = expr.list();
+    if (list.optionalIndices().isEmpty()) {
       return mutableAst;
     }
 
-    HashSet<Integer> optionalIndices = new HashSet<>(createList.optionalIndices());
+    HashSet<Integer> optionalIndices = new HashSet<>(list.optionalIndices());
     ImmutableList.Builder<CelMutableExpr> updatedElemBuilder = new ImmutableList.Builder<>();
     ImmutableList.Builder<Integer> updatedIndicesBuilder = new ImmutableList.Builder<>();
     int newOptIndex = -1;
-    for (int i = 0; i < createList.elements().size(); i++) {
+    for (int i = 0; i < list.elements().size(); i++) {
       newOptIndex++;
-      CelMutableExpr element = createList.elements().get(i);
+      CelMutableExpr element = list.elements().get(i);
       if (!optionalIndices.contains(i)) {
         updatedElemBuilder.add(element);
         continue;
@@ -483,10 +483,10 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   }
 
   private CelMutableAst pruneOptionalMapElements(CelMutableAst ast, CelMutableExpr expr) {
-    CelMutableMap createMap = expr.map();
+    CelMutableMap map = expr.map();
     ImmutableList.Builder<CelMutableMap.Entry> updatedEntryBuilder = new ImmutableList.Builder<>();
     boolean modified = false;
-    for (CelMutableMap.Entry entry : createMap.entries()) {
+    for (CelMutableMap.Entry entry : map.entries()) {
       CelMutableExpr key = entry.key();
       Kind keyKind = key.getKind();
       CelMutableExpr value = entry.value();
@@ -526,11 +526,11 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   }
 
   private CelMutableAst pruneOptionalStructElements(CelMutableAst ast, CelMutableExpr expr) {
-    CelMutableStruct createStruct = expr.struct();
+    CelMutableStruct struct = expr.struct();
     ImmutableList.Builder<CelMutableStruct.Entry> updatedEntryBuilder =
         new ImmutableList.Builder<>();
     boolean modified = false;
-    for (CelMutableStruct.Entry entry : createStruct.entries()) {
+    for (CelMutableStruct.Entry entry : struct.entries()) {
       CelMutableExpr value = entry.value();
       Kind valueKind = value.getKind();
       if (!entry.optionalEntry() || !valueKind.equals(Kind.CALL)) {
@@ -562,7 +562,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       return astMutator.replaceSubtree(
           ast,
           CelMutableExpr.ofStruct(
-              CelMutableStruct.create(createStruct.messageName(), updatedEntryBuilder.build())),
+              CelMutableStruct.create(struct.messageName(), updatedEntryBuilder.build())),
           expr.id());
     }
 

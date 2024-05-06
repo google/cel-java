@@ -599,7 +599,7 @@ public class CelNavigableExprVisitorTest {
   }
 
   @Test
-  public void messageConstruction_filterCreateStruct_allNodesReturned() throws Exception {
+  public void messageConstruction_filterStruct_allNodesReturned() throws Exception {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
@@ -708,7 +708,7 @@ public class CelNavigableExprVisitorTest {
   }
 
   @Test
-  public void mapConstruction_filterCreateMap_allNodesReturned() throws Exception {
+  public void mapConstruction_filterMap_allNodesReturned() throws Exception {
     CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
     CelAbstractSyntaxTree ast = compiler.compile("{'key': 2}").getAst();
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
@@ -1301,7 +1301,7 @@ public class CelNavigableExprVisitorTest {
   }
 
   @Test
-  public void createList_children_heightSet(@TestParameter TraversalOrder traversalOrder)
+  public void list_children_heightSet(@TestParameter TraversalOrder traversalOrder)
       throws Exception {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder().addVar("a", SimpleType.INT).build();
@@ -1319,7 +1319,7 @@ public class CelNavigableExprVisitorTest {
   }
 
   @Test
-  public void createList_children_maxIdsSet(@TestParameter TraversalOrder traversalOrder)
+  public void list_children_maxIdsSet(@TestParameter TraversalOrder traversalOrder)
       throws Exception {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder().addVar("a", SimpleType.INT).build();

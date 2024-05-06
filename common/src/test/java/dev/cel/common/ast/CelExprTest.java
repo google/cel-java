@@ -66,10 +66,9 @@ public class CelExprTest {
                     .build())
             .build(),
         Kind.SELECT),
-    CREATE_MAP(CelExpr.newBuilder().setMap(CelMap.newBuilder().build()).build(), Kind.MAP),
-    CREATE_LIST(CelExpr.newBuilder().setList(CelList.newBuilder().build()).build(), Kind.LIST),
-    CREATE_STRUCT(
-        CelExpr.newBuilder().setStruct(CelStruct.newBuilder().build()).build(), Kind.STRUCT),
+    MAP(CelExpr.newBuilder().setMap(CelMap.newBuilder().build()).build(), Kind.MAP),
+    LIST(CelExpr.newBuilder().setList(CelList.newBuilder().build()).build(), Kind.LIST),
+    STRUCT(CelExpr.newBuilder().setStruct(CelStruct.newBuilder().build()).build(), Kind.STRUCT),
     COMPREHENSION(
         CelExpr.newBuilder()
             .setComprehension(
@@ -198,27 +197,27 @@ public class CelExprTest {
   }
 
   @Test
-  public void celExprBuilder_setCreateList() {
-    CelList celCreateList =
+  public void celExprBuilder_setList() {
+    CelList celList =
         CelList.newBuilder().addElements(CelExpr.ofConstant(1, CelConstant.ofValue(2))).build();
-    CelExpr celExpr = CelExpr.newBuilder().setList(celCreateList).build();
+    CelExpr celExpr = CelExpr.newBuilder().setList(celList).build();
 
-    assertThat(celExpr.list()).isEqualTo(celCreateList);
-    assertThat(celExpr.toBuilder().list()).isEqualTo(celCreateList);
+    assertThat(celExpr.list()).isEqualTo(celList);
+    assertThat(celExpr.toBuilder().list()).isEqualTo(celList);
   }
 
   @Test
-  public void createListBuilder_getArgs() {
-    CelList celCreateList =
+  public void listBuilder_getArgs() {
+    CelList celList =
         CelList.newBuilder().addElements(CelExpr.ofConstant(1, CelConstant.ofValue(2))).build();
 
-    assertThat(celCreateList.toBuilder().getElements())
+    assertThat(celList.toBuilder().getElements())
         .containsExactly(CelExpr.ofConstant(1, CelConstant.ofValue(2)));
   }
 
   @Test
-  public void celExprBuilder_setCreateList_setElementByIndex() {
-    CelList celCreateList =
+  public void celExprBuilder_setList_setElementByIndex() {
+    CelList celList =
         CelList.newBuilder()
             .addElements(
                 CelExpr.ofConstant(5, CelConstant.ofValue("hello")),
@@ -228,7 +227,7 @@ public class CelExprTest {
     CelExpr celExpr =
         CelExpr.newBuilder()
             .setList(
-                celCreateList.toBuilder()
+                celList.toBuilder()
                     .setElement(1, CelExpr.ofConstant(7, CelConstant.ofValue("world")))
                     .build())
             .build();
@@ -243,8 +242,8 @@ public class CelExprTest {
   }
 
   @Test
-  public void celExprBuilder_setCreateStruct() {
-    CelStruct celCreateStruct =
+  public void celExprBuilder_setStruct() {
+    CelStruct celStruct =
         CelStruct.newBuilder()
             .addEntries(
                 CelStruct.Entry.newBuilder()
@@ -253,16 +252,16 @@ public class CelExprTest {
                     .setFieldKey("field_key")
                     .build())
             .build();
-    CelExpr celExpr = CelExpr.newBuilder().setStruct(celCreateStruct).build();
+    CelExpr celExpr = CelExpr.newBuilder().setStruct(celStruct).build();
 
     assertThat(celExpr.struct().entries().get(0).optionalEntry()).isFalse();
-    assertThat(celExpr.struct()).isEqualTo(celCreateStruct);
-    assertThat(celExpr.toBuilder().struct()).isEqualTo(celCreateStruct);
+    assertThat(celExpr.struct()).isEqualTo(celStruct);
+    assertThat(celExpr.toBuilder().struct()).isEqualTo(celStruct);
   }
 
   @Test
-  public void createStructBuilder_getArgs() {
-    CelStruct celCreateStruct =
+  public void structBuilder_getArgs() {
+    CelStruct celStruct =
         CelStruct.newBuilder()
             .addEntries(
                 CelStruct.Entry.newBuilder()
@@ -272,7 +271,7 @@ public class CelExprTest {
                     .build())
             .build();
 
-    assertThat(celCreateStruct.toBuilder().getEntries())
+    assertThat(celStruct.toBuilder().getEntries())
         .containsExactly(
             CelStruct.Entry.newBuilder()
                 .setId(1)
@@ -282,8 +281,8 @@ public class CelExprTest {
   }
 
   @Test
-  public void celExprBuilder_setCreateStruct_setEntryByIndex() {
-    CelStruct celCreateStruct =
+  public void celExprBuilder_setStruct_setEntryByIndex() {
+    CelStruct celStruct =
         CelStruct.newBuilder()
             .addEntries(
                 CelStruct.Entry.newBuilder()
@@ -302,7 +301,7 @@ public class CelExprTest {
     CelExpr celExpr =
         CelExpr.newBuilder()
             .setStruct(
-                celCreateStruct.toBuilder()
+                celStruct.toBuilder()
                     .setEntry(
                         1,
                         CelStruct.Entry.newBuilder()
@@ -460,7 +459,7 @@ public class CelExprTest {
   }
 
   @Test
-  public void celCreateMapEntry_keyOrValueNotSet_throws() {
+  public void celMapEntry_keyOrValueNotSet_throws() {
     assertThrows(IllegalStateException.class, () -> CelMap.Entry.newBuilder().build());
     assertThrows(
         IllegalStateException.class,
@@ -471,7 +470,7 @@ public class CelExprTest {
   }
 
   @Test
-  public void celCreateMapEntry_default() {
+  public void celMapEntry_default() {
     CelMap.Entry entry =
         CelMap.Entry.newBuilder().setKey(CelExpr.ofNotSet(1)).setValue(CelExpr.ofNotSet(2)).build();
 
@@ -480,7 +479,7 @@ public class CelExprTest {
   }
 
   @Test
-  public void celCreateStructEntry_fieldKeyOrValueNotSet_throws() {
+  public void celStructEntry_fieldKeyOrValueNotSet_throws() {
     assertThrows(IllegalStateException.class, () -> CelStruct.Entry.newBuilder().build());
     assertThrows(
         IllegalStateException.class,
@@ -491,7 +490,7 @@ public class CelExprTest {
   }
 
   @Test
-  public void celCreateStructEntry_default() {
+  public void celStructEntry_default() {
     CelStruct.Entry entry =
         CelStruct.Entry.newBuilder().setFieldKey("fieldKey").setValue(CelExpr.ofNotSet(1)).build();
 
