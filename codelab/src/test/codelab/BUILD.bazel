@@ -115,6 +115,25 @@ java_test(
     ],
 )
 
+java_test(
+    name = "Exercise8Test",
+    srcs = ["Exercise8Test.java"],
+    tags = ["notap"],
+    test_class = "codelab.Exercise8Test",
+    deps = [
+        "//:java_truth",
+        "//codelab",
+        "//common",
+        "//common:compiler_common",
+        "//parser:unparser",
+        "//runtime",
+        "@maven//:com_google_api_grpc_proto_google_common_protos",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
 test_suite(
     name = "exercise_test_suite",
     tags = ["notap"],
