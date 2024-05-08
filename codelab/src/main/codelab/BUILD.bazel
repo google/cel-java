@@ -9,15 +9,30 @@ java_library(
     name = "codelab",
     srcs = glob(["*.java"]),
     deps = [
+        "//bundle:cel",  # unuseddeps: keep
         "//common",  # unuseddeps: keep
         "//common:compiler_common",  # unuseddeps: keep
         "//common:proto_json_adapter",  # unuseddeps: keep
+        "//common/ast",  # unuseddeps: keep
+        "//common/navigation",  # unuseddeps: keep
         "//common/types",  # unuseddeps: keep
         "//common/types:type_providers",  # unuseddeps: keep
         "//compiler",  # unuseddeps: keep
         "//compiler:compiler_builder",  # unuseddeps: keep
+        "//optimizer",  # unuseddeps: keep
+        "//optimizer:optimization_exception",  # unuseddeps: keep
+        "//optimizer:optimizer_builder",  # unuseddeps: keep
+        "//optimizer/optimizers:common_subexpression_elimination",  # unuseddeps: keep
+        "//optimizer/optimizers:constant_folding",  # unuseddeps: keep
         "//parser:macro",  # unuseddeps: keep
         "//runtime",  # unuseddeps: keep
+        "//validator",  # unuseddeps: keep
+        "//validator:ast_validator",  # unuseddeps: keep
+        "//validator:validator_builder",  # unuseddeps: keep
+        "//validator/validators:duration",  # unuseddeps: keep
+        "//validator/validators:homogeneous_literal",  # unuseddeps: keep
+        "//validator/validators:regex",  # unuseddeps: keep
+        "//validator/validators:timestamp",  # unuseddeps: keep
         "@maven//:com_google_api_grpc_proto_google_common_protos",  # unuseddeps: keep
         "@maven//:com_google_guava_guava",  # unuseddeps: keep
         "@maven//:com_google_protobuf_protobuf_java",  # unuseddeps: keep
