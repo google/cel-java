@@ -35,8 +35,9 @@ import java.util.stream.Collectors;
  */
 public final class CelMutableSource {
 
-  final Map<Long, CelMutableExpr> macroCalls;
-  final Set<Extension> extensions;
+  private String description;
+  private final Map<Long, CelMutableExpr> macroCalls;
+  private final Set<Extension> extensions;
 
   @CanIgnoreReturnValue
   public CelMutableSource addMacroCalls(long exprId, CelMutableExpr expr) {
@@ -58,6 +59,12 @@ public final class CelMutableSource {
   }
 
   @CanIgnoreReturnValue
+  public CelMutableSource setDescription(String description) {
+    this.description = checkNotNull(description);
+    return this;
+  }
+
+  @CanIgnoreReturnValue
   public CelMutableSource clearMacroCall(long exprId) {
     this.macroCalls.remove(exprId);
     return this;
@@ -67,6 +74,10 @@ public final class CelMutableSource {
   public CelMutableSource clearMacroCalls() {
     this.macroCalls.clear();
     return this;
+  }
+
+  public String getDescription() {
+    return description;
   }
 
   public Map<Long, CelMutableExpr> getMacroCalls() {
@@ -79,6 +90,7 @@ public final class CelMutableSource {
 
   public CelSource toCelSource() {
     return CelSource.newBuilder()
+        .setDescription(description)
         .addAllExtensions(extensions)
         .addAllMacroCalls(
             macroCalls.entrySet().stream()
@@ -89,11 +101,12 @@ public final class CelMutableSource {
   }
 
   public static CelMutableSource newInstance() {
-    return new CelMutableSource(new HashMap<>(), new HashSet<>());
+    return new CelMutableSource("", new HashMap<>(), new HashSet<>());
   }
 
   public static CelMutableSource fromCelSource(CelSource source) {
     return new CelMutableSource(
+        source.getDescription(),
         source.getMacroCalls().entrySet().stream()
             .collect(
                 Collectors.toMap(
@@ -107,7 +120,9 @@ public final class CelMutableSource {
         source.getExtensions());
   }
 
-  CelMutableSource(Map<Long, CelMutableExpr> macroCalls, Set<Extension> extensions) {
+  CelMutableSource(
+      String description, Map<Long, CelMutableExpr> macroCalls, Set<Extension> extensions) {
+    this.description = checkNotNull(description);
     this.macroCalls = checkNotNull(macroCalls);
     this.extensions = checkNotNull(extensions);
   }

@@ -109,11 +109,11 @@ public class AstMutatorTest {
             .replaceSubtree(mutableAst, newBooleanConst, mutableAst.expr().id())
             .toParsedAst();
 
-    assertThat(mutatedAst.getSource().getDescription()).isEmpty();
     assertThat(mutatedAst.getSource().getLineOffsets()).isEmpty();
     assertThat(mutatedAst.getSource().getPositionsMap()).isEmpty();
     assertThat(mutatedAst.getSource().getExtensions()).isEmpty();
     assertThat(mutatedAst.getSource().getMacroCalls()).isEmpty();
+    assertThat(mutatedAst.getSource().getDescription()).isEqualTo(ast.getSource().getDescription());
   }
 
   @Test
@@ -125,11 +125,11 @@ public class AstMutatorTest {
     CelAbstractSyntaxTree mutatedAst =
         AST_MUTATOR.replaceSubtree(mutableAst, newBooleanConst, 1).toParsedAst(); // no_op
 
-    assertThat(mutatedAst.getSource().getDescription()).isEmpty();
     assertThat(mutatedAst.getSource().getLineOffsets()).isEmpty();
     assertThat(mutatedAst.getSource().getPositionsMap()).isEmpty();
     assertThat(mutatedAst.getSource().getExtensions()).isEmpty();
     assertThat(mutatedAst.getSource().getMacroCalls()).isNotEmpty();
+    assertThat(mutatedAst.getSource().getDescription()).isEqualTo(ast.getSource().getDescription());
   }
 
   @Test

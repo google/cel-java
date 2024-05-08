@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toCollection;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -418,7 +419,8 @@ public final class AstMutator {
 
     CelMutableExpr mutatedRoot =
         mutateExpr(stableIdGenerator::renumberId, ast.expr(), newAst.expr(), exprIdToReplace);
-    CelMutableSource newAstSource = CelMutableSource.newInstance();
+    CelMutableSource newAstSource =
+        CelMutableSource.newInstance().setDescription(ast.source().getDescription());
     if (!ast.source().getMacroCalls().isEmpty()) {
       newAstSource = combine(newAstSource, ast.source());
     }
@@ -570,6 +572,10 @@ public final class AstMutator {
   private static CelMutableSource combine(
       CelMutableSource celSource1, CelMutableSource celSource2) {
     return CelMutableSource.newInstance()
+        .setDescription(
+            Strings.isNullOrEmpty(celSource1.getDescription())
+                ? celSource2.getDescription()
+                : celSource1.getDescription())
         .addAllExtensions(celSource1.getExtensions())
         .addAllExtensions(celSource2.getExtensions())
         .addAllMacroCalls(celSource1.getMacroCalls())
@@ -635,7 +641,9 @@ public final class AstMutator {
                     }));
 
     CelMutableSource newMacroSource =
-        CelMutableSource.newInstance().addAllExtensions(source.getExtensions());
+        CelMutableSource.newInstance()
+            .setDescription(source.getDescription())
+            .addAllExtensions(source.getExtensions());
     // Update the macro call IDs and their call references
     for (Entry<Long, CelMutableExpr> existingMacroCall : source.getMacroCalls().entrySet()) {
       long macroId = existingMacroCall.getKey();
