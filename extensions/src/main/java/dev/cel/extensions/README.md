@@ -140,13 +140,13 @@ zero-based.
 Returns the character at the given position. If the position is negative, or greater than
 the length of the string, the function will produce an error.
 
-<string>.charAt(<int>) -> <string>
+    <string>.charAt(<int>) -> <string>
 
 Examples:
 
-'hello'.charAt(4)  // return 'o'
-'hello'.charAt(5)  // return ''
-'hello'.charAt(-1) // error
+    'hello'.charAt(4)  // return 'o'
+    'hello'.charAt(5)  // return ''
+    'hello'.charAt(-1) // error
 
 ### IndexOf
 
@@ -156,17 +156,17 @@ not found the function returns -1.
 The function also accepts an optional offset from which to begin the substring search. If the
 substring is the empty string, the index where the search starts is returned (zero or custom).
 
-<string>.indexOf(<string>) -> <int>
-<string>.indexOf(<string>, <int>) -> <int>
+    <string>.indexOf(<string>) -> <int>
+    <string>.indexOf(<string>, <int>) -> <int>
 
 Examples:
 
-'hello mellow'.indexOf('')         // returns 0
-'hello mellow'.indexOf('ello')     // returns 1
-'hello mellow'.indexOf('jello')    // returns -1
-'hello mellow'.indexOf('', 2)      // returns 2
-'hello mellow'.indexOf('ello', 2)  // returns 7
-'hello mellow'.indexOf('ello', 20) // error
+    'hello mellow'.indexOf('')         // returns 0
+    'hello mellow'.indexOf('ello')     // returns 1
+    'hello mellow'.indexOf('jello')    // returns -1
+    'hello mellow'.indexOf('', 2)      // returns 2
+    'hello mellow'.indexOf('ello', 2)  // returns 7
+    'hello mellow'.indexOf('ello', 20) // error
 
 ### Join
 
@@ -174,15 +174,15 @@ Returns a new string where the elements of string list are concatenated.
 
 The function also accepts an optional separator which is placed between elements in the resulting string.
 
-<list<string>>.join() -> <string>
-<list<string>>.join(<string>) -> <string>
+    <list<string>>.join() -> <string>
+    <list<string>>.join(<string>) -> <string>
 
 Examples:
 
-['hello', 'mellow'].join() // returns 'hellomellow'
-['hello', 'mellow'].join(' ') // returns 'hello mellow'
-[].join() // returns ''
-[].join('/') // returns ''
+    ['hello', 'mellow'].join() // returns 'hellomellow'
+    ['hello', 'mellow'].join(' ') // returns 'hello mellow'
+    [].join() // returns ''
+    [].join('/') // returns ''
 
 ### LastIndexOf
 
@@ -304,8 +304,8 @@ ASCII range.
 
 Examples:
 
-     'TacoCat'.upperAscii()      // returns 'TACOCAT'
-     'TacoCÆt Xii'.upperAscii()  // returns 'TACOCÆT XII'
+    'TacoCat'.upperAscii()      // returns 'TACOCAT'
+    'TacoCÆt Xii'.upperAscii()  // returns 'TACOCÆT XII'
 
 ## Encoders
 
