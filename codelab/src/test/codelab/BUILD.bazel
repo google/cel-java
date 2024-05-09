@@ -134,6 +134,22 @@ java_test(
     ],
 )
 
+java_test(
+    name = "Exercise9Test",
+    srcs = ["Exercise9Test.java"],
+    tags = ["notap"],
+    test_class = "codelab.Exercise9Test",
+    deps = [
+        "//:java_truth",
+        "//codelab",
+        "//common",
+        "//common:compiler_common",
+        "@maven//:com_google_api_grpc_proto_google_common_protos",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
 test_suite(
     name = "exercise_test_suite",
     tags = ["notap"],
