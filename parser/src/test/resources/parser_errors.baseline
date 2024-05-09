@@ -262,6 +262,15 @@ ERROR: <input>:1:5: mismatched input '}' expecting ':'
  | t{>C}
  | ....^
 
+I: has([(has((
+=====>
+E: ERROR: <input>:1:4: invalid argument to has() macro
+ | has([(has((
+ | ...^
+ERROR: <input>:1:12: mismatched input '<EOF>' expecting {'[', '{', '(', '.', '-', '!', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT, STRING, BYTES, IDENTIFIER}
+ | has([(has((
+ | ...........^
+
 I: a.?b && a[?b]
 =====>
 E: ERROR: <input>:1:2: unsupported syntax '.?'

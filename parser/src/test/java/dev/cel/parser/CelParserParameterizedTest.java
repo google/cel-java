@@ -239,6 +239,7 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
     runTest(PARSER, "TestAllTypes(){single_int32: 1, single_int64: 2}");
     runTest(PARSER, "{");
     runTest(PARSER, "t{>C}");
+    runTest(PARSER, "has([(has((");
 
     CelParser parserWithoutOptionalSupport =
         CelParserImpl.newBuilder()

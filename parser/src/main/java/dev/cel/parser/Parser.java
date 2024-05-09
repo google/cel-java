@@ -896,7 +896,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     ImmutableList<CelExpr> arguments = visitExprListContext(args);
     Optional<CelExpr> errorArg = arguments.stream().filter(ERROR::equals).findAny();
     if (errorArg.isPresent()) {
-      sourceInfo.clearPositions();
+      sourceInfo.removePositions(exprBuilder.id());
       // Any arguments passed in to the macro may fail parsing.
       // Stop the macro expansion in this case as the result of the macro will be a parse failure.
       return ERROR;

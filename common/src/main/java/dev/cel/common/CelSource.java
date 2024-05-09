@@ -262,12 +262,6 @@ public final class CelSource {
     }
 
     @CanIgnoreReturnValue
-    public Builder clearPositions() {
-      this.positions.clear();
-      return this;
-    }
-
-    @CanIgnoreReturnValue
     public Builder removePositions(long exprId) {
       this.positions.remove(exprId);
       return this;
