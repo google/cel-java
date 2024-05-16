@@ -1,0 +1,15 @@
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_testonly = True,
+    default_visibility = [
+        "//policy:__subpackages__",
+    ],
+)
+
+filegroup(
+    name = "policy_yaml_files",
+    testonly = True,
+    srcs = glob(["*.yaml"]),
+)

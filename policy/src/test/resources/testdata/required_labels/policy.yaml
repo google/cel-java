@@ -1,0 +1,32 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: "required_labels"
+rule:
+  variables:
+    - name: want
+      expression: spec.labels
+    - name: missing
+      expression: variables.want.filter(l, !(l in resource.labels))
+    - name: invalid
+      expression: >
+        resource.labels.filter(l,
+          l in variables.want && variables.want[l] != resource.labels[l])
+  match:
+    - condition: variables.missing.size() > 0
+      output: |
+        "missing one or more required labels: %s".format([variables.missing])
+    - condition: variables.invalid.size() > 0    
+      output: |
+        "invalid values provided on one or more labels: %s".format([variables.invalid])
