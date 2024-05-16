@@ -14,36 +14,27 @@
 
 package dev.cel.common;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
-import com.google.protobuf.Descriptors.GenericDescriptor;
+import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.FileDescriptorSetConverter;
 import dev.cel.common.types.CelTypes;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-/** Utility class for working with protobuf descriptors. */
+/**
+ * Utility class for working with protobuf descriptors.
+ *
+ * <p>CEL Library Internals. Do Not Use.
+ */
+@Internal
 public final class CelDescriptorUtil {
 
   private CelDescriptorUtil() {}
-
-  /**
-   * Converts descriptor collection to an ImmutableMap.
-   *
-   * <p>Key: Descriptor's full name, Value: Descriptor object
-   */
-  public static <T extends GenericDescriptor> ImmutableMap<String, T> descriptorCollectionToMap(
-      Collection<T> descriptors) {
-    ImmutableMap.Builder<String, T> descriptorMapBuilder = new ImmutableMap.Builder<>();
-    descriptors.forEach(d -> descriptorMapBuilder.put(d.getFullName(), d));
-    return descriptorMapBuilder.buildOrThrow();
-  }
 
   /**
    * Get the full {@code FileDescriptor} set needed to accurately instantiate the {@code
