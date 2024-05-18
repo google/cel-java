@@ -1,0 +1,28 @@
+load("//:testing.bzl", "junit4_test_suites")
+
+package(default_applicable_licenses = ["//:license"])
+
+java_library(
+    name = "tests",
+    testonly = 1,
+    srcs = glob(["*.java"]),
+    resources = [
+        "//policy/src/test/resources:policy_yaml_files",
+    ],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+junit4_test_suites(
+    name = "test_suites",
+    shard_count = 4,
+    sizes = [
+        "small",
+        "medium",
+    ],
+    src_dir = "src/test/java",
+    deps = [":tests"],
+)
