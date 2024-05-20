@@ -1,5 +1,6 @@
 package dev.cel.policy;
 
-public class PolicyParser {
+public interface PolicyParser {
 
+  Policy parse(String source);
 }

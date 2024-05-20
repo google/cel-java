@@ -29,6 +29,23 @@ public abstract class Policy {
 
   abstract PolicySource policySource();
 
+  public static Builder newBuilder() {
+    return new AutoValue_Policy.Builder();
+  }
+
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    public abstract Builder setName(ValueString name);
+
+    public abstract Builder setRule(Rule rule);
+
+    public abstract Builder setCelSource(CelSource celSource);
+
+    public abstract Builder setPolicySource(PolicySource policySource);
+
+    public abstract Policy build();
+  }
 
   @AutoValue
   abstract static class Rule {

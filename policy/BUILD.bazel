@@ -1,0 +1,19 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "policy",
+    exports = ["//policy/src/main/java/dev/cel/policy"],
+)
+
+java_library(
+    name = "policy_parser",
+    exports = ["//policy/src/main/java/dev/cel/policy:policy_parser"],
+)
+
+java_library(
+    name = "yaml_policy_parser",
+    exports = ["//policy/src/main/java/dev/cel/policy:yaml_policy_parser"],
+)

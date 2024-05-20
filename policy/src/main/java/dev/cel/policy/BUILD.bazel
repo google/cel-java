@@ -1,6 +1,7 @@
 package(
     default_applicable_licenses = ["//:license"],
     default_visibility = [
+        "//policy:__pkg__",
     ],
 )
 
@@ -18,10 +19,23 @@ java_library(
 )
 
 java_library(
+    name = "yaml_policy_parser",
+    srcs = [
+        "YamlPolicyParser.java",
+    ],
+    deps = [
+        ":policy",
+        ":policy_parser",
+        "@maven//:org_yaml_snakeyaml",
+    ],
+)
+
+java_library(
     name = "policy_parser",
     srcs = [
         "PolicyParser.java",
     ],
     deps = [
+        ":policy",
     ],
 )

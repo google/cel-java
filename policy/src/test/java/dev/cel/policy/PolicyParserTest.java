@@ -26,10 +26,12 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 public class PolicyParserTest {
 
+  private static final PolicyParser YAML_POLICY_PARSER = YamlPolicyParser.newInstance();
 
   @Test
   public void smokeTest() throws Exception {
     String yaml = readFile("nested_rule/config.yaml");
+    YAML_POLICY_PARSER.parse(yaml);
     System.out.println(yaml);
   }
 
