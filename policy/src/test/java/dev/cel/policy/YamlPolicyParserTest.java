@@ -15,24 +15,44 @@
 package dev.cel.policy;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.base.Ascii;
 import com.google.common.io.Resources;
+import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import java.io.IOException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public class PolicyParserTest {
+public final class YamlPolicyParserTest {
 
   private static final PolicyParser YAML_POLICY_PARSER = YamlPolicyParser.newInstance();
 
   @Test
-  public void smokeTest() throws Exception {
-    String yaml = readFile("nested_rule/config.yaml");
-    YAML_POLICY_PARSER.parse(yaml);
-    System.out.println(yaml);
+  public void parseYamlPolicy_success(@TestParameter PolicyTestCase policyTestcase)
+      throws Exception {
+    String yamlFileLocation = String.format("%s/policy.yaml", policyTestcase.name);
+    String yamlContent = readFile(yamlFileLocation);
+    PolicySource policySource = PolicySource.create(yamlContent, yamlContent);
+
+    Policy policy = YAML_POLICY_PARSER.parse(policySource);
+
+    assertThat(policy.name()).isEqualTo(policy.name());
+    assertThat(policy.policySource()).isEqualTo(policySource);
+  }
+
+  private enum PolicyTestCase {
+    NESTED_RULE("nested_rule"),
+    REQUIRED_LABELS("required_labels"),
+    RESTRICTED_DESTINATIONS("restricted_destinations");
+
+    private final String name;
+
+    PolicyTestCase(String name) {
+      this.name = name;
+    }
   }
 
   private static String readFile(String path) throws IOException {

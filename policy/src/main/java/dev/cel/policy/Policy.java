@@ -14,9 +14,14 @@
 
 package dev.cel.policy;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.common.CelSource;
+import java.util.Arrays;
+import java.util.Optional;
 
 @AutoValue
 public abstract class Policy {
@@ -29,8 +34,8 @@ public abstract class Policy {
 
   abstract PolicySource policySource();
 
-  public static Builder newBuilder() {
-    return new AutoValue_Policy.Builder();
+  public static Builder newBuilder(PolicySource policySource) {
+    return new AutoValue_Policy.Builder().setPolicySource(policySource);
   }
 
   @AutoValue.Builder
@@ -48,15 +53,65 @@ public abstract class Policy {
   }
 
   @AutoValue
-  abstract static class Rule {
+  public abstract static class Rule {
 
-    abstract ValueString id();
+    abstract Optional<ValueString> id();
 
-    abstract ValueString description();
+    abstract Optional<ValueString> description();
 
-    abstract ImmutableList<Variable> variables();
+    abstract ImmutableSet<Variable> variables();
 
-    abstract ImmutableList<Match> matches();
+    abstract ImmutableSet<Match> matches();
+
+    public static Builder newBuilder() {
+      return new AutoValue_Policy_Rule.Builder()
+          .setVariables(ImmutableSet.of())
+          .setMatches(ImmutableSet.of());
+    }
+
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract Rule.Builder setId(ValueString id);
+
+      public abstract Rule.Builder setDescription(ValueString description);
+
+      public abstract ImmutableSet<Variable> variables();
+
+      public abstract ImmutableSet.Builder<Variable> variablesBuilder();
+
+      public abstract ImmutableSet<Match> matches();
+
+      public abstract ImmutableSet.Builder<Match> matchesBuilder();
+
+      @CanIgnoreReturnValue
+      public Builder addVariables(Variable... variables) {
+        return addVariables(Arrays.asList(variables));
+      }
+
+      @CanIgnoreReturnValue
+      public Builder addVariables(Iterable<Variable> variables) {
+        this.variablesBuilder().addAll(checkNotNull(variables));
+        return this;
+      }
+
+      @CanIgnoreReturnValue
+      public Builder addMatches(Match... matches) {
+        return addMatches(Arrays.asList(matches));
+      }
+
+      @CanIgnoreReturnValue
+      public Builder addMatches(Iterable<Match> matches) {
+        this.matchesBuilder().addAll(checkNotNull(matches));
+        return this;
+      }
+
+      abstract Rule.Builder setVariables(ImmutableSet<Variable> variables);
+
+      abstract Rule.Builder setMatches(ImmutableSet<Match> matches);
+
+      public abstract Rule build();
+    }
   }
 
   @AutoValue
@@ -72,9 +127,13 @@ public abstract class Policy {
   @AutoValue
   abstract static class Variable {
 
-    abstract Variable name();
+    abstract ValueString name();
 
-    abstract Variable expression();
+    abstract ValueString expression();
+
+    static Variable of(ValueString name, ValueString expression) {
+      return new AutoValue_Policy_Variable(name, expression);
+    }
   }
 
   @AutoValue

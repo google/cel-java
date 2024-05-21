@@ -14,6 +14,7 @@ java_library(
     deps = [
         "//:auto_value",
         "//common",
+        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -26,6 +27,9 @@ java_library(
     deps = [
         ":policy",
         ":policy_parser",
+        "//common",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",
     ],
 )
@@ -37,5 +41,33 @@ java_library(
     ],
     deps = [
         ":policy",
+    ],
+)
+
+java_library(
+    name = "policy_compiler",
+    srcs = [
+        "PolicyCompiler.java",
+    ],
+    deps = [
+    ],
+)
+
+java_library(
+    name = "policy_compiler_impl",
+    srcs = [
+        "PolicyCompilerImpl.java",
+    ],
+    deps = [
+        ":policy_compiler",
+    ],
+)
+
+java_library(
+    name = "yaml_policy_config_parser",
+    srcs = [
+        "YamlPolicyConfigParser.java",
+    ],
+    deps = [
     ],
 )
