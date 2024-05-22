@@ -141,13 +141,17 @@ java_library(
     srcs = [
         "BaseInterpreterTest.java",
     ],
-    resources = ["//runtime/testdata"],
+    resources = [
+        "//common/resources/testdata/proto3:test_all_types_file_descriptor_set",
+        "//runtime/testdata",
+    ],
     deps = [
         ":cel_baseline_test_case",
         ":eval",
         "//:java_truth",
         "//common",
         "//common/internal:cel_descriptor_pools",
+        "//common/internal:file_descriptor_converter",
         "//common/resources/testdata/proto3:standalone_global_enum_java_proto",
         "//common/resources/testdata/proto3:test_all_types_java_proto",
         "//common/types:cel_types",

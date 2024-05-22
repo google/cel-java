@@ -120,8 +120,8 @@ public final class ProtoAdapter {
           value -> unsignedIntCheckedCast(value.longValue()));
 
   /**
-   * Unsigned uint64 converter which adapts from a {@code long} value on the wire to an {@code
-   * UnsignedLong}.
+   * Unsigned uint64 converter which adapts from a {@code long} value on the wire to an
+   * {@code UnsignedLong}.
    */
   public static final BidiConverter<Number, Number> UNSIGNED_UINT64_CONVERTER =
       BidiConverter.of(value -> UnsignedLong.fromLongBits(value.longValue()), Number::longValue);
@@ -210,14 +210,32 @@ public final class ProtoAdapter {
     }
     if (fieldDescriptor.isMapField()) {
       Descriptor entryDescriptor = fieldDescriptor.getMessageType();
-      BidiConverter keyConverter = fieldToValueConverter(entryDescriptor.findFieldByNumber(1));
-      BidiConverter valueConverter = fieldToValueConverter(entryDescriptor.findFieldByNumber(2));
+      FieldDescriptor keyFieldDescriptor = entryDescriptor.findFieldByNumber(1);
+      FieldDescriptor valueFieldDescriptor = entryDescriptor.findFieldByNumber(2);
+      BidiConverter keyConverter = fieldToValueConverter(keyFieldDescriptor);
+      BidiConverter valueConverter = fieldToValueConverter(valueFieldDescriptor);
+
       Map<Object, Object> map = new HashMap<>();
-      for (MapEntry entry : ((List<MapEntry>) fieldValue)) {
+      Object mapKey;
+      Object mapValue;
+      for (Object entry : ((List<Object>) fieldValue)) {
+        if (entry instanceof MapEntry) {
+          MapEntry mapEntry = (MapEntry) entry;
+          mapKey = mapEntry.getKey();
+          mapValue = mapEntry.getValue();
+        } else if (entry instanceof DynamicMessage) {
+          DynamicMessage dynamicMessage = (DynamicMessage) entry;
+          mapKey = dynamicMessage.getField(keyFieldDescriptor);
+          mapValue = dynamicMessage.getField(valueFieldDescriptor);
+        } else {
+          throw new IllegalStateException("Unexpected map field type: " + entry);
+        }
+
         map.put(
-            keyConverter.forwardConverter().convert(entry.getKey()),
-            valueConverter.forwardConverter().convert(entry.getValue()));
+            keyConverter.forwardConverter().convert(mapKey),
+            valueConverter.forwardConverter().convert(mapValue));
       }
+
       return Optional.of(map);
     }
     if (fieldDescriptor.isRepeated()) {
@@ -318,8 +336,8 @@ public final class ProtoAdapter {
    * Adapt the Java object {@code value} to the given protobuf {@code protoTypeName} if possible.
    *
    * <p>If the Java value can be represented as a proto {@code Message}, then a conversion will be
-   * performed. In some cases, the input {@code value} will be a {@code Message}, but the {@code
-   * protoTypeName} will indicate an alternative packaging of the value which needs to be
+   * performed. In some cases, the input {@code value} will be a {@code Message}, but the
+   * {@code protoTypeName} will indicate an alternative packaging of the value which needs to be
    * considered, such as a packing an {@code google.protobuf.StringValue} into a {@code Any} value.
    */
   @SuppressWarnings("unchecked")
@@ -550,7 +568,9 @@ public final class ProtoAdapter {
         .collect(toImmutableMap(e -> e.getKey(), e -> adaptJsonToValue(e.getValue())));
   }
 
-  /** Returns the default value for a field that can be a proto message */
+  /**
+   * Returns the default value for a field that can be a proto message
+   */
   private static Object getDefaultValueForMaybeMessage(FieldDescriptor descriptor) {
     if (descriptor.getJavaType() == FieldDescriptor.JavaType.MESSAGE) {
       return DynamicMessage.getDefaultInstance(descriptor.getMessageType());

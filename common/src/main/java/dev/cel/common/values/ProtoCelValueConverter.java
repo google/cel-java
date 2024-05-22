@@ -67,10 +67,13 @@ import java.util.Map;
 @Immutable
 @Internal
 public final class ProtoCelValueConverter extends CelValueConverter {
+
   private final CelDescriptorPool celDescriptorPool;
   private final DynamicProto dynamicProto;
 
-  /** Constructs a new instance of ProtoCelValueConverter. */
+  /**
+   * Constructs a new instance of ProtoCelValueConverter.
+   */
   public static ProtoCelValueConverter newInstance(
       CelOptions celOptions, CelDescriptorPool celDescriptorPool, DynamicProto dynamicProto) {
     return new ProtoCelValueConverter(celOptions, celDescriptorPool, dynamicProto);
@@ -97,7 +100,9 @@ public final class ProtoCelValueConverter extends CelValueConverter {
     return super.fromCelValueToJavaObject(celValue);
   }
 
-  /** Adapts a Protobuf message into a {@link CelValue}. */
+  /**
+   * Adapts a Protobuf message into a {@link CelValue}.
+   */
   public CelValue fromProtoMessageToCelValue(MessageOrBuilder message) {
     Preconditions.checkNotNull(message);
 
@@ -185,8 +190,10 @@ public final class ProtoCelValueConverter extends CelValueConverter {
     return super.fromJavaObjectToCelValue(value);
   }
 
-  /** Adapts the protobuf message field into {@link CelValue}. */
-  @SuppressWarnings("unchecked")
+  /**
+   * Adapts the protobuf message field into {@link CelValue}.
+   */
+  @SuppressWarnings({"unchecked", "rawtypes"})
   public CelValue fromProtoMessageFieldToCelValue(
       Message message, FieldDescriptor fieldDescriptor) {
     Preconditions.checkNotNull(message);
@@ -202,8 +209,26 @@ public final class ProtoCelValueConverter extends CelValueConverter {
           return NullValue.NULL_VALUE;
         } else if (fieldDescriptor.isMapField()) {
           Map<Object, Object> map = new HashMap<>();
-          for (MapEntry<Object, Object> entry : ((List<MapEntry<Object, Object>>) result)) {
-            map.put(entry.getKey(), entry.getValue());
+          Object mapKey;
+          Object mapValue;
+          for (Object entry : ((List<Object>) result)) {
+            if (entry instanceof MapEntry) {
+              MapEntry mapEntry = (MapEntry) entry;
+              mapKey = mapEntry.getKey();
+              mapValue = mapEntry.getValue();
+            } else if (entry instanceof DynamicMessage) {
+              DynamicMessage dynamicMessage = (DynamicMessage) entry;
+              FieldDescriptor keyFieldDescriptor = fieldDescriptor.getMessageType()
+                  .findFieldByNumber(1);
+              FieldDescriptor valueFieldDescriptor = fieldDescriptor.getMessageType()
+                  .findFieldByNumber(2);
+              mapKey = dynamicMessage.getField(keyFieldDescriptor);
+              mapValue = dynamicMessage.getField(valueFieldDescriptor);
+            } else {
+              throw new IllegalStateException("Unexpected map field type: " + entry);
+            }
+
+            map.put(mapKey, mapValue);
           }
           return fromJavaObjectToCelValue(map);
         }
@@ -255,8 +280,11 @@ public final class ProtoCelValueConverter extends CelValueConverter {
                     e -> adaptJsonValueToCelValue(e.getValue()))));
   }
 
-  /** Helper to convert between java.util.time and protobuf duration/timestamp. */
+  /**
+   * Helper to convert between java.util.time and protobuf duration/timestamp.
+   */
   private static class TimeUtils {
+
     private static final int NANOS_PER_SECOND = 1000000000;
 
     private static Instant toJavaInstant(Timestamp timestamp) {

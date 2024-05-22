@@ -1,0 +1,222 @@
+Source: TestAllTypes {}
+=====>
+bindings: {}
+result:
+
+Source: TestAllTypes { single_int32: 1, single_int64: 2, single_string: 'hello'}
+=====>
+bindings: {}
+result:   single_int32: 1
+single_int64: 2
+single_string: "hello"
+
+
+Source: TestAllTypes { single_int32: 1, single_int64: 2, single_string: 'hello'}.single_string
+=====>
+bindings: {}
+result:   hello
+
+Source: TestAllTypes { single_int32_wrapper: 3 }.single_int32_wrapper
+=====>
+bindings: {}
+result:   3
+
+Source: TestAllTypes { single_int64_wrapper: 3 }.single_int64_wrapper
+=====>
+bindings: {}
+result:   3
+
+Source: TestAllTypes { single_bool_wrapper: true }.single_bool_wrapper
+=====>
+bindings: {}
+result:   true
+
+Source: TestAllTypes { single_bytes_wrapper: b'abc' }.single_bytes_wrapper
+=====>
+bindings: {}
+result:   abc
+
+Source: TestAllTypes { single_float_wrapper: 1.1 }.single_float_wrapper
+=====>
+bindings: {}
+result:   1.100000023841858
+
+Source: TestAllTypes { single_double_wrapper: 1.1 }.single_double_wrapper
+=====>
+bindings: {}
+result:   1.1
+
+Source: TestAllTypes { single_uint32_wrapper: 2u}.single_uint32_wrapper
+=====>
+bindings: {}
+result:   2
+
+Source: TestAllTypes { single_uint64_wrapper: 2u}.single_uint64_wrapper
+=====>
+bindings: {}
+result:   2
+
+Source: TestAllTypes { single_list_value: ['a', 1.5, true] }.single_list_value
+=====>
+bindings: {}
+result:   [a, 1.5, true]
+
+Source: TestAllTypes { standalone_message: TestAllTypes.NestedMessage { } }.standalone_message
+=====>
+bindings: {}
+result:
+
+Source: TestAllTypes { standalone_message: TestAllTypes.NestedMessage { bb: 5} }.standalone_message.bb
+=====>
+bindings: {}
+result:   5
+
+Source: TestAllTypes { standalone_enum: TestAllTypes.NestedEnum.BAR }.standalone_enum
+=====>
+bindings: {}
+result:   1
+
+Source: TestAllTypes { map_string_string: {'key': 'value'}}
+=====>
+bindings: {}
+result:   map_string_string {
+  key: "key"
+  value: "value"
+}
+
+
+Source: TestAllTypes { map_string_string: {'key': 'value'}}.map_string_string
+=====>
+bindings: {}
+result:   {key=value}
+
+Source: TestAllTypes { map_string_string: {'key': 'value'}}.map_string_string['key']
+=====>
+bindings: {}
+result:   value
+
+Source: TestAllTypes { single_any: dur }.single_any
+declare dur {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {dur=type_url: "type.googleapis.com/google.protobuf.Duration"
+value: "\bd"
+}
+result:   seconds: 100
+
+
+Source: TestAllTypes { single_any: any_packed_test_msg }.single_any
+declare any_packed_test_msg {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+=====>
+bindings: {any_packed_test_msg=type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes"
+value: "r\005hello"
+}
+result:   single_string: "hello"
+
+
+Source: dynamic_msg
+declare any_packed_test_msg {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare test_msg {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare dynamic_msg {
+  value dev.cel.testing.testdata.serialized.proto3.TestAllTypes
+}
+=====>
+bindings: {dynamic_msg=map_string_string {
+  key: "foo"
+  value: "bar"
+}
+}
+result:   map_string_string {
+  key: "foo"
+  value: "bar"
+}
+
+
+Source: dynamic_msg.map_string_string
+declare any_packed_test_msg {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare test_msg {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare dynamic_msg {
+  value dev.cel.testing.testdata.serialized.proto3.TestAllTypes
+}
+=====>
+bindings: {dynamic_msg=map_string_string {
+  key: "foo"
+  value: "bar"
+}
+}
+result:   {foo=bar}
+
+Source: dynamic_msg.map_string_string['foo']
+declare any_packed_test_msg {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare test_msg {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare dynamic_msg {
+  value dev.cel.testing.testdata.serialized.proto3.TestAllTypes
+}
+=====>
+bindings: {dynamic_msg=map_string_string {
+  key: "foo"
+  value: "bar"
+}
+}
+result:   bar
+
+Source: f_msg(dynamic_msg)
+declare any_packed_test_msg {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare test_msg {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare dynamic_msg {
+  value dev.cel.testing.testdata.serialized.proto3.TestAllTypes
+}
+declare f_msg {
+  function f_msg_generated (dev.cel.testing.testdata.proto3.TestAllTypes) -> bool
+  function f_msg_dynamic (dev.cel.testing.testdata.serialized.proto3.TestAllTypes) -> bool
+}
+=====>
+bindings: {dynamic_msg=map_string_string {
+  key: "foo"
+  value: "bar"
+}
+, test_msg=single_int64: 10
+}
+result:   true
+
+Source: f_msg(test_msg)
+declare any_packed_test_msg {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare test_msg {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare dynamic_msg {
+  value dev.cel.testing.testdata.serialized.proto3.TestAllTypes
+}
+declare f_msg {
+  function f_msg_generated (dev.cel.testing.testdata.proto3.TestAllTypes) -> bool
+  function f_msg_dynamic (dev.cel.testing.testdata.serialized.proto3.TestAllTypes) -> bool
+}
+=====>
+bindings: {dynamic_msg=map_string_string {
+  key: "foo"
+  value: "bar"
+}
+, test_msg=single_int64: 10
+}
+result:   true
