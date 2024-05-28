@@ -16,20 +16,26 @@ package dev.cel.testing;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import dev.cel.expr.CheckedExpr;
 import dev.cel.expr.ExprValue;
 import dev.cel.expr.Type;
 import dev.cel.expr.Type.AbstractType;
 import dev.cel.expr.UnknownSet;
+import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.io.Resources;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
+import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.DoubleValue;
 import com.google.protobuf.Duration;
@@ -42,15 +48,18 @@ import com.google.protobuf.ListValue;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.StringValue;
 import com.google.protobuf.Struct;
+import com.google.protobuf.TextFormat;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
 import com.google.protobuf.util.Durations;
+import com.google.protobuf.util.JsonFormat;
 import com.google.protobuf.util.Timestamps;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.internal.DefaultDescriptorPool;
+import dev.cel.common.internal.FileDescriptorSetConverter;
 import dev.cel.common.types.CelTypes;
 import dev.cel.runtime.Activation;
 import dev.cel.runtime.InterpreterException;
@@ -59,6 +68,7 @@ import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes.NestedEnum;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes.NestedMessage;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -69,11 +79,37 @@ import org.junit.Test;
 /** Base class for evaluation outputs that can be stored and used as a baseline test. */
 public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
+  protected static final Descriptor TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR =
+      getDeserializedTestAllTypeDescriptor();
+
   protected static final ImmutableList<FileDescriptor> TEST_FILE_DESCRIPTORS =
       ImmutableList.of(
-          TestAllTypes.getDescriptor().getFile(), StandaloneGlobalEnum.getDescriptor().getFile());
+          TestAllTypes.getDescriptor().getFile(),
+          StandaloneGlobalEnum.getDescriptor().getFile(),
+          TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR.getFile());
 
   private final Eval eval;
+
+  private static Descriptor getDeserializedTestAllTypeDescriptor() {
+    try {
+      String fdsContent = readResourceContent("testdata/proto3/test_all_types.fds");
+      FileDescriptorSet fds = TextFormat.parse(fdsContent, FileDescriptorSet.class);
+      ImmutableSet<FileDescriptor> fileDescriptors = FileDescriptorSetConverter.convert(fds);
+
+      return fileDescriptors.stream()
+          .flatMap(f -> f.getMessageTypes().stream())
+          .filter(
+              x ->
+                  x.getFullName().equals("dev.cel.testing.testdata.serialized.proto3.TestAllTypes"))
+          .findAny()
+          .orElseThrow(
+              () ->
+                  new IllegalStateException(
+                      "Could not find deserialized TestAllTypes descriptor."));
+    } catch (IOException e) {
+      throw new RuntimeException("Error loading TestAllTypes descriptor", e);
+    }
+  }
 
   public BaseInterpreterTest(boolean declareWithCelType, Eval eval) {
     super(declareWithCelType);
@@ -1926,7 +1962,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   }
 
   @Test
-  public void dynamicMessage() throws Exception {
+  public void dynamicMessage_adapted() throws Exception {
     TestAllTypes wrapperBindings =
         TestAllTypes.newBuilder()
             .setSingleAny(Any.pack(NestedMessage.newBuilder().setBb(42).build()))
@@ -2004,5 +2040,117 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     source = "msg.single_list_value";
     assertThat(runTest(activation)).isInstanceOf(List.class);
+  }
+
+  @Test
+  public void dynamicMessage_dynamicDescriptor() throws Exception {
+    container = "dev.cel.testing.testdata.serialized.proto3";
+
+    source = "TestAllTypes {}";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(DynamicMessage.class);
+    source = "TestAllTypes { single_int32: 1, single_int64: 2, single_string: 'hello'}";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(DynamicMessage.class);
+    source =
+        "TestAllTypes { single_int32: 1, single_int64: 2, single_string: 'hello'}.single_string";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(String.class);
+
+    // Test wrappers
+    source = "TestAllTypes { single_int32_wrapper: 3 }.single_int32_wrapper";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Long.class);
+    source = "TestAllTypes { single_int64_wrapper: 3 }.single_int64_wrapper";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Long.class);
+    source = "TestAllTypes { single_bool_wrapper: true }.single_bool_wrapper";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Boolean.class);
+    source = "TestAllTypes { single_bytes_wrapper: b'abc' }.single_bytes_wrapper";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(String.class);
+    source = "TestAllTypes { single_float_wrapper: 1.1 }.single_float_wrapper";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Double.class);
+    source = "TestAllTypes { single_double_wrapper: 1.1 }.single_double_wrapper";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Double.class);
+    source = "TestAllTypes { single_uint32_wrapper: 2u}.single_uint32_wrapper";
+    assertThat(runTest(Activation.EMPTY))
+        .isInstanceOf(eval.celOptions().enableUnsignedLongs() ? UnsignedLong.class : Long.class);
+    source = "TestAllTypes { single_uint64_wrapper: 2u}.single_uint64_wrapper";
+    assertThat(runTest(Activation.EMPTY))
+        .isInstanceOf(eval.celOptions().enableUnsignedLongs() ? UnsignedLong.class : Long.class);
+    source = "TestAllTypes { single_list_value: ['a', 1.5, true] }.single_list_value";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(List.class);
+
+    // Test nested messages
+    source =
+        "TestAllTypes { standalone_message: TestAllTypes.NestedMessage { } }.standalone_message";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(DynamicMessage.class);
+    source =
+        "TestAllTypes { standalone_message: TestAllTypes.NestedMessage { bb: 5}"
+            + " }.standalone_message.bb";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Long.class);
+    source = "TestAllTypes { standalone_enum: TestAllTypes.NestedEnum.BAR }.standalone_enum";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Long.class);
+    source = "TestAllTypes { map_string_string: {'key': 'value'}}";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(DynamicMessage.class);
+    source = "TestAllTypes { map_string_string: {'key': 'value'}}.map_string_string";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Map.class);
+    source = "TestAllTypes { map_string_string: {'key': 'value'}}.map_string_string['key']";
+    assertThat(runTest(Activation.EMPTY)).isInstanceOf(String.class);
+
+    // Test any unpacking
+    // With well-known type
+    Any anyDuration = Any.pack(Durations.fromSeconds(100));
+    declareVariable("dur", CelTypes.TIMESTAMP);
+    source = "TestAllTypes { single_any: dur }.single_any";
+    assertThat(runTest(Activation.of("dur", anyDuration))).isInstanceOf(Duration.class);
+    // with custom message
+    clearAllDeclarations();
+    Any anyTestMsg = Any.pack(TestAllTypes.newBuilder().setSingleString("hello").build());
+    declareVariable(
+        "any_packed_test_msg", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+    source = "TestAllTypes { single_any: any_packed_test_msg }.single_any";
+    assertThat(runTest(Activation.of("any_packed_test_msg", anyTestMsg)))
+        .isInstanceOf(TestAllTypes.class);
+
+    // Test JSON map behavior
+    declareVariable("test_msg", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+    declareVariable(
+        "dynamic_msg", CelTypes.createMessage(TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR.getFullName()));
+    DynamicMessage.Builder dynamicMessageBuilder =
+        DynamicMessage.newBuilder(TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR);
+    JsonFormat.parser().merge("{ 'map_string_string' : { 'foo' : 'bar' } }", dynamicMessageBuilder);
+    Activation activation = Activation.of("dynamic_msg", dynamicMessageBuilder.build());
+
+    source = "dynamic_msg";
+    assertThat(runTest(activation)).isInstanceOf(DynamicMessage.class);
+    source = "dynamic_msg.map_string_string";
+    assertThat(runTest(activation)).isInstanceOf(Map.class);
+    source = "dynamic_msg.map_string_string['foo']";
+    assertThat(runTest(activation)).isInstanceOf(String.class);
+
+    // Test function dispatch
+    declareFunction(
+        "f_msg",
+        globalOverload(
+            "f_msg_generated",
+            ImmutableList.of(CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName())),
+            CelTypes.BOOL),
+        globalOverload(
+            "f_msg_dynamic",
+            ImmutableList.of(
+                CelTypes.createMessage(TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR.getFullName())),
+            CelTypes.BOOL));
+    eval.registrar().add("f_msg_generated", TestAllTypes.class, x -> true);
+    eval.registrar().add("f_msg_dynamic", DynamicMessage.class, x -> true);
+    activation =
+        Activation.copyOf(
+            ImmutableMap.of(
+                "dynamic_msg", dynamicMessageBuilder.build(),
+                "test_msg", TestAllTypes.newBuilder().setSingleInt64(10L).build()));
+
+    source = "f_msg(dynamic_msg)";
+    assertThat(runTest(activation)).isInstanceOf(Boolean.class);
+    source = "f_msg(test_msg)";
+    assertThat(runTest(activation)).isInstanceOf(Boolean.class);
+  }
+
+  private static String readResourceContent(String path) throws IOException {
+    return Resources.toString(Resources.getResource(Ascii.toLowerCase(path)), UTF_8);
   }
 }

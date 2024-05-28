@@ -186,7 +186,7 @@ public final class ProtoCelValueConverter extends CelValueConverter {
   }
 
   /** Adapts the protobuf message field into {@link CelValue}. */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked", "rawtypes"})
   public CelValue fromProtoMessageFieldToCelValue(
       Message message, FieldDescriptor fieldDescriptor) {
     Preconditions.checkNotNull(message);
@@ -202,8 +202,26 @@ public final class ProtoCelValueConverter extends CelValueConverter {
           return NullValue.NULL_VALUE;
         } else if (fieldDescriptor.isMapField()) {
           Map<Object, Object> map = new HashMap<>();
-          for (MapEntry<Object, Object> entry : ((List<MapEntry<Object, Object>>) result)) {
-            map.put(entry.getKey(), entry.getValue());
+          Object mapKey;
+          Object mapValue;
+          for (Object entry : ((List<Object>) result)) {
+            if (entry instanceof MapEntry) {
+              MapEntry mapEntry = (MapEntry) entry;
+              mapKey = mapEntry.getKey();
+              mapValue = mapEntry.getValue();
+            } else if (entry instanceof DynamicMessage) {
+              DynamicMessage dynamicMessage = (DynamicMessage) entry;
+              FieldDescriptor keyFieldDescriptor =
+                  fieldDescriptor.getMessageType().findFieldByNumber(1);
+              FieldDescriptor valueFieldDescriptor =
+                  fieldDescriptor.getMessageType().findFieldByNumber(2);
+              mapKey = dynamicMessage.getField(keyFieldDescriptor);
+              mapValue = dynamicMessage.getField(valueFieldDescriptor);
+            } else {
+              throw new IllegalStateException("Unexpected map field type: " + entry);
+            }
+
+            map.put(mapKey, mapValue);
           }
           return fromJavaObjectToCelValue(map);
         }

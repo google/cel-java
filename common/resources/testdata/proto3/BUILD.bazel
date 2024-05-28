@@ -5,6 +5,11 @@ package(
 )
 
 alias(
+    name = "test_all_types_file_descriptor_set",
+    actual = "//common/src/main/resources/testdata/proto3:test_all_types_file_descriptor_set",
+)
+
+alias(
     name = "test_all_types_java_proto",
     actual = "//common/src/main/resources/testdata/proto3:test_all_types_java_proto",
 )

@@ -8,6 +8,11 @@ package(
     ],
 )
 
+filegroup(
+    name = "test_all_types_file_descriptor_set",
+    srcs = ["test_all_types.fds"],
+)
+
 proto_library(
     name = "test_all_types_proto",
     srcs = [

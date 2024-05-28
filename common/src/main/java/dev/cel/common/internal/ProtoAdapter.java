@@ -210,14 +210,32 @@ public final class ProtoAdapter {
     }
     if (fieldDescriptor.isMapField()) {
       Descriptor entryDescriptor = fieldDescriptor.getMessageType();
-      BidiConverter keyConverter = fieldToValueConverter(entryDescriptor.findFieldByNumber(1));
-      BidiConverter valueConverter = fieldToValueConverter(entryDescriptor.findFieldByNumber(2));
+      FieldDescriptor keyFieldDescriptor = entryDescriptor.findFieldByNumber(1);
+      FieldDescriptor valueFieldDescriptor = entryDescriptor.findFieldByNumber(2);
+      BidiConverter keyConverter = fieldToValueConverter(keyFieldDescriptor);
+      BidiConverter valueConverter = fieldToValueConverter(valueFieldDescriptor);
+
       Map<Object, Object> map = new HashMap<>();
-      for (MapEntry entry : ((List<MapEntry>) fieldValue)) {
+      Object mapKey;
+      Object mapValue;
+      for (Object entry : ((List<Object>) fieldValue)) {
+        if (entry instanceof MapEntry) {
+          MapEntry mapEntry = (MapEntry) entry;
+          mapKey = mapEntry.getKey();
+          mapValue = mapEntry.getValue();
+        } else if (entry instanceof DynamicMessage) {
+          DynamicMessage dynamicMessage = (DynamicMessage) entry;
+          mapKey = dynamicMessage.getField(keyFieldDescriptor);
+          mapValue = dynamicMessage.getField(valueFieldDescriptor);
+        } else {
+          throw new IllegalStateException("Unexpected map field type: " + entry);
+        }
+
         map.put(
-            keyConverter.forwardConverter().convert(entry.getKey()),
-            valueConverter.forwardConverter().convert(entry.getValue()));
+            keyConverter.forwardConverter().convert(mapKey),
+            valueConverter.forwardConverter().convert(mapValue));
       }
+
       return Optional.of(map);
     }
     if (fieldDescriptor.isRepeated()) {

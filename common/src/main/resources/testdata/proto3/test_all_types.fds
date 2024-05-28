@@ -1,0 +1,871 @@
+file {
+  name: "common/src/main/resources/testdata/proto3/test_all_types_serialized.proto"
+  package: "dev.cel.testing.testdata.serialized.proto3"
+  dependency: "google/protobuf/any.proto"
+  dependency: "google/protobuf/duration.proto"
+  dependency: "google/protobuf/struct.proto"
+  dependency: "google/protobuf/timestamp.proto"
+  dependency: "google/protobuf/wrappers.proto"
+  message_type {
+    name: "TestAllTypes"
+    field {
+      name: "single_int32"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_INT32
+    }
+    field {
+      name: "single_int64"
+      number: 2
+      label: LABEL_OPTIONAL
+      type: TYPE_INT64
+    }
+    field {
+      name: "single_uint32"
+      number: 3
+      label: LABEL_OPTIONAL
+      type: TYPE_UINT32
+    }
+    field {
+      name: "single_uint64"
+      number: 4
+      label: LABEL_OPTIONAL
+      type: TYPE_UINT64
+    }
+    field {
+      name: "single_sint32"
+      number: 5
+      label: LABEL_OPTIONAL
+      type: TYPE_SINT32
+    }
+    field {
+      name: "single_sint64"
+      number: 6
+      label: LABEL_OPTIONAL
+      type: TYPE_SINT64
+    }
+    field {
+      name: "single_fixed32"
+      number: 7
+      label: LABEL_OPTIONAL
+      type: TYPE_FIXED32
+    }
+    field {
+      name: "single_fixed64"
+      number: 8
+      label: LABEL_OPTIONAL
+      type: TYPE_FIXED64
+    }
+    field {
+      name: "single_sfixed32"
+      number: 9
+      label: LABEL_OPTIONAL
+      type: TYPE_SFIXED32
+    }
+    field {
+      name: "single_sfixed64"
+      number: 10
+      label: LABEL_OPTIONAL
+      type: TYPE_SFIXED64
+    }
+    field {
+      name: "single_float"
+      number: 11
+      label: LABEL_OPTIONAL
+      type: TYPE_FLOAT
+    }
+    field {
+      name: "single_double"
+      number: 12
+      label: LABEL_OPTIONAL
+      type: TYPE_DOUBLE
+    }
+    field {
+      name: "single_bool"
+      number: 13
+      label: LABEL_OPTIONAL
+      type: TYPE_BOOL
+    }
+    field {
+      name: "single_string"
+      number: 14
+      label: LABEL_OPTIONAL
+      type: TYPE_STRING
+    }
+    field {
+      name: "single_bytes"
+      number: 15
+      label: LABEL_OPTIONAL
+      type: TYPE_BYTES
+    }
+    field {
+      name: "optional_bool"
+      number: 16
+      label: LABEL_OPTIONAL
+      type: TYPE_BOOL
+      oneof_index: 2
+      proto3_optional: true
+    }
+    field {
+      name: "optional_string"
+      number: 17
+      label: LABEL_OPTIONAL
+      type: TYPE_BOOL
+      oneof_index: 3
+      proto3_optional: true
+    }
+    field {
+      name: "single_any"
+      number: 100
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.Any"
+    }
+    field {
+      name: "single_duration"
+      number: 101
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.Duration"
+    }
+    field {
+      name: "single_timestamp"
+      number: 102
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.Timestamp"
+    }
+    field {
+      name: "single_struct"
+      number: 103
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.Struct"
+    }
+    field {
+      name: "single_value"
+      number: 104
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.Value"
+    }
+    field {
+      name: "single_int64_wrapper"
+      number: 105
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.Int64Value"
+    }
+    field {
+      name: "single_int32_wrapper"
+      number: 106
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.Int32Value"
+    }
+    field {
+      name: "single_double_wrapper"
+      number: 107
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.DoubleValue"
+    }
+    field {
+      name: "single_float_wrapper"
+      number: 108
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.FloatValue"
+    }
+    field {
+      name: "single_uint64_wrapper"
+      number: 109
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.UInt64Value"
+    }
+    field {
+      name: "single_uint32_wrapper"
+      number: 110
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.UInt32Value"
+    }
+    field {
+      name: "single_string_wrapper"
+      number: 111
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.StringValue"
+    }
+    field {
+      name: "single_bool_wrapper"
+      number: 112
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.BoolValue"
+    }
+    field {
+      name: "single_bytes_wrapper"
+      number: 113
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.BytesValue"
+    }
+    field {
+      name: "single_list_value"
+      number: 114
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.ListValue"
+    }
+    field {
+      name: "single_nested_message"
+      number: 21
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".dev.cel.testing.testdata.serialized.proto3.TestAllTypes.NestedMessage"
+      oneof_index: 0
+    }
+    field {
+      name: "single_nested_enum"
+      number: 22
+      label: LABEL_OPTIONAL
+      type: TYPE_ENUM
+      type_name: ".dev.cel.testing.testdata.serialized.proto3.TestAllTypes.NestedEnum"
+      oneof_index: 0
+    }
+    field {
+      name: "standalone_message"
+      number: 23
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".dev.cel.testing.testdata.serialized.proto3.TestAllTypes.NestedMessage"
+    }
+    field {
+      name: "standalone_enum"
+      number: 24
+      label: LABEL_OPTIONAL
+      type: TYPE_ENUM
+      type_name: ".dev.cel.testing.testdata.serialized.proto3.TestAllTypes.NestedEnum"
+    }
+    field {
+      name: "repeated_int32"
+      number: 31
+      label: LABEL_REPEATED
+      type: TYPE_INT32
+    }
+    field {
+      name: "repeated_int64"
+      number: 32
+      label: LABEL_REPEATED
+      type: TYPE_INT64
+    }
+    field {
+      name: "repeated_uint32"
+      number: 33
+      label: LABEL_REPEATED
+      type: TYPE_UINT32
+    }
+    field {
+      name: "repeated_uint64"
+      number: 34
+      label: LABEL_REPEATED
+      type: TYPE_UINT64
+    }
+    field {
+      name: "repeated_sint32"
+      number: 35
+      label: LABEL_REPEATED
+      type: TYPE_SINT32
+    }
+    field {
+      name: "repeated_sint64"
+      number: 36
+      label: LABEL_REPEATED
+      type: TYPE_SINT64
+    }
+    field {
+      name: "repeated_fixed32"
+      number: 37
+      label: LABEL_REPEATED
+      type: TYPE_FIXED32
+    }
+    field {
+      name: "repeated_fixed64"
+      number: 38
+      label: LABEL_REPEATED
+      type: TYPE_FIXED64
+    }
+    field {
+      name: "repeated_sfixed32"
+      number: 39
+      label: LABEL_REPEATED
+      type: TYPE_SFIXED32
+    }
+    field {
+      name: "repeated_sfixed64"
+      number: 40
+      label: LABEL_REPEATED
+      type: TYPE_SFIXED64
+    }
+    field {
+      name: "repeated_float"
+      number: 41
+      label: LABEL_REPEATED
+      type: TYPE_FLOAT
+    }
+    field {
+      name: "repeated_double"
+      number: 42
+      label: LABEL_REPEATED
+      type: TYPE_DOUBLE
+    }
+    field {
+      name: "repeated_bool"
+      number: 43
+      label: LABEL_REPEATED
+      type: TYPE_BOOL
+    }
+    field {
+      name: "repeated_string"
+      number: 44
+      label: LABEL_REPEATED
+      type: TYPE_STRING
+    }
+    field {
+      name: "repeated_bytes"
+      number: 45
+      label: LABEL_REPEATED
+      type: TYPE_BYTES
+    }
+    field {
+      name: "repeated_nested_message"
+      number: 51
+      label: LABEL_REPEATED
+      type: TYPE_MESSAGE
+      type_name: ".dev.cel.testing.testdata.serialized.proto3.TestAllTypes.NestedMessage"
+    }
+    field {
+      name: "repeated_nested_enum"
+      number: 52
+      label: LABEL_REPEATED
+      type: TYPE_ENUM
+      type_name: ".dev.cel.testing.testdata.serialized.proto3.TestAllTypes.NestedEnum"
+    }
+    field {
+      name: "repeated_string_piece"
+      number: 53
+      label: LABEL_REPEATED
+      type: TYPE_STRING
+      options {
+        ctype: STRING_PIECE
+      }
+    }
+    field {
+      name: "repeated_cord"
+      number: 54
+      label: LABEL_REPEATED
+      type: TYPE_STRING
+      options {
+        ctype: CORD
+      }
+    }
+    field {
+      name: "repeated_lazy_message"
+      number: 55
+      label: LABEL_REPEATED
+      type: TYPE_MESSAGE
+      type_name: ".dev.cel.testing.testdata.serialized.proto3.TestAllTypes.NestedMessage"
+    }
+    field {
+      name: "map_int32_int64"
+      number: 56
+      label: LABEL_REPEATED
+      type: TYPE_MESSAGE
+      type_name: ".dev.cel.testing.testdata.serialized.proto3.TestAllTypes.MapInt32Int64Entry"
+    }
+    field {
+      name: "map_string_string"
+      number: 61
+      label: LABEL_REPEATED
+      type: TYPE_MESSAGE
+      type_name: ".dev.cel.testing.testdata.serialized.proto3.TestAllTypes.MapStringStringEntry"
+    }
+    field {
+      name: "map_int64_nested_type"
+      number: 62
+      label: LABEL_REPEATED
+      type: TYPE_MESSAGE
+      type_name: ".dev.cel.testing.testdata.serialized.proto3.TestAllTypes.MapInt64NestedTypeEntry"
+    }
+    field {
+      name: "oneof_type"
+      number: 63
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".dev.cel.testing.testdata.serialized.proto3.NestedTestAllTypes"
+      oneof_index: 1
+    }
+    field {
+      name: "oneof_msg"
+      number: 64
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".dev.cel.testing.testdata.serialized.proto3.TestAllTypes.NestedMessage"
+      oneof_index: 1
+    }
+    field {
+      name: "oneof_bool"
+      number: 65
+      label: LABEL_OPTIONAL
+      type: TYPE_BOOL
+      oneof_index: 1
+    }
+    nested_type {
+      name: "NestedMessage"
+      field {
+        name: "bb"
+        number: 1
+        label: LABEL_OPTIONAL
+        type: TYPE_INT32
+      }
+    }
+    nested_type {
+      name: "MapInt32Int64Entry"
+      field {
+        name: "key"
+        number: 1
+        label: LABEL_OPTIONAL
+        type: TYPE_INT32
+      }
+      field {
+        name: "value"
+        number: 2
+        label: LABEL_OPTIONAL
+        type: TYPE_INT64
+      }
+      options {
+        map_entry: true
+      }
+    }
+    nested_type {
+      name: "MapStringStringEntry"
+      field {
+        name: "key"
+        number: 1
+        label: LABEL_OPTIONAL
+        type: TYPE_STRING
+      }
+      field {
+        name: "value"
+        number: 2
+        label: LABEL_OPTIONAL
+        type: TYPE_STRING
+      }
+      options {
+        map_entry: true
+      }
+    }
+    nested_type {
+      name: "MapInt64NestedTypeEntry"
+      field {
+        name: "key"
+        number: 1
+        label: LABEL_OPTIONAL
+        type: TYPE_INT64
+      }
+      field {
+        name: "value"
+        number: 2
+        label: LABEL_OPTIONAL
+        type: TYPE_MESSAGE
+        type_name: ".dev.cel.testing.testdata.serialized.proto3.NestedTestAllTypes"
+      }
+      options {
+        map_entry: true
+      }
+    }
+    enum_type {
+      name: "NestedEnum"
+      value {
+        name: "FOO"
+        number: 0
+      }
+      value {
+        name: "BAR"
+        number: 1
+      }
+      value {
+        name: "BAZ"
+        number: 2
+      }
+    }
+    oneof_decl {
+      name: "nested_type"
+    }
+    oneof_decl {
+      name: "kind"
+    }
+    oneof_decl {
+      name: "_optional_bool"
+    }
+    oneof_decl {
+      name: "_optional_string"
+    }
+  }
+  message_type {
+    name: "NestedTestAllTypes"
+    field {
+      name: "child"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".dev.cel.testing.testdata.serialized.proto3.NestedTestAllTypes"
+    }
+    field {
+      name: "payload"
+      number: 2
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".dev.cel.testing.testdata.serialized.proto3.TestAllTypes"
+    }
+  }
+  enum_type {
+    name: "GlobalEnum"
+    value {
+      name: "GOO"
+      number: 0
+    }
+    value {
+      name: "GAR"
+      number: 1
+    }
+    value {
+      name: "GAZ"
+      number: 2
+    }
+  }
+  options {
+    java_package: "dev.cel.testing.testdata.serialized.proto3"
+    java_outer_classname: "TestAllTypesProto"
+  }
+  syntax: "proto3"
+}
+file {
+  name: "google/protobuf/any.proto"
+  package: "google.protobuf"
+  message_type {
+    name: "Any"
+    field {
+      name: "type_url"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_STRING
+      json_name: "typeUrl"
+    }
+    field {
+      name: "value"
+      number: 2
+      label: LABEL_OPTIONAL
+      type: TYPE_BYTES
+      json_name: "value"
+    }
+  }
+  options {
+    java_package: "com.google.protobuf"
+    java_outer_classname: "AnyProto"
+    java_multiple_files: true
+    go_package: "google.golang.org/protobuf/types/known/anypb"
+    objc_class_prefix: "GPB"
+    csharp_namespace: "Google.Protobuf.WellKnownTypes"
+  }
+  syntax: "proto3"
+}
+file {
+  name: "google/protobuf/duration.proto"
+  package: "google.protobuf"
+  message_type {
+    name: "Duration"
+    field {
+      name: "seconds"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_INT64
+      json_name: "seconds"
+    }
+    field {
+      name: "nanos"
+      number: 2
+      label: LABEL_OPTIONAL
+      type: TYPE_INT32
+      json_name: "nanos"
+    }
+  }
+  options {
+    java_package: "com.google.protobuf"
+    java_outer_classname: "DurationProto"
+    java_multiple_files: true
+    go_package: "google.golang.org/protobuf/types/known/durationpb"
+    cc_enable_arenas: true
+    objc_class_prefix: "GPB"
+    csharp_namespace: "Google.Protobuf.WellKnownTypes"
+  }
+  syntax: "proto3"
+}
+file {
+  name: "google/protobuf/struct.proto"
+  package: "google.protobuf"
+  message_type {
+    name: "Struct"
+    field {
+      name: "fields"
+      number: 1
+      label: LABEL_REPEATED
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.Struct.FieldsEntry"
+      json_name: "fields"
+    }
+    nested_type {
+      name: "FieldsEntry"
+      field {
+        name: "key"
+        number: 1
+        label: LABEL_OPTIONAL
+        type: TYPE_STRING
+        json_name: "key"
+      }
+      field {
+        name: "value"
+        number: 2
+        label: LABEL_OPTIONAL
+        type: TYPE_MESSAGE
+        type_name: ".google.protobuf.Value"
+        json_name: "value"
+      }
+      options {
+        map_entry: true
+      }
+    }
+  }
+  message_type {
+    name: "Value"
+    field {
+      name: "null_value"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_ENUM
+      type_name: ".google.protobuf.NullValue"
+      oneof_index: 0
+      json_name: "nullValue"
+    }
+    field {
+      name: "number_value"
+      number: 2
+      label: LABEL_OPTIONAL
+      type: TYPE_DOUBLE
+      oneof_index: 0
+      json_name: "numberValue"
+    }
+    field {
+      name: "string_value"
+      number: 3
+      label: LABEL_OPTIONAL
+      type: TYPE_STRING
+      oneof_index: 0
+      json_name: "stringValue"
+    }
+    field {
+      name: "bool_value"
+      number: 4
+      label: LABEL_OPTIONAL
+      type: TYPE_BOOL
+      oneof_index: 0
+      json_name: "boolValue"
+    }
+    field {
+      name: "struct_value"
+      number: 5
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.Struct"
+      oneof_index: 0
+      json_name: "structValue"
+    }
+    field {
+      name: "list_value"
+      number: 6
+      label: LABEL_OPTIONAL
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.ListValue"
+      oneof_index: 0
+      json_name: "listValue"
+    }
+    oneof_decl {
+      name: "kind"
+    }
+  }
+  message_type {
+    name: "ListValue"
+    field {
+      name: "values"
+      number: 1
+      label: LABEL_REPEATED
+      type: TYPE_MESSAGE
+      type_name: ".google.protobuf.Value"
+      json_name: "values"
+    }
+  }
+  enum_type {
+    name: "NullValue"
+    value {
+      name: "NULL_VALUE"
+      number: 0
+    }
+  }
+  options {
+    java_package: "com.google.protobuf"
+    java_outer_classname: "StructProto"
+    java_multiple_files: true
+    go_package: "google.golang.org/protobuf/types/known/structpb"
+    cc_enable_arenas: true
+    objc_class_prefix: "GPB"
+    csharp_namespace: "Google.Protobuf.WellKnownTypes"
+  }
+  syntax: "proto3"
+}
+file {
+  name: "google/protobuf/timestamp.proto"
+  package: "google.protobuf"
+  message_type {
+    name: "Timestamp"
+    field {
+      name: "seconds"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_INT64
+      json_name: "seconds"
+    }
+    field {
+      name: "nanos"
+      number: 2
+      label: LABEL_OPTIONAL
+      type: TYPE_INT32
+      json_name: "nanos"
+    }
+  }
+  options {
+    java_package: "com.google.protobuf"
+    java_outer_classname: "TimestampProto"
+    java_multiple_files: true
+    go_package: "google.golang.org/protobuf/types/known/timestamppb"
+    cc_enable_arenas: true
+    objc_class_prefix: "GPB"
+    csharp_namespace: "Google.Protobuf.WellKnownTypes"
+  }
+  syntax: "proto3"
+}
+file {
+  name: "google/protobuf/wrappers.proto"
+  package: "google.protobuf"
+  message_type {
+    name: "DoubleValue"
+    field {
+      name: "value"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_DOUBLE
+      json_name: "value"
+    }
+  }
+  message_type {
+    name: "FloatValue"
+    field {
+      name: "value"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_FLOAT
+      json_name: "value"
+    }
+  }
+  message_type {
+    name: "Int64Value"
+    field {
+      name: "value"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_INT64
+      json_name: "value"
+    }
+  }
+  message_type {
+    name: "UInt64Value"
+    field {
+      name: "value"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_UINT64
+      json_name: "value"
+    }
+  }
+  message_type {
+    name: "Int32Value"
+    field {
+      name: "value"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_INT32
+      json_name: "value"
+    }
+  }
+  message_type {
+    name: "UInt32Value"
+    field {
+      name: "value"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_UINT32
+      json_name: "value"
+    }
+  }
+  message_type {
+    name: "BoolValue"
+    field {
+      name: "value"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_BOOL
+      json_name: "value"
+    }
+  }
+  message_type {
+    name: "StringValue"
+    field {
+      name: "value"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_STRING
+      json_name: "value"
+    }
+  }
+  message_type {
+    name: "BytesValue"
+    field {
+      name: "value"
+      number: 1
+      label: LABEL_OPTIONAL
+      type: TYPE_BYTES
+      json_name: "value"
+    }
+  }
+  options {
+    java_package: "com.google.protobuf"
+    java_outer_classname: "WrappersProto"
+    java_multiple_files: true
+    go_package: "google.golang.org/protobuf/types/known/wrapperspb"
+    cc_enable_arenas: true
+    objc_class_prefix: "GPB"
+    csharp_namespace: "Google.Protobuf.WellKnownTypes"
+  }
+  syntax: "proto3"
+}
