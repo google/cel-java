@@ -9,6 +9,11 @@ java_library(
 )
 
 java_library(
+    name = "policy_config",
+    exports = ["//policy/src/main/java/dev/cel/policy:policy_config"],
+)
+
+java_library(
     name = "policy_parser",
     exports = ["//policy/src/main/java/dev/cel/policy:policy_parser"],
 )
@@ -16,4 +21,9 @@ java_library(
 java_library(
     name = "yaml_policy_parser",
     exports = ["//policy/src/main/java/dev/cel/policy:yaml_policy_parser"],
+)
+
+java_library(
+    name = "yaml_policy_config_parser",
+    exports = ["//policy/src/main/java/dev/cel/policy:yaml_policy_config_parser"],
 )

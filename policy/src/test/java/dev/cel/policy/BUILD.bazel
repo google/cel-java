@@ -11,8 +11,11 @@ java_library(
     ],
     deps = [
         "//:java_truth",
+        "//common:options",
         "//policy",
+        "//policy:policy_config",
         "//policy:policy_parser",
+        "//policy:yaml_policy_config_parser",
         "//policy:yaml_policy_parser",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",

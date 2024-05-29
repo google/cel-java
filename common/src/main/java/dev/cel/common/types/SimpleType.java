@@ -15,10 +15,15 @@
 package dev.cel.common.types;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 
-/** Simple types represent scalar, dynamic, and error values. */
+import java.util.Optional;
+
+/**
+ * Simple types represent scalar, dynamic, and error values.
+ */
 @AutoValue
 @CheckReturnValue
 @Immutable
@@ -42,6 +47,19 @@ public abstract class SimpleType extends CelType {
   public static final CelType TIMESTAMP = create(CelKind.TIMESTAMP, "google.protobuf.Timestamp");
   public static final CelType UINT = create(CelKind.UINT, "uint");
 
+  private static final ImmutableMap<String, CelType> TYPE_MAP = ImmutableMap.of(
+          DYN.name(), DYN,
+          BOOL.name(), BOOL,
+          BYTES.name(), BYTES,
+          DOUBLE.name(), DOUBLE,
+          DURATION.name(), DURATION,
+          INT.name(), INT,
+          NULL_TYPE.name(), NULL_TYPE,
+          STRING.name(), STRING,
+          TIMESTAMP.name(), TIMESTAMP,
+          UINT.name(), UINT
+  );
+
   @Override
   public abstract CelKind kind();
 
@@ -54,6 +72,13 @@ public abstract class SimpleType extends CelType {
         || super.isAssignableFrom(other)
         || (kind().equals(CelKind.INT) && other instanceof EnumType)
         || (other instanceof NullableType && other.isAssignableFrom(this));
+  }
+
+  public static Optional<CelType> findByName(String typeName) {
+    if (!TYPE_MAP.containsKey(typeName)) {
+      return Optional.empty();
+    }
+    return Optional.of(TYPE_MAP.get(typeName));
   }
 
   private static CelType create(CelKind kind, String name) {

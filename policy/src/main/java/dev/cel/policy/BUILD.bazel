@@ -20,6 +20,25 @@ java_library(
 )
 
 java_library(
+    name = "policy_config",
+    srcs = [
+        "PolicyConfig.java",
+    ],
+    deps = [
+        "//:auto_value",
+        "//bundle:cel",
+        "//common:compiler_common",
+        "//common:options",
+        "//common/types",
+        "//common/types:type_providers",
+        "//extensions",
+        "//extensions:optional_library",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "yaml_policy_parser",
     srcs = [
         "YamlPolicyParser.java",
@@ -69,5 +88,8 @@ java_library(
         "YamlPolicyConfigParser.java",
     ],
     deps = [
+        ":policy_config",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_yaml_snakeyaml",
     ],
 )

@@ -18,7 +18,7 @@ public final class YamlPolicyParser implements PolicyParser {
   public Policy parse(PolicySource source) {
     YamlPolicyParserImpl yamlPolicyParserImpl = YamlPolicyParserImpl.newInstance();
 
-    return yamlPolicyParserImpl.toPolicy(source);
+    return yamlPolicyParserImpl.parsePolicy(source);
   }
 
 
@@ -36,7 +36,7 @@ public final class YamlPolicyParser implements PolicyParser {
       return yaml.load(policySource.content());
     }
 
-    private Policy toPolicy(PolicySource source) {
+    private Policy parsePolicy(PolicySource source) {
       Map<String, Object> yamlMap = parseYamlSource(source);
 
       Policy.Builder policyBuilder = Policy.newBuilder(source)
