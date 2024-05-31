@@ -1,7 +1,6 @@
 package dev.cel.policy;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -31,7 +30,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 @AutoValue
-public abstract class PolicyConfig {
+public abstract class CelPolicyConfig {
 
   abstract String name();
 
@@ -61,11 +60,11 @@ public abstract class PolicyConfig {
     public abstract Builder setFunctions(ImmutableSet<FunctionDecl> functions);
 
     @CheckReturnValue
-    public abstract PolicyConfig build();
+    public abstract CelPolicyConfig build();
   }
 
   public static Builder newBuilder() {
-    return new AutoValue_PolicyConfig.Builder()
+    return new AutoValue_CelPolicyConfig.Builder()
         .setName("")
         .setDescription("")
         .setContainer("")
@@ -154,7 +153,7 @@ public abstract class PolicyConfig {
     public abstract ImmutableSet<OverloadDecl> overloads();
 
     public static FunctionDecl create(String name, ImmutableSet<OverloadDecl> overloads) {
-      return new AutoValue_PolicyConfig_FunctionDecl(name, overloads);
+      return new AutoValue_CelPolicyConfig_FunctionDecl(name, overloads);
     }
 
     public CelFunctionDecl toCelFunctionDecl(CelTypeProvider celTypeProvider) {
@@ -206,7 +205,7 @@ public abstract class PolicyConfig {
     }
 
     public static Builder newBuilder() {
-      return new AutoValue_PolicyConfig_OverloadDecl.Builder().setArguments(ImmutableList.of());
+      return new AutoValue_CelPolicyConfig_OverloadDecl.Builder().setArguments(ImmutableList.of());
     }
 
     public CelOverloadDecl toCelOverloadDecl(CelTypeProvider celTypeProvider) {
@@ -268,7 +267,7 @@ public abstract class PolicyConfig {
     }
 
     public static Builder newBuilder() {
-      return new AutoValue_PolicyConfig_TypeDecl.Builder().setIsTypeParam(false);
+      return new AutoValue_CelPolicyConfig_TypeDecl.Builder().setIsTypeParam(false);
     }
 
     public CelType toCelType(CelTypeProvider celTypeProvider) {
@@ -326,7 +325,7 @@ public abstract class PolicyConfig {
     }
 
     public static ExtensionConfig of(String name, int version) {
-      return new AutoValue_PolicyConfig_ExtensionConfig(name, version);
+      return new AutoValue_CelPolicyConfig_ExtensionConfig(name, version);
     }
   }
 }

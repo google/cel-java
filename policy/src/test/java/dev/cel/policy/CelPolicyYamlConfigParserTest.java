@@ -4,10 +4,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelOptions;
-import dev.cel.policy.PolicyConfig.ExtensionConfig;
-import dev.cel.policy.PolicyConfig.FunctionDecl;
-import dev.cel.policy.PolicyConfig.OverloadDecl;
-import dev.cel.policy.PolicyConfig.TypeDecl;
+import dev.cel.policy.CelPolicyConfig.ExtensionConfig;
+import dev.cel.policy.CelPolicyConfig.FunctionDecl;
+import dev.cel.policy.CelPolicyConfig.OverloadDecl;
+import dev.cel.policy.CelPolicyConfig.TypeDecl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -15,7 +15,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 @RunWith(TestParameterInjector.class)
-public final class YamlPolicyConfigParserTest {
+public final class CelPolicyYamlConfigParserTest {
 
   @Test
   public void config_setBasicProperties() {
@@ -23,9 +23,9 @@ public final class YamlPolicyConfigParserTest {
         "description: empty\n" +
         "container: pb.pkg\n";
 
-    PolicyConfig policyConfig = YamlPolicyConfigParser.parse(yamlConfig);
+    CelPolicyConfig policyConfig = CelPolicyYamlConfigParser.parse(yamlConfig);
 
-    assertThat(policyConfig).isEqualTo(PolicyConfig.newBuilder()
+    assertThat(policyConfig).isEqualTo(CelPolicyConfig.newBuilder()
         .setName("hello")
         .setDescription("empty")
         .setContainer("pb.pkg")
@@ -43,9 +43,9 @@ public final class YamlPolicyConfigParserTest {
         "  - name: \"strings\"\n" +
         "    version: 1";
 
-    PolicyConfig policyConfig = YamlPolicyConfigParser.parse(yamlConfig);
+    CelPolicyConfig policyConfig = CelPolicyYamlConfigParser.parse(yamlConfig);
 
-    assertThat(policyConfig).isEqualTo(PolicyConfig.newBuilder()
+    assertThat(policyConfig).isEqualTo(CelPolicyConfig.newBuilder()
         .setExtensions(
             ImmutableSet.of(
                 ExtensionConfig.of("bindings"),
@@ -98,9 +98,9 @@ public final class YamlPolicyConfigParserTest {
         "          type_name: \"T\"\n" +
         "          is_type_param: true";
 
-    PolicyConfig policyConfig = YamlPolicyConfigParser.parse(yamlConfig);
+    CelPolicyConfig policyConfig = CelPolicyYamlConfigParser.parse(yamlConfig);
 
-    assertThat(policyConfig).isEqualTo(PolicyConfig.newBuilder()
+    assertThat(policyConfig).isEqualTo(CelPolicyConfig.newBuilder()
         .setFunctions(
             ImmutableSet.of(
                 FunctionDecl.create("coalesce",
@@ -168,7 +168,7 @@ public final class YamlPolicyConfigParserTest {
 
   @Test
   public void configErrors(@TestParameter ConfigErrorTestCase testCase) {
-    PolicyConfig policyConfig = YamlPolicyConfigParser.parse(testCase.yamlConfig);
+    CelPolicyConfig policyConfig = CelPolicyYamlConfigParser.parse(testCase.yamlConfig);
 
     assertThrows(IllegalArgumentException.class, () -> policyConfig.toCel(CelOptions.DEFAULT));
   }

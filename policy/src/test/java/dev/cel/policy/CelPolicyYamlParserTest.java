@@ -26,18 +26,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public final class YamlPolicyParserTest {
+public final class CelPolicyYamlParserTest {
 
-  private static final PolicyParser YAML_POLICY_PARSER = YamlPolicyParser.newInstance();
+  private static final CelPolicyParser YAML_POLICY_PARSER = CelPolicyYamlParser.newInstance();
 
   @Test
   public void parseYamlPolicy_success(@TestParameter PolicyTestCase policyTestcase)
       throws Exception {
     String yamlFileLocation = String.format("%s/policy.yaml", policyTestcase.name);
     String yamlContent = readFile(yamlFileLocation);
-    PolicySource policySource = PolicySource.create(yamlContent, yamlContent);
+    CelPolicySource policySource = CelPolicySource.create(yamlContent, yamlContent);
 
-    Policy policy = YAML_POLICY_PARSER.parse(policySource);
+    CelPolicy policy = YAML_POLICY_PARSER.parse(policySource);
 
     assertThat(policy.name()).isEqualTo(policy.name());
     assertThat(policy.policySource()).isEqualTo(policySource);

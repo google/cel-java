@@ -4,6 +4,6 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public final class PolicyCompilerImplTest {
+public final class CelPolicyCompilerImplTest {
 
 }

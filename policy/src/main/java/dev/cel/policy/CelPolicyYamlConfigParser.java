@@ -5,19 +5,19 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import dev.cel.policy.PolicyConfig.ExtensionConfig;
-import dev.cel.policy.PolicyConfig.FunctionDecl;
-import dev.cel.policy.PolicyConfig.OverloadDecl;
-import dev.cel.policy.PolicyConfig.TypeDecl;
+import dev.cel.policy.CelPolicyConfig.ExtensionConfig;
+import dev.cel.policy.CelPolicyConfig.FunctionDecl;
+import dev.cel.policy.CelPolicyConfig.OverloadDecl;
+import dev.cel.policy.CelPolicyConfig.TypeDecl;
 import java.util.List;
 import java.util.Map;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
-public final class YamlPolicyConfigParser {
+public final class CelPolicyYamlConfigParser {
 
-  public static PolicyConfig parse(String content) {
+  public static CelPolicyConfig parse(String content) {
     Map<String, Object> yamlMap = parseYamlSource(content);
 
     String name = (String) yamlMap.getOrDefault("name", "");
@@ -26,7 +26,7 @@ public final class YamlPolicyConfigParser {
     ImmutableSet<ExtensionConfig> extensions = parseExtensions(yamlMap);
     ImmutableSet<FunctionDecl> functions = parseFunctions(yamlMap);
 
-    return PolicyConfig.newBuilder()
+    return CelPolicyConfig.newBuilder()
         .setName(name)
         .setDescription(description)
         .setContainer(container)
@@ -88,7 +88,7 @@ public final class YamlPolicyConfigParser {
     List<Map<String, Object>> argumentList = getListOfMapsOrDefault(overloadMap, "args");
     return
         argumentList.stream()
-            .map(YamlPolicyConfigParser::parseTypeDecl)
+            .map(CelPolicyYamlConfigParser::parseTypeDecl)
             .collect(toImmutableList());
   }
 
@@ -120,6 +120,6 @@ public final class YamlPolicyConfigParser {
     return yaml.load(content);
   }
 
-  private YamlPolicyConfigParser() {
+  private CelPolicyYamlConfigParser() {
   }
 }

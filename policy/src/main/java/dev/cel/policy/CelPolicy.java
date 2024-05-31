@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 @AutoValue
-public abstract class Policy {
+public abstract class CelPolicy {
 
   abstract ValueString name();
 
@@ -32,10 +32,10 @@ public abstract class Policy {
 
   abstract CelSource celSource();
 
-  abstract PolicySource policySource();
+  abstract CelPolicySource policySource();
 
-  public static Builder newBuilder(PolicySource policySource) {
-    return new AutoValue_Policy.Builder().setPolicySource(policySource);
+  public static Builder newBuilder(CelPolicySource policySource) {
+    return new AutoValue_CelPolicy.Builder().setPolicySource(policySource);
   }
 
   @AutoValue.Builder
@@ -47,9 +47,9 @@ public abstract class Policy {
 
     public abstract Builder setCelSource(CelSource celSource);
 
-    public abstract Builder setPolicySource(PolicySource policySource);
+    public abstract Builder setPolicySource(CelPolicySource policySource);
 
-    public abstract Policy build();
+    public abstract CelPolicy build();
   }
 
   @AutoValue
@@ -64,7 +64,7 @@ public abstract class Policy {
     abstract ImmutableSet<Match> matches();
 
     public static Builder newBuilder() {
-      return new AutoValue_Policy_Rule.Builder()
+      return new AutoValue_CelPolicy_Rule.Builder()
           .setVariables(ImmutableSet.of())
           .setMatches(ImmutableSet.of());
     }
@@ -132,7 +132,7 @@ public abstract class Policy {
     abstract ValueString expression();
 
     static Variable of(ValueString name, ValueString expression) {
-      return new AutoValue_Policy_Variable(name, expression);
+      return new AutoValue_CelPolicy_Variable(name, expression);
     }
   }
 
@@ -144,7 +144,7 @@ public abstract class Policy {
     abstract String value();
 
     static ValueString of(long id, String value) {
-      return new AutoValue_Policy_ValueString(id, value);
+      return new AutoValue_CelPolicy_ValueString(id, value);
     }
   }
 }

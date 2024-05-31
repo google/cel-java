@@ -4,9 +4,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelSource;
-import dev.cel.policy.Policy.Rule;
-import dev.cel.policy.Policy.ValueString;
-import dev.cel.policy.Policy.Variable;
+import dev.cel.policy.CelPolicy.Rule;
+import dev.cel.policy.CelPolicy.ValueString;
+import dev.cel.policy.CelPolicy.Variable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -14,34 +14,34 @@ import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
-public final class YamlPolicyParser implements PolicyParser {
+public final class CelPolicyYamlParser implements CelPolicyParser {
 
   @Override
-  public Policy parse(PolicySource source) {
+  public CelPolicy parse(CelPolicySource source) {
     YamlPolicyParserImpl yamlPolicyParserImpl = YamlPolicyParserImpl.newInstance();
 
     return yamlPolicyParserImpl.parsePolicy(source);
   }
 
 
-  public static PolicyParser newInstance() {
-    return new YamlPolicyParser();
+  public static CelPolicyParser newInstance() {
+    return new CelPolicyYamlParser();
   }
 
   private static final class YamlPolicyParserImpl {
 
     private long id;
 
-    private Map<String, Object> parseYamlSource(PolicySource policySource) {
+    private Map<String, Object> parseYamlSource(CelPolicySource policySource) {
       Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
 
       return yaml.load(policySource.content());
     }
 
-    private Policy parsePolicy(PolicySource source) {
+    private CelPolicy parsePolicy(CelPolicySource source) {
       Map<String, Object> yamlMap = parseYamlSource(source);
 
-      Policy.Builder policyBuilder = Policy.newBuilder(source)
+      CelPolicy.Builder policyBuilder = CelPolicy.newBuilder(source)
           .setCelSource(fromPolicySource(source));
       String policyName = (String) checkNotNull(yamlMap.get("name"),
           "Missing required property: 'name'");
@@ -57,7 +57,7 @@ public final class YamlPolicyParser implements PolicyParser {
       return ++id;
     }
 
-    private Policy.Rule parseRuleMap(Map<String, Object> ruleMap) {
+    private CelPolicy.Rule parseRuleMap(Map<String, Object> ruleMap) {
       Rule.Builder ruleBuilder = Rule.newBuilder();
 
       for (Entry<String, Object> entry : ruleMap.entrySet()) {
@@ -92,14 +92,14 @@ public final class YamlPolicyParser implements PolicyParser {
       return variableBuilder.build();
     }
 
-    private Policy.Variable parseVariable(Map<String, Object> variableMap) {
+    private CelPolicy.Variable parseVariable(Map<String, Object> variableMap) {
       return Variable.of(
           ValueString.of(nextId(), (String) variableMap.get("name")),
           ValueString.of(nextId(), (String) variableMap.get("expression"))
       );
     }
 
-    private static CelSource fromPolicySource(PolicySource policySource) {
+    private static CelSource fromPolicySource(CelPolicySource policySource) {
       return CelSource.newBuilder(policySource.content())
           .setDescription(policySource.location())
           .build();
@@ -113,6 +113,6 @@ public final class YamlPolicyParser implements PolicyParser {
     }
   }
 
-  private YamlPolicyParser() {
+  private CelPolicyYamlParser() {
   }
 }

@@ -8,8 +8,8 @@ package(
 java_library(
     name = "policy",
     srcs = [
-        "Policy.java",
-        "PolicySource.java",
+        "CelPolicy.java",
+        "CelPolicySource.java",
     ],
     deps = [
         "//:auto_value",
@@ -22,7 +22,7 @@ java_library(
 java_library(
     name = "policy_config",
     srcs = [
-        "PolicyConfig.java",
+        "CelPolicyConfig.java",
     ],
     deps = [
         "//:auto_value",
@@ -42,7 +42,7 @@ java_library(
 java_library(
     name = "yaml_policy_parser",
     srcs = [
-        "YamlPolicyParser.java",
+        "CelPolicyYamlParser.java",
     ],
     deps = [
         ":policy",
@@ -57,7 +57,7 @@ java_library(
 java_library(
     name = "policy_parser",
     srcs = [
-        "PolicyParser.java",
+        "CelPolicyParser.java",
     ],
     deps = [
         ":policy",
@@ -67,7 +67,7 @@ java_library(
 java_library(
     name = "policy_compiler",
     srcs = [
-        "PolicyCompiler.java",
+        "CelPolicyCompiler.java",
     ],
     deps = [
     ],
@@ -76,7 +76,7 @@ java_library(
 java_library(
     name = "policy_compiler_impl",
     srcs = [
-        "PolicyCompilerImpl.java",
+        "CelPolicyCompilerImpl.java",
     ],
     deps = [
         ":policy_compiler",
@@ -86,7 +86,7 @@ java_library(
 java_library(
     name = "yaml_policy_config_parser",
     srcs = [
-        "YamlPolicyConfigParser.java",
+        "CelPolicyYamlConfigParser.java",
     ],
     deps = [
         ":policy_config",
