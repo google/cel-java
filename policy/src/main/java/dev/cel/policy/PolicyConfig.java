@@ -13,7 +13,10 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.OpaqueType;
+import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.TypeParamType;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
 
@@ -21,25 +24,37 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 @AutoValue
 public abstract class PolicyConfig {
 
   abstract String name();
+
   abstract String description();
+
   abstract String container();
+
   abstract ImmutableSet<ExtensionConfig> extensions();
+
   abstract ImmutableSet<VariableDecl> variables();
+
   abstract ImmutableSet<FunctionDecl> functions();
 
   @AutoValue.Builder
   public abstract static class Builder {
+
     public abstract Builder setName(String name);
+
     public abstract Builder setDescription(String description);
+
     public abstract Builder setContainer(String container);
+
     public abstract Builder setExtensions(ImmutableSet<ExtensionConfig> extensions);
+
     public abstract Builder setVariables(ImmutableSet<VariableDecl> variables);
+
     public abstract Builder setFunctions(ImmutableSet<FunctionDecl> functions);
 
     @CheckReturnValue
@@ -48,24 +63,24 @@ public abstract class PolicyConfig {
 
   public static Builder newBuilder() {
     return new AutoValue_PolicyConfig.Builder()
-            .setName("")
-            .setDescription("")
-            .setContainer("")
-            .setExtensions(ImmutableSet.of())
-            .setVariables(ImmutableSet.of())
-            .setFunctions(ImmutableSet.of())
-            ;
+        .setName("")
+        .setDescription("")
+        .setContainer("")
+        .setExtensions(ImmutableSet.of())
+        .setVariables(ImmutableSet.of())
+        .setFunctions(ImmutableSet.of())
+        ;
   }
 
   public Cel toCel(CelOptions celOptions) {
     CelBuilder celBuilder = CelFactory.standardCelBuilder()
-          .setContainer(container())
-          .addVarDeclarations(
-                  variables().stream().map(VariableDecl::toCelVarDecl).collect(toImmutableList())
-          )
-          .addFunctionDeclarations(
-                  functions().stream().map(FunctionDecl::toCelFunctionDecl).collect(toImmutableList())
-          );
+        .setContainer(container())
+        .addVarDeclarations(
+            variables().stream().map(VariableDecl::toCelVarDecl).collect(toImmutableList())
+        )
+        .addFunctionDeclarations(
+            functions().stream().map(FunctionDecl::toCelFunctionDecl).collect(toImmutableList())
+        );
 
     addAllExtensions(celBuilder, celOptions);
 
@@ -126,6 +141,7 @@ public abstract class PolicyConfig {
   public static abstract class FunctionDecl {
 
     public abstract String name();
+
     public abstract ImmutableSet<OverloadDecl> overloads();
 
     public static FunctionDecl create(String name, ImmutableSet<OverloadDecl> overloads) {
@@ -134,24 +150,32 @@ public abstract class PolicyConfig {
 
     public CelFunctionDecl toCelFunctionDecl() {
       return CelFunctionDecl.newFunctionDeclaration(
-              name(),
-              overloads().stream().map(OverloadDecl::toCelOverloadDecl).collect(toImmutableList())
+          name(),
+          overloads().stream().map(OverloadDecl::toCelOverloadDecl).collect(toImmutableList())
       );
     }
   }
 
   @AutoValue
   public static abstract class OverloadDecl {
-    public abstract String overloadId();
+
+    public abstract String id();
+
     public abstract Optional<TypeDecl> target();
+
     public abstract ImmutableList<TypeDecl> arguments();
+
     public abstract TypeDecl returnType();
 
     @AutoValue.Builder
     public abstract static class Builder {
-      public abstract Builder setOverloadId(String overloadId);
+
+      public abstract Builder setId(String overloadId);
+
       public abstract Builder setTarget(TypeDecl target);
+
       abstract ImmutableList.Builder<TypeDecl> argumentsBuilder();
+
       abstract Builder setArguments(ImmutableList<TypeDecl> args);
 
       @CanIgnoreReturnValue
@@ -177,9 +201,9 @@ public abstract class PolicyConfig {
 
     public CelOverloadDecl toCelOverloadDecl() {
       CelOverloadDecl.Builder builder = CelOverloadDecl.newBuilder()
-              .setIsInstanceFunction(false)
-              .setOverloadId(overloadId())
-              .setResultType(returnType().toCelType());
+          .setIsInstanceFunction(false)
+          .setOverloadId(id())
+          .setResultType(returnType().toCelType());
 
       target().ifPresent(t -> {
         builder.setIsInstanceFunction(true);
@@ -205,8 +229,11 @@ public abstract class PolicyConfig {
 
     @AutoValue.Builder
     public abstract static class Builder {
+
       public abstract Builder setName(String name);
+
       abstract Builder setParams(ImmutableList<TypeDecl> typeDecls);
+
       abstract ImmutableList.Builder<TypeDecl> paramsBuilder();
 
       @CanIgnoreReturnValue
@@ -226,8 +253,12 @@ public abstract class PolicyConfig {
       public abstract TypeDecl build();
     }
 
+    public static TypeDecl create(String name) {
+      return newBuilder().setName(name).build();
+    }
+
     public static Builder newBuilder() {
-      return new AutoValue_PolicyConfig_TypeDecl.Builder();
+      return new AutoValue_PolicyConfig_TypeDecl.Builder().setIsTypeParam(false);
     }
 
     public CelType toCelType() {
@@ -235,7 +266,27 @@ public abstract class PolicyConfig {
         case "list":
           throw new UnsupportedOperationException("");
         default:
-          return SimpleType.findByName(name()).get();
+          if (isTypeParam()) {
+            return TypeParamType.create(name());
+          }
+
+          // TODO: Handle proto message types
+
+          CelType simpleType = SimpleType.findByName(name()).orElse(null);
+          if (simpleType != null) {
+            return simpleType;
+          }
+
+          if (OptionalType.NAME.equals(name())) {
+            checkState(params().size() == 1,
+                "Optional type must have exactly 1 parameter. Found " + params().size());
+            return OptionalType.create(params().get(0).toCelType());
+          }
+
+          return OpaqueType.create(
+              name(),
+              params().stream().map(TypeDecl::toCelType).collect(toImmutableList())
+          );
       }
     }
   }

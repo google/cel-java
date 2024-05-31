@@ -1,5 +1,7 @@
 package dev.cel.policy;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelSource;
 import dev.cel.policy.Policy.Rule;
@@ -41,9 +43,9 @@ public final class YamlPolicyParser implements PolicyParser {
 
       Policy.Builder policyBuilder = Policy.newBuilder(source)
           .setCelSource(fromPolicySource(source));
-      String policyName = (String) yamlMap.computeIfAbsent("name", (unused) -> {
-        throw new IllegalArgumentException("Missing required property: 'name'");
-      });
+      String policyName = (String) checkNotNull(yamlMap.get("name"),
+          "Missing required property: 'name'");
+
       policyBuilder.setName(ValueString.of(nextId(), policyName));
       // TODO assert yaml type on map
       policyBuilder.setRule(parseRuleMap((Map<String, Object>) yamlMap.get("rule")));

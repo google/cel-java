@@ -1,115 +1,117 @@
 package dev.cel.policy;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import dev.cel.policy.PolicyConfig.ExtensionConfig;
 import dev.cel.policy.PolicyConfig.FunctionDecl;
 import dev.cel.policy.PolicyConfig.OverloadDecl;
 import dev.cel.policy.PolicyConfig.TypeDecl;
+import java.util.List;
+import java.util.Map;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
-
-import java.util.List;
-import java.util.Map;
 
 public final class YamlPolicyConfigParser {
 
   public static PolicyConfig parse(String content) {
     Map<String, Object> yamlMap = parseYamlSource(content);
 
-    String name = getStringOrDefault(yamlMap, "name");
-    String description = getStringOrDefault(yamlMap, "description");
-    String container = getStringOrDefault(yamlMap, "container");
+    String name = (String) yamlMap.getOrDefault("name", "");
+    String description = (String) yamlMap.getOrDefault("description", "");
+    String container = (String) yamlMap.getOrDefault("container", "");
     ImmutableSet<ExtensionConfig> extensions = parseExtensions(yamlMap);
     ImmutableSet<FunctionDecl> functions = parseFunctions(yamlMap);
 
     return PolicyConfig.newBuilder()
-            .setName(name)
-            .setDescription(description)
-            .setContainer(container)
-            .setExtensions(extensions)
-            .setFunctions(functions)
-            .build();
+        .setName(name)
+        .setDescription(description)
+        .setContainer(container)
+        .setExtensions(extensions)
+        .setFunctions(functions)
+        .build();
   }
 
   private static ImmutableSet<ExtensionConfig> parseExtensions(Map<String, Object> yamlMap) {
-    if (!yamlMap.containsKey("extensions")) {
-      return ImmutableSet.of();
-    }
-
-    List<Map<String, Object>> extensionList = (List<Map<String, Object>>) yamlMap.get("extensions");
     ImmutableSet.Builder<ExtensionConfig> extensionConfigBuilder = ImmutableSet.builder();
-    for (Map<String,Object> extensionMap : extensionList) {
-      String name = getStringOrDefault(extensionMap, "name");
-      int version = getIntegerOrDefault(extensionMap, "version");
+    List<Map<String, Object>> extensionList = getListOfMapsOrDefault(yamlMap,
+        "extensions");
+    for (Map<String, Object> extensionMap : extensionList) {
+      String name = (String) extensionMap.getOrDefault("name", "");
+      int version = (int) extensionMap.getOrDefault("version", 0);
 
       extensionConfigBuilder.add(ExtensionConfig.of(name, version));
     }
+
     return extensionConfigBuilder.build();
   }
 
   private static ImmutableSet<FunctionDecl> parseFunctions(Map<String, Object> yamlMap) {
-    if (!yamlMap.containsKey("functions")) {
-      return ImmutableSet.of();
+    ImmutableSet.Builder<FunctionDecl> functionSetBuilder = ImmutableSet.builder();
+    List<Map<String, Object>> functionList = getListOfMapsOrDefault(yamlMap, "functions");
+    for (Map<String, Object> functionMap : functionList) {
+      functionSetBuilder.add(FunctionDecl.create(
+          (String) functionMap.getOrDefault("name", ""),
+          parseOverloads(functionMap)
+      ));
     }
 
-    List<Map<String, Object>> functionList = (List<Map<String, Object>>) yamlMap.get("functions");
-    ImmutableSet.Builder<FunctionDecl> functionDeclBuilder = ImmutableSet.builder();
-    for (Map<String,Object> functionMap : functionList) {
-      List<Map<String, Object>> overloadList = (List<Map<String, Object>>) functionMap.get("overloads");
-      ImmutableSet.Builder<OverloadDecl> overloadDeclBuilder = ImmutableSet.builder();
-      for (Map<String,Object> overloadMap : overloadList) {
-        OverloadDecl.Builder builder = OverloadDecl.newBuilder()
-                .setOverloadId(getStringOrDefault(overloadMap, "id"))
-                ;
-        if (overloadMap.containsKey("target")) {
-          Map<String, Object> typeMap = (Map<String, Object>) overloadMap.get("target");
-          builder.setTarget(parseTypeDecl(typeMap));
-        }
-        if (overloadMap.containsKey("args")) {
-          List<Map<String, Object>> argumentList = (List<Map<String, Object>>) overloadMap.get("args");
-          for (Map<String, Object> argumentMap : argumentList) {
-            builder.addArguments(parseTypeDecl(argumentMap));
-          }
-        }
-        if (overloadMap.containsKey("return")) {
-          Map<String, Object> returnMap = (Map<String, Object>) overloadMap.get("return");
-          builder.setReturnType(parseTypeDecl(returnMap));
-        }
+    return functionSetBuilder.build();
+  }
 
-        overloadDeclBuilder.add(builder.build());
+  private static ImmutableSet<OverloadDecl> parseOverloads(Map<String, Object> functionMap) {
+    ImmutableSet.Builder<OverloadDecl> overloadSetBuilder = ImmutableSet.builder();
+    List<Map<String, Object>> overloadList = getListOfMapsOrDefault(functionMap,
+        "overloads");
+    for (Map<String, Object> overloadMap : overloadList) {
+      OverloadDecl.Builder overloadDeclBuilder = OverloadDecl.newBuilder()
+          .setId((String) overloadMap.getOrDefault("id", ""))
+          .setArguments(parseArguments(overloadMap))
+          .setReturnType(parseTypeDecl(
+              getMapOrThrow(overloadMap, "return")));
+
+      if (overloadMap.containsKey("target")) {
+        overloadDeclBuilder.setTarget(
+            parseTypeDecl(getMapOrThrow(overloadMap, "target")));
       }
 
-      functionDeclBuilder.add(FunctionDecl.create(getStringOrDefault(functionMap, "name"), overloadDeclBuilder.build()));
+      overloadSetBuilder.add(overloadDeclBuilder.build());
     }
 
-    return functionDeclBuilder.build();
+    return overloadSetBuilder.build();
+  }
+
+  private static ImmutableList<TypeDecl> parseArguments(Map<String, Object> overloadMap) {
+    List<Map<String, Object>> argumentList = getListOfMapsOrDefault(overloadMap, "args");
+    return
+        argumentList.stream()
+            .map(YamlPolicyConfigParser::parseTypeDecl)
+            .collect(toImmutableList());
   }
 
   private static TypeDecl parseTypeDecl(Map<String, Object> typeMap) {
     TypeDecl.Builder builder = TypeDecl.newBuilder()
-            .setName(getStringOrDefault(typeMap, "type_name"))
-            .setIsTypeParam(getBooleanOrDefault(typeMap, "is_type_param"));
-    if (typeMap.containsKey("params")) {
-      List<Map<String, Object>> paramsList = (List<Map<String, Object>>) typeMap.get("params");
-      for (Map<String, Object> paramMap : paramsList) {
-        builder.addParams(parseTypeDecl(paramMap));
-      }
+        .setName((String) typeMap.getOrDefault("type_name", ""))
+        .setIsTypeParam((boolean) typeMap.getOrDefault("is_type_param", false));
+
+    List<Map<String, Object>> paramsList = getListOfMapsOrDefault(typeMap, "params");
+    for (Map<String, Object> paramMap : paramsList) {
+      builder.addParams(parseTypeDecl(paramMap));
     }
 
     return builder.build();
   }
 
-  private static boolean getBooleanOrDefault(Map<String, Object> map, String key) {
-    return (boolean) map.computeIfAbsent(key, (unused) -> false);
+  private static Map<String, Object> getMapOrThrow(Map<String, Object> map, String key) {
+    return (Map<String, Object>) checkNotNull(map.get(key));
   }
 
-  private static String getStringOrDefault(Map<String, Object> map, String key) {
-    return (String) map.computeIfAbsent(key, (unused) -> "");
-  }
-
-  private static int getIntegerOrDefault(Map<String, Object> map, String key) {
-    return (int) map.computeIfAbsent(key, (unused) -> 0);
+  private static List<Map<String, Object>> getListOfMapsOrDefault(Map<String, Object> map,
+      String key) {
+    return (List<Map<String, Object>>) map.getOrDefault(key, ImmutableList.of());
   }
 
   private static Map<String, Object> parseYamlSource(String content) {
