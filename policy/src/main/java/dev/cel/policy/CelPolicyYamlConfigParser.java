@@ -9,6 +9,7 @@ import dev.cel.policy.CelPolicyConfig.ExtensionConfig;
 import dev.cel.policy.CelPolicyConfig.FunctionDecl;
 import dev.cel.policy.CelPolicyConfig.OverloadDecl;
 import dev.cel.policy.CelPolicyConfig.TypeDecl;
+import dev.cel.policy.CelPolicyConfig.VariableDecl;
 import java.util.List;
 import java.util.Map;
 import org.yaml.snakeyaml.LoaderOptions;
@@ -23,30 +24,31 @@ public final class CelPolicyYamlConfigParser {
     String name = (String) yamlMap.getOrDefault("name", "");
     String description = (String) yamlMap.getOrDefault("description", "");
     String container = (String) yamlMap.getOrDefault("container", "");
-    ImmutableSet<ExtensionConfig> extensions = parseExtensions(yamlMap);
+    ImmutableSet<VariableDecl> variables = parseVariables(yamlMap);
     ImmutableSet<FunctionDecl> functions = parseFunctions(yamlMap);
+    ImmutableSet<ExtensionConfig> extensions = parseExtensions(yamlMap);
 
     return CelPolicyConfig.newBuilder()
         .setName(name)
         .setDescription(description)
         .setContainer(container)
-        .setExtensions(extensions)
+        .setVariables(variables)
         .setFunctions(functions)
+        .setExtensions(extensions)
         .build();
   }
 
-  private static ImmutableSet<ExtensionConfig> parseExtensions(Map<String, Object> yamlMap) {
-    ImmutableSet.Builder<ExtensionConfig> extensionConfigBuilder = ImmutableSet.builder();
-    List<Map<String, Object>> extensionList = getListOfMapsOrDefault(yamlMap,
-        "extensions");
-    for (Map<String, Object> extensionMap : extensionList) {
-      String name = (String) extensionMap.getOrDefault("name", "");
-      int version = (int) extensionMap.getOrDefault("version", 0);
-
-      extensionConfigBuilder.add(ExtensionConfig.of(name, version));
+  private static ImmutableSet<VariableDecl> parseVariables(Map<String, Object> yamlMap) {
+    ImmutableSet.Builder<VariableDecl> variableSetBuilder = ImmutableSet.builder();
+    List<Map<String, Object>> variableList = getListOfMapsOrDefault(yamlMap, "variables");
+    for (Map<String, Object> variableMap : variableList) {
+      variableSetBuilder.add(VariableDecl.create(
+          (String) variableMap.getOrDefault("name", ""),
+          parseTypeDecl(getMapOrThrow(variableMap, "type"))
+      ));
     }
 
-    return extensionConfigBuilder.build();
+    return variableSetBuilder.build();
   }
 
   private static ImmutableSet<FunctionDecl> parseFunctions(Map<String, Object> yamlMap) {
@@ -69,7 +71,7 @@ public final class CelPolicyYamlConfigParser {
     for (Map<String, Object> overloadMap : overloadList) {
       OverloadDecl.Builder overloadDeclBuilder = OverloadDecl.newBuilder()
           .setId((String) overloadMap.getOrDefault("id", ""))
-          .setArguments(parseArguments(overloadMap))
+          .setArguments(parseOverloadArguments(overloadMap))
           .setReturnType(parseTypeDecl(
               getMapOrThrow(overloadMap, "return")));
 
@@ -84,7 +86,21 @@ public final class CelPolicyYamlConfigParser {
     return overloadSetBuilder.build();
   }
 
-  private static ImmutableList<TypeDecl> parseArguments(Map<String, Object> overloadMap) {
+  private static ImmutableSet<ExtensionConfig> parseExtensions(Map<String, Object> yamlMap) {
+    ImmutableSet.Builder<ExtensionConfig> extensionConfigBuilder = ImmutableSet.builder();
+    List<Map<String, Object>> extensionList = getListOfMapsOrDefault(yamlMap,
+        "extensions");
+    for (Map<String, Object> extensionMap : extensionList) {
+      String name = (String) extensionMap.getOrDefault("name", "");
+      int version = (int) extensionMap.getOrDefault("version", 0);
+
+      extensionConfigBuilder.add(ExtensionConfig.of(name, version));
+    }
+
+    return extensionConfigBuilder.build();
+  }
+
+  private static ImmutableList<TypeDecl> parseOverloadArguments(Map<String, Object> overloadMap) {
     List<Map<String, Object>> argumentList = getListOfMapsOrDefault(overloadMap, "args");
     return
         argumentList.stream()

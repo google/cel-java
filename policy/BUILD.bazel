@@ -9,6 +9,11 @@ java_library(
 )
 
 java_library(
+    name = "policy_exception",
+    exports = ["//policy/src/main/java/dev/cel/policy:policy_exception"],
+)
+
+java_library(
     name = "policy_config",
     exports = ["//policy/src/main/java/dev/cel/policy:policy_config"],
 )

@@ -14,6 +14,7 @@ java_library(
         "//common:options",
         "//policy",
         "//policy:policy_config",
+        "//policy:policy_exception",
         "//policy:policy_parser",
         "//policy:yaml_policy_config_parser",
         "//policy:yaml_policy_parser",

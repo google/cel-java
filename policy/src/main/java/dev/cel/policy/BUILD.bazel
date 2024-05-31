@@ -20,11 +20,22 @@ java_library(
 )
 
 java_library(
+    name = "policy_exception",
+    srcs = [
+        "CelPolicyValidationException.java",
+    ],
+    deps = [
+        "//common/annotations",
+    ],
+)
+
+java_library(
     name = "policy_config",
     srcs = [
         "CelPolicyConfig.java",
     ],
     deps = [
+        ":policy_exception",
         "//:auto_value",
         "//bundle:cel",
         "//common:compiler_common",

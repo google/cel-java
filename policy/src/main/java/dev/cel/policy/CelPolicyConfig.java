@@ -1,5 +1,9 @@
 package dev.cel.policy;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -15,19 +19,14 @@ import dev.cel.common.CelVarDecl;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypeProvider.NoOpTypeProvider;
-import dev.cel.common.types.OpaqueType;
+import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
-
 import java.util.Arrays;
 import java.util.Optional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.ImmutableList.toImmutableList;
 
 @AutoValue
 public abstract class CelPolicyConfig {
@@ -74,7 +73,12 @@ public abstract class CelPolicyConfig {
         ;
   }
 
-  public Cel toCel(CelOptions celOptions, CelTypeProvider celTypeProvider) {
+  public Cel toCel(CelOptions celOptions) throws CelPolicyValidationException {
+    return toCel(celOptions, NoOpTypeProvider.INSTANCE);
+  }
+
+  public Cel toCel(CelOptions celOptions, CelTypeProvider celTypeProvider)
+      throws CelPolicyValidationException {
     CelBuilder celBuilder = CelFactory.standardCelBuilder()
         .setTypeProvider(celTypeProvider)
         .setContainer(container())
@@ -92,11 +96,8 @@ public abstract class CelPolicyConfig {
     return celBuilder.build();
   }
 
-  public Cel toCel(CelOptions celOptions) {
-    return toCel(celOptions, NoOpTypeProvider.INSTANCE);
-  }
-
-  private void addAllExtensions(CelBuilder celBuilder, CelOptions celOptions) {
+  private void addAllExtensions(CelBuilder celBuilder, CelOptions celOptions)
+      throws CelPolicyValidationException {
     for (ExtensionConfig extensionConfig : extensions()) {
       switch (extensionConfig.name()) {
         case "bindings":
@@ -122,7 +123,8 @@ public abstract class CelPolicyConfig {
           celBuilder.addRuntimeLibraries(CelExtensions.strings());
           break;
         default:
-          throw new IllegalArgumentException("Unrecognized extension: " + extensionConfig.name());
+          throw new CelPolicyValidationException(
+              "Unrecognized extension: " + extensionConfig.name());
       }
     }
   }
@@ -139,6 +141,10 @@ public abstract class CelPolicyConfig {
      * The type of the variable.
      */
     public abstract TypeDecl type();
+
+    public static VariableDecl create(String name, TypeDecl type) {
+      return new AutoValue_CelPolicyConfig_VariableDecl(name, type);
+    }
 
     public CelVarDecl toCelVarDecl(CelTypeProvider celTypeProvider) {
       return CelVarDecl.newVarDeclaration(name(), type().toCelType(celTypeProvider));
@@ -275,7 +281,14 @@ public abstract class CelPolicyConfig {
         case "list":
           throw new UnsupportedOperationException("List not implemented yet.");
         case "map":
-          throw new UnsupportedOperationException("Map not implemented yet.");
+          if (params().size() != 2) {
+            throw new IllegalArgumentException(
+                "Map type has unexpected param count: " + params().size());
+          }
+
+          CelType keyType = params().get(0).toCelType(celTypeProvider);
+          CelType valueType = params().get(1).toCelType(celTypeProvider);
+          return MapType.create(keyType, valueType);
         default:
           if (isTypeParam()) {
             return TypeParamType.create(name());
@@ -286,22 +299,14 @@ public abstract class CelPolicyConfig {
             return simpleType;
           }
 
-          CelType customCelType = celTypeProvider.findType(name()).orElse(null);
-          if (customCelType != null) {
-            return customCelType;
-          }
-
           if (OptionalType.NAME.equals(name())) {
             checkState(params().size() == 1,
                 "Optional type must have exactly 1 parameter. Found " + params().size());
             return OptionalType.create(params().get(0).toCelType(celTypeProvider));
           }
 
-          return OpaqueType.create(
-              name(),
-              params().stream().map(param -> param.toCelType(celTypeProvider))
-                  .collect(toImmutableList())
-          );
+          return celTypeProvider.findType(name())
+              .orElseThrow(() -> new IllegalArgumentException("Undefined type name: " + name()));
       }
     }
   }

@@ -4,10 +4,12 @@ import com.google.common.collect.ImmutableSet;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelOptions;
+import dev.cel.common.types.ProtoMessageTypeProvider;
 import dev.cel.policy.CelPolicyConfig.ExtensionConfig;
 import dev.cel.policy.CelPolicyConfig.FunctionDecl;
 import dev.cel.policy.CelPolicyConfig.OverloadDecl;
 import dev.cel.policy.CelPolicyConfig.TypeDecl;
+import dev.cel.policy.CelPolicyConfig.VariableDecl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -33,7 +35,7 @@ public final class CelPolicyYamlConfigParserTest {
   }
 
   @Test
-  public void config_setExtensions() {
+  public void config_setExtensions() throws Exception {
     String yamlConfig = "extensions:\n" +
         "  - name: \"bindings\"\n" +
         "  - name: \"encoders\"\n" +
@@ -61,7 +63,7 @@ public final class CelPolicyYamlConfigParserTest {
   }
 
   @Test
-  public void config_setFunctions() {
+  public void config_setFunctions() throws Exception {
     String yamlConfig = "functions:\n" +
         "  - name: \"coalesce\"\n" +
         "    overloads:\n" +
@@ -151,11 +153,63 @@ public final class CelPolicyYamlConfigParserTest {
     assertThat(policyConfig.toCel(CelOptions.DEFAULT)).isNotNull();
   }
 
+  @Test
+  public void config_setMapVariable() throws Exception {
+    String yamlConfig = "variables:\n"
+        + "- name: 'request'\n"
+        + "  type:\n"
+        + "    type_name: 'map'\n"
+        + "    params:\n"
+        + "      - type_name: 'string'\n"
+        + "      - type_name: 'dyn'";
+
+    CelPolicyConfig policyConfig = CelPolicyYamlConfigParser.parse(yamlConfig);
+
+    assertThat(policyConfig).isEqualTo(CelPolicyConfig.newBuilder()
+        .setVariables(
+            ImmutableSet.of(
+                VariableDecl.create("request",
+                    TypeDecl.newBuilder()
+                        .setName("map")
+                        .addParams(
+                            TypeDecl.create("string"),
+                            TypeDecl.create("dyn")
+                        ).build()
+                ))
+        )
+        .build());
+    assertThat(policyConfig.toCel(CelOptions.DEFAULT)).isNotNull();
+  }
+
+  @Test
+  public void config_setMessageVariable() throws Exception {
+    String yamlConfig = "variables:\n"
+        + "- name: 'request'\n"
+        + "  type:\n"
+        + "    type_name: 'google.rpc.context.AttributeContext.Request'";
+
+    CelPolicyConfig policyConfig = CelPolicyYamlConfigParser.parse(yamlConfig);
+
+    assertThat(policyConfig).isEqualTo(CelPolicyConfig.newBuilder()
+        .setVariables(
+            ImmutableSet.of(
+                VariableDecl.create("request",
+                    TypeDecl.create("google.rpc.context.AttributeContext.Request")
+                ))
+        )
+        .build());
+    assertThat(policyConfig.toCel(CelOptions.DEFAULT)).isNotNull();
+  }
+
   private enum ConfigErrorTestCase {
-    BAD_NAME("extensions:\n"
+    BAD_EXTENSION_NAME("extensions:\n"
         + "  - name: 'bad_name'",
         "Unrecognized extension: bad_name"
-    );
+    ),
+    BAD_TYPE_NAME("variables:\n"
+        + "- name: 'bad_type'\n"
+        + "  type:\n"
+        + "    type_name: 'strings'", "Undefined type name: strings");
 
     private final String yamlConfig;
     private final String expectedErrorMessage;
@@ -170,6 +224,8 @@ public final class CelPolicyYamlConfigParserTest {
   public void configErrors(@TestParameter ConfigErrorTestCase testCase) {
     CelPolicyConfig policyConfig = CelPolicyYamlConfigParser.parse(testCase.yamlConfig);
 
-    assertThrows(IllegalArgumentException.class, () -> policyConfig.toCel(CelOptions.DEFAULT));
+    CelPolicyValidationException e = assertThrows(CelPolicyValidationException.class,
+        () -> policyConfig.toCel(CelOptions.DEFAULT));
+    assertThat(e).hasMessageThat().isEqualTo(testCase.expectedErrorMessage);
   }
 }
