@@ -1,6 +1,7 @@
 package dev.cel.policy;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelOptions;
 import dev.cel.policy.PolicyConfig.ExtensionConfig;
@@ -11,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 @RunWith(TestParameterInjector.class)
 public final class YamlPolicyConfigParserTest {
@@ -147,5 +149,27 @@ public final class YamlPolicyConfigParserTest {
         )
         .build());
     assertThat(policyConfig.toCel(CelOptions.DEFAULT)).isNotNull();
+  }
+
+  private enum ConfigErrorTestCase {
+    BAD_NAME("extensions:\n"
+        + "  - name: 'bad_name'",
+        "Unrecognized extension: bad_name"
+    );
+
+    private final String yamlConfig;
+    private final String expectedErrorMessage;
+
+    ConfigErrorTestCase(String yamlConfig, String expectedErrorMessage) {
+      this.yamlConfig = yamlConfig;
+      this.expectedErrorMessage = expectedErrorMessage;
+    }
+  }
+
+  @Test
+  public void configErrors(@TestParameter ConfigErrorTestCase testCase) {
+    PolicyConfig policyConfig = YamlPolicyConfigParser.parse(testCase.yamlConfig);
+
+    assertThrows(IllegalArgumentException.class, () -> policyConfig.toCel(CelOptions.DEFAULT));
   }
 }

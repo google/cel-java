@@ -1,6 +1,7 @@
 package dev.cel.policy;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -13,6 +14,8 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypeProvider;
+import dev.cel.common.types.CelTypeProvider.NoOpTypeProvider;
 import dev.cel.common.types.OpaqueType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
@@ -72,14 +75,17 @@ public abstract class PolicyConfig {
         ;
   }
 
-  public Cel toCel(CelOptions celOptions) {
+  public Cel toCel(CelOptions celOptions, CelTypeProvider celTypeProvider) {
     CelBuilder celBuilder = CelFactory.standardCelBuilder()
+        .setTypeProvider(celTypeProvider)
         .setContainer(container())
         .addVarDeclarations(
-            variables().stream().map(VariableDecl::toCelVarDecl).collect(toImmutableList())
+            variables().stream().map(v -> v.toCelVarDecl(celTypeProvider))
+                .collect(toImmutableList())
         )
         .addFunctionDeclarations(
-            functions().stream().map(FunctionDecl::toCelFunctionDecl).collect(toImmutableList())
+            functions().stream().map(f -> f.toCelFunctionDecl(celTypeProvider))
+                .collect(toImmutableList())
         );
 
     addAllExtensions(celBuilder, celOptions);
@@ -87,6 +93,9 @@ public abstract class PolicyConfig {
     return celBuilder.build();
   }
 
+  public Cel toCel(CelOptions celOptions) {
+    return toCel(celOptions, NoOpTypeProvider.INSTANCE);
+  }
 
   private void addAllExtensions(CelBuilder celBuilder, CelOptions celOptions) {
     for (ExtensionConfig extensionConfig : extensions()) {
@@ -114,7 +123,7 @@ public abstract class PolicyConfig {
           celBuilder.addRuntimeLibraries(CelExtensions.strings());
           break;
         default:
-          throw new IllegalArgumentException("Unsupported extension: " + extensionConfig.name());
+          throw new IllegalArgumentException("Unrecognized extension: " + extensionConfig.name());
       }
     }
   }
@@ -132,8 +141,8 @@ public abstract class PolicyConfig {
      */
     public abstract TypeDecl type();
 
-    public CelVarDecl toCelVarDecl() {
-      return CelVarDecl.newVarDeclaration(name(), type().toCelType());
+    public CelVarDecl toCelVarDecl(CelTypeProvider celTypeProvider) {
+      return CelVarDecl.newVarDeclaration(name(), type().toCelType(celTypeProvider));
     }
   }
 
@@ -148,10 +157,11 @@ public abstract class PolicyConfig {
       return new AutoValue_PolicyConfig_FunctionDecl(name, overloads);
     }
 
-    public CelFunctionDecl toCelFunctionDecl() {
+    public CelFunctionDecl toCelFunctionDecl(CelTypeProvider celTypeProvider) {
       return CelFunctionDecl.newFunctionDeclaration(
           name(),
-          overloads().stream().map(OverloadDecl::toCelOverloadDecl).collect(toImmutableList())
+          overloads().stream().map(o -> o.toCelOverloadDecl(celTypeProvider))
+              .collect(toImmutableList())
       );
     }
   }
@@ -199,19 +209,19 @@ public abstract class PolicyConfig {
       return new AutoValue_PolicyConfig_OverloadDecl.Builder().setArguments(ImmutableList.of());
     }
 
-    public CelOverloadDecl toCelOverloadDecl() {
+    public CelOverloadDecl toCelOverloadDecl(CelTypeProvider celTypeProvider) {
       CelOverloadDecl.Builder builder = CelOverloadDecl.newBuilder()
           .setIsInstanceFunction(false)
           .setOverloadId(id())
-          .setResultType(returnType().toCelType());
+          .setResultType(returnType().toCelType(celTypeProvider));
 
       target().ifPresent(t -> {
         builder.setIsInstanceFunction(true);
-        builder.addParameterTypes(t.toCelType());
+        builder.addParameterTypes(t.toCelType(celTypeProvider));
       });
 
       for (TypeDecl type : arguments()) {
-        builder.addParameterTypes(type.toCelType());
+        builder.addParameterTypes(type.toCelType(celTypeProvider));
       }
 
       return builder.build();
@@ -261,31 +271,37 @@ public abstract class PolicyConfig {
       return new AutoValue_PolicyConfig_TypeDecl.Builder().setIsTypeParam(false);
     }
 
-    public CelType toCelType() {
+    public CelType toCelType(CelTypeProvider celTypeProvider) {
       switch (name()) {
         case "list":
-          throw new UnsupportedOperationException("");
+          throw new UnsupportedOperationException("List not implemented yet.");
+        case "map":
+          throw new UnsupportedOperationException("Map not implemented yet.");
         default:
           if (isTypeParam()) {
             return TypeParamType.create(name());
           }
-
-          // TODO: Handle proto message types
 
           CelType simpleType = SimpleType.findByName(name()).orElse(null);
           if (simpleType != null) {
             return simpleType;
           }
 
+          CelType customCelType = celTypeProvider.findType(name()).orElse(null);
+          if (customCelType != null) {
+            return customCelType;
+          }
+
           if (OptionalType.NAME.equals(name())) {
             checkState(params().size() == 1,
                 "Optional type must have exactly 1 parameter. Found " + params().size());
-            return OptionalType.create(params().get(0).toCelType());
+            return OptionalType.create(params().get(0).toCelType(celTypeProvider));
           }
 
           return OpaqueType.create(
               name(),
-              params().stream().map(TypeDecl::toCelType).collect(toImmutableList())
+              params().stream().map(param -> param.toCelType(celTypeProvider))
+                  .collect(toImmutableList())
           );
       }
     }

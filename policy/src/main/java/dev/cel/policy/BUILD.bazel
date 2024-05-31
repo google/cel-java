@@ -30,6 +30,7 @@ java_library(
         "//common:compiler_common",
         "//common:options",
         "//common/types",
+        "//common/types:message_type_provider",
         "//common/types:type_providers",
         "//extensions",
         "//extensions:optional_library",
