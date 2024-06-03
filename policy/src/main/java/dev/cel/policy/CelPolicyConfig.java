@@ -17,6 +17,7 @@ import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
+import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
@@ -67,34 +68,36 @@ public abstract class CelPolicyConfig {
         .setContainer("")
         .setExtensions(ImmutableSet.of())
         .setVariables(ImmutableSet.of())
-        .setFunctions(ImmutableSet.of())
-        ;
+        .setFunctions(ImmutableSet.of());
   }
 
   /**
    * TODO
    */
   public Cel extend(Cel cel, CelOptions celOptions) throws CelPolicyValidationException {
-    CelTypeProvider celTypeProvider = cel.getTypeProvider();
-    CelBuilder celBuilder = cel.toCelBuilder()
-        .setTypeProvider(celTypeProvider)
-        .setContainer(container())
-        .addVarDeclarations(
-            variables().stream().map(v -> v.toCelVarDecl(celTypeProvider))
-                .collect(toImmutableList())
-        )
-        .addFunctionDeclarations(
-            functions().stream().map(f -> f.toCelFunctionDecl(celTypeProvider))
-                .collect(toImmutableList())
-        );
+    try {
+      CelTypeProvider celTypeProvider = cel.getTypeProvider();
+      CelBuilder celBuilder = cel.toCelBuilder()
+          .setTypeProvider(celTypeProvider)
+          .setContainer(container())
+          .addVarDeclarations(
+              variables().stream().map(v -> v.toCelVarDecl(celTypeProvider))
+                  .collect(toImmutableList())
+          )
+          .addFunctionDeclarations(
+              functions().stream().map(f -> f.toCelFunctionDecl(celTypeProvider))
+                  .collect(toImmutableList())
+          );
 
-    addAllExtensions(celBuilder, celOptions);
+      addAllExtensions(celBuilder, celOptions);
 
-    return celBuilder.build();
+      return celBuilder.build();
+    } catch (Exception e) {
+      throw new CelPolicyValidationException(e.getMessage(), e);
+    }
   }
 
-  private void addAllExtensions(CelBuilder celBuilder, CelOptions celOptions)
-      throws CelPolicyValidationException {
+  private void addAllExtensions(CelBuilder celBuilder, CelOptions celOptions) {
     for (ExtensionConfig extensionConfig : extensions()) {
       switch (extensionConfig.name()) {
         case "bindings":
@@ -120,7 +123,7 @@ public abstract class CelPolicyConfig {
           celBuilder.addRuntimeLibraries(CelExtensions.strings());
           break;
         default:
-          throw new CelPolicyValidationException(
+          throw new IllegalArgumentException(
               "Unrecognized extension: " + extensionConfig.name());
       }
     }
@@ -276,7 +279,13 @@ public abstract class CelPolicyConfig {
     public CelType toCelType(CelTypeProvider celTypeProvider) {
       switch (name()) {
         case "list":
-          throw new UnsupportedOperationException("List not implemented yet.");
+          if (params().size() != 1) {
+            throw new IllegalArgumentException(
+                "List type has unexpected param count: " + params().size());
+          }
+
+          CelType elementType = params().get(0).toCelType(celTypeProvider);
+          return ListType.create(elementType);
         case "map":
           if (params().size() != 2) {
             throw new IllegalArgumentException(

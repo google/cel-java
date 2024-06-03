@@ -101,6 +101,7 @@ java_library(
     ],
     deps = [
         ":policy_config",
+        ":policy_exception",
         "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",
     ],

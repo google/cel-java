@@ -5,7 +5,7 @@ import dev.cel.common.annotations.Internal;
 public final class CelPolicyValidationException extends Exception {
 
   @Internal
-  public CelPolicyValidationException(String message) {
-    super(message);
+  public CelPolicyValidationException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

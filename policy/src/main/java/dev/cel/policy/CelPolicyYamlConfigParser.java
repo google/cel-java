@@ -18,24 +18,28 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 public final class CelPolicyYamlConfigParser {
 
-  public static CelPolicyConfig parse(String content) {
-    Map<String, Object> yamlMap = parseYamlSource(content);
+  public static CelPolicyConfig parse(String content) throws CelPolicyValidationException {
+    try {
+      Map<String, Object> yamlMap = parseYamlSource(content);
 
-    String name = (String) yamlMap.getOrDefault("name", "");
-    String description = (String) yamlMap.getOrDefault("description", "");
-    String container = (String) yamlMap.getOrDefault("container", "");
-    ImmutableSet<VariableDecl> variables = parseVariables(yamlMap);
-    ImmutableSet<FunctionDecl> functions = parseFunctions(yamlMap);
-    ImmutableSet<ExtensionConfig> extensions = parseExtensions(yamlMap);
+      String name = (String) yamlMap.getOrDefault("name", "");
+      String description = (String) yamlMap.getOrDefault("description", "");
+      String container = (String) yamlMap.getOrDefault("container", "");
+      ImmutableSet<VariableDecl> variables = parseVariables(yamlMap);
+      ImmutableSet<FunctionDecl> functions = parseFunctions(yamlMap);
+      ImmutableSet<ExtensionConfig> extensions = parseExtensions(yamlMap);
 
-    return CelPolicyConfig.newBuilder()
-        .setName(name)
-        .setDescription(description)
-        .setContainer(container)
-        .setVariables(variables)
-        .setFunctions(functions)
-        .setExtensions(extensions)
-        .build();
+      return CelPolicyConfig.newBuilder()
+          .setName(name)
+          .setDescription(description)
+          .setContainer(container)
+          .setVariables(variables)
+          .setFunctions(functions)
+          .setExtensions(extensions)
+          .build();
+    } catch (Exception e) {
+      throw new CelPolicyValidationException(e.getMessage(), e);
+    }
   }
 
   private static ImmutableSet<VariableDecl> parseVariables(Map<String, Object> yamlMap) {
@@ -43,7 +47,7 @@ public final class CelPolicyYamlConfigParser {
     List<Map<String, Object>> variableList = getListOfMapsOrDefault(yamlMap, "variables");
     for (Map<String, Object> variableMap : variableList) {
       variableSetBuilder.add(VariableDecl.create(
-          (String) variableMap.getOrDefault("name", ""),
+          getStringOrThrow(variableMap, "name"),
           parseTypeDecl(getMapOrThrow(variableMap, "type"))
       ));
     }
@@ -66,8 +70,7 @@ public final class CelPolicyYamlConfigParser {
 
   private static ImmutableSet<OverloadDecl> parseOverloads(Map<String, Object> functionMap) {
     ImmutableSet.Builder<OverloadDecl> overloadSetBuilder = ImmutableSet.builder();
-    List<Map<String, Object>> overloadList = getListOfMapsOrDefault(functionMap,
-        "overloads");
+    List<Map<String, Object>> overloadList = getListOfMapsOrThrow(functionMap, "overloads");
     for (Map<String, Object> overloadMap : overloadList) {
       OverloadDecl.Builder overloadDeclBuilder = OverloadDecl.newBuilder()
           .setId((String) overloadMap.getOrDefault("id", ""))
@@ -91,7 +94,7 @@ public final class CelPolicyYamlConfigParser {
     List<Map<String, Object>> extensionList = getListOfMapsOrDefault(yamlMap,
         "extensions");
     for (Map<String, Object> extensionMap : extensionList) {
-      String name = (String) extensionMap.getOrDefault("name", "");
+      String name = getStringOrThrow(extensionMap, "name");
       int version = (int) extensionMap.getOrDefault("version", 0);
 
       extensionConfigBuilder.add(ExtensionConfig.of(name, version));
@@ -121,8 +124,26 @@ public final class CelPolicyYamlConfigParser {
     return builder.build();
   }
 
+  private static String getStringOrThrow(Map<String, Object> map, String key) {
+    checkRequiredAttributeExists(map, key);
+    return (String) map.get(key);
+  }
+
   private static Map<String, Object> getMapOrThrow(Map<String, Object> map, String key) {
-    return (Map<String, Object>) checkNotNull(map.get(key));
+    checkRequiredAttributeExists(map, key);
+    return (Map<String, Object>) map.get(key);
+  }
+
+  private static List<Map<String, Object>> getListOfMapsOrThrow(Map<String, Object> map,
+      String key) {
+    checkRequiredAttributeExists(map, key);
+    return (List<Map<String, Object>>) map.get(key);
+  }
+
+  private static void checkRequiredAttributeExists(Map<String, Object> map, String key) {
+    if (!map.containsKey(key)) {
+      throw new IllegalArgumentException("Missing required attribute: " + key);
+    }
   }
 
   private static List<Map<String, Object>> getListOfMapsOrDefault(Map<String, Object> map,

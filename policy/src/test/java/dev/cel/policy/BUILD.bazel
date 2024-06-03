@@ -19,6 +19,7 @@ java_library(
         "//policy:policy_parser",
         "//policy:yaml_policy_config_parser",
         "//policy:yaml_policy_parser",
+        "@maven//:com_google_api_grpc_proto_google_common_protos",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",

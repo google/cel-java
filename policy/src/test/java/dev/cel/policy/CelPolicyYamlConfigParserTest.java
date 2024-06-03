@@ -4,6 +4,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.rpc.context.AttributeContext;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.bundle.Cel;
@@ -20,10 +21,12 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 public final class CelPolicyYamlConfigParserTest {
 
-  private static final Cel CEL = CelFactory.standardCelBuilder().build();
+  private static final Cel CEL = CelFactory.standardCelBuilder()
+      .addMessageTypes(AttributeContext.Request.getDescriptor())
+      .build();
 
   @Test
-  public void config_setBasicProperties() {
+  public void config_setBasicProperties() throws Exception {
     String yamlConfig = "name: hello\n" +
         "description: empty\n" +
         "container: pb.pkg\n";
@@ -40,12 +43,12 @@ public final class CelPolicyYamlConfigParserTest {
   @Test
   public void config_setExtensions() throws Exception {
     String yamlConfig = "extensions:\n" +
-        "  - name: \"bindings\"\n" +
-        "  - name: \"encoders\"\n" +
-        "  - name: \"math\"\n" +
-        "  - name: \"optional\"\n" +
-        "  - name: \"protos\"\n" +
-        "  - name: \"strings\"\n" +
+        "  - name: 'bindings'\n" +
+        "  - name: 'encoders'\n" +
+        "  - name: 'math'\n" +
+        "  - name: 'optional'\n" +
+        "  - name: 'protos'\n" +
+        "  - name: 'strings'\n" +
         "    version: 1";
 
     CelPolicyConfig policyConfig = CelPolicyYamlConfigParser.parse(yamlConfig);
@@ -68,39 +71,39 @@ public final class CelPolicyYamlConfigParserTest {
   @Test
   public void config_setFunctions() throws Exception {
     String yamlConfig = "functions:\n" +
-        "  - name: \"coalesce\"\n" +
+        "  - name: 'coalesce'\n" +
         "    overloads:\n" +
-        "      - id: \"null_coalesce_int\"\n" +
+        "      - id: 'null_coalesce_int'\n" +
         "        target:\n" +
-        "          type_name: \"null_type\"\n" +
+        "          type_name: 'null_type'\n" +
         "        args:\n" +
-        "          - type_name: \"int\"\n" +
+        "          - type_name: 'int'\n" +
         "        return:\n" +
-        "          type_name: \"int\"\n" +
-        "      - id: \"coalesce_null_int\"\n" +
+        "          type_name: 'int'\n" +
+        "      - id: 'coalesce_null_int'\n" +
         "        args:\n" +
-        "          - type_name: \"null_type\"\n" +
-        "          - type_name: \"int\"\n" +
+        "          - type_name: 'null_type'\n" +
+        "          - type_name: 'int'\n" +
         "        return:\n" +
-        "          type_name: \"int\"          \n" +
-        "      - id: \"int_coalesce_int\"\n" +
+        "          type_name: 'int'          \n" +
+        "      - id: 'int_coalesce_int'\n" +
         "        target: \n" +
-        "          type_name: \"int\"\n" +
+        "          type_name: 'int'\n" +
         "        args:\n" +
-        "          - type_name: \"int\"\n" +
+        "          - type_name: 'int'\n" +
         "        return: \n" +
-        "          type_name: \"int\"\n" +
-        "      - id: \"optional_T_coalesce_T\"\n" +
+        "          type_name: 'int'\n" +
+        "      - id: 'optional_T_coalesce_T'\n" +
         "        target: \n" +
-        "          type_name: \"optional_type\"\n" +
+        "          type_name: 'optional_type'\n" +
         "          params:\n" +
-        "            - type_name: \"T\"\n" +
+        "            - type_name: 'T'\n" +
         "              is_type_param: true\n" +
         "        args:\n" +
-        "          - type_name: \"T\"\n" +
+        "          - type_name: 'T'\n" +
         "            is_type_param: true\n" +
         "        return: \n" +
-        "          type_name: \"T\"\n" +
+        "          type_name: 'T'\n" +
         "          is_type_param: true";
 
     CelPolicyConfig policyConfig = CelPolicyYamlConfigParser.parse(yamlConfig);
@@ -204,31 +207,113 @@ public final class CelPolicyYamlConfigParserTest {
     assertThat(policyConfig.extend(CEL, CelOptions.DEFAULT)).isNotNull();
   }
 
-  private enum ConfigErrorTestCase {
-    BAD_EXTENSION_NAME("extensions:\n"
-        + "  - name: 'bad_name'",
-        "Unrecognized extension: bad_name"
-    ),
-    BAD_TYPE_NAME("variables:\n"
-        + "- name: 'bad_type'\n"
-        + "  type:\n"
-        + "    type_name: 'strings'", "Undefined type name: strings");
+  @Test
+  public void config_parseErrors(@TestParameter ConfigParseErrorTestcase testCase) {
+    CelPolicyValidationException e = assertThrows(CelPolicyValidationException.class,
+        () -> CelPolicyYamlConfigParser.parse(testCase.yamlConfig));
+    assertThat(e).hasMessageThat().isEqualTo(testCase.expectedErrorMessage);
+  }
+
+  @Test
+  public void config_extendErrors(@TestParameter ConfigExtendErrorTestCase testCase)
+      throws Exception {
+    CelPolicyConfig policyConfig = CelPolicyYamlConfigParser.parse(testCase.yamlConfig);
+
+    CelPolicyValidationException e = assertThrows(CelPolicyValidationException.class,
+        () -> policyConfig.extend(CEL, CelOptions.DEFAULT));
+    assertThat(e).hasMessageThat().isEqualTo(testCase.expectedErrorMessage);
+  }
+
+  private enum ConfigParseErrorTestcase {
+    MISSING_VARIABLE_NAME("variables:\n"
+        + "  - type: 'string'",
+        "Missing required attribute: name"),
+    MISSING_VARIABLE_TYPE("variables:\n"
+        + "- name: 'missing_type'\n",
+        "Missing required attribute: type"),
+    MISSING_RETURN("functions:\n"
+        + "  - name: 'missing_return'\n"
+        + "    overloads:\n"
+        + "      - id: 'zero_arity'\n", "Missing required attribute: return"),
+    MISSING_FUNCTION_NAME("functions:\n"
+        + "  - name: 'missing_overload'\n", "Missing required attribute: overloads"),
+    MISSING_OVERLOAD("functions:\n"
+        + "  - name: 'missing_overload'\n", "Missing required attribute: overloads"),
+    MISSING_EXTENSION_NAME("extensions:\n"
+        + "- version: 0", "Missing required attribute: name"),
+    ;
 
     private final String yamlConfig;
     private final String expectedErrorMessage;
 
-    ConfigErrorTestCase(String yamlConfig, String expectedErrorMessage) {
+    ConfigParseErrorTestcase(String yamlConfig, String expectedErrorMessage) {
       this.yamlConfig = yamlConfig;
       this.expectedErrorMessage = expectedErrorMessage;
     }
   }
 
-  @Test
-  public void configErrors(@TestParameter ConfigErrorTestCase testCase) {
-    CelPolicyConfig policyConfig = CelPolicyYamlConfigParser.parse(testCase.yamlConfig);
+  private enum ConfigExtendErrorTestCase {
+    BAD_EXTENSION("extensions:\n"
+        + "  - name: 'bad_name'",
+        "Unrecognized extension: bad_name"
+    ),
+    BAD_TYPE("variables:\n"
+        + "- name: 'bad_type'\n"
+        + "  type:\n"
+        + "    type_name: 'strings'", "Undefined type name: strings"),
+    BAD_LIST("variables:\n"
+        + "  - name: 'bad_list'\n"
+        + "    type:\n"
+        + "      type_name: 'list'", "List type has unexpected param count: 0"),
+    BAD_MAP("variables:\n"
+        + "  - name: 'bad_map'\n"
+        + "    type:\n"
+        + "      type_name: 'map'\n"
+        + "      params:\n"
+        + "        - type_name: 'string'", "Map type has unexpected param count: 1"),
+    BAD_LIST_TYPE_PARAM("variables:\n"
+        + "  - name: 'bad_list_type_param'\n"
+        + "    type:\n"
+        + "      type_name: 'list'\n"
+        + "      params:\n"
+        + "        - type_name: 'number'", "Undefined type name: number"),
+    BAD_MAP_TYPE_PARAM("variables:\n"
+        + "  - name: 'bad_map_type_param'\n"
+        + "    type:\n"
+        + "      type_name: 'map'\n"
+        + "      params:\n"
+        + "        - type_name: 'string'\n"
+        + "        - type_name: 'optional'", "Undefined type name: optional"),
+    BAD_RETURN("functions:\n"
+        + "  - name: 'bad_return'\n"
+        + "    overloads:\n"
+        + "      - id: 'zero_arity'\n"
+        + "        return:\n"
+        + "          type_name: 'mystery'", "Undefined type name: mystery"),
+    BAD_OVERLOAD_TARGET("functions:\n"
+        + "  - name: 'bad_target'\n"
+        + "    overloads:\n"
+        + "      - id: 'unary_member'\n"
+        + "        target:\n"
+        + "          type_name: 'unknown'\n"
+        + "        return:\n"
+        + "          type_name: 'null_type'", "Undefined type name: unknown"),
+    BAD_OVERLOAD_ARG("functions:\n"
+        + "  - name: 'bad_arg'\n"
+        + "    overloads:\n"
+        + "      - id: 'unary_global'\n"
+        + "        args:\n"
+        + "          - type_name: 'unknown'\n"
+        + "        return:\n"
+        + "          type_name: 'null_type'", "Undefined type name: unknown"),
+    ;
 
-    CelPolicyValidationException e = assertThrows(CelPolicyValidationException.class,
-        () -> assertThat(policyConfig.extend(CEL, CelOptions.DEFAULT)).isNotNull());
-    assertThat(e).hasMessageThat().isEqualTo(testCase.expectedErrorMessage);
+    private final String yamlConfig;
+    private final String expectedErrorMessage;
+
+    ConfigExtendErrorTestCase(String yamlConfig, String expectedErrorMessage) {
+      this.yamlConfig = yamlConfig;
+      this.expectedErrorMessage = expectedErrorMessage;
+    }
   }
 }
