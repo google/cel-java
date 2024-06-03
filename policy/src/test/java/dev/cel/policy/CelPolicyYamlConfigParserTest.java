@@ -1,10 +1,14 @@
 package dev.cel.policy;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.bundle.Cel;
+import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelOptions;
-import dev.cel.common.types.ProtoMessageTypeProvider;
 import dev.cel.policy.CelPolicyConfig.ExtensionConfig;
 import dev.cel.policy.CelPolicyConfig.FunctionDecl;
 import dev.cel.policy.CelPolicyConfig.OverloadDecl;
@@ -13,11 +17,10 @@ import dev.cel.policy.CelPolicyConfig.VariableDecl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertThrows;
-
 @RunWith(TestParameterInjector.class)
 public final class CelPolicyYamlConfigParserTest {
+
+  private static final Cel CEL = CelFactory.standardCelBuilder().build();
 
   @Test
   public void config_setBasicProperties() {
@@ -59,7 +62,7 @@ public final class CelPolicyYamlConfigParserTest {
             )
         )
         .build());
-    assertThat(policyConfig.toCel(CelOptions.DEFAULT)).isNotNull();
+    assertThat(policyConfig.extend(CEL, CelOptions.DEFAULT)).isNotNull();
   }
 
   @Test
@@ -150,7 +153,7 @@ public final class CelPolicyYamlConfigParserTest {
             )
         )
         .build());
-    assertThat(policyConfig.toCel(CelOptions.DEFAULT)).isNotNull();
+    assertThat(policyConfig.extend(CEL, CelOptions.DEFAULT)).isNotNull();
   }
 
   @Test
@@ -178,7 +181,7 @@ public final class CelPolicyYamlConfigParserTest {
                 ))
         )
         .build());
-    assertThat(policyConfig.toCel(CelOptions.DEFAULT)).isNotNull();
+    assertThat(policyConfig.extend(CEL, CelOptions.DEFAULT)).isNotNull();
   }
 
   @Test
@@ -198,7 +201,7 @@ public final class CelPolicyYamlConfigParserTest {
                 ))
         )
         .build());
-    assertThat(policyConfig.toCel(CelOptions.DEFAULT)).isNotNull();
+    assertThat(policyConfig.extend(CEL, CelOptions.DEFAULT)).isNotNull();
   }
 
   private enum ConfigErrorTestCase {
@@ -225,7 +228,7 @@ public final class CelPolicyYamlConfigParserTest {
     CelPolicyConfig policyConfig = CelPolicyYamlConfigParser.parse(testCase.yamlConfig);
 
     CelPolicyValidationException e = assertThrows(CelPolicyValidationException.class,
-        () -> policyConfig.toCel(CelOptions.DEFAULT));
+        () -> assertThat(policyConfig.extend(CEL, CelOptions.DEFAULT)).isNotNull());
     assertThat(e).hasMessageThat().isEqualTo(testCase.expectedErrorMessage);
   }
 }

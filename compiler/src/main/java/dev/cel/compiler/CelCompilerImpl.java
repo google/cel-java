@@ -75,6 +75,11 @@ public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
   }
 
   @Override
+  public CelTypeProvider getTypeProvider() {
+    return checker.getTypeProvider();
+  }
+
+  @Override
   public void accept(EnvVisitor envVisitor) {
     if (checker instanceof EnvVisitable) {
       ((EnvVisitable) checker).accept(envVisitor);
@@ -96,7 +101,9 @@ public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
     return parser.toParserBuilder();
   }
 
-  /** Combines a prebuilt {@link CelParser} and {@link CelChecker} into {@link CelCompilerImpl}. */
+  /**
+   * Combines a prebuilt {@link CelParser} and {@link CelChecker} into {@link CelCompilerImpl}.
+   */
   static CelCompilerImpl combine(CelParser parser, CelChecker checker) {
     return new CelCompilerImpl(parser, checker);
   }
@@ -111,8 +118,11 @@ public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
     return new Builder(parserBuilder, checkerBuilder);
   }
 
-  /** Builder for {@code CelCompilerImpl} */
+  /**
+   * Builder for {@code CelCompilerImpl}
+   */
   public static final class Builder implements CelCompilerBuilder {
+
     private final CelParserBuilder parserBuilder;
     private final CelCheckerBuilder checkerBuilder;
 

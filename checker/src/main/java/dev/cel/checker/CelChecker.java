@@ -17,8 +17,11 @@ package dev.cel.checker;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelValidationResult;
+import dev.cel.common.types.CelTypeProvider;
 
-/** Public interface for type-checking parsed CEL expressions. */
+/**
+ * Public interface for type-checking parsed CEL expressions.
+ */
 @Immutable
 public interface CelChecker {
 
@@ -28,6 +31,11 @@ public interface CelChecker {
    * <p>Check validates the type-agreement of the parsed {@code CelAbstractSyntaxTree}.
    */
   CelValidationResult check(CelAbstractSyntaxTree ast);
+
+  /**
+   * TODO
+   */
+  CelTypeProvider getTypeProvider();
 
   CelCheckerBuilder toCheckerBuilder();
 }

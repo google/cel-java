@@ -11,14 +11,12 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelBuilder;
-import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
-import dev.cel.common.types.CelTypeProvider.NoOpTypeProvider;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
@@ -73,13 +71,12 @@ public abstract class CelPolicyConfig {
         ;
   }
 
-  public Cel toCel(CelOptions celOptions) throws CelPolicyValidationException {
-    return toCel(celOptions, NoOpTypeProvider.INSTANCE);
-  }
-
-  public Cel toCel(CelOptions celOptions, CelTypeProvider celTypeProvider)
-      throws CelPolicyValidationException {
-    CelBuilder celBuilder = CelFactory.standardCelBuilder()
+  /**
+   * TODO
+   */
+  public Cel extend(Cel cel, CelOptions celOptions) throws CelPolicyValidationException {
+    CelTypeProvider celTypeProvider = cel.getTypeProvider();
+    CelBuilder celBuilder = cel.toCelBuilder()
         .setTypeProvider(celTypeProvider)
         .setContainer(container())
         .addVarDeclarations(

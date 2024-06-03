@@ -42,28 +42,6 @@ public interface CelTypeProvider {
   Optional<CelType> findType(String typeName);
 
   /**
-   * TODO
-   */
-  @Immutable
-  final class NoOpTypeProvider implements CelTypeProvider {
-
-    public static final NoOpTypeProvider INSTANCE = new NoOpTypeProvider();
-
-    @Override
-    public ImmutableList<CelType> types() {
-      return ImmutableList.of();
-    }
-
-    @Override
-    public Optional<CelType> findType(String typeName) {
-      return Optional.empty();
-    }
-
-    private NoOpTypeProvider() {
-    }
-  }
-
-  /**
    * The {@code CombinedCelTypeProvider} implements the {@code CelTypeProvider} interface by merging
    * the {@code CelType} instances supported by each together.
    *

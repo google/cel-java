@@ -75,6 +75,7 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
   @SuppressWarnings("Immutable")
   private final TypeProvider typeProvider;
 
+  private final CelTypeProvider celTypeProvider;
   private final boolean standardEnvironmentEnabled;
 
   // Builder is mutable by design. APIs must make defensive copies in and out of this class.
@@ -96,6 +97,11 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
       return new CelValidationResult(source, errorsToIssues(errors));
     }
     return new CelValidationResult(checkedAst, ImmutableList.of());
+  }
+
+  @Override
+  public CelTypeProvider getTypeProvider() {
+    return this.celTypeProvider;
   }
 
   @Override
@@ -139,12 +145,16 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     return env;
   }
 
-  /** Create a new builder to construct a {@code CelChecker} instance. */
+  /**
+   * Create a new builder to construct a {@code CelChecker} instance.
+   */
   public static CelCheckerBuilder newBuilder() {
     return new Builder();
   }
 
-  /** Builder class for the legacy {@code CelChecker} implementation. */
+  /**
+   * Builder class for the legacy {@code CelChecker} implementation.
+   */
   public static final class Builder implements CelCheckerBuilder {
 
     private final ImmutableSet.Builder<CelIdentDecl> identDeclarations;
@@ -422,6 +432,7 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
           functionDeclarations.build(),
           Optional.fromNullable(expectedResultType),
           legacyProvider,
+          messageTypeProvider,
           standardEnvironmentEnabled,
           this);
     }
@@ -469,6 +480,7 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
       ImmutableSet<CelFunctionDecl> functionDeclarations,
       Optional<CelType> expectedResultType,
       TypeProvider typeProvider,
+      CelTypeProvider celTypeProvider,
       boolean standardEnvironmentEnabled,
       Builder checkerBuilder) {
     this.celOptions = celOptions;
@@ -477,6 +489,7 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     this.functionDeclarations = functionDeclarations;
     this.expectedResultType = expectedResultType;
     this.typeProvider = typeProvider;
+    this.celTypeProvider = celTypeProvider;
     this.standardEnvironmentEnabled = standardEnvironmentEnabled;
     this.checkerBuilder = new Builder(checkerBuilder);
   }
