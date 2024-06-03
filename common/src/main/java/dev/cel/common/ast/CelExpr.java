@@ -34,6 +34,7 @@ import java.util.Optional;
  * <p>This is the native type equivalent of Expr message in syntax.proto.
  */
 @AutoValue
+@AutoValue.CopyAnnotations
 @Immutable
 @SuppressWarnings("unchecked") // Class ensures only the super type is used
 public abstract class CelExpr implements Expression {
