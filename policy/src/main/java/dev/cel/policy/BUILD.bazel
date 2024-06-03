@@ -58,6 +58,7 @@ java_library(
     deps = [
         ":policy",
         ":policy_parser",
+        ":yaml_helper",
         "//common",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -102,7 +103,17 @@ java_library(
     deps = [
         ":policy_config",
         ":policy_exception",
+        ":yaml_helper",
         "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",
+    ],
+)
+
+java_library(
+    name = "yaml_helper",
+    srcs = ["YamlHelper.java"],
+    visibility = ["//visibility:private"],
+    deps = [
+        "@maven//:com_google_guava_guava",
     ],
 )

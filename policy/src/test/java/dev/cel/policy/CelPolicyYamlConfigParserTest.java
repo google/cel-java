@@ -236,7 +236,7 @@ public final class CelPolicyYamlConfigParserTest {
         + "    overloads:\n"
         + "      - id: 'zero_arity'\n", "Missing required attribute: return"),
     MISSING_FUNCTION_NAME("functions:\n"
-        + "  - name: 'missing_overload'\n", "Missing required attribute: overloads"),
+        + "  - overloads: ", "Missing required attribute: name"),
     MISSING_OVERLOAD("functions:\n"
         + "  - name: 'missing_overload'\n", "Missing required attribute: overloads"),
     MISSING_EXTENSION_NAME("extensions:\n"

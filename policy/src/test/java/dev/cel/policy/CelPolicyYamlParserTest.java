@@ -16,6 +16,7 @@ package dev.cel.policy;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import com.google.common.base.Ascii;
 import com.google.common.io.Resources;
@@ -35,12 +36,19 @@ public final class CelPolicyYamlParserTest {
       throws Exception {
     String yamlFileLocation = String.format("%s/policy.yaml", policyTestcase.name);
     String yamlContent = readFile(yamlFileLocation);
-    CelPolicySource policySource = CelPolicySource.create(yamlContent, yamlContent);
+    CelPolicySource policySource = CelPolicySource.create(yamlContent, yamlFileLocation);
 
     CelPolicy policy = YAML_POLICY_PARSER.parse(policySource);
 
     assertThat(policy.name()).isEqualTo(policy.name());
     assertThat(policy.policySource()).isEqualTo(policySource);
+  }
+
+  @Test
+  public void parseYamlPolicy_throws(@TestParameter PolicyParseErrorTestCase testCase) {
+    CelPolicySource policySource = CelPolicySource.create(testCase.yamlPolicy, "error-loc");
+
+    assertThrows(CelPolicyValidationException.class, () -> YAML_POLICY_PARSER.parse(policySource));
   }
 
   private enum PolicyTestCase {
@@ -52,6 +60,19 @@ public final class CelPolicyYamlParserTest {
 
     PolicyTestCase(String name) {
       this.name = name;
+    }
+  }
+
+  private enum PolicyParseErrorTestCase {
+    ILLEGAL_YAML_TYPE("name: \n"
+        + "  illegal: yaml-type", "");
+
+    private final String yamlPolicy;
+    private final String expectedErrorMessage;
+
+    PolicyParseErrorTestCase(String yamlPolicy, String expectedErrorMessage) {
+      this.yamlPolicy = yamlPolicy;
+      this.expectedErrorMessage = expectedErrorMessage;
     }
   }
 

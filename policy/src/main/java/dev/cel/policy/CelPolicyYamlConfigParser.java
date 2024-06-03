@@ -1,7 +1,10 @@
 package dev.cel.policy;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static dev.cel.policy.YamlHelper.getListOfMapsOrDefault;
+import static dev.cel.policy.YamlHelper.getListOfMapsOrThrow;
+import static dev.cel.policy.YamlHelper.getMapOrThrow;
+import static dev.cel.policy.YamlHelper.getOrThrow;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -47,7 +50,7 @@ public final class CelPolicyYamlConfigParser {
     List<Map<String, Object>> variableList = getListOfMapsOrDefault(yamlMap, "variables");
     for (Map<String, Object> variableMap : variableList) {
       variableSetBuilder.add(VariableDecl.create(
-          getStringOrThrow(variableMap, "name"),
+          getOrThrow(variableMap, "name", String.class),
           parseTypeDecl(getMapOrThrow(variableMap, "type"))
       ));
     }
@@ -60,7 +63,7 @@ public final class CelPolicyYamlConfigParser {
     List<Map<String, Object>> functionList = getListOfMapsOrDefault(yamlMap, "functions");
     for (Map<String, Object> functionMap : functionList) {
       functionSetBuilder.add(FunctionDecl.create(
-          (String) functionMap.getOrDefault("name", ""),
+          getOrThrow(functionMap, "name", String.class),
           parseOverloads(functionMap)
       ));
     }
@@ -94,7 +97,7 @@ public final class CelPolicyYamlConfigParser {
     List<Map<String, Object>> extensionList = getListOfMapsOrDefault(yamlMap,
         "extensions");
     for (Map<String, Object> extensionMap : extensionList) {
-      String name = getStringOrThrow(extensionMap, "name");
+      String name = getOrThrow(extensionMap, "name", String.class);
       int version = (int) extensionMap.getOrDefault("version", 0);
 
       extensionConfigBuilder.add(ExtensionConfig.of(name, version));
@@ -122,33 +125,6 @@ public final class CelPolicyYamlConfigParser {
     }
 
     return builder.build();
-  }
-
-  private static String getStringOrThrow(Map<String, Object> map, String key) {
-    checkRequiredAttributeExists(map, key);
-    return (String) map.get(key);
-  }
-
-  private static Map<String, Object> getMapOrThrow(Map<String, Object> map, String key) {
-    checkRequiredAttributeExists(map, key);
-    return (Map<String, Object>) map.get(key);
-  }
-
-  private static List<Map<String, Object>> getListOfMapsOrThrow(Map<String, Object> map,
-      String key) {
-    checkRequiredAttributeExists(map, key);
-    return (List<Map<String, Object>>) map.get(key);
-  }
-
-  private static void checkRequiredAttributeExists(Map<String, Object> map, String key) {
-    if (!map.containsKey(key)) {
-      throw new IllegalArgumentException("Missing required attribute: " + key);
-    }
-  }
-
-  private static List<Map<String, Object>> getListOfMapsOrDefault(Map<String, Object> map,
-      String key) {
-    return (List<Map<String, Object>>) map.getOrDefault(key, ImmutableList.of());
   }
 
   private static Map<String, Object> parseYamlSource(String content) {
