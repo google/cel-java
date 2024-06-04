@@ -59,3 +59,9 @@ java_library(
     name = "proto_json_adapter",
     exports = ["//common/src/main/java/dev/cel/common:proto_json_adapter"],
 )
+
+java_library(
+    name = "source",
+    # TODO: Internal visibility
+    exports = ["//common/src/main/java/dev/cel/common:source"],
+)

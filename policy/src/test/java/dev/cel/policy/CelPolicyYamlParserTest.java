@@ -36,7 +36,8 @@ public final class CelPolicyYamlParserTest {
       throws Exception {
     String yamlFileLocation = String.format("%s/policy.yaml", policyTestcase.name);
     String yamlContent = readFile(yamlFileLocation);
-    CelPolicySource policySource = CelPolicySource.create(yamlContent, yamlFileLocation);
+    CelPolicySource policySource = CelPolicySource.newBuilder().setContent(yamlContent)
+        .setDescription(yamlFileLocation).build();
 
     CelPolicy policy = YAML_POLICY_PARSER.parse(policySource);
 
@@ -46,7 +47,8 @@ public final class CelPolicyYamlParserTest {
 
   @Test
   public void parseYamlPolicy_errors(@TestParameter PolicyParseErrorTestCase testCase) {
-    CelPolicySource policySource = CelPolicySource.create(testCase.yamlPolicy, "error-loc");
+    CelPolicySource policySource = CelPolicySource.newBuilder().setContent(testCase.yamlPolicy)
+        .build();
 
     CelPolicyValidationException e = assertThrows(CelPolicyValidationException.class,
         () -> YAML_POLICY_PARSER.parse(policySource));
@@ -68,7 +70,7 @@ public final class CelPolicyYamlParserTest {
   private enum PolicyParseErrorTestCase {
     ILLEGAL_YAML_TYPE("name: \n"
         + "  illegal: yaml-type",
-        "ERROR: <input>:3:3: got yaml node type tag:yaml.org,2002:map, wanted type(s) [tag:yaml.org,2002:str !txt]\n"
+        "ERROR: <input>:2:3: got yaml node type tag:yaml.org,2002:map, wanted type(s) [tag:yaml.org,2002:str !txt]\n"
             + " |   illegal: yaml-type\n"
             + " | ..^");
 

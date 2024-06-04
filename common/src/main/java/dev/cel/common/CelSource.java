@@ -34,9 +34,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** Represents the source content of an expression and related metadata. */
+/**
+ * Represents the source content of an expression and related metadata.
+ */
 @Immutable
-public final class CelSource {
+public final class CelSource implements Source {
+
   private static final Splitter LINE_SPLITTER = Splitter.on('\n');
 
   private final CelCodePointArray codePoints;
@@ -59,8 +62,17 @@ public final class CelSource {
     return codePoints;
   }
 
-  public String getDescription() {
+  @Override
+  public String description() {
     return description;
+  }
+
+  /**
+   * @deprecated Use {@link #description()} instead.
+   */
+  @Deprecated
+  public String getDescription() {
+    return description();
   }
 
   public ImmutableMap<Long, Integer> getPositionsMap() {
@@ -85,15 +97,17 @@ public final class CelSource {
     return extensions;
   }
 
-  /** See {@link #getLocationOffset(int, int)}. */
+  /**
+   * See {@link #getLocationOffset(int, int)}.
+   */
   public Optional<Integer> getLocationOffset(CelSourceLocation location) {
     checkNotNull(location);
     return getLocationOffset(location.getLine(), location.getColumn());
   }
 
   /**
-   * Get the code point offset within the source expression text that corresponds with the {@code
-   * line} and {@code column}.
+   * Get the code point offset within the source expression text that corresponds with the
+   * {@code line} and {@code column}.
    *
    * @param line the line number starting from 1
    * @param column the column number starting from 0
@@ -114,6 +128,7 @@ public final class CelSource {
    *
    * @param line the line number starting from 1.
    */
+  @Override
   public Optional<String> getSnippet(int line) {
     checkArgument(line > 0);
     int start = findLineOffset(lineOffsets, line);
@@ -130,8 +145,8 @@ public final class CelSource {
   }
 
   /**
-   * Get the code point offset within the source expression text that corresponds with the {@code
-   * line} and {@code column}.
+   * Get the code point offset within the source expression text that corresponds with the
+   * {@code line} and {@code column}.
    *
    * @param line the line number starting from 1
    * @param column the column number starting from 0
@@ -203,7 +218,9 @@ public final class CelSource {
     return new Builder(CelCodePointArray.fromString(text), lineOffsets);
   }
 
-  /** Builder for {@link CelSource}. */
+  /**
+   * Builder for {@link CelSource}.
+   */
   public static final class Builder {
 
     private final CelCodePointArray codePoints;
@@ -309,15 +326,17 @@ public final class CelSource {
       return addAllExtensions(Arrays.asList(extensions));
     }
 
-    /** See {@link #getLocationOffset(int, int)}. */
+    /**
+     * See {@link #getLocationOffset(int, int)}.
+     */
     public Optional<Integer> getLocationOffset(CelSourceLocation location) {
       checkNotNull(location);
       return getLocationOffset(location.getLine(), location.getColumn());
     }
 
     /**
-     * Get the code point offset within the source expression text that corresponds with the {@code
-     * line} and {@code column}.
+     * Get the code point offset within the source expression text that corresponds with the
+     * {@code line} and {@code column}.
      *
      * @param line the line number starting from 1
      * @param column the column number starting from 0
@@ -327,8 +346,8 @@ public final class CelSource {
     }
 
     /**
-     * Get the line and column in the source expression text for the given code point {@code
-     * offset}.
+     * Get the line and column in the source expression text for the given code point
+     * {@code offset}.
      */
     public Optional<CelSourceLocation> getOffsetLocation(int offset) {
       return getOffsetLocationImpl(lineOffsets, offset);
@@ -376,7 +395,9 @@ public final class CelSource {
   @Immutable
   public abstract static class Extension {
 
-    /** Identifier for the extension. Example: constant_folding */
+    /**
+     * Identifier for the extension. Example: constant_folding
+     */
     abstract String id();
 
     /**
@@ -391,7 +412,9 @@ public final class CelSource {
      */
     abstract ImmutableList<Component> affectedComponents();
 
-    /** Version of the extension */
+    /**
+     * Version of the extension
+     */
     @AutoValue
     @Immutable
     public abstract static class Version {
@@ -408,21 +431,33 @@ public final class CelSource {
        */
       abstract long minor();
 
-      /** Create a new instance of Version with the provided major and minor values. */
+      /**
+       * Create a new instance of Version with the provided major and minor values.
+       */
       public static Version of(long major, long minor) {
         return new AutoValue_CelSource_Extension_Version(major, minor);
       }
     }
 
-    /** CEL component specifier. */
+    /**
+     * CEL component specifier.
+     */
     public enum Component {
-      /** Unspecified, default. */
+      /**
+       * Unspecified, default.
+       */
       COMPONENT_UNSPECIFIED,
-      /** Parser. Converts a CEL string to an AST. */
+      /**
+       * Parser. Converts a CEL string to an AST.
+       */
       COMPONENT_PARSER,
-      /** Type checker. Checks that references in an AST are defined and types agree. */
+      /**
+       * Type checker. Checks that references in an AST are defined and types agree.
+       */
       COMPONENT_TYPE_CHECKER,
-      /** Runtime. Evaluates a parsed and optionally checked CEL AST against a context. */
+      /**
+       * Runtime. Evaluates a parsed and optionally checked CEL AST against a context.
+       */
       COMPONENT_RUNTIME;
     }
 

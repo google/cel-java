@@ -4,12 +4,28 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 final class YamlHelper {
+
+  enum YamlNodeType {
+    MAP("tag:yaml.org,2002:map"),
+    STRING("tag:yaml.org,2002:str"),
+    LIST("tag:yaml.org,2002:seq"),
+    ;
+
+    private final String tag;
+
+    String tag() {
+      return tag;
+    }
+
+    YamlNodeType(String tag) {
+      this.tag = tag;
+    }
+  }
 
   private static final ImmutableMap<Class<?>, String> YAML_TYPES = ImmutableMap.of(
       String.class, "tag:yaml.org,2002:str !txt",
@@ -35,14 +51,14 @@ final class YamlHelper {
   }
 
   static Map<String, Object> getMapOrThrow(Map<String, Object> map, String key) {
-    checkRequiredAttributeExists(map, key);
-    return (Map<String, Object>) map.get(key);
+    Class<Map<String, Object>> clazz = (Class<Map<String, Object>>) (Class) Map.class;
+    return getOrThrow(map, key, clazz);
   }
 
   static List<Map<String, Object>> getListOfMapsOrThrow(Map<String, Object> map,
       String key) {
-    checkRequiredAttributeExists(map, key);
-    return (List<Map<String, Object>>) map.get(key);
+    Class<List<Map<String, Object>>> clazz = (Class<List<Map<String, Object>>>) (Class) List.class;
+    return getOrThrow(map, key, clazz);
   }
 
   static void checkRequiredAttributeExists(Map<String, Object> map, String key) {

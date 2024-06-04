@@ -14,6 +14,7 @@ java_library(
     deps = [
         "//:auto_value",
         "//common",
+        "//common:source",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
@@ -86,6 +87,7 @@ java_library(
         ":policy_parser",
         ":yaml_helper",
         "//common",
+        "//common:compiler_common",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",

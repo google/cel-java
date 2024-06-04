@@ -34,9 +34,18 @@ public abstract class CelPolicy {
 
   abstract CelPolicySource policySource();
 
-  public static Builder newBuilder(CelPolicySource policySource) {
-    return new AutoValue_CelPolicy.Builder().setPolicySource(policySource);
+  public static Builder newBuilder() {
+    return new AutoValue_CelPolicy.Builder()
+        .setName(ValueString.of(0, ""))
+        .setRule(Rule.newBuilder().build());
   }
+
+  // public static Builder newBuilder(CelPolicySource policySource) {
+  //   return new AutoValue_CelPolicy.Builder()
+  //       .setName(ValueString.of(0, ""))
+  //       .setPolicySource(policySource)
+  //       .setRule(Rule.newBuilder().build());
+  // }
 
   @AutoValue.Builder
   public abstract static class Builder {
@@ -143,8 +152,23 @@ public abstract class CelPolicy {
 
     abstract String value();
 
+
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract Builder setId(long id);
+
+      public abstract Builder setValue(String value);
+
+      public abstract ValueString build();
+    }
+
+    static Builder newBuilder() {
+      return new AutoValue_CelPolicy_ValueString.Builder().setId(0).setValue("");
+    }
+
     static ValueString of(long id, String value) {
-      return new AutoValue_CelPolicy_ValueString(id, value);
+      return newBuilder().setId(id).setValue(value).build();
     }
   }
 }

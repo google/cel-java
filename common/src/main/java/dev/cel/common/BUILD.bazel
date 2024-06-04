@@ -39,6 +39,7 @@ java_library(
     ],
     deps = [
         ":error_codes",
+        ":source",
         "//:auto_value",
         "//common/annotations",
         "//common/ast",
@@ -62,6 +63,7 @@ java_library(
     ],
     deps = [
         ":common",
+        ":source",
         "//:auto_value",
         "//common/annotations",
         "//common/internal:safe_string_formatter",
@@ -173,5 +175,13 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
+    ],
+)
+
+java_library(
+    name = "source",
+    srcs = ["Source.java"],
+    deps = [
+        "//common/annotations",
     ],
 )
