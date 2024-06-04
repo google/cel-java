@@ -45,10 +45,12 @@ public final class CelPolicyYamlParserTest {
   }
 
   @Test
-  public void parseYamlPolicy_throws(@TestParameter PolicyParseErrorTestCase testCase) {
+  public void parseYamlPolicy_errors(@TestParameter PolicyParseErrorTestCase testCase) {
     CelPolicySource policySource = CelPolicySource.create(testCase.yamlPolicy, "error-loc");
 
-    assertThrows(CelPolicyValidationException.class, () -> YAML_POLICY_PARSER.parse(policySource));
+    CelPolicyValidationException e = assertThrows(CelPolicyValidationException.class,
+        () -> YAML_POLICY_PARSER.parse(policySource));
+    assertThat(e).hasMessageThat().isEqualTo(testCase.expectedErrorMessage);
   }
 
   private enum PolicyTestCase {
@@ -65,7 +67,10 @@ public final class CelPolicyYamlParserTest {
 
   private enum PolicyParseErrorTestCase {
     ILLEGAL_YAML_TYPE("name: \n"
-        + "  illegal: yaml-type", "");
+        + "  illegal: yaml-type",
+        "ERROR: <input>:3:3: got yaml node type tag:yaml.org,2002:map, wanted type(s) [tag:yaml.org,2002:str !txt]\n"
+            + " |   illegal: yaml-type\n"
+            + " | ..^");
 
     private final String yamlPolicy;
     private final String expectedErrorMessage;

@@ -33,6 +33,7 @@ java_library(
     name = "policy_config",
     srcs = [
         "CelPolicyConfig.java",
+        "CelPolicyConfigSource.java",
     ],
     deps = [
         ":policy_exception",
@@ -51,12 +52,37 @@ java_library(
 )
 
 java_library(
+    name = "policy_config_parser",
+    srcs = [
+        "CelPolicyConfigParser.java",
+    ],
+    deps = [
+        ":policy_config",
+        ":policy_exception",
+    ],
+)
+
+java_library(
+    name = "policy_parser_factory",
+    srcs = ["CelPolicyParserFactory.java"],
+    deps = [
+        ":policy",
+        ":policy_config",
+        ":policy_config_parser",
+        ":policy_parser",
+        ":yaml_policy_config_parser",
+        ":yaml_policy_parser",
+    ],
+)
+
+java_library(
     name = "yaml_policy_parser",
     srcs = [
         "CelPolicyYamlParser.java",
     ],
     deps = [
         ":policy",
+        ":policy_exception",
         ":policy_parser",
         ":yaml_helper",
         "//common",
@@ -73,6 +99,7 @@ java_library(
     ],
     deps = [
         ":policy",
+        ":policy_exception",
     ],
 )
 
@@ -102,6 +129,7 @@ java_library(
     ],
     deps = [
         ":policy_config",
+        ":policy_config_parser",
         ":policy_exception",
         ":yaml_helper",
         "@maven//:com_google_guava_guava",

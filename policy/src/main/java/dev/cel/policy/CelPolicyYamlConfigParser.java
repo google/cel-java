@@ -19,9 +19,10 @@ import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
-public final class CelPolicyYamlConfigParser {
+final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
 
-  public static CelPolicyConfig parse(String content) throws CelPolicyValidationException {
+  @Override
+  public CelPolicyConfig parse(String content) throws CelPolicyValidationException {
     try {
       Map<String, Object> yamlMap = parseYamlSource(content);
 
@@ -131,6 +132,10 @@ public final class CelPolicyYamlConfigParser {
     Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
 
     return yaml.load(content);
+  }
+
+  static CelPolicyYamlConfigParser newInstance() {
+    return new CelPolicyYamlConfigParser();
   }
 
   private CelPolicyYamlConfigParser() {

@@ -4,20 +4,22 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 final class YamlHelper {
 
   private static final ImmutableMap<Class<?>, String> YAML_TYPES = ImmutableMap.of(
-      String.class, "!txt",
+      String.class, "tag:yaml.org,2002:str !txt",
       Boolean.class, "tag:yaml.org,2002:bool",
       // "tag:yaml.org,2002:null":      yamlNull,
       // "tag:yaml.org,2002:str":       yamlString,
       Integer.class, "tag:yaml.org,2002:int",
       Double.class, "tag:yaml.org,2002:float",
       List.class, "tag:yaml.org,2002:seq",
-      Map.class, "tag:yaml.org,2002:map"
+      LinkedHashMap.class, "tag:yaml.org,2002:map"
       // Timestamp.class, "tag:yaml.org,2002:timestamp"
   );
 
