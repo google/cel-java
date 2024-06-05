@@ -209,12 +209,19 @@ public final class CelSource implements Source {
   }
 
   public static Builder newBuilder(String text) {
+    // TODO: Remove logic
     List<Integer> lineOffsets = new ArrayList<>();
     int lineOffset = 0;
     for (String line : LINE_SPLITTER.split(text)) {
       lineOffset += (int) (line.codePoints().count() + 1);
       lineOffsets.add(lineOffset);
     }
+
+    CelCodePointArray celCodePointArray = CelCodePointArray.fromString(text);
+    if (!celCodePointArray.lineOffsets().equals(lineOffsets)) {
+      throw new IllegalStateException("Line offsets must be equal!");
+    }
+
     return new Builder(CelCodePointArray.fromString(text), lineOffsets);
   }
 

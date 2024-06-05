@@ -14,6 +14,7 @@
 
 package dev.cel.common.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.DoNotCall;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
@@ -29,7 +30,8 @@ final class EmptyCodePointArray extends CelCodePointArray {
 
   static final EmptyCodePointArray INSTANCE = new EmptyCodePointArray();
 
-  private EmptyCodePointArray() {}
+  private EmptyCodePointArray() {
+  }
 
   @Override
   public BasicCodePointArray slice(int i, int j) {
@@ -53,6 +55,11 @@ final class EmptyCodePointArray extends CelCodePointArray {
   @Override
   public int size() {
     return 0;
+  }
+
+  @Override
+  public ImmutableList<Integer> lineOffsets() {
+    return ImmutableList.of();
   }
 
   @Override

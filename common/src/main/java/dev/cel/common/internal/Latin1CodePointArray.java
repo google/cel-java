@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkPositionIndexes;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
 
@@ -38,21 +39,24 @@ public final class Latin1CodePointArray extends CelCodePointArray {
 
   private final int offset;
   private final int size;
+  private final ImmutableList<Integer> lineOffsets;
 
-  Latin1CodePointArray(byte[] codePoints, int size) {
-    this(codePoints, 0, size);
+  Latin1CodePointArray(byte[] codePoints, int size, ImmutableList<Integer> lineOffsets) {
+    this(codePoints, 0, lineOffsets, size);
   }
 
-  Latin1CodePointArray(byte[] codePoints, int offset, int size) {
+  Latin1CodePointArray(byte[] codePoints, int offset, ImmutableList<Integer> lineOffsets,
+      int size) {
     this.codePoints = checkNotNull(codePoints);
     this.offset = offset;
     this.size = size;
+    this.lineOffsets = lineOffsets;
   }
 
   @Override
   public Latin1CodePointArray slice(int i, int j) {
     checkPositionIndexes(i, j, size());
-    return new Latin1CodePointArray(codePoints, offset + i, j - i);
+    return new Latin1CodePointArray(codePoints, offset + i, lineOffsets, j - i);
   }
 
   @Override
@@ -64,6 +68,11 @@ public final class Latin1CodePointArray extends CelCodePointArray {
   @Override
   public int size() {
     return size;
+  }
+
+  @Override
+  public ImmutableList<Integer> lineOffsets() {
+    return lineOffsets;
   }
 
   @Override

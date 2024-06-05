@@ -16,6 +16,7 @@ package dev.cel.common.internal;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
+import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
 import java.util.PrimitiveIterator;
@@ -29,23 +30,39 @@ import java.util.PrimitiveIterator;
 @Internal
 public abstract class CelCodePointArray {
 
-  // Package-private default constructor to prevent extensions outside of the codebase.
-  CelCodePointArray() {}
+  private static final int NEWLINE_CODE_POINT = 10;
 
-  /** Returns a new {@link CelCodePointArray} that is a subview of this between [i, j). */
+  // Package-private default constructor to prevent extensions outside of the codebase.
+  CelCodePointArray() {
+  }
+
+  /**
+   * Returns a new {@link CelCodePointArray} that is a subview of this between [i, j).
+   */
   public abstract CelCodePointArray slice(int i, int j);
 
-  /** Get the code point at the given index. */
+  /**
+   * Get the code point at the given index.
+   */
   public abstract int get(int index);
 
-  /** Returns the number of code points. */
+  /**
+   * Returns the number of code points.
+   */
   public abstract int size();
+
+  /**
+   * Returns the line offsets.
+   */
+  public abstract ImmutableList<Integer> lineOffsets();
 
   public final int length() {
     return size();
   }
 
-  /** Returns true if empty, false otherwise. */
+  /**
+   * Returns true if empty, false otherwise.
+   */
   public boolean isEmpty() {
     return length() == 0;
   }
@@ -60,10 +77,17 @@ public abstract class CelCodePointArray {
     PrimitiveIterator.OfInt codePoints = text.codePoints().iterator();
     byte[] byteArray = new byte[text.length()];
     int byteIndex = 0;
+
+    ImmutableList.Builder<Integer> lineOffsetBuilder = ImmutableList.builder();
+    int lineOffsetCodePoints = 1;
     while (codePoints.hasNext()) {
       int codePoint = codePoints.nextInt();
+      lineOffsetCodePoints++;
       if (codePoint <= 0xff) {
         byteArray[byteIndex++] = (byte) codePoint;
+        if (codePoint == NEWLINE_CODE_POINT) {
+          lineOffsetBuilder.add(lineOffsetCodePoints);
+        }
         continue;
       }
       if (codePoint <= 0xffff) {
@@ -91,9 +115,13 @@ public abstract class CelCodePointArray {
             codePoint = codePoints.nextInt();
             intArray[intIndex++] = codePoint;
           }
-          return new SupplementalCodePointArray(intArray, intIndex);
+
+          return new SupplementalCodePointArray(intArray, intIndex,
+              lineOffsetBuilder.add(lineOffsetCodePoints).build());
         }
-        return new BasicCodePointArray(charArray, charIndex);
+
+        return new BasicCodePointArray(charArray, charIndex,
+            lineOffsetBuilder.add(lineOffsetCodePoints).build());
       }
       int[] intArray = new int[text.length()];
       int intIndex = 0;
@@ -106,8 +134,12 @@ public abstract class CelCodePointArray {
         codePoint = codePoints.nextInt();
         intArray[intIndex++] = codePoint;
       }
-      return new SupplementalCodePointArray(intArray, intIndex);
+
+      return new SupplementalCodePointArray(intArray, intIndex,
+          lineOffsetBuilder.add(lineOffsetCodePoints).build());
     }
-    return new Latin1CodePointArray(byteArray, byteIndex);
+
+    return new Latin1CodePointArray(byteArray, byteIndex,
+        lineOffsetBuilder.add(lineOffsetCodePoints).build());
   }
 }
