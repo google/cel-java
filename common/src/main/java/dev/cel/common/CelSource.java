@@ -58,7 +58,16 @@ public final class CelSource implements Source {
     this.extensions = checkNotNull(builder.extensions.build());
   }
 
+  /**
+   * @deprecated Use {@link #content()} instead.
+   */
+  @Deprecated
   public CelCodePointArray getContent() {
+    return content();
+  }
+
+  @Override
+  public CelCodePointArray content() {
     return codePoints;
   }
 

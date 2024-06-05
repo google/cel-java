@@ -1,6 +1,7 @@
 package dev.cel.common;
 
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.internal.CelCodePointArray;
 import java.util.Optional;
 
 /**
@@ -11,6 +12,8 @@ import java.util.Optional;
  */
 @Internal
 public interface Source {
+
+  CelCodePointArray content();
 
   String description();
 

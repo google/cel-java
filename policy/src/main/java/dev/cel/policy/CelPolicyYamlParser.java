@@ -138,7 +138,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
 
       Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
 
-      return yaml.compose(new StringReader(policySource.content()));
+      return yaml.compose(new StringReader(policySource.content().toString()));
 
       // TODO: Add test for disallowing multple yaml doc
 
@@ -234,7 +234,8 @@ final class CelPolicyYamlParser implements CelPolicyParser {
     }
 
     private static CelSource fromPolicySource(CelPolicySource policySource) {
-      return CelSource.newBuilder(policySource.content())
+      // TODO: Overload for accepting code point directly?
+      return CelSource.newBuilder(policySource.content().toString())
           .setDescription(policySource.description())
           .build();
     }

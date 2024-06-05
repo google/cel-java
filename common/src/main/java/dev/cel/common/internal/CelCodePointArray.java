@@ -86,7 +86,7 @@ public abstract class CelCodePointArray {
       if (codePoint <= 0xff) {
         byteArray[byteIndex++] = (byte) codePoint;
         if (codePoint == NEWLINE_CODE_POINT) {
-          lineOffsetBuilder.add(lineOffsetCodePoints);
+          lineOffsetBuilder.add(lineOffsetCodePoints - 1);
         }
         continue;
       }

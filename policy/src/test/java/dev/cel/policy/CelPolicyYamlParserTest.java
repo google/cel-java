@@ -36,7 +36,7 @@ public final class CelPolicyYamlParserTest {
       throws Exception {
     String yamlFileLocation = String.format("%s/policy.yaml", policyTestcase.name);
     String yamlContent = readFile(yamlFileLocation);
-    CelPolicySource policySource = CelPolicySource.newBuilder().setContent(yamlContent)
+    CelPolicySource policySource = CelPolicySource.newBuilder(yamlContent)
         .setDescription(yamlFileLocation).build();
 
     CelPolicy policy = YAML_POLICY_PARSER.parse(policySource);
@@ -47,7 +47,7 @@ public final class CelPolicyYamlParserTest {
 
   @Test
   public void parseYamlPolicy_errors(@TestParameter PolicyParseErrorTestCase testCase) {
-    CelPolicySource policySource = CelPolicySource.newBuilder().setContent(testCase.yamlPolicy)
+    CelPolicySource policySource = CelPolicySource.newBuilder(testCase.yamlPolicy)
         .build();
 
     CelPolicyValidationException e = assertThrows(CelPolicyValidationException.class,

@@ -183,5 +183,6 @@ java_library(
     srcs = ["Source.java"],
     deps = [
         "//common/annotations",
+        "//common/internal",
     ],
 )
