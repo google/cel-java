@@ -8,7 +8,6 @@ import dev.cel.common.CelIssue;
 import dev.cel.common.CelSource;
 import dev.cel.common.CelSourceLocation;
 import dev.cel.policy.CelPolicy.Match;
-import dev.cel.policy.CelPolicy.Rule;
 import dev.cel.policy.CelPolicy.ValueString;
 import dev.cel.policy.CelPolicy.Variable;
 import dev.cel.policy.YamlHelper.YamlNodeType;
@@ -16,7 +15,6 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -194,14 +192,16 @@ final class CelPolicyYamlParser implements CelPolicyParser {
             break;
           case "output":
             matchBuilder.result()
-                    .filter(result -> result.kind().equals(Match.Result.Kind.RULE))
-                    .ifPresent(result -> ctx.reportError(tagId, "Only the rule or the output may be set"));
+                .filter(result -> result.kind().equals(Match.Result.Kind.RULE))
+                .ifPresent(
+                    result -> ctx.reportError(tagId, "Only the rule or the output may be set"));
             matchBuilder.setResult(Match.Result.ofOutput(newString(ctx, value)));
             break;
           case "rule":
             matchBuilder.result()
-                    .filter(result -> result.kind().equals(Match.Result.Kind.OUTPUT))
-                    .ifPresent(result -> ctx.reportError(tagId, "Only the rule or the output may be set"));
+                .filter(result -> result.kind().equals(Match.Result.Kind.OUTPUT))
+                .ifPresent(
+                    result -> ctx.reportError(tagId, "Only the rule or the output may be set"));
             matchBuilder.setResult(Match.Result.ofRule(parseRule(ctx, value)));
             break;
           default:
@@ -321,35 +321,29 @@ final class CelPolicyYamlParser implements CelPolicyParser {
     }
   }
 
-  private static class DefaultTagVisitor implements TagVisitor<Node> {
+  static final class Builder implements CelPolicyParserBuilder<Node> {
 
-    @Override
-    public void visitPolicyTag(ParserContext ctx, long id, String fieldName, Node node,
-        CelPolicy.Builder policyBuilder) {
-      ctx.reportError(id, String.format("Unsupported policy tag: %s", fieldName));
+    private TagVisitor<Node> tagVisitor;
+
+    private Builder() {
+      this.tagVisitor = new TagVisitor<Node>() {
+      };
     }
 
     @Override
-    public void visitRuleTag(ParserContext ctx, long id, String fieldName, Node node,
-        Rule.Builder ruleBuilder) {
-      ctx.reportError(id, String.format("Unsupported rule tag: %s", fieldName));
+    public CelPolicyParserBuilder<Node> addTagVisitor(TagVisitor<Node> tagVisitor) {
+      this.tagVisitor = tagVisitor;
+      return this;
     }
 
     @Override
-    public void visitMatchTag(ParserContext ctx, long id, String fieldName, Node node,
-        Match.Builder matchBuilder) {
-      ctx.reportError(id, String.format("Unsupported match tag: %s", fieldName));
-    }
-
-    @Override
-    public void visitVariableTag(ParserContext ctx, long id, String fieldName, Node node,
-        Variable.Builder variableBuilder) {
-      ctx.reportError(id, String.format("Unsupported variable tag: %s", fieldName));
+    public CelPolicyParser build() {
+      return new CelPolicyYamlParser(tagVisitor);
     }
   }
 
-  static CelPolicyParser newInstance() {
-    return new CelPolicyYamlParser(new DefaultTagVisitor());
+  static Builder newBuilder() {
+    return new Builder();
   }
 
   private CelPolicyYamlParser(

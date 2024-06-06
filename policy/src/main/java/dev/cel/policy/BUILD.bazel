@@ -72,8 +72,10 @@ java_library(
         ":policy_config",
         ":policy_config_parser",
         ":policy_parser",
+        ":policy_parser_builder",
         ":yaml_policy_config_parser",
         ":yaml_policy_parser",
+        "@maven//:org_yaml_snakeyaml",
     ],
 )
 
@@ -86,6 +88,7 @@ java_library(
         ":policy",
         ":policy_exception",
         ":policy_parser",
+        ":policy_parser_builder",
         ":yaml_helper",
         "//common",
         "//common:compiler_common",
@@ -103,6 +106,18 @@ java_library(
     deps = [
         ":policy",
         ":policy_exception",
+        "@maven//:org_yaml_snakeyaml",
+    ],
+)
+
+java_library(
+    name = "policy_parser_builder",
+    srcs = [
+        "CelPolicyParserBuilder.java",
+    ],
+    deps = [
+        ":policy_parser",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
 

@@ -11,16 +11,24 @@ public interface CelPolicyParser {
 
   interface TagVisitor<T> {
 
-    void visitPolicyTag(ParserContext ctx, long id, String fieldName, T node,
-        CelPolicy.Builder policyBuilder);
+    default void visitPolicyTag(ParserContext ctx, long id, String fieldName, T node,
+        CelPolicy.Builder policyBuilder) {
+      ctx.reportError(id, String.format("Unsupported policy tag: %s", fieldName));
+    }
 
-    void visitRuleTag(ParserContext ctx, long id, String fieldName, T node,
-        CelPolicy.Rule.Builder ruleBuilder);
+    default void visitRuleTag(ParserContext ctx, long id, String fieldName, T node,
+        CelPolicy.Rule.Builder ruleBuilder) {
+      ctx.reportError(id, String.format("Unsupported rule tag: %s", fieldName));
+    }
 
-    void visitMatchTag(ParserContext ctx, long id, String fieldName, T node,
-        CelPolicy.Match.Builder matchBuilder);
+    default void visitMatchTag(ParserContext ctx, long id, String fieldName, T node,
+        CelPolicy.Match.Builder matchBuilder) {
+      ctx.reportError(id, String.format("Unsupported match tag: %s", fieldName));
+    }
 
-    void visitVariableTag(ParserContext ctx, long id, String fieldName, T node,
-        CelPolicy.Variable.Builder variableBuilder);
+    default void visitVariableTag(ParserContext ctx, long id, String fieldName, T node,
+        CelPolicy.Variable.Builder variableBuilder) {
+      ctx.reportError(id, String.format("Unsupported variable tag: %s", fieldName));
+    }
   }
 }
