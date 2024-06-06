@@ -16,6 +16,7 @@ package dev.cel.policy;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.auto.value.AutoOneOf;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -126,21 +127,38 @@ public abstract class CelPolicy {
   @AutoValue
   abstract static class Match {
 
-    abstract ValueString condition();
+    abstract Optional<ValueString> condition();
 
-    abstract ValueString output();
+    abstract Optional<Result> result();
 
-    abstract Rule rule();
+    @AutoOneOf(Match.Result.Kind.class)
+    abstract static class Result {
+      abstract ValueString output();
+      abstract Rule rule();
+      abstract Kind kind();
 
+      static Result ofOutput(ValueString value) {
+        return AutoOneOf_CelPolicy_Match_Result.output(value);
+      }
+
+      static Result ofRule(Rule value) {
+        return AutoOneOf_CelPolicy_Match_Result.rule(value);
+      }
+
+      enum Kind {
+        OUTPUT,
+        RULE
+      }
+    }
 
     @AutoValue.Builder
     abstract static class Builder {
 
       abstract Builder setCondition(ValueString condition);
 
-      abstract Builder setOutput(ValueString output);
+      abstract Builder setResult(Result result);
 
-      abstract Builder setRule(Rule rule);
+      abstract Optional<Result> result();
 
       abstract Match build();
     }

@@ -91,20 +91,41 @@ public final class CelPolicyYamlParserTest {
     UNSUPPORTED_MATCH_TAG("rule:\n"
         + "  match:\n"
         + "    - name: 'true'\n"
-        + "      alt_name: 'bool_true'", "ERROR: <input>:4:7: unsupported match tag: name\n"
-        + " |     - name: \"true\"\n"
-        + " | ......^"),
+        + "      alt_name: 'bool_true'", "ERROR: <input>:3:7: Unsupported match tag: name\n" +
+            " |     - name: 'true'\n" +
+            " | ......^\n" +
+            "ERROR: <input>:4:7: Unsupported match tag: alt_name\n" +
+            " |       alt_name: 'bool_true'\n" +
+            " | ......^"),
+    MATCH_OUTPUT_SET_THEN_RULE("rule:\n" +
+            "  match:\n" +
+            "    - condition: \"true\"\n" +
+            "      output: \"world\"\n" +
+            "      rule:\n" +
+            "        match:\n" +
+            "          - output: \"hello\"",
+            "ERROR: <input>:5:7: Only the rule or the output may be set\n" +
+                    " |       rule:\n" +
+                    " | ......^"),
+      MATCH_RULE_SET_THEN_OUTPUT("rule:\n" +
+              "  match:\n" +
+              "    - condition: \"true\"\n" +
+              "      rule:\n" +
+              "        match:\n" +
+              "          - output: \"hello\"\n" +
+              "      output: \"world\"",
+              "ERROR: <input>:7:7: Only the rule or the output may be set\n" +
+                      " |       output: \"world\"\n" +
+                      " | ......^"),
     INVALID_ROOT_NODE_TYPE("- rule:\n"
         + "    id: a",
         "ERROR: <input>:1:1: Got yaml node type tag:yaml.org,2002:seq, wanted type(s) [tag:yaml.org,2002:map]\n"
             + " | - rule:\n"
             + " | ^"),
-    // UNSUPPORTED_POLICY_TAG("", ""),
-    // UNSUPPORTED_POLICY_TAG("", ""),
-    // UNSUPPORTED_POLICY_TAG("", ""),
-    // UNSUPPORTED_POLICY_TAG("", ""),
-    // UNSUPPORTED_POLICY_TAG("", ""),
-    // UNSUPPORTED_POLICY_TAG("", ""),
+    ILLEGAL_RULE_DESCRIPTION_TYPE("rule:\n"
+            + "  description: 1", "ERROR: <input>:2:16: Got yaml node type tag:yaml.org,2002:int, wanted type(s) [tag:yaml.org,2002:str !txt]\n" +
+            " |   description: 1\n" +
+            " | ...............^"),
     ;
 
     private final String yamlPolicy;

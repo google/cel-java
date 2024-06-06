@@ -16,6 +16,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -75,7 +76,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         Node keyNode = nodeTuple.getKeyNode();
         Node valueNode = nodeTuple.getValueNode();
         long keyId = ctx.collectMetadata(keyNode);
-        if (!assertYamlType(ctx, keyId, keyNode, YamlNodeType.STRING)) {
+        if (!assertYamlType(ctx, keyId, keyNode, YamlNodeType.STRING, YamlNodeType.TEXT)) {
           continue;
         }
         String fieldName = ((ScalarNode) keyNode).getValue();
@@ -132,7 +133,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
       for (NodeTuple nodeTuple : ((MappingNode) node).getValue()) {
         Node key = nodeTuple.getKeyNode();
         long tagId = ctx.collectMetadata(key);
-        if (!assertYamlType(ctx, tagId, key, YamlNodeType.STRING)) {
+        if (!assertYamlType(ctx, tagId, key, YamlNodeType.STRING, YamlNodeType.TEXT)) {
           continue;
         }
         String fieldName = ((ScalarNode) key).getValue();
@@ -142,11 +143,13 @@ final class CelPolicyYamlParser implements CelPolicyParser {
             ruleBuilder.setId(newString(ctx, value));
             break;
           case "description":
+            ruleBuilder.setDescription(newString(ctx, value));
             break;
           case "variables":
             ruleBuilder.addVariables(parseVariables(ctx, value));
             break;
           case "match":
+            ruleBuilder.addMatches(parseMatches(ctx, value));
             break;
           default:
             tagVisitor.visitRuleTag(ctx, tagId, fieldName, value, ruleBuilder);
@@ -156,9 +159,60 @@ final class CelPolicyYamlParser implements CelPolicyParser {
       return ruleBuilder.build();
     }
 
+    private ImmutableSet<CelPolicy.Match> parseMatches(ParserContextImpl ctx, Node node) {
+      long valueId = ctx.collectMetadata(node);
+      ImmutableSet.Builder<CelPolicy.Match> matchesBuilder = ImmutableSet.builder();
+      if (!assertYamlType(ctx, valueId, node, YamlNodeType.LIST)) {
+        return matchesBuilder.build();
+      }
 
-    private ImmutableSet<CelPolicy.Variable> parseVariables(ParserContextImpl ctx,
-        Node node) {
+      SequenceNode matchListNode = (SequenceNode) node;
+      for (Node elementNode : matchListNode.getValue()) {
+        long id = ctx.collectMetadata(elementNode);
+        if (!assertYamlType(ctx, id, elementNode, YamlNodeType.MAP)) {
+          continue;
+        }
+        matchesBuilder.add(parseMatch(ctx, (MappingNode) elementNode));
+      }
+
+      return matchesBuilder.build();
+    }
+
+    private CelPolicy.Match parseMatch(ParserContextImpl ctx, MappingNode node) {
+      CelPolicy.Match.Builder matchBuilder = CelPolicy.Match.newBuilder();
+      for (NodeTuple nodeTuple : node.getValue()) {
+        Node key = nodeTuple.getKeyNode();
+        long tagId = ctx.collectMetadata(key);
+        if (!assertYamlType(ctx, tagId, key, YamlNodeType.STRING, YamlNodeType.TEXT)) {
+          continue;
+        }
+        String fieldName = ((ScalarNode) key).getValue();
+        Node value = nodeTuple.getValueNode();
+        switch (fieldName) {
+          case "condition":
+            matchBuilder.setCondition(newString(ctx, value));
+            break;
+          case "output":
+            matchBuilder.result()
+                    .filter(result -> result.kind().equals(Match.Result.Kind.RULE))
+                    .ifPresent(result -> ctx.reportError(tagId, "Only the rule or the output may be set"));
+            matchBuilder.setResult(Match.Result.ofOutput(newString(ctx, value)));
+            break;
+          case "rule":
+            matchBuilder.result()
+                    .filter(result -> result.kind().equals(Match.Result.Kind.OUTPUT))
+                    .ifPresent(result -> ctx.reportError(tagId, "Only the rule or the output may be set"));
+            matchBuilder.setResult(Match.Result.ofRule(parseRule(ctx, value)));
+            break;
+          default:
+            tagVisitor.visitMatchTag(ctx, tagId, fieldName, value, matchBuilder);
+            break;
+        }
+      }
+      return matchBuilder.build();
+    }
+
+    private ImmutableSet<CelPolicy.Variable> parseVariables(ParserContextImpl ctx, Node node) {
       long valueId = ctx.collectMetadata(node);
       ImmutableSet.Builder<CelPolicy.Variable> variableBuilder = ImmutableSet.builder();
       if (!assertYamlType(ctx, valueId, node, YamlNodeType.LIST)) {
