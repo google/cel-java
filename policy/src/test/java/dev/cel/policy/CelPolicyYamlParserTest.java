@@ -70,9 +70,42 @@ public final class CelPolicyYamlParserTest {
   private enum PolicyParseErrorTestCase {
     ILLEGAL_YAML_TYPE("name: \n"
         + "  illegal: yaml-type",
-        "ERROR: <input>:2:3: got yaml node type tag:yaml.org,2002:map, wanted type(s) [tag:yaml.org,2002:str !txt]\n"
+        "ERROR: <input>:2:3: Got yaml node type tag:yaml.org,2002:map, wanted type(s) [tag:yaml.org,2002:str !txt]\n"
             + " |   illegal: yaml-type\n"
-            + " | ..^");
+            + " | ..^"),
+    UNSUPPORTED_RULE_TAG("rule:\n"
+        + "  custom: yaml-type", "ERROR: <input>:2:3: Unsupported rule tag: custom\n"
+        + " |   custom: yaml-type\n"
+        + " | ..^"),
+    UNSUPPORTED_POLICY_TAG("inputs:\n"
+        + "  - name: a\n"
+        + "  - name: b", "ERROR: <input>:1:1: Unsupported policy tag: inputs\n"
+        + " | inputs:\n"
+        + " | ^"),
+    UNSUPPORTED_VARIABLE_TAG("rule:\n"
+        + "  variables:\n"
+        + "    - name: 'true'\n"
+        + "      alt_name: 'bool_true'", "ERROR: <input>:4:7: Unsupported variable tag: alt_name\n"
+        + " |       alt_name: 'bool_true'\n"
+        + " | ......^"),
+    UNSUPPORTED_MATCH_TAG("rule:\n"
+        + "  match:\n"
+        + "    - name: 'true'\n"
+        + "      alt_name: 'bool_true'", "ERROR: <input>:4:7: unsupported match tag: name\n"
+        + " |     - name: \"true\"\n"
+        + " | ......^"),
+    INVALID_ROOT_NODE_TYPE("- rule:\n"
+        + "    id: a",
+        "ERROR: <input>:1:1: Got yaml node type tag:yaml.org,2002:seq, wanted type(s) [tag:yaml.org,2002:map]\n"
+            + " | - rule:\n"
+            + " | ^"),
+    // UNSUPPORTED_POLICY_TAG("", ""),
+    // UNSUPPORTED_POLICY_TAG("", ""),
+    // UNSUPPORTED_POLICY_TAG("", ""),
+    // UNSUPPORTED_POLICY_TAG("", ""),
+    // UNSUPPORTED_POLICY_TAG("", ""),
+    // UNSUPPORTED_POLICY_TAG("", ""),
+    ;
 
     private final String yamlPolicy;
     private final String expectedErrorMessage;

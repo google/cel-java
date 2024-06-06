@@ -1,16 +1,22 @@
 package dev.cel.policy;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelSource;
 import dev.cel.common.CelSourceLocation;
+import dev.cel.policy.CelPolicy.Match;
+import dev.cel.policy.CelPolicy.Rule;
 import dev.cel.policy.CelPolicy.ValueString;
+import dev.cel.policy.CelPolicy.Variable;
 import dev.cel.policy.YamlHelper.YamlNodeType;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
@@ -23,23 +29,218 @@ import org.yaml.snakeyaml.nodes.SequenceNode;
 final class CelPolicyYamlParser implements CelPolicyParser {
 
   private static final String ERROR = "*error*";
+  private final TagVisitor<Node> tagVisitor;
 
-  private static class ParserContext {
+  @Override
+  public CelPolicy parse(CelPolicySource source) throws CelPolicyValidationException {
+    ParserImpl parser = new ParserImpl(tagVisitor);
+    return parser.parseYaml(source);
+  }
+
+  private static class ParserImpl {
+
+    private final TagVisitor<Node> tagVisitor;
+
+    private CelPolicy parseYaml(CelPolicySource source) throws CelPolicyValidationException {
+      Node node;
+      try {
+        node = parseYamlSource(source);
+      } catch (Exception e) {
+        throw new CelPolicyValidationException("Failure parsing YAML document.", e);
+      }
+
+      ParserContextImpl ctx = new ParserContextImpl(source);
+      CelPolicy.Builder policyBuilder = CelPolicy.newBuilder()
+          .setPolicySource(source)
+          .setCelSource(fromPolicySource(source));
+
+      CelPolicy policy = parsePolicy(ctx, policyBuilder, node);
+
+      if (ctx.hasError()) {
+        throw new CelPolicyValidationException(ctx.getIssueString());
+      }
+
+      return policy;
+    }
+
+    private CelPolicy parsePolicy(ParserContextImpl ctx, CelPolicy.Builder policyBuilder,
+        Node node) {
+      long id = ctx.collectMetadata(node);
+      if (!assertYamlType(ctx, id, node, YamlNodeType.MAP)) {
+        return policyBuilder.build();
+      }
+
+      MappingNode rootNode = (MappingNode) node;
+      for (NodeTuple nodeTuple : rootNode.getValue()) {
+        Node keyNode = nodeTuple.getKeyNode();
+        Node valueNode = nodeTuple.getValueNode();
+        long keyId = ctx.collectMetadata(keyNode);
+        if (!assertYamlType(ctx, keyId, keyNode, YamlNodeType.STRING)) {
+          continue;
+        }
+        String fieldName = ((ScalarNode) keyNode).getValue();
+        switch (fieldName) {
+          case "name":
+            policyBuilder.setName(newString(ctx, valueNode));
+            break;
+          case "rule":
+            policyBuilder.setRule(parseRule(ctx, valueNode));
+            break;
+          default:
+            tagVisitor.visitPolicyTag(ctx, keyId, fieldName, valueNode, policyBuilder);
+            break;
+        }
+      }
+
+      return policyBuilder.build();
+    }
+
+    private boolean assertYamlType(ParserContextImpl ctx, long id, Node node,
+        YamlNodeType... expectedNodeTypes) {
+      String nodeTag = node.getTag().getValue();
+      for (YamlNodeType expectedNodeType : expectedNodeTypes) {
+        if (expectedNodeType.tag().equals(nodeTag)) {
+          return true;
+        }
+      }
+      ctx.reportError(id, String.format("Got yaml node type %s, wanted type(s) [%s]", nodeTag,
+          Arrays.stream(expectedNodeTypes).map(YamlNodeType::tag)
+              .collect(Collectors.joining(" "))));
+      return false;
+    }
+
+    private Node parseYamlSource(CelPolicySource policySource) {
+
+      Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
+
+      return yaml.compose(new StringReader(policySource.content().toString()));
+
+      // TODO: Add test for disallowing multple yaml doc
+
+      // Object test = yaml.load(policySource.content());
+      //
+      // return (Map<String, Object>) test;
+    }
+
+    private CelPolicy.Rule parseRule(ParserContextImpl ctx, Node node) {
+      long valueId = ctx.collectMetadata(node);
+      CelPolicy.Rule.Builder ruleBuilder = CelPolicy.Rule.newBuilder();
+      if (!assertYamlType(ctx, valueId, node, YamlNodeType.MAP)) {
+        return ruleBuilder.build();
+      }
+
+      for (NodeTuple nodeTuple : ((MappingNode) node).getValue()) {
+        Node key = nodeTuple.getKeyNode();
+        long tagId = ctx.collectMetadata(key);
+        if (!assertYamlType(ctx, tagId, key, YamlNodeType.STRING)) {
+          continue;
+        }
+        String fieldName = ((ScalarNode) key).getValue();
+        Node value = nodeTuple.getValueNode();
+        switch (fieldName) {
+          case "id":
+            ruleBuilder.setId(newString(ctx, value));
+            break;
+          case "description":
+            break;
+          case "variables":
+            ruleBuilder.addVariables(parseVariables(ctx, value));
+            break;
+          case "match":
+            break;
+          default:
+            tagVisitor.visitRuleTag(ctx, tagId, fieldName, value, ruleBuilder);
+            break;
+        }
+      }
+      return ruleBuilder.build();
+    }
+
+
+    private ImmutableSet<CelPolicy.Variable> parseVariables(ParserContextImpl ctx,
+        Node node) {
+      long valueId = ctx.collectMetadata(node);
+      ImmutableSet.Builder<CelPolicy.Variable> variableBuilder = ImmutableSet.builder();
+      if (!assertYamlType(ctx, valueId, node, YamlNodeType.LIST)) {
+        return variableBuilder.build();
+      }
+
+      SequenceNode variableListNode = (SequenceNode) node;
+      for (Node elementNode : variableListNode.getValue()) {
+        long id = ctx.collectMetadata(elementNode);
+        if (!assertYamlType(ctx, id, elementNode, YamlNodeType.MAP)) {
+          continue;
+        }
+        variableBuilder.add(parseVariable(ctx, (MappingNode) elementNode));
+      }
+
+      return variableBuilder.build();
+    }
+
+    private CelPolicy.Variable parseVariable(ParserContextImpl ctx, MappingNode variableMap) {
+      Variable.Builder builder = Variable.newBuilder();
+
+      for (NodeTuple nodeTuple : variableMap.getValue()) {
+        Node keyNode = nodeTuple.getKeyNode();
+        long keyId = ctx.collectMetadata(keyNode);
+        Node valueNode = nodeTuple.getValueNode();
+        String keyName = ((ScalarNode) keyNode).getValue();
+        switch (keyName) {
+          case "name":
+            builder.setName(newString(ctx, valueNode));
+            break;
+          case "expression":
+            builder.setExpression(newString(ctx, valueNode));
+            break;
+          default:
+            tagVisitor.visitVariableTag(ctx, keyId, keyName, valueNode, builder);
+            break;
+        }
+      }
+
+      return builder.build();
+    }
+
+    private ValueString newString(ParserContextImpl ctx, Node node) {
+      long id = ctx.collectMetadata(node);
+      if (!assertYamlType(ctx, id, node, YamlNodeType.STRING, YamlNodeType.TEXT)) {
+        return ValueString.of(id, ERROR);
+      }
+
+      return ValueString.of(id, ((ScalarNode) node).getValue());
+    }
+
+    private static CelSource fromPolicySource(CelPolicySource policySource) {
+      // TODO: Overload for accepting code point directly?
+      // TODO: Is this necessary?
+      return CelSource.newBuilder(policySource.content().toString())
+          .setDescription(policySource.description())
+          .build();
+    }
+
+    private ParserImpl(TagVisitor<Node> tagVisitor) {
+      this.tagVisitor = tagVisitor;
+    }
+  }
+
+  private static class ParserContextImpl implements ParserContext {
 
     private static final Joiner JOINER = Joiner.on('\n');
 
     private final ArrayList<CelIssue> issues;
     private final HashMap<Long, CelSourceLocation> idToLocationMap;
-    private final CelPolicySource.Builder sourceBuilder;
+    private final CelPolicySource source;
     private long id;
 
-    private void reportError(long id, String message) {
+    @Override
+    public void reportError(long id, String message) {
       issues.add(CelIssue.formatError(idToLocationMap.get(id), message));
     }
 
     private String getIssueString() {
       return JOINER.join(
-          Iterables.transform(issues, iss -> iss.toDisplayString(sourceBuilder.build())));
+          issues.stream().map(iss -> iss.toDisplayString(source))
+              .collect(toImmutableList()));
     }
 
     private boolean hasError() {
@@ -59,198 +260,47 @@ final class CelPolicyYamlParser implements CelPolicyParser {
       return ++id;
     }
 
-    private ParserContext(CelPolicySource policySource) {
+    private ParserContextImpl(CelPolicySource policySource) {
       this.issues = new ArrayList<>();
       this.idToLocationMap = new HashMap<>();
-      this.sourceBuilder = policySource.toBuilder();
+      this.source = policySource;
     }
   }
 
-  private static class ParserImpl {
+  private static class DefaultTagVisitor implements TagVisitor<Node> {
 
-    private CelPolicy parseYaml(CelPolicySource source) throws CelPolicyValidationException {
-      Node node;
-      try {
-        node = parseYamlSource(source);
-      } catch (Exception e) {
-        throw new CelPolicyValidationException("Failure parsing YAML document.", e);
-      }
-
-      ParserContext ctx = new ParserContext(source);
-      long id = ctx.collectMetadata(node);
-      assertYamlType(ctx, id, node, YamlNodeType.MAP);
-      return parsePolicy(ctx, (MappingNode) node);
+    @Override
+    public void visitPolicyTag(ParserContext ctx, long id, String fieldName, Node node,
+        CelPolicy.Builder policyBuilder) {
+      ctx.reportError(id, String.format("Unsupported policy tag: %s", fieldName));
     }
 
-    private CelPolicy parsePolicy(ParserContext ctx, MappingNode rootNode)
-        throws CelPolicyValidationException {
-      CelPolicy.Builder policyBuilder = CelPolicy.newBuilder();
-      for (NodeTuple nodeTuple : rootNode.getValue()) {
-        Node keyNode = nodeTuple.getKeyNode();
-        Node valueNode = nodeTuple.getValueNode();
-        long keyId = ctx.collectMetadata(keyNode);
-        long valueId = ctx.collectMetadata(valueNode);
-        if (!assertYamlType(ctx, keyId, keyNode, YamlNodeType.STRING)) {
-          continue;
-        }
-        String fieldName = ((ScalarNode) keyNode).getValue();
-        switch (fieldName) {
-          case "name":
-            if (!assertYamlType(ctx, valueId, valueNode, YamlNodeType.STRING)) {
-              break;
-            }
-            String policyName = ((ScalarNode) valueNode).getValue();
-            policyBuilder.setName(CelPolicy.ValueString.of(valueId, policyName));
-            break;
-          case "rule":
-            if (!assertYamlType(ctx, valueId, valueNode, YamlNodeType.MAP)) {
-              break;
-            }
-            policyBuilder.setRule(parseRule(ctx, (MappingNode) valueNode));
-            break;
-        }
-      }
-
-      if (ctx.hasError()) {
-        String formattedError = ctx.getIssueString();
-        throw new CelPolicyValidationException(formattedError);
-      }
-
-      CelPolicySource policySource = ctx.sourceBuilder.build();
-      return policyBuilder
-          .setPolicySource(policySource)
-          .setCelSource(fromPolicySource(policySource))
-          .build();
+    @Override
+    public void visitRuleTag(ParserContext ctx, long id, String fieldName, Node node,
+        Rule.Builder ruleBuilder) {
+      ctx.reportError(id, String.format("Unsupported rule tag: %s", fieldName));
     }
 
-    private boolean assertYamlType(ParserContext ctx, long id, Node node,
-        YamlNodeType expectedNodeType) {
-      String nodeTag = node.getTag().getValue();
-      if (!expectedNodeType.tag().equals(nodeTag)) {
-        ctx.reportError(id, String.format("Got yaml node type %s, wanted type(s) %s", nodeTag,
-            expectedNodeType.tag()));
-        return false;
-      }
-      return true;
+    @Override
+    public void visitMatchTag(ParserContext ctx, long id, String fieldName, Node node,
+        Match.Builder matchBuilder) {
+      ctx.reportError(id, String.format("Unsupported match tag: %s", fieldName));
     }
 
-    private Node parseYamlSource(CelPolicySource policySource) {
-
-      Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
-
-      return yaml.compose(new StringReader(policySource.content().toString()));
-
-      // TODO: Add test for disallowing multple yaml doc
-
-      // Object test = yaml.load(policySource.content());
-      //
-      // return (Map<String, Object>) test;
+    @Override
+    public void visitVariableTag(ParserContext ctx, long id, String fieldName, Node node,
+        Variable.Builder variableBuilder) {
+      ctx.reportError(id, String.format("Unsupported variable tag: %s", fieldName));
     }
-
-    private CelPolicy.Rule parseRule(ParserContext ctx, MappingNode ruleNode) {
-      CelPolicy.Rule.Builder ruleBuilder = CelPolicy.Rule.newBuilder();
-      for (NodeTuple nodeTuple : ruleNode.getValue()) {
-        Node key = nodeTuple.getKeyNode();
-        long keyId = ctx.collectMetadata(key);
-        if (!assertYamlType(ctx, keyId, key, YamlNodeType.STRING)) {
-          continue;
-        }
-        ScalarNode stringKeyNode = (ScalarNode) key;
-        Node value = nodeTuple.getValueNode();
-        long valueId = ctx.collectMetadata(nodeTuple.getValueNode());
-        switch (stringKeyNode.getValue()) {
-          case "id":
-            if (assertYamlType(ctx, valueId, value, YamlNodeType.STRING)) {
-              ruleBuilder.setId(CelPolicy.ValueString.of(valueId, ((ScalarNode) value).getValue()));
-            }
-            break;
-          case "description":
-            break;
-          case "variables":
-            if (assertYamlType(ctx, valueId, value, YamlNodeType.LIST)) {
-              ruleBuilder.addVariables(parseVariables(ctx, (SequenceNode) value));
-            }
-            break;
-          case "match":
-            break;
-          default:
-            break;
-        }
-      }
-      return ruleBuilder.build();
-    }
-
-
-    private ImmutableSet<CelPolicy.Variable> parseVariables(ParserContext ctx,
-        SequenceNode variableListNode) {
-      ImmutableSet.Builder<CelPolicy.Variable> variableBuilder = ImmutableSet.builder();
-      for (Node node : variableListNode.getValue()) {
-        long id = ctx.collectMetadata(node);
-        if (!assertYamlType(ctx, id, node, YamlNodeType.MAP)) {
-          continue;
-        }
-        variableBuilder.add(parseVariable(ctx, (MappingNode) node));
-      }
-
-      return variableBuilder.build();
-    }
-
-    private CelPolicy.Variable parseVariable(ParserContext ctx, MappingNode variableMap) {
-      ValueString.Builder nameBuilder = ValueString.newBuilder();
-      ValueString.Builder expressionBuilder = ValueString.newBuilder();
-      for (NodeTuple nodeTuple : variableMap.getValue()) {
-        Node keyNode = nodeTuple.getKeyNode();
-        long keyId = ctx.collectMetadata(keyNode);
-        Node valueNode = nodeTuple.getValueNode();
-        long valueId = ctx.collectMetadata(valueNode);
-        if (assertYamlType(ctx, keyId, keyNode, YamlNodeType.STRING) &&
-            assertYamlType(ctx, valueId, valueNode, YamlNodeType.STRING)) {
-          switch (((ScalarNode) keyNode).getValue()) {
-            case "name":
-              nameBuilder.setId(keyId);
-              nameBuilder.setValue(((ScalarNode) valueNode).getValue());
-              break;
-            case "expression":
-              expressionBuilder.setId(keyId);
-              expressionBuilder.setValue(((ScalarNode) valueNode).getValue());
-            default:
-              // report error
-          }
-        }
-      }
-      return CelPolicy.Variable.of(
-          nameBuilder.build(),
-          expressionBuilder.build()
-      );
-    }
-
-    private ValueString newString(ParserContext ctx, Node node) {
-      long id = ctx.collectMetadata(node);
-      if (assertYamlType(ctx, id, node, YamlNodeType.STRING)) {
-        return ValueString.of(id, ERROR);
-      }
-
-      return ValueString.of(id, ((ScalarNode) node).getValue());
-    }
-
-    private static CelSource fromPolicySource(CelPolicySource policySource) {
-      // TODO: Overload for accepting code point directly?
-      return CelSource.newBuilder(policySource.content().toString())
-          .setDescription(policySource.description())
-          .build();
-    }
-  }
-
-  @Override
-  public CelPolicy parse(CelPolicySource source) throws CelPolicyValidationException {
-    ParserImpl parser = new ParserImpl();
-    return parser.parseYaml(source);
   }
 
   static CelPolicyParser newInstance() {
-    return new CelPolicyYamlParser();
+    return new CelPolicyYamlParser(new DefaultTagVisitor());
   }
 
-  private CelPolicyYamlParser() {
+  private CelPolicyYamlParser(
+      TagVisitor<Node> tagVisitor
+  ) {
+    this.tagVisitor = tagVisitor;
   }
 }

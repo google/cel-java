@@ -131,6 +131,24 @@ public abstract class CelPolicy {
     abstract ValueString output();
 
     abstract Rule rule();
+
+
+    @AutoValue.Builder
+    abstract static class Builder {
+
+      abstract Builder setCondition(ValueString condition);
+
+      abstract Builder setOutput(ValueString output);
+
+      abstract Builder setRule(Rule rule);
+
+      abstract Match build();
+    }
+
+    static Builder newBuilder() {
+      return new AutoValue_CelPolicy_Match.Builder();
+    }
+
   }
 
   @AutoValue
@@ -140,8 +158,20 @@ public abstract class CelPolicy {
 
     abstract ValueString expression();
 
-    static Variable of(ValueString name, ValueString expression) {
-      return new AutoValue_CelPolicy_Variable(name, expression);
+    @AutoValue.Builder
+    abstract static class Builder {
+
+      abstract Builder setName(ValueString name);
+
+      abstract Builder setExpression(ValueString expression);
+
+      abstract Variable build();
+    }
+
+    static Builder newBuilder() {
+      return new AutoValue_CelPolicy_Variable.Builder()
+          .setName(ValueString.newBuilder().build())
+          .setExpression(ValueString.newBuilder().build());
     }
   }
 
@@ -154,13 +184,13 @@ public abstract class CelPolicy {
 
 
     @AutoValue.Builder
-    public abstract static class Builder {
+    abstract static class Builder {
 
-      public abstract Builder setId(long id);
+      abstract Builder setId(long id);
 
-      public abstract Builder setValue(String value);
+      abstract Builder setValue(String value);
 
-      public abstract ValueString build();
+      abstract ValueString build();
     }
 
     static Builder newBuilder() {

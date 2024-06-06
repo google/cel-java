@@ -13,6 +13,7 @@ final class YamlHelper {
   enum YamlNodeType {
     MAP("tag:yaml.org,2002:map"),
     STRING("tag:yaml.org,2002:str"),
+    TEXT("!txt"),
     LIST("tag:yaml.org,2002:seq"),
     ;
 
