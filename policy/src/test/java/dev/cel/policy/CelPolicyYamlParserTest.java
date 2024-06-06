@@ -69,11 +69,70 @@ public final class CelPolicyYamlParserTest {
   }
 
   private enum PolicyParseErrorTestCase {
-    ILLEGAL_YAML_TYPE("name: \n"
+    MALFORMED_YAML_DOCUMENT("a:\na", "YAML document is malformed: while scanning a simple key\n"
+        + " in 'reader', line 2, column 1:\n"
+        + "    a\n"
+        + "    ^\n"
+        + "could not find expected ':'\n"
+        + " in 'reader', line 2, column 2:\n"
+        + "    a\n"
+        + "     ^\n"),
+    ILLEGAL_YAML_TYPE_POLICY_KEY("1: test",
+        "ERROR: <input>:1:1: Got yaml node type tag:yaml.org,2002:int, wanted type(s) [tag:yaml.org,2002:str !txt]\n"
+            + " | 1: test\n"
+            + " | ^"),
+    ILLEGAL_YAML_TYPE_ON_NAME_VALUE("name: \n"
         + "  illegal: yaml-type",
         "ERROR: <input>:2:3: Got yaml node type tag:yaml.org,2002:map, wanted type(s) [tag:yaml.org,2002:str !txt]\n"
             + " |   illegal: yaml-type\n"
             + " | ..^"),
+    ILLEGAL_YAML_TYPE_ON_RULE_VALUE("rule: illegal",
+        "ERROR: <input>:1:7: Got yaml node type tag:yaml.org,2002:str, wanted type(s) [tag:yaml.org,2002:map]\n"
+            + " | rule: illegal\n"
+            + " | ......^"),
+    ILLEGAL_YAML_TYPE_ON_RULE_MAP_KEY("rule: \n"
+        + "  1: foo",
+        "ERROR: <input>:2:3: Got yaml node type tag:yaml.org,2002:int, wanted type(s) [tag:yaml.org,2002:str !txt]\n"
+            + " |   1: foo\n"
+            + " | ..^"),
+    ILLEGAL_YAML_TYPE_ON_MATCHES_VALUE("rule:\n" +
+        "  match: illegal\n",
+        "ERROR: <input>:2:10: Got yaml node type tag:yaml.org,2002:str, wanted type(s) [tag:yaml.org,2002:seq]\n"
+            + " |   match: illegal\n"
+            + " | .........^"),
+    ILLEGAL_YAML_TYPE_ON_MATCHES_LIST("rule:\n" +
+        "  match:\n" +
+        "    - illegal",
+        "ERROR: <input>:3:7: Got yaml node type tag:yaml.org,2002:str, wanted type(s) [tag:yaml.org,2002:map]\n"
+            + " |     - illegal\n"
+            + " | ......^"),
+    ILLEGAL_YAML_TYPE_ON_MATCH_MAP_KEY("rule:\n" +
+        "  match:\n" +
+        "    - 1 : foo",
+        "ERROR: <input>:3:7: Got yaml node type tag:yaml.org,2002:int, wanted type(s) [tag:yaml.org,2002:str !txt]\n"
+            + " |     - 1 : foo\n"
+            + " | ......^"),
+    ILLEGAL_YAML_TYPE_ON_VARIABLE_VALUE("rule:\n" +
+        "  variables: illegal\n",
+        "ERROR: <input>:2:14: Got yaml node type tag:yaml.org,2002:str, wanted type(s) [tag:yaml.org,2002:seq]\n"
+            + " |   variables: illegal\n"
+            + " | .............^"),
+    ILLEGAL_YAML_TYPE_ON_VARIABLE_MAP_KEY("rule:\n" +
+        "  variables:\n" +
+        "    - illegal",
+        "ERROR: <input>:3:7: Got yaml node type tag:yaml.org,2002:str, wanted type(s) [tag:yaml.org,2002:map]\n"
+            + " |     - illegal\n"
+            + " | ......^"),
+    MULTIPLE_YAML_DOCS("name: foo\n"
+        + "---\n"
+        + "name: bar", "YAML document is malformed: expected a single document in the stream\n"
+        + " in 'reader', line 1, column 1:\n"
+        + "    name: foo\n"
+        + "    ^\n"
+        + "but found another document\n"
+        + " in 'reader', line 2, column 1:\n"
+        + "    ---\n"
+        + "    ^\n"),
     UNSUPPORTED_RULE_TAG("rule:\n"
         + "  custom: yaml-type", "ERROR: <input>:2:3: Unsupported rule tag: custom\n"
         + " |   custom: yaml-type\n"

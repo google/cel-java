@@ -13,13 +13,37 @@ import dev.cel.policy.CelPolicyConfig.FunctionDecl;
 import dev.cel.policy.CelPolicyConfig.OverloadDecl;
 import dev.cel.policy.CelPolicyConfig.TypeDecl;
 import dev.cel.policy.CelPolicyConfig.VariableDecl;
+import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
+import org.yaml.snakeyaml.nodes.Node;
 
 final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
+
+
+  private static class ParserImpl {
+
+    private CelPolicyConfig parseYaml(CelPolicySource source) throws CelPolicyValidationException {
+      Node node;
+      try {
+        node = parseYamlSource(source);
+      } catch (Exception e) {
+        throw new CelPolicyValidationException(
+            "YAML document is malformed: " + e.getMessage(), e);
+      }
+
+      return CelPolicyConfig.newBuilder().build();
+    }
+
+    private Node parseYamlSource(CelPolicySource policySource) {
+      Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
+
+      return yaml.compose(new StringReader(policySource.content().toString()));
+    }
+  }
 
   @Override
   public CelPolicyConfig parse(String content) throws CelPolicyValidationException {

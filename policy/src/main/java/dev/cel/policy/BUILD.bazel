@@ -85,6 +85,7 @@ java_library(
         "CelPolicyYamlParser.java",
     ],
     deps = [
+        ":parser_context_impl",
         ":policy",
         ":policy_exception",
         ":policy_parser",
@@ -161,5 +162,21 @@ java_library(
     visibility = ["//visibility:private"],
     deps = [
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "parser_context_impl",
+    srcs = ["ParserContextImpl.java"],
+    visibility = ["//visibility:private"],
+    deps = [
+        ":POLICY_EXCEPTION",
+        ":policy",
+        ":policy_parser",
+        "//common",
+        "//common:compiler_common",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_yaml_snakeyaml",
     ],
 )

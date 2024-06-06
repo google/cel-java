@@ -1,20 +1,13 @@
 package dev.cel.policy;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
-import dev.cel.common.CelIssue;
 import dev.cel.common.CelSource;
-import dev.cel.common.CelSourceLocation;
 import dev.cel.policy.CelPolicy.Match;
 import dev.cel.policy.CelPolicy.ValueString;
 import dev.cel.policy.CelPolicy.Variable;
 import dev.cel.policy.YamlHelper.YamlNodeType;
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.stream.Collectors;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -45,10 +38,11 @@ final class CelPolicyYamlParser implements CelPolicyParser {
       try {
         node = parseYamlSource(source);
       } catch (Exception e) {
-        throw new CelPolicyValidationException("Failure parsing YAML document.", e);
+        throw new CelPolicyValidationException(
+            "YAML document is malformed: " + e.getMessage(), e);
       }
 
-      ParserContextImpl ctx = new ParserContextImpl(source);
+      ParserContextImpl ctx = ParserContextImpl.newInstance(source);
       CelPolicy.Builder policyBuilder = CelPolicy.newBuilder()
           .setPolicySource(source)
           .setCelSource(fromPolicySource(source));
@@ -109,16 +103,9 @@ final class CelPolicyYamlParser implements CelPolicyParser {
     }
 
     private Node parseYamlSource(CelPolicySource policySource) {
-
       Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
 
       return yaml.compose(new StringReader(policySource.content().toString()));
-
-      // TODO: Add test for disallowing multple yaml doc
-
-      // Object test = yaml.load(policySource.content());
-      //
-      // return (Map<String, Object>) test;
     }
 
     private CelPolicy.Rule parseRule(ParserContextImpl ctx, Node node) {
@@ -277,49 +264,6 @@ final class CelPolicyYamlParser implements CelPolicyParser {
     }
   }
 
-  private static class ParserContextImpl implements ParserContext {
-
-    private static final Joiner JOINER = Joiner.on('\n');
-
-    private final ArrayList<CelIssue> issues;
-    private final HashMap<Long, CelSourceLocation> idToLocationMap;
-    private final CelPolicySource source;
-    private long id;
-
-    @Override
-    public void reportError(long id, String message) {
-      issues.add(CelIssue.formatError(idToLocationMap.get(id), message));
-    }
-
-    private String getIssueString() {
-      return JOINER.join(
-          issues.stream().map(iss -> iss.toDisplayString(source))
-              .collect(toImmutableList()));
-    }
-
-    private boolean hasError() {
-      return !issues.isEmpty();
-    }
-
-    private long collectMetadata(Node node) {
-      long id = nextId();
-      int line = node.getStartMark().getLine() + 1; // Yaml lines are 0 indexed
-      int column = node.getStartMark().getColumn();
-      idToLocationMap.put(id, CelSourceLocation.of(line, column));
-
-      return id;
-    }
-
-    private long nextId() {
-      return ++id;
-    }
-
-    private ParserContextImpl(CelPolicySource policySource) {
-      this.issues = new ArrayList<>();
-      this.idToLocationMap = new HashMap<>();
-      this.source = policySource;
-    }
-  }
 
   static final class Builder implements CelPolicyParserBuilder<Node> {
 
