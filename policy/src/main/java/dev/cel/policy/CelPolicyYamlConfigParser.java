@@ -14,13 +14,10 @@ import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 import org.yaml.snakeyaml.nodes.SequenceNode;
 
-import java.util.List;
-import java.util.Map;
-
 import static dev.cel.policy.YamlHelper.ERROR;
 import static dev.cel.policy.YamlHelper.assertRequiredFields;
 import static dev.cel.policy.YamlHelper.assertYamlType;
-import static dev.cel.policy.YamlHelper.getListOfMapsOrDefault;
+import static dev.cel.policy.YamlHelper.newString;
 import static dev.cel.policy.YamlHelper.newBoolean;
 import static dev.cel.policy.YamlHelper.newInteger;
 import static dev.cel.policy.YamlHelper.parseYamlSource;
@@ -100,28 +97,8 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
   public CelPolicyConfig parse(CelPolicySource policyConfigSource)
       throws CelPolicyValidationException {
     ParserImpl parser = new ParserImpl();
+
     return parser.parseYaml(policyConfigSource);
-    // try {
-    //   Map<String, Object> yamlMap = parseYamlSource(content);
-    //
-    //   String name = (String) yamlMap.getOrDefault("name", "");
-    //   String description = (String) yamlMap.getOrDefault("description", "");
-    //   String container = (String) yamlMap.getOrDefault("container", "");
-    //   ImmutableSet<VariableDecl> variables = parseVariables(yamlMap);
-    //   ImmutableSet<FunctionDecl> functions = parseFunctions(yamlMap);
-    //   ImmutableSet<ExtensionConfig> extensions = parseExtensions(yamlMap);
-    //
-    //   return CelPolicyConfig.newBuilder()
-    //       .setName(name)
-    //       .setDescription(description)
-    //       .setContainer(container)
-    //       .setVariables(variables)
-    //       .setFunctions(functions)
-    //       .setExtensions(extensions)
-    //       .build();
-    // } catch (Exception e) {
-    //   throw new CelPolicyValidationException(e.getMessage(), e);
-    // }
   }
 
   private ImmutableSet<VariableDecl> parseVariables(ParserContext<Node> ctx, Node node) {
@@ -377,24 +354,6 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
     }
 
     return builder.build();
-  }
-
-
-  private static TypeDecl parseTypeDecl(Map<String, Object> typeMap) {
-    TypeDecl.Builder builder = TypeDecl.newBuilder()
-        .setName((String) typeMap.getOrDefault("type_name", ""))
-        .setIsTypeParam((boolean) typeMap.getOrDefault("is_type_param", false));
-
-    List<Map<String, Object>> paramsList = getListOfMapsOrDefault(typeMap, "params");
-    for (Map<String, Object> paramMap : paramsList) {
-      builder.addParams(parseTypeDecl(paramMap));
-    }
-
-    return builder.build();
-  }
-
-  private static String newString(ParserContext<Node> ctx, Node node) {
-    return YamlHelper.newValueString(ctx, node).value();
   }
 
   static CelPolicyYamlConfigParser newInstance() {
