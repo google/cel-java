@@ -48,8 +48,7 @@ public final class CelPolicyYamlParserTest {
 
   @Test
   public void parseYamlPolicy_errors(@TestParameter PolicyParseErrorTestCase testCase) {
-    CelPolicySource policySource = CelPolicySource.newBuilder(testCase.yamlPolicy)
-        .build();
+    CelPolicySource policySource = CelPolicySource.fromText(testCase.yamlPolicy);
 
     CelPolicyValidationException e = assertThrows(CelPolicyValidationException.class,
         () -> YAML_POLICY_PARSER.parse(policySource));

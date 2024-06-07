@@ -9,6 +9,23 @@ java_library(
     name = "policy",
     srcs = [
         "CelPolicy.java",
+    ],
+    deps = [
+        ":policy_common_internal",
+        ":policy_source",
+        ":value_string",
+        "//:auto_value",
+        "//common",
+        "//common:source",
+        "//common/internal",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "policy_source",
+    srcs = [
         "CelPolicySource.java",
     ],
     deps = [
@@ -39,6 +56,7 @@ java_library(
     ],
     deps = [
         ":policy_exception",
+        ":value_string",
         "//:auto_value",
         "//bundle:cel",
         "//common:compiler_common",
@@ -61,7 +79,16 @@ java_library(
     deps = [
         ":policy_config",
         ":policy_exception",
+        ":policy_source",
     ],
+)
+
+java_library(
+    name = "parser_context",
+    srcs = [
+        "ParserContext.java",
+    ],
+    deps = [],
 )
 
 java_library(
@@ -73,24 +100,26 @@ java_library(
         ":policy_config_parser",
         ":policy_parser",
         ":policy_parser_builder",
-        ":yaml_policy_config_parser",
-        ":yaml_policy_parser",
+        ":policy_yaml_config_parser",
+        ":policy_yaml_parser",
         "@maven//:org_yaml_snakeyaml",
     ],
 )
 
 java_library(
-    name = "yaml_policy_parser",
+    name = "policy_yaml_parser",
     srcs = [
         "CelPolicyYamlParser.java",
     ],
     deps = [
-        ":parser_context_impl",
+        ":parser_context",
         ":policy",
+        ":policy_common_internal",
         ":policy_exception",
         ":policy_parser",
         ":policy_parser_builder",
-        ":yaml_helper",
+        ":policy_source",
+        ":value_string",
         "//common",
         "//common:compiler_common",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -105,8 +134,10 @@ java_library(
         "CelPolicyParser.java",
     ],
     deps = [
+        ":parser_context",
         ":policy",
         ":policy_exception",
+        ":policy_source",
         "@maven//:org_yaml_snakeyaml",
     ],
 )
@@ -142,40 +173,46 @@ java_library(
 )
 
 java_library(
-    name = "yaml_policy_config_parser",
+    name = "policy_yaml_config_parser",
     srcs = [
         "CelPolicyYamlConfigParser.java",
     ],
     deps = [
+        ":parser_context",
+        ":policy_common_internal",
         ":policy_config",
         ":policy_config_parser",
         ":policy_exception",
-        ":yaml_helper",
+        ":policy_source",
         "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",
     ],
 )
 
 java_library(
-    name = "yaml_helper",
-    srcs = ["YamlHelper.java"],
-    visibility = ["//visibility:private"],
+    name = "value_string",
+    srcs = [
+        "ValueString.java",
+    ],
     deps = [
-        "@maven//:com_google_guava_guava",
+        "//:auto_value",
     ],
 )
 
 java_library(
-    name = "parser_context_impl",
-    srcs = ["ParserContextImpl.java"],
+    name = "policy_common_internal",
+    srcs = [
+        "YamlHelper.java",
+        "YamlParserContextImpl.java",
+    ],
     visibility = ["//visibility:private"],
     deps = [
-        ":POLICY_EXCEPTION",
-        ":policy",
-        ":policy_parser",
+        ":parser_context",
+        ":policy_source",
+        ":value_string",
+        "//:auto_value",
         "//common",
         "//common:compiler_common",
-        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",
     ],

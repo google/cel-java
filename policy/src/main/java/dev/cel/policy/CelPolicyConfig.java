@@ -142,8 +142,24 @@ public abstract class CelPolicyConfig {
      */
     public abstract TypeDecl type();
 
+    @AutoValue.Builder
+    abstract static class Builder {
+
+      abstract Optional<String> name();
+
+      abstract Builder setName(String name);
+
+      abstract Builder setType(TypeDecl typeDecl);
+
+      abstract VariableDecl build();
+    }
+
+    static Builder newBuilder() {
+      return new AutoValue_CelPolicyConfig_VariableDecl.Builder();
+    }
+
     public static VariableDecl create(String name, TypeDecl type) {
-      return new AutoValue_CelPolicyConfig_VariableDecl(name, type);
+      return newBuilder().setName(name).setType(type).build();
     }
 
     public CelVarDecl toCelVarDecl(CelTypeProvider celTypeProvider) {
@@ -244,6 +260,8 @@ public abstract class CelPolicyConfig {
 
     @AutoValue.Builder
     public abstract static class Builder {
+
+      abstract String name();
 
       public abstract Builder setName(String name);
 

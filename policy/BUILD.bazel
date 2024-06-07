@@ -9,6 +9,11 @@ java_library(
 )
 
 java_library(
+    name = "policy_source",
+    exports = ["//policy/src/main/java/dev/cel/policy:policy_source"],
+)
+
+java_library(
     name = "policy_exception",
     exports = ["//policy/src/main/java/dev/cel/policy:policy_exception"],
 )
@@ -35,10 +40,15 @@ java_library(
 
 java_library(
     name = "yaml_policy_parser",
-    exports = ["//policy/src/main/java/dev/cel/policy:yaml_policy_parser"],
+    exports = ["//policy/src/main/java/dev/cel/policy:policy_yaml_parser"],
 )
 
 java_library(
     name = "yaml_policy_config_parser",
-    exports = ["//policy/src/main/java/dev/cel/policy:yaml_policy_config_parser"],
+    exports = ["//policy/src/main/java/dev/cel/policy:policy_yaml_config_parser"],
+)
+
+java_library(
+    name = "value_string",
+    exports = ["//policy/src/main/java/dev/cel/policy:value_string"],
 )

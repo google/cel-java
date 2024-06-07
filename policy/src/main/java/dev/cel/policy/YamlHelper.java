@@ -4,11 +4,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.io.StringReader;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
+import org.yaml.snakeyaml.nodes.Node;
+import org.yaml.snakeyaml.nodes.ScalarNode;
 
 final class YamlHelper {
+  private static final String ERROR = "*error*";
 
   enum YamlNodeType {
     MAP("tag:yaml.org,2002:map"),
@@ -73,6 +82,34 @@ final class YamlHelper {
     return (List<Map<String, Object>>) map.getOrDefault(key, ImmutableList.of());
   }
 
+  static Node parseYamlSource(CelPolicySource policySource) {
+    Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
+
+    return yaml.compose(new StringReader(policySource.content().toString()));
+  }
+
+  static boolean assertYamlType(ParserContext<Node> ctx, long id, Node node,
+      YamlNodeType... expectedNodeTypes) {
+    String nodeTag = node.getTag().getValue();
+    for (YamlNodeType expectedNodeType : expectedNodeTypes) {
+      if (expectedNodeType.tag().equals(nodeTag)) {
+        return true;
+      }
+    }
+    ctx.reportError(id, String.format("Got yaml node type %s, wanted type(s) [%s]", nodeTag,
+        Arrays.stream(expectedNodeTypes).map(YamlNodeType::tag)
+            .collect(Collectors.joining(" "))));
+    return false;
+  }
+
+  static ValueString newString(ParserContext<Node> ctx, Node node) {
+    long id = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, id, node, YamlNodeType.STRING, YamlNodeType.TEXT)) {
+      return ValueString.of(id, ERROR);
+    }
+
+    return ValueString.of(id, ((ScalarNode) node).getValue());
+  }
 
   private YamlHelper() {
   }

@@ -1,5 +1,5 @@
 package dev.cel.policy;
 
 public interface CelPolicyConfigParser {
-    CelPolicyConfig parse(String content) throws CelPolicyValidationException;
+  CelPolicyConfig parse(CelPolicySource policyConfigSource) throws CelPolicyValidationException;
 }

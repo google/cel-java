@@ -29,9 +29,7 @@ import java.util.PrimitiveIterator;
 @SuppressWarnings("UnicodeEscape") // Suppressed to distinguish half-width and full-width chars.
 public abstract class CelIssue {
 
-  /**
-   * Severity of a CelIssue.
-   */
+  /** Severity of a CelIssue. */
   public enum Severity {
     ERROR,
     WARNING,
@@ -40,8 +38,7 @@ public abstract class CelIssue {
   }
 
   // Package-private default constructor to prevent unexpected extensions outside of this codebase.
-  CelIssue() {
-  }
+  CelIssue() {}
 
   public abstract Severity getSeverity();
 
@@ -53,9 +50,7 @@ public abstract class CelIssue {
     return new AutoValue_CelIssue.Builder();
   }
 
-  /**
-   * Build {@link CelIssue} from the given {@link CelSourceLocation}, format string, and arguments.
-   */
+  /** Build {@link CelIssue} from the given {@link CelSourceLocation}, format string, and arguments. */
   public static CelIssue formatError(CelSourceLocation sourceLocation, String message) {
     return newBuilder()
         .setSeverity(Severity.ERROR)
@@ -64,9 +59,7 @@ public abstract class CelIssue {
         .build();
   }
 
-  /**
-   * Build {@link CelIssue} from the given line, column, format string, and arguments.
-   */
+  /** Build {@link CelIssue} from the given line, column, format string, and arguments. */
   public static CelIssue formatError(int line, int column, String message) {
     return formatError(CelSourceLocation.of(line, column), message);
   }
@@ -78,9 +71,7 @@ public abstract class CelIssue {
   private static final char WIDE_DOT = '\uff0e';
   private static final char WIDE_HAT = '\uff3e';
 
-  /**
-   * Returns a string representing this error that is suitable for displaying to humans.
-   */
+  /** Returns a string representing this error that is suitable for displaying to humans. */
   public String toDisplayString(Source source) {
     // Based onhttps://github.com/google/cel-go/blob/v0.5.1/common/error.go#L42.
     String result =
@@ -123,9 +114,7 @@ public abstract class CelIssue {
     return result;
   }
 
-  /**
-   * Builder for configuring {@link CelIssue}.
-   */
+  /** Builder for configuring {@link CelIssue}. */
   @AutoValue.Builder
   public abstract static class Builder {
 

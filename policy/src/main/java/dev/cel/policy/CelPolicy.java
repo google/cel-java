@@ -192,31 +192,4 @@ public abstract class CelPolicy {
           .setExpression(ValueString.newBuilder().build());
     }
   }
-
-  @AutoValue
-  abstract static class ValueString {
-
-    abstract long id();
-
-    abstract String value();
-
-
-    @AutoValue.Builder
-    abstract static class Builder {
-
-      abstract Builder setId(long id);
-
-      abstract Builder setValue(String value);
-
-      abstract ValueString build();
-    }
-
-    static Builder newBuilder() {
-      return new AutoValue_CelPolicy_ValueString.Builder().setId(0).setValue("");
-    }
-
-    static ValueString of(long id, String value) {
-      return newBuilder().setId(id).setValue(value).build();
-    }
-  }
 }
