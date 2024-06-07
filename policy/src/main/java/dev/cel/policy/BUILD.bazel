@@ -159,6 +159,8 @@ java_library(
         "CelPolicyCompiler.java",
     ],
     deps = [
+        ":policy",
+        "//common",
     ],
 )
 
@@ -168,7 +170,10 @@ java_library(
         "CelPolicyCompilerImpl.java",
     ],
     deps = [
+        ":policy",
         ":policy_compiler",
+        "//bundle:cel",
+        "//common",
     ],
 )
 
@@ -178,6 +183,7 @@ java_library(
     deps = [
         ":policy_compiler",
         ":policy_compiler_impl",
+        "//bundle:cel",
     ],
 )
 

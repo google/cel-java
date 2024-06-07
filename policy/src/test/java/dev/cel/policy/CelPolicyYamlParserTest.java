@@ -14,33 +14,27 @@
 
 package dev.cel.policy;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
-import com.google.common.base.Ascii;
-import com.google.common.io.Resources;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
-import java.io.IOException;
+import dev.cel.policy.PolicyTestHelper.YamlPolicy;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public final class CelPolicyYamlParserTest {
 
-  private static final CelPolicyParser YAML_POLICY_PARSER = CelPolicyParserFactory.newYamlParserBuilder()
+  private static final CelPolicyParser POLICY_PARSER = CelPolicyParserFactory.newYamlParserBuilder()
       .build();
 
   @Test
-  public void parseYamlPolicy_success(@TestParameter PolicyTestCase policyTestcase)
+  public void parseYamlPolicy_success(@TestParameter YamlPolicy yamlPolicy)
       throws Exception {
-    String yamlFileLocation = String.format("%s/policy.yaml", policyTestcase.name);
-    String yamlContent = readFile(yamlFileLocation);
-    CelPolicySource policySource = CelPolicySource.newBuilder(yamlContent)
-        .setDescription(yamlFileLocation).build();
+    CelPolicySource policySource = yamlPolicy.readPolicyYamlContent();
 
-    CelPolicy policy = YAML_POLICY_PARSER.parse(policySource);
+    CelPolicy policy = POLICY_PARSER.parse(policySource);
 
     assertThat(policy.name()).isEqualTo(policy.name());
     assertThat(policy.policySource()).isEqualTo(policySource);
@@ -51,21 +45,10 @@ public final class CelPolicyYamlParserTest {
     CelPolicySource policySource = CelPolicySource.fromText(testCase.yamlPolicy);
 
     CelPolicyValidationException e = assertThrows(CelPolicyValidationException.class,
-        () -> YAML_POLICY_PARSER.parse(policySource));
+        () -> POLICY_PARSER.parse(policySource));
     assertThat(e).hasMessageThat().isEqualTo(testCase.expectedErrorMessage);
   }
 
-  private enum PolicyTestCase {
-    NESTED_RULE("nested_rule"),
-    REQUIRED_LABELS("required_labels"),
-    RESTRICTED_DESTINATIONS("restricted_destinations");
-
-    private final String name;
-
-    PolicyTestCase(String name) {
-      this.name = name;
-    }
-  }
 
   private enum PolicyParseErrorTestCase {
     MALFORMED_YAML_DOCUMENT("a:\na", "YAML document is malformed: while scanning a simple key\n"
@@ -196,9 +179,5 @@ public final class CelPolicyYamlParserTest {
       this.yamlPolicy = yamlPolicy;
       this.expectedErrorMessage = expectedErrorMessage;
     }
-  }
-
-  private static String readFile(String path) throws IOException {
-    return Resources.toString(Resources.getResource(Ascii.toLowerCase(path)), UTF_8);
   }
 }

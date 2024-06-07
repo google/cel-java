@@ -13,9 +13,6 @@
 # limitations under the License.
 
 name: "labels"
-extensions:
-  - name: "lists"
-  - name: "sets"
 variables:
   - name: "destination.ip"
     type:

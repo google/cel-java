@@ -25,7 +25,7 @@ public final class CelPolicyYamlConfigParserTest {
       .addMessageTypes(AttributeContext.Request.getDescriptor())
       .build();
 
-  private static final CelPolicyConfigParser CEL_POLICY_CONFIG_PARSER =
+  private static final CelPolicyConfigParser POLICY_CONFIG_PARSER =
       CelPolicyParserFactory.newYamlConfigParser();
 
   @Test
@@ -34,7 +34,7 @@ public final class CelPolicyYamlConfigParserTest {
         "description: empty\n" +
         "container: pb.pkg\n";
 
-    CelPolicyConfig policyConfig = CEL_POLICY_CONFIG_PARSER.parse(
+    CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(
         CelPolicySource.fromText(yamlConfig));
 
     assertThat(policyConfig).isEqualTo(CelPolicyConfig.newBuilder()
@@ -55,7 +55,7 @@ public final class CelPolicyYamlConfigParserTest {
         "  - name: 'strings'\n" +
         "    version: 1";
 
-    CelPolicyConfig policyConfig = CEL_POLICY_CONFIG_PARSER.parse(
+    CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(
         CelPolicySource.fromText(yamlConfig));
 
     assertThat(policyConfig).isEqualTo(CelPolicyConfig.newBuilder()
@@ -111,7 +111,7 @@ public final class CelPolicyYamlConfigParserTest {
         "          type_name: 'T'\n" +
         "          is_type_param: true";
 
-    CelPolicyConfig policyConfig = CEL_POLICY_CONFIG_PARSER.parse(
+    CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(
         CelPolicySource.fromText(yamlConfig));
 
     assertThat(policyConfig).isEqualTo(CelPolicyConfig.newBuilder()
@@ -175,7 +175,7 @@ public final class CelPolicyYamlConfigParserTest {
         + "      - type_name: 'string'\n"
         + "      - type_name: 'dyn'";
 
-    CelPolicyConfig policyConfig = CEL_POLICY_CONFIG_PARSER.parse(
+    CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(
         CelPolicySource.fromText(yamlConfig));
 
     assertThat(policyConfig).isEqualTo(CelPolicyConfig.newBuilder()
@@ -201,7 +201,7 @@ public final class CelPolicyYamlConfigParserTest {
         + "  type:\n"
         + "    type_name: 'google.rpc.context.AttributeContext.Request'";
 
-    CelPolicyConfig policyConfig = CEL_POLICY_CONFIG_PARSER.parse(
+    CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(
         CelPolicySource.fromText(yamlConfig));
 
     assertThat(policyConfig).isEqualTo(CelPolicyConfig.newBuilder()
@@ -218,7 +218,7 @@ public final class CelPolicyYamlConfigParserTest {
   @Test
   public void config_parseErrors(@TestParameter ConfigParseErrorTestcase testCase) {
     CelPolicyValidationException e = assertThrows(CelPolicyValidationException.class,
-        () -> CEL_POLICY_CONFIG_PARSER.parse(
+        () -> POLICY_CONFIG_PARSER.parse(
             CelPolicySource.fromText(testCase.yamlConfig)));
     assertThat(e).hasMessageThat().isEqualTo(testCase.expectedErrorMessage);
   }
@@ -226,7 +226,7 @@ public final class CelPolicyYamlConfigParserTest {
   @Test
   public void config_extendErrors(@TestParameter ConfigExtendErrorTestCase testCase)
       throws Exception {
-    CelPolicyConfig policyConfig = CEL_POLICY_CONFIG_PARSER.parse(
+    CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(
         CelPolicySource.fromText(testCase.yamlConfig));
 
     CelPolicyValidationException e = assertThrows(CelPolicyValidationException.class,
