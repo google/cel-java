@@ -2,6 +2,7 @@ package dev.cel.policy;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.StringReader;
@@ -17,11 +18,14 @@ import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 
 final class YamlHelper {
-  private static final String ERROR = "*error*";
+  static final String ERROR = "*error*";
 
   enum YamlNodeType {
     MAP("tag:yaml.org,2002:map"),
     STRING("tag:yaml.org,2002:str"),
+    BOOLEAN("tag:yaml.org,2002:bool"),
+    INTEGER("tag:yaml.org,2002:int"),
+    DOUBLE("tag:yaml.org,2002:float"),
     TEXT("!txt"),
     LIST("tag:yaml.org,2002:seq"),
     ;
@@ -42,8 +46,8 @@ final class YamlHelper {
       Boolean.class, "tag:yaml.org,2002:bool",
       // "tag:yaml.org,2002:null":      yamlNull,
       // "tag:yaml.org,2002:str":       yamlString,
-      Integer.class, "tag:yaml.org,2002:int",
-      Double.class, "tag:yaml.org,2002:float",
+      Integer.class, "",
+      Double.class, "",
       List.class, "tag:yaml.org,2002:seq",
       LinkedHashMap.class, "tag:yaml.org,2002:map"
       // Timestamp.class, "tag:yaml.org,2002:timestamp"
@@ -88,6 +92,15 @@ final class YamlHelper {
     return yaml.compose(new StringReader(policySource.content().toString()));
   }
 
+  static boolean assertRequiredFields(ParserContext<Node> ctx, long id, List<String> missingRequiredFields) {
+    if (missingRequiredFields.isEmpty()) {
+      return true;
+    }
+
+    ctx.reportError(id, String.format("Missing required attribute(s): %s", Joiner.on(", ").join(missingRequiredFields)));
+    return false;
+  }
+
   static boolean assertYamlType(ParserContext<Node> ctx, long id, Node node,
       YamlNodeType... expectedNodeTypes) {
     String nodeTag = node.getTag().getValue();
@@ -102,7 +115,29 @@ final class YamlHelper {
     return false;
   }
 
-  static ValueString newString(ParserContext<Node> ctx, Node node) {
+  static Integer newInteger(ParserContext<Node> ctx, Node node) {
+    long id = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, id, node, YamlNodeType.INTEGER)) {
+      return 0;
+    }
+
+    return Integer.parseInt(((ScalarNode)node).getValue());
+  }
+
+  static boolean newBoolean(ParserContext<Node> ctx, Node node) {
+    long id = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, id, node, YamlNodeType.BOOLEAN)) {
+      return false;
+    }
+
+    return Boolean.parseBoolean(((ScalarNode)node).getValue());
+  }
+
+  static String newString(ParserContext<Node> ctx, Node node) {
+    return YamlHelper.newValueString(ctx, node).value();
+  }
+
+  static ValueString newValueString(ParserContext<Node> ctx, Node node) {
     long id = ctx.collectMetadata(node);
     if (!assertYamlType(ctx, id, node, YamlNodeType.STRING, YamlNodeType.TEXT)) {
       return ValueString.of(id, ERROR);

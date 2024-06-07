@@ -1,13 +1,5 @@
 package dev.cel.policy;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static dev.cel.policy.YamlHelper.assertYamlType;
-import static dev.cel.policy.YamlHelper.getListOfMapsOrDefault;
-import static dev.cel.policy.YamlHelper.getListOfMapsOrThrow;
-import static dev.cel.policy.YamlHelper.getMapOrThrow;
-import static dev.cel.policy.YamlHelper.getOrThrow;
-import static dev.cel.policy.YamlHelper.parseYamlSource;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import dev.cel.policy.CelPolicyConfig.ExtensionConfig;
@@ -16,16 +8,29 @@ import dev.cel.policy.CelPolicyConfig.OverloadDecl;
 import dev.cel.policy.CelPolicyConfig.TypeDecl;
 import dev.cel.policy.CelPolicyConfig.VariableDecl;
 import dev.cel.policy.YamlHelper.YamlNodeType;
-import java.util.List;
-import java.util.Map;
 import org.yaml.snakeyaml.nodes.MappingNode;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 import org.yaml.snakeyaml.nodes.SequenceNode;
 
+import java.util.List;
+import java.util.Map;
+
+import static dev.cel.policy.YamlHelper.ERROR;
+import static dev.cel.policy.YamlHelper.assertRequiredFields;
+import static dev.cel.policy.YamlHelper.assertYamlType;
+import static dev.cel.policy.YamlHelper.getListOfMapsOrDefault;
+import static dev.cel.policy.YamlHelper.newBoolean;
+import static dev.cel.policy.YamlHelper.newInteger;
+import static dev.cel.policy.YamlHelper.parseYamlSource;
+
 final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
-  private static final TypeDecl ERROR_DECL = TypeDecl.create("*error*");
+  // Sentinel values to be returned for various declarations when parsing failure is encountered.
+  private static final TypeDecl ERROR_TYPE_DECL = TypeDecl.create(ERROR);
+  private static final VariableDecl ERROR_VARIABLE_DECL = VariableDecl.create(ERROR, ERROR_TYPE_DECL);
+  private static final FunctionDecl ERROR_FUNCTION_DECL = FunctionDecl.create(ERROR, ImmutableSet.of());
+  private static final ExtensionConfig ERROR_EXTENSION_DECL = ExtensionConfig.of(ERROR);
 
   private class ParserImpl {
 
@@ -79,27 +84,13 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
             builder.setVariables(parseVariables(ctx, valueNode));
             break;
           case "functions":
+            builder.setFunctions(parseFunctions(ctx, valueNode));
             break;
           case "extensions":
+            builder.setExtensions(parseExtensions(ctx, valueNode));
             break;
         }
       }
-
-      // String name = (String) yamlMap.getOrDefault("name", "");
-      // String description = (String) yamlMap.getOrDefault("description", "");
-      // String container = (String) yamlMap.getOrDefault("container", "");
-      // ImmutableSet<VariableDecl> variables = parseVariables(yamlMap);
-      // ImmutableSet<FunctionDecl> functions = parseFunctions(yamlMap);
-      // ImmutableSet<ExtensionConfig> extensions = parseExtensions(yamlMap);
-      //
-      // return CelPolicyConfig.newBuilder()
-      //     .setName(name)
-      //     .setDescription(description)
-      //     .setContainer(container)
-      //     .setVariables(variables)
-      //     .setFunctions(functions)
-      //     .setExtensions(extensions)
-      //     .build();
 
       return builder.build();
     }
@@ -142,33 +133,20 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
 
     SequenceNode variableListNode = (SequenceNode) node;
     for (Node elementNode : variableListNode.getValue()) {
-      long id = ctx.collectMetadata(elementNode);
-      if (!assertYamlType(ctx, id, elementNode, YamlNodeType.MAP)) {
-        continue;
-      }
-
-      MappingNode variableMap = (MappingNode) elementNode;
-
-      variableSetBuilder.add(parseVariable(ctx, variableMap));
-      // newString(ctx, )
-      // getOrThrow(variableMap, "name", String.class),
-      // parseTypeDecl(getMapOrThrow(variableMap, "type"))
-
-      // variableBuilder.add(parseVariable(ctx, (MappingNode) elementNode));
+      variableSetBuilder.add(parseVariable(ctx, elementNode));
     }
-    // List<Map<String, Object>> variableList = getListOfMapsOrDefault(yamlMap, "variables");
-    // for (Map<String, Object> variableMap : variableList) {
-    //   variableSetBuilder.add(VariableDecl.create(
-    //       getOrThrow(variableMap, "name", String.class),
-    //       parseTypeDecl(getMapOrThrow(variableMap, "type"))
-    //   ));
-    // }
 
     return variableSetBuilder.build();
   }
 
 
-  private VariableDecl parseVariable(ParserContext<Node> ctx, MappingNode variableMap) {
+  private VariableDecl parseVariable(ParserContext<Node> ctx, Node node) {
+    long variableId = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, variableId, node, YamlNodeType.MAP)) {
+      return ERROR_VARIABLE_DECL;
+    }
+
+    MappingNode variableMap = (MappingNode) node;
     VariableDecl.Builder builder = VariableDecl.newBuilder();
     for (NodeTuple nodeTuple : variableMap.getValue()) {
       Node keyNode = nodeTuple.getKeyNode();
@@ -188,70 +166,181 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
       }
     }
 
+    if (!assertRequiredFields(ctx, variableId, builder.getMissingRequiredFieldNames())) {
+      return ERROR_VARIABLE_DECL;
+    }
+
     return builder.build();
   }
 
-  private static ImmutableSet<FunctionDecl> parseFunctions(Map<String, Object> yamlMap) {
+  private ImmutableSet<FunctionDecl> parseFunctions(ParserContext<Node> ctx, Node node) {
+    long valueId = ctx.collectMetadata(node);
     ImmutableSet.Builder<FunctionDecl> functionSetBuilder = ImmutableSet.builder();
-    List<Map<String, Object>> functionList = getListOfMapsOrDefault(yamlMap, "functions");
-    for (Map<String, Object> functionMap : functionList) {
-      functionSetBuilder.add(FunctionDecl.create(
-          getOrThrow(functionMap, "name", String.class),
-          parseOverloads(functionMap)
-      ));
+    if (!assertYamlType(ctx, valueId, node, YamlNodeType.LIST)) {
+      return functionSetBuilder.build();
+    }
+
+    SequenceNode functionListNode = (SequenceNode) node;
+    for (Node elementNode : functionListNode.getValue()) {
+      functionSetBuilder.add(parseFunction(ctx, elementNode));
     }
 
     return functionSetBuilder.build();
   }
 
-  private static ImmutableSet<OverloadDecl> parseOverloads(Map<String, Object> functionMap) {
-    ImmutableSet.Builder<OverloadDecl> overloadSetBuilder = ImmutableSet.builder();
-    List<Map<String, Object>> overloadList = getListOfMapsOrThrow(functionMap, "overloads");
-    for (Map<String, Object> overloadMap : overloadList) {
-      OverloadDecl.Builder overloadDeclBuilder = OverloadDecl.newBuilder()
-          .setId((String) overloadMap.getOrDefault("id", ""))
-          .setArguments(parseOverloadArguments(overloadMap))
-          .setReturnType(parseTypeDecl(
-              getMapOrThrow(overloadMap, "return")));
+  private FunctionDecl parseFunction(ParserContext<Node> ctx, Node node) {
+    long functionId = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, functionId, node, YamlNodeType.MAP)) {
+      return ERROR_FUNCTION_DECL;
+    }
 
-      if (overloadMap.containsKey("target")) {
-        overloadDeclBuilder.setTarget(
-            parseTypeDecl(getMapOrThrow(overloadMap, "target")));
+    MappingNode functionMap = (MappingNode) node;
+    FunctionDecl.Builder builder = FunctionDecl.newBuilder();
+    for (NodeTuple nodeTuple : functionMap.getValue()) {
+      Node keyNode = nodeTuple.getKeyNode();
+      long keyId = ctx.collectMetadata(keyNode);
+      Node valueNode = nodeTuple.getValueNode();
+      String keyName = ((ScalarNode) keyNode).getValue();
+      switch (keyName) {
+        case "name":
+          builder.setName(newString(ctx, valueNode));
+          break;
+        case "overloads":
+          builder.setOverloads(parseOverloads(ctx, valueNode));
+          break;
+        default:
+          ctx.reportError(keyId, String.format("Unsupported function tag: %s", keyName));
+          break;
+      }
+    }
+
+    if (!assertRequiredFields(ctx, functionId, builder.getMissingRequiredFieldNames())) {
+      return ERROR_FUNCTION_DECL;
+    }
+
+    return builder.build();
+  }
+
+  private static ImmutableSet<OverloadDecl> parseOverloads(ParserContext<Node> ctx, Node node) {
+    long listId = ctx.collectMetadata(node);
+    ImmutableSet.Builder<OverloadDecl> overloadSetBuilder = ImmutableSet.builder();
+    if (!assertYamlType(ctx, listId, node, YamlNodeType.LIST)) {
+      return overloadSetBuilder.build();
+    }
+
+    SequenceNode overloadListNode = (SequenceNode) node;
+    for (Node overloadMapNode : overloadListNode.getValue()) {
+      long overloadMapId = ctx.collectMetadata(overloadMapNode);
+      if (!assertYamlType(ctx, overloadMapId, overloadMapNode, YamlNodeType.MAP)) {
+        continue;
       }
 
-      overloadSetBuilder.add(overloadDeclBuilder.build());
+      MappingNode mapNode = (MappingNode) overloadMapNode;
+      OverloadDecl.Builder overloadDeclBuilder = OverloadDecl.newBuilder();
+      for (NodeTuple nodeTuple : mapNode.getValue()) {
+        Node keyNode = nodeTuple.getKeyNode();
+        long keyId = ctx.collectMetadata(keyNode);
+        if (!assertYamlType(ctx, keyId, keyNode, YamlNodeType.STRING, YamlNodeType.TEXT)) {
+          continue;
+        }
+
+        Node valueNode = nodeTuple.getValueNode();
+        String fieldName = ((ScalarNode) keyNode).getValue();
+        switch (fieldName) {
+          case "id":
+            overloadDeclBuilder.setId(newString(ctx, valueNode));
+            break;
+          case "args":
+            overloadDeclBuilder.addArguments(parseOverloadArguments(ctx, valueNode));
+            break;
+          case "return":
+            overloadDeclBuilder.setReturnType(parseTypeDecl(ctx, valueNode));
+            break;
+          case "target":
+            overloadDeclBuilder.setTarget(parseTypeDecl(ctx, valueNode));
+            break;
+          default:
+            ctx.reportError(keyId, String.format("Unsupported overload tag: %s", fieldName));
+            break;
+        }
+      }
+
+      if (assertRequiredFields(ctx, overloadMapId, overloadDeclBuilder.getMissingRequiredFieldNames())) {
+        overloadSetBuilder.add(overloadDeclBuilder.build());
+      }
     }
 
     return overloadSetBuilder.build();
   }
 
-  private static ImmutableSet<ExtensionConfig> parseExtensions(Map<String, Object> yamlMap) {
-    ImmutableSet.Builder<ExtensionConfig> extensionConfigBuilder = ImmutableSet.builder();
-    List<Map<String, Object>> extensionList = getListOfMapsOrDefault(yamlMap,
-        "extensions");
-    for (Map<String, Object> extensionMap : extensionList) {
-      String name = getOrThrow(extensionMap, "name", String.class);
-      int version = (int) extensionMap.getOrDefault("version", 0);
 
-      extensionConfigBuilder.add(ExtensionConfig.of(name, version));
+  private static ImmutableList<TypeDecl> parseOverloadArguments(ParserContext<Node> ctx, Node node) {
+    long listValueId = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, listValueId, node, YamlNodeType.LIST)) {
+      return ImmutableList.of();
+    }
+    SequenceNode paramsListNode = (SequenceNode) node;
+    ImmutableList.Builder<TypeDecl> builder = ImmutableList.builder();
+    for (Node elementNode : paramsListNode.getValue()) {
+      builder.add(parseTypeDecl(ctx, elementNode));
+    }
+
+    return builder.build();
+  }
+
+  private static ImmutableSet<ExtensionConfig> parseExtensions(ParserContext<Node> ctx, Node node) {
+    long valueId = ctx.collectMetadata(node);
+    ImmutableSet.Builder<ExtensionConfig> extensionConfigBuilder = ImmutableSet.builder();
+    if (!assertYamlType(ctx, valueId, node, YamlNodeType.LIST)) {
+      return extensionConfigBuilder.build();
+    }
+
+    SequenceNode extensionListNode = (SequenceNode) node;
+    for (Node elementNode : extensionListNode.getValue()) {
+      extensionConfigBuilder.add(parseExtension(ctx, elementNode));
     }
 
     return extensionConfigBuilder.build();
   }
 
-  private static ImmutableList<TypeDecl> parseOverloadArguments(Map<String, Object> overloadMap) {
-    List<Map<String, Object>> argumentList = getListOfMapsOrDefault(overloadMap, "args");
-    return
-        argumentList.stream()
-            .map(CelPolicyYamlConfigParser::parseTypeDecl)
-            .collect(toImmutableList());
+  private static ExtensionConfig parseExtension(ParserContext<Node> ctx, Node node) {
+    long extensionId = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, extensionId, node, YamlNodeType.MAP)) {
+      return ERROR_EXTENSION_DECL;
+    }
+
+    MappingNode extensionMap = (MappingNode) node;
+    ExtensionConfig.Builder builder = ExtensionConfig.newBuilder();
+    for (NodeTuple nodeTuple : extensionMap.getValue()) {
+      Node keyNode = nodeTuple.getKeyNode();
+      long keyId = ctx.collectMetadata(keyNode);
+      Node valueNode = nodeTuple.getValueNode();
+      String keyName = ((ScalarNode) keyNode).getValue();
+      switch (keyName) {
+        case "name":
+          builder.setName(newString(ctx, valueNode));
+          break;
+        case "version":
+          builder.setVersion(newInteger(ctx, valueNode));
+          break;
+        default:
+          ctx.reportError(keyId, String.format("Unsupported variable tag: %s", keyName));
+          break;
+      }
+    }
+
+    if (!assertRequiredFields(ctx, extensionId, builder.getMissingRequiredFieldNames())) {
+      return ERROR_EXTENSION_DECL;
+    }
+
+    return builder.build();
   }
 
   private static TypeDecl parseTypeDecl(ParserContext<Node> ctx, Node node) {
     TypeDecl.Builder builder = TypeDecl.newBuilder();
     long id = ctx.collectMetadata(node);
     if (!assertYamlType(ctx, id, node, YamlNodeType.MAP)) {
-      return ERROR_DECL;
+      return ERROR_TYPE_DECL;
     }
 
     MappingNode mapNode = (MappingNode) node;
@@ -269,7 +358,7 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
           builder.setName(newString(ctx, valueNode));
           break;
         case "is_type_param":
-          System.out.println();
+          builder.setIsTypeParam(newBoolean(ctx, valueNode));
           break;
         case "params":
           long listValueId = ctx.collectMetadata(node);
@@ -286,16 +375,7 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
           break;
       }
     }
-    //
-    // TypeDecl.Builder builder = TypeDecl.newBuilder()
-    //     .setName((String) typeMap.getOrDefault("type_name", ""))
-    //     .setIsTypeParam((boolean) typeMap.getOrDefault("is_type_param", false));
-    //
-    // List<Map<String, Object>> paramsList = getListOfMapsOrDefault(typeMap, "params");
-    // for (Map<String, Object> paramMap : paramsList) {
-    //   builder.addParams(parseTypeDecl(paramMap));
-    // }
-    //
+
     return builder.build();
   }
 
@@ -314,7 +394,7 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
   }
 
   private static String newString(ParserContext<Node> ctx, Node node) {
-    return YamlHelper.newString(ctx, node).value();
+    return YamlHelper.newValueString(ctx, node).value();
   }
 
   static CelPolicyYamlConfigParser newInstance() {

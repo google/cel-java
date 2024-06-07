@@ -1,7 +1,7 @@
 package dev.cel.policy;
 
 import static dev.cel.policy.YamlHelper.assertYamlType;
-import static dev.cel.policy.YamlHelper.newString;
+import static dev.cel.policy.YamlHelper.newValueString;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelSource;
@@ -70,7 +70,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         String fieldName = ((ScalarNode) keyNode).getValue();
         switch (fieldName) {
           case "name":
-            policyBuilder.setName(newString(ctx, valueNode));
+            policyBuilder.setName(newValueString(ctx, valueNode));
             break;
           case "rule":
             policyBuilder.setRule(parseRule(ctx, valueNode));
@@ -102,10 +102,10 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         Node value = nodeTuple.getValueNode();
         switch (fieldName) {
           case "id":
-            ruleBuilder.setId(newString(ctx, value));
+            ruleBuilder.setId(newValueString(ctx, value));
             break;
           case "description":
-            ruleBuilder.setDescription(newString(ctx, value));
+            ruleBuilder.setDescription(newValueString(ctx, value));
             break;
           case "variables":
             ruleBuilder.addVariables(parseVariables(ctx, value));
@@ -152,14 +152,14 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         Node value = nodeTuple.getValueNode();
         switch (fieldName) {
           case "condition":
-            matchBuilder.setCondition(newString(ctx, value));
+            matchBuilder.setCondition(newValueString(ctx, value));
             break;
           case "output":
             matchBuilder.result()
                 .filter(result -> result.kind().equals(Match.Result.Kind.RULE))
                 .ifPresent(
                     result -> ctx.reportError(tagId, "Only the rule or the output may be set"));
-            matchBuilder.setResult(Match.Result.ofOutput(newString(ctx, value)));
+            matchBuilder.setResult(Match.Result.ofOutput(newValueString(ctx, value)));
             break;
           case "rule":
             matchBuilder.result()
@@ -205,10 +205,10 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         String keyName = ((ScalarNode) keyNode).getValue();
         switch (keyName) {
           case "name":
-            builder.setName(newString(ctx, valueNode));
+            builder.setName(newValueString(ctx, valueNode));
             break;
           case "expression":
-            builder.setExpression(newString(ctx, valueNode));
+            builder.setExpression(newValueString(ctx, valueNode));
             break;
           default:
             tagVisitor.visitVariableTag(ctx, keyId, keyName, valueNode, builder);

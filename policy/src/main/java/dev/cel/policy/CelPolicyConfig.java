@@ -1,9 +1,5 @@
 package dev.cel.policy;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -24,8 +20,15 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
+
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Stream;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 @AutoValue
 public abstract class CelPolicyConfig {
@@ -147,9 +150,18 @@ public abstract class CelPolicyConfig {
 
       abstract Optional<String> name();
 
+      abstract Optional<TypeDecl> type();
+
       abstract Builder setName(String name);
 
       abstract Builder setType(TypeDecl typeDecl);
+
+      ImmutableList<String> getMissingRequiredFieldNames() {
+        return getMissingRequiredFields(
+                        new AbstractMap.SimpleEntry<>("name", name()),
+                        new AbstractMap.SimpleEntry<>("type", type())
+                );
+      }
 
       abstract VariableDecl build();
     }
@@ -174,8 +186,33 @@ public abstract class CelPolicyConfig {
 
     public abstract ImmutableSet<OverloadDecl> overloads();
 
+    @AutoValue.Builder
+    abstract static class Builder {
+
+      abstract Optional<String> name();
+
+      abstract Optional<ImmutableSet<OverloadDecl>> overloads();
+
+      abstract Builder setName(String name);
+
+      abstract Builder setOverloads(ImmutableSet<OverloadDecl> overloads);
+
+      ImmutableList<String> getMissingRequiredFieldNames() {
+        return getMissingRequiredFields(
+                new AbstractMap.SimpleEntry<>("name", name()),
+                new AbstractMap.SimpleEntry<>("overloads", overloads())
+        );
+      }
+
+      abstract FunctionDecl build();
+    }
+
+    static Builder newBuilder() {
+      return new AutoValue_CelPolicyConfig_FunctionDecl.Builder();
+    }
+
     public static FunctionDecl create(String name, ImmutableSet<OverloadDecl> overloads) {
-      return new AutoValue_CelPolicyConfig_FunctionDecl(name, overloads);
+      return newBuilder().setName(name).setOverloads(overloads).build();
     }
 
     public CelFunctionDecl toCelFunctionDecl(CelTypeProvider celTypeProvider) {
@@ -201,6 +238,9 @@ public abstract class CelPolicyConfig {
     @AutoValue.Builder
     public abstract static class Builder {
 
+      abstract Optional<String> id();
+      abstract Optional<TypeDecl> returnType();
+
       public abstract Builder setId(String overloadId);
 
       public abstract Builder setTarget(TypeDecl target);
@@ -221,6 +261,13 @@ public abstract class CelPolicyConfig {
       }
 
       public abstract Builder setReturnType(TypeDecl returnType);
+
+      ImmutableList<String> getMissingRequiredFieldNames() {
+        return getMissingRequiredFields(
+                new AbstractMap.SimpleEntry<>("id", id()),
+                new AbstractMap.SimpleEntry<>("return", returnType())
+        );
+      }
 
       @CheckReturnValue
       public abstract OverloadDecl build();
@@ -349,12 +396,44 @@ public abstract class CelPolicyConfig {
      */
     abstract Integer version();
 
+    @AutoValue.Builder
+    abstract static class Builder {
+
+      abstract Optional<String> name();
+
+      abstract Optional<Integer> version();
+
+      abstract Builder setName(String name);
+
+      abstract Builder setVersion(Integer version);
+
+      ImmutableList<String> getMissingRequiredFieldNames() {
+        return getMissingRequiredFields(
+                new AbstractMap.SimpleEntry<>("name", name())
+        );
+      }
+
+      abstract ExtensionConfig build();
+    }
+
+    static Builder newBuilder() {
+      return new AutoValue_CelPolicyConfig_ExtensionConfig.Builder().setVersion(0);
+    }
+
     public static ExtensionConfig of(String name) {
       return of(name, 0);
     }
 
     public static ExtensionConfig of(String name, int version) {
-      return new AutoValue_CelPolicyConfig_ExtensionConfig(name, version);
+      return newBuilder().setName(name).setVersion(version).build();
     }
+  }
+
+  @SafeVarargs
+  private static ImmutableList<String> getMissingRequiredFields(AbstractMap.SimpleEntry<String, Optional<?>>... requiredFields) {
+    return Stream.of(requiredFields)
+            .filter(entry -> !entry.getValue().isPresent())
+            .map(AbstractMap.SimpleEntry::getKey)
+            .collect(toImmutableList());
   }
 }

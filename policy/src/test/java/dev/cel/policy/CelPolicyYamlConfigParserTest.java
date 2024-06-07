@@ -235,22 +235,37 @@ public final class CelPolicyYamlConfigParserTest {
   }
 
   private enum ConfigParseErrorTestcase {
-    MISSING_VARIABLE_NAME("variables:\n"
-        + "  - type: 'string'",
-        "Missing required attribute: name"),
-    MISSING_VARIABLE_TYPE("variables:\n"
-        + "- name: 'missing_type'\n",
-        "Missing required attribute: type"),
-    MISSING_RETURN("functions:\n"
+    MISSING_VARIABLE_PROPERTIES("variables:\n"
+        + " - illegal: 2",
+        "ERROR: <input>:2:4: Unsupported variable tag: illegal\n" +
+                " |  - illegal: 2\n" +
+                " | ...^\n" +
+                "ERROR: <input>:2:4: Missing required attribute(s): name, type\n" +
+                " |  - illegal: 2\n" +
+                " | ...^"),
+    MISSING_OVERLOAD_RETURN("functions:\n"
         + "  - name: 'missing_return'\n"
         + "    overloads:\n"
-        + "      - id: 'zero_arity'\n", "Missing required attribute: return"),
+        + "      - id: 'zero_arity'\n",
+            "ERROR: <input>:4:9: Missing required attribute(s): return\n" +
+            " |       - id: 'zero_arity'\n" +
+            " | ........^"),
     MISSING_FUNCTION_NAME("functions:\n"
-        + "  - overloads: ", "Missing required attribute: name"),
+        + "  - overloads:\n"
+        + "      - id: 'foo'\n"
+        + "        return:\n"
+        + "          type_name: 'string'\n",
+            "ERROR: <input>:2:5: Missing required attribute(s): name\n" +
+            " |   - overloads:\n" +
+            " | ....^"),
     MISSING_OVERLOAD("functions:\n"
-        + "  - name: 'missing_overload'\n", "Missing required attribute: overloads"),
+        + "  - name: 'missing_overload'\n", "ERROR: <input>:2:5: Missing required attribute(s): overloads\n" +
+            " |   - name: 'missing_overload'\n" +
+            " | ....^"),
     MISSING_EXTENSION_NAME("extensions:\n"
-        + "- version: 0", "Missing required attribute: name"),
+        + "- version: 0", "ERROR: <input>:2:3: Missing required attribute(s): name\n" +
+            " | - version: 0\n" +
+            " | ..^"),
     ;
 
     private final String yamlConfig;
