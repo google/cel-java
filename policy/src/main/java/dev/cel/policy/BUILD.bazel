@@ -173,6 +173,15 @@ java_library(
 )
 
 java_library(
+    name = "policy_compiler_factory",
+    srcs = ["CelPolicyCompilerFactory.java"],
+    deps = [
+        ":policy_compiler",
+        ":policy_compiler_impl",
+    ],
+)
+
+java_library(
     name = "policy_yaml_config_parser",
     srcs = [
         "CelPolicyYamlConfigParser.java",

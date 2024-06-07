@@ -2,7 +2,7 @@ package dev.cel.policy;
 
 import org.yaml.snakeyaml.nodes.Node;
 
-public class CelPolicyParserFactory {
+public final class CelPolicyParserFactory {
 
   /**
    * TODO
@@ -14,4 +14,6 @@ public class CelPolicyParserFactory {
   public static CelPolicyConfigParser newYamlConfigParser() {
     return CelPolicyYamlConfigParser.newInstance();
   }
+
+  private CelPolicyParserFactory() {}
 }
