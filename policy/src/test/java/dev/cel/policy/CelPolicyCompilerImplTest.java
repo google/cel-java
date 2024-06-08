@@ -75,7 +75,8 @@ public final class CelPolicyCompilerImplTest {
   }
 
   @Test
-  public void evaluateYamlPolicy_success(@TestParameter(valuesProvider = PolicyTestDataProvider.class) EvaluablePolicyTestData testData) throws Exception{
+  public void evaluateYamlPolicy_success(@TestParameter(valuesProvider = PolicyTestDataProvider.class)
+                                           EvaluablePolicyTestData testData) throws Exception{
     // Read config and produce an environment to compile policies
     CelPolicySource configSource = testData.yamlPolicy.readConfigYamlContent();
     CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(configSource);
@@ -85,9 +86,12 @@ public final class CelPolicyCompilerImplTest {
     CelPolicySource policySource = testData.yamlPolicy.readPolicyYamlContent();
     CelPolicy policy = POLICY_PARSER.parse(policySource);
     CelAbstractSyntaxTree expectedOutputAst = cel.compile(testData.testCase.getOutput()).getAst();
+    Object expectedOutput = cel.createProgram(expectedOutputAst).eval();
 
-    CelAbstractSyntaxTree ast = CelPolicyCompilerFactory.newPolicyCompiler(cel).compile(policy);
+    // Compile then evaluate the policy
+    CelAbstractSyntaxTree compiledPolicyAst = CelPolicyCompilerFactory.newPolicyCompiler(cel).compile(policy);
+    Object evaluatedOutput = cel.createProgram(compiledPolicyAst).eval(); // Todo: input
 
-    assertThat(ast).isNotNull();
+    assertThat(evaluatedOutput).isEqualTo(expectedOutput);
   }
 }
