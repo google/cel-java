@@ -160,7 +160,19 @@ java_library(
     ],
     deps = [
         ":policy",
+        ":policy_exception",
         "//common",
+    ],
+)
+
+java_library(
+    name = "policy_compiler_builder",
+    srcs = [
+        "CelPolicyCompilerBuilder.java",
+    ],
+    deps = [
+        ":policy_compiler",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
 
@@ -172,13 +184,22 @@ java_library(
     deps = [
         ":policy",
         ":policy_compiler",
+        ":policy_compiler_builder",
+        ":policy_exception",
+        "//:auto_value",
         "//bundle:cel",
         "//common",
+        "//common:compiler_common",
         "//common/ast",
         "//common/ast:expr_factory",
+        "//common/types",
+        "//common/types:type_providers",
         "//optimizer",
         "//optimizer:ast_optimizer",
+        "//optimizer:optimization_exception",
         "//optimizer:optimizer_builder",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
     ],
 )
 
@@ -187,8 +208,15 @@ java_library(
     srcs = ["CelPolicyCompilerFactory.java"],
     deps = [
         ":policy_compiler",
+        ":policy_compiler_builder",
         ":policy_compiler_impl",
         "//bundle:cel",
+        "//checker:checker_builder",
+        "//compiler",
+        "//compiler:compiler_builder",
+        "//optimizer:optimizer_builder",
+        "//parser:parser_builder",
+        "//runtime",
     ],
 )
 

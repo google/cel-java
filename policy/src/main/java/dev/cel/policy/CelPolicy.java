@@ -127,9 +127,9 @@ public abstract class CelPolicy {
   @AutoValue
   abstract static class Match {
 
-    abstract Optional<ValueString> condition();
+    abstract ValueString condition();
 
-    abstract Optional<Result> result();
+    abstract Result result();
 
     @AutoOneOf(Match.Result.Kind.class)
     abstract static class Result {
@@ -152,7 +152,7 @@ public abstract class CelPolicy {
     }
 
     @AutoValue.Builder
-    abstract static class Builder {
+    public abstract static class Builder {
 
       abstract Builder setCondition(ValueString condition);
 
@@ -177,7 +177,7 @@ public abstract class CelPolicy {
     abstract ValueString expression();
 
     @AutoValue.Builder
-    abstract static class Builder {
+    public abstract static class Builder {
 
       abstract Builder setName(ValueString name);
 

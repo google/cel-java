@@ -1,5 +1,6 @@
 package dev.cel.policy;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static dev.cel.policy.YamlHelper.assertYamlType;
 import static dev.cel.policy.YamlHelper.newValueString;
 
@@ -141,7 +142,8 @@ final class CelPolicyYamlParser implements CelPolicyParser {
     }
 
     private CelPolicy.Match parseMatch(ParserContext<Node> ctx, MappingNode node) {
-      CelPolicy.Match.Builder matchBuilder = CelPolicy.Match.newBuilder();
+      CelPolicy.Match.Builder matchBuilder = CelPolicy.Match.newBuilder()
+          .setCondition(ValueString.of(ctx.nextId(), "true"));
       for (NodeTuple nodeTuple : node.getValue()) {
         Node key = nodeTuple.getKeyNode();
         long tagId = ctx.collectMetadata(key);
@@ -233,7 +235,6 @@ final class CelPolicyYamlParser implements CelPolicyParser {
     }
   }
 
-
   static final class Builder implements CelPolicyParserBuilder<Node> {
 
     private TagVisitor<Node> tagVisitor;
@@ -262,6 +263,6 @@ final class CelPolicyYamlParser implements CelPolicyParser {
   private CelPolicyYamlParser(
       TagVisitor<Node> tagVisitor
   ) {
-    this.tagVisitor = tagVisitor;
+    this.tagVisitor = checkNotNull(tagVisitor);
   }
 }

@@ -49,7 +49,8 @@ final class YamlParserContextImpl implements ParserContext<Node> {
     return id;
   }
 
-  long nextId() {
+  @Override
+  public long nextId() {
     return ++id;
   }
 

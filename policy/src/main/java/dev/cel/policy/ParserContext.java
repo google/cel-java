@@ -6,4 +6,5 @@ public interface ParserContext<T> {
   String getIssueString();
   boolean hasError();
   long collectMetadata(T node);
+  long nextId();
 }

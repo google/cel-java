@@ -11,6 +11,8 @@ import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.extensions.CelOptionalLibrary;
+import dev.cel.parser.CelStandardMacro;
 import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection;
 import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection.PolicyTestCase;
 import dev.cel.policy.PolicyTestHelper.YamlPolicy;
@@ -33,13 +35,12 @@ public final class CelPolicyCompilerImplTest {
     // Read config and produce an environment to compile policies
     CelPolicySource configSource = yamlPolicy.readConfigYamlContent();
     CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(configSource);
-    Cel cel = CelFactory.standardCelBuilder().build();
-    cel = policyConfig.extend(cel, CelOptions.newBuilder().build());
+    Cel cel = policyConfig.extend(newCel(), CelOptions.newBuilder().build());
     // Read the policy source
     CelPolicySource policySource = yamlPolicy.readPolicyYamlContent();
     CelPolicy policy = POLICY_PARSER.parse(policySource);
 
-    CelAbstractSyntaxTree ast = CelPolicyCompilerFactory.newPolicyCompiler(cel).compile(policy);
+    CelAbstractSyntaxTree ast = CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
 
     assertThat(ast).isNotNull();
   }
@@ -80,8 +81,7 @@ public final class CelPolicyCompilerImplTest {
     // Read config and produce an environment to compile policies
     CelPolicySource configSource = testData.yamlPolicy.readConfigYamlContent();
     CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(configSource);
-    Cel cel = CelFactory.standardCelBuilder().build();
-    cel = policyConfig.extend(cel, CelOptions.newBuilder().build());
+    Cel cel = policyConfig.extend(newCel(), CelOptions.DEFAULT);
     // Read the policy source
     CelPolicySource policySource = testData.yamlPolicy.readPolicyYamlContent();
     CelPolicy policy = POLICY_PARSER.parse(policySource);
@@ -89,9 +89,17 @@ public final class CelPolicyCompilerImplTest {
     Object expectedOutput = cel.createProgram(expectedOutputAst).eval();
 
     // Compile then evaluate the policy
-    CelAbstractSyntaxTree compiledPolicyAst = CelPolicyCompilerFactory.newPolicyCompiler(cel).compile(policy);
+    CelAbstractSyntaxTree compiledPolicyAst = CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
     Object evaluatedOutput = cel.createProgram(compiledPolicyAst).eval(); // Todo: input
 
     assertThat(evaluatedOutput).isEqualTo(expectedOutput);
+  }
+
+  private static Cel newCel() {
+    return CelFactory.standardCelBuilder()
+        .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+        .addCompilerLibraries(CelOptionalLibrary.INSTANCE)
+        .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
+        .build();
   }
 }
