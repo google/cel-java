@@ -1,10 +1,7 @@
 package dev.cel.policy;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.ImmutableList.toImmutableList;
 
-import com.google.auto.value.AutoOneOf;
-import com.google.auto.value.AutoValue;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -14,60 +11,37 @@ import dev.cel.common.CelIssue;
 import dev.cel.common.CelSource;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelVarDecl;
+import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
-import dev.cel.common.ast.CelExprFactory;
 import dev.cel.common.types.CelType;
-import dev.cel.optimizer.CelAstOptimizer;
+import dev.cel.common.types.SimpleType;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.optimizer.CelOptimizer;
 import dev.cel.optimizer.CelOptimizerFactory;
+import dev.cel.policy.CelCompiledRule.CelCompiledMatch;
+import dev.cel.policy.CelCompiledRule.CelCompiledMatch.Result;
+import dev.cel.policy.CelCompiledRule.CelCompiledVariable;
 import dev.cel.policy.CelPolicy.Match;
 import dev.cel.policy.CelPolicy.Variable;
-import dev.cel.policy.CelPolicyCompilerImpl.CompiledRule.CompiledMatch;
-import dev.cel.policy.CelPolicyCompilerImpl.CompiledRule.CompiledMatch.Result;
-import dev.cel.policy.CelPolicyCompilerImpl.CompiledRule.CompiledVariable;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
-  private static final Joiner JOINER = Joiner.on('\n');
 
   private final Cel cel;
   private final String variablesPrefix;
 
-  private final static class CompilerContext {
-    private final ArrayList<CelIssue> issues;
-
-    private void addIssue(List<CelIssue> issues) {
-      this.issues.addAll(issues);
-    }
-
-    private boolean hasError() {
-      return !issues.isEmpty();
-    }
-
-    public String getIssueString() {
-      return "error!";
-      // return JOINER.join(
-      //     issues.stream().map(iss -> iss.toDisplayString(source))
-      //         .collect(toImmutableList()));
-    }
-
-
-    private CompilerContext() {
-      this.issues = new ArrayList<>();
-    }
-  }
-
   @Override
   public CelAbstractSyntaxTree compile(CelPolicy policy) throws CelPolicyValidationException {
     CompilerContext compilerContext = new CompilerContext();
-    CompiledRule compiledRule = compileRule(policy.rule(), cel, compilerContext);
+    CelCompiledRule compiledRule = compileRule(policy.rule(), cel, compilerContext);
     if (compilerContext.hasError()) {
       throw new CelPolicyValidationException(compilerContext.getIssueString());
     }
 
-    CelOptimizer optimizer = CelOptimizerFactory.standardCelOptimizerBuilder(compiledRule.cel()).addAstOptimizers(new RuleComposer(compiledRule)).build();
+    CelOptimizer optimizer = CelOptimizerFactory.standardCelOptimizerBuilder(compiledRule.cel())
+        .addAstOptimizers(RuleComposer.newInstance(compiledRule))
+        .build();
 
     CelAbstractSyntaxTree ast;
 
@@ -81,27 +55,27 @@ public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
     return ast;
   }
 
-  private CompiledRule compileRule(CelPolicy.Rule rule, Cel ruleCel, CompilerContext compilerContext) {
-    ImmutableList.Builder<CompiledVariable> variableBuilder = ImmutableList.builder();
+  private CelCompiledRule compileRule(CelPolicy.Rule rule, Cel ruleCel, CompilerContext compilerContext) {
+    ImmutableList.Builder<CelCompiledVariable> variableBuilder = ImmutableList.builder();
     for (Variable variable : rule.variables()) {
       // TODO: Compute relative source
       String expression = variable.expression().value();
       CelAbstractSyntaxTree varAst;
-      CelType outputType;
+      CelType outputType = SimpleType.DYN;
       try {
         varAst = ruleCel.compile(expression).getAst();
+        outputType = varAst.getResultType();
       } catch (CelValidationException e) {
         compilerContext.addIssue(e.getErrors());
-        // TODO: Fall back to dyn. Requires extending the environment with the var.
-        throw new RuntimeException(e);
+        varAst = newErrorAst();
       }
       String variableName = variable.name().value();
-      CelVarDecl newVariable = CelVarDecl.newVarDeclaration(String.format("%s.%s", variablesPrefix, variableName), varAst.getResultType());
+      CelVarDecl newVariable = CelVarDecl.newVarDeclaration(String.format("%s.%s", variablesPrefix, variableName), outputType);
       ruleCel = ruleCel.toCelBuilder().addVarDeclarations(newVariable).build();
-      variableBuilder.add(CompiledVariable.create(variableName, varAst));
+      variableBuilder.add(CelCompiledVariable.create(variableName, varAst));
     }
 
-    ImmutableList.Builder<CompiledMatch> matchBuilder = ImmutableList.builder();
+    ImmutableList.Builder<CelCompiledMatch> matchBuilder = ImmutableList.builder();
     for (Match match : rule.matches()) {
       CelAbstractSyntaxTree conditionAst;
       try {
@@ -126,81 +100,49 @@ public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
           matchResult = Result.ofOutput(outputAst);
           break;
         case RULE:
-          CompiledRule nestedRule = compileRule(match.result().rule(), ruleCel, compilerContext);
+          CelCompiledRule nestedRule = compileRule(match.result().rule(), ruleCel, compilerContext);
           matchResult = Result.ofRule(nestedRule);
           break;
         default:
           throw new IllegalArgumentException("Unexpected kind: " + match.result().kind());
       }
 
-      matchBuilder.add(CompiledMatch.create(conditionAst, matchResult));
+      matchBuilder.add(CelCompiledMatch.create(conditionAst, matchResult));
     }
 
-    return CompiledRule.create(variableBuilder.build(), matchBuilder.build(), cel);
+    return CelCompiledRule.create(variableBuilder.build(), matchBuilder.build(), cel);
   }
 
-  @AutoValue
-  static abstract class CompiledRule {
-    abstract ImmutableList<CompiledVariable> variables();
-    abstract ImmutableList<CompiledMatch> matches();
-    abstract Cel cel();
+  private static CelAbstractSyntaxTree newErrorAst() {
+    return CelAbstractSyntaxTree.newParsedAst(CelExpr.ofConstant(0, CelConstant.ofValue("*error*")), CelSource.newBuilder().build());
+  }
 
-    @AutoValue
-    static abstract class CompiledVariable {
-      abstract String name();
-      abstract CelAbstractSyntaxTree ast();
+  private final static class CompilerContext {
+    private static final Joiner JOINER = Joiner.on('\n');
+    private final ArrayList<CelIssue> issues;
 
-      static CompiledVariable create(String name, CelAbstractSyntaxTree ast) {
-        return new AutoValue_CelPolicyCompilerImpl_CompiledRule_CompiledVariable(name, ast);
-      }
+    private void addIssue(List<CelIssue> issues) {
+      this.issues.addAll(issues);
     }
 
-    @AutoValue
-    static abstract class CompiledMatch {
-      abstract CelAbstractSyntaxTree condition();
-      abstract Result result();
-
-      @AutoOneOf(CompiledMatch.Result.Kind.class)
-      abstract static class Result {
-        abstract CelAbstractSyntaxTree output();
-        abstract CompiledRule rule();
-        abstract Kind kind();
-
-        static Result ofOutput(CelAbstractSyntaxTree value) {
-          return AutoOneOf_CelPolicyCompilerImpl_CompiledRule_CompiledMatch_Result.output(value);
-        }
-
-        static Result ofRule(CompiledRule value) {
-          return AutoOneOf_CelPolicyCompilerImpl_CompiledRule_CompiledMatch_Result.rule(value);
-        }
-
-        enum Kind {
-          OUTPUT,
-          RULE
-        }
-      }
-
-      static CompiledMatch create(CelAbstractSyntaxTree condition, CompiledMatch.Result result) {
-        return new AutoValue_CelPolicyCompilerImpl_CompiledRule_CompiledMatch(condition, result);
-      }
+    private boolean hasError() {
+      return !issues.isEmpty();
     }
 
-    static CompiledRule create(ImmutableList<CompiledVariable> variables, ImmutableList<CompiledMatch> matches, Cel cel) {
-      return new AutoValue_CelPolicyCompilerImpl_CompiledRule(variables, matches, cel);
+    public String getIssueString() {
+      return "error!";
+      // return JOINER.join(
+      //     issues.stream().map(iss -> iss.toDisplayString(source))
+      //         .collect(toImmutableList()));
+    }
+
+
+    private CompilerContext() {
+      this.issues = new ArrayList<>();
     }
   }
 
-  private static final class RuleComposer implements CelAstOptimizer {
-    private final CompiledRule compiledRule;
-    @Override
-    public OptimizationResult optimize(CelAbstractSyntaxTree ast, Cel cel) throws CelOptimizationException {
-      return OptimizationResult.create(ast);
-    }
 
-    private RuleComposer(CompiledRule compiledRule) {
-      this.compiledRule = compiledRule;
-    }
-  }
 
   static final class Builder implements CelPolicyCompilerBuilder {
     private final Cel cel;
@@ -226,7 +168,6 @@ public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
   static Builder newBuilder(Cel cel) {
     return new Builder(cel);
   }
-
 
   private CelPolicyCompilerImpl(Cel cel, String variablesPrefix) {
     this.cel = checkNotNull(cel);
