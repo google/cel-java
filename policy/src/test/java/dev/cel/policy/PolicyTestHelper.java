@@ -18,18 +18,24 @@ import org.yaml.snakeyaml.constructor.Constructor;
 final class PolicyTestHelper {
 
   enum YamlPolicy {
-    NESTED_RULE("nested_rule"),
-    REQUIRED_LABELS("required_labels"),
-    RESTRICTED_DESTINATIONS("restricted_destinations");
+    NESTED_RULE("nested_rule", true),
+    REQUIRED_LABELS("required_labels", true),
+    RESTRICTED_DESTINATIONS("restricted_destinations", false);
 
     private final String name;
+    private final boolean producesOptionalResult;
 
-    YamlPolicy(String name) {
+    YamlPolicy(String name, boolean producesOptionalResult) {
       this.name = name;
+      this.producesOptionalResult = producesOptionalResult;
     }
 
-    String getName() {
+    String getPolicyName() {
       return name;
+    }
+
+    boolean producesOptionalResult() {
+      return this.producesOptionalResult;
     }
 
     CelPolicySource readPolicyYamlContent() throws IOException {

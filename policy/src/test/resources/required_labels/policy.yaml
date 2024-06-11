@@ -26,7 +26,7 @@ rule:
   match:
     - condition: variables.missing.size() > 0
       output: |
-        "missing one or more required labels: + [variables.missing].join(',')"
+        "missing one or more required labels: [\"" + variables.missing.join(',') + "\"]"
     - condition: variables.invalid.size() > 0
       output: |
-        "invalid values provided on one or more labels: + [variables.invalid].join(',')"
+        "invalid values provided on one or more labels: [\"" + variables.invalid.join(',') + "\"]"

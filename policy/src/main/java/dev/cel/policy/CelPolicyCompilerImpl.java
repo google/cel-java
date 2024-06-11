@@ -2,6 +2,7 @@ package dev.cel.policy;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -40,7 +41,7 @@ public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
     }
 
     CelOptimizer optimizer = CelOptimizerFactory.standardCelOptimizerBuilder(compiledRule.cel())
-        .addAstOptimizers(RuleComposer.newInstance(compiledRule))
+        .addAstOptimizers(RuleComposer.newInstance(compiledRule, compilerContext.newVariableDeclarations))
         .build();
 
     CelAbstractSyntaxTree ast;
@@ -71,6 +72,7 @@ public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
       }
       String variableName = variable.name().value();
       CelVarDecl newVariable = CelVarDecl.newVarDeclaration(String.format("%s.%s", variablesPrefix, variableName), outputType);
+      compilerContext.addNewVarDecl(newVariable);
       ruleCel = ruleCel.toCelBuilder().addVarDeclarations(newVariable).build();
       variableBuilder.add(CelCompiledVariable.create(variableName, varAst));
     }
@@ -120,9 +122,14 @@ public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
   private final static class CompilerContext {
     private static final Joiner JOINER = Joiner.on('\n');
     private final ArrayList<CelIssue> issues;
+    private final ArrayList<CelVarDecl> newVariableDeclarations;
 
     private void addIssue(List<CelIssue> issues) {
       this.issues.addAll(issues);
+    }
+
+    private void addNewVarDecl(CelVarDecl newVarDecl) {
+      newVariableDeclarations.add(newVarDecl);
     }
 
     private boolean hasError() {
@@ -139,10 +146,9 @@ public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
 
     private CompilerContext() {
       this.issues = new ArrayList<>();
+      this.newVariableDeclarations = new ArrayList<>();
     }
   }
-
-
 
   static final class Builder implements CelPolicyCompilerBuilder {
     private final Cel cel;

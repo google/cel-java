@@ -39,7 +39,9 @@ import dev.cel.common.navigation.CelNavigableMutableAst;
 import dev.cel.common.navigation.CelNavigableMutableExpr;
 import dev.cel.common.navigation.TraversalOrder;
 import dev.cel.common.types.CelType;
+import java.sql.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -94,6 +96,62 @@ public final class AstMutator {
 
     return CelMutableAst.of(blockExpr, ast.source());
   }
+
+  public CelMutableAst newGlobalCall(String function, CelMutableAst ast) {
+    long maxId = 1;
+    CelMutableAst stableArg = stabilizeAst(ast, maxId);
+    maxId = getMaxId(stableArg);
+
+    CelMutableExpr newCall = CelMutableExpr.ofCall(++maxId, CelMutableCall.create(function, ast.expr()));
+
+    return CelMutableAst.of(newCall, ast.source());
+  }
+
+  public CelMutableExpr newGlobalCall(String function, CelMutableExpr... argExprs) {
+    long maxId = 1;
+    for (CelMutableExpr arg : argExprs) {
+      CelMutableAst stableArg = stabilizeAst(CelMutableAst.of(arg, CelMutableSource.newInstance()), maxId);
+      maxId = getMaxId(stableArg);
+    }
+    return CelMutableExpr.ofCall(++maxId, CelMutableCall.create(function, argExprs));
+  }
+
+  public CelMutableAst newMemberCall(CelMutableAst target, String function, CelMutableAst arg) {
+    // TODO: Accept multiple arguments
+    long maxId = 1;
+    CelMutableAst stableArg = stabilizeAst(arg, maxId);
+    maxId = getMaxId(stableArg);
+
+    CelMutableAst stableTarget = stabilizeAst(target, maxId);
+    maxId = getMaxId(stableTarget);
+
+    CelMutableExpr newCall = CelMutableExpr.ofCall(++maxId, CelMutableCall.create(stableTarget.expr(), function, arg.expr()));
+
+    CelMutableSource celMutableSource = combine(stableArg.source(), stableTarget.source());
+
+    return CelMutableAst.of(newCall, celMutableSource);
+  }
+
+
+  public CelMutableExpr newMemberCall(CelMutableExpr target, String function, CelMutableExpr... argExprs) {
+    long maxId = 1;
+    for (CelMutableExpr arg : argExprs) {
+      CelMutableAst stableArg = stabilizeAst(CelMutableAst.of(arg, CelMutableSource.newInstance()), maxId);
+      maxId = getMaxId(stableArg);
+    }
+    CelMutableAst stableTarget = stabilizeAst(CelMutableAst.of(target, CelMutableSource.newInstance()), maxId);
+    maxId = getMaxId(stableTarget);
+    return CelMutableExpr.ofCall(++maxId, CelMutableCall.create(target, function, argExprs));
+  }
+
+
+
+  // public CelMutableAst newGlobalCall(String function, CelMutableAst argAst) {
+  //   long maxId = getMaxId(argAst);
+  //   CelMutableExpr callExpr = CelMutableExpr.ofCall(++maxId, CelMutableCall.create(function, argAst.expr()));
+  //
+  //   return CelMutableAst.of(callExpr, argAst.source());
+  // }
 
   /**
    * Generates a new bind macro using the provided initialization and result expression, then
@@ -806,6 +864,14 @@ public final class AstMutator {
         .mapToLong(CelNavigableMutableExpr::id)
         .max()
         .orElseThrow(NoSuchElementException::new);
+  }
+
+  private static long getMaxId(CelMutableExpr... argExprs) {
+    long maxId = 0;
+    for (CelMutableExpr arg : argExprs) {
+      maxId = max(maxId, getMaxId(arg));
+    }
+    return maxId;
   }
 
   /**

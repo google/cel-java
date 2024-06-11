@@ -34,4 +34,4 @@ section:
            name: "/company/acme/secrets/doomsday-device"
            labels:
              location: "us"
-       output: "true"
+       output: "false"
