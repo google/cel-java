@@ -1,4 +1,5 @@
 package dev.cel.policy;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
@@ -12,13 +13,14 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.parser.CelStandardMacro;
-import dev.cel.parser.CelUnparserFactory;
 import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection;
 import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection.PolicyTestCase;
 import dev.cel.policy.PolicyTestHelper.YamlPolicy;
 import dev.cel.policy.PolicyTestHelper.PolicyTestSuite;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -94,8 +96,9 @@ public final class CelPolicyCompilerImplTest {
     // Act
     // Compile then evaluate the policy
     CelAbstractSyntaxTree compiledPolicyAst = CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
-    // String unparsed = CelUnparserFactory.newUnparser().unparse(compiledPolicyAst);
-    Object evalResult = cel.createProgram(compiledPolicyAst).eval(testData.testCase.getInput());
+    Map<String, Object> input = testData.testCase.getInput().entrySet().stream()
+        .collect(toImmutableMap(Entry::getKey, e -> e.getValue().getValue()));
+    Object evalResult = cel.createProgram(compiledPolicyAst).eval(input);
 
     // Assert
     // Note that policies may either produce an optional or a non-optional result,

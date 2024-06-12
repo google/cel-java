@@ -92,6 +92,7 @@ final class PolicyTestHelper {
       public void setName(String name) {
         this.name = name;
       }
+
       public void setTests(List<PolicyTestCase> tests) {
         this.tests = tests;
       }
@@ -107,13 +108,13 @@ final class PolicyTestHelper {
       @VisibleForTesting
       public static final class PolicyTestCase {
         private String name;
-        private Map<String, Object> input;
+        private Map<String, PolicyTestInput> input;
         private String output;
 
         public void setName(String name) {
           this.name = name;
         }
-        public void setInput(Map<String, Object> input) {
+        public void setInput(Map<String, PolicyTestInput> input) {
           this.input = input;
         }
         public void setOutput(String output) {
@@ -124,12 +125,31 @@ final class PolicyTestHelper {
           return name;
         }
 
-        public Map<String, Object> getInput() {
+        public Map<String, PolicyTestInput> getInput() {
           return input;
         }
 
         public String getOutput() {
           return output;
+        }
+
+        @VisibleForTesting
+        public static final class PolicyTestInput {
+          private Object value;
+          private String expr;
+
+          public Object getValue() {
+            return value;
+          }
+          public void setValue(Object value) {
+            this.value = value;
+          }
+          public String getExpr() {
+            return expr;
+          }
+          public void setExpr(String expr) {
+            this.expr = expr;
+          }
         }
       }
     }

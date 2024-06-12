@@ -16,56 +16,64 @@ description: "Required labels conformance tests"
 section:
   - name: "valid"
     tests:
-     - name: "matching"
-       input: 
-         spec:
-           labels:
-             env: prod
-             experiment: "group b"
-         resource:
-           labels:
-             env: prod
-             experiment: "group b"
-             release: "v0.1.0"
-       output: "optional.none()"
+    - name: "matching"
+      input:
+        spec:
+          value:
+            labels:
+              env: prod
+              experiment: "group b"
+        resource:
+          value:
+            labels:
+              env: prod
+              experiment: "group b"
+              release: "v0.1.0"
+      output: "optional.none()"
   - name: "missing"
     tests:
-     - name: "env"
-       input: 
-         spec:
-           labels:
-             env: prod
-             experiment: "group b"
-         resource:
-           labels:
-             experiment: "group b"
-             release: "v0.1.0"
-       output: >
-         "missing one or more required labels: [\"env\"]"
-     - name: "experiment"
-       input: 
-         spec:
-           labels:
-             env: prod
-             experiment: "group b"
-         resource:
-           labels:
-             env: staging
-             release: "v0.1.0"
-       output: >
-         "missing one or more required labels: [\"experiment\"]"
+    - name: "env"
+      input:
+        spec:
+          value:
+            labels:
+              env: prod
+              experiment: "group b"
+        resource:
+          value:
+            labels:
+              experiment: "group b"
+              release: "v0.1.0"
+      output: >
+        "missing one or more required labels: [\"env\"]"
+    - name: "experiment"
+      input:
+        spec:
+          value:
+            labels:
+              env: prod
+              experiment: "group b"
+        resource:
+          value:
+            labels:
+              env: staging
+              release: "v0.1.0"
+      output: >
+        "missing one or more required labels: [\"experiment\"]"
   - name: "invalid"
     tests:
-     - name: "env"
-       input: 
-         spec:
-           labels:
-             env: prod
-             experiment: "group b"
-         resource:
-           labels:
-             env: staging
-             experiment: "group b"
-             release: "v0.1.0"
-       output: >
-         "invalid values provided on one or more labels: [\"env\"]"
+    - name: "env"
+      input:
+        spec:
+          value:
+            labels:
+              env: prod
+              experiment: "group b"
+        resource:
+          value:
+            labels:
+              env: staging
+              experiment: "group b"
+              release: "v0.1.0"
+      output: >
+        "invalid values provided on one or more labels: [\"env\"]"

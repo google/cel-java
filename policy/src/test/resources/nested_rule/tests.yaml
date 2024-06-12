@@ -16,20 +16,23 @@ description: Nested rule conformance tests
 section:
   - name: "banned"
     tests:
-      - name: "restricted_origin"
-        input: 
-          resource:
+    - name: "restricted_origin"
+      input:
+        resource:
+          value:
             origin: "ir"
-        output: "{'banned': true}"
-      - name: "by_default"
-        input: 
-          resource:
+      output: "{'banned': true}"
+    - name: "by_default"
+      input:
+        resource:
+          value:
             origin: "de"
-        output: "{'banned': true}"
+      output: "{'banned': true}"
   - name: "permitted"
     tests:
-      - name: "valid_origin"
-        input: 
-          resource:
+    - name: "valid_origin"
+      input:
+        resource:
+          value:
             origin: "uk"
-        output: "{'banned': false}"
+      output: "{'banned': false}"
