@@ -144,14 +144,55 @@ public final class AstMutator {
     return CelMutableExpr.ofCall(++maxId, CelMutableCall.create(target, function, argExprs));
   }
 
+  /**
+   * Generates a new bind macro using the provided initialization and result expression, then
+   * replaces the subtree using the new bind expr at the designated expr ID.
+   *
+   * <p>The bind call takes the format of: {@code cel.bind(varInit, varName, resultExpr)}
+   *
+   * @param ast Original AST to mutate.
+   * @param varName New variable name for the bind macro call.
+   * @param varInit Initialization expression to bind to the local variable.
+   * @param resultExpr Result expression
+   * @param exprIdToReplace Expression ID of the subtree that is getting replaced.
+   * @param populateMacroSource If true, populates the cel.bind macro source in the AST.
+   */
+  public CelMutableAst replaceSubtreeWithNewBindMacro(
+      CelMutableAst ast,
+      String varName,
+      CelMutableAst varInit,
+      CelMutableExpr resultExpr,
+      long exprIdToReplace,
+      boolean populateMacroSource) {
+    // Stabilize incoming varInit AST to avoid collision with the main AST
+    long maxId = getMaxId(ast);
+    varInit = stabilizeAst(varInit, maxId);
+    StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(maxId);
+    CelMutableExpr newBindMacroExpr =
+        newBindMacroExpr(
+            varName, varInit.expr(), CelMutableExpr.newInstance(resultExpr), stableIdGenerator);
+    CelMutableSource celSource = CelMutableSource.newInstance();
+    if (populateMacroSource) {
+      CelMutableExpr newBindMacroSourceExpr =
+          newBindMacroSourceExpr(newBindMacroExpr, varName, stableIdGenerator);
+      // In situations where the existing AST already contains a macro call (ex: nested cel.binds),
+      // its macro source must be normalized to make it consistent with the newly generated bind
+      // macro.
+      celSource = combine(ast.source(), varInit.source());
+      celSource =
+          normalizeMacroSource(
+              celSource,
+              -1, // Do not replace any of the subexpr in the macro map.
+              newBindMacroSourceExpr,
+              stableIdGenerator::renumberId);
+      celSource.addMacroCalls(newBindMacroExpr.id(), newBindMacroSourceExpr);
+    }
 
+    CelMutableAst newBindAst = CelMutableAst.of(newBindMacroExpr, celSource);
 
-  // public CelMutableAst newGlobalCall(String function, CelMutableAst argAst) {
-  //   long maxId = getMaxId(argAst);
-  //   CelMutableExpr callExpr = CelMutableExpr.ofCall(++maxId, CelMutableCall.create(function, argAst.expr()));
-  //
-  //   return CelMutableAst.of(callExpr, argAst.source());
-  // }
+    return replaceSubtree(ast, newBindAst, exprIdToReplace);
+  }
+
 
   /**
    * Generates a new bind macro using the provided initialization and result expression, then
@@ -173,31 +214,7 @@ public final class AstMutator {
       CelMutableExpr resultExpr,
       long exprIdToReplace,
       boolean populateMacroSource) {
-    // Copy the incoming expressions to prevent modifying the root
-    long maxId = max(getMaxId(varInit), getMaxId(ast));
-    StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(maxId);
-    CelMutableExpr newBindMacroExpr =
-        newBindMacroExpr(
-            varName, varInit, CelMutableExpr.newInstance(resultExpr), stableIdGenerator);
-    CelMutableSource celSource = CelMutableSource.newInstance();
-    if (populateMacroSource) {
-      CelMutableExpr newBindMacroSourceExpr =
-          newBindMacroSourceExpr(newBindMacroExpr, varName, stableIdGenerator);
-      // In situations where the existing AST already contains a macro call (ex: nested cel.binds),
-      // its macro source must be normalized to make it consistent with the newly generated bind
-      // macro.
-      celSource =
-          normalizeMacroSource(
-              ast.source(),
-              -1, // Do not replace any of the subexpr in the macro map.
-              newBindMacroSourceExpr,
-              stableIdGenerator::renumberId);
-      celSource.addMacroCalls(newBindMacroExpr.id(), newBindMacroSourceExpr);
-    }
-
-    CelMutableAst newBindAst = CelMutableAst.of(newBindMacroExpr, celSource);
-
-    return replaceSubtree(ast, newBindAst, exprIdToReplace);
+    return replaceSubtreeWithNewBindMacro(ast, varName, CelMutableAst.of(varInit, CelMutableSource.newInstance()), resultExpr, exprIdToReplace, populateMacroSource);
   }
 
   /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */

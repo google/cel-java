@@ -19,7 +19,7 @@ import static org.junit.Assert.assertThrows;
 
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
-import dev.cel.policy.PolicyTestHelper.YamlPolicy;
+import dev.cel.policy.PolicyTestHelper.TestYamlPolicy;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -30,7 +30,7 @@ public final class CelPolicyYamlParserTest {
       .build();
 
   @Test
-  public void parseYamlPolicy_success(@TestParameter YamlPolicy yamlPolicy)
+  public void parseYamlPolicy_success(@TestParameter TestYamlPolicy yamlPolicy)
       throws Exception {
     CelPolicySource policySource = yamlPolicy.readPolicyYamlContent();
 

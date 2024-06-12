@@ -107,12 +107,12 @@ final class RuleComposer implements CelAstOptimizer {
         result = astMutator.replaceSubtreeWithNewBindMacro(
             result,
             "variables." + variable.name(), // TODO: Accept prefix
-            CelMutableExprConverter.fromCelExpr(variable.ast().getExpr()),
+            CelMutableAst.fromCelAst(variable.ast()),
             result.expr(),
             result.expr().id(),
             true
             );
-        // TODO: Support block
+        System.out.println();
       }
 
       result = astMutator.renumberIdsConsecutively(result);
