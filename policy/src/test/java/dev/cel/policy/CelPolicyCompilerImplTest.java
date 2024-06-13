@@ -1,6 +1,7 @@
 package dev.cel.policy;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.truth.Truth.assertThat;
+import static dev.cel.policy.PolicyTestHelper.readFromYaml;
 
 import com.google.common.collect.ImmutableList;
 import com.google.testing.junit.testparameterinjector.TestParameter;
@@ -51,8 +52,23 @@ public final class CelPolicyCompilerImplTest {
   }
 
   @Test
+  public void compileYamlPolicy_containsError_throws() throws Exception {
+    // Read config and produce an environment to compile policies
+    CelPolicySource configSource = readFromYaml("errors/config.yaml");
+    CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(configSource);
+    Cel cel = policyConfig.extend(newCel(), CEL_OPTIONS);
+    // Read the policy source
+    CelPolicySource policySource = readFromYaml("errors/policy.yaml");
+    CelPolicy policy = POLICY_PARSER.parse(policySource);
+
+    CelAbstractSyntaxTree ast = CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
+
+    // assertThat(CelUnparserFactory.newUnparser().unparse(ast)).isEqualTo(yamlPolicy.getUnparsed());
+  }
+
+  @Test
   public void evaluateYamlPolicy_success(@TestParameter(valuesProvider = EvaluablePolicyTestDataProvider.class)
-  EvaluablePolicyTestData testData) throws Exception{
+  EvaluablePolicyTestData testData) throws Exception {
     // Setup
     // Read config and produce an environment to compile policies
     CelPolicySource configSource = testData.yamlPolicy.readConfigYamlContent();

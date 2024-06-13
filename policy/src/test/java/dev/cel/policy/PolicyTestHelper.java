@@ -75,13 +75,11 @@ final class PolicyTestHelper {
     }
 
     CelPolicySource readPolicyYamlContent() throws IOException {
-      String policyContent = readFile(String.format("%s/policy.yaml", name));
-      return CelPolicySource.newBuilder(policyContent).build();
+      return readFromYaml(String.format("%s/policy.yaml", name));
     }
 
     CelPolicySource readConfigYamlContent() throws IOException {
-      String configContent = readFile(String.format("%s/config.yaml", name));
-      return CelPolicySource.newBuilder(configContent).build();
+      return readFromYaml(String.format("%s/config.yaml", name));
     }
 
     PolicyTestSuite readTestYamlContent() throws IOException {
@@ -90,6 +88,11 @@ final class PolicyTestHelper {
 
       return yaml.load(testContent);
     }
+  }
+
+  static CelPolicySource readFromYaml(String yamlPath) throws IOException {
+    String configContent = readFile(yamlPath);
+    return CelPolicySource.newBuilder(configContent).build();
   }
 
   /**

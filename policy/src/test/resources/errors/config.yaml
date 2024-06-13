@@ -14,8 +14,7 @@
 
 name: "labels"
 extensions:
-  - name: "lists"
-  - name: "sets"
+  - name: "strings"
 variables:
   - name: "destination.ip"
     type:

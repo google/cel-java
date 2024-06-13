@@ -1,6 +1,7 @@
 package dev.cel.policy;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Joiner;
@@ -10,6 +11,7 @@ import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelSource;
+import dev.cel.common.CelSourceLocation;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelConstant;
@@ -25,6 +27,7 @@ import dev.cel.policy.CelCompiledRule.CelCompiledVariable;
 import dev.cel.policy.CelPolicy.Match;
 import dev.cel.policy.CelPolicy.Variable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
@@ -34,7 +37,7 @@ public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
 
   @Override
   public CelAbstractSyntaxTree compile(CelPolicy policy) throws CelPolicyValidationException {
-    CompilerContext compilerContext = new CompilerContext();
+    CompilerContext compilerContext = new CompilerContext(policy.celSource());
     CelCompiledRule compiledRule = compileRule(policy.rule(), cel, compilerContext);
     if (compilerContext.hasError()) {
       throw new CelPolicyValidationException(compilerContext.getIssueString());
@@ -123,6 +126,8 @@ public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
     private static final Joiner JOINER = Joiner.on('\n');
     private final ArrayList<CelIssue> issues;
     private final ArrayList<CelVarDecl> newVariableDeclarations;
+    private final HashMap<Long, CelSourceLocation> idToLocationMap;
+    private final CelSource celSource;
 
     private void addIssue(List<CelIssue> issues) {
       this.issues.addAll(issues);
@@ -136,17 +141,21 @@ public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
       return !issues.isEmpty();
     }
 
-    public String getIssueString() {
-      return "error!";
-      // return JOINER.join(
-      //     issues.stream().map(iss -> iss.toDisplayString(source))
-      //         .collect(toImmutableList()));
+    private String getIssueString() {
+      return JOINER.join(
+          issues.stream().map(iss -> iss.toDisplayString(celSource))
+              .collect(toImmutableList()));
+    }
+
+    private void reportError(long id, String message) {
+      issues.add(CelIssue.formatError(idToLocationMap.get(id), message));
     }
 
 
-    private CompilerContext() {
+    private CompilerContext(CelSource celSource) {
       this.issues = new ArrayList<>();
       this.newVariableDeclarations = new ArrayList<>();
+      this.celSource = celSource;
     }
   }
 
