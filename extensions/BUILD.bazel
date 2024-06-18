@@ -22,3 +22,8 @@ java_library(
     name = "optional_library",
     exports = ["//extensions/src/main/java/dev/cel/extensions:optional_library"],
 )
+
+java_library(
+    name = "sets",
+    exports = ["//extensions/src/main/java/dev/cel/extensions:sets"],
+)

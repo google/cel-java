@@ -23,6 +23,7 @@ java_library(
         "//extensions",
         "//extensions:math",
         "//extensions:optional_library",
+        "//extensions:sets",
         "//extensions:strings",
         "//parser:macro",
         "//runtime",
