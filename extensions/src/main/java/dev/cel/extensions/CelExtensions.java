@@ -1,4 +1,4 @@
-// Copyright 2022 Google LLC
+// Copyright 2024 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ public final class CelExtensions {
   private static final CelProtoExtensions PROTO_EXTENSIONS = new CelProtoExtensions();
   private static final CelBindingsExtensions BINDINGS_EXTENSIONS = new CelBindingsExtensions();
   private static final CelEncoderExtensions ENCODER_EXTENSIONS = new CelEncoderExtensions();
+  private static final CelSetsExtensions SET_EXTENSIONS = new CelSetsExtensions();
 
   /**
    * Extended functions for string manipulation.
@@ -168,6 +169,41 @@ public final class CelExtensions {
    */
   public static CelEncoderExtensions encoders() {
     return ENCODER_EXTENSIONS;
+  }
+
+  /**
+   * Extended functions for Set manipulation.
+   *
+   * <p>Refer to README.md for available functions.
+   *
+   * <p>This will include all functions denoted in {@link CelSetExtensions.Function}, including any
+   * future additions. To expose only a subset of functions, use {@link
+   * #sets(CelSetExtensions.Function...)} instead.
+   */
+  public static CelSetsExtensions sets() {
+    return SET_EXTENSIONS;
+  }
+
+  /**
+   * Extended functions for Set manipulation.
+   *
+   * <p>Refer to README.md for available functions.
+   *
+   * <p>This will include only the specific functions denoted by {@link CelSetsExtensions.Function}.
+   */
+  public static CelSetsExtensions sets(CelSetsExtensions.Function... functions) {
+    return sets(ImmutableSet.copyOf(functions));
+  }
+
+  /**
+   * Extended functions for Set manipulation.
+   *
+   * <p>Refer to README.md for available functions.
+   *
+   * <p>This will include only the specific functions denoted by {@link CelSetsExtensions.Function}.
+   */
+  public static CelSetsExtensions sets(Set<CelSetsExtensions.Function> functions) {
+    return new CelSetsExtensions(functions);
   }
 
   private CelExtensions() {}

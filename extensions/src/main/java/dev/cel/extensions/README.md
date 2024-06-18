@@ -338,3 +338,71 @@ Example:
 
     base64.encode(b'hello') // return 'aGVsbG8='
 
+## Sets
+
+Sets provides set relationship tests.
+
+There is no set type within CEL, and while one may be introduced in the future,
+there are cases where a `list` type is known to behave like a set. For such
+cases, this library provides some basic functionality for determining set
+containment, equivalence, and intersection.
+
+### Sets.Contains
+
+Returns whether the first list argument contains all elements in the second list
+argument. The list may contain elements of any type and standard CEL equality is
+used to determine whether a value exists in both lists. If the second list is
+empty, the result will always return true.
+
+```
+sets.contains(list(T), list(T)) -> bool
+```
+
+Examples:
+
+```
+sets.contains([], []) // true
+sets.contains([], [1]) // false
+sets.contains([1, 2, 3, 4], [2, 3]) // true
+sets.contains([1, 2.0, 3u], [1.0, 2u, 3]) // true
+```
+
+### Sets.Equivalent
+
+Returns whether the first and second list are set equivalent. Lists are set
+equivalent if for every item in the first list, there is an element in the
+second which is equal. The lists may not be of the same size as they do not
+guarantee the elements within them are unique, so size does not factor into the
+computation.
+
+```
+sets.equivalent(list(T), list(T)) -> bool
+```
+
+Examples:
+
+```
+sets.equivalent([], []) // true
+sets.equivalent([1], [1, 1]) // true
+sets.equivalent([1], [1u, 1.0]) // true
+sets.equivalent([1, 2, 3], [3u, 2.0, 1]) // true
+```
+
+### Sets.Intersects
+
+Returns whether the first list has at least one element whose value is equal to
+an element in the second list. If either list is empty, the result will be
+false.
+
+```
+sets.intersects(list(T), list(T)) -> bool
+```
+
+Examples:
+
+```
+sets.intersects([1], []) // false
+sets.intersects([1], [1, 2]) // true
+sets.intersects([[1], [2, 3]], [[1, 2], [2, 3.0]]) // true
+```
+
