@@ -26,7 +26,7 @@ import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.ProtoMessageFactory;
 import java.util.Collection;
-import org.jspecify.nullness.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The {@code DynamicMessageFactory} creates {@link DynamicMessage} instances by protobuf name.

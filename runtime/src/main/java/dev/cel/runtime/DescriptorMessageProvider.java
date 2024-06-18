@@ -35,7 +35,7 @@ import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypes;
 import java.util.Map;
 import java.util.Optional;
-import org.jspecify.nullness.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An implementation of {@link RuntimeTypeProvider} which relies on proto descriptors.
