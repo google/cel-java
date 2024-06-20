@@ -15,7 +15,7 @@
 package dev.cel.runtime;
 
 import dev.cel.common.annotations.Internal;
-import org.jspecify.nullness.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An interface describing an object that can perform a lookup on a given name, returning the value

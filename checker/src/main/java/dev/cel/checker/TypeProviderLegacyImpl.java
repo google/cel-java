@@ -26,7 +26,7 @@ import dev.cel.common.types.ProtoMessageType;
 import dev.cel.common.types.StructType;
 import dev.cel.common.types.TypeType;
 import java.util.Optional;
-import org.jspecify.nullness.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The {@code TypeProviderLegacyImpl} acts as a bridge between the old and new type provider APIs

@@ -20,7 +20,7 @@ import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.SafeStringFormatter;
-import org.jspecify.nullness.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An exception produced during interpretation of expressions.

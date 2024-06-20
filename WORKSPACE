@@ -73,7 +73,7 @@ maven_install(
         "com.google.truth.extensions:truth-proto-extension:1.4.2",
         "com.google.truth:truth:1.4.2",
         "org.antlr:antlr4-runtime:" + ANTLR4_VERSION,
-        "org.jspecify:jspecify:0.2.0",
+        "org.jspecify:jspecify:0.3.0",
         "org.threeten:threeten-extra:1.8.0",
     ],
     repositories = [

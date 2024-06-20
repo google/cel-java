@@ -20,7 +20,7 @@ import com.google.protobuf.Message;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.ProtoMessageFactory;
 import java.util.Optional;
-import org.jspecify.nullness.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The {@code MessageFactory} provides a method to create a protobuf builder objects by name.

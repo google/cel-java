@@ -21,7 +21,7 @@ import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import org.jspecify.nullness.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * First-class support for CEL optionals. Supports similar semantics to java.util.Optional. Also

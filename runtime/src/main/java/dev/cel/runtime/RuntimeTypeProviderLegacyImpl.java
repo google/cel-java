@@ -34,7 +34,7 @@ import dev.cel.common.values.SelectableValue;
 import dev.cel.common.values.StringValue;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import org.jspecify.nullness.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /** Bridge between the old RuntimeTypeProvider and CelValueProvider APIs. */
 @Internal

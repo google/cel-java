@@ -24,7 +24,7 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import com.google.errorprone.annotations.InlineMe;
 import dev.cel.common.annotations.Internal;
-import org.jspecify.nullness.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * CelValidationResult encapsulates the {@code CelAbstractSyntaxTree} and {@code CelIssue} set which

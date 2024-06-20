@@ -35,7 +35,7 @@ import dev.cel.common.types.TypeType;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import org.jspecify.nullness.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The {@code StandardTypeResolver} implements the {@link TypeResolver} and resolves types supported

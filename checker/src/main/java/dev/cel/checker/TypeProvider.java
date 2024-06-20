@@ -22,7 +22,7 @@ import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypes;
 import java.util.Optional;
 import java.util.function.Function;
-import org.jspecify.nullness.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The {@code TypeProvider} defines methods to lookup types and enums, and resolve field types.

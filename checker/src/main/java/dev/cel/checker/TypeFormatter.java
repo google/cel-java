@@ -18,7 +18,7 @@ import dev.cel.expr.Type;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypes;
-import org.jspecify.nullness.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Class to format {@link Type} objects into {@code String} values.

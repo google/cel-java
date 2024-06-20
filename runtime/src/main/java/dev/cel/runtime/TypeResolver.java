@@ -19,7 +19,7 @@ import dev.cel.expr.Value;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.types.CelType;
-import org.jspecify.nullness.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The {@code TypeResolver} determines the CEL type of Java-native values and assists with adapting
