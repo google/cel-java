@@ -721,10 +721,10 @@ public final class DefaultInterpreter implements Interpreter {
         CelExpr element = elements.get(i);
         IntermediateResult evaluatedElement = evalInternal(frame, element);
         // TODO: remove support for IncompleteData.
-        InterpreterUtil.completeDataOnly(
-            evaluatedElement.value(), "Incomplete data cannot be an elem of a list.");
-
-        argChecker.checkArg(evaluatedElement);
+        // InterpreterUtil.completeDataOnly(
+        //     evaluatedElement.value(), "Incomplete data cannot be an elem of a list.");
+        //
+        // argChecker.checkArg(evaluatedElement);
         Object value = evaluatedElement.value();
         if (optionalIndicesSet.contains(i) && !isUnknownValue(value)) {
           Optional<?> optionalVal = (Optional<?>) value;
