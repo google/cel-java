@@ -99,6 +99,7 @@ public abstract class CelCodePointArray {
         byteArray = null;
         charArray[charIndex++] = (char) codePoint;
         while (codePoints.hasNext()) {
+          lineOffsetCodePoints++;
           codePoint = codePoints.nextInt();
           if (codePoint <= 0xffff) {
             charArray[charIndex++] = (char) codePoint;
@@ -112,6 +113,7 @@ public abstract class CelCodePointArray {
           charArray = null;
           intArray[intIndex++] = codePoint;
           while (codePoints.hasNext()) {
+            lineOffsetCodePoints++;
             codePoint = codePoints.nextInt();
             intArray[intIndex++] = codePoint;
           }
@@ -131,6 +133,7 @@ public abstract class CelCodePointArray {
       byteArray = null;
       intArray[intIndex++] = codePoint;
       while (codePoints.hasNext()) {
+        lineOffsetCodePoints++;
         codePoint = codePoints.nextInt();
         intArray[intIndex++] = codePoint;
       }
