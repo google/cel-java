@@ -711,7 +711,6 @@ public final class DefaultInterpreter implements Interpreter {
 
     private IntermediateResult evalList(ExecutionFrame frame, CelExpr unusedExpr, CelList listExpr)
         throws InterpreterException {
-
       CallArgumentChecker argChecker = CallArgumentChecker.create(frame.getResolver());
       List<Object> result = new ArrayList<>(listExpr.elements().size());
 
@@ -726,7 +725,11 @@ public final class DefaultInterpreter implements Interpreter {
 
         argChecker.checkArg(evaluatedElement);
         Object value = evaluatedElement.value();
-        if (optionalIndicesSet.contains(i) && !isUnknownValue(value)) {
+        if (!optionalIndicesSet
+                .isEmpty() // Performance optimization to prevent autoboxing when there's no
+                           // optionals.
+            && optionalIndicesSet.contains(i)
+            && !isUnknownValue(value)) {
           Optional<?> optionalVal = (Optional<?>) value;
           if (!optionalVal.isPresent()) {
             continue;
