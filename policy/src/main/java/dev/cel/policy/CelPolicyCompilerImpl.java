@@ -27,7 +27,6 @@ import dev.cel.policy.CelCompiledRule.CelCompiledVariable;
 import dev.cel.policy.CelPolicy.Match;
 import dev.cel.policy.CelPolicy.Variable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
@@ -62,15 +61,14 @@ public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
   private CelCompiledRule compileRule(CelPolicy.Rule rule, Cel ruleCel, CompilerContext compilerContext) {
     ImmutableList.Builder<CelCompiledVariable> variableBuilder = ImmutableList.builder();
     for (Variable variable : rule.variables()) {
-      // TODO: Compute relative source
-      String expression = variable.expression().value();
+      ValueString expression = variable.expression();
       CelAbstractSyntaxTree varAst;
       CelType outputType = SimpleType.DYN;
       try {
-        varAst = ruleCel.compile(expression).getAst();
+        varAst = ruleCel.compile(expression.value()).getAst();
         outputType = varAst.getResultType();
       } catch (CelValidationException e) {
-        compilerContext.addIssue(e.getErrors());
+        compilerContext.addIssue(expression.id(), e.getErrors());
         varAst = newErrorAst();
       }
       String variableName = variable.name().value();
@@ -86,20 +84,19 @@ public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
       try {
         conditionAst = ruleCel.compile(match.condition().value()).getAst();
       } catch (CelValidationException e) {
-        // TODO: Sentinel AST
-        throw new RuntimeException(e);
+        compilerContext.addIssue(match.condition().id(), e.getErrors());
+        continue;
       }
 
       Result matchResult;
       switch (match.result().kind()) {
-        // TODO: Relative source
         case OUTPUT:
           CelAbstractSyntaxTree outputAst;
           try {
             outputAst = ruleCel.compile(match.result().output().value()).getAst();
           } catch (CelValidationException e) {
-            // TODO: Sentinel AST
-            throw new RuntimeException(e);
+            compilerContext.addIssue(match.result().output().id(), e.getErrors());
+            continue;
           }
 
           matchResult = Result.ofOutput(outputAst);
@@ -126,11 +123,17 @@ public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
     private static final Joiner JOINER = Joiner.on('\n');
     private final ArrayList<CelIssue> issues;
     private final ArrayList<CelVarDecl> newVariableDeclarations;
-    private final HashMap<Long, CelSourceLocation> idToLocationMap;
     private final CelSource celSource;
 
-    private void addIssue(List<CelIssue> issues) {
-      this.issues.addAll(issues);
+    private void addIssue(long id, List<CelIssue> issues) {
+      for (CelIssue issue : issues) {
+        // Compute relative source
+          int position = celSource.getPositionsMap().get(id) + issue.getSourceLocation().getColumn();
+          CelSourceLocation loc = celSource.getOffsetLocation(position).orElse(CelSourceLocation.NONE);
+          CelIssue newIssue = CelIssue.formatError(loc, issue.getMessage());
+          System.out.println(newIssue.getMessage());
+          this.issues.add(newIssue);
+      }
     }
 
     private void addNewVarDecl(CelVarDecl newVarDecl) {
@@ -146,11 +149,6 @@ public final class CelPolicyCompilerImpl implements CelPolicyCompiler {
           issues.stream().map(iss -> iss.toDisplayString(celSource))
               .collect(toImmutableList()));
     }
-
-    private void reportError(long id, String message) {
-      issues.add(CelIssue.formatError(idToLocationMap.get(id), message));
-    }
-
 
     private CompilerContext(CelSource celSource) {
       this.issues = new ArrayList<>();

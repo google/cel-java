@@ -2,6 +2,7 @@ package dev.cel.policy;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.truth.Truth.assertThat;
 import static dev.cel.policy.PolicyTestHelper.readFromYaml;
+import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.testing.junit.testparameterinjector.TestParameter;
@@ -61,9 +62,26 @@ public final class CelPolicyCompilerImplTest {
     CelPolicySource policySource = readFromYaml("errors/policy.yaml");
     CelPolicy policy = POLICY_PARSER.parse(policySource);
 
-    CelAbstractSyntaxTree ast = CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
+    CelPolicyValidationException e = assertThrows(CelPolicyValidationException.class, () -> CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy));
 
-    // assertThat(CelUnparserFactory.newUnparser().unparse(ast)).isEqualTo(yamlPolicy.getUnparsed());
+    assertThat(e).hasMessageThat().contains("ERROR: errors/policy.yaml:19:19: undeclared reference to 'spec' (in container '')\n"
+        + " |       expression: spec.labels\n"
+        + " | ..................^\n"
+        + "ERROR: errors/policy.yaml:21:50: mismatched input 'resource' expecting {'==', '!=', 'in', '<', '<=', '>=', '>', '&&', '||', '[', '(', ')', '.', '-', '?', '+', '*', '/', '%%'}\n"
+        + " |       expression: variables.want.filter(l, !(lin resource.labels))\n"
+        + " | .................................................^\n"
+        + "ERROR: errors/policy.yaml:21:66: extraneous input ')' expecting <EOF>\n"
+        + " |       expression: variables.want.filter(l, !(lin resource.labels))\n"
+        + " | .................................................................^\n"
+        + "ERROR: errors/policy.yaml:23:27: mismatched input '2' expecting {'}', ','}\n"
+        + " |       expression: \"{1:305 2:569}\"\n"
+        + " | ..........................^\n"
+        + "ERROR: errors/policy.yaml:31:65: extraneous input ']' expecting ')'\n"
+        + " |         \"missing one or more required labels: %s\".format(variables.missing])\n"
+        + " | ................................................................^\n"
+        + "ERROR: errors/policy.yaml:34:57: undeclared reference to 'format' (in container '')\n"
+        + " |         \"invalid values provided on one or more labels: %s\".format([variables.invalid])\n"
+        + " | ........................................................^");
   }
 
   @Test

@@ -230,8 +230,9 @@ public final class CelSource implements Source {
     if (!celCodePointArray.lineOffsets().equals(lineOffsets)) {
       throw new IllegalStateException("Line offsets must be equal!");
     }
-
-    return new Builder(CelCodePointArray.fromString(text), lineOffsets);
+    // TODO: Remove logic
+    CelCodePointArray codePointArray = CelCodePointArray.fromString(text);
+    return new Builder(CelCodePointArray.fromString(text), codePointArray.lineOffsets());
   }
 
   /**

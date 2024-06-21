@@ -7,7 +7,12 @@ import dev.cel.common.CelIssue;
 import dev.cel.common.CelSourceLocation;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+
+import dev.cel.common.Source;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.nodes.Node;
+import org.yaml.snakeyaml.nodes.ScalarNode;
 
 
 /**
@@ -19,6 +24,7 @@ final class YamlParserContextImpl implements ParserContext<Node> {
 
   private final ArrayList<CelIssue> issues;
   private final HashMap<Long, CelSourceLocation> idToLocationMap;
+  private final HashMap<Long, Integer> idToOffsetMap;
   private final CelPolicySource source;
   private long id;
 
@@ -35,8 +41,18 @@ final class YamlParserContextImpl implements ParserContext<Node> {
   }
 
   @Override
+  public Source getSource() {
+    return source;
+  }
+
+  @Override
   public boolean hasError() {
     return !issues.isEmpty();
+  }
+
+  @Override
+  public Map<Long, Integer> getIdToOffsetMap() {
+    return idToOffsetMap;
   }
 
   @Override
@@ -44,7 +60,19 @@ final class YamlParserContextImpl implements ParserContext<Node> {
     long id = nextId();
     int line = node.getStartMark().getLine() + 1; // Yaml lines are 0 indexed
     int column = node.getStartMark().getColumn();
+    if (node instanceof ScalarNode) {
+      DumperOptions.ScalarStyle style = ((ScalarNode) node).getScalarStyle();
+      if (style.equals(DumperOptions.ScalarStyle.SINGLE_QUOTED) || style.equals(DumperOptions.ScalarStyle.DOUBLE_QUOTED)) {
+        column++;
+      }
+    }
     idToLocationMap.put(id, CelSourceLocation.of(line, column));
+
+    int offset = 0;
+    if (line > 1) {
+      offset = source.content().lineOffsets().get(line - 2) + column;
+    }
+    idToOffsetMap.put(id, offset);
 
     return id;
   }
@@ -61,6 +89,7 @@ final class YamlParserContextImpl implements ParserContext<Node> {
   private YamlParserContextImpl(CelPolicySource policySource) {
     this.issues = new ArrayList<>();
     this.idToLocationMap = new HashMap<>();
+    this.idToOffsetMap = new HashMap<>();
     this.source = policySource;
   }
 }

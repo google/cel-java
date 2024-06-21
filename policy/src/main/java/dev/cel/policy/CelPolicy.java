@@ -41,15 +41,9 @@ public abstract class CelPolicy {
         .setRule(Rule.newBuilder().build());
   }
 
-  // public static Builder newBuilder(CelPolicySource policySource) {
-  //   return new AutoValue_CelPolicy.Builder()
-  //       .setName(ValueString.of(0, ""))
-  //       .setPolicySource(policySource)
-  //       .setRule(Rule.newBuilder().build());
-  // }
-
   @AutoValue.Builder
   public abstract static class Builder {
+    public abstract CelPolicySource policySource();
 
     public abstract Builder setName(ValueString name);
 

@@ -92,7 +92,7 @@ final class PolicyTestHelper {
 
   static CelPolicySource readFromYaml(String yamlPath) throws IOException {
     String configContent = readFile(yamlPath);
-    return CelPolicySource.newBuilder(configContent).build();
+    return CelPolicySource.newBuilder(configContent).setDescription(yamlPath).build();
   }
 
   /**

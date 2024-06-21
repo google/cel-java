@@ -88,7 +88,9 @@ java_library(
     srcs = [
         "ParserContext.java",
     ],
-    deps = [],
+    deps = [
+        "//common:source",
+    ],
 )
 
 java_library(
@@ -188,6 +190,7 @@ java_library(
         ":policy_compiler_builder",
         ":policy_exception",
         ":rule_composer",
+        ":value_string",
         "//:auto_value",
         "//bundle:cel",
         "//common",
@@ -325,6 +328,7 @@ java_library(
         "//:auto_value",
         "//common",
         "//common:compiler_common",
+        "//common:source",
         "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",
     ],

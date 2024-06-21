@@ -112,7 +112,6 @@ final class RuleComposer implements CelAstOptimizer {
             result.expr().id(),
             true
             );
-        System.out.println();
       }
 
       result = astMutator.renumberIdsConsecutively(result);

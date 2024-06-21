@@ -40,8 +40,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
 
       ParserContext<Node> ctx = YamlParserContextImpl.newInstance(source);
       CelPolicy.Builder policyBuilder = CelPolicy.newBuilder()
-          .setPolicySource(source)
-          .setCelSource(fromPolicySource(source));
+          .setPolicySource(source);
 
       CelPolicy policy = parsePolicy(ctx, policyBuilder, node);
 
@@ -82,6 +81,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         }
       }
 
+      policyBuilder.setCelSource(newCelSource(policyBuilder.policySource(), ctx));
       return policyBuilder.build();
     }
 
@@ -222,12 +222,12 @@ final class CelPolicyYamlParser implements CelPolicyParser {
     }
 
 
-    private static CelSource fromPolicySource(CelPolicySource policySource) {
-      // TODO: Overload for accepting code point directly?
-      // TODO: Is this necessary?
+    private static CelSource newCelSource(CelPolicySource policySource, ParserContext<Node> parserContext) {
+      // TODO: Add overload for accepting code point directly rather than round-tripping
       return CelSource.newBuilder(policySource.content().toString())
-          .setDescription(policySource.description())
-          .build();
+              .setDescription(policySource.description())
+              .addPositionsMap(parserContext.getIdToOffsetMap())
+              .build();
     }
 
     private ParserImpl(TagVisitor<Node> tagVisitor) {
