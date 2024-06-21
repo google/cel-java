@@ -50,7 +50,9 @@ public abstract class CelIssue {
     return new AutoValue_CelIssue.Builder();
   }
 
-  /** Build {@link CelIssue} from the given {@link CelSourceLocation}, format string, and arguments. */
+  /**
+   * Build {@link CelIssue} from the given {@link CelSourceLocation}, format string, and arguments.
+   **/
   public static CelIssue formatError(CelSourceLocation sourceLocation, String message) {
     return newBuilder()
         .setSeverity(Severity.ERROR)

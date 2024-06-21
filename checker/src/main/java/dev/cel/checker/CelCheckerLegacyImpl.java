@@ -145,16 +145,12 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     return env;
   }
 
-  /**
-   * Create a new builder to construct a {@code CelChecker} instance.
-   */
+  /** Create a new builder to construct a {@code CelChecker} instance. */
   public static CelCheckerBuilder newBuilder() {
     return new Builder();
   }
 
-  /**
-   * Builder class for the legacy {@code CelChecker} implementation.
-   */
+  /** Builder class for the legacy {@code CelChecker} implementation. */
   public static final class Builder implements CelCheckerBuilder {
 
     private final ImmutableSet.Builder<CelIdentDecl> identDeclarations;

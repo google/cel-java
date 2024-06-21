@@ -19,9 +19,7 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.types.CelTypeProvider;
 
-/**
- * Public interface for type-checking parsed CEL expressions.
- */
+/** Public interface for type-checking parsed CEL expressions. */
 @Immutable
 public interface CelChecker {
 

@@ -59,8 +59,7 @@ import java.util.function.Function;
 /**
  * Implementation of the synchronous CEL stack.
  *
- * <p>Note, the underlying {@link CelCompiler} and {@link CelRuntime} values are constructed
- * lazily.
+ * <p>Note, the underlying {@link CelCompiler} and {@link CelRuntime} values are constructed lazily.
  */
 @Immutable
 final class CelImpl implements Cel, EnvVisitable {
@@ -131,9 +130,7 @@ final class CelImpl implements Cel, EnvVisitable {
     return runtime.get().toRuntimeBuilder();
   }
 
-  /**
-   * Combines a prebuilt {@link CelCompiler} and {@link CelRuntime} into {@link CelImpl}.
-   */
+  /** Combines a prebuilt {@link CelCompiler} and {@link CelRuntime} into {@link CelImpl}. */
   static CelImpl combine(CelCompiler compiler, CelRuntime runtime) {
     return new CelImpl(Suppliers.memoize(() -> compiler), Suppliers.memoize(() -> runtime));
   }
@@ -148,9 +145,7 @@ final class CelImpl implements Cel, EnvVisitable {
     return new CelImpl.Builder(compilerBuilder, celRuntimeBuilder);
   }
 
-  /**
-   * Builder class for CelImpl instances.
-   */
+  /** Builder class for CelImpl instances. */
   public static final class Builder implements CelBuilder {
 
     private final CelCompilerBuilder compilerBuilder;
