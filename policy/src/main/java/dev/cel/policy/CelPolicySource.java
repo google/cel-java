@@ -1,13 +1,10 @@
 package dev.cel.policy;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CheckReturnValue;
+import dev.cel.common.CelSourceHelper;
 import dev.cel.common.Source;
 import dev.cel.common.internal.CelCodePointArray;
-import java.util.List;
 import java.util.Optional;
 
 @AutoValue
@@ -21,30 +18,7 @@ public abstract class CelPolicySource implements Source {
 
   @Override
   public Optional<String> getSnippet(int line) {
-    // TODO: Generalize
-    checkArgument(line > 0);
-    ImmutableList<Integer> lineOffsets = content().lineOffsets();
-    int start = findLineOffset(lineOffsets, line);
-    if (start == -1) {
-      return Optional.empty();
-    }
-    int end = findLineOffset(lineOffsets, line + 1);
-    if (end == -1) {
-      end = content().size();
-    } else {
-      end--;
-    }
-    return Optional.of(end != start ? content().slice(start, end).toString() : "");
-  }
-
-  private static int findLineOffset(List<Integer> lineOffsets, int line) {
-    if (line == 1) {
-      return 0;
-    }
-    if (line > 1 && line <= lineOffsets.size()) {
-      return lineOffsets.get(line - 2);
-    }
-    return -1;
+    return CelSourceHelper.getSnippet(content(), line);
   }
 
   @AutoValue.Builder

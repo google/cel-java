@@ -180,9 +180,13 @@ java_library(
 
 java_library(
     name = "source",
-    srcs = ["Source.java"],
+    srcs = [
+        "CelSourceHelper.java",
+        "Source.java",
+    ],
     deps = [
         "//common/annotations",
         "//common/internal",
+        "@maven//:com_google_guava_guava",
     ],
 )

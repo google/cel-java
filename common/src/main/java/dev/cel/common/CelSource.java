@@ -16,6 +16,7 @@ package dev.cel.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static dev.cel.common.CelSourceHelper.findLineOffset;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Splitter;
@@ -139,18 +140,7 @@ public final class CelSource implements Source {
    */
   @Override
   public Optional<String> getSnippet(int line) {
-    checkArgument(line > 0);
-    int start = findLineOffset(lineOffsets, line);
-    if (start == -1) {
-      return Optional.empty();
-    }
-    int end = findLineOffset(lineOffsets, line + 1);
-    if (end == -1) {
-      end = codePoints.size();
-    } else {
-      end--;
-    }
-    return Optional.of(end != start ? codePoints.slice(start, end).toString() : "");
+    return CelSourceHelper.getSnippet(codePoints, line);
   }
 
   /**
@@ -179,16 +169,6 @@ public final class CelSource implements Source {
     checkArgument(offset >= 0);
     LineAndOffset lineAndOffset = findLine(lineOffsets, offset);
     return Optional.of(CelSourceLocation.of(lineAndOffset.line, offset - lineAndOffset.offset));
-  }
-
-  private static int findLineOffset(List<Integer> lineOffsets, int line) {
-    if (line == 1) {
-      return 0;
-    }
-    if (line > 1 && line <= lineOffsets.size()) {
-      return lineOffsets.get(line - 2);
-    }
-    return -1;
   }
 
   private static LineAndOffset findLine(List<Integer> lineOffsets, int offset) {
