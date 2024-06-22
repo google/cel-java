@@ -9,6 +9,7 @@ import dev.cel.common.CelSource;
 import dev.cel.policy.CelPolicy.Match;
 import dev.cel.policy.CelPolicy.Variable;
 import dev.cel.policy.YamlHelper.YamlNodeType;
+import java.util.Optional;
 import org.yaml.snakeyaml.nodes.MappingNode;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.NodeTuple;
@@ -55,6 +56,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         Node node) {
       long id = ctx.collectMetadata(node);
       if (!assertYamlType(ctx, id, node, YamlNodeType.MAP)) {
+        policyBuilder.setCelSource(CelSource.newBuilder().build());
         return policyBuilder.build();
       }
 
@@ -131,20 +133,21 @@ final class CelPolicyYamlParser implements CelPolicyParser {
 
       SequenceNode matchListNode = (SequenceNode) node;
       for (Node elementNode : matchListNode.getValue()) {
-        long id = ctx.collectMetadata(elementNode);
-        if (!assertYamlType(ctx, id, elementNode, YamlNodeType.MAP)) {
-          continue;
-        }
-        matchesBuilder.add(parseMatch(ctx, (MappingNode) elementNode));
+        parseMatch(ctx, elementNode).ifPresent(matchesBuilder::add);
       }
 
       return matchesBuilder.build();
     }
 
-    private CelPolicy.Match parseMatch(ParserContext<Node> ctx, MappingNode node) {
+    private Optional<CelPolicy.Match> parseMatch(ParserContext<Node> ctx, Node node) {
+      long nodeId = ctx.collectMetadata(node);
+      if (!assertYamlType(ctx, nodeId, node, YamlNodeType.MAP)) {
+        return Optional.empty();
+      }
+      MappingNode matchNode = (MappingNode) node;
       CelPolicy.Match.Builder matchBuilder = CelPolicy.Match.newBuilder()
           .setCondition(ValueString.of(ctx.nextId(), "true"));
-      for (NodeTuple nodeTuple : node.getValue()) {
+      for (NodeTuple nodeTuple : matchNode.getValue()) {
         Node key = nodeTuple.getKeyNode();
         long tagId = ctx.collectMetadata(key);
         if (!assertYamlType(ctx, tagId, key, YamlNodeType.STRING, YamlNodeType.TEXT)) {
@@ -175,7 +178,13 @@ final class CelPolicyYamlParser implements CelPolicyParser {
             break;
         }
       }
-      return matchBuilder.build();
+
+      if (!matchBuilder.result().isPresent()) {
+        ctx.reportError(nodeId, "Either output or rule must be set");
+        return Optional.empty();
+      }
+
+      return Optional.of(matchBuilder.build());
     }
 
     private ImmutableSet<CelPolicy.Variable> parseVariables(ParserContext<Node> ctx, Node node) {

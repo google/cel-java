@@ -90,7 +90,8 @@ public final class CelPolicyYamlParserTest {
             + " | ......^"),
     ILLEGAL_YAML_TYPE_ON_MATCH_MAP_KEY("rule:\n" +
         "  match:\n" +
-        "    - 1 : foo",
+        "    - 1 : foo\n" +
+        "      output: 'hi'",
         "ERROR: <input>:3:7: Got yaml node type tag:yaml.org,2002:int, wanted type(s) [tag:yaml.org,2002:str !txt]\n"
             + " |     - 1 : foo\n"
             + " | ......^"),
@@ -133,12 +134,18 @@ public final class CelPolicyYamlParserTest {
     UNSUPPORTED_MATCH_TAG("rule:\n"
         + "  match:\n"
         + "    - name: 'true'\n"
+        + "      output: 'hi'\n"
         + "      alt_name: 'bool_true'", "ERROR: <input>:3:7: Unsupported match tag: name\n" +
         " |     - name: 'true'\n" +
         " | ......^\n" +
-        "ERROR: <input>:4:7: Unsupported match tag: alt_name\n" +
+        "ERROR: <input>:5:7: Unsupported match tag: alt_name\n" +
         " |       alt_name: 'bool_true'\n" +
         " | ......^"),
+    MATCH_MISSING_OUTPUT_AND_RULE("rule:\n"
+        + "  match:\n"
+        + "    - condition: 'true'\n", "ERROR: <input>:3:7: Either output or rule must be set\n"
+        + " |     - condition: 'true'\n"
+        + " | ......^"),
     MATCH_OUTPUT_SET_THEN_RULE("rule:\n" +
         "  match:\n" +
         "    - condition: \"true\"\n" +
