@@ -8,7 +8,6 @@ package(
 
 BASE_SOURCES = [
     "DefaultMetadata.java",
-    "IncompleteData.java",
     "InterpreterException.java",
     "MessageProvider.java",
     "Metadata.java",
@@ -31,8 +30,6 @@ INTERPRETER_SOURCES = [
     "Interpreter.java",
     "InterpreterUtil.java",
     "MessageFactory.java",
-    "PartialMessage.java",
-    "PartialMessageOrBuilder.java",
     "RuntimeTypeProvider.java",
     "RuntimeUnknownResolver.java",
     "UnknownTrackingInterpretable.java",
@@ -98,7 +95,6 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:org_jspecify_jspecify",
     ],
 )
@@ -247,7 +243,6 @@ java_library(
     ],
     deps = [
         ":base",
-        "//common:error_codes",
         "//common/annotations",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",

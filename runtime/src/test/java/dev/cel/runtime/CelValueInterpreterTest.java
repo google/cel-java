@@ -22,7 +22,6 @@ import dev.cel.testing.EvalCelValueSync;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -42,20 +41,6 @@ public class CelValueInterpreterTest extends BaseInterpreterTest {
 
   public CelValueInterpreterTest(boolean declareWithCelType, Eval eval) {
     super(declareWithCelType, eval);
-  }
-
-  /** Test relies on PartialMessage, which is deprecated and not supported for CelValue. */
-  @Override
-  @Test
-  public void unknownField() {
-    skipBaselineVerification();
-  }
-
-  /** Test relies on PartialMessage, which is deprecated and not supported for CelValue. */
-  @Override
-  @Test
-  public void unknownResultSet() {
-    skipBaselineVerification();
   }
 
   @Parameters

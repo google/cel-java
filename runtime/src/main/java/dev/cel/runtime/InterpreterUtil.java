@@ -16,8 +16,6 @@ package dev.cel.runtime;
 
 import dev.cel.expr.ExprValue;
 import dev.cel.expr.UnknownSet;
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import dev.cel.common.CelErrorCode;
 import dev.cel.common.annotations.Internal;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -60,27 +58,6 @@ public final class InterpreterUtil {
   public static boolean isUnknown(Object obj) {
     return obj instanceof ExprValue
         && ((ExprValue) obj).getKindCase() == ExprValue.KindCase.UNKNOWN;
-  }
-
-  /**
-   * Throws an InterpreterException with {@code exceptionMessage} if the {@code obj} is an instance
-   * of {@link IncompleteData}. {@link IncompleteData} does not support some operators.
-   *
-   * <p>Returns the obj argument otherwise.
-   *
-   * <p>Deprecated. TODO: Can be removed once clients have stopped using
-   * IncompleteData.
-   */
-  @CanIgnoreReturnValue
-  @Deprecated
-  public static Object completeDataOnly(Object obj, String exceptionMessage)
-      throws InterpreterException {
-    if (obj instanceof IncompleteData) {
-      throw new InterpreterException.Builder(exceptionMessage)
-          .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
-          .build();
-    }
-    return obj;
   }
 
   /**

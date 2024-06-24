@@ -1,44 +1,20 @@
-Source: x.single_int32 == 1 && x.single_string == "test"
+Source: x.single_int32 == 1 && true
 declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 2
+  exprs: 1
 }
 
 
-Source: x.single_int32 == 1 && x.single_string != "test"
+Source: x.single_int32 == 1 && false
 declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   false
 
 Source: x.single_int32 == 1 && x.single_int64 == 1
@@ -46,22 +22,10 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 2
-  exprs: 7
+  exprs: 1
+  exprs: 6
 }
 
 
@@ -70,65 +34,29 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 2
+  exprs: 1
 }
 
 
-Source: x.single_string == "test" && x.single_int32 == 1
+Source: true && x.single_int32 == 1
 declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 7
+  exprs: 3
 }
 
 
-Source: x.single_string != "test" && x.single_int32 == 1
+Source: false && x.single_int32 == 1
 declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   false
 
 Source: x.single_timestamp <= timestamp("bad timestamp string") && x.single_int32 == 1
@@ -136,21 +64,9 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 8
+  exprs: 7
 }
 
 
@@ -159,19 +75,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 error:    evaluation error: Failed to parse timestamp: invalid timestamp "bad timestamp string"
 error_code:    BAD_FORMAT
 
@@ -180,41 +84,22 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
+bindings: {}
+result:   unknown {
+  exprs: 1
+  exprs: 6
 }
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
-result:   true
+
 
 Source: x.single_int32 == 1 || x.single_string != "test"
 declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 2
+  exprs: 1
+  exprs: 6
 }
 
 
@@ -223,22 +108,10 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 2
-  exprs: 7
+  exprs: 1
+  exprs: 6
 }
 
 
@@ -247,64 +120,28 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 2
+  exprs: 1
 }
 
 
-Source: x.single_string == "test" || x.single_int32 == 1
+Source: true || x.single_int32 == 1
 declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   true
 
-Source: x.single_string != "test" || x.single_int32 == 1
+Source: false || x.single_int32 == 1
 declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 7
+  exprs: 3
 }
 
 
@@ -313,21 +150,9 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 8
+  exprs: 7
 }
 
 
@@ -336,19 +161,7 @@ declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 error:    evaluation error: Failed to parse timestamp: invalid timestamp "bad timestamp string"
 error_code:    BAD_FORMAT
 
@@ -360,21 +173,9 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 2
+  exprs: 1
 }
 
 
@@ -386,21 +187,9 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 4
+  exprs: 3
 }
 
 
@@ -412,22 +201,10 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 2
-  exprs: 5
+  exprs: 1
+  exprs: 4
 }
 
 
@@ -439,17 +216,9 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {y=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
+bindings: {y=single_string: "test"
 single_timestamp {
   seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
 }
 }
 result:   unknown {
@@ -481,21 +250,9 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 2
+  exprs: 1
 }
 
 
@@ -507,19 +264,7 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   true
 
 Source: [0, 2, 4].exists(z, z == x.single_int32)
@@ -530,21 +275,9 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 10
+  exprs: 9
 }
 
 
@@ -556,21 +289,9 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 27
+  exprs: 26
 }
 
 
@@ -582,21 +303,9 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 13
+  exprs: 12
 }
 
 
@@ -608,21 +317,9 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 27
+  exprs: 26
 }
 
 
@@ -634,22 +331,10 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 18
-  exprs: 27
+  exprs: 17
+  exprs: 26
 }
 
 
@@ -661,25 +346,13 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 2
+  exprs: 1
 }
 
 
-Source: x.single_string == "test" ? x.single_int32 : 2
+Source: true ? x.single_int32 : 2
 declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
@@ -687,25 +360,13 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 7
+  exprs: 3
 }
 
 
-Source: x.single_string == "test" ? 1 : x.single_int32
+Source: true ? 1 : x.single_int32
 declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
@@ -713,22 +374,10 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   1
 
-Source: x.single_string != "test" ? x.single_int32 : 2
+Source: false ? x.single_int32 : 2
 declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
@@ -736,22 +385,10 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   2
 
-Source: x.single_string != "test" ? 1 : x.single_int32
+Source: false ? 1 : x.single_int32
 declare x {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
@@ -759,21 +396,9 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 8
+  exprs: 4
 }
 
 
@@ -785,21 +410,9 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 2
+  exprs: 1
 }
 
 
@@ -811,21 +424,9 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 4
+  exprs: 3
 }
 
 
@@ -837,21 +438,9 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 5
+  exprs: 4
 }
 
 
@@ -863,22 +452,10 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 5
-  exprs: 8
+  exprs: 4
+  exprs: 7
 }
 
 
@@ -890,21 +467,9 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 4
+  exprs: 3
 }
 
 
@@ -916,22 +481,10 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 4
-  exprs: 6
+  exprs: 3
+  exprs: 5
 }
 
 
@@ -943,21 +496,9 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 4
+  exprs: 3
 }
 
 
@@ -969,22 +510,8 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=class dev.cel.runtime.PartialMessage{
-message: {
-single_string: "test"
-single_timestamp {
-  seconds: 15
-}
-},
-fieldMask: {
-  paths: single_int32,
-  paths: single_int64,
-  paths: map_int32_int64
-}
-}
+bindings: {}
 result:   unknown {
-  exprs: 4
-  exprs: 7
+  exprs: 3
+  exprs: 6
 }
-
-

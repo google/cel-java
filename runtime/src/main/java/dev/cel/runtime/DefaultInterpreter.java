@@ -177,10 +177,7 @@ public final class DefaultInterpreter implements Interpreter {
       ExecutionFrame frame =
           new ExecutionFrame(listener, resolver, celOptions.comprehensionMaxIterations());
       IntermediateResult internalResult = evalInternal(frame, ast.getExpr());
-      Object result = internalResult.value();
-      // TODO: remove support for IncompleteData.
-      return InterpreterUtil.completeDataOnly(
-          result, "Incomplete data cannot be returned as a result.");
+      return internalResult.value();
     }
 
     private IntermediateResult evalInternal(ExecutionFrame frame, CelExpr expr)
@@ -388,10 +385,6 @@ public final class DefaultInterpreter implements Interpreter {
         // Default evaluation is strict so errors will propagate (via thrown Java exception) before
         // unknowns.
         argResults[i] = evalInternal(frame, callArgs.get(i));
-        // TODO: remove support for IncompleteData after migrating users to attribute
-        // tracking unknowns.
-        InterpreterUtil.completeDataOnly(
-            argResults[i].value(), "Incomplete data does not support function calls.");
       }
 
       Optional<CelAttribute> indexAttr =
@@ -719,9 +712,6 @@ public final class DefaultInterpreter implements Interpreter {
       for (int i = 0; i < elements.size(); i++) {
         CelExpr element = elements.get(i);
         IntermediateResult evaluatedElement = evalInternal(frame, element);
-        // TODO: remove support for IncompleteData.
-        InterpreterUtil.completeDataOnly(
-            evaluatedElement.value(), "Incomplete data cannot be an elem of a list.");
 
         argChecker.checkArg(evaluatedElement);
         Object value = evaluatedElement.value();
@@ -756,9 +746,6 @@ public final class DefaultInterpreter implements Interpreter {
         argChecker.checkArg(keyResult);
 
         IntermediateResult valueResult = evalInternal(frame, entry.value());
-        // TODO: remove support for IncompleteData.
-        InterpreterUtil.completeDataOnly(
-            valueResult.value(), "Incomplete data cannot be a value of a map.");
         argChecker.checkArg(valueResult);
 
         if (celOptions.errorOnDuplicateMapKeys() && result.containsKey(keyResult.value())) {
@@ -801,9 +788,6 @@ public final class DefaultInterpreter implements Interpreter {
       Map<String, Object> fields = new HashMap<>();
       for (CelStruct.Entry entry : structExpr.entries()) {
         IntermediateResult fieldResult = evalInternal(frame, entry.value());
-        // TODO: remove support for IncompleteData
-        InterpreterUtil.completeDataOnly(
-            fieldResult.value(), "Incomplete data cannot be a field of a message.");
         argChecker.checkArg(fieldResult);
 
         Object value = fieldResult.value();

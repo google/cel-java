@@ -40,7 +40,6 @@ import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.DoubleValue;
 import com.google.protobuf.Duration;
 import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.FieldMask;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
@@ -63,7 +62,6 @@ import dev.cel.common.internal.FileDescriptorSetConverter;
 import dev.cel.common.types.CelTypes;
 import dev.cel.runtime.Activation;
 import dev.cel.runtime.InterpreterException;
-import dev.cel.runtime.PartialMessage;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes.NestedEnum;
@@ -1012,189 +1010,111 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   public void unknownField() throws Exception {
     container = TestAllTypes.getDescriptor().getFile().getPackage();
     declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
-    TestAllTypes val =
-        TestAllTypes.newBuilder()
-            .setSingleTimestamp(Timestamps.fromSeconds(15))
-            .setSingleDuration(Durations.fromSeconds(15))
-            .setSingleNestedMessage(NestedMessage.getDefaultInstance())
-            .addRepeatedNestedMessage(0, NestedMessage.newBuilder().setBb(14).build())
-            .build();
-
-    PartialMessage wm =
-        new PartialMessage(
-            val,
-            FieldMask.newBuilder()
-                .addPaths("map_int32_int64")
-                .addPaths("single_int32")
-                .addPaths("single_nested_message.bb")
-                .addPaths("repeated_nested_message")
-                .addPaths("single_duration.seconds")
-                .build());
 
     // Unknown field is accessed.
     source = "x.single_int32";
-    runTest(Activation.of("x", wm));
+    runTest(Activation.EMPTY);
 
     source = "x.map_int32_int64[22]";
-    runTest(Activation.of("x", wm));
+    runTest(Activation.EMPTY);
 
     source = "x.repeated_nested_message[1]";
-    runTest(Activation.of("x", wm));
+    runTest(Activation.EMPTY);
 
-    // Function call for a known field.
+    // Function call for an unknown field.
     source = "x.single_timestamp.getSeconds()";
-    runTest(Activation.of("x", wm));
-
-    // PartialMessage does not support function call
-    source = "x.single_duration.getMilliseconds()";
-    runTest(Activation.of("x", wm));
-
-    // PartialMessage does not support operators.
-    source = "x.single_duration + x.single_duration";
-    runTest(Activation.of("x", wm));
+    runTest(Activation.EMPTY);
 
     // Unknown field in a nested message
     source = "x.single_nested_message.bb";
-    runTest(Activation.of("x", wm));
+    runTest(Activation.EMPTY);
 
-    // PartialMessage cannot be a final expr result.
-    source = "x.single_nested_message";
-    runTest(Activation.of("x", wm));
-
-    // PartialMessage cannot be a field of another message.
-    source = "TestAllTypes{single_nested_message: x.single_nested_message}";
-    runTest(Activation.of("x", wm));
-
-    // Unknown field cannot be a value of a map now.
+    // Unknown field access in a map.
     source = "{1: x.single_int32}";
-    runTest(Activation.of("x", wm));
+    runTest(Activation.EMPTY);
 
-    // Access a known field as a val of a map.
-    source = "{1: x.single_int64}";
-    runTest(Activation.of("x", wm));
-
-    // PartialMessage cannot be a value of a map.
-    source = "{1: x.single_nested_message}";
-    runTest(Activation.of("x", wm));
-
-    // Unknown field cannot be a value of a list now.
+    // Unknown field access in a list.
     source = "[1, x.single_int32]";
-    runTest(Activation.of("x", wm));
-
-    // PartialMessage cannot be an elem in a list.
-    source = "[x.single_nested_message]";
-    runTest(Activation.of("x", wm));
-
-    // Access a field in a nested message masked as unknown.
-    wm = new PartialMessage(val, FieldMask.newBuilder().addPaths("single_nested_message").build());
-
-    // Access unknown field.
-    source = "x.single_nested_message.bb";
-    runTest(Activation.of("x", wm));
-
-    // Error or true should be true.
-    source = "(x.single_nested_message.bb == 42) || true";
-    runTest(Activation.of("x", wm));
-
-    // Error or false should be error.
-    source = "(x.single_nested_message.bb == 42) || false";
-    runTest(Activation.of("x", wm));
-
-    // Error and true should be error.
-    source = "(x.single_nested_message.bb == 42) && true";
-    runTest(Activation.of("x", wm));
-
-    // Error and false should be false.
-    source = "(x.single_nested_message.bb == 42) && false";
-    runTest(Activation.of("x", wm));
+    runTest(Activation.EMPTY);
   }
 
   @Test
   public void unknownResultSet() throws Exception {
     container = TestAllTypes.getDescriptor().getFile().getPackage();
     declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
-    TestAllTypes val =
+    TestAllTypes message =
         TestAllTypes.newBuilder()
             .setSingleString("test")
             .setSingleTimestamp(Timestamp.newBuilder().setSeconds(15))
             .build();
 
-    PartialMessage message =
-        new PartialMessage(
-            val,
-            FieldMask.newBuilder()
-                .addPaths("single_int32")
-                .addPaths("single_int64")
-                .addPaths("map_int32_int64")
-                .build());
-
     // unknown && true ==> unknown
-    source = "x.single_int32 == 1 && x.single_string == \"test\"";
-    runTest(Activation.of("x", message));
+    source = "x.single_int32 == 1 && true";
+    runTest(Activation.EMPTY);
 
     // unknown && false ==> false
-    source = "x.single_int32 == 1 && x.single_string != \"test\"";
-    runTest(Activation.of("x", message));
+    source = "x.single_int32 == 1 && false";
+    runTest(Activation.EMPTY);
 
     // unknown && Unknown ==> UnknownSet
     source = "x.single_int32 == 1 && x.single_int64 == 1";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // unknown && error ==> unknown
     source = "x.single_int32 == 1 && x.single_timestamp <= timestamp(\"bad timestamp string\")";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // true && unknown ==> unknown
-    source = "x.single_string == \"test\" && x.single_int32 == 1";
-    runTest(Activation.of("x", message));
+    source = "true && x.single_int32 == 1";
+    runTest(Activation.EMPTY);
 
     // false && unknown ==> false
-    source = "x.single_string != \"test\" && x.single_int32 == 1";
-    runTest(Activation.of("x", message));
+    source = "false && x.single_int32 == 1";
+    runTest(Activation.EMPTY);
 
     // error && unknown ==> unknown
     source = "x.single_timestamp <= timestamp(\"bad timestamp string\") && x.single_int32 == 1";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // error && error ==> error
     source =
         "x.single_timestamp <= timestamp(\"bad timestamp string\") "
             + "&& x.single_timestamp > timestamp(\"another bad timestamp string\")";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // unknown || true ==> true
     source = "x.single_int32 == 1 || x.single_string == \"test\"";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // unknown || false ==> unknown
     source = "x.single_int32 == 1 || x.single_string != \"test\"";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // unknown || unknown ==> UnknownSet
     source = "x.single_int32 == 1 || x.single_int64 == 1";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // unknown || error ==> unknown
     source = "x.single_int32 == 1 || x.single_timestamp <= timestamp(\"bad timestamp string\")";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // true || unknown ==> true
-    source = "x.single_string == \"test\" || x.single_int32 == 1";
-    runTest(Activation.of("x", message));
+    source = "true || x.single_int32 == 1";
+    runTest(Activation.EMPTY);
 
     // false || unknown ==> unknown
-    source = "x.single_string != \"test\" || x.single_int32 == 1";
-    runTest(Activation.of("x", message));
+    source = "false || x.single_int32 == 1";
+    runTest(Activation.EMPTY);
 
     // error || unknown ==> unknown
     source = "x.single_timestamp <= timestamp(\"bad timestamp string\") || x.single_int32 == 1";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // error || error ==> error
     source =
         "x.single_timestamp <= timestamp(\"bad timestamp string\") "
             + "|| x.single_timestamp > timestamp(\"another bad timestamp string\")";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // dispatch test
     declareFunction(
@@ -1203,15 +1123,15 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     // dispatch: unknown.f(1)  ==> unknown
     source = "x.single_int32.f(1)";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // dispatch: 1.f(unknown)  ==> unknown
     source = "1.f(x.single_int32)";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // dispatch: unknown.f(unknown)  ==> unknownSet
     source = "x.single_int64.f(x.single_int32)";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // ident is null(x is unbound) ==> unknown
     source = "x";
@@ -1226,91 +1146,91 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     // comprehension test
     // iteRange is unknown => unknown
     source = "x.map_int32_int64.map(x, x > 0, x + 1)";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // exists, loop condition encounters unknown => skip unknown and check other element
     source = "[0, 2, 4].exists(z, z == 2 || z == x.single_int32)";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // exists, loop condition encounters unknown => skip unknown and check other element, no dupe id
     // in result
     source = "[0, 2, 4].exists(z, z == x.single_int32)";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // exists_one, loop condition encounters unknown => collect all unknowns
     source =
         "[0, 2, 4].exists_one(z, z == 0 || (z == 2 && z == x.single_int32) "
             + "|| (z == 4 && z == x.single_int64))";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // all, loop condition encounters unknown => skip unknown and check other element
     source = "[0, 2].all(z, z == 2 || z == x.single_int32)";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // filter, loop condition encounters unknown => skip unknown and check other element
     source =
         "[0, 2, 4].filter(z, z == 0 || (z == 2 && z == x.single_int32) "
             + "|| (z == 4 && z == x.single_int64))";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // map, loop condition encounters unknown => skip unknown and check other element
     source =
         "[0, 2, 4].map(z, z == 0 || (z == 2 && z == x.single_int32) "
             + "|| (z == 4 && z == x.single_int64))";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // conditional test
     // unknown ? 1 : 2 ==> unknown
     source = "x.single_int32 == 1 ? 1 : 2";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // true ? unknown : 2  ==> unknown
-    source = "x.single_string == \"test\" ? x.single_int32 : 2";
-    runTest(Activation.of("x", message));
+    source = "true ? x.single_int32 : 2";
+    runTest(Activation.EMPTY);
 
     // true ? 1 : unknown  ==> 1
-    source = "x.single_string == \"test\" ? 1 : x.single_int32";
-    runTest(Activation.of("x", message));
+    source = "true ? 1 : x.single_int32";
+    runTest(Activation.EMPTY);
 
     // false ? unknown : 2 ==> 2
-    source = "x.single_string != \"test\" ? x.single_int32 : 2";
-    runTest(Activation.of("x", message));
+    source = "false ? x.single_int32 : 2";
+    runTest(Activation.EMPTY);
 
     // false ? 1 : unknown ==> unknown
-    source = "x.single_string != \"test\" ? 1 : x.single_int32";
-    runTest(Activation.of("x", message));
+    source = "false ? 1 : x.single_int32";
+    runTest(Activation.EMPTY);
 
     // unknown condition ? unknown : unknown ==> unknown condition
     source = "x.single_int64 == 1 ? x.single_int32 : x.single_int32";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // map with unknown key => unknown
     source = "{x.single_int32: 2, 3: 4}";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // map with unknown value => unknown
     source = "{1: x.single_int32, 3: 4}";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // map with unknown key and value => unknownSet
     source = "{1: x.single_int32, x.single_int64: 4}";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // list with unknown => unknown
     source = "[1, x.single_int32, 3, 4]";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // list with multiple unknowns => unknownSet
     source = "[1, x.single_int32, x.single_int64, 4]";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // message with unknown => unknown
     source = "TestAllTypes{single_int32: x.single_int32}.single_int32 == 2";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
 
     // message with multiple unknowns => unknownSet
     source = "TestAllTypes{single_int32: x.single_int32, single_int64: x.single_int64}";
-    runTest(Activation.of("x", message));
+    runTest(Activation.EMPTY);
   }
 
   @Test
