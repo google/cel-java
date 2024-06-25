@@ -14,13 +14,9 @@
 
 package dev.cel.common;
 
-import dev.cel.expr.Decl;
-import dev.cel.expr.Decl.IdentDecl;
 import com.google.auto.value.AutoValue;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.types.CelType;
-import dev.cel.common.types.CelTypes;
 
 /** Abstract representation of a CEL variable declaration. */
 @AutoValue
@@ -36,14 +32,5 @@ public abstract class CelVarDecl {
   @CheckReturnValue
   public static CelVarDecl newVarDeclaration(String name, CelType type) {
     return new AutoValue_CelVarDecl(name, type);
-  }
-
-  /** Converts a {@link CelVarDecl} to a protobuf equivalent form {@code Decl} */
-  @VisibleForTesting
-  public static Decl celVarToDecl(CelVarDecl varDecl) {
-    return Decl.newBuilder()
-        .setName(varDecl.name())
-        .setIdent(IdentDecl.newBuilder().setType(CelTypes.celTypeToType(varDecl.type())))
-        .build();
   }
 }
