@@ -15,10 +15,12 @@
 package dev.cel.policy;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.CelSourceHelper;
 import dev.cel.common.Source;
 import dev.cel.common.internal.CelCodePointArray;
+import java.util.Map;
 import java.util.Optional;
 
 /** CelPolicySource represents the source content of a policy and its related metadata. */
@@ -30,6 +32,9 @@ public abstract class CelPolicySource implements Source {
 
   @Override
   public abstract String getDescription();
+
+  @Override
+  public abstract ImmutableMap<Long, Integer> getPositionsMap();
 
   @Override
   public Optional<String> getSnippet(int line) {
@@ -44,15 +49,18 @@ public abstract class CelPolicySource implements Source {
 
     public abstract Builder setDescription(String description);
 
+    public abstract Builder setPositionsMap(Map<Long, Integer> value);
+
     @CheckReturnValue
     public abstract CelPolicySource build();
   }
 
   public abstract Builder toBuilder();
 
-  public static Builder newBuilder(String text) {
+  public static Builder newBuilder(CelCodePointArray celCodePointArray) {
     return new AutoValue_CelPolicySource.Builder()
-        .setContent(CelCodePointArray.fromString(text))
-        .setDescription("<input>");
+        .setDescription("")
+        .setContent(celCodePointArray)
+        .setPositionsMap(ImmutableMap.of());
   }
 }

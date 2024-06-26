@@ -64,6 +64,7 @@ public final class CelSource implements Source {
     return description;
   }
 
+  @Override
   public ImmutableMap<Long, Integer> getPositionsMap() {
     return positions;
   }
@@ -170,7 +171,10 @@ public final class CelSource implements Source {
   }
 
   public static Builder newBuilder(String text) {
-    CelCodePointArray codePointArray = CelCodePointArray.fromString(text);
+    return newBuilder(CelCodePointArray.fromString(text));
+  }
+
+  public static Builder newBuilder(CelCodePointArray codePointArray) {
     return new Builder(codePointArray, codePointArray.lineOffsets());
   }
 
