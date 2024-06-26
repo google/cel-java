@@ -17,6 +17,7 @@ package dev.cel.policy;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.common.internal.CelCodePointArray;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -25,7 +26,10 @@ public final class CelPolicySourceTest {
 
   @Test
   public void constructPolicySource_success() {
-    CelPolicySource policySource = CelPolicySource.newBuilder("hello world").build();
+    CelPolicySource policySource =
+        CelPolicySource.newBuilder(CelCodePointArray.fromString("hello world"))
+            .setDescription("<input>")
+            .build();
 
     assertThat(policySource.getContent().toString()).isEqualTo("hello world");
     assertThat(policySource.getDescription()).isEqualTo("<input>");
@@ -33,7 +37,8 @@ public final class CelPolicySourceTest {
 
   @Test
   public void getSnippet_success() {
-    CelPolicySource policySource = CelPolicySource.newBuilder("hello\nworld").build();
+    CelPolicySource policySource =
+        CelPolicySource.newBuilder(CelCodePointArray.fromString("hello\nworld")).build();
 
     assertThat(policySource.getSnippet(1)).hasValue("hello");
     assertThat(policySource.getSnippet(2)).hasValue("world");
@@ -41,7 +46,8 @@ public final class CelPolicySourceTest {
 
   @Test
   public void getSnippet_returnsEmpty() {
-    CelPolicySource policySource = CelPolicySource.newBuilder("hello\nworld").build();
+    CelPolicySource policySource =
+        CelPolicySource.newBuilder(CelCodePointArray.fromString("hello\nworld")).build();
 
     assertThat(policySource.getSnippet(3)).isEmpty();
   }
