@@ -16,9 +16,9 @@ package dev.cel.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -36,8 +36,7 @@ import java.util.Optional;
 
 /** Represents the source content of an expression and related metadata. */
 @Immutable
-public final class CelSource {
-  private static final Splitter LINE_SPLITTER = Splitter.on('\n');
+public final class CelSource implements Source {
 
   private final CelCodePointArray codePoints;
   private final String description;
@@ -55,14 +54,17 @@ public final class CelSource {
     this.extensions = checkNotNull(builder.extensions.build());
   }
 
+  @Override
   public CelCodePointArray getContent() {
     return codePoints;
   }
 
+  @Override
   public String getDescription() {
     return description;
   }
 
+  @Override
   public ImmutableMap<Long, Integer> getPositionsMap() {
     return positions;
   }
@@ -106,27 +108,12 @@ public final class CelSource {
    * Get the line and column in the source expression text for the given code point {@code offset}.
    */
   public Optional<CelSourceLocation> getOffsetLocation(int offset) {
-    return getOffsetLocationImpl(lineOffsets, offset);
+    return CelSourceHelper.getOffsetLocation(codePoints, offset);
   }
 
-  /**
-   * Get the text from the source expression that corresponds to {@code line}.
-   *
-   * @param line the line number starting from 1.
-   */
+  @Override
   public Optional<String> getSnippet(int line) {
-    checkArgument(line > 0);
-    int start = findLineOffset(lineOffsets, line);
-    if (start == -1) {
-      return Optional.empty();
-    }
-    int end = findLineOffset(lineOffsets, line + 1);
-    if (end == -1) {
-      end = codePoints.size();
-    } else {
-      end--;
-    }
-    return Optional.of(end != start ? codePoints.slice(start, end).toString() : "");
+    return CelSourceHelper.getSnippet(codePoints, line);
   }
 
   /**
@@ -140,45 +127,11 @@ public final class CelSource {
       List<Integer> lineOffsets, int line, int column) {
     checkArgument(line > 0);
     checkArgument(column >= 0);
-    int offset = findLineOffset(lineOffsets, line);
+    int offset = CelSourceHelper.findLineOffset(lineOffsets, line);
     if (offset == -1) {
       return Optional.empty();
     }
     return Optional.of(offset + column);
-  }
-
-  /**
-   * Get the line and column in the source expression text for the given code point {@code offset}.
-   */
-  public static Optional<CelSourceLocation> getOffsetLocationImpl(
-      List<Integer> lineOffsets, int offset) {
-    checkArgument(offset >= 0);
-    LineAndOffset lineAndOffset = findLine(lineOffsets, offset);
-    return Optional.of(CelSourceLocation.of(lineAndOffset.line, offset - lineAndOffset.offset));
-  }
-
-  private static int findLineOffset(List<Integer> lineOffsets, int line) {
-    if (line == 1) {
-      return 0;
-    }
-    if (line > 1 && line <= lineOffsets.size()) {
-      return lineOffsets.get(line - 2);
-    }
-    return -1;
-  }
-
-  private static LineAndOffset findLine(List<Integer> lineOffsets, int offset) {
-    int line = 1;
-    for (int index = 0; index < lineOffsets.size(); index++) {
-      if (lineOffsets.get(index) > offset) {
-        break;
-      }
-      line++;
-    }
-    if (line == 1) {
-      return new LineAndOffset(line, 0);
-    }
-    return new LineAndOffset(line, lineOffsets.get(line - 2));
   }
 
   public Builder toBuilder() {
@@ -194,13 +147,11 @@ public final class CelSource {
   }
 
   public static Builder newBuilder(String text) {
-    List<Integer> lineOffsets = new ArrayList<>();
-    int lineOffset = 0;
-    for (String line : LINE_SPLITTER.split(text)) {
-      lineOffset += (int) (line.codePoints().count() + 1);
-      lineOffsets.add(lineOffset);
-    }
-    return new Builder(CelCodePointArray.fromString(text), lineOffsets);
+    return newBuilder(CelCodePointArray.fromString(text));
+  }
+
+  public static Builder newBuilder(CelCodePointArray codePointArray) {
+    return new Builder(codePointArray, codePointArray.lineOffsets());
   }
 
   /** Builder for {@link CelSource}. */
@@ -212,6 +163,7 @@ public final class CelSource {
     private final Map<Long, CelExpr> macroCalls;
     private final ImmutableSet.Builder<Extension> extensions;
 
+    private final boolean lineOffsetsAlreadyComputed;
     private String description;
 
     private Builder() {
@@ -225,6 +177,7 @@ public final class CelSource {
       this.macroCalls = new HashMap<>();
       this.extensions = ImmutableSet.builder();
       this.description = "";
+      this.lineOffsetsAlreadyComputed = !lineOffsets.isEmpty();
     }
 
     @CanIgnoreReturnValue
@@ -236,6 +189,9 @@ public final class CelSource {
     @CanIgnoreReturnValue
     public Builder addLineOffsets(int lineOffset) {
       checkArgument(lineOffset >= 0);
+      checkState(
+          !lineOffsetsAlreadyComputed,
+          "Line offsets were already been computed through the provided code points.");
       lineOffsets.add(lineOffset);
       return this;
     }
@@ -331,7 +287,7 @@ public final class CelSource {
      * offset}.
      */
     public Optional<CelSourceLocation> getOffsetLocation(int offset) {
-      return getOffsetLocationImpl(lineOffsets, offset);
+      return CelSourceHelper.getOffsetLocation(codePoints, offset);
     }
 
     @CheckReturnValue
@@ -353,17 +309,6 @@ public final class CelSource {
     public CelSource build() {
       return new CelSource(this);
     }
-  }
-
-  private static final class LineAndOffset {
-
-    private LineAndOffset(int line, int offset) {
-      this.line = line;
-      this.offset = offset;
-    }
-
-    int line;
-    int offset;
   }
 
   /**

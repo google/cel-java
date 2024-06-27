@@ -181,4 +181,15 @@ public final class CelSourceTest {
         .containsExactly(Component.COMPONENT_PARSER, Component.COMPONENT_TYPE_CHECKER);
     assertThat(celSource.getExtensions()).hasSize(1);
   }
+
+  @Test
+  public void source_lineOffsetsAlreadyComputed_throws() {
+    CelSource.Builder sourceBuilder = CelSource.newBuilder("text");
+
+    IllegalStateException e =
+        assertThrows(IllegalStateException.class, () -> sourceBuilder.addLineOffsets(1));
+    assertThat(e)
+        .hasMessageThat()
+        .contains("Line offsets were already been computed through the provided code points.");
+  }
 }
