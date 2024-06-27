@@ -14,7 +14,6 @@ COMMON_SOURCES = [
     "CelException.java",
     "CelProtoAbstractSyntaxTree.java",  # TODO Split target after migrating callers
     "CelSource.java",
-    "CelSourceLocation.java",
 ]
 
 # keep sorted
@@ -25,6 +24,12 @@ COMPILER_COMMON_SOURCES = [
     "CelValidationException.java",
     "CelValidationResult.java",
     "CelVarDecl.java",
+]
+
+# keep sorted
+SOURCE_SOURCES = [
+    "CelSourceHelper.java",
+    "Source.java",
 ]
 
 # keep sorted
@@ -39,6 +44,8 @@ java_library(
     ],
     deps = [
         ":error_codes",
+        ":source",
+        ":source_location",
         "//:auto_value",
         "//common/annotations",
         "//common/ast",
@@ -62,6 +69,8 @@ java_library(
     ],
     deps = [
         ":common",
+        ":source",
+        ":source_location",
         "//:auto_value",
         "//common/annotations",
         "//common/internal:safe_string_formatter",
@@ -173,5 +182,30 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
+    ],
+)
+
+java_library(
+    name = "source_location",
+    srcs = ["CelSourceLocation.java"],
+    tags = [
+        "alt_dep=//common:source_location",
+        "avoid_dep",
+    ],
+    deps = [
+        "//:auto_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "source",
+    srcs = SOURCE_SOURCES,
+    deps = [
+        ":source_location",
+        "//common/annotations",
+        "//common/internal",
+        "@maven//:com_google_guava_guava",
     ],
 )

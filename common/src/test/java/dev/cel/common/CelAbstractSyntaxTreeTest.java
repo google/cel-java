@@ -150,11 +150,7 @@ public final class CelAbstractSyntaxTreeTest {
   public void parsedExpression_createAst() {
     CelExpr celExpr = CelExpr.newBuilder().setId(1).setConstant(CelConstant.ofValue(2)).build();
     CelSource celSource =
-        CelSource.newBuilder("expression")
-            .setDescription("desc")
-            .addPositions(1, 5)
-            .addLineOffsets(10)
-            .build();
+        CelSource.newBuilder("expression").setDescription("desc").addPositions(1, 5).build();
 
     CelAbstractSyntaxTree ast = CelAbstractSyntaxTree.newParsedAst(celExpr, celSource);
 
