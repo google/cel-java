@@ -8,6 +8,9 @@ declare d {
 declare message {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
+declare list {
+  value list(dyn)
+}
 =====>
 bindings: {d=seconds: 100
 } +> {any=type_url: "type.googleapis.com/google.protobuf.Duration"
@@ -24,6 +27,9 @@ declare d {
 }
 declare message {
   value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare list {
+  value list(dyn)
 }
 =====>
 bindings: {message=single_any {
@@ -45,6 +51,9 @@ declare d {
 declare message {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
+declare list {
+  value list(dyn)
+}
 =====>
 bindings: {message=single_any {
   type_url: "type.googleapis.com/google.protobuf.Duration"
@@ -64,6 +73,9 @@ declare d {
 declare message {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
+declare list {
+  value list(dyn)
+}
 =====>
 bindings: {any=single_int64: 1
 }
@@ -79,9 +91,35 @@ declare d {
 declare message {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
+declare list {
+  value list(dyn)
+}
 =====>
 bindings: {any=type_url: "type.googleapis.com/google.protobuf.Int64Value"
 value: "\b\001"
+}
+result:   true
+
+Source: list[0] == message
+declare any {
+  value any
+}
+declare d {
+  value google.protobuf.Duration
+}
+declare message {
+  value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare list {
+  value list(dyn)
+}
+=====>
+bindings: {list=[type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes"
+value: "\242\0062\n,type.googleapis.com/google.protobuf.Duration\022\002\bd"
+], message=single_any {
+  type_url: "type.googleapis.com/google.protobuf.Duration"
+  value: "\bd"
+}
 }
 result:   true
 
@@ -94,6 +132,9 @@ declare d {
 }
 declare message {
   value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare list {
+  value list(dyn)
 }
 =====>
 bindings: {d=seconds: 100
@@ -114,6 +155,9 @@ declare d {
 declare message {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
+declare list {
+  value list(dyn)
+}
 =====>
 bindings: {message=single_int64: -1
 }
@@ -132,6 +176,9 @@ declare d {
 }
 declare message {
   value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare list {
+  value list(dyn)
 }
 =====>
 bindings: {message=single_uint64: 1
@@ -152,6 +199,9 @@ declare d {
 declare message {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
+declare list {
+  value list(dyn)
+}
 =====>
 bindings: {}
 result:   single_any {
@@ -169,6 +219,9 @@ declare d {
 }
 declare message {
   value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare list {
+  value list(dyn)
 }
 =====>
 bindings: {}
@@ -188,6 +241,9 @@ declare d {
 declare message {
   value dev.cel.testing.testdata.proto3.TestAllTypes
 }
+declare list {
+  value list(dyn)
+}
 =====>
 bindings: {}
 result:   single_any {
@@ -205,6 +261,9 @@ declare d {
 }
 declare message {
   value dev.cel.testing.testdata.proto3.TestAllTypes
+}
+declare list {
+  value list(dyn)
 }
 =====>
 bindings: {message=single_bytes: "happy"

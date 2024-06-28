@@ -569,6 +569,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     declareVariable("any", CelTypes.ANY);
     declareVariable("d", CelTypes.DURATION);
     declareVariable("message", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+    declareVariable("list", CelTypes.createList(CelTypes.DYN));
     Duration duration = Durations.fromSeconds(100);
     Any any = Any.pack(duration);
     TestAllTypes message = TestAllTypes.newBuilder().setSingleAny(any).build();
@@ -584,6 +585,10 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     runTest(Activation.of("any", TestAllTypes.newBuilder().setSingleInt64(1).build()));
     source = "any == 1";
     runTest(Activation.of("any", Any.pack(Int64Value.of(1))));
+    source = "list[0] == message";
+    runTest(
+        Activation.copyOf(
+            ImmutableMap.of("list", ImmutableList.of(Any.pack(message)), "message", message)));
 
     // pack any
     source = "TestAllTypes{single_any: d}";

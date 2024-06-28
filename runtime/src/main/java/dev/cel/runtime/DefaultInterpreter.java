@@ -411,10 +411,11 @@ public final class DefaultInterpreter implements Interpreter {
 
       Object[] argArray = Arrays.stream(argResults).map(IntermediateResult::value).toArray();
 
-      return IntermediateResult.create(
-          attr,
+      Object dispatchResult =
           dispatcher.dispatch(
-              metadata, expr.id(), callExpr.function(), reference.overloadIds(), argArray));
+              metadata, expr.id(), callExpr.function(), reference.overloadIds(), argArray);
+      dispatchResult = typeProvider.adapt(dispatchResult);
+      return IntermediateResult.create(attr, dispatchResult);
     }
 
     private Optional<CelAttribute> maybeContainerIndexAttribute(
@@ -717,7 +718,7 @@ public final class DefaultInterpreter implements Interpreter {
         Object value = evaluatedElement.value();
         if (!optionalIndicesSet
                 .isEmpty() // Performance optimization to prevent autoboxing when there's no
-                           // optionals.
+            // optionals.
             && optionalIndicesSet.contains(i)
             && !isUnknownValue(value)) {
           Optional<?> optionalVal = (Optional<?>) value;
