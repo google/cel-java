@@ -5,7 +5,10 @@ package(
 
 java_library(
     name = "common",
-    exports = ["//common/src/main/java/dev/cel/common"],
+    exports = [
+        "//common/src/main/java/dev/cel/common",
+        "//common/src/main/java/dev/cel/common:source_location",  # TODO: Split callers
+    ],
 )
 
 java_library(
@@ -64,4 +67,9 @@ java_library(
     name = "source",
     visibility = ["//visibility:public"],
     exports = ["//common/src/main/java/dev/cel/common:source"],
+)
+
+java_library(
+    name = "source_location",
+    exports = ["//common/src/main/java/dev/cel/common:source_location"],
 )
