@@ -36,7 +36,8 @@ import java.util.Optional;
 
 /** Represents the source content of an expression and related metadata. */
 @Immutable
-public final class CelSource {
+public final class CelSource implements Source {
+
   private final CelCodePointArray codePoints;
   private final String description;
   private final ImmutableList<Integer> lineOffsets;
@@ -53,10 +54,12 @@ public final class CelSource {
     this.extensions = checkNotNull(builder.extensions.build());
   }
 
+  @Override
   public CelCodePointArray getContent() {
     return codePoints;
   }
 
+  @Override
   public String getDescription() {
     return description;
   }
@@ -107,24 +110,9 @@ public final class CelSource {
     return getOffsetLocationImpl(lineOffsets, offset);
   }
 
-  /**
-   * Get the text from the source expression that corresponds to {@code line}.
-   *
-   * @param line the line number starting from 1.
-   */
+  @Override
   public Optional<String> getSnippet(int line) {
-    checkArgument(line > 0);
-    int start = findLineOffset(lineOffsets, line);
-    if (start == -1) {
-      return Optional.empty();
-    }
-    int end = findLineOffset(lineOffsets, line + 1);
-    if (end == -1) {
-      end = codePoints.size();
-    } else {
-      end--;
-    }
-    return Optional.of(end != start ? codePoints.slice(start, end).toString() : "");
+    return CelSourceHelper.getSnippet(codePoints, line);
   }
 
   /**
@@ -138,7 +126,7 @@ public final class CelSource {
       List<Integer> lineOffsets, int line, int column) {
     checkArgument(line > 0);
     checkArgument(column >= 0);
-    int offset = findLineOffset(lineOffsets, line);
+    int offset = CelSourceHelper.findLineOffset(lineOffsets, line);
     if (offset == -1) {
       return Optional.empty();
     }
@@ -153,16 +141,6 @@ public final class CelSource {
     checkArgument(offset >= 0);
     LineAndOffset lineAndOffset = findLine(lineOffsets, offset);
     return Optional.of(CelSourceLocation.of(lineAndOffset.line, offset - lineAndOffset.offset));
-  }
-
-  private static int findLineOffset(List<Integer> lineOffsets, int line) {
-    if (line == 1) {
-      return 0;
-    }
-    if (line > 1 && line <= lineOffsets.size()) {
-      return lineOffsets.get(line - 2);
-    }
-    return -1;
   }
 
   private static LineAndOffset findLine(List<Integer> lineOffsets, int offset) {

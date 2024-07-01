@@ -74,7 +74,7 @@ public abstract class CelIssue {
   private static final char WIDE_HAT = '\uff3e';
 
   /** Returns a string representing this error that is suitable for displaying to humans. */
-  public String toDisplayString(CelSource source) {
+  public String toDisplayString(Source source) {
     // Based onhttps://github.com/google/cel-go/blob/v0.5.1/common/error.go#L42.
     String result =
         SafeStringFormatter.format(
