@@ -1,0 +1,9 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "policy_source",
+    exports = ["//policy/src/main/java/dev/cel/policy:policy_source"],
+)

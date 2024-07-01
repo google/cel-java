@@ -1,0 +1,20 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = [
+        "//policy:__pkg__",
+    ],
+)
+
+java_library(
+    name = "policy_source",
+    srcs = [
+        "CelPolicySource.java",
+    ],
+    deps = [
+        "//:auto_value",
+        "//common:source",
+        "//common/internal",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
