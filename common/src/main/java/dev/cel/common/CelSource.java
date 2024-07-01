@@ -16,9 +16,9 @@ package dev.cel.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -37,8 +37,6 @@ import java.util.Optional;
 /** Represents the source content of an expression and related metadata. */
 @Immutable
 public final class CelSource {
-  private static final Splitter LINE_SPLITTER = Splitter.on('\n');
-
   private final CelCodePointArray codePoints;
   private final String description;
   private final ImmutableList<Integer> lineOffsets;
@@ -194,13 +192,8 @@ public final class CelSource {
   }
 
   public static Builder newBuilder(String text) {
-    List<Integer> lineOffsets = new ArrayList<>();
-    int lineOffset = 0;
-    for (String line : LINE_SPLITTER.split(text)) {
-      lineOffset += (int) (line.codePoints().count() + 1);
-      lineOffsets.add(lineOffset);
-    }
-    return new Builder(CelCodePointArray.fromString(text), lineOffsets);
+    CelCodePointArray codePointArray = CelCodePointArray.fromString(text);
+    return new Builder(codePointArray, codePointArray.lineOffsets());
   }
 
   /** Builder for {@link CelSource}. */
@@ -212,6 +205,7 @@ public final class CelSource {
     private final Map<Long, CelExpr> macroCalls;
     private final ImmutableSet.Builder<Extension> extensions;
 
+    private final boolean lineOffsetsAlreadyComputed;
     private String description;
 
     private Builder() {
@@ -225,6 +219,7 @@ public final class CelSource {
       this.macroCalls = new HashMap<>();
       this.extensions = ImmutableSet.builder();
       this.description = "";
+      this.lineOffsetsAlreadyComputed = !lineOffsets.isEmpty();
     }
 
     @CanIgnoreReturnValue
@@ -236,6 +231,9 @@ public final class CelSource {
     @CanIgnoreReturnValue
     public Builder addLineOffsets(int lineOffset) {
       checkArgument(lineOffset >= 0);
+      checkState(
+          !lineOffsetsAlreadyComputed,
+          "Line offsets were already been computed through the provided code points.");
       lineOffsets.add(lineOffset);
       return this;
     }
@@ -362,8 +360,8 @@ public final class CelSource {
       this.offset = offset;
     }
 
-    int line;
-    int offset;
+    private final int line;
+    private final int offset;
   }
 
   /**
