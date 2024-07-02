@@ -88,6 +88,11 @@ final class CelImpl implements Cel, EnvVisitable {
   }
 
   @Override
+  public CelTypeProvider getTypeProvider() {
+    return compiler.get().getTypeProvider();
+  }
+
+  @Override
   public CelRuntime.Program createProgram(CelAbstractSyntaxTree ast) throws CelEvaluationException {
     return runtime.get().createProgram(ast);
   }
