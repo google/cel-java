@@ -17,9 +17,7 @@ package dev.cel.common;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.Comparator.comparing;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import com.google.errorprone.annotations.InlineMe;
@@ -32,8 +30,6 @@ import org.jspecify.annotations.Nullable;
  */
 @Immutable
 public final class CelValidationResult {
-
-  private static final Joiner JOINER = Joiner.on('\n');
 
   @SuppressWarnings("Immutable")
   private final @Nullable Throwable failure;
@@ -115,7 +111,7 @@ public final class CelValidationResult {
 
   /** Convert all issues to a human-readable string. */
   public String getIssueString() {
-    return JOINER.join(Iterables.transform(issues, iss -> iss.toDisplayString(source)));
+    return CelIssue.toDisplayString(issues, source);
   }
 
   /**
@@ -131,7 +127,7 @@ public final class CelValidationResult {
 
   /** Convert the {@code CelIssue}s with {@code ERROR} severity to an error string. */
   public String getErrorString() {
-    return JOINER.join(Iterables.transform(getErrors(), error -> error.toDisplayString(source)));
+    return CelIssue.toDisplayString(getErrors(), source);
   }
 
   private static boolean issueIsError(CelIssue iss) {
