@@ -108,7 +108,7 @@ public final class CelSource implements Source {
    * Get the line and column in the source expression text for the given code point {@code offset}.
    */
   public Optional<CelSourceLocation> getOffsetLocation(int offset) {
-    return getOffsetLocationImpl(lineOffsets, offset);
+    return CelSourceHelper.getOffsetLocation(codePoints, offset);
   }
 
   @Override
@@ -132,30 +132,6 @@ public final class CelSource implements Source {
       return Optional.empty();
     }
     return Optional.of(offset + column);
-  }
-
-  /**
-   * Get the line and column in the source expression text for the given code point {@code offset}.
-   */
-  public static Optional<CelSourceLocation> getOffsetLocationImpl(
-      List<Integer> lineOffsets, int offset) {
-    checkArgument(offset >= 0);
-    LineAndOffset lineAndOffset = findLine(lineOffsets, offset);
-    return Optional.of(CelSourceLocation.of(lineAndOffset.line, offset - lineAndOffset.offset));
-  }
-
-  private static LineAndOffset findLine(List<Integer> lineOffsets, int offset) {
-    int line = 1;
-    for (int index = 0; index < lineOffsets.size(); index++) {
-      if (lineOffsets.get(index) > offset) {
-        break;
-      }
-      line++;
-    }
-    if (line == 1) {
-      return new LineAndOffset(line, 0);
-    }
-    return new LineAndOffset(line, lineOffsets.get(line - 2));
   }
 
   public Builder toBuilder() {
@@ -311,7 +287,7 @@ public final class CelSource implements Source {
      * offset}.
      */
     public Optional<CelSourceLocation> getOffsetLocation(int offset) {
-      return getOffsetLocationImpl(lineOffsets, offset);
+      return CelSourceHelper.getOffsetLocation(codePoints, offset);
     }
 
     @CheckReturnValue
@@ -333,17 +309,6 @@ public final class CelSource implements Source {
     public CelSource build() {
       return new CelSource(this);
     }
-  }
-
-  private static final class LineAndOffset {
-
-    private LineAndOffset(int line, int offset) {
-      this.line = line;
-      this.offset = offset;
-    }
-
-    private final int line;
-    private final int offset;
   }
 
   /**

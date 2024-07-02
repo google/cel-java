@@ -30,6 +30,7 @@ java_library(
     deps = [
         "//:auto_value",
         "//common:source",
+        "//common:source_location",
         "//common/internal",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",

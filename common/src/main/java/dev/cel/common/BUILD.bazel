@@ -203,6 +203,7 @@ java_library(
     name = "source",
     srcs = SOURCE_SOURCES,
     deps = [
+        ":source_location",
         "//common/annotations",
         "//common/internal",
         "@maven//:com_google_guava_guava",
