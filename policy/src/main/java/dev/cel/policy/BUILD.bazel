@@ -38,6 +38,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":required_fields_checker",
         ":source",
         "//:auto_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -86,6 +87,18 @@ java_library(
     visibility = ["//visibility:private"],
     deps = [
         "//:auto_value",
+    ],
+)
+
+java_library(
+    name = "required_fields_checker",
+    srcs = [
+        "RequiredFieldsChecker.java",
+    ],
+    visibility = ["//visibility:private"],
+    deps = [
+        "//:auto_value",
+        "@maven//:com_google_guava_guava",
     ],
 )
 

@@ -15,15 +15,12 @@
 package dev.cel.policy;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static java.util.Arrays.stream;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
-import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -108,7 +105,7 @@ public abstract class CelPolicyConfig {
 
     /** Builder for {@link VariableDecl}. */
     @AutoValue.Builder
-    public abstract static class Builder {
+    public abstract static class Builder implements RequiredFieldsChecker {
 
       abstract Optional<String> name();
 
@@ -118,10 +115,10 @@ public abstract class CelPolicyConfig {
 
       public abstract Builder setType(TypeDecl typeDecl);
 
-      ImmutableList<String> getMissingRequiredFieldNames() {
-        return getMissingRequiredFields(
-            new AbstractMap.SimpleEntry<>("name", name()),
-            new AbstractMap.SimpleEntry<>("type", type()));
+      @Override
+      public ImmutableList<RequiredField> requiredFields() {
+        return ImmutableList.of(
+            RequiredField.of("name", this::name), RequiredField.of("type", this::type));
       }
 
       /** Builds a new instance of {@link VariableDecl}. */
@@ -148,7 +145,7 @@ public abstract class CelPolicyConfig {
 
     /** Builder for {@link FunctionDecl}. */
     @AutoValue.Builder
-    public abstract static class Builder {
+    public abstract static class Builder implements RequiredFieldsChecker {
 
       abstract Optional<String> name();
 
@@ -158,10 +155,10 @@ public abstract class CelPolicyConfig {
 
       public abstract Builder setOverloads(ImmutableSet<OverloadDecl> overloads);
 
-      ImmutableList<String> getMissingRequiredFieldNames() {
-        return getMissingRequiredFields(
-            new AbstractMap.SimpleEntry<>("name", name()),
-            new AbstractMap.SimpleEntry<>("overloads", overloads()));
+      @Override
+      public ImmutableList<RequiredField> requiredFields() {
+        return ImmutableList.of(
+            RequiredField.of("name", this::name), RequiredField.of("overloads", this::overloads));
       }
 
       /** Builds a new instance of {@link FunctionDecl}. */
@@ -200,7 +197,7 @@ public abstract class CelPolicyConfig {
 
     /** Builder for {@link OverloadDecl}. */
     @AutoValue.Builder
-    public abstract static class Builder {
+    public abstract static class Builder implements RequiredFieldsChecker {
 
       abstract Optional<String> id();
 
@@ -228,10 +225,10 @@ public abstract class CelPolicyConfig {
 
       public abstract Builder setReturnType(TypeDecl returnType);
 
-      ImmutableList<String> getMissingRequiredFieldNames() {
-        return getMissingRequiredFields(
-            new AbstractMap.SimpleEntry<>("id", id()),
-            new AbstractMap.SimpleEntry<>("return", returnType()));
+      @Override
+      public ImmutableList<RequiredField> requiredFields() {
+        return ImmutableList.of(
+            RequiredField.of("id", this::id), RequiredField.of("return", this::returnType));
       }
 
       /** Builds a new instance of {@link OverloadDecl}. */
@@ -259,7 +256,7 @@ public abstract class CelPolicyConfig {
 
     /** Builder for {@link TypeDecl}. */
     @AutoValue.Builder
-    public abstract static class Builder {
+    public abstract static class Builder implements RequiredFieldsChecker {
 
       abstract Optional<String> name();
 
@@ -283,8 +280,9 @@ public abstract class CelPolicyConfig {
 
       public abstract Builder setIsTypeParam(boolean isTypeParam);
 
-      ImmutableList<String> getMissingRequiredFieldNames() {
-        return getMissingRequiredFields(new AbstractMap.SimpleEntry<>("type_name", name()));
+      @Override
+      public ImmutableList<RequiredField> requiredFields() {
+        return ImmutableList.of(RequiredField.of("type_name", this::name));
       }
 
       @CheckReturnValue
@@ -319,7 +317,7 @@ public abstract class CelPolicyConfig {
 
     /** Builder for {@link ExtensionConfig}. */
     @AutoValue.Builder
-    public abstract static class Builder {
+    public abstract static class Builder implements RequiredFieldsChecker {
 
       abstract Optional<String> name();
 
@@ -329,8 +327,9 @@ public abstract class CelPolicyConfig {
 
       public abstract Builder setVersion(Integer version);
 
-      ImmutableList<String> getMissingRequiredFieldNames() {
-        return getMissingRequiredFields(new AbstractMap.SimpleEntry<>("name", name()));
+      @Override
+      public ImmutableList<RequiredField> requiredFields() {
+        return ImmutableList.of(RequiredField.of("name", this::name));
       }
 
       /** Builds a new instance of {@link ExtensionConfig}. */
@@ -351,14 +350,5 @@ public abstract class CelPolicyConfig {
     public static ExtensionConfig of(String name, int version) {
       return newBuilder().setName(name).setVersion(version).build();
     }
-  }
-
-  @SafeVarargs
-  private static ImmutableList<String> getMissingRequiredFields(
-      AbstractMap.SimpleEntry<String, Optional<?>>... requiredFields) {
-    return stream(requiredFields)
-        .filter(entry -> !entry.getValue().isPresent())
-        .map(AbstractMap.SimpleEntry::getKey)
-        .collect(toImmutableList());
   }
 }
