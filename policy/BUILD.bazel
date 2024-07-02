@@ -1,9 +1,30 @@
 package(
     default_applicable_licenses = ["//:license"],
-    default_visibility = ["//visibility:public"],
+    default_visibility = ["//visibility:public"],  # TODO: Expose to public
 )
 
 java_library(
-    name = "policy_source",
-    exports = ["//policy/src/main/java/dev/cel/policy:policy_source"],
+    name = "source",
+    exports = ["//policy/src/main/java/dev/cel/policy:source"],
+)
+
+java_library(
+    name = "validation_exception",
+    exports = ["//policy/src/main/java/dev/cel/policy:validation_exception"],
+)
+
+java_library(
+    name = "config",
+    exports = ["//policy/src/main/java/dev/cel/policy:config"],
+)
+
+java_library(
+    name = "config_parser",
+    exports = ["//policy/src/main/java/dev/cel/policy:config_parser"],
+)
+
+java_library(
+    name = "yaml_config_parser",
+    visibility = ["//visibility:public"],
+    exports = ["//policy/src/main/java/dev/cel/policy:yaml_config_parser"],
 )

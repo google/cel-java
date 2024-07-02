@@ -75,6 +75,7 @@ maven_install(
         "org.antlr:antlr4-runtime:" + ANTLR4_VERSION,
         "org.jspecify:jspecify:0.3.0",
         "org.threeten:threeten-extra:1.8.0",
+        "org.yaml:snakeyaml:2.2",
     ],
     repositories = [
         "https://maven.google.com",
