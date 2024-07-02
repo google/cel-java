@@ -18,8 +18,12 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.rpc.context.AttributeContext;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.bundle.Cel;
+import dev.cel.bundle.CelFactory;
+import dev.cel.common.CelOptions;
 import dev.cel.policy.CelPolicyConfig.ExtensionConfig;
 import dev.cel.policy.CelPolicyConfig.FunctionDecl;
 import dev.cel.policy.CelPolicyConfig.OverloadDecl;
@@ -30,6 +34,11 @@ import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public final class CelPolicyYamlConfigParserTest {
+
+  private static final Cel CEL_WITH_MESSAGE_TYPES =
+      CelFactory.standardCelBuilder()
+          .addMessageTypes(AttributeContext.Request.getDescriptor())
+          .build();
 
   private static final CelPolicyConfigParser POLICY_CONFIG_PARSER =
       CelPolicyYamlConfigParser.newInstance();
@@ -79,6 +88,7 @@ public final class CelPolicyYamlConfigParserTest {
                         ExtensionConfig.of("sets"),
                         ExtensionConfig.of("strings", 1)))
                 .build());
+    assertThat(policyConfig.extend(CEL_WITH_MESSAGE_TYPES, CelOptions.DEFAULT)).isNotNull();
   }
 
   @Test
@@ -172,6 +182,7 @@ public final class CelPolicyYamlConfigParserTest {
                                             .build())
                                     .build()))))
                 .build());
+    assertThat(policyConfig.extend(CEL_WITH_MESSAGE_TYPES, CelOptions.DEFAULT)).isNotNull();
   }
 
   @Test
@@ -227,6 +238,7 @@ public final class CelPolicyYamlConfigParserTest {
                                 .addParams(TypeDecl.create("string"), TypeDecl.create("dyn"))
                                 .build())))
                 .build());
+    assertThat(policyConfig.extend(CEL_WITH_MESSAGE_TYPES, CelOptions.DEFAULT)).isNotNull();
   }
 
   @Test
@@ -249,6 +261,7 @@ public final class CelPolicyYamlConfigParserTest {
                             "request",
                             TypeDecl.create("google.rpc.context.AttributeContext.Request"))))
                 .build());
+    assertThat(policyConfig.extend(CEL_WITH_MESSAGE_TYPES, CelOptions.DEFAULT)).isNotNull();
   }
 
   @Test
@@ -257,6 +270,18 @@ public final class CelPolicyYamlConfigParserTest {
         assertThrows(
             CelPolicyValidationException.class,
             () -> POLICY_CONFIG_PARSER.parse(testCase.yamlConfig));
+    assertThat(e).hasMessageThat().isEqualTo(testCase.expectedErrorMessage);
+  }
+
+  @Test
+  public void config_extendErrors(@TestParameter ConfigExtendErrorTestCase testCase)
+      throws Exception {
+    CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(testCase.yamlConfig);
+
+    CelPolicyValidationException e =
+        assertThrows(
+            CelPolicyValidationException.class,
+            () -> policyConfig.extend(CEL_WITH_MESSAGE_TYPES, CelOptions.DEFAULT));
     assertThat(e).hasMessageThat().isEqualTo(testCase.expectedErrorMessage);
   }
 
@@ -436,6 +461,78 @@ public final class CelPolicyYamlConfigParserTest {
     private final String expectedErrorMessage;
 
     ConfigParseErrorTestcase(String yamlConfig, String expectedErrorMessage) {
+      this.yamlConfig = yamlConfig;
+      this.expectedErrorMessage = expectedErrorMessage;
+    }
+  }
+
+  private enum ConfigExtendErrorTestCase {
+    BAD_EXTENSION("extensions:\n" + "  - name: 'bad_name'", "Unrecognized extension: bad_name"),
+    BAD_TYPE(
+        "variables:\n" + "- name: 'bad_type'\n" + "  type:\n" + "    type_name: 'strings'",
+        "Undefined type name: strings"),
+    BAD_LIST(
+        "variables:\n" + "  - name: 'bad_list'\n" + "    type:\n" + "      type_name: 'list'",
+        "List type has unexpected param count: 0"),
+    BAD_MAP(
+        "variables:\n"
+            + "  - name: 'bad_map'\n"
+            + "    type:\n"
+            + "      type_name: 'map'\n"
+            + "      params:\n"
+            + "        - type_name: 'string'",
+        "Map type has unexpected param count: 1"),
+    BAD_LIST_TYPE_PARAM(
+        "variables:\n"
+            + "  - name: 'bad_list_type_param'\n"
+            + "    type:\n"
+            + "      type_name: 'list'\n"
+            + "      params:\n"
+            + "        - type_name: 'number'",
+        "Undefined type name: number"),
+    BAD_MAP_TYPE_PARAM(
+        "variables:\n"
+            + "  - name: 'bad_map_type_param'\n"
+            + "    type:\n"
+            + "      type_name: 'map'\n"
+            + "      params:\n"
+            + "        - type_name: 'string'\n"
+            + "        - type_name: 'optional'",
+        "Undefined type name: optional"),
+    BAD_RETURN(
+        "functions:\n"
+            + "  - name: 'bad_return'\n"
+            + "    overloads:\n"
+            + "      - id: 'zero_arity'\n"
+            + "        return:\n"
+            + "          type_name: 'mystery'",
+        "Undefined type name: mystery"),
+    BAD_OVERLOAD_TARGET(
+        "functions:\n"
+            + "  - name: 'bad_target'\n"
+            + "    overloads:\n"
+            + "      - id: 'unary_member'\n"
+            + "        target:\n"
+            + "          type_name: 'unknown'\n"
+            + "        return:\n"
+            + "          type_name: 'null_type'",
+        "Undefined type name: unknown"),
+    BAD_OVERLOAD_ARG(
+        "functions:\n"
+            + "  - name: 'bad_arg'\n"
+            + "    overloads:\n"
+            + "      - id: 'unary_global'\n"
+            + "        args:\n"
+            + "          - type_name: 'unknown'\n"
+            + "        return:\n"
+            + "          type_name: 'null_type'",
+        "Undefined type name: unknown"),
+    ;
+
+    private final String yamlConfig;
+    private final String expectedErrorMessage;
+
+    ConfigExtendErrorTestCase(String yamlConfig, String expectedErrorMessage) {
       this.yamlConfig = yamlConfig;
       this.expectedErrorMessage = expectedErrorMessage;
     }

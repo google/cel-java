@@ -75,6 +75,11 @@ public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
   }
 
   @Override
+  public CelTypeProvider getTypeProvider() {
+    return checker.getTypeProvider();
+  }
+
+  @Override
   public void accept(EnvVisitor envVisitor) {
     if (checker instanceof EnvVisitable) {
       ((EnvVisitable) checker).accept(envVisitor);
