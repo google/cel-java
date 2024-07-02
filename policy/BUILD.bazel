@@ -4,6 +4,11 @@ package(
 )
 
 java_library(
+    name = "policy",
+    exports = ["//policy/src/main/java/dev/cel/policy"],
+)
+
+java_library(
     name = "source",
     exports = ["//policy/src/main/java/dev/cel/policy:source"],
 )
@@ -21,6 +26,17 @@ java_library(
 java_library(
     name = "config_parser",
     exports = ["//policy/src/main/java/dev/cel/policy:config_parser"],
+)
+
+java_library(
+    name = "parser",
+    exports = ["//policy/src/main/java/dev/cel/policy:parser"],
+)
+
+java_library(
+    name = "yaml_parser",
+    visibility = ["//visibility:public"],
+    exports = ["//policy/src/main/java/dev/cel/policy:yaml_parser"],
 )
 
 java_library(

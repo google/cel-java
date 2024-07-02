@@ -14,23 +14,22 @@
 
 package dev.cel.policy;
 
-import dev.cel.common.Source;
-import java.util.Map;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.errorprone.annotations.CheckReturnValue;
+import dev.cel.policy.CelPolicyParser.TagVisitor;
 
 /**
- * ParserContext declares a set of interfaces for creating and managing metadata for parsed
- * policies.
+ * Interface for building an instance of {@link CelPolicyParser}.
+ *
+ * @param <T> Type of the node (Ex: YAML).
  */
-public interface ParserContext<T> {
-  long nextId();
+public interface CelPolicyParserBuilder<T> {
 
-  long collectMetadata(T node);
+  /** Adds a custom tag visitor to allow for handling of custom tags. */
+  @CanIgnoreReturnValue
+  CelPolicyParserBuilder<T> addTagVisitor(TagVisitor<T> tagVisitor);
 
-  void reportError(long id, String message);
-
-  String getIssueString(Source source);
-
-  boolean hasError();
-
-  Map<Long, Integer> getIdToOffsetMap();
+  /** Builds a new instance of {@link CelPolicyParser}. */
+  @CheckReturnValue
+  CelPolicyParser build();
 }

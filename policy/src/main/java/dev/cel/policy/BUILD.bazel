@@ -6,6 +6,21 @@ package(
 )
 
 java_library(
+    name = "policy",
+    srcs = [
+        "CelPolicy.java",
+    ],
+    deps = [
+        ":required_fields_checker",
+        ":source",
+        ":value_string",
+        "//:auto_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "source",
     srcs = [
         "CelPolicySource.java",
@@ -64,6 +79,49 @@ java_library(
     deps = [
         ":config",
         ":validation_exception",
+    ],
+)
+
+java_library(
+    name = "yaml_parser",
+    srcs = [
+        "CelPolicyYamlParser.java",
+    ],
+    deps = [
+        ":parser",
+        ":parser_context",
+        ":policy",
+        ":policy_common_internal",
+        ":policy_parser_builder",
+        ":source",
+        ":validation_exception",
+        ":value_string",
+        "//common/internal",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_yaml_snakeyaml",
+    ],
+)
+
+java_library(
+    name = "parser",
+    srcs = [
+        "CelPolicyParser.java",
+    ],
+    deps = [
+        ":parser_context",
+        ":policy",
+        ":validation_exception",
+    ],
+)
+
+java_library(
+    name = "policy_parser_builder",
+    srcs = [
+        "CelPolicyParserBuilder.java",
+    ],
+    deps = [
+        ":parser",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
 

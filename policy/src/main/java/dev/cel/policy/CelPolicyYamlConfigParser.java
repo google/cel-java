@@ -334,10 +334,15 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
       ParserContext<Node> ctx = YamlParserContextImpl.newInstance(configCodePointArray);
       CelPolicyConfig.Builder policyConfig = parseConfig(ctx, node);
       CelPolicySource configSource =
-          CelPolicySource.newBuilder(configCodePointArray).setDescription(description).build();
+          CelPolicySource.newBuilder(configCodePointArray)
+              .setDescription(description)
+              .setPositionsMap(ctx.getIdToOffsetMap())
+              .build();
+
       if (ctx.hasError()) {
         throw new CelPolicyValidationException(ctx.getIssueString(configSource));
       }
+
       return policyConfig.setConfigSource(configSource).build();
     }
 
@@ -347,6 +352,7 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
       if (!assertYamlType(ctx, id, node, YamlNodeType.MAP)) {
         return builder;
       }
+
       MappingNode rootNode = (MappingNode) node;
       for (NodeTuple nodeTuple : rootNode.getValue()) {
         Node keyNode = nodeTuple.getKeyNode();
@@ -354,6 +360,7 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
         if (!assertYamlType(ctx, keyId, keyNode, YamlNodeType.STRING, YamlNodeType.TEXT)) {
           continue;
         }
+
         Node valueNode = nodeTuple.getValueNode();
         String fieldName = ((ScalarNode) keyNode).getValue();
         switch (fieldName) {
@@ -380,6 +387,7 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
             // continue handling the rest of the nodes
         }
       }
+
       return builder;
     }
   }

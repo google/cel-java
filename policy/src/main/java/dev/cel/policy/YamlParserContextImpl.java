@@ -23,6 +23,7 @@ import dev.cel.common.Source;
 import dev.cel.common.internal.CelCodePointArray;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.ScalarNode;
@@ -52,6 +53,11 @@ final class YamlParserContextImpl implements ParserContext<Node> {
   @Override
   public boolean hasError() {
     return !issues.isEmpty();
+  }
+
+  @Override
+  public Map<Long, Integer> getIdToOffsetMap() {
+    return idToOffsetMap;
   }
 
   @Override

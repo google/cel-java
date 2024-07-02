@@ -267,7 +267,7 @@ public abstract class CelPolicyConfig {
     }
   }
 
-  /** Represents an overload declaraion on a policy function. */
+  /** Represents an overload declaration on a policy function. */
   @AutoValue
   public abstract static class OverloadDecl {
 
