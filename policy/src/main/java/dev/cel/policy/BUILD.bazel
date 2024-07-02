@@ -6,9 +6,11 @@ package(
 )
 
 java_library(
-    name = "policy_source",
+    name = "source",
     srcs = [
         "CelPolicySource.java",
+    ],
+    tags = [
     ],
     deps = [
         "//:auto_value",
@@ -16,5 +18,103 @@ java_library(
         "//common/internal",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "validation_exception",
+    srcs = [
+        "CelPolicyValidationException.java",
+    ],
+    tags = [
+    ],
+)
+
+java_library(
+    name = "config",
+    srcs = [
+        "CelPolicyConfig.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":source",
+        "//:auto_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "config_parser",
+    srcs = [
+        "CelPolicyConfigParser.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":config",
+        ":validation_exception",
+    ],
+)
+
+java_library(
+    name = "yaml_config_parser",
+    srcs = [
+        "CelPolicyYamlConfigParser.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":config",
+        ":config_parser",
+        ":parser_context",
+        ":policy_common_internal",
+        ":source",
+        ":validation_exception",
+        "//common/internal",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_yaml_snakeyaml",
+    ],
+)
+
+java_library(
+    name = "value_string",
+    srcs = [
+        "ValueString.java",
+    ],
+    visibility = ["//visibility:private"],
+    deps = [
+        "//:auto_value",
+    ],
+)
+
+java_library(
+    name = "parser_context",
+    srcs = [
+        "ParserContext.java",
+    ],
+    visibility = ["//visibility:private"],
+    deps = [
+        "//common:source",
+    ],
+)
+
+java_library(
+    name = "policy_common_internal",
+    srcs = [
+        "YamlHelper.java",
+        "YamlParserContextImpl.java",
+    ],
+    visibility = ["//visibility:private"],
+    deps = [
+        ":parser_context",
+        ":value_string",
+        "//common",
+        "//common:compiler_common",
+        "//common:source",
+        "//common/internal",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_yaml_snakeyaml",
     ],
 )
