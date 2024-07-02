@@ -447,6 +447,81 @@ public class AstMutatorTest {
   }
 
   @Test
+  public void replaceSubtreeWithNewBindMacro_varInitContainsMacro_replaceRoot() throws Exception {
+    // Arrange
+    CelAbstractSyntaxTree ast = CEL.compile("true && true").getAst();
+    CelMutableAst mutableAst = CelMutableAst.fromCelAst(ast);
+    CelMutableAst varInitAst = CelMutableAst.fromCelAst(CEL.compile("[].exists(x, x)").getAst());
+    String variableName = "@r0";
+    CelMutableExpr resultExpr =
+        CelMutableExpr.ofCall(
+            CelMutableCall.create(
+                Operator.LOGICAL_AND.getFunction(),
+                CelMutableExpr.ofIdent(variableName),
+                CelMutableExpr.ofIdent(variableName)));
+
+    // Act
+    // Perform the initial replacement. (true && true) -> cel.bind(@r0, [].exists(x, x), @r0 && @r0)
+    mutableAst =
+        AST_MUTATOR.replaceSubtreeWithNewBindMacro(
+            mutableAst,
+            variableName,
+            varInitAst,
+            resultExpr,
+            ast.getExpr().id(),
+            true); // Replace &&
+
+    CelAbstractSyntaxTree mutatedAst = mutableAst.toParsedAst();
+    assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(2);
+    assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(false);
+    assertThat(CEL_UNPARSER.unparse(mutatedAst))
+        .isEqualTo("cel.bind(@r0, [].exists(x, x), @r0 && @r0)");
+    assertConsistentMacroCalls(mutatedAst);
+  }
+
+  @Test
+  public void replaceSubtreeWithNewBindMacro_astAndVarInitContainsMacro_replaceRhs()
+      throws Exception {
+    // Arrange
+    CelAbstractSyntaxTree ast = CEL.compile("[true].exists(y,y) && false").getAst();
+    CelMutableAst mutableAst = CelMutableAst.fromCelAst(ast);
+    CelMutableAst varInitAst = CelMutableAst.fromCelAst(CEL.compile("[].exists(x, x)").getAst());
+    String variableName = "@r0";
+    CelMutableExpr resultExpr = CelMutableExpr.ofIdent(variableName);
+    long falseExprId =
+        CelNavigableAst.fromAst(ast)
+            .getRoot()
+            .children()
+            .map(CelNavigableExpr::expr)
+            .filter(
+                x ->
+                    x.getKind().equals(Kind.CONSTANT)
+                        && x.constant().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE))
+            .filter(x -> !x.constant().booleanValue())
+            .findAny()
+            .get()
+            .id();
+
+    // Act
+    // Perform the initial replacement. (true && true) -> cel.bind(@r0, [].exists(x, x), @r0 && @r0)
+    mutableAst =
+        AST_MUTATOR.replaceSubtreeWithNewBindMacro(
+            mutableAst,
+            variableName,
+            varInitAst,
+            resultExpr,
+            falseExprId, // Replace false
+            true);
+
+    CelAbstractSyntaxTree mutatedAst = mutableAst.toParsedAst();
+    assertThat(mutatedAst.getSource().getMacroCalls()).hasSize(3);
+    assertThat(CEL.createProgram(CEL.check(mutatedAst).getAst()).eval()).isEqualTo(false);
+    assertThat(CEL_UNPARSER.unparse(mutatedAst))
+        .isEqualTo("[true].exists(y, y) && cel.bind(@r0, [].exists(x, x), @r0)");
+    assertConsistentMacroCalls(mutatedAst);
+  }
+
+  @Test
   public void replaceSubtree_macroReplacedWithConstExpr_macroCallCleared() throws Exception {
     CelAbstractSyntaxTree ast =
         CEL.compile("[1].exists(x, x > 0) && [2].exists(x, x > 0)").getAst();
@@ -1032,6 +1107,29 @@ public class AstMutatorTest {
                     mutableAst, CelMutableExpr.ofConstant(CelConstant.ofValue(false)), 1));
 
     assertThat(e).hasMessageThat().isEqualTo("Max iteration count reached.");
+  }
+
+  @Test
+  public void newGlobalCallAst_success() throws Exception {
+    CelMutableAst argAst1 = CelMutableAst.fromCelAst(CEL.compile("[1].exists(x, x >= 1)").getAst());
+    CelMutableAst argAst2 = CelMutableAst.fromCelAst(CEL.compile("'hello'").getAst());
+
+    CelMutableAst callAst = AST_MUTATOR.newGlobalCall("func", argAst1, argAst2);
+
+    assertThat(CEL_UNPARSER.unparse(callAst.toParsedAst()))
+        .isEqualTo("func([1].exists(x, x >= 1), \"hello\")");
+  }
+
+  @Test
+  public void newMemberCallAst_success() throws Exception {
+    CelMutableAst targetAst = CelMutableAst.fromCelAst(CEL.compile("'hello'").getAst());
+    CelMutableAst argAst1 = CelMutableAst.fromCelAst(CEL.compile("[1].exists(x, x >= 1)").getAst());
+    CelMutableAst argAst2 = CelMutableAst.fromCelAst(CEL.compile("'world'").getAst());
+
+    CelMutableAst callAst = AST_MUTATOR.newMemberCall(targetAst, "func", argAst1, argAst2);
+
+    assertThat(CEL_UNPARSER.unparse(callAst.toParsedAst()))
+        .isEqualTo("\"hello\".func([1].exists(x, x >= 1), \"world\")");
   }
 
   /**

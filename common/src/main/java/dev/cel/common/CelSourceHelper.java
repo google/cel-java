@@ -47,6 +47,40 @@ public final class CelSourceHelper {
     return Optional.of(end != start ? content.slice(start, end).toString() : "");
   }
 
+  /**
+   * Get the line and column in the source expression text for the given code point {@code offset}.
+   */
+  public static Optional<CelSourceLocation> getOffsetLocation(
+      CelCodePointArray content, int offset) {
+    checkArgument(offset >= 0);
+    LineAndOffset lineAndOffset = findLine(content.lineOffsets(), offset);
+    return Optional.of(CelSourceLocation.of(lineAndOffset.line, offset - lineAndOffset.offset));
+  }
+
+  private static LineAndOffset findLine(List<Integer> lineOffsets, int offset) {
+    int line = 1;
+    for (Integer lineOffset : lineOffsets) {
+      if (lineOffset > offset) {
+        break;
+      }
+      line++;
+    }
+    if (line == 1) {
+      return new LineAndOffset(line, 0);
+    }
+    return new LineAndOffset(line, lineOffsets.get(line - 2));
+  }
+
+  private static final class LineAndOffset {
+    private LineAndOffset(int line, int offset) {
+      this.line = line;
+      this.offset = offset;
+    }
+
+    private final int line;
+    private final int offset;
+  }
+
   static int findLineOffset(List<Integer> lineOffsets, int line) {
     if (line == 1) {
       return 0;

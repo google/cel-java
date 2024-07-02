@@ -40,6 +40,8 @@ import dev.cel.common.navigation.CelNavigableMutableExpr;
 import dev.cel.common.navigation.TraversalOrder;
 import dev.cel.common.types.CelType;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -96,6 +98,70 @@ public final class AstMutator {
   }
 
   /**
+   * Constructs a new global call wrapped in an AST with the provided ASTs as its argument. This
+   * will preserve all macro source information contained within the arguments.
+   */
+  public CelMutableAst newGlobalCall(String function, Collection<CelMutableAst> args) {
+    return newCallAst(Optional.empty(), function, args);
+  }
+
+  /**
+   * Constructs a new global call wrapped in an AST with the provided ASTs as its argument. This
+   * will preserve all macro source information contained within the arguments.
+   */
+  public CelMutableAst newGlobalCall(String function, CelMutableAst... args) {
+    return newGlobalCall(function, Arrays.asList(args));
+  }
+
+  /**
+   * Constructs a new member call wrapped in an AST the provided ASTs as its arguments. This will
+   * preserve all macro source information contained within the arguments.
+   */
+  public CelMutableAst newMemberCall(CelMutableAst target, String function, CelMutableAst... args) {
+    return newMemberCall(target, function, Arrays.asList(args));
+  }
+
+  /**
+   * Constructs a new member call wrapped in an AST the provided ASTs as its arguments. This will
+   * preserve all macro source information contained within the arguments.
+   */
+  public CelMutableAst newMemberCall(
+      CelMutableAst target, String function, Collection<CelMutableAst> args) {
+    return newCallAst(Optional.of(target), function, args);
+  }
+
+  private CelMutableAst newCallAst(
+      Optional<CelMutableAst> target, String function, Collection<CelMutableAst> args) {
+    long maxId = 1;
+    CelMutableSource combinedSource = CelMutableSource.newInstance();
+    for (CelMutableAst arg : args) {
+      CelMutableAst stableArg = stabilizeAst(arg, maxId);
+      maxId = getMaxId(stableArg);
+      combinedSource = combine(combinedSource, stableArg.source());
+    }
+
+    Optional<CelMutableAst> maybeTarget = Optional.empty();
+    if (target.isPresent()) {
+      CelMutableAst stableTarget = stabilizeAst(target.get(), maxId);
+      combinedSource = combine(combinedSource, stableTarget.source());
+      maxId = getMaxId(stableTarget);
+
+      maybeTarget = Optional.of(stableTarget);
+    }
+
+    List<CelMutableExpr> exprArgs =
+        args.stream().map(CelMutableAst::expr).collect(toCollection(ArrayList::new));
+    CelMutableCall newCall =
+        maybeTarget
+            .map(celMutableAst -> CelMutableCall.create(celMutableAst.expr(), function, exprArgs))
+            .orElseGet(() -> CelMutableCall.create(function, exprArgs));
+
+    CelMutableExpr newCallExpr = CelMutableExpr.ofCall(++maxId, newCall);
+
+    return CelMutableAst.of(newCallExpr, combinedSource);
+  }
+
+  /**
    * Generates a new bind macro using the provided initialization and result expression, then
    * replaces the subtree using the new bind expr at the designated expr ID.
    *
@@ -111,16 +177,17 @@ public final class AstMutator {
   public CelMutableAst replaceSubtreeWithNewBindMacro(
       CelMutableAst ast,
       String varName,
-      CelMutableExpr varInit,
+      CelMutableAst varInit,
       CelMutableExpr resultExpr,
       long exprIdToReplace,
       boolean populateMacroSource) {
-    // Copy the incoming expressions to prevent modifying the root
-    long maxId = max(getMaxId(varInit), getMaxId(ast));
+    // Stabilize incoming varInit AST to avoid collision with the main AST
+    long maxId = getMaxId(ast);
+    varInit = stabilizeAst(varInit, maxId);
     StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(maxId);
     CelMutableExpr newBindMacroExpr =
         newBindMacroExpr(
-            varName, varInit, CelMutableExpr.newInstance(resultExpr), stableIdGenerator);
+            varName, varInit.expr(), CelMutableExpr.newInstance(resultExpr), stableIdGenerator);
     CelMutableSource celSource = CelMutableSource.newInstance();
     if (populateMacroSource) {
       CelMutableExpr newBindMacroSourceExpr =
@@ -128,9 +195,10 @@ public final class AstMutator {
       // In situations where the existing AST already contains a macro call (ex: nested cel.binds),
       // its macro source must be normalized to make it consistent with the newly generated bind
       // macro.
+      celSource = combine(ast.source(), varInit.source());
       celSource =
           normalizeMacroSource(
-              ast.source(),
+              celSource,
               -1, // Do not replace any of the subexpr in the macro map.
               newBindMacroSourceExpr,
               stableIdGenerator::renumberId);
@@ -140,6 +208,26 @@ public final class AstMutator {
     CelMutableAst newBindAst = CelMutableAst.of(newBindMacroExpr, celSource);
 
     return replaceSubtree(ast, newBindAst, exprIdToReplace);
+  }
+
+  /**
+   * See {@link #replaceSubtreeWithNewBindMacro(CelMutableAst, String, CelMutableAst,
+   * CelMutableExpr, long, boolean)}.
+   */
+  public CelMutableAst replaceSubtreeWithNewBindMacro(
+      CelMutableAst ast,
+      String varName,
+      CelMutableExpr varInit,
+      CelMutableExpr resultExpr,
+      long exprIdToReplace,
+      boolean populateMacroSource) {
+    return replaceSubtreeWithNewBindMacro(
+        ast,
+        varName,
+        CelMutableAst.of(varInit, CelMutableSource.newInstance()),
+        resultExpr,
+        exprIdToReplace,
+        populateMacroSource);
   }
 
   /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */
