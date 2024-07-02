@@ -1,0 +1,118 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+description: Restricted destinations conformance tests.
+section:
+  - name: "valid"
+    tests:
+    - name: "ip_allowed"
+      input:
+        "spec.origin":
+          value: "us"
+        "spec.restricted_destinations":
+          value:
+          - "cu"
+          - "ir"
+          - "kp"
+          - "sd"
+          - "sy"
+        "destination.ip":
+          value: "10.0.0.1"
+        "origin.ip":
+          value: "10.0.0.1"
+        request:
+          value:
+            auth:
+              claims: {}
+        resource:
+          value:
+            name: "/company/acme/secrets/doomsday-device"
+            labels:
+              location: "us"
+      output: "false" # false means unrestricted
+    - name: "nationality_allowed"
+      input:
+        "spec.origin":
+          value: "us"
+        "spec.restricted_destinations":
+          value:
+          - "cu"
+          - "ir"
+          - "kp"
+          - "sd"
+          - "sy"
+        "destination.ip":
+          value: "10.0.0.1"
+        request:
+          value:
+            auth:
+              claims:
+                nationality: "us"
+        resource:
+          value:
+            name: "/company/acme/secrets/doomsday-device"
+            labels:
+              location: "us"
+      output: "false"
+  - name: "invalid"
+    tests:
+    - name: "destination_ip_prohibited"
+      input:
+        "spec.origin":
+          value: "us"
+        "spec.restricted_destinations":
+          value:
+          - "cu"
+          - "ir"
+          - "kp"
+          - "sd"
+          - "sy"
+        "destination.ip":
+          value: "123.123.123.123"
+        "origin.ip":
+          value: "10.0.0.1"
+        request:
+          value:
+            auth:
+              claims: {}
+        resource:
+          value:
+            name: "/company/acme/secrets/doomsday-device"
+            labels:
+              location: "us"
+      output: "true" # true means restricted
+    - name: "resource_nationality_prohibited"
+      input:
+        "spec.origin":
+          value: "us"
+        "spec.restricted_destinations":
+          value:
+          - "cu"
+          - "ir"
+          - "kp"
+          - "sd"
+          - "sy"
+        "destination.ip":
+          value: "10.0.0.1"
+        request:
+          value:
+            auth:
+              claims:
+                nationality: "us"
+        resource:
+          value:
+            name: "/company/acme/secrets/doomsday-device"
+            labels:
+              location: "cu"
+      output: "true"
