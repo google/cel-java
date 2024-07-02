@@ -93,6 +93,8 @@ public abstract class CelOptions {
 
   public abstract int comprehensionMaxIterations();
 
+  public abstract boolean unwrapWellKnownTypesOnFunctionDispatch();
+
   public abstract Builder toBuilder();
 
   public ImmutableSet<ExprFeatures> toExprFeatures() {
@@ -182,7 +184,8 @@ public abstract class CelOptions {
         .resolveTypeDependencies(true)
         .enableUnknownTracking(false)
         .enableCelValue(false)
-        .comprehensionMaxIterations(-1);
+        .comprehensionMaxIterations(-1)
+        .unwrapWellKnownTypesOnFunctionDispatch(true);
   }
 
   /**
@@ -465,6 +468,16 @@ public abstract class CelOptions {
      * <p>Note: comprehension limits are not supported within the async CEL interpreter.
      */
     public abstract Builder comprehensionMaxIterations(int value);
+
+    /**
+     * If disabled, CEL runtime will no longer adapt the function dispatch results for protobuf's
+     * well known types to other types. This option is enabled by default.
+     *
+     * @deprecated This will be removed in the future. Please update your codebase to be conformant
+     *     with CEL specification.
+     */
+    @Deprecated
+    public abstract Builder unwrapWellKnownTypesOnFunctionDispatch(boolean value);
 
     public abstract CelOptions build();
   }

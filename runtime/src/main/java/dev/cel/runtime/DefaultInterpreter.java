@@ -414,7 +414,9 @@ public final class DefaultInterpreter implements Interpreter {
       Object dispatchResult =
           dispatcher.dispatch(
               metadata, expr.id(), callExpr.function(), reference.overloadIds(), argArray);
-      dispatchResult = typeProvider.adapt(dispatchResult);
+      if (celOptions.unwrapWellKnownTypesOnFunctionDispatch()) {
+        dispatchResult = typeProvider.adapt(dispatchResult);
+      }
       return IntermediateResult.create(attr, dispatchResult);
     }
 
