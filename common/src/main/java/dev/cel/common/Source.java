@@ -14,6 +14,7 @@
 
 package dev.cel.common;
 
+import com.google.common.collect.ImmutableMap;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelCodePointArray;
 import java.util.Optional;
@@ -35,6 +36,11 @@ public interface Source {
    * containing the source).
    */
   String getDescription();
+
+  /**
+   * Gets the map of each parsed node ID (ex: expression ID, policy ID) to their source positions.
+   */
+  ImmutableMap<Long, Integer> getPositionsMap();
 
   /**
    * Get the text from the source text that corresponds to {@code line}. Snippets are split based on
