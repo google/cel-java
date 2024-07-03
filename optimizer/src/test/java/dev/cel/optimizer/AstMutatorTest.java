@@ -1109,6 +1109,29 @@ public class AstMutatorTest {
     assertThat(e).hasMessageThat().isEqualTo("Max iteration count reached.");
   }
 
+  @Test
+  public void newGlobalCallAst_success() throws Exception {
+    CelMutableAst argAst1 = CelMutableAst.fromCelAst(CEL.compile("[1].exists(x, x >= 1)").getAst());
+    CelMutableAst argAst2 = CelMutableAst.fromCelAst(CEL.compile("'hello'").getAst());
+
+    CelMutableAst callAst = AST_MUTATOR.newGlobalCall("func", argAst1, argAst2);
+
+    assertThat(CEL_UNPARSER.unparse(callAst.toParsedAst()))
+        .isEqualTo("func([1].exists(x, x >= 1), \"hello\")");
+  }
+
+  @Test
+  public void newMemberCallAst_success() throws Exception {
+    CelMutableAst targetAst = CelMutableAst.fromCelAst(CEL.compile("'hello'").getAst());
+    CelMutableAst argAst1 = CelMutableAst.fromCelAst(CEL.compile("[1].exists(x, x >= 1)").getAst());
+    CelMutableAst argAst2 = CelMutableAst.fromCelAst(CEL.compile("'world'").getAst());
+
+    CelMutableAst callAst = AST_MUTATOR.newMemberCall(targetAst, "func", argAst1, argAst2);
+
+    assertThat(CEL_UNPARSER.unparse(callAst.toParsedAst()))
+        .isEqualTo("\"hello\".func([1].exists(x, x >= 1), \"world\")");
+  }
+
   /**
    * Asserts that the expressions that appears in source_info's macro calls are consistent with the
    * actual expr nodes in the AST.

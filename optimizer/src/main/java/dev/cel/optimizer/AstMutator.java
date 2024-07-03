@@ -40,6 +40,8 @@ import dev.cel.common.navigation.CelNavigableMutableExpr;
 import dev.cel.common.navigation.TraversalOrder;
 import dev.cel.common.types.CelType;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -93,6 +95,70 @@ public final class AstMutator {
                 ast.expr()));
 
     return CelMutableAst.of(blockExpr, ast.source());
+  }
+
+  /**
+   * Constructs a new global call wrapped in an AST with the provided ASTs as its argument. This
+   * will preserve all macro source information contained within the arguments.
+   */
+  public CelMutableAst newGlobalCall(String function, Collection<CelMutableAst> args) {
+    return newCallAst(Optional.empty(), function, args);
+  }
+
+  /**
+   * Constructs a new global call wrapped in an AST with the provided ASTs as its argument. This
+   * will preserve all macro source information contained within the arguments.
+   */
+  public CelMutableAst newGlobalCall(String function, CelMutableAst... args) {
+    return newGlobalCall(function, Arrays.asList(args));
+  }
+
+  /**
+   * Constructs a new member call wrapped in an AST the provided ASTs as its arguments. This will
+   * preserve all macro source information contained within the arguments.
+   */
+  public CelMutableAst newMemberCall(CelMutableAst target, String function, CelMutableAst... args) {
+    return newMemberCall(target, function, Arrays.asList(args));
+  }
+
+  /**
+   * Constructs a new member call wrapped in an AST the provided ASTs as its arguments. This will
+   * preserve all macro source information contained within the arguments.
+   */
+  public CelMutableAst newMemberCall(
+      CelMutableAst target, String function, Collection<CelMutableAst> args) {
+    return newCallAst(Optional.of(target), function, args);
+  }
+
+  private CelMutableAst newCallAst(
+      Optional<CelMutableAst> target, String function, Collection<CelMutableAst> args) {
+    long maxId = 1;
+    CelMutableSource combinedSource = CelMutableSource.newInstance();
+    for (CelMutableAst arg : args) {
+      CelMutableAst stableArg = stabilizeAst(arg, maxId);
+      maxId = getMaxId(stableArg);
+      combinedSource = combine(combinedSource, stableArg.source());
+    }
+
+    Optional<CelMutableAst> maybeTarget = Optional.empty();
+    if (target.isPresent()) {
+      CelMutableAst stableTarget = stabilizeAst(target.get(), maxId);
+      combinedSource = combine(combinedSource, stableTarget.source());
+      maxId = getMaxId(stableTarget);
+
+      maybeTarget = Optional.of(stableTarget);
+    }
+
+    List<CelMutableExpr> exprArgs =
+        args.stream().map(CelMutableAst::expr).collect(toCollection(ArrayList::new));
+    CelMutableCall newCall =
+        maybeTarget
+            .map(celMutableAst -> CelMutableCall.create(celMutableAst.expr(), function, exprArgs))
+            .orElseGet(() -> CelMutableCall.create(function, exprArgs));
+
+    CelMutableExpr newCallExpr = CelMutableExpr.ofCall(++maxId, newCall);
+
+    return CelMutableAst.of(newCallExpr, combinedSource);
   }
 
   /**
