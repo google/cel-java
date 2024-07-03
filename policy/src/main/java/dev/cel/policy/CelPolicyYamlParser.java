@@ -38,13 +38,11 @@ import org.yaml.snakeyaml.nodes.SequenceNode;
 final class CelPolicyYamlParser implements CelPolicyParser {
 
   // Sentinel values for parsing errors
+  private static final ValueString ERROR_VALUE = ValueString.newBuilder().setValue(ERROR).build();
   private static final Match ERROR_MATCH =
-      Match.newBuilder()
-          .setCondition(ValueString.newBuilder().setValue(ERROR).build())
-          .setResult(Result.ofOutput(ValueString.newBuilder().setValue(ERROR).build()))
-          .build();
+      Match.newBuilder().setCondition(ERROR_VALUE).setResult(Result.ofOutput(ERROR_VALUE)).build();
   private static final Variable ERROR_VARIABLE =
-      Variable.newBuilder().setName(ValueString.newBuilder().setValue(ERROR).build()).build();
+      Variable.newBuilder().setExpression(ERROR_VALUE).setName(ERROR_VALUE).build();
 
   private final TagVisitor<Node> tagVisitor;
 
@@ -270,6 +268,10 @@ final class CelPolicyYamlParser implements CelPolicyParser {
             tagVisitor.visitVariableTag(ctx, keyId, keyName, valueNode, policyBuilder, builder);
             break;
         }
+      }
+
+      if (!assertRequiredFields(ctx, id, builder.getMissingRequiredFieldNames())) {
+        return ERROR_VARIABLE;
       }
 
       return builder.build();

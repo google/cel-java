@@ -134,9 +134,27 @@ public final class CelPolicyYamlParserTest {
         "inputs:\n" + "  - name: a\n" + "  - name: b",
         "ERROR: <input>:1:1: Unsupported policy tag: inputs\n" + " | inputs:\n" + " | ^"),
     UNSUPPORTED_VARIABLE_TAG(
-        "rule:\n" + "  variables:\n" + "    - name: 'true'\n" + "      alt_name: 'bool_true'",
-        "ERROR: <input>:4:7: Unsupported variable tag: alt_name\n"
+        "rule:\n" //
+            + "  variables:\n" //
+            + "    - name: 'hello'\n" //
+            + "      expression: 'true'\n" //
+            + "      alt_name: 'bool_true'",
+        "ERROR: <input>:5:7: Unsupported variable tag: alt_name\n"
             + " |       alt_name: 'bool_true'\n"
+            + " | ......^"),
+    MISSING_VARIABLE_NAME(
+        "rule:\n" //
+            + "  variables:\n" //
+            + "    - expression: 'true'", //
+        "ERROR: <input>:3:7: Missing required attribute(s): name\n"
+            + " |     - expression: 'true'\n"
+            + " | ......^"),
+    MISSING_VARIABLE_EXPRESSION(
+        "rule:\n" //
+            + "  variables:\n" //
+            + "    - name: 'hello'", //
+        "ERROR: <input>:3:7: Missing required attribute(s): expression\n"
+            + " |     - name: 'hello'\n"
             + " | ......^"),
     UNSUPPORTED_MATCH_TAG(
         "rule:\n"

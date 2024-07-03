@@ -217,20 +217,28 @@ public abstract class CelPolicy {
 
     /** Builder for {@link Variable}. */
     @AutoValue.Builder
-    public abstract static class Builder {
+    public abstract static class Builder implements RequiredFieldsChecker {
+
+      abstract Optional<ValueString> name();
+
+      abstract Optional<ValueString> expression();
 
       public abstract Builder setName(ValueString name);
 
       public abstract Builder setExpression(ValueString expression);
+
+      @Override
+      public ImmutableList<RequiredField> requiredFields() {
+        return ImmutableList.of(
+            RequiredField.of("name", this::name), RequiredField.of("expression", this::expression));
+      }
 
       public abstract Variable build();
     }
 
     /** Creates a new builder to construct a {@link Variable} instance. */
     public static Builder newBuilder() {
-      return new AutoValue_CelPolicy_Variable.Builder()
-          .setName(ValueString.newBuilder().build())
-          .setExpression(ValueString.newBuilder().build());
+      return new AutoValue_CelPolicy_Variable.Builder();
     }
   }
 }
