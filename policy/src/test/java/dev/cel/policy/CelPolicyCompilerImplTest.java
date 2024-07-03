@@ -14,7 +14,7 @@
 
 package dev.cel.policy;
 
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.truth.Truth.assertThat;
 import static dev.cel.policy.PolicyTestHelper.readFromYaml;
 import static org.junit.Assert.assertThrows;
@@ -36,9 +36,11 @@ import dev.cel.policy.PolicyTestHelper.K8sTagHandler;
 import dev.cel.policy.PolicyTestHelper.PolicyTestSuite;
 import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection;
 import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection.PolicyTestCase;
+import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection.PolicyTestCase.PolicyTestInput;
 import dev.cel.policy.PolicyTestHelper.TestYamlPolicy;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
-import java.util.Map.Entry;
+import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -138,10 +140,17 @@ public final class CelPolicyCompilerImplTest {
     // Compile then evaluate the policy
     CelAbstractSyntaxTree compiledPolicyAst =
         CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
-    ImmutableMap<String, Object> input =
-        testData.testCase.getInput().entrySet().stream()
-            .collect(toImmutableMap(Entry::getKey, e -> e.getValue().getValue()));
-    Object evalResult = cel.createProgram(compiledPolicyAst).eval(input);
+    ImmutableMap.Builder<String, Object> inputBuilder = ImmutableMap.builder();
+    for (Map.Entry<String, PolicyTestInput> entry : testData.testCase.getInput().entrySet()) {
+      String exprInput = entry.getValue().getExpr();
+      if (isNullOrEmpty(exprInput)) {
+        inputBuilder.put(entry.getKey(), entry.getValue().getValue());
+      } else {
+        CelAbstractSyntaxTree exprInputAst = cel.compile(exprInput).getAst();
+        inputBuilder.put(entry.getKey(), cel.createProgram(exprInputAst).eval());
+      }
+    }
+    Object evalResult = cel.createProgram(compiledPolicyAst).eval(inputBuilder.buildOrThrow());
 
     // Assert
     // Note that policies may either produce an optional or a non-optional result,
@@ -219,6 +228,7 @@ public final class CelPolicyCompilerImplTest {
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .addCompilerLibraries(CelOptionalLibrary.INSTANCE)
         .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
+        .addMessageTypes(TestAllTypes.getDescriptor())
         .setOptions(CEL_OPTIONS)
         .addFunctionBindings(
             CelFunctionBinding.from(

@@ -82,7 +82,12 @@ final class PolicyTestHelper {
             + " \"true\", !(variables.break_glass || resource.containers.all(c,"
             + " c.startsWith(variables.env + \".\"))) ? optional.of(\"only \" + variables.env + \""
             + " containers are allowed in namespace \" + resource.namespace) :"
-            + " optional.none()))");
+            + " optional.none()))"),
+    PB(
+        "pb",
+        true,
+        "(spec.single_int32 > 10) ? optional.of(\"invalid spec, got single_int32=\" +"
+            + " string(spec.single_int32) + \", wanted <= 10\") : optional.none()");
     private final String name;
     private final boolean producesOptionalResult;
     private final String unparsed;
