@@ -52,3 +52,18 @@ java_library(
     name = "compiler_factory",
     exports = ["//policy/src/main/java/dev/cel/policy:compiler_factory"],
 )
+
+java_library(
+    name = "parser_builder",
+    exports = ["//policy/src/main/java/dev/cel/policy:parser_builder"],
+)
+
+java_library(
+    name = "compiler",
+    exports = ["//policy/src/main/java/dev/cel/policy:compiler"],
+)
+
+java_library(
+    name = "compiler_builder",
+    exports = ["//policy/src/main/java/dev/cel/policy:compiler_builder"],
+)

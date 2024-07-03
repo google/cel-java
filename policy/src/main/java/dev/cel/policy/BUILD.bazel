@@ -10,6 +10,8 @@ java_library(
     srcs = [
         "CelPolicy.java",
     ],
+    tags = [
+    ],
     deps = [
         ":required_fields_checker",
         ":source",
@@ -86,6 +88,8 @@ java_library(
 java_library(
     name = "parser_factory",
     srcs = ["CelPolicyParserFactory.java"],
+    tags = [
+    ],
     deps = [
         ":config_parser",
         ":parser_builder",
@@ -121,6 +125,8 @@ java_library(
     srcs = [
         "CelPolicyParser.java",
     ],
+    tags = [
+    ],
     deps = [
         ":parser_context",
         ":policy",
@@ -133,6 +139,8 @@ java_library(
     srcs = [
         "CelPolicyParserBuilder.java",
     ],
+    tags = [
+    ],
     deps = [
         ":parser",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -143,6 +151,8 @@ java_library(
     name = "compiler",
     srcs = [
         "CelPolicyCompiler.java",
+    ],
+    tags = [
     ],
     deps = [
         ":policy",
@@ -156,9 +166,54 @@ java_library(
     srcs = [
         "CelPolicyCompilerBuilder.java",
     ],
+    tags = [
+    ],
     deps = [
         ":compiler",
         "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "compiler_factory",
+    srcs = ["CelPolicyCompilerFactory.java"],
+    tags = [
+    ],
+    deps = [
+        ":compiler_builder",
+        ":compiler_impl",
+        "//bundle:cel",
+        "//checker:checker_builder",
+        "//compiler",
+        "//compiler:compiler_builder",
+        "//parser:parser_builder",
+        "//runtime",
+    ],
+)
+
+java_library(
+    name = "value_string",
+    srcs = [
+        "ValueString.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//:auto_value",
+    ],
+)
+
+java_library(
+    name = "parser_context",
+    srcs = [
+        "ParserContext.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":policy",
+        ":value_string",
+        "//common:compiler_common",
     ],
 )
 
@@ -167,6 +222,7 @@ java_library(
     srcs = [
         "CelPolicyCompilerImpl.java",
     ],
+    visibility = ["//visibility:private"],
     deps = [
         ":compiled_rule",
         ":compiler",
@@ -191,17 +247,14 @@ java_library(
 )
 
 java_library(
-    name = "compiler_factory",
-    srcs = ["CelPolicyCompilerFactory.java"],
+    name = "required_fields_checker",
+    srcs = [
+        "RequiredFieldsChecker.java",
+    ],
+    visibility = ["//visibility:private"],
     deps = [
-        ":compiler_builder",
-        ":compiler_impl",
-        "//bundle:cel",
-        "//checker:checker_builder",
-        "//compiler",
-        "//compiler:compiler_builder",
-        "//parser:parser_builder",
-        "//runtime",
+        "//:auto_value",
+        "@maven//:com_google_guava_guava",
     ],
 )
 
@@ -210,6 +263,7 @@ java_library(
     srcs = [
         "CelPolicyYamlConfigParser.java",
     ],
+    visibility = ["//visibility:private"],
     deps = [
         ":common_internal",
         ":config",
@@ -225,48 +279,15 @@ java_library(
 )
 
 java_library(
-    name = "value_string",
-    srcs = [
-        "ValueString.java",
-    ],
-    deps = [
-        "//:auto_value",
-    ],
-)
-
-java_library(
-    name = "required_fields_checker",
-    srcs = [
-        "RequiredFieldsChecker.java",
-    ],
-    visibility = ["//visibility:private"],
-    deps = [
-        "//:auto_value",
-        "@maven//:com_google_guava_guava",
-    ],
-)
-
-java_library(
     name = "compiled_rule",
     srcs = ["CelCompiledRule.java"],
+    visibility = ["//visibility:private"],
     deps = [
         "//:auto_value",
         "//bundle:cel",
         "//common",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-    ],
-)
-
-java_library(
-    name = "parser_context",
-    srcs = [
-        "ParserContext.java",
-    ],
-    deps = [
-        ":policy",
-        ":value_string",
-        "//common:compiler_common",
     ],
 )
 
