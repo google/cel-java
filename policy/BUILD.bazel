@@ -1,6 +1,9 @@
 package(
     default_applicable_licenses = ["//:license"],
-    default_visibility = ["//visibility:public"],  # TODO: Expose to public
+    default_visibility = [
+        "//enterprise/partner/program/platform:internal",
+        "//visibility:public",
+    ],  # TODO: Expose to public
 )
 
 java_library(
