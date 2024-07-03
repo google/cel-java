@@ -14,10 +14,11 @@
 
 package dev.cel.policy;
 
-import dev.cel.common.Source;
+import dev.cel.common.CelIssue;
 import dev.cel.policy.CelPolicy.Match;
 import dev.cel.policy.CelPolicy.Rule;
 import dev.cel.policy.CelPolicy.Variable;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,9 +41,7 @@ public interface ParserContext<T> {
 
   void reportError(long id, String message);
 
-  String getIssueString(Source source);
-
-  boolean hasError();
+  List<CelIssue> getIssues();
 
   Map<Long, Integer> getIdToOffsetMap();
 

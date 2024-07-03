@@ -15,15 +15,12 @@
 package dev.cel.common;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import java.util.List;
 
 /** Base class for all checked exceptions explicitly thrown by the library during parsing. */
 public final class CelValidationException extends CelException {
 
-  private static final Joiner JOINER = Joiner.on('\n');
   // Truncates all errors beyond this limit in the message.
   private static final int MAX_ERRORS_TO_REPORT = 1000;
 
@@ -46,17 +43,14 @@ public final class CelValidationException extends CelException {
 
   private static String safeJoinErrorMessage(CelSource source, List<CelIssue> errors) {
     if (errors.size() <= MAX_ERRORS_TO_REPORT) {
-      return JOINER.join(Iterables.transform(errors, error -> error.toDisplayString(source)));
+      return CelIssue.toDisplayString(errors, source);
     }
 
     List<CelIssue> truncatedErrors = errors.subList(0, MAX_ERRORS_TO_REPORT);
-    StringBuilder sb = new StringBuilder();
-    JOINER.appendTo(
-        sb, Iterables.transform(truncatedErrors, error -> error.toDisplayString(source)));
-    sb.append(
-        String.format("%n...and %d more errors (truncated)", errors.size() - MAX_ERRORS_TO_REPORT));
 
-    return sb.toString();
+    return CelIssue.toDisplayString(truncatedErrors, source)
+        + String.format(
+            "%n...and %d more errors (truncated)", errors.size() - MAX_ERRORS_TO_REPORT);
   }
 
   /** Returns the {@link CelSource} that was being validated. */

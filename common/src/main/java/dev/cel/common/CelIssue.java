@@ -14,10 +14,14 @@
 
 package dev.cel.common;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Joiner;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.internal.SafeStringFormatter;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.PrimitiveIterator;
 
@@ -28,6 +32,7 @@ import java.util.PrimitiveIterator;
 @Immutable
 @SuppressWarnings("UnicodeEscape") // Suppressed to distinguish half-width and full-width chars.
 public abstract class CelIssue {
+  private static final Joiner JOINER = Joiner.on('\n');
 
   /** Severity of a CelIssue. */
   public enum Severity {
@@ -72,6 +77,12 @@ public abstract class CelIssue {
   // Fullwidth '.' and '^'.
   private static final char WIDE_DOT = '\uff0e';
   private static final char WIDE_HAT = '\uff3e';
+
+  /** Returns a human-readable error with all issues joined in a single string. */
+  public static String toDisplayString(Collection<CelIssue> issues, Source source) {
+    return JOINER.join(
+        issues.stream().map(iss -> iss.toDisplayString(source)).collect(toImmutableList()));
+  }
 
   /** Returns a string representing this error that is suitable for displaying to humans. */
   public String toDisplayString(Source source) {

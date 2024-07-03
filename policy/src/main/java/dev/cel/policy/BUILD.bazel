@@ -109,7 +109,7 @@ java_library(
         ":source",
         ":validation_exception",
         ":value_string",
-        "//common:source",
+        "//common:compiler_common",
         "//common/internal",
         "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",
@@ -217,6 +217,7 @@ java_library(
         ":parser_context",
         ":source",
         ":validation_exception",
+        "//common:compiler_common",
         "//common/internal",
         "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",
@@ -265,7 +266,7 @@ java_library(
     deps = [
         ":policy",
         ":value_string",
-        "//common:source",
+        "//common:compiler_common",
     ],
 )
 
@@ -302,7 +303,6 @@ java_library(
         ":value_string",
         "//common",
         "//common:compiler_common",
-        "//common:source",
         "//common/internal",
         "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",

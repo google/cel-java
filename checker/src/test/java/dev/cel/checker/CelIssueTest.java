@@ -16,9 +16,7 @@ package dev.cel.checker;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelSource;
 import org.junit.Test;
@@ -28,8 +26,6 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public final class CelIssueTest {
 
-  private static final Joiner JOINER = Joiner.on('\n');
-
   @Test
   public void toDisplayString_narrow() throws Exception {
     CelSource source =
@@ -38,7 +34,7 @@ public final class CelIssueTest {
         ImmutableList.of(
             CelIssue.formatError(1, 1, "No such field"),
             CelIssue.formatError(2, 20, "Syntax error, missing paren"));
-    assertThat(JOINER.join(Iterables.transform(issues, error -> error.toDisplayString(source))))
+    assertThat(CelIssue.toDisplayString(issues, source))
         .isEqualTo(
             "ERROR: issues-test:1:2: No such field\n"
                 + " | a.b\n"
@@ -53,7 +49,7 @@ public final class CelIssueTest {
     CelSource source = CelSource.newBuilder("你好吗\n我b很好\n").setDescription("issues-test").build();
     ImmutableList<CelIssue> issues =
         ImmutableList.of(CelIssue.formatError(2, 3, "Unexpected character '好'"));
-    assertThat(JOINER.join(Iterables.transform(issues, error -> error.toDisplayString(source))))
+    assertThat(CelIssue.toDisplayString(issues, source))
         .isEqualTo("ERROR: issues-test:2:4: Unexpected character '好'\n" + " | 我b很好\n" + " | ．.．＾");
   }
 
@@ -73,7 +69,8 @@ public final class CelIssueTest {
                     + " IDENTIFIER}"),
             CelIssue.formatError(1, 35, "Syntax error: token recognition error at: '😁'"),
             CelIssue.formatError(1, 36, "Syntax error: missing IDENTIFIER at '<EOF>'"));
-    assertThat(JOINER.join(Iterables.transform(issues, error -> error.toDisplayString(source))))
+
+    assertThat(CelIssue.toDisplayString(issues, source))
         .isEqualTo(
             "ERROR: issues-test:1:33: Syntax error: extraneous input 'in' expecting {'[', '{',"
                 + " '(', '.', '-', '!', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT,"

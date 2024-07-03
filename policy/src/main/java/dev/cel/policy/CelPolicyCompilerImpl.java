@@ -15,9 +15,7 @@
 package dev.cel.policy;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.ImmutableList.toImmutableList;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.bundle.Cel;
@@ -145,7 +143,6 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
   }
 
   private static final class CompilerContext {
-    private static final Joiner JOINER = Joiner.on('\n');
     private final ArrayList<CelIssue> issues;
     private final ArrayList<CelVarDecl> newVariableDeclarations;
     private final CelPolicySource celPolicySource;
@@ -170,10 +167,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
     }
 
     private String getIssueString() {
-      return JOINER.join(
-          issues.stream()
-              .map(iss -> iss.toDisplayString(celPolicySource))
-              .collect(toImmutableList()));
+      return CelIssue.toDisplayString(issues, celPolicySource);
     }
 
     private CompilerContext(CelPolicySource celPolicySource) {

@@ -20,13 +20,14 @@ import static dev.cel.policy.YamlHelper.assertRequiredFields;
 import static dev.cel.policy.YamlHelper.assertYamlType;
 
 import com.google.common.collect.ImmutableSet;
-import dev.cel.common.Source;
+import dev.cel.common.CelIssue;
 import dev.cel.common.internal.CelCodePointArray;
 import dev.cel.policy.CelPolicy.Match;
 import dev.cel.policy.CelPolicy.Match.Result;
 import dev.cel.policy.CelPolicy.Variable;
 import dev.cel.policy.ParserContext.PolicyParserContext;
 import dev.cel.policy.YamlHelper.YamlNodeType;
+import java.util.List;
 import java.util.Map;
 import org.yaml.snakeyaml.nodes.MappingNode;
 import org.yaml.snakeyaml.nodes.Node;
@@ -76,8 +77,9 @@ final class CelPolicyYamlParser implements CelPolicyParser {
 
       CelPolicy celPolicy = parsePolicy(this, node);
 
-      if (ctx.hasError()) {
-        throw new CelPolicyValidationException(ctx.getIssueString(celPolicy.policySource()));
+      if (!ctx.getIssues().isEmpty()) {
+        throw new CelPolicyValidationException(
+            CelIssue.toDisplayString(ctx.getIssues(), celPolicy.policySource()));
       }
 
       return celPolicy;
@@ -296,13 +298,8 @@ final class CelPolicyYamlParser implements CelPolicyParser {
     }
 
     @Override
-    public String getIssueString(Source source) {
-      return ctx.getIssueString(source);
-    }
-
-    @Override
-    public boolean hasError() {
-      return ctx.hasError();
+    public List<CelIssue> getIssues() {
+      return ctx.getIssues();
     }
 
     @Override
