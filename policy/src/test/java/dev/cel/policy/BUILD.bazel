@@ -12,9 +12,14 @@ java_library(
     deps = [
         "//:java_truth",
         "//bundle:cel",
+        "//common",
         "//common:options",
         "//common/internal",
+        "//extensions:optional_library",
+        "//parser:macro",
+        "//parser:unparser",
         "//policy",
+        "//policy:compiler_impl",
         "//policy:config",
         "//policy:config_parser",
         "//policy:parser",
@@ -22,10 +27,12 @@ java_library(
         "//policy:validation_exception",
         "//policy:yaml_config_parser",
         "//policy:yaml_parser",
+        "//runtime",
         "@maven//:com_google_api_grpc_proto_google_common_protos",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",
+        "@maven//:org_yaml_snakeyaml",
     ],
 )
 

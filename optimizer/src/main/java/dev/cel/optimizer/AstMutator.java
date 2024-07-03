@@ -132,7 +132,7 @@ public final class AstMutator {
 
   private CelMutableAst newCallAst(
       Optional<CelMutableAst> target, String function, Collection<CelMutableAst> args) {
-    long maxId = 1;
+    long maxId = 0;
     CelMutableSource combinedSource = CelMutableSource.newInstance();
     for (CelMutableAst arg : args) {
       CelMutableAst stableArg = stabilizeAst(arg, maxId);

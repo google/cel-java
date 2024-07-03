@@ -89,11 +89,11 @@ java_library(
         "CelPolicyYamlParser.java",
     ],
     deps = [
+        ":common_internal",
         ":parser",
+        ":parser_builder",
         ":parser_context",
         ":policy",
-        ":policy_common_internal",
-        ":policy_parser_builder",
         ":source",
         ":validation_exception",
         ":value_string",
@@ -116,7 +116,7 @@ java_library(
 )
 
 java_library(
-    name = "policy_parser_builder",
+    name = "parser_builder",
     srcs = [
         "CelPolicyParserBuilder.java",
     ],
@@ -127,17 +127,66 @@ java_library(
 )
 
 java_library(
+    name = "compiler",
+    srcs = [
+        "CelPolicyCompiler.java",
+    ],
+    deps = [
+        ":policy",
+        ":validation_exception",
+        "//common",
+    ],
+)
+
+java_library(
+    name = "compiler_builder",
+    srcs = [
+        "CelPolicyCompilerBuilder.java",
+    ],
+    deps = [
+        ":compiler",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "compiler_impl",
+    srcs = [
+        "CelPolicyCompilerImpl.java",
+    ],
+    deps = [
+        ":compiled_rule",
+        ":compiler",
+        ":compiler_builder",
+        ":policy",
+        ":rule_composer",
+        ":source",
+        ":validation_exception",
+        ":value_string",
+        "//bundle:cel",
+        "//common",
+        "//common:compiler_common",
+        "//common/ast",
+        "//common/types",
+        "//common/types:type_providers",
+        "//optimizer",
+        "//optimizer:optimization_exception",
+        "//optimizer:optimizer_builder",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "yaml_config_parser",
     srcs = [
         "CelPolicyYamlConfigParser.java",
     ],
-    tags = [
-    ],
     deps = [
+        ":common_internal",
         ":config",
         ":config_parser",
         ":parser_context",
-        ":policy_common_internal",
         ":source",
         ":validation_exception",
         "//common/internal",
@@ -170,6 +219,18 @@ java_library(
 )
 
 java_library(
+    name = "compiled_rule",
+    srcs = ["CelCompiledRule.java"],
+    deps = [
+        "//:auto_value",
+        "//bundle:cel",
+        "//common",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "parser_context",
     srcs = [
         "ParserContext.java",
@@ -181,7 +242,28 @@ java_library(
 )
 
 java_library(
-    name = "policy_common_internal",
+    name = "rule_composer",
+    srcs = ["RuleComposer.java"],
+    visibility = ["//visibility:private"],
+    deps = [
+        ":compiled_rule",
+        "//:auto_value",
+        "//bundle:cel",
+        "//common",
+        "//common:compiler_common",
+        "//common:mutable_ast",
+        "//common/ast",
+        "//extensions:optional_library",
+        "//optimizer:ast_optimizer",
+        "//optimizer:mutable_ast",
+        "//parser:operator",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "common_internal",
     srcs = [
         "YamlHelper.java",
         "YamlParserContextImpl.java",

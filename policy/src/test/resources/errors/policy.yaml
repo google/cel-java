@@ -32,3 +32,6 @@ rule:
     - condition: variables.invalid.size() > 0
       output: |
         "invalid values provided on one or more labels: %s".format([variables.invalid])
+    - condition: false == "0"
+      output: |
+        "wrong type"

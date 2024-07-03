@@ -34,6 +34,12 @@ java_library(
 )
 
 java_library(
+    name = "compiler_impl",
+    visibility = ["//visibility:public"],
+    exports = ["//policy/src/main/java/dev/cel/policy:compiler_impl"],
+)
+
+java_library(
     name = "yaml_parser",
     visibility = ["//visibility:public"],
     exports = ["//policy/src/main/java/dev/cel/policy:yaml_parser"],
