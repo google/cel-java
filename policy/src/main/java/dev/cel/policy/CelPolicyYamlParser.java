@@ -15,16 +15,19 @@
 package dev.cel.policy;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static dev.cel.policy.YamlHelper.ERROR;
 import static dev.cel.policy.YamlHelper.assertRequiredFields;
 import static dev.cel.policy.YamlHelper.assertYamlType;
-import static dev.cel.policy.YamlHelper.newValueString;
 
 import com.google.common.collect.ImmutableSet;
+import dev.cel.common.Source;
 import dev.cel.common.internal.CelCodePointArray;
 import dev.cel.policy.CelPolicy.Match;
+import dev.cel.policy.CelPolicy.Match.Result;
 import dev.cel.policy.CelPolicy.Variable;
+import dev.cel.policy.ParserContext.PolicyParserContext;
 import dev.cel.policy.YamlHelper.YamlNodeType;
-import java.util.Optional;
+import java.util.Map;
 import org.yaml.snakeyaml.nodes.MappingNode;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.NodeTuple;
@@ -32,6 +35,15 @@ import org.yaml.snakeyaml.nodes.ScalarNode;
 import org.yaml.snakeyaml.nodes.SequenceNode;
 
 final class CelPolicyYamlParser implements CelPolicyParser {
+
+  // Sentinel values for parsing errors
+  private static final Match ERROR_MATCH =
+      Match.newBuilder()
+          .setCondition(ValueString.newBuilder().setValue(ERROR).build())
+          .setResult(Result.ofOutput(ValueString.newBuilder().setValue(ERROR).build()))
+          .build();
+  private static final Variable ERROR_VARIABLE =
+      Variable.newBuilder().setName(ValueString.newBuilder().setValue(ERROR).build()).build();
 
   private final TagVisitor<Node> tagVisitor;
 
@@ -43,45 +55,42 @@ final class CelPolicyYamlParser implements CelPolicyParser {
   @Override
   public CelPolicy parse(String policySource, String description)
       throws CelPolicyValidationException {
-    ParserImpl parser = new ParserImpl(tagVisitor);
-    return parser.parseYaml(policySource, description);
+    ParserImpl parser = new ParserImpl(tagVisitor, policySource, description);
+    return parser.parseYaml();
   }
 
-  private static class ParserImpl {
+  private static class ParserImpl implements PolicyParserContext<Node> {
 
     private final TagVisitor<Node> tagVisitor;
+    private final CelCodePointArray policySource;
+    private final String description;
+    private final ParserContext<Node> ctx;
 
-    private CelPolicy parseYaml(String policySource, String description)
-        throws CelPolicyValidationException {
+    private CelPolicy parseYaml() throws CelPolicyValidationException {
       Node node;
       try {
-        node = YamlHelper.parseYamlSource(policySource);
+        node = YamlHelper.parseYamlSource(policySource.toString());
       } catch (RuntimeException e) {
         throw new CelPolicyValidationException("YAML document is malformed: " + e.getMessage(), e);
       }
 
-      CelCodePointArray policyCodePoints = CelCodePointArray.fromString(policySource);
-      ParserContext<Node> ctx = YamlParserContextImpl.newInstance(policyCodePoints);
-
-      CelPolicy.Builder policyBuilder = parsePolicy(ctx, node);
-      CelPolicySource celPolicySource =
-          CelPolicySource.newBuilder(policyCodePoints)
-              .setDescription(description)
-              .setPositionsMap(ctx.getIdToOffsetMap())
-              .build();
+      CelPolicy celPolicy = parsePolicy(this, node);
 
       if (ctx.hasError()) {
-        throw new CelPolicyValidationException(ctx.getIssueString(celPolicySource));
+        throw new CelPolicyValidationException(ctx.getIssueString(celPolicy.policySource()));
       }
 
-      return policyBuilder.setPolicySource(celPolicySource).build();
+      return celPolicy;
     }
 
-    private CelPolicy.Builder parsePolicy(ParserContext<Node> ctx, Node node) {
+    @Override
+    public CelPolicy parsePolicy(PolicyParserContext<Node> ctx, Node node) {
       CelPolicy.Builder policyBuilder = CelPolicy.newBuilder();
+      CelPolicySource.Builder sourceBuilder =
+          CelPolicySource.newBuilder(policySource).setDescription(description);
       long id = ctx.collectMetadata(node);
       if (!assertYamlType(ctx, id, node, YamlNodeType.MAP)) {
-        return policyBuilder;
+        return policyBuilder.setPolicySource(sourceBuilder.build()).build();
       }
 
       MappingNode rootNode = (MappingNode) node;
@@ -96,10 +105,10 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         String fieldName = ((ScalarNode) keyNode).getValue();
         switch (fieldName) {
           case "name":
-            policyBuilder.setName(newValueString(ctx, valueNode));
+            policyBuilder.setName(ctx.newValueString(valueNode));
             break;
           case "rule":
-            policyBuilder.setRule(parseRule(ctx, valueNode));
+            policyBuilder.setRule(parseRule(ctx, policyBuilder, valueNode));
             break;
           default:
             tagVisitor.visitPolicyTag(ctx, keyId, fieldName, valueNode, policyBuilder);
@@ -107,10 +116,14 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         }
       }
 
-      return policyBuilder;
+      return policyBuilder
+          .setPolicySource(sourceBuilder.setPositionsMap(ctx.getIdToOffsetMap()).build())
+          .build();
     }
 
-    private CelPolicy.Rule parseRule(ParserContext<Node> ctx, Node node) {
+    @Override
+    public CelPolicy.Rule parseRule(
+        PolicyParserContext<Node> ctx, CelPolicy.Builder policyBuilder, Node node) {
       long valueId = ctx.collectMetadata(node);
       CelPolicy.Rule.Builder ruleBuilder = CelPolicy.Rule.newBuilder();
       if (!assertYamlType(ctx, valueId, node, YamlNodeType.MAP)) {
@@ -127,26 +140,27 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         Node value = nodeTuple.getValueNode();
         switch (fieldName) {
           case "id":
-            ruleBuilder.setId(newValueString(ctx, value));
+            ruleBuilder.setId(ctx.newValueString(value));
             break;
           case "description":
-            ruleBuilder.setDescription(newValueString(ctx, value));
+            ruleBuilder.setDescription(ctx.newValueString(value));
             break;
           case "variables":
-            ruleBuilder.addVariables(parseVariables(ctx, value));
+            ruleBuilder.addVariables(parseVariables(ctx, policyBuilder, value));
             break;
           case "match":
-            ruleBuilder.addMatches(parseMatches(ctx, value));
+            ruleBuilder.addMatches(parseMatches(ctx, policyBuilder, value));
             break;
           default:
-            tagVisitor.visitRuleTag(ctx, tagId, fieldName, value, ruleBuilder);
+            tagVisitor.visitRuleTag(ctx, tagId, fieldName, value, policyBuilder, ruleBuilder);
             break;
         }
       }
       return ruleBuilder.build();
     }
 
-    private ImmutableSet<CelPolicy.Match> parseMatches(ParserContext<Node> ctx, Node node) {
+    private ImmutableSet<CelPolicy.Match> parseMatches(
+        PolicyParserContext<Node> ctx, CelPolicy.Builder policyBuilder, Node node) {
       long valueId = ctx.collectMetadata(node);
       ImmutableSet.Builder<CelPolicy.Match> matchesBuilder = ImmutableSet.builder();
       if (!assertYamlType(ctx, valueId, node, YamlNodeType.LIST)) {
@@ -155,16 +169,18 @@ final class CelPolicyYamlParser implements CelPolicyParser {
 
       SequenceNode matchListNode = (SequenceNode) node;
       for (Node elementNode : matchListNode.getValue()) {
-        parseMatch(ctx, elementNode).ifPresent(matchesBuilder::add);
+        matchesBuilder.add(parseMatch(ctx, policyBuilder, elementNode));
       }
 
       return matchesBuilder.build();
     }
 
-    private Optional<CelPolicy.Match> parseMatch(ParserContext<Node> ctx, Node node) {
+    @Override
+    public CelPolicy.Match parseMatch(
+        PolicyParserContext<Node> ctx, CelPolicy.Builder policyBuilder, Node node) {
       long nodeId = ctx.collectMetadata(node);
       if (!assertYamlType(ctx, nodeId, node, YamlNodeType.MAP)) {
-        return Optional.empty();
+        return ERROR_MATCH;
       }
       MappingNode matchNode = (MappingNode) node;
       CelPolicy.Match.Builder matchBuilder =
@@ -179,7 +195,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         Node value = nodeTuple.getValueNode();
         switch (fieldName) {
           case "condition":
-            matchBuilder.setCondition(newValueString(ctx, value));
+            matchBuilder.setCondition(ctx.newValueString(value));
             break;
           case "output":
             matchBuilder
@@ -187,7 +203,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
                 .filter(result -> result.kind().equals(Match.Result.Kind.RULE))
                 .ifPresent(
                     result -> ctx.reportError(tagId, "Only the rule or the output may be set"));
-            matchBuilder.setResult(Match.Result.ofOutput(newValueString(ctx, value)));
+            matchBuilder.setResult(Match.Result.ofOutput(ctx.newValueString(value)));
             break;
           case "rule":
             matchBuilder
@@ -195,22 +211,23 @@ final class CelPolicyYamlParser implements CelPolicyParser {
                 .filter(result -> result.kind().equals(Match.Result.Kind.OUTPUT))
                 .ifPresent(
                     result -> ctx.reportError(tagId, "Only the rule or the output may be set"));
-            matchBuilder.setResult(Match.Result.ofRule(parseRule(ctx, value)));
+            matchBuilder.setResult(Match.Result.ofRule(parseRule(ctx, policyBuilder, value)));
             break;
           default:
-            tagVisitor.visitMatchTag(ctx, tagId, fieldName, value, matchBuilder);
+            tagVisitor.visitMatchTag(ctx, tagId, fieldName, value, policyBuilder, matchBuilder);
             break;
         }
       }
 
       if (!assertRequiredFields(ctx, nodeId, matchBuilder.getMissingRequiredFieldNames())) {
-        return Optional.empty();
+        return ERROR_MATCH;
       }
 
-      return Optional.of(matchBuilder.build());
+      return matchBuilder.build();
     }
 
-    private ImmutableSet<CelPolicy.Variable> parseVariables(ParserContext<Node> ctx, Node node) {
+    private ImmutableSet<CelPolicy.Variable> parseVariables(
+        PolicyParserContext<Node> ctx, CelPolicy.Builder policyBuilder, Node node) {
       long valueId = ctx.collectMetadata(node);
       ImmutableSet.Builder<CelPolicy.Variable> variableBuilder = ImmutableSet.builder();
       if (!assertYamlType(ctx, valueId, node, YamlNodeType.LIST)) {
@@ -219,17 +236,20 @@ final class CelPolicyYamlParser implements CelPolicyParser {
 
       SequenceNode variableListNode = (SequenceNode) node;
       for (Node elementNode : variableListNode.getValue()) {
-        long id = ctx.collectMetadata(elementNode);
-        if (!assertYamlType(ctx, id, elementNode, YamlNodeType.MAP)) {
-          continue;
-        }
-        variableBuilder.add(parseVariable(ctx, (MappingNode) elementNode));
+        variableBuilder.add(parseVariable(ctx, policyBuilder, elementNode));
       }
 
       return variableBuilder.build();
     }
 
-    private CelPolicy.Variable parseVariable(ParserContext<Node> ctx, MappingNode variableMap) {
+    @Override
+    public CelPolicy.Variable parseVariable(
+        PolicyParserContext<Node> ctx, CelPolicy.Builder policyBuilder, Node node) {
+      long id = ctx.collectMetadata(node);
+      if (!assertYamlType(ctx, id, node, YamlNodeType.MAP)) {
+        return ERROR_VARIABLE;
+      }
+      MappingNode variableMap = (MappingNode) node;
       Variable.Builder builder = Variable.newBuilder();
 
       for (NodeTuple nodeTuple : variableMap.getValue()) {
@@ -239,13 +259,13 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         String keyName = ((ScalarNode) keyNode).getValue();
         switch (keyName) {
           case "name":
-            builder.setName(newValueString(ctx, valueNode));
+            builder.setName(ctx.newValueString(valueNode));
             break;
           case "expression":
-            builder.setExpression(newValueString(ctx, valueNode));
+            builder.setExpression(ctx.newValueString(valueNode));
             break;
           default:
-            tagVisitor.visitVariableTag(ctx, keyId, keyName, valueNode, builder);
+            tagVisitor.visitVariableTag(ctx, keyId, keyName, valueNode, policyBuilder, builder);
             break;
         }
       }
@@ -253,8 +273,46 @@ final class CelPolicyYamlParser implements CelPolicyParser {
       return builder.build();
     }
 
-    private ParserImpl(TagVisitor<Node> tagVisitor) {
+    private ParserImpl(TagVisitor<Node> tagVisitor, String source, String description) {
       this.tagVisitor = tagVisitor;
+      this.policySource = CelCodePointArray.fromString(source);
+      this.description = description;
+      this.ctx = YamlParserContextImpl.newInstance(policySource);
+    }
+
+    @Override
+    public long nextId() {
+      return ctx.nextId();
+    }
+
+    @Override
+    public long collectMetadata(Node node) {
+      return ctx.collectMetadata(node);
+    }
+
+    @Override
+    public void reportError(long id, String message) {
+      ctx.reportError(id, message);
+    }
+
+    @Override
+    public String getIssueString(Source source) {
+      return ctx.getIssueString(source);
+    }
+
+    @Override
+    public boolean hasError() {
+      return ctx.hasError();
+    }
+
+    @Override
+    public Map<Long, Integer> getIdToOffsetMap() {
+      return ctx.getIdToOffsetMap();
+    }
+
+    @Override
+    public ValueString newValueString(Node node) {
+      return ctx.newValueString(node);
     }
   }
 

@@ -15,12 +15,15 @@
 package dev.cel.policy;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static dev.cel.policy.YamlHelper.ERROR;
+import static dev.cel.policy.YamlHelper.assertYamlType;
 
 import com.google.common.base.Joiner;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelSourceLocation;
 import dev.cel.common.Source;
 import dev.cel.common.internal.CelCodePointArray;
+import dev.cel.policy.YamlHelper.YamlNodeType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,6 +61,19 @@ final class YamlParserContextImpl implements ParserContext<Node> {
   @Override
   public Map<Long, Integer> getIdToOffsetMap() {
     return idToOffsetMap;
+  }
+
+  @Override
+  public ValueString newValueString(Node node) {
+    long id = collectMetadata(node);
+    if (!assertYamlType(this, id, node, YamlNodeType.STRING, YamlNodeType.TEXT)) {
+      return ValueString.of(id, ERROR);
+    }
+
+    ScalarNode scalarNode = (ScalarNode) node;
+
+    // TODO: Compute relative source for multiline strings
+    return ValueString.of(id, scalarNode.getValue());
   }
 
   @Override

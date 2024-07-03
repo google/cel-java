@@ -104,19 +104,7 @@ final class YamlHelper {
   }
 
   static String newString(ParserContext<Node> ctx, Node node) {
-    return YamlHelper.newValueString(ctx, node).value();
-  }
-
-  static ValueString newValueString(ParserContext<Node> ctx, Node node) {
-    long id = ctx.collectMetadata(node);
-    if (!assertYamlType(ctx, id, node, YamlNodeType.STRING, YamlNodeType.TEXT)) {
-      return ValueString.of(id, ERROR);
-    }
-
-    ScalarNode scalarNode = (ScalarNode) node;
-
-    // TODO: Compute relative source for multiline strings
-    return ValueString.of(id, scalarNode.getValue());
+    return ctx.newValueString(node).value();
   }
 
   private YamlHelper() {}

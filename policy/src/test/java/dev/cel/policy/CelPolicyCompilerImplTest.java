@@ -32,6 +32,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparserFactory;
+import dev.cel.policy.PolicyTestHelper.K8sTagHandler;
 import dev.cel.policy.PolicyTestHelper.PolicyTestSuite;
 import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection;
 import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection.PolicyTestCase;
@@ -46,7 +47,7 @@ import org.junit.runner.RunWith;
 public final class CelPolicyCompilerImplTest {
 
   private static final CelPolicyParser POLICY_PARSER =
-      CelPolicyParserFactory.newYamlParserBuilder().build();
+      CelPolicyParserFactory.newYamlParserBuilder().addTagVisitor(new K8sTagHandler()).build();
   private static final CelPolicyConfigParser POLICY_CONFIG_PARSER =
       CelPolicyParserFactory.newYamlConfigParser();
   private static final CelOptions CEL_OPTIONS =

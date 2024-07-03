@@ -19,9 +19,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.auto.value.AutoOneOf;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -37,11 +39,14 @@ public abstract class CelPolicy {
 
   public abstract CelPolicySource policySource();
 
+  public abstract ImmutableMap<String, Object> metadata();
+
   /** Creates a new builder to construct a {@link CelPolicy} instance. */
   public static Builder newBuilder() {
     return new AutoValue_CelPolicy.Builder()
         .setName(ValueString.of(0, ""))
-        .setRule(Rule.newBuilder().build());
+        .setRule(Rule.newBuilder().build())
+        .setMetadata(ImmutableMap.of());
   }
 
   /** Builder for {@link CelPolicy}. */
@@ -54,6 +59,23 @@ public abstract class CelPolicy {
     public abstract Builder setRule(Rule rule);
 
     public abstract Builder setPolicySource(CelPolicySource policySource);
+
+    // This should stay package-private to encourage add/set methods to be used instead.
+    abstract ImmutableMap.Builder<String, Object> metadataBuilder();
+
+    public abstract Builder setMetadata(ImmutableMap<String, Object> value);
+
+    @CanIgnoreReturnValue
+    public Builder putMetadata(String key, Object value) {
+      metadataBuilder().put(key, value);
+      return this;
+    }
+
+    @CanIgnoreReturnValue
+    public Builder putMetadata(Map<String, Object> map) {
+      metadataBuilder().putAll(map);
+      return this;
+    }
 
     public abstract CelPolicy build();
   }

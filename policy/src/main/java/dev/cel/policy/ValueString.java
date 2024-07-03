@@ -21,9 +21,9 @@ import com.google.auto.value.AutoValue;
 public abstract class ValueString {
 
   /** A unique identifier. This is populated by the parser. */
-  abstract long id();
+  public abstract long id();
 
-  abstract String value();
+  public abstract String value();
 
   @AutoValue.Builder
   abstract static class Builder {
@@ -35,13 +35,15 @@ public abstract class ValueString {
     abstract ValueString build();
   }
 
+  public abstract Builder toBuilder();
+
   /** Builder for {@link ValueString}. */
-  static Builder newBuilder() {
+  public static Builder newBuilder() {
     return new AutoValue_ValueString.Builder().setId(0).setValue("");
   }
 
   /** Creates a new {@link ValueString} instance with the specified ID and string value. */
-  static ValueString of(long id, String value) {
+  public static ValueString of(long id, String value) {
     return newBuilder().setId(id).setValue(value).build();
   }
 }

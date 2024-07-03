@@ -15,15 +15,27 @@
 package dev.cel.policy;
 
 import dev.cel.common.Source;
+import dev.cel.policy.CelPolicy.Match;
+import dev.cel.policy.CelPolicy.Rule;
+import dev.cel.policy.CelPolicy.Variable;
 import java.util.Map;
 
 /**
- * ParserContext declares a set of interfaces for creating and managing metadata for parsed
- * policies.
+ * ParserContext declares a set of interfaces for managing metadata, such as node IDs, parsing
+ * errors and source offsets.
  */
 public interface ParserContext<T> {
+
+  /**
+   * NextID returns a monotonically increasing identifier for a source fragment. This ID is
+   * implicitly created and tracked within the CollectMetadata method.
+   */
   long nextId();
 
+  /**
+   * CollectMetadata records the source position information of a given node, and returns the id
+   * associated with the source metadata which is returned in the Policy SourceInfo object.
+   */
   long collectMetadata(T node);
 
   void reportError(long id, String message);
@@ -33,4 +45,21 @@ public interface ParserContext<T> {
   boolean hasError();
 
   Map<Long, Integer> getIdToOffsetMap();
+
+  /** NewString creates a new ValueString from the YAML node. */
+  ValueString newValueString(T node);
+
+  /**
+   * PolicyParserContext declares a set of interfaces for creating and managing metadata
+   * specifically for {@link CelPolicy}.
+   */
+  interface PolicyParserContext<T> extends ParserContext<T> {
+    CelPolicy parsePolicy(PolicyParserContext<T> ctx, T node);
+
+    Rule parseRule(PolicyParserContext<T> ctx, CelPolicy.Builder policyBuilder, T node);
+
+    Match parseMatch(PolicyParserContext<T> ctx, CelPolicy.Builder policyBuilder, T node);
+
+    Variable parseVariable(PolicyParserContext<T> ctx, CelPolicy.Builder policyBuilder, T node);
+  }
 }

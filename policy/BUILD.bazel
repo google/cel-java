@@ -9,6 +9,11 @@ java_library(
 )
 
 java_library(
+    name = "value_string",
+    exports = ["//policy/src/main/java/dev/cel/policy:value_string"],
+)
+
+java_library(
     name = "source",
     exports = ["//policy/src/main/java/dev/cel/policy:source"],
 )
@@ -31,6 +36,11 @@ java_library(
 java_library(
     name = "parser",
     exports = ["//policy/src/main/java/dev/cel/policy:parser"],
+)
+
+java_library(
+    name = "parser_context",
+    exports = ["//policy/src/main/java/dev/cel/policy:parser_context"],
 )
 
 java_library(

@@ -19,6 +19,7 @@ import static org.junit.Assert.assertThrows;
 
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.policy.PolicyTestHelper.K8sTagHandler;
 import dev.cel.policy.PolicyTestHelper.TestYamlPolicy;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +28,7 @@ import org.junit.runner.RunWith;
 public final class CelPolicyYamlParserTest {
 
   private static final CelPolicyParser POLICY_PARSER =
-      CelPolicyParserFactory.newYamlParserBuilder().build();
+      CelPolicyParserFactory.newYamlParserBuilder().addTagVisitor(new K8sTagHandler()).build();
 
   @Test
   public void parseYamlPolicy_success(@TestParameter TestYamlPolicy yamlPolicy) throws Exception {

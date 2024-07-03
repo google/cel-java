@@ -14,6 +14,8 @@
 
 package dev.cel.policy;
 
+import dev.cel.policy.ParserContext.PolicyParserContext;
+
 /** CelPolicyParser is the interface for parsing policies into a canonical Policy representation. */
 public interface CelPolicyParser {
 
@@ -41,8 +43,12 @@ public interface CelPolicyParser {
      * allow for continued parsing within a custom tag.
      */
     default void visitPolicyTag(
-        ParserContext<T> ctx, long id, String fieldName, T node, CelPolicy.Builder policyBuilder) {
-      ctx.reportError(id, String.format("Unsupported policy tag: %s", fieldName));
+        PolicyParserContext<T> ctx,
+        long id,
+        String tagName,
+        T node,
+        CelPolicy.Builder policyBuilder) {
+      ctx.reportError(id, String.format("Unsupported policy tag: %s", tagName));
     }
 
     /**
@@ -50,12 +56,13 @@ public interface CelPolicyParser {
      * policy and current rule to allow for continued parsing within custom tags.
      */
     default void visitRuleTag(
-        ParserContext<T> ctx,
+        PolicyParserContext<T> ctx,
         long id,
-        String fieldName,
+        String tagName,
         T node,
+        CelPolicy.Builder policyBuilder,
         CelPolicy.Rule.Builder ruleBuilder) {
-      ctx.reportError(id, String.format("Unsupported rule tag: %s", fieldName));
+      ctx.reportError(id, String.format("Unsupported rule tag: %s", tagName));
     }
 
     /**
@@ -63,12 +70,13 @@ public interface CelPolicyParser {
      * policy and current match to allow for continued parsing within custom tags.
      */
     default void visitMatchTag(
-        ParserContext<T> ctx,
+        PolicyParserContext<T> ctx,
         long id,
-        String fieldName,
+        String tagName,
         T node,
+        CelPolicy.Builder policyBuilder,
         CelPolicy.Match.Builder matchBuilder) {
-      ctx.reportError(id, String.format("Unsupported match tag: %s", fieldName));
+      ctx.reportError(id, String.format("Unsupported match tag: %s", tagName));
     }
 
     /**
@@ -76,12 +84,13 @@ public interface CelPolicyParser {
      * parent policy and current variable to allow for continued parsing within custom tags.
      */
     default void visitVariableTag(
-        ParserContext<T> ctx,
+        PolicyParserContext<T> ctx,
         long id,
-        String fieldName,
+        String tagName,
         T node,
+        CelPolicy.Builder policyBuilder,
         CelPolicy.Variable.Builder variableBuilder) {
-      ctx.reportError(id, String.format("Unsupported variable tag: %s", fieldName));
+      ctx.reportError(id, String.format("Unsupported variable tag: %s", tagName));
     }
   }
 }
