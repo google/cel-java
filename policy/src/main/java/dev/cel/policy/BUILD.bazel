@@ -84,6 +84,18 @@ java_library(
 )
 
 java_library(
+    name = "parser_factory",
+    srcs = ["CelPolicyParserFactory.java"],
+    deps = [
+        ":config_parser",
+        ":parser_builder",
+        ":yaml_config_parser",
+        ":yaml_parser",
+        "@maven//:org_yaml_snakeyaml",
+    ],
+)
+
+java_library(
     name = "yaml_parser",
     srcs = [
         "CelPolicyYamlParser.java",
@@ -174,6 +186,21 @@ java_library(
         "//optimizer:optimizer_builder",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "compiler_factory",
+    srcs = ["CelPolicyCompilerFactory.java"],
+    deps = [
+        ":compiler_builder",
+        ":compiler_impl",
+        "//bundle:cel",
+        "//checker:checker_builder",
+        "//compiler",
+        "//compiler:compiler_builder",
+        "//parser:parser_builder",
+        "//runtime",
     ],
 )
 

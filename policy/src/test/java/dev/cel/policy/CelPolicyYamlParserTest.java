@@ -26,7 +26,8 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 public final class CelPolicyYamlParserTest {
 
-  private static final CelPolicyParser POLICY_PARSER = CelPolicyYamlParser.newBuilder().build();
+  private static final CelPolicyParser POLICY_PARSER =
+      CelPolicyParserFactory.newYamlParserBuilder().build();
 
   @Test
   public void parseYamlPolicy_success(@TestParameter TestYamlPolicy yamlPolicy) throws Exception {

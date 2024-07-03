@@ -41,7 +41,7 @@ public final class CelPolicyYamlConfigParserTest {
           .build();
 
   private static final CelPolicyConfigParser POLICY_CONFIG_PARSER =
-      CelPolicyYamlConfigParser.newInstance();
+      CelPolicyParserFactory.newYamlConfigParser();
 
   @Test
   public void config_setBasicProperties() throws Exception {

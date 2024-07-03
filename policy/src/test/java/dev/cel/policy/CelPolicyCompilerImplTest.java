@@ -45,10 +45,10 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 public final class CelPolicyCompilerImplTest {
 
-  private static final CelPolicyParser POLICY_PARSER = CelPolicyYamlParser.newBuilder().build();
+  private static final CelPolicyParser POLICY_PARSER =
+      CelPolicyParserFactory.newYamlParserBuilder().build();
   private static final CelPolicyConfigParser POLICY_CONFIG_PARSER =
-      CelPolicyYamlConfigParser.newInstance();
-
+      CelPolicyParserFactory.newYamlConfigParser();
   private static final CelOptions CEL_OPTIONS =
       CelOptions.current().populateMacroCalls(true).build();
 
@@ -62,7 +62,8 @@ public final class CelPolicyCompilerImplTest {
     String policySource = yamlPolicy.readPolicyYamlContent();
     CelPolicy policy = POLICY_PARSER.parse(policySource);
 
-    CelAbstractSyntaxTree ast = CelPolicyCompilerImpl.newBuilder(cel).build().compile(policy);
+    CelAbstractSyntaxTree ast =
+        CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
 
     assertThat(CelUnparserFactory.newUnparser().unparse(ast)).isEqualTo(yamlPolicy.getUnparsed());
   }
@@ -81,7 +82,7 @@ public final class CelPolicyCompilerImplTest {
     CelPolicyValidationException e =
         assertThrows(
             CelPolicyValidationException.class,
-            () -> CelPolicyCompilerImpl.newBuilder(cel).build().compile(policy));
+            () -> CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy));
 
     assertThat(e)
         .hasMessageThat()
@@ -135,7 +136,7 @@ public final class CelPolicyCompilerImplTest {
     // Act
     // Compile then evaluate the policy
     CelAbstractSyntaxTree compiledPolicyAst =
-        CelPolicyCompilerImpl.newBuilder(cel).build().compile(policy);
+        CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
     ImmutableMap<String, Object> input =
         testData.testCase.getInput().entrySet().stream()
             .collect(toImmutableMap(Entry::getKey, e -> e.getValue().getValue()));
@@ -171,7 +172,7 @@ public final class CelPolicyCompilerImplTest {
             + "            output: 'optional.of(true)'\n";
     CelPolicy policy = POLICY_PARSER.parse(policySource);
     CelAbstractSyntaxTree compiledPolicyAst =
-        CelPolicyCompilerImpl.newBuilder(cel).build().compile(policy);
+        CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
 
     Optional<Object> evalResult = (Optional<Object>) cel.createProgram(compiledPolicyAst).eval();
 

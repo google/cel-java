@@ -34,19 +34,11 @@ java_library(
 )
 
 java_library(
-    name = "compiler_impl",
-    visibility = ["//visibility:public"],
-    exports = ["//policy/src/main/java/dev/cel/policy:compiler_impl"],
+    name = "parser_factory",
+    exports = ["//policy/src/main/java/dev/cel/policy:parser_factory"],
 )
 
 java_library(
-    name = "yaml_parser",
-    visibility = ["//visibility:public"],
-    exports = ["//policy/src/main/java/dev/cel/policy:yaml_parser"],
-)
-
-java_library(
-    name = "yaml_config_parser",
-    visibility = ["//visibility:public"],
-    exports = ["//policy/src/main/java/dev/cel/policy:yaml_config_parser"],
+    name = "compiler_factory",
+    exports = ["//policy/src/main/java/dev/cel/policy:compiler_factory"],
 )
