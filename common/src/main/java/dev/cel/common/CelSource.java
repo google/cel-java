@@ -125,8 +125,9 @@ public final class CelSource implements Source {
    */
   private static Optional<Integer> getLocationOffsetImpl(
       List<Integer> lineOffsets, int line, int column) {
-    checkArgument(line > 0);
-    checkArgument(column >= 0);
+    if (line <= 0 || column < 0) {
+      return Optional.empty();
+    }
     int offset = CelSourceHelper.findLineOffset(lineOffsets, line);
     if (offset == -1) {
       return Optional.empty();
