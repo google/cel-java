@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 
@@ -73,9 +74,14 @@ final class YamlParserContextImpl implements ParserContext<Node> {
     int column = node.getStartMark().getColumn();
     if (node instanceof ScalarNode) {
       DumperOptions.ScalarStyle style = ((ScalarNode) node).getScalarStyle();
-      if (style.equals(DumperOptions.ScalarStyle.SINGLE_QUOTED)
-          || style.equals(DumperOptions.ScalarStyle.DOUBLE_QUOTED)) {
+      if (style.equals(ScalarStyle.SINGLE_QUOTED)
+          || style.equals(ScalarStyle.DOUBLE_QUOTED)) {
         column++;
+      } else if (style.equals(ScalarStyle.LITERAL) || style.equals(ScalarStyle.FOLDED)) {
+        // For multilines, actual string content begins on next line
+        line++;
+        // Columns must be computed from the indentation
+
       }
     }
     idToLocationMap.put(id, CelSourceLocation.of(line, column));
