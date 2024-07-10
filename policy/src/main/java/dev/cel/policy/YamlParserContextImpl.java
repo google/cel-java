@@ -19,7 +19,6 @@ import static dev.cel.policy.YamlHelper.assertYamlType;
 
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelSourceLocation;
-import dev.cel.common.internal.CelCodePointArray;
 import dev.cel.policy.YamlHelper.YamlNodeType;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,7 +35,7 @@ final class YamlParserContextImpl implements ParserContext<Node> {
   private final ArrayList<CelIssue> issues;
   private final HashMap<Long, CelSourceLocation> idToLocationMap;
   private final HashMap<Long, Integer> idToOffsetMap;
-  private final CelCodePointArray policyContent;
+  private final CelPolicySource policySource;
   private long id;
 
   @Override
@@ -78,7 +77,7 @@ final class YamlParserContextImpl implements ParserContext<Node> {
           || style.equals(ScalarStyle.DOUBLE_QUOTED)) {
         column++;
       } else if (style.equals(ScalarStyle.LITERAL) || style.equals(ScalarStyle.FOLDED)) {
-        // For multilines, actual string content begins on next line
+        // For multi-lines, actual string content begins on next line
         line++;
         // Columns must be computed from the indentation
 
@@ -88,7 +87,7 @@ final class YamlParserContextImpl implements ParserContext<Node> {
 
     int offset = 0;
     if (line > 1) {
-      offset = policyContent.lineOffsets().get(line - 2) + column;
+      offset = policySource.getContent().lineOffsets().get(line - 2) + column;
     }
     idToOffsetMap.put(id, offset);
 
@@ -100,14 +99,14 @@ final class YamlParserContextImpl implements ParserContext<Node> {
     return ++id;
   }
 
-  static ParserContext<Node> newInstance(CelCodePointArray policyContent) {
-    return new YamlParserContextImpl(policyContent);
+  static ParserContext<Node> newInstance(CelPolicySource source) {
+    return new YamlParserContextImpl(source);
   }
 
-  private YamlParserContextImpl(CelCodePointArray policyContent) {
+  private YamlParserContextImpl(CelPolicySource source) {
     this.issues = new ArrayList<>();
     this.idToLocationMap = new HashMap<>();
     this.idToOffsetMap = new HashMap<>();
-    this.policyContent = policyContent;
+    this.policySource = source;
   }
 }

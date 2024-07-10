@@ -321,6 +321,7 @@ java_library(
     visibility = ["//visibility:private"],
     deps = [
         ":parser_context",
+        ":source",
         ":value_string",
         "//common",
         "//common:compiler_common",
