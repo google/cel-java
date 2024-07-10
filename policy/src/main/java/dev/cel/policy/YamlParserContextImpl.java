@@ -80,7 +80,14 @@ final class YamlParserContextImpl implements ParserContext<Node> {
         // For multi-lines, actual string content begins on next line
         line++;
         // Columns must be computed from the indentation
-
+        column = 0;
+        String snippet = policySource.getSnippet(line).orElse("");
+        for (char c : snippet.toCharArray()) {
+          if (!Character.isWhitespace(c)) {
+            break;
+          }
+          column++;
+        }
       }
     }
     idToLocationMap.put(id, CelSourceLocation.of(line, column));
