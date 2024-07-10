@@ -162,39 +162,6 @@ public final class CelPolicyCompilerImplTest {
   }
 
   @Test
-  public void smokeTest() throws Exception {
-    // String policyContent = "name: \"errors\"\n"
-    //     + "rule:\n"
-    //     + "  match:\n"
-    //     + "    - output: \"'missing one or more required labels: %s'.format(variables.missing])\"";
-    // String policyContent = "name: \"errors\"\"
-    //     + "rule:\n"
-    //     + "  match:\n"
-    //     + "    - output: >\n"
-    //     + "        'test'.format(variables.missing])";
-    // String policyContent = "name: \"errors\"\n"
-    //     + "rule:\n"
-    //     + "  match:\n"
-    //     + "    - output: >\n"
-    //     + "        'test'.format(\n"
-    //     + "        variables.missing])";
-    String policyContent = "name: \"errors\"\n"
-        + "rule:\n"
-        + "  match:\n"
-        + "    - output: >\n"
-        + "        'test'\n"
-        + "        .format(\n"
-        + "        variables.missing])";
-    CelPolicy policy = POLICY_PARSER.parse(policyContent);
-    CelPolicyValidationException e =
-        assertThrows(
-            CelPolicyValidationException.class,
-            () -> CelPolicyCompilerFactory.newPolicyCompiler(newCel()).build().compile(policy));
-
-    assertThat(e).hasMessageThat().isEqualTo("");
-  }
-
-  @Test
   @SuppressWarnings("unchecked")
   public void evaluateYamlPolicy_nestedRuleProducesOptionalOutput() throws Exception {
     Cel cel = newCel();
