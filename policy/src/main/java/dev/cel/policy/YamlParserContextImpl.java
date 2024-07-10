@@ -17,6 +17,7 @@ package dev.cel.policy;
 import static dev.cel.policy.YamlHelper.ERROR;
 import static dev.cel.policy.YamlHelper.assertYamlType;
 
+import com.google.common.base.Strings;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelSourceLocation;
 import dev.cel.policy.YamlHelper.YamlNodeType;
@@ -61,6 +62,31 @@ final class YamlParserContextImpl implements ParserContext<Node> {
     }
 
     ScalarNode scalarNode = (ScalarNode) node;
+    ScalarStyle style = scalarNode.getScalarStyle();
+    if (style.equals(ScalarStyle.FOLDED) || style.equals(ScalarStyle.LITERAL)) {
+      CelSourceLocation location = idToLocationMap.get(id);
+      int line = location.getLine();
+      int column = location.getColumn();
+
+      String indent = Strings.padStart("", column, ' ');
+      String text = policySource.getSnippet(line).orElse("");
+      StringBuilder raw = new StringBuilder();
+      while (text.startsWith(indent)) {
+        line++;
+        raw.append(text);
+        text = policySource.getSnippet(line).orElse("");
+        if (text.isEmpty()) {
+          break;
+        }
+        if (text.startsWith(indent)) {
+          raw.append("\n");
+        }
+      }
+
+      idToOffsetMap.compute(id, (k, offset) -> offset - column);
+
+      return ValueString.of(id, raw.toString());
+    }
 
     // TODO: Compute relative source for multiline strings
     return ValueString.of(id, scalarNode.getValue());
