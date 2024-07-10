@@ -113,6 +113,19 @@ public final class CelPolicyCompilerImplTest {
   }
 
   @Test
+  public void compileYamlPolicy_multilineContainsError_throws(@TestParameter MultilineErrorTest testCase) throws Exception {
+    String policyContent = testCase.yaml;
+    CelPolicy policy = POLICY_PARSER.parse(policyContent);
+
+    CelPolicyValidationException e =
+        assertThrows(
+            CelPolicyValidationException.class,
+            () -> CelPolicyCompilerFactory.newPolicyCompiler(newCel()).build().compile(policy));
+
+    assertThat(e).hasMessageThat().isEqualTo(testCase.expected);
+  }
+
+  @Test
   @SuppressWarnings("unchecked")
   public void evaluateYamlPolicy_withCanonicalTestData(
       @TestParameter(valuesProvider = EvaluablePolicyTestDataProvider.class)
@@ -238,5 +251,69 @@ public final class CelPolicyCompilerImplTest {
                   }
                 }))
         .build();
+  }
+
+  private enum MultilineErrorTest {
+    SINGLE_FOLDED("name: \"errors\"\n"
+        + "rule:\n"
+        + "  match:\n"
+        + "    - output: >\n"
+        + "        'test'.format(variables.missing])",
+        "ERROR: <input>:5:40: extraneous input ']' expecting ')'\n"
+        + " |         'test'.format(variables.missing])\n"
+        + " | .......................................^"),
+    DOUBLE_FOLDED("name: \"errors\"\n"
+        + "rule:\n"
+        + "  match:\n"
+        + "    - output: >\n"
+        + "        'test'.format(\n"
+        + "        variables.missing])",
+        "ERROR: <input>:6:26: extraneous input ']' expecting ')'\n"
+        + " |         variables.missing])\n"
+        + " | .........................^"),
+    TRIPLE_FOLDED("name: \"errors\"\n"
+        + "rule:\n"
+        + "  match:\n"
+        + "    - output: >\n"
+        + "        'test'.\n"
+        + "        format(\n"
+        + "        variables.missing])", "ERROR: <input>:7:26: extraneous input ']' expecting ')'\n"
+        + " |         variables.missing])\n"
+        + " | .........................^"),
+    SINGLE_LITERAL("name: \"errors\"\n"
+        + "rule:\n"
+        + "  match:\n"
+        + "    - output: |\n"
+        + "        'test'.format(variables.missing])",
+        "ERROR: <input>:5:40: extraneous input ']' expecting ')'\n"
+            + " |         'test'.format(variables.missing])\n"
+            + " | .......................................^"),
+    DOUBLE_LITERAL("name: \"errors\"\n"
+        + "rule:\n"
+        + "  match:\n"
+        + "    - output: |\n"
+        + "        'test'.format(\n"
+        + "        variables.missing])",
+        "ERROR: <input>:6:26: extraneous input ']' expecting ')'\n"
+            + " |         variables.missing])\n"
+            + " | .........................^"),
+    TRIPLE_LITERAL("name: \"errors\"\n"
+        + "rule:\n"
+        + "  match:\n"
+        + "    - output: |\n"
+        + "        'test'.\n"
+        + "        format(\n"
+        + "        variables.missing])", "ERROR: <input>:7:26: extraneous input ']' expecting ')'\n"
+        + " |         variables.missing])\n"
+        + " | .........................^"),
+    ;
+
+    private final String yaml;
+    private final String expected;
+
+    MultilineErrorTest(String yaml, String expected) {
+      this.yaml = yaml;
+      this.expected = expected;
+    }
   }
 }
