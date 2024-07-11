@@ -155,6 +155,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":compiled_rule",
         ":policy",
         ":validation_exception",
         "//common",
@@ -281,11 +282,11 @@ java_library(
 java_library(
     name = "compiled_rule",
     srcs = ["CelCompiledRule.java"],
-    visibility = ["//visibility:private"],
     deps = [
         "//:auto_value",
         "//bundle:cel",
         "//common",
+        "//common:compiler_common",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],

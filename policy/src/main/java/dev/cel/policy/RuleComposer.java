@@ -15,6 +15,7 @@
 package dev.cel.policy;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
@@ -22,7 +23,6 @@ import com.google.common.collect.Lists;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelMutableAst;
-import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelConstant.Kind;
 import dev.cel.extensions.CelOptionalLibrary.Function;
 import dev.cel.optimizer.AstMutator;
@@ -30,20 +30,19 @@ import dev.cel.optimizer.CelAstOptimizer;
 import dev.cel.parser.Operator;
 import dev.cel.policy.CelCompiledRule.CelCompiledMatch;
 import dev.cel.policy.CelCompiledRule.CelCompiledVariable;
-import java.util.List;
 
 /** Package-private class for composing various rules into a single expression using optimizer. */
 final class RuleComposer implements CelAstOptimizer {
   private static final int AST_MUTATOR_ITERATION_LIMIT = 1000;
   private final CelCompiledRule compiledRule;
-  private final ImmutableList<CelVarDecl> newVarDecls;
   private final String variablePrefix;
   private final AstMutator astMutator;
 
   @Override
   public OptimizationResult optimize(CelAbstractSyntaxTree ast, Cel cel) {
     RuleOptimizationResult result = optimizeRule(compiledRule);
-    return OptimizationResult.create(result.ast().toParsedAst(), newVarDecls, ImmutableList.of());
+    return OptimizationResult.create(result.ast().toParsedAst(), compiledRule.variables().stream().map(
+        CelCompiledVariable::celVarDecl).collect(toImmutableList()), ImmutableList.of());
   }
 
   @AutoValue
@@ -121,14 +120,13 @@ final class RuleComposer implements CelAstOptimizer {
   }
 
   static RuleComposer newInstance(
-      CelCompiledRule compiledRule, List<CelVarDecl> newVarDecls, String variablePrefix) {
-    return new RuleComposer(compiledRule, newVarDecls, variablePrefix);
+      CelCompiledRule compiledRule, String variablePrefix) {
+    return new RuleComposer(compiledRule, variablePrefix);
   }
 
   private RuleComposer(
-      CelCompiledRule compiledRule, List<CelVarDecl> newVarDecls, String variablePrefix) {
+      CelCompiledRule compiledRule, String variablePrefix) {
     this.compiledRule = checkNotNull(compiledRule);
-    this.newVarDecls = ImmutableList.copyOf(checkNotNull(newVarDecls));
     this.variablePrefix = variablePrefix;
     this.astMutator = AstMutator.newInstance(AST_MUTATOR_ITERATION_LIMIT);
   }

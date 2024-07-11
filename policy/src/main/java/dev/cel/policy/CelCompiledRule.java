@@ -19,40 +19,43 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelVarDecl;
 
 /** Abstract representation of a compiled rule. */
 @AutoValue
-abstract class CelCompiledRule {
-  abstract ImmutableList<CelCompiledVariable> variables();
+public abstract class CelCompiledRule {
+  public abstract ImmutableList<CelCompiledVariable> variables();
 
-  abstract ImmutableList<CelCompiledMatch> matches();
+  public abstract ImmutableList<CelCompiledMatch> matches();
 
-  abstract Cel cel();
+  public abstract Cel cel();
 
   @AutoValue
-  abstract static class CelCompiledVariable {
-    abstract String name();
+  public abstract static class CelCompiledVariable {
+    public abstract String name();
 
-    abstract CelAbstractSyntaxTree ast();
+    public abstract CelAbstractSyntaxTree ast();
 
-    static CelCompiledVariable create(String name, CelAbstractSyntaxTree ast) {
-      return new AutoValue_CelCompiledRule_CelCompiledVariable(name, ast);
+    public abstract CelVarDecl celVarDecl();
+
+    static CelCompiledVariable create(String name, CelAbstractSyntaxTree ast, CelVarDecl celVarDecl) {
+      return new AutoValue_CelCompiledRule_CelCompiledVariable(name, ast, celVarDecl);
     }
   }
 
   @AutoValue
-  abstract static class CelCompiledMatch {
-    abstract CelAbstractSyntaxTree condition();
+  public abstract static class CelCompiledMatch {
+    public abstract CelAbstractSyntaxTree condition();
 
-    abstract Result result();
+    public abstract Result result();
 
     @AutoOneOf(CelCompiledMatch.Result.Kind.class)
-    abstract static class Result {
-      abstract CelAbstractSyntaxTree output();
+    public abstract static class Result {
+      public abstract CelAbstractSyntaxTree output();
 
-      abstract CelCompiledRule rule();
+      public abstract CelCompiledRule rule();
 
-      abstract Kind kind();
+      public abstract Kind kind();
 
       static Result ofOutput(CelAbstractSyntaxTree value) {
         return AutoOneOf_CelCompiledRule_CelCompiledMatch_Result.output(value);
@@ -62,7 +65,7 @@ abstract class CelCompiledRule {
         return AutoOneOf_CelCompiledRule_CelCompiledMatch_Result.rule(value);
       }
 
-      enum Kind {
+      public enum Kind {
         OUTPUT,
         RULE
       }
