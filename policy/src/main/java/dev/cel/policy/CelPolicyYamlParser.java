@@ -61,14 +61,13 @@ final class CelPolicyYamlParser implements CelPolicyParser {
   private static class ParserImpl implements PolicyParserContext<Node> {
 
     private final TagVisitor<Node> tagVisitor;
-    private final CelCodePointArray policySource;
-    private final String description;
+    private final CelPolicySource policySource;
     private final ParserContext<Node> ctx;
 
     private CelPolicy parseYaml() throws CelPolicyValidationException {
       Node node;
       try {
-        node = YamlHelper.parseYamlSource(policySource.toString());
+        node = YamlHelper.parseYamlSource(policySource.getContent().toString());
       } catch (RuntimeException e) {
         throw new CelPolicyValidationException("YAML document is malformed: " + e.getMessage(), e);
       }
@@ -86,11 +85,9 @@ final class CelPolicyYamlParser implements CelPolicyParser {
     @Override
     public CelPolicy parsePolicy(PolicyParserContext<Node> ctx, Node node) {
       CelPolicy.Builder policyBuilder = CelPolicy.newBuilder();
-      CelPolicySource.Builder sourceBuilder =
-          CelPolicySource.newBuilder(policySource).setDescription(description);
       long id = ctx.collectMetadata(node);
       if (!assertYamlType(ctx, id, node, YamlNodeType.MAP)) {
-        return policyBuilder.setPolicySource(sourceBuilder.build()).build();
+        return policyBuilder.setPolicySource(policySource).build();
       }
 
       MappingNode rootNode = (MappingNode) node;
@@ -117,7 +114,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
       }
 
       return policyBuilder
-          .setPolicySource(sourceBuilder.setPositionsMap(ctx.getIdToOffsetMap()).build())
+          .setPolicySource(policySource.toBuilder().setPositionsMap(ctx.getIdToOffsetMap()).build())
           .build();
     }
 
@@ -279,8 +276,10 @@ final class CelPolicyYamlParser implements CelPolicyParser {
 
     private ParserImpl(TagVisitor<Node> tagVisitor, String source, String description) {
       this.tagVisitor = tagVisitor;
-      this.policySource = CelCodePointArray.fromString(source);
-      this.description = description;
+      this.policySource =
+          CelPolicySource.newBuilder(CelCodePointArray.fromString(source))
+              .setDescription(description)
+              .build();
       this.ctx = YamlParserContextImpl.newInstance(policySource);
     }
 

@@ -104,19 +104,33 @@ public final class CelPolicyCompilerImplTest {
                 + "ERROR: errors/policy.yaml:23:27: mismatched input '2' expecting {'}', ','}\n"
                 + " |       expression: \"{1:305 2:569}\"\n"
                 + " | ..........................^\n"
-                + "ERROR: errors/policy.yaml:31:65: extraneous input ']' expecting ')'\n"
+                + "ERROR: errors/policy.yaml:31:75: extraneous input ']' expecting ')'\n"
                 + " |         \"missing one or more required labels:"
                 + " %s\".format(variables.missing])\n"
-                + " | ................................................................^\n"
-                + "ERROR: errors/policy.yaml:34:57: undeclared reference to 'format' (in container"
+                + " | ..........................................................................^\n"
+                + "ERROR: errors/policy.yaml:34:67: undeclared reference to 'format' (in container"
                 + " '')\n"
                 + " |         \"invalid values provided on one or more labels:"
                 + " %s\".format([variables.invalid])\n"
-                + " | ........................................................^\n"
+                + " | ..................................................................^\n"
                 + "ERROR: errors/policy.yaml:35:24: found no matching overload for '_==_' applied"
                 + " to '(bool, string)' (candidates: (%A0, %A0))\n"
                 + " |     - condition: false == \"0\"\n"
                 + " | .......................^");
+  }
+
+  @Test
+  public void compileYamlPolicy_multilineContainsError_throws(
+      @TestParameter MultilineErrorTest testCase) throws Exception {
+    String policyContent = testCase.yaml;
+    CelPolicy policy = POLICY_PARSER.parse(policyContent);
+
+    CelPolicyValidationException e =
+        assertThrows(
+            CelPolicyValidationException.class,
+            () -> CelPolicyCompilerFactory.newPolicyCompiler(newCel()).build().compile(policy));
+
+    assertThat(e).hasMessageThat().isEqualTo(testCase.expected);
   }
 
   @Test
@@ -245,5 +259,77 @@ public final class CelPolicyCompilerImplTest {
                   }
                 }))
         .build();
+  }
+
+  private enum MultilineErrorTest {
+    SINGLE_FOLDED(
+        "name: \"errors\"\n"
+            + "rule:\n"
+            + "  match:\n"
+            + "    - output: >\n"
+            + "        'test'.format(variables.missing])",
+        "ERROR: <input>:5:40: extraneous input ']' expecting ')'\n"
+            + " |         'test'.format(variables.missing])\n"
+            + " | .......................................^"),
+    DOUBLE_FOLDED(
+        "name: \"errors\"\n"
+            + "rule:\n"
+            + "  match:\n"
+            + "    - output: >\n"
+            + "        'test'.format(\n"
+            + "        variables.missing])",
+        "ERROR: <input>:6:26: extraneous input ']' expecting ')'\n"
+            + " |         variables.missing])\n"
+            + " | .........................^"),
+    TRIPLE_FOLDED(
+        "name: \"errors\"\n"
+            + "rule:\n"
+            + "  match:\n"
+            + "    - output: >\n"
+            + "        'test'.\n"
+            + "        format(\n"
+            + "        variables.missing])",
+        "ERROR: <input>:7:26: extraneous input ']' expecting ')'\n"
+            + " |         variables.missing])\n"
+            + " | .........................^"),
+    SINGLE_LITERAL(
+        "name: \"errors\"\n"
+            + "rule:\n"
+            + "  match:\n"
+            + "    - output: |\n"
+            + "        'test'.format(variables.missing])",
+        "ERROR: <input>:5:40: extraneous input ']' expecting ')'\n"
+            + " |         'test'.format(variables.missing])\n"
+            + " | .......................................^"),
+    DOUBLE_LITERAL(
+        "name: \"errors\"\n"
+            + "rule:\n"
+            + "  match:\n"
+            + "    - output: |\n"
+            + "        'test'.format(\n"
+            + "        variables.missing])",
+        "ERROR: <input>:6:26: extraneous input ']' expecting ')'\n"
+            + " |         variables.missing])\n"
+            + " | .........................^"),
+    TRIPLE_LITERAL(
+        "name: \"errors\"\n"
+            + "rule:\n"
+            + "  match:\n"
+            + "    - output: |\n"
+            + "        'test'.\n"
+            + "        format(\n"
+            + "        variables.missing])",
+        "ERROR: <input>:7:26: extraneous input ']' expecting ')'\n"
+            + " |         variables.missing])\n"
+            + " | .........................^"),
+    ;
+
+    private final String yaml;
+    private final String expected;
+
+    MultilineErrorTest(String yaml, String expected) {
+      this.yaml = yaml;
+      this.expected = expected;
+    }
   }
 }

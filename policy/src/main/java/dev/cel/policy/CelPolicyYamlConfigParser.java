@@ -331,14 +331,13 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
         throw new CelPolicyValidationException("YAML document is malformed: " + e.getMessage(), e);
       }
 
-      CelCodePointArray configCodePointArray = CelCodePointArray.fromString(source);
-      ParserContext<Node> ctx = YamlParserContextImpl.newInstance(configCodePointArray);
-      CelPolicyConfig.Builder policyConfig = parseConfig(ctx, node);
       CelPolicySource configSource =
-          CelPolicySource.newBuilder(configCodePointArray)
+          CelPolicySource.newBuilder(CelCodePointArray.fromString(source))
               .setDescription(description)
-              .setPositionsMap(ctx.getIdToOffsetMap())
               .build();
+      ParserContext<Node> ctx = YamlParserContextImpl.newInstance(configSource);
+      CelPolicyConfig.Builder policyConfig = parseConfig(ctx, node);
+      configSource = configSource.toBuilder().setPositionsMap(ctx.getIdToOffsetMap()).build();
 
       if (!ctx.getIssues().isEmpty()) {
         throw new CelPolicyValidationException(

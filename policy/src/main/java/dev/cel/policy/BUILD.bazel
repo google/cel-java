@@ -321,10 +321,10 @@ java_library(
     visibility = ["//visibility:private"],
     deps = [
         ":parser_context",
+        ":source",
         ":value_string",
         "//common",
         "//common:compiler_common",
-        "//common/internal",
         "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",
     ],

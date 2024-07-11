@@ -149,13 +149,27 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
 
     private void addIssue(long id, List<CelIssue> issues) {
       for (CelIssue issue : issues) {
-        // Compute relative source and add them into the issues set
-        int position = Optional.ofNullable(celPolicySource.getPositionsMap().get(id)).orElse(-1);
-        position += issue.getSourceLocation().getColumn();
-        CelSourceLocation loc =
-            celPolicySource.getOffsetLocation(position).orElse(CelSourceLocation.NONE);
-        this.issues.add(CelIssue.formatError(loc, issue.getMessage()));
+        CelSourceLocation absoluteLocation = computeAbsoluteLocation(id, issue);
+        this.issues.add(CelIssue.formatError(absoluteLocation, issue.getMessage()));
       }
+    }
+
+    private CelSourceLocation computeAbsoluteLocation(long id, CelIssue issue) {
+      int policySourceOffset =
+          Optional.ofNullable(celPolicySource.getPositionsMap().get(id)).orElse(-1);
+      CelSourceLocation policySourceLocation =
+          celPolicySource.getOffsetLocation(policySourceOffset).orElse(null);
+      if (policySourceLocation == null) {
+        return CelSourceLocation.NONE;
+      }
+
+      int absoluteLine = issue.getSourceLocation().getLine() + policySourceLocation.getLine() - 1;
+      int absoluteColumn = issue.getSourceLocation().getColumn() + policySourceLocation.getColumn();
+      int absoluteOffset = celPolicySource.getContent().lineOffsets().get(absoluteLine - 2);
+
+      return celPolicySource
+          .getOffsetLocation(absoluteOffset + absoluteColumn)
+          .orElse(CelSourceLocation.NONE);
     }
 
     private void addNewVarDecl(CelVarDecl newVarDecl) {
