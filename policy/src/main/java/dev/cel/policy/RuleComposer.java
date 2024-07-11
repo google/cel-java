@@ -34,7 +34,6 @@ import java.util.List;
 
 /** Package-private class for composing various rules into a single expression using optimizer. */
 final class RuleComposer implements CelAstOptimizer {
-  private static final int AST_MUTATOR_ITERATION_LIMIT = 1000;
   private final CelCompiledRule compiledRule;
   private final ImmutableList<CelVarDecl> newVarDecls;
   private final String variablePrefix;
@@ -121,15 +120,21 @@ final class RuleComposer implements CelAstOptimizer {
   }
 
   static RuleComposer newInstance(
-      CelCompiledRule compiledRule, List<CelVarDecl> newVarDecls, String variablePrefix) {
-    return new RuleComposer(compiledRule, newVarDecls, variablePrefix);
+      CelCompiledRule compiledRule,
+      List<CelVarDecl> newVarDecls,
+      String variablePrefix,
+      int iterationLimit) {
+    return new RuleComposer(compiledRule, newVarDecls, variablePrefix, iterationLimit);
   }
 
   private RuleComposer(
-      CelCompiledRule compiledRule, List<CelVarDecl> newVarDecls, String variablePrefix) {
+      CelCompiledRule compiledRule,
+      List<CelVarDecl> newVarDecls,
+      String variablePrefix,
+      int iterationLimit) {
     this.compiledRule = checkNotNull(compiledRule);
     this.newVarDecls = ImmutableList.copyOf(checkNotNull(newVarDecls));
     this.variablePrefix = variablePrefix;
-    this.astMutator = AstMutator.newInstance(AST_MUTATOR_ITERATION_LIMIT);
+    this.astMutator = AstMutator.newInstance(iterationLimit);
   }
 }

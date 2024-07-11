@@ -20,8 +20,16 @@ import com.google.errorprone.annotations.CheckReturnValue;
 /** Interface for building an instance of {@link CelPolicyCompiler} */
 public interface CelPolicyCompilerBuilder {
 
+  /** Sets the prefix for the policy variables. Default is `variables.`. */
   @CanIgnoreReturnValue
   CelPolicyCompilerBuilder setVariablesPrefix(String prefix);
+
+  /**
+   * Limit the number of iteration while composing rules into a single AST. An exception is thrown
+   * if the iteration count exceeds the set value.
+   */
+  @CanIgnoreReturnValue
+  CelPolicyCompilerBuilder setIterationLimit(int iterationLimit);
 
   @CheckReturnValue
   CelPolicyCompiler build();
