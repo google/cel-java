@@ -14,7 +14,6 @@
 
 package dev.cel.checker;
 
-import dev.cel.expr.Constant;
 import dev.cel.expr.Decl;
 import dev.cel.expr.Decl.FunctionDecl.Overload;
 import dev.cel.expr.Expr;
@@ -26,7 +25,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
@@ -695,165 +693,6 @@ public class Env {
           .add(container + "." + typeName)
           .addAll(qualifiedTypeNameCandidates(i >= 0 ? container.substring(0, i) : "", typeName))
           .build();
-    }
-  }
-
-  /**
-   * A helper class for constructing identifier declarations.
-   *
-   * @deprecated Use {@code CelVarDecl#newBuilder()} instead.
-   */
-  @Deprecated
-  public static final class IdentBuilder {
-    private final CelIdentDecl.Builder builder = CelIdentDecl.newBuilder();
-
-    /** Create an identifier builder. */
-    public IdentBuilder(String name) {
-      builder.setName(Preconditions.checkNotNull(name));
-    }
-
-    /** Set the identifier type. */
-    @CanIgnoreReturnValue
-    public IdentBuilder type(Type value) {
-      Preconditions.checkNotNull(value);
-      builder.setType(CelTypes.typeToCelType(Preconditions.checkNotNull(value)));
-      return this;
-    }
-
-    /** Set the identifier to a {@code Constant} value. */
-    @CanIgnoreReturnValue
-    public IdentBuilder value(@Nullable Constant value) {
-      if (value == null) {
-        builder.clearConstant();
-      } else {
-        builder.setConstant(CelExprConverter.exprConstantToCelConstant(value));
-      }
-      return this;
-    }
-
-    /** Set the documentation for the identifier. */
-    @CanIgnoreReturnValue
-    public IdentBuilder doc(@Nullable String value) {
-      if (value == null) {
-        builder.setDoc("");
-      } else {
-        builder.setDoc(value);
-      }
-      return this;
-    }
-
-    /** Build the ident {@code Decl}. */
-    public Decl build() {
-      return CelIdentDecl.celIdentToDecl(builder.build());
-    }
-  }
-
-  /**
-   * A helper class for building declarations.
-   *
-   * @deprecated Use {@link CelFunctionDecl#newBuilder()} instead.
-   */
-  @Deprecated
-  public static final class FunctionBuilder {
-
-    private final String name;
-    private final List<CelOverloadDecl> overloads = new ArrayList<>();
-    private final boolean isInstance;
-
-    /** Create a global function builder. */
-    public FunctionBuilder(String name) {
-      this(name, false);
-    }
-
-    /** Create an instance function builder. */
-    public FunctionBuilder(String name, boolean isInstance) {
-      this.name = Preconditions.checkNotNull(name);
-      this.isInstance = isInstance;
-    }
-
-    /**
-     * Add the overloads of another function to this function, after replacing the overload id as
-     * specified.
-     */
-    @CanIgnoreReturnValue
-    public FunctionBuilder sameAs(Decl func, String idPart, String idPartReplace) {
-      Preconditions.checkNotNull(func);
-      for (Overload overload : func.getFunction().getOverloadsList()) {
-        this.overloads.add(
-            CelOverloadDecl.overloadToCelOverload(overload).toBuilder()
-                .setOverloadId(overload.getOverloadId().replace(idPart, idPartReplace))
-                .build());
-      }
-      return this;
-    }
-
-    /** Add an overload. */
-    @CanIgnoreReturnValue
-    public FunctionBuilder add(String id, Type resultType, Type... argTypes) {
-      return add(id, resultType, ImmutableList.copyOf(argTypes));
-    }
-
-    /** Add an overload. */
-    @CanIgnoreReturnValue
-    public FunctionBuilder add(String id, Type resultType, Iterable<Type> argTypes) {
-      ImmutableList.Builder<CelType> argumentBuilder = new ImmutableList.Builder<>();
-      for (Type type : argTypes) {
-        argumentBuilder.add(CelTypes.typeToCelType(type));
-      }
-      this.overloads.add(
-          CelOverloadDecl.newBuilder()
-              .setOverloadId(id)
-              .setResultType(CelTypes.typeToCelType(resultType))
-              .addParameterTypes(argumentBuilder.build())
-              .setIsInstanceFunction(isInstance)
-              .build());
-      return this;
-    }
-
-    /** Add an overload, with type params. */
-    @CanIgnoreReturnValue
-    public FunctionBuilder add(
-        String id, List<String> typeParams, Type resultType, Type... argTypes) {
-      return add(id, typeParams, resultType, ImmutableList.copyOf(argTypes));
-    }
-
-    /** Add an overload, with type params. */
-    @CanIgnoreReturnValue
-    public FunctionBuilder add(
-        String id, List<String> typeParams, Type resultType, Iterable<Type> argTypes) {
-      ImmutableList.Builder<CelType> argumentBuilder = new ImmutableList.Builder<>();
-      for (Type type : argTypes) {
-        argumentBuilder.add(CelTypes.typeToCelType(type));
-      }
-      this.overloads.add(
-          CelOverloadDecl.newBuilder()
-              .setOverloadId(id)
-              .setResultType(CelTypes.typeToCelType(resultType))
-              .addParameterTypes(argumentBuilder.build())
-              .setIsInstanceFunction(isInstance)
-              .build());
-      return this;
-    }
-
-    /** Adds documentation to the last added overload. */
-    @CanIgnoreReturnValue
-    public FunctionBuilder doc(@Nullable String value) {
-      int current = this.overloads.size() - 1;
-      CelOverloadDecl.Builder builder = this.overloads.get(current).toBuilder();
-      if (value == null) {
-        builder.setDoc("");
-      } else {
-        builder.setDoc(value);
-      }
-      this.overloads.set(current, builder.build());
-      return this;
-    }
-
-    /** Build the function {@code Decl}. */
-    @CheckReturnValue
-    public Decl build() {
-      return CelFunctionDecl.celFunctionDeclToDecl(
-          CelFunctionDecl.newBuilder().setName(name).addOverloads(overloads).build());
     }
   }
 
