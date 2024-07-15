@@ -19,40 +19,55 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelVarDecl;
 
-/** Abstract representation of a compiled rule. */
+/**
+ * Abstract representation of a compiled rule. This contains set of compiled variables and match
+ * statements which defines an expression graph for a policy.
+ */
 @AutoValue
-abstract class CelCompiledRule {
-  abstract ImmutableList<CelCompiledVariable> variables();
+public abstract class CelCompiledRule {
+  public abstract ImmutableList<CelCompiledVariable> variables();
 
-  abstract ImmutableList<CelCompiledMatch> matches();
+  public abstract ImmutableList<CelCompiledMatch> matches();
 
-  abstract Cel cel();
+  public abstract Cel cel();
 
+  /**
+   * A compiled policy variable (ex: variables.foo). Note that this is not the same thing as the
+   * variables declared in the config.
+   */
   @AutoValue
-  abstract static class CelCompiledVariable {
-    abstract String name();
+  public abstract static class CelCompiledVariable {
+    public abstract String name();
 
-    abstract CelAbstractSyntaxTree ast();
+    /** Compiled variable in AST. */
+    public abstract CelAbstractSyntaxTree ast();
 
-    static CelCompiledVariable create(String name, CelAbstractSyntaxTree ast) {
-      return new AutoValue_CelCompiledRule_CelCompiledVariable(name, ast);
+    /** The variable declaration used to compile this variable in {@link #ast}. */
+    public abstract CelVarDecl celVarDecl();
+
+    static CelCompiledVariable create(
+        String name, CelAbstractSyntaxTree ast, CelVarDecl celVarDecl) {
+      return new AutoValue_CelCompiledRule_CelCompiledVariable(name, ast, celVarDecl);
     }
   }
 
+  /** A compiled Match. */
   @AutoValue
-  abstract static class CelCompiledMatch {
-    abstract CelAbstractSyntaxTree condition();
+  public abstract static class CelCompiledMatch {
+    public abstract CelAbstractSyntaxTree condition();
 
-    abstract Result result();
+    public abstract Result result();
 
+    /** Encapsulates the result of this match when condition is met. (either an output or a rule) */
     @AutoOneOf(CelCompiledMatch.Result.Kind.class)
-    abstract static class Result {
-      abstract CelAbstractSyntaxTree output();
+    public abstract static class Result {
+      public abstract CelAbstractSyntaxTree output();
 
-      abstract CelCompiledRule rule();
+      public abstract CelCompiledRule rule();
 
-      abstract Kind kind();
+      public abstract Kind kind();
 
       static Result ofOutput(CelAbstractSyntaxTree value) {
         return AutoOneOf_CelCompiledRule_CelCompiledMatch_Result.output(value);
@@ -62,7 +77,8 @@ abstract class CelCompiledRule {
         return AutoOneOf_CelCompiledRule_CelCompiledMatch_Result.rule(value);
       }
 
-      enum Kind {
+      /** Kind for {@link Result}. */
+      public enum Kind {
         OUTPUT,
         RULE
       }

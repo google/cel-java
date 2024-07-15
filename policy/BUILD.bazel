@@ -9,6 +9,11 @@ java_library(
 )
 
 java_library(
+    name = "compiled_rule",
+    exports = ["//policy/src/main/java/dev/cel/policy:compiled_rule"],
+)
+
+java_library(
     name = "value_string",
     exports = ["//policy/src/main/java/dev/cel/policy:value_string"],
 )

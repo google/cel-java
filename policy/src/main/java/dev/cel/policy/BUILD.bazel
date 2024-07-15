@@ -155,6 +155,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":compiled_rule",
         ":policy",
         ":validation_exception",
         "//common",
@@ -214,6 +215,19 @@ java_library(
         ":policy",
         ":value_string",
         "//common:compiler_common",
+    ],
+)
+
+java_library(
+    name = "compiled_rule",
+    srcs = ["CelCompiledRule.java"],
+    deps = [
+        "//:auto_value",
+        "//bundle:cel",
+        "//common",
+        "//common:compiler_common",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
     ],
 )
 
@@ -279,19 +293,6 @@ java_library(
 )
 
 java_library(
-    name = "compiled_rule",
-    srcs = ["CelCompiledRule.java"],
-    visibility = ["//visibility:private"],
-    deps = [
-        "//:auto_value",
-        "//bundle:cel",
-        "//common",
-        "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_guava_guava",
-    ],
-)
-
-java_library(
     name = "rule_composer",
     srcs = ["RuleComposer.java"],
     visibility = ["//visibility:private"],
@@ -300,7 +301,6 @@ java_library(
         "//:auto_value",
         "//bundle:cel",
         "//common",
-        "//common:compiler_common",
         "//common:mutable_ast",
         "//common/ast",
         "//extensions:optional_library",
