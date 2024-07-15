@@ -26,7 +26,7 @@ public interface CelPolicyCompiler {
    * CEL environment.
    */
   default CelAbstractSyntaxTree compile(CelPolicy policy) throws CelPolicyValidationException {
-    return compose(compileRule(policy));
+    return compose(policy, compileRule(policy));
   }
 
   /**
@@ -40,5 +40,6 @@ public interface CelPolicyCompiler {
    * Composes {@link CelCompiledRule}, representing an expression graph, into a single expression
    * value.
    */
-  CelAbstractSyntaxTree compose(CelCompiledRule compiledRule) throws CelPolicyValidationException;
+  CelAbstractSyntaxTree compose(CelPolicy policy, CelCompiledRule compiledRule)
+      throws CelPolicyValidationException;
 }

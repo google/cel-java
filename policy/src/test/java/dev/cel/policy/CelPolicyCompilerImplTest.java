@@ -40,6 +40,7 @@ import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection.PolicyT
 import dev.cel.policy.PolicyTestHelper.TestYamlPolicy;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.Test;
@@ -72,51 +73,22 @@ public final class CelPolicyCompilerImplTest {
   }
 
   @Test
-  public void compileYamlPolicy_containsError_throws() throws Exception {
+  public void compileYamlPolicy_containsCompilationError_throws(
+      @TestParameter TestErrorYamlPolicy testCase) throws Exception {
     // Read config and produce an environment to compile policies
-    String configSource = readFromYaml("errors/config.yaml");
+    String configSource = testCase.readConfigYamlContent();
     CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(configSource);
     Cel cel = policyConfig.extend(newCel(), CEL_OPTIONS);
     // Read the policy source
-    String policyFilePath = "errors/policy.yaml";
-    String policySource = readFromYaml(policyFilePath);
-    CelPolicy policy = POLICY_PARSER.parse(policySource, policyFilePath);
+    String policySource = testCase.readPolicyYamlContent();
+    CelPolicy policy = POLICY_PARSER.parse(policySource, testCase.getPolicyFilePath());
 
     CelPolicyValidationException e =
         assertThrows(
             CelPolicyValidationException.class,
             () -> CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy));
 
-    assertThat(e)
-        .hasMessageThat()
-        .isEqualTo(
-            "ERROR: errors/policy.yaml:19:19: undeclared reference to 'spec' (in container '')\n"
-                + " |       expression: spec.labels\n"
-                + " | ..................^\n"
-                + "ERROR: errors/policy.yaml:21:50: mismatched input 'resource' expecting {'==',"
-                + " '!=', 'in', '<', '<=', '>=', '>', '&&', '||', '[', '(', ')', '.', '-', '?',"
-                + " '+', '*', '/', '%%'}\n"
-                + " |       expression: variables.want.filter(l, !(lin resource.labels))\n"
-                + " | .................................................^\n"
-                + "ERROR: errors/policy.yaml:21:66: extraneous input ')' expecting <EOF>\n"
-                + " |       expression: variables.want.filter(l, !(lin resource.labels))\n"
-                + " | .................................................................^\n"
-                + "ERROR: errors/policy.yaml:23:27: mismatched input '2' expecting {'}', ','}\n"
-                + " |       expression: \"{1:305 2:569}\"\n"
-                + " | ..........................^\n"
-                + "ERROR: errors/policy.yaml:31:75: extraneous input ']' expecting ')'\n"
-                + " |         \"missing one or more required labels:"
-                + " %s\".format(variables.missing])\n"
-                + " | ..........................................................................^\n"
-                + "ERROR: errors/policy.yaml:34:67: undeclared reference to 'format' (in container"
-                + " '')\n"
-                + " |         \"invalid values provided on one or more labels:"
-                + " %s\".format([variables.invalid])\n"
-                + " | ..................................................................^\n"
-                + "ERROR: errors/policy.yaml:35:24: found no matching overload for '_==_' applied"
-                + " to '(bool, string)' (candidates: (%A0, %A0))\n"
-                + " |     - condition: false == \"0\"\n"
-                + " | .......................^");
+    assertThat(e).hasMessageThat().isEqualTo(testCase.readExpectedErrorsBaseline());
   }
 
   @Test
@@ -330,6 +302,36 @@ public final class CelPolicyCompilerImplTest {
     MultilineErrorTest(String yaml, String expected) {
       this.yaml = yaml;
       this.expected = expected;
+    }
+  }
+
+  private enum TestErrorYamlPolicy {
+    COMPILE_ERRORS("compile_errors"),
+    COMPOSE_ERRORS_CONFLICTING_OUTPUT("compose_errors_conflicting_output"),
+    COMPOSE_ERRORS_CONFLICTING_SUBRULE("compose_errors_conflicting_subrule");
+
+    private final String name;
+    private final String policyFilePath;
+
+    private String getPolicyFilePath() {
+      return policyFilePath;
+    }
+
+    private String readPolicyYamlContent() throws IOException {
+      return readFromYaml(String.format("%s/policy.yaml", name));
+    }
+
+    private String readConfigYamlContent() throws IOException {
+      return readFromYaml(String.format("%s/config.yaml", name));
+    }
+
+    private String readExpectedErrorsBaseline() throws IOException {
+      return readFromYaml(String.format("%s/expected_errors.baseline", name));
+    }
+
+    TestErrorYamlPolicy(String name) {
+      this.name = name;
+      this.policyFilePath = String.format("%s/policy.yaml", name);
     }
   }
 }

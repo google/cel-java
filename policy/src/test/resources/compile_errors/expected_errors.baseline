@@ -1,0 +1,24 @@
+ERROR: compile_errors/policy.yaml:19:19: undeclared reference to 'spec' (in container '')
+ |       expression: spec.labels
+ | ..................^
+ERROR: compile_errors/policy.yaml:21:50: mismatched input 'resource' expecting {'==', '!=', 'in', '<', '<=', '>=', '>', '&&', '||', '[', '(', ')', '.', '-', '?', '+', '*', '/', '%%'}
+ |       expression: variables.want.filter(l, !(lin resource.labels))
+ | .................................................^
+ERROR: compile_errors/policy.yaml:21:66: extraneous input ')' expecting <EOF>
+ |       expression: variables.want.filter(l, !(lin resource.labels))
+ | .................................................................^
+ERROR: compile_errors/policy.yaml:23:27: mismatched input '2' expecting {'}', ','}
+ |       expression: "{1:305 2:569}"
+ | ..........................^
+ERROR: compile_errors/policy.yaml:31:75: extraneous input ']' expecting ')'
+ |         "missing one or more required labels: %s".format(variables.missing])
+ | ..........................................................................^
+ERROR: compile_errors/policy.yaml:34:67: undeclared reference to 'format' (in container '')
+ |         "invalid values provided on one or more labels: %s".format([variables.invalid])
+ | ..................................................................^
+ERROR: compile_errors/policy.yaml:35:19: condition must produce a boolean output.
+ |     - condition: '1'
+ | ..................^
+ERROR: compile_errors/policy.yaml:38:24: found no matching overload for '_==_' applied to '(bool, string)' (candidates: (%A0, %A0))
+ |     - condition: false == "0"
+ | .......................^

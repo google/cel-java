@@ -1,0 +1,6 @@
+ERROR: compose_errors_conflicting_output/policy.yaml:22:14: conflicting output types found.
+ |     output: "false"
+ | .............^
+ERROR: compose_errors_conflicting_output/policy.yaml:23:14: conflicting output types found.
+ |   - output: "{'banned': true}"
+ | .............^

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelVarDecl;
+import java.util.Optional;
 
 /**
  * Abstract representation of a compiled rule. This contains set of compiled variables and match
@@ -27,6 +28,8 @@ import dev.cel.common.CelVarDecl;
  */
 @AutoValue
 public abstract class CelCompiledRule {
+  public abstract Optional<ValueString> id();
+
   public abstract ImmutableList<CelCompiledVariable> variables();
 
   public abstract ImmutableList<CelCompiledMatch> matches();
@@ -63,14 +66,15 @@ public abstract class CelCompiledRule {
     /** Encapsulates the result of this match when condition is met. (either an output or a rule) */
     @AutoOneOf(CelCompiledMatch.Result.Kind.class)
     public abstract static class Result {
-      public abstract CelAbstractSyntaxTree output();
+      public abstract OutputValue output();
 
       public abstract CelCompiledRule rule();
 
       public abstract Kind kind();
 
-      static Result ofOutput(CelAbstractSyntaxTree value) {
-        return AutoOneOf_CelCompiledRule_CelCompiledMatch_Result.output(value);
+      static Result ofOutput(long id, CelAbstractSyntaxTree ast) {
+        return AutoOneOf_CelCompiledRule_CelCompiledMatch_Result.output(
+            OutputValue.create(id, ast));
       }
 
       static Result ofRule(CelCompiledRule value) {
@@ -84,6 +88,21 @@ public abstract class CelCompiledRule {
       }
     }
 
+    /**
+     * Encapsulates the output value of the match with its original ID that was used to compile
+     * with.
+     */
+    @AutoValue
+    public abstract static class OutputValue {
+      public abstract long id();
+
+      public abstract CelAbstractSyntaxTree ast();
+
+      public static OutputValue create(long id, CelAbstractSyntaxTree ast) {
+        return new AutoValue_CelCompiledRule_CelCompiledMatch_OutputValue(id, ast);
+      }
+    }
+
     static CelCompiledMatch create(
         CelAbstractSyntaxTree condition, CelCompiledMatch.Result result) {
       return new AutoValue_CelCompiledRule_CelCompiledMatch(condition, result);
@@ -91,9 +110,10 @@ public abstract class CelCompiledRule {
   }
 
   static CelCompiledRule create(
+      Optional<ValueString> id,
       ImmutableList<CelCompiledVariable> variables,
       ImmutableList<CelCompiledMatch> matches,
       Cel cel) {
-    return new AutoValue_CelCompiledRule(variables, matches, cel);
+    return new AutoValue_CelCompiledRule(id, variables, matches, cel);
   }
 }
