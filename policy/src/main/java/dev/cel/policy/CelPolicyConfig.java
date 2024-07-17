@@ -127,6 +127,10 @@ public abstract class CelPolicyConfig {
                       .map(f -> f.toCelFunctionDecl(celTypeProvider))
                       .collect(toImmutableList()));
 
+      if (!container().isEmpty()) {
+        celBuilder.setContainer(container());
+      }
+
       addAllExtensions(celBuilder, celOptions);
 
       return celBuilder.build();
