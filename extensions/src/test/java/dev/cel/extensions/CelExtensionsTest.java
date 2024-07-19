@@ -138,5 +138,27 @@ public class CelExtensionsTest {
 
     assertThat(evaluatedResult).isTrue();
   }
-}
 
+  @Test
+  public void getAllFunctionNames() {
+    assertThat(CelExtensions.getAllFunctionNames())
+        .containsExactly(
+            "math.@max",
+            "math.@min",
+            "charAt",
+            "indexOf",
+            "join",
+            "lastIndexOf",
+            "lowerAscii",
+            "replace",
+            "split",
+            "substring",
+            "trim",
+            "upperAscii",
+            "sets.contains",
+            "sets.equivalent",
+            "sets.intersects",
+            "base64.decode",
+            "base64.encode");
+  }
+}

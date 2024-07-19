@@ -14,7 +14,11 @@
 
 package dev.cel.extensions;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static java.util.Arrays.stream;
+
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import dev.cel.common.CelOptions;
 import java.util.Set;
 
@@ -204,6 +208,26 @@ public final class CelExtensions {
    */
   public static CelSetsExtensions sets(Set<CelSetsExtensions.Function> functions) {
     return new CelSetsExtensions(functions);
+  }
+
+  /**
+   * Retrieves all function names used by every extension libraries.
+   *
+   * <p>Note: Certain extensions such as {@link CelProtoExtensions} and {@link
+   * CelBindingsExtensions} are implemented via macros, not functions, and those are not included
+   * here.
+   */
+  public static ImmutableSet<String> getAllFunctionNames() {
+    return Streams.concat(
+            stream(CelMathExtensions.Function.values())
+                .map(CelMathExtensions.Function::getFunction),
+            stream(CelStringExtensions.Function.values())
+                .map(CelStringExtensions.Function::getFunction),
+            stream(CelSetsExtensions.Function.values())
+                .map(CelSetsExtensions.Function::getFunction),
+            stream(CelEncoderExtensions.Function.values())
+                .map(CelEncoderExtensions.Function::getFunction))
+        .collect(toImmutableSet());
   }
 
   private CelExtensions() {}

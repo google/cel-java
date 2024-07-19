@@ -17,12 +17,15 @@ package dev.cel.optimizer.optimizers;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.common.collect.ImmutableList;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
@@ -35,6 +38,7 @@ import dev.cel.optimizer.optimizers.ConstantFoldingOptimizer.ConstantFoldingOpti
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparser;
 import dev.cel.parser.CelUnparserFactory;
+import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,10 +51,27 @@ public class ConstantFoldingOptimizerTest {
           .addVar("y", SimpleType.DYN)
           .addVar("list_var", ListType.create(SimpleType.STRING))
           .addVar("map_var", MapType.create(SimpleType.STRING, SimpleType.STRING))
+          .addFunctionDeclarations(
+              CelFunctionDecl.newFunctionDeclaration(
+                  "get_true",
+                  CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)))
+          .addFunctionBindings(
+              CelFunctionBinding.from("get_true_overload", ImmutableList.of(), unused -> true))
           .addMessageTypes(TestAllTypes.getDescriptor())
           .setContainer("dev.cel.testing.testdata.proto3")
-          .addCompilerLibraries(CelExtensions.bindings(), CelOptionalLibrary.INSTANCE)
-          .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
+          .addCompilerLibraries(
+              CelExtensions.bindings(),
+              CelOptionalLibrary.INSTANCE,
+              CelExtensions.math(CelOptions.DEFAULT),
+              CelExtensions.strings(),
+              CelExtensions.sets(),
+              CelExtensions.encoders())
+          .addRuntimeLibraries(
+              CelOptionalLibrary.INSTANCE,
+              CelExtensions.math(CelOptions.DEFAULT),
+              CelExtensions.strings(),
+              CelExtensions.sets(),
+              CelExtensions.encoders())
           .build();
 
   private static final CelOptimizer CEL_OPTIMIZER =
@@ -161,6 +182,10 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters("{source: 'map_var[?\"key\"]', expected: 'map_var[?\"key\"]'}")
   @TestParameters("{source: '\"abc\" in list_var', expected: '\"abc\" in list_var'}")
   @TestParameters("{source: '[?optional.none(), [?optional.none()]]', expected: '[[]]'}")
+  @TestParameters("{source: 'math.greatest(1.0, 2, 3.0)', expected: '3.0'}")
+  @TestParameters("{source: '\"world\".charAt(1)', expected: '\"o\"'}")
+  @TestParameters("{source: 'base64.encode(b\"hello\")', expected: '\"aGVsbG8=\"'}")
+  @TestParameters("{source: 'sets.contains([1], [1])', expected: 'true'}")
   @TestParameters(
       "{source: 'cel.bind(r0, [1, 2, 3], cel.bind(r1, 1 in r0, r1))', expected: 'true'}")
   // TODO: Support folding lists with mixed types. This requires mutable lists.
@@ -291,12 +316,29 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters("{source: '[optional.none()]'}")
   @TestParameters("{source: '[?x.?y]'}")
   @TestParameters("{source: 'TestAllTypes{single_int32: x, repeated_int32: [1, 2, 3]}'}")
+  @TestParameters("{source: 'get_true() == get_true()'}")
+  @TestParameters("{source: 'get_true() == true'}")
   public void constantFold_noOp(String source) throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile(source).getAst();
 
     CelAbstractSyntaxTree optimizedAst = CEL_OPTIMIZER.optimize(ast);
 
     assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo(source);
+  }
+
+  @Test
+  public void constantFold_addFoldableFunction_success() throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("get_true() == get_true()").getAst();
+    ConstantFoldingOptions options =
+        ConstantFoldingOptions.newBuilder().addFoldableFunctions("get_true").build();
+    CelOptimizer optimizer =
+        CelOptimizerFactory.standardCelOptimizerBuilder(CEL)
+            .addAstOptimizers(ConstantFoldingOptimizer.newInstance(options))
+            .build();
+
+    CelAbstractSyntaxTree optimizedAst = optimizer.optimize(ast);
+
+    assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo("true");
   }
 
   @Test

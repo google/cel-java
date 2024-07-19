@@ -16,8 +16,6 @@ package dev.cel.optimizer.optimizers;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toCollection;
 
 import com.google.auto.value.AutoValue;
@@ -30,7 +28,6 @@ import com.google.common.collect.Streams;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelBuilder;
-import dev.cel.checker.Standard;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelMutableAst;
@@ -54,12 +51,9 @@ import dev.cel.common.navigation.TraversalOrder;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
-import dev.cel.extensions.CelOptionalLibrary;
-import dev.cel.extensions.CelOptionalLibrary.Function;
 import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.AstMutator.MangledComprehensionAst;
 import dev.cel.optimizer.CelAstOptimizer;
-import dev.cel.parser.Operator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -94,12 +88,7 @@ import java.util.Set;
  * </pre>
  */
 public class SubexpressionOptimizer implements CelAstOptimizer {
-  private static final ImmutableSet<String> CSE_DEFAULT_ELIMINABLE_FUNCTIONS =
-      Streams.concat(
-              stream(Operator.values()).map(Operator::getFunction),
-              stream(Standard.Function.values()).map(Standard.Function::getFunction),
-              stream(CelOptionalLibrary.Function.values()).map(Function::getFunction))
-          .collect(toImmutableSet());
+
   private static final SubexpressionOptimizer INSTANCE =
       new SubexpressionOptimizer(SubexpressionOptimizerOptions.newBuilder().build());
   private static final String BIND_IDENTIFIER_PREFIX = "@r";
@@ -738,7 +727,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     this.astMutator = AstMutator.newInstance(cseOptions.iterationLimit());
     this.cseEliminableFunctions =
         ImmutableSet.<String>builder()
-            .addAll(CSE_DEFAULT_ELIMINABLE_FUNCTIONS)
+            .addAll(DefaultOptimizerConstants.CEL_CANONICAL_FUNCTIONS)
             .addAll(cseOptions.eliminableFunctions())
             .build();
   }

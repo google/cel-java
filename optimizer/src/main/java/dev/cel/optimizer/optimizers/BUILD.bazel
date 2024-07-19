@@ -14,6 +14,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":default_optimizer_constants",
         "//:auto_value",
         "//bundle:cel",
         "//common",
@@ -29,6 +30,7 @@ java_library(
         "//optimizer:optimization_exception",
         "//parser:operator",
         "//runtime",
+        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -41,9 +43,9 @@ java_library(
     tags = [
     ],
     deps = [
+        ":default_optimizer_constants",
         "//:auto_value",
         "//bundle:cel",
-        "//checker:checker_legacy_environment",
         "//common",
         "//common:compiler_common",
         "//common:mutable_ast",
@@ -55,12 +57,25 @@ java_library(
         "//common/navigation:mutable_navigation",
         "//common/types",
         "//common/types:type_providers",
-        "//extensions:optional_library",
         "//optimizer:ast_optimizer",
         "//optimizer:mutable_ast",
-        "//parser:operator",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "default_optimizer_constants",
+    srcs = [
+        "DefaultOptimizerConstants.java",
+    ],
+    visibility = ["//visibility:private"],
+    deps = [
+        "//checker:checker_legacy_environment",
+        "//extensions",
+        "//extensions:optional_library",
+        "//parser:operator",
+        "@maven//:com_google_guava_guava",
     ],
 )

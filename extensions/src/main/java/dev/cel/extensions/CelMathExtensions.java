@@ -104,7 +104,7 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
     return builder.buildOrThrow();
   }
 
-  public enum Function {
+  enum Function {
     MAX(
         CelFunctionDecl.newFunctionDeclaration(
             MATH_MAX_FUNCTION,
@@ -340,6 +340,10 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
     private final ImmutableSet<CelRuntime.CelFunctionBinding> functionBindings;
     private final ImmutableSet<CelRuntime.CelFunctionBinding> functionBindingsULongSigned;
     private final ImmutableSet<CelRuntime.CelFunctionBinding> functionBindingsULongUnsigned;
+
+    String getFunction() {
+      return functionDecl.name();
+    }
 
     Function(
         CelFunctionDecl functionDecl,

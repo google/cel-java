@@ -229,6 +229,10 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
     private final CelFunctionDecl functionDecl;
     private final ImmutableSet<CelRuntime.CelFunctionBinding> functionBindings;
 
+    String getFunction() {
+      return functionDecl.name();
+    }
+
     Function(CelFunctionDecl functionDecl, CelRuntime.CelFunctionBinding... functionBindings) {
       this.functionDecl = functionDecl;
       this.functionBindings = ImmutableSet.copyOf(functionBindings);

@@ -14,6 +14,7 @@
 
 package dev.cel.extensions;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.ByteString;
 import dev.cel.checker.CelCheckerBuilder;
@@ -35,31 +36,58 @@ public class CelEncoderExtensions implements CelCompilerLibrary, CelRuntimeLibra
 
   private static final Decoder BASE64_DECODER = Base64.getDecoder();
 
-  @Override
-  public void setCheckerOptions(CelCheckerBuilder checkerBuilder) {
-    checkerBuilder.addFunctionDeclarations(
+  private final ImmutableSet<Function> functions;
+
+  enum Function {
+    DECODE(
         CelFunctionDecl.newFunctionDeclaration(
             "base64.decode",
             CelOverloadDecl.newGlobalOverload(
                 "base64_decode_string", SimpleType.BYTES, SimpleType.STRING)),
+        ImmutableSet.of(
+            CelRuntime.CelFunctionBinding.from(
+                "base64_decode_string",
+                String.class,
+                str -> ByteString.copyFrom(BASE64_DECODER.decode(str))))),
+    ENCODE(
         CelFunctionDecl.newFunctionDeclaration(
             "base64.encode",
             CelOverloadDecl.newGlobalOverload(
-                "base64_encode_bytes", SimpleType.STRING, SimpleType.BYTES)));
+                "base64_encode_bytes", SimpleType.STRING, SimpleType.BYTES)),
+        ImmutableSet.of(
+            CelRuntime.CelFunctionBinding.from(
+                "base64_encode_bytes",
+                ByteString.class,
+                bytes -> BASE64_ENCODER.encodeToString(bytes.toByteArray())))),
+    ;
+
+    private final CelFunctionDecl functionDecl;
+    private final ImmutableSet<CelRuntime.CelFunctionBinding> functionBindings;
+
+    String getFunction() {
+      return functionDecl.name();
+    }
+
+    Function(
+        CelFunctionDecl functionDecl,
+        ImmutableSet<CelRuntime.CelFunctionBinding> functionBindings) {
+      this.functionDecl = functionDecl;
+      this.functionBindings = functionBindings;
+    }
+  }
+
+  @Override
+  public void setCheckerOptions(CelCheckerBuilder checkerBuilder) {
+    functions.forEach(function -> checkerBuilder.addFunctionDeclarations(function.functionDecl));
   }
 
   @SuppressWarnings("Immutable") // Instances of java.util.Base64 are immutable
   @Override
   public void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder) {
-    runtimeBuilder.addFunctionBindings(
-        CelRuntime.CelFunctionBinding.from(
-            "base64_decode_string",
-            String.class,
-            str -> ByteString.copyFrom(BASE64_DECODER.decode(str))),
-        CelRuntime.CelFunctionBinding.from(
-            "base64_encode_bytes",
-            ByteString.class,
-            bytes -> BASE64_ENCODER.encodeToString(bytes.toByteArray())));
+    functions.forEach(function -> runtimeBuilder.addFunctionBindings(function.functionBindings));
+  }
+
+  public CelEncoderExtensions() {
+    this.functions = ImmutableSet.copyOf(Function.values());
   }
 }
-

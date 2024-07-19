@@ -13,11 +13,14 @@
 // limitations under the License.
 package dev.cel.optimizer.optimizers;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelMutableAst;
@@ -40,6 +43,7 @@ import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.parser.Operator;
 import dev.cel.runtime.CelEvaluationException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -71,6 +75,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
 
   private final ConstantFoldingOptions constantFoldingOptions;
   private final AstMutator astMutator;
+  private final ImmutableSet<String> foldableFunctions;
 
   // Use optional.of and optional.none as sentinel function names for folding optional calls.
   // TODO: Leverage CelValue representation of Optionals instead when available.
@@ -95,7 +100,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
           CelNavigableMutableAst.fromAst(mutableAst)
               .getRoot()
               .allNodes()
-              .filter(ConstantFoldingOptimizer::canFold)
+              .filter(this::canFold)
               .collect(toImmutableList());
       for (CelNavigableMutableExpr foldableExpr : foldableExprs) {
         iterCount++;
@@ -124,9 +129,13 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
     return OptimizationResult.create(astMutator.renumberIdsConsecutively(mutableAst).toParsedAst());
   }
 
-  private static boolean canFold(CelNavigableMutableExpr navigableExpr) {
+  private boolean canFold(CelNavigableMutableExpr navigableExpr) {
     switch (navigableExpr.getKind()) {
       case CALL:
+        if (!containsFoldableFunctionOnly(navigableExpr)) {
+          return false;
+        }
+
         CelMutableCall mutableCall = navigableExpr.expr().call();
         String functionName = mutableCall.function();
 
@@ -167,6 +176,19 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       default:
         return false;
     }
+  }
+
+  private boolean containsFoldableFunctionOnly(CelNavigableMutableExpr navigableExpr) {
+    return navigableExpr
+        .allNodes()
+        .allMatch(
+            node -> {
+              if (node.getKind().equals(Kind.CALL)) {
+                return foldableFunctions.contains(node.expr().call().function());
+              }
+
+              return true;
+            });
   }
 
   private static boolean canFoldInOperator(CelNavigableMutableExpr navigableExpr) {
@@ -574,15 +596,38 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   public abstract static class ConstantFoldingOptions {
     public abstract int maxIterationLimit();
 
+    public abstract ImmutableSet<String> foldableFunctions();
+
     /** Builder for configuring the {@link ConstantFoldingOptions}. */
     @AutoValue.Builder
     public abstract static class Builder {
+
+      abstract ImmutableSet.Builder<String> foldableFunctionsBuilder();
 
       /**
        * Limit the number of iteration while performing constant folding. An exception is thrown if
        * the iteration count exceeds the set value.
        */
       public abstract Builder maxIterationLimit(int value);
+
+      /**
+       * Adds a collection of custom functions that will be a candidate for constant folding. By
+       * default, standard functions are foldable.
+       *
+       * <p>Note that the implementation of custom functions must be free of side effects.
+       */
+      @CanIgnoreReturnValue
+      public Builder addFoldableFunctions(Iterable<String> functions) {
+        checkNotNull(functions);
+        this.foldableFunctionsBuilder().addAll(functions);
+        return this;
+      }
+
+      /** See {@link #addFoldableFunctions(Iterable)}. */
+      @CanIgnoreReturnValue
+      public Builder addFoldableFunctions(String... functions) {
+        return addFoldableFunctions(Arrays.asList(functions));
+      }
 
       public abstract ConstantFoldingOptions build();
 
@@ -601,5 +646,10 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   private ConstantFoldingOptimizer(ConstantFoldingOptions constantFoldingOptions) {
     this.constantFoldingOptions = constantFoldingOptions;
     this.astMutator = AstMutator.newInstance(constantFoldingOptions.maxIterationLimit());
+    this.foldableFunctions =
+        ImmutableSet.<String>builder()
+            .addAll(DefaultOptimizerConstants.CEL_CANONICAL_FUNCTIONS)
+            .addAll(constantFoldingOptions.foldableFunctions())
+            .build();
   }
 }
