@@ -30,6 +30,18 @@ import com.google.errorprone.annotations.Immutable;
 @Immutable
 public abstract class CelOptions {
 
+  /**
+   * ProtoUnsetFieldOptions describes how to handle Activation.fromProto() calls where proto message
+   * fields may be unset and should either be handled perhaps as absent or as the default proto
+   * value.
+   */
+  public enum ProtoUnsetFieldOptions {
+    // Do not bind a field if it is unset. Repeated fields are bound as empty list.
+    SKIP,
+    // Bind the (proto api) default value for a field.
+    BIND_DEFAULT;
+  }
+
   public static final CelOptions DEFAULT = current().build();
 
   public static final CelOptions LEGACY = newBuilder().disableCelStandardEquality(true).build();
@@ -94,6 +106,8 @@ public abstract class CelOptions {
   public abstract int comprehensionMaxIterations();
 
   public abstract boolean unwrapWellKnownTypesOnFunctionDispatch();
+
+  public abstract ProtoUnsetFieldOptions fromProtoUnsetFieldOption();
 
   public abstract Builder toBuilder();
 
@@ -185,7 +199,8 @@ public abstract class CelOptions {
         .enableUnknownTracking(false)
         .enableCelValue(false)
         .comprehensionMaxIterations(-1)
-        .unwrapWellKnownTypesOnFunctionDispatch(true);
+        .unwrapWellKnownTypesOnFunctionDispatch(true)
+        .fromProtoUnsetFieldOption(ProtoUnsetFieldOptions.BIND_DEFAULT);
   }
 
   /**
@@ -478,6 +493,15 @@ public abstract class CelOptions {
      */
     @Deprecated
     public abstract Builder unwrapWellKnownTypesOnFunctionDispatch(boolean value);
+
+    /**
+     * Configure how unset proto fields are handled when evaluating over a protobuf message where
+     * fields are intended to be treated as top-level variables. Defaults to binding all fields to
+     * their default value if unset.
+     *
+     * @see ProtoUnsetFieldOptions
+     */
+    public abstract Builder fromProtoUnsetFieldOption(ProtoUnsetFieldOptions value);
 
     public abstract CelOptions build();
   }

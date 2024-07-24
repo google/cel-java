@@ -172,7 +172,15 @@ public abstract class Activation implements GlobalResolver {
         new ProtoAdapter(
             DynamicProto.create(DefaultMessageFactory.INSTANCE), celOptions.enableUnsignedLongs());
 
+    boolean skipUnsetFields =
+        celOptions.fromProtoUnsetFieldOption().equals(CelOptions.ProtoUnsetFieldOptions.SKIP);
+
     for (FieldDescriptor field : message.getDescriptorForType().getFields()) {
+      // If skipping unset fields and the field is not repeated, then continue.
+      if (skipUnsetFields && !field.isRepeated() && !msgFieldValues.containsKey(field)) {
+        continue;
+      }
+
       // Get the value of the field set on the message, if present, otherwise use reflection to
       // get the default value for the field using the FieldDescriptor.
       Object fieldValue = msgFieldValues.getOrDefault(field, message.getField(field));

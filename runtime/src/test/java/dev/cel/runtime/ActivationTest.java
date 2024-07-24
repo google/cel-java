@@ -35,6 +35,13 @@ public final class ActivationTest {
   private static final CelOptions TEST_OPTIONS =
       CelOptions.current().enableTimestampEpoch(true).enableUnsignedLongs(true).build();
 
+  private static final CelOptions TEST_OPTIONS_SKIP_UNSET_FIELDS =
+      CelOptions.current()
+          .enableTimestampEpoch(true)
+          .enableUnsignedLongs(true)
+          .fromProtoUnsetFieldOption(CelOptions.ProtoUnsetFieldOptions.SKIP)
+          .build();
+
   @Test
   public void copyOf_success_withNullEntries() {
     Map<String, Object> map = new HashMap<>();
@@ -62,6 +69,13 @@ public final class ActivationTest {
   public void fromProto_unsetScalarField() {
     Activation activation = Activation.fromProto(NestedMessage.getDefaultInstance(), TEST_OPTIONS);
     assertThat(activation.resolve("bb")).isEqualTo(0);
+  }
+
+  @Test
+  public void fromProto_unsetScalarField_skipUnsetFields() {
+    Activation activation =
+        Activation.fromProto(NestedMessage.getDefaultInstance(), TEST_OPTIONS_SKIP_UNSET_FIELDS);
+    assertThat(activation.resolve("bb")).isNull();
   }
 
   @Test
@@ -103,8 +117,27 @@ public final class ActivationTest {
   }
 
   @Test
+  public void fromProto_unsetRepeatedField_skipUnsetFields() {
+    Activation activation =
+        Activation.fromProto(TestAllTypes.getDefaultInstance(), TEST_OPTIONS_SKIP_UNSET_FIELDS);
+    assertThat(activation.resolve("repeated_int64")).isInstanceOf(List.class);
+    assertThat((List) activation.resolve("repeated_int64")).isEmpty();
+
+    assertThat(activation.resolve("repeated_nested_message")).isInstanceOf(List.class);
+    assertThat((List) activation.resolve("repeated_nested_message")).isEmpty();
+  }
+
+  @Test
   public void fromProto_unsetMapField() {
     Activation activation = Activation.fromProto(TestAllTypes.getDefaultInstance(), TEST_OPTIONS);
+    assertThat(activation.resolve("map_int32_int64")).isInstanceOf(Map.class);
+    assertThat((Map) activation.resolve("map_int32_int64")).isEmpty();
+  }
+
+  @Test
+  public void fromProto_unsetMapField_skipUnsetFields() {
+    Activation activation =
+        Activation.fromProto(TestAllTypes.getDefaultInstance(), TEST_OPTIONS_SKIP_UNSET_FIELDS);
     assertThat(activation.resolve("map_int32_int64")).isInstanceOf(Map.class);
     assertThat((Map) activation.resolve("map_int32_int64")).isEmpty();
   }
