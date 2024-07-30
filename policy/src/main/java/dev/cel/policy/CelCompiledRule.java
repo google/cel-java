@@ -94,7 +94,9 @@ public abstract class CelCompiledRule {
      */
     @AutoValue
     public abstract static class OutputValue {
-      public abstract long id();
+
+      /** Source metadata identifier associated with the output. */
+      public abstract long sourceId();
 
       public abstract CelAbstractSyntaxTree ast();
 

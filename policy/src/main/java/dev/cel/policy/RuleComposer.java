@@ -85,7 +85,7 @@ final class RuleComposer implements CelAstOptimizer {
           if (isTriviallyTrue) {
             matchAst = outAst;
             isOptionalResult = false;
-            lastOutputId = matchOutput.id();
+            lastOutputId = matchOutput.sourceId();
             continue;
           }
           if (isOptionalResult) {
@@ -99,8 +99,12 @@ final class RuleComposer implements CelAstOptimizer {
                   outAst,
                   matchAst);
           assertComposedAstIsValid(
-              cel, matchAst, "conflicting output types found.", matchOutput.id(), lastOutputId);
-          lastOutputId = matchOutput.id();
+              cel,
+              matchAst,
+              "conflicting output types found.",
+              matchOutput.sourceId(),
+              lastOutputId);
+          lastOutputId = matchOutput.sourceId();
           continue;
         case RULE:
           CelCompiledRule matchNestedRule = match.result().rule();
@@ -117,7 +121,16 @@ final class RuleComposer implements CelAstOptimizer {
           if (!isOptionalResult && !nestedRule.isOptionalResult()) {
             throw new IllegalArgumentException("Subrule early terminates policy");
           }
-          matchAst = astMutator.newMemberCall(nestedRuleAst, Function.OR.getFunction(), matchAst);
+          if (isTriviallyTrue) {
+            matchAst = astMutator.newMemberCall(nestedRuleAst, Function.OR.getFunction(), matchAst);
+          } else {
+            matchAst =
+                astMutator.newGlobalCall(
+                    Operator.CONDITIONAL.getFunction(),
+                    CelMutableAst.fromCelAst(conditionAst),
+                    nestedRuleAst,
+                    matchAst);
+          }
           assertComposedAstIsValid(
               cel,
               matchAst,

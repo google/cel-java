@@ -92,6 +92,42 @@ public final class CelPolicyYamlConfigParserTest {
   }
 
   @Test
+  public void config_setExtensionVersionToLatest() throws Exception {
+    String yamlConfig =
+        "extensions:\n" //
+            + "  - name: 'bindings'\n" //
+            + "    version: latest";
+
+    CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(yamlConfig);
+
+    assertThat(policyConfig)
+        .isEqualTo(
+            CelPolicyConfig.newBuilder()
+                .setConfigSource(policyConfig.configSource())
+                .setExtensions(ImmutableSet.of(ExtensionConfig.of("bindings", Integer.MAX_VALUE)))
+                .build());
+    assertThat(policyConfig.extend(CEL_WITH_MESSAGE_TYPES, CelOptions.DEFAULT)).isNotNull();
+  }
+
+  @Test
+  public void config_setExtensionVersionToInvalidValue() throws Exception {
+    String yamlConfig =
+        "extensions:\n" //
+            + "  - name: 'bindings'\n" //
+            + "    version: invalid";
+
+    CelPolicyValidationException e =
+        assertThrows(
+            CelPolicyValidationException.class, () -> POLICY_CONFIG_PARSER.parse(yamlConfig));
+    assertThat(e)
+        .hasMessageThat()
+        .contains(
+            "ERROR: <input>:3:5: Unsupported version tag: version\n"
+                + " |     version: invalid\n"
+                + " | ....^");
+  }
+
+  @Test
   public void config_setFunctions() throws Exception {
     String yamlConfig =
         "functions:\n"

@@ -69,14 +69,23 @@ final class YamlHelper {
     return false;
   }
 
-  static boolean assertYamlType(
-      ParserContext<Node> ctx, long id, Node node, YamlNodeType... expectedNodeTypes) {
+  static boolean validateYamlType(Node node, YamlNodeType... expectedNodeTypes) {
     String nodeTag = node.getTag().getValue();
     for (YamlNodeType expectedNodeType : expectedNodeTypes) {
       if (expectedNodeType.tag().equals(nodeTag)) {
         return true;
       }
     }
+    return false;
+  }
+
+  static boolean assertYamlType(
+      ParserContext<Node> ctx, long id, Node node, YamlNodeType... expectedNodeTypes) {
+    if (validateYamlType(node, expectedNodeTypes)) {
+      return true;
+    }
+    String nodeTag = node.getTag().getValue();
+
     ctx.reportError(
         id,
         String.format(

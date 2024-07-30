@@ -87,7 +87,18 @@ final class PolicyTestHelper {
         "pb",
         true,
         "(spec.single_int32 > 10) ? optional.of(\"invalid spec, got single_int32=\" +"
-            + " string(spec.single_int32) + \", wanted <= 10\") : optional.none()");
+            + " string(spec.single_int32) + \", wanted <= 10\") : optional.none()"),
+    LIMITS(
+        "limits",
+        true,
+        "cel.bind(variables.greeting, \"hello\", cel.bind(variables.farewell, \"goodbye\","
+            + " cel.bind(variables.person, \"me\", cel.bind(variables.message_fmt, \"%s, %s\","
+            + " (now.getHours() >= 20) ? cel.bind(variables.message, variables.farewell + \", \" +"
+            + " variables.person, (now.getHours() < 21) ? optional.of(variables.message + \"!\") :"
+            + " ((now.getHours() < 22) ? optional.of(variables.message + \"!!\") : ((now.getHours()"
+            + " < 24) ? optional.of(variables.message + \"!!!\") : optional.none()))) :"
+            + " optional.of(variables.greeting + \", \" + variables.person)))))");
+
     private final String name;
     private final boolean producesOptionalResult;
     private final String unparsed;

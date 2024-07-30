@@ -21,6 +21,7 @@ import static dev.cel.policy.YamlHelper.newBoolean;
 import static dev.cel.policy.YamlHelper.newInteger;
 import static dev.cel.policy.YamlHelper.newString;
 import static dev.cel.policy.YamlHelper.parseYamlSource;
+import static dev.cel.policy.YamlHelper.validateYamlType;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -258,7 +259,18 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
           builder.setName(newString(ctx, valueNode));
           break;
         case "version":
-          builder.setVersion(newInteger(ctx, valueNode));
+          if (validateYamlType(valueNode, YamlNodeType.INTEGER)) {
+            builder.setVersion(newInteger(ctx, valueNode));
+            break;
+          } else if (validateYamlType(valueNode, YamlNodeType.STRING, YamlNodeType.TEXT)) {
+            String versionStr = newString(ctx, valueNode);
+            if (versionStr.equals("latest")) {
+              builder.setVersion(Integer.MAX_VALUE);
+              break;
+            }
+            // Fall-through
+          }
+          ctx.reportError(keyId, String.format("Unsupported version tag: %s", keyName));
           break;
         default:
           ctx.reportError(keyId, String.format("Unsupported extension tag: %s", keyName));
