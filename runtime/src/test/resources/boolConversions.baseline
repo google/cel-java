@@ -1,0 +1,38 @@
+Source: bool(true)
+=====>
+bindings: {}
+result:   true
+
+Source: bool('true') && bool('TRUE') && bool('True')
+=====>
+bindings: {}
+result:   true
+
+Source: bool('false') || bool('FALSE') || bool('False')
+=====>
+bindings: {}
+result:   false
+
+Source: bool('t')
+=====>
+bindings: {}
+error:    evaluation error: Type conversion error from 'string' to 'bool': [t]
+error_code:    BAD_FORMAT
+
+Source: bool('1')
+=====>
+bindings: {}
+error:    evaluation error: Type conversion error from 'string' to 'bool': [1]
+error_code:    BAD_FORMAT
+
+Source: bool('f')
+=====>
+bindings: {}
+error:    evaluation error: Type conversion error from 'string' to 'bool': [f]
+error_code:    BAD_FORMAT
+
+Source: bool('0')
+=====>
+bindings: {}
+error:    evaluation error: Type conversion error from 'string' to 'bool': [0]
+error_code:    BAD_FORMAT

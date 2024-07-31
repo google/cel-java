@@ -54,3 +54,20 @@ declare t1 {
 bindings: {}
 error:    evaluation error: invalid duration format
 error_code:    BAD_FORMAT
+
+Source: duration(duration('15.0s'))
+declare t1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {}
+result:   seconds: 15
+
+
+Source: timestamp(timestamp(123))
+declare t1 {
+  value google.protobuf.Timestamp
+}
+=====>
+bindings: {}
+result:   seconds: 123
