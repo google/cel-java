@@ -44,10 +44,12 @@ public class CelMathExtensionsTest {
       CelOptions.current().enableUnsignedLongs(false).build();
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
+          .setOptions(CEL_OPTIONS)
           .addLibraries(CelExtensions.math(CEL_OPTIONS))
           .build();
   private static final CelRuntime CEL_RUNTIME =
       CelRuntimeFactory.standardCelRuntimeBuilder()
+          .setOptions(CEL_OPTIONS)
           .addLibraries(CelExtensions.math(CEL_OPTIONS))
           .build();
 

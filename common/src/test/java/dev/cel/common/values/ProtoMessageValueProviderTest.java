@@ -106,9 +106,9 @@ public class ProtoMessageValueProviderTest {
     assertThat(protoMessageValue.select(StringValue.create("single_int64")))
         .isEqualTo(IntValue.create(2L));
     assertThat(protoMessageValue.select(StringValue.create("single_uint32")))
-        .isEqualTo(UintValue.create(3L, false));
+        .isEqualTo(UintValue.create(3L, true));
     assertThat(protoMessageValue.select(StringValue.create("single_uint64")))
-        .isEqualTo(UintValue.create(4L, false));
+        .isEqualTo(UintValue.create(4L, true));
     assertThat(protoMessageValue.select(StringValue.create("single_double")))
         .isEqualTo(DoubleValue.create(5.5d));
     assertThat(protoMessageValue.select(StringValue.create("single_bool")))
@@ -178,9 +178,9 @@ public class ProtoMessageValueProviderTest {
     assertThat(protoMessageValue.select(StringValue.create("single_int64_wrapper")).value())
         .isEqualTo(2L);
     assertThat(protoMessageValue.select(StringValue.create("single_uint32_wrapper")).value())
-        .isEqualTo(3L);
+        .isEqualTo(UnsignedLong.valueOf(3L));
     assertThat(protoMessageValue.select(StringValue.create("single_uint64_wrapper")).value())
-        .isEqualTo(4L);
+        .isEqualTo(UnsignedLong.valueOf(4L));
     assertThat(protoMessageValue.select(StringValue.create("single_double_wrapper")).value())
         .isEqualTo(5.5d);
     assertThat(protoMessageValue.select(StringValue.create("single_bool_wrapper")).value())
