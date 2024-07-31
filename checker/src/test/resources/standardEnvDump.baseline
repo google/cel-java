@@ -143,9 +143,12 @@ declare _||_ {
 }
 declare bool {
   value type(bool)
+  function bool_to_bool (bool) -> bool
+  function string_to_bool (string) -> bool
 }
 declare bytes {
   value type(bytes)
+  function bytes_to_bytes (bytes) -> bytes
   function string_to_bytes (string) -> bytes
 }
 declare contains {
@@ -153,11 +156,13 @@ declare contains {
 }
 declare double {
   value type(double)
+  function double_to_double (double) -> double
   function int64_to_double (int) -> double
   function uint64_to_double (uint) -> double
   function string_to_double (string) -> double
 }
 declare duration {
+  function duration_to_duration (google.protobuf.Duration) -> google.protobuf.Duration
   function string_to_duration (string) -> google.protobuf.Duration
 }
 declare dyn {
@@ -213,6 +218,7 @@ declare getSeconds {
 }
 declare int {
   value type(int)
+  function int64_to_int64 (int) -> int
   function uint64_to_int64 (uint) -> int
   function double_to_int64 (double) -> int
   function string_to_int64 (string) -> int
@@ -248,6 +254,7 @@ declare startsWith {
 }
 declare string {
   value type(string)
+  function string_to_string (string) -> string
   function int64_to_string (int) -> string
   function uint64_to_string (uint) -> string
   function double_to_string (double) -> string
@@ -257,6 +264,7 @@ declare string {
 }
 declare timestamp {
   function string_to_timestamp (string) -> google.protobuf.Timestamp
+  function timestamp_to_timestamp (google.protobuf.Timestamp) -> google.protobuf.Timestamp
   function int64_to_timestamp (int) -> google.protobuf.Timestamp
 }
 declare type {
@@ -265,6 +273,7 @@ declare type {
 }
 declare uint {
   value type(uint)
+  function uint64_to_uint64 (uint) -> uint
   function int64_to_uint64 (int) -> uint
   function double_to_uint64 (double) -> uint
   function string_to_uint64 (string) -> uint

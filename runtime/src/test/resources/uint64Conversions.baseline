@@ -35,3 +35,8 @@ Source: uint('f1')
 bindings: {}
 error:    evaluation error: f1
 error_code:    BAD_FORMAT
+
+Source: uint(1u)
+=====>
+bindings: {}
+result:   1

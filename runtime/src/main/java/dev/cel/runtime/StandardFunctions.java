@@ -154,6 +154,31 @@ public class StandardFunctions {
   }
 
   private static void addBoolFunctions(Registrar registrar) {
+    // Identity
+    registrar.add("bool_to_bool", Boolean.class, (Boolean x) -> x);
+    // Conversion function
+    registrar.add(
+        "string_to_bool",
+        String.class,
+        (String str) -> {
+          // Note: this is a bit less permissive than what cel-go allows (it accepts '1', 't').
+          switch (str) {
+            case "true":
+            case "TRUE":
+            case "True":
+              return true;
+            case "false":
+            case "FALSE":
+            case "False":
+              return false;
+            default:
+              throw new InterpreterException.Builder(
+                      "Type conversion error from 'string' to 'bool': [%s]", str)
+                  .setErrorCode(CelErrorCode.BAD_FORMAT)
+                  .build();
+          }
+        });
+
     // The conditional, logical_or, logical_and, and not_strictly_false functions are special-cased.
     registrar.add("logical_not", Boolean.class, (Boolean x) -> !x);
 
@@ -167,6 +192,8 @@ public class StandardFunctions {
   }
 
   private static void addBytesFunctions(Registrar registrar) {
+    // Identity
+    registrar.add("bytes_to_bytes", ByteString.class, (ByteString x) -> x);
     // Bytes ordering functions: <, <=, >=, >
     registrar.add(
         "less_bytes",
@@ -205,6 +232,8 @@ public class StandardFunctions {
   }
 
   private static void addDoubleFunctions(Registrar registrar, CelOptions celOptions) {
+    // Identity
+    registrar.add("double_to_double", Double.class, (Double x) -> x);
     // Double ordering functions.
     registrar.add("less_double", Double.class, Double.class, (Double x, Double y) -> x < y);
     registrar.add("less_equals_double", Double.class, Double.class, (Double x, Double y) -> x <= y);
@@ -245,6 +274,8 @@ public class StandardFunctions {
   }
 
   private static void addDurationFunctions(Registrar registrar) {
+    // Identity
+    registrar.add("duration_to_duration", Duration.class, (Duration x) -> x);
     // Duration ordering functions: <, <=, >=, >
     registrar.add(
         "less_duration",
@@ -307,6 +338,8 @@ public class StandardFunctions {
   }
 
   private static void addIntFunctions(Registrar registrar, CelOptions celOptions) {
+    // Identity
+    registrar.add("int64_to_int64", Long.class, (Long x) -> x);
     // Comparison functions.
     registrar.add("less_int64", Long.class, Long.class, (Long x, Long y) -> x < y);
     registrar.add("less_equals_int64", Long.class, Long.class, (Long x, Long y) -> x <= y);
@@ -499,6 +532,8 @@ public class StandardFunctions {
   }
 
   private static void addStringFunctions(Registrar registrar, CelOptions celOptions) {
+    // Identity
+    registrar.add("string_to_string", String.class, (String x) -> x);
     // String ordering functions: <, <=, >=, >.
     registrar.add(
         "less_string", String.class, String.class, (String x, String y) -> x.compareTo(y) < 0);
@@ -547,6 +582,8 @@ public class StandardFunctions {
   // timestamp_to_milliseconds overload
   @SuppressWarnings("JavaLocalDateTimeGetNano")
   private static void addTimestampFunctions(Registrar registrar) {
+    // Identity
+    registrar.add("timestamp_to_timestamp", Timestamp.class, (Timestamp x) -> x);
     // Timestamp relation operators: <, <=, >=, >
     registrar.add(
         "less_timestamp",
@@ -714,6 +751,8 @@ public class StandardFunctions {
   }
 
   private static void addSignedUintFunctions(Registrar registrar, CelOptions celOptions) {
+    // Identity
+    registrar.add("uint64_to_uint64", Long.class, (Long x) -> x);
     // Uint relation operators: <, <=, >=, >
     registrar.add(
         "less_uint64",
@@ -833,6 +872,8 @@ public class StandardFunctions {
   }
 
   private static void addUintFunctions(Registrar registrar, CelOptions celOptions) {
+    // Identity
+    registrar.add("uint64_to_uint64", UnsignedLong.class, (UnsignedLong x) -> x);
     registrar.add(
         "less_uint64",
         UnsignedLong.class,

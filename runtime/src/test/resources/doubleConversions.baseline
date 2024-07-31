@@ -18,3 +18,8 @@ Source: double('bad')
 bindings: {}
 error:    evaluation error: For input string: "bad"
 error_code:    BAD_FORMAT
+
+Source: double(1.5)
+=====>
+bindings: {}
+result:   1.5

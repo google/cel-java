@@ -1261,6 +1261,12 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     // Not supported.
     source = "duration('inf')";
     runTest(Activation.EMPTY);
+
+    source = "duration(duration('15.0s'))"; // Identity
+    runTest(Activation.EMPTY);
+
+    source = "timestamp(timestamp(123))"; // Identity
+    runTest(Activation.EMPTY);
   }
 
   @Test
@@ -1491,6 +1497,9 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     source = "uint('f1')"; // should error
     runTest(Activation.EMPTY);
+
+    source = "uint(1u)"; // identity
+    runTest(Activation.EMPTY);
   }
 
   @Test
@@ -1505,6 +1514,9 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     runTest(Activation.EMPTY);
 
     source = "double('bad')";
+    runTest(Activation.EMPTY);
+
+    source = "double(1.5)"; // Identity
     runTest(Activation.EMPTY);
   }
 
@@ -1536,6 +1548,9 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     source = "string(duration('1000000s'))";
     runTest(Activation.EMPTY);
+
+    source = "string('hello')"; // Identity
+    runTest(Activation.EMPTY);
   }
 
   @Test
@@ -1547,9 +1562,36 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   }
 
   @Test
+  public void boolConversions() throws Exception {
+    source = "bool(true)";
+    runTest(Activation.EMPTY); // Identity
+
+    source = "bool('true') && bool('TRUE') && bool('True')";
+    runTest(Activation.EMPTY); // result is true
+
+    source = "bool('false') || bool('FALSE') || bool('False')";
+    runTest(Activation.EMPTY); // result is false
+
+    source = "bool('t')";
+    runTest(Activation.EMPTY); // exception
+
+    source = "bool('1')";
+    runTest(Activation.EMPTY); // exception
+
+    source = "bool('f')";
+    runTest(Activation.EMPTY); // exception
+
+    source = "bool('0')";
+    runTest(Activation.EMPTY); // exception
+  }
+
+  @Test
   public void bytesConversions() throws Exception {
     source = "bytes('abc\\303')";
     runTest(Activation.EMPTY); // string converts to abcÃ in bytes form.
+
+    source = "bytes(bytes('abc\\303'))"; // Identity
+    runTest(Activation.EMPTY);
   }
 
   @Test

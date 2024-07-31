@@ -369,6 +369,8 @@ public final class Standard {
         CelFunctionDecl.newFunctionDeclaration(
             Function.INT.getFunction(),
             CelOverloadDecl.newGlobalOverload(
+                "int64_to_int64", "type conversion (identity)", SimpleType.INT, SimpleType.INT),
+            CelOverloadDecl.newGlobalOverload(
                 "uint64_to_int64", "type conversion", SimpleType.INT, SimpleType.UINT),
             CelOverloadDecl.newGlobalOverload(
                 "double_to_int64", "type conversion", SimpleType.INT, SimpleType.DOUBLE),
@@ -385,6 +387,8 @@ public final class Standard {
         CelFunctionDecl.newFunctionDeclaration(
             Function.UINT.getFunction(),
             CelOverloadDecl.newGlobalOverload(
+                "uint64_to_uint64", "type conversion (identity)", SimpleType.UINT, SimpleType.UINT),
+            CelOverloadDecl.newGlobalOverload(
                 "int64_to_uint64", "type conversion", SimpleType.UINT, SimpleType.INT),
             CelOverloadDecl.newGlobalOverload(
                 "double_to_uint64", "type conversion", SimpleType.UINT, SimpleType.DOUBLE),
@@ -396,6 +400,11 @@ public final class Standard {
         CelFunctionDecl.newFunctionDeclaration(
             Function.DOUBLE.getFunction(),
             CelOverloadDecl.newGlobalOverload(
+                "double_to_double",
+                "type conversion (identity)",
+                SimpleType.DOUBLE,
+                SimpleType.DOUBLE),
+            CelOverloadDecl.newGlobalOverload(
                 "int64_to_double", "type conversion", SimpleType.DOUBLE, SimpleType.INT),
             CelOverloadDecl.newGlobalOverload(
                 "uint64_to_double", "type conversion", SimpleType.DOUBLE, SimpleType.UINT),
@@ -406,6 +415,11 @@ public final class Standard {
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(
             Function.STRING.getFunction(),
+            CelOverloadDecl.newGlobalOverload(
+                "string_to_string",
+                "type conversion (identity)",
+                SimpleType.STRING,
+                SimpleType.STRING),
             CelOverloadDecl.newGlobalOverload(
                 "int64_to_string", "type conversion", SimpleType.STRING, SimpleType.INT),
             CelOverloadDecl.newGlobalOverload(
@@ -443,6 +457,8 @@ public final class Standard {
         CelFunctionDecl.newFunctionDeclaration(
             Function.BYTES.getFunction(),
             CelOverloadDecl.newGlobalOverload(
+                "bytes_to_bytes", "type conversion (identity)", SimpleType.BYTES, SimpleType.BYTES),
+            CelOverloadDecl.newGlobalOverload(
                 "string_to_bytes", "type conversion", SimpleType.BYTES, SimpleType.STRING)));
 
     // Conversions to dyn
@@ -457,10 +473,24 @@ public final class Standard {
         CelFunctionDecl.newFunctionDeclaration(
             Function.DURATION.getFunction(),
             CelOverloadDecl.newGlobalOverload(
+                "duration_to_duration",
+                "type conversion (identity)",
+                SimpleType.DURATION,
+                SimpleType.DURATION),
+            CelOverloadDecl.newGlobalOverload(
                 "string_to_duration",
                 "type conversion, duration should be end with \"s\", which stands for seconds",
                 SimpleType.DURATION,
                 SimpleType.STRING)));
+
+    // Conversions to boolean
+    celFunctionDeclBuilder.add(
+        CelFunctionDecl.newFunctionDeclaration(
+            Function.BOOL.getFunction(),
+            CelOverloadDecl.newGlobalOverload(
+                "bool_to_bool", "type conversion (identity)", SimpleType.BOOL, SimpleType.BOOL),
+            CelOverloadDecl.newGlobalOverload(
+                "string_to_bool", "type conversion", SimpleType.BOOL, SimpleType.STRING)));
 
     // String functions
     celFunctionDeclBuilder.add(
@@ -693,7 +723,12 @@ public final class Standard {
                     "Type conversion of strings to timestamps according to RFC3339. Example:"
                         + " \"1972-01-01T10:00:20.021-05:00\".",
                     SimpleType.TIMESTAMP,
-                    SimpleType.STRING));
+                    SimpleType.STRING),
+                CelOverloadDecl.newGlobalOverload(
+                    "timestamp_to_timestamp",
+                    "type conversion (identity)",
+                    SimpleType.TIMESTAMP,
+                    SimpleType.TIMESTAMP));
     if (withEpoch) {
       timestampBuilder.addOverloads(
           CelOverloadDecl.newGlobalOverload(
