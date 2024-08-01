@@ -419,25 +419,6 @@ public final class Standard {
             CelOverloadDecl.newGlobalOverload(
                 "duration_to_string", "type_conversion", SimpleType.STRING, SimpleType.DURATION)));
 
-    // Conversions to list
-    celFunctionDeclBuilder.add(
-        CelFunctionDecl.newFunctionDeclaration(
-            Function.LIST.getFunction(),
-            CelOverloadDecl.newGlobalOverload(
-                "to_list", "type conversion", listOfA, TypeType.create(typeParamA), listOfA)));
-
-    // Conversions to map
-    celFunctionDeclBuilder.add(
-        CelFunctionDecl.newFunctionDeclaration(
-            Function.MAP.getFunction(),
-            CelOverloadDecl.newGlobalOverload(
-                "to_map",
-                "type conversion",
-                mapOfAb,
-                TypeType.create(typeParamA),
-                TypeType.create(typeParamB),
-                mapOfAb)));
-
     // Conversions to bytes
     celFunctionDeclBuilder.add(
         CelFunctionDecl.newFunctionDeclaration(

@@ -220,11 +220,9 @@ declare int {
 }
 declare list {
   value type(list(dyn))
-  function to_list (type(A), list(A)) -> list(A)
 }
 declare map {
   value type(map(dyn, dyn))
-  function to_map (type(A), type(B), map(A, B)) -> map(A, B)
 }
 declare matches {
   function matches (string, string) -> bool
