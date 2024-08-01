@@ -159,7 +159,8 @@ public enum ExprFeatures {
           UNSIGNED_COMPARISON_AND_ARITHMETIC_IS_UNSIGNED,
           ENABLE_NAMESPACED_DECLARATIONS,
           ERROR_ON_WRAP,
-          ERROR_ON_DUPLICATE_KEYS);
+          ERROR_ON_DUPLICATE_KEYS,
+          ENABLE_UNSIGNED_LONGS);
 
   public static final ImmutableSet<ExprFeatures> LEGACY = ImmutableSet.of(LEGACY_JAVA_EQUALITY);
 }
