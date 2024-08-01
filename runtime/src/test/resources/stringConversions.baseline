@@ -32,3 +32,8 @@ Source: string(duration('1000000s'))
 =====>
 bindings: {}
 result:   1000000s
+
+Source: string('hello')
+=====>
+bindings: {}
+result:   hello

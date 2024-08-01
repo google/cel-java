@@ -540,6 +540,10 @@ public class Env {
     return celOptions.enableTimestampEpoch();
   }
 
+  boolean enableUnsignedLongs() {
+    return celOptions.enableUnsignedLongs();
+  }
+
   /** Add an identifier {@code decl} to the environment. */
   @CanIgnoreReturnValue
   private Env addIdent(CelIdentDecl celIdentDecl) {
