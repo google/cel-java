@@ -106,7 +106,7 @@ public final class ProtoAdapterTest {
             },
             {1L, Int64Value.of(1L), LEGACY},
             {1L, Any.pack(Int64Value.of(1L)), LEGACY},
-            {1L, UInt64Value.of(1L), LEGACY},
+            {UnsignedLong.valueOf(1L), UInt64Value.of(1L), LEGACY},
             {"hello", StringValue.of("hello"), LEGACY},
             {"hello", Any.pack(StringValue.of("hello")), LEGACY},
             {"hello", Value.newBuilder().setStringValue("hello").build(), LEGACY},

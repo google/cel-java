@@ -211,6 +211,7 @@ public abstract class CelOptions {
     return newBuilder()
         .enableReservedIds(true)
         .enableUnsignedComparisonAndArithmeticIsUnsigned(true)
+        .enableUnsignedLongs(true)
         .enableRegexPartialMatch(true)
         .errorOnDuplicateMapKeys(true)
         .errorOnIntWrap(true)
