@@ -101,9 +101,9 @@ java_library(
         "//common/types",
         "//compiler:compiler_builder",
         "//runtime",
+        "@@protobuf~//java/core",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -124,8 +124,8 @@ java_library(
         "//parser:operator",
         "//parser:parser_builder",
         "//runtime",
+        "@@protobuf~//java/core",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 

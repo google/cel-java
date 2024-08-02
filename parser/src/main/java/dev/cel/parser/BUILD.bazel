@@ -123,6 +123,6 @@ java_library(
         "//common",
         "//common/ast",
         "//common/ast:cel_expr_visitor",
-        "@maven//:com_google_protobuf_protobuf_java",
+        "@@protobuf~//java/core",
     ],
 )

@@ -20,16 +20,28 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 
 http_archive(
     name = "bazel_skylib",
-    sha256 = "74d544d96f4a5bb630d465ca8bbcfe231e3594e5aae57e1edbf17a6eb3ca2506",
+    sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
-        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
     ],
 )
 
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
+
+# Transitive dependency required by protobuf v4 https://github.com/protocolbuffers/protobuf/issues/17200
+http_archive(
+    name = "rules_python",
+    sha256 = "778aaeab3e6cfd56d681c89f5c10d7ad6bf8d2f1a72de9de55b23081b2d31618",
+    strip_prefix = "rules_python-0.34.0",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/0.34.0/rules_python-0.34.0.tar.gz",
+)
+
+load("@rules_python//python:repositories.bzl", "py_repositories")
+
+py_repositories()
 
 RULES_JVM_EXTERNAL_TAG = "aa44247b3913da0da606e9c522313b6a9396a571"
 
@@ -58,15 +70,13 @@ ANTLR4_VERSION = "4.13.1"
 maven_install(
     # keep sorted
     artifacts = [
-        "com.google.api.grpc:proto-google-common-protos:2.38.0",
         "com.google.auto.value:auto-value:1.10.4",
         "com.google.auto.value:auto-value-annotations:1.10.4",
         "com.google.code.findbugs:annotations:3.0.1",
         "com.google.errorprone:error_prone_annotations:2.26.1",
         "com.google.guava:guava:33.1.0-jre",
         "com.google.guava:guava-testlib:33.1.0-jre",
-        "com.google.protobuf:protobuf-java:3.25.3",
-        "com.google.protobuf:protobuf-java-util:3.25.3",
+        "com.google.protobuf:protobuf-java-util:4.27.3",
         "com.google.re2j:re2j:1.7",
         "com.google.testparameterinjector:test-parameter-injector:1.15",
         "com.google.truth.extensions:truth-java8-extension:1.4.2",
@@ -85,9 +95,9 @@ maven_install(
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "b1d6dd2cbb5d87e17af41cadb720322ce7e13af826268707bd8db47e5654770b",
-    strip_prefix = "protobuf-21.11",
-    urls = ["https://github.com/protocolbuffers/protobuf/archive/v21.11.tar.gz"],
+    sha256 = "1535151efbc7893f38b0578e83cac584f2819974f065698976989ec71c1af84a",
+    strip_prefix = "protobuf-27.3",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v27.3.tar.gz"],
 )
 
 # Required by com_google_protobuf

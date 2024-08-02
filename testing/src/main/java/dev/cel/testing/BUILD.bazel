@@ -75,9 +75,9 @@ java_library(
         "//compiler",
         "//compiler:compiler_builder",
         "//parser:macro",
+        "@@protobuf~//java/core",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -97,8 +97,8 @@ java_library(
         "//common/values:proto_message_value_provider",
         "//runtime:interpreter",
         "//runtime:runtime_type_provider_legacy",
+        "@@protobuf~//java/core",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -113,8 +113,8 @@ java_library(
         "//common/internal:cel_descriptor_pools",
         "//common/internal:default_message_factory",
         "//runtime:interpreter",
+        "@@protobuf~//java/core",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -129,9 +129,9 @@ java_library(
         "//common:options",
         "//runtime:base",
         "//runtime:interpreter",
+        "@@protobuf~//java/core",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -156,10 +156,10 @@ java_library(
         "//common/resources/testdata/proto3:test_all_types_java_proto",
         "//common/types:cel_types",
         "//runtime:interpreter",
+        "@@protobuf~//java/core",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:junit_junit",
     ],

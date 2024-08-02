@@ -33,9 +33,9 @@ java_library(
         "//validator/validators:homogeneous_literal",  # unuseddeps: keep
         "//validator/validators:regex",  # unuseddeps: keep
         "//validator/validators:timestamp",  # unuseddeps: keep
-        "@maven//:com_google_api_grpc_proto_google_common_protos",  # unuseddeps: keep
+        "@@protobuf~//java/core",  # unuseddeps: keep
+        "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",  # unuseddeps: keep
         "@maven//:com_google_guava_guava",  # unuseddeps: keep
-        "@maven//:com_google_protobuf_protobuf_java",  # unuseddeps: keep
         "@maven//:com_google_protobuf_protobuf_java_util",  # unuseddeps: keep
     ],
 )

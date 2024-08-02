@@ -42,10 +42,10 @@ java_library(
         "//parser",
         "//parser:macro",
         "//parser:parser_builder",
+        "@@protobuf~//java/core",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -64,8 +64,8 @@ java_library(
         "//common/types:type_providers",
         "//parser:macro",
         "//parser:parser_builder",
+        "@@protobuf~//java/core",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )

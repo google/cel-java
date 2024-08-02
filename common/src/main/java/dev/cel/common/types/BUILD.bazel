@@ -73,9 +73,9 @@ java_library(
         ":type_providers",
         ":types",
         "//common/annotations",
+        "@@protobuf~//java/core",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -88,9 +88,9 @@ java_library(
         ":type_providers",
         ":types",
         "//common/annotations",
+        "@@protobuf~//java/core",
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -132,8 +132,8 @@ java_library(
         "//:auto_value",
         "//common",
         "//common/internal:file_descriptor_converter",
+        "@@protobuf~//java/core",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )

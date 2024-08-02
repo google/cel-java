@@ -46,9 +46,9 @@ java_library(
     deps = [
         "//:auto_value",
         "//common/annotations",
+        "@@protobuf~//java/core",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_jspecify_jspecify",
     ],
 )
@@ -96,8 +96,8 @@ java_library(
     deps = [
         ":ast",
         "//common/annotations",
+        "@@protobuf~//java/core",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 

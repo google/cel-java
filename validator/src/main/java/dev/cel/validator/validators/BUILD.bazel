@@ -15,7 +15,7 @@ java_library(
     ],
     deps = [
         ":literal_validator",
-        "@maven//:com_google_protobuf_protobuf_java",
+        "@@protobuf~//java/core",
     ],
 )
 
@@ -28,7 +28,7 @@ java_library(
     ],
     deps = [
         ":literal_validator",
-        "@maven//:com_google_protobuf_protobuf_java",
+        "@@protobuf~//java/core",
     ],
 )
 
