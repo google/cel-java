@@ -475,7 +475,9 @@ public final class Standard {
         CelFunctionDecl.newFunctionDeclaration(
             Function.BOOL.getFunction(),
             CelOverloadDecl.newGlobalOverload(
-                "bool_to_bool", "type conversion (identity)", SimpleType.BOOL, SimpleType.BOOL)));
+                "bool_to_bool", "type conversion (identity)", SimpleType.BOOL, SimpleType.BOOL),
+            CelOverloadDecl.newGlobalOverload(
+                "string_to_bool", "type conversion", SimpleType.BOOL, SimpleType.STRING)));
 
     // String functions
     celFunctionDeclBuilder.add(

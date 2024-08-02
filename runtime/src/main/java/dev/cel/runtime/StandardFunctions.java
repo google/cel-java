@@ -156,6 +156,33 @@ public class StandardFunctions {
   private static void addBoolFunctions(Registrar registrar) {
     // Identity
     registrar.add("bool_to_bool", Boolean.class, (Boolean x) -> x);
+    // Conversion function
+    registrar.add(
+        "string_to_bool",
+        String.class,
+        (String str) -> {
+          // Note: this is a bit less permissive than what cel-go allows (it accepts '1', 't').
+          switch (str) {
+            case "true":
+            case "TRUE":
+            case "True":
+            case "t":
+            case "1":
+              return true;
+            case "false":
+            case "FALSE":
+            case "False":
+            case "f":
+            case "0":
+              return false;
+            default:
+              throw new InterpreterException.Builder(
+                      "Type conversion error from 'string' to 'bool': [%s]", str)
+                  .setErrorCode(CelErrorCode.BAD_FORMAT)
+                  .build();
+          }
+        });
+
     // The conditional, logical_or, logical_and, and not_strictly_false functions are special-cased.
     registrar.add("logical_not", Boolean.class, (Boolean x) -> !x);
 

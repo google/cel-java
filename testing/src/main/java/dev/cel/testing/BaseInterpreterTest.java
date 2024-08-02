@@ -1568,6 +1568,18 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   public void boolConversions() throws Exception {
     source = "bool(true)";
     runTest(Activation.EMPTY); // Identity
+
+    source = "bool('true') && bool('TRUE') && bool('True') && bool('t') && bool('1')";
+    runTest(Activation.EMPTY); // result is true
+
+    source = "bool('false') || bool('FALSE') || bool('False') || bool('f') || bool('0')";
+    runTest(Activation.EMPTY); // result is false
+
+    source = "bool('TrUe')";
+    runTest(Activation.EMPTY); // exception
+
+    source = "bool('FaLsE')";
+    runTest(Activation.EMPTY); // exception
   }
 
   @Test
