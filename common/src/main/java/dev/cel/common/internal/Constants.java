@@ -26,7 +26,7 @@ import java.text.ParseException;
 import java.util.PrimitiveIterator;
 
 /**
- * Internal utility class for working with {@link com.google.api.expr.Constant}.
+ * Internal utility class for working with {@link dev.cel.expr.Constant}.
  *
  * <p>CEL Library Internals. Do Not Use.
  */
