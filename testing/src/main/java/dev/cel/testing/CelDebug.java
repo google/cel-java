@@ -42,12 +42,12 @@ public final class CelDebug {
         }
       };
 
-  /** Returns the unadorned string representation of {@link com.google.api.expr.ExprOrBuilder}. */
+  /** Returns the unadorned string representation of {@link dev.cel.expr.ExprOrBuilder}. */
   public static String toDebugString(ExprOrBuilder expr) {
     return toAdornedDebugString(expr, UNADORNER);
   }
 
-  /** Returns the adorned string representation of {@link com.google.api.expr.ExprOrBuilder}. */
+  /** Returns the adorned string representation of {@link dev.cel.expr.ExprOrBuilder}. */
   public static String toAdornedDebugString(ExprOrBuilder expr, CelAdorner adorner) {
     CelDebug debug = new CelDebug(checkNotNull(adorner));
     debug.appendExpr(checkNotNull(expr));
