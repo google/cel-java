@@ -369,7 +369,7 @@ public abstract class CelPolicyConfig {
 
     public abstract ImmutableList<TypeDecl> params();
 
-    public abstract Boolean isTypeParam();
+    public abstract boolean isTypeParam();
 
     /** Builder for {@link TypeDecl}. */
     @AutoValue.Builder
@@ -474,7 +474,7 @@ public abstract class CelPolicyConfig {
      * Version of the extension. Presently, this field is ignored as CEL-Java extensions are not
      * versioned.
      */
-    public abstract Integer version();
+    public abstract int version();
 
     /** Builder for {@link ExtensionConfig}. */
     @AutoValue.Builder
@@ -486,7 +486,7 @@ public abstract class CelPolicyConfig {
 
       public abstract Builder setName(String name);
 
-      public abstract Builder setVersion(Integer version);
+      public abstract Builder setVersion(int version);
 
       @Override
       public ImmutableList<RequiredField> requiredFields() {

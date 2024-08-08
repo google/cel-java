@@ -52,7 +52,7 @@ final class RuleComposer implements CelAstOptimizer {
   abstract static class RuleOptimizationResult {
     abstract CelMutableAst ast();
 
-    abstract Boolean isOptionalResult();
+    abstract boolean isOptionalResult();
 
     static RuleOptimizationResult create(CelMutableAst ast, boolean isOptionalResult) {
       return new AutoValue_RuleComposer_RuleOptimizationResult(ast, isOptionalResult);

@@ -140,9 +140,9 @@ final class ExprPropertyCalculator<E extends Expression> {
   /** Value class to store the height and the max ID at a specific expression ID. */
   @AutoValue
   abstract static class ExprProperty {
-    abstract Integer height();
+    abstract int height();
 
-    abstract Long maxId();
+    abstract long maxId();
 
     /** Merges the two {@link ExprProperty}, taking their maximum values from the properties. */
     private static ExprProperty merge(ExprProperty e1, ExprProperty e2) {
