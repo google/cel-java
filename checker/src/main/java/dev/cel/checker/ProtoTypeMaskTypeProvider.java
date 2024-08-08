@@ -92,9 +92,14 @@ public final class ProtoTypeMaskTypeProvider implements CelTypeProvider {
       CelTypeProvider delegateProvider, ImmutableSet<ProtoTypeMask> protoTypeMasks) {
     Map<String, Set<String>> fieldMap = new HashMap<>();
     for (ProtoTypeMask typeMask : protoTypeMasks) {
-      Optional<CelType> rootType = delegateProvider.findType(typeMask.getTypeName());
-      checkArgument(rootType.isPresent(), "message not registered: %s", typeMask.getTypeName());
+      String typeName = typeMask.getTypeName();
+      Optional<CelType> rootType = delegateProvider.findType(typeName);
+      checkArgument(rootType.isPresent(), "message not registered: %s", typeName);
       if (typeMask.areAllFieldPathsExposed()) {
+        continue;
+      }
+      if (typeMask.areAllFieldPathsHidden()) {
+        fieldMap.put(typeName, ImmutableSet.of());
         continue;
       }
       // Unroll the type(messageType) to just messageType.

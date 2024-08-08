@@ -86,6 +86,14 @@ public final class ProtoTypeMaskTest {
   }
 
   @Test
+  public void ofAllFieldsHidden() {
+    ProtoTypeMask typeExpr = ProtoTypeMask.ofAllFieldsHidden("google.rpc.context.AttributeContext");
+    assertThat(typeExpr.areAllFieldPathsExposed()).isFalse();
+    assertThat(typeExpr.getFieldPathsExposed())
+        .containsExactly(FieldPath.of(ProtoTypeMask.HIDDEN_FIELD));
+  }
+
+  @Test
   public void withFieldsAsVariableDeclarations() {
     assertThat(ProtoTypeMask.ofAllFields("google.type.Expr").fieldsAreVariableDeclarations())
         .isFalse();
