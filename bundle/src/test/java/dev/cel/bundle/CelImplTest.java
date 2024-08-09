@@ -580,6 +580,53 @@ public final class CelImplTest {
   }
 
   @Test
+  public void program_withAllFieldsHidden_emptyMessageConstructionSuccess() throws Exception {
+    Cel cel =
+        standardCelBuilderWithMacros()
+            .addMessageTypes(AttributeContext.getDescriptor())
+            .setContainer("google.rpc.context.AttributeContext")
+            .addProtoTypeMasks(
+                ProtoTypeMask.ofAllFieldsHidden("google.rpc.context.AttributeContext"))
+            .build();
+
+    assertThat(cel.createProgram(cel.compile("AttributeContext{}").getAst()).eval())
+        .isEqualTo(AttributeContext.getDefaultInstance());
+  }
+
+  @Test
+  public void compile_withAllFieldsHidden_selectHiddenField_throws() throws Exception {
+    Cel cel =
+        standardCelBuilderWithMacros()
+            .addMessageTypes(AttributeContext.getDescriptor())
+            .setContainer("google.rpc.context.AttributeContext")
+            .addProtoTypeMasks(
+                ProtoTypeMask.ofAllFieldsHidden("google.rpc.context.AttributeContext"))
+            .build();
+
+    CelValidationException e =
+        assertThrows(
+            CelValidationException.class,
+            () -> cel.compile("AttributeContext{ request: AttributeContext.Request{} }").getAst());
+    assertThat(e).hasMessageThat().contains("undefined field 'request'");
+  }
+
+  @Test
+  public void compile_withAllFieldsHidden_selectHiddenFieldOnVar_throws() throws Exception {
+    Cel cel =
+        standardCelBuilderWithMacros()
+            .addMessageTypes(AttributeContext.getDescriptor())
+            .setContainer("google.rpc.context.AttributeContext")
+            .addProtoTypeMasks(
+                ProtoTypeMask.ofAllFieldsHidden("google.rpc.context.AttributeContext"))
+            .addVar("attr_ctx", StructTypeReference.create("google.rpc.context.AttributeContext"))
+            .build();
+
+    CelValidationException e =
+        assertThrows(CelValidationException.class, () -> cel.compile("attr_ctx.source").getAst());
+    assertThat(e).hasMessageThat().contains("undefined field 'source'");
+  }
+
+  @Test
   public void program_withNestedRestrictedProtoVars() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()

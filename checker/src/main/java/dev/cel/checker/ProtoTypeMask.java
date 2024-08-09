@@ -38,6 +38,13 @@ public abstract class ProtoTypeMask {
   /** WILDCARD_FIELD indicates that all fields within the proto type are visible. */
   static final String WILDCARD_FIELD = "*";
 
+  /** HIDDEN_FIELD indicates that all fields within the proto type are not visible. */
+  static final String HIDDEN_FIELD = "!";
+
+  private static final FieldMask HIDDEN_FIELD_MASK =
+      FieldMask.newBuilder().addPaths(HIDDEN_FIELD).build();
+
+  private static final FieldPath HIDDEN_FIELD_PATH = FieldPath.of(HIDDEN_FIELD);
   private static final FieldMask WILDCARD_FIELD_MASK =
       FieldMask.newBuilder().addPaths(WILDCARD_FIELD).build();
   private static final FieldPath WILDCARD_FIELD_PATH = FieldPath.of(WILDCARD_FIELD);
@@ -50,6 +57,10 @@ public abstract class ProtoTypeMask {
 
   boolean areAllFieldPathsExposed() {
     return getFieldPathsExposed().stream().allMatch(fp -> fp.equals(WILDCARD_FIELD_PATH));
+  }
+
+  boolean areAllFieldPathsHidden() {
+    return getFieldPathsExposed().stream().allMatch(fp -> fp.equals(HIDDEN_FIELD_PATH));
   }
 
   public ProtoTypeMask withFieldsAsVariableDeclarations() {
@@ -96,6 +107,17 @@ public abstract class ProtoTypeMask {
    */
   public static ProtoTypeMask ofAllFields(String fullyQualifiedTypeName) {
     return of(fullyQualifiedTypeName, WILDCARD_FIELD_MASK);
+  }
+
+  /**
+   * Construct a new {@code ProtoTypeMask} which hides all fields in the given {@code typeName} for
+   * use within CEL expressions.
+   *
+   * <p>The {@code typeName} should be a fully-qualified path, e.g., {@code
+   * "google.rpc.context.AttributeContext"}.
+   */
+  public static ProtoTypeMask ofAllFieldsHidden(String fullyQualifiedTypeName) {
+    return of(fullyQualifiedTypeName, HIDDEN_FIELD_MASK);
   }
 
   /**
