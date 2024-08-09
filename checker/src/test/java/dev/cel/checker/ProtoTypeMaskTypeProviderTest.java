@@ -28,6 +28,7 @@ import dev.cel.common.types.MapType;
 import dev.cel.common.types.ProtoMessageType;
 import dev.cel.common.types.ProtoMessageTypeProvider;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.StructType.Field;
 import java.util.Arrays;
 import java.util.Optional;
 import org.junit.Test;
@@ -72,7 +73,7 @@ public final class ProtoTypeMaskTypeProviderTest {
     ProtoTypeMaskTypeProvider protoTypeMaskProvider =
         new ProtoTypeMaskTypeProvider(celTypeProvider, ImmutableSet.of());
     ProtoMessageType protoType = assertTypeFound(protoTypeMaskProvider, ATTRIBUTE_CONTEXT_TYPE);
-    assertThat(protoType.fields().stream().map(f -> f.name()).collect(toImmutableList()))
+    assertThat(protoType.fields().stream().map(Field::name).collect(toImmutableList()))
         .containsExactly(
             "resource",
             "request",
@@ -85,6 +86,41 @@ public final class ProtoTypeMaskTypeProviderTest {
 
     ProtoMessageType origProtoType = assertTypeFound(celTypeProvider, ATTRIBUTE_CONTEXT_TYPE);
     assertThat(protoType).isSameInstanceAs(origProtoType);
+  }
+
+  @Test
+  public void lookupFieldNames_allFieldsHidden() {
+    CelTypeProvider celTypeProvider =
+        new ProtoMessageTypeProvider(ImmutableSet.of(AttributeContext.getDescriptor()));
+    ProtoTypeMaskTypeProvider protoTypeMaskProvider =
+        new ProtoTypeMaskTypeProvider(
+            celTypeProvider,
+            ImmutableSet.of(ProtoTypeMask.ofAllFieldsHidden(ATTRIBUTE_CONTEXT_TYPE)));
+
+    ProtoMessageType protoType = assertTypeFound(protoTypeMaskProvider, ATTRIBUTE_CONTEXT_TYPE);
+    assertThat(protoType.fieldNames()).isEmpty();
+    ProtoMessageType origProtoType = assertTypeFound(celTypeProvider, ATTRIBUTE_CONTEXT_TYPE);
+    assertThat(protoType).isNotSameInstanceAs(origProtoType);
+  }
+
+  @Test
+  public void protoTypeMaskProvider_hiddenFieldSentinelCharOnSubPath_throws() {
+    CelTypeProvider celTypeProvider =
+        new ProtoMessageTypeProvider(ImmutableSet.of(AttributeContext.getDescriptor()));
+
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                new ProtoTypeMaskTypeProvider(
+                    celTypeProvider,
+                    ImmutableSet.of(
+                        ProtoTypeMask.of(
+                            "google.rpc.context.AttributeContext",
+                            FieldMask.newBuilder().addPaths("resource.!").build()))));
+    assertThat(e)
+        .hasMessageThat()
+        .contains("message google.rpc.context.AttributeContext.Resource does not declare field: !");
   }
 
   @Test
@@ -263,7 +299,7 @@ public final class ProtoTypeMaskTypeProviderTest {
 
   private void assertTypeHasFields(ProtoMessageType protoType, ImmutableSet<String> fields) {
     ImmutableSet<String> typeFieldNames =
-        protoType.fields().stream().map(f -> f.name()).collect(toImmutableSet());
+        protoType.fields().stream().map(Field::name).collect(toImmutableSet());
     assertThat(typeFieldNames).containsExactlyElementsIn(fields);
   }
 
