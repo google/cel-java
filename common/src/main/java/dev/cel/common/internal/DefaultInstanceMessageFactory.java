@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>CEL Library Internals. Do Not Use.
  */
 @Internal
-final class DefaultInstanceMessageFactory {
+public final class DefaultInstanceMessageFactory {
 
   // Controls how many times we should recursively inspect a nested message for building fully
   // qualified java class name before aborting.
@@ -87,7 +87,7 @@ final class DefaultInstanceMessageFactory {
    * Retrieves the full Java class name from the given descriptor
    *
    * @return fully qualified class name.
-   *     <p>Example 1: com.google.api.expr.Value
+   *     <p>Example 1: dev.cel.expr.Value
    *     <p>Example 2: com.google.rpc.context.AttributeContext$Resource (Nested classes)
    *     <p>Example 3: com.google.api.expr.cel.internal.testdata$SingleFileProto$SingleFile$Path
    *     (Nested class with java multiple files disabled)

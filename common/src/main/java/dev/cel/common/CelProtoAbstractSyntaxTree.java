@@ -104,12 +104,12 @@ public final class CelProtoAbstractSyntaxTree {
     this.checkedExpr = checkedExprBuilder.build();
   }
 
-  /** Construct an abstract syntax tree from a {@link com.google.api.expr.CheckedExpr}. */
+  /** Construct an abstract syntax tree from a {@link dev.cel.expr.CheckedExpr}. */
   public static CelProtoAbstractSyntaxTree fromCheckedExpr(CheckedExpr checkedExpr) {
     return new CelProtoAbstractSyntaxTree(checkedExpr);
   }
 
-  /** Construct an abstract syntax tree from a {@link com.google.api.expr.ParsedExpr}. */
+  /** Construct an abstract syntax tree from a {@link dev.cel.expr.ParsedExpr}. */
   public static CelProtoAbstractSyntaxTree fromParsedExpr(ParsedExpr parsedExpr) {
     return new CelProtoAbstractSyntaxTree(
         CheckedExpr.newBuilder()
@@ -137,7 +137,7 @@ public final class CelProtoAbstractSyntaxTree {
   }
 
   /**
-   * Returns the underlying {@link com.google.api.expr.Expr} representation of the abstract syntax
+   * Returns the underlying {@link dev.cel.expr.Expr} representation of the abstract syntax
    * tree.
    */
   @CheckReturnValue
@@ -146,7 +146,7 @@ public final class CelProtoAbstractSyntaxTree {
   }
 
   /**
-   * Returns the underlying {@link com.google.api.expr.CheckedExpr} representation of the abstract
+   * Returns the underlying {@link dev.cel.expr.CheckedExpr} representation of the abstract
    * syntax tree. Throws {@link java.lang.IllegalStateException} if {@link
    * CelAbstractSyntaxTree#isChecked} is false.
    */
@@ -159,7 +159,7 @@ public final class CelProtoAbstractSyntaxTree {
   }
 
   /**
-   * Returns the underlying {@link com.google.api.expr.SourceInfo} representation of the abstract
+   * Returns the underlying {@link dev.cel.expr.SourceInfo} representation of the abstract
    * syntax tree.
    */
   @CheckReturnValue
@@ -168,7 +168,7 @@ public final class CelProtoAbstractSyntaxTree {
   }
 
   /**
-   * Returns the underlying {@link com.google.api.expr.ParsedExpr} representation of the abstract
+   * Returns the underlying {@link dev.cel.expr.ParsedExpr} representation of the abstract
    * syntax tree.
    */
   @CheckReturnValue

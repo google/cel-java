@@ -18,7 +18,7 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 
 /**
- * CEL expression visitor implementation based on the {@link com.google.api.expr.Expr} proto.
+ * CEL expression visitor implementation based on the {@link dev.cel.expr.Expr} proto.
  *
  * <p>Note: Prefer using {@link dev.cel.common.ast.CelExprVisitor} if protobuf support is not
  * needed.

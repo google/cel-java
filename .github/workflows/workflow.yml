@@ -32,5 +32,7 @@ jobs:
       - name: Bazel Output Version
         run: bazelisk --version
       - name: Bazel Test
-        run: bazelisk test ... --deleted_packages=codelab/src/test/codelab --test_output=errors # Exclude codelab exercises as they are intentionally made to fail
+        # Exclude codelab exercises as they are intentionally made to fail
+        # Exclude conformance tests for time being until TextFormat.Parser fix is in upstream
+        run: bazelisk test ... --deleted_packages=//codelab/src/test/codelab,//conformance/src/test/java/dev/cel/conformance --test_output=errors
       - run: echo "🍏 This job's status is ${{ job.status }}."

@@ -1,0 +1,152 @@
+load("//conformance/src/test/java/dev/cel/conformance:conformance_test.bzl", "conformance_test")
+
+package(default_applicable_licenses = [
+    "//:license",
+])
+
+exports_files([
+    "conformance_test.bzl",
+    "conformance_test.sh",
+])
+
+java_library(
+    name = "run",
+    testonly = True,
+    srcs = glob(["*.java"]),
+    deps = [
+        "//:java_truth",
+        "//checker:checker_builder",
+        "//common",
+        "//common:compiler_common",
+        "//common:options",
+        "//common/internal:default_instance_message_factory",
+        "//common/types",
+        "//common/types:type_providers",
+        "//compiler",
+        "//extensions",
+        "//extensions:optional_library",
+        "//parser",
+        "//parser:macro",
+        "//parser:parser_builder",
+        "//runtime",
+        "@@protobuf~//java/core",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@cel_spec//proto/test/v1:simple_java_proto",
+        "@cel_spec//proto/test/v1/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/test/v1/proto3:test_all_types_java_proto",
+        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_truth_extensions_truth_proto_extension",
+        "@maven//:junit_junit",
+    ],
+)
+
+_ALL_TESTS = [
+    "@cel_spec//tests/simple:testdata/basic.textproto",
+    "@cel_spec//tests/simple:testdata/bindings_ext.textproto",
+    "@cel_spec//tests/simple:testdata/comparisons.textproto",
+    "@cel_spec//tests/simple:testdata/conversions.textproto",
+    "@cel_spec//tests/simple:testdata/dynamic.textproto",
+    "@cel_spec//tests/simple:testdata/encoders_ext.textproto",
+    "@cel_spec//tests/simple:testdata/enums.textproto",
+    "@cel_spec//tests/simple:testdata/fields.textproto",
+    "@cel_spec//tests/simple:testdata/fp_math.textproto",
+    "@cel_spec//tests/simple:testdata/integer_math.textproto",
+    "@cel_spec//tests/simple:testdata/lists.textproto",
+    "@cel_spec//tests/simple:testdata/logic.textproto",
+    "@cel_spec//tests/simple:testdata/macros.textproto",
+    "@cel_spec//tests/simple:testdata/math_ext.textproto",
+    "@cel_spec//tests/simple:testdata/namespace.textproto",
+    "@cel_spec//tests/simple:testdata/optionals.textproto",
+    "@cel_spec//tests/simple:testdata/parse.textproto",
+    "@cel_spec//tests/simple:testdata/plumbing.textproto",
+    "@cel_spec//tests/simple:testdata/proto2.textproto",
+    "@cel_spec//tests/simple:testdata/proto3.textproto",
+    "@cel_spec//tests/simple:testdata/proto2_ext.textproto",
+    "@cel_spec//tests/simple:testdata/string.textproto",
+    "@cel_spec//tests/simple:testdata/string_ext.textproto",
+    "@cel_spec//tests/simple:testdata/timestamps.textproto",
+    "@cel_spec//tests/simple:testdata/unknowns.textproto",
+    "@cel_spec//tests/simple:testdata/wrappers.textproto",
+]
+
+_TESTS_TO_SKIP = [
+    # Tests which require spec changes.
+    # TODO: Deprecate Duration.get_milliseconds
+    "timestamps/duration_converters/get_milliseconds",
+
+    # Broken test cases which should be supported.
+    # TODO: Invalid bytes to string conversion should error.
+    "conversions/string/bytes_invalid",
+    # TODO: Support setting / getting enum values out of the defined enum value range.
+    "enums/legacy_proto2/select_big,select_neg",
+    "enums/legacy_proto2/assign_standalone_int_big,assign_standalone_int_neg",
+    # TODO: Generate errors on enum value assignment overflows for proto3.
+    "enums/legacy_proto3/assign_standalone_int_too_big,assign_standalone_int_too_neg",
+    # TODO: Ensure overflow occurs on conversions of double values which might not work properly on all platforms.
+    "conversions/int/double_int_min_range",
+    # TODO: Duration and timestamp operations should error on overflow.
+    "timestamps/duration_range/from_string_under,from_string_over",
+    "timestamps/timestamp_range/sub_time_duration_over,sub_time_duration_under",
+    # TODO: Ensure adding negative duration values is appropriately supported.
+    "timestamps/timestamp_arithmetic/add_time_to_duration_nanos_negative",
+
+    # Skip until fixed.
+    "wrappers/field_mask/to_json",
+    "wrappers/empty/to_json",
+    "wrappers/duration/to_json",
+    "wrappers/timestamp/to_json",
+    "fields/qualified_identifier_resolution/map_value_repeat_key_heterogeneous",
+    # TODO: Add strings.quote.
+    "string_ext/quote",
+
+    # TODO: Fix null assignment to a field
+    "proto2/set_null/single_message",
+    "proto2/set_null/single_duration",
+    "proto2/set_null/single_timestamp",
+    "proto3/set_null/single_message",
+    "proto3/set_null/single_duration",
+    "proto3/set_null/single_timestamp",
+
+    # Future features for CEL 1.0
+    # TODO: Strong typing support for enums, specified but not implemented.
+    "enums/strong_proto2",
+    "enums/strong_proto3",
+
+    # com.google.protobuf.TextFormat does not conform to the spec. Unknown enum values are supposed
+    # to be allowed in proto3. Currently they are rejected.
+    # "enums/legacy_proto3/select_big",
+    # "enums/legacy_proto3/select_neg",
+    # "enums/legacy_proto3/assign_standalone_int_big",
+    # "enums/legacy_proto3/assign_standalone_int_neg",
+
+    # Not yet implemented.
+    "math_ext/ceil",
+    "math_ext/floor",
+    "math_ext/round",
+    "math_ext/trunc",
+    "math_ext/abs",
+    "math_ext/sign",
+    "math_ext/isNaN",
+    "math_ext/isInf",
+    "math_ext/isFinite",
+    "math_ext/bit_and",
+    "math_ext/bit_or",
+    "math_ext/bit_xor",
+    "math_ext/bit_not",
+    "math_ext/bit_shift_left",
+    "math_ext/bit_shift_right",
+]
+
+conformance_test(
+    name = "conformance",
+    dashboard = False,
+    data = _ALL_TESTS,
+    skip_tests = _TESTS_TO_SKIP,
+)
+
+conformance_test(
+    name = "conformance_dashboard",
+    dashboard = True,
+    data = _ALL_TESTS,
+)
