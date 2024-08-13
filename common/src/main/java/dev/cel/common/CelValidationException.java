@@ -22,7 +22,7 @@ import java.util.List;
 public final class CelValidationException extends CelException {
 
   // Truncates all errors beyond this limit in the message.
-  private static final int MAX_ERRORS_TO_REPORT = 1000;
+  private static final int MAX_ERRORS_TO_REPORT = 500;
 
   private final CelSource source;
   private final ImmutableList<CelIssue> errors;

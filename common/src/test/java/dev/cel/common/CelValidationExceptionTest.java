@@ -37,6 +37,6 @@ public class CelValidationExceptionTest {
     assertThat(celValidationException.getErrors()).hasSize(1500);
     assertThat(celValidationException)
         .hasMessageThat()
-        .endsWith("...and 500 more errors (truncated)");
+        .endsWith("...and 1000 more errors (truncated)");
   }
 }
