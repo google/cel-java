@@ -18,8 +18,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
-import dev.cel.common.internal.ComparisonFunctions;
+import dev.cel.common.internal.DefaultMessageFactory;
+import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
@@ -27,9 +29,9 @@ import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
+import dev.cel.runtime.RuntimeEquality;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -64,6 +66,9 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
           + " are unique, so size does not factor into the computation. If either list is empty,"
           + " the result will be false.";
 
+  private static final RuntimeEquality RUNTIME_EQUALITY =
+      new RuntimeEquality(DynamicProto.create(DefaultMessageFactory.INSTANCE));
+
   /** Denotes the set extension function. */
   public enum Function {
     CONTAINS(
@@ -74,12 +79,7 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
                 SET_CONTAINS_OVERLOAD_DOC,
                 SimpleType.BOOL,
                 ListType.create(TypeParamType.create("T")),
-                ListType.create(TypeParamType.create("T")))),
-        CelRuntime.CelFunctionBinding.from(
-            "list_sets_contains_list",
-            Collection.class,
-            Collection.class,
-            CelSetsExtensions::containsAll)),
+                ListType.create(TypeParamType.create("T"))))),
     EQUIVALENT(
         CelFunctionDecl.newFunctionDeclaration(
             SET_EQUIVALENT_FUNCTION,
@@ -88,12 +88,7 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
                 SET_EQUIVALENT_OVERLOAD_DOC,
                 SimpleType.BOOL,
                 ListType.create(TypeParamType.create("T")),
-                ListType.create(TypeParamType.create("T")))),
-        CelRuntime.CelFunctionBinding.from(
-            "list_sets_equivalent_list",
-            Collection.class,
-            Collection.class,
-            (listA, listB) -> containsAll(listA, listB) && containsAll(listB, listA))),
+                ListType.create(TypeParamType.create("T"))))),
     INTERSECTS(
         CelFunctionDecl.newFunctionDeclaration(
             SET_INTERSECTS_FUNCTION,
@@ -102,34 +97,29 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
                 SET_INTERSECTS_OVERLOAD_DOC,
                 SimpleType.BOOL,
                 ListType.create(TypeParamType.create("T")),
-                ListType.create(TypeParamType.create("T")))),
-        CelRuntime.CelFunctionBinding.from(
-            "list_sets_intersects_list",
-            Collection.class,
-            Collection.class,
-            CelSetsExtensions::setIntersects));
+                ListType.create(TypeParamType.create("T")))));
 
     private final CelFunctionDecl functionDecl;
-    private final ImmutableSet<CelRuntime.CelFunctionBinding> functionBindings;
 
     String getFunction() {
       return functionDecl.name();
     }
 
-    Function(CelFunctionDecl functionDecl, CelRuntime.CelFunctionBinding... functionBindings) {
+    Function(CelFunctionDecl functionDecl) {
       this.functionDecl = functionDecl;
-      this.functionBindings = ImmutableSet.copyOf(functionBindings);
     }
   }
 
   private final ImmutableSet<Function> functions;
+  private final CelOptions celOptions;
 
-  CelSetsExtensions() {
-    this(ImmutableSet.copyOf(Function.values()));
+  CelSetsExtensions(CelOptions celOptions) {
+    this(celOptions, ImmutableSet.copyOf(Function.values()));
   }
 
-  CelSetsExtensions(Set<Function> functions) {
+  CelSetsExtensions(CelOptions celOptions, Set<Function> functions) {
     this.functions = ImmutableSet.copyOf(functions);
+    this.celOptions = celOptions;
   }
 
   @Override
@@ -139,7 +129,34 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
 
   @Override
   public void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder) {
-    functions.forEach(function -> runtimeBuilder.addFunctionBindings(function.functionBindings));
+    for (Function function : functions) {
+      switch (function) {
+        case CONTAINS:
+          runtimeBuilder.addFunctionBindings(
+              CelRuntime.CelFunctionBinding.from(
+                  "list_sets_contains_list",
+                  Collection.class,
+                  Collection.class,
+                  this::containsAll));
+          break;
+        case EQUIVALENT:
+          runtimeBuilder.addFunctionBindings(
+              CelRuntime.CelFunctionBinding.from(
+                  "list_sets_equivalent_list",
+                  Collection.class,
+                  Collection.class,
+                  (listA, listB) -> containsAll(listA, listB) && containsAll(listB, listA)));
+          break;
+        case INTERSECTS:
+          runtimeBuilder.addFunctionBindings(
+              CelRuntime.CelFunctionBinding.from(
+                  "list_sets_intersects_list",
+                  Collection.class,
+                  Collection.class,
+                  this::setIntersects));
+          break;
+      }
+    }
   }
 
   /**
@@ -150,9 +167,9 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
    * <p>This is picked verbatim as implemented in the Java standard library
    * Collections.containsAll() method.
    *
-   * @see #contains(Object)
+   * @see #contains(Object, Collection)
    */
-  private static <T> boolean containsAll(Collection<T> list, Collection<T> subList) {
+  private <T> boolean containsAll(Collection<T> list, Collection<T> subList) {
     for (T e : subList) {
       if (!contains(e, list)) {
         return false;
@@ -171,7 +188,7 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
    * <p>Source:
    * https://hg.openjdk.org/jdk8u/jdk8u-dev/jdk/file/c5d02f908fb2/src/share/classes/java/util/AbstractCollection.java#l98
    */
-  private static <T> boolean contains(Object o, Collection<T> list) {
+  private <T> boolean contains(Object o, Collection<T> list) {
     Iterator<?> it = list.iterator();
     if (o == null) {
       while (it.hasNext()) {
@@ -182,7 +199,7 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
     } else {
       while (it.hasNext()) {
         Object item = it.next();
-        if (objectsEquals(item, o)) { // TODO: Support Maps.
+        if (objectsEquals(item, o)) {
           return true;
         }
       }
@@ -190,47 +207,11 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
     return false;
   }
 
-  private static boolean objectsEquals(Object o1, Object o2) {
-    if (o1 == o2) {
-      return true;
-    }
-    if (o1 == null || o2 == null) {
-      return false;
-    }
-    if (isNumeric(o1) && isNumeric(o2)) {
-      if (o1.getClass().equals(o2.getClass())) {
-        return o1.equals(o2);
-      }
-      return ComparisonFunctions.numericEquals((Number) o1, (Number) o2);
-    }
-    if (isList(o1) && isList(o2)) {
-      Collection<?> list1 = (Collection<?>) o1;
-      Collection<?> list2 = (Collection<?>) o2;
-      if (list1.size() != list2.size()) {
-        return false;
-      }
-      Iterator<?> iterator1 = list1.iterator();
-      Iterator<?> iterator2 = list2.iterator();
-      boolean result = true;
-      while (iterator1.hasNext() && iterator2.hasNext()) {
-        Object p1 = iterator1.next();
-        Object p2 = iterator2.next();
-        result = result && objectsEquals(p1, p2);
-      }
-      return result;
-    }
-    return o1.equals(o2);
+  private boolean objectsEquals(Object o1, Object o2) {
+    return RUNTIME_EQUALITY.objectEquals(o1, o2, celOptions);
   }
 
-  private static boolean isNumeric(Object o) {
-    return o instanceof Number;
-  }
-
-  private static boolean isList(Object o) {
-    return o instanceof List;
-  }
-
-  private static <T> boolean setIntersects(Collection<T> listA, Collection<T> listB) {
+  private <T> boolean setIntersects(Collection<T> listA, Collection<T> listB) {
     if (listA.isEmpty() || listB.isEmpty()) {
       return false;
     }

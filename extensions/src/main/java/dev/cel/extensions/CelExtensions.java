@@ -34,7 +34,6 @@ public final class CelExtensions {
   private static final CelProtoExtensions PROTO_EXTENSIONS = new CelProtoExtensions();
   private static final CelBindingsExtensions BINDINGS_EXTENSIONS = new CelBindingsExtensions();
   private static final CelEncoderExtensions ENCODER_EXTENSIONS = new CelEncoderExtensions();
-  private static final CelSetsExtensions SET_EXTENSIONS = new CelSetsExtensions();
 
   /**
    * Extended functions for string manipulation.
@@ -176,6 +175,14 @@ public final class CelExtensions {
   }
 
   /**
+   * @deprecated Use {@link #sets(CelOptions)} instead.
+   */
+  @Deprecated
+  public static CelSetsExtensions sets() {
+    return sets(CelOptions.DEFAULT);
+  }
+
+  /**
    * Extended functions for Set manipulation.
    *
    * <p>Refer to README.md for available functions.
@@ -184,8 +191,8 @@ public final class CelExtensions {
    * future additions. To expose only a subset of functions, use {@link
    * #sets(CelSetExtensions.Function...)} instead.
    */
-  public static CelSetsExtensions sets() {
-    return SET_EXTENSIONS;
+  public static CelSetsExtensions sets(CelOptions celOptions) {
+    return new CelSetsExtensions(celOptions);
   }
 
   /**
@@ -195,8 +202,9 @@ public final class CelExtensions {
    *
    * <p>This will include only the specific functions denoted by {@link CelSetsExtensions.Function}.
    */
-  public static CelSetsExtensions sets(CelSetsExtensions.Function... functions) {
-    return sets(ImmutableSet.copyOf(functions));
+  public static CelSetsExtensions sets(
+      CelOptions celOptions, CelSetsExtensions.Function... functions) {
+    return sets(celOptions, ImmutableSet.copyOf(functions));
   }
 
   /**
@@ -206,8 +214,9 @@ public final class CelExtensions {
    *
    * <p>This will include only the specific functions denoted by {@link CelSetsExtensions.Function}.
    */
-  public static CelSetsExtensions sets(Set<CelSetsExtensions.Function> functions) {
-    return new CelSetsExtensions(functions);
+  public static CelSetsExtensions sets(
+      CelOptions celOptions, Set<CelSetsExtensions.Function> functions) {
+    return new CelSetsExtensions(celOptions, functions);
   }
 
   /**
