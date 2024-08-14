@@ -202,12 +202,30 @@ final class CelPolicyYamlParser implements CelPolicyParser {
                     result -> ctx.reportError(tagId, "Only the rule or the output may be set"));
             matchBuilder.setResult(Match.Result.ofOutput(ctx.newValueString(value)));
             break;
+          case "explanation":
+            matchBuilder
+                .result()
+                .filter(result -> result.kind().equals(Match.Result.Kind.RULE))
+                .ifPresent(
+                    result ->
+                        ctx.reportError(
+                            tagId,
+                            "Explanation can only be set on output match cases, not nested rules"));
+            matchBuilder.setExplanation(ctx.newValueString(value));
+            break;
           case "rule":
             matchBuilder
                 .result()
                 .filter(result -> result.kind().equals(Match.Result.Kind.OUTPUT))
                 .ifPresent(
                     result -> ctx.reportError(tagId, "Only the rule or the output may be set"));
+            matchBuilder
+                .explanation()
+                .ifPresent(
+                    result ->
+                        ctx.reportError(
+                            result.id(),
+                            "Explanation can only be set on output match cases, not nested rules"));
             matchBuilder.setResult(Match.Result.ofRule(parseRule(ctx, policyBuilder, value)));
             break;
           default:

@@ -17,6 +17,7 @@ package dev.cel.policy;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.common.collect.Iterables;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.policy.PolicyTestHelper.K8sTagHandler;
@@ -40,6 +41,21 @@ public final class CelPolicyYamlParserTest {
     assertThat(policy.name().value()).isEqualTo(yamlPolicy.getPolicyName());
     assertThat(policy.policySource().getContent().toString()).isEqualTo(policySource);
     assertThat(policy.policySource().getDescription()).isEqualTo(description);
+  }
+
+  @Test
+  public void parseYamlPolicy_withExplanation() throws Exception {
+    String policySource =
+        "rule:\n"
+            + "  match:\n"
+            + "  - output: 'true'\n"
+            + "    explanation: \"'custom explanation'\"";
+
+    CelPolicy policy = POLICY_PARSER.parse(policySource);
+
+    assertThat(policy.rule().matches()).hasSize(1);
+    assertThat(Iterables.getOnlyElement(policy.rule().matches()).explanation())
+        .hasValue(ValueString.of(11, "'custom explanation'"));
   }
 
   @Test
@@ -197,6 +213,28 @@ public final class CelPolicyYamlParserTest {
         "ERROR: <input>:7:7: Only the rule or the output may be set\n"
             + " |       output: \"world\"\n"
             + " | ......^"),
+    MATCH_NESTED_RULE_SET_THEN_EXPLANATION(
+        "rule:\n"
+            + "  match:\n"
+            + "    - condition: \"true\"\n"
+            + "      rule:\n"
+            + "        match:\n"
+            + "          - output: \"hello\"\n"
+            + "      explanation: \"foo\"",
+        "ERROR: <input>:7:7: Explanation can only be set on output match cases, not nested rules\n"
+            + " |       explanation: \"foo\"\n"
+            + " | ......^"),
+    MATCH_EXPLANATION_SET_THEN_NESTED_RULE(
+        "rule:\n"
+            + "  match:\n"
+            + "    - condition: \"true\"\n"
+            + "      explanation: \"foo\"\n"
+            + "      rule:\n"
+            + "        match:\n"
+            + "          - output: \"hello\"\n",
+        "ERROR: <input>:4:21: Explanation can only be set on output match cases, not nested rules\n"
+            + " |       explanation: \"foo\"\n"
+            + " | ....................^"),
     INVALID_ROOT_NODE_TYPE(
         "- rule:\n" + "    id: a",
         "ERROR: <input>:1:1: Got yaml node type tag:yaml.org,2002:seq, wanted type(s)"

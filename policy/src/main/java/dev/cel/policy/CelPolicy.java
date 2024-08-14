@@ -159,6 +159,9 @@ public abstract class CelPolicy {
 
     public abstract Result result();
 
+    /** Explanation returns the explanation expression, or empty expression if output is not set. */
+    public abstract Optional<ValueString> explanation();
+
     /** Encapsulates the result of this match when condition is met. (either an output or a rule) */
     @AutoOneOf(Match.Result.Kind.class)
     public abstract static class Result {
@@ -191,7 +194,11 @@ public abstract class CelPolicy {
 
       public abstract Builder setResult(Result result);
 
+      public abstract Builder setExplanation(ValueString explanation);
+
       abstract Optional<Result> result();
+
+      abstract Optional<ValueString> explanation();
 
       @Override
       public ImmutableList<RequiredField> requiredFields() {
