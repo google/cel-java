@@ -308,7 +308,8 @@ public final class CelPolicyCompilerImplTest {
   private enum TestErrorYamlPolicy {
     COMPILE_ERRORS("compile_errors"),
     COMPOSE_ERRORS_CONFLICTING_OUTPUT("compose_errors_conflicting_output"),
-    COMPOSE_ERRORS_CONFLICTING_SUBRULE("compose_errors_conflicting_subrule");
+    COMPOSE_ERRORS_CONFLICTING_SUBRULE("compose_errors_conflicting_subrule"),
+    ERRORS_UNREACHABLE("errors_unreachable");
 
     private final String name;
     private final String policyFilePath;

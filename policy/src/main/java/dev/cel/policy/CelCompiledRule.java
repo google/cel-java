@@ -30,7 +30,11 @@ import java.util.Optional;
  */
 @AutoValue
 public abstract class CelCompiledRule {
-  public abstract Optional<ValueString> id();
+
+  /** Source metadata identifier associated with the compiled rule. */
+  public abstract long sourceId();
+
+  public abstract Optional<ValueString> ruleId();
 
   public abstract ImmutableList<CelCompiledVariable> variables();
 
@@ -50,7 +54,7 @@ public abstract class CelCompiledRule {
         return true;
       }
 
-      if (match.isConditionLiteral()) {
+      if (match.isConditionTriviallyTrue()) {
         return false;
       }
 
@@ -83,11 +87,14 @@ public abstract class CelCompiledRule {
   /** A compiled Match. */
   @AutoValue
   public abstract static class CelCompiledMatch {
+    /** Source metadata identifier associated with the compiled match. */
+    public abstract long sourceId();
+
     public abstract CelAbstractSyntaxTree condition();
 
     public abstract Result result();
 
-    public boolean isConditionLiteral() {
+    public boolean isConditionTriviallyTrue() {
       CelExpr celExpr = condition().getExpr();
       return celExpr.constantOrDefault().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE)
           && celExpr.constant().booleanValue();
@@ -136,16 +143,17 @@ public abstract class CelCompiledRule {
     }
 
     static CelCompiledMatch create(
-        CelAbstractSyntaxTree condition, CelCompiledMatch.Result result) {
-      return new AutoValue_CelCompiledRule_CelCompiledMatch(condition, result);
+        long sourceId, CelAbstractSyntaxTree condition, CelCompiledMatch.Result result) {
+      return new AutoValue_CelCompiledRule_CelCompiledMatch(sourceId, condition, result);
     }
   }
 
   static CelCompiledRule create(
-      Optional<ValueString> id,
+      long sourceId,
+      Optional<ValueString> ruleId,
       ImmutableList<CelCompiledVariable> variables,
       ImmutableList<CelCompiledMatch> matches,
       Cel cel) {
-    return new AutoValue_CelCompiledRule(id, variables, matches, cel);
+    return new AutoValue_CelCompiledRule(sourceId, ruleId, variables, matches, cel);
   }
 }

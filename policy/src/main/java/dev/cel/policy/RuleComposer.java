@@ -77,7 +77,7 @@ final class RuleComposer implements CelAstOptimizer {
       // If the condition is trivially true, none of the matches in the rule causes the result
       // to become optional, and the rule is not the last match, then this will introduce
       // unreachable outputs or rules.
-      boolean isTriviallyTrue = match.isConditionLiteral();
+      boolean isTriviallyTrue = match.isConditionTriviallyTrue();
 
       switch (match.result().kind()) {
         // For the match's output, determine whether the output should be wrapped
@@ -144,7 +144,7 @@ final class RuleComposer implements CelAstOptimizer {
               matchAst,
               String.format(
                   "failed composing the subrule '%s' due to conflicting output types.",
-                  matchNestedRule.id().map(ValueString::value).orElse("")),
+                  matchNestedRule.ruleId().map(ValueString::value).orElse("")),
               lastOutputId);
           break;
       }

@@ -40,7 +40,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
   // Sentinel values for parsing errors
   private static final ValueString ERROR_VALUE = ValueString.newBuilder().setValue(ERROR).build();
   private static final Match ERROR_MATCH =
-      Match.newBuilder().setCondition(ERROR_VALUE).setResult(Result.ofOutput(ERROR_VALUE)).build();
+      Match.newBuilder(0).setCondition(ERROR_VALUE).setResult(Result.ofOutput(ERROR_VALUE)).build();
   private static final Variable ERROR_VARIABLE =
       Variable.newBuilder().setExpression(ERROR_VALUE).setName(ERROR_VALUE).build();
 
@@ -122,7 +122,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
     public CelPolicy.Rule parseRule(
         PolicyParserContext<Node> ctx, CelPolicy.Builder policyBuilder, Node node) {
       long valueId = ctx.collectMetadata(node);
-      CelPolicy.Rule.Builder ruleBuilder = CelPolicy.Rule.newBuilder();
+      CelPolicy.Rule.Builder ruleBuilder = CelPolicy.Rule.newBuilder(valueId);
       if (!assertYamlType(ctx, valueId, node, YamlNodeType.MAP)) {
         return ruleBuilder.build();
       }
@@ -137,7 +137,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         Node value = nodeTuple.getValueNode();
         switch (fieldName) {
           case "id":
-            ruleBuilder.setId(ctx.newValueString(value));
+            ruleBuilder.setRuleId(ctx.newValueString(value));
             break;
           case "description":
             ruleBuilder.setDescription(ctx.newValueString(value));
@@ -181,7 +181,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
       }
       MappingNode matchNode = (MappingNode) node;
       CelPolicy.Match.Builder matchBuilder =
-          CelPolicy.Match.newBuilder().setCondition(ValueString.of(ctx.nextId(), "true"));
+          CelPolicy.Match.newBuilder(nodeId).setCondition(ValueString.of(ctx.nextId(), "true"));
       for (NodeTuple nodeTuple : matchNode.getValue()) {
         Node key = nodeTuple.getKeyNode();
         long tagId = ctx.collectMetadata(key);

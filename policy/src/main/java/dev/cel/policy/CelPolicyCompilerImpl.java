@@ -35,6 +35,7 @@ import dev.cel.optimizer.CelOptimizer;
 import dev.cel.optimizer.CelOptimizerFactory;
 import dev.cel.policy.CelCompiledRule.CelCompiledMatch;
 import dev.cel.policy.CelCompiledRule.CelCompiledMatch.Result;
+import dev.cel.policy.CelCompiledRule.CelCompiledMatch.Result.Kind;
 import dev.cel.policy.CelCompiledRule.CelCompiledVariable;
 import dev.cel.policy.CelPolicy.Match;
 import dev.cel.policy.CelPolicy.Variable;
@@ -167,10 +168,39 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
           throw new IllegalArgumentException("Unexpected kind: " + match.result().kind());
       }
 
-      matchBuilder.add(CelCompiledMatch.create(conditionAst, matchResult));
+      matchBuilder.add(CelCompiledMatch.create(match.id(), conditionAst, matchResult));
     }
 
-    return CelCompiledRule.create(rule.id(), variableBuilder.build(), matchBuilder.build(), cel);
+    CelCompiledRule compiledRule =
+        CelCompiledRule.create(
+            rule.id(), rule.ruleId(), variableBuilder.build(), matchBuilder.build(), cel);
+
+    // Validate that all branches in the policy are reachable
+    checkUnreachableCode(compiledRule, compilerContext);
+
+    return compiledRule;
+  }
+
+  private void checkUnreachableCode(CelCompiledRule compiledRule, CompilerContext compilerContext) {
+    boolean ruleHasOptional = compiledRule.hasOptionalOutput();
+    ImmutableList<CelCompiledMatch> compiledMatches = compiledRule.matches();
+    int matchCount = compiledMatches.size();
+    for (int i = matchCount - 1; i >= 0; i--) {
+      CelCompiledMatch compiledMatch = compiledMatches.get(i);
+      boolean isTriviallyTrue = compiledMatch.isConditionTriviallyTrue();
+
+      if (isTriviallyTrue && !ruleHasOptional && i != matchCount - 1) {
+        if (compiledMatch.result().kind().equals(Kind.OUTPUT)) {
+          compilerContext.addIssue(
+              compiledMatch.sourceId(),
+              CelIssue.formatError(1, 0, "Match creates unreachable outputs"));
+        } else {
+          compilerContext.addIssue(
+              compiledMatch.result().rule().sourceId(),
+              CelIssue.formatError(1, 0, "Rule creates unreachable outputs"));
+        }
+      }
+    }
   }
 
   private static CelAbstractSyntaxTree newErrorAst() {

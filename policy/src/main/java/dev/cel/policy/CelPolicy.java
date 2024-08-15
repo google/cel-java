@@ -45,7 +45,7 @@ public abstract class CelPolicy {
   public static Builder newBuilder() {
     return new AutoValue_CelPolicy.Builder()
         .setName(ValueString.of(0, ""))
-        .setRule(Rule.newBuilder().build())
+        .setRule(Rule.newBuilder(0).build())
         .setMetadata(ImmutableMap.of());
   }
 
@@ -86,8 +86,9 @@ public abstract class CelPolicy {
    */
   @AutoValue
   public abstract static class Rule {
+    public abstract long id();
 
-    public abstract Optional<ValueString> id();
+    public abstract Optional<ValueString> ruleId();
 
     public abstract Optional<ValueString> description();
 
@@ -96,8 +97,9 @@ public abstract class CelPolicy {
     public abstract ImmutableSet<Match> matches();
 
     /** Builder for {@link Rule}. */
-    public static Builder newBuilder() {
+    public static Builder newBuilder(long id) {
       return new AutoValue_CelPolicy_Rule.Builder()
+          .setId(id)
           .setVariables(ImmutableSet.of())
           .setMatches(ImmutableSet.of());
     }
@@ -106,7 +108,7 @@ public abstract class CelPolicy {
     @AutoValue.Builder
     public abstract static class Builder {
 
-      public abstract Rule.Builder setId(ValueString id);
+      public abstract Rule.Builder setRuleId(ValueString id);
 
       public abstract Rule.Builder setDescription(ValueString description);
 
@@ -117,6 +119,8 @@ public abstract class CelPolicy {
       abstract ImmutableSet<Match> matches();
 
       abstract ImmutableSet.Builder<Match> matchesBuilder();
+
+      abstract Builder setId(long value);
 
       @CanIgnoreReturnValue
       public Builder addVariables(Variable... variables) {
@@ -159,6 +163,8 @@ public abstract class CelPolicy {
 
     public abstract Result result();
 
+    public abstract long id();
+
     /** Explanation returns the explanation expression, or empty expression if output is not set. */
     public abstract Optional<ValueString> explanation();
 
@@ -189,12 +195,15 @@ public abstract class CelPolicy {
     /** Builder for {@link Match}. */
     @AutoValue.Builder
     public abstract static class Builder implements RequiredFieldsChecker {
+      public abstract Builder setId(long value);
 
       public abstract Builder setCondition(ValueString condition);
 
       public abstract Builder setResult(Result result);
 
       public abstract Builder setExplanation(ValueString explanation);
+
+      abstract Optional<Long> id();
 
       abstract Optional<Result> result();
 
@@ -209,8 +218,8 @@ public abstract class CelPolicy {
     }
 
     /** Creates a new builder to construct a {@link Match} instance. */
-    public static Builder newBuilder() {
-      return new AutoValue_CelPolicy_Match.Builder();
+    public static Builder newBuilder(long id) {
+      return new AutoValue_CelPolicy_Match.Builder().setId(id);
     }
   }
 
