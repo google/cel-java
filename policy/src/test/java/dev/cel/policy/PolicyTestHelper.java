@@ -48,6 +48,26 @@ final class PolicyTestHelper {
             + "? optional.of({\"banned\": true}) : optional.none()).or("
             + "optional.of((resource.origin in variables.permitted_regions)"
             + " ? {\"banned\": false} : {\"banned\": true})))"),
+    NESTED_RULE2(
+        "nested_rule2",
+        false,
+        "cel.bind(variables.permitted_regions, [\"us\", \"uk\", \"es\"],"
+            + " resource.?user.orValue(\"\").startsWith(\"bad\") ?"
+            + " cel.bind(variables.banned_regions, {\"us\": false, \"ru\": false, \"ir\": false},"
+            + " (resource.origin in variables.banned_regions && !(resource.origin in"
+            + " variables.permitted_regions)) ? {\"banned\": \"restricted_region\"} : {\"banned\":"
+            + " \"bad_actor\"}) : (!(resource.origin in variables.permitted_regions) ? {\"banned\":"
+            + " \"unconfigured_region\"} : {}))"),
+    NESTED_RULE3(
+        "nested_rule3",
+        true,
+        "cel.bind(variables.permitted_regions, [\"us\", \"uk\", \"es\"],"
+            + " resource.?user.orValue(\"\").startsWith(\"bad\") ?"
+            + " optional.of(cel.bind(variables.banned_regions, {\"us\": false, \"ru\": false,"
+            + " \"ir\": false}, (resource.origin in variables.banned_regions && !(resource.origin"
+            + " in variables.permitted_regions)) ? {\"banned\": \"restricted_region\"} :"
+            + " {\"banned\": \"bad_actor\"})) : (!(resource.origin in variables.permitted_regions)"
+            + " ? optional.of({\"banned\": \"unconfigured_region\"}) : optional.none()))"),
     REQUIRED_LABELS(
         "required_labels",
         true,

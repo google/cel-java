@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelVarDecl;
+import dev.cel.common.ast.CelConstant;
+import dev.cel.common.ast.CelExpr;
 import java.util.Optional;
 
 /**
@@ -35,6 +37,28 @@ public abstract class CelCompiledRule {
   public abstract ImmutableList<CelCompiledMatch> matches();
 
   public abstract Cel cel();
+
+  /**
+   * HasOptionalOutput returns whether the rule returns a concrete or optional value. The rule may
+   * return an optional value if all match expressions under the rule are conditional.
+   */
+  public boolean hasOptionalOutput() {
+    boolean isOptionalOutput = false;
+    for (CelCompiledMatch match : matches()) {
+      if (match.result().kind().equals(CelCompiledMatch.Result.Kind.RULE)
+          && match.result().rule().hasOptionalOutput()) {
+        return true;
+      }
+
+      if (match.isConditionLiteral()) {
+        return false;
+      }
+
+      isOptionalOutput = true;
+    }
+
+    return isOptionalOutput;
+  }
 
   /**
    * A compiled policy variable (ex: variables.foo). Note that this is not the same thing as the
@@ -62,6 +86,12 @@ public abstract class CelCompiledRule {
     public abstract CelAbstractSyntaxTree condition();
 
     public abstract Result result();
+
+    public boolean isConditionLiteral() {
+      CelExpr celExpr = condition().getExpr();
+      return celExpr.constantOrDefault().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE)
+          && celExpr.constant().booleanValue();
+    }
 
     /** Encapsulates the result of this match when condition is met. (either an output or a rule) */
     @AutoOneOf(CelCompiledMatch.Result.Kind.class)

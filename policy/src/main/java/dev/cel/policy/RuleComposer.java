@@ -24,7 +24,6 @@ import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelMutableAst;
 import dev.cel.common.CelValidationException;
-import dev.cel.common.ast.CelConstant.Kind;
 import dev.cel.extensions.CelOptionalLibrary.Function;
 import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.CelAstOptimizer;
@@ -75,10 +74,14 @@ final class RuleComposer implements CelAstOptimizer {
     long lastOutputId = 0;
     for (CelCompiledMatch match : Lists.reverse(compiledRule.matches())) {
       CelAbstractSyntaxTree conditionAst = match.condition();
-      boolean isTriviallyTrue =
-          conditionAst.getExpr().constantOrDefault().getKind().equals(Kind.BOOLEAN_VALUE)
-              && conditionAst.getExpr().constant().booleanValue();
+      // If the condition is trivially true, none of the matches in the rule causes the result
+      // to become optional, and the rule is not the last match, then this will introduce
+      // unreachable outputs or rules.
+      boolean isTriviallyTrue = match.isConditionLiteral();
+
       switch (match.result().kind()) {
+        // For the match's output, determine whether the output should be wrapped
+        // into an optional value, a conditional, or both.
         case OUTPUT:
           OutputValue matchOutput = match.result().output();
           CelMutableAst outAst = CelMutableAst.fromCelAst(matchOutput.ast());
@@ -107,21 +110,25 @@ final class RuleComposer implements CelAstOptimizer {
           lastOutputId = matchOutput.sourceId();
           continue;
         case RULE:
+          // If the match has a nested rule, then compute the rule and whether it has
+          // an optional return value.
           CelCompiledRule matchNestedRule = match.result().rule();
           RuleOptimizationResult nestedRule = optimizeRule(cel, matchNestedRule);
+          boolean nestedHasOptional = matchNestedRule.hasOptionalOutput();
           CelMutableAst nestedRuleAst = nestedRule.ast();
-          if (isOptionalResult && !nestedRule.isOptionalResult()) {
+          if (isOptionalResult && !nestedHasOptional) {
             nestedRuleAst =
                 astMutator.newGlobalCall(Function.OPTIONAL_OF.getFunction(), nestedRuleAst);
           }
-          if (!isOptionalResult && nestedRule.isOptionalResult()) {
+          if (!isOptionalResult && nestedHasOptional) {
             matchAst = astMutator.newGlobalCall(Function.OPTIONAL_OF.getFunction(), matchAst);
             isOptionalResult = true;
           }
-          if (!isOptionalResult && !nestedRule.isOptionalResult()) {
-            throw new IllegalArgumentException("Subrule early terminates policy");
-          }
-          if (isTriviallyTrue) {
+          // If either the nested rule or current condition output are optional then
+          // use optional.or() to specify the combination of the first and second results
+          // Note, the argument order is reversed due to the traversal of matches in
+          // reverse order.
+          if (isOptionalResult && isTriviallyTrue) {
             matchAst = astMutator.newMemberCall(nestedRuleAst, Function.OR.getFunction(), matchAst);
           } else {
             matchAst =
@@ -131,6 +138,7 @@ final class RuleComposer implements CelAstOptimizer {
                     nestedRuleAst,
                     matchAst);
           }
+
           assertComposedAstIsValid(
               cel,
               matchAst,
