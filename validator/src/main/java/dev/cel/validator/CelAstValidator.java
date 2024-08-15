@@ -19,7 +19,9 @@ import dev.cel.bundle.Cel;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelIssue.Severity;
 import dev.cel.common.CelSource;
+import dev.cel.common.CelSourceLocation;
 import dev.cel.common.navigation.CelNavigableAst;
+import java.util.Optional;
 
 /** Public interface for performing a single, custom validation on an AST. */
 public interface CelAstValidator {
@@ -53,12 +55,16 @@ public interface CelAstValidator {
 
     private void add(long exprId, String message, Severity severity) {
       CelSource source = navigableAst.getAst().getSource();
-      int position = source.getPositionsMap().get(exprId);
+      int position = Optional.ofNullable(source.getPositionsMap().get(exprId)).orElse(-1);
+      CelSourceLocation sourceLocation = CelSourceLocation.NONE;
+      if (position >= 0) {
+        sourceLocation = source.getOffsetLocation(position).get();
+      }
       issuesBuilder.add(
           CelIssue.newBuilder()
               .setSeverity(severity)
               .setMessage(message)
-              .setSourceLocation(source.getOffsetLocation(position).get())
+              .setSourceLocation(sourceLocation)
               .build());
     }
 

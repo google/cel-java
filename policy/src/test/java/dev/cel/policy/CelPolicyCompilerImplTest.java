@@ -106,6 +106,42 @@ public final class CelPolicyCompilerImplTest {
   }
 
   @Test
+  public void compileYamlPolicy_exceedsDefaultAstDepthLimit_throws() throws Exception {
+    String longExpr =
+        "0+1+2+3+4+5+6+7+8+9+10+11+12+13+14+15+16+17+18+19+20+21+22+23+24+25+26+27+28+29+30+31+32+33+34+35+36+37+38+39+40+41+42+43+44+45+46+47+48+49+50";
+    String policyContent =
+        String.format(
+            "name: deeply_nested_ast\n" + "rule:\n" + "  match:\n" + "    - output: %s", longExpr);
+    CelPolicy policy = POLICY_PARSER.parse(policyContent);
+
+    CelPolicyValidationException e =
+        assertThrows(
+            CelPolicyValidationException.class,
+            () -> CelPolicyCompilerFactory.newPolicyCompiler(newCel()).build().compile(policy));
+
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo("ERROR: <input>:-1:0: AST's depth exceeds the configured limit: 50.");
+  }
+
+  @Test
+  public void compileYamlPolicy_astDepthLimitCheckDisabled_doesNotThrow() throws Exception {
+    String longExpr =
+        "0+1+2+3+4+5+6+7+8+9+10+11+12+13+14+15+16+17+18+19+20+21+22+23+24+25+26+27+28+29+30+31+32+33+34+35+36+37+38+39+40+41+42+43+44+45+46+47+48+49+50";
+    String policyContent =
+        String.format(
+            "name: deeply_nested_ast\n" + "rule:\n" + "  match:\n" + "    - output: %s", longExpr);
+    CelPolicy policy = POLICY_PARSER.parse(policyContent);
+
+    CelAbstractSyntaxTree ast =
+        CelPolicyCompilerFactory.newPolicyCompiler(newCel())
+            .setAstDepthLimit(-1)
+            .build()
+            .compile(policy);
+    assertThat(ast).isNotNull();
+  }
+
+  @Test
   @SuppressWarnings("unchecked")
   public void evaluateYamlPolicy_withCanonicalTestData(
       @TestParameter(valuesProvider = EvaluablePolicyTestDataProvider.class)

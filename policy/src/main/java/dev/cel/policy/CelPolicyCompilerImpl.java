@@ -25,6 +25,7 @@ import dev.cel.common.CelIssue;
 import dev.cel.common.CelSource;
 import dev.cel.common.CelSourceLocation;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.CelValidationResult;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
@@ -40,6 +41,10 @@ import dev.cel.policy.CelCompiledRule.CelCompiledVariable;
 import dev.cel.policy.CelPolicy.Match;
 import dev.cel.policy.CelPolicy.Variable;
 import dev.cel.policy.RuleComposer.RuleCompositionException;
+import dev.cel.validator.CelAstValidator;
+import dev.cel.validator.CelValidator;
+import dev.cel.validator.CelValidatorFactory;
+import dev.cel.validator.validators.AstDepthLimitValidator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,6 +57,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
   private final Cel cel;
   private final String variablesPrefix;
   private final int iterationLimit;
+  private final Optional<CelAstValidator> astDepthValidator;
 
   @Override
   public CelCompiledRule compileRule(CelPolicy policy) throws CelPolicyValidationException {
@@ -67,8 +73,9 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
   @Override
   public CelAbstractSyntaxTree compose(CelPolicy policy, CelCompiledRule compiledRule)
       throws CelPolicyValidationException {
+    Cel cel = compiledRule.cel();
     CelOptimizer optimizer =
-        CelOptimizerFactory.standardCelOptimizerBuilder(compiledRule.cel())
+        CelOptimizerFactory.standardCelOptimizerBuilder(cel)
             .addAstOptimizers(
                 RuleComposer.newInstance(compiledRule, variablesPrefix, iterationLimit))
             .build();
@@ -105,7 +112,24 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
       throw new CelPolicyValidationException("Unexpected error while composing rules.", e);
     }
 
+    assertAstDepthIsSafe(ast, cel);
+
     return ast;
+  }
+
+  private void assertAstDepthIsSafe(CelAbstractSyntaxTree ast, Cel cel)
+      throws CelPolicyValidationException {
+    if (!astDepthValidator.isPresent()) {
+      return;
+    }
+    CelValidator celValidator =
+        CelValidatorFactory.standardCelValidatorBuilder(cel)
+            .addAstValidators(astDepthValidator.get())
+            .build();
+    CelValidationResult result = celValidator.validate(ast);
+    if (result.hasError()) {
+      throw new CelPolicyValidationException(result.getErrorString());
+    }
   }
 
   private CelCompiledRule compileRuleImpl(
@@ -262,9 +286,11 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
     private final Cel cel;
     private String variablesPrefix;
     private int iterationLimit;
+    private Optional<CelAstValidator> astDepthLimitValidator;
 
     private Builder(Cel cel) {
       this.cel = cel;
+      this.astDepthLimitValidator = Optional.of(AstDepthLimitValidator.DEFAULT);
     }
 
     @Override
@@ -282,8 +308,20 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
     }
 
     @Override
+    @CanIgnoreReturnValue
+    public CelPolicyCompilerBuilder setAstDepthLimit(int astDepthLimit) {
+      if (astDepthLimit < 0) {
+        astDepthLimitValidator = Optional.empty();
+      } else {
+        astDepthLimitValidator = Optional.of(AstDepthLimitValidator.newInstance(astDepthLimit));
+      }
+      return this;
+    }
+
+    @Override
     public CelPolicyCompiler build() {
-      return new CelPolicyCompilerImpl(cel, this.variablesPrefix, this.iterationLimit);
+      return new CelPolicyCompilerImpl(
+          cel, this.variablesPrefix, this.iterationLimit, astDepthLimitValidator);
     }
   }
 
@@ -293,9 +331,14 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
         .setIterationLimit(DEFAULT_ITERATION_LIMIT);
   }
 
-  private CelPolicyCompilerImpl(Cel cel, String variablesPrefix, int iterationLimit) {
+  private CelPolicyCompilerImpl(
+      Cel cel,
+      String variablesPrefix,
+      int iterationLimit,
+      Optional<CelAstValidator> astDepthValidator) {
     this.cel = checkNotNull(cel);
     this.variablesPrefix = checkNotNull(variablesPrefix);
     this.iterationLimit = iterationLimit;
+    this.astDepthValidator = astDepthValidator;
   }
 }

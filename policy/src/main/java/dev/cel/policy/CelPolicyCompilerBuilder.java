@@ -31,6 +31,13 @@ public interface CelPolicyCompilerBuilder {
   @CanIgnoreReturnValue
   CelPolicyCompilerBuilder setIterationLimit(int iterationLimit);
 
+  /**
+   * Enforces the composed AST to stay below the configured depth limit. An exception is thrown if
+   * the depth exceeds the configured limit. Setting a negative value disables this check.
+   */
+  @CanIgnoreReturnValue
+  CelPolicyCompilerBuilder setAstDepthLimit(int iterationLimit);
+
   @CheckReturnValue
   CelPolicyCompiler build();
 }
