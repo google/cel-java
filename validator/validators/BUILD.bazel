@@ -22,3 +22,8 @@ java_library(
     name = "homogeneous_literal",
     exports = ["//validator/src/main/java/dev/cel/validator/validators:homogeneous_literal"],
 )
+
+java_library(
+    name = "ast_depth_limit_validator",
+    exports = ["//validator/src/main/java/dev/cel/validator/validators:ast_depth_limit_validator"],
+)

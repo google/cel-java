@@ -68,6 +68,21 @@ java_library(
 )
 
 java_library(
+    name = "ast_depth_limit_validator",
+    srcs = [
+        "AstDepthLimitValidator.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//bundle:cel",
+        "//common/navigation",
+        "//validator:ast_validator",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "literal_validator",
     srcs = [
         "LiteralValidator.java",
