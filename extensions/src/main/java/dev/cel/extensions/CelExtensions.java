@@ -20,6 +20,7 @@ import static java.util.Arrays.stream;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import dev.cel.common.CelOptions;
+import dev.cel.extensions.CelListsExtensions.Function;
 import java.util.Set;
 
 /**
@@ -221,21 +222,34 @@ public final class CelExtensions {
   }
 
   /**
-   * TODO
+   * Extended functions for List manipulation.
+   *
+   * <p>Refer to README.md for available functions.
+   *
+   * <p>This will include only the specific functions denoted by {@link CelListsExtensions.Function}.
    */
   public static CelListsExtensions lists() {
     return LISTS_EXTENSIONS_ALL;
   }
 
   /**
-   * TODo
+   * Extended functions for List manipulation.
+   *
+   * <p>Refer to README.md for available functions.
+   *
+   * <p>This will include only the specific functions denoted by {@link CelListsExtensions.Function}.
    */
   public static CelListsExtensions lists(CelListsExtensions.Function... functions) {
     return lists(ImmutableSet.copyOf(functions));
   }
 
   /**
-   * TODO
+   * Extended functions for List manipulation.
+   *
+   * <p>Refer to README.md for available functions.
+   *
+   * <p>This will include all functions denoted in {@link CelListsExtensions.Function}, including any
+   * future additions. To expose only a subset of functions, use {@link #lists(Function...)} instead.
    */
   public static CelListsExtensions lists(
       Set<CelListsExtensions.Function> functions) {
