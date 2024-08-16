@@ -34,6 +34,7 @@ public final class CelExtensions {
   private static final CelProtoExtensions PROTO_EXTENSIONS = new CelProtoExtensions();
   private static final CelBindingsExtensions BINDINGS_EXTENSIONS = new CelBindingsExtensions();
   private static final CelEncoderExtensions ENCODER_EXTENSIONS = new CelEncoderExtensions();
+  private static final CelListsExtensions LISTS_EXTENSIONS_ALL = new CelListsExtensions();
 
   /**
    * Extended functions for string manipulation.
@@ -187,9 +188,9 @@ public final class CelExtensions {
    *
    * <p>Refer to README.md for available functions.
    *
-   * <p>This will include all functions denoted in {@link CelSetExtensions.Function}, including any
+   * <p>This will include all functions denoted in {@link CelSetsExtensions.Function}, including any
    * future additions. To expose only a subset of functions, use {@link
-   * #sets(CelSetExtensions.Function...)} instead.
+   * #sets(CelOptions, CelSetsExtensions.Function...)} instead.
    */
   public static CelSetsExtensions sets(CelOptions celOptions) {
     return new CelSetsExtensions(celOptions);
@@ -219,15 +220,27 @@ public final class CelExtensions {
     return new CelSetsExtensions(celOptions, functions);
   }
 
-
   /**
    * TODO
    */
   public static CelListsExtensions lists() {
-    return new CelListsExtensions();
+    return LISTS_EXTENSIONS_ALL;
   }
 
+  /**
+   * TODo
+   */
+  public static CelListsExtensions lists(CelListsExtensions.Function... functions) {
+    return lists(ImmutableSet.copyOf(functions));
+  }
 
+  /**
+   * TODO
+   */
+  public static CelListsExtensions lists(
+      Set<CelListsExtensions.Function> functions) {
+    return new CelListsExtensions(functions);
+  }
   /**
    * Retrieves all function names used by every extension libraries.
    *

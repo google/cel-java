@@ -5,7 +5,6 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
-import dev.cel.runtime.CelRuntimeFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
