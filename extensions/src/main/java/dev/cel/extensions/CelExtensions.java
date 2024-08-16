@@ -219,6 +219,15 @@ public final class CelExtensions {
     return new CelSetsExtensions(celOptions, functions);
   }
 
+
+  /**
+   * TODO
+   */
+  public static CelListsExtensions lists() {
+    return new CelListsExtensions();
+  }
+
+
   /**
    * Retrieves all function names used by every extension libraries.
    *
