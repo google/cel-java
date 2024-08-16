@@ -2222,6 +2222,202 @@ CALL [1] {
     }
   }
 }
+Test case: ADJACENT_NESTED_MACROS
+Source: [1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [1,2,3].map(j, [1, 2, 3].map(j, j + 1))
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    LIST [2] {
+      elements: {
+        LIST [3] {
+          elements: {
+            CONSTANT [4] { value: 1 }
+            CONSTANT [5] { value: 2 }
+            CONSTANT [6] { value: 3 }
+          }
+        }
+        LIST [7] {
+          elements: {
+            COMPREHENSION [8] {
+              iter_var: @c:0
+              iter_range: {
+                IDENT [9] {
+                  name: @index0
+                }
+              }
+              accu_var: @x:0
+              accu_init: {
+                LIST [10] {
+                  elements: {
+                  }
+                }
+              }
+              loop_condition: {
+                CONSTANT [11] { value: true }
+              }
+              loop_step: {
+                CALL [12] {
+                  function: _+_
+                  args: {
+                    IDENT [13] {
+                      name: @x:0
+                    }
+                    LIST [14] {
+                      elements: {
+                        CALL [15] {
+                          function: _+_
+                          args: {
+                            IDENT [16] {
+                              name: @c:0
+                            }
+                            CONSTANT [17] { value: 1 }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              result: {
+                IDENT [18] {
+                  name: @x:0
+                }
+              }
+            }
+          }
+        }
+        LIST [19] {
+          elements: {
+            COMPREHENSION [20] {
+              iter_var: @c:2
+              iter_range: {
+                IDENT [21] {
+                  name: @index0
+                }
+              }
+              accu_var: @x:2
+              accu_init: {
+                LIST [22] {
+                  elements: {
+                  }
+                }
+              }
+              loop_condition: {
+                CONSTANT [23] { value: true }
+              }
+              loop_step: {
+                CALL [24] {
+                  function: _+_
+                  args: {
+                    IDENT [25] {
+                      name: @x:2
+                    }
+                    LIST [26] {
+                      elements: {
+                        CALL [27] {
+                          function: _+_
+                          args: {
+                            IDENT [28] {
+                              name: @c:2
+                            }
+                            CONSTANT [29] { value: 1 }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              result: {
+                IDENT [30] {
+                  name: @x:2
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    CALL [31] {
+      function: _==_
+      args: {
+        COMPREHENSION [32] {
+          iter_var: @c:1
+          iter_range: {
+            IDENT [33] {
+              name: @index0
+            }
+          }
+          accu_var: @x:1
+          accu_init: {
+            LIST [34] {
+              elements: {
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [35] { value: true }
+          }
+          loop_step: {
+            CALL [36] {
+              function: _+_
+              args: {
+                IDENT [37] {
+                  name: @x:1
+                }
+                IDENT [38] {
+                  name: @index1
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [39] {
+              name: @x:1
+            }
+          }
+        }
+        COMPREHENSION [40] {
+          iter_var: @c:3
+          iter_range: {
+            IDENT [41] {
+              name: @index0
+            }
+          }
+          accu_var: @x:3
+          accu_init: {
+            LIST [42] {
+              elements: {
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [43] { value: true }
+          }
+          loop_step: {
+            CALL [44] {
+              function: _+_
+              args: {
+                IDENT [45] {
+                  name: @x:3
+                }
+                IDENT [46] {
+                  name: @index2
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [47] {
+              name: @x:3
+            }
+          }
+        }
+      }
+    }
+  }
+}
 Test case: INCLUSION_LIST
 Source: 1 in [1,2,3] && 2 in [1,2,3] && 3 in [3, [1,2,3]] && 1 in [1,2,3]
 =====>

@@ -350,6 +350,22 @@ Result: true
 [BLOCK_RECURSION_DEPTH_8]: true
 [BLOCK_RECURSION_DEPTH_9]: true
 
+Test case: ADJACENT_NESTED_MACROS
+Source: [1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [1,2,3].map(j, [1, 2, 3].map(j, j + 1))
+=====>
+Result: true
+[CASCADED_BINDS]: true
+[BLOCK_COMMON_SUBEXPR_ONLY]: true
+[BLOCK_RECURSION_DEPTH_1]: true
+[BLOCK_RECURSION_DEPTH_2]: true
+[BLOCK_RECURSION_DEPTH_3]: true
+[BLOCK_RECURSION_DEPTH_4]: true
+[BLOCK_RECURSION_DEPTH_5]: true
+[BLOCK_RECURSION_DEPTH_6]: true
+[BLOCK_RECURSION_DEPTH_7]: true
+[BLOCK_RECURSION_DEPTH_8]: true
+[BLOCK_RECURSION_DEPTH_9]: true
+
 Test case: INCLUSION_LIST
 Source: 1 in [1,2,3] && 2 in [1,2,3] && 3 in [3, [1,2,3]] && 1 in [1,2,3]
 =====>
