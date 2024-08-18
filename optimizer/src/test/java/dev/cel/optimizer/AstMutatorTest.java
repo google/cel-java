@@ -876,7 +876,7 @@ public class AstMutatorTest {
 
     CelAbstractSyntaxTree mangledAst =
         AST_MUTATOR
-            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@c", "@x")
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@c", "@x", true)
             .mutableAst()
             .toParsedAst();
 
@@ -929,9 +929,210 @@ public class AstMutatorTest {
                 + "    }\n"
                 + "  }\n"
                 + "}");
-
     assertThat(CEL_UNPARSER.unparse(mangledAst)).isEqualTo("[false].exists(@c:0, @c:0)");
     assertThat(CEL.createProgram(CEL.check(mangledAst).getAst()).eval()).isEqualTo(false);
+    assertConsistentMacroCalls(ast);
+  }
+
+  @Test
+  public void mangleComprehensionVariable_adjacentMacros() throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("[1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [1,2,3].map(j, [1, 2, 3].map(j, j + 1))").getAst();
+
+    CelAbstractSyntaxTree mangledAst =
+            AST_MUTATOR
+                    .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@c", "@x", false)
+                    .mutableAst()
+                    .toParsedAst();
+
+    assertThat(mangledAst.getExpr().toString()).isEqualTo("CALL [30] {\n" +
+            "  function: _==_\n" +
+            "  args: {\n" +
+            "    COMPREHENSION [29] {\n" +
+            "      iter_var: @c:0\n" +
+            "      iter_range: {\n" +
+            "        LIST [1] {\n" +
+            "          elements: {\n" +
+            "            CONSTANT [2] { value: 1 }\n" +
+            "            CONSTANT [3] { value: 2 }\n" +
+            "            CONSTANT [4] { value: 3 }\n" +
+            "          }\n" +
+            "        }\n" +
+            "      }\n" +
+            "      accu_var: @x:0\n" +
+            "      accu_init: {\n" +
+            "        LIST [23] {\n" +
+            "          elements: {\n" +
+            "          }\n" +
+            "        }\n" +
+            "      }\n" +
+            "      loop_condition: {\n" +
+            "        CONSTANT [24] { value: true }\n" +
+            "      }\n" +
+            "      loop_step: {\n" +
+            "        CALL [27] {\n" +
+            "          function: _+_\n" +
+            "          args: {\n" +
+            "            IDENT [25] {\n" +
+            "              name: @x:0\n" +
+            "            }\n" +
+            "            LIST [26] {\n" +
+            "              elements: {\n" +
+            "                COMPREHENSION [22] {\n" +
+            "                  iter_var: @c:1\n" +
+            "                  iter_range: {\n" +
+            "                    LIST [7] {\n" +
+            "                      elements: {\n" +
+            "                        CONSTANT [8] { value: 1 }\n" +
+            "                        CONSTANT [9] { value: 2 }\n" +
+            "                        CONSTANT [10] { value: 3 }\n" +
+            "                      }\n" +
+            "                    }\n" +
+            "                  }\n" +
+            "                  accu_var: @x:1\n" +
+            "                  accu_init: {\n" +
+            "                    LIST [16] {\n" +
+            "                      elements: {\n" +
+            "                      }\n" +
+            "                    }\n" +
+            "                  }\n" +
+            "                  loop_condition: {\n" +
+            "                    CONSTANT [17] { value: true }\n" +
+            "                  }\n" +
+            "                  loop_step: {\n" +
+            "                    CALL [20] {\n" +
+            "                      function: _+_\n" +
+            "                      args: {\n" +
+            "                        IDENT [18] {\n" +
+            "                          name: @x:1\n" +
+            "                        }\n" +
+            "                        LIST [19] {\n" +
+            "                          elements: {\n" +
+            "                            CALL [14] {\n" +
+            "                              function: _+_\n" +
+            "                              args: {\n" +
+            "                                IDENT [13] {\n" +
+            "                                  name: @c:1\n" +
+            "                                }\n" +
+            "                                CONSTANT [15] { value: 1 }\n" +
+            "                              }\n" +
+            "                            }\n" +
+            "                          }\n" +
+            "                        }\n" +
+            "                      }\n" +
+            "                    }\n" +
+            "                  }\n" +
+            "                  result: {\n" +
+            "                    IDENT [21] {\n" +
+            "                      name: @x:1\n" +
+            "                    }\n" +
+            "                  }\n" +
+            "                }\n" +
+            "              }\n" +
+            "            }\n" +
+            "          }\n" +
+            "        }\n" +
+            "      }\n" +
+            "      result: {\n" +
+            "        IDENT [28] {\n" +
+            "          name: @x:0\n" +
+            "        }\n" +
+            "      }\n" +
+            "    }\n" +
+            "    COMPREHENSION [59] {\n" +
+            "      iter_var: @c:0\n" +
+            "      iter_range: {\n" +
+            "        LIST [31] {\n" +
+            "          elements: {\n" +
+            "            CONSTANT [32] { value: 1 }\n" +
+            "            CONSTANT [33] { value: 2 }\n" +
+            "            CONSTANT [34] { value: 3 }\n" +
+            "          }\n" +
+            "        }\n" +
+            "      }\n" +
+            "      accu_var: @x:0\n" +
+            "      accu_init: {\n" +
+            "        LIST [53] {\n" +
+            "          elements: {\n" +
+            "          }\n" +
+            "        }\n" +
+            "      }\n" +
+            "      loop_condition: {\n" +
+            "        CONSTANT [54] { value: true }\n" +
+            "      }\n" +
+            "      loop_step: {\n" +
+            "        CALL [57] {\n" +
+            "          function: _+_\n" +
+            "          args: {\n" +
+            "            IDENT [55] {\n" +
+            "              name: @x:0\n" +
+            "            }\n" +
+            "            LIST [56] {\n" +
+            "              elements: {\n" +
+            "                COMPREHENSION [52] {\n" +
+            "                  iter_var: @c:1\n" +
+            "                  iter_range: {\n" +
+            "                    LIST [37] {\n" +
+            "                      elements: {\n" +
+            "                        CONSTANT [38] { value: 1 }\n" +
+            "                        CONSTANT [39] { value: 2 }\n" +
+            "                        CONSTANT [40] { value: 3 }\n" +
+            "                      }\n" +
+            "                    }\n" +
+            "                  }\n" +
+            "                  accu_var: @x:1\n" +
+            "                  accu_init: {\n" +
+            "                    LIST [46] {\n" +
+            "                      elements: {\n" +
+            "                      }\n" +
+            "                    }\n" +
+            "                  }\n" +
+            "                  loop_condition: {\n" +
+            "                    CONSTANT [47] { value: true }\n" +
+            "                  }\n" +
+            "                  loop_step: {\n" +
+            "                    CALL [50] {\n" +
+            "                      function: _+_\n" +
+            "                      args: {\n" +
+            "                        IDENT [48] {\n" +
+            "                          name: @x:1\n" +
+            "                        }\n" +
+            "                        LIST [49] {\n" +
+            "                          elements: {\n" +
+            "                            CALL [44] {\n" +
+            "                              function: _+_\n" +
+            "                              args: {\n" +
+            "                                IDENT [43] {\n" +
+            "                                  name: @c:1\n" +
+            "                                }\n" +
+            "                                CONSTANT [45] { value: 1 }\n" +
+            "                              }\n" +
+            "                            }\n" +
+            "                          }\n" +
+            "                        }\n" +
+            "                      }\n" +
+            "                    }\n" +
+            "                  }\n" +
+            "                  result: {\n" +
+            "                    IDENT [51] {\n" +
+            "                      name: @x:1\n" +
+            "                    }\n" +
+            "                  }\n" +
+            "                }\n" +
+            "              }\n" +
+            "            }\n" +
+            "          }\n" +
+            "        }\n" +
+            "      }\n" +
+            "      result: {\n" +
+            "        IDENT [58] {\n" +
+            "          name: @x:0\n" +
+            "        }\n" +
+            "      }\n" +
+            "    }\n" +
+            "  }\n" +
+            "}");
+    assertThat(CEL_UNPARSER.unparse(mangledAst)).isEqualTo("[1, 2, 3].map(@c:0, [1, 2, 3].map(@c:1, @c:1 + 1)) == [1, 2, 3].map(@c:0, [1, 2, 3].map(@c:1, @c:1 + 1))");
+    assertThat(CEL.createProgram(CEL.check(mangledAst).getAst()).eval()).isEqualTo(true);
     assertConsistentMacroCalls(ast);
   }
 
@@ -947,7 +1148,7 @@ public class AstMutatorTest {
 
     CelAbstractSyntaxTree mangledAst =
         AST_MUTATOR
-            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@c", "@x")
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@c", "@x", true)
             .mutableAst()
             .toParsedAst();
 
@@ -960,7 +1161,7 @@ public class AstMutatorTest {
 
     CelAbstractSyntaxTree mangledAst =
         AST_MUTATOR
-            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@c", "@x")
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@c", "@x", true)
             .mutableAst()
             .toParsedAst();
 
@@ -1081,7 +1282,7 @@ public class AstMutatorTest {
 
     CelAbstractSyntaxTree mangledAst =
         AST_MUTATOR
-            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@c", "@x")
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@c", "@x", true)
             .mutableAst()
             .toParsedAst();
 

@@ -38,6 +38,7 @@ import dev.cel.common.CelSource.Extension;
 import dev.cel.common.CelSource.Extension.Component;
 import dev.cel.common.CelSource.Extension.Version;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.CelValidationResult;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
@@ -54,6 +55,8 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.AstMutator.MangledComprehensionAst;
 import dev.cel.optimizer.CelAstOptimizer;
+import dev.cel.parser.CelUnparserFactory;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -122,7 +125,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   @Override
   public OptimizationResult optimize(CelAbstractSyntaxTree ast, Cel cel) {
     OptimizationResult result =
-        cseOptions.enableCelBlock() ? optimizeUsingCelBlock(ast, cel) : optimizeUsingCelBind(ast);
+        cseOptions.enableCelBlock() ? optimizeUsingCelBlock(ast, cel) : optimizeUsingCelBind(ast, cel);
 
     verifyOptimizedAstCorrectness(result.optimizedAst());
 
@@ -139,7 +142,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         astMutator.mangleComprehensionIdentifierNames(
             astToModify,
             MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
-            MANGLED_COMPREHENSION_RESULT_PREFIX);
+            MANGLED_COMPREHENSION_RESULT_PREFIX,
+            false);
     astToModify = mangledComprehensionAst.mutableAst();
     CelMutableSource sourceToModify = astToModify.source();
 
@@ -198,7 +202,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
                   .ifPresent(
                       iterVarType ->
                           newVarDecls.add(
-                              CelVarDecl.newVarDeclaration(name.iterVarName(), iterVarType)));
+//                              CelVarDecl.newVarDeclaration(name.iterVarName(), iterVarType)));
+                              CelVarDecl.newVarDeclaration(name.iterVarName(), SimpleType.DYN)));
               newVarDecls.add(CelVarDecl.newVarDeclaration(name.resultName(), type.resultType()));
             });
 
@@ -329,7 +334,16 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     return varDeclBuilder.build();
   }
 
-  private OptimizationResult optimizeUsingCelBind(CelAbstractSyntaxTree ast) {
+  private static String unparse(CelMutableExpr expr, CelSource source) {
+    return CelUnparserFactory.newUnparser().unparse(CelAbstractSyntaxTree.newParsedAst(CelMutableExprConverter.fromMutableExpr(expr), source));
+  }
+
+  private static CelValidationResult check(Cel cel, CelMutableExpr expr, CelSource source) {
+    return cel.check(CelAbstractSyntaxTree.newParsedAst(CelMutableExprConverter.fromMutableExpr(expr), source));
+  }
+
+
+  private OptimizationResult optimizeUsingCelBind(CelAbstractSyntaxTree ast, Cel cel) {
     CelMutableAst astToModify = CelMutableAst.fromCelAst(ast);
     if (!cseOptions.populateMacroCalls()) {
       astToModify.source().clearMacroCalls();
@@ -340,7 +354,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
             .mangleComprehensionIdentifierNames(
                 astToModify,
                 MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
-                MANGLED_COMPREHENSION_RESULT_PREFIX)
+                MANGLED_COMPREHENSION_RESULT_PREFIX,
+                true)
             .mutableAst();
     CelMutableSource sourceToModify = astToModify.source();
 
@@ -351,6 +366,10 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       List<CelMutableExpr> cseCandidates = getCseCandidates(navAst);
       if (cseCandidates.isEmpty()) {
         break;
+      }
+      for (CelMutableExpr mutableExpr : cseCandidates) {
+        CelValidationResult res = check(cel, mutableExpr, navAst.getAst().source().toCelSource());
+        System.out.println(res);
       }
 
       String bindIdentifier = BIND_IDENTIFIER_PREFIX + bindIdentifierIndex;
@@ -385,6 +404,9 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       // Retain the existing macro calls in case if the bind identifiers are replacing a subtree
       // that contains a comprehension.
       sourceToModify = astToModify.source();
+
+      CelValidationResult res = check(cel, astToModify.expr(), astToModify.source().toCelSource());
+      System.out.println(res);
     }
 
     if (iterCount >= cseOptions.iterationLimit()) {

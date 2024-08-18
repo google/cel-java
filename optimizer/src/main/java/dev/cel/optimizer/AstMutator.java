@@ -21,7 +21,9 @@ import static java.util.stream.Collectors.toCollection;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Table;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelMutableAst;
@@ -273,7 +275,7 @@ public final class AstMutator {
    * @param newResultPrefix Prefix to use for new comprehensin result identifier names.
    */
   public MangledComprehensionAst mangleComprehensionIdentifierNames(
-      CelMutableAst ast, String newIterVarPrefix, String newResultPrefix) {
+      CelMutableAst ast, String newIterVarPrefix, String newResultPrefix, boolean incrementSerially) {
     CelNavigableMutableAst navigableMutableAst = CelNavigableMutableAst.fromAst(ast);
     Predicate<CelNavigableMutableExpr> comprehensionIdentifierPredicate = x -> true;
     comprehensionIdentifierPredicate =
@@ -349,38 +351,56 @@ public final class AstMutator {
                     },
                     LinkedHashMap::new));
 
+    int iterCount = 0;
+
     // The map that we'll eventually return to the caller.
     HashMap<MangledComprehensionName, MangledComprehensionType> mangledIdentNamesToType =
-        new HashMap<>();
+            new HashMap<>();
+    // Intermediary table used for the purposes of generating a unique mangled variable name.
+    Table<Integer, MangledComprehensionType, MangledComprehensionName> comprehensionLevelToType =
+            HashBasedTable.create();
     CelMutableExpr mutatedComprehensionExpr = navigableMutableAst.getAst().expr();
     CelMutableSource newSource = navigableMutableAst.getAst().source();
-    int iterCount = 0;
     for (Entry<CelNavigableMutableExpr, MangledComprehensionType> comprehensionEntry :
-        comprehensionsToMangle.entrySet()) {
-      String mangledIterVarName = newIterVarPrefix + ":" + iterCount;
-      String mangledResultName = newResultPrefix + ":" + iterCount;
-      MangledComprehensionName mangledComprehensionName =
-          MangledComprehensionName.of(mangledIterVarName, mangledResultName);
-      mangledIdentNamesToType.put(mangledComprehensionName, comprehensionEntry.getValue());
+            comprehensionsToMangle.entrySet()) {
+      CelNavigableMutableExpr comprehensionNode = comprehensionEntry.getKey();
+      MangledComprehensionType comprehensionEntryType = comprehensionEntry.getValue();
 
-      CelMutableExpr comprehensionExpr = comprehensionEntry.getKey().expr();
+      CelMutableExpr comprehensionExpr = comprehensionNode.expr();
+      int comprehensionNestingLevel = incrementSerially ? iterCount : countComprehensionNestingLevel(comprehensionNode);
+      MangledComprehensionName mangledComprehensionName;
+      if (comprehensionLevelToType.contains(comprehensionNestingLevel, comprehensionEntryType)) {
+        mangledComprehensionName =
+                comprehensionLevelToType.get(comprehensionNestingLevel, comprehensionEntryType);
+      } else {
+        String mangledIterVarName =
+                newIterVarPrefix + ":" + comprehensionNestingLevel;
+        String mangledResultName =
+                newResultPrefix + ":"+ comprehensionNestingLevel;
+        mangledComprehensionName =
+                MangledComprehensionName.of(mangledIterVarName, mangledResultName);
+        comprehensionLevelToType.put(
+                comprehensionNestingLevel, comprehensionEntryType, mangledComprehensionName);
+      }
+      mangledIdentNamesToType.put(mangledComprehensionName, comprehensionEntryType);
+
       String iterVar = comprehensionExpr.comprehension().iterVar();
       String accuVar = comprehensionExpr.comprehension().accuVar();
       mutatedComprehensionExpr =
-          mangleIdentsInComprehensionExpr(
-              mutatedComprehensionExpr,
-              comprehensionExpr,
-              iterVar,
-              accuVar,
-              mangledComprehensionName);
+              mangleIdentsInComprehensionExpr(
+                      mutatedComprehensionExpr,
+                      comprehensionExpr,
+                      iterVar,
+                      accuVar,
+                      mangledComprehensionName);
       // Repeat the mangling process for the macro source.
       newSource =
-          mangleIdentsInMacroSource(
-              newSource,
-              mutatedComprehensionExpr,
-              iterVar,
-              mangledComprehensionName,
-              comprehensionExpr.id());
+              mangleIdentsInMacroSource(
+                      newSource,
+                      mutatedComprehensionExpr,
+                      iterVar,
+                      mangledComprehensionName,
+                      comprehensionExpr.id());
       iterCount++;
     }
 
@@ -394,6 +414,19 @@ public final class AstMutator {
     return MangledComprehensionAst.of(
         CelMutableAst.of(mutatedComprehensionExpr, newSource),
         ImmutableMap.copyOf(mangledIdentNamesToType));
+  }
+
+  private static int countComprehensionNestingLevel(CelNavigableMutableExpr comprehensionExpr) {
+    int nestedLevel = 0;
+    Optional<CelNavigableMutableExpr> maybeParent = comprehensionExpr.parent();
+    while (maybeParent.isPresent()) {
+      if (maybeParent.get().getKind().equals(Kind.COMPREHENSION)) {
+        nestedLevel++;
+      }
+
+      maybeParent = maybeParent.get().parent();
+    }
+    return nestedLevel;
   }
 
   /**

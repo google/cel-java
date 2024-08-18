@@ -150,9 +150,9 @@ public abstract class BaselineTestCase {
       String expected = getExpected().trim();
       LineDiffer.Diff lineDiff = LineDiffer.diffLines(expected, actual);
       if (!lineDiff.isEmpty()) {
-        String actualFileLocation = tryCreateNewBaseline(actual);
+//        String actualFileLocation = tryCreateNewBaseline(actual);
         throw new BaselineComparisonError(
-            testName.getMethodName(), baselineFileName(), actual, actualFileLocation, lineDiff);
+            testName.getMethodName(), baselineFileName(), actual, "foo", lineDiff);
       }
     } catch (Exception e) {
       throw new RuntimeException(e);
