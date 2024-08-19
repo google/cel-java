@@ -143,7 +143,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
             astToModify,
             MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
             MANGLED_COMPREHENSION_RESULT_PREFIX,
-            false);
+            /* incrementSerially= */ false);
     astToModify = mangledComprehensionAst.mutableAst();
     CelMutableSource sourceToModify = astToModify.source();
 
@@ -202,8 +202,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
                   .ifPresent(
                       iterVarType ->
                           newVarDecls.add(
-//                              CelVarDecl.newVarDeclaration(name.iterVarName(), iterVarType)));
-                              CelVarDecl.newVarDeclaration(name.iterVarName(), SimpleType.DYN)));
+                             CelVarDecl.newVarDeclaration(name.iterVarName(), iterVarType)));
               newVarDecls.add(CelVarDecl.newVarDeclaration(name.resultName(), type.resultType()));
             });
 
@@ -355,7 +354,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
                 astToModify,
                 MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
                 MANGLED_COMPREHENSION_RESULT_PREFIX,
-                true)
+                /* incrementSerially= */ true)
             .mutableAst();
     CelMutableSource sourceToModify = astToModify.source();
 

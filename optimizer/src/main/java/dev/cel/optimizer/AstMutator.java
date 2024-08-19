@@ -260,19 +260,20 @@ public final class AstMutator {
    * levels and the iteration variable's type. Examples:
    *
    * <ul>
-   *   <li>{@code [true].exists(i, i) && [true].exists(j, j)} -> {@code [true].exists(@c0:0, @c0:0)
-   *       && [true].exists(@c0:0, @c0:0)} // Note that i,j gets replaced to the same @c0:0 in this
-   *       example as they share the same nesting level and type.
-   *   <li>{@code [1].exists(i, i > 0) && [1u].exists(j, j > 0u)} -> {@code [1].exists(@c0:0, @c0:0
-   *       > 0) && [1u].exists(@c0:1, @c0:1 > 0u)}
-   *   <li>{@code [true].exists(i, i && [true].exists(j, j))} -> {@code [true].exists(@c0:0, @c0:0
-   *       && [true].exists(@c1:0, @c1:0))}
+   *   <li><code>[true].exists(i, i) && [true].exists(j, j)</code> -&gt;
+   *       <code>[true].exists(@c0:0, @c0:0) && [true].exists(@c0:0, @c0:0)</code>
+   *       // Note that i,j gets replaced to the same @c0:0 in this example as they share the same nesting level and type.
+   *   <li><code>[1].exists(i, i > 0) && [1u].exists(j, j > 0u)</code> -&gt;
+   *       <code>[1].exists(@c0:0, @c0:0 > 0) && [1u].exists(@c0:1, @c0:1 > 0u)</code>
+   *   <li><code>[true].exists(i, i && [true].exists(j, j))</code> -&gt;
+   *       <code>[true].exists(@c0:0, @c0:0 && [true].exists(@c1:0, @c1:0))</code>
    * </ul>
    *
    * @param ast AST containing type-checked references
    * @param newIterVarPrefix Prefix to use for new iteration variable identifier name. For example,
    *     providing @c will produce @c0:0, @c0:1, @c1:0, @c2:0... as new names.
-   * @param newResultPrefix Prefix to use for new comprehensin result identifier names.
+   * @param newResultPrefix Prefix to use for new comprehension result identifier names.
+   * @param incrementSerially Mangled variable indices are incremented serially per occurrence regardless of their nesting level or its types.
    */
   public MangledComprehensionAst mangleComprehensionIdentifierNames(
       CelMutableAst ast, String newIterVarPrefix, String newResultPrefix, boolean incrementSerially) {
@@ -367,22 +368,21 @@ public final class AstMutator {
       MangledComprehensionType comprehensionEntryType = comprehensionEntry.getValue();
 
       CelMutableExpr comprehensionExpr = comprehensionNode.expr();
-      int comprehensionNestingLevel = incrementSerially ? iterCount : countComprehensionNestingLevel(comprehensionNode);
       MangledComprehensionName mangledComprehensionName;
-      if (comprehensionLevelToType.contains(comprehensionNestingLevel, comprehensionEntryType)) {
+      if (incrementSerially) {
+        // In case of applying CSE via cascaded cel.binds, not only is mangling based on level/types meaningless (because all comprehensions are nested anyways, thus all indices would be uinque),
+        // it can lead to an erroneous result due to extracting a common subexpr with accu_var at the wrong scope.
+        // Example: "[1].exists(k, k > 1) && [2].exists(l, l > 1). The loop step for both branches are identical, but shouldn't be extracted.
+        String mangledIterVarName = newIterVarPrefix + ":" + iterCount;
+        String mangledResultName = newResultPrefix + ":" + iterCount;
         mangledComprehensionName =
-                comprehensionLevelToType.get(comprehensionNestingLevel, comprehensionEntryType);
+            MangledComprehensionName.of(mangledIterVarName, mangledResultName);
+        mangledIdentNamesToType.put(mangledComprehensionName, comprehensionEntry.getValue());
       } else {
-        String mangledIterVarName =
-                newIterVarPrefix + ":" + comprehensionNestingLevel;
-        String mangledResultName =
-                newResultPrefix + ":"+ comprehensionNestingLevel;
-        mangledComprehensionName =
-                MangledComprehensionName.of(mangledIterVarName, mangledResultName);
-        comprehensionLevelToType.put(
-                comprehensionNestingLevel, comprehensionEntryType, mangledComprehensionName);
+        mangledComprehensionName = getMangledComprehensionName(newIterVarPrefix, newResultPrefix,
+            comprehensionNode, comprehensionLevelToType, comprehensionEntryType);
       }
-      mangledIdentNamesToType.put(mangledComprehensionName, comprehensionEntryType);
+       mangledIdentNamesToType.put(mangledComprehensionName, comprehensionEntryType);
 
       String iterVar = comprehensionExpr.comprehension().iterVar();
       String accuVar = comprehensionExpr.comprehension().accuVar();
@@ -414,6 +414,31 @@ public final class AstMutator {
     return MangledComprehensionAst.of(
         CelMutableAst.of(mutatedComprehensionExpr, newSource),
         ImmutableMap.copyOf(mangledIdentNamesToType));
+  }
+
+  private static MangledComprehensionName getMangledComprehensionName(String newIterVarPrefix,
+      String newResultPrefix, CelNavigableMutableExpr comprehensionNode,
+      Table<Integer, MangledComprehensionType, MangledComprehensionName> comprehensionLevelToType,
+      MangledComprehensionType comprehensionEntryType) {
+    MangledComprehensionName mangledComprehensionName;
+    int comprehensionNestingLevel = countComprehensionNestingLevel(comprehensionNode);
+    if (comprehensionLevelToType.contains(comprehensionNestingLevel, comprehensionEntryType)) {
+      mangledComprehensionName =
+          comprehensionLevelToType.get(comprehensionNestingLevel, comprehensionEntryType);
+    } else {
+      // First time encountering the pair of <ComprehensionLevel, CelType>. Generate a unique
+      // mangled variable name for this.
+      int uniqueTypeIdx = comprehensionLevelToType.row(comprehensionNestingLevel).size();
+      String mangledIterVarName =
+          newIterVarPrefix + comprehensionNestingLevel + ":" + uniqueTypeIdx;
+      String mangledResultName =
+          newResultPrefix + comprehensionNestingLevel + ":" + uniqueTypeIdx;
+      mangledComprehensionName =
+          MangledComprehensionName.of(mangledIterVarName, mangledResultName);
+      comprehensionLevelToType.put(
+          comprehensionNestingLevel, comprehensionEntryType, mangledComprehensionName);
+    }
+    return mangledComprehensionName;
   }
 
   private static int countComprehensionNestingLevel(CelNavigableMutableExpr comprehensionExpr) {
