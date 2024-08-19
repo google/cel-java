@@ -92,8 +92,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   private static final SubexpressionOptimizer INSTANCE =
       new SubexpressionOptimizer(SubexpressionOptimizerOptions.newBuilder().build());
   private static final String BIND_IDENTIFIER_PREFIX = "@r";
-  private static final String MANGLED_COMPREHENSION_IDENTIFIER_PREFIX = "@c";
-  private static final String MANGLED_COMPREHENSION_RESULT_PREFIX = "@x";
+  private static final String MANGLED_COMPREHENSION_ITER_VAR_PREFIX = "@it";
+  private static final String MANGLED_COMPREHENSION_ACCU_VAR_PREFIX = "@ac";
   private static final String CEL_BLOCK_FUNCTION = "cel.@block";
   private static final String BLOCK_INDEX_PREFIX = "@index";
   private static final Extension CEL_BLOCK_AST_EXTENSION_TAG =
@@ -138,8 +138,9 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     MangledComprehensionAst mangledComprehensionAst =
         astMutator.mangleComprehensionIdentifierNames(
             astToModify,
-            MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
-            MANGLED_COMPREHENSION_RESULT_PREFIX);
+            MANGLED_COMPREHENSION_ITER_VAR_PREFIX,
+            MANGLED_COMPREHENSION_ACCU_VAR_PREFIX,
+            /* incrementSerially= */ false);
     astToModify = mangledComprehensionAst.mutableAst();
     CelMutableSource sourceToModify = astToModify.source();
 
@@ -339,8 +340,9 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         astMutator
             .mangleComprehensionIdentifierNames(
                 astToModify,
-                MANGLED_COMPREHENSION_IDENTIFIER_PREFIX,
-                MANGLED_COMPREHENSION_RESULT_PREFIX)
+                MANGLED_COMPREHENSION_ITER_VAR_PREFIX,
+                MANGLED_COMPREHENSION_ACCU_VAR_PREFIX,
+                /* incrementSerially= */ true)
             .mutableAst();
     CelMutableSource sourceToModify = astToModify.source();
 
