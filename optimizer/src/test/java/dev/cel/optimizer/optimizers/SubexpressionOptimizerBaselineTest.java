@@ -71,6 +71,7 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
 
   private static final SubexpressionOptimizerOptions OPTIMIZER_COMMON_OPTIONS =
       SubexpressionOptimizerOptions.newBuilder()
+          .retainComprehensionStructure(false)
           .populateMacroCalls(true)
           .enableCelBlock(true)
           .addEliminableFunctions("pure_custom_func")

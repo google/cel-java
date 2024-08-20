@@ -551,7 +551,34 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         && !(navigableExpr.getKind().equals(Kind.LIST)
             && navigableExpr.expr().list().elements().isEmpty())
         && containsEliminableFunctionOnly(navigableExpr)
-        && !ineligibleExprs.contains(navigableExpr.expr());
+        && !ineligibleExprs.contains(navigableExpr.expr())
+        && retainComprehensionStructure(navigableExpr);
+  }
+
+  private boolean retainComprehensionStructure(CelNavigableMutableExpr navExpr) {
+    if (!cseOptions.retainComprehensionStructure()) {
+      return true;
+    }
+
+    if (navExpr.getKind().equals(Kind.COMPREHENSION)) {
+      return true;
+    }
+
+    CelNavigableMutableExpr identNavExpr = navExpr.allNodes().filter(node -> node.getKind().equals(Kind.IDENT) && (node.expr().ident().name().startsWith(MANGLED_COMPREHENSION_ITER_VAR_PREFIX) || node.expr().ident().name().startsWith(MANGLED_COMPREHENSION_ACCU_VAR_PREFIX))).findAny().orElse(null);
+    if (identNavExpr == null) {
+      return true;
+    }
+
+    CelNavigableMutableExpr parent = identNavExpr.parent().orElse(null);
+    while (parent != null) {
+      if (parent.getKind().equals(Kind.COMPREHENSION)) {
+        return false;
+      }
+
+      parent = parent.parent().orElse(null);
+    }
+
+    return true;
   }
 
   /**
@@ -628,6 +655,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     public abstract boolean enableCelBlock();
 
+    public abstract boolean retainComprehensionStructure();
+
     public abstract int subexpressionMaxRecursionDepth();
 
     public abstract ImmutableSet<String> eliminableFunctions();
@@ -684,6 +713,23 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
        */
       public abstract Builder subexpressionMaxRecursionDepth(int value);
 
+      /**
+       * If configured true, SubexpressionOptimizer will not break apart a subexpression
+       * containing a comprehension's iter_var and accu_var without the surrounding comprehension.
+       *
+       * An example expression {@code ['foo'].map(x, [x+x]) + ['foo'].map(x, [x+x, x+x])} is optimized as
+       * (note the common subexpr x+x that leverage the iteration variable):
+       *
+       * <ul>
+       *   <li>Disabled: {@code cel.@block([["foo"], @it0 + @it0], @index0.map(@it0, [@index1]) + @index0.map(@it0, [@index1, @index1]))}
+       *   <li>Enabled: {@code cel.@block([["foo"]], @index0.map(@it0, [@it0 + @it0]) + @index0.map(@it0, [@it0 + @it0, @it0 + @it0]))}
+       * </ul>
+       *
+       * For CEL-Java, the recommended setting is to leave this disabled for maximal optimization efficiency.
+       *
+       */
+      public abstract Builder retainComprehensionStructure(boolean value);
+
       abstract ImmutableSet.Builder<String> eliminableFunctionsBuilder();
 
       /**
@@ -718,6 +764,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
           .iterationLimit(500)
           .populateMacroCalls(false)
           .enableCelBlock(false)
+          .retainComprehensionStructure(false)
           .subexpressionMaxRecursionDepth(0);
     }
 
