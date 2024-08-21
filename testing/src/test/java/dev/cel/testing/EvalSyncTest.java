@@ -17,6 +17,7 @@ package dev.cel.testing;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
@@ -80,8 +81,8 @@ public final class EvalSyncTest {
             {StringValue.of("test"), "test"},
             {Int32Value.of(1), 1L},
             {Int64Value.of(1), 1L},
-            {UInt32Value.of(1), 1L},
-            {UInt64Value.of(1), 1L},
+            {UInt32Value.of(1), UnsignedLong.valueOf(1L)},
+            {UInt64Value.of(1), UnsignedLong.valueOf(1L)},
             {BytesValue.of(ByteString.copyFromUtf8("test")), ByteString.copyFromUtf8("test")},
           });
     }
