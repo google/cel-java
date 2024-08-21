@@ -71,6 +71,7 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
 
   private static final SubexpressionOptimizerOptions OPTIMIZER_COMMON_OPTIONS =
       SubexpressionOptimizerOptions.newBuilder()
+          .retainComprehensionStructure(false)
           .populateMacroCalls(true)
           .enableCelBlock(true)
           .addEliminableFunctions("pure_custom_func")
@@ -352,6 +353,8 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
   private enum CseTestOptimizer {
     CASCADED_BINDS(OPTIMIZER_COMMON_OPTIONS.toBuilder().enableCelBlock(false).build()),
     BLOCK_COMMON_SUBEXPR_ONLY(OPTIMIZER_COMMON_OPTIONS),
+    BLOCK_COMMON_SUBEXPR_COMPREHENSION_STRUCTURE_RETAINED(
+        OPTIMIZER_COMMON_OPTIONS.toBuilder().retainComprehensionStructure(true).build()),
     BLOCK_RECURSION_DEPTH_1(
         OPTIMIZER_COMMON_OPTIONS.toBuilder().subexpressionMaxRecursionDepth(1).build()),
     BLOCK_RECURSION_DEPTH_2(

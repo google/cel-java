@@ -202,6 +202,26 @@ public class SubexpressionOptimizerTest {
   }
 
   @Test
+  public void cse_withComprehensionStructureRetained() throws Exception {
+    CelAbstractSyntaxTree ast =
+        CEL.compile("['foo'].map(x, [x+x]) + ['foo'].map(x, [x+x, x+x])").getAst();
+    CelOptimizer celOptimizer =
+        newCseOptimizer(
+            SubexpressionOptimizerOptions.newBuilder()
+                .populateMacroCalls(true)
+                .enableCelBlock(true)
+                .retainComprehensionStructure(true)
+                .build());
+
+    CelAbstractSyntaxTree optimizedAst = celOptimizer.optimize(ast);
+
+    assertThat(CEL_UNPARSER.unparse(optimizedAst))
+        .isEqualTo(
+            "cel.@block([[\"foo\"]], @index0.map(@it:0:0, [@it:0:0 + @it:0:0]) +"
+                + " @index0.map(@it:0:0, [@it:0:0 + @it:0:0, @it:0:0 + @it:0:0]))");
+  }
+
+  @Test
   public void cse_applyConstFoldingAfter() throws Exception {
     CelAbstractSyntaxTree ast =
         CEL.compile("size([1+1+1]) + size([1+1+1]) + size([1,1+1+1]) + size([1,1+1+1]) + x")
