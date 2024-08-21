@@ -18,6 +18,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import dev.cel.expr.Value;
+import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes;
+import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes.NestedMessage;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
@@ -48,8 +50,6 @@ import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.InterpreterUtil;
-import dev.cel.testing.testdata.proto2.TestAllTypesProto.TestAllTypes;
-import dev.cel.testing.testdata.proto2.TestAllTypesProto.TestAllTypes.NestedMessage;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -94,7 +94,7 @@ public class CelOptionalLibraryTest {
         .setOptions(
             CelOptions.current().enableUnsignedLongs(true).enableTimestampEpoch(true).build())
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-        .setContainer("dev.cel.testing.testdata.proto2")
+        .setContainer("google.api.expr.test.v1.proto2")
         .addMessageTypes(TestAllTypes.getDescriptor())
         .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
         .addCompilerLibraries(CelOptionalLibrary.INSTANCE);

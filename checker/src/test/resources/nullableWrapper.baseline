@@ -1,10 +1,10 @@
 Source: x.single_int64_wrapper == null
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 _==_(
-  x~dev.cel.testing.testdata.proto3.TestAllTypes^x.single_int64_wrapper~wrapper(int),
+  x~google.api.expr.test.v1.proto3.TestAllTypes^x.single_int64_wrapper~wrapper(int),
   null~null
 )~bool^equals
 

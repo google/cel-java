@@ -5,60 +5,60 @@ Source: [y.hasI(), y.getI() == 200, !n.hasI(), n.getI() == 0,
  y.hasN(), y.getN().getI() == 0, !y.getN().hasN(), y.getN().getN().getI() == 0,
  !n.hasN(), n.assignN(y).getN().hasN(),
  !n.clearN().hasN(), !y.clearN().hasN(),
- n.getR() == [], y.getR().map(h, h.s) == ["alpha", "beta"],
- n.assignR(["a", "b"].map(s, StringHolder{s:s})).getR().map(h, h.s) == ["a", "b"],
+ n.getR() == [], y.getR().map(h, h.single_string) == ["alpha", "beta"],
+ n.assignR(["a", "b"].map(s, TestAllTypes{single_string:s})).getR().map(h, h.single_string) == ["a", "b"],
  y.clearR().getR() == []]
 declare y {
-  value dev.cel.testing.testdata.proto2.Proto2Message
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare n {
-  value dev.cel.testing.testdata.proto2.Proto2Message
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare getI {
-  function getI dev.cel.testing.testdata.proto2.Proto2Message.() -> int
+  function getI google.api.expr.test.v1.proto3.TestAllTypes.() -> int
 }
 declare hasI {
-  function hasI dev.cel.testing.testdata.proto2.Proto2Message.() -> bool
+  function hasI google.api.expr.test.v1.proto3.TestAllTypes.() -> bool
 }
 declare assignI {
-  function assignI dev.cel.testing.testdata.proto2.Proto2Message.(int) -> dev.cel.testing.testdata.proto2.Proto2Message
+  function assignI google.api.expr.test.v1.proto3.TestAllTypes.(int) -> google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare clearI {
-  function clearI dev.cel.testing.testdata.proto2.Proto2Message.() -> dev.cel.testing.testdata.proto2.Proto2Message
+  function clearI google.api.expr.test.v1.proto3.TestAllTypes.() -> google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare getN {
-  function getN dev.cel.testing.testdata.proto2.Proto2Message.() -> dev.cel.testing.testdata.proto2.Proto2Message
+  function getN google.api.expr.test.v1.proto3.TestAllTypes.() -> google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare hasN {
-  function hasN dev.cel.testing.testdata.proto2.Proto2Message.() -> bool
+  function hasN google.api.expr.test.v1.proto3.TestAllTypes.() -> bool
 }
 declare assignN {
-  function assignN dev.cel.testing.testdata.proto2.Proto2Message.(dev.cel.testing.testdata.proto2.Proto2Message) -> dev.cel.testing.testdata.proto2.Proto2Message
+  function assignN google.api.expr.test.v1.proto3.TestAllTypes.(google.api.expr.test.v1.proto3.TestAllTypes) -> google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare clearN {
-  function clearN dev.cel.testing.testdata.proto2.Proto2Message.() -> dev.cel.testing.testdata.proto2.Proto2Message
+  function clearN google.api.expr.test.v1.proto3.TestAllTypes.() -> google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare getR {
-  function getR dev.cel.testing.testdata.proto2.Proto2Message.() -> list(dev.cel.testing.testdata.proto2.StringHolder)
+  function getR google.api.expr.test.v1.proto3.TestAllTypes.() -> list(google.api.expr.test.v1.proto2.TestAllTypes)
 }
 declare assignR {
-  function assignR dev.cel.testing.testdata.proto2.Proto2Message.(list(dev.cel.testing.testdata.proto2.StringHolder)) -> dev.cel.testing.testdata.proto2.Proto2Message
+  function assignR google.api.expr.test.v1.proto3.TestAllTypes.(list(google.api.expr.test.v1.proto2.TestAllTypes)) -> google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare clearR {
-  function clearR dev.cel.testing.testdata.proto2.Proto2Message.() -> dev.cel.testing.testdata.proto2.Proto2Message
+  function clearR google.api.expr.test.v1.proto3.TestAllTypes.() -> google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {y=single_int32: 100
-[dev.cel.testing.testdata.proto2.nested_ext] {
+[google.api.expr.test.v1.proto2.int32_ext]: 200
+[google.api.expr.test.v1.proto2.nested_ext] {
   single_int32: 50
 }
-[dev.cel.testing.testdata.proto2.int32_ext]: 200
-[dev.cel.testing.testdata.proto2.repeated_string_holder_ext] {
-  s: "alpha"
+[google.api.expr.test.v1.proto2.repeated_test_all_types] {
+  single_string: "alpha"
 }
-[dev.cel.testing.testdata.proto2.repeated_string_holder_ext] {
-  s: "beta"
+[google.api.expr.test.v1.proto2.repeated_test_all_types] {
+  single_string: "alpha"
 }
 , n=single_int32: 50
 }
-result:   [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true]
+result:   [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, false, true, true]

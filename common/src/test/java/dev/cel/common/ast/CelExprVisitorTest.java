@@ -17,6 +17,7 @@ package dev.cel.common.ast;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -33,7 +34,6 @@ import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.Operator;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;

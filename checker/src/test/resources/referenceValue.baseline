@@ -1,6 +1,6 @@
 Source: x
 declare container.x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
-container.x~dev.cel.testing.testdata.proto3.TestAllTypes^container.x
+container.x~google.api.expr.test.v1.proto3.TestAllTypes^container.x

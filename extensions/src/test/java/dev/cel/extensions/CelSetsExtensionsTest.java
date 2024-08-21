@@ -17,6 +17,7 @@ package dev.cel.extensions;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
@@ -36,7 +37,6 @@ import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeFactory;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,7 +49,7 @@ public final class CelSetsExtensionsTest {
       CelCompilerFactory.standardCelCompilerBuilder()
           .addMessageTypes(TestAllTypes.getDescriptor())
           .setOptions(CEL_OPTIONS)
-          .setContainer("dev.cel.testing.testdata.proto3")
+          .setContainer("google.api.expr.test.v1.proto3")
           .addLibraries(CelExtensions.sets(CEL_OPTIONS))
           .addVar("list", ListType.create(SimpleType.INT))
           .addVar("subList", ListType.create(SimpleType.INT))

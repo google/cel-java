@@ -23,7 +23,7 @@ Source: type(duration('10s')) == google.protobuf.Duration
 bindings: {}
 result:   true
 
-Source: type(TestAllTypes{}) == TestAllTypes && type(TestAllTypes{}) == proto3.TestAllTypes && type(TestAllTypes{}) == .dev.cel.testing.testdata.proto3.TestAllTypes && type(proto3.TestAllTypes{}) == TestAllTypes && type(proto3.TestAllTypes{}) == proto3.TestAllTypes && type(proto3.TestAllTypes{}) == .dev.cel.testing.testdata.proto3.TestAllTypes && type(.dev.cel.testing.testdata.proto3.TestAllTypes{}) == TestAllTypes && type(.dev.cel.testing.testdata.proto3.TestAllTypes{}) == proto3.TestAllTypes && type(.dev.cel.testing.testdata.proto3.TestAllTypes{}) == .dev.cel.testing.testdata.proto3.TestAllTypes
+Source: type(TestAllTypes{}) == TestAllTypes && type(TestAllTypes{}) == proto3.TestAllTypes && type(TestAllTypes{}) == .google.api.expr.test.v1.proto3.TestAllTypes && type(proto3.TestAllTypes{}) == TestAllTypes && type(proto3.TestAllTypes{}) == proto3.TestAllTypes && type(proto3.TestAllTypes{}) == .google.api.expr.test.v1.proto3.TestAllTypes && type(.google.api.expr.test.v1.proto3.TestAllTypes{}) == TestAllTypes && type(.google.api.expr.test.v1.proto3.TestAllTypes{}) == proto3.TestAllTypes && type(.google.api.expr.test.v1.proto3.TestAllTypes{}) == .google.api.expr.test.v1.proto3.TestAllTypes
 =====>
 bindings: {}
 result:   true

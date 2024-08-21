@@ -1,6 +1,6 @@
 Source: x.single_int32
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -11,7 +11,7 @@ result:   unknown {
 
 Source: x.map_int32_int64[22]
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -22,7 +22,7 @@ result:   unknown {
 
 Source: x.repeated_nested_message[1]
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -33,7 +33,7 @@ result:   unknown {
 
 Source: x.single_timestamp.getSeconds()
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -44,7 +44,7 @@ result:   unknown {
 
 Source: x.single_nested_message.bb
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -55,7 +55,7 @@ result:   unknown {
 
 Source: {1: x.single_int32}
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -66,7 +66,7 @@ result:   unknown {
 
 Source: [1, x.single_int32]
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {}

@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static dev.cel.common.CelOverloadDecl.newGlobalOverload;
 import static org.junit.Assert.assertThrows;
 
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -57,7 +58,6 @@ import dev.cel.parser.Operator;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeFactory;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;

@@ -16,6 +16,7 @@ package dev.cel.common.ast;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -27,7 +28,6 @@ import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.parser.CelStandardMacro;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -173,7 +173,7 @@ public class CelExprFormatterTest {
   public void struct() throws Exception {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
-            .setContainer("dev.cel.testing.testdata.proto3")
+            .setContainer("google.api.expr.test.v1.proto3")
             .addMessageTypes(TestAllTypes.getDescriptor())
             .addLibraries(CelOptionalLibrary.INSTANCE)
             .build();
@@ -223,7 +223,7 @@ public class CelExprFormatterTest {
   public void map() throws Exception {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
-            .setContainer("dev.cel.testing.testdata.proto3")
+            .setContainer("google.api.expr.test.v1.proto3")
             .addMessageTypes(TestAllTypes.getDescriptor())
             .addLibraries(CelOptionalLibrary.INSTANCE)
             .build();

@@ -17,12 +17,12 @@ package dev.cel.common.types;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.api.expr.test.v1.proto2.TestAllTypesExtensions;
+import com.google.api.expr.test.v1.proto2.TestAllTypesProto;
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.types.CelTypeProvider.CombinedCelTypeProvider;
-import dev.cel.testing.testdata.proto2.MessagesProto2;
-import dev.cel.testing.testdata.proto2.MessagesProto2Extensions;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,7 +39,9 @@ public final class ProtoMessageTypeProviderTest {
   private final ProtoMessageTypeProvider proto2Provider =
       new ProtoMessageTypeProvider(
           ImmutableSet.of(
-              MessagesProto2.getDescriptor(), MessagesProto2Extensions.getDescriptor()));
+              TestAllTypes.getDescriptor().getFile(),
+              TestAllTypesProto.TestAllTypes.getDescriptor().getFile(),
+              TestAllTypesExtensions.getDescriptor()));
 
   @Test
   public void types_emptyTypeSet() {
@@ -55,21 +57,21 @@ public final class ProtoMessageTypeProviderTest {
   public void types_allGlobalAndNestedDeclarations() {
     assertThat(proto3Provider.types().stream().map(CelType::name).collect(toImmutableList()))
         .containsAtLeast(
-            "dev.cel.testing.testdata.proto3.GlobalEnum",
-            "dev.cel.testing.testdata.proto3.TestAllTypes",
-            "dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage",
-            "dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum",
-            "dev.cel.testing.testdata.proto3.NestedTestAllTypes");
+            "google.api.expr.test.v1.proto3.GlobalEnum",
+            "google.api.expr.test.v1.proto3.TestAllTypes",
+            "google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage",
+            "google.api.expr.test.v1.proto3.TestAllTypes.NestedEnum",
+            "google.api.expr.test.v1.proto3.NestedTestAllTypes");
   }
 
   @Test
   public void findType_globalEnumWithAllNamesAndNumbers() {
     Optional<CelType> celType =
-        proto3Provider.findType("dev.cel.testing.testdata.proto3.GlobalEnum");
+        proto3Provider.findType("google.api.expr.test.v1.proto3.GlobalEnum");
     assertThat(celType).isPresent();
     assertThat(celType.get()).isInstanceOf(EnumType.class);
     EnumType enumType = (EnumType) celType.get();
-    assertThat(enumType.name()).isEqualTo("dev.cel.testing.testdata.proto3.GlobalEnum");
+    assertThat(enumType.name()).isEqualTo("google.api.expr.test.v1.proto3.GlobalEnum");
     assertThat(enumType.findNameByNumber(0)).hasValue("GOO");
     assertThat(enumType.findNameByNumber(1)).hasValue("GAR");
     assertThat(enumType.findNameByNumber(2)).hasValue("GAZ");
@@ -79,12 +81,11 @@ public final class ProtoMessageTypeProviderTest {
   @Test
   public void findType_nestedEnumWithAllNamesAndNumbers() {
     Optional<CelType> celType =
-        proto3Provider.findType("dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum");
+        proto3Provider.findType("google.api.expr.test.v1.proto3.TestAllTypes.NestedEnum");
     assertThat(celType).isPresent();
     assertThat(celType.get()).isInstanceOf(EnumType.class);
     EnumType enumType = (EnumType) celType.get();
-    assertThat(enumType.name())
-        .isEqualTo("dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum");
+    assertThat(enumType.name()).isEqualTo("google.api.expr.test.v1.proto3.TestAllTypes.NestedEnum");
     assertThat(enumType.findNumberByName("FOO")).hasValue(0);
     assertThat(enumType.findNumberByName("BAR")).hasValue(1);
     assertThat(enumType.findNumberByName("BAZ")).hasValue(2);
@@ -94,11 +95,11 @@ public final class ProtoMessageTypeProviderTest {
   @Test
   public void findType_globalMessageTypeNoExtensions() {
     Optional<CelType> celType =
-        proto3Provider.findType("dev.cel.testing.testdata.proto3.NestedTestAllTypes");
+        proto3Provider.findType("google.api.expr.test.v1.proto3.NestedTestAllTypes");
     assertThat(celType).isPresent();
     assertThat(celType.get()).isInstanceOf(ProtoMessageType.class);
     ProtoMessageType protoType = (ProtoMessageType) celType.get();
-    assertThat(protoType.name()).isEqualTo("dev.cel.testing.testdata.proto3.NestedTestAllTypes");
+    assertThat(protoType.name()).isEqualTo("google.api.expr.test.v1.proto3.NestedTestAllTypes");
     assertThat(protoType.findField("payload")).isPresent();
     assertThat(protoType.findField("child")).isPresent();
     assertThat(protoType.findField("missing")).isEmpty();
@@ -109,101 +110,99 @@ public final class ProtoMessageTypeProviderTest {
   @Test
   public void findType_globalMessageWithExtensions() {
     Optional<CelType> celType =
-        proto2Provider.findType("dev.cel.testing.testdata.proto2.Proto2Message");
+        proto2Provider.findType("google.api.expr.test.v1.proto2.TestAllTypes");
     assertThat(celType).isPresent();
     assertThat(celType.get()).isInstanceOf(ProtoMessageType.class);
     ProtoMessageType protoType = (ProtoMessageType) celType.get();
-    assertThat(protoType.name()).isEqualTo("dev.cel.testing.testdata.proto2.Proto2Message");
+    assertThat(protoType.name()).isEqualTo("google.api.expr.test.v1.proto2.TestAllTypes");
     assertThat(protoType.findField("single_int32")).isPresent();
-    assertThat(protoType.findField("single_enum")).isPresent();
-    assertThat(protoType.findField("single_nested_test_all_types")).isPresent();
+    assertThat(protoType.findField("single_uint64")).isPresent();
+    assertThat(protoType.findField("oneof_type")).isPresent();
     assertThat(protoType.findField("nestedgroup")).isPresent();
-    assertThat(protoType.findField("nested_ext")).isEmpty();
+    assertThat(protoType.findField("nested_enum_ext")).isEmpty();
 
-    assertThat(protoType.findExtension("dev.cel.testing.testdata.proto2.nested_ext")).isPresent();
-    assertThat(protoType.findExtension("dev.cel.testing.testdata.proto2.int32_ext")).isPresent();
-    assertThat(protoType.findExtension("dev.cel.testing.testdata.proto2.test_all_types_ext"))
+    assertThat(protoType.findExtension("google.api.expr.test.v1.proto2.nested_ext")).isPresent();
+    assertThat(protoType.findExtension("google.api.expr.test.v1.proto2.int32_ext")).isPresent();
+    assertThat(protoType.findExtension("google.api.expr.test.v1.proto2.test_all_types_ext"))
         .isPresent();
-    assertThat(protoType.findExtension("dev.cel.testing.testdata.proto2.nested_enum_ext"))
+    assertThat(protoType.findExtension("google.api.expr.test.v1.proto2.nested_enum_ext"))
         .isPresent();
-    assertThat(
-            protoType.findExtension("dev.cel.testing.testdata.proto2.repeated_string_holder_ext"))
+    assertThat(protoType.findExtension("google.api.expr.test.v1.proto2.repeated_test_all_types"))
         .isPresent();
 
-    assertThat(protoType.findExtension("dev.cel.testing.testdata.proto2.Proto2Message.int32_ext"))
+    assertThat(protoType.findExtension("google.api.expr.test.v1.proto2.TestAllTypes.int32_ext"))
         .isEmpty();
 
     Optional<CelType> holderType =
-        proto2Provider.findType("dev.cel.testing.testdata.proto2.StringHolder");
+        proto2Provider.findType("google.api.expr.test.v1.proto2.TestRequired");
     assertThat(holderType).isPresent();
     ProtoMessageType stringHolderType = (ProtoMessageType) holderType.get();
-    assertThat(stringHolderType.findExtension("dev.cel.testing.testdata.proto2.nested_enum_ext"))
+    assertThat(stringHolderType.findExtension("google.api.expr.test.v1.proto2.nested_enum_ext"))
         .isEmpty();
   }
 
   @Test
   public void findType_scopedMessageWithExtensions() {
     Optional<CelType> celType =
-        proto2Provider.findType("dev.cel.testing.testdata.proto2.Proto2Message");
+        proto2Provider.findType("google.api.expr.test.v1.proto2.TestAllTypes");
     assertThat(celType).isPresent();
     assertThat(celType.get()).isInstanceOf(ProtoMessageType.class);
     ProtoMessageType protoType = (ProtoMessageType) celType.get();
 
     assertThat(
             protoType.findExtension(
-                "dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext"))
+                "google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext"))
         .isPresent();
     assertThat(
             protoType.findExtension(
-                "dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.int64_ext"))
+                "google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.int64_ext"))
         .isPresent();
     assertThat(
             protoType.findExtension(
-                "dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.string_ext"))
+                "google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types"))
         .isPresent();
 
     assertThat(
             protoType.findExtension(
-                "dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.nested_message_inside_ext"))
+                "google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext"))
         .isPresent();
   }
 
   @Test
   public void findType_withRepeatedEnumField() {
     Optional<CelType> celType =
-        proto3Provider.findType("dev.cel.testing.testdata.proto3.TestAllTypes");
+        proto3Provider.findType("google.api.expr.test.v1.proto3.TestAllTypes");
     assertThat(celType).isPresent();
     assertThat(celType.get()).isInstanceOf(ProtoMessageType.class);
     ProtoMessageType protoType = (ProtoMessageType) celType.get();
-    assertThat(protoType.name()).isEqualTo("dev.cel.testing.testdata.proto3.TestAllTypes");
+    assertThat(protoType.name()).isEqualTo("google.api.expr.test.v1.proto3.TestAllTypes");
     assertThat(protoType.findField("repeated_nested_enum")).isPresent();
 
     CelType fieldType = protoType.findField("repeated_nested_enum").get().type();
     assertThat(fieldType.kind()).isEqualTo(CelKind.LIST);
     assertThat(fieldType.parameters()).hasSize(1);
     CelType elemType = fieldType.parameters().get(0);
-    assertThat(elemType.name())
-        .isEqualTo("dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum");
+    assertThat(elemType.name()).isEqualTo("google.api.expr.test.v1.proto3.TestAllTypes.NestedEnum");
     assertThat(elemType.kind()).isEqualTo(CelKind.INT);
     assertThat(elemType).isInstanceOf(EnumType.class);
-    assertThat(proto3Provider.findType("dev.cel.testing.testdata.proto3.TestAllTypes.NestedEnum"))
+    assertThat(proto3Provider.findType("google.api.expr.test.v1.proto3.TestAllTypes.NestedEnum"))
         .hasValue(elemType);
   }
 
   @Test
   public void findType_withOneofField() {
     Optional<CelType> celType =
-        proto3Provider.findType("dev.cel.testing.testdata.proto3.TestAllTypes");
+        proto3Provider.findType("google.api.expr.test.v1.proto3.TestAllTypes");
     ProtoMessageType protoType = (ProtoMessageType) celType.get();
-    assertThat(protoType.name()).isEqualTo("dev.cel.testing.testdata.proto3.TestAllTypes");
+    assertThat(protoType.name()).isEqualTo("google.api.expr.test.v1.proto3.TestAllTypes");
     assertThat(protoType.findField("single_nested_message").map(f -> f.type().name()))
-        .hasValue("dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage");
+        .hasValue("google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage");
   }
 
   @Test
   public void findType_withMapField() {
     Optional<CelType> celType =
-        proto3Provider.findType("dev.cel.testing.testdata.proto3.TestAllTypes");
+        proto3Provider.findType("google.api.expr.test.v1.proto3.TestAllTypes");
     ProtoMessageType protoType = (ProtoMessageType) celType.get();
     CelType fieldType = protoType.findField("map_int64_nested_type").get().type();
 
@@ -213,14 +212,14 @@ public final class ProtoMessageTypeProviderTest {
     CelType valueType = fieldType.parameters().get(1);
     assertThat(keyType.name()).isEqualTo("int");
     assertThat(keyType.kind()).isEqualTo(CelKind.INT);
-    assertThat(valueType.name()).isEqualTo("dev.cel.testing.testdata.proto3.NestedTestAllTypes");
+    assertThat(valueType.name()).isEqualTo("google.api.expr.test.v1.proto3.NestedTestAllTypes");
     assertThat(valueType.kind()).isEqualTo(CelKind.STRUCT);
   }
 
   @Test
   public void findType_withWellKnownTypes() {
     Optional<CelType> celType =
-        proto3Provider.findType("dev.cel.testing.testdata.proto3.TestAllTypes");
+        proto3Provider.findType("google.api.expr.test.v1.proto3.TestAllTypes");
     ProtoMessageType protoType = (ProtoMessageType) celType.get();
     assertThat(protoType.findField("single_any").map(f -> f.type())).hasValue(SimpleType.ANY);
     assertThat(protoType.findField("single_duration").map(f -> f.type()))
@@ -228,7 +227,7 @@ public final class ProtoMessageTypeProviderTest {
     assertThat(protoType.findField("single_timestamp").map(f -> f.type()))
         .hasValue(SimpleType.TIMESTAMP);
     assertThat(protoType.findField("single_value").map(f -> f.type())).hasValue(SimpleType.DYN);
-    assertThat(protoType.findField("single_list_value").map(f -> f.type()))
+    assertThat(protoType.findField("list_value").map(f -> f.type()))
         .hasValue(ListType.create(SimpleType.DYN));
     assertThat(protoType.findField("single_struct").map(f -> f.type()))
         .hasValue(MapType.create(SimpleType.STRING, SimpleType.DYN));

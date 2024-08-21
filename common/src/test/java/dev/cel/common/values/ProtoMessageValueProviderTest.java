@@ -17,6 +17,8 @@ package dev.cel.common.values;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.api.expr.test.v1.proto2.TestAllTypesExtensions;
+import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
@@ -32,9 +34,6 @@ import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.values.CelValueProvider.CombinedCelValueProvider;
-import dev.cel.testing.testdata.proto2.MessagesProto2Extensions;
-import dev.cel.testing.testdata.proto2.Proto2Message;
-import dev.cel.testing.testdata.proto2.TestAllTypesProto.TestAllTypes;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -48,8 +47,7 @@ public class ProtoMessageValueProviderTest {
       DefaultDescriptorPool.create(
           CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
               ImmutableList.of(
-                  TestAllTypes.getDescriptor().getFile(),
-                  MessagesProto2Extensions.getDescriptor())));
+                  TestAllTypes.getDescriptor().getFile(), TestAllTypesExtensions.getDescriptor())));
   private static final ProtoMessageFactory MESSAGE_FACTORY =
       DefaultMessageFactory.create(DESCRIPTOR_POOL);
 
@@ -198,14 +196,14 @@ public class ProtoMessageValueProviderTest {
         (ProtoMessageValue)
             protoMessageValueProvider
                 .newValue(
-                    Proto2Message.getDescriptor().getFullName(),
-                    ImmutableMap.of("dev.cel.testing.testdata.proto2.int32_ext", 1))
+                    TestAllTypes.getDescriptor().getFullName(),
+                    ImmutableMap.of("google.api.expr.test.v1.proto2.int32_ext", 1))
                 .get();
 
     assertThat(protoMessageValue.isZeroValue()).isFalse();
     assertThat(
             protoMessageValue
-                .select(StringValue.create("dev.cel.testing.testdata.proto2.int32_ext"))
+                .select(StringValue.create("google.api.expr.test.v1.proto2.int32_ext"))
                 .value())
         .isEqualTo(1);
   }
@@ -241,7 +239,7 @@ public class ProtoMessageValueProviderTest {
         .hasMessageThat()
         .isEqualTo(
             "field 'bogus' is not declared in message"
-                + " 'dev.cel.testing.testdata.proto2.TestAllTypes'");
+                + " 'google.api.expr.test.v1.proto2.TestAllTypes'");
   }
 
   @Test

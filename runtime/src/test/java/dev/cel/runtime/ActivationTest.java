@@ -16,12 +16,12 @@ package dev.cel.runtime;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.NestedTestAllTypes;
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes.NestedMessage;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.NullValue;
 import dev.cel.common.CelOptions;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.NestedTestAllTypes;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes.NestedMessage;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

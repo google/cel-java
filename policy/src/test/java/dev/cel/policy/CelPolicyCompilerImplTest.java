@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static dev.cel.policy.PolicyTestHelper.readFromYaml;
 import static org.junit.Assert.assertThrows;
 
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameter;
@@ -39,7 +40,6 @@ import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection.PolicyT
 import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection.PolicyTestCase.PolicyTestInput;
 import dev.cel.policy.PolicyTestHelper.TestYamlPolicy;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;

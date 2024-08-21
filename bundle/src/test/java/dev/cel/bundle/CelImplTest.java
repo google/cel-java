@@ -35,6 +35,8 @@ import dev.cel.expr.ParsedExpr;
 import dev.cel.expr.Reference;
 import dev.cel.expr.Type;
 import dev.cel.expr.Type.PrimitiveType;
+import com.google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage;
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -98,7 +100,6 @@ import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.CelVariableResolver;
 import dev.cel.runtime.UnknownContext;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -1021,7 +1022,7 @@ public final class CelImplTest {
     Cel cel =
         standardCelBuilderWithMacros()
             .setOptions(CelOptions.current().resolveTypeDependencies(true).build())
-            .addMessageTypes(TestAllTypes.getDescriptor())
+            .addMessageTypes(Proto2ExtensionScopedMessage.getDescriptor())
             .setResultType(StructTypeReference.create("google.protobuf.NullValue"))
             .setContainer("google.protobuf")
             .build();
@@ -1030,7 +1031,6 @@ public final class CelImplTest {
     // enum within this 'Value' struct.
     // As deep type dependency is enabled, the following evaluation should work by as the
     // 'NullValue' enum type is transitively discovered
-
     CelRuntime.Program program =
         cel.createProgram(cel.compile("Value{null_value: NullValue.NULL_VALUE}").getAst());
     assertThat(program.eval()).isEqualTo(NullValue.NULL_VALUE);
@@ -1055,7 +1055,7 @@ public final class CelImplTest {
     Cel cel =
         standardCelBuilderWithMacros()
             .setOptions(CelOptions.current().resolveTypeDependencies(false).build())
-            .addMessageTypes(TestAllTypes.getDescriptor())
+            .addMessageTypes(Proto2ExtensionScopedMessage.getDescriptor())
             .setResultType(StructTypeReference.create("google.protobuf.NullValue"))
             .setContainer("google.protobuf")
             .build();
@@ -1817,13 +1817,13 @@ public final class CelImplTest {
             .addMessageTypes(TestAllTypes.getDescriptor())
             .addVar(
                 "partialMessage1",
-                StructTypeReference.create("dev.cel.testing.testdata.proto3.TestAllTypes"))
+                StructTypeReference.create("google.api.expr.test.v1.proto3.TestAllTypes"))
             .addVar(
                 "partialMessage2",
-                StructTypeReference.create("dev.cel.testing.testdata.proto3.TestAllTypes"))
+                StructTypeReference.create("google.api.expr.test.v1.proto3.TestAllTypes"))
             .setResultType(
-                StructTypeReference.create("dev.cel.testing.testdata.proto3.NestedTestAllTypes"))
-            .setContainer("dev.cel.testing.testdata.proto3")
+                StructTypeReference.create("google.api.expr.test.v1.proto3.NestedTestAllTypes"))
+            .setContainer("google.api.expr.test.v1.proto3")
             .addFunctionBindings()
             .build();
     Program program =

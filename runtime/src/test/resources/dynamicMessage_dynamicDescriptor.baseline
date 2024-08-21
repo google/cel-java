@@ -108,10 +108,10 @@ result:   seconds: 100
 
 Source: TestAllTypes { single_any: any_packed_test_msg }.single_any
 declare any_packed_test_msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
-bindings: {any_packed_test_msg=type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes"
+bindings: {any_packed_test_msg=type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes"
 value: "r\005hello"
 }
 result:   single_string: "hello"
@@ -119,10 +119,10 @@ result:   single_string: "hello"
 
 Source: dynamic_msg
 declare any_packed_test_msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare test_msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare dynamic_msg {
   value dev.cel.testing.testdata.serialized.proto3.TestAllTypes
@@ -141,10 +141,10 @@ result:   map_string_string {
 
 Source: dynamic_msg.map_string_string
 declare any_packed_test_msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare test_msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare dynamic_msg {
   value dev.cel.testing.testdata.serialized.proto3.TestAllTypes
@@ -159,10 +159,10 @@ result:   {foo=bar}
 
 Source: dynamic_msg.map_string_string['foo']
 declare any_packed_test_msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare test_msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare dynamic_msg {
   value dev.cel.testing.testdata.serialized.proto3.TestAllTypes
@@ -177,16 +177,16 @@ result:   bar
 
 Source: f_msg(dynamic_msg)
 declare any_packed_test_msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare test_msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare dynamic_msg {
   value dev.cel.testing.testdata.serialized.proto3.TestAllTypes
 }
 declare f_msg {
-  function f_msg_generated (dev.cel.testing.testdata.proto3.TestAllTypes) -> bool
+  function f_msg_generated (google.api.expr.test.v1.proto3.TestAllTypes) -> bool
   function f_msg_dynamic (dev.cel.testing.testdata.serialized.proto3.TestAllTypes) -> bool
 }
 =====>
@@ -200,16 +200,16 @@ result:   true
 
 Source: f_msg(test_msg)
 declare any_packed_test_msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare test_msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare dynamic_msg {
   value dev.cel.testing.testdata.serialized.proto3.TestAllTypes
 }
 declare f_msg {
-  function f_msg_generated (dev.cel.testing.testdata.proto3.TestAllTypes) -> bool
+  function f_msg_generated (google.api.expr.test.v1.proto3.TestAllTypes) -> bool
   function f_msg_dynamic (dev.cel.testing.testdata.serialized.proto3.TestAllTypes) -> bool
 }
 =====>

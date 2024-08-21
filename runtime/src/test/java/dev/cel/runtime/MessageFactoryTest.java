@@ -16,10 +16,10 @@ package dev.cel.runtime;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Message;
 import dev.cel.runtime.MessageFactory.CombinedMessageFactory;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;

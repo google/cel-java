@@ -17,6 +17,10 @@ package dev.cel.extensions;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage;
+import com.google.api.expr.test.v1.proto2.TestAllTypesExtensions;
+import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes;
+import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes.NestedEnum;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
@@ -39,12 +43,6 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeFactory;
-import dev.cel.testing.testdata.proto2.MessagesProto2Extensions;
-import dev.cel.testing.testdata.proto2.NestedMessageInsideExtensions;
-import dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage;
-import dev.cel.testing.testdata.proto2.Proto2Message;
-import dev.cel.testing.testdata.proto2.StringHolder;
-import dev.cel.testing.testdata.proto2.TestAllTypesProto.TestAllTypes.NestedEnum;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -55,47 +53,44 @@ public final class CelProtoExtensionsTest {
       CelCompilerFactory.standardCelCompilerBuilder()
           .addLibraries(CelExtensions.protos())
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-          .addFileTypes(MessagesProto2Extensions.getDescriptor())
-          .addVar(
-              "msg", StructTypeReference.create("dev.cel.testing.testdata.proto2.Proto2Message"))
-          .setContainer("dev.cel.testing.testdata.proto2")
+          .addFileTypes(TestAllTypesExtensions.getDescriptor())
+          .addVar("msg", StructTypeReference.create("google.api.expr.test.v1.proto2.TestAllTypes"))
+          .setContainer("google.api.expr.test.v1.proto2")
           .build();
 
   private static final CelRuntime CEL_RUNTIME =
       CelRuntimeFactory.standardCelRuntimeBuilder()
-          .addFileTypes(MessagesProto2Extensions.getDescriptor())
+          .addFileTypes(TestAllTypesExtensions.getDescriptor())
           .build();
 
-  private static final Proto2Message PACKAGE_SCOPED_EXT_MSG =
-      Proto2Message.newBuilder()
-          .setExtension(MessagesProto2Extensions.int32Ext, 1)
+  private static final TestAllTypes PACKAGE_SCOPED_EXT_MSG =
+      TestAllTypes.newBuilder()
+          .setExtension(TestAllTypesExtensions.int32Ext, 1)
           .setExtension(
-              MessagesProto2Extensions.nestedExt,
-              Proto2Message.newBuilder().setSingleInt32(5).build())
-          .setExtension(MessagesProto2Extensions.nestedEnumExt, NestedEnum.BAR)
+              TestAllTypesExtensions.nestedExt, TestAllTypes.newBuilder().setSingleInt32(5).build())
+          .setExtension(TestAllTypesExtensions.nestedEnumExt, NestedEnum.BAR)
           .setExtension(
-              MessagesProto2Extensions.repeatedStringHolderExt,
+              TestAllTypesExtensions.repeatedTestAllTypes,
               ImmutableList.of(
-                  StringHolder.newBuilder().setS("A").build(),
-                  StringHolder.newBuilder().setS("B").build()))
+                  TestAllTypes.newBuilder().setSingleString("A").build(),
+                  TestAllTypes.newBuilder().setSingleString("B").build()))
           .build();
 
-  private static final Proto2Message MESSAGE_SCOPED_EXT_MSG =
-      Proto2Message.newBuilder()
+  private static final TestAllTypes MESSAGE_SCOPED_EXT_MSG =
+      TestAllTypes.newBuilder()
           .setExtension(
-              Proto2ExtensionScopedMessage.nestedMessageInsideExt,
-              NestedMessageInsideExtensions.newBuilder().setField("test").build())
+              Proto2ExtensionScopedMessage.messageScopedNestedExt,
+              TestAllTypes.newBuilder().setSingleString("test").build())
           .setExtension(Proto2ExtensionScopedMessage.int64Ext, 1L)
           .build();
 
   @Test
-  @TestParameters("{expr: 'proto.hasExt(msg, dev.cel.testing.testdata.proto2.int32_ext)'}")
-  @TestParameters("{expr: 'proto.hasExt(msg, dev.cel.testing.testdata.proto2.nested_ext)'}")
-  @TestParameters("{expr: 'proto.hasExt(msg, dev.cel.testing.testdata.proto2.nested_enum_ext)'}")
+  @TestParameters("{expr: 'proto.hasExt(msg, google.api.expr.test.v1.proto2.int32_ext)'}")
+  @TestParameters("{expr: 'proto.hasExt(msg, google.api.expr.test.v1.proto2.nested_ext)'}")
+  @TestParameters("{expr: 'proto.hasExt(msg, google.api.expr.test.v1.proto2.nested_enum_ext)'}")
   @TestParameters(
-      "{expr: 'proto.hasExt(msg, dev.cel.testing.testdata.proto2.repeated_string_holder_ext)'}")
-  @TestParameters(
-      "{expr: '!proto.hasExt(msg, dev.cel.testing.testdata.proto2.test_all_types_ext)'}")
+      "{expr: 'proto.hasExt(msg, google.api.expr.test.v1.proto2.repeated_test_all_types)'}")
+  @TestParameters("{expr: '!proto.hasExt(msg, google.api.expr.test.v1.proto2.test_all_types_ext)'}")
   public void hasExt_packageScoped_success(String expr) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
     boolean result =
@@ -108,16 +103,16 @@ public final class CelProtoExtensionsTest {
   @Test
   @TestParameters(
       "{expr: 'proto.hasExt(msg,"
-          + " dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.nested_message_inside_ext)'}")
+          + " google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext)'}")
   @TestParameters(
       "{expr: 'proto.hasExt(msg,"
-          + " dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.int64_ext)'}")
+          + " google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.int64_ext)'}")
   @TestParameters(
       "{expr: '!proto.hasExt(msg,"
-          + " dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext)'}")
+          + " google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types)'}")
   @TestParameters(
       "{expr: '!proto.hasExt(msg,"
-          + " dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.string_ext)'}")
+          + " google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.nested_enum_ext)'}")
   public void hasExt_messageScoped_success(String expr) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
     boolean result =
@@ -128,11 +123,11 @@ public final class CelProtoExtensionsTest {
   }
 
   @Test
-  @TestParameters("{expr: 'msg.hasExt(''dev.cel.testing.testdata.proto2.int32_ext'', 0)'}")
-  @TestParameters("{expr: 'dyn(msg).hasExt(''dev.cel.testing.testdata.proto2.int32_ext'', 0)'}")
+  @TestParameters("{expr: 'msg.hasExt(''google.api.expr.test.v1.proto2.int32_ext'', 0)'}")
+  @TestParameters("{expr: 'dyn(msg).hasExt(''google.api.expr.test.v1.proto2.int32_ext'', 0)'}")
   public void hasExt_nonProtoNamespace_success(String expr) throws Exception {
     StructTypeReference proto2MessageTypeReference =
-        StructTypeReference.create("dev.cel.testing.testdata.proto2.Proto2Message");
+        StructTypeReference.create("google.api.expr.test.v1.proto2.TestAllTypes");
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addLibraries(CelExtensions.protos())
@@ -151,9 +146,9 @@ public final class CelProtoExtensionsTest {
             .addFunctionBindings(
                 CelFunctionBinding.from(
                     "msg_hasExt",
-                    ImmutableList.of(Proto2Message.class, String.class, Long.class),
+                    ImmutableList.of(TestAllTypes.class, String.class, Long.class),
                     (arg) -> {
-                      Proto2Message msg = (Proto2Message) arg[0];
+                      TestAllTypes msg = (TestAllTypes) arg[0];
                       String extensionField = (String) arg[1];
                       return msg.getAllFields().keySet().stream()
                           .anyMatch(fd -> fd.getFullName().equals(extensionField));
@@ -175,25 +170,25 @@ public final class CelProtoExtensionsTest {
             CelValidationException.class,
             () ->
                 CEL_COMPILER
-                    .compile("!proto.hasExt(msg, dev.cel.testing.testdata.proto2.undefined_field)")
+                    .compile("!proto.hasExt(msg, google.api.expr.test.v1.proto2.undefined_field)")
                     .getAst());
 
     assertThat(exception)
         .hasMessageThat()
-        .contains("undefined field 'dev.cel.testing.testdata.proto2.undefined_field'");
+        .contains("undefined field 'google.api.expr.test.v1.proto2.undefined_field'");
   }
 
   @Test
-  @TestParameters("{expr: 'proto.getExt(msg, dev.cel.testing.testdata.proto2.int32_ext) == 1'}")
+  @TestParameters("{expr: 'proto.getExt(msg, google.api.expr.test.v1.proto2.int32_ext) == 1'}")
   @TestParameters(
-      "{expr: 'proto.getExt(msg, dev.cel.testing.testdata.proto2.nested_ext) =="
-          + " Proto2Message{single_int32: 5}'}")
+      "{expr: 'proto.getExt(msg, google.api.expr.test.v1.proto2.nested_ext) =="
+          + " TestAllTypes{single_int32: 5}'}")
   @TestParameters(
-      "{expr: 'proto.getExt(msg, dev.cel.testing.testdata.proto2.nested_enum_ext) =="
+      "{expr: 'proto.getExt(msg, google.api.expr.test.v1.proto2.nested_enum_ext) =="
           + " TestAllTypes.NestedEnum.BAR'}")
   @TestParameters(
-      "{expr: 'proto.getExt(msg, dev.cel.testing.testdata.proto2.repeated_string_holder_ext) =="
-          + " [StringHolder{s: ''A''}, StringHolder{s: ''B''}]'}")
+      "{expr: 'proto.getExt(msg, google.api.expr.test.v1.proto2.repeated_test_all_types) =="
+          + " [TestAllTypes{single_string: ''A''}, TestAllTypes{single_string: ''B''}]'}")
   public void getExt_packageScoped_success(String expr) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
     boolean result =
@@ -206,11 +201,11 @@ public final class CelProtoExtensionsTest {
   @Test
   @TestParameters(
       "{expr: 'proto.getExt(msg,"
-          + " dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.nested_message_inside_ext)"
-          + " == NestedMessageInsideExtensions{field: ''test''}'}")
+          + " google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext)"
+          + " == TestAllTypes{single_string: ''test''}'}")
   @TestParameters(
       "{expr: 'proto.getExt(msg,"
-          + " dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.int64_ext) == 1'}")
+          + " google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.int64_ext) == 1'}")
   public void getExt_messageScopedSuccess(String expr) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
     boolean result =
@@ -227,21 +222,20 @@ public final class CelProtoExtensionsTest {
             CelValidationException.class,
             () ->
                 CEL_COMPILER
-                    .compile("!proto.getExt(msg, dev.cel.testing.testdata.proto2.undefined_field)")
+                    .compile("!proto.getExt(msg, google.api.expr.test.v1.proto2.undefined_field)")
                     .getAst());
 
     assertThat(exception)
         .hasMessageThat()
-        .contains("undefined field 'dev.cel.testing.testdata.proto2.undefined_field'");
+        .contains("undefined field 'google.api.expr.test.v1.proto2.undefined_field'");
   }
 
   @Test
-  @TestParameters("{expr: 'msg.getExt(''dev.cel.testing.testdata.proto2.int32_ext'', 0) == 1'}")
-  @TestParameters(
-      "{expr: 'dyn(msg).getExt(''dev.cel.testing.testdata.proto2.int32_ext'', 0) == 1'}")
+  @TestParameters("{expr: 'msg.getExt(''google.api.expr.test.v1.proto2.int32_ext'', 0) == 1'}")
+  @TestParameters("{expr: 'dyn(msg).getExt(''google.api.expr.test.v1.proto2.int32_ext'', 0) == 1'}")
   public void getExt_nonProtoNamespace_success(String expr) throws Exception {
     StructTypeReference proto2MessageTypeReference =
-        StructTypeReference.create("dev.cel.testing.testdata.proto2.Proto2Message");
+        StructTypeReference.create("google.api.expr.test.v1.proto2.TestAllTypes");
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addLibraries(CelExtensions.protos())
@@ -260,9 +254,9 @@ public final class CelProtoExtensionsTest {
             .addFunctionBindings(
                 CelFunctionBinding.from(
                     "msg_getExt",
-                    ImmutableList.of(Proto2Message.class, String.class, Long.class),
+                    ImmutableList.of(TestAllTypes.class, String.class, Long.class),
                     (arg) -> {
-                      Proto2Message msg = (Proto2Message) arg[0];
+                      TestAllTypes msg = (TestAllTypes) arg[0];
                       String extensionField = (String) arg[1];
                       FieldDescriptor extensionDescriptor =
                           msg.getAllFields().keySet().stream()
@@ -284,20 +278,20 @@ public final class CelProtoExtensionsTest {
   @Test
   public void getExt_onAnyPackedExtensionField_success() throws Exception {
     ExtensionRegistry extensionRegistry = ExtensionRegistry.newInstance();
-    MessagesProto2Extensions.registerAllExtensions(extensionRegistry);
+    TestAllTypesExtensions.registerAllExtensions(extensionRegistry);
     Cel cel =
         CelFactory.standardCelBuilder()
             .addCompilerLibraries(CelExtensions.protos())
-            .addFileTypes(MessagesProto2Extensions.getDescriptor())
+            .addFileTypes(TestAllTypesExtensions.getDescriptor())
             .setExtensionRegistry(extensionRegistry)
             .addVar(
-                "msg", StructTypeReference.create("dev.cel.testing.testdata.proto2.Proto2Message"))
+                "msg", StructTypeReference.create("google.api.expr.test.v1.proto2.TestAllTypes"))
             .build();
     CelAbstractSyntaxTree ast =
-        cel.compile("proto.getExt(msg, dev.cel.testing.testdata.proto2.int32_ext)").getAst();
+        cel.compile("proto.getExt(msg, google.api.expr.test.v1.proto2.int32_ext)").getAst();
     Any anyMsg =
         Any.pack(
-            Proto2Message.newBuilder().setExtension(MessagesProto2Extensions.int32Ext, 1).build());
+            TestAllTypes.newBuilder().setExtension(TestAllTypesExtensions.int32Ext, 1).build());
 
     Long result = (Long) cel.createProgram(ast).eval(ImmutableMap.of("msg", anyMsg));
 
@@ -317,10 +311,10 @@ public final class CelProtoExtensionsTest {
             + " | ...................................................^"),
     FIELD_INSIDE_PRESENCE_TEST(
         "proto.getExt(Proto2ExtensionScopedMessage{},"
-            + " has(dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.int64_ext))",
+            + " has(google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.int64_ext))",
         "ERROR: <input>:1:49: invalid extension field\n"
             + " | proto.getExt(Proto2ExtensionScopedMessage{},"
-            + " has(dev.cel.testing.testdata.proto2.Proto2ExtensionScopedMessage.int64_ext))\n"
+            + " has(google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.int64_ext))\n"
             + " | ................................................^");
 
     private final String expr;

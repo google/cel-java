@@ -17,6 +17,7 @@ package dev.cel.common.internal;
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes;
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -29,7 +30,6 @@ import com.google.protobuf.Value;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
 import dev.cel.common.internal.ProtoMessageFactory.CombinedMessageFactory;
-import dev.cel.testing.testdata.proto2.TestAllTypesProto.TestAllTypes;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,7 +59,7 @@ public final class DefaultMessageFactoryTest {
 
     TestAllTypes.Builder builder =
         (TestAllTypes.Builder)
-            messageFactory.newBuilder("dev.cel.testing.testdata.proto2.TestAllTypes").get();
+            messageFactory.newBuilder("google.api.expr.test.v1.proto2.TestAllTypes").get();
 
     assertThat(builder.setSingleInt64(5L).build())
         .isEqualTo(TestAllTypes.newBuilder().setSingleInt64(5L).build());

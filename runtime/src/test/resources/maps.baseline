@@ -1,6 +1,6 @@
 Source: {1: 2, 3: 4}[3] == 4
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -8,7 +8,7 @@ result:   true
 
 Source: 3 in {1: 2, 3: 4} && !(4 in {1: 2, 3: 4})
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -16,7 +16,7 @@ result:   true
 
 Source: x.map_int32_int64[22] == 23
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {x=map_int32_int64 {
@@ -28,7 +28,7 @@ result:   true
 
 Source: TestAllTypes{map_int32_int64: {21: 22, 22: 23}}.map_int32_int64[22] == 23
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -36,7 +36,7 @@ result:   true
 
 Source: TestAllTypes{oneof_type: NestedTestAllTypes{payload: x}}.oneof_type.payload.map_int32_int64[22] == 23
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {x=map_int32_int64 {
@@ -48,7 +48,7 @@ result:   true
 
 Source: !(4 in map) && 1 in map
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare y {
   value int
@@ -62,7 +62,7 @@ result:   true
 
 Source: !(y in {1: 4, 2: 3, 3: 2}) && y in {5: 3, 4: 2, 3: 3}
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare y {
   value int
@@ -76,7 +76,7 @@ result:   true
 
 Source: !(y in map) && (y + 3) in map
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare y {
   value int
@@ -90,7 +90,7 @@ result:   true
 
 Source: TestAllTypes{map_int64_nested_type:{42:NestedTestAllTypes{payload:TestAllTypes{}}}}
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare y {
   value int
@@ -111,7 +111,7 @@ result:   map_int64_nested_type {
 
 Source: {true: 1, false: 2, true: 3}[true]
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare y {
   value int
@@ -126,7 +126,7 @@ error_code:    DUPLICATE_ATTRIBUTE
 
 Source: {b: 1, !b: 2, b: 3}[true]
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare y {
   value int

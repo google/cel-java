@@ -3,5 +3,5 @@ Source: TestAllTypes{single_int32: 1, single_int64: 2}
 TestAllTypes{
   single_int32:1~int,
   single_int64:2~int
-}~dev.cel.testing.testdata.proto3.TestAllTypes^dev.cel.testing.testdata.proto3.TestAllTypes
+}~google.api.expr.test.v1.proto3.TestAllTypes^google.api.expr.test.v1.proto3.TestAllTypes
 

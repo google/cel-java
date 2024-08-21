@@ -1,30 +1,30 @@
 Source: (x + x)[1].single_int32 == size(x)
 declare x {
-  value list(dev.cel.testing.testdata.proto3.TestAllTypes)
+  value list(google.api.expr.test.v1.proto3.TestAllTypes)
 }
 =====>
 _==_(
   _[_](
     _+_(
-      x~list(dev.cel.testing.testdata.proto3.TestAllTypes)^x,
-      x~list(dev.cel.testing.testdata.proto3.TestAllTypes)^x
-    )~list(dev.cel.testing.testdata.proto3.TestAllTypes)^add_list,
+      x~list(google.api.expr.test.v1.proto3.TestAllTypes)^x,
+      x~list(google.api.expr.test.v1.proto3.TestAllTypes)^x
+    )~list(google.api.expr.test.v1.proto3.TestAllTypes)^add_list,
     1~int
-  )~dev.cel.testing.testdata.proto3.TestAllTypes^index_list.single_int32~int,
+  )~google.api.expr.test.v1.proto3.TestAllTypes^index_list.single_int32~int,
   size(
-    x~list(dev.cel.testing.testdata.proto3.TestAllTypes)^x
+    x~list(google.api.expr.test.v1.proto3.TestAllTypes)^x
   )~int^size_list
 )~bool^equals
 
 Source: x.size() == size(x)
 declare x {
-  value list(dev.cel.testing.testdata.proto3.TestAllTypes)
+  value list(google.api.expr.test.v1.proto3.TestAllTypes)
 }
 =====>
 _==_(
-  x~list(dev.cel.testing.testdata.proto3.TestAllTypes)^x.size()~int^list_size,
+  x~list(google.api.expr.test.v1.proto3.TestAllTypes)^x.size()~int^list_size,
   size(
-    x~list(dev.cel.testing.testdata.proto3.TestAllTypes)^x
+    x~list(google.api.expr.test.v1.proto3.TestAllTypes)^x
   )~int^size_list
 )~bool^equals
 

@@ -1,15 +1,15 @@
 Source: x.single_value[23] + x.single_struct['y']
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 _+_(
   _[_](
-    x~dev.cel.testing.testdata.proto3.TestAllTypes^x.single_value~dyn,
+    x~google.api.expr.test.v1.proto3.TestAllTypes^x.single_value~dyn,
     23~int
   )~dyn^index_list|index_map,
   _[_](
-    x~dev.cel.testing.testdata.proto3.TestAllTypes^x.single_struct~map(string, dyn),
+    x~google.api.expr.test.v1.proto3.TestAllTypes^x.single_struct~map(string, dyn),
     "y"~string
   )~dyn^index_map
 )~dyn^add_int64|add_uint64|add_double|add_string|add_bytes|add_list|add_timestamp_duration|add_duration_timestamp|add_duration_duration

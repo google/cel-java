@@ -16,14 +16,13 @@ package dev.cel.common.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.api.expr.test.v1.proto2.TestAllTypesExtensions;
+import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Value;
 import dev.cel.common.CelDescriptorUtil;
-import dev.cel.testing.testdata.proto2.MessagesProto2Extensions;
-import dev.cel.testing.testdata.proto2.Proto2Message;
-import dev.cel.testing.testdata.proto2.TestAllTypesProto.TestAllTypes;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,19 +66,19 @@ public class CombinedDescriptorPoolTest {
     CelDescriptorPool dynamicDescriptorPool =
         DefaultDescriptorPool.create(
             CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-                MessagesProto2Extensions.getDescriptor().getFile()));
+                TestAllTypesExtensions.getDescriptor().getFile()));
     CombinedDescriptorPool combinedDescriptorPool =
         CombinedDescriptorPool.create(
             ImmutableList.of(DefaultDescriptorPool.INSTANCE, dynamicDescriptorPool));
 
     Optional<FieldDescriptor> fieldDescriptor =
         combinedDescriptorPool.findExtensionDescriptor(
-            Proto2Message.getDescriptor(), "dev.cel.testing.testdata.proto2.test_all_types_ext");
+            TestAllTypes.getDescriptor(), "google.api.expr.test.v1.proto2.test_all_types_ext");
 
     assertThat(fieldDescriptor).isPresent();
     assertThat(fieldDescriptor.get().isExtension()).isTrue();
     assertThat(fieldDescriptor.get().getFullName())
-        .isEqualTo("dev.cel.testing.testdata.proto2.test_all_types_ext");
+        .isEqualTo("google.api.expr.test.v1.proto2.test_all_types_ext");
   }
 
   @Test
@@ -87,7 +86,7 @@ public class CombinedDescriptorPoolTest {
     CelDescriptorPool dynamicDescriptorPool =
         DefaultDescriptorPool.create(
             CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-                MessagesProto2Extensions.getDescriptor().getFile()));
+                TestAllTypesExtensions.getDescriptor().getFile()));
     CombinedDescriptorPool combinedDescriptorPool =
         CombinedDescriptorPool.create(
             ImmutableList.of(DefaultDescriptorPool.INSTANCE, dynamicDescriptorPool));

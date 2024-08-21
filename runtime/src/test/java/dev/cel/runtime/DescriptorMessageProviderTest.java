@@ -17,6 +17,10 @@ package dev.cel.runtime;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 
+import com.google.api.expr.test.v1.proto2.TestAllTypesExtensions;
+import com.google.api.expr.test.v1.proto2.TestAllTypesProto;
+import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes.NestedGroup;
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
@@ -38,11 +42,6 @@ import dev.cel.common.internal.DefaultMessageFactory;
 // CEL-Internal-3
 import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.internal.WellKnownProto;
-import dev.cel.testing.testdata.proto2.MessagesProto2;
-import dev.cel.testing.testdata.proto2.MessagesProto2Extensions;
-import dev.cel.testing.testdata.proto2.Proto2Message;
-import dev.cel.testing.testdata.proto2.Proto2Message.NestedGroup;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -87,8 +86,10 @@ public final class DescriptorMessageProviderTest {
 
   @Test
   public void createNestedGroup_success() throws Exception {
-    String groupType = "dev.cel.testing.testdata.proto2.Proto2Message.NestedGroup";
-    provider = DynamicMessageFactory.typeProvider(ImmutableList.of(NestedGroup.getDescriptor()));
+    String groupType = "google.api.expr.test.v1.proto2.TestAllTypes.NestedGroup";
+    provider =
+        DynamicMessageFactory.typeProvider(
+            ImmutableList.of(TestAllTypesProto.TestAllTypes.NestedGroup.getDescriptor()));
     Message message =
         (Message)
             provider.createMessage(
@@ -173,7 +174,7 @@ public final class DescriptorMessageProviderTest {
   public void selectField_extensionUsingDynamicTypes() {
     CelDescriptors celDescriptors =
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-            ImmutableList.of(MessagesProto2Extensions.getDescriptor()));
+            ImmutableList.of(TestAllTypesExtensions.getDescriptor()));
     CelDescriptorPool pool = DefaultDescriptorPool.create(celDescriptors);
 
     provider =
@@ -183,10 +184,10 @@ public final class DescriptorMessageProviderTest {
     long result =
         (long)
             provider.selectField(
-                Proto2Message.newBuilder()
-                    .setExtension(MessagesProto2Extensions.int32Ext, 10)
+                TestAllTypesProto.TestAllTypes.newBuilder()
+                    .setExtension(TestAllTypesExtensions.int32Ext, 10)
                     .build(),
-                MessagesProto2.getDescriptor().getPackage() + ".int32_ext");
+                TestAllTypesProto.getDescriptor().getPackage() + ".int32_ext");
 
     assertThat(result).isEqualTo(10);
   }

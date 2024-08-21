@@ -1,10 +1,10 @@
 Source: msg.single_any
 declare msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {msg=single_any {
-  type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage"
+  type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage"
   value: "\b*"
 }
 single_duration {
@@ -53,7 +53,7 @@ single_bool_wrapper {
 single_bytes_wrapper {
   value: "hi"
 }
-single_list_value {
+list_value {
   values {
     string_value: "d"
   }
@@ -64,11 +64,11 @@ result:   bb: 42
 
 Source: msg.single_bool_wrapper
 declare msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {msg=single_any {
-  type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage"
+  type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage"
   value: "\b*"
 }
 single_duration {
@@ -117,7 +117,7 @@ single_bool_wrapper {
 single_bytes_wrapper {
   value: "hi"
 }
-single_list_value {
+list_value {
   values {
     string_value: "d"
   }
@@ -127,11 +127,11 @@ result:   true
 
 Source: msg.single_bytes_wrapper
 declare msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {msg=single_any {
-  type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage"
+  type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage"
   value: "\b*"
 }
 single_duration {
@@ -180,7 +180,7 @@ single_bool_wrapper {
 single_bytes_wrapper {
   value: "hi"
 }
-single_list_value {
+list_value {
   values {
     string_value: "d"
   }
@@ -190,11 +190,11 @@ result:   hi
 
 Source: msg.single_double_wrapper
 declare msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {msg=single_any {
-  type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage"
+  type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage"
   value: "\b*"
 }
 single_duration {
@@ -243,7 +243,7 @@ single_bool_wrapper {
 single_bytes_wrapper {
   value: "hi"
 }
-single_list_value {
+list_value {
   values {
     string_value: "d"
   }
@@ -253,11 +253,11 @@ result:   -3.0
 
 Source: msg.single_float_wrapper
 declare msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {msg=single_any {
-  type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage"
+  type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage"
   value: "\b*"
 }
 single_duration {
@@ -306,7 +306,7 @@ single_bool_wrapper {
 single_bytes_wrapper {
   value: "hi"
 }
-single_list_value {
+list_value {
   values {
     string_value: "d"
   }
@@ -316,11 +316,11 @@ result:   1.5
 
 Source: msg.single_int32_wrapper
 declare msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {msg=single_any {
-  type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage"
+  type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage"
   value: "\b*"
 }
 single_duration {
@@ -369,7 +369,7 @@ single_bool_wrapper {
 single_bytes_wrapper {
   value: "hi"
 }
-single_list_value {
+list_value {
   values {
     string_value: "d"
   }
@@ -379,11 +379,11 @@ result:   -12
 
 Source: msg.single_int64_wrapper
 declare msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {msg=single_any {
-  type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage"
+  type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage"
   value: "\b*"
 }
 single_duration {
@@ -432,7 +432,7 @@ single_bool_wrapper {
 single_bytes_wrapper {
   value: "hi"
 }
-single_list_value {
+list_value {
   values {
     string_value: "d"
   }
@@ -442,11 +442,11 @@ result:   -34
 
 Source: msg.single_string_wrapper
 declare msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {msg=single_any {
-  type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage"
+  type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage"
   value: "\b*"
 }
 single_duration {
@@ -495,7 +495,7 @@ single_bool_wrapper {
 single_bytes_wrapper {
   value: "hi"
 }
-single_list_value {
+list_value {
   values {
     string_value: "d"
   }
@@ -505,11 +505,11 @@ result:   hello
 
 Source: msg.single_uint32_wrapper
 declare msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {msg=single_any {
-  type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage"
+  type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage"
   value: "\b*"
 }
 single_duration {
@@ -558,7 +558,7 @@ single_bool_wrapper {
 single_bytes_wrapper {
   value: "hi"
 }
-single_list_value {
+list_value {
   values {
     string_value: "d"
   }
@@ -568,11 +568,11 @@ result:   12
 
 Source: msg.single_uint64_wrapper
 declare msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {msg=single_any {
-  type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage"
+  type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage"
   value: "\b*"
 }
 single_duration {
@@ -621,7 +621,7 @@ single_bool_wrapper {
 single_bytes_wrapper {
   value: "hi"
 }
-single_list_value {
+list_value {
   values {
     string_value: "d"
   }
@@ -631,11 +631,11 @@ result:   34
 
 Source: msg.single_duration
 declare msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {msg=single_any {
-  type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage"
+  type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage"
   value: "\b*"
 }
 single_duration {
@@ -684,7 +684,7 @@ single_bool_wrapper {
 single_bytes_wrapper {
   value: "hi"
 }
-single_list_value {
+list_value {
   values {
     string_value: "d"
   }
@@ -696,11 +696,11 @@ nanos: 20
 
 Source: msg.single_timestamp
 declare msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {msg=single_any {
-  type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage"
+  type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage"
   value: "\b*"
 }
 single_duration {
@@ -749,7 +749,7 @@ single_bool_wrapper {
 single_bytes_wrapper {
   value: "hi"
 }
-single_list_value {
+list_value {
   values {
     string_value: "d"
   }
@@ -761,11 +761,11 @@ nanos: 200
 
 Source: msg.single_value
 declare msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {msg=single_any {
-  type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage"
+  type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage"
   value: "\b*"
 }
 single_duration {
@@ -814,7 +814,7 @@ single_bool_wrapper {
 single_bytes_wrapper {
   value: "hi"
 }
-single_list_value {
+list_value {
   values {
     string_value: "d"
   }
@@ -824,11 +824,11 @@ result:   a
 
 Source: msg.single_struct
 declare msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {msg=single_any {
-  type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage"
+  type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage"
   value: "\b*"
 }
 single_duration {
@@ -877,7 +877,7 @@ single_bool_wrapper {
 single_bytes_wrapper {
   value: "hi"
 }
-single_list_value {
+list_value {
   values {
     string_value: "d"
   }
@@ -885,13 +885,13 @@ single_list_value {
 }
 result:   {b=c}
 
-Source: msg.single_list_value
+Source: msg.list_value
 declare msg {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {msg=single_any {
-  type_url: "type.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes.NestedMessage"
+  type_url: "type.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage"
   value: "\b*"
 }
 single_duration {
@@ -940,7 +940,7 @@ single_bool_wrapper {
 single_bytes_wrapper {
   value: "hi"
 }
-single_list_value {
+list_value {
   values {
     string_value: "d"
   }

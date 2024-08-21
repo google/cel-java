@@ -1,6 +1,6 @@
 Source: x.single_nested_enum == TestAllTypes.NestedEnum.BAR
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 =====>
 bindings: {x=single_nested_enum: BAR
@@ -9,7 +9,7 @@ result:   true
 
 Source: single_nested_enum == TestAllTypes.NestedEnum.BAR
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare single_nested_enum {
   value int
@@ -20,7 +20,7 @@ result:   true
 
 Source: TestAllTypes{single_nested_enum : TestAllTypes.NestedEnum.BAR}.single_nested_enum == 1
 declare x {
-  value dev.cel.testing.testdata.proto3.TestAllTypes
+  value google.api.expr.test.v1.proto3.TestAllTypes
 }
 declare single_nested_enum {
   value int

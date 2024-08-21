@@ -14,27 +14,6 @@ filegroup(
 )
 
 proto_library(
-    name = "test_all_types_proto",
-    srcs = [
-        "test_all_types.proto",
-    ],
-    deps = [
-        "@com_google_protobuf//:any_proto",
-        "@com_google_protobuf//:duration_proto",
-        "@com_google_protobuf//:struct_proto",
-        "@com_google_protobuf//:timestamp_proto",
-        "@com_google_protobuf//:wrappers_proto",
-    ],
-)
-
-java_proto_library(
-    name = "test_all_types_java_proto",
-    tags = [
-    ],
-    deps = [":test_all_types_proto"],
-)
-
-proto_library(
     name = "standalone_global_enum_proto",
     srcs = ["standalone_global_enum.proto"],
 )

@@ -77,7 +77,7 @@ TestAllTypes{
     {}~map(dyn, int),
     "i"
   )~optional_type(int)^select_optional_field
-}~dev.cel.testing.testdata.proto3.TestAllTypes^dev.cel.testing.testdata.proto3.TestAllTypes
+}~google.api.expr.test.v1.proto3.TestAllTypes^google.api.expr.test.v1.proto3.TestAllTypes
 
 Source: [?a, ?b, 'world']
 declare a {

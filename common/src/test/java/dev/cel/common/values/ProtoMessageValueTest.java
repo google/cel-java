@@ -17,6 +17,10 @@ package dev.cel.common.values;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.api.expr.test.v1.proto2.TestAllTypesExtensions;
+import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes;
+import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes.NestedEnum;
+import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes.NestedMessage;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
@@ -41,11 +45,6 @@ import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.types.StructTypeReference;
-import dev.cel.testing.testdata.proto2.MessagesProto2Extensions;
-import dev.cel.testing.testdata.proto2.Proto2Message;
-import dev.cel.testing.testdata.proto2.TestAllTypesProto.TestAllTypes;
-import dev.cel.testing.testdata.proto2.TestAllTypesProto.TestAllTypes.NestedEnum;
-import dev.cel.testing.testdata.proto2.TestAllTypesProto.TestAllTypes.NestedMessage;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.Test;
@@ -130,7 +129,7 @@ public final class ProtoMessageValueTest {
         .hasMessageThat()
         .isEqualTo(
             "field 'bogus' is not declared in message"
-                + " 'dev.cel.testing.testdata.proto2.TestAllTypes'");
+                + " 'google.api.expr.test.v1.proto2.TestAllTypes'");
   }
 
   @Test
@@ -138,27 +137,27 @@ public final class ProtoMessageValueTest {
     CelDescriptorPool descriptorPool =
         DefaultDescriptorPool.create(
             CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-                ImmutableList.of(MessagesProto2Extensions.getDescriptor())));
+                ImmutableList.of(TestAllTypesExtensions.getDescriptor())));
     ProtoCelValueConverter protoCelValueConverter =
         ProtoCelValueConverter.newInstance(
             CelOptions.DEFAULT,
             DefaultDescriptorPool.INSTANCE,
             DynamicProto.create(DefaultMessageFactory.create(descriptorPool)));
-    Proto2Message proto2Message =
-        Proto2Message.newBuilder().setExtension(MessagesProto2Extensions.int32Ext, 1).build();
+    TestAllTypes proto2Message =
+        TestAllTypes.newBuilder().setExtension(TestAllTypesExtensions.int32Ext, 1).build();
 
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(proto2Message, descriptorPool, protoCelValueConverter);
 
     assertThat(
-            protoMessageValue.find(StringValue.create("dev.cel.testing.testdata.proto2.int32_ext")))
+            protoMessageValue.find(StringValue.create("google.api.expr.test.v1.proto2.int32_ext")))
         .isPresent();
   }
 
   @Test
   public void findField_extensionField_throwsWhenDescriptorMissing() {
-    Proto2Message proto2Message =
-        Proto2Message.newBuilder().setExtension(MessagesProto2Extensions.int32Ext, 1).build();
+    TestAllTypes proto2Message =
+        TestAllTypes.newBuilder().setExtension(TestAllTypesExtensions.int32Ext, 1).build();
 
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(
@@ -169,12 +168,12 @@ public final class ProtoMessageValueTest {
             IllegalArgumentException.class,
             () ->
                 protoMessageValue.select(
-                    StringValue.create("dev.cel.testing.testdata.proto2.int32_ext")));
+                    StringValue.create("google.api.expr.test.v1.proto2.int32_ext")));
     assertThat(exception)
         .hasMessageThat()
         .isEqualTo(
-            "field 'dev.cel.testing.testdata.proto2.int32_ext' is not declared in message"
-                + " 'dev.cel.testing.testdata.proto2.Proto2Message'");
+            "field 'google.api.expr.test.v1.proto2.int32_ext' is not declared in message"
+                + " 'google.api.expr.test.v1.proto2.TestAllTypes'");
   }
 
   private enum SelectFieldTestCase {

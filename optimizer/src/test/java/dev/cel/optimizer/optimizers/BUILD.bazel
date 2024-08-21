@@ -16,7 +16,6 @@ java_library(
         "//common:options",
         "//common/ast",
         "//common/navigation:mutable_navigation",
-        "//common/resources/testdata/proto3:test_all_types_java_proto",
         "//common/types",
         "//extensions",
         "//extensions:optional_library",
@@ -33,6 +32,7 @@ java_library(
         "@maven//:junit_junit",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "//:java_truth",
+        "@cel_spec//proto/test/v1/proto3:test_all_types_java_proto",
         "@maven//:com_google_guava_guava",
     ],
 )

@@ -1,18 +1,18 @@
 Source: x.single_fixed32 != 0u && x.single_fixed64 > 1u && x.single_int32 != null
 declare x {
-  value dev.cel.testing.testdata.proto2.Proto2Message
+  value google.api.expr.test.v1.proto2.TestAllTypes
 }
 =====>
 ERROR: test_location:1:67: found no matching overload for '_!=_' applied to '(int, null)' (candidates: (%A1, %A1))
-  | x.single_fixed32 != 0u && x.single_fixed64 > 1u && x.single_int32 != null
-  | ..................................................................^
+ | x.single_fixed32 != 0u && x.single_fixed64 > 1u && x.single_int32 != null
+ | ..................................................................^
 
 Source: x.nestedgroup.single_name == ''
 declare x {
-  value dev.cel.testing.testdata.proto2.Proto2Message
+  value google.api.expr.test.v1.proto2.TestAllTypes
 }
 =====>
 _==_(
-  x~dev.cel.testing.testdata.proto2.Proto2Message^x.nestedgroup~dev.cel.testing.testdata.proto2.Proto2Message.NestedGroup.single_name~string,
+  x~google.api.expr.test.v1.proto2.TestAllTypes^x.nestedgroup~google.api.expr.test.v1.proto2.TestAllTypes.NestedGroup.single_name~string,
   ""~string
 )~bool^equals

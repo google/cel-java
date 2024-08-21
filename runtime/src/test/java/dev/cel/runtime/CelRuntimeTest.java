@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.api.expr.v1alpha1.Constant;
 import com.google.api.expr.v1alpha1.Expr;
 import com.google.api.expr.v1alpha1.Type.PrimitiveType;
@@ -47,7 +48,6 @@ import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparserFactory;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -279,7 +279,7 @@ public class CelRuntimeTest {
     Cel cel =
         CelFactory.standardCelBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
-            .setContainer("dev.cel.testing.testdata.proto3")
+            .setContainer("google.api.expr.test.v1.proto3")
             .build();
     CelAbstractSyntaxTree ast = cel.compile("TestAllTypes{single_int64: 3}.single_int64").getAst();
 
@@ -298,7 +298,7 @@ public class CelRuntimeTest {
     Cel cel =
         CelFactory.standardCelBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
-            .setContainer("dev.cel.testing.testdata.proto3")
+            .setContainer("google.api.expr.test.v1.proto3")
             .build();
     CelAbstractSyntaxTree ast = cel.compile("TestAllTypes{}").getAst();
 

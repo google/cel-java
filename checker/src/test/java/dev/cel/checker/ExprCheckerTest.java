@@ -31,6 +31,8 @@ import dev.cel.expr.Reference;
 import dev.cel.expr.Type;
 import dev.cel.expr.Type.AbstractType;
 import dev.cel.expr.Type.PrimitiveType;
+import com.google.api.expr.test.v1.proto2.TestAllTypesProto;
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -48,9 +50,7 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.testing.CelAdorner;
 import dev.cel.testing.CelBaselineTestCase;
 import dev.cel.testing.CelDebug;
-import dev.cel.testing.testdata.proto2.Proto2Message;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
 import java.util.Arrays;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,7 +74,9 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   /** Helper to run a test for configured instance variables. */
   private void runTest() throws Exception {
     CelAbstractSyntaxTree ast =
-        prepareTest(Arrays.asList(TestAllTypes.getDescriptor(), Proto2Message.getDescriptor()));
+        prepareTest(
+            Arrays.asList(
+                TestAllTypes.getDescriptor(), TestAllTypesProto.TestAllTypes.getDescriptor()));
     if (ast != null) {
       testOutput()
           .println(
@@ -150,7 +152,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void operatorsConditional() throws Exception {
-    declareVariable("x", createMessage("dev.cel.testing.testdata.proto3.TestAllTypes"));
+    declareVariable("x", createMessage("google.api.expr.test.v1.proto3.TestAllTypes"));
     source = "false ? x.single_timestamp : null";
     runTest();
   }
@@ -161,19 +163,19 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   @Test
   public void referenceTypeRelative() throws Exception {
     source = "proto3.TestAllTypes";
-    container = "dev.cel.testing.testdata";
+    container = "google.api.expr.test.v1.TestAllTypes";
     runTest();
   }
 
   @Test
   public void referenceTypeAbsolute() throws Exception {
-    source = ".dev.cel.testing.testdata.proto3.TestAllTypes";
+    source = ".google.api.expr.test.v1.proto3.TestAllTypes";
     runTest();
   }
 
   @Test
   public void referenceValue() throws Exception {
-    declareVariable("container.x", createMessage("dev.cel.testing.testdata.proto3.TestAllTypes"));
+    declareVariable("container.x", createMessage("google.api.expr.test.v1.proto3.TestAllTypes"));
     source = "x";
     container = "container";
     runTest();
@@ -194,15 +196,15 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     declareVariable("y", createWrapper(PrimitiveType.INT64));
     source =
         "x == google.protobuf.Any{"
-            + "type_url:'types.googleapis.com/dev.cel.testing.testdata.proto3.TestAllTypes'}"
+            + "type_url:'types.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes'}"
             + " && x.single_nested_message.bb == 43 || x =="
-            + " dev.cel.testing.testdata.proto3.TestAllTypes{} || y < x|| x >= x";
+            + " google.api.expr.test.v1.proto3.TestAllTypes{} || y < x|| x >= x";
     runTest();
   }
 
   @Test
   public void messageFieldSelect() throws Exception {
-    declareVariable("x", createMessage("dev.cel.testing.testdata.proto3.TestAllTypes"));
+    declareVariable("x", createMessage("google.api.expr.test.v1.proto3.TestAllTypes"));
     source =
         "x.single_nested_message.bb == 43 && has(x.single_nested_message)  && has(x.single_int32)"
             + " && has(x.repeated_int32) && has(x.map_int64_nested_type)";
@@ -211,7 +213,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void messageFieldSelectError() throws Exception {
-    declareVariable("x", createMessage("dev.cel.testing.testdata.proto3.TestAllTypes"));
+    declareVariable("x", createMessage("google.api.expr.test.v1.proto3.TestAllTypes"));
     source = "x.single_nested_message.undefined == x.undefined";
     runTest();
   }
@@ -221,7 +223,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void listOperators() throws Exception {
-    declareVariable("x", createList(createMessage("dev.cel.testing.testdata.proto3.TestAllTypes")));
+    declareVariable("x", createList(createMessage("google.api.expr.test.v1.proto3.TestAllTypes")));
     source = "(x + x)[1].single_int32 == size(x)";
     runTest();
 
@@ -231,14 +233,14 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void listRepeatedOperators() throws Exception {
-    declareVariable("x", createMessage("dev.cel.testing.testdata.proto3.TestAllTypes"));
+    declareVariable("x", createMessage("google.api.expr.test.v1.proto3.TestAllTypes"));
     source = "x.repeated_int64[x.single_int32] == 23";
     runTest();
   }
 
   @Test
   public void listIndexTypeError() throws Exception {
-    declareVariable("x", createList(createMessage("dev.cel.testing.testdata.proto3.TestAllTypes")));
+    declareVariable("x", createList(createMessage("google.api.expr.test.v1.proto3.TestAllTypes")));
     source = "x[1u]";
     runTest();
   }
@@ -251,7 +253,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void listElemTypeError() throws Exception {
-    declareVariable("x", createList(createMessage("dev.cel.testing.testdata.proto3.TestAllTypes")));
+    declareVariable("x", createList(createMessage("google.api.expr.test.v1.proto3.TestAllTypes")));
     declareVariable("y", createList(CelTypes.INT64));
     source = "x + y";
     runTest();
@@ -264,7 +266,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   public void mapOperators() throws Exception {
     declareVariable(
         "x",
-        createMap(CelTypes.STRING, createMessage("dev.cel.testing.testdata.proto3.TestAllTypes")));
+        createMap(CelTypes.STRING, createMessage("google.api.expr.test.v1.proto3.TestAllTypes")));
     source = "x[\"a\"].single_int32 == 23";
     runTest();
 
@@ -276,14 +278,14 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   public void mapIndexTypeError() throws Exception {
     declareVariable(
         "x",
-        createMap(CelTypes.STRING, createMessage("dev.cel.testing.testdata.proto3.TestAllTypes")));
+        createMap(CelTypes.STRING, createMessage("google.api.expr.test.v1.proto3.TestAllTypes")));
     source = "x[2].single_int32 == 23";
     runTest();
   }
 
   @Test
   public void mapEmpty() throws Exception {
-    declareVariable("x", createMessage("dev.cel.testing.testdata.proto3.TestAllTypes"));
+    declareVariable("x", createMessage("google.api.expr.test.v1.proto3.TestAllTypes"));
     source = "size(x.map_int64_nested_type) == 0";
     runTest();
   }
@@ -293,14 +295,14 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void wrapper() throws Exception {
-    declareVariable("x", createMessage("dev.cel.testing.testdata.proto3.TestAllTypes"));
+    declareVariable("x", createMessage("google.api.expr.test.v1.proto3.TestAllTypes"));
     source = "x.single_int64_wrapper + 1 != 23";
     runTest();
   }
 
   @Test
   public void equalsWrapper() throws Exception {
-    declareVariable("x", createMessage("dev.cel.testing.testdata.proto3.TestAllTypes"));
+    declareVariable("x", createMessage("google.api.expr.test.v1.proto3.TestAllTypes"));
     source =
         "x.single_int64_wrapper == 1 && "
             + "x.single_int32_wrapper != 2 && "
@@ -316,18 +318,18 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void nullableWrapper() throws Exception {
-    declareVariable("x", createMessage("dev.cel.testing.testdata.proto3.TestAllTypes"));
+    declareVariable("x", createMessage("google.api.expr.test.v1.proto3.TestAllTypes"));
     source = "x.single_int64_wrapper == null";
     runTest();
   }
 
   @Test
   public void nullableMessage() throws Exception {
-    declareVariable("x", createMessage("dev.cel.testing.testdata.proto3.TestAllTypes"));
+    declareVariable("x", createMessage("google.api.expr.test.v1.proto3.TestAllTypes"));
     source = "x.single_nested_message != null";
     runTest();
 
-    container = "dev.cel.testing.testdata.proto3.TestAllTypesProto";
+    container = "google.api.expr.test.v1.proto3.TestAllTypesProto";
     source = "null == TestAllTypes{} || TestAllTypes{} == null";
     runTest();
   }
@@ -340,7 +342,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void nullablePrimitiveError() throws Exception {
-    declareVariable("x", createMessage("dev.cel.testing.testdata.proto3.TestAllTypes"));
+    declareVariable("x", createMessage("google.api.expr.test.v1.proto3.TestAllTypes"));
     source = "x.single_int64 != null";
     runTest();
   }
@@ -350,14 +352,14 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void dynOperators() throws Exception {
-    declareVariable("x", createMessage("dev.cel.testing.testdata.proto3.TestAllTypes"));
+    declareVariable("x", createMessage("google.api.expr.test.v1.proto3.TestAllTypes"));
     source = "x.single_value + 1 / x.single_struct.y == 23";
     runTest();
   }
 
   @Test
   public void dynOperatorsAtRuntime() throws Exception {
-    declareVariable("x", createMessage("dev.cel.testing.testdata.proto3.TestAllTypes"));
+    declareVariable("x", createMessage("google.api.expr.test.v1.proto3.TestAllTypes"));
     source = "x.single_value[23] + x.single_struct['y']";
     runTest();
   }
@@ -492,9 +494,9 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     source = "x";
     runTest();
 
-    container = "dev.cel.testing.testdata.proto3";
-    Type messageType = createMessage("dev.cel.testing.testdata.proto3.TestAllTypes");
-    declareVariable("dev.cel.testing.testdata.proto3.msgVar", messageType);
+    container = "google.api.expr.test.v1.proto3";
+    Type messageType = createMessage("google.api.expr.test.v1.proto3.TestAllTypes");
+    declareVariable("google.api.expr.test.v1.proto3.msgVar", messageType);
     source = "msgVar.single_int32";
     runTest();
   }
@@ -531,7 +533,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void userFunctionAddsOverload() throws Exception {
-    Type messageType = createMessage("dev.cel.testing.testdata.proto3.TestAllTypes");
+    Type messageType = createMessage("google.api.expr.test.v1.proto3.TestAllTypes");
     declareVariable("x", messageType);
     declareFunction(
         "size", globalOverload("size_message", ImmutableList.of(messageType), CelTypes.INT64));
@@ -551,7 +553,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void proto2PrimitiveField() throws Exception {
-    declareVariable("x", createMessage("dev.cel.testing.testdata.proto2.Proto2Message"));
+    declareVariable("x", createMessage("google.api.expr.test.v1.proto2.TestAllTypes"));
     source = "x.single_fixed32 != 0u && x.single_fixed64 > 1u && x.single_int32 != null";
     runTest();
     source = "x.nestedgroup.single_name == ''";
@@ -563,21 +565,21 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void aggregateMessage() throws Exception {
-    container = "dev.cel.testing.testdata.proto3.TestAllTypesProto";
+    container = "google.api.expr.test.v1.proto3.TestAllTypesProto";
     source = "TestAllTypes{single_int32: 1, single_int64: 2}";
     runTest();
   }
 
   @Test
   public void aggregateMessageFieldUndefinedError() throws Exception {
-    container = "dev.cel.testing.testdata.proto3.TestAllTypesProto";
+    container = "google.api.expr.test.v1.proto3.TestAllTypesProto";
     source = "TestAllTypes{single_int32: 1, undefined: 2}";
     runTest();
   }
 
   @Test
   public void aggregateMessageFieldTypeError() throws Exception {
-    container = "dev.cel.testing.testdata.proto3.TestAllTypesProto";
+    container = "google.api.expr.test.v1.proto3.TestAllTypesProto";
     source = "TestAllTypes{single_int32: 1u}";
     runTest();
   }
@@ -661,7 +663,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void enumValues() throws Exception {
-    container = "dev.cel.testing.testdata.proto3.TestAllTypesProto";
+    container = "google.api.expr.test.v1.proto3.TestAllTypesProto";
     source = "TestAllTypes.NestedEnum.BAR != 99";
     runTest();
   }
@@ -684,7 +686,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void globalEnumValues() throws Exception {
-    container = "dev.cel.testing.testdata.proto3.TestAllTypesProto";
+    container = "google.api.expr.test.v1.proto3.TestAllTypesProto";
     source = "GlobalEnum.GAZ == 2";
     runTest();
   }
@@ -724,7 +726,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void quantifiers() throws Exception {
-    Type messageType = createMessage("dev.cel.testing.testdata.proto3.TestAllTypes");
+    Type messageType = createMessage("google.api.expr.test.v1.proto3.TestAllTypes");
     declareVariable("x", messageType);
     source =
         "x.repeated_int64.all(e, e > 0) "
@@ -735,7 +737,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void quantifiersErrors() throws Exception {
-    Type messageType = createMessage("dev.cel.testing.testdata.proto3.TestAllTypes");
+    Type messageType = createMessage("google.api.expr.test.v1.proto3.TestAllTypes");
     declareVariable("x", messageType);
     source = "x.all(e, 0)";
     runTest();
@@ -743,7 +745,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void mapExpr() throws Exception {
-    Type messageType = createMessage("dev.cel.testing.testdata.proto3.TestAllTypes");
+    Type messageType = createMessage("google.api.expr.test.v1.proto3.TestAllTypes");
     declareVariable("x", messageType);
     source = "x.repeated_int64.map(x, double(x))";
     runTest();
@@ -757,7 +759,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void mapFilterExpr() throws Exception {
-    Type messageType = createMessage("dev.cel.testing.testdata.proto3.TestAllTypes");
+    Type messageType = createMessage("google.api.expr.test.v1.proto3.TestAllTypes");
     declareVariable("x", messageType);
     source = "x.repeated_int64.map(x, x > 0, double(x))";
     runTest();
@@ -924,7 +926,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     source = "{?'key': {'a': 'b'}.?value}.key";
     runTest();
 
-    container = "dev.cel.testing.testdata.proto3.TestAllTypesProto";
+    container = "google.api.expr.test.v1.proto3.TestAllTypesProto";
     source = "TestAllTypes{?single_int32: {}.?i}";
     runTest();
 
@@ -949,7 +951,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     source = "[?'value']";
     runTest();
 
-    container = "dev.cel.testing.testdata.proto3.TestAllTypesProto";
+    container = "google.api.expr.test.v1.proto3.TestAllTypesProto";
     source = "TestAllTypes{?single_int32: 1}";
     runTest();
 

@@ -23,6 +23,9 @@ import dev.cel.expr.ExprValue;
 import dev.cel.expr.Type;
 import dev.cel.expr.Type.AbstractType;
 import dev.cel.expr.UnknownSet;
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes.NestedEnum;
+import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes.NestedMessage;
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -63,9 +66,6 @@ import dev.cel.common.types.CelTypes;
 import dev.cel.runtime.Activation;
 import dev.cel.runtime.InterpreterException;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes.NestedEnum;
-import dev.cel.testing.testdata.proto3.TestAllTypesProto.TestAllTypes.NestedMessage;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -836,7 +836,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     runTest(Activation.of("ns.x", 2));
 
     container = "dev.cel.testing.testdata.proto3";
-    Type messageType = CelTypes.createMessage("dev.cel.testing.testdata.proto3.TestAllTypes");
+    Type messageType = CelTypes.createMessage("google.api.expr.test.v1.proto3.TestAllTypes");
     declareVariable("dev.cel.testing.testdata.proto3.msgVar", messageType);
     source = "msgVar.single_int32";
     runTest(
@@ -1767,14 +1767,14 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source =
         "type(TestAllTypes{}) == TestAllTypes && "
             + "type(TestAllTypes{}) == proto3.TestAllTypes && "
-            + "type(TestAllTypes{}) == .dev.cel.testing.testdata.proto3.TestAllTypes && "
+            + "type(TestAllTypes{}) == .google.api.expr.test.v1.proto3.TestAllTypes && "
             + "type(proto3.TestAllTypes{}) == TestAllTypes && "
             + "type(proto3.TestAllTypes{}) == proto3.TestAllTypes && "
-            + "type(proto3.TestAllTypes{}) == .dev.cel.testing.testdata.proto3.TestAllTypes && "
-            + "type(.dev.cel.testing.testdata.proto3.TestAllTypes{}) == TestAllTypes && "
-            + "type(.dev.cel.testing.testdata.proto3.TestAllTypes{}) == proto3.TestAllTypes && "
-            + "type(.dev.cel.testing.testdata.proto3.TestAllTypes{}) == "
-            + ".dev.cel.testing.testdata.proto3.TestAllTypes";
+            + "type(proto3.TestAllTypes{}) == .google.api.expr.test.v1.proto3.TestAllTypes && "
+            + "type(.google.api.expr.test.v1.proto3.TestAllTypes{}) == TestAllTypes && "
+            + "type(.google.api.expr.test.v1.proto3.TestAllTypes{}) == proto3.TestAllTypes && "
+            + "type(.google.api.expr.test.v1.proto3.TestAllTypes{}) == "
+            + ".google.api.expr.test.v1.proto3.TestAllTypes";
     runTest(Activation.EMPTY);
 
     // Test whether a type name is recognized as a type.
@@ -1944,7 +1944,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             .setSingleValue(Value.newBuilder().setStringValue("a"))
             .setSingleStruct(
                 Struct.newBuilder().putFields("b", Value.newBuilder().setStringValue("c").build()))
-            .setSingleListValue(
+            .setListValue(
                 ListValue.newBuilder().addValues(Value.newBuilder().setStringValue("d")).build())
             .build();
 
@@ -2002,7 +2002,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "msg.single_struct";
     assertThat(runTest(activation)).isInstanceOf(Map.class);
 
-    source = "msg.single_list_value";
+    source = "msg.list_value";
     assertThat(runTest(activation)).isInstanceOf(List.class);
   }
 
