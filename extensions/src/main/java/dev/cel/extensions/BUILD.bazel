@@ -16,6 +16,7 @@ java_library(
     deps = [
         ":bindings",
         ":encoders",
+        ":lists",
         ":math",
         ":protos",
         ":sets",
@@ -145,6 +146,21 @@ java_library(
         "//runtime",
         "//runtime:runtime_helper",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "lists",
+    srcs = ["CelListsExtensions.java"],
+    tags = [
+    ],
+    deps = [
+        "//checker:checker_builder",
+        "//common:compiler_common",
+        "//common/types",
+        "//compiler:compiler_builder",
+        "//runtime",
         "@maven//:com_google_guava_guava",
     ],
 )

@@ -159,6 +159,7 @@ public class CelExtensionsTest {
             "sets.equivalent",
             "sets.intersects",
             "base64.decode",
-            "base64.encode");
+            "base64.encode",
+            "flatten");
   }
 }

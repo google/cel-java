@@ -20,6 +20,7 @@ import static java.util.Arrays.stream;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import dev.cel.common.CelOptions;
+import dev.cel.extensions.CelListsExtensions.Function;
 import java.util.Set;
 
 /**
@@ -34,6 +35,7 @@ public final class CelExtensions {
   private static final CelProtoExtensions PROTO_EXTENSIONS = new CelProtoExtensions();
   private static final CelBindingsExtensions BINDINGS_EXTENSIONS = new CelBindingsExtensions();
   private static final CelEncoderExtensions ENCODER_EXTENSIONS = new CelEncoderExtensions();
+  private static final CelListsExtensions LISTS_EXTENSIONS_ALL = new CelListsExtensions();
 
   /**
    * Extended functions for string manipulation.
@@ -187,9 +189,9 @@ public final class CelExtensions {
    *
    * <p>Refer to README.md for available functions.
    *
-   * <p>This will include all functions denoted in {@link CelSetExtensions.Function}, including any
-   * future additions. To expose only a subset of functions, use {@link
-   * #sets(CelSetExtensions.Function...)} instead.
+   * <p>This will include all functions denoted in {@link CelSetsExtensions.Function}, including any
+   * future additions. To expose only a subset of functions, use {@link #sets(CelOptions,
+   * CelSetsExtensions.Function...)} instead.
    */
   public static CelSetsExtensions sets(CelOptions celOptions) {
     return new CelSetsExtensions(celOptions);
@@ -220,6 +222,43 @@ public final class CelExtensions {
   }
 
   /**
+   * Extended functions for List manipulation.
+   *
+   * <p>Refer to README.md for available functions.
+   *
+   * <p>This will include only the specific functions denoted by {@link
+   * CelListsExtensions.Function}.
+   */
+  public static CelListsExtensions lists() {
+    return LISTS_EXTENSIONS_ALL;
+  }
+
+  /**
+   * Extended functions for List manipulation.
+   *
+   * <p>Refer to README.md for available functions.
+   *
+   * <p>This will include only the specific functions denoted by {@link
+   * CelListsExtensions.Function}.
+   */
+  public static CelListsExtensions lists(CelListsExtensions.Function... functions) {
+    return lists(ImmutableSet.copyOf(functions));
+  }
+
+  /**
+   * Extended functions for List manipulation.
+   *
+   * <p>Refer to README.md for available functions.
+   *
+   * <p>This will include all functions denoted in {@link CelListsExtensions.Function}, including
+   * any future additions. To expose only a subset of functions, use {@link #lists(Function...)}
+   * instead.
+   */
+  public static CelListsExtensions lists(Set<CelListsExtensions.Function> functions) {
+    return new CelListsExtensions(functions);
+  }
+
+  /**
    * Retrieves all function names used by every extension libraries.
    *
    * <p>Note: Certain extensions such as {@link CelProtoExtensions} and {@link
@@ -235,7 +274,9 @@ public final class CelExtensions {
             stream(CelSetsExtensions.Function.values())
                 .map(CelSetsExtensions.Function::getFunction),
             stream(CelEncoderExtensions.Function.values())
-                .map(CelEncoderExtensions.Function::getFunction))
+                .map(CelEncoderExtensions.Function::getFunction),
+            stream(CelListsExtensions.Function.values())
+                .map(CelListsExtensions.Function::getFunction))
         .collect(toImmutableSet());
   }
 

@@ -406,3 +406,33 @@ sets.intersects([1], [1, 2]) // true
 sets.intersects([[1], [2, 3]], [[1, 2], [2, 3.0]]) // true
 ```
 
+## Lists
+
+Extended functions for list manipulation. As a general note, all indices are
+zero-based.
+
+### Flatten
+
+Flattens a list by one level. Support for flattening to a specified level
+will be provided in the future.
+
+Examples:
+
+```
+[].flatten() // []
+[1,[2,3],[4]].flatten() // [1, 2, 3, 4]
+[1,[2,[3,4]]].flatten() // [1, 2, [3, 4]]
+[1,2,[],[],[3,4]].flatten() // [1, 2, 3, 4]
+```
+
+Note that due to the current limitations of type-checker, a compilation error
+will occur if an already flat list is populated. For time being, you must wrap
+the list in dyn if you anticipate having to deal with a flat list:
+
+```
+[1,2,3].flatten() // error
+dyn([1,2,3]).flatten() // [1,2,3]
+```
+
+This will be addressed once we add the appropriate capabilities in the
+type-checker to handle type-reductions, or union types.
