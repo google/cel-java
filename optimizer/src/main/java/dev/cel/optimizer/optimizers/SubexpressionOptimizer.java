@@ -744,8 +744,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
        *       + @index0.map(@it0, [@it0 + @it0, @it0 + @it0]))}
        *  </pre>
        *
-       * If targeting CEL-Java for the runtime, the recommended setting is to
-       * leave this disabled for maximal optimization efficiency.
+       * If targeting CEL-Java for the runtime, the recommended setting is to leave this disabled
+       * for maximal optimization efficiency.
        */
       public abstract Builder retainComprehensionStructure(boolean value);
 
@@ -783,7 +783,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
           .iterationLimit(500)
           .populateMacroCalls(false)
           .enableCelBlock(false)
-          .retainComprehensionStructure(false)
+          .retainComprehensionStructure(true)
           .subexpressionMaxRecursionDepth(0);
     }
 

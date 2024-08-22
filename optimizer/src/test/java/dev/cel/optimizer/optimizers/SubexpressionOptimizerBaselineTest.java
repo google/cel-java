@@ -259,6 +259,7 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
             CEL,
             SubexpressionOptimizerOptions.newBuilder()
                 .populateMacroCalls(true)
+                .retainComprehensionStructure(false)
                 .enableCelBlock(true)
                 .subexpressionMaxRecursionDepth(1)
                 .build());
@@ -273,6 +274,7 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
             CEL,
             SubexpressionOptimizerOptions.newBuilder()
                 .populateMacroCalls(true)
+                .retainComprehensionStructure(false)
                 .enableCelBlock(true)
                 .subexpressionMaxRecursionDepth(2)
                 .build());
@@ -287,6 +289,7 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
             CEL,
             SubexpressionOptimizerOptions.newBuilder()
                 .populateMacroCalls(true)
+                .retainComprehensionStructure(false)
                 .enableCelBlock(true)
                 .subexpressionMaxRecursionDepth(3)
                 .build());
