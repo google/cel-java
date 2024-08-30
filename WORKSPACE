@@ -76,7 +76,8 @@ maven_install(
         "com.google.errorprone:error_prone_annotations:2.30.0",
         "com.google.guava:guava:33.3.0-jre",
         "com.google.guava:guava-testlib:33.3.0-jre",
-        "com.google.protobuf:protobuf-java-util:4.27.3",
+        "com.google.protobuf:protobuf-java:4.28.0",
+        "com.google.protobuf:protobuf-java-util:4.28.0",
         "com.google.re2j:re2j:1.7",
         "com.google.testparameterinjector:test-parameter-injector:1.15",
         "com.google.truth.extensions:truth-java8-extension:1.4.2",
@@ -95,9 +96,9 @@ maven_install(
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "1535151efbc7893f38b0578e83cac584f2819974f065698976989ec71c1af84a",
-    strip_prefix = "protobuf-27.3",
-    urls = ["https://github.com/protocolbuffers/protobuf/archive/v27.3.tar.gz"],
+    sha256 = "13e7749c30bc24af6ee93e092422f9dc08491c7097efa69461f88eb5f61805ce",
+    strip_prefix = "protobuf-28.0",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v28.0.tar.gz"],
 )
 
 # Required by com_google_protobuf
