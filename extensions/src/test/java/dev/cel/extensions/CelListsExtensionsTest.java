@@ -22,6 +22,7 @@ import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelValidationException;
 import dev.cel.parser.CelStandardMacro;
+import dev.cel.runtime.CelEvaluationException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -48,6 +49,35 @@ public class CelListsExtensionsTest {
     boolean result = (boolean) CEL.createProgram(CEL.compile(expression).getAst()).eval();
 
     assertThat(result).isTrue();
+  }
+
+  @Test
+  @TestParameters("{expression: '[1,2,3,4].flatten(1) == [1,2,3,4]'}")
+  @TestParameters("{expression: '[1,[2,[3,[4]]]].flatten(0) == [1,[2,[3,[4]]]]'}")
+  @TestParameters("{expression: '[1,[2,[3,[4]]]].flatten(2) == [1,2,3,[4]]'}")
+  @TestParameters("{expression: '[1,[2,[3,4]]].flatten(2) == [1,2,3,4]'}")
+  @TestParameters("{expression: '[[], [[]], [[[]]]].flatten(2) == [[]]'}")
+  @TestParameters("{expression: '[[], [[]], [[[]]]].flatten(3) == []'}")
+  @TestParameters("{expression: '[[], [[]], [[[]]]].flatten(4) == []'}")
+  // The overload with the depth accepts and returns a List(dyn), so the following is permitted.
+  @TestParameters("{expression: '[1].flatten(1) == [1]'}")
+  public void flatten_withDepthValue_success(String expression) throws Exception {
+    boolean result = (boolean) CEL.createProgram(CEL.compile(expression).getAst()).eval();
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void flatten_negativeDepth_throws() {
+    CelEvaluationException e =
+        assertThrows(
+            CelEvaluationException.class,
+            () -> CEL.createProgram(CEL.compile("[1,2,3,4].flatten(-1)").getAst()).eval());
+
+    assertThat(e)
+        .hasMessageThat()
+        .contains("evaluation error: Function 'list_flatten_list_int' failed");
+    assertThat(e).hasCauseThat().hasMessageThat().isEqualTo("Level must be non-negative");
   }
 
   @Test

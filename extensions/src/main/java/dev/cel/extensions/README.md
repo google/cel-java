@@ -413,24 +413,38 @@ zero-based.
 
 ### Flatten
 
-Flattens a list by one level. Support for flattening to a specified level
-will be provided in the future.
+Flattens a list by one level, or to the specified level. Providing a negative level will error.
 
 Examples:
 
 ```
+// Single-level flatten:
+
 [].flatten() // []
 [1,[2,3],[4]].flatten() // [1, 2, 3, 4]
 [1,[2,[3,4]]].flatten() // [1, 2, [3, 4]]
 [1,2,[],[],[3,4]].flatten() // [1, 2, 3, 4]
+
+// Recursive flatten
+[1,[2,[3,[4]]]].flatten(2) // return [1, 2, 3, [4]]
+[1,[2,[3,[4]]]].flatten(3) // return [1, 2, 3, 4]
+
+// Error
+[1,[2,[3,[4]]]].flatten(-1)
 ```
 
 Note that due to the current limitations of type-checker, a compilation error
-will occur if an already flat list is populated. For time being, you must wrap
-the list in dyn if you anticipate having to deal with a flat list:
+will occur if an already flat list is populated to the argument-less flatten
+function.
+
+For time being, you must explicitly provide 1 as the depth level, or wrap the
+list in dyn if you anticipate having to deal with a flat list:
 
 ```
 [1,2,3].flatten() // error
+
+// But the following will work:
+[1,2,3].flatten(1) // [1,2,3]
 dyn([1,2,3]).flatten() // [1,2,3]
 ```
 

@@ -21,6 +21,7 @@ import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.ListType;
+import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.runtime.CelRuntime;
@@ -44,11 +45,18 @@ final class CelListsExtensions implements CelCompilerLibrary, CelRuntimeLibrary 
                 "list_flatten",
                 "Flattens a list by a single level",
                 ListType.create(LIST_PARAM_TYPE),
-                ListType.create(ListType.create(LIST_PARAM_TYPE)))),
-        // TODO: add list_flatten_list_int
+                ListType.create(ListType.create(LIST_PARAM_TYPE))),
+            CelOverloadDecl.newMemberOverload(
+                "list_flatten_list_int",
+                "Flattens a list to the specified level. A negative depth value flattens the list"
+                    + " recursively to its deepest level.",
+                ListType.create(SimpleType.DYN),
+                ListType.create(SimpleType.DYN),
+                SimpleType.INT)),
         CelRuntime.CelFunctionBinding.from(
-            "list_flatten", Collection.class, list -> flatten(list, 1))),
-    ;
+            "list_flatten", Collection.class, list -> flatten(list, 1)),
+        CelRuntime.CelFunctionBinding.from(
+            "list_flatten_list_int", Collection.class, Long.class, CelListsExtensions::flatten));
 
     private final CelFunctionDecl functionDecl;
     private final ImmutableSet<CelFunctionBinding> functionBindings;
@@ -84,15 +92,15 @@ final class CelListsExtensions implements CelCompilerLibrary, CelRuntimeLibrary 
   }
 
   @SuppressWarnings("unchecked")
-  private static ImmutableList<Object> flatten(Collection<Object> list, int level) {
-    Preconditions.checkArgument(level == 1, "recursive flatten is not supported yet.");
+  private static ImmutableList<Object> flatten(Collection<Object> list, long depth) {
+    Preconditions.checkArgument(depth >= 0, "Level must be non-negative");
     ImmutableList.Builder<Object> builder = ImmutableList.builder();
     for (Object element : list) {
-      if (element instanceof Collection) {
-        Collection<Object> listItem = (Collection<Object>) element;
-        builder.addAll(listItem);
-      } else {
+      if (!(element instanceof Collection) || depth == 0) {
         builder.add(element);
+      } else {
+        Collection<Object> listItem = (Collection<Object>) element;
+        builder.addAll(flatten(listItem, depth - 1));
       }
     }
 
