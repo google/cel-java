@@ -64,18 +64,18 @@ load("@rules_jvm_external//:setup.bzl", "rules_jvm_external_setup")
 
 rules_jvm_external_setup()
 
-ANTLR4_VERSION = "4.13.1"
+ANTLR4_VERSION = "4.13.2"
 
 # Important: there can only be one maven_install rule. Add new maven deps here.
 maven_install(
     # keep sorted
     artifacts = [
-        "com.google.auto.value:auto-value:1.10.4",
-        "com.google.auto.value:auto-value-annotations:1.10.4",
+        "com.google.auto.value:auto-value:1.11.0",
+        "com.google.auto.value:auto-value-annotations:1.11.0",
         "com.google.code.findbugs:annotations:3.0.1",
-        "com.google.errorprone:error_prone_annotations:2.26.1",
-        "com.google.guava:guava:33.1.0-jre",
-        "com.google.guava:guava-testlib:33.1.0-jre",
+        "com.google.errorprone:error_prone_annotations:2.30.0",
+        "com.google.guava:guava:33.3.0-jre",
+        "com.google.guava:guava-testlib:33.3.0-jre",
         "com.google.protobuf:protobuf-java-util:4.27.3",
         "com.google.re2j:re2j:1.7",
         "com.google.testparameterinjector:test-parameter-injector:1.15",
@@ -83,7 +83,7 @@ maven_install(
         "com.google.truth.extensions:truth-proto-extension:1.4.2",
         "com.google.truth:truth:1.4.2",
         "org.antlr:antlr4-runtime:" + ANTLR4_VERSION,
-        "org.jspecify:jspecify:0.3.0",
+        "org.jspecify:jspecify:1.0.0",
         "org.threeten:threeten-extra:1.8.0",
         "org.yaml:snakeyaml:2.2",
     ],
@@ -168,7 +168,7 @@ http_archive(
 
 http_jar(
     name = "antlr4_jar",
-    sha256 = "bc13a9c57a8dd7d5196888211e5ede657cb64a3ce968608697e4f668251a8487",
+    sha256 = "eae2dfa119a64327444672aff63e9ec35a20180dc5b8090b7a6ab85125df4d76",
     urls = ["https://www.antlr.org/download/antlr-" + ANTLR4_VERSION + "-complete.jar"],
 )
 
