@@ -16,6 +16,7 @@ package dev.cel.testing;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
+import static dev.cel.runtime.CelVariableResolver.hierarchicalVariableResolver;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import dev.cel.expr.CheckedExpr;
@@ -32,10 +33,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import com.google.common.primitives.UnsignedLong;
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.ByteString.ByteIterator;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
@@ -47,6 +48,7 @@ import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
 import com.google.protobuf.ListValue;
+import com.google.protobuf.Message;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.StringValue;
 import com.google.protobuf.Struct;
@@ -59,23 +61,54 @@ import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.JsonFormat;
 import com.google.protobuf.util.Timestamps;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.FileDescriptorSetConverter;
 import dev.cel.common.types.CelTypes;
-import dev.cel.runtime.Activation;
-import dev.cel.runtime.InterpreterException;
+import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntime.CelFunctionBinding;
+import dev.cel.runtime.CelRuntimeFactory;
+import dev.cel.runtime.CelVariableResolver;
+import dev.cel.runtime.RuntimeHelpers;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.LongStream;
 import org.junit.Test;
 
 /** Base class for evaluation outputs that can be stored and used as a baseline test. */
 public abstract class BaseInterpreterTest extends CelBaselineTestCase {
+
+  private static CelOptions.Builder newBaseOptions() {
+    return CelOptions.current()
+        .enableTimestampEpoch(true)
+        .enableHeterogeneousNumericComparisons(true)
+        .enableOptionalSyntax(true)
+        .comprehensionMaxIterations(1_000);
+  }
+
+  /** Test options to supply for interpreter tests. */
+  protected enum InterpreterTestOption {
+    CEL_TYPE_SIGNED_UINT(newBaseOptions().enableUnsignedLongs(false).build(), true),
+    CEL_TYPE_UNSIGNED_UINT(newBaseOptions().enableUnsignedLongs(true).build(), true),
+    PROTO_TYPE_SIGNED_UINT(newBaseOptions().enableUnsignedLongs(false).build(), false),
+    PROTO_TYPE_UNSIGNED_UINT(newBaseOptions().enableUnsignedLongs(true).build(), false),
+    ;
+
+    public final CelOptions celOptions;
+    public final boolean useNativeCelType;
+
+    InterpreterTestOption(CelOptions celOptions, boolean useNativeCelType) {
+      this.celOptions = celOptions;
+      this.useNativeCelType = useNativeCelType;
+    }
+  }
 
   protected static final Descriptor TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR =
       getDeserializedTestAllTypeDescriptor();
@@ -86,187 +119,188 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
           StandaloneGlobalEnum.getDescriptor().getFile(),
           TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR.getFile());
 
-  private final Eval eval;
+  private final CelOptions celOptions;
+  private CelRuntime celRuntime;
 
-  private static Descriptor getDeserializedTestAllTypeDescriptor() {
-    try {
-      String fdsContent = readResourceContent("testdata/proto3/test_all_types.fds");
-      FileDescriptorSet fds = TextFormat.parse(fdsContent, FileDescriptorSet.class);
-      ImmutableSet<FileDescriptor> fileDescriptors = FileDescriptorSetConverter.convert(fds);
-
-      return fileDescriptors.stream()
-          .flatMap(f -> f.getMessageTypes().stream())
-          .filter(
-              x ->
-                  x.getFullName().equals("dev.cel.testing.testdata.serialized.proto3.TestAllTypes"))
-          .findAny()
-          .orElseThrow(
-              () ->
-                  new IllegalStateException(
-                      "Could not find deserialized TestAllTypes descriptor."));
-    } catch (IOException e) {
-      throw new RuntimeException("Error loading TestAllTypes descriptor", e);
-    }
+  public BaseInterpreterTest(CelOptions celOptions, boolean useNativeCelType) {
+    super(useNativeCelType);
+    this.celOptions = celOptions;
+    this.celRuntime =
+        CelRuntimeFactory.standardCelRuntimeBuilder()
+            .addFileTypes(TEST_FILE_DESCRIPTORS)
+            .setOptions(celOptions)
+            .build();
   }
 
-  public BaseInterpreterTest(boolean declareWithCelType, Eval eval) {
-    super(declareWithCelType);
-    this.eval = eval;
-  }
-
-  /** Helper to run a test for configured instance variables. */
-  @CanIgnoreReturnValue // Test generates a file to diff against baseline. Ignoring Intermediary
-  // evaluation is not a concern.
-  private Object runTest(Activation activation) throws Exception {
-    CelAbstractSyntaxTree ast = prepareTest(eval.fileDescriptors());
+  private CelAbstractSyntaxTree compileTestCase() {
+    CelAbstractSyntaxTree ast = prepareTest(TEST_FILE_DESCRIPTORS);
     if (ast == null) {
-      return null;
+      return ast;
     }
     assertAstRoundTrip(ast);
 
-    testOutput().println("bindings: " + activation);
+    return ast;
+  }
+
+  private Object runTest() {
+    return runTest(ImmutableMap.of());
+  }
+
+  private Object runTest(CelVariableResolver variableResolver) {
+    return runTestInternal(variableResolver);
+  }
+
+  /** Helper to run a test for configured instance variables. */
+  private Object runTest(Map<String, ?> input) {
+    return runTestInternal(input);
+  }
+
+  /**
+   * Helper to run a test for configured instance variables. Input must be of type map or {@link
+   * CelVariableResolver}.
+   */
+  @SuppressWarnings("unchecked")
+  private Object runTestInternal(Object input) {
+    CelAbstractSyntaxTree ast = compileTestCase();
+    printBinding(input);
     Object result = null;
     try {
-      result = eval.eval(ast, activation);
+      CelRuntime.Program program = celRuntime.createProgram(ast);
+      result =
+          input instanceof Map
+              ? program.eval(((Map<String, ?>) input))
+              : program.eval((CelVariableResolver) input);
       if (result instanceof ByteString) {
         // Note: this call may fail for printing byte sequences that are not valid UTF-8, but works
         // pretty well for test purposes.
         result = ((ByteString) result).toStringUtf8();
       }
-      testOutput().println("result:   " + result);
-    } catch (InterpreterException e) {
-      testOutput().println("error:    " + e.getMessage());
-      testOutput().println("error_code:    " + e.getErrorCode());
+      println("result:   " + result);
+    } catch (CelEvaluationException e) {
+      println("error:    " + e.getMessage());
+      println("error_code:    " + e.getErrorCode());
     }
-    testOutput().println();
+    println("");
     return result;
   }
 
-  /**
-   * Checks that the CheckedExpr produced by CelCompiler is equal to the one reproduced by the
-   * native CelAbstractSyntaxTree
-   */
-  private void assertAstRoundTrip(CelAbstractSyntaxTree ast) {
-    CheckedExpr checkedExpr = CelProtoAbstractSyntaxTree.fromCelAst(ast).toCheckedExpr();
-    CelProtoAbstractSyntaxTree protoAst = CelProtoAbstractSyntaxTree.fromCelAst(ast);
-    assertThat(checkedExpr).isEqualTo(protoAst.toCheckedExpr());
-  }
-
   @Test
-  public void arithmInt64() throws Exception {
+  public void arithmInt64() {
     source = "1 < 2 && 1 <= 1 && 2 > 1 && 1 >= 1 && 1 == 1 && 2 != 1";
-    runTest(Activation.EMPTY);
+    runTest();
 
     declareVariable("x", CelTypes.INT64);
     source = "1 + 2 - x * 3 / x + (x % 3)";
-    runTest(Activation.of("x", -5L));
+    runTest(ImmutableMap.of("x", -5L));
 
     declareVariable("y", CelTypes.DYN);
     source = "x + y == 1";
-    runTest(Activation.of("x", -5L).extend(Activation.of("y", 6)));
+    runTest(extend(ImmutableMap.of("x", -5L), ImmutableMap.of("y", 6)));
   }
 
   @Test
-  public void arithmInt64_error() throws Exception {
+  public void arithmInt64_error() {
     source = "9223372036854775807 + 1";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "-9223372036854775808 - 1";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "-(-9223372036854775808)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "5000000000 * 5000000000";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(-9223372036854775808)/-1";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "1 / 0";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "1 % 0";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void arithmUInt64() throws Exception {
+  public void arithmUInt64() {
     source = "1u < 2u && 1u <= 1u && 2u > 1u && 1u >= 1u && 1u == 1u && 2u != 1u";
-    runTest(Activation.EMPTY);
+    runTest();
 
-    boolean useUnsignedLongs = eval.celOptions().enableUnsignedLongs();
+    boolean useUnsignedLongs = celOptions.enableUnsignedLongs();
     declareVariable("x", CelTypes.UINT64);
     source = "1u + 2u + x * 3u / x + (x % 3u)";
-    runTest(Activation.of("x", useUnsignedLongs ? UnsignedLong.valueOf(5L) : 5L));
+    runTest(ImmutableMap.of("x", useUnsignedLongs ? UnsignedLong.valueOf(5L) : 5L));
 
     declareVariable("y", CelTypes.DYN);
     source = "x + y == 11u";
     runTest(
-        Activation.of("x", useUnsignedLongs ? UnsignedLong.valueOf(5L) : 5L)
-            .extend(Activation.of("y", useUnsignedLongs ? UnsignedLong.valueOf(6L) : 6)));
+        extend(
+            ImmutableMap.of("x", useUnsignedLongs ? UnsignedLong.valueOf(5L) : 5L),
+            ImmutableMap.of("y", useUnsignedLongs ? UnsignedLong.valueOf(6L) : 6)));
 
     source = "x - y == 1u";
     runTest(
-        Activation.of("x", useUnsignedLongs ? UnsignedLong.valueOf(6L) : 6L)
-            .extend(Activation.of("y", useUnsignedLongs ? UnsignedLong.valueOf(5) : 5)));
+        extend(
+            ImmutableMap.of("x", useUnsignedLongs ? UnsignedLong.valueOf(6L) : 6L),
+            ImmutableMap.of("y", useUnsignedLongs ? UnsignedLong.valueOf(5) : 5)));
   }
 
   @Test
-  public void arithmUInt64_error() throws Exception {
+  public void arithmUInt64_error() {
     source = "18446744073709551615u + 1u";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "0u - 1u";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "5000000000u * 5000000000u";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "1u / 0u";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "1u % 0u";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void arithmDouble() throws Exception {
+  public void arithmDouble() {
     source = "1.9 < 2.0 && 1.1 <= 1.1 && 2.0 > 1.9 && 1.1 >= 1.1 && 1.1 == 1.1 && 2.0 != 1.9";
-    runTest(Activation.EMPTY);
+    runTest();
 
     declareVariable("x", CelTypes.DOUBLE);
     source = "1.0 + 2.3 + x * 3.0 / x";
-    runTest(Activation.of("x", 3.33));
+    runTest(ImmutableMap.of("x", 3.33));
 
     declareVariable("y", CelTypes.DYN);
     source = "x + y == 9.99";
-    runTest(Activation.of("x", 3.33d).extend(Activation.of("y", 6.66)));
+    runTest(extend(ImmutableMap.of("x", 3.33d), ImmutableMap.of("y", 6.66)));
   }
 
   @Test
-  public void quantifiers() throws Exception {
+  public void quantifiers() {
     source = "[1,-2,3].exists_one(x, x > 0)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "[-1,-2,3].exists_one(x, x > 0)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "[-1,-2,-3].exists(x, x > 0)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "[1,-2,3].exists(x, x > 0)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "[1,-2,3].all(x, x > 0)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "[1,2,3].all(x, x > 0)";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void arithmTimestamp() throws Exception {
+  public void arithmTimestamp() {
     container = Type.getDescriptor().getFile().getPackage();
     declareVariable("ts1", CelTypes.TIMESTAMP);
     declareVariable("ts2", CelTypes.TIMESTAMP);
@@ -274,24 +308,26 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     Duration d1 = Duration.newBuilder().setSeconds(15).setNanos(25).build();
     Timestamp ts1 = Timestamp.newBuilder().setSeconds(25).setNanos(35).build();
     Timestamp ts2 = Timestamp.newBuilder().setSeconds(10).setNanos(10).build();
-    Activation activation =
-        Activation.of("d1", d1).extend(Activation.of("ts1", ts1)).extend(Activation.of("ts2", ts2));
+    CelVariableResolver resolver =
+        extend(
+            extend(ImmutableMap.of("d1", d1), ImmutableMap.of("ts1", ts1)),
+            ImmutableMap.of("ts2", ts2));
 
     source = "ts1 - ts2 == d1";
-    runTest(activation);
+    runTest(resolver);
 
     source = "ts1 - d1 == ts2";
-    runTest(activation);
+    runTest(resolver);
 
     source = "ts2 + d1 == ts1";
-    runTest(activation);
+    runTest(resolver);
 
     source = "d1 + ts2 == ts1";
-    runTest(activation);
+    runTest(resolver);
   }
 
   @Test
-  public void arithmDuration() throws Exception {
+  public void arithmDuration() {
     container = Type.getDescriptor().getFile().getPackage();
     declareVariable("d1", CelTypes.DURATION);
     declareVariable("d2", CelTypes.DURATION);
@@ -299,120 +335,123 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     Duration d1 = Duration.newBuilder().setSeconds(15).setNanos(25).build();
     Duration d2 = Duration.newBuilder().setSeconds(10).setNanos(20).build();
     Duration d3 = Duration.newBuilder().setSeconds(25).setNanos(45).build();
-    Activation activation =
-        Activation.of("d1", d1).extend(Activation.of("d2", d2)).extend(Activation.of("d3", d3));
+
+    CelVariableResolver resolver =
+        extend(
+            extend(ImmutableMap.of("d1", d1), ImmutableMap.of("d2", d2)),
+            ImmutableMap.of("d3", d3));
 
     source = "d1 + d2 == d3";
-    runTest(activation);
+    runTest(resolver);
 
     source = "d3 - d1 == d2";
-    runTest(activation);
+    runTest(resolver);
   }
 
   @Test
-  public void arithCrossNumericTypes() throws Exception {
-    if (!eval.celOptions().enableUnsignedLongs()) {
+  public void arithCrossNumericTypes() {
+    if (!celOptions.enableUnsignedLongs()) {
       skipBaselineVerification();
       return;
     }
     source = "1.9 < 2 && 1 < 1.1 && 2u < 2.9 && 1.1 < 2u && 1 < 2u && 2u < 3";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "1.9 <= 2 && 1 <= 1.1 && 2u <= 2.9 && 1.1 <= 2u && 2 <= 2u && 2u <= 2";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "1.9 > 2 && 1 > 1.1 && 2u > 2.9 && 1.1 > 2u && 2 > 2u && 2u > 2";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "1.9 >= 2 && 1 >= 1.1 && 2u >= 2.9 && 1.1 >= 2u && 2 >= 2u && 2u >= 2";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void booleans() throws Exception {
+  public void booleans() {
     declareVariable("x", CelTypes.BOOL);
     source = "x ? 1 : 0";
-    runTest(Activation.of("x", true));
-    runTest(Activation.of("x", false));
+    runTest(ImmutableMap.of("x", true));
+    runTest(ImmutableMap.of("x", false));
 
     source = "(1 / 0 == 0 && false) == (false && 1 / 0 == 0)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(1 / 0 == 0 || true) == (true || 1 / 0 == 0)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     declareVariable("y", CelTypes.INT64);
     source = "1 / y == 1 || true";
-    runTest(Activation.of("y", 0L));
+    runTest(ImmutableMap.of("y", 0L));
 
     source = "1 / y == 1 || false";
-    runTest(Activation.of("y", 0L));
+    runTest(ImmutableMap.of("y", 0L));
 
     source = "false || 1 / y == 1";
-    runTest(Activation.of("y", 0L));
+    runTest(ImmutableMap.of("y", 0L));
 
     source = "1 / y == 1 && true";
-    runTest(Activation.of("y", 0L));
+    runTest(ImmutableMap.of("y", 0L));
 
     source = "true && 1 / y == 1";
-    runTest(Activation.of("y", 0L));
+    runTest(ImmutableMap.of("y", 0L));
 
     source = "1 / y == 1 && false";
-    runTest(Activation.of("y", 0L));
+    runTest(ImmutableMap.of("y", 0L));
 
     source = "(true > false) == true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(true > true) == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(false > true) == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(false > false) == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(true >= false) == true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(true >= true) == true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(false >= false) == true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(false >= true) == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(false < true) == true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(false < false) == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(true < false) == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(true < true) == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(false <= true) == true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(false <= false) == true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(true <= false) == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "(true <= true) == true";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
   public void strings() throws Exception {
     source = "'a' < 'b' && 'a' <= 'b' && 'b' > 'a' && 'a' >= 'a' && 'a' == 'a' && 'a' != 'b'";
-    runTest(Activation.EMPTY);
+    runTest();
 
     declareVariable("x", CelTypes.STRING);
     source =
@@ -421,7 +460,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             + "x.startsWith('d') && "
             + "x.contains('de') && "
             + "!x.contains('abcdef')";
-    runTest(Activation.of("x", "def"));
+    runTest(ImmutableMap.of("x", "def"));
   }
 
   @Test
@@ -432,27 +471,27 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             .build();
     declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
     source = "x.single_nested_message.bb == 43 && has(x.single_nested_message)";
-    runTest(Activation.of("x", nestedMessage));
+    runTest(ImmutableMap.of("x", nestedMessage));
 
     declareVariable(
         "single_nested_message",
         CelTypes.createMessage(NestedMessage.getDescriptor().getFullName()));
     source = "single_nested_message.bb == 43";
-    runTest(Activation.of("single_nested_message", nestedMessage.getSingleNestedMessage()));
+    runTest(ImmutableMap.of("single_nested_message", nestedMessage.getSingleNestedMessage()));
 
     source = "TestAllTypes{single_int64: 1, single_sfixed64: 2, single_int32: 2}.single_int32 == 2";
     container = TestAllTypes.getDescriptor().getFile().getPackage();
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void messages_error() throws Exception {
+  public void messages_error() {
     source = "TestAllTypes{single_int32_wrapper: 12345678900}";
     container = TestAllTypes.getDescriptor().getFile().getPackage();
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "TestAllTypes{}.map_string_string.a";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
@@ -478,7 +517,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             + " && has(x.oneof_bool) && !has(x.oneof_type)"
             + " && has(x.map_int32_int64) && !has(x.map_string_string)"
             + " && has(x.single_nested_message) && !has(x.single_duration)";
-    runTest(Activation.of("x", nestedMessage));
+    runTest(ImmutableMap.of("x", nestedMessage));
   }
 
   @Test
@@ -491,32 +530,32 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     container = Type.getDescriptor().getFile().getPackage();
 
     source = "d1 < d2";
-    runTest(Activation.of("d1", d1010).extend(Activation.of("d2", d1009)));
-    runTest(Activation.of("d1", d1010).extend(Activation.of("d2", d0910)));
-    runTest(Activation.of("d1", d1010).extend(Activation.of("d2", d1010)));
-    runTest(Activation.of("d1", d1009).extend(Activation.of("d2", d1010)));
-    runTest(Activation.of("d1", d0910).extend(Activation.of("d2", d1010)));
+    runTest(extend(ImmutableMap.of("d1", d1010), ImmutableMap.of("d2", d1009)));
+    runTest(extend(ImmutableMap.of("d1", d1010), ImmutableMap.of("d2", d0910)));
+    runTest(extend(ImmutableMap.of("d1", d1010), ImmutableMap.of("d2", d1010)));
+    runTest(extend(ImmutableMap.of("d1", d1009), ImmutableMap.of("d2", d1010)));
+    runTest(extend(ImmutableMap.of("d1", d0910), ImmutableMap.of("d2", d1010)));
 
     source = "d1 <= d2";
-    runTest(Activation.of("d1", d1010).extend(Activation.of("d2", d1009)));
-    runTest(Activation.of("d1", d1010).extend(Activation.of("d2", d0910)));
-    runTest(Activation.of("d1", d1010).extend(Activation.of("d2", d1010)));
-    runTest(Activation.of("d1", d1009).extend(Activation.of("d2", d1010)));
-    runTest(Activation.of("d1", d0910).extend(Activation.of("d2", d1010)));
+    runTest(extend(ImmutableMap.of("d1", d1010), ImmutableMap.of("d2", d1009)));
+    runTest(extend(ImmutableMap.of("d1", d1010), ImmutableMap.of("d2", d0910)));
+    runTest(extend(ImmutableMap.of("d1", d1010), ImmutableMap.of("d2", d1010)));
+    runTest(extend(ImmutableMap.of("d1", d1009), ImmutableMap.of("d2", d1010)));
+    runTest(extend(ImmutableMap.of("d1", d0910), ImmutableMap.of("d2", d1010)));
 
     source = "d1 > d2";
-    runTest(Activation.of("d1", d1010).extend(Activation.of("d2", d1009)));
-    runTest(Activation.of("d1", d1010).extend(Activation.of("d2", d0910)));
-    runTest(Activation.of("d1", d1010).extend(Activation.of("d2", d1010)));
-    runTest(Activation.of("d1", d1009).extend(Activation.of("d2", d1010)));
-    runTest(Activation.of("d1", d0910).extend(Activation.of("d2", d1010)));
+    runTest(extend(ImmutableMap.of("d1", d1010), ImmutableMap.of("d2", d1009)));
+    runTest(extend(ImmutableMap.of("d1", d1010), ImmutableMap.of("d2", d0910)));
+    runTest(extend(ImmutableMap.of("d1", d1010), ImmutableMap.of("d2", d1010)));
+    runTest(extend(ImmutableMap.of("d1", d1009), ImmutableMap.of("d2", d1010)));
+    runTest(extend(ImmutableMap.of("d1", d0910), ImmutableMap.of("d2", d1010)));
 
     source = "d1 >= d2";
-    runTest(Activation.of("d1", d1010).extend(Activation.of("d2", d1009)));
-    runTest(Activation.of("d1", d1010).extend(Activation.of("d2", d0910)));
-    runTest(Activation.of("d1", d1010).extend(Activation.of("d2", d1010)));
-    runTest(Activation.of("d1", d1009).extend(Activation.of("d2", d1010)));
-    runTest(Activation.of("d1", d0910).extend(Activation.of("d2", d1010)));
+    runTest(extend(ImmutableMap.of("d1", d1010), ImmutableMap.of("d2", d1009)));
+    runTest(extend(ImmutableMap.of("d1", d1010), ImmutableMap.of("d2", d0910)));
+    runTest(extend(ImmutableMap.of("d1", d1010), ImmutableMap.of("d2", d1010)));
+    runTest(extend(ImmutableMap.of("d1", d1009), ImmutableMap.of("d2", d1010)));
+    runTest(extend(ImmutableMap.of("d1", d0910), ImmutableMap.of("d2", d1010)));
   }
 
   @Test
@@ -529,39 +568,38 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     container = Type.getDescriptor().getFile().getPackage();
 
     source = "t1 < t2";
-    runTest(Activation.of("t1", ts1010).extend(Activation.of("t2", ts1009)));
-    runTest(Activation.of("t1", ts1010).extend(Activation.of("t2", ts0910)));
-    runTest(Activation.of("t1", ts1010).extend(Activation.of("t2", ts1010)));
-    runTest(Activation.of("t1", ts1009).extend(Activation.of("t2", ts1010)));
-    runTest(Activation.of("t1", ts0910).extend(Activation.of("t2", ts1010)));
+    runTest(extend(ImmutableMap.of("t1", ts1010), ImmutableMap.of("t2", ts1009)));
+    runTest(extend(ImmutableMap.of("t1", ts1010), ImmutableMap.of("t2", ts0910)));
+    runTest(extend(ImmutableMap.of("t1", ts1010), ImmutableMap.of("t2", ts1010)));
+    runTest(extend(ImmutableMap.of("t1", ts1009), ImmutableMap.of("t2", ts1010)));
+    runTest(extend(ImmutableMap.of("t1", ts0910), ImmutableMap.of("t2", ts1010)));
 
     source = "t1 <= t2";
-    runTest(Activation.of("t1", ts1010).extend(Activation.of("t2", ts1009)));
-    runTest(Activation.of("t1", ts1010).extend(Activation.of("t2", ts0910)));
-    runTest(Activation.of("t1", ts1010).extend(Activation.of("t2", ts1010)));
-    runTest(Activation.of("t1", ts1009).extend(Activation.of("t2", ts1010)));
-    runTest(Activation.of("t1", ts0910).extend(Activation.of("t2", ts1010)));
+    runTest(extend(ImmutableMap.of("t1", ts1010), ImmutableMap.of("t2", ts1009)));
+    runTest(extend(ImmutableMap.of("t1", ts1010), ImmutableMap.of("t2", ts0910)));
+    runTest(extend(ImmutableMap.of("t1", ts1010), ImmutableMap.of("t2", ts1010)));
+    runTest(extend(ImmutableMap.of("t1", ts1009), ImmutableMap.of("t2", ts1010)));
+    runTest(extend(ImmutableMap.of("t1", ts0910), ImmutableMap.of("t2", ts1010)));
 
     source = "t1 > t2";
-    runTest(Activation.of("t1", ts1010).extend(Activation.of("t2", ts1009)));
-    runTest(Activation.of("t1", ts1010).extend(Activation.of("t2", ts0910)));
-    runTest(Activation.of("t1", ts1010).extend(Activation.of("t2", ts1010)));
-    runTest(Activation.of("t1", ts1009).extend(Activation.of("t2", ts1010)));
-    runTest(Activation.of("t1", ts0910).extend(Activation.of("t2", ts1010)));
+    runTest(extend(ImmutableMap.of("t1", ts1010), ImmutableMap.of("t2", ts1009)));
+    runTest(extend(ImmutableMap.of("t1", ts1010), ImmutableMap.of("t2", ts0910)));
+    runTest(extend(ImmutableMap.of("t1", ts1010), ImmutableMap.of("t2", ts1010)));
+    runTest(extend(ImmutableMap.of("t1", ts1009), ImmutableMap.of("t2", ts1010)));
+    runTest(extend(ImmutableMap.of("t1", ts0910), ImmutableMap.of("t2", ts1010)));
 
     source = "t1 >= t2";
-    runTest(Activation.of("t1", ts1010).extend(Activation.of("t2", ts1009)));
-    runTest(Activation.of("t1", ts1010).extend(Activation.of("t2", ts0910)));
-    runTest(Activation.of("t1", ts1010).extend(Activation.of("t2", ts1010)));
-    runTest(Activation.of("t1", ts1009).extend(Activation.of("t2", ts1010)));
-    runTest(Activation.of("t1", ts0910).extend(Activation.of("t2", ts1010)));
+    runTest(extend(ImmutableMap.of("t1", ts1010), ImmutableMap.of("t2", ts1009)));
+    runTest(extend(ImmutableMap.of("t1", ts1010), ImmutableMap.of("t2", ts0910)));
+    runTest(extend(ImmutableMap.of("t1", ts1010), ImmutableMap.of("t2", ts1010)));
+    runTest(extend(ImmutableMap.of("t1", ts1009), ImmutableMap.of("t2", ts1010)));
+    runTest(extend(ImmutableMap.of("t1", ts0910), ImmutableMap.of("t2", ts1010)));
   }
 
   @Test
-  // TODO: Support JSON type pack/unpack google.protobuf.Any.
-  public void packUnpackAny() throws Exception {
+  public void packUnpackAny() {
     // The use of long values results in the incorrect type being serialized for a uint value.
-    if (!eval.celOptions().enableUnsignedLongs()) {
+    if (!celOptions.enableUnsignedLongs()) {
       skipBaselineVerification();
       return;
     }
@@ -576,62 +614,60 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     // unpack any
     source = "any == d";
-    runTest(Activation.of("any", any).extend(Activation.of("d", duration)));
+    runTest(extend(ImmutableMap.of("any", any), ImmutableMap.of("d", duration)));
     source = "any == message.single_any";
-    runTest(Activation.of("any", any).extend(Activation.of("message", message)));
+    runTest(extend(ImmutableMap.of("any", any), ImmutableMap.of("message", message)));
     source = "d == message.single_any";
-    runTest(Activation.of("d", duration).extend(Activation.of("message", message)));
+    runTest(extend(ImmutableMap.of("d", duration), ImmutableMap.of("message", message)));
     source = "any.single_int64 == 1";
-    runTest(Activation.of("any", TestAllTypes.newBuilder().setSingleInt64(1).build()));
+    runTest(ImmutableMap.of("any", TestAllTypes.newBuilder().setSingleInt64(1).build()));
     source = "any == 1";
-    runTest(Activation.of("any", Any.pack(Int64Value.of(1))));
+    runTest(ImmutableMap.of("any", Any.pack(Int64Value.of(1))));
     source = "list[0] == message";
-    runTest(
-        Activation.copyOf(
-            ImmutableMap.of("list", ImmutableList.of(Any.pack(message)), "message", message)));
+    runTest(ImmutableMap.of("list", ImmutableList.of(Any.pack(message)), "message", message));
 
     // pack any
     source = "TestAllTypes{single_any: d}";
-    runTest(Activation.of("d", duration));
+    runTest(ImmutableMap.of("d", duration));
     source = "TestAllTypes{single_any: message.single_int64}";
-    runTest(Activation.of("message", TestAllTypes.newBuilder().setSingleInt64(-1).build()));
+    runTest(ImmutableMap.of("message", TestAllTypes.newBuilder().setSingleInt64(-1).build()));
     source = "TestAllTypes{single_any: message.single_uint64}";
-    runTest(Activation.of("message", TestAllTypes.newBuilder().setSingleUint64(1).build()));
+    runTest(ImmutableMap.of("message", TestAllTypes.newBuilder().setSingleUint64(1).build()));
     source = "TestAllTypes{single_any: 1.0}";
-    runTest(Activation.EMPTY);
+    runTest();
     source = "TestAllTypes{single_any: true}";
-    runTest(Activation.EMPTY);
+    runTest();
     source = "TestAllTypes{single_any: \"happy\"}";
-    runTest(Activation.EMPTY);
+    runTest();
     source = "TestAllTypes{single_any: message.single_bytes}";
     runTest(
-        Activation.of(
+        ImmutableMap.of(
             "message",
             TestAllTypes.newBuilder().setSingleBytes(ByteString.copyFromUtf8("happy")).build()));
   }
 
   @Test
-  public void nestedEnums() throws Exception {
+  public void nestedEnums() {
     TestAllTypes nestedEnum = TestAllTypes.newBuilder().setSingleNestedEnum(NestedEnum.BAR).build();
     declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
     container = TestAllTypes.getDescriptor().getFile().getPackage();
     source = "x.single_nested_enum == TestAllTypes.NestedEnum.BAR";
-    runTest(Activation.of("x", nestedEnum));
+    runTest(ImmutableMap.of("x", nestedEnum));
 
     declareVariable("single_nested_enum", CelTypes.INT64);
     source = "single_nested_enum == TestAllTypes.NestedEnum.BAR";
-    runTest(Activation.of("single_nested_enum", nestedEnum.getSingleNestedEnumValue()));
+    runTest(ImmutableMap.of("single_nested_enum", nestedEnum.getSingleNestedEnumValue()));
 
     source =
         "TestAllTypes{single_nested_enum : TestAllTypes.NestedEnum.BAR}.single_nested_enum == 1";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void globalEnums() throws Exception {
+  public void globalEnums() {
     declareVariable("x", CelTypes.INT64);
     source = "x == dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGAR";
-    runTest(Activation.of("x", StandaloneGlobalEnum.SGAR.getNumber()));
+    runTest(ImmutableMap.of("x", StandaloneGlobalEnum.SGAR.getNumber()));
   }
 
   @Test
@@ -640,33 +676,33 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     declareVariable("y", CelTypes.INT64);
     container = TestAllTypes.getDescriptor().getFile().getPackage();
     source = "([1, 2, 3] + x.repeated_int32)[3] == 4";
-    runTest(Activation.of("x", TestAllTypes.newBuilder().addRepeatedInt32(4).build()));
+    runTest(ImmutableMap.of("x", TestAllTypes.newBuilder().addRepeatedInt32(4).build()));
 
     source = "!(y in [1, 2, 3]) && y in [4, 5, 6]";
-    runTest(Activation.of("y", 4L));
+    runTest(ImmutableMap.of("y", 4L));
 
     source = "TestAllTypes{repeated_int32: [1,2]}.repeated_int32[1] == 2";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "1 in TestAllTypes{repeated_int32: [1,2]}.repeated_int32";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "!(4 in [1, 2, 3]) && 1 in [1, 2, 3]";
-    runTest(Activation.EMPTY);
+    runTest();
 
     declareVariable("list", CelTypes.createList(CelTypes.INT64));
 
     source = "!(4 in list) && 1 in list";
-    runTest(Activation.of("list", ImmutableList.of(1L, 2L, 3L)));
+    runTest(ImmutableMap.of("list", ImmutableList.of(1L, 2L, 3L)));
 
     source = "!(y in list)";
-    runTest(Activation.copyOf(ImmutableMap.of("y", 4L, "list", ImmutableList.of(1L, 2L, 3L))));
+    runTest(ImmutableMap.of("y", 4L, "list", ImmutableList.of(1L, 2L, 3L)));
 
     source = "y in list";
-    runTest(Activation.copyOf(ImmutableMap.of("y", 1L, "list", ImmutableList.of(1L, 2L, 3L))));
+    runTest(ImmutableMap.of("y", 1L, "list", ImmutableList.of(1L, 2L, 3L)));
 
     source = "list[3]";
-    runTest(Activation.copyOf(ImmutableMap.of("y", 1L, "list", ImmutableList.of(1L, 2L, 3L))));
+    runTest(ImmutableMap.of("y", 1L, "list", ImmutableList.of(1L, 2L, 3L)));
   }
 
   @Test
@@ -674,68 +710,66 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
     container = TestAllTypes.getDescriptor().getFile().getPackage();
     source = "{1: 2, 3: 4}[3] == 4";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Constant key in constant map.
     source = "3 in {1: 2, 3: 4} && !(4 in {1: 2, 3: 4})";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "x.map_int32_int64[22] == 23";
-    runTest(Activation.of("x", TestAllTypes.newBuilder().putMapInt32Int64(22, 23).build()));
+    runTest(ImmutableMap.of("x", TestAllTypes.newBuilder().putMapInt32Int64(22, 23).build()));
 
     source = "TestAllTypes{map_int32_int64: {21: 22, 22: 23}}.map_int32_int64[22] == 23";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source =
         "TestAllTypes{oneof_type: NestedTestAllTypes{payload: x}}"
             + ".oneof_type.payload.map_int32_int64[22] == 23";
-    runTest(Activation.of("x", TestAllTypes.newBuilder().putMapInt32Int64(22, 23).build()));
+    runTest(ImmutableMap.of("x", TestAllTypes.newBuilder().putMapInt32Int64(22, 23).build()));
 
     declareVariable("y", CelTypes.INT64);
     declareVariable("map", CelTypes.createMap(CelTypes.INT64, CelTypes.INT64));
 
     // Constant key in variable map.
     source = "!(4 in map) && 1 in map";
-    runTest(Activation.of("map", ImmutableMap.of(1L, 4L, 2L, 3L, 3L, 2L)));
+    runTest(ImmutableMap.of("map", ImmutableMap.of(1L, 4L, 2L, 3L, 3L, 2L)));
 
     // Variable key in constant map.
     source = "!(y in {1: 4, 2: 3, 3: 2}) && y in {5: 3, 4: 2, 3: 3}";
-    runTest(Activation.of("y", 4L));
+    runTest(ImmutableMap.of("y", 4L));
 
     // Variable key in variable map.
     source = "!(y in map) && (y + 3) in map";
-    runTest(
-        Activation.copyOf(
-            ImmutableMap.of("y", 1L, "map", ImmutableMap.of(4L, 1L, 5L, 2L, 6L, 3L))));
+    runTest(ImmutableMap.of("y", 1L, "map", ImmutableMap.of(4L, 1L, 5L, 2L, 6L, 3L)));
 
     // Message value in map
     source = "TestAllTypes{map_int64_nested_type:{42:NestedTestAllTypes{payload:TestAllTypes{}}}}";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Repeated key - constant
     source = "{true: 1, false: 2, true: 3}[true]";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Repeated key - expressions
     declareVariable("b", CelTypes.BOOL);
     source = "{b: 1, !b: 2, b: 3}[true]";
-    runTest(Activation.of("b", true));
+    runTest(ImmutableMap.of("b", true));
   }
 
   @Test
   public void comprehension() throws Exception {
     source = "[0, 1, 2].map(x, x > 0, x + 1) == [2, 3]";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "[0, 1, 2].exists(x, x > 0)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "[0, 1, 2].exists(x, x > 2)";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void abstractType() throws Exception {
+  public void abstractType() {
     Type typeParam = CelTypes.createTypeParam("T");
     Type abstractType =
         Type.newBuilder()
@@ -750,14 +784,6 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             ImmutableList.of(CelTypes.createList(typeParam)),
             ImmutableList.of("T"),
             abstractType));
-    eval.registrar()
-        .add(
-            "vector",
-            ImmutableList.of(List.class),
-            (Object[] args) -> {
-              List<?> list = (List<?>) args[0];
-              return list.toArray(new Object[0]);
-            });
     // Declare a function to access element of a vector.
     declareFunction(
         "at",
@@ -766,24 +792,32 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             ImmutableList.of(abstractType, CelTypes.INT64),
             ImmutableList.of("T"),
             typeParam));
-    eval.registrar()
-        .add(
+    // Add function bindings for above
+    addFunctionBinding(
+        CelFunctionBinding.from(
+            "vector",
+            ImmutableList.of(List.class),
+            (Object[] args) -> {
+              List<?> list = (List<?>) args[0];
+              return list.toArray(new Object[0]);
+            }),
+        CelFunctionBinding.from(
             "at",
             ImmutableList.of(Object[].class, Long.class),
             (Object[] args) -> {
               Object[] array = (Object[]) args[0];
               return array[(int) (long) args[1]];
-            });
+            }));
 
     source = "vector([1,2,3]).at(1) == 2";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "vector([1,2,3]).at(1) + vector([7]).at(0)";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void namespacedFunctions() throws Exception {
+  public void namespacedFunctions() {
     declareFunction(
         "ns.func",
         globalOverload("ns_func_overload", ImmutableList.of(CelTypes.STRING), CelTypes.INT64));
@@ -793,60 +827,61 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             "ns_member_overload",
             ImmutableList.of(CelTypes.INT64, CelTypes.INT64),
             CelTypes.INT64));
-    eval.registrar().add("ns_func_overload", String.class, s -> (long) s.length());
-    eval.registrar().add("ns_member_overload", Long.class, Long.class, Long::sum);
+    addFunctionBinding(
+        CelFunctionBinding.from("ns_func_overload", String.class, s -> (long) s.length()),
+        CelFunctionBinding.from("ns_member_overload", Long.class, Long.class, Long::sum));
     source = "ns.func('hello')";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "ns.func('hello').member(ns.func('test'))";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "{ns.func('test'): 2}";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "{2: ns.func('test')}";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "[ns.func('test'), 2]";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "[ns.func('test')].map(x, x * 2)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "[1, 2].map(x, x * ns.func('test'))";
-    runTest(Activation.EMPTY);
+    runTest();
 
     container = "ns";
     // Call with the container set as the function's namespace
     source = "ns.func('hello')";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "func('hello')";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "func('hello').member(func('test'))";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void namespacedVariables() throws Exception {
+  public void namespacedVariables() {
     container = "ns";
     declareVariable("ns.x", CelTypes.INT64);
     source = "x";
-    runTest(Activation.of("ns.x", 2));
+    runTest(ImmutableMap.of("ns.x", 2));
 
     container = "dev.cel.testing.testdata.proto3";
     Type messageType = CelTypes.createMessage("google.api.expr.test.v1.proto3.TestAllTypes");
     declareVariable("dev.cel.testing.testdata.proto3.msgVar", messageType);
     source = "msgVar.single_int32";
     runTest(
-        Activation.of(
+        ImmutableMap.of(
             "dev.cel.testing.testdata.proto3.msgVar",
             TestAllTypes.newBuilder().setSingleInt32(5).build()));
   }
 
   @Test
-  public void durationFunctions() throws Exception {
+  public void durationFunctions() {
     declareVariable("d1", CelTypes.DURATION);
     Duration d1 =
         Duration.newBuilder().setSeconds(25 * 3600 + 59 * 60 + 1).setNanos(11000000).build();
@@ -855,196 +890,196 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     container = Type.getDescriptor().getFile().getPackage();
 
     source = "d1.getHours()";
-    runTest(Activation.of("d1", d1));
-    runTest(Activation.of("d1", d2));
+    runTest(ImmutableMap.of("d1", d1));
+    runTest(ImmutableMap.of("d1", d2));
 
     source = "d1.getMinutes()";
-    runTest(Activation.of("d1", d1));
-    runTest(Activation.of("d1", d2));
+    runTest(ImmutableMap.of("d1", d1));
+    runTest(ImmutableMap.of("d1", d2));
 
     source = "d1.getSeconds()";
-    runTest(Activation.of("d1", d1));
-    runTest(Activation.of("d1", d2));
+    runTest(ImmutableMap.of("d1", d1));
+    runTest(ImmutableMap.of("d1", d2));
 
     source = "d1.getMilliseconds()";
-    runTest(Activation.of("d1", d1));
-    runTest(Activation.of("d1", d2));
+    runTest(ImmutableMap.of("d1", d1));
+    runTest(ImmutableMap.of("d1", d2));
 
     declareVariable("val", CelTypes.INT64);
     source = "d1.getHours() < val";
-    runTest(Activation.of("d1", d1).extend(Activation.of("val", 30L)));
+    runTest(extend(ImmutableMap.of("d1", d1), ImmutableMap.of("val", 30L)));
     source = "d1.getMinutes() > val";
-    runTest(Activation.of("d1", d1).extend(Activation.of("val", 30L)));
+    runTest(extend(ImmutableMap.of("d1", d1), ImmutableMap.of("val", 30L)));
     source = "d1.getSeconds() > val";
-    runTest(Activation.of("d1", d1).extend(Activation.of("val", 30L)));
+    runTest(extend(ImmutableMap.of("d1", d1), ImmutableMap.of("val", 30L)));
     source = "d1.getMilliseconds() < val";
-    runTest(Activation.of("d1", d1).extend(Activation.of("val", 30L)));
+    runTest(extend(ImmutableMap.of("d1", d1), ImmutableMap.of("val", 30L)));
   }
 
   @Test
-  public void timestampFunctions() throws Exception {
+  public void timestampFunctions() {
     declareVariable("ts1", CelTypes.TIMESTAMP);
     container = Type.getDescriptor().getFile().getPackage();
     Timestamp ts1 = Timestamp.newBuilder().setSeconds(1).setNanos(11000000).build();
     Timestamp ts2 = Timestamps.fromSeconds(-1);
 
     source = "ts1.getFullYear(\"America/Los_Angeles\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getFullYear()";
-    runTest(Activation.of("ts1", ts1));
-    runTest(Activation.of("ts1", ts2));
+    runTest(ImmutableMap.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts2));
     source = "ts1.getFullYear(\"Indian/Cocos\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getFullYear(\"2:00\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
 
     source = "ts1.getMonth(\"America/Los_Angeles\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getMonth()";
-    runTest(Activation.of("ts1", ts1));
-    runTest(Activation.of("ts1", ts2));
+    runTest(ImmutableMap.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts2));
     source = "ts1.getMonth(\"Indian/Cocos\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getMonth(\"-8:15\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
 
     source = "ts1.getDayOfYear(\"America/Los_Angeles\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getDayOfYear()";
-    runTest(Activation.of("ts1", ts1));
-    runTest(Activation.of("ts1", ts2));
+    runTest(ImmutableMap.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts2));
     source = "ts1.getDayOfYear(\"Indian/Cocos\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getDayOfYear(\"-9:00\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
 
     source = "ts1.getDayOfMonth(\"America/Los_Angeles\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getDayOfMonth()";
-    runTest(Activation.of("ts1", ts1));
-    runTest(Activation.of("ts1", ts2));
+    runTest(ImmutableMap.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts2));
     source = "ts1.getDayOfMonth(\"Indian/Cocos\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getDayOfMonth(\"8:00\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
 
     source = "ts1.getDate(\"America/Los_Angeles\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getDate()";
-    runTest(Activation.of("ts1", ts1));
-    runTest(Activation.of("ts1", ts2));
+    runTest(ImmutableMap.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts2));
     source = "ts1.getDate(\"Indian/Cocos\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getDate(\"9:30\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
 
     Timestamp tsSunday = Timestamps.fromSeconds(3 * 24 * 3600);
     source = "ts1.getDayOfWeek(\"America/Los_Angeles\")";
-    runTest(Activation.of("ts1", tsSunday));
+    runTest(ImmutableMap.of("ts1", tsSunday));
     source = "ts1.getDayOfWeek()";
-    runTest(Activation.of("ts1", tsSunday));
-    runTest(Activation.of("ts1", ts2));
+    runTest(ImmutableMap.of("ts1", tsSunday));
+    runTest(ImmutableMap.of("ts1", ts2));
     source = "ts1.getDayOfWeek(\"Indian/Cocos\")";
-    runTest(Activation.of("ts1", tsSunday));
+    runTest(ImmutableMap.of("ts1", tsSunday));
     source = "ts1.getDayOfWeek(\"-9:30\")";
-    runTest(Activation.of("ts1", tsSunday));
+    runTest(ImmutableMap.of("ts1", tsSunday));
 
     source = "ts1.getHours(\"America/Los_Angeles\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getHours()";
-    runTest(Activation.of("ts1", ts1));
-    runTest(Activation.of("ts1", ts2));
+    runTest(ImmutableMap.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts2));
     source = "ts1.getHours(\"Indian/Cocos\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getHours(\"6:30\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
 
     source = "ts1.getMinutes(\"America/Los_Angeles\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getMinutes()";
-    runTest(Activation.of("ts1", ts1));
-    runTest(Activation.of("ts1", ts2));
+    runTest(ImmutableMap.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts2));
     source = "ts1.getMinutes(\"Indian/Cocos\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getMinutes(\"-8:00\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
 
     source = "ts1.getSeconds(\"America/Los_Angeles\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getSeconds()";
-    runTest(Activation.of("ts1", ts1));
-    runTest(Activation.of("ts1", ts2));
+    runTest(ImmutableMap.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts2));
     source = "ts1.getSeconds(\"Indian/Cocos\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getSeconds(\"-8:00\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
 
     source = "ts1.getMilliseconds(\"America/Los_Angeles\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getMilliseconds()";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getMilliseconds(\"Indian/Cocos\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
     source = "ts1.getMilliseconds(\"-8:00\")";
-    runTest(Activation.of("ts1", ts1));
+    runTest(ImmutableMap.of("ts1", ts1));
 
     declareVariable("val", CelTypes.INT64);
     source = "ts1.getFullYear() < val";
-    runTest(Activation.of("ts1", ts1).extend(Activation.of("val", 2013L)));
+    runTest(extend(ImmutableMap.of("ts1", ts1), ImmutableMap.of("val", 2013L)));
     source = "ts1.getMonth() < val";
-    runTest(Activation.of("ts1", ts1).extend(Activation.of("val", 12L)));
+    runTest(extend(ImmutableMap.of("ts1", ts1), ImmutableMap.of("val", 12L)));
     source = "ts1.getDayOfYear() < val";
-    runTest(Activation.of("ts1", ts1).extend(Activation.of("val", 13L)));
+    runTest(extend(ImmutableMap.of("ts1", ts1), ImmutableMap.of("val", 13L)));
     source = "ts1.getDayOfMonth() < val";
-    runTest(Activation.of("ts1", ts1).extend(Activation.of("val", 10L)));
+    runTest(extend(ImmutableMap.of("ts1", ts1), ImmutableMap.of("val", 10L)));
     source = "ts1.getDate() < val";
-    runTest(Activation.of("ts1", ts1).extend(Activation.of("val", 15L)));
+    runTest(extend(ImmutableMap.of("ts1", ts1), ImmutableMap.of("val", 15L)));
     source = "ts1.getDayOfWeek() < val";
-    runTest(Activation.of("ts1", ts1).extend(Activation.of("val", 15L)));
+    runTest(extend(ImmutableMap.of("ts1", ts1), ImmutableMap.of("val", 15L)));
     source = "ts1.getHours() < val";
-    runTest(Activation.of("ts1", ts1).extend(Activation.of("val", 15L)));
+    runTest(extend(ImmutableMap.of("ts1", ts1), ImmutableMap.of("val", 15L)));
     source = "ts1.getMinutes() < val";
-    runTest(Activation.of("ts1", ts1).extend(Activation.of("val", 15L)));
+    runTest(extend(ImmutableMap.of("ts1", ts1), ImmutableMap.of("val", 15L)));
     source = "ts1.getSeconds() < val";
-    runTest(Activation.of("ts1", ts1).extend(Activation.of("val", 15L)));
+    runTest(extend(ImmutableMap.of("ts1", ts1), ImmutableMap.of("val", 15L)));
     source = "ts1.getMilliseconds() < val";
-    runTest(Activation.of("ts1", ts1).extend(Activation.of("val", 15L)));
+    runTest(extend(ImmutableMap.of("ts1", ts1), ImmutableMap.of("val", 15L)));
   }
 
   @Test
-  public void unknownField() throws Exception {
+  public void unknownField() {
     container = TestAllTypes.getDescriptor().getFile().getPackage();
     declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
 
     // Unknown field is accessed.
     source = "x.single_int32";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "x.map_int32_int64[22]";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "x.repeated_nested_message[1]";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Function call for an unknown field.
     source = "x.single_timestamp.getSeconds()";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Unknown field in a nested message
     source = "x.single_nested_message.bb";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Unknown field access in a map.
     source = "{1: x.single_int32}";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Unknown field access in a list.
     source = "[1, x.single_int32]";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void unknownResultSet() throws Exception {
+  public void unknownResultSet() {
     container = TestAllTypes.getDescriptor().getFile().getPackage();
     declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
     TestAllTypes message =
@@ -1055,505 +1090,505 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     // unknown && true ==> unknown
     source = "x.single_int32 == 1 && true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // unknown && false ==> false
     source = "x.single_int32 == 1 && false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // unknown && Unknown ==> UnknownSet
     source = "x.single_int32 == 1 && x.single_int64 == 1";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // unknown && error ==> unknown
     source = "x.single_int32 == 1 && x.single_timestamp <= timestamp(\"bad timestamp string\")";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // true && unknown ==> unknown
     source = "true && x.single_int32 == 1";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // false && unknown ==> false
     source = "false && x.single_int32 == 1";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // error && unknown ==> unknown
     source = "x.single_timestamp <= timestamp(\"bad timestamp string\") && x.single_int32 == 1";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // error && error ==> error
     source =
         "x.single_timestamp <= timestamp(\"bad timestamp string\") "
             + "&& x.single_timestamp > timestamp(\"another bad timestamp string\")";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // unknown || true ==> true
     source = "x.single_int32 == 1 || x.single_string == \"test\"";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // unknown || false ==> unknown
     source = "x.single_int32 == 1 || x.single_string != \"test\"";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // unknown || unknown ==> UnknownSet
     source = "x.single_int32 == 1 || x.single_int64 == 1";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // unknown || error ==> unknown
     source = "x.single_int32 == 1 || x.single_timestamp <= timestamp(\"bad timestamp string\")";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // true || unknown ==> true
     source = "true || x.single_int32 == 1";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // false || unknown ==> unknown
     source = "false || x.single_int32 == 1";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // error || unknown ==> unknown
     source = "x.single_timestamp <= timestamp(\"bad timestamp string\") || x.single_int32 == 1";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // error || error ==> error
     source =
         "x.single_timestamp <= timestamp(\"bad timestamp string\") "
             + "|| x.single_timestamp > timestamp(\"another bad timestamp string\")";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // dispatch test
     declareFunction(
         "f", memberOverload("f", Arrays.asList(CelTypes.INT64, CelTypes.INT64), CelTypes.BOOL));
-    eval.registrar().add("f", Integer.class, Integer.class, Objects::equals);
+    addFunctionBinding(CelFunctionBinding.from("f", Integer.class, Integer.class, Objects::equals));
 
     // dispatch: unknown.f(1)  ==> unknown
     source = "x.single_int32.f(1)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // dispatch: 1.f(unknown)  ==> unknown
     source = "1.f(x.single_int32)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // dispatch: unknown.f(unknown)  ==> unknownSet
     source = "x.single_int64.f(x.single_int32)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // ident is null(x is unbound) ==> unknown
     source = "x";
-    runTest(Activation.of("y", message));
+    runTest(ImmutableMap.of("y", message));
 
     // ident is unknown ==> unknown
     source = "x";
     ExprValue unknownMessage =
         ExprValue.newBuilder().setUnknown(UnknownSet.getDefaultInstance()).build();
-    runTest(Activation.of("x", unknownMessage));
+    runTest(ImmutableMap.of("x", unknownMessage));
 
     // comprehension test
     // iteRange is unknown => unknown
     source = "x.map_int32_int64.map(x, x > 0, x + 1)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // exists, loop condition encounters unknown => skip unknown and check other element
     source = "[0, 2, 4].exists(z, z == 2 || z == x.single_int32)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // exists, loop condition encounters unknown => skip unknown and check other element, no dupe id
     // in result
     source = "[0, 2, 4].exists(z, z == x.single_int32)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // exists_one, loop condition encounters unknown => collect all unknowns
     source =
         "[0, 2, 4].exists_one(z, z == 0 || (z == 2 && z == x.single_int32) "
             + "|| (z == 4 && z == x.single_int64))";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // all, loop condition encounters unknown => skip unknown and check other element
     source = "[0, 2].all(z, z == 2 || z == x.single_int32)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // filter, loop condition encounters unknown => skip unknown and check other element
     source =
         "[0, 2, 4].filter(z, z == 0 || (z == 2 && z == x.single_int32) "
             + "|| (z == 4 && z == x.single_int64))";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // map, loop condition encounters unknown => skip unknown and check other element
     source =
         "[0, 2, 4].map(z, z == 0 || (z == 2 && z == x.single_int32) "
             + "|| (z == 4 && z == x.single_int64))";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // conditional test
     // unknown ? 1 : 2 ==> unknown
     source = "x.single_int32 == 1 ? 1 : 2";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // true ? unknown : 2  ==> unknown
     source = "true ? x.single_int32 : 2";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // true ? 1 : unknown  ==> 1
     source = "true ? 1 : x.single_int32";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // false ? unknown : 2 ==> 2
     source = "false ? x.single_int32 : 2";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // false ? 1 : unknown ==> unknown
     source = "false ? 1 : x.single_int32";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // unknown condition ? unknown : unknown ==> unknown condition
     source = "x.single_int64 == 1 ? x.single_int32 : x.single_int32";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // map with unknown key => unknown
     source = "{x.single_int32: 2, 3: 4}";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // map with unknown value => unknown
     source = "{1: x.single_int32, 3: 4}";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // map with unknown key and value => unknownSet
     source = "{1: x.single_int32, x.single_int64: 4}";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // list with unknown => unknown
     source = "[1, x.single_int32, 3, 4]";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // list with multiple unknowns => unknownSet
     source = "[1, x.single_int32, x.single_int64, 4]";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // message with unknown => unknown
     source = "TestAllTypes{single_int32: x.single_int32}.single_int32 == 2";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // message with multiple unknowns => unknownSet
     source = "TestAllTypes{single_int32: x.single_int32, single_int64: x.single_int64}";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void timeConversions() throws Exception {
+  public void timeConversions() {
     container = Type.getDescriptor().getFile().getPackage();
     declareVariable("t1", CelTypes.TIMESTAMP);
 
     source = "timestamp(\"1972-01-01T10:00:20.021-05:00\")";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "timestamp(123)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "duration(\"15.11s\")";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "int(t1) == 100";
-    runTest(Activation.of("t1", Timestamps.fromSeconds(100)));
+    runTest(ImmutableMap.of("t1", Timestamps.fromSeconds(100)));
 
     source = "duration(\"1h2m3.4s\")";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Not supported.
     source = "duration('inf')";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "duration(duration('15.0s'))"; // Identity
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "timestamp(timestamp(123))"; // Identity
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void sizeTests() throws Exception {
+  public void sizeTests() {
     container = Type.getDescriptor().getFile().getPackage();
     declareVariable("str", CelTypes.STRING);
     declareVariable("b", CelTypes.BYTES);
 
     source = "size(b) == 5 && b.size() == 5";
-    runTest(Activation.of("b", ByteString.copyFromUtf8("happy")));
+    runTest(ImmutableMap.of("b", ByteString.copyFromUtf8("happy")));
 
     source = "size(str) == 5 && str.size() == 5";
-    runTest(Activation.of("str", "happy"));
-    runTest(Activation.of("str", "happ\uDBFF\uDFFC"));
+    runTest(ImmutableMap.of("str", "happy"));
+    runTest(ImmutableMap.of("str", "happ\uDBFF\uDFFC"));
 
     source = "size({1:14, 2:15}) == 2 && {1:14, 2:15}.size() == 2";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "size([1,2,3]) == 3 && [1,2,3].size() == 3";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void nonstrictQuantifierTests() throws Exception {
+  public void nonstrictQuantifierTests() {
     // Plain tests.  Everything is constant.
     source = "[0, 2, 4].exists(x, 4/x == 2 && 4/(4-x) == 2)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "![0, 2, 4].all(x, 4/x != 2 && 4/(4-x) != 2)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     declareVariable("four", CelTypes.INT64);
 
     // Condition is dynamic.
     source = "[0, 2, 4].exists(x, four/x == 2 && four/(four-x) == 2)";
-    runTest(Activation.of("four", 4L));
+    runTest(ImmutableMap.of("four", 4L));
 
     source = "![0, 2, 4].all(x, four/x != 2 && four/(four-x) != 2)";
-    runTest(Activation.of("four", 4L));
+    runTest(ImmutableMap.of("four", 4L));
 
     // Both range and condition are dynamic.
     source = "[0, 2, four].exists(x, four/x == 2 && four/(four-x) == 2)";
-    runTest(Activation.of("four", 4L));
+    runTest(ImmutableMap.of("four", 4L));
 
     source = "![0, 2, four].all(x, four/x != 2 && four/(four-x) != 2)";
-    runTest(Activation.of("four", 4L));
+    runTest(ImmutableMap.of("four", 4L));
   }
 
   @Test
-  public void regexpMatchingTests() throws Exception {
+  public void regexpMatchingTests() {
     // Constant everything.
     source = "matches(\"alpha\", \"^al.*\") == true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "matches(\"alpha\", \"^.al.*\") == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "matches(\"alpha\", \".*ha$\") == true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "matches(\"alpha\", \"^.*ha.$\") == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "matches(\"alpha\", \"\") == true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "matches(\"alpha\", \"ph\") == true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "matches(\"alpha\", \"^ph\") == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "matches(\"alpha\", \"ph$\") == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Constant everything, receiver-style.
     source = "\"alpha\".matches(\"^al.*\") == true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "\"alpha\".matches(\"^.al.*\") == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "\"alpha\".matches(\".*ha$\") == true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "\"alpha\".matches(\".*ha.$\") == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "\"alpha\".matches(\"\") == true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "\"alpha\".matches(\"ph\") == true";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "\"alpha\".matches(\"^ph\") == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "\"alpha\".matches(\"ph$\") == false";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Constant string.
     declareVariable("regexp", CelTypes.STRING);
 
     source = "matches(\"alpha\", regexp) == true";
-    runTest(Activation.of("regexp", "^al.*"));
+    runTest(ImmutableMap.of("regexp", "^al.*"));
 
     source = "matches(\"alpha\", regexp) == false";
-    runTest(Activation.of("regexp", "^.al.*"));
+    runTest(ImmutableMap.of("regexp", "^.al.*"));
 
     source = "matches(\"alpha\", regexp) == true";
-    runTest(Activation.of("regexp", ".*ha$"));
+    runTest(ImmutableMap.of("regexp", ".*ha$"));
 
     source = "matches(\"alpha\", regexp) == false";
-    runTest(Activation.of("regexp", ".*ha.$"));
+    runTest(ImmutableMap.of("regexp", ".*ha.$"));
 
     // Constant string, receiver-style.
     source = "\"alpha\".matches(regexp) == true";
-    runTest(Activation.of("regexp", "^al.*"));
+    runTest(ImmutableMap.of("regexp", "^al.*"));
 
     source = "\"alpha\".matches(regexp) == false";
-    runTest(Activation.of("regexp", "^.al.*"));
+    runTest(ImmutableMap.of("regexp", "^.al.*"));
 
     source = "\"alpha\".matches(regexp) == true";
-    runTest(Activation.of("regexp", ".*ha$"));
+    runTest(ImmutableMap.of("regexp", ".*ha$"));
 
     source = "\"alpha\".matches(regexp) == false";
-    runTest(Activation.of("regexp", ".*ha.$"));
+    runTest(ImmutableMap.of("regexp", ".*ha.$"));
 
     // Constant regexp.
     declareVariable("s", CelTypes.STRING);
 
     source = "matches(s, \"^al.*\") == true";
-    runTest(Activation.of("s", "alpha"));
+    runTest(ImmutableMap.of("s", "alpha"));
 
     source = "matches(s, \"^.al.*\") == false";
-    runTest(Activation.of("s", "alpha"));
+    runTest(ImmutableMap.of("s", "alpha"));
 
     source = "matches(s, \".*ha$\") == true";
-    runTest(Activation.of("s", "alpha"));
+    runTest(ImmutableMap.of("s", "alpha"));
 
     source = "matches(s, \"^.*ha.$\") == false";
-    runTest(Activation.of("s", "alpha"));
+    runTest(ImmutableMap.of("s", "alpha"));
 
     // Constant regexp, receiver-style.
     source = "s.matches(\"^al.*\") == true";
-    runTest(Activation.of("s", "alpha"));
+    runTest(ImmutableMap.of("s", "alpha"));
 
     source = "s.matches(\"^.al.*\") == false";
-    runTest(Activation.of("s", "alpha"));
+    runTest(ImmutableMap.of("s", "alpha"));
 
     source = "s.matches(\".*ha$\") == true";
-    runTest(Activation.of("s", "alpha"));
+    runTest(ImmutableMap.of("s", "alpha"));
 
     source = "s.matches(\"^.*ha.$\") == false";
-    runTest(Activation.of("s", "alpha"));
+    runTest(ImmutableMap.of("s", "alpha"));
 
     // No constants.
     source = "matches(s, regexp) == true";
-    runTest(Activation.copyOf(ImmutableMap.of("s", "alpha", "regexp", "^al.*")));
-    runTest(Activation.copyOf(ImmutableMap.of("s", "alpha", "regexp", ".*ha$")));
+    runTest(ImmutableMap.of("s", "alpha", "regexp", "^al.*"));
+    runTest(ImmutableMap.of("s", "alpha", "regexp", ".*ha$"));
 
     source = "matches(s, regexp) == false";
-    runTest(Activation.copyOf(ImmutableMap.of("s", "alpha", "regexp", "^.al.*")));
-    runTest(Activation.copyOf(ImmutableMap.of("s", "alpha", "regexp", ".*ha.$")));
+    runTest(ImmutableMap.of("s", "alpha", "regexp", "^.al.*"));
+    runTest(ImmutableMap.of("s", "alpha", "regexp", ".*ha.$"));
 
     // No constants, receiver-style.
     source = "s.matches(regexp) == true";
-    runTest(Activation.copyOf(ImmutableMap.of("s", "alpha", "regexp", "^al.*")));
-    runTest(Activation.copyOf(ImmutableMap.of("s", "alpha", "regexp", ".*ha$")));
+    runTest(ImmutableMap.of("s", "alpha", "regexp", "^al.*"));
+    runTest(ImmutableMap.of("s", "alpha", "regexp", ".*ha$"));
 
     source = "s.matches(regexp) == false";
-    runTest(Activation.copyOf(ImmutableMap.of("s", "alpha", "regexp", "^.al.*")));
-    runTest(Activation.copyOf(ImmutableMap.of("s", "alpha", "regexp", ".*ha.$")));
+    runTest(ImmutableMap.of("s", "alpha", "regexp", "^.al.*"));
+    runTest(ImmutableMap.of("s", "alpha", "regexp", ".*ha.$"));
   }
 
   @Test
-  public void regexpMatches_error() throws Exception {
+  public void regexpMatches_error() {
     source = "matches(\"alpha\", \"**\")";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "\"alpha\".matches(\"**\")";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void int64Conversions() throws Exception {
+  public void int64Conversions() {
     source = "int('-1')"; // string converts to -1
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "int(2.1)"; // double converts to 2
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "int(18446744073709551615u)"; // 2^64-1 should error
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "int(1e99)"; // out of range should error
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "int(42u)"; // converts to 42
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void uint64Conversions() throws Exception {
+  public void uint64Conversions() {
     // The test case `uint(1e19)` succeeds with unsigned longs and fails with longs in a way that
     // cannot be easily tested.
-    if (!eval.celOptions().enableUnsignedLongs()) {
+    if (!celOptions.enableUnsignedLongs()) {
       skipBaselineVerification();
       return;
     }
     source = "uint('1')"; // string converts to 1u
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "uint(2.1)"; // double converts to 2u
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "uint(-1)"; // should error
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "uint(1e19)"; // valid uint but outside of int range
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "uint(6.022e23)"; // outside uint range
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "uint(42)"; // int converts to 42u
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "uint('f1')"; // should error
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "uint(1u)"; // identity
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "uint(dyn(1u))"; // identity, check dynamic dispatch
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void doubleConversions() throws Exception {
+  public void doubleConversions() {
     source = "double('1.1')"; // string converts to 1.1
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "double(2u)"; // uint converts to 2.0
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "double(-1)"; // int converts to -1.0
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "double('bad')";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "double(1.5)"; // Identity
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void stringConversions() throws Exception {
+  public void stringConversions() {
     source = "string(1.1)"; // double converts to '1.1'
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "string(2u)"; // uint converts to '2'
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "string(-1)"; // int converts to '-1'
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Byte literals in Google SQL only take the leading byte of an escape character.
     // This means that to translate a byte literal to a UTF-8 encoded string, all bytes must be
     // encoded in the literal as they would be laid out in memory for UTF-8, hence the extra octal
     // escape to achieve parity with the bidi test below.
     source = "string(b'abc\\303\\203')";
-    runTest(Activation.EMPTY); // bytes convert to 'abcÃ'
+    runTest(); // bytes convert to 'abcÃ'
 
     // Bi-di conversion for strings and bytes for 'abcÃ', note the difference between the string
     // and byte literal values.
     source = "string(bytes('abc\\303'))";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "string(timestamp('2009-02-13T23:31:30Z'))";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "string(duration('1000000s'))";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "string('hello')"; // Identity
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
@@ -1561,68 +1596,62 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source =
         "b'a' < b'b' && b'a' <= b'b' && b'b' > b'a' && b'a' >= b'a' && b'a' == b'a' && b'a' !="
             + " b'b'";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void boolConversions() throws Exception {
+  public void boolConversions() {
     source = "bool(true)";
-    runTest(Activation.EMPTY); // Identity
+    runTest(); // Identity
 
     source = "bool('true') && bool('TRUE') && bool('True') && bool('t') && bool('1')";
-    runTest(Activation.EMPTY); // result is true
+    runTest(); // result is true
 
     source = "bool('false') || bool('FALSE') || bool('False') || bool('f') || bool('0')";
-    runTest(Activation.EMPTY); // result is false
+    runTest(); // result is false
 
     source = "bool('TrUe')";
-    runTest(Activation.EMPTY); // exception
+    runTest(); // exception
 
     source = "bool('FaLsE')";
-    runTest(Activation.EMPTY); // exception
+    runTest(); // exception
   }
 
   @Test
-  public void bytesConversions() throws Exception {
+  public void bytesConversions() {
     source = "bytes('abc\\303')";
-    runTest(Activation.EMPTY); // string converts to abcÃ in bytes form.
+    runTest(); // string converts to abcÃ in bytes form.
 
     source = "bytes(bytes('abc\\303'))"; // Identity
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void dynConversions() throws Exception {
+  public void dynConversions() {
     source = "dyn(42)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "dyn({'a':1, 'b':2})";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
-  public void dyn_error() throws Exception {
+  public void dyn_error() {
     source = "dyn('hello').invalid";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "has(dyn('hello').invalid)";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "dyn([]).invalid";
-    runTest(Activation.EMPTY);
+    runTest();
 
     source = "has(dyn([]).invalid)";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
-  // This lambda implements @Immutable interface 'Function', but 'InterpreterTest' has field 'eval'
-  // of type 'com.google.api.expr.cel.testing.Eval', the declaration of
-  // type
-  // 'com.google.api.expr.cel.testing.Eval' is not annotated with
-  // @com.google.errorprone.annotations.Immutable
-  @SuppressWarnings("Immutable")
   @Test
-  public void jsonValueTypes() throws Exception {
+  public void jsonValueTypes() {
     container = TestAllTypes.getDescriptor().getFile().getPackage();
     declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
 
@@ -1630,19 +1659,19 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     TestAllTypes xBool =
         TestAllTypes.newBuilder().setSingleValue(Value.newBuilder().setBoolValue(true)).build();
     source = "x.single_value";
-    runTest(Activation.of("x", xBool));
+    runTest(ImmutableMap.of("x", xBool));
 
     // JSON number selection with int comparison.
     TestAllTypes xInt =
         TestAllTypes.newBuilder().setSingleValue(Value.newBuilder().setNumberValue(1)).build();
     source = "x.single_value == double(1)";
-    runTest(Activation.of("x", xInt));
+    runTest(ImmutableMap.of("x", xInt));
 
     // JSON number selection with float comparison.
     TestAllTypes xFloat =
         TestAllTypes.newBuilder().setSingleValue(Value.newBuilder().setNumberValue(1.1)).build();
     source = "x.single_value == 1.1";
-    runTest(Activation.of("x", xFloat));
+    runTest(ImmutableMap.of("x", xFloat));
 
     // JSON null selection.
     TestAllTypes xNull =
@@ -1650,7 +1679,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             .setSingleValue(Value.newBuilder().setNullValue(NullValue.NULL_VALUE))
             .build();
     source = "x.single_value == null";
-    runTest(Activation.of("x", xNull));
+    runTest(ImmutableMap.of("x", xNull));
 
     // JSON string selection.
     TestAllTypes xString =
@@ -1658,7 +1687,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             .setSingleValue(Value.newBuilder().setStringValue("hello"))
             .build();
     source = "x.single_value == 'hello'";
-    runTest(Activation.of("x", xString));
+    runTest(ImmutableMap.of("x", xString));
 
     // JSON list equality.
     TestAllTypes xList =
@@ -1675,7 +1704,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
                             .addValues(Value.newBuilder().setNumberValue(-1.1))))
             .build();
     source = "x.single_value[0] == [['hello'], -1.1][0]";
-    runTest(Activation.of("x", xList));
+    runTest(ImmutableMap.of("x", xList));
 
     // JSON struct equality.
     TestAllTypes xStruct =
@@ -1692,7 +1721,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
                     .putFields("num", Value.newBuilder().setNumberValue(-1.1).build()))
             .build();
     source = "x.single_struct.num == {'str': ['hello'], 'num': -1.1}['num']";
-    runTest(Activation.of("x", xStruct));
+    runTest(ImmutableMap.of("x", xStruct));
 
     // Build a proto message using a dynamically constructed map and assign the map to a struct
     // value.
@@ -1701,42 +1730,39 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             + "single_struct: "
             + "TestAllTypes{single_value: {'str': ['hello']}}.single_value"
             + "}";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Ensure that types are being wrapped and unwrapped on function dispatch.
     declareFunction(
         "pair",
         globalOverload("pair", ImmutableList.of(CelTypes.STRING, CelTypes.STRING), CelTypes.DYN));
-    eval.registrar()
-        .add(
+    addFunctionBinding(
+        CelFunctionBinding.from(
             "pair",
             ImmutableList.of(String.class, String.class),
             (Object[] args) -> {
               String key = (String) args[0];
               String val = (String) args[1];
-              return eval.adapt(
-                  Value.newBuilder()
-                      .setStructValue(
-                          Struct.newBuilder()
-                              .putFields(key, Value.newBuilder().setStringValue(val).build()))
-                      .build());
-            });
+              return Value.newBuilder()
+                  .setStructValue(
+                      Struct.newBuilder()
+                          .putFields(key, Value.newBuilder().setStringValue(val).build()))
+                  .build();
+            }));
     source = "pair(x.single_struct.str[0], 'val')";
-    runTest(Activation.of("x", xStruct));
+    runTest(ImmutableMap.of("x", xStruct));
   }
 
   @Test
-  public void jsonConversions() throws Exception {
+  public void jsonConversions() {
     declareVariable("ts", CelTypes.TIMESTAMP);
     declareVariable("du", CelTypes.DURATION);
     source = "google.protobuf.Struct { fields: {'timestamp': ts, 'duration': du } }";
-    runTest(
-        Activation.copyOf(
-            ImmutableMap.of("ts", Timestamps.fromSeconds(100), "du", Durations.fromMillis(200))));
+    runTest(ImmutableMap.of("ts", Timestamps.fromSeconds(100), "du", Durations.fromMillis(200)));
   }
 
   @Test
-  public void typeComparisons() throws Exception {
+  public void typeComparisons() {
     container = TestAllTypes.getDescriptor().getFile().getPackage();
 
     // Test numeric types.
@@ -1745,23 +1771,23 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             + "type(1u) != int && type(1) != uint && "
             + "type(uint(1.1)) == uint && "
             + "type(1.1) == double";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Test string and bytes types.
     source = "type('hello') == string && type(b'\277') == bytes";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Test list and map types.
     source = "type([1, 2, 3]) == list && type({'a': 1, 'b': 2}) == map";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Test bool types.
     source = "type(true) == bool && type(false) == bool";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Test well-known proto-based types.
     source = "type(duration('10s')) == google.protobuf.Duration";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Test external proto-based types with container resolution.
     source =
@@ -1775,19 +1801,19 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             + "type(.google.api.expr.test.v1.proto3.TestAllTypes{}) == proto3.TestAllTypes && "
             + "type(.google.api.expr.test.v1.proto3.TestAllTypes{}) == "
             + ".google.api.expr.test.v1.proto3.TestAllTypes";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Test whether a type name is recognized as a type.
     source = "type(TestAllTypes) == type";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Test whether the type resolution of a proto object is recognized as the message's type.
     source = "type(TestAllTypes{}) == TestAllTypes";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Test whether null resolves to null_type.
     source = "type(null) == null_type";
-    runTest(Activation.EMPTY);
+    runTest();
   }
 
   @Test
@@ -1815,7 +1841,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             + "x.single_string_wrapper == 'hello' && "
             + "x.single_uint32_wrapper == 12u && "
             + "x.single_uint64_wrapper == 34u";
-    runTest(Activation.of("x", wrapperBindings));
+    runTest(ImmutableMap.of("x", wrapperBindings));
 
     source =
         "x.single_bool_wrapper == google.protobuf.BoolValue{} && "
@@ -1828,7 +1854,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             + "x.single_uint32_wrapper == google.protobuf.UInt32Value{value: 12u} && "
             + "x.single_uint64_wrapper == google.protobuf.UInt64Value{value: 34u}";
     runTest(
-        Activation.of(
+        ImmutableMap.of(
             "x",
             wrapperBindings
                 .setSingleBoolWrapper(BoolValue.getDefaultInstance())
@@ -1844,13 +1870,13 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             + "x.single_string_wrapper == null && "
             + "x.single_uint32_wrapper == null && "
             + "x.single_uint64_wrapper == null";
-    runTest(Activation.of("x", TestAllTypes.getDefaultInstance()));
+    runTest(ImmutableMap.of("x", TestAllTypes.getDefaultInstance()));
   }
 
   @Test
-  public void longComprehension() throws Exception {
+  public void longComprehension() {
     ImmutableList<Long> l = LongStream.range(0L, 1000L).boxed().collect(toImmutableList());
-    eval.registrar().add("constantLongList", ImmutableList.of(), args -> l);
+    addFunctionBinding(CelFunctionBinding.from("constantLongList", ImmutableList.of(), args -> l));
 
     // Comprehension over compile-time constant long list.
     declareFunction(
@@ -1858,19 +1884,20 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
         globalOverload(
             "constantLongList", ImmutableList.of(), CelTypes.createList(CelTypes.INT64)));
     source = "size(constantLongList().map(x, x+1)) == 1000";
-    runTest(Activation.EMPTY);
+    runTest();
 
     // Comprehension over long list that is not compile-time constant.
     declareVariable("longlist", CelTypes.createList(CelTypes.INT64));
     source = "size(longlist.map(x, x+1)) == 1000";
-    runTest(Activation.of("longlist", l));
+    runTest(ImmutableMap.of("longlist", l));
 
     // Comprehension over long list where the computation is very slow.
     // (This is here pro-forma only since in the synchronous interpreter there
     // is no notion of a computation being slow so that another computation can
     // build up a stack while waiting.)
-    eval.registrar().add("f_slow_inc", Long.class, n -> n + 1L);
-    eval.registrar().add("f_unleash", Object.class, x -> x);
+    addFunctionBinding(
+        CelFunctionBinding.from("f_slow_inc", Long.class, n -> n + 1L),
+        CelFunctionBinding.from("f_unleash", Object.class, x -> x));
     declareFunction(
         "f_slow_inc",
         globalOverload("f_slow_inc", ImmutableList.of(CelTypes.INT64), CelTypes.INT64));
@@ -1882,15 +1909,11 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             ImmutableList.of("A"),
             CelTypes.createTypeParam("A")));
     source = "f_unleash(longlist.map(x, f_slow_inc(x)))[0] == 1";
-    runTest(Activation.of("longlist", l));
+    runTest(ImmutableMap.of("longlist", l));
   }
 
   @Test
-  public void maxComprehension() throws Exception {
-    if (eval.celOptions().comprehensionMaxIterations() < 0) {
-      skipBaselineVerification();
-      return;
-    }
+  public void maxComprehension() {
     // Comprehension over long list that is not compile-time constant.
     declareVariable("longlist", CelTypes.createList(CelTypes.INT64));
     source = "size(longlist.map(x, x+1)) == 1000";
@@ -1898,31 +1921,31 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     // Comprehension which exceeds the configured iteration limit.
     ImmutableList<Long> tooLongList =
         LongStream.range(0L, COMPREHENSION_MAX_ITERATIONS + 1).boxed().collect(toImmutableList());
-    runTest(Activation.of("longlist", tooLongList));
+    runTest(ImmutableMap.of("longlist", tooLongList));
 
     // Sequential iterations within the collective limit of 1000.
     source = "longlist.filter(i, i % 2 == 0).map(i, i * 2).map(i, i / 2).size() == 250";
     ImmutableList<Long> l =
         LongStream.range(0L, COMPREHENSION_MAX_ITERATIONS / 2).boxed().collect(toImmutableList());
-    runTest(Activation.of("longlist", l));
+    runTest(ImmutableMap.of("longlist", l));
 
     // Sequential iterations outside the limit of 1000.
     source = "(longlist + [0]).filter(i, i % 2 == 0).map(i, i * 2).map(i, i / 2).size() == 251";
-    runTest(Activation.of("longlist", l));
+    runTest(ImmutableMap.of("longlist", l));
 
     // Nested iteration within the iteration limit.
     // Note, there is some double-counting of the inner-loops which causes the iteration limit to
     // get tripped sooner than one might expect for the nested case.
     source = "longlist.map(i, longlist.map(j, longlist.map(k, [i, j, k]))).size() == 9";
     l = LongStream.range(0L, 9).boxed().collect(toImmutableList());
-    runTest(Activation.of("longlist", l));
+    runTest(ImmutableMap.of("longlist", l));
 
     // Nested iteration which exceeds the iteration limit. This result may be surprising, but the
     // limit is tripped precisely because each complete iteration of an inner-loop counts as inner-
     // loop + 1 as there's not a clean way to deduct an iteration and only count the inner most
     // loop.
     l = LongStream.range(0L, 10).boxed().collect(toImmutableList());
-    runTest(Activation.of("longlist", l));
+    runTest(ImmutableMap.of("longlist", l));
   }
 
   @Test
@@ -1948,8 +1971,8 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
                 ListValue.newBuilder().addValues(Value.newBuilder().setStringValue("d")).build())
             .build();
 
-    Activation activation =
-        Activation.of(
+    ImmutableMap<String, Object> input =
+        ImmutableMap.of(
             "msg",
             DynamicMessage.parseFrom(
                 TestAllTypes.getDescriptor(),
@@ -1959,51 +1982,51 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     declareVariable("msg", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
 
     source = "msg.single_any";
-    assertThat(runTest(activation)).isInstanceOf(NestedMessage.class);
+    assertThat(runTest(input)).isInstanceOf(NestedMessage.class);
 
     source = "msg.single_bool_wrapper";
-    assertThat(runTest(activation)).isInstanceOf(Boolean.class);
+    assertThat(runTest(input)).isInstanceOf(Boolean.class);
 
     source = "msg.single_bytes_wrapper";
-    assertThat(runTest(activation)).isInstanceOf(String.class);
+    assertThat(runTest(input)).isInstanceOf(String.class);
 
     source = "msg.single_double_wrapper";
-    assertThat(runTest(activation)).isInstanceOf(Double.class);
+    assertThat(runTest(input)).isInstanceOf(Double.class);
 
     source = "msg.single_float_wrapper";
-    assertThat(runTest(activation)).isInstanceOf(Double.class);
+    assertThat(runTest(input)).isInstanceOf(Double.class);
 
     source = "msg.single_int32_wrapper";
-    assertThat(runTest(activation)).isInstanceOf(Long.class);
+    assertThat(runTest(input)).isInstanceOf(Long.class);
 
     source = "msg.single_int64_wrapper";
-    assertThat(runTest(activation)).isInstanceOf(Long.class);
+    assertThat(runTest(input)).isInstanceOf(Long.class);
 
     source = "msg.single_string_wrapper";
-    assertThat(runTest(activation)).isInstanceOf(String.class);
+    assertThat(runTest(input)).isInstanceOf(String.class);
 
     source = "msg.single_uint32_wrapper";
-    assertThat(runTest(activation))
-        .isInstanceOf(eval.celOptions().enableUnsignedLongs() ? UnsignedLong.class : Long.class);
+    assertThat(runTest(input))
+        .isInstanceOf(celOptions.enableUnsignedLongs() ? UnsignedLong.class : Long.class);
 
     source = "msg.single_uint64_wrapper";
-    assertThat(runTest(activation))
-        .isInstanceOf(eval.celOptions().enableUnsignedLongs() ? UnsignedLong.class : Long.class);
+    assertThat(runTest(input))
+        .isInstanceOf(celOptions.enableUnsignedLongs() ? UnsignedLong.class : Long.class);
 
     source = "msg.single_duration";
-    assertThat(runTest(activation)).isInstanceOf(Duration.class);
+    assertThat(runTest(input)).isInstanceOf(Duration.class);
 
     source = "msg.single_timestamp";
-    assertThat(runTest(activation)).isInstanceOf(Timestamp.class);
+    assertThat(runTest(input)).isInstanceOf(Timestamp.class);
 
     source = "msg.single_value";
-    assertThat(runTest(activation)).isInstanceOf(String.class);
+    assertThat(runTest(input)).isInstanceOf(String.class);
 
     source = "msg.single_struct";
-    assertThat(runTest(activation)).isInstanceOf(Map.class);
+    assertThat(runTest(input)).isInstanceOf(Map.class);
 
     source = "msg.list_value";
-    assertThat(runTest(activation)).isInstanceOf(List.class);
+    assertThat(runTest(input)).isInstanceOf(List.class);
   }
 
   @Test
@@ -2011,65 +2034,65 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     container = "dev.cel.testing.testdata.serialized.proto3";
 
     source = "TestAllTypes {}";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(DynamicMessage.class);
+    assertThat(runTest()).isInstanceOf(DynamicMessage.class);
     source = "TestAllTypes { single_int32: 1, single_int64: 2, single_string: 'hello'}";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(DynamicMessage.class);
+    assertThat(runTest()).isInstanceOf(DynamicMessage.class);
     source =
         "TestAllTypes { single_int32: 1, single_int64: 2, single_string: 'hello'}.single_string";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(String.class);
+    assertThat(runTest()).isInstanceOf(String.class);
 
     // Test wrappers
     source = "TestAllTypes { single_int32_wrapper: 3 }.single_int32_wrapper";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Long.class);
+    assertThat(runTest()).isInstanceOf(Long.class);
     source = "TestAllTypes { single_int64_wrapper: 3 }.single_int64_wrapper";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Long.class);
+    assertThat(runTest()).isInstanceOf(Long.class);
     source = "TestAllTypes { single_bool_wrapper: true }.single_bool_wrapper";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Boolean.class);
+    assertThat(runTest()).isInstanceOf(Boolean.class);
     source = "TestAllTypes { single_bytes_wrapper: b'abc' }.single_bytes_wrapper";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(String.class);
+    assertThat(runTest()).isInstanceOf(String.class);
     source = "TestAllTypes { single_float_wrapper: 1.1 }.single_float_wrapper";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Double.class);
+    assertThat(runTest()).isInstanceOf(Double.class);
     source = "TestAllTypes { single_double_wrapper: 1.1 }.single_double_wrapper";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Double.class);
+    assertThat(runTest()).isInstanceOf(Double.class);
     source = "TestAllTypes { single_uint32_wrapper: 2u}.single_uint32_wrapper";
-    assertThat(runTest(Activation.EMPTY))
-        .isInstanceOf(eval.celOptions().enableUnsignedLongs() ? UnsignedLong.class : Long.class);
+    assertThat(runTest())
+        .isInstanceOf(celOptions.enableUnsignedLongs() ? UnsignedLong.class : Long.class);
     source = "TestAllTypes { single_uint64_wrapper: 2u}.single_uint64_wrapper";
-    assertThat(runTest(Activation.EMPTY))
-        .isInstanceOf(eval.celOptions().enableUnsignedLongs() ? UnsignedLong.class : Long.class);
+    assertThat(runTest())
+        .isInstanceOf(celOptions.enableUnsignedLongs() ? UnsignedLong.class : Long.class);
     source = "TestAllTypes { single_list_value: ['a', 1.5, true] }.single_list_value";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(List.class);
+    assertThat(runTest()).isInstanceOf(List.class);
 
     // Test nested messages
     source =
         "TestAllTypes { standalone_message: TestAllTypes.NestedMessage { } }.standalone_message";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(DynamicMessage.class);
+    assertThat(runTest()).isInstanceOf(DynamicMessage.class);
     source =
         "TestAllTypes { standalone_message: TestAllTypes.NestedMessage { bb: 5}"
             + " }.standalone_message.bb";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Long.class);
+    assertThat(runTest()).isInstanceOf(Long.class);
     source = "TestAllTypes { standalone_enum: TestAllTypes.NestedEnum.BAR }.standalone_enum";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Long.class);
+    assertThat(runTest()).isInstanceOf(Long.class);
     source = "TestAllTypes { map_string_string: {'key': 'value'}}";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(DynamicMessage.class);
+    assertThat(runTest()).isInstanceOf(DynamicMessage.class);
     source = "TestAllTypes { map_string_string: {'key': 'value'}}.map_string_string";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(Map.class);
+    assertThat(runTest()).isInstanceOf(Map.class);
     source = "TestAllTypes { map_string_string: {'key': 'value'}}.map_string_string['key']";
-    assertThat(runTest(Activation.EMPTY)).isInstanceOf(String.class);
+    assertThat(runTest()).isInstanceOf(String.class);
 
     // Test any unpacking
     // With well-known type
     Any anyDuration = Any.pack(Durations.fromSeconds(100));
     declareVariable("dur", CelTypes.TIMESTAMP);
     source = "TestAllTypes { single_any: dur }.single_any";
-    assertThat(runTest(Activation.of("dur", anyDuration))).isInstanceOf(Duration.class);
+    assertThat(runTest(ImmutableMap.of("dur", anyDuration))).isInstanceOf(Duration.class);
     // with custom message
     clearAllDeclarations();
     Any anyTestMsg = Any.pack(TestAllTypes.newBuilder().setSingleString("hello").build());
     declareVariable(
         "any_packed_test_msg", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
     source = "TestAllTypes { single_any: any_packed_test_msg }.single_any";
-    assertThat(runTest(Activation.of("any_packed_test_msg", anyTestMsg)))
+    assertThat(runTest(ImmutableMap.of("any_packed_test_msg", anyTestMsg)))
         .isInstanceOf(TestAllTypes.class);
 
     // Test JSON map behavior
@@ -2079,14 +2102,15 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     DynamicMessage.Builder dynamicMessageBuilder =
         DynamicMessage.newBuilder(TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR);
     JsonFormat.parser().merge("{ 'map_string_string' : { 'foo' : 'bar' } }", dynamicMessageBuilder);
-    Activation activation = Activation.of("dynamic_msg", dynamicMessageBuilder.build());
+    ImmutableMap<String, Message> input =
+        ImmutableMap.of("dynamic_msg", dynamicMessageBuilder.build());
 
     source = "dynamic_msg";
-    assertThat(runTest(activation)).isInstanceOf(DynamicMessage.class);
+    assertThat(runTest(input)).isInstanceOf(DynamicMessage.class);
     source = "dynamic_msg.map_string_string";
-    assertThat(runTest(activation)).isInstanceOf(Map.class);
+    assertThat(runTest(input)).isInstanceOf(Map.class);
     source = "dynamic_msg.map_string_string['foo']";
-    assertThat(runTest(activation)).isInstanceOf(String.class);
+    assertThat(runTest(input)).isInstanceOf(String.class);
 
     // Test function dispatch
     declareFunction(
@@ -2100,21 +2124,135 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             ImmutableList.of(
                 CelTypes.createMessage(TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR.getFullName())),
             CelTypes.BOOL));
-    eval.registrar().add("f_msg_generated", TestAllTypes.class, x -> true);
-    eval.registrar().add("f_msg_dynamic", DynamicMessage.class, x -> true);
-    activation =
-        Activation.copyOf(
-            ImmutableMap.of(
-                "dynamic_msg", dynamicMessageBuilder.build(),
-                "test_msg", TestAllTypes.newBuilder().setSingleInt64(10L).build()));
+    addFunctionBinding(
+        CelFunctionBinding.from("f_msg_generated", TestAllTypes.class, x -> true),
+        CelFunctionBinding.from("f_msg_dynamic", DynamicMessage.class, x -> true));
+    input =
+        ImmutableMap.of(
+            "dynamic_msg", dynamicMessageBuilder.build(),
+            "test_msg", TestAllTypes.newBuilder().setSingleInt64(10L).build());
 
     source = "f_msg(dynamic_msg)";
-    assertThat(runTest(activation)).isInstanceOf(Boolean.class);
+    assertThat(runTest(input)).isInstanceOf(Boolean.class);
     source = "f_msg(test_msg)";
-    assertThat(runTest(activation)).isInstanceOf(Boolean.class);
+    assertThat(runTest(input)).isInstanceOf(Boolean.class);
+  }
+
+  /**
+   * Checks that the CheckedExpr produced by CelCompiler is equal to the one reproduced by the
+   * native CelAbstractSyntaxTree
+   */
+  private static void assertAstRoundTrip(CelAbstractSyntaxTree ast) {
+    CheckedExpr checkedExpr = CelProtoAbstractSyntaxTree.fromCelAst(ast).toCheckedExpr();
+    CelProtoAbstractSyntaxTree protoAst = CelProtoAbstractSyntaxTree.fromCelAst(ast);
+    assertThat(checkedExpr).isEqualTo(protoAst.toCheckedExpr());
   }
 
   private static String readResourceContent(String path) throws IOException {
     return Resources.toString(Resources.getResource(Ascii.toLowerCase(path)), UTF_8);
+  }
+
+  @SuppressWarnings("unchecked")
+  private void printBinding(Object input) {
+    if (input instanceof Map) {
+      Map<String, Object> inputMap = (Map<String, Object>) input;
+      if (inputMap.isEmpty()) {
+        println("bindings: {}");
+        return;
+      }
+
+      boolean first = true;
+      StringBuilder sb = new StringBuilder().append("{");
+      for (Map.Entry<String, Object> entry : ((Map<String, Object>) input).entrySet()) {
+        if (!first) {
+          sb.append(", ");
+        }
+        first = false;
+        sb.append(entry.getKey());
+        sb.append("=");
+        Object value = entry.getValue();
+        if (value instanceof ByteString) {
+          sb.append(getHumanReadableString((ByteString) value));
+        } else {
+          sb.append(entry.getValue());
+        }
+      }
+      sb.append("}");
+      println("bindings: " + sb);
+    } else {
+      println("bindings: " + input);
+    }
+  }
+
+  private static String getHumanReadableString(ByteString byteString) {
+    // Very unfortunate we have to do this at all
+    StringBuilder sb = new StringBuilder();
+    sb.append("[");
+    for (ByteIterator i = byteString.iterator(); i.hasNext(); ) {
+      byte b = i.nextByte();
+      sb.append(b);
+      if (i.hasNext()) {
+        sb.append(", ");
+      }
+    }
+    sb.append("]");
+    return sb.toString();
+  }
+
+  private static final class TestOnlyVariableResolver implements CelVariableResolver {
+    private final Map<String, ?> map;
+
+    private static TestOnlyVariableResolver newInstance(Map<String, ?> map) {
+      return new TestOnlyVariableResolver(map);
+    }
+
+    @Override
+    public Optional<Object> find(String name) {
+      return Optional.ofNullable(RuntimeHelpers.maybeAdaptPrimitive(map.get(name)));
+    }
+
+    @Override
+    public String toString() {
+      return map.toString();
+    }
+
+    private TestOnlyVariableResolver(Map<String, ?> map) {
+      this.map = map;
+    }
+  }
+
+  private static CelVariableResolver extend(Map<String, ?> primary, Map<String, ?> secondary) {
+    return hierarchicalVariableResolver(
+        TestOnlyVariableResolver.newInstance(primary),
+        TestOnlyVariableResolver.newInstance(secondary));
+  }
+
+  private static CelVariableResolver extend(CelVariableResolver primary, Map<String, ?> secondary) {
+    return hierarchicalVariableResolver(primary, TestOnlyVariableResolver.newInstance(secondary));
+  }
+
+  private void addFunctionBinding(CelRuntime.CelFunctionBinding... functionBindings) {
+    celRuntime = celRuntime.toRuntimeBuilder().addFunctionBindings(functionBindings).build();
+  }
+
+  private static Descriptor getDeserializedTestAllTypeDescriptor() {
+    try {
+      String fdsContent = readResourceContent("testdata/proto3/test_all_types.fds");
+      FileDescriptorSet fds = TextFormat.parse(fdsContent, FileDescriptorSet.class);
+      ImmutableSet<FileDescriptor> fileDescriptors = FileDescriptorSetConverter.convert(fds);
+
+      return fileDescriptors.stream()
+          .flatMap(f -> f.getMessageTypes().stream())
+          .filter(
+              x ->
+                  x.getFullName().equals("dev.cel.testing.testdata.serialized.proto3.TestAllTypes"))
+          .findAny()
+          .orElseThrow(
+              () ->
+                  new IllegalStateException(
+                      "Could not find deserialized TestAllTypes descriptor."));
+    } catch (IOException e) {
+      throw new RuntimeException("Error loading TestAllTypes descriptor", e);
+    }
   }
 }

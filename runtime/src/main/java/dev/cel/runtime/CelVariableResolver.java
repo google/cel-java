@@ -50,9 +50,6 @@ public interface CelVariableResolver {
    */
   static CelVariableResolver hierarchicalVariableResolver(
       CelVariableResolver primary, CelVariableResolver secondary) {
-    return (name) -> {
-      Optional<Object> value = primary.find(name);
-      return value.isPresent() ? value : secondary.find(name);
-    };
+    return HierarchicalVariableResolver.newInstance(primary, secondary);
   }
 }

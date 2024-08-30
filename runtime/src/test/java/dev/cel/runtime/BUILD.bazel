@@ -62,11 +62,9 @@ java_library(
     ],
     deps = [
         #         "//java/com/google/testing/testsize:annotations",
-        "//common:options",
         "//testing:base_interpreter_test",
-        "//testing:eval",
-        "//testing:sync",
         "@maven//:junit_junit",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
     ],
 )
 
@@ -78,11 +76,9 @@ java_library(
     ],
     deps = [
         #         "//java/com/google/testing/testsize:annotations",
-        "//common:options",
         "//testing:base_interpreter_test",
-        "//testing:cel_value_sync",
-        "//testing:eval",
         "@maven//:junit_junit",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
     ],
 )
 

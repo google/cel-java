@@ -99,6 +99,10 @@ public abstract class BaselineTestCase {
     return writer;
   }
 
+  protected void println(String text) {
+    writer.println(text);
+  }
+
   /**
    * A test watcher which calls baseline verification if the test succeeded. This is like @After,
    * but verification is only done if there haven't been other errors.

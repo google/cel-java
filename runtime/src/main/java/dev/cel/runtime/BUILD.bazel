@@ -135,6 +135,7 @@ RUNTIME_SOURCES = [
     "CelRuntimeLegacyImpl.java",
     "CelRuntimeLibrary.java",
     "CelVariableResolver.java",
+    "HierarchicalVariableResolver.java",
     "UnknownContext.java",
 ]
 

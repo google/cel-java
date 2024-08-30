@@ -82,60 +82,6 @@ java_library(
 )
 
 java_library(
-    name = "cel_value_sync",
-    testonly = 1,
-    srcs = ["EvalCelValueSync.java"],
-    deps = [
-        ":eval",
-        "//common",
-        "//common:options",
-        "//common/internal:cel_descriptor_pools",
-        "//common/internal:default_message_factory",
-        "//common/internal:dynamic_proto",
-        "//common/internal:proto_message_factory",
-        "//common/values:cel_value_provider",
-        "//common/values:proto_message_value_provider",
-        "//runtime:interpreter",
-        "//runtime:runtime_type_provider_legacy",
-        "@@protobuf~//java/core",
-        "@maven//:com_google_guava_guava",
-    ],
-)
-
-java_library(
-    name = "sync",
-    testonly = 1,
-    srcs = ["EvalSync.java"],
-    deps = [
-        ":eval",
-        "//common",
-        "//common:options",
-        "//common/internal:cel_descriptor_pools",
-        "//common/internal:default_message_factory",
-        "//runtime:interpreter",
-        "@@protobuf~//java/core",
-        "@maven//:com_google_guava_guava",
-    ],
-)
-
-java_library(
-    name = "eval",
-    testonly = 1,
-    srcs = [
-        "Eval.java",
-    ],
-    deps = [
-        "//common",
-        "//common:options",
-        "//runtime:base",
-        "//runtime:interpreter",
-        "@@protobuf~//java/core",
-        "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_guava_guava",
-    ],
-)
-
-java_library(
     name = "base_interpreter_test",
     testonly = 1,
     srcs = [
@@ -147,18 +93,18 @@ java_library(
     ],
     deps = [
         ":cel_baseline_test_case",
-        ":eval",
         "//:java_truth",
         "//common",
+        "//common:options",
         "//common/internal:cel_descriptor_pools",
         "//common/internal:file_descriptor_converter",
         "//common/resources/testdata/proto3:standalone_global_enum_java_proto",
         "//common/types:cel_types",
-        "//runtime:interpreter",
+        "//runtime",
+        "//runtime:runtime_helper",
         "@@protobuf~//java/core",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@cel_spec//proto/test/v1/proto3:test_all_types_java_proto",
-        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:junit_junit",
