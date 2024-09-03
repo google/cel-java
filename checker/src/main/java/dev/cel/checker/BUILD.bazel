@@ -167,10 +167,10 @@ java_library(
     deps = [
         ":cel_ident_decl",
         "//:auto_value",
+        "//common",
         "//common:compiler_common",
         "//common:features",
         "//common:options",
-        "//common:proto_ast",
         "//common/annotations",
         "//common/ast",
         "//common/ast:expr_converter",

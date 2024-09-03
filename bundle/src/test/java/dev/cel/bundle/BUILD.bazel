@@ -18,7 +18,6 @@ java_library(
         "//common",
         "//common:compiler_common",
         "//common:options",
-        "//common:proto_ast",
         "//common/ast",
         "//common/resources/testdata/proto3:standalone_global_enum_java_proto",
         "//common/testing",

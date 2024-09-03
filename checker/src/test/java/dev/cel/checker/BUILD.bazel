@@ -23,7 +23,6 @@ java_library(
         "//checker:type_provider_legacy_impl",
         "//common",
         "//common:compiler_common",
-        "//common:proto_ast",
         "//common/ast",
         "//common/internal:env_visitor",
         "//common/internal:errors",
