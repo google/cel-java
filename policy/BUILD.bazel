@@ -72,3 +72,8 @@ java_library(
     name = "compiler_builder",
     exports = ["//policy/src/main/java/dev/cel/policy:compiler_builder"],
 )
+
+java_library(
+    name = "yaml_helper",
+    exports = ["//policy/src/main/java/dev/cel/policy:yaml_helper"],
+)

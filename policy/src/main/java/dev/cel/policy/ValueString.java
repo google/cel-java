@@ -23,18 +23,24 @@ public abstract class ValueString {
   /** A unique identifier. This is populated by the parser. */
   public abstract long id();
 
+  /** String value of the {@code ValueString} */
   public abstract String value();
 
+  /** Builder for {@link ValueString}. */
   @AutoValue.Builder
-  abstract static class Builder {
+  public abstract static class Builder {
 
-    abstract Builder setId(long id);
+    /** Set the identifier for the string to associate it back to collected source metadata. */
+    public abstract Builder setId(long id);
 
-    abstract Builder setValue(String value);
+    /** Set the string value. */
+    public abstract Builder setValue(String value);
 
-    abstract ValueString build();
+    /** Build the {@code ValueString}. */
+    public abstract ValueString build();
   }
 
+  /** Convert the {@code ValueString} to a {@code Builder}. */
   public abstract Builder toBuilder();
 
   /** Builder for {@link ValueString}. */

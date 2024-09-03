@@ -26,10 +26,12 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 
-final class YamlHelper {
+/** Helper class for parsing YAML. */
+public final class YamlHelper {
   static final String ERROR = "*error*";
 
-  enum YamlNodeType {
+  /** Enum for YAML node types. */
+  public enum YamlNodeType {
     MAP("tag:yaml.org,2002:map"),
     STRING("tag:yaml.org,2002:str"),
     BOOLEAN("tag:yaml.org,2002:bool"),
@@ -48,6 +50,22 @@ final class YamlHelper {
     YamlNodeType(String tag) {
       this.tag = tag;
     }
+  }
+
+  /** Assert that a given YAML node matches one of the provided {@code YamlNodeType} values. */
+  public static boolean assertYamlType(
+      ParserContext<Node> ctx, long id, Node node, YamlNodeType... expectedNodeTypes) {
+    if (validateYamlType(node, expectedNodeTypes)) {
+      return true;
+    }
+    String nodeTag = node.getTag().getValue();
+
+    ctx.reportError(
+        id,
+        String.format(
+            "Got yaml node type %s, wanted type(s) [%s]",
+            nodeTag, stream(expectedNodeTypes).map(YamlNodeType::tag).collect(joining(" "))));
+    return false;
   }
 
   static Node parseYamlSource(String policyContent) {
@@ -76,21 +94,6 @@ final class YamlHelper {
         return true;
       }
     }
-    return false;
-  }
-
-  static boolean assertYamlType(
-      ParserContext<Node> ctx, long id, Node node, YamlNodeType... expectedNodeTypes) {
-    if (validateYamlType(node, expectedNodeTypes)) {
-      return true;
-    }
-    String nodeTag = node.getTag().getValue();
-
-    ctx.reportError(
-        id,
-        String.format(
-            "Got yaml node type %s, wanted type(s) [%s]",
-            nodeTag, stream(expectedNodeTypes).map(YamlNodeType::tag).collect(joining(" "))));
     return false;
   }
 

@@ -113,6 +113,7 @@ java_library(
         ":source",
         ":validation_exception",
         ":value_string",
+        ":yaml_helper",
         "//common:compiler_common",
         "//common/internal",
         "@maven//:com_google_guava_guava",
@@ -292,6 +293,7 @@ java_library(
         ":parser_context",
         ":source",
         ":validation_exception",
+        ":yaml_helper",
         "//common:compiler_common",
         "//common/internal",
         "@maven//:com_google_guava_guava",
@@ -323,7 +325,6 @@ java_library(
 java_library(
     name = "common_internal",
     srcs = [
-        "YamlHelper.java",
         "YamlParserContextImpl.java",
     ],
     visibility = ["//visibility:private"],
@@ -331,9 +332,23 @@ java_library(
         ":parser_context",
         ":source",
         ":value_string",
+        ":yaml_helper",
         "//common",
         "//common:compiler_common",
-        "//common:source_location",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_yaml_snakeyaml",
+    ],
+)
+
+java_library(
+    name = "yaml_helper",
+    srcs = [
+        "YamlHelper.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":parser_context",
         "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",
     ],
