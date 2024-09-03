@@ -73,6 +73,7 @@ java_library(
         "//common",
         "//common:compiler_common",
         "//common:options",
+        "//common:source_location",
         "//common/annotations",
         "//common/ast:expr_converter",
         "//common/internal:env_visitor",

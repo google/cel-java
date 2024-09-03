@@ -16,6 +16,7 @@ java_library(
         "//common:options",
         "//common:proto_json_adapter",
         "//common:proto_v1alpha1_ast",
+        "//common:source_location",
         "//common/ast",
         "//common/internal",
         "//common/types",

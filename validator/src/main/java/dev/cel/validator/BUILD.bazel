@@ -68,6 +68,7 @@ java_library(
         "//bundle:cel",
         "//common",
         "//common:compiler_common",
+        "//common:source_location",
         "//common/navigation",
         "@maven//:com_google_guava_guava",
     ],

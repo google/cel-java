@@ -15,6 +15,7 @@ java_library(
         "//common",
         "//common:compiler_common",
         "//common:options",
+        "//common:source_location",
         "//common/ast",
         "//common/internal",
         "//extensions:optional_library",
