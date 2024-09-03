@@ -100,6 +100,8 @@ java_library(
         "//common/internal:file_descriptor_converter",
         "//common/resources/testdata/proto3:standalone_global_enum_java_proto",
         "//common/types:cel_types",
+        "//common/types:type_providers",
+        "//extensions:optional_library",
         "//runtime",
         "//runtime:runtime_helper",
         "@@protobuf~//java/core",

@@ -1,0 +1,12 @@
+Source: optional.unwrap([])
+=====>
+bindings: {}
+result:   []
+
+Source: optional.unwrap([optional.none(), optional.of(1), optional.of(str)])
+declare str {
+  value string
+}
+=====>
+bindings: {str=foo}
+result:   [1, foo]

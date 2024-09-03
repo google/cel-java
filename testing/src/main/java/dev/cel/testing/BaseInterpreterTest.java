@@ -65,7 +65,9 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.FileDescriptorSetConverter;
+import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypes;
+import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
@@ -127,9 +129,17 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     this.celOptions = celOptions;
     this.celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder()
+            .addLibraries(CelOptionalLibrary.INSTANCE)
             .addFileTypes(TEST_FILE_DESCRIPTORS)
             .setOptions(celOptions)
             .build();
+  }
+
+  @Override
+  protected void prepareCompiler(CelTypeProvider typeProvider) {
+    super.prepareCompiler(typeProvider);
+    this.celCompiler =
+        celCompiler.toCompilerBuilder().addLibraries(CelOptionalLibrary.INSTANCE).build();
   }
 
   private CelAbstractSyntaxTree compileTestCase() {
@@ -491,6 +501,23 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     runTest();
 
     source = "TestAllTypes{}.map_string_string.a";
+    runTest();
+  }
+
+  @Test
+  public void optional() {
+    // TODO: Move existing optional tests here to also test CelValue runtime
+    source = "optional.unwrap([])";
+    runTest();
+
+    declareVariable("str", CelTypes.STRING);
+    source = "optional.unwrap([optional.none(), optional.of(1), optional.of(str)])";
+    runTest(ImmutableMap.of("str", "foo"));
+  }
+
+  @Test
+  public void optional_errors() {
+    source = "optional.unwrap([dyn(1)])";
     runTest();
   }
 

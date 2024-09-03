@@ -1,0 +1,5 @@
+Source: optional.unwrap([dyn(1)])
+=====>
+bindings: {}
+error:    evaluation error: Function 'optional_unwrap_list' failed with arg(s) '[1]'
+error_code:    INTERNAL_ERROR

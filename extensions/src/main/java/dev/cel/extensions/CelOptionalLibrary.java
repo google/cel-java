@@ -16,6 +16,7 @@ package dev.cel.extensions;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.UnsignedLong;
@@ -58,6 +59,7 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
     HAS_VALUE("hasValue"),
     OPTIONAL_NONE("optional.none"),
     OPTIONAL_OF("optional.of"),
+    OPTIONAL_UNWRAP("optional.unwrap"),
     OPTIONAL_OF_NON_ZERO_VALUE("optional.ofNonZeroValue"),
     OR("or"),
     OR_VALUE("orValue");
@@ -117,6 +119,10 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
         CelFunctionDecl.newFunctionDeclaration(
             Function.HAS_VALUE.getFunction(),
             CelOverloadDecl.newMemberOverload("optional_hasValue", SimpleType.BOOL, optionalTypeV)),
+        CelFunctionDecl.newFunctionDeclaration(
+            Function.OPTIONAL_UNWRAP.getFunction(),
+            CelOverloadDecl.newGlobalOverload(
+                "optional_unwrap_list", listTypeV, ListType.create(optionalTypeV))),
         // Note: Implementation of "or" and "orValue" are special-cased inside the interpreter.
         // Hence, their bindings are not provided here.
         CelFunctionDecl.newFunctionDeclaration(
@@ -165,6 +171,7 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder) {
     runtimeBuilder.addFunctionBindings(
         CelRuntime.CelFunctionBinding.from("optional_of", Object.class, Optional::of),
@@ -178,11 +185,17 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
               return Optional.of(val);
             }),
         CelRuntime.CelFunctionBinding.from(
+            "optional_unwrap_list", Collection.class, CelOptionalLibrary::elideOptionalCollection),
+        CelRuntime.CelFunctionBinding.from(
             "optional_none", ImmutableList.of(), val -> Optional.empty()),
         CelRuntime.CelFunctionBinding.from(
             "optional_value", Object.class, val -> ((Optional<?>) val).get()),
         CelRuntime.CelFunctionBinding.from(
             "optional_hasValue", Object.class, val -> ((Optional<?>) val).isPresent()));
+  }
+
+  private static ImmutableList<Object> elideOptionalCollection(Collection<Optional<Object>> list) {
+    return list.stream().filter(Optional::isPresent).map(Optional::get).collect(toImmutableList());
   }
 
   // TODO: This will need to be adapted to handle an intermediate CelValue instead,
