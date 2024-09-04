@@ -5,10 +5,7 @@ package(
 
 java_library(
     name = "common",
-    exports = [
-        "//common/src/main/java/dev/cel/common",
-        "//common/src/main/java/dev/cel/common:source_location",  # TODO: Split callers
-    ],
+    exports = ["//common/src/main/java/dev/cel/common"],
 )
 
 java_library(
