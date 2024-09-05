@@ -96,6 +96,7 @@ java_library(
         "//:java_truth",
         "//common",
         "//common:options",
+        "//common:proto_ast",
         "//common/internal:cel_descriptor_pools",
         "//common/internal:file_descriptor_converter",
         "//common/resources/testdata/proto3:standalone_global_enum_java_proto",

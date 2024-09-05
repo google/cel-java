@@ -14,6 +14,7 @@ java_library(
         "//common:compiler_common",
         "//common:features",
         "//common:options",
+        "//common:proto_ast",
         "//common:proto_json_adapter",
         "//common:proto_v1alpha1_ast",
         "//common:source_location",

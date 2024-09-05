@@ -12,6 +12,7 @@ java_library(
         "//common",
         "//common:compiler_common",
         "//common:options",
+        "//common:proto_ast",
         "//common/types",
         "//extensions:optional_library",
         "//runtime",
