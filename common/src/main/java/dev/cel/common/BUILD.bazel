@@ -12,7 +12,6 @@ COMMON_SOURCES = [
     "CelDescriptorUtil.java",
     "CelDescriptors.java",
     "CelException.java",
-    "CelProtoAbstractSyntaxTree.java",  # TODO Split target after migrating callers
     "CelSource.java",
 ]
 
@@ -33,6 +32,11 @@ SOURCE_SOURCES = [
 ]
 
 # keep sorted
+PROTO_AST_SOURCE = [
+    "CelProtoAbstractSyntaxTree.java",
+]
+
+# keep sorted
 PROTO_V1ALPHA1_AST_SOURCE = [
     "CelProtoV1Alpha1AbstractSyntaxTree.java",
 ]
@@ -49,7 +53,6 @@ java_library(
         "//:auto_value",
         "//common/annotations",
         "//common/ast",
-        "//common/ast:expr_converter",
         "//common/internal",
         "//common/internal:file_descriptor_converter",
         "//common/types",
@@ -108,7 +111,7 @@ java_library(
 
 java_library(
     name = "proto_ast",
-    srcs = ["CelProtoAbstractSyntaxTree.java"],
+    srcs = PROTO_AST_SOURCE,
     tags = [
     ],
     deps = [
