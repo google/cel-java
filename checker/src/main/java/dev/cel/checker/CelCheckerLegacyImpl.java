@@ -78,6 +78,8 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
   private final CelTypeProvider celTypeProvider;
   private final boolean standardEnvironmentEnabled;
 
+  private final CelStandardDeclarations overriddenStandardDeclarations;
+
   // Builder is mutable by design. APIs must make defensive copies in and out of this class.
   @SuppressWarnings("Immutable")
   private final Builder checkerBuilder;
@@ -137,6 +139,8 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     Env env;
     if (standardEnvironmentEnabled) {
       env = Env.standard(errors, typeProvider, celOptions);
+    } else if (overriddenStandardDeclarations != null) {
+      env = Env.standard(overriddenStandardDeclarations, errors, typeProvider, celOptions);
     } else {
       env = Env.unconfigured(errors, typeProvider, celOptions);
     }
@@ -165,6 +169,7 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     private TypeProvider customTypeProvider;
     private CelTypeProvider celTypeProvider;
     private boolean standardEnvironmentEnabled;
+    private CelStandardDeclarations standardDeclarations;
 
     @Override
     public CelCheckerBuilder setOptions(CelOptions celOptions) {
@@ -320,7 +325,13 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
 
     @Override
     public CelCheckerBuilder setStandardEnvironmentEnabled(boolean value) {
-      standardEnvironmentEnabled = value;
+      this.standardEnvironmentEnabled = value;
+      return this;
+    }
+
+    @Override
+    public CelCheckerBuilder setStandardDeclarations(CelStandardDeclarations standardDeclarations) {
+      this.standardDeclarations = checkNotNull(standardDeclarations);
       return this;
     }
 
@@ -372,6 +383,11 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     @Override
     @CheckReturnValue
     public CelCheckerLegacyImpl build() {
+      if (standardEnvironmentEnabled && standardDeclarations != null) {
+        throw new IllegalArgumentException(
+            "setStandardEnvironmentEnabled must be set to false to override standard"
+                + " declarations.");
+      }
       // Add libraries, such as extensions
       celCheckerLibraries.build().forEach(celLibrary -> celLibrary.setCheckerOptions(this));
 
@@ -430,6 +446,7 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
           legacyProvider,
           messageTypeProvider,
           standardEnvironmentEnabled,
+          standardDeclarations,
           this);
     }
 
@@ -478,6 +495,7 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
       TypeProvider typeProvider,
       CelTypeProvider celTypeProvider,
       boolean standardEnvironmentEnabled,
+      CelStandardDeclarations overriddenStandardDeclarations,
       Builder checkerBuilder) {
     this.celOptions = celOptions;
     this.container = container;
@@ -487,6 +505,7 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     this.typeProvider = typeProvider;
     this.celTypeProvider = celTypeProvider;
     this.standardEnvironmentEnabled = standardEnvironmentEnabled;
+    this.overriddenStandardDeclarations = overriddenStandardDeclarations;
     this.checkerBuilder = new Builder(checkerBuilder);
   }
 
