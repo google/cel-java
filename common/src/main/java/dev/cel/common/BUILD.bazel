@@ -114,6 +114,11 @@ java_library(
     srcs = PROTO_AST_SOURCE,
     tags = [
     ],
+    visibility = [
+        "//common:__pkg__",
+        "//java/com/google/dos/ceval:__subpackages__",
+        "//javatests/com/google/cloud/cluster/manager/networking/services/securitypolicy:__subpackages__",
+    ],
     deps = [
         "//common",
         "//common/ast:expr_converter",
