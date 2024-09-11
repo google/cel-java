@@ -20,11 +20,11 @@ package dev.cel.policy;
  */
 public final class CelPolicyValidationException extends Exception {
 
-  CelPolicyValidationException(String message) {
+  public CelPolicyValidationException(String message) {
     super(message);
   }
 
-  CelPolicyValidationException(String message, Throwable cause) {
+  public CelPolicyValidationException(String message, Throwable cause) {
     super(message, cause);
   }
 }
