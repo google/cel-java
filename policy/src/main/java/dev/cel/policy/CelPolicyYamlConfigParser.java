@@ -26,6 +26,7 @@ import static dev.cel.policy.YamlHelper.validateYamlType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelIssue;
+import dev.cel.common.CelSourceLocation;
 import dev.cel.common.internal.CelCodePointArray;
 import dev.cel.policy.CelPolicyConfig.ExtensionConfig;
 import dev.cel.policy.CelPolicyConfig.FunctionDecl;
@@ -340,7 +341,11 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
       try {
         node = parseYamlSource(source);
       } catch (RuntimeException e) {
-        throw new CelPolicyValidationException("YAML document is malformed: " + e.getMessage(), e);
+        String errorMessage = "YAML document is malformed: " + e.getMessage();
+        throw new CelPolicyValidationException(
+            errorMessage,
+            ImmutableList.of(CelIssue.formatError(CelSourceLocation.NONE, errorMessage)),
+            e);
       }
 
       CelPolicySource configSource =
@@ -353,7 +358,7 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
 
       if (!ctx.getIssues().isEmpty()) {
         throw new CelPolicyValidationException(
-            CelIssue.toDisplayString(ctx.getIssues(), configSource));
+            CelIssue.toDisplayString(ctx.getIssues(), configSource), ctx.getIssues());
       }
 
       return policyConfig.setConfigSource(configSource).build();

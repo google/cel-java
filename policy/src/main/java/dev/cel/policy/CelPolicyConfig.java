@@ -26,8 +26,10 @@ import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelBuilder;
 import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelIssue;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
+import dev.cel.common.CelSourceLocation;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
@@ -135,7 +137,10 @@ public abstract class CelPolicyConfig {
 
       return celBuilder.build();
     } catch (RuntimeException e) {
-      throw new CelPolicyValidationException(e.getMessage(), e);
+      throw new CelPolicyValidationException(
+          e.getMessage(),
+          ImmutableList.of(CelIssue.formatError(CelSourceLocation.NONE, e.getMessage())),
+          e);
     }
   }
 
@@ -165,8 +170,8 @@ public abstract class CelPolicyConfig {
           celBuilder.addRuntimeLibraries(CelExtensions.strings());
           break;
         case "sets":
-          celBuilder.addCompilerLibraries(CelExtensions.sets());
-          celBuilder.addRuntimeLibraries(CelExtensions.sets());
+          celBuilder.addCompilerLibraries(CelExtensions.sets(celOptions));
+          celBuilder.addRuntimeLibraries(CelExtensions.sets(celOptions));
           break;
         default:
           throw new IllegalArgumentException("Unrecognized extension: " + extensionConfig.name());

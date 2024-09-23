@@ -19,8 +19,10 @@ import static dev.cel.policy.YamlHelper.ERROR;
 import static dev.cel.policy.YamlHelper.assertRequiredFields;
 import static dev.cel.policy.YamlHelper.assertYamlType;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelIssue;
+import dev.cel.common.CelSourceLocation;
 import dev.cel.common.internal.CelCodePointArray;
 import dev.cel.policy.CelPolicy.Match;
 import dev.cel.policy.CelPolicy.Match.Result;
@@ -69,14 +71,18 @@ final class CelPolicyYamlParser implements CelPolicyParser {
       try {
         node = YamlHelper.parseYamlSource(policySource.getContent().toString());
       } catch (RuntimeException e) {
-        throw new CelPolicyValidationException("YAML document is malformed: " + e.getMessage(), e);
+        String errorMessage = "YAML document is malformed: " + e.getMessage();
+        throw new CelPolicyValidationException(
+            errorMessage,
+            ImmutableList.of(CelIssue.formatError(CelSourceLocation.NONE, errorMessage)),
+            e);
       }
 
       CelPolicy celPolicy = parsePolicy(this, node);
 
       if (!ctx.getIssues().isEmpty()) {
         throw new CelPolicyValidationException(
-            CelIssue.toDisplayString(ctx.getIssues(), celPolicy.policySource()));
+            CelIssue.toDisplayString(ctx.getIssues(), celPolicy.policySource()), ctx.getIssues());
       }
 
       return celPolicy;

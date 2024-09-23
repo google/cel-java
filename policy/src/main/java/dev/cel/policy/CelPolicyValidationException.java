@@ -14,17 +14,34 @@
 
 package dev.cel.policy;
 
+import com.google.common.collect.ImmutableList;
+import dev.cel.common.CelIssue;
+
 /**
  * CelPolicyValidationException encapsulates all issues that arise when parsing or compiling a
  * policy.
  */
 public final class CelPolicyValidationException extends Exception {
 
+  private final ImmutableList<CelIssue> errors;
+
   public CelPolicyValidationException(String message) {
     super(message);
+    this.errors = ImmutableList.of();
   }
 
-  public CelPolicyValidationException(String message, Throwable cause) {
+  public CelPolicyValidationException(String message, Iterable<CelIssue> errors) {
+    super(message);
+    this.errors = ImmutableList.copyOf(errors);
+  }
+
+  public CelPolicyValidationException(String message, Iterable<CelIssue> errors, Throwable cause) {
     super(message, cause);
+    this.errors = ImmutableList.copyOf(errors);
+  }
+
+  /** Returns a list of {@link CelIssue} with error severity that occurred during validation. */
+  public ImmutableList<CelIssue> getErrors() {
+    return errors;
   }
 }

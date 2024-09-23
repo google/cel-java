@@ -64,7 +64,8 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
     CompilerContext compilerContext = new CompilerContext(policy.policySource());
     CelCompiledRule compiledRule = compileRuleImpl(policy.rule(), cel, compilerContext);
     if (compilerContext.hasError()) {
-      throw new CelPolicyValidationException(compilerContext.getIssueString());
+      throw new CelPolicyValidationException(
+          compilerContext.getIssueString(), compilerContext.issues);
     }
 
     return compiledRule;
@@ -105,11 +106,16 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
           compilerContext.addIssue(id, transformedIssues);
         }
 
-        throw new CelPolicyValidationException(compilerContext.getIssueString(), re.getCause());
+        throw new CelPolicyValidationException(
+            compilerContext.getIssueString(), compilerContext.issues, re.getCause());
       }
 
       // Something has gone seriously wrong.
-      throw new CelPolicyValidationException("Unexpected error while composing rules.", e);
+      String errorMessage = "Unexpected error while composing rules.";
+      throw new CelPolicyValidationException(
+          errorMessage,
+          ImmutableList.of(CelIssue.formatError(CelSourceLocation.NONE, errorMessage)),
+          e);
     }
 
     assertAstDepthIsSafe(ast, cel);
@@ -128,7 +134,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
             .build();
     CelValidationResult result = celValidator.validate(ast);
     if (result.hasError()) {
-      throw new CelPolicyValidationException(result.getErrorString());
+      throw new CelPolicyValidationException(result.getErrorString(), result.getAllIssues());
     }
   }
 

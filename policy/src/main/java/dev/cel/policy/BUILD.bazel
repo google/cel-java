@@ -46,6 +46,10 @@ java_library(
     ],
     tags = [
     ],
+    deps = [
+        "//common:compiler_common",
+        "@maven//:com_google_guava_guava",
+    ],
 )
 
 java_library(
@@ -63,6 +67,7 @@ java_library(
         "//bundle:cel",
         "//common:compiler_common",
         "//common:options",
+        "//common:source_location",
         "//common/types",
         "//common/types:type_providers",
         "//extensions",
@@ -296,6 +301,7 @@ java_library(
         ":validation_exception",
         ":yaml_helper",
         "//common:compiler_common",
+        "//common:source_location",
         "//common/internal",
         "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",
