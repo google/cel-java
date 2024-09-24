@@ -1,3 +1,4 @@
+load("@rules_java//java:defs.bzl", "java_library")
 load("//conformance/src/test/java/dev/cel/conformance:conformance_test.bzl", "conformance_test")
 
 package(default_applicable_licenses = [

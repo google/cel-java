@@ -4,6 +4,7 @@ to avoid a path conflict with parser/src/main/java/dev/cel/parser/CelParser.java
 that causes build failures on filesystems with case-insensitive paths (e.g. macOS).
 """
 
+load("@rules_java//java:defs.bzl", "java_library")
 load("//:antlr.bzl", "antlr4_java_combined")
 
 package(
