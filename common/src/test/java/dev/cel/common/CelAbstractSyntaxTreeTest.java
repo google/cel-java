@@ -26,10 +26,14 @@ import dev.cel.expr.Reference;
 import dev.cel.expr.SourceInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.testing.EqualsTester;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.SimpleType;
+import dev.cel.compiler.CelCompiler;
+import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.parser.CelStandardMacro;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -144,6 +148,30 @@ public final class CelAbstractSyntaxTreeTest {
   @Test
   public void getSource_hasDescriptionEqualToSourceLocation() {
     assertThat(PARSED_AST.getSource().getDescription()).isEqualTo("test/location.cel");
+  }
+
+  @Test
+  public void equalityTest() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .setOptions(CelOptions.current().populateMacroCalls(true).build())
+            .build();
+    new EqualsTester()
+        .addEqualityGroup(
+            CelAbstractSyntaxTree.newParsedAst(
+                CelExpr.newBuilder().build(), CelSource.newBuilder().build()))
+        .addEqualityGroup(
+            celCompiler.compile("'foo'").getAst(), celCompiler.compile("'foo'").getAst()) // ASCII
+        .addEqualityGroup(
+            celCompiler.compile("'가나다'").getAst(), celCompiler.compile("'가나다'").getAst()) // BMP
+        .addEqualityGroup(
+            celCompiler.compile("'😦😁😑'").getAst(),
+            celCompiler.compile("'😦😁😑'").getAst()) // SMP
+        .addEqualityGroup(
+            celCompiler.compile("[1,2,3].exists(x, x > 0)").getAst(),
+            celCompiler.compile("[1,2,3].exists(x, x > 0)").getAst())
+        .testEquals();
   }
 
   @Test

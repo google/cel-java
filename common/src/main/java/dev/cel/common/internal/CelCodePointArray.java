@@ -101,11 +101,12 @@ public abstract class CelCodePointArray {
             intArray[intIndex++] = codePoint;
           }
 
-          return new SupplementalCodePointArray(
+          return SupplementalCodePointArray.create(
               intArray, intIndex, lineOffsetContext.buildLineOffsets());
         }
 
-        return new BasicCodePointArray(charArray, charIndex, lineOffsetContext.buildLineOffsets());
+        return BasicCodePointArray.create(
+            charArray, charIndex, lineOffsetContext.buildLineOffsets());
       }
       int[] intArray = new int[text.length()];
       int intIndex = 0;
@@ -120,11 +121,11 @@ public abstract class CelCodePointArray {
         intArray[intIndex++] = codePoint;
       }
 
-      return new SupplementalCodePointArray(
+      return SupplementalCodePointArray.create(
           intArray, intIndex, lineOffsetContext.buildLineOffsets());
     }
 
-    return new Latin1CodePointArray(byteArray, byteIndex, lineOffsetContext.buildLineOffsets());
+    return Latin1CodePointArray.create(byteArray, byteIndex, lineOffsetContext.buildLineOffsets());
   }
 
   private static class LineOffsetContext {

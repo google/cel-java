@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkElementIndex;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkPositionIndexes;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
@@ -32,50 +33,40 @@ import dev.cel.common.annotations.Internal;
 @Immutable
 @VisibleForTesting
 @Internal
-public final class BasicCodePointArray extends CelCodePointArray {
+@AutoValue
+@AutoValue.CopyAnnotations
+@SuppressWarnings("Immutable") // char[] is not exposed externally, thus cannot be mutated.
+public abstract class BasicCodePointArray extends CelCodePointArray {
 
-  @SuppressWarnings("Immutable")
-  private final char[] codePoints;
+  @SuppressWarnings("AutoValueImmutableFields")
+  abstract char[] codePoints();
 
-  private final int offset;
-  private final int size;
-  private final ImmutableList<Integer> lineOffsets;
+  abstract int offset();
 
-  BasicCodePointArray(char[] codePoints, int size, ImmutableList<Integer> lineOffsets) {
-    this(codePoints, 0, lineOffsets, size);
+  static BasicCodePointArray create(
+      char[] codePoints, int size, ImmutableList<Integer> lineOffsets) {
+    return create(codePoints, 0, lineOffsets, size);
   }
 
-  BasicCodePointArray(char[] codePoints, int offset, ImmutableList<Integer> lineOffsets, int size) {
-    this.codePoints = checkNotNull(codePoints);
-    this.offset = offset;
-    this.size = size;
-    this.lineOffsets = lineOffsets;
+  static BasicCodePointArray create(
+      char[] codePoints, int offset, ImmutableList<Integer> lineOffsets, int size) {
+    return new AutoValue_BasicCodePointArray(size, checkNotNull(lineOffsets), codePoints, offset);
   }
 
   @Override
   public BasicCodePointArray slice(int i, int j) {
     checkPositionIndexes(i, j, size());
-    return new BasicCodePointArray(codePoints, offset + i, lineOffsets, j - i);
+    return create(codePoints(), offset() + i, lineOffsets(), j - i);
   }
 
   @Override
   public int get(int index) {
     checkElementIndex(index, size());
-    return codePoints[offset + index] & 0xffff;
+    return codePoints()[offset() + index] & 0xffff;
   }
 
   @Override
-  public int size() {
-    return size;
-  }
-
-  @Override
-  public ImmutableList<Integer> lineOffsets() {
-    return lineOffsets;
-  }
-
-  @Override
-  public String toString() {
-    return new String(codePoints, offset, size);
+  public final String toString() {
+    return new String(codePoints(), offset(), size());
   }
 }
