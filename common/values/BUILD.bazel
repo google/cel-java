@@ -2,12 +2,18 @@ load("@rules_java//java:defs.bzl", "java_library")
 
 package(
     default_applicable_licenses = ["//:license"],
-    default_visibility = ["//visibility:public"],  # TODO: Expose to public when ready
+    default_visibility = [
+        "//java/com/google/enterprise/partner/incentives/batch/pipelines/chetak:__subpackages__",
+        "//visibility:public",
+    ],  # TODO: Expose to public when ready
 )
 
 java_library(
     name = "cel_value",
-    visibility = ["//visibility:public"],
+    visibility = [
+        "//java/com/google/enterprise/partner/incentives/batch/pipelines/chetak:__subpackages__",
+        "//visibility:public",
+    ],
     exports = ["//common/src/main/java/dev/cel/common/values:cel_value"],
 )
 
