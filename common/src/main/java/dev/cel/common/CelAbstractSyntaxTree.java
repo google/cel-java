@@ -15,6 +15,7 @@
 package dev.cel.common;
 
 import dev.cel.expr.Type;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
@@ -36,16 +37,17 @@ import java.util.Optional;
  * <p>Note: Use {@link CelProtoAbstractSyntaxTree} if you need access to the protobuf equivalent
  * ASTs, such as ParsedExpr and CheckedExpr from syntax.proto or checked.proto.
  */
+@AutoValue
 @Immutable
-public final class CelAbstractSyntaxTree {
+public abstract class CelAbstractSyntaxTree {
 
-  private final CelSource celSource;
+  abstract CelSource celSource();
 
-  private final CelExpr celExpr;
+  abstract CelExpr celExpr();
 
-  private final ImmutableMap<Long, CelReference> references;
+  abstract ImmutableMap<Long, CelReference> references();
 
-  private final ImmutableMap<Long, CelType> types;
+  abstract ImmutableMap<Long, CelType> types();
 
   /**
    * Constructs a new instance of CelAbstractSyntaxTree that represent a parsed expression.
@@ -54,7 +56,8 @@ public final class CelAbstractSyntaxTree {
    * validating or optimizing an AST.
    */
   public static CelAbstractSyntaxTree newParsedAst(CelExpr celExpr, CelSource celSource) {
-    return new CelAbstractSyntaxTree(celExpr, celSource);
+    return new AutoValue_CelAbstractSyntaxTree(
+        celSource, celExpr, ImmutableMap.of(), ImmutableMap.of());
   }
 
   /**
@@ -69,32 +72,18 @@ public final class CelAbstractSyntaxTree {
       CelSource celSource,
       Map<Long, CelReference> references,
       Map<Long, CelType> types) {
-    return new CelAbstractSyntaxTree(celExpr, celSource, references, types);
-  }
-
-  private CelAbstractSyntaxTree(CelExpr celExpr, CelSource celSource) {
-    this(celExpr, celSource, ImmutableMap.of(), ImmutableMap.of());
-  }
-
-  private CelAbstractSyntaxTree(
-      CelExpr celExpr,
-      CelSource celSource,
-      Map<Long, CelReference> references,
-      Map<Long, CelType> types) {
-    this.celExpr = celExpr;
-    this.celSource = celSource;
-    this.references = ImmutableMap.copyOf(references);
-    this.types = ImmutableMap.copyOf(types);
+    return new AutoValue_CelAbstractSyntaxTree(
+        celSource, celExpr, ImmutableMap.copyOf(references), ImmutableMap.copyOf(types));
   }
 
   /** Returns the underlying {@link CelExpr} representation of the abstract syntax tree. */
   public CelExpr getExpr() {
-    return celExpr;
+    return celExpr();
   }
 
   /** Tests whether the underlying abstract syntax tree has been type checked or not. */
   public boolean isChecked() {
-    return !types.isEmpty();
+    return !types().isEmpty();
   }
 
   /**
@@ -117,23 +106,23 @@ public final class CelAbstractSyntaxTree {
    * Returns the {@link CelSource} that was used during construction of the abstract syntax tree.
    */
   public CelSource getSource() {
-    return celSource;
+    return celSource();
   }
 
   public Optional<CelType> getType(long exprId) {
-    return Optional.ofNullable(types.get(exprId));
+    return Optional.ofNullable(types().get(exprId));
   }
 
   public ImmutableMap<Long, CelType> getTypeMap() {
-    return types;
+    return types();
   }
 
   public Optional<CelReference> getReference(long exprId) {
-    return Optional.ofNullable(references.get(exprId));
+    return Optional.ofNullable(references().get(exprId));
   }
 
   public ImmutableMap<Long, CelReference> getReferenceMap() {
-    return references;
+    return references();
   }
 
   public CelReference getReferenceOrThrow(long exprId) {
@@ -142,12 +131,12 @@ public final class CelAbstractSyntaxTree {
   }
 
   Optional<CelConstant> findEnumValue(long exprId) {
-    CelReference ref = references.get(exprId);
+    CelReference ref = references().get(exprId);
     return ref != null ? ref.value() : Optional.empty();
   }
 
   Optional<ImmutableList<String>> findOverloadIDs(long exprId) {
-    CelReference ref = references.get(exprId);
+    CelReference ref = references().get(exprId);
     return ref != null && !ref.value().isPresent()
         ? Optional.of(ref.overloadIds())
         : Optional.empty();
