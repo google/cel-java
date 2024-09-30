@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkPositionIndexes;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
@@ -32,51 +33,40 @@ import dev.cel.common.annotations.Internal;
 @Immutable
 @VisibleForTesting
 @Internal
-public final class Latin1CodePointArray extends CelCodePointArray {
+@AutoValue
+@AutoValue.CopyAnnotations
+@SuppressWarnings("Immutable") // byte[] is not exposed externally, thus cannot be mutated.
+public abstract class Latin1CodePointArray extends CelCodePointArray {
 
-  @SuppressWarnings("Immutable")
-  private final byte[] codePoints;
+  @SuppressWarnings("AutoValueImmutableFields")
+  abstract byte[] codePoints();
 
-  private final int offset;
-  private final int size;
-  private final ImmutableList<Integer> lineOffsets;
+  abstract int offset();
 
-  Latin1CodePointArray(byte[] codePoints, int size, ImmutableList<Integer> lineOffsets) {
-    this(codePoints, 0, lineOffsets, size);
+  static Latin1CodePointArray create(
+      byte[] codePoints, int size, ImmutableList<Integer> lineOffsets) {
+    return create(codePoints, 0, lineOffsets, size);
   }
 
-  Latin1CodePointArray(
+  static Latin1CodePointArray create(
       byte[] codePoints, int offset, ImmutableList<Integer> lineOffsets, int size) {
-    this.codePoints = checkNotNull(codePoints);
-    this.offset = offset;
-    this.size = size;
-    this.lineOffsets = lineOffsets;
+    return new AutoValue_Latin1CodePointArray(size, checkNotNull(lineOffsets), codePoints, offset);
   }
 
   @Override
   public Latin1CodePointArray slice(int i, int j) {
     checkPositionIndexes(i, j, size());
-    return new Latin1CodePointArray(codePoints, offset + i, lineOffsets, j - i);
+    return create(codePoints(), offset() + i, lineOffsets(), j - i);
   }
 
   @Override
   public int get(int index) {
     checkElementIndex(index, size());
-    return Byte.toUnsignedInt(codePoints[offset + index]);
+    return Byte.toUnsignedInt(codePoints()[offset() + index]);
   }
 
   @Override
-  public int size() {
-    return size;
-  }
-
-  @Override
-  public ImmutableList<Integer> lineOffsets() {
-    return lineOffsets;
-  }
-
-  @Override
-  public String toString() {
-    return new String(codePoints, offset, size, ISO_8859_1);
+  public final String toString() {
+    return new String(codePoints(), offset(), size(), ISO_8859_1);
   }
 }

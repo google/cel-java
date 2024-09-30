@@ -36,37 +36,34 @@ import java.util.Optional;
 
 /** Represents the source content of an expression and related metadata. */
 @Immutable
-public final class CelSource implements Source {
+@AutoValue
+public abstract class CelSource implements Source {
 
-  private final CelCodePointArray codePoints;
-  private final String description;
-  private final ImmutableList<Integer> lineOffsets;
-  private final ImmutableMap<Long, Integer> positions;
-  private final ImmutableMap<Long, CelExpr> macroCalls;
-  private final ImmutableSet<Extension> extensions;
+  abstract CelCodePointArray codePoints();
 
-  private CelSource(Builder builder) {
-    this.codePoints = checkNotNull(builder.codePoints);
-    this.description = checkNotNull(builder.description);
-    this.positions = checkNotNull(ImmutableMap.copyOf(builder.positions));
-    this.lineOffsets = checkNotNull(ImmutableList.copyOf(builder.lineOffsets));
-    this.macroCalls = checkNotNull(ImmutableMap.copyOf(builder.macroCalls));
-    this.extensions = checkNotNull(builder.extensions.build());
-  }
+  abstract String description();
+
+  abstract ImmutableList<Integer> lineOffsets();
+
+  abstract ImmutableMap<Long, Integer> positions();
+
+  abstract ImmutableMap<Long, CelExpr> macroCalls();
+
+  abstract ImmutableSet<Extension> extensions();
 
   @Override
   public CelCodePointArray getContent() {
-    return codePoints;
+    return codePoints();
   }
 
   @Override
   public String getDescription() {
-    return description;
+    return description();
   }
 
   @Override
   public ImmutableMap<Long, Integer> getPositionsMap() {
-    return positions;
+    return positions();
   }
 
   /**
@@ -76,15 +73,15 @@ public final class CelSource implements Source {
    * <p>NOTE: The indices point to the index just after the '\n' not the index of '\n' itself.
    */
   public ImmutableList<Integer> getLineOffsets() {
-    return lineOffsets;
+    return lineOffsets();
   }
 
   public ImmutableMap<Long, CelExpr> getMacroCalls() {
-    return macroCalls;
+    return macroCalls();
   }
 
   public ImmutableSet<Extension> getExtensions() {
-    return extensions;
+    return extensions();
   }
 
   /** See {@link #getLocationOffset(int, int)}. */
@@ -101,19 +98,19 @@ public final class CelSource implements Source {
    * @param column the column number starting from 0
    */
   public Optional<Integer> getLocationOffset(int line, int column) {
-    return getLocationOffsetImpl(lineOffsets, line, column);
+    return getLocationOffsetImpl(lineOffsets(), line, column);
   }
 
   /**
    * Get the line and column in the source expression text for the given code point {@code offset}.
    */
   public Optional<CelSourceLocation> getOffsetLocation(int offset) {
-    return CelSourceHelper.getOffsetLocation(codePoints, offset);
+    return CelSourceHelper.getOffsetLocation(codePoints(), offset);
   }
 
   @Override
   public Optional<String> getSnippet(int line) {
-    return CelSourceHelper.getSnippet(codePoints, line);
+    return CelSourceHelper.getSnippet(codePoints(), line);
   }
 
   /**
@@ -136,11 +133,11 @@ public final class CelSource implements Source {
   }
 
   public Builder toBuilder() {
-    return new Builder(codePoints, lineOffsets)
-        .setDescription(description)
-        .addPositionsMap(positions)
-        .addAllExtensions(extensions)
-        .addAllMacroCalls(macroCalls);
+    return new Builder(codePoints(), lineOffsets())
+        .setDescription(description())
+        .addPositionsMap(positions())
+        .addAllExtensions(extensions())
+        .addAllMacroCalls(macroCalls());
   }
 
   public static Builder newBuilder() {
@@ -236,12 +233,6 @@ public final class CelSource implements Source {
       return this;
     }
 
-    @CanIgnoreReturnValue
-    public Builder clearMacroCall(long exprId) {
-      this.macroCalls.remove(exprId);
-      return this;
-    }
-
     public ImmutableSet<Extension> getExtensions() {
       return extensions.build();
     }
@@ -308,7 +299,13 @@ public final class CelSource implements Source {
 
     @CheckReturnValue
     public CelSource build() {
-      return new CelSource(this);
+      return new AutoValue_CelSource(
+          codePoints,
+          description,
+          ImmutableList.copyOf(lineOffsets),
+          ImmutableMap.copyOf(positions),
+          ImmutableMap.copyOf(macroCalls),
+          extensions.build());
     }
   }
 
@@ -369,7 +366,7 @@ public final class CelSource implements Source {
       /** Type checker. Checks that references in an AST are defined and types agree. */
       COMPONENT_TYPE_CHECKER,
       /** Runtime. Evaluates a parsed and optionally checked CEL AST against a context. */
-      COMPONENT_RUNTIME;
+      COMPONENT_RUNTIME
     }
 
     @CheckReturnValue
