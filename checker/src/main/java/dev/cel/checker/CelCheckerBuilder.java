@@ -152,6 +152,14 @@ public interface CelCheckerBuilder {
   @CanIgnoreReturnValue
   CelCheckerBuilder setStandardEnvironmentEnabled(boolean value);
 
+  /**
+   * Override the standard declarations for the type-checker. This can be used to subset the
+   * standard environment to only expose the desired declarations to the type-checker. {@link
+   * #setStandardEnvironmentEnabled(boolean)} must be set to false for this to take effect.
+   */
+  @CanIgnoreReturnValue
+  CelCheckerBuilder setStandardDeclarations(CelStandardDeclarations standardDeclarations);
+
   /** Adds one or more libraries for parsing and type-checking. */
   @CanIgnoreReturnValue
   CelCheckerBuilder addLibraries(CelCheckerLibrary... libraries);

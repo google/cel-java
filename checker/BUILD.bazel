@@ -53,3 +53,8 @@ java_library(
     name = "proto_expr_visitor",
     exports = ["//checker/src/main/java/dev/cel/checker:proto_expr_visitor"],
 )
+
+java_library(
+    name = "standard_decl",
+    exports = ["//checker/src/main/java/dev/cel/checker:standard_decl"],
+)
