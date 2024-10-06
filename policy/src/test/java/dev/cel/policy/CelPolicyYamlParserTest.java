@@ -44,6 +44,11 @@ public final class CelPolicyYamlParserTest {
   }
 
   @Test
+  public void parser_setEmpty() throws Exception {
+    assertThrows(CelPolicyValidationException.class, () -> POLICY_PARSER.parse("", ""));
+  }
+
+  @Test
   public void parseYamlPolicy_withExplanation() throws Exception {
     String policySource =
         "rule:\n"

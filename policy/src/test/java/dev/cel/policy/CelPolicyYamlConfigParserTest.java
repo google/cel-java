@@ -44,6 +44,11 @@ public final class CelPolicyYamlConfigParserTest {
       CelPolicyParserFactory.newYamlConfigParser();
 
   @Test
+  public void config_setEmpty() throws Exception {
+    assertThrows(CelPolicyValidationException.class, () -> POLICY_CONFIG_PARSER.parse(""));
+  }
+
+  @Test
   public void config_setBasicProperties() throws Exception {
     String yamlConfig = "name: hello\n" + "description: empty\n" + "container: pb.pkg\n";
 
