@@ -117,7 +117,6 @@ java_library(
         ":value_string",
         ":yaml_helper",
         "//common:compiler_common",
-        "//common:source_location",
         "//common/internal",
         "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",

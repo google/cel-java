@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.joining;
 import com.google.common.base.Joiner;
 import java.io.StringReader;
 import java.util.List;
+import java.util.Optional;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
@@ -68,10 +69,9 @@ public final class YamlHelper {
     return false;
   }
 
-  static Node parseYamlSource(String policyContent) {
+  static Optional<Node> parseYamlSource(String policyContent) {
     Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
-
-    return yaml.compose(new StringReader(policyContent));
+    return Optional.ofNullable(yaml.compose(new StringReader(policyContent)));
   }
 
   static boolean assertRequiredFields(

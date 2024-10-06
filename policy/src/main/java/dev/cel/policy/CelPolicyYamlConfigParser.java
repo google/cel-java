@@ -338,7 +338,13 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
         throws CelPolicyValidationException {
       Node node;
       try {
-        node = parseYamlSource(source);
+        Node yamlNode =
+            parseYamlSource(source)
+                .orElseThrow(
+                    () ->
+                        new CelPolicyValidationException(
+                            String.format("YAML document is malformed: %s", source)));
+        node = yamlNode;
       } catch (RuntimeException e) {
         throw new CelPolicyValidationException("YAML document is malformed: " + e.getMessage(), e);
       }
