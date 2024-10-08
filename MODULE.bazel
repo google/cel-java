@@ -13,24 +13,18 @@
 # limitations under the License.
 
 module(
-  name = "cel_java"
+    name = "cel_java",
 )
 
-bazel_dep(name = "bazel_skylib", version = "1.4.2")
-bazel_dep(name = "rules_jvm_external", version = "5.3") 
-bazel_dep(name = "protobuf", repo_name="com_google_protobuf", version = "23.1")
-bazel_dep(name = "googleapis", repo_name="com_google_googleapis", version = "0.0.0-20240326-1c8d509c5")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "rules_jvm_external", version = "6.4")
+bazel_dep(name = "protobuf", version = "29.0-rc1", repo_name = "com_google_protobuf")
+bazel_dep(name = "googleapis", version = "0.0.0-20240819-fe8ba054a", repo_name = "com_google_googleapis")
 bazel_dep(name = "rules_pkg", version = "0.10.1")
-bazel_dep(name = "rules_license", version = "0.0.8")
-bazel_dep(name = "rules_java", version = "7.2.0")
-bazel_dep(name = "cel-spec", repo_name="cel_spec", version = "0.14.0")
-
-# The following versions need to be pinned until https://github.com/bazelbuild/rules_jvm_external/issues/1048 is fixed
-
-single_version_override(
-    module_name = "rules_jvm_external",
-    version = "5.3"
-)
+bazel_dep(name = "rules_license", version = "1.0.0")
+bazel_dep(name = "rules_proto", version = "6.0.2")
+bazel_dep(name = "grpc-java", version = "1.66.0")
+bazel_dep(name = "rules_java", version = "7.12.1")
 
 switched_rules = use_extension("@com_google_googleapis//:extensions.bzl", "switched_rules")
 switched_rules.use_languages(java = True)
@@ -42,38 +36,34 @@ maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     # keep sorted
     artifacts = [
-        "com.google.api.grpc:proto-google-common-protos:2.27.0",
-        "com.google.auto.value:auto-value-annotations:1.10.4",
-        "com.google.auto.value:auto-value:1.10.4",
+        "com.google.auto.value:auto-value:1.11.0",
+        "com.google.auto.value:auto-value-annotations:1.11.0",
         "com.google.code.findbugs:annotations:3.0.1",
-        "com.google.errorprone:error_prone_annotations:2.23.0",
-        "com.google.guava:guava-testlib:33.0.0-jre",
-        "com.google.guava:guava:33.0.0-jre",
-        "com.google.protobuf:protobuf-java-util:3.24.4",
-        "com.google.protobuf:protobuf-java:3.24.4",
+        "com.google.errorprone:error_prone_annotations:2.33.0",
+        "com.google.guava:guava:33.3.1-jre",
+        "com.google.guava:guava-testlib:33.3.1-jre",
+        "com.google.protobuf:protobuf-java:4.29.0-RC1",
+        "com.google.protobuf:protobuf-java-util:4.29.0-RC1",
         "com.google.re2j:re2j:1.7",
-        "com.google.testparameterinjector:test-parameter-injector:1.15",
-        "com.google.truth.extensions:truth-java8-extension:1.4.0",
-        "com.google.truth.extensions:truth-proto-extension:1.4.0",
-        "com.google.truth:truth:1.4.0",
+        "com.google.testparameterinjector:test-parameter-injector:1.18",
+        "com.google.truth.extensions:truth-java8-extension:1.4.4",
+        "com.google.truth.extensions:truth-proto-extension:1.4.4",
+        "com.google.truth:truth:1.4.4",
         "org.antlr:antlr4-runtime:4.11.1",
-        "org.jspecify:jspecify:0.2.0",
-        "org.threeten:threeten-extra:1.7.2",
+        "org.jspecify:jspecify:1.0.0",
+        "org.threeten:threeten-extra:1.8.0",
+        "org.yaml:snakeyaml:2.2",
     ],
+    fail_if_repin_required = True,
+    lock_file = "//:maven_install.json",
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
-    lock_file = "//:maven_install.json",
-    fail_if_repin_required=True
 )
 use_repo(maven, "maven", "unpinned_maven")
 
 non_module_dependencies = use_extension("//:repositories.bzl", "non_module_dependencies")
 use_repo(non_module_dependencies, "antlr4_jar")
 use_repo(non_module_dependencies, "bazel_common")
-
-# google_common_workspace_rules = use_extension("@bazel_common//:workspace_defs.bzl", "google_common_workspace_rules")
-# google_common_workspace_rules()
-
-
+use_repo(non_module_dependencies, "cel_spec")

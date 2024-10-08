@@ -1,2 +1,3 @@
-6.5.0
+7.3.2
+# 6.5.0
 # Pinned until https://github.com/bazelbuild/rules_jvm_external/issues/1048 is fixed
