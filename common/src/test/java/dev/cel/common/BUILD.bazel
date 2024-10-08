@@ -27,7 +27,7 @@ java_library(
         "//compiler",
         "//compiler:compiler_builder",
         "//parser:macro",
-        "@@protobuf~//java/core",
+        "@maven//:com_google_protobuf_protobuf_java",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
         "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
