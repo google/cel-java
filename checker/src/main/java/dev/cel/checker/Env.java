@@ -27,6 +27,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
+import dev.cel.checker.CelStandardDeclarations.StandardFunction.Overload.Comparison;
+import dev.cel.checker.CelStandardDeclarations.StandardFunction.Overload.Conversions;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
@@ -219,9 +221,53 @@ public class Env {
    * subsequent declarations with the same signature.
    */
   public static Env standard(Errors errors, TypeProvider typeProvider, CelOptions celOptions) {
+    CelStandardDeclarations celStandardDeclaration =
+        CelStandardDeclarations.newBuilder()
+            .filterFunctions(
+                (function, overload) -> {
+                  switch (function) {
+                    case INT:
+                      if (!celOptions.enableUnsignedLongs()
+                          && overload.equals(Conversions.INT64_TO_INT64)) {
+                        return false;
+                      }
+                      break;
+                    case TIMESTAMP:
+                      // TODO: Remove this flag guard once the feature has been
+                      // auto-enabled.
+                      if (!celOptions.enableTimestampEpoch()
+                          && overload.equals(Conversions.INT64_TO_TIMESTAMP)) {
+                        return false;
+                      }
+                      break;
+                    default:
+                      if (!celOptions.enableHeterogeneousNumericComparisons()
+                          && overload instanceof Comparison) {
+                        Comparison comparison = (Comparison) overload;
+                        if (comparison.isHeterogeneousComparison()) {
+                          return false;
+                        }
+                      }
+                      break;
+                  }
+                  return true;
+                })
+            .build();
+
+    return standard(celStandardDeclaration, errors, typeProvider, celOptions);
+  }
+
+  public static Env standard(
+      CelStandardDeclarations celStandardDeclaration,
+      Errors errors,
+      TypeProvider typeProvider,
+      CelOptions celOptions) {
     Env env = Env.unconfigured(errors, typeProvider, celOptions);
     // Isolate the standard declarations into their own scope for forward compatibility.
-    Standard.add(env);
+    CelStandardDeclarations.deprecatedFunctions().forEach(env::add);
+    celStandardDeclaration.functionDecls().forEach(env::add);
+    celStandardDeclaration.identifierDecls().forEach(env::add);
+
     env.enterScope();
     return env;
   }

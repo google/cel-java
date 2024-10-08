@@ -19,7 +19,7 @@ import static java.util.Arrays.stream;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
-import dev.cel.checker.Standard;
+import dev.cel.checker.CelStandardDeclarations;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.extensions.CelOptionalLibrary.Function;
@@ -37,10 +37,10 @@ final class DefaultOptimizerConstants {
    */
   static final ImmutableSet<String> CEL_CANONICAL_FUNCTIONS =
       ImmutableSet.<String>builder()
+          .addAll(CelStandardDeclarations.getAllFunctionNames())
           .addAll(
               Streams.concat(
                       stream(Operator.values()).map(Operator::getFunction),
-                      stream(Standard.Function.values()).map(Standard.Function::getFunction),
                       stream(CelOptionalLibrary.Function.values()).map(Function::getFunction))
                   .collect(toImmutableSet()))
           .addAll(CelExtensions.getAllFunctionNames())
