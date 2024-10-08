@@ -31,12 +31,31 @@ def bazel_common_dependency():
         url = "https://github.com/google/bazel-common/archive/%s.tar.gz" % bazel_common_tag,
     )
 
+def cel_spec_dependency():
+    # required by cel_spec
+    http_archive(
+        name = "io_bazel_rules_go",
+        sha256 = "19ef30b21eae581177e0028f6f4b1f54c66467017be33d211ab6fc81da01ea4d",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.38.0/rules_go-v0.38.0.zip",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.38.0/rules_go-v0.38.0.zip",
+        ],
+    )
+
+    http_archive(
+        name = "cel_spec",
+        sha256 = "ad735dcea00992c36c7e94a56bceebedad475a01ee63b49c6796c1fcb7b6a41c",
+        strip_prefix = "cel-spec-0.16.2",
+        urls = [
+            "https://github.com/google/cel-spec/archive/refs/tags/v0.16.2.tar.gz",
+        ],
+    )
+
 def _non_module_dependencies_impl(_ctx):
     antlr4_jar_dependency()
     bazel_common_dependency()
+    cel_spec_dependency()
 
 non_module_dependencies = module_extension(
     implementation = _non_module_dependencies_impl,
 )
-
-

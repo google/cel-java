@@ -30,7 +30,7 @@ java_library(
         "//parser:macro",
         "//parser:parser_builder",
         "//runtime",
-        "@@protobuf~//java/core",
+        "@maven//:com_google_protobuf_protobuf_java",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@cel_spec//proto/test/v1:simple_java_proto",
         "@cel_spec//proto/test/v1/proto2:test_all_types_java_proto",

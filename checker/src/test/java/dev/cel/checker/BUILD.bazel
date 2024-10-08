@@ -11,7 +11,7 @@ java_library(
     srcs = glob(["*Test.java"]),
     resources = ["//checker/src/test/resources:baselines"],
     deps = [
-        "@@protobuf~//java/core",
+        "@maven//:com_google_protobuf_protobuf_java",
         #         "//java/com/google/testing/testsize:annotations",
         "//:auto_value",
         "//checker",
