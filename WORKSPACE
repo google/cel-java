@@ -31,6 +31,20 @@ load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
 
+http_archive(
+    name = "rules_java",
+    sha256 = "dfbadbb37a79eb9e1cc1e156ecb8f817edf3899b28bc02410a6c1eb88b1a6862",
+    urls = [
+        "https://github.com/bazelbuild/rules_java/releases/download/7.12.1/rules_java-7.12.1.tar.gz",
+    ],
+)
+
+load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
+
+rules_java_dependencies()
+
+rules_java_toolchains()
+
 # Transitive dependency required by protobuf v4 https://github.com/protocolbuffers/protobuf/issues/17200
 http_archive(
     name = "rules_python",
@@ -42,6 +56,25 @@ http_archive(
 load("@rules_python//python:repositories.bzl", "py_repositories")
 
 py_repositories()
+
+http_archive(
+    name = "rules_proto",
+    sha256 = "6fb6767d1bef535310547e03247f7518b03487740c11b6c6adb7952033fe1295",
+    strip_prefix = "rules_proto-6.0.2",
+    url = "https://github.com/bazelbuild/rules_proto/releases/download/6.0.2/rules_proto-6.0.2.tar.gz",
+)
+
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
+
+rules_proto_dependencies()
+
+load("@rules_proto//proto:setup.bzl", "rules_proto_setup")
+
+rules_proto_setup()
+
+load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
+
+rules_proto_toolchains()
 
 RULES_JVM_EXTERNAL_TAG = "aa44247b3913da0da606e9c522313b6a9396a571"
 
@@ -76,8 +109,8 @@ maven_install(
         "com.google.errorprone:error_prone_annotations:2.30.0",
         "com.google.guava:guava:33.3.0-jre",
         "com.google.guava:guava-testlib:33.3.0-jre",
-        "com.google.protobuf:protobuf-java:4.28.0",
-        "com.google.protobuf:protobuf-java-util:4.28.0",
+        "com.google.protobuf:protobuf-java:4.28.2",
+        "com.google.protobuf:protobuf-java-util:4.28.2",
         "com.google.re2j:re2j:1.7",
         "com.google.testparameterinjector:test-parameter-injector:1.15",
         "com.google.truth.extensions:truth-java8-extension:1.4.2",
