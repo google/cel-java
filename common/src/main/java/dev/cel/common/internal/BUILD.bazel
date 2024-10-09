@@ -42,9 +42,9 @@ java_library(
         "//:auto_value",
         "//common/annotations",
         "//common/ast",
-        "@@protobuf~//java/core",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_antlr_antlr4_runtime",
     ],
 )
@@ -105,8 +105,8 @@ java_library(
     ],
     deps = [
         "//common/annotations",
-        "@@protobuf~//java/core",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -126,11 +126,11 @@ java_library(
         "//common:proto_json_adapter",
         "//common:runtime_exception",
         "//common/annotations",
-        "@@protobuf~//java/core",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_jspecify_jspecify",
     ],
 )
@@ -144,9 +144,9 @@ java_library(
         ":dynamic_proto",
         "//:auto_value",
         "//common/annotations",
-        "@@protobuf~//java/core",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_jspecify_jspecify",
     ],
 )
@@ -160,9 +160,9 @@ java_library(
     ],
     deps = [
         "//:auto_value",
-        "@@protobuf~//java/core",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -184,8 +184,8 @@ java_library(
     ],
     deps = [
         "//common/annotations",
-        "@@protobuf~//java/core",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -199,7 +199,7 @@ java_library(
         ":default_instance_message_factory",
         ":proto_message_factory",
         "//common/annotations",
-        "@@protobuf~//java/core",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -210,9 +210,9 @@ java_library(
     ],
     deps = [
         ":cel_descriptor_pools",
-        "@@protobuf~//java/core",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -225,9 +225,9 @@ java_library(
         ":well_known_proto",
         "//common",
         "//common/annotations",
-        "@@protobuf~//java/core",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
