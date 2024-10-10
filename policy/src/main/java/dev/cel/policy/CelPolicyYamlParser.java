@@ -29,6 +29,7 @@ import dev.cel.policy.ParserContext.PolicyParserContext;
 import dev.cel.policy.YamlHelper.YamlNodeType;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.yaml.snakeyaml.nodes.MappingNode;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.NodeTuple;
@@ -286,6 +287,9 @@ final class CelPolicyYamlParser implements CelPolicyParser {
             break;
           case "expression":
             builder.setExpression(ctx.newValueString(valueNode));
+            break;
+          case "description":
+            builder.setDescription(Optional.of(ctx.newValueString(valueNode)));
             break;
           default:
             tagVisitor.visitVariableTag(ctx, keyId, keyName, valueNode, policyBuilder, builder);

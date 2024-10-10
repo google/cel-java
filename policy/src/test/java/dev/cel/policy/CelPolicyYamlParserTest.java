@@ -49,6 +49,22 @@ public final class CelPolicyYamlParserTest {
   }
 
   @Test
+  public void parseYamlPolicy_withDescription() throws Exception {
+    String policySource =
+        "rule:\n"
+            + "  variables:\n"
+            + "  - name: 'variable_with_description'\n"
+            + "    description: 'this is a description of the variable'\n"
+            + "    expression: 'true'";
+
+    CelPolicy policy = POLICY_PARSER.parse(policySource);
+
+    assertThat(policy.rule().variables()).hasSize(1);
+    assertThat(Iterables.getOnlyElement(policy.rule().variables()).description())
+        .hasValue(ValueString.of(10, "this is a description of the variable"));
+  }
+
+  @Test
   public void parseYamlPolicy_withExplanation() throws Exception {
     String policySource =
         "rule:\n"
