@@ -287,6 +287,9 @@ final class CelPolicyYamlParser implements CelPolicyParser {
           case "expression":
             builder.setExpression(ctx.newValueString(valueNode));
             break;
+          case "description":
+            builder.setDescription(ctx.newValueString(valueNode));
+            break;
           default:
             tagVisitor.visitVariableTag(ctx, keyId, keyName, valueNode, policyBuilder, builder);
             break;
