@@ -73,20 +73,20 @@ maven_install(
         "com.google.auto.value:auto-value:1.11.0",
         "com.google.auto.value:auto-value-annotations:1.11.0",
         "com.google.code.findbugs:annotations:3.0.1",
-        "com.google.errorprone:error_prone_annotations:2.30.0",
-        "com.google.guava:guava:33.3.0-jre",
-        "com.google.guava:guava-testlib:33.3.0-jre",
-        "com.google.protobuf:protobuf-java:4.28.0",
-        "com.google.protobuf:protobuf-java-util:4.28.0",
+        "com.google.errorprone:error_prone_annotations:2.33.0",
+        "com.google.guava:guava:33.3.1-jre",
+        "com.google.guava:guava-testlib:33.3.1-jre",
+        "com.google.protobuf:protobuf-java:4.28.2",
+        "com.google.protobuf:protobuf-java-util:4.28.2",
         "com.google.re2j:re2j:1.7",
-        "com.google.testparameterinjector:test-parameter-injector:1.15",
-        "com.google.truth.extensions:truth-java8-extension:1.4.2",
-        "com.google.truth.extensions:truth-proto-extension:1.4.2",
-        "com.google.truth:truth:1.4.2",
+        "com.google.testparameterinjector:test-parameter-injector:1.18",
+        "com.google.truth.extensions:truth-java8-extension:1.4.4",
+        "com.google.truth.extensions:truth-proto-extension:1.4.4",
+        "com.google.truth:truth:1.4.4",
         "org.antlr:antlr4-runtime:" + ANTLR4_VERSION,
         "org.jspecify:jspecify:1.0.0",
         "org.threeten:threeten-extra:1.8.0",
-        "org.yaml:snakeyaml:2.2",
+        "org.yaml:snakeyaml:2.3",
     ],
     repositories = [
         "https://maven.google.com",
@@ -96,9 +96,9 @@ maven_install(
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "13e7749c30bc24af6ee93e092422f9dc08491c7097efa69461f88eb5f61805ce",
-    strip_prefix = "protobuf-28.0",
-    urls = ["https://github.com/protocolbuffers/protobuf/archive/v28.0.tar.gz"],
+    sha256 = "b2340aa47faf7ef10a0328190319d3f3bee1b24f426d4ce8f4253b6f27ce16db",
+    strip_prefix = "protobuf-28.2",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v28.2.tar.gz"],
 )
 
 # Required by com_google_protobuf

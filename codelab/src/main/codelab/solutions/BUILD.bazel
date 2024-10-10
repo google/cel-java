@@ -35,9 +35,9 @@ java_library(
         "//validator/validators:homogeneous_literal",
         "//validator/validators:regex",
         "//validator/validators:timestamp",
-        "@@protobuf~//java/core",
         "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
     ],
 )
