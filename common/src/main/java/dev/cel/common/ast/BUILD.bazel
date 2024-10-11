@@ -104,22 +104,6 @@ java_library(
 )
 
 java_library(
-    name = "expr_util",
-    srcs = ["CelExprUtil.java"],
-    tags = [
-    ],
-    deps = [
-        ":ast",
-        "//bundle:cel",
-        "//common",
-        "//common:compiler_common",
-        "//runtime",
-        "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_guava_guava",
-    ],
-)
-
-java_library(
     name = "mutable_expr",
     srcs = MUTABLE_EXPR_SOURCES,
     tags = [

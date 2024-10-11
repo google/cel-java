@@ -23,7 +23,6 @@ java_library(
         "//common:compiler_common",
         "//common:mutable_ast",
         "//common/ast",
-        "//common/ast:expr_util",
         "//common/ast:mutable_expr",
         "//common/navigation:mutable_navigation",
         "//extensions:optional_library",

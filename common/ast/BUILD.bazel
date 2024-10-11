@@ -31,11 +31,6 @@ java_library(
 )
 
 java_library(
-    name = "expr_util",
-    exports = ["//common/src/main/java/dev/cel/common/ast:expr_util"],
-)
-
-java_library(
     name = "mutable_expr",
     exports = ["//common/src/main/java/dev/cel/common/ast:mutable_expr"],
 )

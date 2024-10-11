@@ -94,10 +94,13 @@ java_library(
     visibility = ["//visibility:private"],
     deps = [
         "//bundle:cel",
+        "//common",
+        "//common:compiler_common",
         "//common/ast",
         "//common/ast:expr_factory",
-        "//common/ast:expr_util",
         "//common/navigation",
+        "//runtime",
         "//validator:ast_validator",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )

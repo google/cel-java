@@ -24,10 +24,11 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelMutableAst;
+import dev.cel.common.CelSource;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.ast.CelConstant;
+import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
-import dev.cel.common.ast.CelExprUtil;
 import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
 import dev.cel.common.ast.CelMutableExpr.CelMutableList;
@@ -248,7 +249,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       throws CelOptimizationException {
     Object result;
     try {
-      result = CelExprUtil.evaluateExpr(cel, CelMutableExprConverter.fromMutableExpr(node.expr()));
+      result = evaluateExpr(cel, CelMutableExprConverter.fromMutableExpr(node.expr()));
     } catch (CelValidationException | CelEvaluationException e) {
       throw new CelOptimizationException(
           "Constant folding failure. Failed to evaluate subtree due to: " + e.getMessage(), e);
@@ -589,6 +590,16 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
     }
 
     return ast;
+  }
+
+  @CanIgnoreReturnValue
+  private static Object evaluateExpr(Cel cel, CelExpr expr)
+      throws CelValidationException, CelEvaluationException {
+    CelAbstractSyntaxTree ast =
+        CelAbstractSyntaxTree.newParsedAst(expr, CelSource.newBuilder().build());
+    ast = cel.check(ast).getAst();
+
+    return cel.createProgram(ast).eval();
   }
 
   /** Options to configure how Constant Folding behave. */

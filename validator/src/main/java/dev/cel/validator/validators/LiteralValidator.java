@@ -14,13 +14,17 @@
 
 package dev.cel.validator.validators;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.bundle.Cel;
+import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelSource;
+import dev.cel.common.CelValidationException;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelExprFactory;
-import dev.cel.common.ast.CelExprUtil;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
+import dev.cel.runtime.CelEvaluationException;
 import dev.cel.validator.CelAstValidator;
 
 /**
@@ -57,7 +61,7 @@ abstract class LiteralValidator implements CelAstValidator {
               CelExpr callExpr =
                   exprFactory.newGlobalCall(functionName, exprFactory.newConstant(expr.constant()));
               try {
-                CelExprUtil.evaluateExpr(cel, callExpr, expectedResultType);
+                evaluateExpr(cel, callExpr, expectedResultType);
               } catch (Exception e) {
                 issuesFactory.addError(
                     expr.id(),
@@ -65,5 +69,22 @@ abstract class LiteralValidator implements CelAstValidator {
                         "%s validation failed. Reason: %s", functionName, e.getMessage()));
               }
             });
+  }
+
+  @CanIgnoreReturnValue
+  private static Object evaluateExpr(Cel cel, CelExpr expr, Class<?> expectedResultType)
+      throws CelValidationException, CelEvaluationException {
+    CelAbstractSyntaxTree ast =
+        CelAbstractSyntaxTree.newParsedAst(expr, CelSource.newBuilder().build());
+    ast = cel.check(ast).getAst();
+    Object result = cel.createProgram(ast).eval();
+
+    if (!expectedResultType.isInstance(result)) {
+      throw new IllegalStateException(
+          String.format(
+              "Expected %s type but got %s instead",
+              expectedResultType.getName(), result.getClass().getName()));
+    }
+    return result;
   }
 }
