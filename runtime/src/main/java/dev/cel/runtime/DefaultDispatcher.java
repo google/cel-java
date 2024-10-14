@@ -17,16 +17,13 @@ package dev.cel.runtime;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
-import dev.cel.common.ExprFeatures;
 import dev.cel.common.annotations.Internal;
-import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,36 +40,6 @@ import java.util.Map;
 @ThreadSafe
 @Internal
 public final class DefaultDispatcher implements Dispatcher, Registrar {
-  /**
-   * Creates a new dispatcher with all standard functions.
-   *
-   * @deprecated Migrate to fluent APIs. See {@link CelRuntimeFactory}.
-   */
-  @Deprecated
-  public static DefaultDispatcher create() {
-    return create(CelOptions.LEGACY);
-  }
-
-  /**
-   * Creates a new dispatcher with all standard functions.
-   *
-   * @deprecated Migrate to fluent APIs. See {@link CelRuntimeFactory}.
-   */
-  @Deprecated
-  public static DefaultDispatcher create(ImmutableSet<ExprFeatures> features) {
-    return create(CelOptions.fromExprFeatures(features));
-  }
-
-  /**
-   * Creates a new dispatcher with all standard functions.
-   *
-   * @deprecated Migrate to fluent APIs. See {@link CelRuntimeFactory}.
-   */
-  @Deprecated
-  public static DefaultDispatcher create(CelOptions celOptions) {
-    DynamicProto dynamicProto = DynamicProto.create(DefaultMessageFactory.INSTANCE);
-    return create(celOptions, dynamicProto, true);
-  }
 
   public static DefaultDispatcher create(
       CelOptions celOptions, DynamicProto dynamicProto, boolean enableStandardEnvironment) {
