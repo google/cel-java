@@ -43,6 +43,8 @@ import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.ProtoMessageValueProvider;
+import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Comparison;
+import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Conversions;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -87,7 +89,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
   public static final class Builder implements CelRuntimeBuilder {
 
     private final ImmutableSet.Builder<FileDescriptor> fileTypes;
-    private final HashMap<String, CelFunctionBinding> functionBindings;
+    private final HashMap<String, CelFunctionBinding> customFunctionBindings;
     private final ImmutableSet.Builder<CelRuntimeLibrary> celRuntimeLibraries;
 
     @SuppressWarnings("unused")
@@ -97,6 +99,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     private Function<String, Message.Builder> customTypeFactory;
     private ExtensionRegistry extensionRegistry;
     private CelValueProvider celValueProvider;
+    private CelStandardFunctions overriddenStandardFunctions;
 
     @Override
     public CelRuntimeBuilder setOptions(CelOptions options) {
@@ -111,7 +114,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
     @Override
     public CelRuntimeBuilder addFunctionBindings(Iterable<CelFunctionBinding> bindings) {
-      bindings.forEach(o -> functionBindings.putIfAbsent(o.getOverloadId(), o));
+      bindings.forEach(o -> customFunctionBindings.putIfAbsent(o.getOverloadId(), o));
       return this;
     }
 
@@ -161,6 +164,12 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     }
 
     @Override
+    public CelRuntimeBuilder setStandardFunctions(CelStandardFunctions standardFunctions) {
+      this.overriddenStandardFunctions = standardFunctions;
+      return this;
+    }
+
+    @Override
     public CelRuntimeBuilder addLibraries(CelRuntimeLibrary... libraries) {
       checkNotNull(libraries);
       return this.addLibraries(Arrays.asList(libraries));
@@ -184,7 +193,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     // and shouldn't be exposed to the public.
     @VisibleForTesting
     Map<String, CelFunctionBinding> getFunctionBindings() {
-      return this.functionBindings;
+      return this.customFunctionBindings;
     }
 
     @VisibleForTesting
@@ -200,6 +209,11 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     /** Build a new {@code CelRuntimeLegacyImpl} instance from the builder config. */
     @Override
     public CelRuntimeLegacyImpl build() {
+      if (standardEnvironmentEnabled && overriddenStandardFunctions != null) {
+        throw new IllegalArgumentException(
+            "setStandardEnvironmentEnabled must be set to false to override standard function"
+                + " bindings.");
+      }
       // Add libraries, such as extensions
       celRuntimeLibraries.build().forEach(celLibrary -> celLibrary.setRuntimeOptions(this));
 
@@ -227,26 +241,33 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
       DynamicProto dynamicProto = DynamicProto.create(runtimeTypeFactory);
 
-      DefaultDispatcher dispatcher =
-          DefaultDispatcher.create(options, dynamicProto, standardEnvironmentEnabled);
+      ImmutableMap.Builder<String, CelFunctionBinding> functionBindingsBuilder =
+          ImmutableMap.builder();
+      for (CelFunctionBinding standardFunctionBinding : newStandardFunctionBindings(dynamicProto)) {
+        functionBindingsBuilder.put(
+            standardFunctionBinding.getOverloadId(), standardFunctionBinding);
+      }
 
-      ImmutableMap<String, CelFunctionBinding> functionBindingMap =
-          ImmutableMap.copyOf(functionBindings);
-      functionBindingMap.forEach(
-          (String overloadId, CelFunctionBinding func) ->
-              dispatcher.add(
-                  overloadId,
-                  func.getArgTypes(),
-                  (args) -> {
-                    try {
-                      return func.getDefinition().apply(args);
-                    } catch (CelEvaluationException e) {
-                      throw new InterpreterException.Builder(e.getMessage())
-                          .setCause(e)
-                          .setErrorCode(e.getErrorCode())
-                          .build();
-                    }
-                  }));
+      functionBindingsBuilder.putAll(customFunctionBindings);
+
+      DefaultDispatcher dispatcher = DefaultDispatcher.create();
+      functionBindingsBuilder
+          .buildOrThrow()
+          .forEach(
+              (String overloadId, CelFunctionBinding func) ->
+                  dispatcher.add(
+                      overloadId,
+                      func.getArgTypes(),
+                      (args) -> {
+                        try {
+                          return func.getDefinition().apply(args);
+                        } catch (CelEvaluationException e) {
+                          throw new InterpreterException.Builder(e.getMessage())
+                              .setCause(e)
+                              .setErrorCode(e.getErrorCode())
+                              .build();
+                        }
+                      }));
 
       RuntimeTypeProvider runtimeTypeProvider;
 
@@ -267,6 +288,54 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
       return new CelRuntimeLegacyImpl(
           new DefaultInterpreter(runtimeTypeProvider, dispatcher, options), options, this);
+    }
+
+    private ImmutableSet<CelFunctionBinding> newStandardFunctionBindings(
+        DynamicProto dynamicProto) {
+      CelStandardFunctions celStandardFunctions;
+      if (standardEnvironmentEnabled) {
+        celStandardFunctions =
+            CelStandardFunctions.newBuilder()
+                .filterFunctions(
+                    (standardFunction, standardOverload) -> {
+                      switch (standardFunction) {
+                        case INT:
+                          if (standardOverload.equals(Conversions.INT64_TO_INT64)) {
+                            // Note that we require UnsignedLong flag here to avoid ambiguous
+                            // overloads against "uint64_to_int64", because they both use the same
+                            // Java Long class. We skip adding this identity function if the flag is
+                            // disabled.
+                            return options.enableUnsignedLongs();
+                          }
+                          break;
+                        case TIMESTAMP:
+                          // TODO: Remove this flag guard once the feature has been
+                          // auto-enabled.
+                          if (standardOverload.equals(Conversions.INT64_TO_TIMESTAMP)) {
+                            return options.enableTimestampEpoch();
+                          }
+                          break;
+                        default:
+                          if (standardOverload instanceof Comparison
+                              && !options.enableHeterogeneousNumericComparisons()) {
+                            Comparison comparison = (Comparison) standardOverload;
+                            if (comparison.isHeterogeneousComparison()) {
+                              return false;
+                            }
+                          }
+                          break;
+                      }
+
+                      return true;
+                    })
+                .build();
+      } else if (overriddenStandardFunctions != null) {
+        celStandardFunctions = overriddenStandardFunctions;
+      } else {
+        return ImmutableSet.of();
+      }
+
+      return celStandardFunctions.newFunctionBindings(dynamicProto, options);
     }
 
     private static CelDescriptorPool newDescriptorPool(
@@ -292,7 +361,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     private Builder() {
       this.options = CelOptions.newBuilder().build();
       this.fileTypes = ImmutableSet.builder();
-      this.functionBindings = new HashMap<>();
+      this.customFunctionBindings = new HashMap<>();
       this.celRuntimeLibraries = ImmutableSet.builder();
       this.extensionRegistry = ExtensionRegistry.getEmptyRegistry();
       this.customTypeFactory = null;
@@ -309,7 +378,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       // The following needs to be deep copied as they are collection builders
       this.fileTypes = deepCopy(builder.fileTypes);
       this.celRuntimeLibraries = deepCopy(builder.celRuntimeLibraries);
-      this.functionBindings = new HashMap<>(builder.functionBindings);
+      this.customFunctionBindings = new HashMap<>(builder.customFunctionBindings);
     }
 
     private static <T> ImmutableSet.Builder<T> deepCopy(ImmutableSet.Builder<T> builderToCopy) {

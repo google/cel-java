@@ -43,7 +43,6 @@ java_library(
     tags = [
     ],
     deps = [
-        ":runtime_helper",
         "//:auto_value",
         "//common",
         "//common:error_codes",
@@ -57,12 +56,12 @@ java_library(
         "//common/internal:safe_string_formatter",
         "//common/types",
         "//common/types:type_providers",
+        "//runtime:runtime_helper",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
-        "@maven//:com_google_re2j_re2j",
         "@maven//:org_jspecify_jspecify",
     ],
 )
@@ -138,6 +137,7 @@ RUNTIME_SOURCES = [
     "CelRuntimeFactory.java",
     "CelRuntimeLegacyImpl.java",
     "CelRuntimeLibrary.java",
+    "CelStandardFunctions.java",
     "CelVariableResolver.java",
     "HierarchicalVariableResolver.java",
     "UnknownContext.java",
@@ -150,6 +150,7 @@ java_library(
     ],
     deps = [
         ":evaluation_listener",
+        ":runtime_helper",
         ":runtime_type_provider_legacy",
         ":unknown_attributes",
         "//:auto_value",
@@ -158,6 +159,7 @@ java_library(
         "//common:options",
         "//common/annotations",
         "//common/internal:cel_descriptor_pools",
+        "//common/internal:comparison_functions",
         "//common/internal:default_message_factory",
         "//common/internal:dynamic_proto",
         "//common/internal:proto_message_factory",
@@ -169,6 +171,8 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_protobuf_protobuf_java_util",
+        "@maven//:com_google_re2j_re2j",
         "@maven//:org_jspecify_jspecify",
     ],
 )
