@@ -21,6 +21,7 @@ import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
+import dev.cel.checker.CelStandardDeclarations;
 import dev.cel.checker.ProtoTypeMask;
 import dev.cel.checker.TypeProvider;
 import dev.cel.common.CelFunctionDecl;
@@ -198,6 +199,14 @@ public interface CelCompilerBuilder {
   /** Enable or disable the standard CEL library functions and variables */
   @CanIgnoreReturnValue
   CelCompilerBuilder setStandardEnvironmentEnabled(boolean value);
+
+  /**
+   * Override the standard declarations for the type-checker. This can be used to subset the
+   * standard environment to only expose the desired declarations to the type-checker. {@link
+   * #setStandardEnvironmentEnabled(boolean)} must be set to false for this to take effect.
+   */
+  @CanIgnoreReturnValue
+  CelCompilerBuilder setStandardDeclarations(CelStandardDeclarations standardDeclarations);
 
   /** Adds one or more libraries for parsing and type-checking. */
   @CanIgnoreReturnValue
