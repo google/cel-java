@@ -238,7 +238,6 @@ bindings: {x=unknown {
 }
 }
 result:   unknown {
-  exprs: 1
 }
 
 
