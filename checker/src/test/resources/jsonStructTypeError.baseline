@@ -1,4 +1,4 @@
-ource: x["iss"] != TestAllTypes{single_int32: 1}
+Source: x["iss"] != TestAllTypes{single_int32: 1}
 declare x {
   value google.protobuf.Struct
 }

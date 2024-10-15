@@ -1,7 +1,7 @@
 Source: size([vector([1, 2]), vector([2u, -1])]) == 2
 declare vector {
-  function vector (type(T)) -> type(vector(T))
-  function vector (list(T)) -> vector(T)
+  function vector_type (type(T)) -> type(vector(T))
+  function vector_list (list(T)) -> vector(T)
 }
 =====>
 _==_(
@@ -12,13 +12,13 @@ _==_(
           1~int,
           2~int
         ]~list(int)
-      )~vector(int)^vector,
+      )~vector(int)^vector_list,
       vector(
         [
           2u~uint,
           -1~int
         ]~list(dyn)
-      )~vector(dyn)^vector
+      )~vector(dyn)^vector_list
     ]~list(vector(dyn))
   )~int^size_list,
   2~int

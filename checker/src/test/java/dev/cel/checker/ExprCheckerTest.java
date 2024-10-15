@@ -805,13 +805,13 @@ public class ExprCheckerTest extends CelBaselineTestCase {
         "vector",
         // Declare the function 'vector' to create the abstract type.
         globalOverload(
-            "vector",
+            "vector_type",
             ImmutableList.of(CelTypes.create(typeParam)),
             ImmutableList.of("T"),
             CelTypes.create(abstractType)),
         // Declare a function to create a new value of abstract type based on a list.
         globalOverload(
-            "vector",
+            "vector_list",
             ImmutableList.of(createList(typeParam)),
             ImmutableList.of("T"),
             abstractType));
@@ -820,7 +820,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     declareFunction(
         "at",
         memberOverload(
-            "at",
+            "vector_at_int",
             ImmutableList.of(abstractType, CelTypes.INT64),
             ImmutableList.of("T"),
             typeParam));
@@ -843,13 +843,13 @@ public class ExprCheckerTest extends CelBaselineTestCase {
         "vector",
         // Declare the function 'vector' to create the abstract type.
         globalOverload(
-            "vector",
+            "vector_type",
             ImmutableList.of(CelTypes.create(typeParam)),
             ImmutableList.of("T"),
             CelTypes.create(abstractType)),
         // Declare a function to create a new value of abstract type based on a list.
         globalOverload(
-            "vector",
+            "vector_list",
             ImmutableList.of(createList(typeParam)),
             ImmutableList.of("T"),
             abstractType));
@@ -870,23 +870,23 @@ public class ExprCheckerTest extends CelBaselineTestCase {
         "vector",
         // Declare the function 'vector' to create the abstract type.
         globalOverload(
-            "vector",
+            "vector_type",
             ImmutableList.of(CelTypes.create(typeParam)),
             ImmutableList.of("T"),
             CelTypes.create(abstractType)),
         // Declare a function to create a new value of abstract type based on a list.
         globalOverload(
-            "vector",
+            "vector_list",
             ImmutableList.of(createList(typeParam)),
             ImmutableList.of("T"),
             abstractType));
     declareFunction(
         "add",
         globalOverload(
-            "add",
+            "add_vector_type",
             ImmutableList.of(CelTypes.create(abstractType), CelTypes.create(abstractType)),
             ImmutableList.of("T"),
-            abstractType));
+            CelTypes.create(abstractType)));
     source = "add(vector([1, 2]), vector([2u, -1])) == vector([1, 2, 2u, -1])";
     runTest();
   }

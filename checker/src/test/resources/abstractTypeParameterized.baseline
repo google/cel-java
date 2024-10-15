@@ -1,10 +1,10 @@
 Source: type(vector([1])) == vector(dyn) && vector([1]).at(0) == 1
 declare vector {
-  function vector (type(T)) -> type(vector(T))
-  function vector (list(T)) -> vector(T)
+  function vector_type (type(T)) -> type(vector(T))
+  function vector_list (list(T)) -> vector(T)
 }
 declare at {
-  function at vector(T).(int) -> T
+  function vector_at_int vector(T).(int) -> T
 }
 =====>
 _&&_(
@@ -14,20 +14,20 @@ _&&_(
         [
           1~int
         ]~list(int)
-      )~vector(int)^vector
+      )~vector(int)^vector_list
     )~type(vector(int))^type,
     vector(
       dyn~type(dyn)^dyn
-    )~type(vector(dyn))^vector
+    )~type(vector(dyn))^vector_type
   )~bool^equals,
   _==_(
     vector(
       [
         1~int
       ]~list(int)
-    )~vector(int)^vector.at(
+    )~vector(int)^vector_list.at(
       0~int
-    )~int^at,
+    )~int^vector_at_int,
     1~int
   )~bool^equals
 )~bool^logical_and

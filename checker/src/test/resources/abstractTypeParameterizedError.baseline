@@ -1,10 +1,10 @@
 Source: add(vector([1, 2]), vector([2u, -1])) == vector([1, 2, 2u, -1])
 declare vector {
-  function vector (type(T)) -> type(vector(T))
-  function vector (list(T)) -> vector(T)
+  function vector_type (type(T)) -> type(vector(T))
+  function vector_list (list(T)) -> vector(T)
 }
 declare add {
-  function add (type(vector(T)), type(vector(T))) -> vector(T)
+  function add_vector_type (type(vector(T)), type(vector(T))) -> type(vector(T))
 }
 =====>
 ERROR: test_location:1:4: found no matching overload for 'add' applied to '(vector(int), vector(dyn))' (candidates: (type(vector(%T4)), type(vector(%T4))))
