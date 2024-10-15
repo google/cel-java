@@ -133,14 +133,6 @@ public final class InterpreterUtil {
   }
 
   public static Object valueOrUnknown(@Nullable Object valueOrThrowable, Long id) {
-    // Handle the unknown value case.
-    if (isUnknown(valueOrThrowable)) {
-      ExprValue value = (ExprValue) valueOrThrowable;
-      if (value.getUnknown().getExprsCount() != 0) {
-        return valueOrThrowable;
-      }
-      return createUnknownExprValue(id);
-    }
     // Handle the null value case.
     if (valueOrThrowable == null) {
       return createUnknownExprValue(id);
