@@ -38,7 +38,7 @@ import dev.cel.common.annotations.Internal;
 @SuppressWarnings("Immutable") // char[] is not exposed externally, thus cannot be mutated.
 public abstract class BasicCodePointArray extends CelCodePointArray {
 
-  @SuppressWarnings("AutoValueImmutableFields")
+  @SuppressWarnings("mutable")
   abstract char[] codePoints();
 
   abstract int offset();

@@ -38,7 +38,7 @@ import dev.cel.common.annotations.Internal;
 @SuppressWarnings("Immutable") // int[] is not exposed externally, thus cannot be mutated.
 public abstract class SupplementalCodePointArray extends CelCodePointArray {
 
-  @SuppressWarnings("AutoValueImmutableFields")
+  @SuppressWarnings("mutable")
   abstract int[] codePoints();
 
   abstract int offset();

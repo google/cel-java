@@ -38,7 +38,7 @@ import dev.cel.common.annotations.Internal;
 @SuppressWarnings("Immutable") // byte[] is not exposed externally, thus cannot be mutated.
 public abstract class Latin1CodePointArray extends CelCodePointArray {
 
-  @SuppressWarnings("AutoValueImmutableFields")
+  @SuppressWarnings("mutable")
   abstract byte[] codePoints();
 
   abstract int offset();
