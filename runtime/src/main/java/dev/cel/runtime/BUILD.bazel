@@ -19,6 +19,7 @@ BASE_SOURCES = [
     "TypeResolver.java",
 ]
 
+# keep sorted
 INTERPRETER_SOURCES = [
     "Activation.java",
     "CallArgumentChecker.java",
@@ -249,6 +250,7 @@ java_library(
     ],
     deps = [
         ":base",
+        ":unknown_attributes",
         "//common/annotations",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",

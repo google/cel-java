@@ -1927,6 +1927,40 @@ public final class CelImplTest {
   }
 
   @Test
+  public void program_nativeTypeUnknownsEnabled_asIdentifiers() throws Exception {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addVar("x", SimpleType.BOOL)
+            .addVar("y", SimpleType.BOOL)
+            .setOptions(CelOptions.current().adaptUnknownValueSetToNativeType(true).build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("x || y").getAst();
+
+    CelUnknownSet result = (CelUnknownSet) cel.createProgram(ast).eval();
+
+    assertThat(result.unknownExprIds()).containsExactly(1L, 3L);
+    assertThat(result.attributes()).isEmpty();
+  }
+
+  @Test
+  public void program_nativeTypeUnknownsEnabled_asCallArguments() throws Exception {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addVar("x", SimpleType.BOOL)
+            .addFunctionDeclarations(
+                newFunctionDeclaration(
+                    "foo", newGlobalOverload("foo_bool", SimpleType.BOOL, SimpleType.BOOL)))
+            .setOptions(CelOptions.current().adaptUnknownValueSetToNativeType(true).build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("foo(x)").getAst();
+
+    CelUnknownSet result = (CelUnknownSet) cel.createProgram(ast).eval();
+
+    assertThat(result.unknownExprIds()).containsExactly(2L);
+    assertThat(result.attributes()).isEmpty();
+  }
+
+  @Test
   public void toBuilder_isImmutable() {
     CelBuilder celBuilder = CelFactory.standardCelBuilder();
     CelImpl celImpl = (CelImpl) celBuilder.build();

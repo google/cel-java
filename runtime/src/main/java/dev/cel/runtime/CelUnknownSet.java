@@ -28,14 +28,35 @@ import com.google.common.collect.ImmutableSet;
  */
 @AutoValue
 public abstract class CelUnknownSet {
+
+  /**
+   * Set of attributes with a series of selection or index operations marked unknown. This set is
+   * always empty if enableUnknownTracking is disabled in {@code CelOptions}.
+   */
   public abstract ImmutableSet<CelAttribute> attributes();
 
-  public static CelUnknownSet create(ImmutableSet<CelAttribute> attributes) {
-    return new AutoValue_CelUnknownSet(attributes);
-  }
+  /** Set of subexpression IDs that were decided to be unknown and in the critical path. */
+  public abstract ImmutableSet<Long> unknownExprIds();
 
   public static CelUnknownSet create(CelAttribute attribute) {
     return create(ImmutableSet.of(attribute));
+  }
+
+  public static CelUnknownSet create(ImmutableSet<CelAttribute> attributes) {
+    return create(attributes, ImmutableSet.of());
+  }
+
+  static CelUnknownSet create(Long... unknownExprIds) {
+    return create(ImmutableSet.copyOf(unknownExprIds));
+  }
+
+  static CelUnknownSet create(Iterable<Long> unknownExprIds) {
+    return create(ImmutableSet.of(), ImmutableSet.copyOf(unknownExprIds));
+  }
+
+  private static CelUnknownSet create(
+      ImmutableSet<CelAttribute> attributes, ImmutableSet<Long> unknownExprIds) {
+    return new AutoValue_CelUnknownSet(attributes, unknownExprIds);
   }
 
   public static CelUnknownSet union(CelUnknownSet lhs, CelUnknownSet rhs) {
@@ -43,6 +64,10 @@ public abstract class CelUnknownSet {
         ImmutableSet.<CelAttribute>builder()
             .addAll(lhs.attributes())
             .addAll(rhs.attributes())
+            .build(),
+        ImmutableSet.<Long>builder()
+            .addAll(lhs.unknownExprIds())
+            .addAll(rhs.unknownExprIds())
             .build());
   }
 

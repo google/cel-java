@@ -17,9 +17,7 @@ package dev.cel.runtime;
 import dev.cel.expr.ExprValue;
 import dev.cel.expr.UnknownSet;
 import dev.cel.common.annotations.Internal;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
@@ -56,8 +54,19 @@ public final class InterpreterUtil {
    * @return boolean value if object is unknown.
    */
   public static boolean isUnknown(Object obj) {
-    return obj instanceof ExprValue
-        && ((ExprValue) obj).getKindCase() == ExprValue.KindCase.UNKNOWN;
+    if (isExprValueUnknown(obj)) {
+      return true;
+    }
+    return obj instanceof CelUnknownSet;
+  }
+
+  /** TODO: Remove once clients have been migrated. */
+  static boolean isExprValueUnknown(Object obj) {
+    if (obj instanceof ExprValue) {
+      return ((ExprValue) obj).getKindCase() == ExprValue.KindCase.UNKNOWN;
+    }
+
+    return false;
   }
 
   /**
@@ -67,7 +76,7 @@ public final class InterpreterUtil {
    * @return A new ExprValue object which has all unknown expr ids from input objects, without
    *     duplication.
    */
-  public static ExprValue combineUnknownExprValue(Object... objs) {
+  static ExprValue combineUnknownProtoExprValue(Object... objs) {
     UnknownSet.Builder unknownsetBuilder = UnknownSet.newBuilder();
     Set<Long> ids = new LinkedHashSet<>();
     for (Object object : objs) {
@@ -79,21 +88,25 @@ public final class InterpreterUtil {
     return ExprValue.newBuilder().setUnknown(unknownsetBuilder).build();
   }
 
-  /** Create a {@code ExprValue} for one or more {@code ids} representing an unknown set. */
-  public static ExprValue createUnknownExprValue(Long... ids) {
-    return createUnknownExprValue(Arrays.asList(ids));
+  static CelUnknownSet combineUnknownExprValue(Object... objs) {
+    Set<Long> ids = new LinkedHashSet<>();
+    for (Object object : objs) {
+      if (isUnknown(object)) {
+        ids.addAll(((CelUnknownSet) object).unknownExprIds());
+      }
+    }
+
+    return CelUnknownSet.create(ids);
   }
 
   /**
    * Create an ExprValue object has UnknownSet, from a list of unknown expr ids
    *
-   * @param ids List of unknown expr ids
+   * @param id unknown expr id
    * @return A new ExprValue object which has all unknown expr ids from input list
    */
-  public static ExprValue createUnknownExprValue(List<Long> ids) {
-    ExprValue.Builder exprValueBuilder = ExprValue.newBuilder();
-    exprValueBuilder.setUnknown(UnknownSet.newBuilder().addAllExprs(ids));
-    return exprValueBuilder.build();
+  private static ExprValue createUnknownExprValue(long id) {
+    return ExprValue.newBuilder().setUnknown(UnknownSet.newBuilder().addExprs(id)).build();
   }
 
   /**
@@ -104,11 +117,14 @@ public final class InterpreterUtil {
    * from any boolean arguments alone. This allows us to consolidate the error/unknown handling for
    * both of these operators.
    */
-  public static Object shortcircuitUnknownOrThrowable(Object left, Object right)
+  public static Object shortcircuitUnknownOrThrowable(
+      Object left, Object right, boolean adaptUnknownValueSetToNativeType)
       throws InterpreterException {
     // unknown <op> unknown ==> unknown combined
     if (InterpreterUtil.isUnknown(left) && InterpreterUtil.isUnknown(right)) {
-      return InterpreterUtil.combineUnknownExprValue(left, right);
+      return adaptUnknownValueSetToNativeType
+          ? InterpreterUtil.combineUnknownExprValue(left, right)
+          : InterpreterUtil.combineUnknownProtoExprValue(left, right);
     }
     // unknown <op> <error> ==> unknown
     // unknown <op> t|f ==> unknown
@@ -132,18 +148,24 @@ public final class InterpreterUtil {
         "Left or/and right object is neither bool, unknown nor error, unexpected behavior.");
   }
 
-  public static Object valueOrUnknown(@Nullable Object valueOrThrowable, Long id) {
+  public static Object valueOrUnknown(
+      @Nullable Object valueOrThrowable, Long id, boolean adaptUnknownValueSet) {
     // Handle the unknown value case.
     if (isUnknown(valueOrThrowable)) {
-      ExprValue value = (ExprValue) valueOrThrowable;
-      if (value.getUnknown().getExprsCount() != 0) {
-        return valueOrThrowable;
+      if (adaptUnknownValueSet) {
+        return CelUnknownSet.create(id);
+      } else {
+        // TODO: Remove once clients have been migrated.
+        ExprValue value = (ExprValue) valueOrThrowable;
+        if (value.getUnknown().getExprsCount() != 0) {
+          return valueOrThrowable;
+        }
+        return createUnknownExprValue(id);
       }
-      return createUnknownExprValue(id);
     }
     // Handle the null value case.
     if (valueOrThrowable == null) {
-      return createUnknownExprValue(id);
+      return adaptUnknownValueSet ? CelUnknownSet.create(id) : createUnknownExprValue(id);
     }
     return valueOrThrowable;
   }
