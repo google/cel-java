@@ -19,16 +19,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
-import com.google.errorprone.annotations.concurrent.GuardedBy;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.DynamicProto;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Default implementation of {@link Dispatcher}.
@@ -88,20 +87,18 @@ public final class DefaultDispatcher implements Dispatcher, Registrar {
     }
   }
 
-  @GuardedBy("this")
-  private final Map<String, Overload> overloads = new HashMap<>();
+  private final ConcurrentHashMap<String, Overload> overloads = new ConcurrentHashMap<>();
 
   @Override
   @SuppressWarnings("unchecked")
-  public synchronized <T> void add(
-      String overloadId, Class<T> argType, final UnaryFunction<T> function) {
+  public <T> void add(String overloadId, Class<T> argType, final UnaryFunction<T> function) {
     overloads.put(
         overloadId, new Overload(new Class<?>[] {argType}, args -> function.apply((T) args[0])));
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public synchronized <T1, T2> void add(
+  public <T1, T2> void add(
       String overloadId,
       Class<T1> argType1,
       Class<T2> argType2,
@@ -114,7 +111,7 @@ public final class DefaultDispatcher implements Dispatcher, Registrar {
   }
 
   @Override
-  public synchronized void add(String overloadId, List<Class<?>> argTypes, Function function) {
+  public void add(String overloadId, List<Class<?>> argTypes, Function function) {
     overloads.put(overloadId, new Overload(argTypes.toArray(new Class<?>[0]), function));
   }
 
@@ -168,14 +165,14 @@ public final class DefaultDispatcher implements Dispatcher, Registrar {
   }
 
   @Override
-  public synchronized Object dispatch(
+  public Object dispatch(
       Metadata metadata, long exprId, String functionName, List<String> overloadIds, Object[] args)
       throws InterpreterException {
     return dispatch(metadata, exprId, functionName, overloadIds, overloads, args);
   }
 
   @Override
-  public synchronized Dispatcher.ImmutableCopy immutableCopy() {
+  public Dispatcher.ImmutableCopy immutableCopy() {
     return new ImmutableCopy(overloads);
   }
 
