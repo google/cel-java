@@ -266,7 +266,9 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       }
 
       return new CelRuntimeLegacyImpl(
-          new DefaultInterpreter(runtimeTypeProvider, dispatcher, options), options, this);
+          new DefaultInterpreter(runtimeTypeProvider, dispatcher.immutableCopy(), options),
+          options,
+          this);
     }
 
     private static CelDescriptorPool newDescriptorPool(
