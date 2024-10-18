@@ -126,8 +126,11 @@ public abstract class CelAbstractSyntaxTree {
   }
 
   public CelReference getReferenceOrThrow(long exprId) {
-    return getReference(exprId)
-        .orElseThrow(() -> new NoSuchElementException("Expr Id not found: " + exprId));
+    var maybeRef = getReference(exprId);
+    if (maybeRef.isEmpty()) {
+      throw new NoSuchElementException("Expr Id not found: " + exprId);
+    }
+    return maybeRef.get();
   }
 
   Optional<CelConstant> findEnumValue(long exprId) {
