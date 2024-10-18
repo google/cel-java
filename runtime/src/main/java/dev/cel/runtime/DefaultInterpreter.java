@@ -222,12 +222,8 @@ public final class DefaultInterpreter implements Interpreter {
       }
     }
 
-    private static boolean isUnknownValue(Object value) {
+    private boolean isUnknownValue(Object value) {
       return value instanceof CelUnknownSet || InterpreterUtil.isUnknown(value);
-    }
-
-    private static boolean isUnknownOrError(Object value) {
-      return isUnknownValue(value) || value instanceof Exception;
     }
 
     private Object evalConstant(
@@ -597,10 +593,6 @@ public final class DefaultInterpreter implements Interpreter {
         throws InterpreterException {
       CelExpr typeExprArg = callExpr.args().get(0);
       IntermediateResult argResult = evalInternal(frame, typeExprArg);
-      // Type is a strict function. Early return if the argument is an error or an unknown.
-      if (isUnknownOrError(argResult.value())) {
-        return argResult;
-      }
 
       CelType checkedType =
           ast.getType(typeExprArg.id())
@@ -690,7 +682,9 @@ public final class DefaultInterpreter implements Interpreter {
         throws InterpreterException {
       IntermediateResult value = strict ? evalInternal(frame, expr) : evalNonstrictly(frame, expr);
 
-      if (!(value.value() instanceof Boolean) && !isUnknownOrError(value.value())) {
+      if (!(value.value() instanceof Boolean)
+          && !isUnknownValue(value.value())
+          && !(value.value() instanceof Exception)) {
         throw new InterpreterException.Builder("expected boolean value, found: %s", value.value())
             .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
             .setLocation(metadata, expr.id())

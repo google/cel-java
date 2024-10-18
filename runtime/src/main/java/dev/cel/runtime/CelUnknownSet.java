@@ -46,7 +46,7 @@ public abstract class CelUnknownSet {
     return create(attributes, ImmutableSet.of());
   }
 
-  public static CelUnknownSet create(Long... unknownExprIds) {
+  static CelUnknownSet create(Long... unknownExprIds) {
     return create(ImmutableSet.copyOf(unknownExprIds));
   }
 
