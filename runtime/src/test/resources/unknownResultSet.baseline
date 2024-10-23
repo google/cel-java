@@ -515,3 +515,30 @@ result:   unknown {
   exprs: 3
   exprs: 6
 }
+
+
+Source: type(x.single_int32)
+declare x {
+  value google.api.expr.test.v1.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {}
+result:   unknown {
+  exprs: 2
+}
+
+
+Source: type(1 / 0 > 2)
+declare x {
+  value google.api.expr.test.v1.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {}
+error:    evaluation error: / by zero
+error_code:    DIVIDE_BY_ZERO

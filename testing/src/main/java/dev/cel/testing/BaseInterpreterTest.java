@@ -1298,6 +1298,14 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     // message with multiple unknowns => unknownSet
     source = "TestAllTypes{single_int32: x.single_int32, single_int64: x.single_int64}";
     runTest();
+
+    // type(unknown) -> unknown
+    source = "type(x.single_int32)";
+    runTest();
+
+    // type(error) -> error
+    source = "type(1 / 0 > 2)";
+    runTest();
   }
 
   @Test
