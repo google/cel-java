@@ -613,6 +613,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
       // means that the depth check on the AST during parsing will catch recursion overflows
       // before we get to here.
       expr.call().args().forEach(arg -> callExpr.addArgs(buildMacroCallArgs(arg)));
+      expr.call().target().ifPresent(target -> callExpr.setTarget(buildMacroCallArgs(target)));
       return resultExpr.setCall(callExpr.build()).build();
     }
     return expr;
