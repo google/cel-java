@@ -73,7 +73,7 @@ java_library(
     ],
     visibility = ["//visibility:private"],
     deps = [
-        "//checker:checker_legacy_environment",
+        "//checker:standard_decl",
         "//extensions",
         "//extensions:optional_library",
         "//parser:operator",
