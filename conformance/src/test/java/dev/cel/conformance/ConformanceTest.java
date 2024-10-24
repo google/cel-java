@@ -19,7 +19,6 @@ import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 
 import dev.cel.expr.Decl;
 import com.google.api.expr.test.v1.SimpleProto.SimpleTest;
-import com.google.api.expr.test.v1.proto2.TestAllTypesExtensions;
 import com.google.api.expr.v1alpha1.ExprValue;
 import com.google.api.expr.v1alpha1.ListValue;
 import com.google.api.expr.v1alpha1.MapValue;
@@ -69,8 +68,7 @@ public final class ConformanceTest extends Statement {
 
   private static ExtensionRegistry newDefaultExtensionRegistry() {
     ExtensionRegistry extensionRegistry = ExtensionRegistry.newInstance();
-    com.google.api.expr.test.v1.proto2.TestAllTypesExtensions.registerAllExtensions(
-        extensionRegistry);
+    dev.cel.expr.conformance.proto2.TestAllTypesExtensions.registerAllExtensions(extensionRegistry);
 
     return extensionRegistry;
   }
@@ -79,12 +77,9 @@ public final class ConformanceTest extends Statement {
     CelDescriptors allDescriptors =
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
             ImmutableList.of(
-                com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes.getDescriptor()
-                    .getFile(),
-                com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes.getDescriptor()
-                    .getFile(),
-                com.google.api.expr.test.v1.proto2.TestAllTypesExtensions.getDescriptor()
-                    .getFile()));
+                dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor().getFile(),
+                dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor().getFile(),
+                dev.cel.expr.conformance.proto2.TestAllTypesExtensions.getDescriptor().getFile()));
 
     return TypeRegistry.newBuilder().add(allDescriptors.messageTypeDescriptors()).build();
   }
@@ -140,7 +135,7 @@ public final class ConformanceTest extends Statement {
         .setOptions(OPTIONS)
         .setContainer(test.getContainer())
         .addDeclarations(decls.build())
-        .addFileTypes(TestAllTypesExtensions.getDescriptor())
+        .addFileTypes(dev.cel.expr.conformance.proto2.TestAllTypesExtensions.getDescriptor())
         .addLibraries(
             CelExtensions.bindings(),
             CelExtensions.encoders(),
@@ -148,10 +143,8 @@ public final class ConformanceTest extends Statement {
             CelExtensions.sets(),
             CelExtensions.strings(),
             CelOptionalLibrary.INSTANCE)
-        .addMessageTypes(
-            com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes.getDescriptor())
-        .addMessageTypes(
-            com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes.getDescriptor())
+        .addMessageTypes(dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor())
+        .addMessageTypes(dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor())
         .build();
   }
 
@@ -164,10 +157,8 @@ public final class ConformanceTest extends Statement {
               CelExtensions.sets(),
               CelExtensions.strings(),
               CelOptionalLibrary.INSTANCE)
-          .addMessageTypes(
-              com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes.getDescriptor())
-          .addMessageTypes(
-              com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes.getDescriptor())
+          .addMessageTypes(dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor())
+          .addMessageTypes(dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor())
           .build();
 
   private static ImmutableMap<String, Object> getBindings(SimpleTest test) throws Exception {
