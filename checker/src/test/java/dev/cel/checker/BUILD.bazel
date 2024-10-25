@@ -11,7 +11,6 @@ java_library(
     srcs = glob(["*Test.java"]),
     resources = ["//checker/src/test/resources:baselines"],
     deps = [
-        "@maven//:com_google_protobuf_protobuf_java",
         #         "//java/com/google/testing/testsize:annotations",
         "//:auto_value",
         "//checker",
@@ -50,6 +49,7 @@ java_library(
         "@cel_spec//proto/test/v1/proto3:test_all_types_java_proto",
         "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
