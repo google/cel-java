@@ -6,12 +6,6 @@ labels: ''
 
 ---
 
----
-name: Feature request
-about: Suggest an idea for this project
-
----
-
 **Feature request checklist**
 
 - [ ] There are no issues that match the desired change
