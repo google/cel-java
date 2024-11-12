@@ -14,7 +14,6 @@
 
 package dev.cel.runtime;
 
-import dev.cel.expr.CheckedExpr;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.annotations.Internal;
@@ -27,16 +26,6 @@ import dev.cel.common.annotations.Internal;
 @ThreadSafe
 @Internal
 public interface Interpreter {
-
-  /**
-   * Creates an interpretable for the given expression.
-   *
-   * <p>This method may run pre-processing and partial evaluation of the expression it gets passed.
-   *
-   * @deprecated Use {@link #createInterpretable(CelAbstractSyntaxTree)} instead.
-   */
-  @Deprecated
-  Interpretable createInterpretable(CheckedExpr checkedExpr) throws InterpreterException;
 
   /**
    * Creates an interpretable for the given expression.

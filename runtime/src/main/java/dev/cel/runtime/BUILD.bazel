@@ -45,7 +45,6 @@ java_library(
     ],
     deps = [
         ":runtime_helper",
-        "//:auto_value",
         "//common",
         "//common:error_codes",
         "//common:options",
@@ -85,7 +84,6 @@ java_library(
         "//common:error_codes",
         "//common:features",
         "//common:options",
-        "//common:proto_ast",
         "//common:runtime_exception",
         "//common/annotations",
         "//common/ast",

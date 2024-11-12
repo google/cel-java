@@ -14,7 +14,6 @@
 
 package dev.cel.runtime;
 
-import dev.cel.expr.CheckedExpr;
 import dev.cel.expr.Value;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
@@ -24,7 +23,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
@@ -120,12 +118,6 @@ public final class DefaultInterpreter implements Interpreter {
     this.typeProvider = Preconditions.checkNotNull(typeProvider);
     this.dispatcher = Preconditions.checkNotNull(dispatcher);
     this.celOptions = celOptions;
-  }
-
-  @Override
-  @Deprecated
-  public Interpretable createInterpretable(CheckedExpr checkedExpr) {
-    return createInterpretable(CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst());
   }
 
   @Override
