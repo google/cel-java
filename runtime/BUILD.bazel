@@ -6,6 +6,11 @@ package(
 )
 
 java_library(
+    name = "base",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:base"],
+)
+
+java_library(
     name = "runtime",
     exports = ["//runtime/src/main/java/dev/cel/runtime"],
 )
