@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 202 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,9 +14,11 @@
 
 package dev.cel.runtime;
 
-import com.google.errorprone.annotations.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
 
-/** Interface describing the general signature of all CEL custom function implementations. */
-@Immutable
-@FunctionalInterface
-public interface CelFunctionOverload extends FunctionOverload {}
+/**
+ * Interface to a resolver for CEL functions based on the function name, overload ids, and
+ * arguments.
+ */
+@ThreadSafe
+public interface CelFunctionResolver extends FunctionResolver {}

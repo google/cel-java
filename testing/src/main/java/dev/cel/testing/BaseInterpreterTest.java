@@ -33,6 +33,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import com.google.common.primitives.UnsignedLong;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
@@ -69,6 +71,7 @@ import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypes;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.CelLateFunctionBindings;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeFactory;
@@ -77,6 +80,7 @@ import dev.cel.runtime.RuntimeHelpers;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -157,12 +161,17 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   }
 
   private Object runTest(CelVariableResolver variableResolver) {
-    return runTestInternal(variableResolver);
+    return runTestInternal(variableResolver, Optional.empty());
   }
 
   /** Helper to run a test for configured instance variables. */
   private Object runTest(Map<String, ?> input) {
-    return runTestInternal(input);
+    return runTestInternal(input, Optional.empty());
+  }
+
+  /** Helper to run a test for configured instance variables. */
+  private Object runTest(Map<String, ?> input, CelLateFunctionBindings lateFunctionBindings) {
+    return runTestInternal(input, Optional.of(lateFunctionBindings));
   }
 
   /**
@@ -170,16 +179,27 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
    * CelVariableResolver}.
    */
   @SuppressWarnings("unchecked")
-  private Object runTestInternal(Object input) {
+  private Object runTestInternal(
+      Object input, Optional<CelLateFunctionBindings> lateFunctionBindings) {
     CelAbstractSyntaxTree ast = compileTestCase();
     printBinding(input);
     Object result = null;
     try {
       CelRuntime.Program program = celRuntime.createProgram(ast);
-      result =
-          input instanceof Map
-              ? program.eval(((Map<String, ?>) input))
-              : program.eval((CelVariableResolver) input);
+      if (lateFunctionBindings.isPresent()) {
+        if (input instanceof Map) {
+          Map<String, ?> map = ((Map<String, ?>) input);
+          CelVariableResolver variableResolver = (name) -> Optional.ofNullable(map.get(name));
+          result = program.eval(variableResolver, lateFunctionBindings.get());
+        } else {
+          result = program.eval((CelVariableResolver) input, lateFunctionBindings.get());
+        }
+      } else {
+        result =
+            input instanceof Map
+                ? program.eval(((Map<String, ?>) input))
+                : program.eval((CelVariableResolver) input);
+      }
       if (result instanceof ByteString) {
         // Note: this call may fail for printing byte sequences that are not valid UTF-8, but works
         // pretty well for test purposes.
@@ -2171,6 +2191,38 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     assertThat(runTest(input)).isInstanceOf(Boolean.class);
     source = "f_msg(test_msg)";
     assertThat(runTest(input)).isInstanceOf(Boolean.class);
+  }
+
+  @Immutable
+  private static final class RecordedValues {
+    @SuppressWarnings("Immutable")
+    private final Map<String, Object> recordedValues = new HashMap<>();
+
+    @CanIgnoreReturnValue
+    public Object record(String key, Object value) {
+      recordedValues.put(key, value);
+      return value;
+    }
+
+    public ImmutableMap<String, Object> getRecordedValues() {
+      return ImmutableMap.copyOf(recordedValues);
+    }
+  }
+
+  @Test
+  public void lateBoundFunctions() throws Exception {
+    RecordedValues recordedValues = new RecordedValues();
+    CelLateFunctionBindings lateBindings =
+        CelLateFunctionBindings.from(
+            CelFunctionBinding.from(
+                "record_string_dyn", String.class, Object.class, recordedValues::record));
+    declareFunction(
+        "record",
+        globalOverload(
+            "record_string_dyn", ImmutableList.of(CelTypes.STRING, CelTypes.DYN), CelTypes.DYN));
+    source = "record('foo', 'bar')";
+    assertThat(runTest(ImmutableMap.of(), lateBindings)).isEqualTo("bar");
+    assertThat(recordedValues.getRecordedValues()).containsExactly("foo", "bar");
   }
 
   /**

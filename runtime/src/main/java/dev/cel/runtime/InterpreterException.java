@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelException;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.SafeStringFormatter;
@@ -31,12 +32,7 @@ import org.jspecify.annotations.Nullable;
  * <p>CEL Library Internals. Do Not Use.
  */
 @Internal
-public class InterpreterException extends Exception {
-  private final CelErrorCode errorCode;
-
-  public CelErrorCode getErrorCode() {
-    return errorCode;
-  }
+public class InterpreterException extends CelException {
 
   /** Builder for InterpreterException. */
   public static class Builder {
@@ -100,8 +96,24 @@ public class InterpreterException extends Exception {
     }
   }
 
+  public static InterpreterException wrapOrThrow(Metadata metadata, long exprId, Exception e) {
+    if (e instanceof InterpreterException) {
+      return (InterpreterException) e;
+    }
+    if (e instanceof CelException) {
+      return new InterpreterException.Builder(e.getMessage())
+          .setCause(e.getCause())
+          .setErrorCode(((CelException) e).getErrorCode())
+          .build();
+    }
+    return new InterpreterException.Builder(e.getMessage()).setCause(e).build();
+  }
+
+  public static InterpreterException wrapOrThrow(Exception e) {
+    return wrapOrThrow(null, 0, e);
+  }
+
   private InterpreterException(String message, Throwable cause, CelErrorCode errorCode) {
-    super(message, cause);
-    this.errorCode = errorCode;
+    super(message, cause, errorCode);
   }
 }

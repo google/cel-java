@@ -1,4 +1,4 @@
-// Copyright 2022 Google LLC
+// Copyright 2024 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,42 +15,33 @@
 package dev.cel.runtime;
 
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.annotations.Internal;
-import java.util.List;
+import dev.cel.common.CelException;
 
-/**
- * An object which registers the functions that a {@link Dispatcher} calls.
- *
- * <p>CEL Library Internals. Do Not Use.
- */
-@Internal
-public interface Registrar {
+/** Interface describing the general signature of all CEL custom function implementations. */
+@FunctionalInterface
+@Immutable
+public interface FunctionOverload {
 
-  /** Interface describing the general signature of all CEL custom function implementations. */
-  @Immutable
-  interface Function extends FunctionOverload {}
+  /** Evaluate a set of arguments throwing a {@code CelException} on error. */
+  Object apply(Object[] args) throws CelException;
 
   /**
    * Helper interface for describing unary functions where the type-parameter is used to improve
    * compile-time correctness of function bindings.
    */
   @Immutable
-  interface UnaryFunction<T> extends FunctionOverload.Unary<T> {}
+  @FunctionalInterface
+  interface Unary<T> {
+    Object apply(T arg) throws CelException;
+  }
 
   /**
    * Helper interface for describing binary functions where the type parameters are used to improve
    * compile-time correctness of function bindings.
    */
   @Immutable
-  interface BinaryFunction<T1, T2> extends FunctionOverload.Binary<T1, T2> {}
-
-  /** Adds a unary function to the dispatcher. */
-  <T> void add(String overloadId, Class<T> argType, UnaryFunction<T> function);
-
-  /** Adds a binary function to the dispatcher. */
-  <T1, T2> void add(
-      String overloadId, Class<T1> argType1, Class<T2> argType2, BinaryFunction<T1, T2> function);
-
-  /** Adds a general function to the dispatcher. */
-  void add(String overloadId, List<Class<?>> argTypes, Function function);
+  @FunctionalInterface
+  interface Binary<T1, T2> {
+    Object apply(T1 arg1, T2 arg2) throws CelException;
+  }
 }

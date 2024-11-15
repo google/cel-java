@@ -16,12 +16,14 @@ package dev.cel.runtime;
 
 import dev.cel.expr.Value;
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelException;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
@@ -158,15 +160,32 @@ public final class DefaultInterpreter implements Interpreter {
       return evalTrackingUnknowns(
           RuntimeUnknownResolver.fromResolver(
               resolver, celOptions.adaptUnknownValueSetToNativeType()),
+          Optional.empty(),
+          listener);
+    }
+
+    @Override
+    public Object eval(
+        GlobalResolver resolver,
+        FunctionResolver lateBoundFunctionResolver,
+        CelEvaluationListener listener)
+        throws InterpreterException {
+      return evalTrackingUnknowns(
+          RuntimeUnknownResolver.fromResolver(
+              resolver, celOptions.adaptUnknownValueSetToNativeType()),
+          Optional.of(lateBoundFunctionResolver),
           listener);
     }
 
     @Override
     public Object evalTrackingUnknowns(
-        RuntimeUnknownResolver resolver, CelEvaluationListener listener)
+        RuntimeUnknownResolver resolver,
+        Optional<? extends FunctionResolver> functionResolver,
+        CelEvaluationListener listener)
         throws InterpreterException {
       ExecutionFrame frame =
-          new ExecutionFrame(listener, resolver, celOptions.comprehensionMaxIterations());
+          new ExecutionFrame(
+              listener, resolver, functionResolver, celOptions.comprehensionMaxIterations());
       IntermediateResult internalResult = evalInternal(frame, ast.getExpr());
       return internalResult.value();
     }
@@ -407,14 +426,53 @@ public final class DefaultInterpreter implements Interpreter {
       }
 
       Object[] argArray = Arrays.stream(argResults).map(IntermediateResult::value).toArray();
-
-      Object dispatchResult =
-          dispatcher.dispatch(
-              metadata, expr.id(), callExpr.function(), reference.overloadIds(), argArray);
-      if (celOptions.unwrapWellKnownTypesOnFunctionDispatch()) {
-        dispatchResult = typeProvider.adapt(dispatchResult);
+      ImmutableList<String> overloadIds = reference.overloadIds();
+      ResolvedOverload overload =
+          findOverloadOrThrow(frame, expr, callExpr.function(), overloadIds, argArray);
+      try {
+        Object dispatchResult = overload.getDefinition().apply(argArray);
+        if (celOptions.unwrapWellKnownTypesOnFunctionDispatch()) {
+          dispatchResult = typeProvider.adapt(dispatchResult);
+        }
+        return IntermediateResult.create(attr, dispatchResult);
+      } catch (CelException ce) {
+        throw InterpreterException.wrapOrThrow(metadata, expr.id(), ce);
+      } catch (RuntimeException e) {
+        throw new InterpreterException.Builder(
+                e,
+                "Function '%s' failed with arg(s) '%s'",
+                overload.getOverloadId(),
+                Joiner.on(", ").join(argArray))
+            .build();
       }
-      return IntermediateResult.create(attr, dispatchResult);
+    }
+
+    private ResolvedOverload findOverloadOrThrow(
+        ExecutionFrame frame,
+        CelExpr expr,
+        String functionName,
+        List<String> overloadIds,
+        Object[] args)
+        throws InterpreterException {
+      try {
+        Optional<ResolvedOverload> funcImpl =
+            dispatcher.findOverload(functionName, overloadIds, args);
+        if (funcImpl.isPresent()) {
+          return funcImpl.get();
+        }
+        return frame
+            .findOverload(functionName, overloadIds, args)
+            .orElseThrow(
+                () ->
+                    new InterpreterException.Builder(
+                            "No matching overload for function '%s'. Overload candidates: %s",
+                            functionName, Joiner.on(",").join(overloadIds))
+                        .setErrorCode(CelErrorCode.OVERLOAD_NOT_FOUND)
+                        .setLocation(metadata, expr.id())
+                        .build());
+      } catch (CelException e) {
+        throw InterpreterException.wrapOrThrow(metadata, expr.id(), e);
+      }
     }
 
     private Optional<CelAttribute> maybeContainerIndexAttribute(
@@ -937,16 +995,19 @@ public final class DefaultInterpreter implements Interpreter {
     private final CelEvaluationListener evaluationListener;
     private final int maxIterations;
     private final ArrayDeque<RuntimeUnknownResolver> resolvers;
+    private final Optional<? extends FunctionResolver> lateBoundFunctionResolver;
     private RuntimeUnknownResolver currentResolver;
     private int iterations;
 
     private ExecutionFrame(
         CelEvaluationListener evaluationListener,
         RuntimeUnknownResolver resolver,
+        Optional<? extends FunctionResolver> lateBoundFunctionResolver,
         int maxIterations) {
       this.evaluationListener = evaluationListener;
       this.resolvers = new ArrayDeque<>();
       this.resolvers.add(resolver);
+      this.lateBoundFunctionResolver = lateBoundFunctionResolver;
       this.currentResolver = resolver;
       this.maxIterations = maxIterations;
     }
@@ -957,6 +1018,14 @@ public final class DefaultInterpreter implements Interpreter {
 
     private RuntimeUnknownResolver getResolver() {
       return currentResolver;
+    }
+
+    private Optional<ResolvedOverload> findOverload(
+        String function, List<String> overloadIds, Object[] args) throws CelException {
+      if (lateBoundFunctionResolver.isPresent()) {
+        return lateBoundFunctionResolver.get().findOverload(function, overloadIds, args);
+      }
+      return Optional.empty();
     }
 
     private void incrementIterations() throws InterpreterException {
