@@ -14,6 +14,7 @@
 
 package dev.cel.runtime;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
 import java.util.List;
@@ -26,23 +27,33 @@ import java.util.List;
 @Internal
 public interface Registrar {
 
-  /** Interface describing the general signature of all CEL custom function implementations. */
+  /** Interface to a general function. */
   @Immutable
-  interface Function extends FunctionOverload {}
+  @FunctionalInterface
+  interface Function {
+    @CanIgnoreReturnValue
+    Object apply(Object[] args) throws InterpreterException;
+  }
 
   /**
-   * Helper interface for describing unary functions where the type-parameter is used to improve
-   * compile-time correctness of function bindings.
+   * Interface to a typed unary function without activation argument. Convenience for the {@code
+   * add} methods.
    */
   @Immutable
-  interface UnaryFunction<T> extends FunctionOverload.Unary<T> {}
+  @FunctionalInterface
+  interface UnaryFunction<T> {
+    Object apply(T arg) throws InterpreterException;
+  }
 
   /**
-   * Helper interface for describing binary functions where the type parameters are used to improve
-   * compile-time correctness of function bindings.
+   * Interface to a typed binary function without activation argument. Convenience for the {@code
+   * add} methods.
    */
   @Immutable
-  interface BinaryFunction<T1, T2> extends FunctionOverload.Binary<T1, T2> {}
+  @FunctionalInterface
+  interface BinaryFunction<T1, T2> {
+    Object apply(T1 arg1, T2 arg2) throws InterpreterException;
+  }
 
   /** Adds a unary function to the dispatcher. */
   <T> void add(String overloadId, Class<T> argType, UnaryFunction<T> function);

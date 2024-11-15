@@ -15,7 +15,6 @@
 package dev.cel.runtime;
 
 import dev.cel.common.annotations.Internal;
-import java.util.Optional;
 
 /**
  * An interpretable that allows for tracking unknowns at runtime.
@@ -24,18 +23,6 @@ import java.util.Optional;
  */
 @Internal
 public interface UnknownTrackingInterpretable {
-  /**
-   * Runs interpretation with the given activation which supplies name/value bindings with the
-   * ability to track and resolve unknown variables as they are encountered.
-   *
-   * <p>This method allows for late-binding functions to be provided per-evaluation, which can be
-   * useful for binding functions which might have side-effects that are not observable to CEL
-   * directly such as recording telemetry or evaluation state in a more granular fashion than a more
-   * general evaluation listener might permit.
-   */
-  Object evalTrackingUnknowns(
-      RuntimeUnknownResolver resolver,
-      Optional<? extends FunctionResolver> lateBoundFunctionResolver,
-      CelEvaluationListener listener)
+  Object evalTrackingUnknowns(RuntimeUnknownResolver resolver, CelEvaluationListener listener)
       throws InterpreterException;
 }

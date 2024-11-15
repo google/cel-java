@@ -10,13 +10,10 @@ package(
 
 BASE_SOURCES = [
     "DefaultMetadata.java",
-    "FunctionResolver.java",
-    "FunctionOverload.java",
     "InterpreterException.java",
     "MessageProvider.java",
     "Metadata.java",
     "Registrar.java",
-    "ResolvedOverload.java",
     "StandardFunctions.java",
     "StandardTypeResolver.java",
     "TypeResolver.java",
@@ -48,7 +45,6 @@ java_library(
     ],
     deps = [
         ":runtime_helper",
-        "//:auto_value",
         "//common",
         "//common:error_codes",
         "//common:options",
@@ -62,7 +58,6 @@ java_library(
         "//common/types",
         "//common/types:type_providers",
         "@cel_spec//proto/cel/expr:expr_java_proto",
-        "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -137,9 +132,6 @@ java_library(
 RUNTIME_SOURCES = [
     "CelEvaluationException.java",
     "CelFunctionOverload.java",
-    "CelFunctionResolver.java",
-    "CelLateFunctionBindings.java",
-    "CelResolvedOverload.java",
     "CelRuntime.java",
     "CelRuntimeBuilder.java",
     "CelRuntimeFactory.java",

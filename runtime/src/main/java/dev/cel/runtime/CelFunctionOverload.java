@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2022 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,4 +19,28 @@ import com.google.errorprone.annotations.Immutable;
 /** Interface describing the general signature of all CEL custom function implementations. */
 @Immutable
 @FunctionalInterface
-public interface CelFunctionOverload extends FunctionOverload {}
+public interface CelFunctionOverload {
+
+  /** Evaluate a set of arguments throwing a {@code CelEvaluationException} on error. */
+  Object apply(Object[] args) throws CelEvaluationException;
+
+  /**
+   * Helper interface for describing unary functions where the type-parameter is used to improve
+   * compile-time correctness of function bindings.
+   */
+  @Immutable
+  @FunctionalInterface
+  interface Unary<T> {
+    Object apply(T arg) throws CelEvaluationException;
+  }
+
+  /**
+   * Helper interface for describing binary functions where the type parameters are used to improve
+   * compile-time correctness of function bindings.
+   */
+  @Immutable
+  @FunctionalInterface
+  interface Binary<T1, T2> {
+    Object apply(T1 arg1, T2 arg2) throws CelEvaluationException;
+  }
+}

@@ -41,7 +41,6 @@ java_library(
         "//runtime:runtime_helper",
         "//runtime:unknown_attributes",
         "//runtime:unknown_options",
-        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
         "@cel_spec//proto/test/v1/proto2:test_all_types_java_proto",
         "@cel_spec//proto/test/v1/proto3:test_all_types_java_proto",
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",

@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.annotations.Internal;
+import java.util.List;
 
 /**
  * An object which implements dispatching of function calls.
@@ -25,7 +26,24 @@ import dev.cel.common.annotations.Internal;
  */
 @ThreadSafe
 @Internal
-public interface Dispatcher extends FunctionResolver {
+public interface Dispatcher {
+
+  /**
+   * Invokes a function based on given parameters.
+   *
+   * @param metadata Metadata used for error reporting.
+   * @param exprId Expression identifier which can be used together with {@code metadata} to get
+   *     information about the dispatch target for error reporting.
+   * @param functionName the logical name of the function being invoked.
+   * @param overloadIds A list of function overload ids. The dispatcher selects the unique overload
+   *     from this list with matching arguments.
+   * @param args The arguments to pass to the function.
+   * @return The result of the function call.
+   * @throws InterpreterException if something goes wrong.
+   */
+  Object dispatch(
+      Metadata metadata, long exprId, String functionName, List<String> overloadIds, Object[] args)
+      throws InterpreterException;
 
   /**
    * Returns an {@link ImmutableCopy} from current instance.

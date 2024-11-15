@@ -89,9 +89,7 @@ public class CelExtensionsTest {
 
     assertThat(exception)
         .hasMessageThat()
-        .contains(
-            "No matching overload for function 'substring'. Overload candidates:"
-                + " string_substring_int_int");
+        .contains("Unknown overload id 'string_substring_int_int' for function 'substring'");
   }
 
   @Test

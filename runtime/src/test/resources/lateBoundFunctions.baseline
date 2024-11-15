@@ -1,7 +1,0 @@
-Source: record('foo', 'bar')
-declare record {
-  function record_string_dyn (string, dyn) -> dyn
-}
-=====>
-bindings: {}
-result:   bar
