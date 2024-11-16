@@ -202,7 +202,7 @@ public abstract class CelOptions {
         .enableCelValue(false)
         .comprehensionMaxIterations(-1)
         .unwrapWellKnownTypesOnFunctionDispatch(true)
-        .adaptUnknownValueSetToNativeType(false)
+        .adaptUnknownValueSetToNativeType(true)
         .fromProtoUnsetFieldOption(ProtoUnsetFieldOptions.BIND_DEFAULT);
   }
 

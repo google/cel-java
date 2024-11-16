@@ -4,10 +4,7 @@ declare x {
 }
 =====>
 bindings: {}
-result:   unknown {
-  exprs: 1
-}
-
+result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: x.map_int32_int64[22]
 declare x {
@@ -15,10 +12,7 @@ declare x {
 }
 =====>
 bindings: {}
-result:   unknown {
-  exprs: 1
-}
-
+result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: x.repeated_nested_message[1]
 declare x {
@@ -26,10 +20,7 @@ declare x {
 }
 =====>
 bindings: {}
-result:   unknown {
-  exprs: 1
-}
-
+result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: x.single_timestamp.getSeconds()
 declare x {
@@ -37,10 +28,7 @@ declare x {
 }
 =====>
 bindings: {}
-result:   unknown {
-  exprs: 1
-}
-
+result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: x.single_nested_message.bb
 declare x {
@@ -48,10 +36,7 @@ declare x {
 }
 =====>
 bindings: {}
-result:   unknown {
-  exprs: 1
-}
-
+result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: {1: x.single_int32}
 declare x {
@@ -59,10 +44,7 @@ declare x {
 }
 =====>
 bindings: {}
-result:   unknown {
-  exprs: 4
-}
-
+result:   CelUnknownSet{attributes=[], unknownExprIds=[4]}
 
 Source: [1, x.single_int32]
 declare x {
@@ -70,6 +52,4 @@ declare x {
 }
 =====>
 bindings: {}
-result:   unknown {
-  exprs: 3
-}
+result:   CelUnknownSet{attributes=[], unknownExprIds=[3]}
