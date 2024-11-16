@@ -273,4 +273,18 @@ public final class CelUnparserImplTest {
             "Comprehension unparsing requires macro calls to be populated. Ensure the option is"
                 + " enabled.");
   }
+
+  @Test
+  public void unparse_macroWithReceiverStyleArg() throws Exception {
+    CelParser parser =
+        CelParserImpl.newBuilder()
+            .setOptions(CelOptions.newBuilder().populateMacroCalls(true).build())
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .build();
+    CelAbstractSyntaxTree ast =
+        parser.parse("[\"a\"].all(x, x.trim().lowerAscii().contains(\"b\"))").getAst();
+
+    assertThat(unparser.unparse(ast))
+        .isEqualTo("[\"a\"].all(x, x.trim().lowerAscii().contains(\"b\"))");
+  }
 }
