@@ -556,10 +556,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   }
 
   private boolean containsComprehensionIdentInSubexpr(CelNavigableMutableExpr navExpr) {
-    if (!cseOptions.retainComprehensionStructure()) {
-      return true;
-    }
-
     if (navExpr.getKind().equals(Kind.COMPREHENSION)) {
       return true;
     }
@@ -672,8 +668,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     public abstract boolean enableCelBlock();
 
-    public abstract boolean retainComprehensionStructure();
-
     public abstract int subexpressionMaxRecursionDepth();
 
     public abstract ImmutableSet<String> eliminableFunctions();
@@ -730,25 +724,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
        */
       public abstract Builder subexpressionMaxRecursionDepth(int value);
 
-      /**
-       * If configured true, SubexpressionOptimizer will not break apart a subexpression containing
-       * a comprehension's iter_var and accu_var without the surrounding comprehension.
-       *
-       * <p>An example expression {@code ['foo'].map(x, [x+x]) + ['foo'].map(x, [x+x, x+x])} is
-       * optimized as (note the common subexpr x+x that leverage the iteration variable):
-       *
-       * <pre>
-       *   Disabled: {@code cel.@block([["foo"], @it0 + @it0], @index0.map(@it0, [@index1])
-       *       + @index0.map(@it0, [@index1, @index1]))}
-       *   Enabled: {@code cel.@block([["foo"]], @index0.map(@it0, [@it0 + @it0])
-       *       + @index0.map(@it0, [@it0 + @it0, @it0 + @it0]))}
-       *  </pre>
-       *
-       * If targeting CEL-Java for the runtime, the recommended setting is to leave this disabled
-       * for maximal optimization efficiency.
-       */
-      public abstract Builder retainComprehensionStructure(boolean value);
-
       abstract ImmutableSet.Builder<String> eliminableFunctionsBuilder();
 
       /**
@@ -783,7 +758,6 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
           .iterationLimit(500)
           .populateMacroCalls(false)
           .enableCelBlock(false)
-          .retainComprehensionStructure(true)
           .subexpressionMaxRecursionDepth(0);
     }
 

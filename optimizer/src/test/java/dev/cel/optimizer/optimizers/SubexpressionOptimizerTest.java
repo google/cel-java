@@ -210,7 +210,6 @@ public class SubexpressionOptimizerTest {
             SubexpressionOptimizerOptions.newBuilder()
                 .populateMacroCalls(true)
                 .enableCelBlock(true)
-                .retainComprehensionStructure(true)
                 .build());
 
     CelAbstractSyntaxTree optimizedAst = celOptimizer.optimize(ast);
