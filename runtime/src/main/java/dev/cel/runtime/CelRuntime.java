@@ -25,6 +25,7 @@ import com.google.protobuf.Message;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * The CelRuntime creates executable {@code Program} instances from {@code CelAbstractSyntaxTree}
@@ -65,6 +66,18 @@ public interface CelRuntime {
     }
 
     /**
+     * Evaluate a compiled program with a custom variable {@code resolver} and late-bound functions
+     * {@code lateBoundFunctionResolver}.
+     */
+    public Object eval(CelVariableResolver resolver, CelFunctionResolver lateBoundFunctionResolver)
+        throws CelEvaluationException {
+      return evalInternal(
+          (name) -> resolver.find(name).orElse(null),
+          lateBoundFunctionResolver,
+          CelEvaluationListener.noOpListener());
+    }
+
+    /**
      * Trace evaluates a compiled program without any variables and invokes the listener as
      * evaluation progresses through the AST.
      */
@@ -100,6 +113,20 @@ public interface CelRuntime {
     }
 
     /**
+     * Trace evaluates a compiled program using a custom variable {@code resolver} and late-bound
+     * functions {@code lateBoundFunctionResolver}. The listener is invoked as evaluation progresses
+     * through the AST.
+     */
+    public Object trace(
+        CelVariableResolver resolver,
+        CelFunctionResolver lateBoundFunctionResolver,
+        CelEvaluationListener listener)
+        throws CelEvaluationException {
+      return evalInternal(
+          (name) -> resolver.find(name).orElse(null), lateBoundFunctionResolver, listener);
+    }
+
+    /**
      * Advance evaluation based on the current unknown context.
      *
      * <p>This represents one round of incremental evaluation and may return a final result or a
@@ -109,23 +136,36 @@ public interface CelRuntime {
      * UnknownTracking} is disabled, this is equivalent to eval.
      */
     public Object advanceEvaluation(UnknownContext context) throws CelEvaluationException {
-      return evalInternal(context, CelEvaluationListener.noOpListener());
+      return evalInternal(context, Optional.empty(), CelEvaluationListener.noOpListener());
     }
 
     private Object evalInternal(GlobalResolver resolver) throws CelEvaluationException {
-      return evalInternal(resolver, CelEvaluationListener.noOpListener());
+      return evalInternal(
+          UnknownContext.create(resolver), Optional.empty(), CelEvaluationListener.noOpListener());
     }
 
     private Object evalInternal(GlobalResolver resolver, CelEvaluationListener listener)
         throws CelEvaluationException {
-      return evalInternal(UnknownContext.create(resolver), listener);
+      return evalInternal(UnknownContext.create(resolver), Optional.empty(), listener);
+    }
+
+    private Object evalInternal(
+        GlobalResolver resolver,
+        CelFunctionResolver lateBoundFunctionResolver,
+        CelEvaluationListener listener)
+        throws CelEvaluationException {
+      return evalInternal(
+          UnknownContext.create(resolver), Optional.of(lateBoundFunctionResolver), listener);
     }
 
     /**
      * Evaluate an expr node with an UnknownContext (an activation annotated with which attributes
      * are unknown).
      */
-    private Object evalInternal(UnknownContext context, CelEvaluationListener listener)
+    private Object evalInternal(
+        UnknownContext context,
+        Optional<CelFunctionResolver> lateBoundFunctionResolver,
+        CelEvaluationListener listener)
         throws CelEvaluationException {
       try {
         Interpretable impl = getInterpretable();
@@ -141,8 +181,12 @@ public interface CelRuntime {
                   .setResolver(context.variableResolver())
                   .setAttributeResolver(context.createAttributeResolver())
                   .build(),
+              lateBoundFunctionResolver,
               listener);
         } else {
+          if (lateBoundFunctionResolver.isPresent()) {
+            return impl.eval(context.variableResolver(), lateBoundFunctionResolver.get(), listener);
+          }
           return impl.eval(context.variableResolver(), listener);
         }
       } catch (InterpreterException e) {
@@ -177,8 +221,7 @@ public interface CelRuntime {
    *
    * <p>While the CEL function has a human-readable {@code camelCase} name, overload ids should use
    * the following convention where all {@code <type>} names should be ASCII lower-cased. For types
-   * prefer the unparameterized simple name of time, or unqualified package name of any proto-based
-   * type:
+   * prefer the unparameterized simple name of time, or unqualified name of any proto-based type:
    *
    * <ul>
    *   <li>unary member function: <type>_<function>

@@ -683,6 +683,6 @@ public class CelRuntimeTest {
         assertThrows(CelEvaluationException.class, () -> celRuntime.createProgram(ast).eval());
     assertThat(e)
         .hasMessageThat()
-        .contains("Unknown overload id 'size_string' for function 'size'");
+        .contains("No matching overload for function 'size'. Overload candidates: size_string");
   }
 }
