@@ -1932,7 +1932,7 @@ public final class CelImplTest {
         CelFactory.standardCelBuilder()
             .addVar("x", SimpleType.BOOL)
             .addVar("y", SimpleType.BOOL)
-            .setOptions(CelOptions.current().adaptUnknownValueSetToNativeType(true).build())
+            .setOptions(CelOptions.current().build())
             .build();
     CelAbstractSyntaxTree ast = cel.compile("x || y").getAst();
 
@@ -1950,7 +1950,7 @@ public final class CelImplTest {
             .addFunctionDeclarations(
                 newFunctionDeclaration(
                     "foo", newGlobalOverload("foo_bool", SimpleType.BOOL, SimpleType.BOOL)))
-            .setOptions(CelOptions.current().adaptUnknownValueSetToNativeType(true).build())
+            .setOptions(CelOptions.current().build())
             .build();
     CelAbstractSyntaxTree ast = cel.compile("foo(x)").getAst();
 
