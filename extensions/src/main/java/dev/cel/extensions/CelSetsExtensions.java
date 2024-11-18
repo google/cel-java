@@ -57,7 +57,7 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
       "Returns whether the first and second list are set equivalent. Lists are set equivalent if"
           + " for every item in the first list, there is an element in the second which is equal."
           + " The lists may not be of the same size as they do not guarantee the elements within"
-          + " them are unique, so size does not factor intothe computation.";
+          + " them are unique, so size does not factor into the computation.";
   private static final String SET_INTERSECTS_FUNCTION = "sets.intersects";
   private static final String SET_INTERSECTS_OVERLOAD_DOC =
       "Returns whether the first and second list intersect. Lists intersect if there is at least"

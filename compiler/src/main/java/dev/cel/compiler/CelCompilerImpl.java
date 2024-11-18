@@ -25,6 +25,7 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import dev.cel.checker.CelChecker;
 import dev.cel.checker.CelCheckerBuilder;
+import dev.cel.checker.CelStandardDeclarations;
 import dev.cel.checker.ProtoTypeMask;
 import dev.cel.checker.TypeProvider;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -275,6 +276,13 @@ public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
     @Override
     public CelCompilerBuilder setStandardEnvironmentEnabled(boolean value) {
       checkerBuilder.setStandardEnvironmentEnabled(value);
+      return this;
+    }
+
+    @Override
+    public CelCompilerBuilder setStandardDeclarations(
+        CelStandardDeclarations standardDeclarations) {
+      checkerBuilder.setStandardDeclarations(standardDeclarations);
       return this;
     }
 

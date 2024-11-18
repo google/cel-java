@@ -30,7 +30,6 @@ CHECKER_LEGACY_ENV_SOURCES = [
     "ExprChecker.java",
     "ExprVisitor.java",
     "InferenceContext.java",
-    "Standard.java",
     "TypeFormatter.java",
     "TypeProvider.java",
     "Types.java",
@@ -70,6 +69,7 @@ java_library(
         ":checker_builder",
         ":checker_legacy_environment",
         ":proto_type_mask",
+        ":standard_decl",
         ":type_provider_legacy_impl",
         "//:auto_value",
         "//common",
@@ -99,6 +99,7 @@ java_library(
     deps = [
         ":checker_legacy_environment",
         ":proto_type_mask",
+        ":standard_decl",
         "//common",
         "//common:compiler_common",
         "//common:options",
@@ -168,6 +169,7 @@ java_library(
     ],
     deps = [
         ":cel_ident_decl",
+        ":standard_decl",
         "//:auto_value",
         "//common",
         "//common:compiler_common",
@@ -217,5 +219,24 @@ java_library(
         ":checker_legacy_environment",
         "//common",
         "//common:proto_ast",
+    ],
+)
+
+java_library(
+    name = "standard_decl",
+    srcs = [
+        "CelStandardDeclarations.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":cel_ident_decl",
+        "//common:compiler_common",
+        "//common/types",
+        "//common/types:cel_types",
+        "//common/types:type_providers",
+        "//parser:operator",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
     ],
 )

@@ -218,11 +218,11 @@ declare getSeconds {
 }
 declare int {
   value type(int)
+  function int64_to_int64 (int) -> int
   function uint64_to_int64 (uint) -> int
   function double_to_int64 (double) -> int
   function string_to_int64 (string) -> int
   function timestamp_to_int64 (google.protobuf.Timestamp) -> int
-  function int64_to_int64 (int) -> int
 }
 declare list {
   value type(list(dyn))
