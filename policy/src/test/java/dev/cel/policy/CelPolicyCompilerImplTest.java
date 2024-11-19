@@ -39,6 +39,7 @@ import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection;
 import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection.PolicyTestCase;
 import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection.PolicyTestCase.PolicyTestInput;
 import dev.cel.policy.PolicyTestHelper.TestYamlPolicy;
+import dev.cel.runtime.CelLateFunctionBindings;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import java.io.IOException;
 import java.util.Map;
@@ -210,6 +211,43 @@ public final class CelPolicyCompilerImplTest {
 
     // Result is Optional<Optional<Object>>
     assertThat(evalResult).hasValue(Optional.of(true));
+  }
+
+  @Test
+  public void evaluateYamlPolicy_lateBoundFunction() throws Exception {
+    String configSource =
+        "name: late_bound_function_config\n"
+            + "functions:\n"
+            + "  - name: 'lateBoundFunc'\n"
+            + "    overloads:\n"
+            + "      - id: 'lateBoundFunc_string'\n"
+            + "        args:\n"
+            + "          - type_name: 'string'\n"
+            + "        return:\n"
+            + "          type_name: 'string'\n";
+    CelPolicyConfig celPolicyConfig = POLICY_CONFIG_PARSER.parse(configSource);
+    Cel cel = celPolicyConfig.extend(newCel(), CelOptions.DEFAULT);
+    String policySource =
+        "name: late_bound_function_policy\n"
+            + "rule:\n"
+            + "  match:\n"
+            + "   - output: |\n"
+            + "       lateBoundFunc('foo')\n";
+    CelPolicy policy = POLICY_PARSER.parse(policySource);
+    CelAbstractSyntaxTree compiledPolicyAst =
+        CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
+    String exampleValue = "bar";
+    CelLateFunctionBindings lateFunctionBindings =
+        CelLateFunctionBindings.from(
+            CelFunctionBinding.from(
+                "lateBoundFunc_string", String.class, arg -> arg + exampleValue));
+
+    String evalResult =
+        (String)
+            cel.createProgram(compiledPolicyAst)
+                .eval((unused) -> Optional.empty(), lateFunctionBindings);
+
+    assertThat(evalResult).isEqualTo("foo" + exampleValue);
   }
 
   private static final class EvaluablePolicyTestData {
