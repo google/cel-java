@@ -10,7 +10,7 @@ java_library(
     testonly = True,
     srcs = glob(["*Test.java"]),
     deps = [
-        "//:java_truth",
+        #         "//java/com/google/testing/testsize:annotations",
         "//bundle:cel",
         "//common",
         "//common:options",
@@ -20,18 +20,20 @@ java_library(
         "//runtime:unknown_attributes",
         "//runtime:unknown_options",
         "//runtime/async",
+        "@maven//:junit_junit",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "//:java_truth",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@cel_spec//proto/test/v1/proto3:test_all_types_java_proto",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_testparameterinjector_test_parameter_injector",
-        "@maven//:junit_junit",
     ],
 )
 
 junit4_test_suites(
     name = "test_suites",
+    shard_count = 4,
     sizes = [
-        "small",
+        "medium",
     ],
     src_dir = "src/test/java",
     deps = [":tests"],
