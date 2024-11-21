@@ -24,7 +24,6 @@ import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.Timestamps;
-import com.google.re2j.PatternSyntaxException;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
@@ -42,69 +41,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** Adds standard functions to a {@link Registrar}. */
+/**
+ * Adds standard functions to a {@link Registrar}.
+ *
+ * @deprecated Do not use. This only exists to maintain compatibility with the legacy async
+ *     interpreter, which will be removed in the future.
+ */
 @Internal
+@Deprecated
 public class StandardFunctions {
   private static final String UTC = "UTC";
 
   /**
-   * Adds CEL standard functions to the given registrar.
-   *
-   * <p>Note this does not add functions which do not use strict argument evaluation order, as
-   * 'conditional', 'logical_and', and 'logical_or'. Those functions need to be dealt with ad-hoc.
-   */
-  @SuppressWarnings({"rawtypes", "unchecked"})
-  public static void add(Registrar registrar, DynamicProto dynamicProto, CelOptions celOptions) {
-    RuntimeEquality runtimeEquality = new RuntimeEquality(dynamicProto);
-    addNonInlined(registrar, runtimeEquality, celOptions);
-
-    // String functions
-    registrar.add(
-        "matches",
-        String.class,
-        String.class,
-        (String string, String regexp) -> {
-          try {
-            return RuntimeHelpers.matches(string, regexp, celOptions);
-          } catch (PatternSyntaxException e) {
-            throw new InterpreterException.Builder(e.getMessage())
-                .setCause(e)
-                .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
-                .build();
-          }
-        });
-    // Duplicate receiver-style matches overload.
-    registrar.add(
-        "matches_string",
-        String.class,
-        String.class,
-        (String string, String regexp) -> {
-          try {
-            return RuntimeHelpers.matches(string, regexp, celOptions);
-          } catch (PatternSyntaxException e) {
-            throw new InterpreterException.Builder(e.getMessage())
-                .setCause(e)
-                .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
-                .build();
-          }
-        });
-    // In operator: b in a
-    registrar.add(
-        "in_list",
-        Object.class,
-        List.class,
-        (Object value, List list) -> runtimeEquality.inList(list, value, celOptions));
-    registrar.add(
-        "in_map",
-        Object.class,
-        Map.class,
-        (Object key, Map map) -> runtimeEquality.inMap(map, key, celOptions));
-  }
-
-  /**
    * Adds CEL standard functions to the given registrar, omitting those that can be inlined by
    * {@code FuturesInterpreter}.
+   *
+   * @deprecated Do not use. This only exists to maintain compatibility with the legacy async
+   *     interpreter, will be removed in the future.
    */
+  @Deprecated
   public static void addNonInlined(Registrar registrar, CelOptions celOptions) {
     addNonInlined(
         registrar,
@@ -116,7 +71,7 @@ public class StandardFunctions {
    * Adds CEL standard functions to the given registrar, omitting those that can be inlined by
    * {@code FuturesInterpreter}.
    */
-  public static void addNonInlined(
+  private static void addNonInlined(
       Registrar registrar, RuntimeEquality runtimeEquality, CelOptions celOptions) {
     addBoolFunctions(registrar);
     addBytesFunctions(registrar);

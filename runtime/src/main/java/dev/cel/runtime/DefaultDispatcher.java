@@ -23,9 +23,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelException;
-import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
-import dev.cel.common.internal.DynamicProto;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,14 +40,9 @@ import java.util.Optional;
 @ThreadSafe
 @Internal
 public final class DefaultDispatcher implements Dispatcher, Registrar {
-
-  public static DefaultDispatcher create(
-      CelOptions celOptions, DynamicProto dynamicProto, boolean enableStandardEnvironment) {
-    DefaultDispatcher dispatcher = new DefaultDispatcher();
-    if (enableStandardEnvironment) {
-      StandardFunctions.add(dispatcher, dynamicProto, celOptions);
-    }
-    return dispatcher;
+  @Internal
+  public static DefaultDispatcher create() {
+    return new DefaultDispatcher();
   }
 
   @GuardedBy("this")

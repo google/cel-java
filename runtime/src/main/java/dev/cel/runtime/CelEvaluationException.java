@@ -35,8 +35,12 @@ public final class CelEvaluationException extends CelException {
     super(message, cause, errorCode);
   }
 
+  public CelEvaluationException(String message, CelErrorCode errorCode) {
+    super(message, errorCode);
+  }
+
   CelEvaluationException(InterpreterException cause) {
-    super(cause.getMessage(), cause.getCause());
+    this(cause, cause.getErrorCode());
   }
 
   CelEvaluationException(InterpreterException cause, CelErrorCode errorCode) {
