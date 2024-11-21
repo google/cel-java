@@ -24,26 +24,26 @@ import dev.cel.common.CelException;
 public final class CelEvaluationException extends CelException {
 
   public CelEvaluationException(String message) {
-    super(message);
+    super(formatErrorMessage(message));
   }
 
   public CelEvaluationException(String message, Throwable cause) {
-    super(message, cause);
+    super(formatErrorMessage(message), cause);
   }
 
   public CelEvaluationException(String message, Throwable cause, CelErrorCode errorCode) {
-    super(message, cause, errorCode);
+    super(formatErrorMessage(message), cause, errorCode);
   }
 
   public CelEvaluationException(String message, CelErrorCode errorCode) {
-    super(message, errorCode);
-  }
-
-  CelEvaluationException(InterpreterException cause) {
-    this(cause, cause.getErrorCode());
+    super(formatErrorMessage(message), errorCode);
   }
 
   CelEvaluationException(InterpreterException cause, CelErrorCode errorCode) {
     super(cause.getMessage(), cause.getCause(), errorCode);
+  }
+
+  private static String formatErrorMessage(String message) {
+    return String.format("evaluation error: %s", message);
   }
 }
