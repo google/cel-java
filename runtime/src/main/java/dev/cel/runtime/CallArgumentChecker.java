@@ -14,8 +14,6 @@
 
 package dev.cel.runtime;
 
-import dev.cel.expr.ExprValue;
-import dev.cel.expr.UnknownSet;
 import dev.cel.common.annotations.Internal;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -76,19 +74,17 @@ class CallArgumentChecker {
 
     // support for ExprValue unknowns.
     if (InterpreterUtil.isUnknown(arg.value())) {
-      if (InterpreterUtil.isExprValueUnknown(arg.value())) {
-        ExprValue exprValue = (ExprValue) arg.value();
-        exprIds.addAll(exprValue.getUnknown().getExprsList());
-      } else if (resolver.getAdaptUnknownValueSetOption()) {
-        CelUnknownSet unknownSet = (CelUnknownSet) arg.value();
-        exprIds.addAll(unknownSet.unknownExprIds());
-      }
+      CelUnknownSet unknownSet = (CelUnknownSet) arg.value();
+      exprIds.addAll(unknownSet.unknownExprIds());
     }
   }
 
   private Optional<CelUnknownSet> maybeUnknownFromArg(DefaultInterpreter.IntermediateResult arg) {
     if (arg.value() instanceof CelUnknownSet) {
-      return Optional.of((CelUnknownSet) arg.value());
+      CelUnknownSet celUnknownSet = (CelUnknownSet) arg.value();
+      if (!celUnknownSet.attributes().isEmpty()) {
+        return Optional.of((CelUnknownSet) arg.value());
+      }
     }
     if (!acceptPartial) {
       return resolver.maybePartialUnknown(arg.attribute());
@@ -103,14 +99,7 @@ class CallArgumentChecker {
     }
 
     if (!exprIds.isEmpty()) {
-      if (resolver.getAdaptUnknownValueSetOption()) {
-        return Optional.of(CelUnknownSet.create(exprIds));
-      } else {
-        return Optional.of(
-            ExprValue.newBuilder()
-                .setUnknown(UnknownSet.newBuilder().addAllExprs(exprIds))
-                .build());
-      }
+      return Optional.of(CelUnknownSet.create(exprIds));
     }
 
     return Optional.empty();

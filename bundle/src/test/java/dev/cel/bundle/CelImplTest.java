@@ -1744,7 +1744,8 @@ public final class CelImplTest {
                 UnknownContext.create(
                     fromMap(ImmutableMap.of()),
                     ImmutableList.of(CelAttributePattern.fromQualifiedIdentifier("unk")))))
-        .isEqualTo(CelUnknownSet.create(CelAttribute.fromQualifiedIdentifier("unk")));
+        .isEqualTo(
+            CelUnknownSet.create(CelAttribute.fromQualifiedIdentifier("unk"), ImmutableSet.of(3L)));
   }
 
   @Test

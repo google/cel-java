@@ -158,10 +158,7 @@ public final class DefaultInterpreter implements Interpreter {
     public Object eval(GlobalResolver resolver, CelEvaluationListener listener)
         throws InterpreterException {
       return evalTrackingUnknowns(
-          RuntimeUnknownResolver.fromResolver(
-              resolver, celOptions.adaptUnknownValueSetToNativeType()),
-          Optional.empty(),
-          listener);
+          RuntimeUnknownResolver.fromResolver(resolver), Optional.empty(), listener);
     }
 
     @Override
@@ -171,8 +168,7 @@ public final class DefaultInterpreter implements Interpreter {
         CelEvaluationListener listener)
         throws InterpreterException {
       return evalTrackingUnknowns(
-          RuntimeUnknownResolver.fromResolver(
-              resolver, celOptions.adaptUnknownValueSetToNativeType()),
+          RuntimeUnknownResolver.fromResolver(resolver),
           Optional.of(lateBoundFunctionResolver),
           listener);
     }
@@ -347,9 +343,7 @@ public final class DefaultInterpreter implements Interpreter {
       Object fieldValue = typeProvider.selectField(operand, field);
 
       return IntermediateResult.create(
-          attribute,
-          InterpreterUtil.valueOrUnknown(
-              fieldValue, expr.id(), celOptions.adaptUnknownValueSetToNativeType()));
+          attribute, InterpreterUtil.valueOrUnknown(fieldValue, expr.id()));
     }
 
     private IntermediateResult evalCall(ExecutionFrame frame, CelExpr expr, CelCall callExpr)
@@ -541,8 +535,7 @@ public final class DefaultInterpreter implements Interpreter {
 
       // Otherwise fallback to normal impl
       return IntermediateResult.create(
-          InterpreterUtil.shortcircuitUnknownOrThrowable(
-              lhs.value(), rhs.value(), celOptions.adaptUnknownValueSetToNativeType()));
+          InterpreterUtil.shortcircuitUnknownOrThrowable(lhs.value(), rhs.value()));
     }
 
     private enum ShortCircuitableOperators {

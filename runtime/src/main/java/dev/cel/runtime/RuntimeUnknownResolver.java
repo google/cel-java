@@ -40,29 +40,20 @@ public class RuntimeUnknownResolver {
 
   private final boolean attributeTrackingEnabled;
 
-  /** TODO: Remove after callers have been migrated */
-  private final boolean adaptUnknownValueSet;
-
   private RuntimeUnknownResolver(
       GlobalResolver resolver,
       CelAttributeResolver attributeResolver,
-      boolean attributeTrackingEnabled,
-      boolean adaptUnknownValueSet) {
+      boolean attributeTrackingEnabled) {
     this.resolver = resolver;
     this.attributeResolver = attributeResolver;
     this.attributeTrackingEnabled = attributeTrackingEnabled;
-    this.adaptUnknownValueSet = adaptUnknownValueSet;
   }
 
-  public static RuntimeUnknownResolver fromResolver(
-      GlobalResolver resolver, boolean adaptUnknownValueSet) {
+  public static RuntimeUnknownResolver fromResolver(GlobalResolver resolver) {
     // This prevents calculating the attribute trail if it will never be used for
     // efficiency, but doesn't change observable behavior.
     return new RuntimeUnknownResolver(
-        resolver,
-        DEFAULT_RESOLVER,
-        /* attributeTrackingEnabled= */ false,
-        /* adaptUnknownValueSet= */ adaptUnknownValueSet);
+        resolver, DEFAULT_RESOLVER, /* attributeTrackingEnabled= */ false);
   }
 
   public static Builder builder() {
@@ -92,7 +83,7 @@ public class RuntimeUnknownResolver {
     }
 
     public RuntimeUnknownResolver build() {
-      return new RuntimeUnknownResolver(resolver, attributeResolver, true, false);
+      return new RuntimeUnknownResolver(resolver, attributeResolver, true);
     }
   }
 
@@ -120,7 +111,7 @@ public class RuntimeUnknownResolver {
     Object result = resolver.resolve(name);
 
     return DefaultInterpreter.IntermediateResult.create(
-        attr, InterpreterUtil.valueOrUnknown(result, exprId, adaptUnknownValueSet));
+        attr, InterpreterUtil.valueOrUnknown(result, exprId));
   }
 
   void cacheLazilyEvaluatedResult(String name, DefaultInterpreter.IntermediateResult result) {
@@ -136,12 +127,7 @@ public class RuntimeUnknownResolver {
   }
 
   ScopedResolver withScope(Map<String, DefaultInterpreter.IntermediateResult> vars) {
-    return new ScopedResolver(this, vars, adaptUnknownValueSet);
-  }
-
-  /** TODO: Remove after callers have been migrated */
-  boolean getAdaptUnknownValueSetOption() {
-    return adaptUnknownValueSet;
+    return new ScopedResolver(this, vars);
   }
 
   static final class ScopedResolver extends RuntimeUnknownResolver {
@@ -151,13 +137,8 @@ public class RuntimeUnknownResolver {
 
     private ScopedResolver(
         RuntimeUnknownResolver parent,
-        Map<String, DefaultInterpreter.IntermediateResult> shadowedVars,
-        boolean adaptUnknownValueSet) {
-      super(
-          parent.resolver,
-          parent.attributeResolver,
-          parent.attributeTrackingEnabled,
-          adaptUnknownValueSet);
+        Map<String, DefaultInterpreter.IntermediateResult> shadowedVars) {
+      super(parent.resolver, parent.attributeResolver, parent.attributeTrackingEnabled);
       this.parent = parent;
       this.shadowedVars = shadowedVars;
       this.lazyEvalResultCache = new HashMap<>();

@@ -20,10 +20,8 @@ import static dev.cel.runtime.CelVariableResolver.hierarchicalVariableResolver;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import dev.cel.expr.CheckedExpr;
-import dev.cel.expr.ExprValue;
 import dev.cel.expr.Type;
 import dev.cel.expr.Type.AbstractType;
-import dev.cel.expr.UnknownSet;
 import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes.NestedEnum;
 import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes.NestedMessage;
@@ -75,6 +73,7 @@ import dev.cel.runtime.CelLateFunctionBindings;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeFactory;
+import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.CelVariableResolver;
 import dev.cel.runtime.RuntimeHelpers;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
@@ -1226,8 +1225,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     // ident is unknown ==> unknown
     source = "x";
-    ExprValue unknownMessage =
-        ExprValue.newBuilder().setUnknown(UnknownSet.getDefaultInstance()).build();
+    CelUnknownSet unknownMessage = CelUnknownSet.create(1L);
     runTest(ImmutableMap.of("x", unknownMessage));
 
     // comprehension test

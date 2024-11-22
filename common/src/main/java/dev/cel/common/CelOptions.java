@@ -109,8 +109,6 @@ public abstract class CelOptions {
 
   public abstract ProtoUnsetFieldOptions fromProtoUnsetFieldOption();
 
-  public abstract boolean adaptUnknownValueSetToNativeType();
-
   public abstract Builder toBuilder();
 
   public ImmutableSet<ExprFeatures> toExprFeatures() {
@@ -202,7 +200,6 @@ public abstract class CelOptions {
         .enableCelValue(false)
         .comprehensionMaxIterations(-1)
         .unwrapWellKnownTypesOnFunctionDispatch(true)
-        .adaptUnknownValueSetToNativeType(true)
         .fromProtoUnsetFieldOption(ProtoUnsetFieldOptions.BIND_DEFAULT);
   }
 
@@ -506,16 +503,6 @@ public abstract class CelOptions {
      * @see ProtoUnsetFieldOptions
      */
     public abstract Builder fromProtoUnsetFieldOption(ProtoUnsetFieldOptions value);
-
-    /**
-     * If enabled, when the result of an evaluation is a set of unknown values, a native-type
-     * equivalent {@code CelUnknownSet} is returned as a result. Otherwise, ExprValue from {@code
-     * eval.proto} is returned instead.
-     *
-     * <p>This is a temporary flag. It will be removed once the consumers have migrated to the
-     * native-type representation.
-     */
-    public abstract Builder adaptUnknownValueSetToNativeType(boolean value);
 
     public abstract CelOptions build();
   }

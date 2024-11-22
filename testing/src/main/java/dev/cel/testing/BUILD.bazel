@@ -107,6 +107,7 @@ java_library(
         "//extensions:optional_library",
         "//runtime",
         "//runtime:runtime_helper",
+        "//runtime:unknown_attributes",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@cel_spec//proto/test/v1/proto3:test_all_types_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",

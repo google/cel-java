@@ -50,6 +50,10 @@ public abstract class CelUnknownSet {
     return create(ImmutableSet.copyOf(unknownExprIds));
   }
 
+  public static CelUnknownSet create(CelAttribute attribute, Iterable<Long> unknownExprIds) {
+    return create(ImmutableSet.of(attribute), ImmutableSet.copyOf(unknownExprIds));
+  }
+
   static CelUnknownSet create(Iterable<Long> unknownExprIds) {
     return create(ImmutableSet.of(), ImmutableSet.copyOf(unknownExprIds));
   }

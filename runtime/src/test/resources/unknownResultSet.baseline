@@ -184,9 +184,7 @@ declare f {
   function f int.(int) -> bool
 }
 =====>
-bindings: {x=unknown {
-}
-}
+bindings: {x=CelUnknownSet{attributes=[], unknownExprIds=[1]}}
 result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: x.map_int32_int64.map(x, x > 0, x + 1)

@@ -14,8 +14,6 @@
 
 package dev.cel.runtime;
 
-import dev.cel.expr.ExprValue;
-import dev.cel.expr.UnknownSet;
 import dev.cel.common.annotations.Internal;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -54,38 +52,7 @@ public final class InterpreterUtil {
    * @return boolean value if object is unknown.
    */
   public static boolean isUnknown(Object obj) {
-    if (isExprValueUnknown(obj)) {
-      return true;
-    }
     return obj instanceof CelUnknownSet;
-  }
-
-  /** TODO: Remove once clients have been migrated. */
-  static boolean isExprValueUnknown(Object obj) {
-    if (obj instanceof ExprValue) {
-      return ((ExprValue) obj).getKindCase() == ExprValue.KindCase.UNKNOWN;
-    }
-
-    return false;
-  }
-
-  /**
-   * Combine multiple ExprValue objects which has UnknownSet into one ExprValue
-   *
-   * @param objs ExprValue objects which has UnknownSet
-   * @return A new ExprValue object which has all unknown expr ids from input objects, without
-   *     duplication.
-   */
-  static ExprValue combineUnknownProtoExprValue(Object... objs) {
-    UnknownSet.Builder unknownsetBuilder = UnknownSet.newBuilder();
-    Set<Long> ids = new LinkedHashSet<>();
-    for (Object object : objs) {
-      if (isUnknown(object)) {
-        ids.addAll(((ExprValue) object).getUnknown().getExprsList());
-      }
-    }
-    unknownsetBuilder.addAllExprs(ids);
-    return ExprValue.newBuilder().setUnknown(unknownsetBuilder).build();
   }
 
   static CelUnknownSet combineUnknownExprValue(Object... objs) {
@@ -100,16 +67,6 @@ public final class InterpreterUtil {
   }
 
   /**
-   * Create an ExprValue object has UnknownSet, from a list of unknown expr ids
-   *
-   * @param id unknown expr id
-   * @return A new ExprValue object which has all unknown expr ids from input list
-   */
-  private static ExprValue createUnknownExprValue(long id) {
-    return ExprValue.newBuilder().setUnknown(UnknownSet.newBuilder().addExprs(id)).build();
-  }
-
-  /**
    * Short circuit unknown or error arguments to logical operators.
    *
    * <p>Given two arguments, one of which must be throwable (error) or unknown, returns the result
@@ -117,14 +74,11 @@ public final class InterpreterUtil {
    * from any boolean arguments alone. This allows us to consolidate the error/unknown handling for
    * both of these operators.
    */
-  public static Object shortcircuitUnknownOrThrowable(
-      Object left, Object right, boolean adaptUnknownValueSetToNativeType)
+  public static Object shortcircuitUnknownOrThrowable(Object left, Object right)
       throws InterpreterException {
     // unknown <op> unknown ==> unknown combined
     if (InterpreterUtil.isUnknown(left) && InterpreterUtil.isUnknown(right)) {
-      return adaptUnknownValueSetToNativeType
-          ? InterpreterUtil.combineUnknownExprValue(left, right)
-          : InterpreterUtil.combineUnknownProtoExprValue(left, right);
+      return InterpreterUtil.combineUnknownExprValue(left, right);
     }
     // unknown <op> <error> ==> unknown
     // unknown <op> t|f ==> unknown
@@ -148,24 +102,14 @@ public final class InterpreterUtil {
         "Left or/and right object is neither bool, unknown nor error, unexpected behavior.");
   }
 
-  public static Object valueOrUnknown(
-      @Nullable Object valueOrThrowable, Long id, boolean adaptUnknownValueSet) {
+  public static Object valueOrUnknown(@Nullable Object valueOrThrowable, Long id) {
     // Handle the unknown value case.
     if (isUnknown(valueOrThrowable)) {
-      if (adaptUnknownValueSet) {
-        return CelUnknownSet.create(id);
-      } else {
-        // TODO: Remove once clients have been migrated.
-        ExprValue value = (ExprValue) valueOrThrowable;
-        if (value.getUnknown().getExprsCount() != 0) {
-          return valueOrThrowable;
-        }
-        return createUnknownExprValue(id);
-      }
+      return CelUnknownSet.create(id);
     }
     // Handle the null value case.
     if (valueOrThrowable == null) {
-      return adaptUnknownValueSet ? CelUnknownSet.create(id) : createUnknownExprValue(id);
+      return CelUnknownSet.create(id);
     }
     return valueOrThrowable;
   }
