@@ -17,7 +17,6 @@ package dev.cel.common.internal;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-import dev.cel.expr.ExprValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
@@ -205,9 +204,6 @@ public final class ProtoAdapter {
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   public Optional<Object> adaptFieldToValue(FieldDescriptor fieldDescriptor, Object fieldValue) {
-    if (isUnknown(fieldValue)) {
-      return Optional.of(fieldValue);
-    }
     if (fieldDescriptor.isMapField()) {
       Descriptor entryDescriptor = fieldDescriptor.getMessageType();
       FieldDescriptor keyFieldDescriptor = entryDescriptor.findFieldByNumber(1);
@@ -254,9 +250,6 @@ public final class ProtoAdapter {
       FieldDescriptor fieldDescriptor, Object fieldValue) {
     if (isWrapperType(fieldDescriptor) && fieldValue.equals(NullValue.NULL_VALUE)) {
       return Optional.empty();
-    }
-    if (isUnknown(fieldValue)) {
-      return Optional.of(fieldValue);
     }
     if (fieldDescriptor.isMapField()) {
       Descriptor entryDescriptor = fieldDescriptor.getMessageType();
@@ -588,11 +581,6 @@ public final class ProtoAdapter {
     String fieldTypeName = fieldDescriptor.getMessageType().getFullName();
     WellKnownProto wellKnownProto = WellKnownProto.getByDescriptorName(fieldTypeName);
     return wellKnownProto != null && wellKnownProto.isWrapperType();
-  }
-
-  private static boolean isUnknown(Object object) {
-    return object instanceof ExprValue
-        && ((ExprValue) object).getKindCase() == ExprValue.KindCase.UNKNOWN;
   }
 
   private static int intCheckedCast(long value) {
