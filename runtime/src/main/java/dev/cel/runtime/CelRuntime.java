@@ -78,6 +78,18 @@ public interface CelRuntime {
     }
 
     /**
+     * Evaluate a compiled program with {@code mapValue} and late-bound functions {@code
+     * lateBoundFunctionResolver}.
+     */
+    public Object eval(Map<String, ?> mapValue, CelFunctionResolver lateBoundFunctionResolver)
+        throws CelEvaluationException {
+      return evalInternal(
+          Activation.copyOf(mapValue),
+          lateBoundFunctionResolver,
+          CelEvaluationListener.noOpListener());
+    }
+
+    /**
      * Trace evaluates a compiled program without any variables and invokes the listener as
      * evaluation progresses through the AST.
      */
@@ -124,6 +136,19 @@ public interface CelRuntime {
         throws CelEvaluationException {
       return evalInternal(
           (name) -> resolver.find(name).orElse(null), lateBoundFunctionResolver, listener);
+    }
+
+    /**
+     * Trace evaluates a compiled program using a {@code mapValue} as the source of input variables
+     * and late-bound functions {@code lateBoundFunctionResolver}. The listener is invoked as
+     * evaluation progresses through the AST.
+     */
+    public Object trace(
+        Map<String, ?> mapValue,
+        CelFunctionResolver lateBoundFunctionResolver,
+        CelEvaluationListener listener)
+        throws CelEvaluationException {
+      return evalInternal(Activation.copyOf(mapValue), lateBoundFunctionResolver, listener);
     }
 
     /**
