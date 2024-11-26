@@ -101,7 +101,6 @@ public class CelRuntimeTest {
   }
 
   @Test
-  @SuppressWarnings("StringConcatToTextBlock")
   public void evaluate_callExprWithLateBindings_success() throws Exception {
     String configSource =
         "name: late_bound_function_config\n"
@@ -277,8 +276,6 @@ public class CelRuntimeTest {
   }
 
   @Test
-  @SuppressWarnings("StringConcatToTextBlock") // TODO - Remove suppression
-  // post submission of cl/700135129
   public void trace_callExprWithLateBindings_identifyFalseBranch() throws Exception {
     AtomicReference<CelExpr> capturedExpr = new AtomicReference<>();
     CelEvaluationListener listener =
