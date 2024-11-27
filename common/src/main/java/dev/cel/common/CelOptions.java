@@ -115,6 +115,8 @@ public abstract class CelOptions {
 
   public abstract boolean enableListConcatenation();
 
+  public abstract boolean enableComprehension();
+
   public abstract Builder toBuilder();
 
   public ImmutableSet<ExprFeatures> toExprFeatures() {
@@ -209,7 +211,8 @@ public abstract class CelOptions {
         .fromProtoUnsetFieldOption(ProtoUnsetFieldOptions.BIND_DEFAULT)
         .enableStringConversion(true)
         .enableStringConcatenation(true)
-        .enableListConcatenation(true);
+        .enableListConcatenation(true)
+        .enableComprehension(true);
   }
 
   /**
@@ -530,6 +533,13 @@ public abstract class CelOptions {
      * with cel-cpp interpreter options.
      */
     public abstract Builder enableListConcatenation(boolean value);
+
+    /**
+     * Enables comprehension (macros) for the runtime. Setting false has the same effect with
+     * assigning 0 for {@link #comprehensionMaxIterations()}. This option exists to maintain parity
+     * with cel-cpp interpreter options.
+     */
+    public abstract Builder enableComprehension(boolean value);
 
     public abstract CelOptions build();
   }

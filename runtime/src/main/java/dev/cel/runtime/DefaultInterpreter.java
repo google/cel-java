@@ -179,9 +179,10 @@ public final class DefaultInterpreter implements Interpreter {
         Optional<? extends FunctionResolver> functionResolver,
         CelEvaluationListener listener)
         throws InterpreterException {
+      int comprehensionMaxIterations =
+          celOptions.enableComprehension() ? celOptions.comprehensionMaxIterations() : 0;
       ExecutionFrame frame =
-          new ExecutionFrame(
-              listener, resolver, functionResolver, celOptions.comprehensionMaxIterations());
+          new ExecutionFrame(listener, resolver, functionResolver, comprehensionMaxIterations);
       IntermediateResult internalResult = evalInternal(frame, ast.getExpr());
       return internalResult.value();
     }

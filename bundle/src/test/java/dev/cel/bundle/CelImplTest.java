@@ -2016,6 +2016,20 @@ public final class CelImplTest {
   }
 
   @Test
+  public void program_comprehensionDisabled_throws() throws Exception {
+    Cel cel =
+        standardCelBuilderWithMacros()
+            .setOptions(CelOptions.current().enableComprehension(false).build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("['foo', 'bar'].map(x, x)").getAst();
+
+    CelEvaluationException e =
+        assertThrows(CelEvaluationException.class, () -> cel.createProgram(ast).eval());
+    assertThat(e).hasMessageThat().contains("Iteration budget exceeded: 0");
+    assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.ITERATION_BUDGET_EXCEEDED);
+  }
+
+  @Test
   public void toBuilder_isImmutable() {
     CelBuilder celBuilder = CelFactory.standardCelBuilder();
     CelImpl celImpl = (CelImpl) celBuilder.build();
