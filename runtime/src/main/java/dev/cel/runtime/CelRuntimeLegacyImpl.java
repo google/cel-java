@@ -43,6 +43,7 @@ import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.ProtoMessageValueProvider;
+import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Arithmetic;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Comparison;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Conversions;
 import java.util.Arrays;
@@ -317,13 +318,22 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
                             return options.enableTimestampEpoch();
                           }
                           break;
+                        case STRING:
+                          return options.enableStringConversion();
+                        case ADD:
+                          Arithmetic arithmetic = (Arithmetic) standardOverload;
+                          if (arithmetic.equals(Arithmetic.ADD_STRING)) {
+                            return options.enableStringConcatenation();
+                          }
+                          if (arithmetic.equals(Arithmetic.ADD_LIST)) {
+                            return options.enableListConcatenation();
+                          }
+                          break;
                         default:
                           if (standardOverload instanceof Comparison
                               && !options.enableHeterogeneousNumericComparisons()) {
                             Comparison comparison = (Comparison) standardOverload;
-                            if (comparison.isHeterogeneousComparison()) {
-                              return false;
-                            }
+                            return !comparison.isHeterogeneousComparison();
                           }
                           break;
                       }

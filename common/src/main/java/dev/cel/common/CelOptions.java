@@ -109,6 +109,12 @@ public abstract class CelOptions {
 
   public abstract ProtoUnsetFieldOptions fromProtoUnsetFieldOption();
 
+  public abstract boolean enableStringConversion();
+
+  public abstract boolean enableStringConcatenation();
+
+  public abstract boolean enableListConcatenation();
+
   public abstract Builder toBuilder();
 
   public ImmutableSet<ExprFeatures> toExprFeatures() {
@@ -200,7 +206,10 @@ public abstract class CelOptions {
         .enableCelValue(false)
         .comprehensionMaxIterations(-1)
         .unwrapWellKnownTypesOnFunctionDispatch(true)
-        .fromProtoUnsetFieldOption(ProtoUnsetFieldOptions.BIND_DEFAULT);
+        .fromProtoUnsetFieldOption(ProtoUnsetFieldOptions.BIND_DEFAULT)
+        .enableStringConversion(true)
+        .enableStringConcatenation(true)
+        .enableListConcatenation(true);
   }
 
   /**
@@ -503,6 +512,24 @@ public abstract class CelOptions {
      * @see ProtoUnsetFieldOptions
      */
     public abstract Builder fromProtoUnsetFieldOption(ProtoUnsetFieldOptions value);
+
+    /**
+     * Enables string() overloads for the runtime. This option exists to maintain parity with
+     * cel-cpp interpreter options.
+     */
+    public abstract Builder enableStringConversion(boolean value);
+
+    /**
+     * Enables string concatenation overload for the runtime. This option exists to maintain parity
+     * with cel-cpp interpreter options.
+     */
+    public abstract Builder enableStringConcatenation(boolean value);
+
+    /**
+     * Enables list concatenation overload for the runtime. This option exists to maintain parity
+     * with cel-cpp interpreter options.
+     */
+    public abstract Builder enableListConcatenation(boolean value);
 
     public abstract CelOptions build();
   }

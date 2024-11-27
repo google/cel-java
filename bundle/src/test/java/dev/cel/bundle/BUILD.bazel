@@ -18,6 +18,7 @@ java_library(
         "//checker:proto_type_mask",
         "//common",
         "//common:compiler_common",
+        "//common:error_codes",
         "//common:options",
         "//common:proto_ast",
         "//common/ast",
