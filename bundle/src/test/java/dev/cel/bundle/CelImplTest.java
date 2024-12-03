@@ -2030,6 +2030,22 @@ public final class CelImplTest {
   }
 
   @Test
+  public void smokeTest() {
+    String longText =
+        "name: late_bound_function_config\n"
+            + "functions:\n"
+            + "  - name: 'test'\n"
+            + "    overloads:\n"
+            + "      - id: 'test_bool'\n"
+            + "        args:\n"
+            + "          - type_name: 'bool'\n"
+            + "        return:\n"
+            + "          type_name: 'bool'";
+
+    assertThat(longText).isNotEmpty();
+  }
+
+  @Test
   public void toBuilder_isImmutable() {
     CelBuilder celBuilder = CelFactory.standardCelBuilder();
     CelImpl celImpl = (CelImpl) celBuilder.build();
