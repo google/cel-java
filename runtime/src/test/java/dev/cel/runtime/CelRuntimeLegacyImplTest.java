@@ -16,10 +16,10 @@ package dev.cel.runtime;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import dev.cel.common.CelException;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import org.junit.Assert;
 import org.junit.Test;
@@ -68,6 +68,8 @@ public final class CelRuntimeLegacyImplTest {
     celRuntimeBuilder.addFileTypes(TestAllTypes.getDescriptor().getFile());
     celRuntimeBuilder.addFunctionBindings(CelFunctionBinding.from("test", Integer.class, arg -> 1));
     celRuntimeBuilder.addLibraries(runtimeBuilder -> {});
+    int originalFileTypesSize =
+        ((CelRuntimeLegacyImpl.Builder) celRuntimeBuilder).getFileTypes().build().size();
     CelRuntimeLegacyImpl celRuntime = (CelRuntimeLegacyImpl) celRuntimeBuilder.build();
 
     CelRuntimeLegacyImpl.Builder newRuntimeBuilder =
@@ -75,7 +77,7 @@ public final class CelRuntimeLegacyImplTest {
 
     assertThat(newRuntimeBuilder.getFunctionBindings()).hasSize(1);
     assertThat(newRuntimeBuilder.getRuntimeLibraries().build()).hasSize(1);
-    assertThat(newRuntimeBuilder.getFileTypes().build()).hasSize(8);
+    assertThat(newRuntimeBuilder.getFileTypes().build()).hasSize(originalFileTypesSize);
   }
 
   @Test
