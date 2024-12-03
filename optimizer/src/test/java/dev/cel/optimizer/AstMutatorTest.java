@@ -18,7 +18,6 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
@@ -45,6 +44,7 @@ import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.navigation.CelNavigableMutableExpr;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.parser.CelStandardMacro;
@@ -64,7 +64,7 @@ public class AstMutatorTest {
           .addMessageTypes(TestAllTypes.getDescriptor())
           .addCompilerLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())
           .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
-          .setContainer("google.api.expr.test.v1.proto3")
+          .setContainer("cel.expr.conformance.proto3")
           .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
           .addVar("x", SimpleType.INT)
           .build();

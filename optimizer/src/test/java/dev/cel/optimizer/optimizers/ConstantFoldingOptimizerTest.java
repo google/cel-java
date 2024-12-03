@@ -17,7 +17,6 @@ package dev.cel.optimizer.optimizers;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
@@ -30,6 +29,7 @@ import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.optimizer.CelOptimizationException;
@@ -58,7 +58,7 @@ public class ConstantFoldingOptimizerTest {
           .addFunctionBindings(
               CelFunctionBinding.from("get_true_overload", ImmutableList.of(), unused -> true))
           .addMessageTypes(TestAllTypes.getDescriptor())
-          .setContainer("google.api.expr.test.v1.proto3")
+          .setContainer("cel.expr.conformance.proto3")
           .addCompilerLibraries(
               CelExtensions.bindings(),
               CelOptionalLibrary.INSTANCE,

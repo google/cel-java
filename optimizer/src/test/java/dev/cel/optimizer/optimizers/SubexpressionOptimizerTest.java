@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static dev.cel.common.CelOverloadDecl.newGlobalOverload;
 import static org.junit.Assert.assertThrows;
 
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -46,6 +45,7 @@ import dev.cel.common.navigation.CelNavigableMutableExpr;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.optimizer.CelOptimizer;
