@@ -109,6 +109,8 @@ public abstract class CelOptions {
 
   public abstract ProtoUnsetFieldOptions fromProtoUnsetFieldOption();
 
+  public abstract boolean adaptRuntimeTypeValueToNativeType();
+
   public abstract boolean enableStringConversion();
 
   public abstract boolean enableStringConcatenation();
@@ -209,6 +211,7 @@ public abstract class CelOptions {
         .comprehensionMaxIterations(-1)
         .unwrapWellKnownTypesOnFunctionDispatch(true)
         .fromProtoUnsetFieldOption(ProtoUnsetFieldOptions.BIND_DEFAULT)
+        .adaptRuntimeTypeValueToNativeType(false)
         .enableStringConversion(true)
         .enableStringConcatenation(true)
         .enableListConcatenation(true)
@@ -515,6 +518,14 @@ public abstract class CelOptions {
      * @see ProtoUnsetFieldOptions
      */
     public abstract Builder fromProtoUnsetFieldOption(ProtoUnsetFieldOptions value);
+
+    /**
+     * If enabled, result of the type function call `type(foo)` will be evaluated as a native-type
+     * equivalent {@code CelType} instead of the protobuf type equivalent from {value.proto}.
+     *
+     * <p>This is a temporary flag for migration purposes, and will be removed in the near future.
+     */
+    public abstract Builder adaptRuntimeTypeValueToNativeType(boolean value);
 
     /**
      * Enables string() overloads for the runtime. This option exists to maintain parity with

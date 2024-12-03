@@ -14,6 +14,8 @@
 
 package dev.cel.runtime;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import dev.cel.expr.Value;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Joiner;
@@ -52,26 +54,6 @@ import java.util.Optional;
 
 /**
  * Default implementation of the CEL interpreter.
- *
- * <p>Use as in:
- *
- * <pre>
- *   MessageFactory messageFactory = new LinkedMessageFactory();
- *   RuntimeTypeProvider typeProvider = new DescriptorMessageProvider(messageFactory);
- *   Dispatcher dispatcher = DefaultDispatcher.create();
- *   Interpreter interpreter = new DefaultInterpreter(typeProvider, dispatcher);
- *   Interpretable interpretable = interpreter.createInterpretable(checkedExpr);
- *   Object result = interpretable.eval(Activation.of("name", value));
- * </pre>
- *
- * <p>Extensions functions can be added in addition to standard functions to the dispatcher as
- * needed.
- *
- * <p>Note: {MessageFactory} instances may be combined using the {@link
- * MessageFactory.CombinedMessageFactory}.
- *
- * <p>Note: On Android, the {@code DescriptorMessageProvider} is not supported as proto lite does
- * not support descriptors. Instead, implement the {@code MessageProvider} interface directly.
  *
  * <p>CEL Library Internals. Do Not Use.
  */
@@ -117,8 +99,8 @@ public final class DefaultInterpreter implements Interpreter {
    */
   public DefaultInterpreter(
       RuntimeTypeProvider typeProvider, Dispatcher dispatcher, CelOptions celOptions) {
-    this.typeProvider = Preconditions.checkNotNull(typeProvider);
-    this.dispatcher = Preconditions.checkNotNull(dispatcher);
+    this.typeProvider = checkNotNull(typeProvider);
+    this.dispatcher = checkNotNull(dispatcher);
     this.celOptions = celOptions;
   }
 
@@ -141,11 +123,11 @@ public final class DefaultInterpreter implements Interpreter {
         Dispatcher dispatcher,
         CelAbstractSyntaxTree ast,
         CelOptions celOptions) {
-      this.typeProvider = Preconditions.checkNotNull(typeProvider);
-      this.dispatcher = Preconditions.checkNotNull(dispatcher).immutableCopy();
-      this.ast = Preconditions.checkNotNull(ast);
+      this.typeProvider = checkNotNull(typeProvider);
+      this.dispatcher = checkNotNull(dispatcher).immutableCopy();
+      this.ast = checkNotNull(ast);
       this.metadata = new DefaultMetadata(ast);
-      this.celOptions = Preconditions.checkNotNull(celOptions);
+      this.celOptions = checkNotNull(celOptions);
     }
 
     @Override
@@ -278,7 +260,10 @@ public final class DefaultInterpreter implements Interpreter {
       // Check whether the type exists in the type check map as a 'type'.
       Optional<CelType> checkedType = ast.getType(expr.id());
       if (checkedType.isPresent() && checkedType.get().kind() == CelKind.TYPE) {
-        Object typeValue = typeProvider.adaptType(checkedType.get());
+        Object typeValue =
+            celOptions.adaptRuntimeTypeValueToNativeType()
+                ? CelTypeResolver.adaptType(checkedType.get())
+                : typeProvider.adaptType(checkedType.get());
         return IntermediateResult.create(typeValue);
       }
 
@@ -658,8 +643,14 @@ public final class DefaultInterpreter implements Interpreter {
                           .setLocation(metadata, typeExprArg.id())
                           .build());
 
-      Value checkedTypeValue = typeProvider.adaptType(checkedType);
-      Object typeValue = typeProvider.resolveObjectType(argResult.value(), checkedTypeValue);
+      Object typeValue;
+      if (celOptions.adaptRuntimeTypeValueToNativeType()) {
+        CelType checkedTypeValue = CelTypeResolver.adaptType(checkedType);
+        typeValue = CelTypeResolver.resolveObjectType(argResult.value(), checkedTypeValue);
+      } else {
+        Value checkedTypeValue = typeProvider.adaptType(checkedType);
+        typeValue = typeProvider.resolveObjectType(argResult.value(), checkedTypeValue);
+      }
       return IntermediateResult.create(typeValue);
     }
 

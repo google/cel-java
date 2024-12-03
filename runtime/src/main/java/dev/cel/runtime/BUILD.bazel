@@ -42,6 +42,18 @@ INTERPRETER_SOURCES = [
 ]
 
 java_library(
+    name = "cel_type_resolver",
+    srcs = ["CelTypeResolver.java"],
+    deps = [
+        "//common/types",
+        "//common/types:type_providers",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
     name = "base",
     srcs = BASE_SOURCES,
     tags = [
@@ -80,6 +92,7 @@ java_library(
     exports = [":base"],
     deps = [
         ":base",
+        ":cel_type_resolver",
         ":evaluation_listener",
         ":runtime_helper",
         ":unknown_attributes",

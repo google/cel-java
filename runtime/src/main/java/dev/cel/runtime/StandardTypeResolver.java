@@ -42,9 +42,12 @@ import org.jspecify.annotations.Nullable;
  * by the CEL standard environment.
  *
  * <p>CEL Library Internals. Do Not Use.
+ *
+ * @deprecated Use {@code CelTypeResolver} instead.
  */
 @Immutable
 @Internal
+@Deprecated
 public final class StandardTypeResolver implements TypeResolver {
 
   /**

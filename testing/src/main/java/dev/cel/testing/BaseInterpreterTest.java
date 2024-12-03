@@ -100,6 +100,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   /** Test options to supply for interpreter tests. */
   protected enum InterpreterTestOption {
+    ADAPT_TYPE_VALUE(newBaseOptions().adaptRuntimeTypeValueToNativeType(true).build(), true),
     CEL_TYPE_SIGNED_UINT(newBaseOptions().enableUnsignedLongs(false).build(), true),
     CEL_TYPE_UNSIGNED_UINT(newBaseOptions().enableUnsignedLongs(true).build(), true),
     PROTO_TYPE_SIGNED_UINT(newBaseOptions().enableUnsignedLongs(false).build(), false),

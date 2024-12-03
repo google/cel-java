@@ -17,7 +17,6 @@ package dev.cel.extensions;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
-import dev.cel.expr.Value;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
@@ -43,6 +42,7 @@ import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
+import dev.cel.common.types.TypeType;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.parser.CelStandardMacro;
@@ -92,7 +92,11 @@ public class CelOptionalLibraryTest {
   private static CelBuilder newCelBuilder() {
     return CelFactory.standardCelBuilder()
         .setOptions(
-            CelOptions.current().enableUnsignedLongs(true).enableTimestampEpoch(true).build())
+            CelOptions.current()
+                .enableUnsignedLongs(true)
+                .enableTimestampEpoch(true)
+                .adaptRuntimeTypeValueToNativeType(true)
+                .build())
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .setContainer("cel.expr.conformance.proto3")
         .addMessageTypes(TestAllTypes.getDescriptor())
@@ -1439,11 +1443,12 @@ public class CelOptionalLibraryTest {
   @Test
   public void optionalType_typeResolution() throws Exception {
     Cel cel = newCelBuilder().build();
-
     CelAbstractSyntaxTree ast = cel.compile("optional_type").getAst();
 
-    assertThat(cel.createProgram(ast).eval())
-        .isEqualTo(Value.newBuilder().setTypeValue("optional_type").build());
+    TypeType optionalRuntimeType = (TypeType) cel.createProgram(ast).eval();
+
+    assertThat(optionalRuntimeType.name()).isEqualTo("type");
+    assertThat(optionalRuntimeType.containingTypeName()).isEqualTo("optional_type");
   }
 
   @Test

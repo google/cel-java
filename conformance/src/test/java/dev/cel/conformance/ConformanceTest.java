@@ -44,6 +44,7 @@ import dev.cel.common.types.CelType;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.TypeType;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
@@ -88,6 +89,7 @@ public final class ConformanceTest extends Statement {
       CelOptions.current()
           .enableTimestampEpoch(true)
           .enableUnsignedLongs(true)
+          .adaptRuntimeTypeValueToNativeType(true)
           .enableHeterogeneousNumericComparisons(true)
           .enableProtoDifferencerEquality(true)
           .enableOptionalSyntax(true)
@@ -332,6 +334,10 @@ public final class ConformanceTest extends Statement {
     if (object instanceof Message) {
       return Value.newBuilder().setObjectValue(Any.pack((Message) object)).build();
     }
+    if (object instanceof TypeType) {
+      return Value.newBuilder().setTypeValue(((TypeType) object).containingTypeName()).build();
+    }
+
     throw new IllegalArgumentException(
         String.format("Unexpected result type: %s", object.getClass()));
   }
