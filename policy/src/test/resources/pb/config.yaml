@@ -13,11 +13,11 @@
 # limitations under the License.
 
 name: "pb"
-container: "google.api.expr.test.v1.proto3"
+container: "cel.expr.conformance.proto3"
 extensions:
 - name: "strings"
   version: 2
 variables:
 - name: "spec"
   type:
-    type_name: "google.api.expr.test.v1.proto3.TestAllTypes"
+    type_name: "cel.expr.conformance.proto3.TestAllTypes"
