@@ -16,14 +16,14 @@ package dev.cel.common.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes.NestedEnum;
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes.NestedMessage;
 import com.google.protobuf.Any;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
+import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
