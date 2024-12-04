@@ -1,11 +1,11 @@
 Source: size(x.map_int64_nested_type) == 0
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 _==_(
   size(
-    x~google.api.expr.test.v1.proto3.TestAllTypes^x.map_int64_nested_type~map(int, google.api.expr.test.v1.proto3.NestedTestAllTypes)
+    x~cel.expr.conformance.proto3.TestAllTypes^x.map_int64_nested_type~map(int, cel.expr.conformance.proto3.NestedTestAllTypes)
   )~int^size_map,
   0~int
 )~bool^equals

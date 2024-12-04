@@ -1,6 +1,6 @@
 Source: x.single_fixed32 != 0u && x.single_fixed64 > 1u && x.single_int32 != null
 declare x {
-  value google.api.expr.test.v1.proto2.TestAllTypes
+  value cel.expr.conformance.proto2.TestAllTypes
 }
 =====>
 ERROR: test_location:1:67: found no matching overload for '_!=_' applied to '(int, null)' (candidates: (%A1, %A1))
@@ -9,10 +9,10 @@ ERROR: test_location:1:67: found no matching overload for '_!=_' applied to '(in
 
 Source: x.nestedgroup.single_name == ''
 declare x {
-  value google.api.expr.test.v1.proto2.TestAllTypes
+  value cel.expr.conformance.proto2.TestAllTypes
 }
 =====>
 _==_(
-  x~google.api.expr.test.v1.proto2.TestAllTypes^x.nestedgroup~google.api.expr.test.v1.proto2.TestAllTypes.NestedGroup.single_name~string,
+  x~cel.expr.conformance.proto2.TestAllTypes^x.nestedgroup~cel.expr.conformance.proto2.TestAllTypes.NestedGroup.single_name~string,
   ""~string
 )~bool^equals

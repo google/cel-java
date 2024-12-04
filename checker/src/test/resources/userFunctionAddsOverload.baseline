@@ -1,14 +1,14 @@
 Source: size(x) > 4
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare size {
-  function size_message (google.api.expr.test.v1.proto3.TestAllTypes) -> int
+  function size_message (cel.expr.conformance.proto3.TestAllTypes) -> int
 }
 =====>
 _>_(
   size(
-    x~google.api.expr.test.v1.proto3.TestAllTypes^x
+    x~cel.expr.conformance.proto3.TestAllTypes^x
   )~int^size_message,
   4~int
 )~bool^greater_int64

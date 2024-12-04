@@ -1,13 +1,13 @@
 Source: x.repeated_int64.map(x, double(x))
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 __comprehension__(
   // Variable
   x,
   // Target
-  x~google.api.expr.test.v1.proto3.TestAllTypes^x.repeated_int64~list(int),
+  x~cel.expr.conformance.proto3.TestAllTypes^x.repeated_int64~list(int),
   // Accumulator
   __result__,
   // Init
@@ -28,7 +28,7 @@ __comprehension__(
 
 Source: [].map(x, [].map(y, x in y && y in x))
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 ERROR: test_location:1:33: found no matching overload for '@in' applied to '(list(%elem0), %elem0)' (candidates: (%A7, list(%A7)),(%A8, map(%A8, %B9)))
@@ -37,7 +37,7 @@ ERROR: test_location:1:33: found no matching overload for '@in' applied to '(lis
 
 Source: [{}.map(c,c,c)]+[{}.map(c,c,c)]
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 _+_(

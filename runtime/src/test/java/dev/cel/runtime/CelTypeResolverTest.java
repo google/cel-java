@@ -16,7 +16,6 @@ package dev.cel.runtime;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameter;
@@ -31,6 +30,7 @@ import dev.cel.common.types.ProtoMessageTypeProvider;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeType;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.extensions.CelOptionalLibrary;
 import org.junit.Test;
 import org.junit.runner.RunWith;

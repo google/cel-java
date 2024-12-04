@@ -1,6 +1,6 @@
 Source: TestAllTypes.NestedEnum.BAR != 99
 =====>
 _!=_(
-  google.api.expr.test.v1.proto3.TestAllTypes.NestedEnum.BAR~int^google.api.expr.test.v1.proto3.TestAllTypes.NestedEnum.BAR,
+  cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAR~int^cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAR,
   99~int
 )~bool^not_equals

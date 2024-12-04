@@ -1,10 +1,10 @@
 Source: false ? x.single_timestamp : null
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 _?_:_(
   false~bool,
-  x~google.api.expr.test.v1.proto3.TestAllTypes^x.single_timestamp~google.protobuf.Timestamp,
+  x~cel.expr.conformance.proto3.TestAllTypes^x.single_timestamp~google.protobuf.Timestamp,
   null~null
 )~google.protobuf.Timestamp^conditional

@@ -17,8 +17,6 @@ package dev.cel.optimizer.optimizers;
 import static com.google.common.truth.Truth.assertThat;
 import static dev.cel.common.CelOverloadDecl.newGlobalOverload;
 
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.NestedTestAllTypes;
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameter;
@@ -33,6 +31,8 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
+import dev.cel.expr.conformance.proto3.NestedTestAllTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.optimizer.CelOptimizer;
@@ -319,7 +319,7 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
   private static CelBuilder newCelBuilder() {
     return CelFactory.standardCelBuilder()
         .addMessageTypes(TestAllTypes.getDescriptor())
-        .setContainer("google.api.expr.test.v1.proto3")
+        .setContainer("cel.expr.conformance.proto3")
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .setOptions(
             CelOptions.current().enableTimestampEpoch(true).populateMacroCalls(true).build())
