@@ -17,10 +17,6 @@ package dev.cel.common.values;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
-import com.google.api.expr.test.v1.proto2.TestAllTypesExtensions;
-import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes;
-import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes.NestedEnum;
-import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes.NestedMessage;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
@@ -45,6 +41,10 @@ import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.types.StructTypeReference;
+import dev.cel.expr.conformance.proto2.TestAllTypes;
+import dev.cel.expr.conformance.proto2.TestAllTypes.NestedEnum;
+import dev.cel.expr.conformance.proto2.TestAllTypes.NestedMessage;
+import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.Test;
@@ -129,7 +129,7 @@ public final class ProtoMessageValueTest {
         .hasMessageThat()
         .isEqualTo(
             "field 'bogus' is not declared in message"
-                + " 'google.api.expr.test.v1.proto2.TestAllTypes'");
+                + " 'cel.expr.conformance.proto2.TestAllTypes'");
   }
 
   @Test
@@ -149,8 +149,7 @@ public final class ProtoMessageValueTest {
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(proto2Message, descriptorPool, protoCelValueConverter);
 
-    assertThat(
-            protoMessageValue.find(StringValue.create("google.api.expr.test.v1.proto2.int32_ext")))
+    assertThat(protoMessageValue.find(StringValue.create("cel.expr.conformance.proto2.int32_ext")))
         .isPresent();
   }
 
@@ -168,12 +167,12 @@ public final class ProtoMessageValueTest {
             IllegalArgumentException.class,
             () ->
                 protoMessageValue.select(
-                    StringValue.create("google.api.expr.test.v1.proto2.int32_ext")));
+                    StringValue.create("cel.expr.conformance.proto2.int32_ext")));
     assertThat(exception)
         .hasMessageThat()
         .isEqualTo(
-            "field 'google.api.expr.test.v1.proto2.int32_ext' is not declared in message"
-                + " 'google.api.expr.test.v1.proto2.TestAllTypes'");
+            "field 'cel.expr.conformance.proto2.int32_ext' is not declared in message"
+                + " 'cel.expr.conformance.proto2.TestAllTypes'");
   }
 
   private enum SelectFieldTestCase {

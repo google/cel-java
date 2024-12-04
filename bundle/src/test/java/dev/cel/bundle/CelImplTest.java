@@ -35,8 +35,6 @@ import dev.cel.expr.ParsedExpr;
 import dev.cel.expr.Reference;
 import dev.cel.expr.Type;
 import dev.cel.expr.Type.PrimitiveType;
-import com.google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage;
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -86,6 +84,8 @@ import dev.cel.common.types.StructTypeReference;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.compiler.CelCompilerImpl;
+import dev.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.parser.CelParserImpl;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelAttribute;
@@ -1819,13 +1819,13 @@ public final class CelImplTest {
             .addMessageTypes(TestAllTypes.getDescriptor())
             .addVar(
                 "partialMessage1",
-                StructTypeReference.create("google.api.expr.test.v1.proto3.TestAllTypes"))
+                StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes"))
             .addVar(
                 "partialMessage2",
-                StructTypeReference.create("google.api.expr.test.v1.proto3.TestAllTypes"))
+                StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes"))
             .setResultType(
-                StructTypeReference.create("google.api.expr.test.v1.proto3.NestedTestAllTypes"))
-            .setContainer("google.api.expr.test.v1.proto3")
+                StructTypeReference.create("cel.expr.conformance.proto3.NestedTestAllTypes"))
+            .setContainer("cel.expr.conformance.proto3")
             .addFunctionBindings()
             .build();
     Program program =

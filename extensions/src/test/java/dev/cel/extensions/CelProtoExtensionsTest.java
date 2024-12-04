@@ -17,10 +17,6 @@ package dev.cel.extensions;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
-import com.google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage;
-import com.google.api.expr.test.v1.proto2.TestAllTypesExtensions;
-import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes;
-import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes.NestedEnum;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
@@ -39,6 +35,10 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage;
+import dev.cel.expr.conformance.proto2.TestAllTypes;
+import dev.cel.expr.conformance.proto2.TestAllTypes.NestedEnum;
+import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
@@ -54,8 +54,8 @@ public final class CelProtoExtensionsTest {
           .addLibraries(CelExtensions.protos())
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .addFileTypes(TestAllTypesExtensions.getDescriptor())
-          .addVar("msg", StructTypeReference.create("google.api.expr.test.v1.proto2.TestAllTypes"))
-          .setContainer("google.api.expr.test.v1.proto2")
+          .addVar("msg", StructTypeReference.create("cel.expr.conformance.proto2.TestAllTypes"))
+          .setContainer("cel.expr.conformance.proto2")
           .build();
 
   private static final CelRuntime CEL_RUNTIME =
@@ -85,12 +85,12 @@ public final class CelProtoExtensionsTest {
           .build();
 
   @Test
-  @TestParameters("{expr: 'proto.hasExt(msg, google.api.expr.test.v1.proto2.int32_ext)'}")
-  @TestParameters("{expr: 'proto.hasExt(msg, google.api.expr.test.v1.proto2.nested_ext)'}")
-  @TestParameters("{expr: 'proto.hasExt(msg, google.api.expr.test.v1.proto2.nested_enum_ext)'}")
+  @TestParameters("{expr: 'proto.hasExt(msg, cel.expr.conformance.proto2.int32_ext)'}")
+  @TestParameters("{expr: 'proto.hasExt(msg, cel.expr.conformance.proto2.nested_ext)'}")
+  @TestParameters("{expr: 'proto.hasExt(msg, cel.expr.conformance.proto2.nested_enum_ext)'}")
   @TestParameters(
-      "{expr: 'proto.hasExt(msg, google.api.expr.test.v1.proto2.repeated_test_all_types)'}")
-  @TestParameters("{expr: '!proto.hasExt(msg, google.api.expr.test.v1.proto2.test_all_types_ext)'}")
+      "{expr: 'proto.hasExt(msg, cel.expr.conformance.proto2.repeated_test_all_types)'}")
+  @TestParameters("{expr: '!proto.hasExt(msg, cel.expr.conformance.proto2.test_all_types_ext)'}")
   public void hasExt_packageScoped_success(String expr) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
     boolean result =
@@ -103,16 +103,16 @@ public final class CelProtoExtensionsTest {
   @Test
   @TestParameters(
       "{expr: 'proto.hasExt(msg,"
-          + " google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext)'}")
+          + " cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext)'}")
   @TestParameters(
       "{expr: 'proto.hasExt(msg,"
-          + " google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.int64_ext)'}")
+          + " cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext)'}")
   @TestParameters(
       "{expr: '!proto.hasExt(msg,"
-          + " google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types)'}")
+          + " cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types)'}")
   @TestParameters(
       "{expr: '!proto.hasExt(msg,"
-          + " google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.nested_enum_ext)'}")
+          + " cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.nested_enum_ext)'}")
   public void hasExt_messageScoped_success(String expr) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
     boolean result =
@@ -123,11 +123,11 @@ public final class CelProtoExtensionsTest {
   }
 
   @Test
-  @TestParameters("{expr: 'msg.hasExt(''google.api.expr.test.v1.proto2.int32_ext'', 0)'}")
-  @TestParameters("{expr: 'dyn(msg).hasExt(''google.api.expr.test.v1.proto2.int32_ext'', 0)'}")
+  @TestParameters("{expr: 'msg.hasExt(''cel.expr.conformance.proto2.int32_ext'', 0)'}")
+  @TestParameters("{expr: 'dyn(msg).hasExt(''cel.expr.conformance.proto2.int32_ext'', 0)'}")
   public void hasExt_nonProtoNamespace_success(String expr) throws Exception {
     StructTypeReference proto2MessageTypeReference =
-        StructTypeReference.create("google.api.expr.test.v1.proto2.TestAllTypes");
+        StructTypeReference.create("cel.expr.conformance.proto2.TestAllTypes");
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addLibraries(CelExtensions.protos())
@@ -170,24 +170,24 @@ public final class CelProtoExtensionsTest {
             CelValidationException.class,
             () ->
                 CEL_COMPILER
-                    .compile("!proto.hasExt(msg, google.api.expr.test.v1.proto2.undefined_field)")
+                    .compile("!proto.hasExt(msg, cel.expr.conformance.proto2.undefined_field)")
                     .getAst());
 
     assertThat(exception)
         .hasMessageThat()
-        .contains("undefined field 'google.api.expr.test.v1.proto2.undefined_field'");
+        .contains("undefined field 'cel.expr.conformance.proto2.undefined_field'");
   }
 
   @Test
-  @TestParameters("{expr: 'proto.getExt(msg, google.api.expr.test.v1.proto2.int32_ext) == 1'}")
+  @TestParameters("{expr: 'proto.getExt(msg, cel.expr.conformance.proto2.int32_ext) == 1'}")
   @TestParameters(
-      "{expr: 'proto.getExt(msg, google.api.expr.test.v1.proto2.nested_ext) =="
+      "{expr: 'proto.getExt(msg, cel.expr.conformance.proto2.nested_ext) =="
           + " TestAllTypes{single_int32: 5}'}")
   @TestParameters(
-      "{expr: 'proto.getExt(msg, google.api.expr.test.v1.proto2.nested_enum_ext) =="
+      "{expr: 'proto.getExt(msg, cel.expr.conformance.proto2.nested_enum_ext) =="
           + " TestAllTypes.NestedEnum.BAR'}")
   @TestParameters(
-      "{expr: 'proto.getExt(msg, google.api.expr.test.v1.proto2.repeated_test_all_types) =="
+      "{expr: 'proto.getExt(msg, cel.expr.conformance.proto2.repeated_test_all_types) =="
           + " [TestAllTypes{single_string: ''A''}, TestAllTypes{single_string: ''B''}]'}")
   public void getExt_packageScoped_success(String expr) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
@@ -201,11 +201,11 @@ public final class CelProtoExtensionsTest {
   @Test
   @TestParameters(
       "{expr: 'proto.getExt(msg,"
-          + " google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext)"
+          + " cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext)"
           + " == TestAllTypes{single_string: ''test''}'}")
   @TestParameters(
       "{expr: 'proto.getExt(msg,"
-          + " google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.int64_ext) == 1'}")
+          + " cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext) == 1'}")
   public void getExt_messageScopedSuccess(String expr) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
     boolean result =
@@ -222,20 +222,20 @@ public final class CelProtoExtensionsTest {
             CelValidationException.class,
             () ->
                 CEL_COMPILER
-                    .compile("!proto.getExt(msg, google.api.expr.test.v1.proto2.undefined_field)")
+                    .compile("!proto.getExt(msg, cel.expr.conformance.proto2.undefined_field)")
                     .getAst());
 
     assertThat(exception)
         .hasMessageThat()
-        .contains("undefined field 'google.api.expr.test.v1.proto2.undefined_field'");
+        .contains("undefined field 'cel.expr.conformance.proto2.undefined_field'");
   }
 
   @Test
-  @TestParameters("{expr: 'msg.getExt(''google.api.expr.test.v1.proto2.int32_ext'', 0) == 1'}")
-  @TestParameters("{expr: 'dyn(msg).getExt(''google.api.expr.test.v1.proto2.int32_ext'', 0) == 1'}")
+  @TestParameters("{expr: 'msg.getExt(''cel.expr.conformance.proto2.int32_ext'', 0) == 1'}")
+  @TestParameters("{expr: 'dyn(msg).getExt(''cel.expr.conformance.proto2.int32_ext'', 0) == 1'}")
   public void getExt_nonProtoNamespace_success(String expr) throws Exception {
     StructTypeReference proto2MessageTypeReference =
-        StructTypeReference.create("google.api.expr.test.v1.proto2.TestAllTypes");
+        StructTypeReference.create("cel.expr.conformance.proto2.TestAllTypes");
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addLibraries(CelExtensions.protos())
@@ -284,11 +284,10 @@ public final class CelProtoExtensionsTest {
             .addCompilerLibraries(CelExtensions.protos())
             .addFileTypes(TestAllTypesExtensions.getDescriptor())
             .setExtensionRegistry(extensionRegistry)
-            .addVar(
-                "msg", StructTypeReference.create("google.api.expr.test.v1.proto2.TestAllTypes"))
+            .addVar("msg", StructTypeReference.create("cel.expr.conformance.proto2.TestAllTypes"))
             .build();
     CelAbstractSyntaxTree ast =
-        cel.compile("proto.getExt(msg, google.api.expr.test.v1.proto2.int32_ext)").getAst();
+        cel.compile("proto.getExt(msg, cel.expr.conformance.proto2.int32_ext)").getAst();
     Any anyMsg =
         Any.pack(
             TestAllTypes.newBuilder().setExtension(TestAllTypesExtensions.int32Ext, 1).build());
@@ -311,10 +310,10 @@ public final class CelProtoExtensionsTest {
             + " | ...................................................^"),
     FIELD_INSIDE_PRESENCE_TEST(
         "proto.getExt(Proto2ExtensionScopedMessage{},"
-            + " has(google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.int64_ext))",
+            + " has(cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext))",
         "ERROR: <input>:1:49: invalid extension field\n"
             + " | proto.getExt(Proto2ExtensionScopedMessage{},"
-            + " has(google.api.expr.test.v1.proto2.Proto2ExtensionScopedMessage.int64_ext))\n"
+            + " has(cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext))\n"
             + " | ................................................^");
 
     private final String expr;

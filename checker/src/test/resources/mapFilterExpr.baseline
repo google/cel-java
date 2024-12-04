@@ -1,13 +1,13 @@
 Source: x.repeated_int64.map(x, x > 0, double(x))
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 __comprehension__(
   // Variable
   x,
   // Target
-  x~google.api.expr.test.v1.proto3.TestAllTypes^x.repeated_int64~list(int),
+  x~cel.expr.conformance.proto3.TestAllTypes^x.repeated_int64~list(int),
   // Accumulator
   __result__,
   // Init
@@ -35,7 +35,7 @@ __comprehension__(
 
 Source: lists.filter(x, x > 1.5)
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare lists {
   value dyn
@@ -71,7 +71,7 @@ __comprehension__(
 
 Source: args.user["myextension"].customAttributes.filter(x, x.name == "hobbies")
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare lists {
   value dyn

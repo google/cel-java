@@ -1,4 +1,4 @@
-Source: x == google.protobuf.Any{type_url:'types.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes'} && x.single_nested_message.bb == 43 || x == google.api.expr.test.v1.proto3.TestAllTypes{} || y < x|| x >= x
+Source: x == google.protobuf.Any{type_url:'types.googleapis.com/cel.expr.conformance.proto3.TestAllTypes'} && x.single_nested_message.bb == 43 || x == cel.expr.conformance.proto3.TestAllTypes{} || y < x|| x >= x
 declare x {
   value any
 }
@@ -12,7 +12,7 @@ _||_(
       _==_(
         x~any^x,
         google.protobuf.Any{
-          type_url:"types.googleapis.com/google.api.expr.test.v1.proto3.TestAllTypes"~string
+          type_url:"types.googleapis.com/cel.expr.conformance.proto3.TestAllTypes"~string
         }~any^google.protobuf.Any
       )~bool^equals,
       _==_(
@@ -22,7 +22,7 @@ _||_(
     )~bool^logical_and,
     _==_(
       x~any^x,
-      google.api.expr.test.v1.proto3.TestAllTypes{}~google.api.expr.test.v1.proto3.TestAllTypes^google.api.expr.test.v1.proto3.TestAllTypes
+      cel.expr.conformance.proto3.TestAllTypes{}~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes
     )~bool^equals
   )~bool^logical_or,
   _||_(

@@ -1,6 +1,6 @@
 Source: x.single_int32
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -8,7 +8,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: x.map_int32_int64[22]
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -16,7 +16,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: x.repeated_nested_message[1]
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -24,7 +24,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: x.single_timestamp.getSeconds()
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -32,7 +32,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: x.single_nested_message.bb
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -40,7 +40,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: {1: x.single_int32}
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -48,7 +48,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[4]}
 
 Source: [1, x.single_int32]
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}

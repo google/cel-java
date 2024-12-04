@@ -16,12 +16,12 @@ package dev.cel.checker;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -63,7 +63,7 @@ public class CelCheckerLegacyImplTest {
             .addMessageTypes(TestAllTypes.getDescriptor())
             .addFileTypes(TestAllTypes.getDescriptor().getFile())
             .addProtoTypeMasks(
-                ProtoTypeMask.ofAllFields("google.api.expr.test.v1.proto3.TestAllTypes"))
+                ProtoTypeMask.ofAllFields("cel.expr.conformance.proto3.TestAllTypes"))
             .addLibraries(new CelCheckerLibrary() {});
     CelCheckerLegacyImpl celChecker = (CelCheckerLegacyImpl) celCheckerBuilder.build();
 
@@ -93,7 +93,7 @@ public class CelCheckerLegacyImplTest {
     celCheckerBuilder.addMessageTypes(TestAllTypes.getDescriptor());
     celCheckerBuilder.addFileTypes(TestAllTypes.getDescriptor().getFile());
     celCheckerBuilder.addProtoTypeMasks(
-        ProtoTypeMask.ofAllFields("google.api.expr.test.v1.proto3.TestAllTypes"));
+        ProtoTypeMask.ofAllFields("cel.expr.conformance.proto3.TestAllTypes"));
     celCheckerBuilder.addLibraries(new CelCheckerLibrary() {});
 
     assertThat(newCheckerBuilder.getFunctionDecls().build()).isEmpty();

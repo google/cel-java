@@ -11,7 +11,7 @@ declare ns.x {
   value int
 }
 declare dev.cel.testing.testdata.proto3.msgVar {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {dev.cel.testing.testdata.proto3.msgVar=single_int32: 5

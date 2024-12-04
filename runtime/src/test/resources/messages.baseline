@@ -1,6 +1,6 @@
 Source: x.single_nested_message.bb == 43 && has(x.single_nested_message)
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {x=single_nested_message {
@@ -11,10 +11,10 @@ result:   true
 
 Source: single_nested_message.bb == 43
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare single_nested_message {
-  value google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage
+  value cel.expr.conformance.proto3.TestAllTypes.NestedMessage
 }
 =====>
 bindings: {single_nested_message=bb: 43
@@ -23,10 +23,10 @@ result:   true
 
 Source: TestAllTypes{single_int64: 1, single_sfixed64: 2, single_int32: 2}.single_int32 == 2
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare single_nested_message {
-  value google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage
+  value cel.expr.conformance.proto3.TestAllTypes.NestedMessage
 }
 =====>
 bindings: {}

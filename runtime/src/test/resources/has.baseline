@@ -1,6 +1,6 @@
 Source: has(x.single_int32) && !has(x.single_int64) && has(x.single_bool_wrapper) && has(x.single_int32_wrapper) && !has(x.single_int64_wrapper) && has(x.repeated_int32) && !has(x.repeated_int64) && has(x.optional_bool) && !has(x.optional_string) && has(x.oneof_bool) && !has(x.oneof_type) && has(x.map_int32_int64) && !has(x.map_string_string) && has(x.single_nested_message) && !has(x.single_duration)
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {x=single_int32: 1

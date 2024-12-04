@@ -3,6 +3,6 @@ declare x {
   value google.protobuf.Struct
 }
 =====>
-ERROR: test_location:1:10: found no matching overload for '_!=_' applied to '(google.protobuf.Value, google.api.expr.test.v1.proto3.TestAllTypes)' (candidates: (%A3, %A3))
+ERROR: test_location:1:10: found no matching overload for '_!=_' applied to '(google.protobuf.Value, cel.expr.conformance.proto3.TestAllTypes)' (candidates: (%A3, %A3))
   | x["iss"] != TestAllTypes{single_int32: 1}
   | .........^

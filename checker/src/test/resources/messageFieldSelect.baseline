@@ -1,22 +1,22 @@
 Source: x.single_nested_message.bb == 43 && has(x.single_nested_message)  && has(x.single_int32) && has(x.repeated_int32) && has(x.map_int64_nested_type)
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 _&&_(
   _&&_(
     _&&_(
       _==_(
-        x~google.api.expr.test.v1.proto3.TestAllTypes^x.single_nested_message~google.api.expr.test.v1.proto3.TestAllTypes.NestedMessage.bb~int,
+        x~cel.expr.conformance.proto3.TestAllTypes^x.single_nested_message~cel.expr.conformance.proto3.TestAllTypes.NestedMessage.bb~int,
         43~int
       )~bool^equals,
-      x~google.api.expr.test.v1.proto3.TestAllTypes^x.single_nested_message~test-only~~bool
+      x~cel.expr.conformance.proto3.TestAllTypes^x.single_nested_message~test-only~~bool
     )~bool^logical_and,
-    x~google.api.expr.test.v1.proto3.TestAllTypes^x.single_int32~test-only~~bool
+    x~cel.expr.conformance.proto3.TestAllTypes^x.single_int32~test-only~~bool
   )~bool^logical_and,
   _&&_(
-    x~google.api.expr.test.v1.proto3.TestAllTypes^x.repeated_int32~test-only~~bool,
-    x~google.api.expr.test.v1.proto3.TestAllTypes^x.map_int64_nested_type~test-only~~bool
+    x~cel.expr.conformance.proto3.TestAllTypes^x.repeated_int32~test-only~~bool,
+    x~cel.expr.conformance.proto3.TestAllTypes^x.map_int64_nested_type~test-only~~bool
   )~bool^logical_and
 )~bool^logical_and
 

@@ -9,8 +9,8 @@ Source: msgVar.single_int32
 declare ns.x {
   value int
 }
-declare google.api.expr.test.v1.proto3.msgVar {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+declare cel.expr.conformance.proto3.msgVar {
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
-google.api.expr.test.v1.proto3.msgVar~google.api.expr.test.v1.proto3.TestAllTypes^google.api.expr.test.v1.proto3.msgVar.single_int32~int
+cel.expr.conformance.proto3.msgVar~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.msgVar.single_int32~int

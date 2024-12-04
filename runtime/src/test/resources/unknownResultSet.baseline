@@ -1,6 +1,6 @@
 Source: x.single_int32 == 1 && true
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -8,7 +8,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: x.single_int32 == 1 && false
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -16,7 +16,7 @@ result:   false
 
 Source: x.single_int32 == 1 && x.single_int64 == 1
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -24,7 +24,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1, 6]}
 
 Source: x.single_int32 == 1 && x.single_timestamp <= timestamp("bad timestamp string")
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -32,7 +32,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: true && x.single_int32 == 1
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -40,7 +40,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[3]}
 
 Source: false && x.single_int32 == 1
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -48,7 +48,7 @@ result:   false
 
 Source: x.single_timestamp <= timestamp("bad timestamp string") && x.single_int32 == 1
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -56,7 +56,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[7]}
 
 Source: x.single_timestamp <= timestamp("bad timestamp string") && x.single_timestamp > timestamp("another bad timestamp string")
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -65,7 +65,7 @@ error_code:    BAD_FORMAT
 
 Source: x.single_int32 == 1 || x.single_string == "test"
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -73,7 +73,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1, 6]}
 
 Source: x.single_int32 == 1 || x.single_string != "test"
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -81,7 +81,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1, 6]}
 
 Source: x.single_int32 == 1 || x.single_int64 == 1
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -89,7 +89,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1, 6]}
 
 Source: x.single_int32 == 1 || x.single_timestamp <= timestamp("bad timestamp string")
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -97,7 +97,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: true || x.single_int32 == 1
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -105,7 +105,7 @@ result:   true
 
 Source: false || x.single_int32 == 1
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -113,7 +113,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[3]}
 
 Source: x.single_timestamp <= timestamp("bad timestamp string") || x.single_int32 == 1
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -121,7 +121,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[7]}
 
 Source: x.single_timestamp <= timestamp("bad timestamp string") || x.single_timestamp > timestamp("another bad timestamp string")
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -130,7 +130,7 @@ error_code:    BAD_FORMAT
 
 Source: x.single_int32.f(1)
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -141,7 +141,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: 1.f(x.single_int32)
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -152,7 +152,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[3]}
 
 Source: x.single_int64.f(x.single_int32)
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -163,7 +163,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1, 4]}
 
 Source: x
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -178,7 +178,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: x
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -189,7 +189,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: x.map_int32_int64.map(x, x > 0, x + 1)
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -200,7 +200,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: [0, 2, 4].exists(z, z == 2 || z == x.single_int32)
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -211,7 +211,7 @@ result:   true
 
 Source: [0, 2, 4].exists(z, z == x.single_int32)
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -222,7 +222,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[9]}
 
 Source: [0, 2, 4].exists_one(z, z == 0 || (z == 2 && z == x.single_int32) || (z == 4 && z == x.single_int64))
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -233,7 +233,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[26]}
 
 Source: [0, 2].all(z, z == 2 || z == x.single_int32)
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -244,7 +244,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[12]}
 
 Source: [0, 2, 4].filter(z, z == 0 || (z == 2 && z == x.single_int32) || (z == 4 && z == x.single_int64))
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -255,7 +255,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[26]}
 
 Source: [0, 2, 4].map(z, z == 0 || (z == 2 && z == x.single_int32) || (z == 4 && z == x.single_int64))
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -266,7 +266,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[17, 26]}
 
 Source: x.single_int32 == 1 ? 1 : 2
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -277,7 +277,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: true ? x.single_int32 : 2
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -288,7 +288,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[3]}
 
 Source: true ? 1 : x.single_int32
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -299,7 +299,7 @@ result:   1
 
 Source: false ? x.single_int32 : 2
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -310,7 +310,7 @@ result:   2
 
 Source: false ? 1 : x.single_int32
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -321,7 +321,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[4]}
 
 Source: x.single_int64 == 1 ? x.single_int32 : x.single_int32
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -332,7 +332,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[1]}
 
 Source: {x.single_int32: 2, 3: 4}
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -343,7 +343,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[3]}
 
 Source: {1: x.single_int32, 3: 4}
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -354,7 +354,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[4]}
 
 Source: {1: x.single_int32, x.single_int64: 4}
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -365,7 +365,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[4, 7]}
 
 Source: [1, x.single_int32, 3, 4]
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -376,7 +376,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[3]}
 
 Source: [1, x.single_int32, x.single_int64, 4]
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -387,7 +387,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[3, 5]}
 
 Source: TestAllTypes{single_int32: x.single_int32}.single_int32 == 2
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -398,7 +398,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[3]}
 
 Source: TestAllTypes{single_int32: x.single_int32, single_int64: x.single_int64}
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -409,7 +409,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[3, 6]}
 
 Source: type(x.single_int32)
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool
@@ -420,7 +420,7 @@ result:   CelUnknownSet{attributes=[], unknownExprIds=[2]}
 
 Source: type(1 / 0 > 2)
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare f {
   function f int.(int) -> bool

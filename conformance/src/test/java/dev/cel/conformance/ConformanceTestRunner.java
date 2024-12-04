@@ -17,14 +17,14 @@ package dev.cel.conformance;
 import static dev.cel.conformance.ConformanceTest.DEFAULT_EXTENSION_REGISTRY;
 import static dev.cel.conformance.ConformanceTest.DEFAULT_TYPE_REGISTRY;
 
-import com.google.api.expr.test.v1.SimpleProto.SimpleTest;
-import com.google.api.expr.test.v1.SimpleProto.SimpleTestFile;
-import com.google.api.expr.test.v1.SimpleProto.SimpleTestSection;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.protobuf.TextFormat;
+import dev.cel.expr.conformance.SimpleTest;
+import dev.cel.expr.conformance.SimpleTestFile;
+import dev.cel.expr.conformance.SimpleTestSection;
 import java.io.BufferedReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

@@ -16,13 +16,13 @@ package dev.cel.common.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.api.expr.test.v1.proto2.TestAllTypesExtensions;
-import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Value;
 import dev.cel.common.CelDescriptorUtil;
+import dev.cel.expr.conformance.proto2.TestAllTypes;
+import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,12 +73,12 @@ public class CombinedDescriptorPoolTest {
 
     Optional<FieldDescriptor> fieldDescriptor =
         combinedDescriptorPool.findExtensionDescriptor(
-            TestAllTypes.getDescriptor(), "google.api.expr.test.v1.proto2.test_all_types_ext");
+            TestAllTypes.getDescriptor(), "cel.expr.conformance.proto2.test_all_types_ext");
 
     assertThat(fieldDescriptor).isPresent();
     assertThat(fieldDescriptor.get().isExtension()).isTrue();
     assertThat(fieldDescriptor.get().getFullName())
-        .isEqualTo("google.api.expr.test.v1.proto2.test_all_types_ext");
+        .isEqualTo("cel.expr.conformance.proto2.test_all_types_ext");
   }
 
   @Test
