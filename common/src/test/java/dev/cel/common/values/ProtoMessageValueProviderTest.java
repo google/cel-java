@@ -122,8 +122,7 @@ public class ProtoMessageValueProviderTest {
   @Test
   public void newValue_createProtoMessage_unsignedLongFieldsPopulated() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(
-            DYNAMIC_PROTO, CelOptions.current().enableUnsignedLongs(true).build());
+        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO, CelOptions.current().build());
 
     ProtoMessageValue protoMessageValue =
         (ProtoMessageValue)
