@@ -45,7 +45,7 @@ import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeType;
 import dev.cel.compiler.CelCompilerFactory;
-import dev.cel.expr.conformance.SimpleTest;
+import dev.cel.expr.conformance.test.SimpleTest;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.parser.CelParser;
