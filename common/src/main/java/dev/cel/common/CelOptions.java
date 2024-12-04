@@ -432,7 +432,11 @@ public abstract class CelOptions {
     /**
      * Use {@code UnsignedLong} values to represent unsigned integers within CEL instead of the
      * nearest Java equivalent of {@code Long}.
+     *
+     * @deprecated Do not use. This option is enabled by default in the currently supported feature
+     *     set {@link CelOptions#DEFAULT}. This flag will be removed in the future.
      */
+    @Deprecated
     public abstract Builder enableUnsignedLongs(boolean value);
 
     /**
