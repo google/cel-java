@@ -17,8 +17,6 @@ package dev.cel.common.values;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
-import com.google.api.expr.test.v1.proto2.TestAllTypesExtensions;
-import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
@@ -34,6 +32,8 @@ import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.values.CelValueProvider.CombinedCelValueProvider;
+import dev.cel.expr.conformance.proto2.TestAllTypes;
+import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -197,13 +197,13 @@ public class ProtoMessageValueProviderTest {
             protoMessageValueProvider
                 .newValue(
                     TestAllTypes.getDescriptor().getFullName(),
-                    ImmutableMap.of("google.api.expr.test.v1.proto2.int32_ext", 1))
+                    ImmutableMap.of("cel.expr.conformance.proto2.int32_ext", 1))
                 .get();
 
     assertThat(protoMessageValue.isZeroValue()).isFalse();
     assertThat(
             protoMessageValue
-                .select(StringValue.create("google.api.expr.test.v1.proto2.int32_ext"))
+                .select(StringValue.create("cel.expr.conformance.proto2.int32_ext"))
                 .value())
         .isEqualTo(1);
   }
@@ -239,7 +239,7 @@ public class ProtoMessageValueProviderTest {
         .hasMessageThat()
         .isEqualTo(
             "field 'bogus' is not declared in message"
-                + " 'google.api.expr.test.v1.proto2.TestAllTypes'");
+                + " 'cel.expr.conformance.proto2.TestAllTypes'");
   }
 
   @Test

@@ -17,13 +17,13 @@ package dev.cel.checker;
 import static com.google.common.truth.Truth.assertThat;
 
 import dev.cel.expr.Type;
-import com.google.api.expr.test.v1.proto2.TestAllTypesExtensions;
-import com.google.api.expr.test.v1.proto2.TestAllTypesProto.TestAllTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.rpc.context.AttributeContext;
 import dev.cel.checker.TypeProvider.CombinedTypeProvider;
 import dev.cel.checker.TypeProvider.ExtensionFieldType;
 import dev.cel.common.types.CelTypes;
+import dev.cel.expr.conformance.proto2.TestAllTypes;
+import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
 import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
@@ -50,14 +50,13 @@ public final class DescriptorTypeProviderTest {
 
   @Test
   public void lookupFieldNames_groupTypeField() throws Exception {
-    Type proto2MessageType = CelTypes.createMessage("google.api.expr.test.v1.proto2.TestAllTypes");
+    Type proto2MessageType = CelTypes.createMessage("cel.expr.conformance.proto2.TestAllTypes");
     TypeProvider typeProvider =
         new DescriptorTypeProvider(
             ImmutableList.of(
                 TestAllTypes.getDescriptor().getFile(), TestAllTypesExtensions.getDescriptor()));
     assertThat(typeProvider.lookupFieldType(proto2MessageType, "nestedgroup").type())
-        .isEqualTo(
-            CelTypes.createMessage("google.api.expr.test.v1.proto2.TestAllTypes.NestedGroup"));
+        .isEqualTo(CelTypes.createMessage("cel.expr.conformance.proto2.TestAllTypes.NestedGroup"));
   }
 
   @Test
@@ -100,35 +99,35 @@ public final class DescriptorTypeProviderTest {
         makePartialTypeProvider(configuredProvider);
     final TypeProvider typeProvider =
         new CombinedTypeProvider(ImmutableList.of(partialProvider, configuredProvider));
-    final Type messageType = CelTypes.createMessage("google.api.expr.test.v1.proto2.TestAllTypes");
+    final Type messageType = CelTypes.createMessage("cel.expr.conformance.proto2.TestAllTypes");
 
     assertThat(typeProvider.lookupExtensionType("non.existent")).isNull();
 
     ExtensionFieldType nestedExt =
-        typeProvider.lookupExtensionType("google.api.expr.test.v1.proto2.nested_ext");
+        typeProvider.lookupExtensionType("cel.expr.conformance.proto2.nested_ext");
     assertThat(nestedExt).isNotNull();
     assertThat(nestedExt.fieldType().type()).isEqualTo(messageType);
     assertThat(nestedExt.messageType()).isEqualTo(messageType);
 
     ExtensionFieldType int32Ext =
-        typeProvider.lookupExtensionType("google.api.expr.test.v1.proto2.int32_ext");
+        typeProvider.lookupExtensionType("cel.expr.conformance.proto2.int32_ext");
     assertThat(int32Ext).isNotNull();
     assertThat(int32Ext.fieldType().type()).isEqualTo(CelTypes.INT64);
     assertThat(int32Ext.messageType()).isEqualTo(messageType);
 
     ExtensionFieldType repeatedExt =
-        typeProvider.lookupExtensionType("google.api.expr.test.v1.proto2.repeated_test_all_types");
+        typeProvider.lookupExtensionType("cel.expr.conformance.proto2.repeated_test_all_types");
     assertThat(repeatedExt).isNotNull();
     assertThat(repeatedExt.fieldType().type())
         .isEqualTo(
             CelTypes.createList(
-                CelTypes.createMessage("google.api.expr.test.v1.proto2.TestAllTypes")));
+                CelTypes.createMessage("cel.expr.conformance.proto2.TestAllTypes")));
     assertThat(repeatedExt.messageType()).isEqualTo(messageType);
 
     // With leading dot '.'.
     assertThat(
             typeProvider.lookupExtensionType(
-                ".google.api.expr.test.v1.proto2.repeated_test_all_types"))
+                ".cel.expr.conformance.proto2.repeated_test_all_types"))
         .isNotNull();
   }
 

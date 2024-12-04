@@ -22,9 +22,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import dev.cel.expr.CheckedExpr;
 import dev.cel.expr.Type;
 import dev.cel.expr.Type.AbstractType;
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes.NestedEnum;
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes.NestedMessage;
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -67,6 +64,9 @@ import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.FileDescriptorSetConverter;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
+import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelLateFunctionBindings;
@@ -918,7 +918,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     runTest(ImmutableMap.of("ns.x", 2));
 
     container = "dev.cel.testing.testdata.proto3";
-    Type messageType = CelTypes.createMessage("google.api.expr.test.v1.proto3.TestAllTypes");
+    Type messageType = CelTypes.createMessage("cel.expr.conformance.proto3.TestAllTypes");
     declareVariable("dev.cel.testing.testdata.proto3.msgVar", messageType);
     source = "msgVar.single_int32";
     runTest(
@@ -1847,14 +1847,14 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source =
         "type(TestAllTypes{}) == TestAllTypes && "
             + "type(TestAllTypes{}) == proto3.TestAllTypes && "
-            + "type(TestAllTypes{}) == .google.api.expr.test.v1.proto3.TestAllTypes && "
+            + "type(TestAllTypes{}) == .cel.expr.conformance.proto3.TestAllTypes && "
             + "type(proto3.TestAllTypes{}) == TestAllTypes && "
             + "type(proto3.TestAllTypes{}) == proto3.TestAllTypes && "
-            + "type(proto3.TestAllTypes{}) == .google.api.expr.test.v1.proto3.TestAllTypes && "
-            + "type(.google.api.expr.test.v1.proto3.TestAllTypes{}) == TestAllTypes && "
-            + "type(.google.api.expr.test.v1.proto3.TestAllTypes{}) == proto3.TestAllTypes && "
-            + "type(.google.api.expr.test.v1.proto3.TestAllTypes{}) == "
-            + ".google.api.expr.test.v1.proto3.TestAllTypes";
+            + "type(proto3.TestAllTypes{}) == .cel.expr.conformance.proto3.TestAllTypes && "
+            + "type(.cel.expr.conformance.proto3.TestAllTypes{}) == TestAllTypes && "
+            + "type(.cel.expr.conformance.proto3.TestAllTypes{}) == proto3.TestAllTypes && "
+            + "type(.cel.expr.conformance.proto3.TestAllTypes{}) == "
+            + ".cel.expr.conformance.proto3.TestAllTypes";
     runTest();
 
     // Test whether a type name is recognized as a type.

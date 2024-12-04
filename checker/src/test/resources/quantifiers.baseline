@@ -1,6 +1,6 @@
 Source: x.repeated_int64.all(e, e > 0) && x.repeated_int64.exists(e, e < 0) && x.repeated_int64.exists_one(e, e == 0)
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 _&&_(
@@ -9,7 +9,7 @@ _&&_(
       // Variable
       e,
       // Target
-      x~google.api.expr.test.v1.proto3.TestAllTypes^x.repeated_int64~list(int),
+      x~cel.expr.conformance.proto3.TestAllTypes^x.repeated_int64~list(int),
       // Accumulator
       __result__,
       // Init
@@ -32,7 +32,7 @@ _&&_(
       // Variable
       e,
       // Target
-      x~google.api.expr.test.v1.proto3.TestAllTypes^x.repeated_int64~list(int),
+      x~cel.expr.conformance.proto3.TestAllTypes^x.repeated_int64~list(int),
       // Accumulator
       __result__,
       // Init
@@ -58,7 +58,7 @@ _&&_(
     // Variable
     e,
     // Target
-    x~google.api.expr.test.v1.proto3.TestAllTypes^x.repeated_int64~list(int),
+    x~cel.expr.conformance.proto3.TestAllTypes^x.repeated_int64~list(int),
     // Accumulator
     __result__,
     // Init

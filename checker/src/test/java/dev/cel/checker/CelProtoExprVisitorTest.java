@@ -19,12 +19,12 @@ import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 
 import dev.cel.expr.Constant;
 import dev.cel.expr.Expr;
-import com.google.api.expr.test.v1.proto3.TestAllTypesProto.TestAllTypes;
 import com.google.auto.value.AutoValue;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.Operator;
 import java.util.Optional;

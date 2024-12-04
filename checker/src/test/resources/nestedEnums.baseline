@@ -1,16 +1,16 @@
 Source: x.single_nested_enum == TestAllTypes.NestedEnum.BAR
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 _==_(
-  x~google.api.expr.test.v1.proto3.TestAllTypes^x.single_nested_enum~int,
-  google.api.expr.test.v1.proto3.TestAllTypes.NestedEnum.BAR~int^google.api.expr.test.v1.proto3.TestAllTypes.NestedEnum.BAR
+  x~cel.expr.conformance.proto3.TestAllTypes^x.single_nested_enum~int,
+  cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAR~int^cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAR
 )~bool^equals
 
 Source: single_nested_enum == TestAllTypes.NestedEnum.BAR
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare single_nested_enum {
   value int
@@ -18,12 +18,12 @@ declare single_nested_enum {
 =====>
 _==_(
   single_nested_enum~int^single_nested_enum,
-  google.api.expr.test.v1.proto3.TestAllTypes.NestedEnum.BAR~int^google.api.expr.test.v1.proto3.TestAllTypes.NestedEnum.BAR
+  cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAR~int^cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAR
 )~bool^equals
 
 Source: TestAllTypes{single_nested_enum : TestAllTypes.NestedEnum.BAR}.single_nested_enum == 1
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare single_nested_enum {
   value int
@@ -31,7 +31,7 @@ declare single_nested_enum {
 =====>
 _==_(
   TestAllTypes{
-    single_nested_enum:google.api.expr.test.v1.proto3.TestAllTypes.NestedEnum.BAR~int^google.api.expr.test.v1.proto3.TestAllTypes.NestedEnum.BAR
-  }~google.api.expr.test.v1.proto3.TestAllTypes^google.api.expr.test.v1.proto3.TestAllTypes.single_nested_enum~int,
+    single_nested_enum:cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAR~int^cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAR
+  }~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes.single_nested_enum~int,
   1~int
 )~bool^equals

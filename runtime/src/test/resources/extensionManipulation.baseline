@@ -9,54 +9,54 @@ Source: [y.hasI(), y.getI() == 200, !n.hasI(), n.getI() == 0,
  n.assignR(["a", "b"].map(s, TestAllTypes{single_string:s})).getR().map(h, h.single_string) == ["a", "b"],
  y.clearR().getR() == []]
 declare y {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto2.TestAllTypes
 }
 declare n {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto2.TestAllTypes
 }
 declare getI {
-  function getI google.api.expr.test.v1.proto3.TestAllTypes.() -> int
+  function getI cel.expr.conformance.proto2.TestAllTypes.() -> int
 }
 declare hasI {
-  function hasI google.api.expr.test.v1.proto3.TestAllTypes.() -> bool
+  function hasI cel.expr.conformance.proto2.TestAllTypes.() -> bool
 }
 declare assignI {
-  function assignI google.api.expr.test.v1.proto3.TestAllTypes.(int) -> google.api.expr.test.v1.proto3.TestAllTypes
+  function assignI cel.expr.conformance.proto2.TestAllTypes.(int) -> cel.expr.conformance.proto2.TestAllTypes
 }
 declare clearI {
-  function clearI google.api.expr.test.v1.proto3.TestAllTypes.() -> google.api.expr.test.v1.proto3.TestAllTypes
+  function clearI cel.expr.conformance.proto2.TestAllTypes.() -> cel.expr.conformance.proto2.TestAllTypes
 }
 declare getN {
-  function getN google.api.expr.test.v1.proto3.TestAllTypes.() -> google.api.expr.test.v1.proto3.TestAllTypes
+  function getN cel.expr.conformance.proto2.TestAllTypes.() -> cel.expr.conformance.proto2.TestAllTypes
 }
 declare hasN {
-  function hasN google.api.expr.test.v1.proto3.TestAllTypes.() -> bool
+  function hasN cel.expr.conformance.proto2.TestAllTypes.() -> bool
 }
 declare assignN {
-  function assignN google.api.expr.test.v1.proto3.TestAllTypes.(google.api.expr.test.v1.proto3.TestAllTypes) -> google.api.expr.test.v1.proto3.TestAllTypes
+  function assignN cel.expr.conformance.proto2.TestAllTypes.(cel.expr.conformance.proto2.TestAllTypes) -> cel.expr.conformance.proto2.TestAllTypes
 }
 declare clearN {
-  function clearN google.api.expr.test.v1.proto3.TestAllTypes.() -> google.api.expr.test.v1.proto3.TestAllTypes
+  function clearN cel.expr.conformance.proto2.TestAllTypes.() -> cel.expr.conformance.proto2.TestAllTypes
 }
 declare getR {
-  function getR google.api.expr.test.v1.proto3.TestAllTypes.() -> list(google.api.expr.test.v1.proto2.TestAllTypes)
+  function getR cel.expr.conformance.proto2.TestAllTypes.() -> list(cel.expr.conformance.proto2.TestAllTypes)
 }
 declare assignR {
-  function assignR google.api.expr.test.v1.proto3.TestAllTypes.(list(google.api.expr.test.v1.proto2.TestAllTypes)) -> google.api.expr.test.v1.proto3.TestAllTypes
+  function assignR cel.expr.conformance.proto2.TestAllTypes.(list(cel.expr.conformance.proto2.TestAllTypes)) -> cel.expr.conformance.proto2.TestAllTypes
 }
 declare clearR {
-  function clearR google.api.expr.test.v1.proto3.TestAllTypes.() -> google.api.expr.test.v1.proto3.TestAllTypes
+  function clearR cel.expr.conformance.proto2.TestAllTypes.() -> cel.expr.conformance.proto2.TestAllTypes
 }
 =====>
 bindings: {y=single_int32: 100
-[google.api.expr.test.v1.proto2.int32_ext]: 200
-[google.api.expr.test.v1.proto2.nested_ext] {
+[cel.expr.conformance.proto2.int32_ext]: 200
+[cel.expr.conformance.proto2.nested_ext] {
   single_int32: 50
 }
-[google.api.expr.test.v1.proto2.repeated_test_all_types] {
+[cel.expr.conformance.proto2.repeated_test_all_types] {
   single_string: "alpha"
 }
-[google.api.expr.test.v1.proto2.repeated_test_all_types] {
+[cel.expr.conformance.proto2.repeated_test_all_types] {
   single_string: "alpha"
 }
 , n=single_int32: 50

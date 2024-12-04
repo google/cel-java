@@ -1,38 +1,38 @@
 Source: x.single_int64_wrapper == 1 && x.single_int32_wrapper != 2 && x.single_double_wrapper != 2.0 && x.single_float_wrapper == 1.0 && x.single_uint32_wrapper == 1u && x.single_uint64_wrapper != 42u
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 _&&_(
   _&&_(
     _&&_(
       _==_(
-        x~google.api.expr.test.v1.proto3.TestAllTypes^x.single_int64_wrapper~wrapper(int),
+        x~cel.expr.conformance.proto3.TestAllTypes^x.single_int64_wrapper~wrapper(int),
         1~int
       )~bool^equals,
       _!=_(
-        x~google.api.expr.test.v1.proto3.TestAllTypes^x.single_int32_wrapper~wrapper(int),
+        x~cel.expr.conformance.proto3.TestAllTypes^x.single_int32_wrapper~wrapper(int),
         2~int
       )~bool^not_equals
     )~bool^logical_and,
     _!=_(
-      x~google.api.expr.test.v1.proto3.TestAllTypes^x.single_double_wrapper~wrapper(double),
+      x~cel.expr.conformance.proto3.TestAllTypes^x.single_double_wrapper~wrapper(double),
       2.0~double
     )~bool^not_equals
   )~bool^logical_and,
   _&&_(
     _&&_(
       _==_(
-        x~google.api.expr.test.v1.proto3.TestAllTypes^x.single_float_wrapper~wrapper(double),
+        x~cel.expr.conformance.proto3.TestAllTypes^x.single_float_wrapper~wrapper(double),
         1.0~double
       )~bool^equals,
       _==_(
-        x~google.api.expr.test.v1.proto3.TestAllTypes^x.single_uint32_wrapper~wrapper(uint),
+        x~cel.expr.conformance.proto3.TestAllTypes^x.single_uint32_wrapper~wrapper(uint),
         1u~uint
       )~bool^equals
     )~bool^logical_and,
     _!=_(
-      x~google.api.expr.test.v1.proto3.TestAllTypes^x.single_uint64_wrapper~wrapper(uint),
+      x~cel.expr.conformance.proto3.TestAllTypes^x.single_uint64_wrapper~wrapper(uint),
       42u~uint
     )~bool^not_equals
   )~bool^logical_and

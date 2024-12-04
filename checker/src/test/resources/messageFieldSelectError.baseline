@@ -1,6 +1,6 @@
 Source: x.single_nested_message.undefined == x.undefined
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 ERROR: test_location:1:24: undefined field 'undefined'

@@ -1,6 +1,6 @@
 Source: x.single_value
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {x=single_value {
@@ -11,7 +11,7 @@ result:   true
 
 Source: x.single_value == double(1)
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {x=single_value {
@@ -22,7 +22,7 @@ result:   true
 
 Source: x.single_value == 1.1
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {x=single_value {
@@ -33,7 +33,7 @@ result:   true
 
 Source: x.single_value == null
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {x=single_value {
@@ -44,7 +44,7 @@ result:   true
 
 Source: x.single_value == 'hello'
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {x=single_value {
@@ -55,7 +55,7 @@ result:   true
 
 Source: x.single_value[0] == [['hello'], -1.1][0]
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {x=single_value {
@@ -77,7 +77,7 @@ result:   true
 
 Source: x.single_struct.num == {'str': ['hello'], 'num': -1.1}['num']
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {x=single_struct {
@@ -103,7 +103,7 @@ result:   true
 
 Source: TestAllTypes{single_struct: TestAllTypes{single_value: {'str': ['hello']}}.single_value}
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 =====>
 bindings: {}
@@ -123,7 +123,7 @@ result:   single_struct {
 
 Source: pair(x.single_struct.str[0], 'val')
 declare x {
-  value google.api.expr.test.v1.proto3.TestAllTypes
+  value cel.expr.conformance.proto3.TestAllTypes
 }
 declare pair {
   function pair (string, string) -> dyn

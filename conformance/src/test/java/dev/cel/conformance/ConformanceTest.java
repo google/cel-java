@@ -18,11 +18,10 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 
 import dev.cel.expr.Decl;
-import com.google.api.expr.test.v1.SimpleProto.SimpleTest;
-import com.google.api.expr.v1alpha1.ExprValue;
-import com.google.api.expr.v1alpha1.ListValue;
-import com.google.api.expr.v1alpha1.MapValue;
-import com.google.api.expr.v1alpha1.Value;
+import dev.cel.expr.ExprValue;
+import com.google.api.expr.ListValue;
+import com.google.api.expr.MapValue;
+import dev.cel.expr.Value;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -46,6 +45,7 @@ import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeType;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.expr.conformance.SimpleTest;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.parser.CelParser;
@@ -130,7 +130,7 @@ public final class ConformanceTest extends Statement {
   private static CelChecker getChecker(SimpleTest test) throws Exception {
     ImmutableList.Builder<Decl> decls =
         ImmutableList.builderWithExpectedSize(test.getTypeEnvCount());
-    for (com.google.api.expr.v1alpha1.Decl decl : test.getTypeEnvList()) {
+    for (dev.cel.expr.Decl decl : test.getTypeEnvList()) {
       decls.add(Decl.parseFrom(decl.toByteArray(), DEFAULT_EXTENSION_REGISTRY));
     }
     return CelCompilerFactory.standardCelCheckerBuilder()

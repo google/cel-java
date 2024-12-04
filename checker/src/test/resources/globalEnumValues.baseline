@@ -1,6 +1,6 @@
 Source: GlobalEnum.GAZ == 2
 =====>
 _==_(
-  google.api.expr.test.v1.proto3.GlobalEnum.GAZ~int^google.api.expr.test.v1.proto3.GlobalEnum.GAZ,
+  cel.expr.conformance.proto3.GlobalEnum.GAZ~int^cel.expr.conformance.proto3.GlobalEnum.GAZ,
   2~int
 )~bool^equals
