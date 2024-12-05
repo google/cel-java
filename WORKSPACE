@@ -43,19 +43,17 @@ load("@rules_python//python:repositories.bzl", "py_repositories")
 
 py_repositories()
 
-RULES_JVM_EXTERNAL_TAG = "aa44247b3913da0da606e9c522313b6a9396a571"
+RULES_JVM_EXTERNAL_TAG = "6.2"
 
-RULES_JVM_EXTERNAL_SHA = "87378580865af690a78230e04eba1cd6d9c60d0db303ea129dc717705d711d9c"
+RULES_JVM_EXTERNAL_SHA = "808cb5c30b5f70d12a2a745a29edc46728fd35fa195c1762a596b63ae9cebe05"
 
-# rules_jvm_external as of 12/11/2023
 http_archive(
     name = "rules_jvm_external",
     sha256 = RULES_JVM_EXTERNAL_SHA,
     strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
-    url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
+    url = "https://github.com/bazelbuild/rules_jvm_external/releases/download/%s/rules_jvm_external-%s.tar.gz" % (RULES_JVM_EXTERNAL_TAG, RULES_JVM_EXTERNAL_TAG),
 )
 
-load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_jvm_external//:repositories.bzl", "rules_jvm_external_deps")
 
 rules_jvm_external_deps()
@@ -63,6 +61,9 @@ rules_jvm_external_deps()
 load("@rules_jvm_external//:setup.bzl", "rules_jvm_external_setup")
 
 rules_jvm_external_setup()
+
+load("@rules_jvm_external//:defs.bzl", "maven_install")
+load("@rules_jvm_external//:specs.bzl", "maven")
 
 ANTLR4_VERSION = "4.13.2"
 
@@ -76,8 +77,13 @@ maven_install(
         "com.google.errorprone:error_prone_annotations:2.33.0",
         "com.google.guava:guava:33.3.1-jre",
         "com.google.guava:guava-testlib:33.3.1-jre",
-        "com.google.protobuf:protobuf-java:4.28.2",
-        "com.google.protobuf:protobuf-java-util:4.28.2",
+        maven.artifact(
+            artifact = "protobuf-java",
+            force_version = True,
+            group = "com.google.protobuf",
+            version = "3.25.5",
+        ),
+        "com.google.protobuf:protobuf-java-util:3.25.5",
         "com.google.re2j:re2j:1.7",
         "com.google.testparameterinjector:test-parameter-injector:1.18",
         "com.google.truth.extensions:truth-java8-extension:1.4.4",
@@ -96,9 +102,9 @@ maven_install(
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "b2340aa47faf7ef10a0328190319d3f3bee1b24f426d4ce8f4253b6f27ce16db",
-    strip_prefix = "protobuf-28.2",
-    urls = ["https://github.com/protocolbuffers/protobuf/archive/v28.2.tar.gz"],
+    sha256 = "3cf7d5b17c4ff04fe9f038104e9d0cae6da09b8ce271c13e44f8ac69f51e4e0f",
+    strip_prefix = "protobuf-25.5",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v25.5.tar.gz"],
 )
 
 # Required by com_google_protobuf
