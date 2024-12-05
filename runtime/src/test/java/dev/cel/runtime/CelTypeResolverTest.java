@@ -43,11 +43,7 @@ public class CelTypeResolverTest {
 
   private static final Cel CEL =
       CelFactory.standardCelBuilder()
-          .setOptions(
-              CelOptions.current()
-                  .enableTimestampEpoch(true)
-                  .adaptRuntimeTypeValueToNativeType(true)
-                  .build())
+          .setOptions(CelOptions.current().enableTimestampEpoch(true).build())
           .setTypeProvider(PROTO_MESSAGE_TYPE_PROVIDER)
           .addCompilerLibraries(CelOptionalLibrary.INSTANCE)
           .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)

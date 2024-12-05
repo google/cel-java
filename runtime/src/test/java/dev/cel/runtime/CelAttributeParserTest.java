@@ -101,19 +101,19 @@ public class CelAttributeParserTest {
         Assert.assertThrows(
             IllegalArgumentException.class, () -> CelAttributeParser.parse("1 / 2"));
 
-    assertThat(iae).hasMessageThat().contains("_/_(CONST_EXPR, CONST_EXPR)");
+    assertThat(iae).hasMessageThat().contains("_/_(CONSTANT, CONSTANT)");
 
     iae =
         Assert.assertThrows(
             IllegalArgumentException.class, () -> CelAttributeParser.parse("123.field"));
 
-    assertThat(iae).hasMessageThat().contains("CONST_EXPR");
+    assertThat(iae).hasMessageThat().contains("CelConstant");
 
     iae =
         Assert.assertThrows(
             IllegalArgumentException.class, () -> CelAttributeParser.parse("a && b"));
 
-    assertThat(iae).hasMessageThat().contains("_&&_(IDENT_EXPR, IDENT_EXPR)");
+    assertThat(iae).hasMessageThat().contains("_&&_(IDENT, IDENT)");
   }
 
   @Test
