@@ -22,6 +22,7 @@ java_library(
         "//common:options",
         "//common/internal:default_instance_message_factory",
         "//common/types",
+        "//common/types:cel_types",
         "//common/types:type_providers",
         "//compiler",
         "//extensions",
@@ -66,6 +67,7 @@ _ALL_TESTS = [
     "@cel_spec//tests/simple:testdata/string.textproto",
     "@cel_spec//tests/simple:testdata/string_ext.textproto",
     "@cel_spec//tests/simple:testdata/timestamps.textproto",
+    "@cel_spec//tests/simple:testdata/type_deduction.textproto",
     "@cel_spec//tests/simple:testdata/unknowns.textproto",
     "@cel_spec//tests/simple:testdata/wrappers.textproto",
 ]

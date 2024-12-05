@@ -21,6 +21,7 @@ import dev.cel.expr.Decl;
 import dev.cel.expr.ExprValue;
 import com.google.api.expr.ListValue;
 import com.google.api.expr.MapValue;
+import dev.cel.expr.Type;
 import dev.cel.expr.Value;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -40,6 +41,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.internal.DefaultInstanceMessageFactory;
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
@@ -375,6 +377,14 @@ public final class ConformanceTest extends Statement {
     assertThat(response.hasError()).isFalse();
     response = getChecker(test).check(response.getAst());
     assertThat(response.hasError()).isFalse();
+    Type resultType = CelTypes.celTypeToType(response.getAst().getResultType());
+
+    if (test.getCheckOnly()) {
+      assertThat(test.hasTypedResult()).isTrue();
+      assertThat(resultType).isEqualTo(test.getTypedResult().getDeducedType());
+      return;
+    }
+
     Program program = RUNTIME.createProgram(response.getAst());
     ExprValue result = null;
     CelEvaluationException error = null;
@@ -396,6 +406,16 @@ public final class ConformanceTest extends Statement {
       case EVAL_ERROR:
         assertThat(result).isNull();
         assertThat(error).isNotNull();
+        break;
+      case TYPED_RESULT:
+        assertThat(error).isNull();
+        assertThat(result).isNotNull();
+        assertThat(result)
+            .ignoringRepeatedFieldOrderOfFieldDescriptors(
+                MapValue.getDescriptor().findFieldByName("entries"))
+            .unpackingAnyUsing(DEFAULT_TYPE_REGISTRY, DEFAULT_EXTENSION_REGISTRY)
+            .isEqualTo(ExprValue.newBuilder().setValue(test.getTypedResult().getResult()).build());
+        assertThat(resultType).isEqualTo(test.getTypedResult().getDeducedType());
         break;
       default:
         throw new IllegalStateException(
