@@ -28,7 +28,7 @@ import dev.cel.expr.SourceInfo;
 import dev.cel.expr.SourceInfo.Extension;
 import dev.cel.expr.SourceInfo.Extension.Component;
 import dev.cel.expr.SourceInfo.Extension.Version;
-import dev.cel.common.types.CelTypes;
+import dev.cel.common.types.CelProtoTypes;
 import java.util.Arrays;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,7 +79,7 @@ public class CelProtoAbstractSyntaxTreeTest {
 
   private static final CheckedExpr CHECKED_EXPR =
       CheckedExpr.newBuilder()
-          .putTypeMap(1L, CelTypes.BOOL)
+          .putTypeMap(1L, CelProtoTypes.BOOL)
           .putReferenceMap(1L, Reference.newBuilder().addOverloadId("not_equals").build())
           .setSourceInfo(SOURCE_INFO)
           .setExpr(EXPR)
@@ -114,13 +114,13 @@ public class CelProtoAbstractSyntaxTreeTest {
   @Test
   public void getProtoResultType_isDynWhenParsedExpr() {
     CelProtoAbstractSyntaxTree ast = CelProtoAbstractSyntaxTree.fromParsedExpr(PARSED_EXPR);
-    assertThat(ast.getProtoResultType()).isEqualTo(CelTypes.DYN);
+    assertThat(ast.getProtoResultType()).isEqualTo(CelProtoTypes.DYN);
   }
 
   @Test
   public void getProtoResultType_isStaticWhenCheckedExpr() {
     CelProtoAbstractSyntaxTree ast = CelProtoAbstractSyntaxTree.fromCheckedExpr(CHECKED_EXPR);
-    assertThat(ast.getProtoResultType()).isEqualTo(CelTypes.BOOL);
+    assertThat(ast.getProtoResultType()).isEqualTo(CelProtoTypes.BOOL);
   }
 
   @Test

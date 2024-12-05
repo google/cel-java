@@ -21,7 +21,7 @@ import dev.cel.expr.Type;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Descriptors.Descriptor;
-import dev.cel.common.types.CelTypes;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.ProtoMessageTypeProvider;
 import dev.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage;
 import dev.cel.expr.conformance.proto2.TestAllTypes;
@@ -85,8 +85,8 @@ public final class TypeProviderLegacyImplTest {
     TypeProvider.ExtensionFieldType extensionType =
         compatTypeProvider.lookupExtensionType("cel.expr.conformance.proto2.nested_enum_ext");
     assertThat(extensionType.messageType())
-        .isEqualTo(CelTypes.createMessage("cel.expr.conformance.proto2.TestAllTypes"));
-    assertThat(extensionType.fieldType().type()).isEqualTo(CelTypes.INT64);
+        .isEqualTo(CelProtoTypes.createMessage("cel.expr.conformance.proto2.TestAllTypes"));
+    assertThat(extensionType.fieldType().type()).isEqualTo(CelProtoTypes.INT64);
     assertThat(extensionType)
         .isEqualTo(
             descriptorTypeProvider.lookupExtensionType(

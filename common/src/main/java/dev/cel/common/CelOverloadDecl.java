@@ -25,8 +25,8 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.types.CelKind;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
-import dev.cel.common.types.CelTypes;
 import java.util.Arrays;
 import java.util.List;
 
@@ -230,10 +230,10 @@ public abstract class CelOverloadDecl {
     return Overload.newBuilder()
         .setIsInstanceFunction(overload.isInstanceFunction())
         .setOverloadId(overload.overloadId())
-        .setResultType(CelTypes.celTypeToType(overload.resultType()))
+        .setResultType(CelProtoTypes.celTypeToType(overload.resultType()))
         .addAllParams(
             overload.parameterTypes().stream()
-                .map(CelTypes::celTypeToType)
+                .map(CelProtoTypes::celTypeToType)
                 .collect(toImmutableList()))
         .addAllTypeParams(overload.typeParameterNames())
         .setDoc(overload.doc())
@@ -244,11 +244,11 @@ public abstract class CelOverloadDecl {
     return CelOverloadDecl.newBuilder()
         .setIsInstanceFunction(overload.getIsInstanceFunction())
         .setOverloadId(overload.getOverloadId())
-        .setResultType(CelTypes.typeToCelType(overload.getResultType()))
+        .setResultType(CelProtoTypes.typeToCelType(overload.getResultType()))
         .setDoc(overload.getDoc())
         .addParameterTypes(
             overload.getParamsList().stream()
-                .map(CelTypes::typeToCelType)
+                .map(CelProtoTypes::typeToCelType)
                 .collect(toImmutableList()))
         .build();
   }

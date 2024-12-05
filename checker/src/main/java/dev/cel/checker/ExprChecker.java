@@ -35,6 +35,7 @@ import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelKind;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.ListType;
@@ -88,7 +89,7 @@ public final class ExprChecker {
       Env env, String inContainer, ParsedExpr parsedExpr, Optional<Type> expectedResultType) {
     Optional<CelType> type =
         expectedResultType.isPresent()
-            ? Optional.of(CelTypes.typeToCelType(expectedResultType.get()))
+            ? Optional.of(CelProtoTypes.typeToCelType(expectedResultType.get()))
             : Optional.absent();
     CelAbstractSyntaxTree ast =
         typecheck(

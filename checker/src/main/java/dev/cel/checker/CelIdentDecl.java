@@ -23,8 +23,8 @@ import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExprConverter;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
-import dev.cel.common.types.CelTypes;
 import java.util.Optional;
 
 /**
@@ -57,7 +57,7 @@ public abstract class CelIdentDecl {
     IdentDecl.Builder identBuilder =
         IdentDecl.newBuilder()
             .setDoc(identDecl.doc())
-            .setType(CelTypes.celTypeToType(identDecl.type()));
+            .setType(CelProtoTypes.celTypeToType(identDecl.type()));
     if (identDecl.constant().isPresent()) {
       identBuilder.setValue(CelExprConverter.celConstantToExprConstant(identDecl.constant().get()));
     }

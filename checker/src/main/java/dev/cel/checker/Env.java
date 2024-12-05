@@ -40,6 +40,7 @@ import dev.cel.common.ast.CelExprConverter;
 import dev.cel.common.ast.CelReference;
 import dev.cel.common.internal.Errors;
 import dev.cel.common.types.CelKind;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.SimpleType;
@@ -342,7 +343,7 @@ public class Env {
   @Deprecated
   public Type getType(Expr expr) {
     Preconditions.checkNotNull(expr);
-    return CelTypes.celTypeToType(getType(CelExprConverter.fromExpr(expr)));
+    return CelProtoTypes.celTypeToType(getType(CelExprConverter.fromExpr(expr)));
   }
 
   /**
@@ -395,7 +396,7 @@ public class Env {
         CelIdentDecl.Builder identBuilder =
             CelIdentDecl.newBuilder()
                 .setName(decl.getName())
-                .setType(CelTypes.typeToCelType(decl.getIdent().getType()))
+                .setType(CelProtoTypes.typeToCelType(decl.getIdent().getType()))
                 // Note: Setting doc and constant value exists for compatibility reason. This should
                 // not be set by the users.
                 .setDoc(decl.getIdent().getDoc());
@@ -440,7 +441,7 @@ public class Env {
   @CanIgnoreReturnValue
   @Deprecated
   public Env add(String name, Type type) {
-    return add(CelIdentDecl.newIdentDeclaration(name, CelTypes.typeToCelType(type)));
+    return add(CelIdentDecl.newIdentDeclaration(name, CelProtoTypes.typeToCelType(type)));
   }
 
   /**
@@ -766,7 +767,7 @@ public class Env {
     @CanIgnoreReturnValue
     public IdentBuilder type(Type value) {
       Preconditions.checkNotNull(value);
-      builder.setType(CelTypes.typeToCelType(Preconditions.checkNotNull(value)));
+      builder.setType(CelProtoTypes.typeToCelType(Preconditions.checkNotNull(value)));
       return this;
     }
 
@@ -848,12 +849,12 @@ public class Env {
     public FunctionBuilder add(String id, Type resultType, Iterable<Type> argTypes) {
       ImmutableList.Builder<CelType> argumentBuilder = new ImmutableList.Builder<>();
       for (Type type : argTypes) {
-        argumentBuilder.add(CelTypes.typeToCelType(type));
+        argumentBuilder.add(CelProtoTypes.typeToCelType(type));
       }
       this.overloads.add(
           CelOverloadDecl.newBuilder()
               .setOverloadId(id)
-              .setResultType(CelTypes.typeToCelType(resultType))
+              .setResultType(CelProtoTypes.typeToCelType(resultType))
               .addParameterTypes(argumentBuilder.build())
               .setIsInstanceFunction(isInstance)
               .build());
@@ -873,12 +874,12 @@ public class Env {
         String id, List<String> typeParams, Type resultType, Iterable<Type> argTypes) {
       ImmutableList.Builder<CelType> argumentBuilder = new ImmutableList.Builder<>();
       for (Type type : argTypes) {
-        argumentBuilder.add(CelTypes.typeToCelType(type));
+        argumentBuilder.add(CelProtoTypes.typeToCelType(type));
       }
       this.overloads.add(
           CelOverloadDecl.newBuilder()
               .setOverloadId(id)
-              .setResultType(CelTypes.typeToCelType(resultType))
+              .setResultType(CelProtoTypes.typeToCelType(resultType))
               .addParameterTypes(argumentBuilder.build())
               .setIsInstanceFunction(isInstance)
               .build());

@@ -29,7 +29,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.testing.EqualsTester;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
-import dev.cel.common.types.CelTypes;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
@@ -58,9 +58,9 @@ public final class CelAbstractSyntaxTreeTest {
   private static final CelAbstractSyntaxTree CHECKED_ENUM_AST =
       CelProtoAbstractSyntaxTree.fromCheckedExpr(
               CheckedExpr.newBuilder()
-                  .putTypeMap(1L, CelTypes.INT64)
-                  .putTypeMap(2L, CelTypes.INT64)
-                  .putTypeMap(3L, CelTypes.BOOL)
+                  .putTypeMap(1L, CelProtoTypes.INT64)
+                  .putTypeMap(2L, CelProtoTypes.INT64)
+                  .putTypeMap(3L, CelProtoTypes.BOOL)
                   .putReferenceMap(
                       2L,
                       Reference.newBuilder()
@@ -95,7 +95,7 @@ public final class CelAbstractSyntaxTreeTest {
   public void getResultType_isDynWhenParsedExpr() {
     CelAbstractSyntaxTree ast = PARSED_AST;
 
-    assertThat(ast.getProtoResultType()).isEqualTo(CelTypes.DYN);
+    assertThat(ast.getProtoResultType()).isEqualTo(CelProtoTypes.DYN);
     assertThat(ast.getResultType()).isEqualTo(SimpleType.DYN);
   }
 
@@ -103,7 +103,7 @@ public final class CelAbstractSyntaxTreeTest {
   public void getResultType_isStaticWhenCheckedExpr() {
     CelAbstractSyntaxTree ast = CHECKED_AST;
 
-    assertThat(ast.getProtoResultType()).isEqualTo(CelTypes.BOOL);
+    assertThat(ast.getProtoResultType()).isEqualTo(CelProtoTypes.BOOL);
     assertThat(ast.getResultType()).isEqualTo(SimpleType.BOOL);
   }
 

@@ -26,8 +26,8 @@ import com.google.protobuf.Empty;
 import com.google.protobuf.NullValue;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.types.CelKind;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
-import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.NullableType;
@@ -177,7 +177,7 @@ public final class Types {
    */
   @Deprecated
   public static boolean isDynOrError(Type type) {
-    return isDynOrError(CelTypes.typeToCelType(type));
+    return isDynOrError(CelProtoTypes.typeToCelType(type));
   }
 
   /** Tests whether the type has error or dyn kind. Both have the property to match any type. */
@@ -238,18 +238,18 @@ public final class Types {
         subs.entrySet().stream()
             .collect(
                 Collectors.toMap(
-                    k -> CelTypes.typeToCelType(k.getKey()),
-                    v -> CelTypes.typeToCelType(v.getValue()),
+                    k -> CelProtoTypes.typeToCelType(k.getKey()),
+                    v -> CelProtoTypes.typeToCelType(v.getValue()),
                     (prev, next) -> next,
                     HashMap::new));
 
     if (internalIsAssignable(
-        subsCopy, CelTypes.typeToCelType(type1), CelTypes.typeToCelType(type2))) {
+        subsCopy, CelProtoTypes.typeToCelType(type1), CelProtoTypes.typeToCelType(type2))) {
       return subsCopy.entrySet().stream()
           .collect(
               Collectors.toMap(
-                  k -> CelTypes.celTypeToType(k.getKey()),
-                  v -> CelTypes.celTypeToType(v.getValue()),
+                  k -> CelProtoTypes.celTypeToType(k.getKey()),
+                  v -> CelProtoTypes.celTypeToType(v.getValue()),
                   (prev, next) -> next,
                   HashMap::new));
     }
@@ -384,7 +384,8 @@ public final class Types {
    */
   @Deprecated
   public static boolean isEqualOrLessSpecific(Type type1, Type type2) {
-    return isEqualOrLessSpecific(CelTypes.typeToCelType(type1), CelTypes.typeToCelType(type2));
+    return isEqualOrLessSpecific(
+        CelProtoTypes.typeToCelType(type1), CelProtoTypes.typeToCelType(type2));
   }
 
   /**
@@ -426,7 +427,7 @@ public final class Types {
         TypeType typeType2 = (TypeType) type2;
         return isEqualOrLessSpecific(typeType1.type(), typeType2.type());
 
-        // Message, primitive, well-known, and wrapper type names must be equal to be equivalent.
+      // Message, primitive, well-known, and wrapper type names must be equal to be equivalent.
       default:
         return type1.equals(type2);
     }
@@ -493,10 +494,11 @@ public final class Types {
   public static Type substitute(Map<Type, Type> subs, Type type, boolean typeParamToDyn) {
     ImmutableMap.Builder<CelType, CelType> subsMap = ImmutableMap.builder();
     for (Map.Entry<Type, Type> sub : subs.entrySet()) {
-      subsMap.put(CelTypes.typeToCelType(sub.getKey()), CelTypes.typeToCelType(sub.getValue()));
+      subsMap.put(
+          CelProtoTypes.typeToCelType(sub.getKey()), CelProtoTypes.typeToCelType(sub.getValue()));
     }
-    return CelTypes.celTypeToType(
-        substitute(subsMap.buildOrThrow(), CelTypes.typeToCelType(type), typeParamToDyn));
+    return CelProtoTypes.celTypeToType(
+        substitute(subsMap.buildOrThrow(), CelProtoTypes.typeToCelType(type), typeParamToDyn));
   }
 
   /**

@@ -22,7 +22,7 @@ java_library(
         "//common/ast",
         "//common/internal",
         "//common/types",
-        "//common/types:cel_types",
+        "//common/types:cel_proto_types",
         "//common/types:cel_v1alpha1_types",
         "//compiler",
         "//compiler:compiler_builder",

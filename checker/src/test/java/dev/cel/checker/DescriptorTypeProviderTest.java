@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.rpc.context.AttributeContext;
 import dev.cel.checker.TypeProvider.CombinedTypeProvider;
 import dev.cel.checker.TypeProvider.ExtensionFieldType;
-import dev.cel.common.types.CelTypes;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.expr.conformance.proto2.TestAllTypes;
 import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
 import java.util.Arrays;
@@ -36,7 +36,7 @@ public final class DescriptorTypeProviderTest {
   @Test
   public void lookupFieldNames_nonMessageType() {
     TypeProvider typeProvider = new DescriptorTypeProvider();
-    assertThat(typeProvider.lookupFieldNames(CelTypes.STRING)).isNull();
+    assertThat(typeProvider.lookupFieldNames(CelProtoTypes.STRING)).isNull();
   }
 
   @Test
@@ -44,19 +44,21 @@ public final class DescriptorTypeProviderTest {
     TypeProvider typeProvider = new DescriptorTypeProvider();
     assertThat(
             typeProvider.lookupFieldNames(
-                CelTypes.createMessage("google.rpc.context.AttributeContext")))
+                CelProtoTypes.createMessage("google.rpc.context.AttributeContext")))
         .isNull();
   }
 
   @Test
   public void lookupFieldNames_groupTypeField() throws Exception {
-    Type proto2MessageType = CelTypes.createMessage("cel.expr.conformance.proto2.TestAllTypes");
+    Type proto2MessageType =
+        CelProtoTypes.createMessage("cel.expr.conformance.proto2.TestAllTypes");
     TypeProvider typeProvider =
         new DescriptorTypeProvider(
             ImmutableList.of(
                 TestAllTypes.getDescriptor().getFile(), TestAllTypesExtensions.getDescriptor()));
     assertThat(typeProvider.lookupFieldType(proto2MessageType, "nestedgroup").type())
-        .isEqualTo(CelTypes.createMessage("cel.expr.conformance.proto2.TestAllTypes.NestedGroup"));
+        .isEqualTo(
+            CelProtoTypes.createMessage("cel.expr.conformance.proto2.TestAllTypes.NestedGroup"));
   }
 
   @Test
@@ -99,7 +101,8 @@ public final class DescriptorTypeProviderTest {
         makePartialTypeProvider(configuredProvider);
     final TypeProvider typeProvider =
         new CombinedTypeProvider(ImmutableList.of(partialProvider, configuredProvider));
-    final Type messageType = CelTypes.createMessage("cel.expr.conformance.proto2.TestAllTypes");
+    final Type messageType =
+        CelProtoTypes.createMessage("cel.expr.conformance.proto2.TestAllTypes");
 
     assertThat(typeProvider.lookupExtensionType("non.existent")).isNull();
 
@@ -112,7 +115,7 @@ public final class DescriptorTypeProviderTest {
     ExtensionFieldType int32Ext =
         typeProvider.lookupExtensionType("cel.expr.conformance.proto2.int32_ext");
     assertThat(int32Ext).isNotNull();
-    assertThat(int32Ext.fieldType().type()).isEqualTo(CelTypes.INT64);
+    assertThat(int32Ext.fieldType().type()).isEqualTo(CelProtoTypes.INT64);
     assertThat(int32Ext.messageType()).isEqualTo(messageType);
 
     ExtensionFieldType repeatedExt =
@@ -120,8 +123,8 @@ public final class DescriptorTypeProviderTest {
     assertThat(repeatedExt).isNotNull();
     assertThat(repeatedExt.fieldType().type())
         .isEqualTo(
-            CelTypes.createList(
-                CelTypes.createMessage("cel.expr.conformance.proto2.TestAllTypes")));
+            CelProtoTypes.createList(
+                CelProtoTypes.createMessage("cel.expr.conformance.proto2.TestAllTypes")));
     assertThat(repeatedExt.messageType()).isEqualTo(messageType);
 
     // With leading dot '.'.

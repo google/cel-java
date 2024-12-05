@@ -28,6 +28,7 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypes;
@@ -208,7 +209,8 @@ public abstract class CelBaselineTestCase extends BaselineTestCase {
   private void formatDeclImpl(Decl decl, StringBuilder declStr) {
     switch (decl.getDeclKindCase()) {
       case IDENT:
-        declStr.append(String.format("  value %s%n", CelTypes.format(decl.getIdent().getType())));
+        declStr.append(
+            String.format("  value %s%n", CelProtoTypes.format(decl.getIdent().getType())));
         break;
       case FUNCTION:
         for (Overload overload : decl.getFunction().getOverloadsList()) {
@@ -217,9 +219,9 @@ public abstract class CelBaselineTestCase extends BaselineTestCase {
                   "  function %s %s%n",
                   overload.getOverloadId(),
                   CelTypes.formatFunction(
-                      CelTypes.typeToCelType(overload.getResultType()),
+                      CelProtoTypes.typeToCelType(overload.getResultType()),
                       overload.getParamsList().stream()
-                          .map(CelTypes::typeToCelType)
+                          .map(CelProtoTypes::typeToCelType)
                           .collect(toImmutableList()),
                       overload.getIsInstanceFunction(),
                       /* typeParamToDyn= */ false)));

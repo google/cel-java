@@ -17,8 +17,8 @@ package dev.cel.testing;
 import dev.cel.expr.Decl;
 import dev.cel.expr.Decl.IdentDecl;
 import dev.cel.expr.Type;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
-import dev.cel.common.types.CelTypes;
 import dev.cel.compiler.CelCompilerBuilder;
 
 /** Wrapper for CEL native type based variable declarations */
@@ -33,7 +33,7 @@ class TestCelVariableDeclWrapper extends TestDecl {
 
   @Override
   void loadDeclsToCompiler(CelCompilerBuilder compiler) {
-    CelType celType = CelTypes.typeToCelType(type);
+    CelType celType = CelProtoTypes.typeToCelType(type);
     compiler.addVar(name, celType);
   }
 

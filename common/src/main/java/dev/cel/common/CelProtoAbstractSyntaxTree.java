@@ -29,7 +29,7 @@ import dev.cel.expr.Type;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.ast.CelExprConverter;
-import dev.cel.common.types.CelTypes;
+import dev.cel.common.types.CelProtoTypes;
 import java.util.Collection;
 import java.util.Map.Entry;
 
@@ -66,7 +66,8 @@ public final class CelProtoAbstractSyntaxTree {
                         Entry::getKey,
                         v -> CelExprConverter.exprReferenceToCelReference(v.getValue()))),
             checkedExpr.getTypeMapMap().entrySet().stream()
-                .collect(toImmutableMap(Entry::getKey, v -> CelTypes.typeToCelType(v.getValue()))));
+                .collect(
+                    toImmutableMap(Entry::getKey, v -> CelProtoTypes.typeToCelType(v.getValue()))));
   }
 
   private CelProtoAbstractSyntaxTree(CelAbstractSyntaxTree ast) {
@@ -98,7 +99,8 @@ public final class CelProtoAbstractSyntaxTree {
                       v -> CelExprConverter.celReferenceToExprReference(v.getValue()))));
       checkedExprBuilder.putAllTypeMap(
           ast.getTypeMap().entrySet().stream()
-              .collect(toImmutableMap(Entry::getKey, v -> CelTypes.celTypeToType(v.getValue()))));
+              .collect(
+                  toImmutableMap(Entry::getKey, v -> CelProtoTypes.celTypeToType(v.getValue()))));
     }
 
     this.checkedExpr = checkedExprBuilder.build();
@@ -182,7 +184,7 @@ public final class CelProtoAbstractSyntaxTree {
    */
   @CheckReturnValue
   public Type getProtoResultType() {
-    return CelTypes.celTypeToType(ast.getResultType());
+    return CelProtoTypes.celTypeToType(ast.getResultType());
   }
 
   private static ImmutableList<Extension> fromCelExtensionsToExprExtensions(

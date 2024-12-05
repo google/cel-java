@@ -23,8 +23,8 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelReference;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
-import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.SimpleType;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -97,9 +97,13 @@ public abstract class CelAbstractSyntaxTree {
   /**
    * For a type checked abstract syntax tree the resulting type is returned in proto format
    * described in checked.proto. Otherwise, the dynamic type is returned.
+   *
+   * @deprecated Use {@link #getResultType} instead. Convert the resulting {@link CelType} into
+   *     canonical CEL expr proto format via {@link CelProtoTypes#celTypeToType} if necessary.
    */
+  @Deprecated
   public Type getProtoResultType() {
-    return CelTypes.celTypeToType(getResultType());
+    return CelProtoTypes.celTypeToType(getResultType());
   }
 
   /**

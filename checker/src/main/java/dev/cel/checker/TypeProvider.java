@@ -18,8 +18,8 @@ import dev.cel.expr.Type;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
-import dev.cel.common.types.CelTypes;
 import java.util.Optional;
 import java.util.function.Function;
 import org.jspecify.annotations.Nullable;
@@ -38,7 +38,7 @@ public interface TypeProvider {
   /** Lookup the a {@link CelType} given a qualified {@code typeName}. Returns null if not found. */
   default Optional<CelType> lookupCelType(String typeName) {
     Type type = lookupType(typeName);
-    return Optional.ofNullable(type).map(CelTypes::typeToCelType);
+    return Optional.ofNullable(type).map(CelProtoTypes::typeToCelType);
   }
 
   /** Lookup the {@code Integer} enum value given an {@code enumName}. Returns null if not found. */
@@ -61,7 +61,7 @@ public interface TypeProvider {
    * check is supported via the ('has') macro.
    */
   default @Nullable FieldType lookupFieldType(CelType type, String fieldName) {
-    return lookupFieldType(CelTypes.celTypeToType(type), fieldName);
+    return lookupFieldType(CelProtoTypes.celTypeToType(type), fieldName);
   }
 
   /**
@@ -89,7 +89,7 @@ public interface TypeProvider {
     public abstract Type type();
 
     public CelType celType() {
-      return CelTypes.typeToCelType(type());
+      return CelProtoTypes.typeToCelType(type());
     }
 
     /** Create a new {@code FieldType} instance from the provided {@code type}. */

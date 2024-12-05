@@ -37,9 +37,9 @@ import dev.cel.common.CelVarDecl;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.EnvVisitable;
 import dev.cel.common.internal.EnvVisitor;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
-import dev.cel.common.types.CelTypes;
 import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelParser;
 import dev.cel.parser.CelParserBuilder;
@@ -162,7 +162,7 @@ public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
 
     @Override
     public CelCompilerBuilder addVar(String name, Type type) {
-      return addVar(name, CelTypes.typeToCelType(type));
+      return addVar(name, CelProtoTypes.typeToCelType(type));
     }
 
     @Override
@@ -221,7 +221,7 @@ public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
     @Override
     public CelCompilerBuilder setResultType(CelType resultType) {
       checkNotNull(resultType);
-      return setProtoResultType(CelTypes.celTypeToType(resultType));
+      return setProtoResultType(CelProtoTypes.celTypeToType(resultType));
     }
 
     @Override

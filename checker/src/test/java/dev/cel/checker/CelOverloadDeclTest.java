@@ -22,7 +22,7 @@ import static dev.cel.common.CelOverloadDecl.newMemberOverload;
 import dev.cel.expr.Decl.FunctionDecl.Overload;
 import com.google.common.collect.ImmutableList;
 import dev.cel.common.CelOverloadDecl;
-import dev.cel.common.types.CelTypes;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
 import org.junit.Test;
@@ -81,9 +81,10 @@ public class CelOverloadDeclTest {
     Overload protoOverload = CelOverloadDecl.celOverloadToOverload(celOverloadDecl);
     assertThat(protoOverload.getOverloadId()).isEqualTo("overloadId");
     assertThat(protoOverload.getIsInstanceFunction()).isTrue();
-    assertThat(protoOverload.getResultType()).isEqualTo(CelTypes.createTypeParam("A"));
+    assertThat(protoOverload.getResultType()).isEqualTo(CelProtoTypes.createTypeParam("A"));
     assertThat(protoOverload.getParamsList())
-        .containsExactly(CelTypes.STRING, CelTypes.DOUBLE, CelTypes.createTypeParam("B"));
+        .containsExactly(
+            CelProtoTypes.STRING, CelProtoTypes.DOUBLE, CelProtoTypes.createTypeParam("B"));
     assertThat(protoOverload.getTypeParamsList()).containsExactly("A", "B");
   }
 

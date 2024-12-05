@@ -303,7 +303,7 @@ public final class CelTypes {
    * <p>This method can also format global functions. See the {@link #formatFunction} methods for
    * richer control over function formatting.
    *
-   * @deprecated Use {@link #format(CelType)} instead.
+   * @deprecated Use {@link CelProtoTypes#format(Type)} instead.
    */
   @Deprecated
   public static String format(Type type) {
@@ -458,7 +458,7 @@ public final class CelTypes {
         if (celType.name().equals("function")) {
           Type.FunctionType.Builder functionBuilder = Type.FunctionType.newBuilder();
           if (!celType.parameters().isEmpty()) {
-            functionBuilder.setResultType(CelTypes.celTypeToType(celType.parameters().get(0)));
+            functionBuilder.setResultType(celTypeToType(celType.parameters().get(0)));
             functionBuilder.addAllArgTypes(
                 celType.parameters().stream()
                     .skip(1)
@@ -538,7 +538,7 @@ public final class CelTypes {
       case FUNCTION:
         Type.FunctionType functionType = type.getFunction();
         return CelTypes.createFunctionType(
-            CelTypes.typeToCelType(functionType.getResultType()),
+            typeToCelType(functionType.getResultType()),
             functionType.getArgTypesList().stream()
                 .map(CelTypes::typeToCelType)
                 .collect(toImmutableList()));

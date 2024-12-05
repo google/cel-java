@@ -53,7 +53,7 @@ java_library(
     srcs = TEST_DECL_SOURCES,
     deps = [
         "//common:compiler_common",
-        "//common/types:cel_types",
+        "//common/types:cel_proto_types",
         "//common/types:type_providers",
         "//compiler:compiler_builder",
         "@cel_spec//proto/cel/expr:expr_java_proto",
@@ -71,6 +71,7 @@ java_library(
         "//common",
         "//common:compiler_common",
         "//common:options",
+        "//common/types:cel_proto_types",
         "//common/types:cel_types",
         "//common/types:message_type_provider",
         "//common/types:type_providers",

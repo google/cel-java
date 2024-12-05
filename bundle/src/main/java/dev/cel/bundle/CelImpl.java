@@ -39,9 +39,9 @@ import dev.cel.common.CelVarDecl;
 import dev.cel.common.internal.EnvVisitable;
 import dev.cel.common.internal.EnvVisitor;
 import dev.cel.common.internal.FileDescriptorSetConverter;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
-import dev.cel.common.types.CelTypes;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
@@ -269,7 +269,7 @@ final class CelImpl implements Cel, EnvVisitable {
     @Override
     public CelBuilder setResultType(CelType resultType) {
       checkNotNull(resultType);
-      return setProtoResultType(CelTypes.celTypeToType(resultType));
+      return setProtoResultType(CelProtoTypes.celTypeToType(resultType));
     }
 
     @Override

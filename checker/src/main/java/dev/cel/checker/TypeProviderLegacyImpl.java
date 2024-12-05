@@ -18,9 +18,9 @@ import dev.cel.expr.Type;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
-import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.EnumType;
 import dev.cel.common.types.ProtoMessageType;
 import dev.cel.common.types.StructType;
@@ -45,7 +45,7 @@ final class TypeProviderLegacyImpl implements TypeProvider {
 
   @Override
   public @Nullable Type lookupType(String typeName) {
-    return lookupCelType(typeName).map(CelTypes::celTypeToType).orElse(null);
+    return lookupCelType(typeName).map(CelProtoTypes::celTypeToType).orElse(null);
   }
 
   @Override
@@ -65,13 +65,13 @@ final class TypeProviderLegacyImpl implements TypeProvider {
 
     return structType
         .findField(fieldName)
-        .map(f -> FieldType.of(CelTypes.celTypeToType(f.type())))
+        .map(f -> FieldType.of(CelProtoTypes.celTypeToType(f.type())))
         .orElse(null);
   }
 
   @Override
   public @Nullable FieldType lookupFieldType(Type type, String fieldName) {
-    return lookupFieldType(CelTypes.typeToCelType(type), fieldName);
+    return lookupFieldType(CelProtoTypes.typeToCelType(type), fieldName);
   }
 
   @Override
@@ -114,7 +114,8 @@ final class TypeProviderLegacyImpl implements TypeProvider {
         .map(
             et ->
                 ExtensionFieldType.of(
-                    CelTypes.celTypeToType(et.type()), CelTypes.celTypeToType(et.messageType())))
+                    CelProtoTypes.celTypeToType(et.type()),
+                    CelProtoTypes.celTypeToType(et.messageType())))
         .orElse(null);
   }
 }

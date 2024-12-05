@@ -40,7 +40,7 @@ java_library(
         "//common:options",
         "//common/annotations",
         "//common/internal:env_visitor",
-        "//common/types:cel_types",
+        "//common/types:cel_proto_types",
         "//common/types:type_providers",
         "//parser",
         "//parser:macro",
