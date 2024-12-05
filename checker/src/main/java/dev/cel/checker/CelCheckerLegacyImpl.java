@@ -45,9 +45,9 @@ import dev.cel.common.ast.CelExprConverter;
 import dev.cel.common.internal.EnvVisitable;
 import dev.cel.common.internal.EnvVisitor;
 import dev.cel.common.internal.Errors;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
-import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.ProtoMessageTypeProvider;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -199,7 +199,7 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
             CelIdentDecl.Builder identBuilder =
                 CelIdentDecl.newBuilder()
                     .setName(decl.getName())
-                    .setType(CelTypes.typeToCelType(decl.getIdent().getType()))
+                    .setType(CelProtoTypes.typeToCelType(decl.getIdent().getType()))
                     // Note: Setting doc and constant value exists for compatibility reason. This
                     // should not be set by the users.
                     .setDoc(decl.getIdent().getDoc());
@@ -278,7 +278,7 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     @Override
     public CelCheckerBuilder setProtoResultType(Type resultType) {
       checkNotNull(resultType);
-      return setResultType(CelTypes.typeToCelType(resultType));
+      return setResultType(CelProtoTypes.typeToCelType(resultType));
     }
 
     @Override

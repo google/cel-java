@@ -72,8 +72,8 @@ import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelList;
 import dev.cel.common.testing.RepeatedTestProvider;
 import dev.cel.common.types.CelKind;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
-import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.EnumType;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
@@ -157,10 +157,10 @@ public final class CelImplTest {
   private static final CheckedExpr CHECKED_EXPR =
       CheckedExpr.newBuilder()
           .setExpr(EXPR)
-          .putTypeMap(1L, CelTypes.BOOL)
-          .putTypeMap(2L, CelTypes.BOOL)
-          .putTypeMap(3L, CelTypes.BOOL)
-          .putTypeMap(4L, CelTypes.BOOL)
+          .putTypeMap(1L, CelProtoTypes.BOOL)
+          .putTypeMap(2L, CelProtoTypes.BOOL)
+          .putTypeMap(3L, CelProtoTypes.BOOL)
+          .putTypeMap(4L, CelProtoTypes.BOOL)
           .putReferenceMap(2L, Reference.newBuilder().addOverloadId("logical_and").build())
           .putReferenceMap(3L, Reference.newBuilder().addOverloadId("logical_not").build())
           .build();
@@ -194,7 +194,7 @@ public final class CelImplTest {
                             .addFile(AttributeContext.getDescriptor().getFile().toProto())
                             .build())
                     .setProtoResultType(
-                        CelTypes.createMessage("google.rpc.context.AttributeContext.Resource"))
+                        CelProtoTypes.createMessage("google.rpc.context.AttributeContext.Resource"))
                     .build());
     assertThat(e).hasMessageThat().contains("file descriptor set with unresolved proto file");
   }
@@ -220,7 +220,7 @@ public final class CelImplTest {
   public void compile(boolean useProtoResultType) throws Exception {
     CelBuilder celBuilder = standardCelBuilderWithMacros();
     if (useProtoResultType) {
-      celBuilder.setProtoResultType(CelTypes.BOOL);
+      celBuilder.setProtoResultType(CelProtoTypes.BOOL);
     } else {
       celBuilder.setResultType(SimpleType.BOOL);
     }
@@ -234,7 +234,7 @@ public final class CelImplTest {
   public void compile_resultTypeCheckFailure(boolean useProtoResultType) {
     CelBuilder celBuilder = standardCelBuilderWithMacros();
     if (useProtoResultType) {
-      celBuilder.setProtoResultType(CelTypes.STRING);
+      celBuilder.setProtoResultType(CelProtoTypes.STRING);
     } else {
       celBuilder.setResultType(SimpleType.STRING);
     }
@@ -258,7 +258,7 @@ public final class CelImplTest {
             .addProtoTypeMasks(
                 ImmutableList.of(ProtoTypeMask.ofAllFields("google.rpc.context.AttributeContext")))
             .addVar("condition", StructTypeReference.create("google.type.Expr"))
-            .setProtoResultType(CelTypes.BOOL)
+            .setProtoResultType(CelProtoTypes.BOOL)
             .build();
     CelValidationResult result =
         cel.compile("type.Expr{expression: \"'hello'\"}.expression == condition.expression");
@@ -290,7 +290,8 @@ public final class CelImplTest {
     // However, the first type resolution from the alias to the qualified type name won't be
     // sufficient as future checks will expect the resolved alias to also be a type.
     TypeProvider customTypeProvider =
-        aliasingProvider(ImmutableMap.of("Condition", CelTypes.createMessage("google.type.Expr")));
+        aliasingProvider(
+            ImmutableMap.of("Condition", CelProtoTypes.createMessage("google.type.Expr")));
 
     // The registration of the aliasing TypeProvider and the google.type.Expr descriptor
     // ensures that once the alias is resolved, the additional details about the Expr type
@@ -322,9 +323,9 @@ public final class CelImplTest {
         aliasingProvider(
             ImmutableMap.of(
                 "Condition",
-                CelTypes.createMessage("google.type.Expr"),
+                CelProtoTypes.createMessage("google.type.Expr"),
                 "google.type.Expr",
-                CelTypes.createMessage("google.type.Expr")));
+                CelProtoTypes.createMessage("google.type.Expr")));
 
     // The registration of the aliasing TypeProvider and the google.type.Expr descriptor
     // ensures that once the alias is resolved, the additional details about the Expr type
@@ -500,12 +501,14 @@ public final class CelImplTest {
             .addDeclarations(
                 Decl.newBuilder()
                     .setName("variable")
-                    .setIdent(IdentDecl.newBuilder().setType(CelTypes.STRING))
+                    .setIdent(IdentDecl.newBuilder().setType(CelProtoTypes.STRING))
                     .build())
             .addDeclarations(
                 Decl.newBuilder()
                     .setName("variable")
-                    .setIdent(IdentDecl.newBuilder().setType(CelTypes.createList(CelTypes.STRING)))
+                    .setIdent(
+                        IdentDecl.newBuilder()
+                            .setType(CelProtoTypes.createList(CelProtoTypes.STRING)))
                     .build())
             .setResultType(SimpleType.BOOL)
             .build();
@@ -529,7 +532,7 @@ public final class CelImplTest {
             .addDeclarations(
                 Decl.newBuilder()
                     .setName("variable")
-                    .setIdent(IdentDecl.newBuilder().setType(CelTypes.STRING))
+                    .setIdent(IdentDecl.newBuilder().setType(CelProtoTypes.STRING))
                     .build())
             .setResultType(SimpleType.BOOL)
             .build();
@@ -545,7 +548,7 @@ public final class CelImplTest {
             .addDeclarations(
                 Decl.newBuilder()
                     .setName("variable")
-                    .setIdent(IdentDecl.newBuilder().setType(CelTypes.STRING))
+                    .setIdent(IdentDecl.newBuilder().setType(CelProtoTypes.STRING))
                     .build())
             .setResultType(SimpleType.BOOL)
             .build();
@@ -655,11 +658,11 @@ public final class CelImplTest {
                 ImmutableList.of(
                     Decl.newBuilder()
                         .setName("one")
-                        .setIdent(IdentDecl.newBuilder().setType(CelTypes.BOOL))
+                        .setIdent(IdentDecl.newBuilder().setType(CelProtoTypes.BOOL))
                         .build(),
                     Decl.newBuilder()
                         .setName("two")
-                        .setIdent(IdentDecl.newBuilder().setType(CelTypes.BOOL))
+                        .setIdent(IdentDecl.newBuilder().setType(CelProtoTypes.BOOL))
                         .build(),
                     Decl.newBuilder()
                         .setName("any")
@@ -668,21 +671,21 @@ public final class CelImplTest {
                                 .addOverloads(
                                     Overload.newBuilder()
                                         .setOverloadId("any_bool")
-                                        .addParams(CelTypes.BOOL)
-                                        .setResultType(CelTypes.BOOL))
+                                        .addParams(CelProtoTypes.BOOL)
+                                        .setResultType(CelProtoTypes.BOOL))
                                 .addOverloads(
                                     Overload.newBuilder()
                                         .setOverloadId("any_bool_bool")
-                                        .addParams(CelTypes.BOOL)
-                                        .addParams(CelTypes.BOOL)
-                                        .setResultType(CelTypes.BOOL))
+                                        .addParams(CelProtoTypes.BOOL)
+                                        .addParams(CelProtoTypes.BOOL)
+                                        .setResultType(CelProtoTypes.BOOL))
                                 .addOverloads(
                                     Overload.newBuilder()
                                         .setOverloadId("any_bool_bool_bool")
-                                        .addParams(CelTypes.BOOL)
-                                        .addParams(CelTypes.BOOL)
-                                        .addParams(CelTypes.BOOL)
-                                        .setResultType(CelTypes.BOOL)))
+                                        .addParams(CelProtoTypes.BOOL)
+                                        .addParams(CelProtoTypes.BOOL)
+                                        .addParams(CelProtoTypes.BOOL)
+                                        .setResultType(CelProtoTypes.BOOL)))
                         .build()))
             .addFunctionBindings(CelFunctionBinding.from("any_bool", Boolean.class, (arg) -> arg))
             .addFunctionBindings(
@@ -716,7 +719,7 @@ public final class CelImplTest {
                             .addOverloads(
                                 Overload.newBuilder()
                                     .setOverloadId("throws")
-                                    .setResultType(CelTypes.BOOL)))
+                                    .setResultType(CelProtoTypes.BOOL)))
                     .build())
             .addFunctionBindings(
                 CelFunctionBinding.from(
@@ -744,7 +747,7 @@ public final class CelImplTest {
                             .addOverloads(
                                 Overload.newBuilder()
                                     .setOverloadId("throws")
-                                    .setResultType(CelTypes.BOOL)))
+                                    .setResultType(CelProtoTypes.BOOL)))
                     .build())
             .addFunctionBindings(
                 CelFunctionBinding.from(
@@ -960,7 +963,7 @@ public final class CelImplTest {
                     .setIdent(
                         IdentDecl.newBuilder()
                             .setType(
-                                CelTypes.createMessage(
+                                CelProtoTypes.createMessage(
                                     "google.rpc.context.AttributeContext.Resource")))
                     .build())
             .setResultType(SimpleType.STRING)
@@ -1107,7 +1110,7 @@ public final class CelImplTest {
             .addDeclarations(
                 Decl.newBuilder()
                     .setName("variable")
-                    .setIdent(IdentDecl.newBuilder().setType(CelTypes.STRING))
+                    .setIdent(IdentDecl.newBuilder().setType(CelProtoTypes.STRING))
                     .build())
             .setResultType(SimpleType.BOOL)
             .build();
@@ -1150,7 +1153,7 @@ public final class CelImplTest {
     String packageName = CheckedExpr.getDescriptor().getFile().getPackage();
     Cel cel =
         standardCelBuilderWithMacros()
-            .addVar("parsedExprVar", CelTypes.createMessage(ParsedExpr.getDescriptor()))
+            .addVar("parsedExprVar", CelProtoTypes.createMessage(ParsedExpr.getDescriptor()))
             .build();
     CelValidationException exception =
         assertThrows(
@@ -2056,7 +2059,7 @@ public final class CelImplTest {
       public @Nullable Type lookupType(String typeName) {
         Type alias = typeAliases.get(typeName);
         if (alias != null) {
-          return CelTypes.create(alias);
+          return CelProtoTypes.create(alias);
         }
         return null;
       }
@@ -2069,7 +2072,7 @@ public final class CelImplTest {
       @Override
       public TypeProvider.@Nullable FieldType lookupFieldType(Type type, String fieldName) {
         if (typeAliases.containsKey(type.getMessageType())) {
-          return TypeProvider.FieldType.of(CelTypes.STRING);
+          return TypeProvider.FieldType.of(CelProtoTypes.STRING);
         }
         return null;
       }

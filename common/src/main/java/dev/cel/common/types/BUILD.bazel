@@ -82,6 +82,22 @@ java_library(
 )
 
 java_library(
+    name = "cel_proto_types",
+    srcs = ["CelProtoTypes.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_internal_types",
+        ":cel_types",
+        ":type_providers",
+        ":types",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
     name = "cel_v1alpha1_types",
     srcs = ["CelV1AlphaTypes.java"],
     tags = [

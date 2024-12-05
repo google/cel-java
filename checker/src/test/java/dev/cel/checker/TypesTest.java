@@ -19,8 +19,8 @@ import static com.google.common.truth.Truth.assertThat;
 import dev.cel.expr.Type;
 import dev.cel.expr.Type.PrimitiveType;
 import dev.cel.common.types.CelKind;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
-import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.SimpleType;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,8 +34,8 @@ public class TypesTest {
   @Test
   public void isAssignable_usingProtoTypes() {
     Map<Type, Type> subs = new HashMap<>();
-    Type typeParamA = CelTypes.createTypeParam("A");
-    Type stringType = CelTypes.create(PrimitiveType.STRING);
+    Type typeParamA = CelProtoTypes.createTypeParam("A");
+    Type stringType = CelProtoTypes.create(PrimitiveType.STRING);
 
     Map<Type, Type> result = Types.isAssignable(subs, typeParamA, stringType);
 

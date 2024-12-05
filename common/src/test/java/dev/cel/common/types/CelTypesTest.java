@@ -15,10 +15,8 @@
 package dev.cel.common.types;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 
 import dev.cel.expr.Type;
-import dev.cel.expr.Type.AbstractType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameter;
@@ -29,52 +27,6 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 public final class CelTypesTest {
 
-  private enum TestCases {
-    UNSPECIFIED(UnspecifiedType.create(), Type.getDefaultInstance()),
-    STRING(SimpleType.STRING, CelTypes.STRING),
-    INT(NullableType.create(SimpleType.INT), CelTypes.createWrapper(CelTypes.INT64)),
-    UINT(NullableType.create(SimpleType.UINT), CelTypes.createWrapper(CelTypes.UINT64)),
-    DOUBLE(NullableType.create(SimpleType.DOUBLE), CelTypes.createWrapper(CelTypes.DOUBLE)),
-    BOOL(NullableType.create(SimpleType.BOOL), CelTypes.createWrapper(CelTypes.BOOL)),
-    BYTES(SimpleType.BYTES, CelTypes.BYTES),
-    ANY(SimpleType.ANY, CelTypes.ANY),
-    LIST(
-        ListType.create(),
-        Type.newBuilder().setListType(Type.ListType.getDefaultInstance()).build()),
-    DYN(ListType.create(SimpleType.DYN), CelTypes.createList(CelTypes.DYN)),
-    ENUM(EnumType.create("CustomEnum", ImmutableMap.of()), CelTypes.INT64),
-    STRUCT_TYPE_REF(
-        StructTypeReference.create("MyCustomStruct"), CelTypes.createMessage("MyCustomStruct")),
-    OPAQUE(
-        OpaqueType.create("vector", SimpleType.UINT),
-        Type.newBuilder()
-            .setAbstractType(
-                AbstractType.newBuilder().setName("vector").addParameterTypes(CelTypes.UINT64))
-            .build()),
-    TYPE_PARAM(TypeParamType.create("T"), CelTypes.createTypeParam("T")),
-    FUNCTION(
-        CelTypes.createFunctionType(
-            SimpleType.INT, ImmutableList.of(SimpleType.STRING, SimpleType.UINT)),
-        Type.newBuilder()
-            .setFunction(
-                Type.FunctionType.newBuilder()
-                    .setResultType(CelTypes.INT64)
-                    .addAllArgTypes(ImmutableList.of(CelTypes.STRING, CelTypes.UINT64)))
-            .build()),
-    OPTIONAL(OptionalType.create(SimpleType.INT), CelTypes.createOptionalType(CelTypes.INT64)),
-    TYPE(
-        TypeType.create(MapType.create(SimpleType.STRING, SimpleType.STRING)),
-        CelTypes.create(CelTypes.createMap(CelTypes.STRING, CelTypes.STRING)));
-
-    private final CelType celType;
-    private final Type type;
-
-    TestCases(CelType celType, Type type) {
-      this.celType = celType;
-      this.type = type;
-    }
-  }
-
   @Test
   public void isWellKnownType_true() {
     assertThat(CelTypes.isWellKnownType(CelTypes.ANY_MESSAGE)).isTrue();
@@ -83,48 +35,6 @@ public final class CelTypesTest {
   @Test
   public void isWellKnownType_false() {
     assertThat(CelTypes.isWellKnownType("CustomType")).isFalse();
-  }
-
-  @Test
-  public void createOptionalType() {
-    Type optionalType = CelTypes.createOptionalType(CelTypes.INT64);
-
-    assertThat(optionalType.hasAbstractType()).isTrue();
-    assertThat(optionalType.getAbstractType().getName()).isEqualTo("optional_type");
-    assertThat(optionalType.getAbstractType().getParameterTypesCount()).isEqualTo(1);
-    assertThat(optionalType.getAbstractType().getParameterTypes(0)).isEqualTo(CelTypes.INT64);
-  }
-
-  @Test
-  public void isOptionalType_true() {
-    Type optionalType = CelTypes.createOptionalType(CelTypes.INT64);
-
-    assertThat(CelTypes.isOptionalType(optionalType)).isTrue();
-  }
-
-  @Test
-  public void isOptionalType_false() {
-    Type notOptionalType =
-        Type.newBuilder()
-            .setAbstractType(AbstractType.newBuilder().setName("notOptional").build())
-            .build();
-
-    assertThat(CelTypes.isOptionalType(notOptionalType)).isFalse();
-  }
-
-  @Test
-  public void celTypeToType(@TestParameter TestCases testCase) {
-    assertThat(CelTypes.celTypeToType(testCase.celType)).isEqualTo(testCase.type);
-  }
-
-  @Test
-  public void typeToCelType(@TestParameter TestCases testCase) {
-    if (testCase.celType instanceof EnumType) {
-      // (b/178627883) Strongly typed enum is not supported yet
-      return;
-    }
-
-    assertThat(CelTypes.typeToCelType(testCase.type)).isEqualTo(testCase.celType);
   }
 
   private enum FormatTestCases {
@@ -171,9 +81,9 @@ public final class CelTypesTest {
 
   @Test
   public void format_withType(@TestParameter FormatTestCases testCase) {
-    Type type = CelTypes.celTypeToType(testCase.celType);
+    Type type = CelProtoTypes.celTypeToType(testCase.celType);
 
-    assertThat(CelTypes.format(type)).isEqualTo(testCase.formattedString);
+    assertThat(CelProtoTypes.format(type)).isEqualTo(testCase.formattedString);
   }
 
   @Test

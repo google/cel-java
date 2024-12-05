@@ -102,7 +102,7 @@ java_library(
         "//common/internal:cel_descriptor_pools",
         "//common/internal:file_descriptor_converter",
         "//common/resources/testdata/proto3:standalone_global_enum_java_proto",
-        "//common/types:cel_types",
+        "//common/types:cel_proto_types",
         "//common/types:type_providers",
         "//extensions:optional_library",
         "//runtime",

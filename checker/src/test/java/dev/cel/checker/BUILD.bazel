@@ -31,6 +31,7 @@ java_library(
         "//common/internal:errors",
         "//common/resources/testdata/proto3:standalone_global_enum_java_proto",
         "//common/types",
+        "//common/types:cel_proto_types",
         "//common/types:cel_types",
         "//common/types:json",
         "//common/types:message_type_provider",

@@ -40,6 +40,11 @@ java_library(
 )
 
 java_library(
+    name = "cel_proto_types",
+    exports = ["//common/src/main/java/dev/cel/common/types:cel_proto_types"],
+)
+
+java_library(
     name = "cel_v1alpha1_types",
     visibility = ["//visibility:public"],
     exports = ["//common/src/main/java/dev/cel/common/types:cel_v1alpha1_types"],

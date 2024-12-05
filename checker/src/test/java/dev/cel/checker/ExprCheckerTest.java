@@ -14,13 +14,13 @@
 
 package dev.cel.checker;
 
-import static dev.cel.common.types.CelTypes.createList;
-import static dev.cel.common.types.CelTypes.createMap;
-import static dev.cel.common.types.CelTypes.createMessage;
-import static dev.cel.common.types.CelTypes.createOptionalType;
-import static dev.cel.common.types.CelTypes.createTypeParam;
-import static dev.cel.common.types.CelTypes.createWrapper;
-import static dev.cel.common.types.CelTypes.format;
+import static dev.cel.common.types.CelProtoTypes.createList;
+import static dev.cel.common.types.CelProtoTypes.createMap;
+import static dev.cel.common.types.CelProtoTypes.createMessage;
+import static dev.cel.common.types.CelProtoTypes.createOptionalType;
+import static dev.cel.common.types.CelProtoTypes.createTypeParam;
+import static dev.cel.common.types.CelProtoTypes.createWrapper;
+import static dev.cel.common.types.CelProtoTypes.format;
 
 import dev.cel.expr.CheckedExpr;
 import dev.cel.expr.Constant;
@@ -40,7 +40,7 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.internal.EnvVisitable;
 import dev.cel.common.internal.Errors;
-import dev.cel.common.types.CelTypes;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.ProtoMessageTypeProvider;
@@ -192,7 +192,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void anyMessage() throws Exception {
-    declareVariable("x", CelTypes.ANY);
+    declareVariable("x", CelProtoTypes.ANY);
     declareVariable("y", createWrapper(PrimitiveType.INT64));
     source =
         "x == google.protobuf.Any{"
@@ -254,7 +254,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   @Test
   public void listElemTypeError() throws Exception {
     declareVariable("x", createList(createMessage("cel.expr.conformance.proto3.TestAllTypes")));
-    declareVariable("y", createList(CelTypes.INT64));
+    declareVariable("y", createList(CelProtoTypes.INT64));
     source = "x + y";
     runTest();
   }
@@ -265,7 +265,8 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   @Test
   public void mapOperators() throws Exception {
     declareVariable(
-        "x", createMap(CelTypes.STRING, createMessage("cel.expr.conformance.proto3.TestAllTypes")));
+        "x",
+        createMap(CelProtoTypes.STRING, createMessage("cel.expr.conformance.proto3.TestAllTypes")));
     source = "x[\"a\"].single_int32 == 23";
     runTest();
 
@@ -276,7 +277,8 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   @Test
   public void mapIndexTypeError() throws Exception {
     declareVariable(
-        "x", createMap(CelTypes.STRING, createMessage("cel.expr.conformance.proto3.TestAllTypes")));
+        "x",
+        createMap(CelProtoTypes.STRING, createMessage("cel.expr.conformance.proto3.TestAllTypes")));
     source = "x[2].single_int32 == 23";
     runTest();
   }
@@ -422,8 +424,11 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     declareFunction(
         "size",
         memberOverload(
-            "my_size", ImmutableList.of(createList(param)), ImmutableList.of("A"), CelTypes.INT64));
-    declareVariable("x", createList(CelTypes.INT64));
+            "my_size",
+            ImmutableList.of(createList(param)),
+            ImmutableList.of("A"),
+            CelProtoTypes.INT64));
+    declareVariable("x", createList(CelProtoTypes.INT64));
     source = "size(x) == x.size()";
     runTest();
   }
@@ -434,12 +439,12 @@ public class ExprCheckerTest extends CelBaselineTestCase {
         "myfun",
         memberOverload(
             "myfun_instance",
-            ImmutableList.of(CelTypes.INT64, CelTypes.BOOL, CelTypes.UINT64),
-            CelTypes.INT64),
+            ImmutableList.of(CelProtoTypes.INT64, CelProtoTypes.BOOL, CelProtoTypes.UINT64),
+            CelProtoTypes.INT64),
         globalOverload(
             "myfun_static",
-            ImmutableList.of(CelTypes.INT64, CelTypes.BOOL, CelTypes.UINT64),
-            CelTypes.INT64));
+            ImmutableList.of(CelProtoTypes.INT64, CelProtoTypes.BOOL, CelProtoTypes.UINT64),
+            CelProtoTypes.INT64));
     source = "myfun(1, true, 3u) + 1.myfun(false, 3u).myfun(true, 42u)";
     runTest();
   }
@@ -448,7 +453,8 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   public void namespacedFunctions() throws Exception {
     declareFunction(
         "ns.func",
-        globalOverload("ns_func_overload", ImmutableList.of(CelTypes.STRING), CelTypes.INT64));
+        globalOverload(
+            "ns_func_overload", ImmutableList.of(CelProtoTypes.STRING), CelProtoTypes.INT64));
     source = "ns.func('hello')";
     runTest();
 
@@ -456,8 +462,8 @@ public class ExprCheckerTest extends CelBaselineTestCase {
         "member",
         memberOverload(
             "ns_member_overload",
-            ImmutableList.of(CelTypes.INT64, CelTypes.INT64),
-            CelTypes.INT64));
+            ImmutableList.of(CelProtoTypes.INT64, CelProtoTypes.INT64),
+            CelProtoTypes.INT64));
 
     source = "ns.func('hello').member(ns.func('test'))";
     runTest();
@@ -488,7 +494,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   @Test
   public void namespacedVariables() throws Exception {
     container = "ns";
-    declareVariable("ns.x", CelTypes.INT64);
+    declareVariable("ns.x", CelProtoTypes.INT64);
     source = "x";
     runTest();
 
@@ -505,8 +511,8 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     declareVariable("s", structType);
     declareFunction(
         "myfun",
-        globalOverload("myfun_int", ImmutableList.of(CelTypes.INT64), CelTypes.INT64),
-        globalOverload("myfun_struct", ImmutableList.of(structType), CelTypes.INT64));
+        globalOverload("myfun_int", ImmutableList.of(CelProtoTypes.INT64), CelProtoTypes.INT64),
+        globalOverload("myfun_struct", ImmutableList.of(structType), CelProtoTypes.INT64));
     source = "myfun(1) + myfun(s)";
     runTest();
   }
@@ -523,8 +529,8 @@ public class ExprCheckerTest extends CelBaselineTestCase {
             "my_size",
             ImmutableList.of(createList(param)),
             ImmutableList.of("TEST"),
-            CelTypes.UINT64));
-    declareVariable("x", createList(CelTypes.INT64));
+            CelProtoTypes.UINT64));
+    declareVariable("x", createList(CelProtoTypes.INT64));
     source = "size(x) == 1u";
     runTest();
   }
@@ -534,14 +540,15 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     Type messageType = createMessage("cel.expr.conformance.proto3.TestAllTypes");
     declareVariable("x", messageType);
     declareFunction(
-        "size", globalOverload("size_message", ImmutableList.of(messageType), CelTypes.INT64));
+        "size", globalOverload("size_message", ImmutableList.of(messageType), CelProtoTypes.INT64));
     source = "size(x) > 4";
     runTest();
   }
 
   @Test
   public void userFunctionAddsMacroError() throws Exception {
-    declareFunction("has", globalOverload("has_id", ImmutableList.of(CelTypes.DYN), CelTypes.DYN));
+    declareFunction(
+        "has", globalOverload("has_id", ImmutableList.of(CelProtoTypes.DYN), CelProtoTypes.DYN));
     source = "false";
     runTest();
   }
@@ -673,7 +680,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     source = "x.single_nested_enum == TestAllTypes.NestedEnum.BAR";
     runTest();
 
-    declareVariable("single_nested_enum", CelTypes.INT64);
+    declareVariable("single_nested_enum", CelProtoTypes.INT64);
     source = "single_nested_enum == TestAllTypes.NestedEnum.BAR";
     runTest();
 
@@ -762,11 +769,11 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     source = "x.repeated_int64.map(x, x > 0, double(x))";
     runTest();
 
-    declareVariable("lists", CelTypes.DYN);
+    declareVariable("lists", CelProtoTypes.DYN);
     source = "lists.filter(x, x > 1.5)";
     runTest();
 
-    declareVariable("args", createMap(CelTypes.STRING, CelTypes.DYN));
+    declareVariable("args", createMap(CelProtoTypes.STRING, CelProtoTypes.DYN));
     source = "args.user[\"myextension\"].customAttributes.filter(x, x.name == \"hobbies\")";
     runTest();
   }
@@ -779,12 +786,12 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     Type abstractType =
         Type.newBuilder().setAbstractType(AbstractType.newBuilder().setName("abs")).build();
     // Declare the identifier 'abs' to bind to the abstract type.
-    declareVariable("abs", CelTypes.create(abstractType));
+    declareVariable("abs", CelProtoTypes.create(abstractType));
     // Declare a function to create a new value of abstract type.
     declareFunction("make_abs", globalOverload("make_abs", ImmutableList.of(), abstractType));
     // Declare a function to consume value of abstract type.
     declareFunction(
-        "as_bool", memberOverload("as_bool", ImmutableList.of(abstractType), CelTypes.BOOL));
+        "as_bool", memberOverload("as_bool", ImmutableList.of(abstractType), CelProtoTypes.BOOL));
 
     source = "type(make_abs()) == abs && make_abs().as_bool()";
     runTest();
@@ -792,7 +799,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void abstractTypeParameterized() throws Exception {
-    Type typeParam = createTypeParam("T");
+    Type typeParam = CelProtoTypes.createTypeParam("T");
     Type abstractType =
         Type.newBuilder()
             .setAbstractType(
@@ -804,13 +811,13 @@ public class ExprCheckerTest extends CelBaselineTestCase {
         // Declare the function 'vector' to create the abstract type.
         globalOverload(
             "vector_type",
-            ImmutableList.of(CelTypes.create(typeParam)),
+            ImmutableList.of(CelProtoTypes.create(typeParam)),
             ImmutableList.of("T"),
-            CelTypes.create(abstractType)),
+            CelProtoTypes.create(abstractType)),
         // Declare a function to create a new value of abstract type based on a list.
         globalOverload(
             "vector_list",
-            ImmutableList.of(createList(typeParam)),
+            ImmutableList.of(CelProtoTypes.createList(typeParam)),
             ImmutableList.of("T"),
             abstractType));
 
@@ -819,7 +826,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
         "at",
         memberOverload(
             "vector_at_int",
-            ImmutableList.of(abstractType, CelTypes.INT64),
+            ImmutableList.of(abstractType, CelProtoTypes.INT64),
             ImmutableList.of("T"),
             typeParam));
 
@@ -842,9 +849,9 @@ public class ExprCheckerTest extends CelBaselineTestCase {
         // Declare the function 'vector' to create the abstract type.
         globalOverload(
             "vector_type",
-            ImmutableList.of(CelTypes.create(typeParam)),
+            ImmutableList.of(CelProtoTypes.create(typeParam)),
             ImmutableList.of("T"),
-            CelTypes.create(abstractType)),
+            CelProtoTypes.create(abstractType)),
         // Declare a function to create a new value of abstract type based on a list.
         globalOverload(
             "vector_list",
@@ -869,9 +876,9 @@ public class ExprCheckerTest extends CelBaselineTestCase {
         // Declare the function 'vector' to create the abstract type.
         globalOverload(
             "vector_type",
-            ImmutableList.of(CelTypes.create(typeParam)),
+            ImmutableList.of(CelProtoTypes.create(typeParam)),
             ImmutableList.of("T"),
-            CelTypes.create(abstractType)),
+            CelProtoTypes.create(abstractType)),
         // Declare a function to create a new value of abstract type based on a list.
         globalOverload(
             "vector_list",
@@ -882,9 +889,10 @@ public class ExprCheckerTest extends CelBaselineTestCase {
         "add",
         globalOverload(
             "add_vector_type",
-            ImmutableList.of(CelTypes.create(abstractType), CelTypes.create(abstractType)),
+            ImmutableList.of(
+                CelProtoTypes.create(abstractType), CelProtoTypes.create(abstractType)),
             ImmutableList.of("T"),
-            CelTypes.create(abstractType)));
+            CelProtoTypes.create(abstractType)));
     source = "add(vector([1, 2]), vector([2u, -1])) == vector([1, 2, 2u, -1])";
     runTest();
   }
@@ -892,12 +900,12 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   // Optionals
   @Test
   public void optionals() throws Exception {
-    declareVariable("a", createMap(CelTypes.STRING, CelTypes.STRING));
+    declareVariable("a", createMap(CelProtoTypes.STRING, CelProtoTypes.STRING));
     source = "a.?b";
     runTest();
 
     clearAllDeclarations();
-    declareVariable("x", createOptionalType(createMap(CelTypes.STRING, CelTypes.STRING)));
+    declareVariable("x", createOptionalType(createMap(CelProtoTypes.STRING, CelProtoTypes.STRING)));
     source = "x.y";
     runTest();
 
@@ -905,7 +913,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     runTest();
 
     clearAllDeclarations();
-    declareVariable("d", createOptionalType(CelTypes.DYN));
+    declareVariable("d", createOptionalType(CelProtoTypes.DYN));
     source = "d.dynamic";
     runTest();
 
@@ -913,7 +921,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     runTest();
 
     clearAllDeclarations();
-    declareVariable("e", createOptionalType(createMap(CelTypes.STRING, CelTypes.DYN)));
+    declareVariable("e", createOptionalType(createMap(CelProtoTypes.STRING, CelProtoTypes.DYN)));
     source = "has(e.?b.c)";
     runTest();
 
@@ -929,8 +937,8 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     runTest();
 
     container = "";
-    declareVariable("a", createOptionalType(CelTypes.STRING));
-    declareVariable("b", createOptionalType(CelTypes.STRING));
+    declareVariable("a", createOptionalType(CelProtoTypes.STRING));
+    declareVariable("b", createOptionalType(CelProtoTypes.STRING));
     source = "[?a, ?b, 'world']";
     runTest();
 
@@ -954,7 +962,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     runTest();
 
     source = "a.?b";
-    declareVariable("a", createMap(CelTypes.STRING, CelTypes.STRING));
+    declareVariable("a", createMap(CelProtoTypes.STRING, CelProtoTypes.STRING));
     prepareCompiler(new ProtoMessageTypeProvider());
     ParsedExpr parsedExpr =
         CelProtoAbstractSyntaxTree.fromCelAst(celCompiler.parse(source).getAst()).toParsedExpr();

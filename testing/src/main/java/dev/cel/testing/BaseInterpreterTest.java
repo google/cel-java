@@ -62,8 +62,8 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.FileDescriptorSetConverter;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelTypeProvider;
-import dev.cel.common.types.CelTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
@@ -217,11 +217,11 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "1 < 2 && 1 <= 1 && 2 > 1 && 1 >= 1 && 1 == 1 && 2 != 1";
     runTest();
 
-    declareVariable("x", CelTypes.INT64);
+    declareVariable("x", CelProtoTypes.INT64);
     source = "1 + 2 - x * 3 / x + (x % 3)";
     runTest(ImmutableMap.of("x", -5L));
 
-    declareVariable("y", CelTypes.DYN);
+    declareVariable("y", CelProtoTypes.DYN);
     source = "x + y == 1";
     runTest(extend(ImmutableMap.of("x", -5L), ImmutableMap.of("y", 6)));
   }
@@ -256,11 +256,11 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     runTest();
 
     boolean useUnsignedLongs = celOptions.enableUnsignedLongs();
-    declareVariable("x", CelTypes.UINT64);
+    declareVariable("x", CelProtoTypes.UINT64);
     source = "1u + 2u + x * 3u / x + (x % 3u)";
     runTest(ImmutableMap.of("x", useUnsignedLongs ? UnsignedLong.valueOf(5L) : 5L));
 
-    declareVariable("y", CelTypes.DYN);
+    declareVariable("y", CelProtoTypes.DYN);
     source = "x + y == 11u";
     runTest(
         extend(
@@ -297,11 +297,11 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "1.9 < 2.0 && 1.1 <= 1.1 && 2.0 > 1.9 && 1.1 >= 1.1 && 1.1 == 1.1 && 2.0 != 1.9";
     runTest();
 
-    declareVariable("x", CelTypes.DOUBLE);
+    declareVariable("x", CelProtoTypes.DOUBLE);
     source = "1.0 + 2.3 + x * 3.0 / x";
     runTest(ImmutableMap.of("x", 3.33));
 
-    declareVariable("y", CelTypes.DYN);
+    declareVariable("y", CelProtoTypes.DYN);
     source = "x + y == 9.99";
     runTest(extend(ImmutableMap.of("x", 3.33d), ImmutableMap.of("y", 6.66)));
   }
@@ -330,9 +330,9 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void arithmTimestamp() {
     container = Type.getDescriptor().getFile().getPackage();
-    declareVariable("ts1", CelTypes.TIMESTAMP);
-    declareVariable("ts2", CelTypes.TIMESTAMP);
-    declareVariable("d1", CelTypes.DURATION);
+    declareVariable("ts1", CelProtoTypes.TIMESTAMP);
+    declareVariable("ts2", CelProtoTypes.TIMESTAMP);
+    declareVariable("d1", CelProtoTypes.DURATION);
     Duration d1 = Duration.newBuilder().setSeconds(15).setNanos(25).build();
     Timestamp ts1 = Timestamp.newBuilder().setSeconds(25).setNanos(35).build();
     Timestamp ts2 = Timestamp.newBuilder().setSeconds(10).setNanos(10).build();
@@ -357,9 +357,9 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void arithmDuration() {
     container = Type.getDescriptor().getFile().getPackage();
-    declareVariable("d1", CelTypes.DURATION);
-    declareVariable("d2", CelTypes.DURATION);
-    declareVariable("d3", CelTypes.DURATION);
+    declareVariable("d1", CelProtoTypes.DURATION);
+    declareVariable("d2", CelProtoTypes.DURATION);
+    declareVariable("d3", CelProtoTypes.DURATION);
     Duration d1 = Duration.newBuilder().setSeconds(15).setNanos(25).build();
     Duration d2 = Duration.newBuilder().setSeconds(10).setNanos(20).build();
     Duration d3 = Duration.newBuilder().setSeconds(25).setNanos(45).build();
@@ -397,7 +397,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void booleans() {
-    declareVariable("x", CelTypes.BOOL);
+    declareVariable("x", CelProtoTypes.BOOL);
     source = "x ? 1 : 0";
     runTest(ImmutableMap.of("x", true));
     runTest(ImmutableMap.of("x", false));
@@ -408,7 +408,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "(1 / 0 == 0 || true) == (true || 1 / 0 == 0)";
     runTest();
 
-    declareVariable("y", CelTypes.INT64);
+    declareVariable("y", CelProtoTypes.INT64);
     source = "1 / y == 1 || true";
     runTest(ImmutableMap.of("y", 0L));
 
@@ -481,7 +481,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "'a' < 'b' && 'a' <= 'b' && 'b' > 'a' && 'a' >= 'a' && 'a' == 'a' && 'a' != 'b'";
     runTest();
 
-    declareVariable("x", CelTypes.STRING);
+    declareVariable("x", CelProtoTypes.STRING);
     source =
         "'abc' + x == 'abcdef' && "
             + "x.endsWith('ef') && "
@@ -497,13 +497,13 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
         TestAllTypes.newBuilder()
             .setSingleNestedMessage(NestedMessage.newBuilder().setBb(43))
             .build();
-    declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+    declareVariable("x", CelProtoTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
     source = "x.single_nested_message.bb == 43 && has(x.single_nested_message)";
     runTest(ImmutableMap.of("x", nestedMessage));
 
     declareVariable(
         "single_nested_message",
-        CelTypes.createMessage(NestedMessage.getDescriptor().getFullName()));
+        CelProtoTypes.createMessage(NestedMessage.getDescriptor().getFullName()));
     source = "single_nested_message.bb == 43";
     runTest(ImmutableMap.of("single_nested_message", nestedMessage.getSingleNestedMessage()));
 
@@ -528,7 +528,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "optional.unwrap([])";
     runTest();
 
-    declareVariable("str", CelTypes.STRING);
+    declareVariable("str", CelProtoTypes.STRING);
     source = "optional.unwrap([optional.none(), optional.of(1), optional.of(str)])";
     runTest(ImmutableMap.of("str", "foo"));
   }
@@ -553,7 +553,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             .putMapInt32Int64(1, 2L)
             .setSingleNestedMessage(NestedMessage.newBuilder().setBb(43))
             .build();
-    declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+    declareVariable("x", CelProtoTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
     source =
         "has(x.single_int32) && !has(x.single_int64) && has(x.single_bool_wrapper)"
             + " && has(x.single_int32_wrapper) && !has(x.single_int64_wrapper)"
@@ -567,8 +567,8 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void duration() throws Exception {
-    declareVariable("d1", CelTypes.DURATION);
-    declareVariable("d2", CelTypes.DURATION);
+    declareVariable("d1", CelProtoTypes.DURATION);
+    declareVariable("d2", CelProtoTypes.DURATION);
     Duration d1010 = Duration.newBuilder().setSeconds(10).setNanos(10).build();
     Duration d1009 = Duration.newBuilder().setSeconds(10).setNanos(9).build();
     Duration d0910 = Duration.newBuilder().setSeconds(9).setNanos(10).build();
@@ -605,8 +605,8 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void timestamp() throws Exception {
-    declareVariable("t1", CelTypes.TIMESTAMP);
-    declareVariable("t2", CelTypes.TIMESTAMP);
+    declareVariable("t1", CelProtoTypes.TIMESTAMP);
+    declareVariable("t2", CelProtoTypes.TIMESTAMP);
     Timestamp ts1010 = Timestamp.newBuilder().setSeconds(10).setNanos(10).build();
     Timestamp ts1009 = Timestamp.newBuilder().setSeconds(10).setNanos(9).build();
     Timestamp ts0910 = Timestamp.newBuilder().setSeconds(9).setNanos(10).build();
@@ -649,10 +649,11 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
       return;
     }
     container = TestAllTypes.getDescriptor().getFile().getPackage();
-    declareVariable("any", CelTypes.ANY);
-    declareVariable("d", CelTypes.DURATION);
-    declareVariable("message", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
-    declareVariable("list", CelTypes.createList(CelTypes.DYN));
+    declareVariable("any", CelProtoTypes.ANY);
+    declareVariable("d", CelProtoTypes.DURATION);
+    declareVariable(
+        "message", CelProtoTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+    declareVariable("list", CelProtoTypes.createList(CelProtoTypes.DYN));
     Duration duration = Durations.fromSeconds(100);
     Any any = Any.pack(duration);
     TestAllTypes message = TestAllTypes.newBuilder().setSingleAny(any).build();
@@ -694,12 +695,12 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void nestedEnums() {
     TestAllTypes nestedEnum = TestAllTypes.newBuilder().setSingleNestedEnum(NestedEnum.BAR).build();
-    declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+    declareVariable("x", CelProtoTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
     container = TestAllTypes.getDescriptor().getFile().getPackage();
     source = "x.single_nested_enum == TestAllTypes.NestedEnum.BAR";
     runTest(ImmutableMap.of("x", nestedEnum));
 
-    declareVariable("single_nested_enum", CelTypes.INT64);
+    declareVariable("single_nested_enum", CelProtoTypes.INT64);
     source = "single_nested_enum == TestAllTypes.NestedEnum.BAR";
     runTest(ImmutableMap.of("single_nested_enum", nestedEnum.getSingleNestedEnumValue()));
 
@@ -710,15 +711,15 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void globalEnums() {
-    declareVariable("x", CelTypes.INT64);
+    declareVariable("x", CelProtoTypes.INT64);
     source = "x == dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGAR";
     runTest(ImmutableMap.of("x", StandaloneGlobalEnum.SGAR.getNumber()));
   }
 
   @Test
   public void lists() throws Exception {
-    declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
-    declareVariable("y", CelTypes.INT64);
+    declareVariable("x", CelProtoTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+    declareVariable("y", CelProtoTypes.INT64);
     container = TestAllTypes.getDescriptor().getFile().getPackage();
     source = "([1, 2, 3] + x.repeated_int32)[3] == 4";
     runTest(ImmutableMap.of("x", TestAllTypes.newBuilder().addRepeatedInt32(4).build()));
@@ -735,7 +736,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "!(4 in [1, 2, 3]) && 1 in [1, 2, 3]";
     runTest();
 
-    declareVariable("list", CelTypes.createList(CelTypes.INT64));
+    declareVariable("list", CelProtoTypes.createList(CelProtoTypes.INT64));
 
     source = "!(4 in list) && 1 in list";
     runTest(ImmutableMap.of("list", ImmutableList.of(1L, 2L, 3L)));
@@ -752,7 +753,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void maps() throws Exception {
-    declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+    declareVariable("x", CelProtoTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
     container = TestAllTypes.getDescriptor().getFile().getPackage();
     source = "{1: 2, 3: 4}[3] == 4";
     runTest();
@@ -772,8 +773,8 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             + ".oneof_type.payload.map_int32_int64[22] == 23";
     runTest(ImmutableMap.of("x", TestAllTypes.newBuilder().putMapInt32Int64(22, 23).build()));
 
-    declareVariable("y", CelTypes.INT64);
-    declareVariable("map", CelTypes.createMap(CelTypes.INT64, CelTypes.INT64));
+    declareVariable("y", CelProtoTypes.INT64);
+    declareVariable("map", CelProtoTypes.createMap(CelProtoTypes.INT64, CelProtoTypes.INT64));
 
     // Constant key in variable map.
     source = "!(4 in map) && 1 in map";
@@ -796,7 +797,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     runTest();
 
     // Repeated key - expressions
-    declareVariable("b", CelTypes.BOOL);
+    declareVariable("b", CelProtoTypes.BOOL);
     source = "{b: 1, !b: 2, b: 3}[true]";
     runTest(ImmutableMap.of("b", true));
   }
@@ -815,7 +816,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void abstractType() {
-    Type typeParam = CelTypes.createTypeParam("T");
+    Type typeParam = CelProtoTypes.createTypeParam("T");
     Type abstractType =
         Type.newBuilder()
             .setAbstractType(
@@ -826,7 +827,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
         "vector",
         globalOverload(
             "vector",
-            ImmutableList.of(CelTypes.createList(typeParam)),
+            ImmutableList.of(CelProtoTypes.createList(typeParam)),
             ImmutableList.of("T"),
             abstractType));
     // Declare a function to access element of a vector.
@@ -834,7 +835,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
         "at",
         memberOverload(
             "at",
-            ImmutableList.of(abstractType, CelTypes.INT64),
+            ImmutableList.of(abstractType, CelProtoTypes.INT64),
             ImmutableList.of("T"),
             typeParam));
     // Add function bindings for above
@@ -865,13 +866,14 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   public void namespacedFunctions() {
     declareFunction(
         "ns.func",
-        globalOverload("ns_func_overload", ImmutableList.of(CelTypes.STRING), CelTypes.INT64));
+        globalOverload(
+            "ns_func_overload", ImmutableList.of(CelProtoTypes.STRING), CelProtoTypes.INT64));
     declareFunction(
         "member",
         memberOverload(
             "ns_member_overload",
-            ImmutableList.of(CelTypes.INT64, CelTypes.INT64),
-            CelTypes.INT64));
+            ImmutableList.of(CelProtoTypes.INT64, CelProtoTypes.INT64),
+            CelProtoTypes.INT64));
     addFunctionBinding(
         CelFunctionBinding.from("ns_func_overload", String.class, s -> (long) s.length()),
         CelFunctionBinding.from("ns_member_overload", Long.class, Long.class, Long::sum));
@@ -911,12 +913,12 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void namespacedVariables() {
     container = "ns";
-    declareVariable("ns.x", CelTypes.INT64);
+    declareVariable("ns.x", CelProtoTypes.INT64);
     source = "x";
     runTest(ImmutableMap.of("ns.x", 2));
 
     container = "dev.cel.testing.testdata.proto3";
-    Type messageType = CelTypes.createMessage("cel.expr.conformance.proto3.TestAllTypes");
+    Type messageType = CelProtoTypes.createMessage("cel.expr.conformance.proto3.TestAllTypes");
     declareVariable("dev.cel.testing.testdata.proto3.msgVar", messageType);
     source = "msgVar.single_int32";
     runTest(
@@ -927,7 +929,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void durationFunctions() {
-    declareVariable("d1", CelTypes.DURATION);
+    declareVariable("d1", CelProtoTypes.DURATION);
     Duration d1 =
         Duration.newBuilder().setSeconds(25 * 3600 + 59 * 60 + 1).setNanos(11000000).build();
     Duration d2 =
@@ -950,7 +952,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     runTest(ImmutableMap.of("d1", d1));
     runTest(ImmutableMap.of("d1", d2));
 
-    declareVariable("val", CelTypes.INT64);
+    declareVariable("val", CelProtoTypes.INT64);
     source = "d1.getHours() < val";
     runTest(extend(ImmutableMap.of("d1", d1), ImmutableMap.of("val", 30L)));
     source = "d1.getMinutes() > val";
@@ -963,7 +965,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void timestampFunctions() {
-    declareVariable("ts1", CelTypes.TIMESTAMP);
+    declareVariable("ts1", CelProtoTypes.TIMESTAMP);
     container = Type.getDescriptor().getFile().getPackage();
     Timestamp ts1 = Timestamp.newBuilder().setSeconds(1).setNanos(11000000).build();
     Timestamp ts2 = Timestamps.fromSeconds(-1);
@@ -1068,7 +1070,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "ts1.getMilliseconds(\"-8:00\")";
     runTest(ImmutableMap.of("ts1", ts1));
 
-    declareVariable("val", CelTypes.INT64);
+    declareVariable("val", CelProtoTypes.INT64);
     source = "ts1.getFullYear() < val";
     runTest(extend(ImmutableMap.of("ts1", ts1), ImmutableMap.of("val", 2013L)));
     source = "ts1.getMonth() < val";
@@ -1094,7 +1096,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void unknownField() {
     container = TestAllTypes.getDescriptor().getFile().getPackage();
-    declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+    declareVariable("x", CelProtoTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
 
     // Unknown field is accessed.
     source = "x.single_int32";
@@ -1126,7 +1128,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void unknownResultSet() {
     container = TestAllTypes.getDescriptor().getFile().getPackage();
-    declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+    declareVariable("x", CelProtoTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
     TestAllTypes message =
         TestAllTypes.newBuilder()
             .setSingleString("test")
@@ -1203,7 +1205,9 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     // dispatch test
     declareFunction(
-        "f", memberOverload("f", Arrays.asList(CelTypes.INT64, CelTypes.INT64), CelTypes.BOOL));
+        "f",
+        memberOverload(
+            "f", Arrays.asList(CelProtoTypes.INT64, CelProtoTypes.INT64), CelProtoTypes.BOOL));
     addFunctionBinding(CelFunctionBinding.from("f", Integer.class, Integer.class, Objects::equals));
 
     // dispatch: unknown.f(1)  ==> unknown
@@ -1328,7 +1332,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void timeConversions() {
     container = Type.getDescriptor().getFile().getPackage();
-    declareVariable("t1", CelTypes.TIMESTAMP);
+    declareVariable("t1", CelProtoTypes.TIMESTAMP);
 
     source = "timestamp(\"1972-01-01T10:00:20.021-05:00\")";
     runTest();
@@ -1359,8 +1363,8 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void sizeTests() {
     container = Type.getDescriptor().getFile().getPackage();
-    declareVariable("str", CelTypes.STRING);
-    declareVariable("b", CelTypes.BYTES);
+    declareVariable("str", CelProtoTypes.STRING);
+    declareVariable("b", CelProtoTypes.BYTES);
 
     source = "size(b) == 5 && b.size() == 5";
     runTest(ImmutableMap.of("b", ByteString.copyFromUtf8("happy")));
@@ -1385,7 +1389,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "![0, 2, 4].all(x, 4/x != 2 && 4/(4-x) != 2)";
     runTest();
 
-    declareVariable("four", CelTypes.INT64);
+    declareVariable("four", CelProtoTypes.INT64);
 
     // Condition is dynamic.
     source = "[0, 2, 4].exists(x, four/x == 2 && four/(four-x) == 2)";
@@ -1455,7 +1459,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     runTest();
 
     // Constant string.
-    declareVariable("regexp", CelTypes.STRING);
+    declareVariable("regexp", CelProtoTypes.STRING);
 
     source = "matches(\"alpha\", regexp) == true";
     runTest(ImmutableMap.of("regexp", "^al.*"));
@@ -1483,7 +1487,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     runTest(ImmutableMap.of("regexp", ".*ha.$"));
 
     // Constant regexp.
-    declareVariable("s", CelTypes.STRING);
+    declareVariable("s", CelProtoTypes.STRING);
 
     source = "matches(s, \"^al.*\") == true";
     runTest(ImmutableMap.of("s", "alpha"));
@@ -1705,7 +1709,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void jsonValueTypes() {
     container = TestAllTypes.getDescriptor().getFile().getPackage();
-    declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+    declareVariable("x", CelProtoTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
 
     // JSON bool selection.
     TestAllTypes xBool =
@@ -1787,7 +1791,10 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     // Ensure that types are being wrapped and unwrapped on function dispatch.
     declareFunction(
         "pair",
-        globalOverload("pair", ImmutableList.of(CelTypes.STRING, CelTypes.STRING), CelTypes.DYN));
+        globalOverload(
+            "pair",
+            ImmutableList.of(CelProtoTypes.STRING, CelProtoTypes.STRING),
+            CelProtoTypes.DYN));
     addFunctionBinding(
         CelFunctionBinding.from(
             "pair",
@@ -1807,8 +1814,8 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void jsonConversions() {
-    declareVariable("ts", CelTypes.TIMESTAMP);
-    declareVariable("du", CelTypes.DURATION);
+    declareVariable("ts", CelProtoTypes.TIMESTAMP);
+    declareVariable("du", CelProtoTypes.DURATION);
     source = "google.protobuf.Struct { fields: {'timestamp': ts, 'duration': du } }";
     runTest(ImmutableMap.of("ts", Timestamps.fromSeconds(100), "du", Durations.fromMillis(200)));
   }
@@ -1882,7 +1889,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             .setSingleUint32Wrapper(UInt32Value.of(12))
             .setSingleUint64Wrapper(UInt64Value.of(34));
 
-    declareVariable("x", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+    declareVariable("x", CelProtoTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
     source =
         "x.single_bool_wrapper == true && "
             + "x.single_bytes_wrapper == b'hi' && "
@@ -1934,12 +1941,12 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     declareFunction(
         "constantLongList",
         globalOverload(
-            "constantLongList", ImmutableList.of(), CelTypes.createList(CelTypes.INT64)));
+            "constantLongList", ImmutableList.of(), CelProtoTypes.createList(CelProtoTypes.INT64)));
     source = "size(constantLongList().map(x, x+1)) == 1000";
     runTest();
 
     // Comprehension over long list that is not compile-time constant.
-    declareVariable("longlist", CelTypes.createList(CelTypes.INT64));
+    declareVariable("longlist", CelProtoTypes.createList(CelProtoTypes.INT64));
     source = "size(longlist.map(x, x+1)) == 1000";
     runTest(ImmutableMap.of("longlist", l));
 
@@ -1952,14 +1959,14 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
         CelFunctionBinding.from("f_unleash", Object.class, x -> x));
     declareFunction(
         "f_slow_inc",
-        globalOverload("f_slow_inc", ImmutableList.of(CelTypes.INT64), CelTypes.INT64));
+        globalOverload("f_slow_inc", ImmutableList.of(CelProtoTypes.INT64), CelProtoTypes.INT64));
     declareFunction(
         "f_unleash",
         globalOverload(
             "f_unleash",
-            ImmutableList.of(CelTypes.createTypeParam("A")),
+            ImmutableList.of(CelProtoTypes.createTypeParam("A")),
             ImmutableList.of("A"),
-            CelTypes.createTypeParam("A")));
+            CelProtoTypes.createTypeParam("A")));
     source = "f_unleash(longlist.map(x, f_slow_inc(x)))[0] == 1";
     runTest(ImmutableMap.of("longlist", l));
   }
@@ -1967,7 +1974,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void maxComprehension() {
     // Comprehension over long list that is not compile-time constant.
-    declareVariable("longlist", CelTypes.createList(CelTypes.INT64));
+    declareVariable("longlist", CelProtoTypes.createList(CelProtoTypes.INT64));
     source = "size(longlist.map(x, x+1)) == 1000";
 
     // Comprehension which exceeds the configured iteration limit.
@@ -2031,7 +2038,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
                 wrapperBindings.toByteArray(),
                 DefaultDescriptorPool.INSTANCE.getExtensionRegistry()));
 
-    declareVariable("msg", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+    declareVariable("msg", CelProtoTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
 
     source = "msg.single_any";
     assertThat(runTest(input)).isInstanceOf(NestedMessage.class);
@@ -2135,22 +2142,24 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     // Test any unpacking
     // With well-known type
     Any anyDuration = Any.pack(Durations.fromSeconds(100));
-    declareVariable("dur", CelTypes.TIMESTAMP);
+    declareVariable("dur", CelProtoTypes.TIMESTAMP);
     source = "TestAllTypes { single_any: dur }.single_any";
     assertThat(runTest(ImmutableMap.of("dur", anyDuration))).isInstanceOf(Duration.class);
     // with custom message
     clearAllDeclarations();
     Any anyTestMsg = Any.pack(TestAllTypes.newBuilder().setSingleString("hello").build());
     declareVariable(
-        "any_packed_test_msg", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+        "any_packed_test_msg",
+        CelProtoTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
     source = "TestAllTypes { single_any: any_packed_test_msg }.single_any";
     assertThat(runTest(ImmutableMap.of("any_packed_test_msg", anyTestMsg)))
         .isInstanceOf(TestAllTypes.class);
 
     // Test JSON map behavior
-    declareVariable("test_msg", CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
     declareVariable(
-        "dynamic_msg", CelTypes.createMessage(TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR.getFullName()));
+        "test_msg", CelProtoTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
+    declareVariable(
+        "dynamic_msg", CelProtoTypes.createMessage(TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR.getFullName()));
     DynamicMessage.Builder dynamicMessageBuilder =
         DynamicMessage.newBuilder(TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR);
     JsonFormat.parser().merge("{ 'map_string_string' : { 'foo' : 'bar' } }", dynamicMessageBuilder);
@@ -2169,13 +2178,14 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
         "f_msg",
         globalOverload(
             "f_msg_generated",
-            ImmutableList.of(CelTypes.createMessage(TestAllTypes.getDescriptor().getFullName())),
-            CelTypes.BOOL),
+            ImmutableList.of(
+                CelProtoTypes.createMessage(TestAllTypes.getDescriptor().getFullName())),
+            CelProtoTypes.BOOL),
         globalOverload(
             "f_msg_dynamic",
             ImmutableList.of(
-                CelTypes.createMessage(TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR.getFullName())),
-            CelTypes.BOOL));
+                CelProtoTypes.createMessage(TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR.getFullName())),
+            CelProtoTypes.BOOL));
     addFunctionBinding(
         CelFunctionBinding.from("f_msg_generated", TestAllTypes.class, x -> true),
         CelFunctionBinding.from("f_msg_dynamic", DynamicMessage.class, x -> true));
@@ -2216,7 +2226,9 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     declareFunction(
         "record",
         globalOverload(
-            "record_string_dyn", ImmutableList.of(CelTypes.STRING, CelTypes.DYN), CelTypes.DYN));
+            "record_string_dyn",
+            ImmutableList.of(CelProtoTypes.STRING, CelProtoTypes.DYN),
+            CelProtoTypes.DYN));
     source = "record('foo', 'bar')";
     assertThat(runTest(ImmutableMap.of(), lateBindings)).isEqualTo("bar");
     assertThat(recordedValues.getRecordedValues()).containsExactly("foo", "bar");
