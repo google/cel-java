@@ -9,20 +9,3 @@ filegroup(
     name = "resources",
     srcs = glob(["*.baseline"]),
 )
-
-java_proto_library(
-    name = "test_java_proto",
-    deps = [":test_proto"],
-)
-
-proto_library(
-    name = "test_proto",
-    srcs = glob(["*.proto"]),
-    deps = [
-        "@com_google_protobuf//:any_proto",
-        "@com_google_protobuf//:duration_proto",
-        "@com_google_protobuf//:struct_proto",
-        "@com_google_protobuf//:timestamp_proto",
-        "@com_google_protobuf//:wrappers_proto",
-    ],
-)
