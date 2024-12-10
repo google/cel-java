@@ -14,16 +14,14 @@
 
 package dev.cel.runtime;
 
-import dev.cel.expr.CheckedExpr;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
-import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.annotations.Internal;
 
 /**
- * Metadata implementation based on {@link CheckedExpr}.
+ * Metadata implementation based on {@link CelAbstractSyntaxTree}.
  *
  * <p>CEL Library Internals. Do Not Use.
  */
@@ -35,11 +33,6 @@ public final class DefaultMetadata implements Metadata {
 
   public DefaultMetadata(CelAbstractSyntaxTree ast) {
     this.ast = Preconditions.checkNotNull(ast);
-  }
-
-  @Deprecated
-  public DefaultMetadata(CheckedExpr checkedExpr) {
-    this(CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst());
   }
 
   @Override
