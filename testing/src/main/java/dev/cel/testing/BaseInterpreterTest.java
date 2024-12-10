@@ -100,7 +100,6 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   /** Test options to supply for interpreter tests. */
   protected enum InterpreterTestOption {
-    ADAPT_TYPE_VALUE(newBaseOptions().adaptRuntimeTypeValueToNativeType(true).build(), true),
     CEL_TYPE(newBaseOptions().build(), true),
     PROTO_TYPE(newBaseOptions().build(), false),
     ;

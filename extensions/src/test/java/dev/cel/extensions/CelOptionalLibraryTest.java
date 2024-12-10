@@ -91,12 +91,7 @@ public class CelOptionalLibraryTest {
 
   private static CelBuilder newCelBuilder() {
     return CelFactory.standardCelBuilder()
-        .setOptions(
-            CelOptions.current()
-                .enableUnsignedLongs(true)
-                .enableTimestampEpoch(true)
-                .adaptRuntimeTypeValueToNativeType(true)
-                .build())
+        .setOptions(CelOptions.current().enableTimestampEpoch(true).build())
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .setContainer("cel.expr.conformance.proto3")
         .addMessageTypes(TestAllTypes.getDescriptor())
