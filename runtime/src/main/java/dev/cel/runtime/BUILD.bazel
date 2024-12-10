@@ -18,8 +18,6 @@ BASE_SOURCES = [
     "Registrar.java",
     "ResolvedOverload.java",
     "StandardFunctions.java",
-    "StandardTypeResolver.java",
-    "TypeResolver.java",
 ]
 
 # keep sorted
@@ -70,8 +68,6 @@ java_library(
         "//common/internal:default_message_factory",
         "//common/internal:dynamic_proto",
         "//common/internal:safe_string_formatter",
-        "//common/types",
-        "//common/types:type_providers",
         "//runtime:runtime_helper",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_code_findbugs_annotations",
@@ -111,7 +107,6 @@ java_library(
         "//common/types",
         "//common/types:cel_types",
         "//common/types:type_providers",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -253,17 +248,13 @@ java_library(
         "//common/annotations",
         "//common/internal:cel_descriptor_pools",
         "//common/internal:dynamic_proto",
-        "//common/types",
-        "//common/types:type_providers",
         "//common/values",
         "//common/values:cel_value",
         "//common/values:cel_value_provider",
         "//common/values:proto_message_value",
         "//runtime:interpreter",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:org_jspecify_jspecify",
     ],
 )
 
@@ -276,7 +267,6 @@ java_library(
         ":base",
         ":unknown_attributes",
         "//common/annotations",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:org_jspecify_jspecify",
     ],

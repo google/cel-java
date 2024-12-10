@@ -25,4 +25,4 @@ import dev.cel.common.annotations.Internal;
  */
 @Immutable
 @Internal
-public interface RuntimeTypeProvider extends MessageProvider, TypeResolver {}
+public interface RuntimeTypeProvider extends MessageProvider {}
