@@ -22,7 +22,7 @@ java_library(
         "//common:options",
         "//common/internal:default_instance_message_factory",
         "//common/types",
-        "//common/types:cel_types",
+        "//common/types:cel_proto_types",
         "//common/types:type_providers",
         "//compiler",
         "//extensions",

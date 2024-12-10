@@ -40,8 +40,8 @@ import dev.cel.common.CelDescriptors;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.internal.DefaultInstanceMessageFactory;
+import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
-import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
@@ -377,7 +377,7 @@ public final class ConformanceTest extends Statement {
     assertThat(response.hasError()).isFalse();
     response = getChecker(test).check(response.getAst());
     assertThat(response.hasError()).isFalse();
-    Type resultType = CelTypes.celTypeToType(response.getAst().getResultType());
+    Type resultType = CelProtoTypes.celTypeToType(response.getAst().getResultType());
 
     if (test.getCheckOnly()) {
       assertThat(test.hasTypedResult()).isTrue();
