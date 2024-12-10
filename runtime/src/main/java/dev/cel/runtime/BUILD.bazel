@@ -213,11 +213,10 @@ java_library(
         ":unknown_attributes",
         "//common",
         "//common:compiler_common",
-        "//common:proto_ast",
+        "//common/ast",
         "//parser",
         "//parser:operator",
         "//parser:parser_builder",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_guava_guava",
     ],
 )
