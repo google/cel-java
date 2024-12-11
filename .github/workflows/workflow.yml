@@ -31,6 +31,8 @@ jobs:
           key: bazelisk
       - name: Bazel Output Version
         run: bazelisk --version
+      - name: Unwanted Dependencies
+        run: .github/workflows/unwanted_deps.sh
       - name: Bazel Test
         # Exclude codelab exercises as they are intentionally made to fail
         # Exclude conformance tests for time being until TextFormat.Parser fix is in upstream
