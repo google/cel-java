@@ -14,6 +14,7 @@
 # limitations under the License.
 
 set -e
+set -x
 
 runtime_deps=$(bazel query 'deps(//publish:cel_runtime)' --nohost_deps --noimplicit_deps --output graph | grep '@cel_spec')
 

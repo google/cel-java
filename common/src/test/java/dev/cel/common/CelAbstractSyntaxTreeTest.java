@@ -15,7 +15,6 @@
 package dev.cel.common;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 
 import dev.cel.expr.CheckedExpr;
 import dev.cel.expr.Constant;
@@ -90,22 +89,6 @@ public final class CelAbstractSyntaxTreeTest {
                           .addLineOffsets(8))
                   .build())
           .getAst();
-
-  @Test
-  public void getResultType_isDynWhenParsedExpr() {
-    CelAbstractSyntaxTree ast = PARSED_AST;
-
-    assertThat(ast.getProtoResultType()).isEqualTo(CelProtoTypes.DYN);
-    assertThat(ast.getResultType()).isEqualTo(SimpleType.DYN);
-  }
-
-  @Test
-  public void getResultType_isStaticWhenCheckedExpr() {
-    CelAbstractSyntaxTree ast = CHECKED_AST;
-
-    assertThat(ast.getProtoResultType()).isEqualTo(CelProtoTypes.BOOL);
-    assertThat(ast.getResultType()).isEqualTo(SimpleType.BOOL);
-  }
 
   @Test
   public void findEnumValue_findsConstantInCheckedExpr() {

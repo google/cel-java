@@ -14,7 +14,6 @@
 
 package dev.cel.common;
 
-import dev.cel.expr.Type;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -92,18 +91,6 @@ public abstract class CelAbstractSyntaxTree {
    */
   public CelType getResultType() {
     return isChecked() ? getType(getExpr().id()).get() : SimpleType.DYN;
-  }
-
-  /**
-   * For a type checked abstract syntax tree the resulting type is returned in proto format
-   * described in checked.proto. Otherwise, the dynamic type is returned.
-   *
-   * @deprecated Use {@link #getResultType} instead. Convert the resulting {@link CelType} into
-   *     canonical CEL expr proto format via {@link CelProtoTypes#celTypeToType} if necessary.
-   */
-  @Deprecated
-  public Type getProtoResultType() {
-    return CelProtoTypes.celTypeToType(getResultType());
   }
 
   /**
