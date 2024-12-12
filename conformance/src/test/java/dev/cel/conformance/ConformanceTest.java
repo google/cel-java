@@ -19,8 +19,8 @@ import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 
 import dev.cel.expr.Decl;
 import dev.cel.expr.ExprValue;
-import com.google.api.expr.ListValue;
-import com.google.api.expr.MapValue;
+import dev.cel.expr.ListValue;
+import dev.cel.expr.MapValue;
 import dev.cel.expr.Type;
 import dev.cel.expr.Value;
 import com.google.common.base.Preconditions;
