@@ -13,14 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
-set -x
-
-runtime_deps=$(bazel query 'deps(//publish:cel_runtime)' --nohost_deps --noimplicit_deps --output graph | grep '@cel_spec')
+runtime_deps="$(bazel query 'deps(//publish:cel_runtime)' --nohost_deps --noimplicit_deps --output graph | grep '@cel_spec')" 
 
 if [[ ! -z $runtime_deps ]]; then
-  echo "cel_spec deps: " $runtime_deps
-  echo "Runtime contains unwanted @cel_spec dependency" && exit 1
+  echo -e "Runtime contains unwanted @cel_spec dependency!\n" 
+  echo "cel_spec dependency graph:"
+  echo -e "$runtime_deps"
+  exit 1
 fi
 
 exit 0
