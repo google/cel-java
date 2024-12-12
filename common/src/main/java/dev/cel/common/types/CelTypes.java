@@ -14,23 +14,14 @@
 
 package dev.cel.common.types;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
-import dev.cel.expr.Type;
-import dev.cel.expr.Type.PrimitiveType;
-import dev.cel.expr.Type.WellKnownType;
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.google.protobuf.Descriptors.Descriptor;
-import com.google.protobuf.Empty;
-import com.google.protobuf.NullValue;
 import dev.cel.common.annotations.Internal;
 import java.util.Optional;
 
-/** Utility class for working with {@link Type}. */
+/** Utility class for working with {@code CelType}. */
 public final class CelTypes {
 
   // Message type names with well-known type equivalents or special handling.
@@ -52,95 +43,6 @@ public final class CelTypes {
   public static final String UINT32_WRAPPER_MESSAGE = "google.protobuf.UInt32Value";
   public static final String UINT64_WRAPPER_MESSAGE = "google.protobuf.UInt64Value";
 
-  /**
-   * TODO: Remove once clients have been migrated.
-   *
-   * @deprecated Use {@link CelProtoTypes#ERROR} instead.
-   */
-  @Deprecated
-  public static final Type ERROR = Type.newBuilder().setError(Empty.getDefaultInstance()).build();
-
-  /**
-   * @deprecated Use {@link CelProtoTypes#DYN} instead.
-   */
-  @Deprecated
-  public static final Type DYN = Type.newBuilder().setDyn(Empty.getDefaultInstance()).build();
-
-  /**
-   * @deprecated Use {@link CelProtoTypes#NULL_TYPE} instead.
-   */
-  @Deprecated
-  public static final Type NULL_TYPE = Type.newBuilder().setNull(NullValue.NULL_VALUE).build();
-
-  /**
-   * @deprecated Use {@link CelProtoTypes#BOOL} instead.
-   */
-  @Deprecated public static final Type BOOL = create(PrimitiveType.BOOL);
-
-  /**
-   * @deprecated Use {@link CelProtoTypes#BYTES} instead.
-   */
-  @Deprecated public static final Type BYTES = create(PrimitiveType.BYTES);
-
-  /**
-   * @deprecated Use {@link CelProtoTypes#STRING} instead.
-   */
-  @Deprecated public static final Type STRING = create(PrimitiveType.STRING);
-
-  /**
-   * @deprecated Use {@link CelProtoTypes#DOUBLE} instead.
-   */
-  @Deprecated public static final Type DOUBLE = create(PrimitiveType.DOUBLE);
-
-  /**
-   * @deprecated Use {@link CelProtoTypes#UINT64} instead.
-   */
-  @Deprecated public static final Type UINT64 = create(PrimitiveType.UINT64);
-
-  /**
-   * @deprecated Use {@link CelProtoTypes#INT64} instead.
-   */
-  @Deprecated public static final Type INT64 = create(PrimitiveType.INT64);
-
-  /**
-   * @deprecated Use {@link CelProtoTypes#ANY} instead.
-   */
-  @Deprecated public static final Type ANY = create(WellKnownType.ANY);
-
-  /**
-   * @deprecated Use {@link CelProtoTypes#TIMESTAMP} instead.
-   */
-  @Deprecated public static final Type TIMESTAMP = create(WellKnownType.TIMESTAMP);
-
-  /**
-   * @deprecated Use {@link CelProtoTypes#DURATION} instead.
-   */
-  @Deprecated public static final Type DURATION = create(WellKnownType.DURATION);
-
-  /**
-   * TODO: Remove once clients have been migrated.
-   *
-   * <p>Map of well-known proto messages and their CEL {@code Type} equivalents.
-   */
-  private static final ImmutableMap<String, Type> WELL_KNOWN_TYPE_MAP =
-      ImmutableMap.<String, Type>builder()
-          .put(DOUBLE_WRAPPER_MESSAGE, CelTypes.createWrapper(CelTypes.DOUBLE))
-          .put(FLOAT_WRAPPER_MESSAGE, CelTypes.createWrapper(CelTypes.DOUBLE))
-          .put(INT64_WRAPPER_MESSAGE, CelTypes.createWrapper(CelTypes.INT64))
-          .put(INT32_WRAPPER_MESSAGE, CelTypes.createWrapper(CelTypes.INT64))
-          .put(UINT64_WRAPPER_MESSAGE, CelTypes.createWrapper(CelTypes.UINT64))
-          .put(UINT32_WRAPPER_MESSAGE, CelTypes.createWrapper(CelTypes.UINT64))
-          .put(BOOL_WRAPPER_MESSAGE, CelTypes.createWrapper(CelTypes.BOOL))
-          .put(STRING_WRAPPER_MESSAGE, CelTypes.createWrapper(CelTypes.STRING))
-          .put(BYTES_WRAPPER_MESSAGE, CelTypes.createWrapper(CelTypes.BYTES))
-          .put(TIMESTAMP_MESSAGE, CelTypes.TIMESTAMP)
-          .put(DURATION_MESSAGE, CelTypes.DURATION)
-          .put(STRUCT_MESSAGE, CelTypes.createMap(CelTypes.STRING, CelTypes.DYN))
-          .put(VALUE_MESSAGE, CelTypes.DYN)
-          .put(LIST_VALUE_MESSAGE, CelTypes.createList(CelTypes.DYN))
-          .put(ANY_MESSAGE, CelTypes.ANY)
-          .buildOrThrow();
-
   private static final ImmutableMap<String, CelType> WELL_KNOWN_CEL_TYPE_MAP =
       ImmutableMap.<String, CelType>builder()
           .put(BOOL_WRAPPER_MESSAGE, NullableType.create(SimpleType.BOOL))
@@ -159,111 +61,6 @@ public final class CelTypes {
           .put(STRUCT_MESSAGE, MapType.create(SimpleType.STRING, SimpleType.DYN))
           .put(VALUE_MESSAGE, SimpleType.DYN)
           .buildOrThrow();
-
-  /** TODO: Remove once clients have been migrated. */
-  private static final ImmutableMap<CelKind, Type> SIMPLE_CEL_KIND_TO_TYPE =
-      ImmutableMap.<CelKind, Type>builder()
-          .put(CelKind.ERROR, CelTypes.ERROR)
-          .put(CelKind.DYN, CelTypes.DYN)
-          .put(CelKind.ANY, CelTypes.ANY)
-          .put(CelKind.BOOL, CelTypes.BOOL)
-          .put(CelKind.BYTES, CelTypes.BYTES)
-          .put(CelKind.DOUBLE, CelTypes.DOUBLE)
-          .put(CelKind.DURATION, CelTypes.DURATION)
-          .put(CelKind.INT, CelTypes.INT64)
-          .put(CelKind.NULL_TYPE, CelTypes.NULL_TYPE)
-          .put(CelKind.STRING, CelTypes.STRING)
-          .put(CelKind.TIMESTAMP, CelTypes.TIMESTAMP)
-          .put(CelKind.UINT, CelTypes.UINT64)
-          .buildOrThrow();
-
-  /** TODO: Remove once clients have been migrated. */
-  private static final ImmutableMap<Type, CelType> PROTOBUF_TYPE_TO_CEL_TYPE_MAP =
-      ImmutableMap.<Type, CelType>builder()
-          .put(CelTypes.BOOL, SimpleType.BOOL)
-          .put(CelTypes.BYTES, SimpleType.BYTES)
-          .put(CelTypes.DOUBLE, SimpleType.DOUBLE)
-          .put(CelTypes.INT64, SimpleType.INT)
-          .put(CelTypes.STRING, SimpleType.STRING)
-          .put(CelTypes.UINT64, SimpleType.UINT)
-          .put(CelTypes.ANY, SimpleType.ANY)
-          .put(CelTypes.DURATION, SimpleType.DURATION)
-          .put(CelTypes.TIMESTAMP, SimpleType.TIMESTAMP)
-          .put(CelTypes.DYN, SimpleType.DYN)
-          .put(CelTypes.NULL_TYPE, SimpleType.NULL_TYPE)
-          .put(CelTypes.ERROR, SimpleType.ERROR)
-          .buildOrThrow();
-
-  /**
-   * Create a primitive {@code Type}.
-   *
-   * @deprecated Use {@link CelProtoTypes#create(PrimitiveType)} instead.
-   */
-  @Deprecated
-  public static Type create(PrimitiveType type) {
-    return Type.newBuilder().setPrimitive(type).build();
-  }
-
-  /**
-   * Create a well-known {@code Type}.
-   *
-   * @deprecated Use {@link CelProtoTypes#create(WellKnownType)} instead.
-   */
-  @Deprecated
-  public static Type create(WellKnownType type) {
-    return Type.newBuilder().setWellKnown(type).build();
-  }
-
-  /** Create a type {@code Type}. */
-  @Deprecated
-  public static Type create(Type target) {
-    return Type.newBuilder().setType(target).build();
-  }
-
-  /** Create a list with {@code elemType}. */
-  @Deprecated
-  public static Type createList(Type elemType) {
-    return Type.newBuilder().setListType(Type.ListType.newBuilder().setElemType(elemType)).build();
-  }
-
-  /** Create a map with {@code keyType} and {@code valueType}. */
-  @Deprecated
-  public static Type createMap(Type keyType, Type valueType) {
-    return Type.newBuilder()
-        .setMapType(Type.MapType.newBuilder().setKeyType(keyType).setValueType(valueType))
-        .build();
-  }
-
-  /** Create a message {@code Type} for {@code messageName}. */
-  @Deprecated
-  public static Type createMessage(String messageName) {
-    return Type.newBuilder().setMessageType(messageName).build();
-  }
-
-  /** Create a message {@code Type} for {@code Descriptor}. */
-  @Deprecated
-  public static Type createMessage(Descriptor descriptor) {
-    return createMessage(descriptor.getFullName());
-  }
-
-  /** Create a type param {@code Type}. */
-  @Deprecated
-  public static Type createTypeParam(String name) {
-    return Type.newBuilder().setTypeParam(name).build();
-  }
-
-  /** Create a wrapper type for the {@code primitive}. */
-  @Deprecated
-  public static Type createWrapper(PrimitiveType primitive) {
-    return Type.newBuilder().setWrapper(primitive).build();
-  }
-
-  /** Create a wrapper type where the input is a {@code Type} of primitive types. */
-  @Deprecated
-  public static Type createWrapper(Type type) {
-    Preconditions.checkArgument(type.getTypeKindCase() == Type.TypeKindCase.PRIMITIVE);
-    return createWrapper(type.getPrimitive());
-  }
 
   /** Checks if the fully-qualified protobuf type name is a wrapper type. */
   public static boolean isWrapperType(String typeName) {
@@ -295,19 +92,6 @@ public final class CelTypes {
     arguments.add(resultType);
     arguments.addAll(argumentTypes);
     return OpaqueType.create("function", arguments.build());
-  }
-
-  /**
-   * Method to adapt a simple {@code Type} into a {@code String} representation.
-   *
-   * <p>This method can also format global functions. See the {@link #formatFunction} methods for
-   * richer control over function formatting.
-   *
-   * @deprecated Use {@link CelProtoTypes#format(Type)} instead.
-   */
-  @Deprecated
-  public static String format(Type type) {
-    return format(typeToCelType(type), /* typeParamToDyn= */ false);
   }
 
   /**
@@ -416,136 +200,11 @@ public final class CelTypes {
   }
 
   public static boolean isWellKnownType(String typeName) {
-    return WELL_KNOWN_TYPE_MAP.containsKey(typeName);
+    return WELL_KNOWN_CEL_TYPE_MAP.containsKey(typeName);
   }
 
   public static Optional<CelType> getWellKnownCelType(String typeName) {
     return Optional.ofNullable(WELL_KNOWN_CEL_TYPE_MAP.getOrDefault(typeName, null));
-  }
-
-  /**
-   * Converts a Protobuf type into CEL native type.
-   *
-   * @deprecated Use {@link CelProtoTypes#celTypeToType(CelType)} instead}.
-   */
-  @Deprecated
-  public static Type celTypeToType(CelType celType) {
-    Type type = SIMPLE_CEL_KIND_TO_TYPE.get(celType.kind());
-    if (type != null) {
-      if (celType instanceof NullableType) {
-        return CelTypes.createWrapper(type);
-      }
-      return type;
-    }
-
-    switch (celType.kind()) {
-      case UNSPECIFIED:
-        return Type.getDefaultInstance();
-      case LIST:
-        ListType listType = (ListType) celType;
-        if (listType.hasElemType()) {
-          return CelTypes.createList(celTypeToType(listType.elemType()));
-        } else {
-          // TODO: Exists for compatibility reason only. Remove after callers have been
-          // migrated.
-          return Type.newBuilder().setListType(Type.ListType.getDefaultInstance()).build();
-        }
-      case MAP:
-        MapType mapType = (MapType) celType;
-        return CelTypes.createMap(
-            celTypeToType(mapType.keyType()), celTypeToType(mapType.valueType()));
-      case OPAQUE:
-        if (celType.name().equals("function")) {
-          Type.FunctionType.Builder functionBuilder = Type.FunctionType.newBuilder();
-          if (!celType.parameters().isEmpty()) {
-            functionBuilder.setResultType(celTypeToType(celType.parameters().get(0)));
-            functionBuilder.addAllArgTypes(
-                celType.parameters().stream()
-                    .skip(1)
-                    .map(CelTypes::celTypeToType)
-                    .collect(toImmutableList()));
-          }
-          return Type.newBuilder().setFunction(functionBuilder).build();
-        } else {
-          return Type.newBuilder()
-              .setAbstractType(
-                  Type.AbstractType.newBuilder()
-                      .setName(celType.name())
-                      .addAllParameterTypes(
-                          celType.parameters().stream()
-                              .map(CelTypes::celTypeToType)
-                              .collect(toImmutableList())))
-              .build();
-        }
-      case STRUCT:
-        return CelTypes.createMessage(celType.name());
-      case TYPE:
-        TypeType typeType = (TypeType) celType;
-        return CelTypes.create(celTypeToType(typeType.type()));
-      case TYPE_PARAM:
-        return CelTypes.createTypeParam(celType.name());
-      default:
-        throw new IllegalArgumentException(String.format("Unsupported type: %s", celType));
-    }
-  }
-
-  /**
-   * Converts a Protobuf type to CEL native type.
-   *
-   * @deprecated Use {@link CelProtoTypes#typeToCelType(Type)} instead}.
-   */
-  @Deprecated
-  public static CelType typeToCelType(Type type) {
-    CelType celType = PROTOBUF_TYPE_TO_CEL_TYPE_MAP.get(type);
-    if (celType != null) {
-      return celType;
-    }
-
-    switch (type.getTypeKindCase()) {
-      case TYPEKIND_NOT_SET:
-        return UnspecifiedType.create();
-      case WRAPPER:
-        return NullableType.create(typeToCelType(CelTypes.create(type.getWrapper())));
-      case MESSAGE_TYPE:
-        return StructTypeReference.create(type.getMessageType());
-      case LIST_TYPE:
-        Type.ListType listType = type.getListType();
-        if (listType.hasElemType()) {
-          return ListType.create(typeToCelType(listType.getElemType()));
-        } else {
-          // TODO: Exists for compatibility reason only. Remove after callers have been
-          // migrated.
-          return ListType.create();
-        }
-      case MAP_TYPE:
-        Type.MapType mapType = type.getMapType();
-        return MapType.create(
-            typeToCelType(mapType.getKeyType()), typeToCelType(mapType.getValueType()));
-      case TYPE_PARAM:
-        return TypeParamType.create(type.getTypeParam());
-      case ABSTRACT_TYPE:
-        Type.AbstractType abstractType = type.getAbstractType();
-        ImmutableList<CelType> params =
-            abstractType.getParameterTypesList().stream()
-                .map(CelTypes::typeToCelType)
-                .collect(toImmutableList());
-        if (abstractType.getName().equals(OptionalType.NAME)) {
-          return OptionalType.create(params.get(0));
-        }
-        return OpaqueType.create(abstractType.getName(), params);
-      case TYPE:
-        return TypeType.create(typeToCelType(type.getType()));
-      case FUNCTION:
-        Type.FunctionType functionType = type.getFunction();
-        return CelTypes.createFunctionType(
-            typeToCelType(functionType.getResultType()),
-            functionType.getArgTypesList().stream()
-                .map(CelTypes::typeToCelType)
-                .collect(toImmutableList()));
-      default:
-        // Add more cases as needed.
-        throw new IllegalArgumentException(String.format("Unsupported type: %s", type));
-    }
   }
 
   private static String formatTypeArgs(Iterable<CelType> types, final boolean typeParamToDyn) {
