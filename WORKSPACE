@@ -78,6 +78,7 @@ maven_install(
         "com.google.protobuf:protobuf-java-util:4.28.3",
         "com.google.re2j:re2j:1.7",
         "org.antlr:antlr4-runtime:" + ANTLR4_VERSION,
+        "info.picocli:picocli:4.7.6",
         "org.jspecify:jspecify:1.0.0",
         "org.threeten:threeten-extra:1.8.0",
         "org.yaml:snakeyaml:2.3",
@@ -88,7 +89,6 @@ maven_install(
         maven_artifact_test_only("com.google.truth.extensions", "truth-liteproto-extension", "1.4.4"),
         maven_artifact_compile_only("com.google.code.findbugs", "annotations", "3.0.1"),
         maven_artifact_compile_only("com.google.errorprone", "error_prone_annotations", "2.36.0"),
-        maven_artifact_compile_only("info.picocli", "picocli", "4.7.6"),
     ],
     repositories = [
         "https://maven.google.com",

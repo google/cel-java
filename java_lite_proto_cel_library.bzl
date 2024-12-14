@@ -38,9 +38,10 @@ def generate_cel_lite_descriptor_class(
         helper_class_name,
         helper_class_path):
     print("hi!!")
+
     native.genrule(
         name = name + "_foo",
-        cmd = "$(location //protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor) --foo bar --z 1",
+        cmd = "$(location //protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor) --foo bar",
         outs = ["foo.java"],
         tools = ["//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor"],
     )

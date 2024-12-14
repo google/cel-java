@@ -9,7 +9,7 @@ def maven_artifact_compile_only(group, artifact, version):
         version = version,
     )
 
-# Installs the maven JAR as a test-time only dependency ().
+# Installs the maven JAR as a test-time only dependency.
 def maven_artifact_test_only(group, artifact, version):
     return maven.artifact(
         artifact = artifact,
