@@ -13,13 +13,14 @@
 # limitations under the License.
 
 load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_proto//proto:defs.bzl", "proto_descriptor_set")
 
 def java_lite_proto_cel_library(
         name,
         deps):
-    print("hello: " + name)
+    print("name: " + name)
 
-    generate_cel_lite_descriptor_class(
+    artifacts = generate_cel_lite_descriptor_class(
         name,
         deps,
         "",
@@ -29,7 +30,7 @@ def java_lite_proto_cel_library(
     java_library(
         name = name,
         srcs = [":" + name + "_foo"],
-        deps = [":" + name + "_foo"],
+        deps = deps,
     )
 
 def generate_cel_lite_descriptor_class(
@@ -37,12 +38,28 @@ def generate_cel_lite_descriptor_class(
         proto_srcs,
         helper_class_name,
         helper_class_path):
-    print("hi!!")
+    internal_descriptor_set_name = "%s_descriptor_set_internal" % name
+
+    proto_descriptor_set(
+        name = internal_descriptor_set_name,
+        deps = proto_srcs,
+    )
+
+    cmd = (
+        "$(location //protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor) " +
+        "--descriptor_set $(location %s) " % internal_descriptor_set_name +
+        "--outpath $(location foo.java) " +
+        "--debug"
+    )
 
     native.genrule(
         name = name + "_foo",
-        cmd = "$(location //protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor) --foo bar",
+        srcs = [":%s" % internal_descriptor_set_name],
+        cmd = cmd,
         outs = ["foo.java"],
         tools = ["//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor"],
     )
-    print("bye")
+
+    return {
+        "internal_descriptor_set": internal_descriptor_set_name,
+    }

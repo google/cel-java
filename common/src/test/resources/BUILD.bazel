@@ -1,3 +1,4 @@
+load("@rules_proto//proto:defs.bzl", "proto_descriptor_set")
 load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
 load("//:java_lite_proto_cel_library.bzl", "java_lite_proto_cel_library")
@@ -30,10 +31,11 @@ java_proto_library(
     deps = [":multi_file_proto"],
 )
 
+#
 java_lite_proto_cel_library(
     name = "single_file_java_lite_cel_proto",
     deps = [
-        ":single_file.proto",
+        ":single_file_proto",
     ],
 )
 

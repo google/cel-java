@@ -6,39 +6,51 @@ import com.google.common.io.Files;
 import java.io.File;
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
+import picocli.CommandLine.Help.Ansi;
+import picocli.CommandLine.Model.OptionSpec;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
 final class CelLiteDescriptorGenerator implements Callable<Integer> {
 
-  // @Parameters(index = "0", description = "The file whose checksum to calculate.")
-  // private String file;
+  @Option(names = {"--outpath"}, description = "Outpath for the CelLiteDescriptor")
+  private String outPath = "";
 
-  @Option(names = {"-f", "--foo"}, description = "MD5, SHA-1, SHA-256, ...")
-  private String foo = "";
+  @Option(names = {"--descriptor_set"}, description = "Descriptor Set")
+  private String descriptorSet = "";
+
+  @Option(names = {"--debug"}, description = "Prints debug output")
+  private boolean debug = false;
 
   @Override
   public Integer call() throws Exception {
-    System.out.println("Called!");
-
-    System.out.println("foo: " + foo);
-
-
-    Files.asCharSink(new File("/Users/sokwhan/SourceCode/cel-java/common/src/test/resources/foo.java"), UTF_8).write("content!");
+    Files.asCharSink(new File(outPath), UTF_8).write("content!");
     return 0;
   }
 
   public static void main(String[] args) throws Exception {
-    System.out.println("Hello world!");
-    for (String arg : args) {
-      System.out.println("arg: " + arg);
-    }
+    CelLiteDescriptorGenerator celLiteDescriptorGenerator = new CelLiteDescriptorGenerator();
+    CommandLine cmd = new CommandLine(celLiteDescriptorGenerator);
+    cmd.parseArgs(args);
+    celLiteDescriptorGenerator.printAllFlags(cmd);
 
-    int exitCode = new CommandLine(new CelLiteDescriptorGenerator()).execute(args);
+    int exitCode = cmd.execute(args);
     System.exit(exitCode);
+  }
 
+  private void printAllFlags(CommandLine cmd) {
+    debugPrint("Flag values:");
+    debugPrint("-------------------------------------------------------------");
+    for (OptionSpec option : cmd.getCommandSpec().options()) {
+      debugPrint(option.longestName() + ": " + option.getValue().toString());
+    }
+    debugPrint("-------------------------------------------------------------");
+  }
+
+  private void debugPrint(String message) {
+    if (debug) {
+      System.out.println(Ansi.ON.string("@|cyan [CelLiteDescriptorGenerator] |@" + message));
+    }
   }
 
   private CelLiteDescriptorGenerator() {}
-
 }
