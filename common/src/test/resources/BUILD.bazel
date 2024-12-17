@@ -33,6 +33,7 @@ java_proto_library(
 
 java_lite_proto_cel_library(
     name = "single_file_java_lite_cel_proto",
+    descriptor_class_name = "SingleFileProto",
     deps = [
         ":single_file_proto",
     ],

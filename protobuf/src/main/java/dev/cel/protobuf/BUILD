@@ -16,7 +16,6 @@ java_binary(
     main_class = "dev.cel.protobuf.CelLiteDescriptorGenerator",
     deps = [
         ":java_file_generator",
-        "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:info_picocli_picocli",
@@ -31,7 +30,6 @@ java_library(
     ],
     deps = [
         "//:auto_value",
-        "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:org_freemarker_freemarker",
     ],

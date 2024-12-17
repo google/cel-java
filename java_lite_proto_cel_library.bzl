@@ -18,25 +18,31 @@ load("//publish:cel_version.bzl", "CEL_VERSION")
 
 def java_lite_proto_cel_library(
         name,
+        descriptor_class_name,
         deps):
     print("name: " + name)
 
     artifacts = generate_cel_lite_descriptor_class(
         name,
+        descriptor_class_name + "CelLiteDescriptor",
         deps,
     )
 
     java_library(
         name = name,
         srcs = [":" + name + "_cel_lite_descriptor"],
-        deps = deps,
+        deps = deps + ["@maven//:javax_annotation_javax_annotation_api"],
     )
 
 def generate_cel_lite_descriptor_class(
         name,
+        descriptor_class_name,
         proto_srcs):
     internal_descriptor_set_name = "%s_descriptor_set_internal" % name
-    helper_class_file = "%sCelLiteDescriptor.java" % name  # TODO: Pascal Casing
+
+    # helper_class_file = "%sCelLiteDescriptor.java" % name  # TODO: Pascal Casing
+    outfile = "%s.java" % descriptor_class_name
+    print(outfile)
 
     proto_descriptor_set(
         name = internal_descriptor_set_name,
@@ -46,7 +52,8 @@ def generate_cel_lite_descriptor_class(
     cmd = (
         "$(location //protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor) " +
         "--descriptor_set $(location %s) " % internal_descriptor_set_name +
-        "--out $(location %s) " % helper_class_file +
+        "--class_name %s " % descriptor_class_name +
+        "--out $(location %s) " % outfile +
         "--version %s " % CEL_VERSION +
         "--debug"
     )
@@ -55,7 +62,7 @@ def generate_cel_lite_descriptor_class(
         name = name + "_cel_lite_descriptor",
         srcs = [":%s" % internal_descriptor_set_name],
         cmd = cmd,
-        outs = [helper_class_file],
+        outs = [outfile],
         tools = ["//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor"],
     )
 

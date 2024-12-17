@@ -25,6 +25,9 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
   @Option(names = {"--descriptor_set"}, description = "Descriptor Set")
   private String descriptorSetPath = "";
 
+  @Option(names = {"--class_name"}, description = "Class name for the CelLiteDescriptor")
+  private String className = "";
+
   @Option(names = {"--version"}, description = "CEL-Java version")
   private String version = "";
 
@@ -38,7 +41,7 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
       debugPrint(fd.getName());
     }
     JavaFileGenerator.createFile(outPath,
-        JavaFileGeneratorOption.create("packagename", "classname", version));
+        JavaFileGeneratorOption.create("packagename", className, version));
     return 0;
   }
 
