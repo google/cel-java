@@ -79,6 +79,7 @@ maven_install(
         "com.google.re2j:re2j:1.7",
         "org.antlr:antlr4-runtime:" + ANTLR4_VERSION,
         "info.picocli:picocli:4.7.6",
+        "org.freemarker:freemarker:2.3.33",
         "org.jspecify:jspecify:1.0.0",
         "org.threeten:threeten-extra:1.8.0",
         "org.yaml:snakeyaml:2.3",

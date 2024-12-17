@@ -12,5 +12,6 @@ java_binary(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:info_picocli_picocli",
+        "@maven//:org_freemarker_freemarker",
     ],
 )
