@@ -48,7 +48,7 @@ def generate_cel_lite_descriptor_class(
     cmd = (
         "$(location //protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor) " +
         "--descriptor_set $(location %s) " % internal_descriptor_set_name +
-        "--outpath $(location foo.java) " +
+        "--out $(location foo.java) " +
         "--debug"
     )
 

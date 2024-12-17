@@ -3,7 +3,13 @@ package dev.cel.protobuf;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.io.Files;
+import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
+import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+import com.google.protobuf.ExtensionRegistry;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
 import picocli.CommandLine.Help.Ansi;
@@ -12,19 +18,36 @@ import picocli.CommandLine.Option;
 
 final class CelLiteDescriptorGenerator implements Callable<Integer> {
 
-  @Option(names = {"--outpath"}, description = "Outpath for the CelLiteDescriptor")
+  @Option(names = {"--out"}, description = "Outpath for the CelLiteDescriptor")
   private String outPath = "";
 
   @Option(names = {"--descriptor_set"}, description = "Descriptor Set")
-  private String descriptorSet = "";
+  private String descriptorSetPath = "";
 
   @Option(names = {"--debug"}, description = "Prints debug output")
   private boolean debug = false;
 
   @Override
   public Integer call() throws Exception {
+    FileDescriptorSet fds = load(descriptorSetPath);
+    for (FileDescriptorProto fd : fds.getFileList()) {
+      debugPrint(fd.getName());
+    }
     Files.asCharSink(new File(outPath), UTF_8).write("content!");
     return 0;
+  }
+
+  private static FileDescriptorSet load(String descriptorSetPath) {
+    Path path = Paths.get(descriptorSetPath);
+    System.out.println("Path: " + path.getFileName());
+    try {
+      byte[] descriptorBytes = Files.toByteArray(new File(descriptorSetPath));
+      // TODO Extensions?
+      return FileDescriptorSet.parseFrom(descriptorBytes, ExtensionRegistry.getEmptyRegistry());
+    } catch (IOException e) {
+      System.out.println("ERROR!!");
+      throw new RuntimeException(e);
+    }
   }
 
   public static void main(String[] args) throws Exception {
