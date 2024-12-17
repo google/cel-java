@@ -31,7 +31,6 @@ java_proto_library(
     deps = [":multi_file_proto"],
 )
 
-#
 java_lite_proto_cel_library(
     name = "single_file_java_lite_cel_proto",
     deps = [

@@ -14,6 +14,7 @@
 
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_proto//proto:defs.bzl", "proto_descriptor_set")
+load("//publish:cel_version.bzl", "CEL_VERSION")
 
 def java_lite_proto_cel_library(
         name,
@@ -23,22 +24,19 @@ def java_lite_proto_cel_library(
     artifacts = generate_cel_lite_descriptor_class(
         name,
         deps,
-        "",
-        "",
     )
 
     java_library(
         name = name,
-        srcs = [":" + name + "_foo"],
+        srcs = [":" + name + "_cel_lite_descriptor"],
         deps = deps,
     )
 
 def generate_cel_lite_descriptor_class(
         name,
-        proto_srcs,
-        helper_class_name,
-        helper_class_path):
+        proto_srcs):
     internal_descriptor_set_name = "%s_descriptor_set_internal" % name
+    helper_class_file = "%sCelLiteDescriptor.java" % name  # TODO: Pascal Casing
 
     proto_descriptor_set(
         name = internal_descriptor_set_name,
@@ -48,15 +46,16 @@ def generate_cel_lite_descriptor_class(
     cmd = (
         "$(location //protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor) " +
         "--descriptor_set $(location %s) " % internal_descriptor_set_name +
-        "--out $(location foo.java) " +
+        "--out $(location %s) " % helper_class_file +
+        "--version %s " % CEL_VERSION +
         "--debug"
     )
 
     native.genrule(
-        name = name + "_foo",
+        name = name + "_cel_lite_descriptor",
         srcs = [":%s" % internal_descriptor_set_name],
         cmd = cmd,
-        outs = ["foo.java"],
+        outs = [helper_class_file],
         tools = ["//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor"],
     )
 
