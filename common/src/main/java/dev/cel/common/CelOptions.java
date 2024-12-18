@@ -190,7 +190,7 @@ public abstract class CelOptions {
         .populateMacroCalls(false)
         .retainRepeatedUnaryOperators(false)
         .retainUnbalancedLogicalExpressions(false)
-        .enableHiddenAccumulatorVar(false)
+        .enableHiddenAccumulatorVar(true)
         // Type-Checker options
         .enableCompileTimeOverloadResolution(false)
         .enableHomogeneousLiterals(false)
