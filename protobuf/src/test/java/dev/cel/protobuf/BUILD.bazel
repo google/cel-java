@@ -8,6 +8,7 @@ java_library(
     testonly = 1,
     srcs = glob(["*.java"]),
     deps = [
+        "//bundle:cel",
         "//protobuf/src/test/resources:simple_test_java_lite_cel_proto",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",

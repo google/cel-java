@@ -62,20 +62,29 @@ public final class ProtoJavaQualifiedNames {
    * https://developers.google.com/protocol-buffers/docs/reference/java-generated#package for rules
    * on package name generation
    */
-  public static String getJavaPackageName(Descriptor descriptor) {
-    FileOptions options = descriptor.getFile().getOptions();
+  public static String getJavaPackageName(FileDescriptor fileDescriptor) {
+    FileOptions options = fileDescriptor.getFile().getOptions();
     StringBuilder javaPackageName = new StringBuilder();
     if (options.hasJavaPackage()) {
-      javaPackageName.append(descriptor.getFile().getOptions().getJavaPackage());
+      javaPackageName.append(fileDescriptor.getFile().getOptions().getJavaPackage());
     } else {
       javaPackageName
           // CEL-Internal-1
-          .append(descriptor.getFile().getPackage());
+          .append(fileDescriptor.getFile().getPackage());
     }
 
     // CEL-Internal-2
 
     return javaPackageName.toString();
+  }
+
+  /**
+   * Gets the java package name from the descriptor. See
+   * https://developers.google.com/protocol-buffers/docs/reference/java-generated#package for rules
+   * on package name generation
+   */
+  private static String getJavaPackageName(Descriptor descriptor) {
+    return getJavaPackageName(descriptor.getFile());
   }
 
   /**

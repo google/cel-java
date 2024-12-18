@@ -1,5 +1,7 @@
 package dev.cel.protobuf;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
@@ -7,6 +9,7 @@ import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.internal.ProtoJavaQualifiedNames;
+import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
 import dev.cel.protobuf.JavaFileGenerator.JavaFileGeneratorOption;
 import java.io.File;
 import java.io.IOException;
@@ -38,26 +41,26 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
   @Override
   public Integer call() throws Exception {
     FileDescriptorSet fds = load(descriptorSetPath);
-    String messageClassName = "";
-    String protoName = "";
-    String packageName = "";
-    for (FileDescriptor fd : CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds)) {
-      for (Descriptor descriptor : fd.getMessageTypes()) {
-        // TODO: Collect into a set
-        protoName = descriptor.getFullName();
-        packageName = ProtoJavaQualifiedNames.getJavaPackageName(descriptor);
-        messageClassName = ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor);
-        debugPrint("packageName: " + packageName);
-      }
+    // TODO: Handle transitive imports? Requires something other than genrule.
+    FileDescriptor fd = Iterables.getOnlyElement(CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds));
+    String javaPackageName = ProtoJavaQualifiedNames.getJavaPackageName(fd);
+
+    ImmutableList.Builder<MessageInfo> messageInfoListBuilder = ImmutableList.builder();
+
+    for (Descriptor descriptor : fd.getMessageTypes()) {
+      messageInfoListBuilder.add(
+          new MessageInfo(
+              descriptor.getFullName(),
+              ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor)
+          ));
     }
 
     JavaFileGenerator.createFile(outPath,
         JavaFileGeneratorOption.newBuilder()
             .setVersion(version)
             .setDescriptorClassName(descriptorClassName)
-            .setPackageName(packageName)
-            .setFullyQualifiedProtoName(protoName)
-            .setFullyQualifiedProtoJavaClassName(messageClassName)
+            .setPackageName(javaPackageName)
+            .setMessageInfoList(messageInfoListBuilder.build())
             .build());
     return 0;
   }

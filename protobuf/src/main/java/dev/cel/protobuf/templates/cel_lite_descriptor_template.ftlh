@@ -11,17 +11,25 @@ import dev.cel.protobuf.CelLiteDescriptor;
 
 @Generated("//protobuf/src/main/java/dev/cel/protobuf:java_file_generator")
 public final class ${descriptor_class_name} extends CelLiteDescriptor {
-  // TODO: Lazyload
   private static final ${descriptor_class_name} DESCRIPTOR = new ${descriptor_class_name}();
 
   public static ${descriptor_class_name} getDescriptor() {
     return DESCRIPTOR;
   }
 
+  private static ImmutableMap<String, MessageInfo> newMessageInfoMap() {
+     // TODO: Lazyload?
+     ImmutableMap.Builder<String, MessageInfo> builder = ImmutableMap.builder();
+     <#list message_info_list as message_info>
+       builder.put("${message_info.fullyQualifiedProtoName}",
+          new MessageInfo("${message_info.fullyQualifiedProtoName}", "${message_info.fullyQualifiedProtoJavaClassName}")
+       );
+     </#list>
+
+     return builder.build();
+  }
+
   private ${descriptor_class_name}() {
-    super(
-      /* fullyQualifiedProtoMessageName= */ "${fqn_proto_name}",
-      /* fullyQualifiedProtoJavaClassName= */ "${fqn_proto_java_class_name}"
-    );
+    super(newMessageInfoMap());
   }
 }
