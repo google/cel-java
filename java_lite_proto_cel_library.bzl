@@ -20,8 +20,6 @@ def java_lite_proto_cel_library(
         name,
         descriptor_class_name,
         deps):
-    print("name: " + name)
-
     artifacts = generate_cel_lite_descriptor_class(
         name,
         descriptor_class_name + "CelLiteDescriptor",
@@ -31,7 +29,10 @@ def java_lite_proto_cel_library(
     java_library(
         name = name,
         srcs = [":" + name + "_cel_lite_descriptor"],
-        deps = deps + ["@maven//:javax_annotation_javax_annotation_api"],
+        deps = deps + [
+            "@maven//:javax_annotation_javax_annotation_api",
+            "@maven//:com_google_guava_guava",
+        ],
     )
 
 def generate_cel_lite_descriptor_class(
@@ -39,10 +40,8 @@ def generate_cel_lite_descriptor_class(
         descriptor_class_name,
         proto_srcs):
     internal_descriptor_set_name = "%s_descriptor_set_internal" % name
-
-    # helper_class_file = "%sCelLiteDescriptor.java" % name  # TODO: Pascal Casing
     outfile = "%s.java" % descriptor_class_name
-    print(outfile)
+    package_name = native.package_name().replace("/", ".")
 
     proto_descriptor_set(
         name = internal_descriptor_set_name,
@@ -50,8 +49,9 @@ def generate_cel_lite_descriptor_class(
     )
 
     cmd = (
-        "$(location //protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor) " +
+        "$(location //protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor_generator) " +
         "--descriptor_set $(location %s) " % internal_descriptor_set_name +
+        "--package_name %s " % package_name +
         "--class_name %s " % descriptor_class_name +
         "--out $(location %s) " % outfile +
         "--version %s " % CEL_VERSION +
@@ -63,7 +63,7 @@ def generate_cel_lite_descriptor_class(
         srcs = [":%s" % internal_descriptor_set_name],
         cmd = cmd,
         outs = [outfile],
-        tools = ["//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor"],
+        tools = ["//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor_generator"],
     )
 
     return {

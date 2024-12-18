@@ -11,11 +11,12 @@ filegroup(
 )
 
 java_binary(
-    name = "cel_lite_descriptor",
+    name = "cel_lite_descriptor_generator",
     srcs = ["CelLiteDescriptorGenerator.java"],
     main_class = "dev.cel.protobuf.CelLiteDescriptorGenerator",
     deps = [
         ":java_file_generator",
+        "//common",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:info_picocli_picocli",
@@ -33,4 +34,10 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:org_freemarker_freemarker",
     ],
+)
+
+java_library(
+    name = "cel_lite_descriptor",
+    srcs = ["CelLiteDescriptor.java"],
+    deps = ["//common/annotations"],
 )

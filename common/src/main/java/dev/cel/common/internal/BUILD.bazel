@@ -104,6 +104,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":proto_java_qualfiied_names",
         "//common/annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -238,5 +239,14 @@ java_library(
     deps = [
         "//common/annotations",
         "@maven//:com_google_re2j_re2j",
+    ],
+)
+
+java_library(
+    name = "proto_java_qualfiied_names",
+    srcs = ["ProtoJavaQualifiedNames.java"],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )

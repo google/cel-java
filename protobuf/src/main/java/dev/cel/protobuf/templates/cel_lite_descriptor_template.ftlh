@@ -6,7 +6,11 @@
 package ${package_name};
 
 import javax.annotation.Generated;
+import com.google.common.collect.ImmutableMap;
 
 @Generated("//protobuf/src/main/java/dev/cel/protobuf:java_file_generator")
 public final class ${class_name} {
+
+  private ${class_name}() {
+  }
 }

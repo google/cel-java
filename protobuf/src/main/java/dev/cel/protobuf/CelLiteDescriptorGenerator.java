@@ -1,11 +1,10 @@
 package dev.cel.protobuf;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.google.common.io.Files;
-import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
+import dev.cel.common.CelDescriptorUtil;
 import dev.cel.protobuf.JavaFileGenerator.JavaFileGeneratorOption;
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +24,9 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
   @Option(names = {"--descriptor_set"}, description = "Descriptor Set")
   private String descriptorSetPath = "";
 
+  @Option(names = {"--package_name"}, description = "Package name for the CelLiteDescriptor")
+  private String packageName = "";
+
   @Option(names = {"--class_name"}, description = "Class name for the CelLiteDescriptor")
   private String className = "";
 
@@ -37,11 +39,12 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
   @Override
   public Integer call() throws Exception {
     FileDescriptorSet fds = load(descriptorSetPath);
-    for (FileDescriptorProto fd : fds.getFileList()) {
+    for (FileDescriptor fd : CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds)) {
       debugPrint(fd.getName());
     }
+
     JavaFileGenerator.createFile(outPath,
-        JavaFileGeneratorOption.create("packagename", className, version));
+        JavaFileGeneratorOption.create(packageName, className, version));
     return 0;
   }
 
