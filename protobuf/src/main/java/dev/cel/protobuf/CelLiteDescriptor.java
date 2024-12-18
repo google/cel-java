@@ -1,6 +1,5 @@
 package dev.cel.protobuf;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import dev.cel.common.annotations.Internal;
 
@@ -8,9 +7,10 @@ import dev.cel.common.annotations.Internal;
 public abstract class CelLiteDescriptor {
   private final ImmutableMap<String, MessageInfo> protoNameToMessageInfoMap;
 
-  public static class MessageInfo {
+  public static final class MessageInfo {
     private final String fullyQualifiedProtoName;
     private final String fullyQualifiedProtoJavaClassName;
+    private final ImmutableMap<String, FieldNameToGetter> fieldNameToGetters;
 
     public String getFullyQualifiedProtoName() {
       return fullyQualifiedProtoName;
@@ -20,27 +20,46 @@ public abstract class CelLiteDescriptor {
       return fullyQualifiedProtoJavaClassName;
     }
 
-    public MessageInfo(String fullyQualifiedProtoName, String fullyQualifiedProtoJavaClassName) {
+    public ImmutableMap<String, FieldNameToGetter> getFieldNameToGetters() {
+      return fieldNameToGetters;
+    }
+
+    public MessageInfo(
+        String fullyQualifiedProtoName,
+        String fullyQualifiedProtoJavaClassName,
+        ImmutableMap<String, FieldNameToGetter> fieldNameToGetters
+    ) {
       this.fullyQualifiedProtoName = fullyQualifiedProtoName;
       this.fullyQualifiedProtoJavaClassName = fullyQualifiedProtoJavaClassName;
+      this.fieldNameToGetters = fieldNameToGetters;
     }
   }
 
-  protected class FieldNameToGetter {
+  @Internal
+  public static final class FieldNameToGetter {
     private final Class<?> javaType;
     private final String getterName;
 
-    protected FieldNameToGetter(Class<?> javaType, String getterName) {
+    public Class<?> getJavaType() {
+      return javaType;
+    }
+
+    public String getGetterName() {
+      return getterName;
+    }
+
+    public FieldNameToGetter(String getterName) {
+      this.javaType = null; // TODO
+      this.getterName = getterName;
+    }
+
+    public FieldNameToGetter(Class<?> javaType, String getterName) {
       this.javaType = javaType;
       this.getterName = getterName;
     }
   }
 
-  protected CelLiteDescriptor(ImmutableMap<String, MessageInfo> messageInfoList) {
-    ImmutableMap.Builder<String, MessageInfo> builder = ImmutableMap.builder();
-    // for (MessageInfo messageInfo : messageInfoList) {
-    //   builder.put(messageInfo.fullyQualifiedProtoName, messageInfo);
-    // }
-    this.protoNameToMessageInfoMap = builder.build();
+  protected CelLiteDescriptor(ImmutableMap<String, MessageInfo> protoNameToMessageInfoMap) {
+    this.protoNameToMessageInfoMap = protoNameToMessageInfoMap;
   }
 }

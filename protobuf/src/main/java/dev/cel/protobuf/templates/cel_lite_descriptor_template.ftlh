@@ -19,14 +19,22 @@ public final class ${descriptor_class_name} extends CelLiteDescriptor {
 
   private static ImmutableMap<String, MessageInfo> newMessageInfoMap() {
      // TODO: Lazyload?
-     ImmutableMap.Builder<String, MessageInfo> builder = ImmutableMap.builder();
+     ImmutableMap.Builder<String, MessageInfo> messageInfoMapBuilder = ImmutableMap.builder();
      <#list message_info_list as message_info>
-       builder.put("${message_info.fullyQualifiedProtoName}",
-          new MessageInfo("${message_info.fullyQualifiedProtoName}", "${message_info.fullyQualifiedProtoJavaClassName}")
-       );
+       messageInfoMapBuilder.put("${message_info.fullyQualifiedProtoName}",
+          new MessageInfo(
+            "${message_info.fullyQualifiedProtoName}",
+            "${message_info.fullyQualifiedProtoJavaClassName}",
+            ImmutableMap.<String, FieldNameToGetter>builder()
+              <#list message_info.fieldNameToGetters as key, value>
+              .put("${key}", new FieldNameToGetter("${value.getterName}"))
+              </#list>
+              .build()
+          )
+     );
      </#list>
 
-     return builder.build();
+     return messageInfoMapBuilder.build();
   }
 
   private ${descriptor_class_name}() {

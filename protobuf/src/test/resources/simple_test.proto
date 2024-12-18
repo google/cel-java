@@ -20,5 +20,8 @@ option java_package = "dev.cel.testing";
 option java_outer_classname = "SimpleTest";
 
 message SimpleTest {
-  string name = 1;
+  string single_string = 1;
+  int32 single_int32 = 2;
+  int64 single_int64 = 3;
+  bool single_bool = 4;
 }

@@ -1,14 +1,18 @@
 package dev.cel.protobuf;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.internal.ProtoJavaQualifiedNames;
+import dev.cel.protobuf.CelLiteDescriptor.FieldNameToGetter;
 import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
 import dev.cel.protobuf.JavaFileGenerator.JavaFileGeneratorOption;
 import java.io.File;
@@ -48,10 +52,19 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
     ImmutableList.Builder<MessageInfo> messageInfoListBuilder = ImmutableList.builder();
 
     for (Descriptor descriptor : fd.getMessageTypes()) {
+      ImmutableMap.Builder<String, FieldNameToGetter> fieldMap = ImmutableMap.builder();
+      for (FieldDescriptor fieldDescriptor : descriptor.getFields()) {
+        String getterName = "get" + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, fieldDescriptor.getName());
+        debugPrint(getterName);
+        // TODO: class
+        fieldMap.put(fieldDescriptor.getName(), new FieldNameToGetter(String.class, getterName));
+      }
+
       messageInfoListBuilder.add(
           new MessageInfo(
               descriptor.getFullName(),
-              ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor)
+              ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor),
+              fieldMap.build()
           ));
     }
 
