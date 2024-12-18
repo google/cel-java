@@ -17,7 +17,7 @@ public abstract class CelLiteDescriptor {
     }
   }
 
-  public CelLiteDescriptor(
+  protected CelLiteDescriptor(
       String fullyQualifiedProtoName,
       String fullyQualifiedProtoJavaClassName) {
     this.fullyQualifiedProtoName = fullyQualifiedProtoName;

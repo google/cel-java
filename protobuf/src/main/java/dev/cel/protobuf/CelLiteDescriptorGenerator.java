@@ -26,11 +26,8 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
   @Option(names = {"--descriptor_set"}, description = "Descriptor Set")
   private String descriptorSetPath = "";
 
-  @Option(names = {"--package_name"}, description = "Package name for the CelLiteDescriptor")
-  private String packageName = "";
-
-  @Option(names = {"--class_name"}, description = "Class name for the CelLiteDescriptor")
-  private String className = "";
+  @Option(names = {"--descriptor_class_name"}, description = "Class name for the CelLiteDescriptor")
+  private String descriptorClassName = "";
 
   @Option(names = {"--version"}, description = "CEL-Java version")
   private String version = "";
@@ -43,26 +40,29 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
     FileDescriptorSet fds = load(descriptorSetPath);
     String messageClassName = "";
     String protoName = "";
+    String packageName = "";
     for (FileDescriptor fd : CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds)) {
       for (Descriptor descriptor : fd.getMessageTypes()) {
-        // TODO: Collect into set
+        // TODO: Collect into a set
         protoName = descriptor.getFullName();
+        packageName = ProtoJavaQualifiedNames.getJavaPackageName(descriptor);
         messageClassName = ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor);
+        debugPrint("packageName: " + packageName);
       }
     }
 
     JavaFileGenerator.createFile(outPath,
         JavaFileGeneratorOption.newBuilder()
             .setVersion(version)
+            .setDescriptorClassName(descriptorClassName)
             .setPackageName(packageName)
-            .setDescriptorClassName(className)
             .setFullyQualifiedProtoName(protoName)
             .setFullyQualifiedProtoJavaClassName(messageClassName)
             .build());
     return 0;
   }
 
-  private static FileDescriptorSet load(String descriptorSetPath) {
+  private FileDescriptorSet load(String descriptorSetPath) {
     Path path = Paths.get(descriptorSetPath);
     System.out.println("Path: " + path.getFileName());
     try {

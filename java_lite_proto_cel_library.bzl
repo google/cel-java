@@ -18,11 +18,11 @@ load("//publish:cel_version.bzl", "CEL_VERSION")
 
 def java_lite_proto_cel_library(
         name,
-        descriptor_class_name,
+        descriptor_class_prefix,
         deps):
     artifacts = generate_cel_lite_descriptor_class(
         name,
-        descriptor_class_name + "CelLiteDescriptor",
+        descriptor_class_prefix + "CelLiteDescriptor",
         deps,
     )
 
@@ -54,8 +54,7 @@ def generate_cel_lite_descriptor_class(
     cmd = (
         "$(location //protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor_generator) " +
         "--descriptor_set $(location %s) " % internal_descriptor_set_name +
-        "--package_name %s " % package_name +
-        "--class_name %s " % descriptor_class_name +
+        "--descriptor_class_name %s " % descriptor_class_name +
         "--out $(location %s) " % outfile +
         "--version %s " % CEL_VERSION +
         "--debug"

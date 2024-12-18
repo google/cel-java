@@ -1,0 +1,23 @@
+load("//:java_lite_proto_cel_library.bzl", "java_lite_proto_cel_library")
+
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_visibility = [
+        "//visibility:public",
+    ],
+)
+
+proto_library(
+    name = "simple_test_proto",
+    srcs = ["simple_test.proto"],
+)
+
+java_lite_proto_cel_library(
+    name = "simple_test_java_lite_cel_proto",
+    descriptor_class_prefix = "SimpleTest",
+    deps = [
+        ":simple_test_proto",
+    ],
+)

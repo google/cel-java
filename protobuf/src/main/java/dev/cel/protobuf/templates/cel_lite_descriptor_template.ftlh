@@ -11,6 +11,12 @@ import dev.cel.protobuf.CelLiteDescriptor;
 
 @Generated("//protobuf/src/main/java/dev/cel/protobuf:java_file_generator")
 public final class ${descriptor_class_name} extends CelLiteDescriptor {
+  // TODO: Lazyload
+  private static final ${descriptor_class_name} DESCRIPTOR = new ${descriptor_class_name}();
+
+  public static ${descriptor_class_name} getDescriptor() {
+    return DESCRIPTOR;
+  }
 
   private ${descriptor_class_name}() {
     super(

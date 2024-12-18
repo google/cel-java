@@ -28,7 +28,7 @@ public final class ProtoJavaQualifiedNames {
   public static String getFullyQualifiedJavaClassName(Descriptor descriptor) {
     StringBuilder fullClassName = new StringBuilder();
 
-    fullClassName.append(getJavaPackageName(descriptor));
+    fullClassName.append(getJavaPackageName(descriptor)).append(".");
 
     String javaOuterClass = getJavaOuterClassName(descriptor);
     if (!Strings.isNullOrEmpty(javaOuterClass)) {
@@ -66,12 +66,11 @@ public final class ProtoJavaQualifiedNames {
     FileOptions options = descriptor.getFile().getOptions();
     StringBuilder javaPackageName = new StringBuilder();
     if (options.hasJavaPackage()) {
-      javaPackageName.append(descriptor.getFile().getOptions().getJavaPackage()).append(".");
+      javaPackageName.append(descriptor.getFile().getOptions().getJavaPackage());
     } else {
       javaPackageName
           // CEL-Internal-1
-          .append(descriptor.getFile().getPackage())
-          .append(".");
+          .append(descriptor.getFile().getPackage());
     }
 
     // CEL-Internal-2
