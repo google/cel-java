@@ -78,8 +78,6 @@ public enum CelStandardMacro {
   public static final ImmutableSet<CelStandardMacro> STANDARD_MACROS =
       ImmutableSet.of(HAS, ALL, EXISTS, EXISTS_ONE, MAP, MAP_FILTER, FILTER);
 
-  private static final String ACCUMULATOR_VAR = "__result__";
-
   private final CelMacro macro;
 
   CelStandardMacro(CelMacro macro) {
@@ -123,14 +121,23 @@ public enum CelStandardMacro {
     CelExpr accuInit = exprFactory.newBoolLiteral(true);
     CelExpr condition =
         exprFactory.newGlobalCall(
-            Operator.NOT_STRICTLY_FALSE.getFunction(), exprFactory.newIdentifier(ACCUMULATOR_VAR));
+            Operator.NOT_STRICTLY_FALSE.getFunction(),
+            exprFactory.newIdentifier(exprFactory.getAccumulatorVarName()));
     CelExpr step =
         exprFactory.newGlobalCall(
-            Operator.LOGICAL_AND.getFunction(), exprFactory.newIdentifier(ACCUMULATOR_VAR), arg1);
-    CelExpr result = exprFactory.newIdentifier(ACCUMULATOR_VAR);
+            Operator.LOGICAL_AND.getFunction(),
+            exprFactory.newIdentifier(exprFactory.getAccumulatorVarName()),
+            arg1);
+    CelExpr result = exprFactory.newIdentifier(exprFactory.getAccumulatorVarName());
     return Optional.of(
         exprFactory.fold(
-            arg0.ident().name(), target, ACCUMULATOR_VAR, accuInit, condition, step, result));
+            arg0.ident().name(),
+            target,
+            exprFactory.getAccumulatorVarName(),
+            accuInit,
+            condition,
+            step,
+            result));
   }
 
   // CelMacroExpander implementation for CEL's exists() macro.
@@ -149,14 +156,23 @@ public enum CelStandardMacro {
         exprFactory.newGlobalCall(
             Operator.NOT_STRICTLY_FALSE.getFunction(),
             exprFactory.newGlobalCall(
-                Operator.LOGICAL_NOT.getFunction(), exprFactory.newIdentifier(ACCUMULATOR_VAR)));
+                Operator.LOGICAL_NOT.getFunction(),
+                exprFactory.newIdentifier(exprFactory.getAccumulatorVarName())));
     CelExpr step =
         exprFactory.newGlobalCall(
-            Operator.LOGICAL_OR.getFunction(), exprFactory.newIdentifier(ACCUMULATOR_VAR), arg1);
-    CelExpr result = exprFactory.newIdentifier(ACCUMULATOR_VAR);
+            Operator.LOGICAL_OR.getFunction(),
+            exprFactory.newIdentifier(exprFactory.getAccumulatorVarName()),
+            arg1);
+    CelExpr result = exprFactory.newIdentifier(exprFactory.getAccumulatorVarName());
     return Optional.of(
         exprFactory.fold(
-            arg0.ident().name(), target, ACCUMULATOR_VAR, accuInit, condition, step, result));
+            arg0.ident().name(),
+            target,
+            exprFactory.getAccumulatorVarName(),
+            accuInit,
+            condition,
+            step,
+            result));
   }
 
   // CelMacroExpander implementation for CEL's exists_one() macro.
@@ -178,17 +194,23 @@ public enum CelStandardMacro {
             arg1,
             exprFactory.newGlobalCall(
                 Operator.ADD.getFunction(),
-                exprFactory.newIdentifier(ACCUMULATOR_VAR),
+                exprFactory.newIdentifier(exprFactory.getAccumulatorVarName()),
                 exprFactory.newIntLiteral(1)),
-            exprFactory.newIdentifier(ACCUMULATOR_VAR));
+            exprFactory.newIdentifier(exprFactory.getAccumulatorVarName()));
     CelExpr result =
         exprFactory.newGlobalCall(
             Operator.EQUALS.getFunction(),
-            exprFactory.newIdentifier(ACCUMULATOR_VAR),
+            exprFactory.newIdentifier(exprFactory.getAccumulatorVarName()),
             exprFactory.newIntLiteral(1));
     return Optional.of(
         exprFactory.fold(
-            arg0.ident().name(), target, ACCUMULATOR_VAR, accuInit, condition, step, result));
+            arg0.ident().name(),
+            target,
+            exprFactory.getAccumulatorVarName(),
+            accuInit,
+            condition,
+            step,
+            result));
   }
 
   // CelMacroExpander implementation for CEL's map() macro.
@@ -218,7 +240,7 @@ public enum CelStandardMacro {
     CelExpr step =
         exprFactory.newGlobalCall(
             Operator.ADD.getFunction(),
-            exprFactory.newIdentifier(ACCUMULATOR_VAR),
+            exprFactory.newIdentifier(exprFactory.getAccumulatorVarName()),
             exprFactory.newList(arg1));
     if (arg2 != null) {
       step =
@@ -226,17 +248,17 @@ public enum CelStandardMacro {
               Operator.CONDITIONAL.getFunction(),
               arg2,
               step,
-              exprFactory.newIdentifier(ACCUMULATOR_VAR));
+              exprFactory.newIdentifier(exprFactory.getAccumulatorVarName()));
     }
     return Optional.of(
         exprFactory.fold(
             arg0.ident().name(),
             target,
-            ACCUMULATOR_VAR,
+            exprFactory.getAccumulatorVarName(),
             accuInit,
             condition,
             step,
-            exprFactory.newIdentifier(ACCUMULATOR_VAR)));
+            exprFactory.newIdentifier(exprFactory.getAccumulatorVarName())));
   }
 
   // CelMacroExpander implementation for CEL's filter() macro.
@@ -255,23 +277,23 @@ public enum CelStandardMacro {
     CelExpr step =
         exprFactory.newGlobalCall(
             Operator.ADD.getFunction(),
-            exprFactory.newIdentifier(ACCUMULATOR_VAR),
+            exprFactory.newIdentifier(exprFactory.getAccumulatorVarName()),
             exprFactory.newList(arg0));
     step =
         exprFactory.newGlobalCall(
             Operator.CONDITIONAL.getFunction(),
             arg1,
             step,
-            exprFactory.newIdentifier(ACCUMULATOR_VAR));
+            exprFactory.newIdentifier(exprFactory.getAccumulatorVarName()));
     return Optional.of(
         exprFactory.fold(
             arg0.ident().name(),
             target,
-            ACCUMULATOR_VAR,
+            exprFactory.getAccumulatorVarName(),
             accuInit,
             condition,
             step,
-            exprFactory.newIdentifier(ACCUMULATOR_VAR)));
+            exprFactory.newIdentifier(exprFactory.getAccumulatorVarName())));
   }
 
   private static CelExpr reportArgumentError(CelMacroExprFactory exprFactory, CelExpr argument) {

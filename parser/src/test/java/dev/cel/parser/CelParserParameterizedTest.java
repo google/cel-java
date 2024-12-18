@@ -72,6 +72,16 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
           .setOptions(CelOptions.current().populateMacroCalls(true).build())
           .build();
 
+  private static final CelParser PARSER_WITH_UPDATED_ACCU_VAR =
+      PARSER
+          .toParserBuilder()
+          .setOptions(
+              CelOptions.current()
+                  .populateMacroCalls(true)
+                  .enableHiddenAccumulatorVar(true)
+                  .build())
+          .build();
+
   @Test
   public void parser() {
     runTest(PARSER, "x * 2");
@@ -191,6 +201,17 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
             .setOptions(CelOptions.current().enableReservedIds(false).build())
             .build(),
         "while");
+  }
+
+  @Test
+  public void parser_updatedAccuVar() {
+    runTest(PARSER_WITH_UPDATED_ACCU_VAR, "x * 2");
+    runTest(PARSER_WITH_UPDATED_ACCU_VAR, "has(m.f)");
+    runTest(PARSER_WITH_UPDATED_ACCU_VAR, "m.exists_one(v, f)");
+    runTest(PARSER_WITH_UPDATED_ACCU_VAR, "m.all(v, f)");
+    runTest(PARSER_WITH_UPDATED_ACCU_VAR, "m.map(v, f)");
+    runTest(PARSER_WITH_UPDATED_ACCU_VAR, "m.map(v, p, f)");
+    runTest(PARSER_WITH_UPDATED_ACCU_VAR, "m.filter(v, p)");
   }
 
   @Test

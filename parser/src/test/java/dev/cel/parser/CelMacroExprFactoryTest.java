@@ -62,6 +62,11 @@ public final class CelMacroExprFactoryTest {
     }
 
     @Override
+    public String getAccumulatorVarName() {
+      return "__result__";
+    }
+
+    @Override
     protected CelSourceLocation getSourceLocation(long exprId) {
       return CelSourceLocation.NONE;
     }
