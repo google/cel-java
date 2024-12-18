@@ -7,10 +7,15 @@ package ${package_name};
 
 import javax.annotation.Generated;
 import com.google.common.collect.ImmutableMap;
+import dev.cel.protobuf.CelLiteDescriptor;
 
 @Generated("//protobuf/src/main/java/dev/cel/protobuf:java_file_generator")
-public final class ${class_name} {
+public final class ${descriptor_class_name} extends CelLiteDescriptor {
 
-  private ${class_name}() {
+  private ${descriptor_class_name}() {
+    super(
+      /* fullyQualifiedProtoMessageName= */ "${fqn_proto_name}",
+      /* fullyQualifiedProtoJavaClassName= */ "${fqn_proto_java_class_name}"
+    );
   }
 }

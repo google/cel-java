@@ -62,7 +62,7 @@ public final class ProtoJavaQualifiedNames {
    * https://developers.google.com/protocol-buffers/docs/reference/java-generated#package for rules
    * on package name generation
    */
-  private static String getJavaPackageName(Descriptor descriptor) {
+  public static String getJavaPackageName(Descriptor descriptor) {
     FileOptions options = descriptor.getFile().getOptions();
     StringBuilder javaPackageName = new StringBuilder();
     if (options.hasJavaPackage()) {

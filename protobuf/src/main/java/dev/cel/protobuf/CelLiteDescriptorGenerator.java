@@ -2,9 +2,11 @@ package dev.cel.protobuf;
 
 import com.google.common.io.Files;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import dev.cel.common.CelDescriptorUtil;
+import dev.cel.common.internal.ProtoJavaQualifiedNames;
 import dev.cel.protobuf.JavaFileGenerator.JavaFileGeneratorOption;
 import java.io.File;
 import java.io.IOException;
@@ -39,12 +41,24 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
   @Override
   public Integer call() throws Exception {
     FileDescriptorSet fds = load(descriptorSetPath);
+    String messageClassName = "";
+    String protoName = "";
     for (FileDescriptor fd : CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds)) {
-      debugPrint(fd.getName());
+      for (Descriptor descriptor : fd.getMessageTypes()) {
+        // TODO: Collect into set
+        protoName = descriptor.getFullName();
+        messageClassName = ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor);
+      }
     }
 
     JavaFileGenerator.createFile(outPath,
-        JavaFileGeneratorOption.create(packageName, className, version));
+        JavaFileGeneratorOption.newBuilder()
+            .setVersion(version)
+            .setPackageName(packageName)
+            .setDescriptorClassName(className)
+            .setFullyQualifiedProtoName(protoName)
+            .setFullyQualifiedProtoJavaClassName(messageClassName)
+            .build());
     return 0;
   }
 

@@ -4,8 +4,8 @@ import dev.cel.common.annotations.Internal;
 
 @Internal
 public abstract class CelLiteDescriptor {
-  private final String fullyQualifiedProtoMessageName;
-  private final String fullyQualifiedJavaClassName;
+  private final String fullyQualifiedProtoName;
+  private final String fullyQualifiedProtoJavaClassName;
 
   protected class FieldNameToGetter {
     private final Class<?> javaType;
@@ -17,9 +17,10 @@ public abstract class CelLiteDescriptor {
     }
   }
 
-  public CelLiteDescriptor(String fullyQualifiedProtoMessageName,
-      String fullyQualifiedJavaClassName) {
-    this.fullyQualifiedProtoMessageName = fullyQualifiedProtoMessageName;
-    this.fullyQualifiedJavaClassName = fullyQualifiedJavaClassName;
+  public CelLiteDescriptor(
+      String fullyQualifiedProtoName,
+      String fullyQualifiedProtoJavaClassName) {
+    this.fullyQualifiedProtoName = fullyQualifiedProtoName;
+    this.fullyQualifiedProtoJavaClassName = fullyQualifiedProtoJavaClassName;
   }
 }

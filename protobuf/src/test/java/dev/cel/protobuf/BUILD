@@ -1,0 +1,23 @@
+load("@rules_java//java:defs.bzl", "java_library")
+load("//:testing.bzl", "junit4_test_suites")
+
+package(default_applicable_licenses = ["//:license"])
+
+java_library(
+    name = "tests",
+    testonly = 1,
+    srcs = glob(["*.java"]),
+    deps = [
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+junit4_test_suites(
+    name = "test_suites",
+    sizes = [
+        "small",
+    ],
+    src_dir = "src/test/java",
+    deps = [":tests"],
+)

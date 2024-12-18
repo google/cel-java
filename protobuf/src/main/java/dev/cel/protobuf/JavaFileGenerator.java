@@ -34,19 +34,34 @@ final class JavaFileGenerator {
   @AutoValue
   abstract static class JavaFileGeneratorOption {
     abstract String packageName();
-    abstract String className();
+    abstract String descriptorClassName();
     abstract String version();
+    abstract String fullyQualifiedProtoName();
+    abstract String fullyQualifiedProtoJavaClassName();
 
     ImmutableMap<String, String> getTemplateMap() {
       return ImmutableMap.of(
           "package_name", packageName(),
-          "class_name", className(),
-          "version", version()
+          "descriptor_class_name", descriptorClassName(),
+          "version", version(),
+          "fqn_proto_java_class_name", fullyQualifiedProtoJavaClassName(),
+          "fqn_proto_name", fullyQualifiedProtoJavaClassName()
       );
     }
 
-    static JavaFileGeneratorOption create(String packageName, String className, String version) {
-      return new AutoValue_JavaFileGenerator_JavaFileGeneratorOption(packageName, className, version);
+    @AutoValue.Builder
+    abstract static class Builder {
+      abstract Builder setPackageName(String packageName);
+      abstract Builder setDescriptorClassName(String className);
+      abstract Builder setVersion(String version);
+      abstract Builder setFullyQualifiedProtoJavaClassName(String fqn);
+      abstract Builder setFullyQualifiedProtoName(String fqn);
+
+      abstract JavaFileGeneratorOption build();
+    }
+
+    static Builder newBuilder() {
+      return new AutoValue_JavaFileGenerator_JavaFileGeneratorOption.Builder();
     }
   }
 }

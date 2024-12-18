@@ -26,13 +26,16 @@ def java_lite_proto_cel_library(
         deps,
     )
 
+    descriptor_codegen_deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:javax_annotation_javax_annotation_api",
+        "//protobuf:cel_lite_descriptor",
+    ]
+
     java_library(
         name = name,
         srcs = [":" + name + "_cel_lite_descriptor"],
-        deps = deps + [
-            "@maven//:javax_annotation_javax_annotation_api",
-            "@maven//:com_google_guava_guava",
-        ],
+        deps = deps + descriptor_codegen_deps,
     )
 
 def generate_cel_lite_descriptor_class(
