@@ -27,14 +27,14 @@ __comprehension__(
   // Target
   {}~map(dyn, dyn),
   // Accumulator
-  __result__,
+  @result,
   // Init
   []~list(list(dyn)),
   // LoopCondition
   true~bool,
   // LoopStep
   _+_(
-    __result__~list(list(dyn))^__result__,
+    @result~list(list(dyn))^@result,
     [
       [
         c~dyn^c,
@@ -45,4 +45,4 @@ __comprehension__(
     ]~list(list(dyn))
   )~list(list(dyn))^add_list,
   // Result
-  __result__~list(list(dyn))^__result__)~list(list(dyn))
+  @result~list(list(dyn))^@result)~list(list(dyn))
