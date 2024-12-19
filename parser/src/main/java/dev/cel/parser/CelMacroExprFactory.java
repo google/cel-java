@@ -51,6 +51,9 @@ public abstract class CelMacroExprFactory extends CelExprFactory {
   /** Reports a {@link CelIssue} and returns a sentinel {@link CelExpr} that indicates an error. */
   public abstract CelExpr reportError(CelIssue error);
 
+  /** Returns the default accumulator variable name used by macros implementing comprehensions. */
+  public abstract String getAccumulatorVarName();
+
   /** Retrieves the source location for the given {@link CelExpr} ID. */
   public final CelSourceLocation getSourceLocation(CelExpr expr) {
     return getSourceLocation(expr.id());

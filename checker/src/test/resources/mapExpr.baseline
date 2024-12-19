@@ -9,14 +9,14 @@ __comprehension__(
   // Target
   x~cel.expr.conformance.proto3.TestAllTypes^x.repeated_int64~list(int),
   // Accumulator
-  __result__,
+  @result,
   // Init
   []~list(double),
   // LoopCondition
   true~bool,
   // LoopStep
   _+_(
-    __result__~list(double)^__result__,
+    @result~list(double)^@result,
     [
       double(
         x~int^x
@@ -24,7 +24,7 @@ __comprehension__(
     ]~list(double)
   )~list(double)^add_list,
   // Result
-  __result__~list(double)^__result__)~list(double)
+  @result~list(double)^@result)~list(double)
 
 Source: [].map(x, [].map(y, x in y && y in x))
 declare x {
@@ -32,8 +32,8 @@ declare x {
 }
 =====>
 ERROR: test_location:1:33: found no matching overload for '@in' applied to '(list(%elem0), %elem0)' (candidates: (%A7, list(%A7)),(%A8, map(%A8, %B9)))
-  | [].map(x, [].map(y, x in y && y in x))
-  | ................................^
+ | [].map(x, [].map(y, x in y && y in x))
+ | ................................^
 
 Source: [{}.map(c,c,c)]+[{}.map(c,c,c)]
 declare x {
@@ -48,7 +48,7 @@ _+_(
       // Target
       {}~map(bool, dyn),
       // Accumulator
-      __result__,
+      @result,
       // Init
       []~list(bool),
       // LoopCondition
@@ -57,15 +57,15 @@ _+_(
       _?_:_(
         c~bool^c,
         _+_(
-          __result__~list(bool)^__result__,
+          @result~list(bool)^@result,
           [
             c~bool^c
           ]~list(bool)
         )~list(bool)^add_list,
-        __result__~list(bool)^__result__
+        @result~list(bool)^@result
       )~list(bool)^conditional,
       // Result
-      __result__~list(bool)^__result__)~list(bool)
+      @result~list(bool)^@result)~list(bool)
   ]~list(list(bool)),
   [
     __comprehension__(
@@ -74,7 +74,7 @@ _+_(
       // Target
       {}~map(bool, dyn),
       // Accumulator
-      __result__,
+      @result,
       // Init
       []~list(bool),
       // LoopCondition
@@ -83,14 +83,14 @@ _+_(
       _?_:_(
         c~bool^c,
         _+_(
-          __result__~list(bool)^__result__,
+          @result~list(bool)^@result,
           [
             c~bool^c
           ]~list(bool)
         )~list(bool)^add_list,
-        __result__~list(bool)^__result__
+        @result~list(bool)^@result
       )~list(bool)^conditional,
       // Result
-      __result__~list(bool)^__result__)~list(bool)
+      @result~list(bool)^@result)~list(bool)
   ]~list(list(bool))
 )~list(list(bool))^add_list

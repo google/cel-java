@@ -343,7 +343,7 @@ public class CelExprVisitorTest {
     assertThat(comprehension.loopStep().call().args()).hasSize(2);
     assertThat(visitedReference.list().get().elements()).isEqualTo(iterRangeElements);
     assertThat(visitedReference.identifier())
-        .hasValue(CelIdent.newBuilder().setName("__result__").build());
+        .hasValue(CelIdent.newBuilder().setName("@result").build());
     assertThat(visitedReference.arguments()).hasSize(10);
   }
 

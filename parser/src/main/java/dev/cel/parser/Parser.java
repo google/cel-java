@@ -125,6 +125,8 @@ final class Parser extends CELBaseVisitor<CelExpr> {
           "var",
           "void",
           "while");
+  private static final String ACCUMULATOR_NAME = "__result__";
+  private static final String HIDDEN_ACCUMULATOR_NAME = "@result";
 
   static CelValidationResult parse(CelParserImpl parser, CelSource source, CelOptions options) {
     if (source.getContent().size() > options.maxExpressionCodePointSize()) {
@@ -142,7 +144,11 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     CELParser antlrParser = new CELParser(new CommonTokenStream(antlrLexer));
     CelSource.Builder sourceInfo = source.toBuilder();
     sourceInfo.setDescription(source.getDescription());
-    ExprFactory exprFactory = new ExprFactory(antlrParser, sourceInfo);
+    ExprFactory exprFactory =
+        new ExprFactory(
+            antlrParser,
+            sourceInfo,
+            options.enableHiddenAccumulatorVar() ? HIDDEN_ACCUMULATOR_NAME : ACCUMULATOR_NAME);
     Parser parserImpl = new Parser(parser, options, sourceInfo, exprFactory);
     ErrorListener errorListener = new ErrorListener(exprFactory);
     antlrLexer.removeErrorListeners();
@@ -1033,12 +1039,17 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     private final CelSource.Builder sourceInfo;
     private final ArrayList<CelIssue> issues;
     private final ArrayDeque<Integer> positions;
+    private final String accumulatorVarName;
 
-    private ExprFactory(org.antlr.v4.runtime.Parser recognizer, CelSource.Builder sourceInfo) {
+    private ExprFactory(
+        org.antlr.v4.runtime.Parser recognizer,
+        CelSource.Builder sourceInfo,
+        String accumulatorVarName) {
       this.recognizer = recognizer;
       this.sourceInfo = sourceInfo;
       this.issues = new ArrayList<>();
       this.positions = new ArrayDeque<>(1); // Currently this usually contains at most 1 position.
+      this.accumulatorVarName = accumulatorVarName;
     }
 
     // Implementation of CelExprFactory.
@@ -1062,6 +1073,11 @@ final class Parser extends CELBaseVisitor<CelExpr> {
       return ERROR;
     }
 
+    @Override
+    public String getAccumulatorVarName() {
+      return accumulatorVarName;
+    }
+
     // Internal methods used by the parser but not part of the public API.
     @FormatMethod
     @CanIgnoreReturnValue
@@ -1079,6 +1095,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     private CelExpr reportError(Token token, String message) {
       return reportError(CelIssue.formatError(getLocation(token), message));
     }
+    
 
     // Implementation of CelExprFactory.
 
