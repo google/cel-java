@@ -145,8 +145,8 @@ java_library(
 )
 
 java_library(
-    name = "cel_lite_proto_message_value_provider",
-    srcs = ["CelLiteProtoMessageValueProvider.java"],
+    name = "proto_message_lite_value_provider",
+    srcs = ["ProtoMessageLiteValueProvider.java"],
     deps = [
         ":cel_value",
         ":cel_value_provider",

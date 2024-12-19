@@ -10,17 +10,16 @@ import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.google.protobuf.Descriptors.FieldDescriptor.JavaType;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.internal.ProtoJavaQualifiedNames;
-import dev.cel.protobuf.CelLiteDescriptor.FieldNameToGetter;
+import dev.cel.protobuf.CelLiteDescriptor.FieldInfo;
 import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
 import dev.cel.protobuf.JavaFileGenerator.JavaFileGeneratorOption;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
 import picocli.CommandLine.Help.Ansi;
@@ -77,13 +76,12 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
     ImmutableList.Builder<MessageInfo> messageInfoListBuilder = ImmutableList.builder();
 
     for (Descriptor descriptor : targetFileDescriptor.getMessageTypes()) {
-      ImmutableMap.Builder<String, FieldNameToGetter> fieldMap = ImmutableMap.builder();
+      ImmutableMap.Builder<String, FieldInfo> fieldMap = ImmutableMap.builder();
       for (FieldDescriptor fieldDescriptor : descriptor.getFields()) {
-        String getterName = "get" + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, fieldDescriptor.getName());
-        print(String.format("Getter method name in %s: %s", descriptor.getFullName(), getterName));
+        String methodSuffixName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, fieldDescriptor.getName());
+        print(String.format("Method suffix name in %s: %s", descriptor.getFullName(), methodSuffixName));
 
-        // TODO: infer proper class
-        fieldMap.put(fieldDescriptor.getName(), new FieldNameToGetter(String.class, getterName));
+        fieldMap.put(fieldDescriptor.getName(), new FieldInfo(fieldDescriptor.getJavaType().toString(), methodSuffixName));
       }
 
       messageInfoListBuilder.add(
@@ -102,6 +100,8 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
             .setMessageInfoList(messageInfoListBuilder.build())
             .build());
   }
+
+
 
   private String extractProtoPath(String descriptorPath) {
     FileDescriptorSet fds = load(descriptorPath);

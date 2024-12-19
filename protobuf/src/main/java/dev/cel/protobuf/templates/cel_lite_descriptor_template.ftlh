@@ -25,9 +25,9 @@ public final class ${descriptor_class_name} extends CelLiteDescriptor {
           new MessageInfo(
             "${message_info.fullyQualifiedProtoName}",
             "${message_info.fullyQualifiedProtoJavaClassName}",
-            ImmutableMap.<String, FieldNameToGetter>builder()
-              <#list message_info.fieldNameToGetters as key, value>
-              .put("${key}", new FieldNameToGetter("${value.getterName}"))
+            ImmutableMap.<String, FieldInfo>builder()
+              <#list message_info.fieldInfoMap as key, value>
+              .put("${key}", new FieldInfo("${value.javaTypeName}", "${value.methodSuffixName}"))
               </#list>
               .build()
           )
