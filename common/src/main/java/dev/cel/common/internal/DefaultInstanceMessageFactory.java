@@ -19,7 +19,6 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.annotations.Internal;
-import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Optional;
@@ -83,7 +82,6 @@ public final class DefaultInstanceMessageFactory {
       return Optional.empty();
     }
 
-
     if (!(defaultInstance instanceof Message)) {
       throw new IllegalArgumentException("Expected a full protobuf message, but got: " + defaultInstance);
     }
@@ -101,14 +99,14 @@ public final class DefaultInstanceMessageFactory {
   /** A placeholder to lazily load the generated messages' defaultInstances. */
   private static final class LazyGeneratedMessageDefaultInstance {
     private final String fullClassName;
-    private volatile Message defaultInstance = null;
+    private volatile MessageLite defaultInstance = null;
     private volatile boolean loaded = false;
 
     public LazyGeneratedMessageDefaultInstance(String fullClassName) {
       this.fullClassName = fullClassName;
     }
 
-    public Message getDefaultInstance() {
+    public MessageLite getDefaultInstance() {
       if (!loaded) {
         synchronized (this) {
           if (!loaded) {
@@ -123,7 +121,7 @@ public final class DefaultInstanceMessageFactory {
     private void loadDefaultInstance() {
       try {
         defaultInstance =
-            (Message) Class.forName(fullClassName).getMethod("getDefaultInstance").invoke(null);
+            (MessageLite) Class.forName(fullClassName).getMethod("getDefaultInstance").invoke(null);
       } catch (IllegalAccessException | InvocationTargetException e) {
         throw new LinkageError(
             String.format("getDefaultInstance for class: %s failed.", fullClassName), e);
