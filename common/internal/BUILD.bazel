@@ -77,5 +77,5 @@ java_library(
 
 java_library(
     name = "proto_java_qualified_names",
-    exports = ["//common/src/main/java/dev/cel/common/internal:proto_java_qualfiied_names"],
+    exports = ["//common/src/main/java/dev/cel/common/internal:proto_java_qualified_names"],
 )

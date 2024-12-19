@@ -17,7 +17,9 @@ package dev.cel.common.internal;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Message;
+import com.google.protobuf.MessageLite;
 import dev.cel.common.annotations.Internal;
+import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Optional;
@@ -49,25 +51,51 @@ public final class DefaultInstanceMessageFactory {
    *     construct the type via reflection is different to the provided descriptor or if the
    *     descriptor class isn't loaded in the binary.
    */
-  public Optional<Message> getPrototype(Descriptor descriptor) {
-    String descriptorName = descriptor.getFullName();
+  public Optional<MessageLite> getPrototype(String protoFqn, String protoJavaClassFqn) {
     LazyGeneratedMessageDefaultInstance lazyDefaultInstance =
         messageByDescriptorName.computeIfAbsent(
-            descriptorName,
+            protoFqn,
             (unused) ->
                 new LazyGeneratedMessageDefaultInstance(
-                    ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor)));
+                    protoJavaClassFqn));
 
-    Message defaultInstance = lazyDefaultInstance.getDefaultInstance();
+    MessageLite defaultInstance = lazyDefaultInstance.getDefaultInstance();
     if (defaultInstance == null) {
       return Optional.empty();
     }
-    // Reference equality is intended. We want to make sure the descriptors are equal
-    // to guarantee types to be hermetic if linked types is disabled.
-    if (defaultInstance.getDescriptorForType() != descriptor) {
+
+    return Optional.of(defaultInstance);
+  }
+
+  /**
+   * Creates a default instance of a protobuf message given a descriptor. This is essentially the
+   * same as calling FooMessage.getDefaultInstance(), except reflection is leveraged.
+   *
+   * @return Default instance of a type. Returns an empty optional if the descriptor used to
+   *     construct the type via reflection is different to the provided descriptor or if the
+   *     descriptor class isn't loaded in the binary.
+   */
+  public Optional<Message> getPrototype(Descriptor descriptor) {
+    // Note: This logic will have to be moved outside this package
+    MessageLite defaultInstance = getPrototype(descriptor.getFullName(),
+        ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor)).orElse(null);
+    if (defaultInstance == null) {
       return Optional.empty();
     }
-    return Optional.of(defaultInstance);
+
+
+    if (!(defaultInstance instanceof Message)) {
+      throw new IllegalArgumentException("Expected a full protobuf message, but got: " + defaultInstance);
+    }
+
+    Message fullMessage = (Message) defaultInstance;
+
+    // Reference equality is intended. We want to make sure the descriptors are equal
+    // to guarantee types to be hermetic if linked types is disabled.
+    if (fullMessage.getDescriptorForType() != descriptor) {
+      return Optional.empty();
+    }
+    return Optional.of(fullMessage);
   }
 
   /** A placeholder to lazily load the generated messages' defaultInstances. */

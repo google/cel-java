@@ -3,11 +3,17 @@ package dev.cel.protobuf;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
+import java.util.Optional;
 
 @Internal
 @Immutable
 public abstract class CelLiteDescriptor {
   private final ImmutableMap<String, MessageInfo> protoNameToMessageInfoMap;
+
+  public Optional<MessageInfo> findMessageInfo(String protoFqn) {
+    return Optional.ofNullable(protoNameToMessageInfoMap.get(protoFqn));
+  }
+
 
   @Immutable
   @Internal
