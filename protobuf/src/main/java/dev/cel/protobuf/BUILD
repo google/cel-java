@@ -44,6 +44,7 @@ java_library(
     srcs = ["CelLiteDescriptor.java"],
     deps = [
         "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
 )

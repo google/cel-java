@@ -1,3 +1,4 @@
+load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
 load("//:java_lite_proto_cel_library.bzl", "java_lite_proto_cel_library")
 
 package(
@@ -12,6 +13,13 @@ package(
 proto_library(
     name = "simple_test_proto",
     srcs = ["simple_test.proto"],
+)
+
+java_proto_library(
+    name = "simple_test_java_proto",
+    deps = [
+        ":simple_test_proto",
+    ],
 )
 
 java_lite_proto_cel_library(

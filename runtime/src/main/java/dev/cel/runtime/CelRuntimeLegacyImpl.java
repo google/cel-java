@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import dev.cel.protobuf.CelLiteDescriptor;
 import javax.annotation.concurrent.ThreadSafe;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
@@ -92,6 +93,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     private final ImmutableSet.Builder<FileDescriptor> fileTypes;
     private final HashMap<String, CelFunctionBinding> customFunctionBindings;
     private final ImmutableSet.Builder<CelRuntimeLibrary> celRuntimeLibraries;
+    private final ImmutableSet.Builder<CelLiteDescriptor> celLiteDescriptorBuilder;
 
     @SuppressWarnings("unused")
     private CelOptions options;
@@ -127,6 +129,15 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     @Override
     public CelRuntimeBuilder addMessageTypes(Iterable<Descriptor> descriptors) {
       return addFileTypes(CelDescriptorUtil.getFileDescriptorsForDescriptors(descriptors));
+    }
+    @Override
+    public CelRuntimeBuilder addCelLiteDescriptors(CelLiteDescriptor... descriptors) {
+      return addCelLiteDescriptors(Arrays.asList(descriptors));
+    }
+    @Override
+    public CelRuntimeBuilder addCelLiteDescriptors(Iterable<CelLiteDescriptor> descriptors) {
+      this.celLiteDescriptorBuilder.addAll(descriptors);
+      return this;
     }
 
     @Override
@@ -375,6 +386,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       this.fileTypes = ImmutableSet.builder();
       this.customFunctionBindings = new HashMap<>();
       this.celRuntimeLibraries = ImmutableSet.builder();
+      this.celLiteDescriptorBuilder = ImmutableSet.builder();
       this.extensionRegistry = ExtensionRegistry.getEmptyRegistry();
       this.customTypeFactory = null;
     }
@@ -391,6 +403,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       this.fileTypes = deepCopy(builder.fileTypes);
       this.celRuntimeLibraries = deepCopy(builder.celRuntimeLibraries);
       this.customFunctionBindings = new HashMap<>(builder.customFunctionBindings);
+      this.celLiteDescriptorBuilder = builder.celLiteDescriptorBuilder;
     }
 
     private static <T> ImmutableSet.Builder<T> deepCopy(ImmutableSet.Builder<T> builderToCopy) {

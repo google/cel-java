@@ -143,3 +143,15 @@ java_library(
         "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
+
+java_library(
+    name = "cel_lite_proto_message_value_provider",
+    srcs = ["CelLiteProtoMessageValueProvider.java"],
+    deps = [
+        ":cel_value",
+        ":cel_value_provider",
+        "//protobuf:cel_lite_descriptor",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)

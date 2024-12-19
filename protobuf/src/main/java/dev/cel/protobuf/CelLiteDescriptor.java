@@ -1,12 +1,16 @@
 package dev.cel.protobuf;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
 
 @Internal
+@Immutable
 public abstract class CelLiteDescriptor {
   private final ImmutableMap<String, MessageInfo> protoNameToMessageInfoMap;
 
+  @Immutable
+  @Internal
   public static final class MessageInfo {
     private final String fullyQualifiedProtoName;
     private final String fullyQualifiedProtoJavaClassName;
@@ -36,6 +40,7 @@ public abstract class CelLiteDescriptor {
   }
 
   @Internal
+  @Immutable
   public static final class FieldNameToGetter {
     private final Class<?> javaType;
     private final String getterName;

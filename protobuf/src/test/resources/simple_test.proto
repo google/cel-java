@@ -17,7 +17,6 @@ syntax = "proto3";
 package dev.cel.testing;
 
 option java_package = "dev.cel.testing";
-option java_outer_classname = "SimpleTest";
 
 message SimpleTest {
   string single_string = 1;
