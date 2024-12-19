@@ -7,28 +7,33 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.values.CelLiteProtoMessageValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
-import dev.cel.testing.SimpleTestCelLiteDescriptor;
-import dev.cel.testing.SimpleTestOuterClass.SimpleTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public class CelLiteDescriptorGeneratorTest {
+  private static final CelCompiler CEL_COMPILER =
+      CelCompilerFactory.standardCelCompilerBuilder()
+          .addMessageTypes(TestAllTypes.getDescriptor())
+          .build();
+
+  private static final CelRuntime CEL_RUNTIME =
+      CelRuntimeFactory.standardCelRuntimeBuilder()
+          .setOptions(CelOptions.current().enableCelValue(true).build())
+          .setValueProvider(CelLiteProtoMessageValueProvider.newInstance(
+              TestAllTypesCelLiteDescriptor.getDescriptor()))
+          .build();
 
   @Test
   public void messageCreation() throws Exception {
-    CelCompiler celCompiler = CelCompilerFactory.standardCelCompilerBuilder().addMessageTypes(
-        SimpleTest.getDescriptor()).build();
-    CelAbstractSyntaxTree ast = celCompiler.compile("dev.cel.testing.SimpleTest{}").getAst();
-    CelRuntime celRuntime = CelRuntimeFactory.standardCelRuntimeBuilder()
-        .setOptions(CelOptions.current().enableCelValue(true).build())
-        .setValueProvider(CelLiteProtoMessageValueProvider.newInstance(SimpleTestCelLiteDescriptor.getDescriptor()))
-        .build();
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("cel.expr.conformance.proto3.TestAllTypes{}").getAst();
 
-    SimpleTest simpleTest = (SimpleTest) celRuntime.createProgram(ast).eval();
+    TestAllTypes simpleTest = (TestAllTypes) CEL_RUNTIME.createProgram(ast).eval();
 
-    assertThat(simpleTest).isEqualTo(SimpleTest.getDefaultInstance());
+    assertThat(simpleTest).isEqualTo(TestAllTypes.getDefaultInstance());
   }
 }

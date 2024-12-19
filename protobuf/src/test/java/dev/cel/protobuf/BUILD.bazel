@@ -9,6 +9,7 @@ java_library(
     testonly = 1,
     srcs = glob(["*.java"]),
     deps = [
+        ":test_all_types_proto3_java_lite_cel_proto",
         "//bundle:cel",
         "//common",
         "//common:options",
@@ -16,10 +17,9 @@ java_library(
         "//common/values:cel_lite_proto_message_value_provider",
         "//compiler",
         "//compiler:compiler_builder",
-        "//protobuf/src/test/resources:simple_test_java_lite_cel_proto",
-        "//protobuf/src/test/resources:simple_test_java_lite_proto",
         "//runtime",
         "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:com_google_truth_truth",
@@ -28,7 +28,7 @@ java_library(
 )
 
 java_lite_proto_cel_library(
-    name = "test_all_types_java_lite_cel_proto",
+    name = "test_all_types_proto3_java_lite_cel_proto",
     descriptor_class_prefix = "TestAllTypes",
     deps = [
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
