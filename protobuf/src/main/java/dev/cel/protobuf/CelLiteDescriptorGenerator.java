@@ -3,8 +3,10 @@ package dev.cel.protobuf;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
+import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
@@ -30,8 +32,11 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
   @Option(names = {"--out"}, description = "Outpath for the CelLiteDescriptor")
   private String outPath = "";
 
-  @Option(names = {"--descriptor_set"}, description = "Descriptor Set")
-  private String descriptorSetPath = "";
+  @Option(names = {"--descriptor"}, description = "Path to the descriptor (from proto_library) that the CelLiteDescriptor is to be generated from")
+  private String targetDescriptorPath = "";
+
+  @Option(names = {"--transitive_descriptor_set"}, description = "Path to the transitive set of descriptors")
+  private String transitiveDescriptorSetPath = "";
 
   @Option(names = {"--descriptor_class_name"}, description = "Class name for the CelLiteDescriptor")
   private String descriptorClassName = "";
@@ -44,19 +49,40 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
 
   @Override
   public Integer call() throws Exception {
-    FileDescriptorSet fds = load(descriptorSetPath);
-    // TODO: Handle transitive imports? Requires something other than genrule.
-    FileDescriptor fd = Iterables.getOnlyElement(CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds));
-    String javaPackageName = ProtoJavaQualifiedNames.getJavaPackageName(fd);
+    String targetDescriptorProtoPath = extractProtoPath(targetDescriptorPath);
+    print("Target descriptor proto path: " + targetDescriptorProtoPath);
 
+    FileDescriptor targetFileDescriptor = null;
+    ImmutableSet<FileDescriptor> transitiveFileDescriptors = CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(load(transitiveDescriptorSetPath));
+    for (FileDescriptor fd : transitiveFileDescriptors) {
+      if (fd.getFullName().equals(targetDescriptorProtoPath)) {
+        print("Transitive Descriptor Path: " + fd.getFullName());
+        targetFileDescriptor = fd;
+        break;
+      }
+    }
+
+    if (targetFileDescriptor == null) {
+      throw new IllegalArgumentException(String.format("Target descriptor %s not found from transitive set of descriptors!", targetDescriptorProtoPath));
+    }
+
+    codegenCelLiteDescriptor(targetFileDescriptor);
+
+    return 0;
+  }
+
+  private void codegenCelLiteDescriptor(FileDescriptor targetFileDescriptor)
+      throws Exception {
+    String javaPackageName = ProtoJavaQualifiedNames.getJavaPackageName(targetFileDescriptor);
     ImmutableList.Builder<MessageInfo> messageInfoListBuilder = ImmutableList.builder();
 
-    for (Descriptor descriptor : fd.getMessageTypes()) {
+    for (Descriptor descriptor : targetFileDescriptor.getMessageTypes()) {
       ImmutableMap.Builder<String, FieldNameToGetter> fieldMap = ImmutableMap.builder();
       for (FieldDescriptor fieldDescriptor : descriptor.getFields()) {
         String getterName = "get" + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, fieldDescriptor.getName());
-        debugPrint(getterName);
-        // TODO: class
+        print(String.format("Getter method name in %s: %s", descriptor.getFullName(), getterName));
+
+        // TODO: infer proper class
         fieldMap.put(fieldDescriptor.getName(), new FieldNameToGetter(String.class, getterName));
       }
 
@@ -75,12 +101,15 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
             .setPackageName(javaPackageName)
             .setMessageInfoList(messageInfoListBuilder.build())
             .build());
-    return 0;
+  }
+
+  private String extractProtoPath(String descriptorPath) {
+    FileDescriptorSet fds = load(descriptorPath);
+    FileDescriptorProto fileDescriptorProto = Iterables.getOnlyElement(fds.getFileList());
+    return fileDescriptorProto.getName();
   }
 
   private FileDescriptorSet load(String descriptorSetPath) {
-    Path path = Paths.get(descriptorSetPath);
-    System.out.println("Path: " + path.getFileName());
     try {
       byte[] descriptorBytes = Files.toByteArray(new File(descriptorSetPath));
       // TODO Extensions?
@@ -90,6 +119,22 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
       throw new RuntimeException(e);
     }
   }
+
+  private void printAllFlags(CommandLine cmd) {
+    print("Flag values:");
+    print("-------------------------------------------------------------");
+    for (OptionSpec option : cmd.getCommandSpec().options()) {
+      print(option.longestName() + ": " + option.getValue().toString());
+    }
+    print("-------------------------------------------------------------");
+  }
+
+  private void print(String message) {
+    if (debug) {
+      System.out.println(Ansi.ON.string("@|cyan [CelLiteDescriptorGenerator] |@" + message));
+    }
+  }
+
 
   public static void main(String[] args) throws Exception {
     CelLiteDescriptorGenerator celLiteDescriptorGenerator = new CelLiteDescriptorGenerator();
@@ -101,20 +146,6 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
     System.exit(exitCode);
   }
 
-  private void printAllFlags(CommandLine cmd) {
-    debugPrint("Flag values:");
-    debugPrint("-------------------------------------------------------------");
-    for (OptionSpec option : cmd.getCommandSpec().options()) {
-      debugPrint(option.longestName() + ": " + option.getValue().toString());
-    }
-    debugPrint("-------------------------------------------------------------");
-  }
-
-  private void debugPrint(String message) {
-    if (debug) {
-      System.out.println(Ansi.ON.string("@|cyan [CelLiteDescriptorGenerator] |@" + message));
-    }
-  }
 
   private CelLiteDescriptorGenerator() {}
 }

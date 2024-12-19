@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("//:java_lite_proto_cel_library.bzl", "java_lite_proto_cel_library")
 load("//:testing.bzl", "junit4_test_suites")
 
 package(default_applicable_licenses = ["//:license"])
@@ -23,6 +24,14 @@ java_library(
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:com_google_truth_truth",
         "@maven//:junit_junit",
+    ],
+)
+
+java_lite_proto_cel_library(
+    name = "test_all_types_java_lite_cel_proto",
+    descriptor_class_prefix = "TestAllTypes",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
     ],
 )
 

@@ -20,7 +20,13 @@ def java_lite_proto_cel_library(
         name,
         descriptor_class_prefix,
         deps):
-    artifacts = generate_cel_lite_descriptor_class(
+    if not deps:
+        fail("You must provide a proto_library dependency.")
+
+    if len(deps) > 1:
+        fail("You must provide only one proto_library dependency.")
+
+    generate_cel_lite_descriptor_class(
         name,
         descriptor_class_prefix + "CelLiteDescriptor",
         deps,
@@ -44,16 +50,18 @@ def generate_cel_lite_descriptor_class(
         proto_srcs):
     internal_descriptor_set_name = "%s_descriptor_set_internal" % name
     outfile = "%s.java" % descriptor_class_name
-    package_name = native.package_name().replace("/", ".")
 
     proto_descriptor_set(
         name = internal_descriptor_set_name,
         deps = proto_srcs,
     )
 
+    proto_descriptor_path = proto_srcs[0]
+
     cmd = (
         "$(location //protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor_generator) " +
-        "--descriptor_set $(location %s) " % internal_descriptor_set_name +
+        "--descriptor $(location %s) " % proto_descriptor_path +
+        "--transitive_descriptor_set $(location %s) " % internal_descriptor_set_name +
         "--descriptor_class_name %s " % descriptor_class_name +
         "--out $(location %s) " % outfile +
         "--version %s " % CEL_VERSION +
@@ -62,7 +70,10 @@ def generate_cel_lite_descriptor_class(
 
     native.genrule(
         name = name + "_cel_lite_descriptor",
-        srcs = [":%s" % internal_descriptor_set_name],
+        srcs = [
+            ":" + internal_descriptor_set_name,
+            proto_descriptor_path,
+        ],
         cmd = cmd,
         outs = [outfile],
         tools = ["//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor_generator"],
