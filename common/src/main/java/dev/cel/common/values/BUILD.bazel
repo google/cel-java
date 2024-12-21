@@ -150,9 +150,12 @@ java_library(
     deps = [
         ":cel_value",
         ":cel_value_provider",
+        "//common:error_codes",
+        "//common:proto_json_adapter",
+        "//common:runtime_exception",
         "//common/annotations",
-        "//common/internal:converter",
         "//common/internal:default_instance_message_factory",
+        "//common/types:cel_types",
         "//common/values:proto_message_lite_value",
         "//protobuf:cel_lite_descriptor",
         "@maven//:com_google_errorprone_error_prone_annotations",

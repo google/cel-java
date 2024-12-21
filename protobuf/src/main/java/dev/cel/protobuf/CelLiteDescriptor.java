@@ -3,8 +3,6 @@ package dev.cel.protobuf;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.Map;
 import java.util.Optional;
 
@@ -55,6 +53,7 @@ public abstract class CelLiteDescriptor {
   @Internal
   @Immutable
   public static final class FieldInfo {
+    private final String fullyQualifiedProtoName;
     private final String javaTypeName;
     private final String methodSuffixName;
     private final String fieldJavaClassName;
@@ -68,17 +67,17 @@ public abstract class CelLiteDescriptor {
 
     // Lazily-loaded field
     @SuppressWarnings("Immutable")
-    private volatile Class<?> javaType;
+    private volatile Class<?> fieldJavaType;
 
     public Class<?> getFieldJavaClass() {
-      if (javaType == null) {
+      if (fieldJavaType == null) {
         synchronized (this) {
-          if (javaType == null) {
-            javaType = deriveArgumentJavaType();
+          if (fieldJavaType == null) {
+            fieldJavaType = deriveFieldTypeClass();
           }
         }
       }
-      return javaType;
+      return fieldJavaType;
     }
 
     public String getJavaTypeName() {
@@ -117,19 +116,25 @@ public abstract class CelLiteDescriptor {
       return fieldType;
     }
 
+    public String getFullyQualifiedProtoName() {
+      return fullyQualifiedProtoName;
+    }
+
     public FieldInfo(
+        String fullyQualifiedProtoName,
         String javaTypeName,
         String methodSuffixName,
         String fieldJavaClassName,
         String fieldType
         ) {
+      this.fullyQualifiedProtoName = fullyQualifiedProtoName;
       this.javaTypeName = javaTypeName;
       this.methodSuffixName = methodSuffixName;
       this.fieldJavaClassName = fieldJavaClassName;
       this.fieldType = Type.valueOf(fieldType);
     }
 
-    private Class<?> deriveArgumentJavaType() {
+    private Class<?> deriveFieldTypeClass() {
       if (fieldType.equals(Type.LIST)) {
         return Iterable.class;
       } else if (fieldType.equals(Type.MAP)) {
@@ -156,7 +161,7 @@ public abstract class CelLiteDescriptor {
           try {
             return Class.forName(fieldJavaClassName);
           } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new LinkageError(String.format("Could not find class %s", fieldJavaClassName), e);
           }
       }
 

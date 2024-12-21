@@ -26,4 +26,16 @@ public class CelLiteDescriptorInterpreterTest extends BaseInterpreterTest {
             .build()
     );
   }
+
+  @Override
+  public void dynamicMessage_adapted() throws Exception {
+    // Dynamic messages aren't supported in Protolite
+    skipBaselineVerification();
+  }
+
+  @Override
+  public void dynamicMessage_dynamicDescriptor() throws Exception {
+    // Dynamic messages aren't supported in Protolite
+    skipBaselineVerification();
+  }
 }

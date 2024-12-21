@@ -1,19 +1,9 @@
 package dev.cel.protobuf;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.common.primitives.Ints;
-import com.google.protobuf.Descriptors.Descriptor;
-import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.Internal;
-import com.google.protobuf.Message;
-import com.google.protobuf.MessageLite;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
-import dev.cel.common.internal.AdaptingTypes;
-import dev.cel.common.internal.BidiConverter;
-import dev.cel.common.internal.Converter;
-import dev.cel.common.internal.ProtoJavaQualifiedNames;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
@@ -22,10 +12,7 @@ import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -50,10 +37,6 @@ public class CelLiteDescriptorGeneratorTest {
     TestAllTypes simpleTest = (TestAllTypes) CEL_RUNTIME.createProgram(ast).eval();
 
     assertThat(simpleTest).isEqualTo(TestAllTypes.getDefaultInstance());
-  }
-
-  public void foo(List<String> a) {
-
   }
 
   @Test

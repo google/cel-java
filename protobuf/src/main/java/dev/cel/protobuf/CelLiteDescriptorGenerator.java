@@ -88,6 +88,9 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
           case "ENUM":
             fieldJavaClassName = ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(fieldDescriptor.getEnumType());
             break;
+          case "MESSAGE":
+            fieldJavaClassName = ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(fieldDescriptor.getMessageType());
+            break;
           default:
             break;
         }
@@ -101,7 +104,7 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
           fieldType = Type.SCALAR;
         }
 
-        fieldMap.put(fieldDescriptor.getName(), new FieldInfo(javaType, methodSuffixName, fieldJavaClassName, fieldType.toString()));
+        fieldMap.put(fieldDescriptor.getName(), new FieldInfo(fieldDescriptor.getFullName(), javaType, methodSuffixName, fieldJavaClassName, fieldType.toString()));
 
         print(String.format("Method suffix name in %s, for field %s: %s", descriptor.getFullName(), fieldDescriptor.getFullName(), methodSuffixName));
         print(String.format("FieldType: %s", fieldType));
@@ -139,8 +142,7 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
       // TODO Extensions?
       return FileDescriptorSet.parseFrom(descriptorBytes, ExtensionRegistry.getEmptyRegistry());
     } catch (IOException e) {
-      System.out.println("ERROR!!");
-      throw new RuntimeException(e);
+      throw new RuntimeException("Failed to load FileDescriptorSet from path: " + descriptorSetPath);
     }
   }
 
