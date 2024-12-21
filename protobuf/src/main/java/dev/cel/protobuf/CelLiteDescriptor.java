@@ -2,6 +2,7 @@ package dev.cel.protobuf;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
+import com.google.protobuf.ByteString;
 import dev.cel.common.annotations.Internal;
 import java.util.Map;
 import java.util.Optional;
@@ -155,6 +156,7 @@ public abstract class CelLiteDescriptor {
         case "STRING":
           return String.class;
         case "BYTE_STRING":
+          return ByteString.class;
         case "ENUM":
         case "MESSAGE":
           // TODO: Handle WKTs separately

@@ -1,12 +1,14 @@
 package dev.cel.protobuf;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.protobuf.ByteString;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.expr.conformance.proto3.NestedTestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
@@ -21,6 +23,7 @@ public class CelLiteDescriptorGeneratorTest {
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
           .addMessageTypes(TestAllTypes.getDescriptor())
+          .setContainer("cel.expr.conformance.proto3")
           .build();
 
   private static final CelRuntime CEL_RUNTIME =
@@ -32,7 +35,7 @@ public class CelLiteDescriptorGeneratorTest {
 
   @Test
   public void messageCreation_emptyMessage() throws Exception {
-    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("cel.expr.conformance.proto3.TestAllTypes{}").getAst();
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("TestAllTypes{}").getAst();
 
     TestAllTypes simpleTest = (TestAllTypes) CEL_RUNTIME.createProgram(ast).eval();
 
@@ -41,14 +44,19 @@ public class CelLiteDescriptorGeneratorTest {
 
   @Test
   public void messageCreation_fieldsPopulated() throws Exception {
-    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("cel.expr.conformance.proto3.TestAllTypes{"
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("TestAllTypes{"
         + "single_int32: 4,"
         + "single_int64: 6,"
-        + "single_nested_enum: cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAR,"
+        + "single_nested_enum: TestAllTypes.NestedEnum.BAR,"
         + "repeated_int32: [1,2],"
         + "repeated_int64: [3,4],"
         + "map_string_int32: {'a': 1},"
-        + "map_string_int64: {'b': 2}"
+        + "map_string_int64: {'b': 2},"
+        + "oneof_type: NestedTestAllTypes {"
+        + "    payload: TestAllTypes {"
+        + "       single_bytes: b'abc',"
+        + "    }"
+        + "  },"
         + "}").getAst();
     TestAllTypes expectedMessage = TestAllTypes.newBuilder()
         .setSingleInt32(4)
@@ -58,6 +66,10 @@ public class CelLiteDescriptorGeneratorTest {
         .addAllRepeatedInt64(Arrays.asList(3L,4L))
         .putMapStringInt32("a", 1)
         .putMapStringInt64("b", 2)
+        .setOneofType(
+            NestedTestAllTypes.newBuilder().setPayload(
+                TestAllTypes.newBuilder().setSingleBytes(
+                    ByteString.copyFromUtf8("abc"))))
         .build();
 
     TestAllTypes simpleTest = (TestAllTypes) CEL_RUNTIME.createProgram(ast).eval();
