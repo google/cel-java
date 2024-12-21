@@ -3,6 +3,9 @@ package dev.cel.protobuf;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.Map;
 import java.util.Optional;
 
 @Internal
@@ -52,11 +55,29 @@ public abstract class CelLiteDescriptor {
   @Internal
   @Immutable
   public static final class FieldInfo {
-    private final Class<?> javaType;
     private final String javaTypeName;
     private final String methodSuffixName;
+    private final String fieldJavaClassName;
+    private final Type fieldType;
 
-    public Class<?> getJavaType() {
+    public enum Type {
+      SCALAR,
+      LIST,
+      MAP
+    }
+
+    // Lazily-loaded field
+    @SuppressWarnings("Immutable")
+    private volatile Class<?> javaType;
+
+    public Class<?> getFieldJavaClass() {
+      if (javaType == null) {
+        synchronized (this) {
+          if (javaType == null) {
+            javaType = deriveArgumentJavaType();
+          }
+        }
+      }
       return javaType;
     }
 
@@ -69,22 +90,53 @@ public abstract class CelLiteDescriptor {
     }
 
     public String getSetterName() {
-      return "set" + getMethodSuffixName();
+      String prefix = "";
+      switch (fieldType) {
+        case SCALAR:
+          prefix = "set";
+          break;
+        case LIST:
+          prefix = "addAll";
+          break;
+        case MAP:
+          prefix = "putAll";
+          break;
+      }
+      return prefix + getMethodSuffixName();
     }
 
     public String getGetterName() {
       return "get" + getMethodSuffixName();
     }
 
-    public FieldInfo(String javaTypeName, String methodSuffixName) {
-      this.javaTypeName = javaTypeName;
-      this.javaType = getClass(javaTypeName);
-      this.methodSuffixName = methodSuffixName;
+    public String getFieldJavaClassName() {
+      return fieldJavaClassName;
     }
 
-    private static Class<?> getClass(String javaTypeName) {
+    public Type getFieldType() {
+      return fieldType;
+    }
 
-     switch (javaTypeName) {
+    public FieldInfo(
+        String javaTypeName,
+        String methodSuffixName,
+        String fieldJavaClassName,
+        String fieldType
+        ) {
+      this.javaTypeName = javaTypeName;
+      this.methodSuffixName = methodSuffixName;
+      this.fieldJavaClassName = fieldJavaClassName;
+      this.fieldType = Type.valueOf(fieldType);
+    }
+
+    private Class<?> deriveArgumentJavaType() {
+      if (fieldType.equals(Type.LIST)) {
+        return Iterable.class;
+      } else if (fieldType.equals(Type.MAP)) {
+        return Map.class;
+      }
+
+      switch (javaTypeName) {
         case "INT":
           return int.class;
         case "LONG":
@@ -98,11 +150,14 @@ public abstract class CelLiteDescriptor {
         case "STRING":
           return String.class;
         case "BYTE_STRING":
-          return Void.class;
         case "ENUM":
-          return Void.class;
         case "MESSAGE":
-          return Void.class;
+          // TODO: Handle WKTs separately
+          try {
+            return Class.forName(fieldJavaClassName);
+          } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+          }
       }
 
       throw new IllegalArgumentException("Unexpected java type name for " + javaTypeName);

@@ -1,5 +1,6 @@
 package dev.cel.protobuf;
 
+
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -16,6 +17,7 @@ import com.google.protobuf.ExtensionRegistry;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.internal.ProtoJavaQualifiedNames;
 import dev.cel.protobuf.CelLiteDescriptor.FieldInfo;
+import dev.cel.protobuf.CelLiteDescriptor.FieldInfo.Type;
 import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
 import dev.cel.protobuf.JavaFileGenerator.JavaFileGeneratorOption;
 import java.io.File;
@@ -79,9 +81,33 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
       ImmutableMap.Builder<String, FieldInfo> fieldMap = ImmutableMap.builder();
       for (FieldDescriptor fieldDescriptor : descriptor.getFields()) {
         String methodSuffixName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, fieldDescriptor.getName());
-        print(String.format("Method suffix name in %s: %s", descriptor.getFullName(), methodSuffixName));
 
-        fieldMap.put(fieldDescriptor.getName(), new FieldInfo(fieldDescriptor.getJavaType().toString(), methodSuffixName));
+        String javaType = fieldDescriptor.getJavaType().toString();
+        String fieldJavaClassName = "";
+        switch (javaType) {
+          case "ENUM":
+            fieldJavaClassName = ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(fieldDescriptor.getEnumType());
+            break;
+          default:
+            break;
+        }
+
+        Type fieldType;
+        if (fieldDescriptor.isMapField()) {
+          fieldType = Type.MAP;
+        } else if (fieldDescriptor.isRepeated()) {
+          fieldType = Type.LIST;
+        } else {
+          fieldType = Type.SCALAR;
+        }
+
+        fieldMap.put(fieldDescriptor.getName(), new FieldInfo(javaType, methodSuffixName, fieldJavaClassName, fieldType.toString()));
+
+        print(String.format("Method suffix name in %s, for field %s: %s", descriptor.getFullName(), fieldDescriptor.getFullName(), methodSuffixName));
+        print(String.format("FieldType: %s", fieldType));
+        if (!fieldJavaClassName.isEmpty()) {
+          print(String.format("Java class name for field %s: %s", fieldDescriptor.getName(), fieldJavaClassName));
+        }
       }
 
       messageInfoListBuilder.add(
@@ -100,8 +126,6 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
             .setMessageInfoList(messageInfoListBuilder.build())
             .build());
   }
-
-
 
   private String extractProtoPath(String descriptorPath) {
     FileDescriptorSet fds = load(descriptorPath);

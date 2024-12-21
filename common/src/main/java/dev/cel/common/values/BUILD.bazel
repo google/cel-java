@@ -151,6 +151,7 @@ java_library(
         ":cel_value",
         ":cel_value_provider",
         "//common/annotations",
+        "//common/internal:converter",
         "//common/internal:default_instance_message_factory",
         "//common/values:proto_message_lite_value",
         "//protobuf:cel_lite_descriptor",

@@ -8,6 +8,7 @@ import com.google.protobuf.DescriptorProtos.FileOptions;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.EnumDescriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
+import com.google.protobuf.Descriptors.GenericDescriptor;
 import com.google.protobuf.Descriptors.ServiceDescriptor;
 import java.util.ArrayDeque;
 
@@ -26,23 +27,36 @@ public final class ProtoJavaQualifiedNames {
    *     (Nested class with java multiple files disabled)
    */
   public static String getFullyQualifiedJavaClassName(Descriptor descriptor) {
+    return getFullyQualifiedJavaClassNameImpl(descriptor);
+  }
+
+  public static String getFullyQualifiedJavaClassName(EnumDescriptor descriptor) {
+    return getFullyQualifiedJavaClassNameImpl(descriptor);
+  }
+
+  private static String getFullyQualifiedJavaClassNameImpl(GenericDescriptor descriptor) {
     StringBuilder fullClassName = new StringBuilder();
 
-    fullClassName.append(getJavaPackageName(descriptor)).append(".");
+    fullClassName.append(getJavaPackageName(descriptor.getFile())).append(".");
 
-    String javaOuterClass = getJavaOuterClassName(descriptor);
+    String javaOuterClass = getJavaOuterClassName(descriptor.getFile());
     if (!Strings.isNullOrEmpty(javaOuterClass)) {
       fullClassName.append(javaOuterClass).append("$");
     }
 
     // Recursively build the target class name in case if the message is nested.
     ArrayDeque<String> classNames = new ArrayDeque<>();
-    Descriptor d = descriptor;
+    GenericDescriptor d = descriptor;
 
     int recurseCount = 0;
     while (d != null) {
       classNames.push(d.getName());
-      d = d.getContainingType();
+
+      if (d instanceof EnumDescriptor) {
+        d = ((EnumDescriptor) d).getContainingType();
+      } else {
+        d = ((Descriptor) d).getContainingType();
+      }
       recurseCount++;
       if (recurseCount >= SAFE_RECURSE_LIMIT) {
         throw new IllegalStateException(
@@ -94,6 +108,36 @@ public final class ProtoJavaQualifiedNames {
    */
   private static String getJavaOuterClassName(Descriptor descriptor) {
     FileOptions options = descriptor.getFile().getOptions();
+
+    if (options.getJavaMultipleFiles()) {
+      // If java_multiple_files is enabled, protoc does not generate a wrapper outer class
+      return "";
+    }
+
+    if (options.hasJavaOuterClassname()) {
+      return options.getJavaOuterClassname();
+    } else {
+      // If an outer class name is not explicitly set, the name is converted into
+      // Pascal case based on the snake cased file name
+      // Ex: messages_proto.proto becomes MessagesProto
+      String protoFileNameWithoutExtension =
+          Files.getNameWithoutExtension(descriptor.getFile().getFullName());
+      String outerClassName =
+          CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, protoFileNameWithoutExtension);
+      if (hasConflictingClassName(descriptor.getFile(), outerClassName)) {
+        outerClassName += "OuterClass";
+      }
+      return outerClassName;
+    }
+  }
+
+  /**
+   * Gets a wrapping outer class name from the descriptor. The outer class name differs depending on
+   * the proto options set. See
+   * https://developers.google.com/protocol-buffers/docs/reference/java-generated#invocation
+   */
+  private static String getJavaOuterClassName(FileDescriptor descriptor) {
+    FileOptions options = descriptor.getOptions();
 
     if (options.getJavaMultipleFiles()) {
       // If java_multiple_files is enabled, protoc does not generate a wrapper outer class
