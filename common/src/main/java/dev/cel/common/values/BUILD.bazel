@@ -99,11 +99,27 @@ java_library(
 )
 
 java_library(
+    name = "base_proto_cel_value_converter",
+    srcs = ["BaseProtoCelValueConverter.java"],
+    deps = [
+        ":cel_value",
+        ":values",
+        "//common:options",
+        "//common/values:cel_byte_string",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_protobuf_protobuf_java_util",
+    ],
+)
+
+java_library(
     name = "proto_message_value",
     srcs = PROTO_MESSAGE_VALUE_SOURCES,
     tags = [
     ],
     deps = [
+        ":base_proto_cel_value_converter",
         ":cel_value",
         ":values",
         "//:auto_value",

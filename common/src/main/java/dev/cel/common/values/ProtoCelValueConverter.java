@@ -23,7 +23,6 @@ import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.DoubleValue;
@@ -56,17 +55,19 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * {@code CelValueConverter} handles bidirectional conversion between native Java and protobuf
- * objects to {@link CelValue}.
+ * {@code ProtoCelValueConverter} handles bidirectional conversion between native Java and protobuf
+ * objects to {@link CelValue}. This converter leverages descriptors, thus requires the full version of protobuf implementation.
  *
  * <p>Protobuf semantics take precedence for conversion. For example, CEL's TimestampValue will be
  * converted into Protobuf's Timestamp instead of java.time.Instant.
+ *
+ *
  *
  * <p>CEL Library Internals. Do Not Use.
  */
 @Immutable
 @Internal
-public final class ProtoCelValueConverter extends CelValueConverter {
+public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
   private final CelDescriptorPool celDescriptorPool;
   private final DynamicProto dynamicProto;
 
@@ -74,27 +75,6 @@ public final class ProtoCelValueConverter extends CelValueConverter {
   public static ProtoCelValueConverter newInstance(
       CelOptions celOptions, CelDescriptorPool celDescriptorPool, DynamicProto dynamicProto) {
     return new ProtoCelValueConverter(celOptions, celDescriptorPool, dynamicProto);
-  }
-
-  /**
-   * Adapts a {@link CelValue} to a native Java object. The CelValue is adapted into protobuf object
-   * when an equivalent exists.
-   */
-  @Override
-  public Object fromCelValueToJavaObject(CelValue celValue) {
-    Preconditions.checkNotNull(celValue);
-
-    if (celValue instanceof TimestampValue) {
-      return TimeUtils.toProtoTimestamp(((TimestampValue) celValue).value());
-    } else if (celValue instanceof DurationValue) {
-      return TimeUtils.toProtoDuration(((DurationValue) celValue).value());
-    } else if (celValue instanceof BytesValue) {
-      return ByteString.copyFrom(((BytesValue) celValue).value().toByteArray());
-    } else if (NullValue.NULL_VALUE.equals(celValue)) {
-      return com.google.protobuf.NullValue.NULL_VALUE;
-    }
-
-    return super.fromCelValueToJavaObject(celValue);
   }
 
   /** Adapts a Protobuf message into a {@link CelValue}. */
@@ -107,7 +87,7 @@ public final class ProtoCelValueConverter extends CelValueConverter {
     }
 
     WellKnownProto wellKnownProto =
-        WellKnownProto.getByDescriptorName(message.getDescriptorForType().getFullName());
+        WellKnownProto.getByTypeName(message.getDescriptorForType().getFullName());
     if (wellKnownProto == null) {
       return ProtoMessageValue.create((Message) message, celDescriptorPool, this);
     }
@@ -173,10 +153,6 @@ public final class ProtoCelValueConverter extends CelValueConverter {
     } else if (value instanceof Message.Builder) {
       Message.Builder msgBuilder = (Message.Builder) value;
       return fromProtoMessageToCelValue(msgBuilder.build());
-    } else if (value instanceof ByteString) {
-      return BytesValue.create(CelByteString.of(((ByteString) value).toByteArray()));
-    } else if (value instanceof com.google.protobuf.NullValue) {
-      return NullValue.NULL_VALUE;
     } else if (value instanceof EnumValueDescriptor) {
       // (b/178627883) Strongly typed enum is not supported yet
       return IntValue.create(((EnumValueDescriptor) value).getNumber());

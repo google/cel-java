@@ -1,10 +1,12 @@
 package dev.cel.protobuf;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.ByteString;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
@@ -22,6 +24,7 @@ import org.junit.runner.RunWith;
 public class CelLiteDescriptorGeneratorTest {
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
+          .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
           .addMessageTypes(TestAllTypes.getDescriptor())
           .setContainer("cel.expr.conformance.proto3")
           .build();
@@ -75,5 +78,14 @@ public class CelLiteDescriptorGeneratorTest {
     TestAllTypes simpleTest = (TestAllTypes) CEL_RUNTIME.createProgram(ast).eval();
 
     assertThat(simpleTest).isEqualTo(expectedMessage);
+  }
+
+  @Test
+  public void fieldSelection() throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("msg.single_int64").getAst();
+
+    Long result = (Long) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", TestAllTypes.newBuilder().setSingleInt64(6L)));
+
+    assertThat(result).isEqualTo(6L);
   }
 }
