@@ -173,6 +173,7 @@ java_library(
         "//common:options",
         "//common/annotations",
         "//common/internal:cel_descriptor_pools",
+        "//common/internal:cel_lite_desriptor_pool",
         "//common/internal:comparison_functions",
         "//common/internal:default_message_factory",
         "//common/internal:dynamic_proto",

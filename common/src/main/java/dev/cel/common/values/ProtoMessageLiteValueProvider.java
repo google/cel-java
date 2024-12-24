@@ -1,6 +1,5 @@
 package dev.cel.common.values;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
@@ -22,9 +21,9 @@ import com.google.protobuf.Value;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelProtoJsonAdapter;
 import dev.cel.common.CelRuntimeException;
+import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.internal.DefaultInstanceMessageFactory;
 import dev.cel.common.types.CelTypes;
-import dev.cel.protobuf.CelLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldInfo;
 import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
 import java.lang.reflect.InvocationTargetException;
@@ -41,12 +40,11 @@ import java.util.Optional;
 
 @Immutable
 public class ProtoMessageLiteValueProvider implements CelValueProvider {
-  // TODO: Turn this into a pool
-  private final ImmutableSet<CelLiteDescriptor> descriptors;
+  private final CelLiteDescriptorPool descriptorPool;
 
   @Override
   public Optional<CelValue> newValue(String structType, Map<String, Object> fields) {
-    MessageInfo messageInfo = findMessageInfoByName(structType).orElse(null);
+    MessageInfo messageInfo = descriptorPool.findMessageInfoByTypeName(structType).orElse(null);
 
     if (messageInfo == null) {
       return Optional.empty();
@@ -200,24 +198,11 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
     return (Class<?>) paramType;
   }
 
-  private Optional<MessageInfo> findMessageInfoByName(String protoFqn) {
-    // TODO: Move logic into pool
-    return descriptors.stream()
-        .map(descriptor -> descriptor.findMessageInfo(protoFqn))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .findAny();
+  public static ProtoMessageLiteValueProvider newInstance(CelLiteDescriptorPool celLiteDescriptorPool) {
+    return new ProtoMessageLiteValueProvider(celLiteDescriptorPool);
   }
 
-  public static ProtoMessageLiteValueProvider newInstance(CelLiteDescriptor... descriptors) {
-    return newInstance(ImmutableSet.copyOf(descriptors));
-  }
-
-  public static ProtoMessageLiteValueProvider newInstance(Iterable<CelLiteDescriptor> descriptors) {
-    return new ProtoMessageLiteValueProvider(descriptors);
-  }
-
-  private ProtoMessageLiteValueProvider(Iterable<CelLiteDescriptor> descriptors) {
-    this.descriptors = ImmutableSet.copyOf(descriptors);
+  private ProtoMessageLiteValueProvider(CelLiteDescriptorPool celLiteDescriptorPool) {
+    this.descriptorPool = celLiteDescriptorPool;
   }
 }

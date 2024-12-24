@@ -233,6 +233,17 @@ java_library(
 )
 
 java_library(
+    name = "cel_lite_descriptor_pool",
+    srcs = ["CelLiteDescriptorPool.java"],
+    deps = [
+        "//common/annotations",
+        "//protobuf:cel_lite_descriptor",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "safe_string_formatter",
     srcs = ["SafeStringFormatter.java"],
     tags = [

@@ -1,23 +1,21 @@
 package dev.cel.common.values;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
-import dev.cel.protobuf.CelLiteDescriptor;
+import dev.cel.common.internal.CelLiteDescriptorPool;
+import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
-import java.util.Optional;
 
 @Immutable
 @Internal
 public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter {
-  // TODO: Turn this into a pool
-  private final ImmutableSet<CelLiteDescriptor> descriptors;
+  private final CelLiteDescriptorPool descriptorPool;
 
-  public static ProtoLiteCelValueConverter newInstance(CelOptions celOptions, ImmutableSet<CelLiteDescriptor> descriptors) {
-    return new ProtoLiteCelValueConverter(celOptions, descriptors);
+  public static ProtoLiteCelValueConverter newInstance(CelOptions celOptions, CelLiteDescriptorPool celLiteDescriptorPool) {
+    return new ProtoLiteCelValueConverter(celOptions, celLiteDescriptorPool);
   }
 
   @Override
@@ -33,22 +31,25 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
   }
 
   private CelValue fromProtoMessageToCelValue(MessageLite msg) {
+    // TODO: WKT
     String className = msg.getClass().getName();
-    System.out.println();
+    MessageInfo messageInfo = descriptorPool.findMessageInfoByClassName(className).orElse(null);
+    WellKnownProto wellKnownProto = WellKnownProto.getByTypeName(messageInfo.getFullyQualifiedProtoName());
+
+    if (wellKnownProto == null) {
+      return ProtoMessageLiteValue.create(msg, messageInfo.getFullyQualifiedProtoName());
+    }
     return null;
+
+    // String className = msg.getClass().getName();
+    // MessageInfo messageInfo = findMessageInfoByClassName(className).orElse(null);
+    // System.out.println();
+    // return null;
   }
 
-  private Optional<MessageInfo> findMessageInfoByName(String protoFqn) {
-    // TODO: Move logic into pool
-    return descriptors.stream()
-        .map(descriptor -> descriptor.findMessageInfo(protoFqn))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .findAny();
-  }
 
-  private ProtoLiteCelValueConverter(CelOptions celOptions, ImmutableSet<CelLiteDescriptor> descriptors) {
+  private ProtoLiteCelValueConverter(CelOptions celOptions, CelLiteDescriptorPool celLiteDescriptorPool) {
     super(celOptions);
-    this.descriptors = descriptors;
+    this.descriptorPool = celLiteDescriptorPool;
   }
 }

@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.values.ProtoLiteCelValueConverter;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.protobuf.CelLiteDescriptor;
@@ -288,13 +289,14 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
       if (options.enableCelValue()) {
         ImmutableSet<CelLiteDescriptor> liteDescriptors = celLiteDescriptorBuilder.build();
-        CelValueProvider messageValueProvider = ProtoMessageLiteValueProvider.newInstance(liteDescriptors);
+        CelLiteDescriptorPool celLiteDescriptorPool = CelLiteDescriptorPool.newInstance(liteDescriptors);
+        CelValueProvider messageValueProvider = ProtoMessageLiteValueProvider.newInstance(celLiteDescriptorPool);
         if (celValueProvider != null) {
           messageValueProvider =
               new CelValueProvider.CombinedCelValueProvider(celValueProvider, messageValueProvider);
         }
 
-        ProtoLiteCelValueConverter protoLiteCelValueConverter = ProtoLiteCelValueConverter.newInstance(options, liteDescriptors);
+        ProtoLiteCelValueConverter protoLiteCelValueConverter = ProtoLiteCelValueConverter.newInstance(options, celLiteDescriptorPool);
 
         runtimeTypeProvider =
             new RuntimeTypeProviderLegacyImpl(messageValueProvider, protoLiteCelValueConverter);

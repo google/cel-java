@@ -1,5 +1,7 @@
 package dev.cel.protobuf;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
@@ -17,10 +19,12 @@ public abstract class CelLiteDescriptor {
   private final ImmutableMap<String, MessageInfo> protoFqnToMessageInfo;
   private final ImmutableMap<String, MessageInfo> protoJavaClassNameToMessageInfo;
 
-  public Optional<MessageInfo> findMessageInfo(String protoFqn) {
-    return Optional.ofNullable(protoFqnToMessageInfo.get(protoFqn));
+  public ImmutableMap<String, MessageInfo> getProtoFqnToMessageInfo() {
+    return protoFqnToMessageInfo;
   }
-
+  public ImmutableMap<String, MessageInfo> getProtoJavaClassNameToMessageInfo() {
+    return protoJavaClassNameToMessageInfo;
+  }
 
   @Immutable
   @Internal
@@ -50,9 +54,9 @@ public abstract class CelLiteDescriptor {
         String fullyQualifiedProtoJavaClassName,
         ImmutableMap<String, FieldInfo> fieldInfoMap
     ) {
-      this.fullyQualifiedProtoName = fullyQualifiedProtoName;
-      this.fullyQualifiedProtoJavaClassName = fullyQualifiedProtoJavaClassName;
-      this.fieldInfoMap = fieldInfoMap;
+      this.fullyQualifiedProtoName = checkNotNull(fullyQualifiedProtoName);
+      this.fullyQualifiedProtoJavaClassName = checkNotNull(fullyQualifiedProtoJavaClassName);
+      this.fieldInfoMap = checkNotNull(fieldInfoMap);
     }
   }
 
