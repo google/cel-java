@@ -6,6 +6,7 @@
 package ${package_name};
 
 import javax.annotation.Generated;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import dev.cel.protobuf.CelLiteDescriptor;
 
@@ -17,11 +18,10 @@ public final class ${descriptor_class_name} extends CelLiteDescriptor {
     return DESCRIPTOR;
   }
 
-  private static ImmutableMap<String, MessageInfo> newMessageInfoMap() {
-     // TODO: Lazyload?
-     ImmutableMap.Builder<String, MessageInfo> messageInfoMapBuilder = ImmutableMap.builder();
+  private static ImmutableList<MessageInfo> newMessageInfoList() {
+     ImmutableList.Builder<MessageInfo> messageInfoListBuilder = ImmutableList.builder();
      <#list message_info_list as message_info>
-       messageInfoMapBuilder.put("${message_info.fullyQualifiedProtoName}",
+       messageInfoListBuilder.add(
           new MessageInfo(
             "${message_info.fullyQualifiedProtoName}",
             "${message_info.fullyQualifiedProtoJavaClassName}",
@@ -34,10 +34,10 @@ public final class ${descriptor_class_name} extends CelLiteDescriptor {
      );
      </#list>
 
-     return messageInfoMapBuilder.build();
+     return messageInfoListBuilder.build();
   }
 
   private ${descriptor_class_name}() {
-    super(newMessageInfoMap());
+    super(newMessageInfoList());
   }
 }

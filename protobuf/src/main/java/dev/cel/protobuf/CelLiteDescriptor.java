@@ -1,5 +1,6 @@
 package dev.cel.protobuf;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.ByteString;
@@ -14,6 +15,7 @@ import java.util.Optional;
 @Immutable
 public abstract class CelLiteDescriptor {
   private final ImmutableMap<String, MessageInfo> protoFqnToMessageInfo;
+  private final ImmutableMap<String, MessageInfo> protoJavaClassNameToMessageInfo;
 
   public Optional<MessageInfo> findMessageInfo(String protoFqn) {
     return Optional.ofNullable(protoFqnToMessageInfo.get(protoFqn));
@@ -174,7 +176,15 @@ public abstract class CelLiteDescriptor {
     }
   }
 
-  protected CelLiteDescriptor(ImmutableMap<String, MessageInfo> protoFqnToMessageInfo) {
-    this.protoFqnToMessageInfo = protoFqnToMessageInfo;
+  protected CelLiteDescriptor(ImmutableList<MessageInfo> messageInfoList) {
+    ImmutableMap.Builder<String, MessageInfo> protoFqnMapBuilder = ImmutableMap.builder();
+    ImmutableMap.Builder<String, MessageInfo> protoJavaClassNameMapBuilder = ImmutableMap.builder();
+    for (MessageInfo msgInfo : messageInfoList) {
+      protoFqnMapBuilder.put(msgInfo.getFullyQualifiedProtoName(), msgInfo);
+      protoJavaClassNameMapBuilder.put(msgInfo.getFullyQualifiedProtoJavaClassName(), msgInfo);
+    }
+
+    this.protoFqnToMessageInfo = protoFqnMapBuilder.buildOrThrow();
+    this.protoJavaClassNameToMessageInfo = protoJavaClassNameMapBuilder.buildOrThrow();
   }
 }
