@@ -105,6 +105,7 @@ java_library(
         ":cel_value",
         ":values",
         "//common:options",
+        "//common/annotations",
         "//common/values:cel_byte_string",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -182,15 +183,22 @@ java_library(
 
 java_library(
     name = "proto_message_lite_value",
-    srcs = ["ProtoMessageLiteValue.java"],
+    srcs = [
+        "ProtoLiteCelValueConverter.java",
+        "ProtoMessageLiteValue.java",
+    ],
     tags = [
     ],
     deps = [
+        ":base_proto_cel_value_converter",
         ":cel_value",
         ":values",
         "//:auto_value",
+        "//common:options",
+        "//common/annotations",
         "//common/types",
         "//common/types:type_providers",
+        "//protobuf:cel_lite_descriptor",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",

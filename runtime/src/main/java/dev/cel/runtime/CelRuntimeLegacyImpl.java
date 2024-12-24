@@ -22,6 +22,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import dev.cel.common.values.ProtoLiteCelValueConverter;
+import dev.cel.common.values.ProtoMessageLiteValueProvider;
+import dev.cel.protobuf.CelLiteDescriptor;
 import javax.annotation.concurrent.ThreadSafe;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
@@ -91,6 +94,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     private final ImmutableSet.Builder<FileDescriptor> fileTypes;
     private final HashMap<String, CelFunctionBinding> customFunctionBindings;
     private final ImmutableSet.Builder<CelRuntimeLibrary> celRuntimeLibraries;
+    private final ImmutableSet.Builder<CelLiteDescriptor> celLiteDescriptorBuilder;
 
     @SuppressWarnings("unused")
     private CelOptions options;
@@ -126,6 +130,17 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     @Override
     public CelRuntimeBuilder addMessageTypes(Iterable<Descriptor> descriptors) {
       return addFileTypes(CelDescriptorUtil.getFileDescriptorsForDescriptors(descriptors));
+    }
+
+    @Override
+    public CelRuntimeBuilder addCelLiteDescriptors(CelLiteDescriptor... descriptors) {
+      return addCelLiteDescriptors(Arrays.asList(descriptors));
+    }
+
+    @Override
+    public CelRuntimeBuilder addCelLiteDescriptors(Iterable<CelLiteDescriptor> descriptors) {
+      this.celLiteDescriptorBuilder.addAll(descriptors);
+      return this;
     }
 
     @Override
@@ -272,16 +287,17 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       RuntimeTypeProvider runtimeTypeProvider;
 
       if (options.enableCelValue()) {
-        // Temporarily set empty value provider to disallow resolution of messages through descriptors for this POC
-        CelValueProvider emptyValueProvider = (structType, fields) -> Optional.empty();
+        ImmutableSet<CelLiteDescriptor> liteDescriptors = celLiteDescriptorBuilder.build();
+        CelValueProvider messageValueProvider = ProtoMessageLiteValueProvider.newInstance(liteDescriptors);
         if (celValueProvider != null) {
-          emptyValueProvider =
-              new CelValueProvider.CombinedCelValueProvider(celValueProvider, emptyValueProvider);
+          messageValueProvider =
+              new CelValueProvider.CombinedCelValueProvider(celValueProvider, messageValueProvider);
         }
 
+        ProtoLiteCelValueConverter protoLiteCelValueConverter = ProtoLiteCelValueConverter.newInstance(options, liteDescriptors);
+
         runtimeTypeProvider =
-            new RuntimeTypeProviderLegacyImpl(
-                options, emptyValueProvider, celDescriptorPool, dynamicProto);
+            new RuntimeTypeProviderLegacyImpl(messageValueProvider, protoLiteCelValueConverter);
       } else {
         runtimeTypeProvider = new DescriptorMessageProvider(runtimeTypeFactory, options);
       }
@@ -374,6 +390,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       this.fileTypes = ImmutableSet.builder();
       this.customFunctionBindings = new HashMap<>();
       this.celRuntimeLibraries = ImmutableSet.builder();
+      this.celLiteDescriptorBuilder = ImmutableSet.builder();
       this.extensionRegistry = ExtensionRegistry.getEmptyRegistry();
       this.customTypeFactory = null;
     }
@@ -390,6 +407,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       this.fileTypes = deepCopy(builder.fileTypes);
       this.celRuntimeLibraries = deepCopy(builder.celRuntimeLibraries);
       this.customFunctionBindings = new HashMap<>(builder.customFunctionBindings);
+      this.celLiteDescriptorBuilder = builder.celLiteDescriptorBuilder;
     }
 
     private static <T> ImmutableSet.Builder<T> deepCopy(ImmutableSet.Builder<T> builderToCopy) {

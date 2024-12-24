@@ -22,6 +22,11 @@ java_library(
 )
 
 java_library(
+    name = "base_proto_cel_value_converter",
+    exports = ["//common/src/main/java/dev/cel/common/values:base_proto_cel_value_converter"],
+)
+
+java_library(
     name = "proto_message_value_provider",
     exports = ["//common/src/main/java/dev/cel/common/values:proto_message_value_provider"],
 )
@@ -42,6 +47,6 @@ java_library(
 )
 
 java_library(
-    name = "cel_lite_proto_message_value_provider",
+    name = "proto_message_lite_value_provider",
     exports = ["//common/src/main/java/dev/cel/common/values:proto_message_lite_value_provider"],
 )

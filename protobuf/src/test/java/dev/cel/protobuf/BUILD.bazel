@@ -17,7 +17,7 @@ java_library(
         "//common/internal:converter",
         "//common/internal:proto_java_qualified_names",
         "//common/types",
-        "//common/values:cel_lite_proto_message_value_provider",
+        "//common/values:proto_message_lite_value_provider",
         "//compiler",
         "//compiler:compiler_builder",
         "//runtime",

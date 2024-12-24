@@ -7,7 +7,6 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.types.StructTypeReference;
-import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.NestedTestAllTypes;
@@ -32,8 +31,7 @@ public class CelLiteDescriptorGeneratorTest {
   private static final CelRuntime CEL_RUNTIME =
       CelRuntimeFactory.standardCelRuntimeBuilder()
           .setOptions(CelOptions.current().enableCelValue(true).build())
-          .setValueProvider(ProtoMessageLiteValueProvider.newInstance(
-              TestAllTypesCelLiteDescriptor.getDescriptor()))
+          .addCelLiteDescriptors(TestAllTypesCelLiteDescriptor.getDescriptor())
           .build();
 
   @Test

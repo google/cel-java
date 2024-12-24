@@ -41,17 +41,12 @@ import java.util.Optional;
 
 @Immutable
 public class ProtoMessageLiteValueProvider implements CelValueProvider {
+  // TODO: Turn this into a pool
   private final ImmutableSet<CelLiteDescriptor> descriptors;
 
   @Override
   public Optional<CelValue> newValue(String structType, Map<String, Object> fields) {
-    // TODO: Move this logic into a pool
-    MessageInfo messageInfo = descriptors.stream()
-        .map(descriptor -> descriptor.findMessageInfo(structType))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .findAny()
-        .orElse(null);
+    MessageInfo messageInfo = findMessageInfoByName(structType).orElse(null);
 
     if (messageInfo == null) {
       return Optional.empty();
@@ -203,6 +198,15 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
     }
 
     return (Class<?>) paramType;
+  }
+
+  private Optional<MessageInfo> findMessageInfoByName(String protoFqn) {
+    // TODO: Move logic into pool
+    return descriptors.stream()
+        .map(descriptor -> descriptor.findMessageInfo(protoFqn))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .findAny();
   }
 
   public static ProtoMessageLiteValueProvider newInstance(CelLiteDescriptor... descriptors) {

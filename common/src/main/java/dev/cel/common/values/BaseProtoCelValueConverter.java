@@ -14,11 +14,13 @@ import com.google.protobuf.Value;
 import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.Timestamps;
 import dev.cel.common.CelOptions;
+import dev.cel.common.annotations.Internal;
 import java.time.Duration;
 import java.time.Instant;
 
 @Immutable
-abstract class BaseProtoCelValueConverter extends CelValueConverter {
+@Internal
+public abstract class BaseProtoCelValueConverter extends CelValueConverter {
 
   /**
    * Adapts a {@link CelValue} to a native Java object. The CelValue is adapted into protobuf object

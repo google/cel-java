@@ -100,7 +100,7 @@ java_library(
         #         "//java/com/google/testing/testsize:annotations",
         ":test_all_types_proto3_java_lite_cel_proto",
         "//testing:base_interpreter_test",
-        "//common/values:cel_lite_proto_message_value_provider",
+        "//common/values:proto_message_lite_value_provider",
         "//runtime",
         "//extensions:optional_library",
         "@maven//:junit_junit",

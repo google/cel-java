@@ -7,13 +7,16 @@ import dev.cel.common.annotations.Internal;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Base class for code generated CEL descriptors to extend from.
+ */
 @Internal
 @Immutable
 public abstract class CelLiteDescriptor {
-  private final ImmutableMap<String, MessageInfo> protoNameToMessageInfoMap;
+  private final ImmutableMap<String, MessageInfo> protoFqnToMessageInfo;
 
   public Optional<MessageInfo> findMessageInfo(String protoFqn) {
-    return Optional.ofNullable(protoNameToMessageInfoMap.get(protoFqn));
+    return Optional.ofNullable(protoFqnToMessageInfo.get(protoFqn));
   }
 
 
@@ -171,7 +174,7 @@ public abstract class CelLiteDescriptor {
     }
   }
 
-  protected CelLiteDescriptor(ImmutableMap<String, MessageInfo> protoNameToMessageInfoMap) {
-    this.protoNameToMessageInfoMap = protoNameToMessageInfoMap;
+  protected CelLiteDescriptor(ImmutableMap<String, MessageInfo> protoFqnToMessageInfo) {
+    this.protoFqnToMessageInfo = protoFqnToMessageInfo;
   }
 }
