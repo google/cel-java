@@ -40,6 +40,7 @@ import java.util.Optional;
 
 @Immutable
 public class ProtoMessageLiteValueProvider implements CelValueProvider {
+  private final ProtoLiteCelValueConverter protoLiteCelValueConverter;
   private final CelLiteDescriptorPool descriptorPool;
 
   @Override
@@ -80,7 +81,7 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
       }
     }
 
-    return Optional.of(ProtoMessageLiteValue.create(msgBuilder.build(), messageInfo.getFullyQualifiedProtoName()));
+    return Optional.of(ProtoMessageLiteValue.create(msgBuilder.build(), messageInfo.getFullyQualifiedProtoName(), descriptorPool, protoLiteCelValueConverter));
   }
 
   private static Object adaptToProtoFieldCompatibleValue(Object value, FieldInfo fieldInfo, Parameter parameter) {
@@ -198,11 +199,12 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
     return (Class<?>) paramType;
   }
 
-  public static ProtoMessageLiteValueProvider newInstance(CelLiteDescriptorPool celLiteDescriptorPool) {
-    return new ProtoMessageLiteValueProvider(celLiteDescriptorPool);
+  public static ProtoMessageLiteValueProvider newInstance(ProtoLiteCelValueConverter protoLiteCelValueConverter, CelLiteDescriptorPool celLiteDescriptorPool) {
+    return new ProtoMessageLiteValueProvider(protoLiteCelValueConverter, celLiteDescriptorPool);
   }
 
-  private ProtoMessageLiteValueProvider(CelLiteDescriptorPool celLiteDescriptorPool) {
+  private ProtoMessageLiteValueProvider(ProtoLiteCelValueConverter protoLiteCelValueConverter, CelLiteDescriptorPool celLiteDescriptorPool) {
+    this.protoLiteCelValueConverter = protoLiteCelValueConverter;
     this.descriptorPool = celLiteDescriptorPool;
   }
 }

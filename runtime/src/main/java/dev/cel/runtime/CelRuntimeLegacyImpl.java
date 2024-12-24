@@ -290,13 +290,14 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       if (options.enableCelValue()) {
         ImmutableSet<CelLiteDescriptor> liteDescriptors = celLiteDescriptorBuilder.build();
         CelLiteDescriptorPool celLiteDescriptorPool = CelLiteDescriptorPool.newInstance(liteDescriptors);
-        CelValueProvider messageValueProvider = ProtoMessageLiteValueProvider.newInstance(celLiteDescriptorPool);
+
+        ProtoLiteCelValueConverter protoLiteCelValueConverter = ProtoLiteCelValueConverter.newInstance(options, celLiteDescriptorPool);
+        CelValueProvider messageValueProvider = ProtoMessageLiteValueProvider.newInstance(protoLiteCelValueConverter, celLiteDescriptorPool);
         if (celValueProvider != null) {
           messageValueProvider =
               new CelValueProvider.CombinedCelValueProvider(celValueProvider, messageValueProvider);
         }
 
-        ProtoLiteCelValueConverter protoLiteCelValueConverter = ProtoLiteCelValueConverter.newInstance(options, celLiteDescriptorPool);
 
         runtimeTypeProvider =
             new RuntimeTypeProviderLegacyImpl(messageValueProvider, protoLiteCelValueConverter);
