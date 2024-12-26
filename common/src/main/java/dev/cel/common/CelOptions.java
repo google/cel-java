@@ -67,6 +67,8 @@ public abstract class CelOptions {
 
   public abstract boolean retainUnbalancedLogicalExpressions();
 
+  public abstract boolean enableHiddenAccumulatorVar();
+
   // Type-Checker related options
 
   public abstract boolean enableCompileTimeOverloadResolution();
@@ -108,8 +110,6 @@ public abstract class CelOptions {
   public abstract boolean unwrapWellKnownTypesOnFunctionDispatch();
 
   public abstract ProtoUnsetFieldOptions fromProtoUnsetFieldOption();
-
-  public abstract boolean adaptRuntimeTypeValueToNativeType();
 
   public abstract boolean enableStringConversion();
 
@@ -190,6 +190,7 @@ public abstract class CelOptions {
         .populateMacroCalls(false)
         .retainRepeatedUnaryOperators(false)
         .retainUnbalancedLogicalExpressions(false)
+        .enableHiddenAccumulatorVar(false)
         // Type-Checker options
         .enableCompileTimeOverloadResolution(false)
         .enableHomogeneousLiterals(false)
@@ -211,7 +212,6 @@ public abstract class CelOptions {
         .comprehensionMaxIterations(-1)
         .unwrapWellKnownTypesOnFunctionDispatch(true)
         .fromProtoUnsetFieldOption(ProtoUnsetFieldOptions.BIND_DEFAULT)
-        .adaptRuntimeTypeValueToNativeType(false)
         .enableStringConversion(true)
         .enableStringConcatenation(true)
         .enableListConcatenation(true)
@@ -321,6 +321,16 @@ public abstract class CelOptions {
      * This behavior may not always be desirable.
      */
     public abstract Builder retainUnbalancedLogicalExpressions(boolean value);
+
+    /**
+     * Enable the use of a hidden accumulator variable name.
+     *
+     * <p>This is a temporary option to transition to using an internal identifier for the
+     * accumulator variable used by builtin comprehension macros. When enabled, parses result in a
+     * semantically equivalent AST, but with a different accumulator variable that can't be directly
+     * referenced in the source expression.
+     */
+    public abstract Builder enableHiddenAccumulatorVar(boolean value);
 
     // Type-Checker related options
 
@@ -522,14 +532,6 @@ public abstract class CelOptions {
      * @see ProtoUnsetFieldOptions
      */
     public abstract Builder fromProtoUnsetFieldOption(ProtoUnsetFieldOptions value);
-
-    /**
-     * If enabled, result of the type function call `type(foo)` will be evaluated as a native-type
-     * equivalent {@code CelType} instead of the protobuf type equivalent from {value.proto}.
-     *
-     * <p>This is a temporary flag for migration purposes, and will be removed in the near future.
-     */
-    public abstract Builder adaptRuntimeTypeValueToNativeType(boolean value);
 
     /**
      * Enables string() overloads for the runtime. This option exists to maintain parity with

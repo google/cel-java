@@ -74,7 +74,7 @@ maven_install(
         "com.google.auto.value:auto-value:1.11.0",
         "com.google.auto.value:auto-value-annotations:1.11.0",
         "com.google.code.findbugs:annotations:3.0.1",
-        "com.google.errorprone:error_prone_annotations:2.33.0",
+        "com.google.errorprone:error_prone_annotations:2.36.0",
         "com.google.guava:guava:33.3.1-jre",
         "com.google.guava:guava-testlib:33.3.1-jre",
         maven.artifact(

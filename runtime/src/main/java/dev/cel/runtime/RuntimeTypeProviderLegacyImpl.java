@@ -14,10 +14,7 @@
 
 package dev.cel.runtime;
 
-import dev.cel.expr.Type;
-import dev.cel.expr.Value;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
@@ -25,8 +22,6 @@ import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelDescriptorPool;
 import dev.cel.common.internal.DynamicProto;
-import dev.cel.common.types.CelType;
-import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.ProtoCelValueConverter;
@@ -34,7 +29,6 @@ import dev.cel.common.values.SelectableValue;
 import dev.cel.common.values.StringValue;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import org.jspecify.annotations.Nullable;
 
 /** Bridge between the old RuntimeTypeProvider and CelValueProvider APIs. */
 @Internal
@@ -43,7 +37,6 @@ public final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider 
 
   private final CelValueProvider valueProvider;
   private final ProtoCelValueConverter protoCelValueConverter;
-  private final TypeResolver standardTypeResolver;
 
   @VisibleForTesting
   public RuntimeTypeProviderLegacyImpl(
@@ -54,7 +47,6 @@ public final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider 
     this.valueProvider = valueProvider;
     this.protoCelValueConverter =
         ProtoCelValueConverter.newInstance(celOptions, celDescriptorPool, dynamicProto);
-    this.standardTypeResolver = StandardTypeResolver.getInstance(celOptions);
   }
 
   @Override
@@ -115,28 +107,6 @@ public final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider 
     return unwrapCelValue(protoCelValueConverter.fromJavaObjectToCelValue(message));
   }
 
-  @Override
-  public Value resolveObjectType(Object obj, Value checkedTypeValue) {
-    // Presently, Java only supports evaluation of checked-only expressions.
-    Preconditions.checkNotNull(checkedTypeValue);
-    return standardTypeResolver.resolveObjectType(obj, checkedTypeValue);
-  }
-
-  @Override
-  public Value adaptType(CelType type) {
-    Preconditions.checkNotNull(type);
-    if (type instanceof TypeType) {
-      return createTypeValue(((TypeType) type).containingTypeName());
-    }
-
-    return createTypeValue(type.name());
-  }
-
-  @Override
-  public @Nullable Value adaptType(@Nullable Type type) {
-    throw new UnsupportedOperationException("This should only be called with native CelType.");
-  }
-
   /**
    * DefaultInterpreter cannot handle CelValue and instead expects plain Java objects.
    *
@@ -144,9 +114,5 @@ public final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider 
    */
   private Object unwrapCelValue(CelValue object) {
     return protoCelValueConverter.fromCelValueToJavaObject(object);
-  }
-
-  private static Value createTypeValue(String name) {
-    return Value.newBuilder().setTypeValue(name).build();
   }
 }

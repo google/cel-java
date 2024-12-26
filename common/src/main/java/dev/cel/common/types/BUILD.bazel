@@ -71,13 +71,10 @@ java_library(
     tags = [
     ],
     deps = [
-        ":cel_internal_types",
         ":type_providers",
         ":types",
         "//common/annotations",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 

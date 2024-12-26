@@ -538,7 +538,7 @@ public class CelMathExtensionsTest {
           + " '3'}")
   public void least_unsignedLongResult_withUnsignedLongType_success(
       String expr, String expectedResult) throws Exception {
-    CelOptions celOptions = CelOptions.current().enableUnsignedLongs(true).build();
+    CelOptions celOptions = CelOptions.current().build();
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .setOptions(celOptions)

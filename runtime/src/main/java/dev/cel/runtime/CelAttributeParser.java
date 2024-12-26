@@ -16,15 +16,15 @@ package dev.cel.runtime;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
-import dev.cel.expr.Constant;
-import dev.cel.expr.Expr;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.primitives.UnsignedLong;
 import dev.cel.common.CelAbstractSyntaxTree;
-import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelValidationResult;
+import dev.cel.common.ast.CelConstant;
+import dev.cel.common.ast.CelExpr;
+import dev.cel.common.ast.CelExpr.CelCall;
+import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.parser.CelParser;
 import dev.cel.parser.CelParserFactory;
 import dev.cel.parser.Operator;
@@ -78,19 +78,18 @@ public class CelAttributeParser {
     return b.toString();
   }
 
-  private static CelAttribute.Qualifier parseConst(Constant constExpr) {
-    switch (constExpr.getConstantKindCase()) {
-      case BOOL_VALUE:
-        return CelAttribute.Qualifier.ofBool(constExpr.getBoolValue());
+  private static CelAttribute.Qualifier parseConst(CelConstant constExpr) {
+    switch (constExpr.getKind()) {
+      case BOOLEAN_VALUE:
+        return CelAttribute.Qualifier.ofBool(constExpr.booleanValue());
       case INT64_VALUE:
-        return CelAttribute.Qualifier.ofInt(constExpr.getInt64Value());
+        return CelAttribute.Qualifier.ofInt(constExpr.int64Value());
       case UINT64_VALUE:
-        return CelAttribute.Qualifier.ofUint(UnsignedLong.fromLongBits(constExpr.getUint64Value()));
+        return CelAttribute.Qualifier.ofUint(constExpr.uint64Value());
       case STRING_VALUE:
-        return CelAttribute.Qualifier.ofString(unescape(constExpr.getStringValue()));
+        return CelAttribute.Qualifier.ofString(unescape(constExpr.stringValue()));
       default:
-        throw new IllegalArgumentException(
-            "Unsupported const expr kind: " + constExpr.getConstantKindCase());
+        throw new IllegalArgumentException("Unsupported const expr kind: " + constExpr.getKind());
     }
   }
 
@@ -111,35 +110,34 @@ public class CelAttributeParser {
     try {
       CelAbstractSyntaxTree ast = result.getAst();
       ArrayDeque<CelAttribute.Qualifier> qualifiers = new ArrayDeque<>();
-      // TODO: Traverse using CelExpr
-      Expr node = CelProtoAbstractSyntaxTree.fromCelAst(ast).getExpr();
+      CelExpr node = ast.getExpr();
       while (node != null) {
-        switch (node.getExprKindCase()) {
-          case IDENT_EXPR:
-            qualifiers.addFirst(CelAttribute.Qualifier.ofString(node.getIdentExpr().getName()));
+        switch (node.getKind()) {
+          case IDENT:
+            qualifiers.addFirst(CelAttribute.Qualifier.ofString(node.ident().name()));
             node = null;
             break;
-          case CALL_EXPR:
-            Expr.Call callExpr = node.getCallExpr();
-            if (!callExpr.getFunction().equals(Operator.INDEX.getFunction())
-                || callExpr.getArgsCount() != 2
-                || !callExpr.getArgs(1).hasConstExpr()) {
+          case CALL:
+            CelCall callExpr = node.call();
+            if (!callExpr.function().equals(Operator.INDEX.getFunction())
+                || callExpr.args().size() != 2
+                || !callExpr.args().get(1).getKind().equals(Kind.CONSTANT)) {
               throw new IllegalArgumentException(
                   String.format(
                       "Unsupported call expr: %s(%s)",
-                      callExpr.getFunction(),
+                      callExpr.function(),
                       Joiner.on(", ")
                           .join(
-                              callExpr.getArgsList().stream()
-                                  .map(Expr::getExprKindCase)
+                              callExpr.args().stream()
+                                  .map(CelExpr::getKind)
                                   .collect(toImmutableList()))));
             }
-            qualifiers.addFirst(parseConst(callExpr.getArgs(1).getConstExpr()));
-            node = callExpr.getArgs(0);
+            qualifiers.addFirst(parseConst(callExpr.args().get(1).constant()));
+            node = callExpr.args().get(0);
             break;
-          case SELECT_EXPR:
-            String field = node.getSelectExpr().getField();
-            node = node.getSelectExpr().getOperand();
+          case SELECT:
+            String field = node.select().field();
+            node = node.select().operand();
             if (field.equals("_" + WILDCARD_ESCAPE)) {
               qualifiers.addFirst(CelAttribute.Qualifier.ofWildCard());
               break;
@@ -148,7 +146,7 @@ public class CelAttributeParser {
             break;
           default:
             throw new IllegalArgumentException(
-                "Unsupported expr kind in attribute: " + node.getExprKindCase());
+                "Unsupported expr kind in attribute: " + node.exprKind());
         }
       }
       return CelAttributePattern.create(ImmutableList.copyOf(qualifiers));

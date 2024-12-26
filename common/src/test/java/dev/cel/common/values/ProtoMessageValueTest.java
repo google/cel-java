@@ -55,7 +55,7 @@ public final class ProtoMessageValueTest {
 
   private static final ProtoCelValueConverter PROTO_CEL_VALUE_CONVERTER =
       ProtoCelValueConverter.newInstance(
-          CelOptions.current().enableUnsignedLongs(true).build(),
+          CelOptions.current().build(),
           DefaultDescriptorPool.INSTANCE,
           DynamicProto.create(DefaultMessageFactory.INSTANCE));
 

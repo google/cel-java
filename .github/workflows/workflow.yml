@@ -23,16 +23,22 @@ jobs:
       - run: echo "🐧 Job is running on a ${{ runner.os }} server!"
       - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v3
-      - name: Mount Bazel Cache
-        uses: actions/cache@v3
+        uses: actions/checkout@v4
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@0.9.1
         with:
-          path: "/home/runner/.cache/bazel"
-          key: bazelisk
+            # Avoid downloading Bazel every time.
+            bazelisk-cache: true
+            # Store build cache per workflow.
+            disk-cache: ${{ github.workflow }}
+            # Share repository cache between workflows.
+            repository-cache: true
       - name: Bazel Output Version
         run: bazelisk --version
       - name: Bazel Test
         # Exclude codelab exercises as they are intentionally made to fail
         # Exclude conformance tests for time being until TextFormat.Parser fix is in upstream
         run: bazelisk test ... --deleted_packages=//codelab/src/test/codelab,//conformance/src/test/java/dev/cel/conformance --test_output=errors
+      - name: Unwanted Dependencies
+        run: .github/workflows/unwanted_deps.sh
       - run: echo "🍏 This job's status is ${{ job.status }}."

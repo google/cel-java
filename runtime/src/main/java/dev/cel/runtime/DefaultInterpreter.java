@@ -16,7 +16,6 @@ package dev.cel.runtime;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import dev.cel.expr.Value;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
@@ -40,6 +39,7 @@ import dev.cel.common.ast.CelExpr.ExprKind;
 import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.TypeType;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -260,10 +260,7 @@ public final class DefaultInterpreter implements Interpreter {
       // Check whether the type exists in the type check map as a 'type'.
       Optional<CelType> checkedType = ast.getType(expr.id());
       if (checkedType.isPresent() && checkedType.get().kind() == CelKind.TYPE) {
-        Object typeValue =
-            celOptions.adaptRuntimeTypeValueToNativeType()
-                ? CelTypeResolver.adaptType(checkedType.get())
-                : typeProvider.adaptType(checkedType.get());
+        TypeType typeValue = CelTypeResolver.adaptType(checkedType.get());
         return IntermediateResult.create(typeValue);
       }
 
@@ -643,15 +640,9 @@ public final class DefaultInterpreter implements Interpreter {
                           .setLocation(metadata, typeExprArg.id())
                           .build());
 
-      Object typeValue;
-      if (celOptions.adaptRuntimeTypeValueToNativeType()) {
-        CelType checkedTypeValue = CelTypeResolver.adaptType(checkedType);
-        typeValue = CelTypeResolver.resolveObjectType(argResult.value(), checkedTypeValue);
-      } else {
-        Value checkedTypeValue = typeProvider.adaptType(checkedType);
-        typeValue = typeProvider.resolveObjectType(argResult.value(), checkedTypeValue);
-      }
-      return IntermediateResult.create(typeValue);
+      CelType checkedTypeValue = CelTypeResolver.adaptType(checkedType);
+      return IntermediateResult.create(
+          CelTypeResolver.resolveObjectType(argResult.value(), checkedTypeValue));
     }
 
     private IntermediateResult evalOptionalOr(ExecutionFrame frame, CelCall callExpr)

@@ -70,12 +70,11 @@ public final class RuntimeEqualityTest {
           .enableProtoDifferencerEquality(true)
           .build();
   private static final CelOptions UNSIGNED_LONGS =
-      CelOptions.newBuilder().disableCelStandardEquality(false).enableUnsignedLongs(true).build();
+      CelOptions.newBuilder().disableCelStandardEquality(false).build();
   private static final CelOptions PROTO_EQUALITY_UNSIGNED_LONGS =
       CelOptions.newBuilder()
           .disableCelStandardEquality(false)
           .enableProtoDifferencerEquality(true)
-          .enableUnsignedLongs(true)
           .build();
 
   private static final RuntimeEquality RUNTIME_EQUALITY =

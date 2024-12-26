@@ -14,8 +14,6 @@
 
 package dev.cel.runtime;
 
-import dev.cel.expr.Type;
-import dev.cel.expr.Value;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Descriptors.Descriptor;
@@ -31,7 +29,6 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoAdapter;
 import dev.cel.common.internal.ProtoMessageFactory;
-import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypes;
 import java.util.Map;
 import java.util.Optional;
@@ -50,7 +47,6 @@ import org.jspecify.annotations.Nullable;
 @Internal
 public final class DescriptorMessageProvider implements RuntimeTypeProvider {
   private final ProtoMessageFactory protoMessageFactory;
-  private final TypeResolver typeResolver;
 
   @SuppressWarnings("Immutable")
   private final ProtoAdapter protoAdapter;
@@ -82,31 +78,10 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
    * when adapting from proto to CEL and vice versa.
    */
   public DescriptorMessageProvider(ProtoMessageFactory protoMessageFactory, CelOptions celOptions) {
-    this.typeResolver = StandardTypeResolver.getInstance(celOptions);
     this.protoMessageFactory = protoMessageFactory;
     this.protoAdapter =
         new ProtoAdapter(
             DynamicProto.create(protoMessageFactory), celOptions.enableUnsignedLongs());
-  }
-
-  @Override
-  @Nullable
-  public Value resolveObjectType(Object obj, @Nullable Value checkedTypeValue) {
-    return typeResolver.resolveObjectType(obj, checkedTypeValue);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public Value adaptType(CelType type) {
-    return typeResolver.adaptType(type);
-  }
-
-  @Nullable
-  @Override
-  @Deprecated
-  /** {@inheritDoc} */
-  public Value adaptType(@Nullable Type type) {
-    return typeResolver.adaptType(type);
   }
 
   @Nullable

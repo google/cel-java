@@ -43,8 +43,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public final class CelSetsExtensionsTest {
-  private static final CelOptions CEL_OPTIONS =
-      CelOptions.current().enableUnsignedLongs(true).build();
+  private static final CelOptions CEL_OPTIONS = CelOptions.current().build();
   private static final CelCompiler COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
           .addMessageTypes(TestAllTypes.getDescriptor())
