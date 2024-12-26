@@ -9,6 +9,7 @@ import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.internal.ProtoLiteAdapter;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
+import java.util.NoSuchElementException;
 
 @Immutable
 @Internal
@@ -33,9 +34,9 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
   }
 
   private CelValue fromProtoMessageToCelValue(MessageLite msg) {
-    // TODO: WKT
     String className = msg.getClass().getName();
-    MessageInfo messageInfo = descriptorPool.findMessageInfoByClassName(className).orElse(null);
+    MessageInfo messageInfo = descriptorPool.findMessageInfoByClassName(className)
+        .orElseThrow(() -> new NoSuchElementException("Could not find message info for class: " + className));
     WellKnownProto wellKnownProto = WellKnownProto.getByTypeName(messageInfo.getFullyQualifiedProtoName());
 
     if (wellKnownProto == null) {
