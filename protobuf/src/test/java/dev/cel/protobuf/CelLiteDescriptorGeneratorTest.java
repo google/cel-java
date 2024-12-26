@@ -2,8 +2,16 @@ package dev.cel.protobuf;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.BytesValue;
+import com.google.protobuf.DoubleValue;
+import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
+import com.google.protobuf.Int64Value;
+import com.google.protobuf.StringValue;
+import com.google.protobuf.UInt32Value;
+import com.google.protobuf.UInt64Value;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -148,22 +156,15 @@ public class CelLiteDescriptorGeneratorTest {
   public void fieldSelection_wellKnownTypes(String expression) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
     TestAllTypes msg = TestAllTypes.newBuilder()
-        .setSingleInt32(1)
-        .setSingleInt64(2L)
-        .setSingleUint32(3)
-        .setSingleUint64(4L)
-        .setSingleSint32(5)
-        .setSingleSint64(6L)
-        .setSingleFixed32(7)
-        .setSingleFixed64(8L)
-        .setSingleSfixed32(9)
-        .setSingleSfixed64(10L)
-        .setSingleFloat(1.5f)
-        .setSingleDouble(2.5d)
-        .setSingleBool(true)
-        .setSingleString("foo")
-        .setSingleBytes(ByteString.copyFromUtf8("abc"))
-        .setOptionalBool(true)
+        .setSingleInt32Wrapper(Int32Value.of(1))
+        .setSingleInt64Wrapper(Int64Value.of(2L))
+        .setSingleUint32Wrapper(UInt32Value.of(3))
+        .setSingleUint64Wrapper(UInt64Value.of(4L))
+        .setSingleFloatWrapper(FloatValue.of(1.5f))
+        .setSingleDoubleWrapper(DoubleValue.of(2.5d))
+        .setSingleBoolWrapper(BoolValue.of(true))
+        .setSingleStringWrapper(StringValue.of("foo"))
+        .setSingleBytesWrapper(BytesValue.of(ByteString.copyFromUtf8("abc")))
         .build();
 
     boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));

@@ -198,6 +198,7 @@ java_library(
         "//common:options",
         "//common/annotations",
         "//common/internal:cel_lite_desriptor_pool",
+        "//common/internal:proto_lite_adapter",
         "//common/internal:well_known_proto",
         "//common/types",
         "//common/types:type_providers",

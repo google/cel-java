@@ -26,6 +26,11 @@ java_library(
 )
 
 java_library(
+    name = "proto_lite_adapter",
+    exports = ["//common/src/main/java/dev/cel/common/internal:proto_lite_adapter"],
+)
+
+java_library(
     name = "proto_equality",
     exports = ["//common/src/main/java/dev/cel/common/internal:proto_equality"],
 )

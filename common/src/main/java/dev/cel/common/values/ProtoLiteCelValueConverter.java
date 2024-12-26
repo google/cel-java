@@ -6,6 +6,7 @@ import com.google.protobuf.MessageLite;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelLiteDescriptorPool;
+import dev.cel.common.internal.ProtoLiteAdapter;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
 
@@ -13,6 +14,7 @@ import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
 @Internal
 public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter {
   private final CelLiteDescriptorPool descriptorPool;
+  private final ProtoLiteAdapter protoLiteAdapter;
 
   public static ProtoLiteCelValueConverter newInstance(CelOptions celOptions, CelLiteDescriptorPool celLiteDescriptorPool) {
     return new ProtoLiteCelValueConverter(celOptions, celLiteDescriptorPool);
@@ -40,49 +42,14 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
       return ProtoMessageLiteValue.create(msg, messageInfo.getFullyQualifiedProtoName(), descriptorPool, this);
     }
 
-    switch (wellKnownProto) {
-      case JSON_VALUE:
-        break;
-      case JSON_STRUCT_VALUE:
-        break;
-      case JSON_LIST_VALUE:
-        break;
-      case ANY_VALUE:
-        break;
-      case BOOL_VALUE:
-        break;
-      case BYTES_VALUE:
-        break;
-      case DOUBLE_VALUE:
-        break;
-      case FLOAT_VALUE:
-        break;
-      case INT32_VALUE:
-        break;
-      case INT64_VALUE:
-        break;
-      case STRING_VALUE:
-        break;
-      case UINT32_VALUE:
-        break;
-      case UINT64_VALUE:
-        break;
-      case DURATION_VALUE:
-        break;
-      case TIMESTAMP_VALUE:
-        break;
-    }
-    return null;
-
-    // String className = msg.getClass().getName();
-    // MessageInfo messageInfo = findMessageInfoByClassName(className).orElse(null);
-    // System.out.println();
-    // return null;
+    Object adaptedValue = protoLiteAdapter.adaptWellKnownProtoToValue(msg, wellKnownProto);
+    return fromJavaObjectToCelValue(adaptedValue);
   }
 
 
   private ProtoLiteCelValueConverter(CelOptions celOptions, CelLiteDescriptorPool celLiteDescriptorPool) {
     super(celOptions);
     this.descriptorPool = celLiteDescriptorPool;
+    this.protoLiteAdapter = new ProtoLiteAdapter(celOptions.enableUnsignedLongs());
   }
 }

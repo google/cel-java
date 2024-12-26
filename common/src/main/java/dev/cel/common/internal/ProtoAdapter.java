@@ -17,8 +17,6 @@ package dev.cel.common.internal;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedInts;
 import com.google.common.primitives.UnsignedLong;
@@ -38,13 +36,11 @@ import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.ListValue;
 import com.google.protobuf.MapEntry;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.StringValue;
-import com.google.protobuf.Struct;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
@@ -136,12 +132,14 @@ public final class ProtoAdapter {
   public static final BidiConverter<Number, Number> DOUBLE_CONVERTER =
       BidiConverter.of(Number::doubleValue, Number::floatValue);
 
+  private final ProtoLiteAdapter protoLiteAdapter;
   private final DynamicProto dynamicProto;
   private final boolean enableUnsignedLongs;
 
   public ProtoAdapter(DynamicProto dynamicProto, boolean enableUnsignedLongs) {
     this.dynamicProto = checkNotNull(dynamicProto);
     this.enableUnsignedLongs = enableUnsignedLongs;
+    this.protoLiteAdapter = new ProtoLiteAdapter(enableUnsignedLongs);
   }
 
   /**
@@ -166,39 +164,8 @@ public final class ProtoAdapter {
     switch (wellKnownProto) {
       case ANY_VALUE:
         return unpackAnyProto((Any) proto);
-      case JSON_VALUE:
-        return adaptJsonToValue((Value) proto);
-      case JSON_STRUCT_VALUE:
-        return adaptJsonStructToValue((Struct) proto);
-      case JSON_LIST_VALUE:
-        return adaptJsonListToValue((ListValue) proto);
-      case BOOL_VALUE:
-        return ((BoolValue) proto).getValue();
-      case BYTES_VALUE:
-        return ((BytesValue) proto).getValue();
-      case DOUBLE_VALUE:
-        return ((DoubleValue) proto).getValue();
-      case FLOAT_VALUE:
-        return (double) ((FloatValue) proto).getValue();
-      case INT32_VALUE:
-        return (long) ((Int32Value) proto).getValue();
-      case INT64_VALUE:
-        return ((Int64Value) proto).getValue();
-      case STRING_VALUE:
-        return ((StringValue) proto).getValue();
-      case UINT32_VALUE:
-        if (enableUnsignedLongs) {
-          return UnsignedLong.fromLongBits(
-              Integer.toUnsignedLong(((UInt32Value) proto).getValue()));
-        }
-        return (long) ((UInt32Value) proto).getValue();
-      case UINT64_VALUE:
-        if (enableUnsignedLongs) {
-          return UnsignedLong.fromLongBits(((UInt64Value) proto).getValue());
-        }
-        return ((UInt64Value) proto).getValue();
       default:
-        return proto;
+        return protoLiteAdapter.adaptWellKnownProtoToValue(proto, wellKnownProto);
     }
   }
 
@@ -522,43 +489,12 @@ public final class ProtoAdapter {
     return null;
   }
 
-  private @Nullable Object adaptJsonToValue(Value value) {
-    switch (value.getKindCase()) {
-      case BOOL_VALUE:
-        return value.getBoolValue();
-      case NULL_VALUE:
-        return value.getNullValue();
-      case NUMBER_VALUE:
-        return value.getNumberValue();
-      case STRING_VALUE:
-        return value.getStringValue();
-      case LIST_VALUE:
-        return adaptJsonListToValue(value.getListValue());
-      case STRUCT_VALUE:
-        return adaptJsonStructToValue(value.getStructValue());
-      case KIND_NOT_SET:
-        return NullValue.NULL_VALUE;
-    }
-    return null;
-  }
-
   private Object unpackAnyProto(Any anyProto) {
     try {
       return adaptProtoToValue(dynamicProto.unpack(anyProto));
     } catch (InvalidProtocolBufferException e) {
       throw new IllegalArgumentException(e);
     }
-  }
-
-  private ImmutableList<Object> adaptJsonListToValue(ListValue listValue) {
-    return listValue.getValuesList().stream()
-        .map(this::adaptJsonToValue)
-        .collect(ImmutableList.<Object>toImmutableList());
-  }
-
-  private ImmutableMap<String, Object> adaptJsonStructToValue(Struct struct) {
-    return struct.getFieldsMap().entrySet().stream()
-        .collect(toImmutableMap(e -> e.getKey(), e -> adaptJsonToValue(e.getValue())));
   }
 
   /** Returns the default value for a field that can be a proto message */
