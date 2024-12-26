@@ -20,6 +20,7 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
@@ -272,6 +273,7 @@ public class CelExprFormatterTest {
   public void comprehension() throws Exception {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
+            .setOptions(CelOptions.current().enableHiddenAccumulatorVar(true).build())
             .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
             .build();
     CelAbstractSyntaxTree ast = celCompiler.compile("[1, 2, 3].exists(x, x > 0)").getAst();
@@ -291,7 +293,7 @@ public class CelExprFormatterTest {
                 + "      }\n"
                 + "    }\n"
                 + "  }\n"
-                + "  accu_var: __result__\n"
+                + "  accu_var: @result\n"
                 + "  accu_init: {\n"
                 + "    CONSTANT [10] { value: false }\n"
                 + "  }\n"
@@ -303,7 +305,7 @@ public class CelExprFormatterTest {
                 + "          function: !_\n"
                 + "          args: {\n"
                 + "            IDENT [11] {\n"
-                + "              name: __result__\n"
+                + "              name: @result\n"
                 + "            }\n"
                 + "          }\n"
                 + "        }\n"
@@ -315,7 +317,7 @@ public class CelExprFormatterTest {
                 + "      function: _||_\n"
                 + "      args: {\n"
                 + "        IDENT [14] {\n"
-                + "          name: __result__\n"
+                + "          name: @result\n"
                 + "        }\n"
                 + "        CALL [8] {\n"
                 + "          function: _>_\n"
@@ -331,7 +333,7 @@ public class CelExprFormatterTest {
                 + "  }\n"
                 + "  result: {\n"
                 + "    IDENT [16] {\n"
-                + "      name: __result__\n"
+                + "      name: @result\n"
                 + "    }\n"
                 + "  }\n"
                 + "}");

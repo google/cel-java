@@ -11,48 +11,48 @@ _&&_(
       // Target
       x~cel.expr.conformance.proto3.TestAllTypes^x.repeated_int64~list(int),
       // Accumulator
-      __result__,
+      @result,
       // Init
       true~bool,
       // LoopCondition
       @not_strictly_false(
-        __result__~bool^__result__
+        @result~bool^@result
       )~bool^not_strictly_false,
       // LoopStep
       _&&_(
-        __result__~bool^__result__,
+        @result~bool^@result,
         _>_(
           e~int^e,
           0~int
         )~bool^greater_int64
       )~bool^logical_and,
       // Result
-      __result__~bool^__result__)~bool,
+      @result~bool^@result)~bool,
     __comprehension__(
       // Variable
       e,
       // Target
       x~cel.expr.conformance.proto3.TestAllTypes^x.repeated_int64~list(int),
       // Accumulator
-      __result__,
+      @result,
       // Init
       false~bool,
       // LoopCondition
       @not_strictly_false(
         !_(
-          __result__~bool^__result__
+          @result~bool^@result
         )~bool^logical_not
       )~bool^not_strictly_false,
       // LoopStep
       _||_(
-        __result__~bool^__result__,
+        @result~bool^@result,
         _<_(
           e~int^e,
           0~int
         )~bool^less_int64
       )~bool^logical_or,
       // Result
-      __result__~bool^__result__)~bool
+      @result~bool^@result)~bool
   )~bool^logical_and,
   __comprehension__(
     // Variable
@@ -60,7 +60,7 @@ _&&_(
     // Target
     x~cel.expr.conformance.proto3.TestAllTypes^x.repeated_int64~list(int),
     // Accumulator
-    __result__,
+    @result,
     // Init
     0~int,
     // LoopCondition
@@ -72,14 +72,14 @@ _&&_(
         0~int
       )~bool^equals,
       _+_(
-        __result__~int^__result__,
+        @result~int^@result,
         1~int
       )~int^add_int64,
-      __result__~int^__result__
+      @result~int^@result
     )~int^conditional,
     // Result
     _==_(
-      __result__~int^__result__,
+      @result~int^@result,
       1~int
     )~bool^equals)~bool
 )~bool^logical_and

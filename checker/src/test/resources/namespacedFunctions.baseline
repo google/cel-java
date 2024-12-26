@@ -84,14 +84,14 @@ __comprehension__(
     )~int^ns_func_overload
   ]~list(int),
   // Accumulator
-  __result__,
+  @result,
   // Init
   []~list(int),
   // LoopCondition
   true~bool,
   // LoopStep
   _+_(
-    __result__~list(int)^__result__,
+    @result~list(int)^@result,
     [
       _*_(
         x~int^x,
@@ -100,7 +100,7 @@ __comprehension__(
     ]~list(int)
   )~list(int)^add_list,
   // Result
-  __result__~list(int)^__result__)~list(int)
+  @result~list(int)^@result)~list(int)
 
 Source: [1, 2].map(x, x * ns.func('test'))
 declare ns.func {
@@ -119,14 +119,14 @@ __comprehension__(
     2~int
   ]~list(int),
   // Accumulator
-  __result__,
+  @result,
   // Init
   []~list(int),
   // LoopCondition
   true~bool,
   // LoopStep
   _+_(
-    __result__~list(int)^__result__,
+    @result~list(int)^@result,
     [
       _*_(
         x~int^x,
@@ -137,7 +137,7 @@ __comprehension__(
     ]~list(int)
   )~list(int)^add_list,
   // Result
-  __result__~list(int)^__result__)~list(int)
+  @result~list(int)^@result)~list(int)
 
 Source: func('hello')
 declare ns.func {

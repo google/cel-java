@@ -69,16 +69,20 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
                               .setId(1)
                               .setConstant(CelConstant.ofValue(10L))
                               .build())))
-          .setOptions(CelOptions.current().populateMacroCalls(true).build())
+          .setOptions(
+              CelOptions.current()
+                  .populateMacroCalls(true)
+                  .enableHiddenAccumulatorVar(true)
+                  .build())
           .build();
 
-  private static final CelParser PARSER_WITH_UPDATED_ACCU_VAR =
+  private static final CelParser PARSER_WITH_OLD_ACCU_VAR =
       PARSER
           .toParserBuilder()
           .setOptions(
               CelOptions.current()
                   .populateMacroCalls(true)
-                  .enableHiddenAccumulatorVar(true)
+                  .enableHiddenAccumulatorVar(false)
                   .build())
           .build();
 
@@ -120,7 +124,7 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
     runTest(PARSER, "a");
     runTest(PARSER, "a?b:c");
     runTest(PARSER, "a || b");
-    runTest(PARSER, "a || b || c || d || e || f ");
+    runTest(PARSER, "a || b || c || d || e || f");
     runTest(PARSER, "a && b");
     runTest(PARSER, "a && b && c && d && e && f && g");
     runTest(PARSER, "a && b && c && d || e && f && g && h");
@@ -204,14 +208,14 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
   }
 
   @Test
-  public void parser_updatedAccuVar() {
-    runTest(PARSER_WITH_UPDATED_ACCU_VAR, "x * 2");
-    runTest(PARSER_WITH_UPDATED_ACCU_VAR, "has(m.f)");
-    runTest(PARSER_WITH_UPDATED_ACCU_VAR, "m.exists_one(v, f)");
-    runTest(PARSER_WITH_UPDATED_ACCU_VAR, "m.all(v, f)");
-    runTest(PARSER_WITH_UPDATED_ACCU_VAR, "m.map(v, f)");
-    runTest(PARSER_WITH_UPDATED_ACCU_VAR, "m.map(v, p, f)");
-    runTest(PARSER_WITH_UPDATED_ACCU_VAR, "m.filter(v, p)");
+  public void parser_legacyAccuVar() {
+    runTest(PARSER_WITH_OLD_ACCU_VAR, "x * 2");
+    runTest(PARSER_WITH_OLD_ACCU_VAR, "has(m.f)");
+    runTest(PARSER_WITH_OLD_ACCU_VAR, "m.exists_one(v, f)");
+    runTest(PARSER_WITH_OLD_ACCU_VAR, "m.all(v, f)");
+    runTest(PARSER_WITH_OLD_ACCU_VAR, "m.map(v, f)");
+    runTest(PARSER_WITH_OLD_ACCU_VAR, "m.map(v, p, f)");
+    runTest(PARSER_WITH_OLD_ACCU_VAR, "m.filter(v, p)");
   }
 
   @Test
