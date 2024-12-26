@@ -25,7 +25,7 @@ P: __comprehension__(
   // Target
   m^#1:Expr.Ident#,
   // Accumulator
-  @result,
+  __result__,
   // Init
   0^#5:int64#,
   // LoopCondition
@@ -34,14 +34,14 @@ P: __comprehension__(
   _?_:_(
     f^#4:Expr.Ident#,
     _+_(
-      @result^#7:Expr.Ident#,
+      __result__^#7:Expr.Ident#,
       1^#8:int64#
     )^#9:Expr.Call#,
-    @result^#10:Expr.Ident#
+    __result__^#10:Expr.Ident#
   )^#11:Expr.Call#,
   // Result
   _==_(
-    @result^#12:Expr.Ident#,
+    __result__^#12:Expr.Ident#,
     1^#13:int64#
   )^#14:Expr.Call#)^#15:Expr.Comprehension#
 L: __comprehension__(
@@ -50,7 +50,7 @@ L: __comprehension__(
   // Target
   m^#1[1,0]#,
   // Accumulator
-  @result,
+  __result__,
   // Init
   0^#5[1,12]#,
   // LoopCondition
@@ -59,14 +59,14 @@ L: __comprehension__(
   _?_:_(
     f^#4[1,16]#,
     _+_(
-      @result^#7[1,12]#,
+      __result__^#7[1,12]#,
       1^#8[1,12]#
     )^#9[1,12]#,
-    @result^#10[1,12]#
+    __result__^#10[1,12]#
   )^#11[1,12]#,
   // Result
   _==_(
-    @result^#12[1,12]#,
+    __result__^#12[1,12]#,
     1^#13[1,12]#
   )^#14[1,12]#)^#15[1,12]#
 M: m^#1:Expr.Ident#.exists_one(
@@ -82,40 +82,40 @@ P: __comprehension__(
   // Target
   m^#1:Expr.Ident#,
   // Accumulator
-  @result,
+  __result__,
   // Init
   true^#5:bool#,
   // LoopCondition
   @not_strictly_false(
-    @result^#6:Expr.Ident#
+    __result__^#6:Expr.Ident#
   )^#7:Expr.Call#,
   // LoopStep
   _&&_(
-    @result^#8:Expr.Ident#,
+    __result__^#8:Expr.Ident#,
     f^#4:Expr.Ident#
   )^#9:Expr.Call#,
   // Result
-  @result^#10:Expr.Ident#)^#11:Expr.Comprehension#
+  __result__^#10:Expr.Ident#)^#11:Expr.Comprehension#
 L: __comprehension__(
   // Variable
   v,
   // Target
   m^#1[1,0]#,
   // Accumulator
-  @result,
+  __result__,
   // Init
   true^#5[1,5]#,
   // LoopCondition
   @not_strictly_false(
-    @result^#6[1,5]#
+    __result__^#6[1,5]#
   )^#7[1,5]#,
   // LoopStep
   _&&_(
-    @result^#8[1,5]#,
+    __result__^#8[1,5]#,
     f^#4[1,9]#
   )^#9[1,5]#,
   // Result
-  @result^#10[1,5]#)^#11[1,5]#
+  __result__^#10[1,5]#)^#11[1,5]#
 M: m^#1:Expr.Ident#.all(
   v^#3:Expr.Ident#,
   f^#4:Expr.Ident#
@@ -129,40 +129,40 @@ P: __comprehension__(
   // Target
   m^#1:Expr.Ident#,
   // Accumulator
-  @result,
+  __result__,
   // Init
   []^#5:Expr.CreateList#,
   // LoopCondition
   true^#6:bool#,
   // LoopStep
   _+_(
-    @result^#7:Expr.Ident#,
+    __result__^#7:Expr.Ident#,
     [
       f^#4:Expr.Ident#
     ]^#8:Expr.CreateList#
   )^#9:Expr.Call#,
   // Result
-  @result^#10:Expr.Ident#)^#11:Expr.Comprehension#
+  __result__^#10:Expr.Ident#)^#11:Expr.Comprehension#
 L: __comprehension__(
   // Variable
   v,
   // Target
   m^#1[1,0]#,
   // Accumulator
-  @result,
+  __result__,
   // Init
   []^#5[1,5]#,
   // LoopCondition
   true^#6[1,5]#,
   // LoopStep
   _+_(
-    @result^#7[1,5]#,
+    __result__^#7[1,5]#,
     [
       f^#4[1,9]#
     ]^#8[1,5]#
   )^#9[1,5]#,
   // Result
-  @result^#10[1,5]#)^#11[1,5]#
+  __result__^#10[1,5]#)^#11[1,5]#
 M: m^#1:Expr.Ident#.map(
   v^#3:Expr.Ident#,
   f^#4:Expr.Ident#
@@ -176,7 +176,7 @@ P: __comprehension__(
   // Target
   m^#1:Expr.Ident#,
   // Accumulator
-  @result,
+  __result__,
   // Init
   []^#6:Expr.CreateList#,
   // LoopCondition
@@ -185,22 +185,22 @@ P: __comprehension__(
   _?_:_(
     p^#4:Expr.Ident#,
     _+_(
-      @result^#8:Expr.Ident#,
+      __result__^#8:Expr.Ident#,
       [
         f^#5:Expr.Ident#
       ]^#9:Expr.CreateList#
     )^#10:Expr.Call#,
-    @result^#11:Expr.Ident#
+    __result__^#11:Expr.Ident#
   )^#12:Expr.Call#,
   // Result
-  @result^#13:Expr.Ident#)^#14:Expr.Comprehension#
+  __result__^#13:Expr.Ident#)^#14:Expr.Comprehension#
 L: __comprehension__(
   // Variable
   v,
   // Target
   m^#1[1,0]#,
   // Accumulator
-  @result,
+  __result__,
   // Init
   []^#6[1,5]#,
   // LoopCondition
@@ -209,15 +209,15 @@ L: __comprehension__(
   _?_:_(
     p^#4[1,9]#,
     _+_(
-      @result^#8[1,5]#,
+      __result__^#8[1,5]#,
       [
         f^#5[1,12]#
       ]^#9[1,5]#
     )^#10[1,5]#,
-    @result^#11[1,5]#
+    __result__^#11[1,5]#
   )^#12[1,5]#,
   // Result
-  @result^#13[1,5]#)^#14[1,5]#
+  __result__^#13[1,5]#)^#14[1,5]#
 M: m^#1:Expr.Ident#.map(
   v^#3:Expr.Ident#,
   p^#4:Expr.Ident#,
@@ -232,7 +232,7 @@ P: __comprehension__(
   // Target
   m^#1:Expr.Ident#,
   // Accumulator
-  @result,
+  __result__,
   // Init
   []^#5:Expr.CreateList#,
   // LoopCondition
@@ -241,22 +241,22 @@ P: __comprehension__(
   _?_:_(
     p^#4:Expr.Ident#,
     _+_(
-      @result^#7:Expr.Ident#,
+      __result__^#7:Expr.Ident#,
       [
         v^#3:Expr.Ident#
       ]^#8:Expr.CreateList#
     )^#9:Expr.Call#,
-    @result^#10:Expr.Ident#
+    __result__^#10:Expr.Ident#
   )^#11:Expr.Call#,
   // Result
-  @result^#12:Expr.Ident#)^#13:Expr.Comprehension#
+  __result__^#12:Expr.Ident#)^#13:Expr.Comprehension#
 L: __comprehension__(
   // Variable
   v,
   // Target
   m^#1[1,0]#,
   // Accumulator
-  @result,
+  __result__,
   // Init
   []^#5[1,8]#,
   // LoopCondition
@@ -265,15 +265,15 @@ L: __comprehension__(
   _?_:_(
     p^#4[1,12]#,
     _+_(
-      @result^#7[1,8]#,
+      __result__^#7[1,8]#,
       [
         v^#3[1,9]#
       ]^#8[1,8]#
     )^#9[1,8]#,
-    @result^#10[1,8]#
+    __result__^#10[1,8]#
   )^#11[1,8]#,
   // Result
-  @result^#12[1,8]#)^#13[1,8]#
+  __result__^#12[1,8]#)^#13[1,8]#
 M: m^#1:Expr.Ident#.filter(
   v^#3:Expr.Ident#,
   p^#4:Expr.Ident#

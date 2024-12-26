@@ -9,7 +9,7 @@ __comprehension__(
   // Target
   x~cel.expr.conformance.proto3.TestAllTypes^x.repeated_int64~list(int),
   // Accumulator
-  __result__,
+  @result,
   // Init
   []~list(double),
   // LoopCondition
@@ -21,17 +21,17 @@ __comprehension__(
       0~int
     )~bool^greater_int64,
     _+_(
-      __result__~list(double)^__result__,
+      @result~list(double)^@result,
       [
         double(
           x~int^x
         )~double^int64_to_double
       ]~list(double)
     )~list(double)^add_list,
-    __result__~list(double)^__result__
+    @result~list(double)^@result
   )~list(double)^conditional,
   // Result
-  __result__~list(double)^__result__)~list(double)
+  @result~list(double)^@result)~list(double)
 
 Source: lists.filter(x, x > 1.5)
 declare x {
@@ -47,7 +47,7 @@ __comprehension__(
   // Target
   lists~dyn^lists,
   // Accumulator
-  __result__,
+  @result,
   // Init
   []~list(dyn),
   // LoopCondition
@@ -59,15 +59,15 @@ __comprehension__(
       1.5~double
     )~bool^greater_double|greater_int64_double|greater_uint64_double,
     _+_(
-      __result__~list(dyn)^__result__,
+      @result~list(dyn)^@result,
       [
         x~dyn^x
       ]~list(dyn)
     )~list(dyn)^add_list,
-    __result__~list(dyn)^__result__
+    @result~list(dyn)^@result
   )~list(dyn)^conditional,
   // Result
-  __result__~list(dyn)^__result__)~list(dyn)
+  @result~list(dyn)^@result)~list(dyn)
 
 Source: args.user["myextension"].customAttributes.filter(x, x.name == "hobbies")
 declare x {
@@ -89,7 +89,7 @@ __comprehension__(
     "myextension"~string
   )~dyn^index_map.customAttributes~dyn,
   // Accumulator
-  __result__,
+  @result,
   // Init
   []~list(dyn),
   // LoopCondition
@@ -101,12 +101,12 @@ __comprehension__(
       "hobbies"~string
     )~bool^equals,
     _+_(
-      __result__~list(dyn)^__result__,
+      @result~list(dyn)^@result,
       [
         x~dyn^x
       ]~list(dyn)
     )~list(dyn)^add_list,
-    __result__~list(dyn)^__result__
+    @result~list(dyn)^@result
   )~list(dyn)^conditional,
   // Result
-  __result__~list(dyn)^__result__)~list(dyn)
+  @result~list(dyn)^@result)~list(dyn)

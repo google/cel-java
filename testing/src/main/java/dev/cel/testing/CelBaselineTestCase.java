@@ -58,6 +58,7 @@ public abstract class CelBaselineTestCase extends BaselineTestCase {
       CelOptions.current()
           .enableTimestampEpoch(true)
           .enableHeterogeneousNumericComparisons(true)
+          .enableHiddenAccumulatorVar(true)
           .enableOptionalSyntax(true)
           .comprehensionMaxIterations(1_000)
           .build();

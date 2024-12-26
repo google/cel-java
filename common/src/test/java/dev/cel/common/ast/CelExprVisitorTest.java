@@ -20,6 +20,7 @@ import static org.junit.Assert.assertThrows;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelOptions;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.CelIdent;
@@ -245,6 +246,7 @@ public class CelExprVisitorTest {
   public void visitStruct_fieldkey() throws Exception {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
+            
             .addMessageTypes(TestAllTypes.getDescriptor())
             .setContainer(TestAllTypes.getDescriptor().getFullName())
             .build();
@@ -320,6 +322,7 @@ public class CelExprVisitorTest {
   public void visitComprehension() throws Exception {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
+            .setOptions(CelOptions.current().enableHiddenAccumulatorVar(true).build())
             .setStandardMacros(CelStandardMacro.ALL)
             .build();
     CelAbstractSyntaxTree ast = celCompiler.compile("[1, 1].all(x, x == 1)").getAst();
@@ -343,7 +346,7 @@ public class CelExprVisitorTest {
     assertThat(comprehension.loopStep().call().args()).hasSize(2);
     assertThat(visitedReference.list().get().elements()).isEqualTo(iterRangeElements);
     assertThat(visitedReference.identifier())
-        .hasValue(CelIdent.newBuilder().setName("__result__").build());
+        .hasValue(CelIdent.newBuilder().setName("@result").build());
     assertThat(visitedReference.arguments()).hasSize(10);
   }
 
