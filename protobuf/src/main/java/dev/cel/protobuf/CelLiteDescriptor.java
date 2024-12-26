@@ -8,7 +8,6 @@ import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.ByteString;
 import dev.cel.common.annotations.Internal;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Base class for code generated CEL descriptors to extend from.
@@ -26,8 +25,8 @@ public abstract class CelLiteDescriptor {
     return protoJavaClassNameToMessageInfo;
   }
 
-  @Immutable
   @Internal
+  @Immutable
   public static final class MessageInfo {
     private final String fullyQualifiedProtoName;
     private final String fullyQualifiedProtoJavaClassName;
@@ -137,11 +136,11 @@ public abstract class CelLiteDescriptor {
         String fieldJavaClassName,
         String fieldType
         ) {
-      this.fullyQualifiedProtoName = fullyQualifiedProtoName;
-      this.javaTypeName = javaTypeName;
-      this.methodSuffixName = methodSuffixName;
-      this.fieldJavaClassName = fieldJavaClassName;
-      this.fieldType = Type.valueOf(fieldType);
+      this.fullyQualifiedProtoName = checkNotNull(fullyQualifiedProtoName);
+      this.javaTypeName = checkNotNull(javaTypeName);
+      this.methodSuffixName = checkNotNull(methodSuffixName);
+      this.fieldJavaClassName = checkNotNull(fieldJavaClassName);
+      this.fieldType = Type.valueOf(checkNotNull(fieldType));
     }
 
     private Class<?> deriveFieldTypeClass() {

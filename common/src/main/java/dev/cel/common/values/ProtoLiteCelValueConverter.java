@@ -39,6 +39,39 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     if (wellKnownProto == null) {
       return ProtoMessageLiteValue.create(msg, messageInfo.getFullyQualifiedProtoName(), descriptorPool, this);
     }
+
+    switch (wellKnownProto) {
+      case JSON_VALUE:
+        break;
+      case JSON_STRUCT_VALUE:
+        break;
+      case JSON_LIST_VALUE:
+        break;
+      case ANY_VALUE:
+        break;
+      case BOOL_VALUE:
+        break;
+      case BYTES_VALUE:
+        break;
+      case DOUBLE_VALUE:
+        break;
+      case FLOAT_VALUE:
+        break;
+      case INT32_VALUE:
+        break;
+      case INT64_VALUE:
+        break;
+      case STRING_VALUE:
+        break;
+      case UINT32_VALUE:
+        break;
+      case UINT64_VALUE:
+        break;
+      case DURATION_VALUE:
+        break;
+      case TIMESTAMP_VALUE:
+        break;
+    }
     return null;
 
     // String className = msg.getClass().getName();

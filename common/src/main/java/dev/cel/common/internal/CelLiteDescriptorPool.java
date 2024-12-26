@@ -29,6 +29,13 @@ public final class CelLiteDescriptorPool {
   private CelLiteDescriptorPool(ImmutableSet<CelLiteDescriptor> descriptors) {
     ImmutableMap.Builder<String, MessageInfo> protoFqnMapBuilder = ImmutableMap.builder();
     ImmutableMap.Builder<String, MessageInfo> protoJavaClassNameMapBuilder = ImmutableMap.builder();
+    for (WellKnownProto wellKnownProto : WellKnownProto.values()) {
+      MessageInfo wktMessageInfo = new MessageInfo(wellKnownProto.typeName(),
+          wellKnownProto.javaClassName(), ImmutableMap.of());
+      protoFqnMapBuilder.put(wellKnownProto.typeName(), wktMessageInfo);
+      protoJavaClassNameMapBuilder.put(wellKnownProto.javaClassName(), wktMessageInfo);
+    }
+
     for (CelLiteDescriptor descriptor : descriptors) {
       protoFqnMapBuilder.putAll(descriptor.getProtoFqnToMessageInfo());
       protoJavaClassNameMapBuilder.putAll(descriptor.getProtoJavaClassNameToMessageInfo());

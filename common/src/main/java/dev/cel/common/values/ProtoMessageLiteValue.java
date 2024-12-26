@@ -5,9 +5,7 @@ import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.internal.CelLiteDescriptorPool;
-import dev.cel.common.types.CelType;
 import dev.cel.common.types.StructTypeReference;
-import dev.cel.protobuf.CelLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldInfo;
 import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
 import java.lang.reflect.InvocationTargetException;
@@ -38,17 +36,21 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
   public CelValue select(StringValue field) {
     MessageInfo messageInfo = descriptorPool().findMessageInfoByTypeName(celType().name()).get();
     FieldInfo fieldInfo = messageInfo.getFieldInfoMap().get(field.value());
+    Method getterMethod;
     try {
-      Method getterMethod = value().getClass().getMethod(fieldInfo.getGetterName());
+      getterMethod = value().getClass().getMethod(fieldInfo.getGetterName());
+    } catch (NoSuchMethodException e) {
+      throw new LinkageError(
+          String.format("setter method %s does not exist in class: %s.", fieldInfo.getSetterName(), messageInfo.getFullyQualifiedProtoName()),
+          e);
+    }
+    try {
       Object selectedValue = getterMethod.invoke(value());
       return protoLiteCelValueConverter().fromJavaObjectToCelValue(selectedValue);
-    } catch (NoSuchMethodException e) {
-      // TODO: Exceptions
-      throw new RuntimeException(e);
-    } catch (InvocationTargetException e) {
-      throw new RuntimeException(e);
-    } catch (IllegalAccessException e) {
-      throw new RuntimeException(e);
+    } catch (IllegalAccessException | InvocationTargetException e) {
+      throw new LinkageError(
+          String.format("setter method %s invocation failed for class: %s.", fieldInfo.getSetterName(), messageInfo.getFullyQualifiedProtoName()),
+          e);
     }
   }
 
