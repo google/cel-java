@@ -8,6 +8,7 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedInts;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
+import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
@@ -42,8 +43,6 @@ public final class ProtoLiteAdapter {
 
   public MessageLite adaptValueToWellKnownProto(Object value, WellKnownProto wellKnownProto) {
     switch (wellKnownProto) {
-      case ANY_VALUE:
-        break;
       case JSON_VALUE:
         return CelProtoJsonAdapter.adaptValueToJsonValue(value);
       case JSON_STRUCT_VALUE:
@@ -75,7 +74,45 @@ public final class ProtoLiteAdapter {
       default:
         throw new IllegalArgumentException("Unexpceted wellKnownProto kind: " + wellKnownProto);
     }
-    return null;
+  }
+
+  public static Any adaptValueToAny(Object value, String typeName) {
+    ByteString anyBytes;
+    String typeUrl;
+    if (value instanceof MessageLite) {
+      anyBytes = ((MessageLite) value).toByteString();
+      if (value instanceof Duration) {
+        typeUrl = WellKnownProto.DURATION_VALUE.typeName();
+      } else if (value instanceof Timestamp) {
+        typeUrl = WellKnownProto.TIMESTAMP_VALUE.typeName();
+      } else {
+        typeUrl = typeName;
+      }
+    } else if (value instanceof ByteString) {
+      anyBytes = BytesValue.of((ByteString) value).toByteString();
+      typeUrl = WellKnownProto.BYTES_VALUE.typeName();
+    } else if (value instanceof Boolean) {
+      anyBytes = BoolValue.of((boolean) value).toByteString();
+      typeUrl = WellKnownProto.BOOL_VALUE.typeName();
+    } else if (value instanceof String) {
+      anyBytes = StringValue.of((String) value).toByteString();
+      typeUrl = WellKnownProto.STRING_VALUE.typeName();
+    } else if (value instanceof Double) {
+      anyBytes = DoubleValue.of((double) value).toByteString();
+      typeUrl = WellKnownProto.DOUBLE_VALUE.typeName();
+    } else if (value instanceof Long) {
+      anyBytes = Int64Value.of((long) value).toByteString();
+      typeUrl = WellKnownProto.INT64_VALUE.typeName();
+    } else if (value instanceof UnsignedLong) {
+      anyBytes = UInt64Value.of(((UnsignedLong) value).longValue()).toByteString();
+      typeUrl = WellKnownProto.UINT64_VALUE.typeName();
+    } else {
+      throw new IllegalArgumentException("Unsupported value conversion to any: " + value);
+    }
+
+    return Any.newBuilder()
+        .setValue(anyBytes)
+        .setTypeUrl("type.googleapis.com/" + typeUrl).build();
   }
 
 

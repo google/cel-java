@@ -7,14 +7,24 @@ import static com.google.common.math.LongMath.checkedSubtract;
 
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
+import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.DoubleValue;
+import com.google.protobuf.FloatValue;
+import com.google.protobuf.Int32Value;
+import com.google.protobuf.Int64Value;
+import com.google.protobuf.MessageLiteOrBuilder;
+import com.google.protobuf.StringValue;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Timestamp;
+import com.google.protobuf.UInt32Value;
+import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
 import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.Timestamps;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.internal.WellKnownProto;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -59,6 +69,46 @@ public abstract class BaseProtoCelValueConverter extends CelValueConverter {
     }
 
     return super.fromJavaObjectToCelValue(value);
+  }
+
+  protected final CelValue fromWellKnownProtoToCelValue(MessageLiteOrBuilder message, WellKnownProto wellKnownProto) {
+    switch (wellKnownProto) {
+      case JSON_VALUE:
+        return adaptJsonValueToCelValue((Value) message);
+      case JSON_STRUCT_VALUE:
+        return adaptJsonStructToCelValue((Struct) message);
+      case JSON_LIST_VALUE:
+        return adaptJsonListToCelValue((com.google.protobuf.ListValue) message);
+      case DURATION_VALUE:
+        return DurationValue.create(
+            TimeUtils.toJavaDuration((com.google.protobuf.Duration) message));
+      case TIMESTAMP_VALUE:
+        return TimestampValue.create(TimeUtils.toJavaInstant((Timestamp) message));
+      case BOOL_VALUE:
+        return fromJavaPrimitiveToCelValue(((BoolValue) message).getValue());
+      case BYTES_VALUE:
+        return fromJavaPrimitiveToCelValue(
+            ((com.google.protobuf.BytesValue) message).getValue().toByteArray());
+      case DOUBLE_VALUE:
+        return fromJavaPrimitiveToCelValue(((DoubleValue) message).getValue());
+      case FLOAT_VALUE:
+        return fromJavaPrimitiveToCelValue(((FloatValue) message).getValue());
+      case INT32_VALUE:
+        return fromJavaPrimitiveToCelValue(((Int32Value) message).getValue());
+      case INT64_VALUE:
+        return fromJavaPrimitiveToCelValue(((Int64Value) message).getValue());
+      case STRING_VALUE:
+        return fromJavaPrimitiveToCelValue(((StringValue) message).getValue());
+      case UINT32_VALUE:
+        return UintValue.create(
+            ((UInt32Value) message).getValue(), celOptions.enableUnsignedLongs());
+      case UINT64_VALUE:
+        return UintValue.create(
+            ((UInt64Value) message).getValue(), celOptions.enableUnsignedLongs());
+    }
+
+    throw new UnsupportedOperationException(
+        "Unsupported message to CelValue conversion - " + message);
   }
 
   private CelValue adaptJsonValueToCelValue(Value value) {

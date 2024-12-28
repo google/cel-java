@@ -15,7 +15,6 @@
 package dev.cel.common.internal;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedInts;
@@ -23,30 +22,16 @@ import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
-import com.google.protobuf.BoolValue;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.BytesValue;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.DoubleValue;
-import com.google.protobuf.Duration;
 import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.FloatValue;
-import com.google.protobuf.Int32Value;
-import com.google.protobuf.Int64Value;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MapEntry;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.NullValue;
-import com.google.protobuf.StringValue;
-import com.google.protobuf.Timestamp;
-import com.google.protobuf.UInt32Value;
-import com.google.protobuf.UInt64Value;
-import com.google.protobuf.Value;
 import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelProtoJsonAdapter;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import java.util.ArrayList;
@@ -54,7 +39,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.jspecify.annotations.Nullable;
 
 /**
  * The {@code ProtoAdapter} utilities handle conversion between native Java objects which represent
@@ -309,184 +293,17 @@ public final class ProtoAdapter {
       }
       return Optional.empty();
     }
+
     switch (wellKnownProto) {
       case ANY_VALUE:
-        return Optional.ofNullable(adaptValueToAny(value));
-      case JSON_VALUE:
-        try {
-          return Optional.of(CelProtoJsonAdapter.adaptValueToJsonValue(value));
-        } catch (RuntimeException e) {
-          return Optional.empty();
+        if (value instanceof Message) {
+          protoTypeName = ((Message) value).getDescriptorForType().getFullName();
         }
-      case JSON_LIST_VALUE:
-        try {
-          return Optional.of(CelProtoJsonAdapter.adaptToJsonListValue((Iterable<Object>) value));
-        } catch (RuntimeException e) {
-          return Optional.empty();
-        }
-      case JSON_STRUCT_VALUE:
-        try {
-          return Optional.of(
-              CelProtoJsonAdapter.adaptToJsonStructValue((Map<String, Object>) value));
-        } catch (RuntimeException e) {
-          return Optional.empty();
-        }
-      case BOOL_VALUE:
-        if (value instanceof Boolean) {
-          return Optional.of(BoolValue.of((Boolean) value));
-        }
-        break;
-      case BYTES_VALUE:
-        if (value instanceof ByteString) {
-          return Optional.of(BytesValue.of((ByteString) value));
-        }
-        break;
-      case DOUBLE_VALUE:
-        return Optional.ofNullable(adaptValueToDouble(value));
-      case DURATION_VALUE:
-        return Optional.of((Duration) value);
-      case FLOAT_VALUE:
-        return Optional.ofNullable(adaptValueToFloat(value));
-      case INT32_VALUE:
-        return Optional.ofNullable(adaptValueToInt32(value));
-      case INT64_VALUE:
-        return Optional.ofNullable(adaptValueToInt64(value));
-      case STRING_VALUE:
-        if (value instanceof String) {
-          return Optional.of(StringValue.of((String) value));
-        }
-        break;
-      case TIMESTAMP_VALUE:
-        return Optional.of((Timestamp) value);
-      case UINT32_VALUE:
-        return Optional.ofNullable(adaptValueToUint32(value));
-      case UINT64_VALUE:
-        return Optional.ofNullable(adaptValueToUint64(value));
+        return Optional.of(ProtoLiteAdapter.adaptValueToAny(value, protoTypeName));
+      default:
+        Message msg = (Message) protoLiteAdapter.adaptValueToWellKnownProto(value, wellKnownProto);
+        return Optional.of(msg);
     }
-    return Optional.empty();
-  }
-
-  // Helper functions which return a {@code null} value if the conversion is not successful.
-  // This technique was chosen over {@code Optional} for brevity as any call site which might
-  // care about an Optional return is handled higher up the call stack.
-
-  private @Nullable Message adaptValueToAny(Object value) {
-    if (value == null || value instanceof NullValue) {
-      return Any.pack(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build());
-    }
-    if (value instanceof Boolean) {
-      return maybePackAny(value, WellKnownProto.BOOL_VALUE);
-    }
-    if (value instanceof ByteString) {
-      return maybePackAny(value, WellKnownProto.BYTES_VALUE);
-    }
-    if (value instanceof Double) {
-      return maybePackAny(value, WellKnownProto.DOUBLE_VALUE);
-    }
-    if (value instanceof Float) {
-      return maybePackAny(value, WellKnownProto.FLOAT_VALUE);
-    }
-    if (value instanceof Integer) {
-      return maybePackAny(value, WellKnownProto.INT32_VALUE);
-    }
-    if (value instanceof Long) {
-      return maybePackAny(value, WellKnownProto.INT64_VALUE);
-    }
-    if (value instanceof Message) {
-      return Any.pack((Message) value);
-    }
-    if (value instanceof Iterable) {
-      return maybePackAny(value, WellKnownProto.JSON_LIST_VALUE);
-    }
-    if (value instanceof Map) {
-      return maybePackAny(value, WellKnownProto.JSON_STRUCT_VALUE);
-    }
-    if (value instanceof String) {
-      return maybePackAny(value, WellKnownProto.STRING_VALUE);
-    }
-    if (value instanceof UnsignedLong) {
-      return maybePackAny(value, WellKnownProto.UINT64_VALUE);
-    }
-    return null;
-  }
-
-  private @Nullable Any maybePackAny(Object value, WellKnownProto wellKnownProto) {
-    Optional<Message> protoValue = adaptValueToProto(value, wellKnownProto.typeName());
-    return protoValue.map(Any::pack).orElse(null);
-  }
-
-  private @Nullable Message adaptValueToDouble(Object value) {
-    if (value instanceof Double) {
-      return DoubleValue.of((Double) value);
-    }
-    if (value instanceof Float) {
-      return DoubleValue.of(((Float) value).doubleValue());
-    }
-    return null;
-  }
-
-  private @Nullable Message adaptValueToFloat(Object value) {
-    if (value instanceof Double) {
-      return FloatValue.of(((Double) value).floatValue());
-    }
-    if (value instanceof Float) {
-      return FloatValue.of((Float) value);
-    }
-    return null;
-  }
-
-  private @Nullable Message adaptValueToInt32(Object value) {
-    if (value instanceof Integer) {
-      return Int32Value.of((Integer) value);
-    }
-    if (value instanceof Long) {
-      return Int32Value.of(intCheckedCast((Long) value));
-    }
-    return null;
-  }
-
-  private @Nullable Message adaptValueToInt64(Object value) {
-    if (value instanceof Integer) {
-      return Int64Value.of(((Integer) value).longValue());
-    }
-    if (value instanceof Long) {
-      return Int64Value.of((Long) value);
-    }
-    return null;
-  }
-
-  private @Nullable Message adaptValueToUint32(Object value) {
-    if (value instanceof Integer) {
-      return UInt32Value.of((Integer) value);
-    }
-    if (value instanceof Long) {
-      try {
-        return UInt32Value.of(unsignedIntCheckedCast((Long) value));
-      } catch (IllegalArgumentException e) {
-        throw new CelRuntimeException(e, CelErrorCode.NUMERIC_OVERFLOW);
-      }
-    }
-    if (value instanceof UnsignedLong) {
-      try {
-        return UInt32Value.of(unsignedIntCheckedCast(((UnsignedLong) value).longValue()));
-      } catch (IllegalArgumentException e) {
-        throw new CelRuntimeException(e, CelErrorCode.NUMERIC_OVERFLOW);
-      }
-    }
-    return null;
-  }
-
-  private @Nullable Message adaptValueToUint64(Object value) {
-    if (value instanceof Integer) {
-      return UInt64Value.of(UnsignedInts.toLong((Integer) value));
-    }
-    if (value instanceof Long) {
-      return UInt64Value.of((Long) value);
-    }
-    if (value instanceof UnsignedLong) {
-      return UInt64Value.of(((UnsignedLong) value).longValue());
-    }
-    return null;
   }
 
   private Object unpackAnyProto(Any anyProto) {

@@ -23,8 +23,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.common.internal.CelLiteDescriptorPool;
+import dev.cel.common.internal.ProtoLiteAdapter;
+import dev.cel.common.values.ProtoCelValueConverter;
 import dev.cel.common.values.ProtoLiteCelValueConverter;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
+import dev.cel.common.values.ProtoMessageValueProvider;
 import dev.cel.protobuf.CelLiteDescriptor;
 import javax.annotation.concurrent.ThreadSafe;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
@@ -289,18 +292,36 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
       if (options.enableCelValue()) {
         ImmutableSet<CelLiteDescriptor> liteDescriptors = celLiteDescriptorBuilder.build();
-        CelLiteDescriptorPool celLiteDescriptorPool = CelLiteDescriptorPool.newInstance(liteDescriptors);
+        if (liteDescriptors.isEmpty()) {
+          CelValueProvider messageValueProvider =
+              ProtoMessageValueProvider.newInstance(dynamicProto, options);
+          if (celValueProvider != null) {
+            messageValueProvider =
+                new CelValueProvider.CombinedCelValueProvider(celValueProvider, messageValueProvider);
+          }
 
-        ProtoLiteCelValueConverter protoLiteCelValueConverter = ProtoLiteCelValueConverter.newInstance(options, celLiteDescriptorPool);
-        CelValueProvider messageValueProvider = ProtoMessageLiteValueProvider.newInstance(protoLiteCelValueConverter, celLiteDescriptorPool);
-        if (celValueProvider != null) {
-          messageValueProvider =
-              new CelValueProvider.CombinedCelValueProvider(celValueProvider, messageValueProvider);
+          ProtoCelValueConverter protoCelValueConverter =
+              ProtoCelValueConverter.newInstance(options, celDescriptorPool, dynamicProto);
+
+          runtimeTypeProvider =
+              new RuntimeTypeProviderLegacyImpl(messageValueProvider, protoCelValueConverter);
+        } else {
+          CelLiteDescriptorPool celLiteDescriptorPool = CelLiteDescriptorPool.newInstance(liteDescriptors);
+
+          // TODO: instantiate these dependencies within ProtoMessageLiteValueProvider.
+          // For now, they need to be outside to instantiate the RuntimeTypeProviderLegacyImpl adapter.
+          ProtoLiteAdapter protoLiteAdapter = new ProtoLiteAdapter(options.enableUnsignedLongs());
+          ProtoLiteCelValueConverter protoLiteCelValueConverter = ProtoLiteCelValueConverter.newInstance(options, protoLiteAdapter, celLiteDescriptorPool);
+          CelValueProvider messageValueProvider = ProtoMessageLiteValueProvider.newInstance(protoLiteCelValueConverter, protoLiteAdapter, celLiteDescriptorPool);
+          if (celValueProvider != null) {
+            messageValueProvider =
+                new CelValueProvider.CombinedCelValueProvider(celValueProvider, messageValueProvider);
+          }
+
+          runtimeTypeProvider =
+              new RuntimeTypeProviderLegacyImpl(messageValueProvider, protoLiteCelValueConverter);
         }
 
-
-        runtimeTypeProvider =
-            new RuntimeTypeProviderLegacyImpl(messageValueProvider, protoLiteCelValueConverter);
       } else {
         runtimeTypeProvider = new DescriptorMessageProvider(runtimeTypeFactory, options);
       }

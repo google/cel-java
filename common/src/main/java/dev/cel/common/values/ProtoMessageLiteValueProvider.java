@@ -1,5 +1,9 @@
 package dev.cel.common.values;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static java.util.Arrays.stream;
+
+import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
@@ -9,20 +13,18 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.DoubleValue;
 import com.google.protobuf.Duration;
-import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
 import com.google.protobuf.Internal;
 import com.google.protobuf.MessageLite;
 import com.google.protobuf.StringValue;
-import com.google.protobuf.Struct;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt64Value;
-import com.google.protobuf.Value;
 import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelProtoJsonAdapter;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.internal.DefaultInstanceMessageFactory;
+import dev.cel.common.internal.ProtoLiteAdapter;
+import dev.cel.common.internal.WellKnownProto;
 import dev.cel.common.types.CelTypes;
 import dev.cel.protobuf.CelLiteDescriptor.FieldInfo;
 import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
@@ -37,11 +39,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 @Immutable
 public class ProtoMessageLiteValueProvider implements CelValueProvider {
+  private static final ImmutableMap<String, WellKnownProto> CLASS_NAME_TO_WELL_KNOWN_PROTO_MAP;
   private final ProtoLiteCelValueConverter protoLiteCelValueConverter;
   private final CelLiteDescriptorPool descriptorPool;
+  private final ProtoLiteAdapter protoLiteAdapter;
+
+  static {
+    CLASS_NAME_TO_WELL_KNOWN_PROTO_MAP =
+        stream(WellKnownProto.values())
+            .collect(toImmutableMap(WellKnownProto::javaClassName, Function.identity()));
+  }
 
   @Override
   public Optional<CelValue> newValue(String structType, Map<String, Object> fields) {
@@ -84,7 +95,7 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
     return Optional.of(ProtoMessageLiteValue.create(msgBuilder.build(), messageInfo.getFullyQualifiedProtoName(), descriptorPool, protoLiteCelValueConverter));
   }
 
-  private static Object adaptToProtoFieldCompatibleValue(Object value, FieldInfo fieldInfo, Parameter parameter) {
+  private Object adaptToProtoFieldCompatibleValue(Object value, FieldInfo fieldInfo, Parameter parameter) {
     Class<?> parameterType = parameter.getType();
     if (parameterType.isAssignableFrom(Iterable.class)) {
       ParameterizedType listParamType = (ParameterizedType) parameter.getParameterizedType();
@@ -112,7 +123,17 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
     return adaptToProtoFieldCompatibleValueImpl(value, fieldInfo, parameter.getType());
   }
 
-  private static Object adaptToProtoFieldCompatibleValueImpl(Object value, FieldInfo fieldInfo, Class<?> parameterType) {
+  private Object adaptToProtoFieldCompatibleValueImpl(Object value, FieldInfo fieldInfo, Class<?> parameterType) {
+    WellKnownProto wellKnownProto = CLASS_NAME_TO_WELL_KNOWN_PROTO_MAP.get(parameterType.getName());
+    if (wellKnownProto != null) {
+      switch (wellKnownProto) {
+        case ANY_VALUE:
+          return ProtoLiteAdapter.adaptValueToAny(value, parameterType.getTypeName());
+        default:
+          return protoLiteAdapter.adaptValueToWellKnownProto(value, wellKnownProto);
+      }
+    }
+
     if (parameterType.equals(int.class) || parameterType.equals(Integer.class)) {
       return intCheckedCast((long) value);
     } else if (Internal.EnumLite.class.isAssignableFrom(parameterType)) {
@@ -132,15 +153,9 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
               String.format("forNumber invocation failed on the enum: %s.", parameterType),
               e);
         }
-    } else if (parameterType.equals(Int32Value.class)) {
-      return Int32Value.of(intCheckedCast((long) value));
     } else if (parameterType.equals(Any.class)) {
       // TODO: Refactor ProtoAdapter and use that instead here
       return adaptValueToAny(value, fieldInfo);
-    } else if (parameterType.equals(Value.class)) {
-      return CelProtoJsonAdapter.adaptValueToJsonValue(value);
-    } else if (parameterType.equals(Struct.class)) {
-      return CelProtoJsonAdapter.adaptToJsonStructValue((Map) value);
     }
 
     return value;
@@ -199,12 +214,13 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
     return (Class<?>) paramType;
   }
 
-  public static ProtoMessageLiteValueProvider newInstance(ProtoLiteCelValueConverter protoLiteCelValueConverter, CelLiteDescriptorPool celLiteDescriptorPool) {
-    return new ProtoMessageLiteValueProvider(protoLiteCelValueConverter, celLiteDescriptorPool);
+  public static ProtoMessageLiteValueProvider newInstance(ProtoLiteCelValueConverter protoLiteCelValueConverter, ProtoLiteAdapter protoLiteAdapter, CelLiteDescriptorPool celLiteDescriptorPool) {
+    return new ProtoMessageLiteValueProvider(protoLiteCelValueConverter, protoLiteAdapter, celLiteDescriptorPool);
   }
 
-  private ProtoMessageLiteValueProvider(ProtoLiteCelValueConverter protoLiteCelValueConverter, CelLiteDescriptorPool celLiteDescriptorPool) {
+  private ProtoMessageLiteValueProvider(ProtoLiteCelValueConverter protoLiteCelValueConverter, ProtoLiteAdapter protoLiteAdapter, CelLiteDescriptorPool celLiteDescriptorPool) {
     this.protoLiteCelValueConverter = protoLiteCelValueConverter;
     this.descriptorPool = celLiteDescriptorPool;
+    this.protoLiteAdapter = protoLiteAdapter;
   }
 }

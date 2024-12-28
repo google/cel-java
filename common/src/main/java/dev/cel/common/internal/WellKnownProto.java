@@ -56,8 +56,8 @@ public enum WellKnownProto {
   STRING_VALUE("google.protobuf.StringValue", StringValue.class.getName(), true),
   UINT32_VALUE("google.protobuf.UInt32Value", UInt32Value.class.getName(), true),
   UINT64_VALUE("google.protobuf.UInt64Value", UInt64Value.class.getName(), true),
-  DURATION_VALUE("google.protobuf.DurationValue", Duration.class.getName()),
-  TIMESTAMP_VALUE("google.protobuf.TimestampValue", Timestamp.class.getName());
+  DURATION_VALUE("google.protobuf.Duration", Duration.class.getName()),
+  TIMESTAMP_VALUE("google.protobuf.Timestamp", Timestamp.class.getName());
 
   private static final ImmutableMap<String, WellKnownProto> WELL_KNOWN_PROTO_MAP;
 
