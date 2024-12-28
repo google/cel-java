@@ -40,10 +40,6 @@ public abstract class CelLiteDescriptor {
       return fullyQualifiedProtoJavaClassName;
     }
 
-    public String getFullyQualifiedProtoJavaBuilderClassName() {
-      return getFullyQualifiedProtoJavaClassName() + "$Builder";
-    }
-
     public ImmutableMap<String, FieldInfo> getFieldInfoMap() {
       return fieldInfoMap;
     }
@@ -66,12 +62,37 @@ public abstract class CelLiteDescriptor {
     private final String javaTypeName;
     private final String methodSuffixName;
     private final String fieldJavaClassName;
-    private final Type fieldType;
+    private final ValueType fieldValueType;
+    private final Type protoFieldType;
 
-    public enum Type {
+    public enum ValueType {
       SCALAR,
       LIST,
       MAP
+    }
+
+    /**
+     * Mirror of Descriptors#Type
+     */
+    public enum Type {
+      DOUBLE,
+      FLOAT,
+      INT64,
+      UINT64,
+      INT32,
+      FIXED64,
+      FIXED32,
+      BOOL,
+      STRING,
+      GROUP,
+      MESSAGE,
+      BYTES,
+      UINT32,
+      ENUM,
+      SFIXED32,
+      SFIXED64,
+      SINT32,
+      SINT64;
     }
 
     // Lazily-loaded field
@@ -99,7 +120,7 @@ public abstract class CelLiteDescriptor {
 
     public String getSetterName() {
       String prefix = "";
-      switch (fieldType) {
+      switch (fieldValueType) {
         case SCALAR:
           prefix = "set";
           break;
@@ -121,32 +142,42 @@ public abstract class CelLiteDescriptor {
       return fieldJavaClassName;
     }
 
-    public Type getFieldType() {
-      return fieldType;
+    public ValueType getFieldValueType() {
+      return fieldValueType;
+    }
+
+    public Type getProtoFieldType() {
+      return protoFieldType;
     }
 
     public String getFullyQualifiedProtoName() {
       return fullyQualifiedProtoName;
     }
 
+    /**
+     * Must be public, used for codegen only. Do not use.
+     */
+    @Internal
     public FieldInfo(
         String fullyQualifiedProtoName,
-        String javaTypeName,
+        String javaTypeName, // Long, Double, Float, Message... (See Descriptors#JavaType)
         String methodSuffixName,
         String fieldJavaClassName,
-        String fieldType
+        String fieldValueType, // LIST, MAP, SCALAR
+        String protoFieldType
         ) {
       this.fullyQualifiedProtoName = checkNotNull(fullyQualifiedProtoName);
       this.javaTypeName = checkNotNull(javaTypeName);
       this.methodSuffixName = checkNotNull(methodSuffixName);
       this.fieldJavaClassName = checkNotNull(fieldJavaClassName);
-      this.fieldType = Type.valueOf(checkNotNull(fieldType));
+      this.fieldValueType = ValueType.valueOf(checkNotNull(fieldValueType));
+      this.protoFieldType = Type.valueOf(protoFieldType);
     }
 
     private Class<?> deriveFieldTypeClass() {
-      if (fieldType.equals(Type.LIST)) {
+      if (fieldValueType.equals(ValueType.LIST)) {
         return Iterable.class;
-      } else if (fieldType.equals(Type.MAP)) {
+      } else if (fieldValueType.equals(ValueType.MAP)) {
         return Map.class;
       }
 
