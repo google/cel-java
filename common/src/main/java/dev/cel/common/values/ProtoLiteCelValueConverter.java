@@ -20,10 +20,9 @@ import java.util.Optional;
 @Internal
 public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter {
   private final CelLiteDescriptorPool descriptorPool;
-  private final ProtoLiteAdapter protoLiteAdapter;
 
-  public static ProtoLiteCelValueConverter newInstance(CelOptions celOptions, ProtoLiteAdapter protoLiteAdapter, CelLiteDescriptorPool celLiteDescriptorPool) {
-    return new ProtoLiteCelValueConverter(celOptions, protoLiteAdapter, celLiteDescriptorPool);
+  public static ProtoLiteCelValueConverter newInstance(CelOptions celOptions, CelLiteDescriptorPool celLiteDescriptorPool) {
+    return new ProtoLiteCelValueConverter(celOptions, celLiteDescriptorPool);
   }
 
   @Override
@@ -96,9 +95,8 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     return Optional.empty();
   }
 
-  private ProtoLiteCelValueConverter(CelOptions celOptions, ProtoLiteAdapter protoLiteAdapter, CelLiteDescriptorPool celLiteDescriptorPool) {
+  private ProtoLiteCelValueConverter(CelOptions celOptions, CelLiteDescriptorPool celLiteDescriptorPool) {
     super(celOptions);
     this.descriptorPool = celLiteDescriptorPool;
-    this.protoLiteAdapter = protoLiteAdapter;
   }
 }

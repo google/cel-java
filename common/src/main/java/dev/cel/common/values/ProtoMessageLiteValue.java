@@ -2,6 +2,7 @@ package dev.cel.common.values;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
+import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.internal.CelLiteDescriptorPool;
@@ -46,6 +47,11 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
     }
     try {
       Object selectedValue = getterMethod.invoke(value());
+      if (fieldInfo.getProtoFieldType().equals(FieldInfo.Type.UINT32)) {
+        selectedValue = UnsignedLong.valueOf((int) selectedValue);
+      } else if (fieldInfo.getProtoFieldType().equals(FieldInfo.Type.UINT64)) {
+        selectedValue = UnsignedLong.valueOf((long) selectedValue);
+      }
       return protoLiteCelValueConverter().fromJavaObjectToCelValue(selectedValue);
     } catch (IllegalAccessException | InvocationTargetException e) {
       throw new LinkageError(

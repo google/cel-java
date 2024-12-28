@@ -2,6 +2,7 @@ package dev.cel.protobuf;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
@@ -129,6 +130,21 @@ public class CelLiteDescriptorGeneratorTest {
     boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
     assertThat(result).isTrue();
+  }
+
+  @Test
+  @TestParameters("{expression: 'msg.single_uint32'}")
+  @TestParameters("{expression: 'msg.single_uint64'}")
+  public void fieldSelection_unsigned(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg = TestAllTypes.newBuilder()
+        .setSingleUint32(4)
+        .setSingleUint64(4L)
+        .build();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isEqualTo(UnsignedLong.valueOf(4L));
   }
 
   @Test

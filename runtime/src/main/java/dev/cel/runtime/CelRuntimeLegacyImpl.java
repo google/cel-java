@@ -311,7 +311,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
           // TODO: instantiate these dependencies within ProtoMessageLiteValueProvider.
           // For now, they need to be outside to instantiate the RuntimeTypeProviderLegacyImpl adapter.
           ProtoLiteAdapter protoLiteAdapter = new ProtoLiteAdapter(options.enableUnsignedLongs());
-          ProtoLiteCelValueConverter protoLiteCelValueConverter = ProtoLiteCelValueConverter.newInstance(options, protoLiteAdapter, celLiteDescriptorPool);
+          ProtoLiteCelValueConverter protoLiteCelValueConverter = ProtoLiteCelValueConverter.newInstance(options, celLiteDescriptorPool);
           CelValueProvider messageValueProvider = ProtoMessageLiteValueProvider.newInstance(protoLiteCelValueConverter, protoLiteAdapter, celLiteDescriptorPool);
           if (celValueProvider != null) {
             messageValueProvider =
