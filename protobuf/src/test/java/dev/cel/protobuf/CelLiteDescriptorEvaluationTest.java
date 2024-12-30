@@ -63,11 +63,19 @@ public class CelLiteDescriptorEvaluationTest {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile("TestAllTypes{"
         + "single_int32: 4,"
         + "single_int64: 6,"
+        + "single_float: 7.1,"
+        + "single_double: 8.2,"
         + "single_nested_enum: TestAllTypes.NestedEnum.BAR,"
         + "repeated_int32: [1,2],"
         + "repeated_int64: [3,4],"
         + "map_string_int32: {'a': 1},"
         + "map_string_int64: {'b': 2},"
+        + "single_int32_wrapper: google.protobuf.Int32Value{value: 9},"
+        + "single_int64_wrapper: google.protobuf.Int64Value{value: 10},"
+        + "single_float_wrapper: 11.1,"
+        + "single_double_wrapper: 12.2,"
+        + "single_uint32_wrapper: google.protobuf.UInt32Value{value: 13u},"
+        + "single_uint64_wrapper: google.protobuf.UInt64Value{value: 14u},"
         + "oneof_type: NestedTestAllTypes {"
         + "    payload: TestAllTypes {"
         + "       single_bytes: b'abc',"
@@ -77,11 +85,19 @@ public class CelLiteDescriptorEvaluationTest {
     TestAllTypes expectedMessage = TestAllTypes.newBuilder()
         .setSingleInt32(4)
         .setSingleInt64(6L)
+        .setSingleFloat(7.1f)
+        .setSingleDouble(8.2d)
         .setSingleNestedEnum(NestedEnum.BAR)
         .addAllRepeatedInt32(Arrays.asList(1,2))
         .addAllRepeatedInt64(Arrays.asList(3L,4L))
         .putMapStringInt32("a", 1)
         .putMapStringInt64("b", 2)
+        .setSingleInt32Wrapper(Int32Value.of(9))
+        .setSingleInt64Wrapper(Int64Value.of(10L))
+        .setSingleFloatWrapper(FloatValue.of(11.1f))
+        .setSingleDoubleWrapper(DoubleValue.of(12.2d))
+        .setSingleUint32Wrapper(UInt32Value.of(13))
+        .setSingleUint64Wrapper(UInt64Value.of(14L))
         .setOneofType(
             NestedTestAllTypes.newBuilder().setPayload(
                 TestAllTypes.newBuilder().setSingleBytes(

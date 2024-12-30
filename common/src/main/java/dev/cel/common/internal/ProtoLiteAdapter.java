@@ -42,6 +42,10 @@ public final class ProtoLiteAdapter {
   private final boolean enableUnsignedLongs;
 
   public MessageLite adaptValueToWellKnownProto(Object value, WellKnownProto wellKnownProto) {
+    if (value instanceof MessageLiteOrBuilder) {
+      // Unwrap well known proto's underlying value (e.g: Int32Value { value: 1 })
+      value = adaptWellKnownProtoToValue((MessageLiteOrBuilder) value, wellKnownProto);
+    }
     switch (wellKnownProto) {
       case JSON_VALUE:
         return CelProtoJsonAdapter.adaptValueToJsonValue(value);

@@ -74,6 +74,9 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
     MessageLite.Builder msgBuilder = msg.toBuilder();
     for (Map.Entry<String, Object> entry : fields.entrySet()) {
       FieldInfo fieldInfo = messageInfo.getFieldInfoMap().get(entry.getKey());
+      if (fieldInfo == null) {
+        System.out.println();
+      }
       Method setterMethod = ReflectionUtils.getMethod(msgBuilder.getClass(), fieldInfo.getSetterName(), fieldInfo.getFieldJavaClass());
       Object newFieldValue = adaptToProtoFieldCompatibleValue(entry.getValue(), fieldInfo, setterMethod.getParameters()[0]);
       ReflectionUtils.invoke(setterMethod, msgBuilder, newFieldValue);
@@ -121,8 +124,14 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
       }
     }
 
+    if (value instanceof UnsignedLong) {
+      value = ((UnsignedLong)value).longValue();
+    }
+
     if (parameterType.equals(int.class) || parameterType.equals(Integer.class)) {
       return intCheckedCast((long) value);
+    } else if (parameterType.equals(float.class) || parameterType.equals(Float.class)) {
+      return ((Double) value).floatValue();
     } else if (Internal.EnumLite.class.isAssignableFrom(parameterType)) {
         // CEL coerces enums into int. We need to adapt it back into an actual proto enum.
         Method method = ReflectionUtils.getMethod(parameterType, "forNumber", int.class);

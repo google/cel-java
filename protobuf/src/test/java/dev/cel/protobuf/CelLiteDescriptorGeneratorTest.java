@@ -1,7 +1,6 @@
 package dev.cel.protobuf;
 
 import static com.google.common.truth.Truth.assertThat;
-import static dev.cel.common.CelDescriptorUtil.getAllDescriptorsFromFileDescriptor;
 
 import com.google.common.collect.ImmutableList;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
