@@ -151,6 +151,40 @@ public class CelLiteDescriptorGeneratorTest {
   }
 
   @Test
+  @TestParameters("{expression: 'msg.repeated_int32'}")
+  @TestParameters("{expression: 'msg.repeated_int64'}")
+  public void fieldSelection_list(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg = TestAllTypes.newBuilder()
+        .addRepeatedInt32(1)
+        .addRepeatedInt32(2)
+        .addRepeatedInt64(1L)
+        .addRepeatedInt64(2L)
+        .build();
+
+    ImmutableList<Long> result = (ImmutableList<Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).containsExactly(1L, 2L).inOrder();
+  }
+
+  @Test
+  @TestParameters("{expression: 'msg.map_string_int32'}")
+  @TestParameters("{expression: 'msg.map_string_int64'}")
+  public void fieldSelection_map(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg = TestAllTypes.newBuilder()
+        .putMapStringInt32("a", 1)
+        .putMapStringInt32("b", 2)
+        .putMapStringInt64("a", 1L)
+        .putMapStringInt64("b", 2L)
+        .build();
+
+    ImmutableMap<String, Long> result = (ImmutableMap<String, Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).containsExactly("a", 1L, "b", 2L);
+  }
+
+  @Test
   @TestParameters("{expression: 'msg.single_int32_wrapper == 1'}")
   @TestParameters("{expression: 'msg.single_int64_wrapper == 2'}")
   @TestParameters("{expression: 'msg.single_uint32_wrapper == 3u'}")
@@ -200,7 +234,6 @@ public class CelLiteDescriptorGeneratorTest {
 
     assertThat(result).isFalse();
   }
-
   @Test
   @TestParameters("{expression: 'has(msg.single_int32)'}")
   @TestParameters("{expression: 'has(msg.single_int64)'}")

@@ -54,26 +54,22 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
   public Optional<CelValue> find(StringValue field) {
         MessageInfo messageInfo = descriptorPool().findMessageInfoByTypeName(celType().name()).get();
     FieldInfo fieldInfo = messageInfo.getFieldInfoMap().get(field.value());
-    Method hasserMethod;
-    try {
-      hasserMethod = value().getClass().getMethod(fieldInfo.getHasserName());
-    } catch (NoSuchMethodException e) {
-      throw new LinkageError(
-          String.format("getter method %s does not exist in class: %s.", fieldInfo.getHasserName(), messageInfo.getFullyQualifiedProtoName()),
-          e);
-    }
-    try {
-      boolean presenceTestResult = (boolean) hasserMethod.invoke(null);
+    if (fieldInfo.getHasHasser()) {
+      Method hasserMethod = ReflectionUtils.getMethod(value().getClass(), fieldInfo.getHasserName());
+      boolean presenceTestResult = (boolean) ReflectionUtils.invoke(hasserMethod, value());
       if (!presenceTestResult) {
         return Optional.empty();
       }
-    } catch (IllegalAccessException | InvocationTargetException e) {
-      throw new LinkageError(
-          String.format("getter method %s invocation failed for class: %s.", fieldInfo.getSetterName(), messageInfo.getFullyQualifiedProtoName()),
-          e);
-    }
 
-    return Optional.of(select(field));
+      return Optional.of(select(field));
+    } else {
+      CelValue selectedValue = select(field);
+      if (selectedValue.isZeroValue()) {
+        return Optional.empty();
+      }
+
+      return Optional.of(selectedValue);
+    }
   }
 
   public static ProtoMessageLiteValue create(

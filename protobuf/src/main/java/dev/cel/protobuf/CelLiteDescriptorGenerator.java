@@ -104,7 +104,16 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
         }
 
         fieldMap.put(fieldDescriptor.getName(),
-            new FieldInfo(fieldDescriptor.getFullName(), javaType, methodSuffixName, fieldJavaClassName, fieldValueType.toString(), fieldDescriptor.getType().toString()));
+            new FieldInfo(
+                fieldDescriptor.getFullName(),
+                javaType,
+                methodSuffixName,
+                fieldJavaClassName,
+                fieldValueType.toString(),
+                fieldDescriptor.getType().toString(),
+                String.valueOf(fieldDescriptor.hasPresence())
+            )
+        );
 
         print(String.format("Method suffix name in %s, for field %s: %s", descriptor.getFullName(), fieldDescriptor.getFullName(), methodSuffixName));
         print(String.format("FieldType: %s", fieldValueType));

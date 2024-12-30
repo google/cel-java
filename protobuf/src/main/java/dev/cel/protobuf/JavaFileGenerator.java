@@ -1,6 +1,5 @@
 package dev.cel.protobuf;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.auto.value.AutoValue;
@@ -26,6 +25,7 @@ final class JavaFileGenerator {
     Configuration cfg = new Configuration(Configuration.VERSION_2_3_33);
     cfg.setClassForTemplateLoading(JavaFileGenerator.class, "templates/");
     cfg.setDefaultEncoding("UTF-8");
+    cfg.setBooleanFormat("c");
     DefaultObjectWrapperBuilder wrapperBuilder = new DefaultObjectWrapperBuilder(Configuration.VERSION_2_3_27);
     wrapperBuilder.setExposeFields(true);
     cfg.setObjectWrapper(wrapperBuilder.build());
