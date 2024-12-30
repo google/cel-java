@@ -6,6 +6,12 @@ package(
 )
 
 java_library(
+    name = "cel_lite_descriptor_generator",
+    testonly = 1,
+    exports = ["//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor_generator"],
+)
+
+java_library(
     name = "cel_lite_descriptor",
     exports = ["//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor"],
 )

@@ -1,6 +1,9 @@
 package dev.cel.protobuf;
 
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -14,7 +17,9 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import dev.cel.common.CelDescriptorUtil;
+import dev.cel.common.CelDescriptors;
 import dev.cel.common.internal.ProtoJavaQualifiedNames;
+import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.FieldInfo;
 import dev.cel.protobuf.CelLiteDescriptor.FieldInfo.ValueType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
@@ -71,12 +76,16 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
     return 0;
   }
 
-  private void codegenCelLiteDescriptor(FileDescriptor targetFileDescriptor)
-      throws Exception {
-    String javaPackageName = ProtoJavaQualifiedNames.getJavaPackageName(targetFileDescriptor);
+  @VisibleForTesting
+  ImmutableList<MessageInfo> collectMessageInfo(FileDescriptor targetFileDescriptor) {
     ImmutableList.Builder<MessageInfo> messageInfoListBuilder = ImmutableList.builder();
+    CelDescriptors celDescriptors =
+        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(ImmutableList.of(targetFileDescriptor), /* resolveTypeDependencies= */ false);
+    ImmutableSet<Descriptor> messageTypes = celDescriptors.messageTypeDescriptors()
+        .stream().filter(d -> WellKnownProto.getByTypeName(d.getFullName()) == null)
+        .collect(toImmutableSet());
 
-    for (Descriptor descriptor : targetFileDescriptor.getMessageTypes()) {
+    for (Descriptor descriptor : messageTypes) {
       ImmutableMap.Builder<String, FieldInfo> fieldMap = ImmutableMap.builder();
       for (FieldDescriptor fieldDescriptor : descriptor.getFields()) {
         String methodSuffixName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, fieldDescriptor.getName());
@@ -130,12 +139,19 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
           ));
     }
 
+    return messageInfoListBuilder.build();
+  }
+
+  private void codegenCelLiteDescriptor(FileDescriptor targetFileDescriptor)
+      throws Exception {
+    String javaPackageName = ProtoJavaQualifiedNames.getJavaPackageName(targetFileDescriptor);
+
     JavaFileGenerator.createFile(outPath,
         JavaFileGeneratorOption.newBuilder()
             .setVersion(version)
             .setDescriptorClassName(descriptorClassName)
             .setPackageName(javaPackageName)
-            .setMessageInfoList(messageInfoListBuilder.build())
+            .setMessageInfoList(collectMessageInfo(targetFileDescriptor))
             .build());
   }
 
@@ -182,5 +198,5 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
   }
 
 
-  private CelLiteDescriptorGenerator() {}
+  CelLiteDescriptorGenerator() {}
 }

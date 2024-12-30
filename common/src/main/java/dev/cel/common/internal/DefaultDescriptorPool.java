@@ -29,7 +29,9 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.DoubleValue;
 import com.google.protobuf.Duration;
+import com.google.protobuf.Empty;
 import com.google.protobuf.ExtensionRegistry;
+import com.google.protobuf.FieldMask;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
@@ -109,6 +111,10 @@ public final class DefaultDescriptorPool implements CelDescriptorPool {
         return Struct.getDescriptor();
       case JSON_VALUE:
         return Value.getDescriptor();
+      case EMPTY_VALUE:
+        return Empty.getDescriptor();
+      case FIELD_MASK_VALUE:
+        return FieldMask.getDescriptor();
       default:
         throw new IllegalArgumentException("Unsupported well known type: " + wellKnownProto);
     }

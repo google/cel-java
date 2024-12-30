@@ -23,6 +23,8 @@ import com.google.protobuf.BoolValue;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.DoubleValue;
 import com.google.protobuf.Duration;
+import com.google.protobuf.Empty;
+import com.google.protobuf.FieldMask;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
@@ -47,6 +49,10 @@ public enum WellKnownProto {
   JSON_STRUCT_VALUE("google.protobuf.Struct", Struct.class.getName()),
   JSON_LIST_VALUE("google.protobuf.ListValue", ListValue.class.getName()),
   ANY_VALUE("google.protobuf.Any", Any.class.getName()),
+  DURATION_VALUE("google.protobuf.Duration", Duration.class.getName()),
+  TIMESTAMP_VALUE("google.protobuf.Timestamp", Timestamp.class.getName()),
+  EMPTY_VALUE("google.protobuf.Empty", Empty.class.getName()),
+  FIELD_MASK_VALUE("google.protobuf.FieldMask", FieldMask.class.getName()),
   BOOL_VALUE("google.protobuf.BoolValue", BoolValue.class.getName(), true),
   BYTES_VALUE("google.protobuf.BytesValue", BytesValue.class.getName(), true),
   DOUBLE_VALUE("google.protobuf.DoubleValue", DoubleValue.class.getName(), true),
@@ -55,9 +61,7 @@ public enum WellKnownProto {
   INT64_VALUE("google.protobuf.Int64Value", Int64Value.class.getName(), true),
   STRING_VALUE("google.protobuf.StringValue", StringValue.class.getName(), true),
   UINT32_VALUE("google.protobuf.UInt32Value", UInt32Value.class.getName(), true),
-  UINT64_VALUE("google.protobuf.UInt64Value", UInt64Value.class.getName(), true),
-  DURATION_VALUE("google.protobuf.Duration", Duration.class.getName()),
-  TIMESTAMP_VALUE("google.protobuf.Timestamp", Timestamp.class.getName());
+  UINT64_VALUE("google.protobuf.UInt64Value", UInt64Value.class.getName(), true);
 
   private static final ImmutableMap<String, WellKnownProto> WELL_KNOWN_PROTO_MAP;
 

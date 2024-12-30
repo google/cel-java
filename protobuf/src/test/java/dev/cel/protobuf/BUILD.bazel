@@ -21,6 +21,8 @@ java_library(
         "//compiler",
         "//compiler:compiler_builder",
         "//parser:macro",
+        "//protobuf:cel_lite_descriptor",
+        "//protobuf:cel_lite_descriptor_generator",
         "//runtime",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",

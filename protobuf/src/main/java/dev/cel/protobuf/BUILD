@@ -19,6 +19,7 @@ java_binary(
         ":java_file_generator",
         "//common",
         "//common/internal:proto_java_qualified_names",
+        "//common/internal:well_known_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:info_picocli_picocli",
