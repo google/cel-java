@@ -138,6 +138,10 @@ public abstract class CelLiteDescriptor {
       return "get" + getMethodSuffixName();
     }
 
+    public String getHasserName() {
+      return "has" + getMethodSuffixName();
+    }
+
     public String getFieldJavaClassName() {
       return fieldJavaClassName;
     }

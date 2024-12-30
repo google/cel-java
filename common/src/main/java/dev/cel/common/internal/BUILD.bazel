@@ -105,6 +105,7 @@ java_library(
     ],
     deps = [
         ":proto_java_qualified_names",
+        ":reflection_utils",
         "//common/annotations",
         "//protobuf:cel_lite_descriptor",
         "@maven//:com_google_guava_guava",
@@ -277,5 +278,13 @@ java_library(
     deps = [
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "reflection_utils",
+    srcs = ["ReflectionUtils.java"],
+    deps = [
+        "//common/annotations",
     ],
 )

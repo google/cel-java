@@ -1,6 +1,7 @@
 package dev.cel.protobuf;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.BoolValue;
@@ -24,6 +25,7 @@ import dev.cel.expr.conformance.proto3.NestedTestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
+import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
 import java.util.Arrays;
@@ -34,6 +36,7 @@ import org.junit.runner.RunWith;
 public class CelLiteDescriptorGeneratorTest {
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
+          .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
           .addMessageTypes(TestAllTypes.getDescriptor())
           .setContainer("cel.expr.conformance.proto3")
@@ -148,18 +151,6 @@ public class CelLiteDescriptorGeneratorTest {
   }
 
   @Test
-  public void smokeTest() throws Exception {
-    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("msg.single_int32_wrapper").getAst();
-    TestAllTypes msg = TestAllTypes.newBuilder()
-        .setSingleInt32Wrapper(Int32Value.of(5))
-        .build();
-
-    long result = (long) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
-
-    assertThat(result).isEqualTo(5L);
-  }
-
-  @Test
   @TestParameters("{expression: 'msg.single_int32_wrapper == 1'}")
   @TestParameters("{expression: 'msg.single_int64_wrapper == 2'}")
   @TestParameters("{expression: 'msg.single_uint32_wrapper == 3u'}")
@@ -181,6 +172,55 @@ public class CelLiteDescriptorGeneratorTest {
         .setSingleBoolWrapper(BoolValue.of(true))
         .setSingleStringWrapper(StringValue.of("foo"))
         .setSingleBytesWrapper(BytesValue.of(ByteString.copyFromUtf8("abc")))
+        .build();
+
+    boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  @TestParameters("{expression: 'has(msg.single_int32)'}")
+  @TestParameters("{expression: 'has(msg.single_int64)'}")
+  @TestParameters("{expression: 'has(msg.single_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.single_int64_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int32)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int64)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int64_wrapper)'}")
+  public void presenceTest_evaluatesToFalse(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg = TestAllTypes.newBuilder()
+        .setSingleInt32(0)
+        .addAllRepeatedInt32(ImmutableList.of())
+        .addAllRepeatedInt32Wrapper(ImmutableList.of())
+        .build();
+
+    boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  @TestParameters("{expression: 'has(msg.single_int32)'}")
+  @TestParameters("{expression: 'has(msg.single_int64)'}")
+  @TestParameters("{expression: 'has(msg.single_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.single_int64_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int32)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int64)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int64_wrapper)'}")
+  public void presenceTest_evaluatesToTrue(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg = TestAllTypes.newBuilder()
+        .setSingleInt32(1)
+        .setSingleInt64(2)
+        .setSingleInt32Wrapper(Int32Value.of(0))
+        .setSingleInt64Wrapper(Int64Value.of(0))
+        .addAllRepeatedInt32(ImmutableList.of(1))
+        .addAllRepeatedInt64(ImmutableList.of(2L))
+        .addAllRepeatedInt32Wrapper(ImmutableList.of(Int32Value.of(0)))
+        .addAllRepeatedInt64Wrapper(ImmutableList.of(Int64Value.of(0L)))
         .build();
 
     boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));

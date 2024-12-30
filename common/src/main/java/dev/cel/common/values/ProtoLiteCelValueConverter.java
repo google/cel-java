@@ -8,10 +8,9 @@ import com.google.protobuf.MessageLite;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelLiteDescriptorPool;
-import dev.cel.common.internal.ProtoLiteAdapter;
+import dev.cel.common.internal.ReflectionUtils;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -65,26 +64,11 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     MessageInfo messageInfo = descriptorPool.findMessageInfoByTypeName(typeUrl)
         .orElseThrow(() -> new NoSuchElementException("Could not find message info for any packed message's type name: " + anyMsg));
 
-    Method method;
-    try {
-      method = Class.forName(messageInfo.getFullyQualifiedProtoJavaClassName()).getMethod("parseFrom", ByteString.class);
-    } catch (ClassNotFoundException e) {
-      throw new LinkageError(String.format("Could not find class %s", messageInfo.getFullyQualifiedProtoJavaClassName()), e);
-    } catch (NoSuchMethodException e) {
-      throw new LinkageError(
-          String.format("parseFrom method does not exist on the message: %s.", messageInfo.getFullyQualifiedProtoJavaClassName()),
-          e);
-    }
-
+    Method method = ReflectionUtils.getMethod(messageInfo.getFullyQualifiedProtoJavaClassName(), "parseFrom", ByteString.class);
     ByteString packedBytes = anyMsg.getValue();
-    try {
-      MessageLite unpackedMsg = (MessageLite) method.invoke(null, packedBytes);
-      return fromJavaObjectToCelValue(unpackedMsg);
-    } catch (IllegalAccessException | InvocationTargetException e) {
-      throw new LinkageError(
-          String.format("parseFrom invocation failed on class: %s", messageInfo.getFullyQualifiedProtoJavaClassName()),
-          e);
-    }
+    MessageLite unpackedMsg = (MessageLite) ReflectionUtils.invoke(method, null, packedBytes);
+
+    return fromJavaObjectToCelValue(unpackedMsg);
   }
 
   private static Optional<String> getTypeNameFromTypeUrl(String typeUrl) {

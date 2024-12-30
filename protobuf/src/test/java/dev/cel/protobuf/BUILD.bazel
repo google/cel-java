@@ -20,6 +20,7 @@ java_library(
         "//common/values:proto_message_lite_value_provider",
         "//compiler",
         "//compiler:compiler_builder",
+        "//parser:macro",
         "//runtime",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",

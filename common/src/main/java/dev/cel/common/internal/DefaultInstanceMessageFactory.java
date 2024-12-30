@@ -19,7 +19,7 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.annotations.Internal;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -119,20 +119,17 @@ public final class DefaultInstanceMessageFactory {
     }
 
     private void loadDefaultInstance() {
+      Class<?> clazz;
       try {
-        defaultInstance =
-            (MessageLite) Class.forName(fullClassName).getMethod("getDefaultInstance").invoke(null);
-      } catch (IllegalAccessException | InvocationTargetException e) {
-        throw new LinkageError(
-            String.format("getDefaultInstance for class: %s failed.", fullClassName), e);
-      } catch (NoSuchMethodException e) {
-        throw new LinkageError(
-            String.format("getDefaultInstance method does not exist in class: %s.", fullClassName),
-            e);
+        clazz = Class.forName(fullClassName);
       } catch (ClassNotFoundException e) {
         // The class may not exist in some instances (Ex: evaluating a checked expression from a
         // cached source).
+        return;
       }
+
+      Method method = ReflectionUtils.getMethod(clazz, "getDefaultInstance");
+      defaultInstance = (MessageLite) ReflectionUtils.invoke(method, null);
     }
   }
 

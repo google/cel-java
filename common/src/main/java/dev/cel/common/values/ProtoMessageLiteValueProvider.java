@@ -24,6 +24,7 @@ import dev.cel.common.CelRuntimeException;
 import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.internal.DefaultInstanceMessageFactory;
 import dev.cel.common.internal.ProtoLiteAdapter;
+import dev.cel.common.internal.ReflectionUtils;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.common.types.CelTypes;
 import dev.cel.protobuf.CelLiteDescriptor.FieldInfo;
@@ -73,23 +74,9 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
     MessageLite.Builder msgBuilder = msg.toBuilder();
     for (Map.Entry<String, Object> entry : fields.entrySet()) {
       FieldInfo fieldInfo = messageInfo.getFieldInfoMap().get(entry.getKey());
-      Method setterMethod;
-      try {
-        setterMethod = msgBuilder.getClass().getMethod(fieldInfo.getSetterName(), fieldInfo.getFieldJavaClass());
-      } catch (NoSuchMethodException e) {
-        throw new LinkageError(
-            String.format("setter method %s does not exist in class: %s.", fieldInfo.getSetterName(), messageInfo.getFullyQualifiedProtoName()),
-            e);
-      }
-
+      Method setterMethod = ReflectionUtils.getMethod(msgBuilder.getClass(), fieldInfo.getSetterName(), fieldInfo.getFieldJavaClass());
       Object newFieldValue = adaptToProtoFieldCompatibleValue(entry.getValue(), fieldInfo, setterMethod.getParameters()[0]);
-      try {
-        setterMethod.invoke(msgBuilder, newFieldValue);
-      } catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
-        throw new LinkageError(
-            String.format("setter method %s invocation failed for class: %s.", fieldInfo.getSetterName(), messageInfo.getFullyQualifiedProtoName()),
-            e);
-      }
+      ReflectionUtils.invoke(setterMethod, msgBuilder, newFieldValue);
     }
 
     return Optional.of(ProtoMessageLiteValue.create(msgBuilder.build(), messageInfo.getFullyQualifiedProtoName(), descriptorPool, protoLiteCelValueConverter));
@@ -138,21 +125,8 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
       return intCheckedCast((long) value);
     } else if (Internal.EnumLite.class.isAssignableFrom(parameterType)) {
         // CEL coerces enums into int. We need to adapt it back into an actual proto enum.
-        Method method;
-        try {
-          method = parameterType.getMethod("forNumber", int.class);
-        } catch (NoSuchMethodException e) {
-          throw new LinkageError(
-              String.format("forNumber method does not exist on the enum: %s.", parameterType),
-              e);
-        }
-        try {
-          return method.invoke(null, intCheckedCast((long) value));
-        } catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
-          throw new LinkageError(
-              String.format("forNumber invocation failed on the enum: %s.", parameterType),
-              e);
-        }
+        Method method = ReflectionUtils.getMethod(parameterType, "forNumber", int.class);
+        return ReflectionUtils.invoke(method, null, intCheckedCast((long) value));
     } else if (parameterType.equals(Any.class)) {
       // TODO: Refactor ProtoAdapter and use that instead here
       return adaptValueToAny(value, fieldInfo);
