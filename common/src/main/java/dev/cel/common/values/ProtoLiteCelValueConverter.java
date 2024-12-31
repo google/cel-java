@@ -7,7 +7,6 @@ import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.MessageLite;
-import com.google.protobuf.NullValue;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelLiteDescriptorPool;
@@ -18,7 +17,6 @@ import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
 import java.lang.reflect.Method;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import jdk.internal.reflect.Reflection;
 
 @Immutable
 @Internal
@@ -59,6 +57,10 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
       return fromProtoMessageToCelValue((MessageLite) value);
     } else if (value instanceof MessageLite.Builder) {
       return fromProtoMessageToCelValue(((MessageLite.Builder) value).build());
+    } else if (value instanceof com.google.protobuf.Internal.EnumLite) {
+      // Coerce proto enum values back into int
+      Method method = ReflectionUtils.getMethod(value.getClass(), "getNumber");
+      value = ReflectionUtils.invoke(method, value);
     }
 
     return super.fromJavaObjectToCelValue(value);

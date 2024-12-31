@@ -327,4 +327,17 @@ public class CelLiteDescriptorEvaluationTest {
 
     assertThat(result).isTrue();
   }
+
+  @Test
+  public void enumSelection() throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("msg.single_nested_enum").getAst();
+    TestAllTypes nestedMessage =
+        TestAllTypes.newBuilder()
+            .setSingleNestedEnum(NestedEnum.BAR)
+            .build();
+
+    Long result = (Long) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", nestedMessage));
+
+    assertThat(result).isEqualTo(NestedEnum.BAR.getNumber());
+  }
 }

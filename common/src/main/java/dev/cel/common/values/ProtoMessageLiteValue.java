@@ -38,12 +38,15 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
   public CelValue select(StringValue field) {
     MessageInfo messageInfo = descriptorPool().findMessageInfoByTypeName(celType().name()).get();
     FieldInfo fieldInfo = messageInfo.getFieldInfoMap().get(field.value());
-    if (fieldInfo.getProtoFieldType().equals(FieldInfo.Type.MESSAGE) && WellKnownProto.isWrapperType(fieldInfo.getFieldProtoTypeName())) {
+    if (fieldInfo.getProtoFieldType().equals(FieldInfo.Type.MESSAGE) &&
+        WellKnownProto.isWrapperType(fieldInfo.getFieldProtoTypeName())) {
       PresenceTestResult presenceTestResult = presenceTest(field);
       // Special semantics for wrapper types per CEL spec. NullValue is returned instead of the default value for unset fields.
       if (!presenceTestResult.hasPresence()) {
         return NullValue.NULL_VALUE;
       }
+
+      return presenceTestResult.selectedValue().get();
     }
 
     return protoLiteCelValueConverter().fromProtoMessageFieldToCelValue(value(), fieldInfo);
@@ -53,7 +56,7 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
   public Optional<CelValue> find(StringValue field) {
     PresenceTestResult presenceTestResult = presenceTest(field);
 
-    return presenceTestResult.presentValue();
+    return presenceTestResult.selectedValue();
   }
 
   private PresenceTestResult presenceTest(StringValue field) {
@@ -84,7 +87,7 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
   @AutoValue
   abstract static class PresenceTestResult {
     abstract boolean hasPresence();
-    abstract Optional<CelValue> presentValue();
+    abstract Optional<CelValue> selectedValue();
 
     static PresenceTestResult create(@Nullable CelValue presentValue) {
       Optional<CelValue> maybePresentValue = Optional.ofNullable(presentValue);
