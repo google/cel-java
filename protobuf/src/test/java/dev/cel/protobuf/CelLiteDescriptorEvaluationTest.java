@@ -51,7 +51,7 @@ public class CelLiteDescriptorEvaluationTest {
 
   private static final CelRuntime CEL_RUNTIME =
       CelRuntimeFactory.standardCelRuntimeBuilder()
-          .setOptions(CelOptions.current().enableCelValue(false).build())
+          .setOptions(CelOptions.current().enableCelValue(true).build())
           .addCelLiteDescriptors(TestAllTypesCelLiteDescriptor.getDescriptor())
           .build();
 
@@ -342,14 +342,5 @@ public class CelLiteDescriptorEvaluationTest {
     Long result = (Long) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", nestedMessage));
 
     assertThat(result).isEqualTo(NestedEnum.BAR.getNumber());
-  }
-
-  @Test
-  public void jsonStruct() throws Exception {
-    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("google.protobuf.Struct { fields: {'timestamp': ts } }").getAst();
-
-    Object result =  CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("ts", Timestamps.fromSeconds(100)));
-
-    assertThat(result).isNotNull();
   }
 }

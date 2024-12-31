@@ -66,7 +66,7 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     return super.fromJavaObjectToCelValue(value);
   }
 
-  private CelValue fromProtoMessageToCelValue(MessageLite msg) {
+  public CelValue fromProtoMessageToCelValue(MessageLite msg) {
     String className = msg.getClass().getName();
     MessageInfo messageInfo = descriptorPool.findMessageInfoByClassName(className)
         .orElseThrow(() -> new NoSuchElementException("Could not find message info for class: " + className));

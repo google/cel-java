@@ -29,7 +29,6 @@ import dev.cel.common.internal.WellKnownProto;
 import dev.cel.common.types.CelTypes;
 import dev.cel.protobuf.CelLiteDescriptor.FieldInfo;
 import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
@@ -37,6 +36,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -74,15 +74,13 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
     MessageLite.Builder msgBuilder = msg.toBuilder();
     for (Map.Entry<String, Object> entry : fields.entrySet()) {
       FieldInfo fieldInfo = messageInfo.getFieldInfoMap().get(entry.getKey());
-      if (fieldInfo == null) {
-        System.out.println();
-      }
+
       Method setterMethod = ReflectionUtils.getMethod(msgBuilder.getClass(), fieldInfo.getSetterName(), fieldInfo.getFieldJavaClass());
       Object newFieldValue = adaptToProtoFieldCompatibleValue(entry.getValue(), fieldInfo, setterMethod.getParameters()[0]);
       ReflectionUtils.invoke(setterMethod, msgBuilder, newFieldValue);
     }
 
-    return Optional.of(ProtoMessageLiteValue.create(msgBuilder.build(), messageInfo.getFullyQualifiedProtoName(), descriptorPool, protoLiteCelValueConverter));
+    return Optional.of(protoLiteCelValueConverter.fromProtoMessageToCelValue(msgBuilder.build()));
   }
 
   private Object adaptToProtoFieldCompatibleValue(Object value, FieldInfo fieldInfo, Parameter parameter) {
@@ -101,7 +99,7 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
       Class<?> keyActualType = getActualTypeClass(mapParamType.getActualTypeArguments()[0]);
       Class<?> valueActualType = getActualTypeClass(mapParamType.getActualTypeArguments()[1]);
 
-      Map<Object, Object> copiedMap = new HashMap<>();
+      Map<Object, Object> copiedMap = new LinkedHashMap<>();
       for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
         Object adaptedKey = adaptToProtoFieldCompatibleValueImpl(entry.getKey(), fieldInfo, keyActualType);
         Object adaptedValue = adaptToProtoFieldCompatibleValueImpl(entry.getValue(), fieldInfo, valueActualType);
