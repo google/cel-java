@@ -33,7 +33,7 @@ public final class CelLiteDescriptorPool {
     switch (wellKnownProto) {
       case BOOL_VALUE:
         fieldInfoMap.put("value", newPrimitiveFieldInfo(
-                "google.protobuf.BoolValue.value",
+                "google.protobuf.BoolValue",
                 "BOOLEAN",
                 ValueType.SCALAR,
                 FieldInfo.Type.BOOL
@@ -42,7 +42,7 @@ public final class CelLiteDescriptorPool {
         break;
       case BYTES_VALUE:
         fieldInfoMap.put("value", newPrimitiveFieldInfo(
-                "google.protobuf.BytesValue.value",
+                "google.protobuf.BytesValue",
                 "BYTE_STRING",
                 ValueType.SCALAR,
                 FieldInfo.Type.BYTES
@@ -50,7 +50,7 @@ public final class CelLiteDescriptorPool {
         break;
       case DOUBLE_VALUE:
         fieldInfoMap.put("value", newPrimitiveFieldInfo(
-                "google.protobuf.DoubleValue.value",
+                "google.protobuf.DoubleValue",
                 "DOUBLE",
                 ValueType.SCALAR,
                 FieldInfo.Type.DOUBLE
@@ -58,7 +58,7 @@ public final class CelLiteDescriptorPool {
         break;
       case FLOAT_VALUE:
         fieldInfoMap.put("value", newPrimitiveFieldInfo(
-                "google.protobuf.FloatValue.value",
+                "google.protobuf.FloatValue",
                 "FLOAT",
                 ValueType.SCALAR,
                 FieldInfo.Type.FLOAT
@@ -66,7 +66,7 @@ public final class CelLiteDescriptorPool {
         break;
       case INT32_VALUE:
         fieldInfoMap.put("value", newPrimitiveFieldInfo(
-                "google.protobuf.Int32Value.value",
+                "google.protobuf.Int32Value",
                 "INT",
                 ValueType.SCALAR,
                 FieldInfo.Type.INT32
@@ -74,7 +74,7 @@ public final class CelLiteDescriptorPool {
         break;
       case INT64_VALUE:
         fieldInfoMap.put("value", newPrimitiveFieldInfo(
-                "google.protobuf.Int64Value.value",
+                "google.protobuf.Int64Value",
                 "LONG",
                 ValueType.SCALAR,
                 FieldInfo.Type.INT64
@@ -82,7 +82,7 @@ public final class CelLiteDescriptorPool {
         break;
       case STRING_VALUE:
         fieldInfoMap.put("value", newPrimitiveFieldInfo(
-                "google.protobuf.StringValue.value",
+                "google.protobuf.StringValue",
                 "STRING",
                 ValueType.SCALAR,
                 FieldInfo.Type.STRING
@@ -90,7 +90,7 @@ public final class CelLiteDescriptorPool {
         break;
       case UINT32_VALUE:
         fieldInfoMap.put("value", newPrimitiveFieldInfo(
-                "google.protobuf.UInt32Value.value",
+                "google.protobuf.UInt32Value",
                 "INT",
                 ValueType.SCALAR,
                 FieldInfo.Type.UINT32
@@ -98,7 +98,7 @@ public final class CelLiteDescriptorPool {
         break;
       case UINT64_VALUE:
         fieldInfoMap.put("value", newPrimitiveFieldInfo(
-                "google.protobuf.UInt64Value.value",
+                "google.protobuf.UInt64Value",
                 "LONG",
                 ValueType.SCALAR,
                 FieldInfo.Type.UINT64
@@ -115,13 +115,15 @@ public final class CelLiteDescriptorPool {
 
   private static FieldInfo newPrimitiveFieldInfo(String fullyQualifiedProtoName, String javaTypeName, ValueType valueType, FieldInfo.Type protoFieldType) {
     return new FieldInfo(
-        fullyQualifiedProtoName,
+        fullyQualifiedProtoName + ".value",
         javaTypeName,
         "Value",
         "",
         valueType.toString(),
         protoFieldType.toString(),
-        String.valueOf(false));
+        String.valueOf(false),
+        fullyQualifiedProtoName
+        );
   }
 
   private CelLiteDescriptorPool(ImmutableSet<CelLiteDescriptor> descriptors) {

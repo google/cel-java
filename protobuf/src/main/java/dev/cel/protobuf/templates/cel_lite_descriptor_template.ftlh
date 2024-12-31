@@ -34,7 +34,8 @@ public final class ${descriptor_class_name} extends CelLiteDescriptor {
                 "${value.fieldJavaClassName}",
                 "${value.fieldValueType}",
                 "${value.protoFieldType}",
-                "${value.hasHasser}"
+                "${value.hasHasser}",
+                "${value.fieldProtoTypeName}"
                 ))
               </#list>
               .build()

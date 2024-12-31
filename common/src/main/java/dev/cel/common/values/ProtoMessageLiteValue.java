@@ -2,17 +2,17 @@ package dev.cel.common.values;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
-import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.internal.ReflectionUtils;
+import dev.cel.common.internal.WellKnownProto;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.protobuf.CelLiteDescriptor.FieldInfo;
 import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 /** ProtoMessageLiteValue is a struct value with protobuf support. */
 @AutoValue
@@ -38,37 +38,57 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
   public CelValue select(StringValue field) {
     MessageInfo messageInfo = descriptorPool().findMessageInfoByTypeName(celType().name()).get();
     FieldInfo fieldInfo = messageInfo.getFieldInfoMap().get(field.value());
-    Method getterMethod = ReflectionUtils.getMethod(value().getClass(), fieldInfo.getGetterName());
-    Object selectedValue = ReflectionUtils.invoke(getterMethod, value());
-
-    if (fieldInfo.getProtoFieldType().equals(FieldInfo.Type.UINT32)) {
-      selectedValue = UnsignedLong.valueOf((int) selectedValue);
-    } else if (fieldInfo.getProtoFieldType().equals(FieldInfo.Type.UINT64)) {
-      selectedValue = UnsignedLong.valueOf((long) selectedValue);
+    if (fieldInfo.getProtoFieldType().equals(FieldInfo.Type.MESSAGE) && WellKnownProto.isWrapperType(fieldInfo.getFieldProtoTypeName())) {
+      PresenceTestResult presenceTestResult = presenceTest(field);
+      // Special semantics for wrapper types per CEL spec. NullValue is returned instead of the default value for unset fields.
+      if (!presenceTestResult.hasPresence()) {
+        return NullValue.NULL_VALUE;
+      }
     }
 
-    return protoLiteCelValueConverter().fromJavaObjectToCelValue(selectedValue);
+    return protoLiteCelValueConverter().fromProtoMessageFieldToCelValue(value(), fieldInfo);
   }
 
   @Override
   public Optional<CelValue> find(StringValue field) {
-        MessageInfo messageInfo = descriptorPool().findMessageInfoByTypeName(celType().name()).get();
+    PresenceTestResult presenceTestResult = presenceTest(field);
+
+    return presenceTestResult.presentValue();
+  }
+
+  private PresenceTestResult presenceTest(StringValue field) {
+    MessageInfo messageInfo = descriptorPool().findMessageInfoByTypeName(celType().name()).get();
     FieldInfo fieldInfo = messageInfo.getFieldInfoMap().get(field.value());
+    CelValue selectedValue = null;
+    boolean presenceTestResult;
     if (fieldInfo.getHasHasser()) {
       Method hasserMethod = ReflectionUtils.getMethod(value().getClass(), fieldInfo.getHasserName());
-      boolean presenceTestResult = (boolean) ReflectionUtils.invoke(hasserMethod, value());
-      if (!presenceTestResult) {
-        return Optional.empty();
-      }
-
-      return Optional.of(select(field));
+      presenceTestResult = (boolean) ReflectionUtils.invoke(hasserMethod, value());
     } else {
-      CelValue selectedValue = select(field);
-      if (selectedValue.isZeroValue()) {
-        return Optional.empty();
-      }
+      // Lists, Maps and Opaque Values
+      selectedValue = protoLiteCelValueConverter().fromProtoMessageFieldToCelValue(value(), fieldInfo);
+      presenceTestResult = !selectedValue.isZeroValue();
+    }
 
-      return Optional.of(selectedValue);
+    if (!presenceTestResult) {
+      return PresenceTestResult.create(null);
+    }
+
+    if (selectedValue == null) {
+      selectedValue = protoLiteCelValueConverter().fromProtoMessageFieldToCelValue(value(), fieldInfo);
+    }
+
+    return PresenceTestResult.create(selectedValue);
+  }
+
+  @AutoValue
+  abstract static class PresenceTestResult {
+    abstract boolean hasPresence();
+    abstract Optional<CelValue> presentValue();
+
+    static PresenceTestResult create(@Nullable CelValue presentValue) {
+      Optional<CelValue> maybePresentValue = Optional.ofNullable(presentValue);
+      return new AutoValue_ProtoMessageLiteValue_PresenceTestResult(maybePresentValue.isPresent(), maybePresentValue);
     }
   }
 
@@ -85,9 +105,5 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
         descriptorPool,
         protoLiteCelValueConverter
         );
-  }
-
-  private FieldInfo findField(MessageInfo messageInfo, String fieldName) {
-    return messageInfo.getFieldInfoMap().get(fieldName);
   }
 }

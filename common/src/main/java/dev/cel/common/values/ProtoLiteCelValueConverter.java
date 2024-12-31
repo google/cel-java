@@ -1,19 +1,24 @@
 package dev.cel.common.values;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.MessageLite;
+import com.google.protobuf.NullValue;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.internal.ReflectionUtils;
 import dev.cel.common.internal.WellKnownProto;
+import dev.cel.protobuf.CelLiteDescriptor.FieldInfo;
 import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
 import java.lang.reflect.Method;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import jdk.internal.reflect.Reflection;
 
 @Immutable
 @Internal
@@ -24,9 +29,31 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     return new ProtoLiteCelValueConverter(celOptions, celLiteDescriptorPool);
   }
 
+  /** Adapts the protobuf message field into {@link CelValue}. */
+  public CelValue fromProtoMessageFieldToCelValue(MessageLite msg, FieldInfo fieldInfo) {
+    checkNotNull(msg);
+    checkNotNull(fieldInfo);
+
+    Method getterMethod = ReflectionUtils.getMethod(msg.getClass(), fieldInfo.getGetterName());
+    Object fieldValue = ReflectionUtils.invoke(getterMethod, msg);
+
+    switch (fieldInfo.getProtoFieldType()) {
+      case UINT32:
+        fieldValue = UnsignedLong.valueOf((int) fieldValue);
+        break;
+      case UINT64:
+        fieldValue = UnsignedLong.valueOf((long) fieldValue);
+        break;
+      default:
+        break;
+    }
+
+    return fromJavaObjectToCelValue(fieldValue);
+  }
+
   @Override
   public CelValue fromJavaObjectToCelValue(Object value) {
-    Preconditions.checkNotNull(value);
+    checkNotNull(value);
 
     if (value instanceof MessageLite) {
       return fromProtoMessageToCelValue((MessageLite) value);

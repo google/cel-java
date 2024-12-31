@@ -83,8 +83,17 @@ public enum WellKnownProto {
     return this.javaClassName;
   }
 
-  public static WellKnownProto getByTypeName(String fullyQualifiedTypeName) {
-    return WELL_KNOWN_PROTO_MAP.get(fullyQualifiedTypeName);
+  public static WellKnownProto getByTypeName(String typeName) {
+    return WELL_KNOWN_PROTO_MAP.get(typeName);
+  }
+
+  public static boolean isWrapperType(String typeName) {
+    WellKnownProto wellKnownProto = getByTypeName(typeName);
+    if (wellKnownProto == null) {
+      return false;
+    }
+
+    return wellKnownProto.isWrapperType();
   }
 
   WellKnownProto(String wellKnownProtoFullName, String javaClassName) {

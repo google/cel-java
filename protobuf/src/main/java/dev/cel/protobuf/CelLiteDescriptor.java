@@ -65,6 +65,7 @@ public abstract class CelLiteDescriptor {
     private final ValueType fieldValueType;
     private final Type protoFieldType;
     private final boolean hasHasser;
+    private final String fieldProtoTypeName;
 
     public enum ValueType {
       SCALAR,
@@ -167,11 +168,15 @@ public abstract class CelLiteDescriptor {
     }
 
     public boolean getHasHasser() {
-      return hasHasser;
+      return hasHasser && fieldValueType.equals(ValueType.SCALAR);
     }
 
     public String getFullyQualifiedProtoName() {
       return fullyQualifiedProtoName;
+    }
+
+    public String getFieldProtoTypeName() {
+      return fieldProtoTypeName;
     }
 
     /**
@@ -185,7 +190,8 @@ public abstract class CelLiteDescriptor {
         String fieldJavaClassName,
         String fieldValueType, // LIST, MAP, SCALAR
         String protoFieldType,
-        String hasHasser
+        String hasHasser,
+        String fieldProtoTypeName
         ) {
       this.fullyQualifiedProtoName = checkNotNull(fullyQualifiedProtoName);
       this.javaTypeName = checkNotNull(javaTypeName);
@@ -194,6 +200,7 @@ public abstract class CelLiteDescriptor {
       this.fieldValueType = ValueType.valueOf(checkNotNull(fieldValueType));
       this.protoFieldType = Type.valueOf(protoFieldType);
       this.hasHasser = Boolean.parseBoolean(hasHasser);
+      this.fieldProtoTypeName = checkNotNull(fieldProtoTypeName);
     }
 
     private Class<?> deriveFieldTypeClass() {

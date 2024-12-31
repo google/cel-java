@@ -11,6 +11,7 @@ import com.google.protobuf.DoubleValue;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
+import com.google.protobuf.NullValue;
 import com.google.protobuf.StringValue;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
@@ -30,6 +31,8 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -179,7 +182,7 @@ public class CelLiteDescriptorEvaluationTest {
         .addRepeatedInt64(2L)
         .build();
 
-    ImmutableList<Long> result = (ImmutableList<Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+    List<Long> result = (List<Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
     assertThat(result).containsExactly(1L, 2L).inOrder();
   }
@@ -196,7 +199,7 @@ public class CelLiteDescriptorEvaluationTest {
         .putMapStringInt64("b", 2L)
         .build();
 
-    ImmutableMap<String, Long> result = (ImmutableMap<String, Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+    Map<String, Long> result = (Map<String, Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
     assertThat(result).containsExactly("a", 1L, "b", 2L);
   }
@@ -211,7 +214,7 @@ public class CelLiteDescriptorEvaluationTest {
   @TestParameters("{expression: 'msg.single_bool_wrapper == true'}")
   @TestParameters("{expression: 'msg.single_string_wrapper == \"foo\"'}")
   @TestParameters("{expression: 'msg.single_bytes_wrapper == b\"abc\"'}")
-  public void fieldSelection_wellKnownTypes(String expression) throws Exception {
+  public void fieldSelection_wrappers(String expression) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
     TestAllTypes msg = TestAllTypes.newBuilder()
         .setSingleInt32Wrapper(Int32Value.of(1))
@@ -231,6 +234,25 @@ public class CelLiteDescriptorEvaluationTest {
   }
 
   @Test
+  @TestParameters("{expression: 'msg.single_int32_wrapper'}")
+  @TestParameters("{expression: 'msg.single_int64_wrapper'}")
+  @TestParameters("{expression: 'msg.single_uint32_wrapper'}")
+  @TestParameters("{expression: 'msg.single_uint64_wrapper'}")
+  @TestParameters("{expression: 'msg.single_float_wrapper'}")
+  @TestParameters("{expression: 'msg.single_double_wrapper'}")
+  @TestParameters("{expression: 'msg.single_bool_wrapper'}")
+  @TestParameters("{expression: 'msg.single_string_wrapper'}")
+  @TestParameters("{expression: 'msg.single_bytes_wrapper'}")
+  public void fieldSelection_wrappersNullability(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg = TestAllTypes.newBuilder().build();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isEqualTo(NullValue.NULL_VALUE);
+  }
+
+  @Test
   @TestParameters("{expression: 'has(msg.single_int32)'}")
   @TestParameters("{expression: 'has(msg.single_int64)'}")
   @TestParameters("{expression: 'has(msg.single_int32_wrapper)'}")
@@ -239,12 +261,18 @@ public class CelLiteDescriptorEvaluationTest {
   @TestParameters("{expression: 'has(msg.repeated_int64)'}")
   @TestParameters("{expression: 'has(msg.repeated_int32_wrapper)'}")
   @TestParameters("{expression: 'has(msg.repeated_int64_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int32)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int64)'}")
+  @TestParameters("{expression: 'has(msg.map_bool_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.map_bool_int64_wrapper)'}")
   public void presenceTest_evaluatesToFalse(String expression) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
     TestAllTypes msg = TestAllTypes.newBuilder()
         .setSingleInt32(0)
         .addAllRepeatedInt32(ImmutableList.of())
         .addAllRepeatedInt32Wrapper(ImmutableList.of())
+        .putAllMapBoolInt32(ImmutableMap.of())
+        .putAllMapBoolInt32Wrapper(ImmutableMap.of())
         .build();
 
     boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
@@ -261,6 +289,10 @@ public class CelLiteDescriptorEvaluationTest {
   @TestParameters("{expression: 'has(msg.repeated_int64)'}")
   @TestParameters("{expression: 'has(msg.repeated_int32_wrapper)'}")
   @TestParameters("{expression: 'has(msg.repeated_int64_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int32)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int64)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int64_wrapper)'}")
   public void presenceTest_evaluatesToTrue(String expression) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
     TestAllTypes msg = TestAllTypes.newBuilder()
@@ -272,6 +304,10 @@ public class CelLiteDescriptorEvaluationTest {
         .addAllRepeatedInt64(ImmutableList.of(2L))
         .addAllRepeatedInt32Wrapper(ImmutableList.of(Int32Value.of(0)))
         .addAllRepeatedInt64Wrapper(ImmutableList.of(Int64Value.of(0L)))
+        .putAllMapStringInt32Wrapper(ImmutableMap.of("a", Int32Value.of(1)))
+        .putAllMapStringInt64Wrapper(ImmutableMap.of("b", Int64Value.of(2L)))
+        .putMapStringInt32("a", 1)
+        .putMapStringInt64("b", 2)
         .build();
 
     boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));

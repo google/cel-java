@@ -91,13 +91,16 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
         String methodSuffixName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, fieldDescriptor.getName());
 
         String javaType = fieldDescriptor.getJavaType().toString();
-        String fieldJavaClassName = "";
+        String embeddedFieldJavaClassName = "";
+        String embeddedFieldProtoTypeName = "";
         switch (javaType) {
           case "ENUM":
-            fieldJavaClassName = ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(fieldDescriptor.getEnumType());
+            embeddedFieldJavaClassName = ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(fieldDescriptor.getEnumType());
+            embeddedFieldProtoTypeName = fieldDescriptor.getEnumType().getFullName();
             break;
           case "MESSAGE":
-            fieldJavaClassName = ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(fieldDescriptor.getMessageType());
+            embeddedFieldJavaClassName = ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(fieldDescriptor.getMessageType());
+            embeddedFieldProtoTypeName = fieldDescriptor.getMessageType().getFullName();
             break;
           default:
             break;
@@ -117,17 +120,18 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
                 fieldDescriptor.getFullName(),
                 javaType,
                 methodSuffixName,
-                fieldJavaClassName,
+                embeddedFieldJavaClassName,
                 fieldValueType.toString(),
                 fieldDescriptor.getType().toString(),
-                String.valueOf(fieldDescriptor.hasPresence())
-            )
+                String.valueOf(fieldDescriptor.hasPresence()),
+                embeddedFieldProtoTypeName
+              )
         );
 
         print(String.format("Method suffix name in %s, for field %s: %s", descriptor.getFullName(), fieldDescriptor.getFullName(), methodSuffixName));
         print(String.format("FieldType: %s", fieldValueType));
-        if (!fieldJavaClassName.isEmpty()) {
-          print(String.format("Java class name for field %s: %s", fieldDescriptor.getName(), fieldJavaClassName));
+        if (!embeddedFieldJavaClassName.isEmpty()) {
+          print(String.format("Java class name for field %s: %s", fieldDescriptor.getName(), embeddedFieldJavaClassName));
         }
       }
 
