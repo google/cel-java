@@ -15,10 +15,12 @@ import com.google.protobuf.NullValue;
 import com.google.protobuf.StringValue;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
+import com.google.protobuf.util.Timestamps;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
@@ -41,6 +43,7 @@ public class CelLiteDescriptorEvaluationTest {
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+          .addVar("ts", SimpleType.TIMESTAMP)
           .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
           .addMessageTypes(TestAllTypes.getDescriptor())
           .setContainer("cel.expr.conformance.proto3")
@@ -48,7 +51,7 @@ public class CelLiteDescriptorEvaluationTest {
 
   private static final CelRuntime CEL_RUNTIME =
       CelRuntimeFactory.standardCelRuntimeBuilder()
-          .setOptions(CelOptions.current().enableCelValue(true).build())
+          .setOptions(CelOptions.current().enableCelValue(false).build())
           .addCelLiteDescriptors(TestAllTypesCelLiteDescriptor.getDescriptor())
           .build();
 
@@ -339,5 +342,14 @@ public class CelLiteDescriptorEvaluationTest {
     Long result = (Long) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", nestedMessage));
 
     assertThat(result).isEqualTo(NestedEnum.BAR.getNumber());
+  }
+
+  @Test
+  public void jsonStruct() throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("google.protobuf.Struct { fields: {'timestamp': ts } }").getAst();
+
+    Object result =  CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("ts", Timestamps.fromSeconds(100)));
+
+    assertThat(result).isNotNull();
   }
 }
