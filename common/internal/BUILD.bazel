@@ -26,6 +26,11 @@ java_library(
 )
 
 java_library(
+    name = "proto_lite_adapter",
+    exports = ["//common/src/main/java/dev/cel/common/internal:proto_lite_adapter"],
+)
+
+java_library(
     name = "proto_equality",
     exports = ["//common/src/main/java/dev/cel/common/internal:proto_equality"],
 )
@@ -71,6 +76,21 @@ java_library(
 )
 
 java_library(
+    name = "cel_lite_desriptor_pool",
+    exports = ["//common/src/main/java/dev/cel/common/internal:cel_lite_descriptor_pool"],
+)
+
+java_library(
     name = "safe_string_formatter",
     exports = ["//common/src/main/java/dev/cel/common/internal:safe_string_formatter"],
+)
+
+java_library(
+    name = "proto_java_qualified_names",
+    exports = ["//common/src/main/java/dev/cel/common/internal:proto_java_qualified_names"],
+)
+
+java_library(
+    name = "reflection_utils",
+    exports = ["//common/src/main/java/dev/cel/common/internal:reflection_utils"],
 )

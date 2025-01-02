@@ -17,14 +17,11 @@ package dev.cel.runtime;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
-import dev.cel.common.internal.CelDescriptorPool;
-import dev.cel.common.internal.DynamicProto;
+import dev.cel.common.values.BaseProtoCelValueConverter;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueProvider;
-import dev.cel.common.values.ProtoCelValueConverter;
 import dev.cel.common.values.SelectableValue;
 import dev.cel.common.values.StringValue;
 import java.util.Map;
@@ -36,17 +33,14 @@ import java.util.NoSuchElementException;
 public final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider {
 
   private final CelValueProvider valueProvider;
-  private final ProtoCelValueConverter protoCelValueConverter;
+  private final BaseProtoCelValueConverter protoCelValueConverter;
 
   @VisibleForTesting
   public RuntimeTypeProviderLegacyImpl(
-      CelOptions celOptions,
       CelValueProvider valueProvider,
-      CelDescriptorPool celDescriptorPool,
-      DynamicProto dynamicProto) {
+      BaseProtoCelValueConverter protoCelValueConverter) {
     this.valueProvider = valueProvider;
-    this.protoCelValueConverter =
-        ProtoCelValueConverter.newInstance(celOptions, celDescriptorPool, dynamicProto);
+    this.protoCelValueConverter = protoCelValueConverter;
   }
 
   @Override
