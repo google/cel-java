@@ -23,6 +23,7 @@ import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import dev.cel.common.CelOptions;
 import dev.cel.common.values.CelValueProvider;
+import dev.cel.protobuf.CelLiteDescriptor;
 import java.util.function.Function;
 
 /** Interface for building an instance of CelRuntime */
@@ -77,6 +78,12 @@ public interface CelRuntimeBuilder {
    */
   @CanIgnoreReturnValue
   CelRuntimeBuilder addMessageTypes(Iterable<Descriptor> descriptors);
+
+  @CanIgnoreReturnValue
+  CelRuntimeBuilder addCelLiteDescriptors(CelLiteDescriptor... descriptors);
+
+  @CanIgnoreReturnValue
+  CelRuntimeBuilder addCelLiteDescriptors(Iterable<CelLiteDescriptor> descriptors);
 
   /**
    * Add {@link FileDescriptor}s to the use for type-checking, and for object creation at

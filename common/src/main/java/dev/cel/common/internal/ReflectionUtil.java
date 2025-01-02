@@ -26,6 +26,14 @@ import java.lang.reflect.Method;
 @Internal
 public final class ReflectionUtil {
 
+  public static Method getMethod(String className, String methodName, Class<?>... params) {
+    try {
+      return getMethod(Class.forName(className), methodName, params);
+    } catch (ClassNotFoundException e) {
+      throw new LinkageError(String.format("Could not find class %s", className), e);
+    }
+  }
+
   public static Method getMethod(Class<?> clazz, String methodName, Class<?>... params) {
     try {
       return clazz.getMethod(methodName, params);

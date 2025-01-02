@@ -139,7 +139,7 @@ java_library(
         "//common/ast",
         "//common/ast:cel_expr_visitor",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_re2j_re2j",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )

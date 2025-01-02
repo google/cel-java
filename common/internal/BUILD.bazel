@@ -72,6 +72,11 @@ java_library(
     exports = ["//common/src/main/java/dev/cel/common/internal:well_known_proto"],
 )
 
+cel_android_library(
+    name = "well_known_proto_android",
+    exports = ["//common/src/main/java/dev/cel/common/internal:well_known_proto_android"],
+)
+
 java_library(
     name = "proto_message_factory",
     exports = ["//common/src/main/java/dev/cel/common/internal:proto_message_factory"],
@@ -88,6 +93,26 @@ java_library(
 )
 
 java_library(
+    name = "cel_lite_descriptor_pool",
+    exports = ["//common/src/main/java/dev/cel/common/internal:cel_lite_descriptor_pool"],
+)
+
+cel_android_library(
+    name = "cel_lite_descriptor_pool_android",
+    exports = ["//common/src/main/java/dev/cel/common/internal:cel_lite_descriptor_pool_android"],
+)
+
+java_library(
+    name = "default_lite_descriptor_pool",
+    exports = ["//common/src/main/java/dev/cel/common/internal:default_lite_descriptor_pool"],
+)
+
+cel_android_library(
+    name = "default_lite_descriptor_pool_android",
+    exports = ["//common/src/main/java/dev/cel/common/internal:default_lite_descriptor_pool_android"],
+)
+
+java_library(
     name = "safe_string_formatter",
     # used_by_android
     exports = ["//common/src/main/java/dev/cel/common/internal:safe_string_formatter"],
@@ -95,6 +120,16 @@ java_library(
 
 cel_android_library(
     name = "internal_android",
-    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common/internal:internal_android"],
+)
+
+java_library(
+    name = "proto_java_qualified_names",
+    exports = ["//common/src/main/java/dev/cel/common/internal:proto_java_qualified_names"],
+)
+
+java_library(
+    name = "reflection_util",
+    # used_by_android
+    exports = ["//common/src/main/java/dev/cel/common/internal:reflection_util"],
 )

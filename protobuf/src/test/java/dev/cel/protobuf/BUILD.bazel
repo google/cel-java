@@ -1,0 +1,34 @@
+load("@rules_java//java:defs.bzl", "java_library")
+load("//:java_lite_proto_cel_library.bzl", "java_lite_proto_cel_library")
+load("//:testing.bzl", "junit4_test_suites")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+)
+
+java_library(
+    name = "cel_lite_descriptor_test",
+    testonly = 1,
+    srcs = ["CelLiteDescriptorTest.java"],
+    deps = [
+        "//:java_truth",
+        "//protobuf:cel_lite_descriptor",
+        "//testing:test_all_types_cel_java_proto_lite",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto_lite",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
+    ],
+)
+
+junit4_test_suites(
+    name = "test_suites_proto_lite",
+    sizes = [
+        "small",
+    ],
+    src_dir = "src/test/java",
+    deps = [
+        ":cel_lite_descriptor_test",
+    ],
+)

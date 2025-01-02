@@ -73,13 +73,9 @@ public enum WellKnownProto {
   FIELD_MASK("google.protobuf.FieldMask", FieldMask.class.getName(), /* isWrapperType= */ true),
   ;
 
-  private static final ImmutableMap<String, WellKnownProto> WELL_KNOWN_PROTO_MAP;
-
-  static {
-    WELL_KNOWN_PROTO_MAP =
-        stream(WellKnownProto.values())
-            .collect(toImmutableMap(WellKnownProto::typeName, Function.identity()));
-  }
+  private static final ImmutableMap<String, WellKnownProto> WELL_KNOWN_PROTO_MAP =
+      stream(WellKnownProto.values())
+          .collect(toImmutableMap(WellKnownProto::typeName, Function.identity()));
 
   private final String wellKnownProtoFullName;
   private final String javaClassName;
