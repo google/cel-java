@@ -8,17 +8,8 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
-import com.google.protobuf.BoolValue;
-import com.google.protobuf.BytesValue;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.DoubleValue;
-import com.google.protobuf.Duration;
-import com.google.protobuf.Int64Value;
 import com.google.protobuf.Internal;
 import com.google.protobuf.MessageLite;
-import com.google.protobuf.StringValue;
-import com.google.protobuf.Timestamp;
-import com.google.protobuf.UInt64Value;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.internal.CelLiteDescriptorPool;
@@ -26,7 +17,6 @@ import dev.cel.common.internal.DefaultInstanceMessageFactory;
 import dev.cel.common.internal.ProtoLiteAdapter;
 import dev.cel.common.internal.ReflectionUtils;
 import dev.cel.common.internal.WellKnownProto;
-import dev.cel.common.types.CelTypes;
 import dev.cel.protobuf.CelLiteDescriptor.FieldInfo;
 import dev.cel.protobuf.CelLiteDescriptor.MessageInfo;
 import java.lang.reflect.Method;
@@ -35,7 +25,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,7 +105,11 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
     if (wellKnownProto != null) {
       switch (wellKnownProto) {
         case ANY_VALUE:
-          return ProtoLiteAdapter.adaptValueToAny(value, parameterType.getTypeName());
+          String typeUrl = fieldInfo.getFieldProtoTypeName();
+          if (value instanceof MessageLite) {
+            typeUrl = descriptorPool.findMessageInfoByClassName(value.getClass().getName()).get().getFullyQualifiedProtoName();
+          }
+          return protoLiteAdapter.adaptValueToAny(value, typeUrl);
         default:
           return protoLiteAdapter.adaptValueToWellKnownProto(value, wellKnownProto);
       }
@@ -135,48 +128,10 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
         Method method = ReflectionUtils.getMethod(parameterType, "forNumber", int.class);
         return ReflectionUtils.invoke(method, null, intCheckedCast((long) value));
     } else if (parameterType.equals(Any.class)) {
-      // TODO: Refactor ProtoAdapter and use that instead here
-      return adaptValueToAny(value, fieldInfo);
+      return protoLiteAdapter.adaptValueToAny(value, fieldInfo.getFullyQualifiedProtoName());
     }
 
     return value;
-  }
-
-  private static Any adaptValueToAny(Object value, FieldInfo fieldInfo) {
-    // TODO: Look into refactoring ProtoAdapter and use that instead here
-    ByteString anyBytes = null;
-    String typeUrl = "";
-    if (value instanceof MessageLite) {
-      anyBytes = ((MessageLite) value).toByteString();
-      if (value instanceof Duration) {
-        typeUrl = CelTypes.DURATION_MESSAGE;
-      } else if (value instanceof Timestamp) {
-        typeUrl = CelTypes.TIMESTAMP_MESSAGE;
-      } else {
-        typeUrl = fieldInfo.getFullyQualifiedProtoName();
-      }
-    } else if (value instanceof ByteString) {
-      anyBytes = BytesValue.of((ByteString) value).toByteString();
-      typeUrl = CelTypes.BYTES_WRAPPER_MESSAGE;
-    } else if (value instanceof Boolean) {
-      anyBytes = BoolValue.of((boolean) value).toByteString();
-      typeUrl = CelTypes.BOOL_WRAPPER_MESSAGE;
-    } else if (value instanceof String) {
-      anyBytes = StringValue.of((String) value).toByteString();
-      typeUrl = CelTypes.STRING_WRAPPER_MESSAGE;
-    } else if (value instanceof Double) {
-      anyBytes = DoubleValue.of((double) value).toByteString();
-      typeUrl = CelTypes.DOUBLE_WRAPPER_MESSAGE;
-    } else if (value instanceof Long) {
-      anyBytes = Int64Value.of((long) value).toByteString();
-      typeUrl = CelTypes.INT64_WRAPPER_MESSAGE;
-    } else if (value instanceof UnsignedLong) {
-      anyBytes = UInt64Value.of(((UnsignedLong) value).longValue()).toByteString();
-      typeUrl = CelTypes.UINT64_WRAPPER_MESSAGE;
-    }
-    return Any.newBuilder()
-        .setValue(anyBytes)
-        .setTypeUrl("type.googleapis.com/" + typeUrl).build();
   }
 
   private static int intCheckedCast(long value) {

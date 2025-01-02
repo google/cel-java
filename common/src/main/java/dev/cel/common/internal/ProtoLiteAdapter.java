@@ -80,45 +80,42 @@ public final class ProtoLiteAdapter {
     }
   }
 
-  public static Any adaptValueToAny(Object value, String typeName) {
-    ByteString anyBytes;
-    String typeUrl;
+  public Any adaptValueToAny(Object value, String typeName) {
     if (value instanceof MessageLite) {
-      anyBytes = ((MessageLite) value).toByteString();
-      if (value instanceof Duration) {
-        typeUrl = WellKnownProto.DURATION_VALUE.typeName();
-      } else if (value instanceof Timestamp) {
-        typeUrl = WellKnownProto.TIMESTAMP_VALUE.typeName();
-      } else {
-        typeUrl = typeName;
-      }
+        return packAnyMessage((MessageLite) value, typeName);
+    }
+
+    if (value instanceof NullValue) {
+      return packAnyMessage(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build(), WellKnownProto.JSON_VALUE);
+    }
+
+    WellKnownProto wellKnownProto;
+
+    if (value instanceof Boolean) {
+      wellKnownProto = WellKnownProto.BOOL_VALUE;
     } else if (value instanceof ByteString) {
-      anyBytes = BytesValue.of((ByteString) value).toByteString();
-      typeUrl = WellKnownProto.BYTES_VALUE.typeName();
-    } else if (value instanceof Boolean) {
-      anyBytes = BoolValue.of((boolean) value).toByteString();
-      typeUrl = WellKnownProto.BOOL_VALUE.typeName();
+      wellKnownProto = WellKnownProto.BYTES_VALUE;
     } else if (value instanceof String) {
-      anyBytes = StringValue.of((String) value).toByteString();
-      typeUrl = WellKnownProto.STRING_VALUE.typeName();
+      wellKnownProto = WellKnownProto.STRING_VALUE;
+    } else if (value instanceof Float) {
+      wellKnownProto = WellKnownProto.FLOAT_VALUE;
     } else if (value instanceof Double) {
-      anyBytes = DoubleValue.of((double) value).toByteString();
-      typeUrl = WellKnownProto.DOUBLE_VALUE.typeName();
+      wellKnownProto = WellKnownProto.DOUBLE_VALUE;
     } else if (value instanceof Long) {
-      anyBytes = Int64Value.of((long) value).toByteString();
-      typeUrl = WellKnownProto.INT64_VALUE.typeName();
+      wellKnownProto = WellKnownProto.INT64_VALUE;
     } else if (value instanceof UnsignedLong) {
-      anyBytes = UInt64Value.of(((UnsignedLong) value).longValue()).toByteString();
-      typeUrl = WellKnownProto.UINT64_VALUE.typeName();
+      wellKnownProto = WellKnownProto.UINT64_VALUE;
+    } else if (value instanceof Iterable) {
+      wellKnownProto = WellKnownProto.JSON_LIST_VALUE;
+    } else if (value instanceof Map) {
+      wellKnownProto = WellKnownProto.JSON_STRUCT_VALUE;
     } else {
       throw new IllegalArgumentException("Unsupported value conversion to any: " + value);
     }
 
-    return Any.newBuilder()
-        .setValue(anyBytes)
-        .setTypeUrl("type.googleapis.com/" + typeUrl).build();
+    MessageLite wellKnownProtoMsg = adaptValueToWellKnownProto(value, wellKnownProto);
+    return packAnyMessage(wellKnownProtoMsg, wellKnownProto);
   }
-
 
   public Object adaptWellKnownProtoToValue(MessageLiteOrBuilder proto, WellKnownProto wellKnownProto) {
     // Exhaustive switch over the conversion and adaptation of well-known protobuf types to Java
@@ -284,6 +281,18 @@ public final class ProtoLiteAdapter {
       throw new CelRuntimeException(e, CelErrorCode.NUMERIC_OVERFLOW);
     }
   }
+
+  private static Any packAnyMessage(MessageLite msg, WellKnownProto wellKnownProto) {
+    return packAnyMessage(msg, wellKnownProto.typeName());
+  }
+
+  private static Any packAnyMessage(MessageLite msg, String typeUrl) {
+    return Any.newBuilder()
+        .setValue(msg.toByteString())
+        .setTypeUrl("type.googleapis.com/" + typeUrl).build();
+  }
+
+
 
   public ProtoLiteAdapter(boolean enableUnsignedLongs) {
     this.enableUnsignedLongs = enableUnsignedLongs;

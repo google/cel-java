@@ -285,11 +285,11 @@ public final class ProtoAdapter {
     WellKnownProto wellKnownProto = WellKnownProto.getByTypeName(protoTypeName);
     if (wellKnownProto == null) {
       if (value instanceof Message) {
-        throw new IllegalStateException(
-            String.format("value not convertible to proto: %s", value));
+        return (Message) value;
       }
 
-      throw new IllegalArgumentException("foo");
+      throw new IllegalStateException(
+          String.format("value not convertible to proto: %s", value));
     }
 
     switch (wellKnownProto) {
@@ -297,7 +297,7 @@ public final class ProtoAdapter {
         if (value instanceof Message) {
           protoTypeName = ((Message) value).getDescriptorForType().getFullName();
         }
-        return ProtoLiteAdapter.adaptValueToAny(value, protoTypeName);
+        return protoLiteAdapter.adaptValueToAny(value, protoTypeName);
       default:
         return (Message) protoLiteAdapter.adaptValueToWellKnownProto(value, wellKnownProto);
     }

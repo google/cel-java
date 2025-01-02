@@ -15,7 +15,6 @@ import com.google.protobuf.NullValue;
 import com.google.protobuf.StringValue;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
-import com.google.protobuf.util.Timestamps;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -43,8 +42,8 @@ public class CelLiteDescriptorEvaluationTest {
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-          .addVar("ts", SimpleType.TIMESTAMP)
           .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
+          .addVar("content", SimpleType.DYN)
           .addMessageTypes(TestAllTypes.getDescriptor())
           .setContainer("cel.expr.conformance.proto3")
           .build();
@@ -342,5 +341,15 @@ public class CelLiteDescriptorEvaluationTest {
     Long result = (Long) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", nestedMessage));
 
     assertThat(result).isEqualTo(NestedEnum.BAR.getNumber());
+  }
+
+  @Test
+  public void anyMessage_packUnpack() throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("TestAllTypes { single_any: content }.single_any").getAst();
+    TestAllTypes content = TestAllTypes.newBuilder().setSingleInt64(1L).build();
+
+    TestAllTypes result = (TestAllTypes) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("content", content));
+
+    assertThat(result).isEqualTo(content);
   }
 }
