@@ -15,6 +15,7 @@
 package dev.cel.common.internal;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -162,7 +163,7 @@ public final class ProtoAdapterTest {
       DynamicProto dynamicProto = DynamicProto.create(DefaultMessageFactory.INSTANCE);
       ProtoAdapter protoAdapter = new ProtoAdapter(dynamicProto, options.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(value, proto.getDescriptorForType().getFullName()))
-          .hasValue(proto);
+          .isEqualTo(proto);
       assertThat(protoAdapter.adaptProtoToValue(proto)).isEqualTo(value);
     }
   }
@@ -181,7 +182,7 @@ public final class ProtoAdapterTest {
                           : Optional.empty()),
               LEGACY.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(expr, Any.getDescriptor().getFullName()))
-          .hasValue(Any.pack(expr));
+          .isEqualTo(Any.pack(expr));
       assertThat(protoAdapter.adaptProtoToValue(Any.pack(expr))).isEqualTo(expr);
     }
   }
@@ -192,7 +193,7 @@ public final class ProtoAdapterTest {
     public void adaptValueToProto_asymmetricNullConversion() {
       ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(null, Any.getDescriptor().getFullName()))
-          .hasValue(Any.pack(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()));
+          .isEqualTo(Any.pack(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()));
       assertThat(
               protoAdapter.adaptProtoToValue(
                   Any.pack(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build())))
@@ -203,7 +204,7 @@ public final class ProtoAdapterTest {
     public void adaptValueToProto_asymmetricFloatConversion() {
       ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(1.5F, Any.getDescriptor().getFullName()))
-          .hasValue(Any.pack(FloatValue.of(1.5F)));
+          .isEqualTo(Any.pack(FloatValue.of(1.5F)));
       assertThat(protoAdapter.adaptProtoToValue(Any.pack(FloatValue.of(1.5F)))).isEqualTo(1.5D);
     }
 
@@ -211,7 +212,7 @@ public final class ProtoAdapterTest {
     public void adaptValueToProto_asymmetricDoubleFloatConversion() {
       ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(1.5D, FloatValue.getDescriptor().getFullName()))
-          .hasValue(FloatValue.of(1.5F));
+          .isEqualTo(FloatValue.of(1.5F));
       assertThat(protoAdapter.adaptProtoToValue(FloatValue.of(1.5F))).isEqualTo(1.5D);
     }
 
@@ -219,7 +220,7 @@ public final class ProtoAdapterTest {
     public void adaptValueToProto_asymmetricFloatDoubleConversion() {
       ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(1.5F, DoubleValue.getDescriptor().getFullName()))
-          .hasValue(DoubleValue.of(1.5D));
+          .isEqualTo(DoubleValue.of(1.5D));
     }
 
     @Test
@@ -228,45 +229,44 @@ public final class ProtoAdapterTest {
       assertThat(
               protoAdapter.adaptValueToProto(
                   UnsignedLong.valueOf(1L), Value.getDescriptor().getFullName()))
-          .hasValue(Value.newBuilder().setNumberValue(1).build());
+          .isEqualTo(Value.newBuilder().setNumberValue(1).build());
       assertThat(
               protoAdapter.adaptValueToProto(
                   UnsignedLong.fromLongBits(-1L), Value.getDescriptor().getFullName()))
-          .hasValue(Value.newBuilder().setStringValue(Long.toUnsignedString(-1L)).build());
+          .isEqualTo(Value.newBuilder().setStringValue(Long.toUnsignedString(-1L)).build());
       assertThat(protoAdapter.adaptValueToProto(1L, Value.getDescriptor().getFullName()))
-          .hasValue(Value.newBuilder().setNumberValue(1).build());
+          .isEqualTo(Value.newBuilder().setNumberValue(1).build());
       assertThat(
               protoAdapter.adaptValueToProto(Long.MAX_VALUE, Value.getDescriptor().getFullName()))
-          .hasValue(Value.newBuilder().setStringValue(Long.toString(Long.MAX_VALUE)).build());
+          .isEqualTo(Value.newBuilder().setStringValue(Long.toString(Long.MAX_VALUE)).build());
       assertThat(
               protoAdapter.adaptValueToProto(
                   ByteString.copyFromUtf8("foo"), Value.getDescriptor().getFullName()))
-          .hasValue(Value.newBuilder().setStringValue("Zm9v").build());
+          .isEqualTo(Value.newBuilder().setStringValue("Zm9v").build());
     }
 
     @Test
     public void adaptValueToProto_unsupportedJsonConversion() {
       ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
-      assertThat(
-              protoAdapter.adaptValueToProto(
-                  ImmutableMap.of(1, 1), Any.getDescriptor().getFullName()))
-          .isEmpty();
+
+      assertThrows(IllegalStateException.class, () -> protoAdapter.adaptValueToProto(
+          ImmutableMap.of(1, 1), Any.getDescriptor().getFullName()));
     }
 
     @Test
     public void adaptValueToProto_unsupportedJsonListConversion() {
       ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
-      assertThat(
-              protoAdapter.adaptValueToProto(
-                  ImmutableMap.of(1, 1), ListValue.getDescriptor().getFullName()))
-          .isEmpty();
+
+      assertThrows(IllegalStateException.class, () ->
+          protoAdapter.adaptValueToProto(
+              ImmutableMap.of(1, 1), ListValue.getDescriptor().getFullName()));
     }
 
     @Test
     public void adaptValueToProto_unsupportedConversion() {
       ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
-      assertThat(protoAdapter.adaptValueToProto("Hello", Expr.getDescriptor().getFullName()))
-          .isEmpty();
+
+      assertThrows(IllegalStateException.class, () ->protoAdapter.adaptValueToProto("Hello", Expr.getDescriptor().getFullName()));
     }
 
     @Test

@@ -266,11 +266,7 @@ public final class ProtoAdapter {
         return BidiConverter.<MessageOrBuilder, Object>of(
             this::adaptProtoToValue,
             value ->
-                adaptValueToProto(value, fieldDescriptor.getMessageType().getFullName())
-                    .orElseThrow(
-                        () ->
-                            new IllegalStateException(
-                                String.format("value not convertible to proto: %s", value))));
+                adaptValueToProto(value, fieldDescriptor.getMessageType().getFullName()));
       default:
         return BidiConverter.IDENTITY;
     }
@@ -285,13 +281,15 @@ public final class ProtoAdapter {
    * considered, such as a packing an {@code google.protobuf.StringValue} into a {@code Any} value.
    */
   @SuppressWarnings("unchecked")
-  public Optional<Message> adaptValueToProto(Object value, String protoTypeName) {
+  public Message adaptValueToProto(Object value, String protoTypeName) {
     WellKnownProto wellKnownProto = WellKnownProto.getByTypeName(protoTypeName);
     if (wellKnownProto == null) {
       if (value instanceof Message) {
-        return Optional.of((Message) value);
+        throw new IllegalStateException(
+            String.format("value not convertible to proto: %s", value));
       }
-      return Optional.empty();
+
+      throw new IllegalArgumentException("foo");
     }
 
     switch (wellKnownProto) {
@@ -299,10 +297,9 @@ public final class ProtoAdapter {
         if (value instanceof Message) {
           protoTypeName = ((Message) value).getDescriptorForType().getFullName();
         }
-        return Optional.of(ProtoLiteAdapter.adaptValueToAny(value, protoTypeName));
+        return ProtoLiteAdapter.adaptValueToAny(value, protoTypeName);
       default:
-        Message msg = (Message) protoLiteAdapter.adaptValueToWellKnownProto(value, wellKnownProto);
-        return Optional.of(msg);
+        return (Message) protoLiteAdapter.adaptValueToWellKnownProto(value, wellKnownProto);
     }
   }
 
