@@ -31,8 +31,6 @@ public final class CelLiteDescriptorPool {
   private static MessageInfo newMessageInfo(WellKnownProto wellKnownProto) {
     ImmutableMap.Builder<String, FieldInfo> fieldInfoMap = ImmutableMap.builder();
     switch (wellKnownProto) {
-      case JSON_VALUE:
-        break;
       case JSON_STRUCT_VALUE:
         fieldInfoMap.put("fields", new FieldInfo(
             "google.protobuf.Struct.fields",
@@ -44,8 +42,6 @@ public final class CelLiteDescriptorPool {
             String.valueOf(false),
             "google.protobuf.Struct.FieldsEntry"
         ));
-        break;
-      case JSON_LIST_VALUE:
         break;
       case BOOL_VALUE:
         fieldInfoMap.put("value", newPrimitiveFieldInfo(
