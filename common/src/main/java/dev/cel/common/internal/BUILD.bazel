@@ -105,6 +105,20 @@ java_library(
     ],
     deps = [
         "//common/annotations",
+        "//common/internal:default_instance_message_lite_factory",
+        "//common/internal:proto_java_qualified_names",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "default_instance_message_lite_factory",
+    srcs = ["DefaultInstanceMessageLiteFactory.java"],
+    tags = [
+    ],
+    deps = [
+        ":reflection_util",
+        "//common/annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
     ],
@@ -119,18 +133,34 @@ java_library(
     ],
     deps = [
         ":converter",
+        ":proto_lite_adapter",
         ":proto_message_factory",
         ":well_known_proto",
         "//:auto_value",
         "//common:error_codes",
-        "//common:proto_json_adapter",
         "//common:runtime_exception",
         "//common/annotations",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "proto_lite_adapter",
+    srcs = ["ProtoLiteAdapter.java"],
+    tags = [
+    ],
+    deps = [
+        ":well_known_proto",
+        "//common:error_codes",
+        "//common:proto_json_adapter",
+        "//common:runtime_exception",
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -185,6 +215,7 @@ java_library(
         "//common/annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_jspecify_jspecify",
     ],
 )
 
@@ -231,6 +262,19 @@ java_library(
 )
 
 java_library(
+    name = "cel_lite_descriptor_pool",
+    srcs = ["CelLiteDescriptorPool.java"],
+    deps = [
+        "//common/annotations",
+        "//common/internal:well_known_proto",
+        "//protobuf:cel_lite_descriptor",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
     name = "safe_string_formatter",
     srcs = ["SafeStringFormatter.java"],
     tags = [
@@ -238,5 +282,25 @@ java_library(
     deps = [
         "//common/annotations",
         "@maven//:com_google_re2j_re2j",
+    ],
+)
+
+java_library(
+    name = "proto_java_qualified_names",
+    srcs = ["ProtoJavaQualifiedNames.java"],
+    tags = [
+    ],
+    deps = [
+        "//common/annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "reflection_util",
+    srcs = ["ReflectionUtil.java"],
+    deps = [
+        "//common/annotations",
     ],
 )
