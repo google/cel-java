@@ -247,7 +247,7 @@ public class ProtoMessageValueProviderTest {
     ProtoMessageValueProvider protoMessageValueProvider =
         ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO, CelOptions.DEFAULT);
     CelValueProvider combinedProvider =
-        new CombinedCelValueProvider(celValueProvider, protoMessageValueProvider);
+        CombinedCelValueProvider.newInstance(celValueProvider, protoMessageValueProvider);
 
     ProtoMessageValue protoMessageValue =
         (ProtoMessageValue)

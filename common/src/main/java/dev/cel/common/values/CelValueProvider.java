@@ -41,10 +41,9 @@ public interface CelValueProvider {
   final class CombinedCelValueProvider implements CelValueProvider {
     private final ImmutableList<CelValueProvider> celValueProviders;
 
-    public CombinedCelValueProvider(CelValueProvider first, CelValueProvider second) {
-      Preconditions.checkNotNull(first);
-      Preconditions.checkNotNull(second);
-      celValueProviders = ImmutableList.of(first, second);
+    public static CombinedCelValueProvider newInstance(
+        CelValueProvider first, CelValueProvider second) {
+      return new CombinedCelValueProvider(first, second);
     }
 
     @Override
@@ -57,6 +56,12 @@ public interface CelValueProvider {
       }
 
       return Optional.empty();
+    }
+
+    private CombinedCelValueProvider(CelValueProvider first, CelValueProvider second) {
+      Preconditions.checkNotNull(first);
+      Preconditions.checkNotNull(second);
+      celValueProviders = ImmutableList.of(first, second);
     }
   }
 }

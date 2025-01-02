@@ -14,7 +14,6 @@
 
 package dev.cel.common.values;
 
-import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
 import java.util.Arrays;
 
@@ -30,7 +29,9 @@ public final class CelByteString {
   private volatile int hash = 0;
 
   public static CelByteString of(byte[] buffer) {
-    Preconditions.checkNotNull(buffer);
+    if (buffer == null) {
+      throw new NullPointerException("buffer cannot be null");
+    }
     if (buffer.length == 0) {
       return EMPTY;
     }

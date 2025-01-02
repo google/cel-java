@@ -39,5 +39,6 @@ java_library(
         "@maven//:com_google_guava_guava",  # unuseddeps: keep
         "@maven//:com_google_protobuf_protobuf_java",  # unuseddeps: keep
         "@maven//:com_google_protobuf_protobuf_java_util",  # unuseddeps: keep
+        "@maven_android//:com_google_protobuf_protobuf_javalite",  # unuseddeps: keep
     ],
 )
