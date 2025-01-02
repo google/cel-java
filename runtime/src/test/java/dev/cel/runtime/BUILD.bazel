@@ -1,5 +1,6 @@
 load("@rules_java//java:defs.bzl", "java_library")
 load("//:cel_android_rules.bzl", "cel_android_local_test")
+load("//:java_lite_proto_cel_library.bzl", "java_lite_proto_cel_library")
 load("//:testing.bzl", "junit4_test_suites")
 load("//compiler/tools:compile_cel.bzl", "compile_cel")
 
@@ -60,6 +61,7 @@ java_library(
         ["*.java"],
         exclude = [
             "CelValueInterpreterTest.java",
+            "CelLiteDescriptorInterpreterTest.java",
             "InterpreterTest.java",
         ],
     ),
@@ -177,6 +179,30 @@ cel_android_local_test(
     ],
 )
 
+java_library(
+    name = "cel_lite_descriptor_interpreter_test",
+    testonly = 1,
+    srcs = [
+        "CelLiteDescriptorInterpreterTest.java",
+    ],
+    deps = [
+        ":test_all_types_proto3_java_lite_cel_proto",
+        "//extensions:optional_library",
+        "//runtime",
+        "//testing:base_interpreter_test",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_lite_proto_cel_library(
+    name = "test_all_types_proto3_java_lite_cel_proto",
+    descriptor_class_prefix = "TestAllTypes",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
+    ],
+)
+
 junit4_test_suites(
     name = "test_suites",
     shard_count = 4,
@@ -186,6 +212,7 @@ junit4_test_suites(
     ],
     src_dir = "src/test/java",
     deps = [
+        ":cel_lite_descriptor_interpreter_test",
         ":cel_value_interpreter_test",
         ":interpreter_test",
         ":tests",

@@ -15,6 +15,7 @@
 package dev.cel.common.internal;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -51,10 +52,6 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Enclosed.class)
 public final class ProtoAdapterTest {
 
-  private static final CelOptions LEGACY = CelOptions.DEFAULT;
-  private static final CelOptions CURRENT =
-      CelOptions.newBuilder().enableUnsignedLongs(true).build();
-
   private static final DynamicProto DYNAMIC_PROTO =
       DynamicProto.create(DefaultMessageFactory.INSTANCE);
 
@@ -66,9 +63,6 @@ public final class ProtoAdapterTest {
     @Parameter(1)
     public Message proto;
 
-    @Parameter(2)
-    public CelOptions options;
-
     @Parameters
     public static List<Object[]> data() {
       return Arrays.asList(
@@ -76,40 +70,34 @@ public final class ProtoAdapterTest {
             {
               NullValue.NULL_VALUE,
               Any.pack(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()),
-              LEGACY
             },
-            {true, BoolValue.of(true), LEGACY},
-            {true, Any.pack(BoolValue.of(true)), LEGACY},
-            {true, Value.newBuilder().setBoolValue(true).build(), LEGACY},
+            {true, BoolValue.of(true)},
+            {true, Any.pack(BoolValue.of(true))},
+            {true, Value.newBuilder().setBoolValue(true).build()},
             {
-              ByteString.copyFromUtf8("hello"),
-              BytesValue.of(ByteString.copyFromUtf8("hello")),
-              LEGACY
+              ByteString.copyFromUtf8("hello"), BytesValue.of(ByteString.copyFromUtf8("hello")),
             },
             {
               ByteString.copyFromUtf8("hello"),
               Any.pack(BytesValue.of(ByteString.copyFromUtf8("hello"))),
-              LEGACY
             },
-            {1.5D, DoubleValue.of(1.5D), LEGACY},
-            {1.5D, Any.pack(DoubleValue.of(1.5D)), LEGACY},
-            {1.5D, Value.newBuilder().setNumberValue(1.5D).build(), LEGACY},
+            {1.5D, DoubleValue.of(1.5D)},
+            {1.5D, Any.pack(DoubleValue.of(1.5D))},
+            {1.5D, Value.newBuilder().setNumberValue(1.5D).build()},
             {
               Duration.newBuilder().setSeconds(123).build(),
               Duration.newBuilder().setSeconds(123).build(),
-              LEGACY
             },
             {
               Duration.newBuilder().setSeconds(123).build(),
               Any.pack(Duration.newBuilder().setSeconds(123).build()),
-              LEGACY
             },
-            {1L, Int64Value.of(1L), LEGACY},
-            {1L, Any.pack(Int64Value.of(1L)), LEGACY},
-            {UnsignedLong.valueOf(1L), UInt64Value.of(1L), LEGACY},
-            {"hello", StringValue.of("hello"), LEGACY},
-            {"hello", Any.pack(StringValue.of("hello")), LEGACY},
-            {"hello", Value.newBuilder().setStringValue("hello").build(), LEGACY},
+            {1L, Int64Value.of(1L)},
+            {1L, Any.pack(Int64Value.of(1L))},
+            {UnsignedLong.valueOf(1L), UInt64Value.of(1L)},
+            {"hello", StringValue.of("hello")},
+            {"hello", Any.pack(StringValue.of("hello"))},
+            {"hello", Value.newBuilder().setStringValue("hello").build()},
             {
               Arrays.asList("hello", "world"),
               Any.pack(
@@ -117,7 +105,6 @@ public final class ProtoAdapterTest {
                       .addValues(Value.newBuilder().setStringValue("hello"))
                       .addValues(Value.newBuilder().setStringValue("world"))
                       .build()),
-              LEGACY
             },
             {
               ImmutableMap.of("hello", "world"),
@@ -125,7 +112,6 @@ public final class ProtoAdapterTest {
                   Struct.newBuilder()
                       .putFields("hello", Value.newBuilder().setStringValue("world").build())
                       .build()),
-              LEGACY
             },
             {
               ImmutableMap.of("list_value", ImmutableList.of(false, NullValue.NULL_VALUE)),
@@ -139,30 +125,28 @@ public final class ProtoAdapterTest {
                                   .addValues(Value.newBuilder().setNullValue(NullValue.NULL_VALUE)))
                           .build())
                   .build(),
-              LEGACY
             },
             {
               Timestamp.newBuilder().setSeconds(123).build(),
               Timestamp.newBuilder().setSeconds(123).build(),
-              LEGACY
             },
             {
               Timestamp.newBuilder().setSeconds(123).build(),
               Any.pack(Timestamp.newBuilder().setSeconds(123).build()),
-              LEGACY
             },
             // Adaption support for the most current CelOptions.
-            {UnsignedLong.valueOf(1L), UInt64Value.of(1L), CURRENT},
-            {UnsignedLong.valueOf(1L), Any.pack(UInt64Value.of(1L)), CURRENT},
+            {UnsignedLong.valueOf(1L), UInt64Value.of(1L)},
+            {UnsignedLong.valueOf(1L), Any.pack(UInt64Value.of(1L))},
           });
     }
 
     @Test
     public void adaptValueToProto_bidirectionalConversion() {
       DynamicProto dynamicProto = DynamicProto.create(DefaultMessageFactory.INSTANCE);
-      ProtoAdapter protoAdapter = new ProtoAdapter(dynamicProto, options.enableUnsignedLongs());
+      ProtoAdapter protoAdapter =
+          new ProtoAdapter(dynamicProto, CelOptions.DEFAULT.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(value, proto.getDescriptorForType().getFullName()))
-          .hasValue(proto);
+          .isEqualTo(proto);
       assertThat(protoAdapter.adaptProtoToValue(proto)).isEqualTo(value);
     }
   }
@@ -179,9 +163,9 @@ public final class ProtoAdapterTest {
                       typeName.equals(Expr.getDescriptor().getFullName())
                           ? Optional.of(Expr.newBuilder())
                           : Optional.empty()),
-              LEGACY.enableUnsignedLongs());
+              CelOptions.DEFAULT.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(expr, Any.getDescriptor().getFullName()))
-          .hasValue(Any.pack(expr));
+          .isEqualTo(Any.pack(expr));
       assertThat(protoAdapter.adaptProtoToValue(Any.pack(expr))).isEqualTo(expr);
     }
   }
@@ -189,84 +173,86 @@ public final class ProtoAdapterTest {
   @RunWith(JUnit4.class)
   public static class AsymmetricConversionTest {
     @Test
-    public void adaptValueToProto_asymmetricNullConversion() {
-      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
-      assertThat(protoAdapter.adaptValueToProto(null, Any.getDescriptor().getFullName()))
-          .hasValue(Any.pack(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()));
-      assertThat(
-              protoAdapter.adaptProtoToValue(
-                  Any.pack(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build())))
-          .isEqualTo(NullValue.NULL_VALUE);
-    }
-
-    @Test
     public void adaptValueToProto_asymmetricFloatConversion() {
-      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
+      ProtoAdapter protoAdapter =
+          new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(1.5F, Any.getDescriptor().getFullName()))
-          .hasValue(Any.pack(FloatValue.of(1.5F)));
+          .isEqualTo(Any.pack(FloatValue.of(1.5F)));
       assertThat(protoAdapter.adaptProtoToValue(Any.pack(FloatValue.of(1.5F)))).isEqualTo(1.5D);
     }
 
     @Test
     public void adaptValueToProto_asymmetricDoubleFloatConversion() {
-      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
+      ProtoAdapter protoAdapter =
+          new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(1.5D, FloatValue.getDescriptor().getFullName()))
-          .hasValue(FloatValue.of(1.5F));
+          .isEqualTo(FloatValue.of(1.5F));
       assertThat(protoAdapter.adaptProtoToValue(FloatValue.of(1.5F))).isEqualTo(1.5D);
     }
 
     @Test
     public void adaptValueToProto_asymmetricFloatDoubleConversion() {
-      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
+      ProtoAdapter protoAdapter =
+          new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT.enableUnsignedLongs());
       assertThat(protoAdapter.adaptValueToProto(1.5F, DoubleValue.getDescriptor().getFullName()))
-          .hasValue(DoubleValue.of(1.5D));
+          .isEqualTo(DoubleValue.of(1.5D));
     }
 
     @Test
     public void adaptValueToProto_asymmetricJsonConversion() {
-      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, CURRENT.enableUnsignedLongs());
+      ProtoAdapter protoAdapter =
+          new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT.enableUnsignedLongs());
       assertThat(
               protoAdapter.adaptValueToProto(
                   UnsignedLong.valueOf(1L), Value.getDescriptor().getFullName()))
-          .hasValue(Value.newBuilder().setNumberValue(1).build());
+          .isEqualTo(Value.newBuilder().setNumberValue(1).build());
       assertThat(
               protoAdapter.adaptValueToProto(
                   UnsignedLong.fromLongBits(-1L), Value.getDescriptor().getFullName()))
-          .hasValue(Value.newBuilder().setStringValue(Long.toUnsignedString(-1L)).build());
+          .isEqualTo(Value.newBuilder().setStringValue(Long.toUnsignedString(-1L)).build());
       assertThat(protoAdapter.adaptValueToProto(1L, Value.getDescriptor().getFullName()))
-          .hasValue(Value.newBuilder().setNumberValue(1).build());
+          .isEqualTo(Value.newBuilder().setNumberValue(1).build());
       assertThat(
               protoAdapter.adaptValueToProto(Long.MAX_VALUE, Value.getDescriptor().getFullName()))
-          .hasValue(Value.newBuilder().setStringValue(Long.toString(Long.MAX_VALUE)).build());
+          .isEqualTo(Value.newBuilder().setStringValue(Long.toString(Long.MAX_VALUE)).build());
       assertThat(
               protoAdapter.adaptValueToProto(
                   ByteString.copyFromUtf8("foo"), Value.getDescriptor().getFullName()))
-          .hasValue(Value.newBuilder().setStringValue("Zm9v").build());
+          .isEqualTo(Value.newBuilder().setStringValue("Zm9v").build());
     }
 
     @Test
     public void adaptValueToProto_unsupportedJsonConversion() {
-      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
-      assertThat(
+      ProtoAdapter protoAdapter =
+          new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT.enableUnsignedLongs());
+
+      assertThrows(
+          ClassCastException.class,
+          () ->
               protoAdapter.adaptValueToProto(
-                  ImmutableMap.of(1, 1), Any.getDescriptor().getFullName()))
-          .isEmpty();
+                  ImmutableMap.of(1, 1), Any.getDescriptor().getFullName()));
     }
 
     @Test
     public void adaptValueToProto_unsupportedJsonListConversion() {
-      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
-      assertThat(
+      ProtoAdapter protoAdapter =
+          new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT.enableUnsignedLongs());
+
+      assertThrows(
+          ClassCastException.class,
+          () ->
               protoAdapter.adaptValueToProto(
-                  ImmutableMap.of(1, 1), ListValue.getDescriptor().getFullName()))
-          .isEmpty();
+                  ImmutableMap.of(1, 1), ListValue.getDescriptor().getFullName()));
     }
 
     @Test
     public void adaptValueToProto_unsupportedConversion() {
-      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, LEGACY.enableUnsignedLongs());
-      assertThat(protoAdapter.adaptValueToProto("Hello", Expr.getDescriptor().getFullName()))
-          .isEmpty();
+      ProtoAdapter protoAdapter =
+          new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT.enableUnsignedLongs());
+
+      assertThrows(
+          IllegalStateException.class,
+          () -> protoAdapter.adaptValueToProto("Hello", Expr.getDescriptor().getFullName()));
     }
 
     @Test
