@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 grammar CEL;
 
 // Grammar Rules
@@ -44,26 +45,27 @@ calc
     ;
 
 unary
-    : member                                                      # MemberExpr
-    | (ops+='!')+ member                                          # LogicalNot
-    | (ops+='-')+ member                                          # Negate
+    : member                                                        # MemberExpr
+    | (ops+='!')+ member                                            # LogicalNot
+    | (ops+='-')+ member                                            # Negate
     ;
 
 member
-    : primary                                                     # PrimaryExpr
-    | member op='.' (opt='?')? id=IDENTIFIER                      # Select
-    | member op='.' id=IDENTIFIER open='(' args=exprList? ')'     # MemberCall
-    | member op='[' (opt='?')? index=expr ']'                     # Index
+    : primary                                                       # PrimaryExpr
+    | member op='.' (opt='?')? id=escapeIdent                       # Select
+    | member op='.' id=IDENTIFIER open='(' args=exprList? ')'       # MemberCall
+    | member op='[' (opt='?')? index=expr ']'                       # Index
     ;
 
 primary
-    : leadingDot='.'? id=IDENTIFIER (op='(' args=exprList? ')')?  # IdentOrGlobalCall
-    | '(' e=expr ')'                                              # Nested
-    | op='[' elems=listInit? ','? ']'                             # CreateList
-    | op='{' entries=mapInitializerList? ','? '}'                 # CreateMap
+    : leadingDot='.'? id=IDENTIFIER                                 # Ident
+    | leadingDot='.'? id=IDENTIFIER (op='(' args=exprList? ')')     # GlobalCall
+    | '(' e=expr ')'                                                # Nested
+    | op='[' elems=listInit? ','? ']'                               # CreateList
+    | op='{' entries=mapInitializerList? ','? '}'                   # CreateMap
     | leadingDot='.'? ids+=IDENTIFIER (ops+='.' ids+=IDENTIFIER)*
-        op='{' entries=fieldInitializerList? ','? '}'             # CreateMessage
-    | literal                                                     # ConstantLiteral
+        op='{' entries=fieldInitializerList? ','? '}'               # CreateMessage
+    | literal                                                       # ConstantLiteral
     ;
 
 exprList
@@ -79,11 +81,16 @@ fieldInitializerList
     ;
 
 optField
-    : (opt='?')? IDENTIFIER
+    : (opt='?')? escapeIdent
     ;
 
 mapInitializerList
     : keys+=optExpr cols+=':' values+=expr (',' keys+=optExpr cols+=':' values+=expr)*
+    ;
+
+escapeIdent
+    : id=IDENTIFIER      # SimpleIdentifier
+    | id=ESC_IDENTIFIER  # EscapedIdentifier
     ;
 
 optExpr
@@ -197,3 +204,4 @@ STRING
 BYTES : ('b' | 'B') STRING;
 
 IDENTIFIER : (LETTER | '_') ( LETTER | DIGIT | '_')*;
+ESC_IDENTIFIER : '`' (LETTER | DIGIT | '_' | '.' | '-' | '/' | ' ')+ '`';

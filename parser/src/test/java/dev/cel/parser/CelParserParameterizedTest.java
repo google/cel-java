@@ -205,6 +205,18 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
             .setOptions(CelOptions.current().enableReservedIds(false).build())
             .build(),
         "while");
+    CelParser parserWithQuotedFields =
+        CelParserImpl.newBuilder()
+            .setOptions(CelOptions.current().enableQuotedIdentifierSyntax(true).build())
+            .build();
+    runTest(parserWithQuotedFields, "foo.`bar`");
+    runTest(parserWithQuotedFields, "foo.`bar-baz`");
+    runTest(parserWithQuotedFields, "foo.`bar baz`");
+    runTest(parserWithQuotedFields, "foo.`bar.baz`");
+    runTest(parserWithQuotedFields, "foo.`bar/baz`");
+    runTest(parserWithQuotedFields, "foo.`bar_baz`");
+    runTest(parserWithQuotedFields, "foo.`in`");
+    runTest(parserWithQuotedFields, "Struct{`in`: false}");
   }
 
   @Test
@@ -273,6 +285,21 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
     runTest(parserWithoutOptionalSupport, "a.?b && a[?b]");
     runTest(parserWithoutOptionalSupport, "Msg{?field: value} && {?'key': value}");
     runTest(parserWithoutOptionalSupport, "[?a, ?b]");
+
+    CelParser parserWithQuotedFields =
+        CelParserImpl.newBuilder()
+            .setOptions(CelOptions.current().enableQuotedIdentifierSyntax(true).build())
+            .build();
+    runTest(parserWithQuotedFields, "`bar`");
+    runTest(parserWithQuotedFields, "foo.``");
+    runTest(parserWithQuotedFields, "foo.`$bar`");
+
+    CelParser parserWithoutQuotedFields =
+        CelParserImpl.newBuilder()
+            .setOptions(CelOptions.current().enableQuotedIdentifierSyntax(false).build())
+            .build();
+    runTest(parserWithoutQuotedFields, "foo.`bar`");
+    runTest(parserWithoutQuotedFields, "Struct{`bar`: false}");
   }
 
   @Test

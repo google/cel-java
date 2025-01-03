@@ -255,7 +255,7 @@ E: ERROR: <input>:1:2: mismatched input '<EOF>' expecting {'[', '{', '}', '(', '
 
 I: t{>C}
 =====>
-E: ERROR: <input>:1:3: extraneous input '>' expecting {'}', ',', '?', IDENTIFIER}
+E: ERROR: <input>:1:3: extraneous input '>' expecting {'}', ',', '?', IDENTIFIER, ESC_IDENTIFIER}
  | t{>C}
  | ..^
 ERROR: <input>:1:5: mismatched input '}' expecting ':'
@@ -297,3 +297,39 @@ E: ERROR: <input>:1:2: unsupported syntax '?'
 ERROR: <input>:1:6: unsupported syntax '?'
  | [?a, ?b]
  | .....^
+
+I: `bar`
+=====>
+E: ERROR: <input>:1:1: mismatched input '`bar`' expecting {'[', '{', '(', '.', '-', '!', 'true', 'false', 'null', NUM_FLOAT, NUM_INT, NUM_UINT, STRING, BYTES, IDENTIFIER}
+ | `bar`
+ | ^
+
+I: foo.``
+=====>
+E: ERROR: <input>:1:5: token recognition error at: '``'
+ | foo.``
+ | ....^
+ERROR: <input>:1:7: no viable alternative at input '.'
+ | foo.``
+ | ......^
+
+I: foo.`$bar`
+=====>
+E: ERROR: <input>:1:5: token recognition error at: '`$'
+ | foo.`$bar`
+ | ....^
+ERROR: <input>:1:10: token recognition error at: '`'
+ | foo.`$bar`
+ | .........^
+
+I: foo.`bar`
+=====>
+E: ERROR: <input>:1:5: unsupported syntax '`'
+ | foo.`bar`
+ | ....^
+
+I: Struct{`bar`: false}
+=====>
+E: ERROR: <input>:1:8: unsupported syntax '`'
+ | Struct{`bar`: false}
+ | .......^
