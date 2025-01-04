@@ -69,6 +69,8 @@ public abstract class CelOptions {
 
   public abstract boolean enableHiddenAccumulatorVar();
 
+  public abstract boolean enableQuotedIdentifierSyntax();
+
   // Type-Checker related options
 
   public abstract boolean enableCompileTimeOverloadResolution();
@@ -191,6 +193,7 @@ public abstract class CelOptions {
         .retainRepeatedUnaryOperators(false)
         .retainUnbalancedLogicalExpressions(false)
         .enableHiddenAccumulatorVar(false)
+        .enableQuotedIdentifierSyntax(false)
         // Type-Checker options
         .enableCompileTimeOverloadResolution(false)
         .enableHomogeneousLiterals(false)
@@ -331,6 +334,16 @@ public abstract class CelOptions {
      * referenced in the source expression.
      */
     public abstract Builder enableHiddenAccumulatorVar(boolean value);
+
+    /**
+     * Enable quoted identifier syntax.
+     *
+     * <p>This enables the use of quoted identifier syntax when parsing CEL expressions. When
+     * enabled, the parser will accept identifiers that are surrounded by backticks (`) and will
+     * treat them as a single identifier. Currently, this is only supported for field specifiers
+     * over a limited character set.
+     */
+    public abstract Builder enableQuotedIdentifierSyntax(boolean value);
 
     // Type-Checker related options
 

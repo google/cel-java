@@ -1,7 +1,7 @@
 ERROR: compile_errors/policy.yaml:19:19: undeclared reference to 'spec' (in container '')
  |       expression: spec.labels
  | ..................^
-ERROR: compile_errors/policy.yaml:21:50: mismatched input 'resource' expecting {'==', '!=', 'in', '<', '<=', '>=', '>', '&&', '||', '[', '(', ')', '.', '-', '?', '+', '*', '/', '%%'}
+ERROR: compile_errors/policy.yaml:21:50: mismatched input 'resource' expecting {'==', '!=', 'in', '<', '<=', '>=', '>', '&&', '||', '[', ')', '.', '-', '?', '+', '*', '/', '%%'}
  |       expression: variables.want.filter(l, !(lin resource.labels))
  | .................................................^
 ERROR: compile_errors/policy.yaml:21:66: extraneous input ')' expecting <EOF>
