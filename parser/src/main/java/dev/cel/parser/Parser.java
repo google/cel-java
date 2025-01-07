@@ -33,10 +33,13 @@ import cel.parser.internal.CELParser.CreateListContext;
 import cel.parser.internal.CELParser.CreateMapContext;
 import cel.parser.internal.CELParser.CreateMessageContext;
 import cel.parser.internal.CELParser.DoubleContext;
+import cel.parser.internal.CELParser.EscapeIdentContext;
+import cel.parser.internal.CELParser.EscapedIdentifierContext;
 import cel.parser.internal.CELParser.ExprContext;
 import cel.parser.internal.CELParser.ExprListContext;
 import cel.parser.internal.CELParser.FieldInitializerListContext;
-import cel.parser.internal.CELParser.IdentOrGlobalCallContext;
+import cel.parser.internal.CELParser.GlobalCallContext;
+import cel.parser.internal.CELParser.IdentContext;
 import cel.parser.internal.CELParser.IndexContext;
 import cel.parser.internal.CELParser.IntContext;
 import cel.parser.internal.CELParser.ListInitContext;
@@ -52,6 +55,7 @@ import cel.parser.internal.CELParser.OptFieldContext;
 import cel.parser.internal.CELParser.PrimaryExprContext;
 import cel.parser.internal.CELParser.RelationContext;
 import cel.parser.internal.CELParser.SelectContext;
+import cel.parser.internal.CELParser.SimpleIdentifierContext;
 import cel.parser.internal.CELParser.StartContext;
 import cel.parser.internal.CELParser.StringContext;
 import cel.parser.internal.CELParser.UintContext;
@@ -438,7 +442,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     if (context.id == null) {
       return exprFactory.newExprBuilder(context).build();
     }
-    String id = context.id.getText();
+    String id = normalizeEscapedIdent(context.id);
 
     if (context.opt != null && context.opt.getText().equals("?")) {
       if (!options.enableOptionalSyntax()) {
@@ -535,7 +539,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
   }
 
   @Override
-  public CelExpr visitIdentOrGlobalCall(IdentOrGlobalCallContext context) {
+  public CelExpr visitIdent(IdentContext context) {
     checkNotNull(context);
     if (context.id == null) {
       return exprFactory.newExprBuilder(context).build();
@@ -547,11 +551,25 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     if (context.leadingDot != null) {
       id = "." + id;
     }
-    if (context.op == null) {
-      return exprFactory
-          .newExprBuilder(context.id)
-          .setIdent(CelExpr.CelIdent.newBuilder().setName(id).build())
-          .build();
+
+    return exprFactory
+        .newExprBuilder(context.id)
+        .setIdent(CelExpr.CelIdent.newBuilder().setName(id).build())
+        .build();
+  }
+
+  @Override
+  public CelExpr visitGlobalCall(GlobalCallContext context) {
+    checkNotNull(context);
+    if (context.id == null) {
+      return exprFactory.newExprBuilder(context).build();
+    }
+    String id = context.id.getText();
+    if (options.enableReservedIds() && RESERVED_IDS.contains(id)) {
+      return exprFactory.reportError(context, "reserved identifier: %s", id);
+    }
+    if (context.leadingDot != null) {
+      id = "." + id;
     }
 
     return globalCallOrMacro(context, id);
@@ -671,6 +689,24 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     return expandedMacro;
   }
 
+  private String normalizeEscapedIdent(EscapeIdentContext context) {
+    if (context instanceof SimpleIdentifierContext) {
+      return ((SimpleIdentifierContext) context).getText();
+    } else if (context instanceof EscapedIdentifierContext) {
+      if (!options.enableQuotedIdentifierSyntax()) {
+        exprFactory.reportError(context, "unsupported syntax '`'");
+        return "";
+      }
+      String escaped = ((EscapedIdentifierContext) context).getText();
+      return escaped.substring(1, escaped.length() - 1);
+    }
+
+    // This is normally unreachable, but might happen if the parser is in an error state or if the
+    // grammar is updated and not handled here.
+    exprFactory.reportError(context, "unsupported identifier");
+    return "";
+  }
+
   private CelExpr.CelStruct.Builder visitStructFields(FieldInitializerListContext context) {
     if (context == null
         || context.cols == null
@@ -692,10 +728,10 @@ final class Parser extends CELBaseVisitor<CelExpr> {
       }
 
       // The field may be empty due to a prior error.
-      if (fieldContext.IDENTIFIER() == null) {
+      if (fieldContext.escapeIdent() == null) {
         return CelExpr.CelStruct.newBuilder();
       }
-      String fieldName = fieldContext.IDENTIFIER().getText();
+      String fieldName = normalizeEscapedIdent(fieldContext.escapeIdent());
 
       CelExpr.CelStruct.Entry.Builder exprBuilder =
           CelExpr.CelStruct.Entry.newBuilder()
@@ -872,7 +908,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
     return macroOrCall(context.args, context.open, id, Optional.of(member), true);
   }
 
-  private CelExpr globalCallOrMacro(IdentOrGlobalCallContext context, String id) {
+  private CelExpr globalCallOrMacro(GlobalCallContext context, String id) {
     return macroOrCall(context.args, context.op, id, Optional.empty(), false);
   }
 

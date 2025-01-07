@@ -39,7 +39,11 @@ public final class CelUnparserImplTest {
 
   private final CelParser parser =
       CelParserImpl.newBuilder()
-          .setOptions(CelOptions.newBuilder().populateMacroCalls(true).build())
+          .setOptions(
+              CelOptions.newBuilder()
+                  .enableQuotedIdentifierSyntax(true)
+                  .populateMacroCalls(true)
+                  .build())
           .addLibraries(CelOptionalLibrary.INSTANCE)
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .build();
@@ -99,6 +103,15 @@ public final class CelUnparserImplTest {
           "a ? (b1 || b2) : (c1 && c2)",
           "(a ? b : c).method(d)",
           "a + b + c + d",
+          "foo.`a.b`",
+          "foo.`a/b`",
+          "foo.`a-b`",
+          "foo.`a b`",
+          "foo.`in`",
+          "Foo{`a.b`: foo}",
+          "Foo{`a/b`: foo}",
+          "Foo{`a-b`: foo}",
+          "Foo{`a b`: foo}",
 
           // Constants
           "true",
@@ -140,6 +153,7 @@ public final class CelUnparserImplTest {
 
           // Macros
           "has(x[\"a\"].single_int32)",
+          "has(x.`foo-bar`.single_int32)",
 
           // This is a filter expression but is decompiled back to
           // map(x, filter_function, x) for which the evaluation is

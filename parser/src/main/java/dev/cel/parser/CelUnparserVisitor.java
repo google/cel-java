@@ -13,7 +13,9 @@
 // limitations under the License.
 package dev.cel.parser;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.ByteString;
+import com.google.re2j.Pattern;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelSource;
 import dev.cel.common.ast.CelConstant;
@@ -43,6 +45,10 @@ public class CelUnparserVisitor extends CelExprVisitor {
   protected static final String RIGHT_BRACE = "}";
   protected static final String COLON = ":";
   protected static final String QUESTION_MARK = "?";
+  protected static final String BACKTICK = "`";
+  private static final Pattern IDENTIFIER_SEGMENT_PATTERN =
+      Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*");
+  private static final ImmutableSet<String> RESTRICTED_FIELD_NAMES = ImmutableSet.of("in");
 
   protected final CelAbstractSyntaxTree ast;
   protected final CelSource sourceInfo;
@@ -58,6 +64,14 @@ public class CelUnparserVisitor extends CelExprVisitor {
   public String unparse() {
     visit(ast.getExpr());
     return stringBuilder.toString();
+  }
+
+  private static String maybeQuoteField(String field) {
+    if (RESTRICTED_FIELD_NAMES.contains(field)
+        || !IDENTIFIER_SEGMENT_PATTERN.matcher(field).matches()) {
+      return BACKTICK + field + BACKTICK;
+    }
+    return field;
   }
 
   @Override
@@ -191,7 +205,7 @@ public class CelUnparserVisitor extends CelExprVisitor {
       if (e.optionalEntry()) {
         stringBuilder.append(QUESTION_MARK);
       }
-      stringBuilder.append(e.fieldKey());
+      stringBuilder.append(maybeQuoteField(e.fieldKey()));
       stringBuilder.append(COLON).append(SPACE);
       visit(e.value());
     }
@@ -263,7 +277,7 @@ public class CelUnparserVisitor extends CelExprVisitor {
     }
     boolean nested = !testOnly && isBinaryOrTernaryOperator(operand);
     visitMaybeNested(operand, nested);
-    stringBuilder.append(op).append(field);
+    stringBuilder.append(op).append(maybeQuoteField(field));
     if (testOnly) {
       stringBuilder.append(RIGHT_PAREN);
     }
