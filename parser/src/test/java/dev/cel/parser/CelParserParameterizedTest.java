@@ -296,10 +296,12 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
 
     CelParser parserWithoutQuotedFields =
         CelParserImpl.newBuilder()
+            .setStandardMacros(CelStandardMacro.HAS)
             .setOptions(CelOptions.current().enableQuotedIdentifierSyntax(false).build())
             .build();
     runTest(parserWithoutQuotedFields, "foo.`bar`");
     runTest(parserWithoutQuotedFields, "Struct{`bar`: false}");
+    runTest(parserWithoutQuotedFields, "has(.`.`");
   }
 
   @Test

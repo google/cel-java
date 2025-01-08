@@ -333,3 +333,15 @@ I: Struct{`bar`: false}
 E: ERROR: <input>:1:8: unsupported syntax '`'
  | Struct{`bar`: false}
  | .......^
+
+I: has(.`.`
+=====>
+E: ERROR: <input>:1:6: no viable alternative at input '.`.`'
+ | has(.`.`
+ | .....^
+ERROR: <input>:1:6: unsupported syntax '`'
+ | has(.`.`
+ | .....^
+ERROR: <input>:1:9: missing ')' at '<EOF>'
+ | has(.`.`
+ | ........^

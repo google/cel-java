@@ -690,21 +690,21 @@ final class Parser extends CELBaseVisitor<CelExpr> {
   }
 
   private String normalizeEscapedIdent(EscapeIdentContext context) {
+    String identifier = context.getText();
     if (context instanceof SimpleIdentifierContext) {
-      return ((SimpleIdentifierContext) context).getText();
+      return identifier;
     } else if (context instanceof EscapedIdentifierContext) {
       if (!options.enableQuotedIdentifierSyntax()) {
         exprFactory.reportError(context, "unsupported syntax '`'");
-        return "";
+        return identifier;
       }
-      String escaped = ((EscapedIdentifierContext) context).getText();
-      return escaped.substring(1, escaped.length() - 1);
+      return identifier.substring(1, identifier.length() - 1);
     }
 
     // This is normally unreachable, but might happen if the parser is in an error state or if the
     // grammar is updated and not handled here.
     exprFactory.reportError(context, "unsupported identifier");
-    return "";
+    return identifier;
   }
 
   private CelExpr.CelStruct.Builder visitStructFields(FieldInitializerListContext context) {
