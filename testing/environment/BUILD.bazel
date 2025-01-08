@@ -13,3 +13,13 @@ alias(
     name = "all_extensions",
     actual = "//testing/src/test/resources/environment:all_extensions",
 )
+
+alias(
+    name = "primitive_variables",
+    actual = "//testing/src/test/resources/environment:primitive_variables",
+)
+
+alias(
+    name = "custom_functions",
+    actual = "//testing/src/test/resources/environment:custom_functions",
+)

@@ -168,9 +168,9 @@ maven_install(
 ### rules_android setup
 http_archive(
     name = "rules_android",
-    sha256 = "7dc7a6ed0b9bf53f1f363292733e3d7164e140e96ed433a2937b19570d01d517",
-    strip_prefix = "rules_android-0.6.1",
-    url = "https://github.com/bazelbuild/rules_android/releases/download/v0.6.1/rules_android-v0.6.1.tar.gz",
+    sha256 = "20d78e80007335ae83bf0de6fd7be192f7b6550857fa93734dbc287995eee756",
+    strip_prefix = "rules_android-0.6.2",
+    url = "https://github.com/bazelbuild/rules_android/releases/download/v0.6.2/rules_android-v0.6.2.tar.gz",
 )
 
 load("@rules_android//:prereqs.bzl", "rules_android_prereqs")

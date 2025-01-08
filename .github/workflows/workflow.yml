@@ -35,6 +35,8 @@ jobs:
             repository-cache: true
       - name: Bazel Output Version
         run: bazelisk --version
+      - name: Java 8 Build
+        run: bazel build ... --java_language_version=8 --java_runtime_version=8
       - name: Bazel Test
         # Exclude codelab exercises as they are intentionally made to fail
         run: bazelisk test ... --deleted_packages=//codelab/src/test/codelab --test_output=errors

@@ -50,8 +50,8 @@ public final class ProtoMessageRuntimeEquality extends RuntimeEquality {
     }
 
     if (celOptions.enableProtoDifferencerEquality()) {
-      x = runtimeHelper.adaptValue(x);
-      y = runtimeHelper.adaptValue(y);
+      x = runtimeHelpers.adaptValue(x);
+      y = runtimeHelpers.adaptValue(y);
       if (x instanceof Message) {
         if (!(y instanceof Message)) {
           return false;

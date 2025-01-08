@@ -17,3 +17,13 @@ filegroup(
     name = "all_extensions",
     srcs = ["all_extensions.yaml"],
 )
+
+filegroup(
+    name = "primitive_variables",
+    srcs = ["primitive_variables.yaml"],
+)
+
+filegroup(
+    name = "custom_functions",
+    srcs = ["custom_functions.yaml"],
+)
