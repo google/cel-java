@@ -40,7 +40,6 @@ public class CelKindTest {
     assertThat(CelKind.DYN.isPrimitive()).isFalse();
     assertThat(CelKind.ANY.isPrimitive()).isFalse();
     assertThat(CelKind.DURATION.isPrimitive()).isFalse();
-    assertThat(CelKind.FUNCTION.isPrimitive()).isFalse();
     assertThat(CelKind.LIST.isPrimitive()).isFalse();
     assertThat(CelKind.MAP.isPrimitive()).isFalse();
     assertThat(CelKind.NULL_TYPE.isPrimitive()).isFalse();

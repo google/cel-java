@@ -32,7 +32,6 @@ public enum CelKind {
   BYTES,
   DOUBLE,
   DURATION,
-  FUNCTION,
   INT,
   LIST,
   MAP,
