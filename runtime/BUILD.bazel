@@ -12,7 +12,6 @@ java_library(
 
 java_library(
     name = "interpreter",
-    visibility = ["//visibility:public"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:interpreter"],
 )
 
@@ -40,4 +39,9 @@ java_library(
 java_library(
     name = "evaluation_listener",
     exports = ["//runtime/src/main/java/dev/cel/runtime:evaluation_listener"],
+)
+
+java_library(
+    name = "base",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:base"],
 )
