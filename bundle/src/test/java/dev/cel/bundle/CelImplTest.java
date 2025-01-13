@@ -2033,6 +2033,39 @@ public final class CelImplTest {
   }
 
   @Test
+  public void program_regexProgramSizeUnderLimit_success() throws Exception {
+    Cel cel =
+        standardCelBuilderWithMacros()
+            .setOptions(CelOptions.current().maxRegexProgramSize(7).build())
+            .build();
+    // See
+    // https://github.com/google/re2j/blob/84237cbbd0fbd637c6eb6856717c1e248daae729/javatests/com/google/re2j/PatternTest.java#L175 for program size
+    CelAbstractSyntaxTree ast = cel.compile("'foo'.matches('(a+b)')").getAst();
+
+    assertThat(cel.createProgram(ast).eval()).isEqualTo(false);
+  }
+
+  @Test
+  public void program_regexProgramSizeExceedsLimit_throws() throws Exception {
+    Cel cel =
+        standardCelBuilderWithMacros()
+            .setOptions(CelOptions.current().maxRegexProgramSize(6).build())
+            .build();
+    // See
+    // https://github.com/google/re2j/blob/84237cbbd0fbd637c6eb6856717c1e248daae729/javatests/com/google/re2j/PatternTest.java#L175 for program size
+    CelAbstractSyntaxTree ast = cel.compile("'foo'.matches('(a+b)')").getAst();
+
+    CelEvaluationException e =
+        assertThrows(CelEvaluationException.class, () -> cel.createProgram(ast).eval());
+    assertThat(e)
+        .hasMessageThat()
+        .contains(
+            "evaluation error: Regex pattern exceeds allowed program size. Allowed: 6, Provided:"
+                + " 7");
+    assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.INVALID_ARGUMENT);
+  }
+
+  @Test
   public void toBuilder_isImmutable() {
     CelBuilder celBuilder = CelFactory.standardCelBuilder();
     CelImpl celImpl = (CelImpl) celBuilder.build();

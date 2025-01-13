@@ -78,7 +78,7 @@ maven_install(
         "com.google.guava:guava-testlib:33.3.1-jre",
         "com.google.protobuf:protobuf-java:4.28.3",
         "com.google.protobuf:protobuf-java-util:4.28.3",
-        "com.google.re2j:re2j:1.7",
+        "com.google.re2j:re2j:1.8",
         "com.google.testparameterinjector:test-parameter-injector:1.18",
         "com.google.truth.extensions:truth-java8-extension:1.4.4",
         "com.google.truth.extensions:truth-proto-extension:1.4.4",

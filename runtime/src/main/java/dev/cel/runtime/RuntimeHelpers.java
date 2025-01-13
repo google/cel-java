@@ -74,12 +74,22 @@ public final class RuntimeHelpers {
   }
 
   public static boolean matches(String string, String regexp, CelOptions celOptions) {
+    Pattern pattern = Pattern.compile(regexp);
+    int maxProgramSize = celOptions.maxRegexProgramSize();
+    if (maxProgramSize >= 0 && pattern.programSize() > maxProgramSize) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Regex pattern exceeds allowed program size. Allowed: %d, Provided: %d",
+              maxProgramSize, pattern.programSize()));
+    }
+
     if (!celOptions.enableRegexPartialMatch()) {
       // Uses re2 for consistency across languages.
-      return Pattern.matches(regexp, string);
+      return pattern.matcher(string).matches();
     }
-    // Return an unanchored match for the presence of the regexp anywher in the string.
-    return Pattern.compile(regexp).matcher(string).find();
+
+    // Return an unanchored match for the presence of the regexp anywhere in the string.
+    return pattern.matcher(string).find();
   }
 
   /** Create a compiled pattern for the given regular expression. */

@@ -39,7 +39,7 @@ public abstract class CelOptions {
     // Do not bind a field if it is unset. Repeated fields are bound as empty list.
     SKIP,
     // Bind the (proto api) default value for a field.
-    BIND_DEFAULT;
+    BIND_DEFAULT
   }
 
   public static final CelOptions DEFAULT = current().build();
@@ -120,6 +120,8 @@ public abstract class CelOptions {
   public abstract boolean enableListConcatenation();
 
   public abstract boolean enableComprehension();
+
+  public abstract int maxRegexProgramSize();
 
   public abstract Builder toBuilder();
 
@@ -218,7 +220,8 @@ public abstract class CelOptions {
         .enableStringConversion(true)
         .enableStringConcatenation(true)
         .enableListConcatenation(true)
-        .enableComprehension(true);
+        .enableComprehension(true)
+        .maxRegexProgramSize(-1);
   }
 
   /**
@@ -570,6 +573,19 @@ public abstract class CelOptions {
      * with cel-cpp interpreter options.
      */
     public abstract Builder enableComprehension(boolean value);
+
+    /**
+     * Set maximum program size for RE2J regex.
+     *
+     * <p>The program size is a very approximate measure of a regexp's "cost". Larger numbers are
+     * more expensive than smaller numbers.
+     *
+     * <p>A negative {@code value} will disable the check.
+     *
+     * <p>There's no guarantee that RE2 program size has the exact same value across other CEL
+     * implementations (C++ and Go).
+     */
+    public abstract Builder maxRegexProgramSize(int value);
 
     public abstract CelOptions build();
   }

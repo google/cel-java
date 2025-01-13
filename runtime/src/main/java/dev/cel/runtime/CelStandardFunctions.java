@@ -28,7 +28,6 @@ import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.Timestamps;
-import com.google.re2j.PatternSyntaxException;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.internal.ComparisonFunctions;
@@ -1000,7 +999,7 @@ public final class CelStandardFunctions {
                     (String string, String regexp) -> {
                       try {
                         return RuntimeHelpers.matches(string, regexp, bindingHelper.celOptions);
-                      } catch (PatternSyntaxException e) {
+                      } catch (RuntimeException e) {
                         throw new CelEvaluationException(
                             e.getMessage(), e, CelErrorCode.INVALID_ARGUMENT);
                       }
@@ -1015,7 +1014,7 @@ public final class CelStandardFunctions {
                     (String string, String regexp) -> {
                       try {
                         return RuntimeHelpers.matches(string, regexp, bindingHelper.celOptions);
-                      } catch (PatternSyntaxException e) {
+                      } catch (RuntimeException e) {
                         throw new CelEvaluationException(
                             e.getMessage(), e, CelErrorCode.INVALID_ARGUMENT);
                       }
