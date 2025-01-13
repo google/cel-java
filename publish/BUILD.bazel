@@ -47,8 +47,12 @@ OPTIMIZER_TARGETS = [
     "//optimizer/src/main/java/dev/cel/optimizer/optimizers:common_subexpression_elimination",
 ]
 
-V1ALPHA1_UTILITY_TARGETS = [
+V1ALPHA1_AST_TARGETS = [
     "//common/src/main/java/dev/cel/common:proto_v1alpha1_ast",
+]
+
+CANONICAL_AST_TARGETS = [
+    "//common/src/main/java/dev/cel/common:proto_ast",
 ]
 
 EXTENSION_TARGETS = [
@@ -58,7 +62,12 @@ EXTENSION_TARGETS = [
 
 ALL_TARGETS = [
     "//bundle/src/main/java/dev/cel/bundle:cel",
-] + RUNTIME_TARGETS + COMPILER_TARGETS + EXTENSION_TARGETS + V1ALPHA1_UTILITY_TARGETS + OPTIMIZER_TARGETS + VALIDATOR_TARGETS
+] + RUNTIME_TARGETS + COMPILER_TARGETS + EXTENSION_TARGETS + V1ALPHA1_AST_TARGETS + CANONICAL_AST_TARGETS + OPTIMIZER_TARGETS + VALIDATOR_TARGETS
+
+# Excluded from the JAR as their source of truth is elsewhere
+EXCLUDED_TARGETS = [
+    "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
+]
 
 pom_file(
     name = "cel_pom",
@@ -74,9 +83,7 @@ pom_file(
 
 java_export(
     name = "cel",
-    deploy_env = [
-        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
-    ],
+    deploy_env = EXCLUDED_TARGETS,
     maven_coordinates = "dev.cel:cel:%s" % CEL_VERSION,
     pom_template = ":cel_pom",
     runtime_deps = ALL_TARGETS,
@@ -96,9 +103,7 @@ pom_file(
 
 java_export(
     name = "cel_compiler",
-    deploy_env = [
-        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
-    ],
+    deploy_env = EXCLUDED_TARGETS,
     maven_coordinates = "dev.cel:compiler:%s" % CEL_VERSION,
     pom_template = ":cel_compiler_pom",
     runtime_deps = COMPILER_TARGETS,
@@ -118,9 +123,7 @@ pom_file(
 
 java_export(
     name = "cel_runtime",
-    deploy_env = [
-        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
-    ],
+    deploy_env = EXCLUDED_TARGETS,
     maven_coordinates = "dev.cel:runtime:%s" % CEL_VERSION,
     pom_template = ":cel_runtime_pom",
     runtime_deps = RUNTIME_TARGETS,
@@ -134,16 +137,34 @@ pom_file(
         "PACKAGE_NAME": "CEL Java v1alpha1 Utility",
         "PACKAGE_DESC": "Common Expression Language Utility for supporting v1alpha1 protobuf definitions",
     },
-    targets = V1ALPHA1_UTILITY_TARGETS,
+    targets = V1ALPHA1_AST_TARGETS,
     template_file = "pom_template.xml",
 )
 
 java_export(
     name = "cel_v1alpha1",
-    deploy_env = [
-        "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
-    ],
+    deploy_env = EXCLUDED_TARGETS,
     maven_coordinates = "dev.cel:v1alpha1:%s" % CEL_VERSION,
     pom_template = ":cel_v1alpha1_pom",
-    runtime_deps = V1ALPHA1_UTILITY_TARGETS,
+    runtime_deps = V1ALPHA1_AST_TARGETS,
+)
+
+pom_file(
+    name = "cel_protobuf_pom",
+    substitutions = {
+        "CEL_VERSION": CEL_VERSION,
+        "CEL_ARTIFACT_ID": "protobuf",
+        "PACKAGE_NAME": "CEL Java Protobuf adapter",
+        "PACKAGE_DESC": "Common Expression Language Adapter for converting canonical cel.expr protobuf definitions",
+    },
+    targets = CANONICAL_AST_TARGETS,
+    template_file = "pom_template.xml",
+)
+
+java_export(
+    name = "cel_protobuf",
+    deploy_env = EXCLUDED_TARGETS,
+    maven_coordinates = "dev.cel:protobuf:%s" % CEL_VERSION,
+    pom_template = ":cel_protobuf_pom",
+    runtime_deps = CANONICAL_AST_TARGETS,
 )
