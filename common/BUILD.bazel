@@ -6,8 +6,13 @@ package(
 )
 
 java_library(
+    # TODO: Split this target and migrate consumers
     name = "common",
-    exports = ["//common/src/main/java/dev/cel/common"],
+    exports = [
+        "//common/src/main/java/dev/cel/common",
+        "//common/src/main/java/dev/cel/common:cel_ast",
+        "//common/src/main/java/dev/cel/common:cel_source",
+    ],
 )
 
 java_library(
@@ -71,4 +76,14 @@ java_library(
 java_library(
     name = "source_location",
     exports = ["//common/src/main/java/dev/cel/common:source_location"],
+)
+
+java_library(
+    name = "cel_source",
+    exports = ["//common/src/main/java/dev/cel/common:cel_source"],
+)
+
+java_library(
+    name = "cel_ast",
+    exports = ["//common/src/main/java/dev/cel/common:cel_ast"],
 )
