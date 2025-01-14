@@ -63,6 +63,7 @@ load("@rules_jvm_external//:setup.bzl", "rules_jvm_external_setup")
 rules_jvm_external_setup()
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
+load("@rules_jvm_external//:specs.bzl", "maven")
 
 ANTLR4_VERSION = "4.13.2"
 
@@ -76,8 +77,13 @@ maven_install(
         "com.google.errorprone:error_prone_annotations:2.36.0",
         "com.google.guava:guava:33.3.1-jre",
         "com.google.guava:guava-testlib:33.3.1-jre",
-        "com.google.protobuf:protobuf-java:4.28.3",
-        "com.google.protobuf:protobuf-java-util:4.28.3",
+        maven.artifact(
+            artifact = "protobuf-java",
+            force_version = True,
+            group = "com.google.protobuf",
+            version = "3.25.5",
+        ),
+        "com.google.protobuf:protobuf-java-util:3.25.5",
         "com.google.re2j:re2j:1.8",
         "com.google.testparameterinjector:test-parameter-injector:1.18",
         "com.google.truth.extensions:truth-java8-extension:1.4.4",
@@ -96,9 +102,9 @@ maven_install(
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "7c3ebd7aaedd86fa5dc479a0fda803f602caaf78d8aff7ce83b89e1b8ae7442a",
-    strip_prefix = "protobuf-28.3",
-    urls = ["https://github.com/protocolbuffers/protobuf/archive/v28.3.tar.gz"],
+    sha256 = "3cf7d5b17c4ff04fe9f038104e9d0cae6da09b8ce271c13e44f8ac69f51e4e0f",
+    strip_prefix = "protobuf-25.5",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v25.5.tar.gz"],
 )
 
 # Required by com_google_protobuf
