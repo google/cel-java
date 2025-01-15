@@ -23,7 +23,6 @@ import com.google.protobuf.ByteString.ByteIterator;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 import dev.cel.common.CelOptions;
-import dev.cel.common.ExprFeatures;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
@@ -135,24 +134,6 @@ public abstract class Activation implements GlobalResolver {
         return copy.toString();
       }
     };
-  }
-
-  /**
-   * Creates an {@code Activation} from a {@code Message} where each field in the message is exposed
-   * as a top-level variable in the {@code Activation}.
-   *
-   * <p>Unset message fields are published with the default value for the field type. However, an
-   * unset {@code google.protobuf.Any} value is not a valid CEL value, and will be published as an
-   * {@code Exception} value on the {@code Activation} just as though an unset {@code Any} would if
-   * it were accessed during a CEL evaluation.
-   *
-   * <p>Note, this call does not support unsigned integer fields properly and encodes them as long
-   * values. If {@link ExprFeatures#ENABLE_UNSIGNED_LONGS} is in use, use {@link #fromProto(Message,
-   * CelOptions)} to ensure that the message fields are properly designated as {@code UnsignedLong}
-   * values.
-   */
-  public static Activation fromProto(Message message) {
-    return fromProto(message, CelOptions.LEGACY);
   }
 
   /**

@@ -164,7 +164,8 @@ public final class ActivationTest {
             TestAllTypes.newBuilder()
                 .setSingleUint32(1)
                 .setSingleUint64(UnsignedLong.MAX_VALUE.longValue())
-                .build());
+                .build(),
+            CelOptions.LEGACY);
     assertThat((Long) activation.resolve("single_uint32")).isEqualTo(1L);
     assertThat((Long) activation.resolve("single_uint64")).isEqualTo(-1L);
   }

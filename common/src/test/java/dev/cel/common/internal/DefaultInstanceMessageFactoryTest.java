@@ -1,4 +1,4 @@
-// Copyright 2022 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -44,12 +44,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public final class DefaultInstanceMessageFactoryTest {
+public class DefaultInstanceMessageFactoryTest {
 
   @Before
   public void setUp() {
     // Reset the statically initialized descriptor map to get clean test runs.
-    DefaultInstanceMessageFactory.getInstance().resetDescriptorMapForTesting();
+    DefaultInstanceMessageLiteFactory.getInstance().resetDescriptorMapForTesting();
   }
 
   private enum PrototypeDescriptorTestCase {
