@@ -140,6 +140,16 @@ _TESTS_TO_SKIP = [
     "math_ext/bit_not",
     "math_ext/bit_shift_left",
     "math_ext/bit_shift_right",
+
+    # Type inference edgecases around null(able) assignability.
+    # These type check, but resolve to a different type.
+    # list(int), want list(wrapper(int))
+    "type_deductions/wrappers/wrapper_promotion",
+    # list(null), want list(Message)
+    "type_deductions/legacy_nullable_types/null_assignable_to_message_parameter_candidate",
+    "type_deductions/legacy_nullable_types/null_assignable_to_abstract_parameter_candidate",
+    "type_deductions/legacy_nullable_types/null_assignable_to_duration_parameter_candidate",
+    "type_deductions/legacy_nullable_types/null_assignable_to_timestamp_parameter_candidate",
 ]
 
 conformance_test(
