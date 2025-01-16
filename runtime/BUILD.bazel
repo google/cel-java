@@ -7,7 +7,10 @@ package(
 
 java_library(
     name = "runtime",
-    exports = ["//runtime/src/main/java/dev/cel/runtime"],
+    exports = [
+        "//runtime/src/main/java/dev/cel/runtime",
+        "//runtime/src/main/java/dev/cel/runtime:evaluation_exception",
+    ],
 )
 
 java_library(

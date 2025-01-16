@@ -141,7 +141,6 @@ java_library(
 
 # keep sorted
 RUNTIME_SOURCES = [
-    "CelEvaluationException.java",
     "CelFunctionOverload.java",
     "CelFunctionResolver.java",
     "CelLateFunctionBindings.java",
@@ -158,11 +157,23 @@ RUNTIME_SOURCES = [
 ]
 
 java_library(
+    name = "evaluation_exception",
+    srcs = ["CelEvaluationException.java"],
+    tags = [
+    ],
+    deps = [
+        "//common",
+        "//common:error_codes",
+    ],
+)
+
+java_library(
     name = "runtime",
     srcs = RUNTIME_SOURCES,
     tags = [
     ],
     deps = [
+        ":evaluation_exception",
         ":evaluation_listener",
         ":runtime_helper",
         ":runtime_type_provider_legacy",
@@ -186,7 +197,6 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
-        "@maven//:com_google_re2j_re2j",
         "@maven//:org_jspecify_jspecify",
     ],
 )

@@ -236,7 +236,8 @@ public interface CelRuntime {
       if (e.getCause() instanceof CelEvaluationException) {
         return (CelEvaluationException) e.getCause();
       }
-      return new CelEvaluationException(e, e.getErrorCode());
+
+      return new CelEvaluationException(e.getMessage(), e.getCause(), e.getErrorCode(), false);
     }
   }
 

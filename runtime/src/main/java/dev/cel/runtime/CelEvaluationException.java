@@ -31,16 +31,17 @@ public final class CelEvaluationException extends CelException {
     super(formatErrorMessage(message), cause);
   }
 
-  public CelEvaluationException(String message, Throwable cause, CelErrorCode errorCode) {
-    super(formatErrorMessage(message), cause, errorCode);
-  }
-
   public CelEvaluationException(String message, CelErrorCode errorCode) {
     super(formatErrorMessage(message), errorCode);
   }
 
-  CelEvaluationException(InterpreterException cause, CelErrorCode errorCode) {
-    super(cause.getMessage(), cause.getCause(), errorCode);
+  public CelEvaluationException(String message, Throwable cause, CelErrorCode errorCode) {
+    this(message, cause, errorCode, true);
+  }
+
+  CelEvaluationException(
+      String message, Throwable cause, CelErrorCode errorCode, boolean formatErrorMessage) {
+    super(formatErrorMessage ? formatErrorMessage(message) : message, cause, errorCode);
   }
 
   private static String formatErrorMessage(String message) {
