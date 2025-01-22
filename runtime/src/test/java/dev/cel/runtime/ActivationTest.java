@@ -155,17 +155,4 @@ public final class ActivationTest {
     assertThat((UnsignedLong) activation.resolve("single_uint64"))
         .isEqualTo(UnsignedLong.MAX_VALUE);
   }
-
-  @Test
-  public void fromProto_unsignedLongField_signedResult() {
-    // Test disables the unsigned long support.
-    Activation activation =
-        Activation.fromProto(
-            TestAllTypes.newBuilder()
-                .setSingleUint32(1)
-                .setSingleUint64(UnsignedLong.MAX_VALUE.longValue())
-                .build());
-    assertThat((Long) activation.resolve("single_uint32")).isEqualTo(1L);
-    assertThat((Long) activation.resolve("single_uint64")).isEqualTo(-1L);
-  }
 }

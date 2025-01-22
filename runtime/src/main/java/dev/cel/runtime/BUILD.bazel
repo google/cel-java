@@ -93,7 +93,6 @@ java_library(
         "//:auto_value",
         "//common",
         "//common:error_codes",
-        "//common:features",
         "//common:options",
         "//common:runtime_exception",
         "//common/annotations",

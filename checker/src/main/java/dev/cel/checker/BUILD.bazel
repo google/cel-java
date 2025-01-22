@@ -173,7 +173,6 @@ java_library(
         "//:auto_value",
         "//common",
         "//common:compiler_common",
-        "//common:features",
         "//common:options",
         "//common:proto_ast",
         "//common/annotations",

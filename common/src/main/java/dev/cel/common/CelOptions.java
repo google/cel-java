@@ -15,7 +15,6 @@
 package dev.cel.common;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 
@@ -125,60 +124,6 @@ public abstract class CelOptions {
 
   public abstract Builder toBuilder();
 
-  public ImmutableSet<ExprFeatures> toExprFeatures() {
-    ImmutableSet.Builder<ExprFeatures> features = ImmutableSet.builder();
-    if (enableCompileTimeOverloadResolution()) {
-      features.add(ExprFeatures.COMPILE_TIME_OVERLOAD_RESOLUTION);
-    }
-    if (disableCelStandardEquality()) {
-      features.add(ExprFeatures.LEGACY_JAVA_EQUALITY);
-    }
-    if (enableHomogeneousLiterals()) {
-      features.add(ExprFeatures.HOMOGENEOUS_LITERALS);
-    }
-    if (enableRegexPartialMatch()) {
-      features.add(ExprFeatures.REGEX_PARTIAL_MATCH);
-    }
-    if (enableReservedIds()) {
-      features.add(ExprFeatures.RESERVED_IDS);
-    }
-    if (enableUnsignedComparisonAndArithmeticIsUnsigned()) {
-      features.add(ExprFeatures.UNSIGNED_COMPARISON_AND_ARITHMETIC_IS_UNSIGNED);
-    }
-    if (retainRepeatedUnaryOperators()) {
-      features.add(ExprFeatures.RETAIN_REPEATED_UNARY_OPERATORS);
-    }
-    if (retainUnbalancedLogicalExpressions()) {
-      features.add(ExprFeatures.RETAIN_UNBALANCED_LOGICAL_EXPRESSIONS);
-    }
-    if (errorOnIntWrap()) {
-      features.add(ExprFeatures.ERROR_ON_WRAP);
-    }
-    if (errorOnDuplicateMapKeys()) {
-      features.add(ExprFeatures.ERROR_ON_DUPLICATE_KEYS);
-    }
-    if (populateMacroCalls()) {
-      features.add(ExprFeatures.POPULATE_MACRO_CALLS);
-    }
-    if (enableTimestampEpoch()) {
-      features.add(ExprFeatures.ENABLE_TIMESTAMP_EPOCH);
-    }
-    if (enableHeterogeneousNumericComparisons()) {
-      features.add(ExprFeatures.ENABLE_HETEROGENEOUS_NUMERIC_COMPARISONS);
-    }
-    if (enableNamespacedDeclarations()) {
-      features.add(ExprFeatures.ENABLE_NAMESPACED_DECLARATIONS);
-    }
-    if (enableUnsignedLongs()) {
-      features.add(ExprFeatures.ENABLE_UNSIGNED_LONGS);
-    }
-    if (enableProtoDifferencerEquality()) {
-      features.add(ExprFeatures.PROTO_DIFFERENCER_EQUALITY);
-    }
-
-    return features.build();
-  }
-
   /**
    * Return an unconfigured {@code Builder}. This is equivalent to preserving all legacy behaviors,
    * both good and bad, of the original CEL implementation.
@@ -238,33 +183,6 @@ public abstract class CelOptions {
         .errorOnIntWrap(true)
         .resolveTypeDependencies(true)
         .disableCelStandardEquality(false);
-  }
-
-  public static CelOptions fromExprFeatures(ImmutableSet<ExprFeatures> features) {
-    return newBuilder()
-        .enableCompileTimeOverloadResolution(
-            features.contains(ExprFeatures.COMPILE_TIME_OVERLOAD_RESOLUTION))
-        .disableCelStandardEquality(features.contains(ExprFeatures.LEGACY_JAVA_EQUALITY))
-        .enableHomogeneousLiterals(features.contains(ExprFeatures.HOMOGENEOUS_LITERALS))
-        .enableRegexPartialMatch(features.contains(ExprFeatures.REGEX_PARTIAL_MATCH))
-        .enableReservedIds(features.contains(ExprFeatures.RESERVED_IDS))
-        .enableUnsignedComparisonAndArithmeticIsUnsigned(
-            features.contains(ExprFeatures.UNSIGNED_COMPARISON_AND_ARITHMETIC_IS_UNSIGNED))
-        .retainRepeatedUnaryOperators(
-            features.contains(ExprFeatures.RETAIN_REPEATED_UNARY_OPERATORS))
-        .retainUnbalancedLogicalExpressions(
-            features.contains(ExprFeatures.RETAIN_UNBALANCED_LOGICAL_EXPRESSIONS))
-        .errorOnIntWrap(features.contains(ExprFeatures.ERROR_ON_WRAP))
-        .errorOnDuplicateMapKeys(features.contains(ExprFeatures.ERROR_ON_DUPLICATE_KEYS))
-        .populateMacroCalls(features.contains(ExprFeatures.POPULATE_MACRO_CALLS))
-        .enableTimestampEpoch(features.contains(ExprFeatures.ENABLE_TIMESTAMP_EPOCH))
-        .enableHeterogeneousNumericComparisons(
-            features.contains(ExprFeatures.ENABLE_HETEROGENEOUS_NUMERIC_COMPARISONS))
-        .enableNamespacedDeclarations(
-            features.contains(ExprFeatures.ENABLE_NAMESPACED_DECLARATIONS))
-        .enableUnsignedLongs(features.contains(ExprFeatures.ENABLE_UNSIGNED_LONGS))
-        .enableProtoDifferencerEquality(features.contains(ExprFeatures.PROTO_DIFFERENCER_EQUALITY))
-        .build();
   }
 
   /** Builder for configuring the {@code CelOptions}. */

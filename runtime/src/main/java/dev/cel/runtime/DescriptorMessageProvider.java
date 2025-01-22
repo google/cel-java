@@ -14,7 +14,6 @@
 
 package dev.cel.runtime;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
@@ -24,7 +23,6 @@ import com.google.protobuf.NullValue;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
-import dev.cel.common.ExprFeatures;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoAdapter;
@@ -59,18 +57,6 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
   @Deprecated
   public DescriptorMessageProvider(MessageFactory messageFactory) {
     this(messageFactory.toProtoMessageFactory(), CelOptions.LEGACY);
-  }
-
-  /**
-   * Creates a new message provider with the given message factory and a set of customized {@code
-   * features}.
-   *
-   * @deprecated Migrate to the CEL-Java fluent APIs. See {@code CelRuntimeFactory}.
-   */
-  @Deprecated
-  public DescriptorMessageProvider(
-      MessageFactory messageFactory, ImmutableSet<ExprFeatures> features) {
-    this(messageFactory.toProtoMessageFactory(), CelOptions.fromExprFeatures(features));
   }
 
   /**

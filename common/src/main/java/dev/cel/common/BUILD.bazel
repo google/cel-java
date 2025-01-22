@@ -95,19 +95,8 @@ java_library(
     tags = [
     ],
     deps = [
-        ":features",
         "//:auto_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_guava_guava",
-    ],
-)
-
-java_library(
-    name = "features",
-    srcs = ["ExprFeatures.java"],
-    tags = [
-    ],
-    deps = [
         "@maven//:com_google_guava_guava",
     ],
 )

@@ -19,6 +19,7 @@ import dev.cel.expr.Decl;
 import dev.cel.expr.Decl.FunctionDecl.Overload;
 import dev.cel.expr.Expr;
 import dev.cel.expr.Type;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -32,7 +33,6 @@ import dev.cel.checker.CelStandardDeclarations.StandardFunction.Overload.Convers
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
-import dev.cel.common.ExprFeatures;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
@@ -97,6 +97,12 @@ public class Env {
   /** CEL Feature flags. */
   private final CelOptions celOptions;
 
+  private static final CelOptions LEGACY_TYPE_CHECKER_OPTIONS =
+      CelOptions.newBuilder()
+          .disableCelStandardEquality(false)
+          .enableNamespacedDeclarations(false)
+          .build();
+
   private Env(
       Errors errors, TypeProvider typeProvider, DeclGroup declGroup, CelOptions celOptions) {
     this.celOptions = celOptions;
@@ -106,111 +112,51 @@ public class Env {
   }
 
   /**
-   * Creates an unconfigured {@code Env} value without the standard CEL types, functions, and
-   * operators with a reference to the feature flags enabled in the environment.
-   *
-   * @deprecated use {@code unconfigured} with {@code CelOptions} instead.
+   * @deprecated Do not use. This exists for compatibility reasons. Migrate to CEL-Java fluent APIs.
+   *     See {@code CelCompilerFactory}.
    */
   @Deprecated
-  public static Env unconfigured(Errors errors, ExprFeatures... exprFeatures) {
-    return unconfigured(errors, new DescriptorTypeProvider(), ImmutableSet.copyOf(exprFeatures));
-  }
-
-  /**
-   * Creates an unconfigured {@code Env} value without the standard CEL types, functions, and
-   * operators using a custom {@code typeProvider}.
-   *
-   * @deprecated use {@code unconfigured} with {@code CelOptions} instead.
-   */
-  @Deprecated
-  public static Env unconfigured(
-      Errors errors, TypeProvider typeProvider, ExprFeatures... exprFeatures) {
-    return unconfigured(errors, typeProvider, ImmutableSet.copyOf(exprFeatures));
-  }
-
-  /**
-   * Creates an unconfigured {@code Env} value without the standard CEL types, functions, and
-   * operators using a custom {@code typeProvider}. The set of enabled {@code exprFeatures} is also
-   * provided.
-   *
-   * @deprecated use {@code unconfigured} with {@code CelOptions} instead.
-   */
-  @Deprecated
-  public static Env unconfigured(
-      Errors errors, TypeProvider typeProvider, ImmutableSet<ExprFeatures> exprFeatures) {
-    return unconfigured(errors, typeProvider, CelOptions.fromExprFeatures(exprFeatures));
+  public static Env unconfigured(Errors errors) {
+    return unconfigured(errors, LEGACY_TYPE_CHECKER_OPTIONS);
   }
 
   /**
    * Creates an unconfigured {@code Env} value without the standard CEL types, functions, and
    * operators with a reference to the configured {@code celOptions}.
    */
-  public static Env unconfigured(Errors errors, CelOptions celOptions) {
+  @VisibleForTesting
+  static Env unconfigured(Errors errors, CelOptions celOptions) {
     return unconfigured(errors, new DescriptorTypeProvider(), celOptions);
   }
 
   /**
    * Creates an unconfigured {@code Env} value without the standard CEL types, functions, and
-   * operators using a custom {@code typeProvider}. The {@code CelOptions} are provided as well.
+   * operators using a custom {@code typeProvider}.
+   *
+   * @deprecated Do not use. This exists for compatibility reasons. Migrate to CEL-Java fluent APIs.
+   *     See {@code CelCompilerFactory}.
    */
+  @Deprecated
   public static Env unconfigured(Errors errors, TypeProvider typeProvider, CelOptions celOptions) {
     return new Env(errors, typeProvider, new DeclGroup(), celOptions);
   }
 
   /**
-   * Creates an {@code Env} value configured with the standard types, functions, and operators with
-   * a reference to the set of {@code exprFeatures} enabled in the environment.
-   *
-   * <p>Note: standard declarations are configured in an isolated scope, and may be shadowed by
-   * subsequent declarations.
-   *
-   * @deprecated use {@code standard} with {@code CelOptions} instead.
+   * @deprecated Do not use. This exists for compatibility reasons. Migrate to CEL-Java fluent APIs.
+   *     See {@code CelCompilerFactory}.
    */
   @Deprecated
-  public static Env standard(Errors errors, ExprFeatures... exprFeatures) {
-    return standard(errors, new DescriptorTypeProvider(), exprFeatures);
+  public static Env standard(Errors errors) {
+    return standard(errors, new DescriptorTypeProvider());
   }
 
   /**
-   * Creates an {@code Env} value configured with the standard types, functions, and operators,
-   * configured with a custom {@code typeProvider}.
-   *
-   * <p>Note: standard declarations are configured in an isolated scope, and may be shadowed by
-   * subsequent declarations with the same signature.
-   *
-   * @deprecated use {@code standard} with {@code CelOptions} instead.
+   * @deprecated Do not use. This exists for compatibility reasons. Migrate to CEL-Java fluent APIs.
+   *     See {@code CelCompilerFactory}.
    */
   @Deprecated
-  public static Env standard(
-      Errors errors, TypeProvider typeProvider, ExprFeatures... exprFeatures) {
-    return standard(errors, typeProvider, ImmutableSet.copyOf(exprFeatures));
-  }
-
-  /**
-   * Creates an {@code Env} value configured with the standard types, functions, and operators,
-   * configured with a custom {@code typeProvider} and a reference to the set of {@code
-   * exprFeatures} enabled in the environment.
-   *
-   * <p>Note: standard declarations are configured in an isolated scope, and may be shadowed by
-   * subsequent declarations with the same signature.
-   *
-   * @deprecated use {@code standard} with {@code CelOptions} instead.
-   */
-  @Deprecated
-  public static Env standard(
-      Errors errors, TypeProvider typeProvider, ImmutableSet<ExprFeatures> exprFeatures) {
-    return standard(errors, typeProvider, CelOptions.fromExprFeatures(exprFeatures));
-  }
-
-  /**
-   * Creates an {@code Env} value configured with the standard types, functions, and operators and a
-   * reference to the configured {@code celOptions}.
-   *
-   * <p>Note: standard declarations are configured in an isolated scope, and may be shadowed by
-   * subsequent declarations with the same signature.
-   */
-  public static Env standard(Errors errors, CelOptions celOptions) {
-    return standard(errors, new DescriptorTypeProvider(), celOptions);
+  public static Env standard(Errors errors, TypeProvider typeProvider) {
+    return standard(errors, typeProvider, LEGACY_TYPE_CHECKER_OPTIONS);
   }
 
   /**
@@ -220,7 +166,11 @@ public class Env {
    *
    * <p>Note: standard declarations are configured in an isolated scope, and may be shadowed by
    * subsequent declarations with the same signature.
+   *
+   * @deprecated Do not use. This exists for compatibility reasons. Migrate to CEL-Java fluent APIs.
+   *     See {@code CelCompilerFactory}.
    */
+  @Deprecated
   public static Env standard(Errors errors, TypeProvider typeProvider, CelOptions celOptions) {
     CelStandardDeclarations celStandardDeclaration =
         CelStandardDeclarations.newBuilder()

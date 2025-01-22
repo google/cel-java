@@ -26,11 +26,6 @@ java_library(
 )
 
 java_library(
-    name = "features",
-    exports = ["//common/src/main/java/dev/cel/common:features"],
-)
-
-java_library(
     name = "proto_ast",
     exports = ["//common/src/main/java/dev/cel/common:proto_ast"],
 )
