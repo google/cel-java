@@ -172,6 +172,7 @@ java_library(
         ":evaluation_exception",
         ":metadata",
         "//common:error_codes",
+        "//common:runtime_exception",
         "//common/annotations",
         "//common/internal:safe_string_formatter",
         "@maven//:com_google_errorprone_error_prone_annotations",

@@ -16,6 +16,7 @@ package dev.cel.runtime;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.SafeStringFormatter;
 import org.jspecify.annotations.Nullable;
@@ -72,6 +73,19 @@ public final class CelEvaluationExceptionBuilder {
   @Internal
   public static CelEvaluationExceptionBuilder newBuilder(String message, Object... args) {
     return new CelEvaluationExceptionBuilder(SafeStringFormatter.format(message, args));
+  }
+
+  /**
+   * Constructs a new builder for {@link CelEvaluationException}
+   *
+   * <p>CEL Library Internals. Do not use.
+   */
+  @Internal
+  public static CelEvaluationExceptionBuilder newBuilder(CelRuntimeException celRuntimeException) {
+    Throwable cause = celRuntimeException.getCause();
+    return new CelEvaluationExceptionBuilder(cause.getMessage())
+        .setCause(cause)
+        .setErrorCode(celRuntimeException.getErrorCode());
   }
 
   private CelEvaluationExceptionBuilder(String message) {
