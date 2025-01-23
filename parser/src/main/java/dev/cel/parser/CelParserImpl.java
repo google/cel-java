@@ -67,7 +67,9 @@ public final class CelParserImpl implements CelParser {
 
   @Override
   public CelValidationResult parse(CelSource source) {
-    return Parser.parse(this, source, getOptions());
+    // Copy the builder to ensure thread safety.
+    Builder copy = new Builder(parserBuilder);
+    return Parser.parse(copy.build(), source, getOptions());
   }
 
   @Override
