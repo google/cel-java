@@ -17,7 +17,6 @@ BASE_SOURCES = [
     "Metadata.java",
     "Registrar.java",
     "ResolvedOverload.java",
-    "StandardFunctions.java",
 ]
 
 # keep sorted
@@ -60,19 +59,13 @@ java_library(
         "//:auto_value",
         "//common",
         "//common:error_codes",
-        "//common:options",
         "//common:runtime_exception",
         "//common/annotations",
-        "//common/internal:comparison_functions",
-        "//common/internal:default_message_factory",
-        "//common/internal:dynamic_proto",
         "//common/internal:safe_string_formatter",
-        "//runtime:runtime_helper",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:org_jspecify_jspecify",
     ],
 )
