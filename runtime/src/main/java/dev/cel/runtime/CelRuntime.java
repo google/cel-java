@@ -265,9 +265,9 @@ public interface CelRuntime {
 
     public abstract String getOverloadId();
 
-    abstract ImmutableList<Class<?>> getArgTypes();
+    public abstract ImmutableList<Class<?>> getArgTypes();
 
-    abstract CelFunctionOverload getDefinition();
+    public abstract CelFunctionOverload getDefinition();
 
     /**
      * Create a unary function binding from the {@code overloadId}, {@code arg}, and {@code impl}.

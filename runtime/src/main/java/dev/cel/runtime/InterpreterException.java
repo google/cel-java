@@ -87,12 +87,15 @@ public class InterpreterException extends CelException {
 
     @CheckReturnValue
     public InterpreterException build() {
-      return new InterpreterException(
-          String.format(
-              "evaluation error%s: %s",
-              location != null ? " at " + location + ":" + position : "", message),
-          cause,
-          errorCode);
+      String exceptionMessage = message;
+      if (!exceptionMessage.startsWith("evaluation error")) {
+        // TODO: Temporary until interpreter exception is removed
+        exceptionMessage =
+            String.format(
+                "evaluation error%s: %s",
+                location != null ? " at " + location + ":" + position : "", message);
+      }
+      return new InterpreterException(exceptionMessage, cause, errorCode);
     }
   }
 
