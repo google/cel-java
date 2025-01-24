@@ -32,6 +32,7 @@ import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.CelEvaluationExceptionBuilder;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
@@ -264,8 +265,10 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
     try {
       index = Math.toIntExact(i);
     } catch (ArithmeticException e) {
-      throw new CelEvaluationException(
-          String.format("charAt failure: Index must not exceed the int32 range: %d", i), e);
+      throw CelEvaluationExceptionBuilder.newBuilder(
+              "charAt failure: Index must not exceed the int32 range: %d", i)
+          .setCause(e)
+          .build();
     }
 
     CelCodePointArray codePointArray = CelCodePointArray.fromString(s);
@@ -273,8 +276,9 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
       return "";
     }
     if (index < 0 || index > codePointArray.length()) {
-      throw new CelEvaluationException(
-          String.format("charAt failure: Index out of range: %d", index));
+      throw CelEvaluationExceptionBuilder.newBuilder(
+              "charAt failure: Index out of range: %d", index)
+          .build();
     }
 
     return codePointArray.slice(index, index + 1).toString();
@@ -296,10 +300,10 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
     try {
       offset = Math.toIntExact(offsetInLong);
     } catch (ArithmeticException e) {
-      throw new CelEvaluationException(
-          String.format(
-              "indexOf failure: Offset must not exceed the int32 range: %d", offsetInLong),
-          e);
+      throw CelEvaluationExceptionBuilder.newBuilder(
+              "indexOf failure: Offset must not exceed the int32 range: %d", offsetInLong)
+          .setCause(e)
+          .build();
     }
 
     return indexOf(str, substr, offset);
@@ -314,8 +318,9 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
     CelCodePointArray substrCpa = CelCodePointArray.fromString(substr);
 
     if (offset < 0 || offset >= strCpa.length()) {
-      throw new CelEvaluationException(
-          String.format("indexOf failure: Offset out of range: %d", offset));
+      throw CelEvaluationExceptionBuilder.newBuilder(
+              "indexOf failure: Offset out of range: %d", offset)
+          .build();
     }
 
     return safeIndexOf(strCpa, substrCpa, offset);
@@ -376,14 +381,16 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
     try {
       off = Math.toIntExact(offset);
     } catch (ArithmeticException e) {
-      throw new CelEvaluationException(
-          String.format("lastIndexOf failure: Offset must not exceed the int32 range: %d", offset),
-          e);
+      throw CelEvaluationExceptionBuilder.newBuilder(
+              "lastIndexOf failure: Offset must not exceed the int32 range: %d", offset)
+          .setCause(e)
+          .build();
     }
 
     if (off < 0 || off >= str.length()) {
-      throw new CelEvaluationException(
-          String.format("lastIndexOf failure: Offset out of range: %d", offset));
+      throw CelEvaluationExceptionBuilder.newBuilder(
+              "lastIndexOf failure: Offset out of range: %d", offset)
+          .build();
     }
 
     if (off > str.length() - substr.length()) {
@@ -416,9 +423,10 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
     try {
       index = Math.toIntExact(indexInLong);
     } catch (ArithmeticException e) {
-      throw new CelEvaluationException(
-          String.format("replace failure: Index must not exceed the int32 range: %d", indexInLong),
-          e);
+      throw CelEvaluationExceptionBuilder.newBuilder(
+              "replace failure: Index must not exceed the int32 range: %d", indexInLong)
+          .setCause(e)
+          .build();
     }
 
     return replace((String) objects[0], (String) objects[1], (String) objects[2], index);
@@ -473,9 +481,10 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
     try {
       limit = Math.toIntExact(limitInLong);
     } catch (ArithmeticException e) {
-      throw new CelEvaluationException(
-          String.format("split failure: Limit must not exceed the int32 range: %d", limitInLong),
-          e);
+      throw CelEvaluationExceptionBuilder.newBuilder(
+              "split failure: Limit must not exceed the int32 range: %d", limitInLong)
+          .setCause(e)
+          .build();
     }
 
     return split((String) args[0], (String) args[1], limit);
@@ -536,18 +545,20 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
     try {
       beginIndex = Math.toIntExact(i);
     } catch (ArithmeticException e) {
-      throw new CelEvaluationException(
-          String.format("substring failure: Index must not exceed the int32 range: %d", i), e);
+      throw CelEvaluationExceptionBuilder.newBuilder(
+              "substring failure: Index must not exceed the int32 range: %d", i)
+          .setCause(e)
+          .build();
     }
 
     CelCodePointArray codePointArray = CelCodePointArray.fromString(s);
 
     boolean indexIsInRange = beginIndex <= codePointArray.length() && beginIndex >= 0;
     if (!indexIsInRange) {
-      throw new CelEvaluationException(
-          String.format(
+      throw CelEvaluationExceptionBuilder.newBuilder(
               "substring failure: Range [%d, %d) out of bounds",
-              beginIndex, codePointArray.length()));
+              beginIndex, codePointArray.length())
+          .build();
     }
 
     if (beginIndex == codePointArray.length()) {
@@ -569,11 +580,11 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
       beginIndex = Math.toIntExact(beginIndexInLong);
       endIndex = Math.toIntExact(endIndexInLong);
     } catch (ArithmeticException e) {
-      throw new CelEvaluationException(
-          String.format(
+      throw CelEvaluationExceptionBuilder.newBuilder(
               "substring failure: Indices must not exceed the int32 range: [%d, %d)",
-              beginIndexInLong, endIndexInLong),
-          e);
+              beginIndexInLong, endIndexInLong)
+          .setCause(e)
+          .build();
     }
 
     String s = (String) args[0];
@@ -585,8 +596,9 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
             && beginIndex <= codePointArray.length()
             && endIndex <= codePointArray.length();
     if (!indicesIsInRange) {
-      throw new CelEvaluationException(
-          String.format("substring failure: Range [%d, %d) out of bounds", beginIndex, endIndex));
+      throw CelEvaluationExceptionBuilder.newBuilder(
+              "substring failure: Range [%d, %d) out of bounds", beginIndex, endIndex)
+          .build();
     }
 
     if (beginIndex == endIndex) {

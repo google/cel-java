@@ -14,7 +14,6 @@ BASE_SOURCES = [
     "FunctionOverload.java",
     "InterpreterException.java",
     "MessageProvider.java",
-    "Metadata.java",
     "Registrar.java",
     "ResolvedOverload.java",
 ]
@@ -56,6 +55,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":metadata",
         "//:auto_value",
         "//common",
         "//common:error_codes",
@@ -81,6 +81,7 @@ java_library(
         ":base",
         ":cel_type_resolver",
         ":evaluation_listener",
+        ":metadata",
         ":runtime_helper",
         ":unknown_attributes",
         "//:auto_value",
@@ -150,12 +151,41 @@ RUNTIME_SOURCES = [
 
 java_library(
     name = "evaluation_exception",
-    srcs = ["CelEvaluationException.java"],
+    srcs = [
+        "CelEvaluationException.java",
+    ],
     tags = [
     ],
     deps = [
         "//common",
         "//common:error_codes",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "evaluation_exception_builder",
+    srcs = ["CelEvaluationExceptionBuilder.java"],
+    tags = [
+    ],
+    deps = [
+        ":evaluation_exception",
+        ":metadata",
+        "//common:error_codes",
+        "//common/annotations",
+        "//common/internal:safe_string_formatter",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "metadata",
+    srcs = ["Metadata.java"],
+    deps = [
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
 
@@ -166,6 +196,7 @@ java_library(
     ],
     deps = [
         ":evaluation_exception",
+        ":evaluation_exception_builder",
         ":evaluation_listener",
         ":runtime_helper",
         ":runtime_type_provider_legacy",

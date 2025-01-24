@@ -10,7 +10,13 @@ java_library(
     exports = [
         "//runtime/src/main/java/dev/cel/runtime",
         "//runtime/src/main/java/dev/cel/runtime:evaluation_exception",
+        "//runtime/src/main/java/dev/cel/runtime:metadata",
     ],
+)
+
+java_library(
+    name = "evaluation_exception_builder",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:evaluation_exception_builder"],
 )
 
 java_library(
@@ -46,5 +52,8 @@ java_library(
 
 java_library(
     name = "base",
-    exports = ["//runtime/src/main/java/dev/cel/runtime:base"],
+    exports = [
+        "//runtime/src/main/java/dev/cel/runtime:base",
+        "//runtime/src/main/java/dev/cel/runtime:metadata",
+    ],
 )

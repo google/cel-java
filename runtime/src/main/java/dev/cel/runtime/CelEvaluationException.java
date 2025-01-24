@@ -16,6 +16,7 @@ package dev.cel.runtime;
 
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * CelEvaluationException encapsulates the potential issues which could arise during the
@@ -24,27 +25,14 @@ import dev.cel.common.CelException;
 public final class CelEvaluationException extends CelException {
 
   public CelEvaluationException(String message) {
-    super(formatErrorMessage(message));
+    super(message);
   }
 
-  public CelEvaluationException(String message, Throwable cause) {
-    super(formatErrorMessage(message), cause);
+  public CelEvaluationException(String message, @Nullable Throwable cause) {
+    super(message, cause);
   }
 
-  public CelEvaluationException(String message, CelErrorCode errorCode) {
-    super(formatErrorMessage(message), errorCode);
-  }
-
-  public CelEvaluationException(String message, Throwable cause, CelErrorCode errorCode) {
-    this(message, cause, errorCode, true);
-  }
-
-  CelEvaluationException(
-      String message, Throwable cause, CelErrorCode errorCode, boolean formatErrorMessage) {
-    super(formatErrorMessage ? formatErrorMessage(message) : message, cause, errorCode);
-  }
-
-  private static String formatErrorMessage(String message) {
-    return String.format("evaluation error: %s", message);
+  CelEvaluationException(String message, @Nullable Throwable cause, CelErrorCode errorCode) {
+    super(message, cause, errorCode);
   }
 }

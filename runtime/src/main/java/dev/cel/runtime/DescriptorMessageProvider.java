@@ -70,9 +70,8 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
             DynamicProto.create(protoMessageFactory), celOptions.enableUnsignedLongs());
   }
 
-  @Nullable
   @Override
-  public Object createMessage(String messageName, Map<String, Object> values) {
+  public @Nullable Object createMessage(String messageName, Map<String, Object> values) {
     Message.Builder builder =
         protoMessageFactory
             .newBuilder(messageName)
@@ -98,9 +97,8 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
   }
 
   @Override
-  @Nullable
   @SuppressWarnings("unchecked")
-  public Object selectField(Object message, String fieldName) {
+  public @Nullable Object selectField(Object message, String fieldName) {
     boolean isOptionalMessage = false;
     if (message instanceof Optional) {
       isOptionalMessage = true;

@@ -316,8 +316,10 @@ public final class CelStandardFunctions {
                       try {
                         return RuntimeHelpers.int64Add(x, y, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, getArithmeticErrorCode(e));
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(getArithmeticErrorCode(e))
+                            .build();
                       }
                     })),
         ADD_UINT64(
@@ -331,8 +333,10 @@ public final class CelStandardFunctions {
                       try {
                         return RuntimeHelpers.uint64Add(x, y);
                       } catch (ArithmeticException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, getArithmeticErrorCode(e));
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(getArithmeticErrorCode(e))
+                            .build();
                       }
                     });
               } else {
@@ -344,8 +348,10 @@ public final class CelStandardFunctions {
                       try {
                         return RuntimeHelpers.uint64Add(x, y, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, getArithmeticErrorCode(e));
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(getArithmeticErrorCode(e))
+                            .build();
                       }
                     });
               }
@@ -390,8 +396,10 @@ public final class CelStandardFunctions {
                       try {
                         return RuntimeHelpers.int64Subtract(x, y, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, getArithmeticErrorCode(e));
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(getArithmeticErrorCode(e))
+                            .build();
                       }
                     })),
         SUBTRACT_TIMESTAMP_TIMESTAMP(
@@ -419,8 +427,10 @@ public final class CelStandardFunctions {
                       try {
                         return RuntimeHelpers.uint64Subtract(x, y);
                       } catch (ArithmeticException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, getArithmeticErrorCode(e));
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(getArithmeticErrorCode(e))
+                            .build();
                       }
                     });
               } else {
@@ -432,8 +442,10 @@ public final class CelStandardFunctions {
                       try {
                         return RuntimeHelpers.uint64Subtract(x, y, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, getArithmeticErrorCode(e));
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(getArithmeticErrorCode(e))
+                            .build();
                       }
                     });
               }
@@ -459,8 +471,10 @@ public final class CelStandardFunctions {
                       try {
                         return RuntimeHelpers.int64Multiply(x, y, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, getArithmeticErrorCode(e));
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(getArithmeticErrorCode(e))
+                            .build();
                       }
                     })),
         MULTIPLY_DOUBLE(
@@ -478,8 +492,10 @@ public final class CelStandardFunctions {
                       try {
                         return RuntimeHelpers.uint64Multiply(x, y);
                       } catch (ArithmeticException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, getArithmeticErrorCode(e));
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(getArithmeticErrorCode(e))
+                            .build();
                       }
                     });
               } else {
@@ -491,8 +507,10 @@ public final class CelStandardFunctions {
                       try {
                         return RuntimeHelpers.uint64Multiply(x, y, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, getArithmeticErrorCode(e));
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(getArithmeticErrorCode(e))
+                            .build();
                       }
                     });
               }
@@ -511,8 +529,10 @@ public final class CelStandardFunctions {
                       try {
                         return RuntimeHelpers.int64Divide(x, y, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, getArithmeticErrorCode(e));
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(getArithmeticErrorCode(e))
+                            .build();
                       }
                     })),
         DIVIDE_UINT64(
@@ -542,8 +562,10 @@ public final class CelStandardFunctions {
                       try {
                         return x % y;
                       } catch (ArithmeticException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, getArithmeticErrorCode(e));
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(getArithmeticErrorCode(e))
+                            .build();
                       }
                     })),
         MODULO_UINT64(
@@ -571,8 +593,10 @@ public final class CelStandardFunctions {
                       try {
                         return RuntimeHelpers.int64Negate(x, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, getArithmeticErrorCode(e));
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(getArithmeticErrorCode(e))
+                            .build();
                       }
                     })),
         NEGATE_DOUBLE(
@@ -694,10 +718,10 @@ public final class CelStandardFunctions {
                         case "0":
                           return false;
                         default:
-                          throw new CelEvaluationException(
-                              String.format(
-                                  "Type conversion error from 'string' to 'bool': [%s]", str),
-                              CelErrorCode.BAD_FORMAT);
+                          throw CelEvaluationExceptionBuilder.newBuilder(
+                                  "Type conversion error from 'string' to 'bool': [%s]", str)
+                              .setErrorCode(CelErrorCode.BAD_FORMAT)
+                              .build();
                       }
                     })),
         // Int conversions
@@ -714,9 +738,10 @@ public final class CelStandardFunctions {
                         return RuntimeHelpers.doubleToLongChecked(arg)
                             .orElseThrow(
                                 () ->
-                                    new CelEvaluationException(
-                                        "double is out of range for int",
-                                        CelErrorCode.NUMERIC_OVERFLOW));
+                                    CelEvaluationExceptionBuilder.newBuilder(
+                                            "double is out of range for int")
+                                        .setErrorCode(CelErrorCode.NUMERIC_OVERFLOW)
+                                        .build());
                       }
                       return arg.longValue();
                     })),
@@ -729,8 +754,10 @@ public final class CelStandardFunctions {
                       try {
                         return Long.parseLong(arg);
                       } catch (NumberFormatException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, CelErrorCode.BAD_FORMAT);
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(CelErrorCode.BAD_FORMAT)
+                            .build();
                       }
                     })),
         TIMESTAMP_TO_INT64(
@@ -745,8 +772,9 @@ public final class CelStandardFunctions {
                     UnsignedLong.class,
                     (UnsignedLong arg) -> {
                       if (arg.compareTo(UnsignedLong.valueOf(Long.MAX_VALUE)) > 0) {
-                        throw new CelEvaluationException(
-                            "unsigned out of int range", CelErrorCode.NUMERIC_OVERFLOW);
+                        throw CelEvaluationExceptionBuilder.newBuilder("unsigned out of int range")
+                            .setErrorCode(CelErrorCode.NUMERIC_OVERFLOW)
+                            .build();
                       }
                       return arg.longValue();
                     });
@@ -756,8 +784,9 @@ public final class CelStandardFunctions {
                     Long.class,
                     (Long arg) -> {
                       if (bindingHelper.celOptions.errorOnIntWrap() && arg < 0) {
-                        throw new CelEvaluationException(
-                            "unsigned out of int range", CelErrorCode.NUMERIC_OVERFLOW);
+                        throw CelEvaluationExceptionBuilder.newBuilder("unsigned out of int range")
+                            .setErrorCode(CelErrorCode.NUMERIC_OVERFLOW)
+                            .build();
                       }
                       return arg;
                     });
@@ -781,8 +810,9 @@ public final class CelStandardFunctions {
                     Long.class,
                     (Long arg) -> {
                       if (bindingHelper.celOptions.errorOnIntWrap() && arg < 0) {
-                        throw new CelEvaluationException(
-                            "int out of uint range", CelErrorCode.NUMERIC_OVERFLOW);
+                        throw CelEvaluationExceptionBuilder.newBuilder("int out of uint range")
+                            .setErrorCode(CelErrorCode.NUMERIC_OVERFLOW)
+                            .build();
                       }
                       return UnsignedLong.valueOf(arg);
                     });
@@ -792,8 +822,9 @@ public final class CelStandardFunctions {
                     Long.class,
                     (Long arg) -> {
                       if (bindingHelper.celOptions.errorOnIntWrap() && arg < 0) {
-                        throw new CelEvaluationException(
-                            "int out of uint range", CelErrorCode.NUMERIC_OVERFLOW);
+                        throw CelEvaluationExceptionBuilder.newBuilder("int out of uint range")
+                            .setErrorCode(CelErrorCode.NUMERIC_OVERFLOW)
+                            .build();
                       }
                       return arg;
                     });
@@ -810,8 +841,10 @@ public final class CelStandardFunctions {
                         return RuntimeHelpers.doubleToUnsignedChecked(arg)
                             .orElseThrow(
                                 () ->
-                                    new CelEvaluationException(
-                                        "double out of uint range", CelErrorCode.NUMERIC_OVERFLOW));
+                                    CelEvaluationExceptionBuilder.newBuilder(
+                                            "double out of uint range")
+                                        .setErrorCode(CelErrorCode.NUMERIC_OVERFLOW)
+                                        .build());
                       }
                       return UnsignedLong.valueOf(BigDecimal.valueOf(arg).toBigInteger());
                     });
@@ -825,8 +858,10 @@ public final class CelStandardFunctions {
                             .map(UnsignedLong::longValue)
                             .orElseThrow(
                                 () ->
-                                    new CelEvaluationException(
-                                        "double out of uint range", CelErrorCode.NUMERIC_OVERFLOW));
+                                    CelEvaluationExceptionBuilder.newBuilder(
+                                            "double out of uint range")
+                                        .setErrorCode(CelErrorCode.NUMERIC_OVERFLOW)
+                                        .build());
                       }
                       return arg.longValue();
                     });
@@ -842,8 +877,10 @@ public final class CelStandardFunctions {
                       try {
                         return UnsignedLong.valueOf(arg);
                       } catch (NumberFormatException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, CelErrorCode.BAD_FORMAT);
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(CelErrorCode.BAD_FORMAT)
+                            .build();
                       }
                     });
               } else {
@@ -854,8 +891,10 @@ public final class CelStandardFunctions {
                       try {
                         return UnsignedLongs.parseUnsignedLong(arg);
                       } catch (NumberFormatException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, CelErrorCode.BAD_FORMAT);
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(CelErrorCode.BAD_FORMAT)
+                            .build();
                       }
                     });
               }
@@ -876,8 +915,10 @@ public final class CelStandardFunctions {
                       try {
                         return Double.parseDouble(arg);
                       } catch (NumberFormatException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, CelErrorCode.BAD_FORMAT);
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(CelErrorCode.BAD_FORMAT)
+                            .build();
                       }
                     })),
         UINT64_TO_DOUBLE(
@@ -944,8 +985,10 @@ public final class CelStandardFunctions {
                       try {
                         return RuntimeHelpers.createDurationFromString(d);
                       } catch (IllegalArgumentException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, CelErrorCode.BAD_FORMAT);
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(CelErrorCode.BAD_FORMAT)
+                            .build();
                       }
                     })),
 
@@ -958,8 +1001,10 @@ public final class CelStandardFunctions {
                       try {
                         return Timestamps.parse(ts);
                       } catch (ParseException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, CelErrorCode.BAD_FORMAT);
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(CelErrorCode.BAD_FORMAT)
+                            .build();
                       }
                     })),
         TIMESTAMP_TO_TIMESTAMP(
@@ -1000,8 +1045,10 @@ public final class CelStandardFunctions {
                       try {
                         return RuntimeHelpers.matches(string, regexp, bindingHelper.celOptions);
                       } catch (RuntimeException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, CelErrorCode.INVALID_ARGUMENT);
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
+                            .build();
                       }
                     })),
         // Duplicate receiver-style matches overload.
@@ -1015,8 +1062,10 @@ public final class CelStandardFunctions {
                       try {
                         return RuntimeHelpers.matches(string, regexp, bindingHelper.celOptions);
                       } catch (RuntimeException e) {
-                        throw new CelEvaluationException(
-                            e.getMessage(), e, CelErrorCode.INVALID_ARGUMENT);
+                        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+                            .setCause(e)
+                            .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
+                            .build();
                       }
                     })),
         CONTAINS_STRING(
@@ -2044,7 +2093,7 @@ public final class CelStandardFunctions {
       try {
         int ind = tz.indexOf(":");
         if (ind == -1) {
-          throw new CelEvaluationException(e.getMessage());
+          throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage()).build();
         }
 
         int hourOffset = Integer.parseInt(tz.substring(0, ind));
@@ -2059,7 +2108,7 @@ public final class CelStandardFunctions {
         return ZoneId.of(formattedOffset);
 
       } catch (DateTimeException e2) {
-        throw new CelEvaluationException(e2.getMessage());
+        throw CelEvaluationExceptionBuilder.newBuilder(e2.getMessage()).build();
       }
     }
   }

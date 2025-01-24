@@ -41,6 +41,7 @@ java_library(
         "//policy:config_parser",
         "//policy:parser_factory",
         "//runtime",
+        "//runtime:evaluation_exception_builder",
         "//runtime:evaluation_listener",
         "//runtime:interpreter",
         "//runtime:runtime_helper",
