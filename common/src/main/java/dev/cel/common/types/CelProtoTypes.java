@@ -112,7 +112,10 @@ public final class CelProtoTypes {
     return Type.newBuilder().setMessageType(messageName).build();
   }
 
-  /** Create a message {@code Type} for {@code Descriptor}. */
+  /**
+   * @deprecated Use {@link CelProtoMessageTypes#createMessage} instead.
+   */
+  @Deprecated
   public static Type createMessage(Descriptor descriptor) {
     return createMessage(descriptor.getFullName());
   }

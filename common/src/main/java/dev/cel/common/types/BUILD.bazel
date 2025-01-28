@@ -95,6 +95,18 @@ java_library(
 )
 
 java_library(
+    name = "cel_proto_message_types",
+    srcs = ["CelProtoMessageTypes.java"],
+    tags = [
+    ],
+    deps = [
+        "//common/types:cel_proto_types",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
     name = "cel_v1alpha1_types",
     srcs = ["CelV1AlphaTypes.java"],
     tags = [
