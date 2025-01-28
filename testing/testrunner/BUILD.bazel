@@ -1,0 +1,17 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "user_test_template",
+    exports = ["//testing/src/main/java/dev/cel/testing/testrunner:user_test_template"],
+)
+
+java_library(
+    name = "sample_test_user_class",
+    exports = ["//testing/src/test/java/dev/cel/testing/testrunner:test_user_files"],
+)
