@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelRuntimeException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -74,6 +75,21 @@ public class CelEvaluationExceptionBuilderTest {
     CelEvaluationException e = builder.build();
 
     assertThat(e).hasMessageThat().isEqualTo("evaluation error at location.txt:10: foo");
+    assertThat(e).hasCauseThat().isEqualTo(cause);
+    assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.BAD_FORMAT);
+  }
+
+  @Test
+  public void builder_fromCelRuntimeException() {
+    IllegalStateException cause = new IllegalStateException("cause error message");
+    CelRuntimeException celRuntimeException =
+        new CelRuntimeException(cause, CelErrorCode.BAD_FORMAT);
+    CelEvaluationExceptionBuilder builder =
+        CelEvaluationExceptionBuilder.newBuilder(celRuntimeException);
+
+    CelEvaluationException e = builder.build();
+
+    assertThat(e).hasMessageThat().isEqualTo("evaluation error: cause error message");
     assertThat(e).hasCauseThat().isEqualTo(cause);
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.BAD_FORMAT);
   }
