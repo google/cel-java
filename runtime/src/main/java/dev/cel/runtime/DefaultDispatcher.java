@@ -22,7 +22,6 @@ import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
 import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelException;
 import dev.cel.common.annotations.Internal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,7 +82,7 @@ public final class DefaultDispatcher implements Dispatcher, Registrar {
 
   @Override
   public synchronized Optional<ResolvedOverload> findOverload(
-      String functionName, List<String> overloadIds, Object[] args) throws CelException {
+      String functionName, List<String> overloadIds, Object[] args) throws CelEvaluationException {
     return DefaultDispatcher.findOverload(functionName, overloadIds, overloads, args);
   }
 
@@ -93,7 +92,7 @@ public final class DefaultDispatcher implements Dispatcher, Registrar {
       List<String> overloadIds,
       Map<String, ? extends ResolvedOverload> overloads,
       Object[] args)
-      throws CelException {
+      throws CelEvaluationException {
     int matchingOverloadCount = 0;
     ResolvedOverload match = null;
     List<String> candidates = null;
@@ -114,7 +113,7 @@ public final class DefaultDispatcher implements Dispatcher, Registrar {
     }
 
     if (matchingOverloadCount > 1) {
-      throw new InterpreterException.Builder(
+      throw CelEvaluationExceptionBuilder.newBuilder(
               "Ambiguous overloads for function '%s'. Matching candidates: %s",
               functionName, Joiner.on(", ").join(candidates))
           .setErrorCode(CelErrorCode.AMBIGUOUS_OVERLOAD)
@@ -138,7 +137,8 @@ public final class DefaultDispatcher implements Dispatcher, Registrar {
 
     @Override
     public Optional<ResolvedOverload> findOverload(
-        String functionName, List<String> overloadIds, Object[] args) throws CelException {
+        String functionName, List<String> overloadIds, Object[] args)
+        throws CelEvaluationException {
       return DefaultDispatcher.findOverload(functionName, overloadIds, overloads, args);
     }
 

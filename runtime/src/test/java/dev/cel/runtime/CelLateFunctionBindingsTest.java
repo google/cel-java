@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.UnsignedLong;
 import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelException;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import java.util.Optional;
@@ -33,8 +32,7 @@ import org.junit.runners.JUnit4;
 public final class CelLateFunctionBindingsTest {
 
   @Test
-  public void findOverload_singleMatchingFunction_isPresent()
-      throws CelException, InterpreterException {
+  public void findOverload_singleMatchingFunction_isPresent() throws Exception {
     CelLateFunctionBindings bindings =
         CelLateFunctionBindings.from(
             CelFunctionBinding.from("increment_int", Long.class, (arg) -> arg + 1),
@@ -50,7 +48,7 @@ public final class CelLateFunctionBindingsTest {
   }
 
   @Test
-  public void findOverload_noMatchingFunctionSameArgCount_isEmpty() throws CelException {
+  public void findOverload_noMatchingFunctionSameArgCount_isEmpty() throws Exception {
     CelLateFunctionBindings bindings =
         CelLateFunctionBindings.from(
             CelFunctionBinding.from("increment_int", Long.class, (arg) -> arg + 1),
@@ -63,7 +61,7 @@ public final class CelLateFunctionBindingsTest {
   }
 
   @Test
-  public void findOverload_noMatchingFunctionDifferentArgCount_isEmpty() throws CelException {
+  public void findOverload_noMatchingFunctionDifferentArgCount_isEmpty() throws Exception {
     CelLateFunctionBindings bindings =
         CelLateFunctionBindings.from(
             CelFunctionBinding.from("increment_int", Long.class, (arg) -> arg + 1),
@@ -78,7 +76,7 @@ public final class CelLateFunctionBindingsTest {
   }
 
   @Test
-  public void findOverload_badInput_throwsException() throws CelException {
+  public void findOverload_badInput_throwsException() throws Exception {
     CelLateFunctionBindings bindings =
         CelLateFunctionBindings.from(
             CelFunctionBinding.from(
@@ -97,22 +95,22 @@ public final class CelLateFunctionBindingsTest {
     assertThat(overload).isPresent();
     assertThat(overload.get().getOverloadId()).isEqualTo("increment_uint");
     assertThat(overload.get().getParameterTypes()).containsExactly(UnsignedLong.class);
-    InterpreterException e =
+    CelEvaluationException e =
         Assert.assertThrows(
-            InterpreterException.class,
+            CelEvaluationException.class,
             () -> overload.get().getDefinition().apply(new Object[] {UnsignedLong.MAX_VALUE}));
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.NUMERIC_OVERFLOW);
   }
 
   @Test
-  public void findOverload_multipleMatchingFunctions_throwsException() throws CelException {
+  public void findOverload_multipleMatchingFunctions_throwsException() throws Exception {
     CelLateFunctionBindings bindings =
         CelLateFunctionBindings.from(
             CelFunctionBinding.from("increment_int", Long.class, (arg) -> arg + 1),
             CelFunctionBinding.from("increment_uint", Long.class, (arg) -> arg + 2));
-    InterpreterException e =
+    CelEvaluationException e =
         Assert.assertThrows(
-            InterpreterException.class,
+            CelEvaluationException.class,
             () ->
                 bindings.findOverload(
                     "increment",
@@ -122,7 +120,7 @@ public final class CelLateFunctionBindingsTest {
   }
 
   @Test
-  public void findOverload_nullPrimitiveArg_isEmpty() throws CelException {
+  public void findOverload_nullPrimitiveArg_isEmpty() throws Exception {
     CelLateFunctionBindings bindings =
         CelLateFunctionBindings.from(
             CelFunctionBinding.from("identity_int", Long.class, (arg) -> arg));
@@ -132,7 +130,7 @@ public final class CelLateFunctionBindingsTest {
   }
 
   @Test
-  public void findOverload_nullMessageArg_returnsOverload() throws CelException {
+  public void findOverload_nullMessageArg_returnsOverload() throws Exception {
     CelLateFunctionBindings bindings =
         CelLateFunctionBindings.from(
             CelFunctionBinding.from("identity_msg", TestAllTypes.class, (arg) -> arg));

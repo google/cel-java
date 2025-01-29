@@ -18,7 +18,6 @@ import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import com.google.protobuf.Message;
@@ -192,30 +191,26 @@ public interface CelRuntime {
         Optional<CelFunctionResolver> lateBoundFunctionResolver,
         CelEvaluationListener listener)
         throws CelEvaluationException {
-      try {
-        Interpretable impl = getInterpretable();
-        if (getOptions().enableUnknownTracking()) {
-          Preconditions.checkState(
-              impl instanceof UnknownTrackingInterpretable,
-              "Environment misconfigured. Requested unknown tracking without a compatible"
-                  + " implementation.");
+      Interpretable impl = getInterpretable();
+      if (getOptions().enableUnknownTracking()) {
+        Preconditions.checkState(
+            impl instanceof UnknownTrackingInterpretable,
+            "Environment misconfigured. Requested unknown tracking without a compatible"
+                + " implementation.");
 
-          UnknownTrackingInterpretable interpreter = (UnknownTrackingInterpretable) impl;
-          return interpreter.evalTrackingUnknowns(
-              RuntimeUnknownResolver.builder()
-                  .setResolver(context.variableResolver())
-                  .setAttributeResolver(context.createAttributeResolver())
-                  .build(),
-              lateBoundFunctionResolver,
-              listener);
-        } else {
-          if (lateBoundFunctionResolver.isPresent()) {
-            return impl.eval(context.variableResolver(), lateBoundFunctionResolver.get(), listener);
-          }
-          return impl.eval(context.variableResolver(), listener);
+        UnknownTrackingInterpretable interpreter = (UnknownTrackingInterpretable) impl;
+        return interpreter.evalTrackingUnknowns(
+            RuntimeUnknownResolver.builder()
+                .setResolver(context.variableResolver())
+                .setAttributeResolver(context.createAttributeResolver())
+                .build(),
+            lateBoundFunctionResolver,
+            listener);
+      } else {
+        if (lateBoundFunctionResolver.isPresent()) {
+          return impl.eval(context.variableResolver(), lateBoundFunctionResolver.get(), listener);
         }
-      } catch (InterpreterException e) {
-        throw unwrapOrCreateEvaluationException(e);
+        return impl.eval(context.variableResolver(), listener);
       }
     }
 
@@ -228,16 +223,6 @@ public interface CelRuntime {
     /** Instantiate a new {@code Program} from the input {@code interpretable}. */
     static Program from(Interpretable interpretable, CelOptions options) {
       return new AutoValue_CelRuntime_Program(interpretable, options);
-    }
-
-    @CheckReturnValue
-    private static CelEvaluationException unwrapOrCreateEvaluationException(
-        InterpreterException e) {
-      if (e.getCause() instanceof CelEvaluationException) {
-        return (CelEvaluationException) e.getCause();
-      }
-
-      return new CelEvaluationException(e.getMessage(), e.getCause(), e.getErrorCode());
     }
   }
 

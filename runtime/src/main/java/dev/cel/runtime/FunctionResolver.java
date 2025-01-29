@@ -15,7 +15,6 @@
 package dev.cel.runtime;
 
 import javax.annotation.concurrent.ThreadSafe;
-import dev.cel.common.CelException;
 import dev.cel.common.annotations.Internal;
 import java.util.List;
 import java.util.Optional;
@@ -38,8 +37,8 @@ public interface FunctionResolver {
    *     from this list with matching arguments.
    * @param args The arguments to pass to the function.
    * @return an optional value of the resolved overload.
-   * @throws CelException if the overload resolution is ambiguous,
+   * @throws CelEvaluationException if the overload resolution is ambiguous,
    */
   Optional<ResolvedOverload> findOverload(
-      String functionName, List<String> overloadIds, Object[] args) throws CelException;
+      String functionName, List<String> overloadIds, Object[] args) throws CelEvaluationException;
 }

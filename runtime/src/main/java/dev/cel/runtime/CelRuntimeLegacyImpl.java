@@ -257,18 +257,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
           .forEach(
               (String overloadId, CelFunctionBinding func) ->
                   dispatcher.add(
-                      overloadId,
-                      func.getArgTypes(),
-                      (args) -> {
-                        try {
-                          return func.getDefinition().apply(args);
-                        } catch (CelEvaluationException e) {
-                          throw new InterpreterException.Builder(e.getMessage())
-                              .setCause(e)
-                              .setErrorCode(e.getErrorCode())
-                              .build();
-                        }
-                      }));
+                      overloadId, func.getArgTypes(), (args) -> func.getDefinition().apply(args)));
 
       RuntimeTypeProvider runtimeTypeProvider;
 

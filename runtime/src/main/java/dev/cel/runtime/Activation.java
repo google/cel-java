@@ -171,7 +171,7 @@ public abstract class Activation implements GlobalResolver {
       } catch (IllegalArgumentException e) {
         variables.put(
             field.getName(),
-            new InterpreterException.Builder(
+            CelEvaluationExceptionBuilder.newBuilder(
                     "illegal field value. field=%s, value=%s", field.getName(), fieldValue)
                 .setCause(e)
                 .build());

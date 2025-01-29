@@ -18,7 +18,6 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.CelException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +37,7 @@ public final class CelLateFunctionBindings implements CelFunctionResolver {
 
   @Override
   public Optional<ResolvedOverload> findOverload(
-      String functionName, List<String> overloadIds, Object[] args) throws CelException {
+      String functionName, List<String> overloadIds, Object[] args) throws CelEvaluationException {
     return DefaultDispatcher.findOverload(functionName, overloadIds, functions, args);
   }
 
@@ -59,12 +58,6 @@ public final class CelLateFunctionBindings implements CelFunctionResolver {
     return CelResolvedOverload.of(
         binding.getOverloadId(),
         binding.getArgTypes(),
-        (args) -> {
-          try {
-            return binding.getDefinition().apply(args);
-          } catch (CelException e) {
-            throw InterpreterException.wrapOrThrow(e);
-          }
-        });
+        (args) -> binding.getDefinition().apply(args));
   }
 }

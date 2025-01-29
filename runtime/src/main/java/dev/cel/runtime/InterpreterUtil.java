@@ -14,6 +14,7 @@
 
 package dev.cel.runtime;
 
+import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.annotations.Internal;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -32,12 +33,13 @@ public final class InterpreterUtil {
    * {@link Throwable}. Applying {@code strict()} to such a value-or-throwable will re-throw the
    * proper exception.
    */
-  public static Object strict(Object valueOrThrowable) throws InterpreterException {
+  @CheckReturnValue
+  public static Object strict(Object valueOrThrowable) throws CelEvaluationException {
     if (!(valueOrThrowable instanceof Throwable)) {
       return valueOrThrowable;
     }
-    if (valueOrThrowable instanceof InterpreterException) {
-      throw (InterpreterException) valueOrThrowable;
+    if (valueOrThrowable instanceof CelEvaluationException) {
+      throw (CelEvaluationException) valueOrThrowable;
     }
     if (valueOrThrowable instanceof RuntimeException) {
       throw (RuntimeException) valueOrThrowable;
@@ -75,7 +77,7 @@ public final class InterpreterUtil {
    * both of these operators.
    */
   public static Object shortcircuitUnknownOrThrowable(Object left, Object right)
-      throws InterpreterException {
+      throws CelEvaluationException {
     // unknown <op> unknown ==> unknown combined
     if (InterpreterUtil.isUnknown(left) && InterpreterUtil.isUnknown(right)) {
       return InterpreterUtil.combineUnknownExprValue(left, right);

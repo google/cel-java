@@ -24,8 +24,8 @@ import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelException;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
@@ -131,14 +131,14 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     @Override
-    public Object eval(GlobalResolver resolver) throws InterpreterException {
+    public Object eval(GlobalResolver resolver) throws CelEvaluationException {
       // Result is already unwrapped from IntermediateResult.
       return eval(resolver, CelEvaluationListener.noOpListener());
     }
 
     @Override
     public Object eval(GlobalResolver resolver, CelEvaluationListener listener)
-        throws InterpreterException {
+        throws CelEvaluationException {
       return evalTrackingUnknowns(
           RuntimeUnknownResolver.fromResolver(resolver), Optional.empty(), listener);
     }
@@ -148,7 +148,7 @@ public final class DefaultInterpreter implements Interpreter {
         GlobalResolver resolver,
         FunctionResolver lateBoundFunctionResolver,
         CelEvaluationListener listener)
-        throws InterpreterException {
+        throws CelEvaluationException {
       return evalTrackingUnknowns(
           RuntimeUnknownResolver.fromResolver(resolver),
           Optional.of(lateBoundFunctionResolver),
@@ -160,7 +160,7 @@ public final class DefaultInterpreter implements Interpreter {
         RuntimeUnknownResolver resolver,
         Optional<? extends FunctionResolver> functionResolver,
         CelEvaluationListener listener)
-        throws InterpreterException {
+        throws CelEvaluationException {
       int comprehensionMaxIterations =
           celOptions.enableComprehension() ? celOptions.comprehensionMaxIterations() : 0;
       ExecutionFrame frame =
@@ -170,7 +170,7 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult evalInternal(ExecutionFrame frame, CelExpr expr)
-        throws InterpreterException {
+        throws CelEvaluationException {
       try {
         ExprKind.Kind exprKind = expr.exprKind().getKind();
         IntermediateResult result;
@@ -205,9 +205,14 @@ public final class DefaultInterpreter implements Interpreter {
         }
         frame.getEvaluationListener().callback(expr, result.value());
         return result;
+      } catch (CelRuntimeException e) {
+        throw CelEvaluationExceptionBuilder.newBuilder(e)
+            .setMetadata(metadata, expr.id())
+            .build();
       } catch (RuntimeException e) {
-        throw new InterpreterException.Builder(e, e.getMessage())
-            .setLocation(metadata, expr.id())
+        throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+            .setCause(e)
+            // .setMetadata(metadata, expr.id()) TODO: Uncomment in the upcoming cl
             .build();
       }
     }
@@ -247,7 +252,7 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult evalIdent(ExecutionFrame frame, CelExpr expr)
-        throws InterpreterException {
+        throws CelEvaluationException {
       CelReference reference = ast.getReferenceOrThrow(expr.id());
       if (reference.value().isPresent()) {
         return IntermediateResult.create(evalConstant(frame, expr, reference.value().get()));
@@ -256,7 +261,7 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult resolveIdent(ExecutionFrame frame, CelExpr expr, String name)
-        throws InterpreterException {
+        throws CelEvaluationException {
       // Check whether the type exists in the type check map as a 'type'.
       Optional<CelType> checkedType = ast.getType(expr.id());
       if (checkedType.isPresent() && checkedType.get().kind() == CelKind.TYPE) {
@@ -283,7 +288,7 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult evalSelect(ExecutionFrame frame, CelExpr expr, CelSelect selectExpr)
-        throws InterpreterException {
+        throws CelEvaluationException {
       Optional<CelReference> referenceOptional = ast.getReference(expr.id());
       if (referenceOptional.isPresent()) {
         CelReference reference = referenceOptional.get();
@@ -301,7 +306,7 @@ public final class DefaultInterpreter implements Interpreter {
 
     private IntermediateResult evalFieldSelect(
         ExecutionFrame frame, CelExpr expr, CelExpr operandExpr, String field, boolean isTestOnly)
-        throws InterpreterException {
+        throws CelEvaluationException {
       // This indicates this is a field selection on the operand.
       IntermediateResult operandResult = evalInternal(frame, operandExpr);
       Object operand = operandResult.value();
@@ -330,7 +335,7 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult evalCall(ExecutionFrame frame, CelExpr expr, CelCall callExpr)
-        throws InterpreterException {
+        throws CelEvaluationException {
       CelReference reference = ast.getReferenceOrThrow(expr.id());
       Preconditions.checkState(!reference.overloadIds().isEmpty());
 
@@ -412,14 +417,16 @@ public final class DefaultInterpreter implements Interpreter {
           dispatchResult = typeProvider.adapt(dispatchResult);
         }
         return IntermediateResult.create(attr, dispatchResult);
-      } catch (CelException ce) {
-        throw InterpreterException.wrapOrThrow(metadata, expr.id(), ce);
+      } catch (CelRuntimeException ce) {
+        throw CelEvaluationExceptionBuilder.newBuilder(ce)
+            // .setMetadata(metadata, expr.id()) // TODO: Uncomment in the upcoming cl
+            .build();
       } catch (RuntimeException e) {
-        throw new InterpreterException.Builder(
-                e,
+        throw CelEvaluationExceptionBuilder.newBuilder(
                 "Function '%s' failed with arg(s) '%s'",
-                overload.getOverloadId(),
-                Joiner.on(", ").join(argArray))
+                overload.getOverloadId(), Joiner.on(", ").join(argArray))
+            // .setMetadata(metadata, expr.id()) // TODO: Uncomment in the upcoming cl
+            .setCause(e)
             .build();
       }
     }
@@ -430,7 +437,7 @@ public final class DefaultInterpreter implements Interpreter {
         String functionName,
         List<String> overloadIds,
         Object[] args)
-        throws InterpreterException {
+        throws CelEvaluationException {
       try {
         Optional<ResolvedOverload> funcImpl =
             dispatcher.findOverload(functionName, overloadIds, args);
@@ -441,14 +448,16 @@ public final class DefaultInterpreter implements Interpreter {
             .findOverload(functionName, overloadIds, args)
             .orElseThrow(
                 () ->
-                    new InterpreterException.Builder(
+                    CelEvaluationExceptionBuilder.newBuilder(
                             "No matching overload for function '%s'. Overload candidates: %s",
                             functionName, Joiner.on(",").join(overloadIds))
                         .setErrorCode(CelErrorCode.OVERLOAD_NOT_FOUND)
-                        .setLocation(metadata, expr.id())
+                        .setMetadata(metadata, expr.id())
                         .build());
-      } catch (CelException e) {
-        throw InterpreterException.wrapOrThrow(metadata, expr.id(), e);
+      } catch (CelRuntimeException e) {
+        throw CelEvaluationExceptionBuilder.newBuilder(e)
+            // .setMetadata(metadata, expr.id()) // TODO: Uncomment in the upcoming cl
+            .build();
       }
     }
 
@@ -481,7 +490,7 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult evalConditional(ExecutionFrame frame, CelCall callExpr)
-        throws InterpreterException {
+        throws CelEvaluationException {
       IntermediateResult condition = evalBooleanStrict(frame, callExpr.args().get(0));
       if (celOptions.enableShortCircuiting()) {
         if (isUnknownValue(condition.value())) {
@@ -504,7 +513,7 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult mergeBooleanUnknowns(IntermediateResult lhs, IntermediateResult rhs)
-        throws InterpreterException {
+        throws CelEvaluationException {
       // TODO: migrate clients to a common type that reports both expr-id unknowns
       // and attribute sets.
       if (lhs.value() instanceof CelUnknownSet && rhs.value() instanceof CelUnknownSet) {
@@ -540,7 +549,7 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult evalLogicalOr(ExecutionFrame frame, CelCall callExpr)
-        throws InterpreterException {
+        throws CelEvaluationException {
       IntermediateResult left;
       IntermediateResult right;
       if (celOptions.enableShortCircuiting()) {
@@ -573,7 +582,7 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult evalLogicalAnd(ExecutionFrame frame, CelCall callExpr)
-        throws InterpreterException {
+        throws CelEvaluationException {
       IntermediateResult left;
       IntermediateResult right;
       if (celOptions.enableShortCircuiting()) {
@@ -620,7 +629,7 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult evalType(ExecutionFrame frame, CelCall callExpr)
-        throws InterpreterException {
+        throws CelEvaluationException {
       CelExpr typeExprArg = callExpr.args().get(0);
       IntermediateResult argResult = evalInternal(frame, typeExprArg);
       // Type is a strict function. Early return if the argument is an error or an unknown.
@@ -632,12 +641,12 @@ public final class DefaultInterpreter implements Interpreter {
           ast.getType(typeExprArg.id())
               .orElseThrow(
                   () ->
-                      new InterpreterException.Builder(
+                      CelEvaluationExceptionBuilder.newBuilder(
                               "expected a runtime type for '%s' from checked expression, but found"
                                   + " none.",
                               argResult.getClass().getSimpleName())
                           .setErrorCode(CelErrorCode.TYPE_NOT_FOUND)
-                          .setLocation(metadata, typeExprArg.id())
+                          .setMetadata(metadata, typeExprArg.id())
                           .build());
 
       CelType checkedTypeValue = CelTypeResolver.adaptType(checkedType);
@@ -646,14 +655,14 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult evalOptionalOr(ExecutionFrame frame, CelCall callExpr)
-        throws InterpreterException {
+        throws CelEvaluationException {
       CelExpr lhsExpr = callExpr.target().get();
       IntermediateResult lhsResult = evalInternal(frame, lhsExpr);
       if (!(lhsResult.value() instanceof Optional)) {
-        throw new InterpreterException.Builder(
+        throw CelEvaluationExceptionBuilder.newBuilder(
                 "expected optional value, found: %s", lhsResult.value())
             .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
-            .setLocation(metadata, lhsExpr.id())
+            .setMetadata(metadata, lhsExpr.id())
             .build();
       }
 
@@ -668,14 +677,14 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult evalOptionalOrValue(ExecutionFrame frame, CelCall callExpr)
-        throws InterpreterException {
+        throws CelEvaluationException {
       CelExpr lhsExpr = callExpr.target().get();
       IntermediateResult lhsResult = evalInternal(frame, lhsExpr);
       if (!(lhsResult.value() instanceof Optional)) {
-        throw new InterpreterException.Builder(
+        throw CelEvaluationExceptionBuilder.newBuilder(
                 "expected optional value, found: %s", lhsResult.value())
             .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
-            .setLocation(metadata, lhsExpr.id())
+            .setMetadata(metadata, lhsExpr.id())
             .build();
       }
 
@@ -690,7 +699,7 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private Optional<IntermediateResult> maybeEvalOptionalSelectField(
-        ExecutionFrame frame, CelExpr expr, CelCall callExpr) throws InterpreterException {
+        ExecutionFrame frame, CelExpr expr, CelCall callExpr) throws CelEvaluationException {
       CelExpr operand = callExpr.args().get(0);
       IntermediateResult lhsResult = evalInternal(frame, operand);
       if ((lhsResult.value() instanceof Map)) {
@@ -713,13 +722,14 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult evalBoolean(ExecutionFrame frame, CelExpr expr, boolean strict)
-        throws InterpreterException {
+        throws CelEvaluationException {
       IntermediateResult value = strict ? evalInternal(frame, expr) : evalNonstrictly(frame, expr);
 
       if (!(value.value() instanceof Boolean) && !isUnknownOrError(value.value())) {
-        throw new InterpreterException.Builder("expected boolean value, found: %s", value.value())
+        throw CelEvaluationExceptionBuilder.newBuilder(
+                "expected boolean value, found: %s", value.value())
             .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
-            .setLocation(metadata, expr.id())
+            .setMetadata(metadata, expr.id())
             .build();
       }
 
@@ -727,20 +737,20 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult evalBooleanStrict(ExecutionFrame frame, CelExpr expr)
-        throws InterpreterException {
+        throws CelEvaluationException {
       return evalBoolean(frame, expr, /* strict= */ true);
     }
 
     // Evaluate a non-strict boolean sub expression.
-    // Behaves the same as non-strict eval, but throws an InterpreterException if the result
+    // Behaves the same as non-strict eval, but throws a CelEvaluationException if the result
     // doesn't support CELs short-circuiting behavior (not an error, unknown or boolean).
     private IntermediateResult evalBooleanNonstrict(ExecutionFrame frame, CelExpr expr)
-        throws InterpreterException {
+        throws CelEvaluationException {
       return evalBoolean(frame, expr, /* strict= */ false);
     }
 
     private IntermediateResult evalList(ExecutionFrame frame, CelExpr unusedExpr, CelList listExpr)
-        throws InterpreterException {
+        throws CelEvaluationException {
       CallArgumentChecker argChecker = CallArgumentChecker.create(frame.getResolver());
       List<Object> result = new ArrayList<>(listExpr.elements().size());
 
@@ -772,7 +782,7 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult evalMap(ExecutionFrame frame, CelMap mapExpr)
-        throws InterpreterException {
+        throws CelEvaluationException {
 
       CallArgumentChecker argChecker = CallArgumentChecker.create(frame.getResolver());
 
@@ -786,9 +796,10 @@ public final class DefaultInterpreter implements Interpreter {
         argChecker.checkArg(valueResult);
 
         if (celOptions.errorOnDuplicateMapKeys() && result.containsKey(keyResult.value())) {
-          throw new InterpreterException.Builder("duplicate map key [%s]", keyResult.value())
+          throw CelEvaluationExceptionBuilder.newBuilder(
+                  "duplicate map key [%s]", keyResult.value())
               .setErrorCode(CelErrorCode.DUPLICATE_ATTRIBUTE)
-              .setLocation(metadata, entry.id())
+              .setMetadata(metadata, entry.id())
               .build();
         }
 
@@ -811,7 +822,7 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult evalStruct(ExecutionFrame frame, CelExpr expr, CelStruct structExpr)
-        throws InterpreterException {
+        throws CelEvaluationException {
       CelReference reference =
           ast.getReference(expr.id())
               .orElseThrow(
@@ -866,7 +877,7 @@ public final class DefaultInterpreter implements Interpreter {
     @SuppressWarnings("unchecked")
     private IntermediateResult evalComprehension(
         ExecutionFrame frame, CelExpr unusedExpr, CelComprehension compre)
-        throws InterpreterException {
+        throws CelEvaluationException {
       String accuVar = compre.accuVar();
       String iterVar = compre.iterVar();
       IntermediateResult iterRangeRaw = evalInternal(frame, compre.iterRange());
@@ -879,11 +890,11 @@ public final class DefaultInterpreter implements Interpreter {
       } else if (iterRangeRaw.value() instanceof Map) {
         iterRange = ((Map<Object, Object>) iterRangeRaw.value()).keySet();
       } else {
-        throw new InterpreterException.Builder(
+        throw CelEvaluationExceptionBuilder.newBuilder(
                 "expected a list or a map for iteration range but got '%s'",
                 iterRangeRaw.value().getClass().getSimpleName())
             .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
-            .setLocation(metadata, compre.iterRange().id())
+            .setMetadata(metadata, compre.iterRange().id())
             .build();
       }
       IntermediateResult accuValue;
@@ -924,7 +935,7 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private IntermediateResult evalCelBlock(
-        ExecutionFrame frame, CelExpr unusedExpr, CelCall blockCall) throws InterpreterException {
+        ExecutionFrame frame, CelExpr unusedExpr, CelCall blockCall) throws CelEvaluationException {
       CelList exprList = blockCall.args().get(0).list();
       Map<String, IntermediateResult> blockList = new HashMap<>();
       for (int index = 0; index < exprList.elements().size(); index++) {
@@ -997,19 +1008,19 @@ public final class DefaultInterpreter implements Interpreter {
     }
 
     private Optional<ResolvedOverload> findOverload(
-        String function, List<String> overloadIds, Object[] args) throws CelException {
+        String function, List<String> overloadIds, Object[] args) throws CelEvaluationException {
       if (lateBoundFunctionResolver.isPresent()) {
         return lateBoundFunctionResolver.get().findOverload(function, overloadIds, args);
       }
       return Optional.empty();
     }
 
-    private void incrementIterations() throws InterpreterException {
+    private void incrementIterations() throws CelEvaluationException {
       if (maxIterations < 0) {
         return;
       }
       if (++iterations > maxIterations) {
-        throw new InterpreterException.Builder(
+        throw CelEvaluationExceptionBuilder.newBuilder(
                 String.format("Iteration budget exceeded: %d", maxIterations))
             .setErrorCode(CelErrorCode.ITERATION_BUDGET_EXCEEDED)
             .build();

@@ -27,14 +27,15 @@ import dev.cel.common.annotations.Internal;
 public interface Interpretable {
 
   /** Runs interpretation with the given activation which supplies name/value bindings. */
-  Object eval(GlobalResolver resolver) throws InterpreterException;
+  Object eval(GlobalResolver resolver) throws CelEvaluationException;
 
   /**
    * Runs interpretation with the given activation which supplies name/value bindings.
    *
    * <p>This method allows for evaluation listeners to be provided per-evaluation.
    */
-  Object eval(GlobalResolver resolver, CelEvaluationListener listener) throws InterpreterException;
+  Object eval(GlobalResolver resolver, CelEvaluationListener listener)
+      throws CelEvaluationException;
 
   /**
    * Runs interpretation with the given activation which supplies name/value bindings.
@@ -48,5 +49,5 @@ public interface Interpretable {
       GlobalResolver resolver,
       FunctionResolver lateBoundFunctionResolver,
       CelEvaluationListener listener)
-      throws InterpreterException;
+      throws CelEvaluationException;
 }

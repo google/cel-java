@@ -46,9 +46,9 @@ public final class DefaultDispatcherTest {
 
   @Test
   public void findOverload_multipleMatches_throwsException() {
-    InterpreterException e =
+    CelEvaluationException e =
         Assert.assertThrows(
-            InterpreterException.class,
+            CelEvaluationException.class,
             () ->
                 DefaultDispatcher.findOverload(
                     "overloads",

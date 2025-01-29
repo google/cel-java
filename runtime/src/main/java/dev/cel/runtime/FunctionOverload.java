@@ -15,7 +15,6 @@
 package dev.cel.runtime;
 
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.CelException;
 
 /** Interface describing the general signature of all CEL custom function implementations. */
 @FunctionalInterface
@@ -23,7 +22,7 @@ import dev.cel.common.CelException;
 public interface FunctionOverload {
 
   /** Evaluate a set of arguments throwing a {@code CelException} on error. */
-  Object apply(Object[] args) throws CelException;
+  Object apply(Object[] args) throws CelEvaluationException;
 
   /**
    * Helper interface for describing unary functions where the type-parameter is used to improve
@@ -32,7 +31,7 @@ public interface FunctionOverload {
   @Immutable
   @FunctionalInterface
   interface Unary<T> {
-    Object apply(T arg) throws CelException;
+    Object apply(T arg) throws CelEvaluationException;
   }
 
   /**
@@ -42,6 +41,6 @@ public interface FunctionOverload {
   @Immutable
   @FunctionalInterface
   interface Binary<T1, T2> {
-    Object apply(T1 arg1, T2 arg2) throws CelException;
+    Object apply(T1 arg1, T2 arg2) throws CelEvaluationException;
   }
 }
