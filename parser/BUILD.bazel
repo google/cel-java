@@ -7,7 +7,16 @@ package(
 
 java_library(
     name = "parser",
-    exports = ["//parser/src/main/java/dev/cel/parser"],
+    deprecation = "Please use //third_party/java/cel:parser_factory",
+    exports = [
+        "//parser/src/main/java/dev/cel/parser",
+        "//parser/src/main/java/dev/cel/parser:parser_factory",
+    ],
+)
+
+java_library(
+    name = "parser_factory",
+    exports = ["//parser/src/main/java/dev/cel/parser:parser_factory"],
 )
 
 java_library(

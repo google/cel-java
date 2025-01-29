@@ -10,7 +10,6 @@ package(
 
 # keep sorted
 PARSER_SOURCES = [
-    "CelParserFactory.java",
     "CelParserImpl.java",
     "ExpressionBalancer.java",
     "Parser.java",
@@ -37,6 +36,18 @@ UNPARSER_SOURCES = [
     "CelUnparserFactory.java",
     "CelUnparserImpl.java",
 ]
+
+java_library(
+    name = "parser_factory",
+    srcs = ["CelParserFactory.java"],
+    tags = [
+    ],
+    deps = [
+        ":parser",
+        "//common:options",
+        "//parser:parser_builder",
+    ],
+)
 
 java_library(
     name = "parser",
