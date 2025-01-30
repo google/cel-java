@@ -25,6 +25,7 @@ java_library(
         "//parser:macro",
         "//parser:operator",
         "//parser:parser_builder",
+        "//parser:parser_factory",
         "//parser:unparser",
         "//testing:adorner",
         "//testing:baseline_test_case",

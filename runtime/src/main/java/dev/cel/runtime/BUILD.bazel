@@ -252,9 +252,9 @@ java_library(
         "//common",
         "//common:compiler_common",
         "//common/ast",
-        "//parser",
         "//parser:operator",
         "//parser:parser_builder",
+        "//parser:parser_factory",
         "@maven//:com_google_guava_guava",
     ],
 )

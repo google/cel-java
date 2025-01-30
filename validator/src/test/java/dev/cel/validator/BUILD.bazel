@@ -12,7 +12,7 @@ java_library(
         "//bundle:cel",
         "//common:compiler_common",
         "//compiler",
-        "//parser",
+        "//parser:parser_factory",
         "//runtime",
         "//validator",
         "//validator:validator_builder",
