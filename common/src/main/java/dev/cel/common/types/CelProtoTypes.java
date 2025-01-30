@@ -23,7 +23,6 @@ import dev.cel.expr.Type.WellKnownType;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Empty;
 import com.google.protobuf.NullValue;
 
@@ -110,14 +109,6 @@ public final class CelProtoTypes {
   /** Create a message {@code Type} for {@code messageName}. */
   public static Type createMessage(String messageName) {
     return Type.newBuilder().setMessageType(messageName).build();
-  }
-
-  /**
-   * @deprecated Use {@link CelProtoMessageTypes#createMessage} instead.
-   */
-  @Deprecated
-  public static Type createMessage(Descriptor descriptor) {
-    return createMessage(descriptor.getFullName());
   }
 
   /** Create a type param {@code Type}. */
