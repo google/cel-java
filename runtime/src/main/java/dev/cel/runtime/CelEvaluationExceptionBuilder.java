@@ -60,12 +60,10 @@ public final class CelEvaluationExceptionBuilder {
    */
   @Internal
   public CelEvaluationException build() {
-    // TODO: Temporary until InterpreterException removal is complete
-    if (!message.startsWith("evaluation error")) {
-      message = SafeStringFormatter.format("evaluation error%s: %s", errorLocation, message);
-    }
-
-    return new CelEvaluationException(message, cause, errorCode);
+    return new CelEvaluationException(
+        SafeStringFormatter.format("evaluation error%s: %s", errorLocation, message),
+        cause,
+        errorCode);
   }
 
   /**

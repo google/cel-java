@@ -12,7 +12,6 @@ BASE_SOURCES = [
     "DefaultMetadata.java",
     "FunctionResolver.java",
     "FunctionOverload.java",
-    "InterpreterException.java",
     "MessageProvider.java",
     "Registrar.java",
     "ResolvedOverload.java",
@@ -59,15 +58,11 @@ java_library(
         ":metadata",
         "//:auto_value",
         "//common",
-        "//common:error_codes",
-        "//common:runtime_exception",
         "//common/annotations",
-        "//common/internal:safe_string_formatter",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven//:org_jspecify_jspecify",
     ],
 )
 
