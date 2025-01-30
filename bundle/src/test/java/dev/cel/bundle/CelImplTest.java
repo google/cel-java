@@ -72,6 +72,7 @@ import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelList;
 import dev.cel.common.testing.RepeatedTestProvider;
 import dev.cel.common.types.CelKind;
+import dev.cel.common.types.CelProtoMessageTypes;
 import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.EnumType;
@@ -1155,7 +1156,7 @@ public final class CelImplTest {
     String packageName = CheckedExpr.getDescriptor().getFile().getPackage();
     Cel cel =
         standardCelBuilderWithMacros()
-            .addVar("parsedExprVar", CelProtoTypes.createMessage(ParsedExpr.getDescriptor()))
+            .addVar("parsedExprVar", CelProtoMessageTypes.createMessage(ParsedExpr.getDescriptor()))
             .build();
     CelValidationException exception =
         assertThrows(

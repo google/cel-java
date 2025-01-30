@@ -24,6 +24,7 @@ java_library(
         "//common/resources/testdata/proto3:standalone_global_enum_java_proto",
         "//common/testing",
         "//common/types",
+        "//common/types:cel_proto_message_types",
         "//common/types:cel_proto_types",
         "//common/types:message_type_provider",
         "//common/types:type_providers",
