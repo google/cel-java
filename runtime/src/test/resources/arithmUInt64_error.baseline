@@ -1,29 +1,29 @@
 Source: 18446744073709551615u + 1u
 =====>
 bindings: {}
-error:    evaluation error: range overflow on unsigned addition
+error:    evaluation error at test_location:22: range overflow on unsigned addition
 error_code:    NUMERIC_OVERFLOW
 
 Source: 0u - 1u
 =====>
 bindings: {}
-error:    evaluation error: unsigned subtraction underflow
+error:    evaluation error at test_location:3: unsigned subtraction underflow
 error_code:    NUMERIC_OVERFLOW
 
 Source: 5000000000u * 5000000000u
 =====>
 bindings: {}
-error:    evaluation error: multiply out of unsigned integer range
+error:    evaluation error at test_location:12: multiply out of unsigned integer range
 error_code:    NUMERIC_OVERFLOW
 
 Source: 1u / 0u
 =====>
 bindings: {}
-error:    evaluation error: / by zero
+error:    evaluation error at test_location:3: / by zero
 error_code:    DIVIDE_BY_ZERO
 
 Source: 1u % 0u
 =====>
 bindings: {}
-error:    evaluation error: / by zero
+error:    evaluation error at test_location:3: / by zero
 error_code:    DIVIDE_BY_ZERO

@@ -1,41 +1,41 @@
 Source: 9223372036854775807 + 1
 =====>
 bindings: {}
-error:    evaluation error: long overflow
+error:    evaluation error at test_location:20: long overflow
 error_code:    NUMERIC_OVERFLOW
 
 Source: -9223372036854775808 - 1
 =====>
 bindings: {}
-error:    evaluation error: long overflow
+error:    evaluation error at test_location:21: long overflow
 error_code:    NUMERIC_OVERFLOW
 
 Source: -(-9223372036854775808)
 =====>
 bindings: {}
-error:    evaluation error: long overflow
+error:    evaluation error at test_location:0: long overflow
 error_code:    NUMERIC_OVERFLOW
 
 Source: 5000000000 * 5000000000
 =====>
 bindings: {}
-error:    evaluation error: long overflow
+error:    evaluation error at test_location:11: long overflow
 error_code:    NUMERIC_OVERFLOW
 
 Source: (-9223372036854775808)/-1
 =====>
 bindings: {}
-error:    evaluation error: most negative number wraps
+error:    evaluation error at test_location:22: most negative number wraps
 error_code:    NUMERIC_OVERFLOW
 
 Source: 1 / 0
 =====>
 bindings: {}
-error:    evaluation error: / by zero
+error:    evaluation error at test_location:2: / by zero
 error_code:    DIVIDE_BY_ZERO
 
 Source: 1 % 0
 =====>
 bindings: {}
-error:    evaluation error: / by zero
+error:    evaluation error at test_location:2: / by zero
 error_code:    DIVIDE_BY_ZERO

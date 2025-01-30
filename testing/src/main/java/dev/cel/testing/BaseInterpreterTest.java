@@ -146,7 +146,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   private CelAbstractSyntaxTree compileTestCase() {
     CelAbstractSyntaxTree ast = prepareTest(TEST_FILE_DESCRIPTORS);
     if (ast == null) {
-      return ast;
+      return null;
     }
     assertAstRoundTrip(ast);
 
@@ -179,6 +179,11 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   private Object runTestInternal(
       Object input, Optional<CelLateFunctionBindings> lateFunctionBindings) {
     CelAbstractSyntaxTree ast = compileTestCase();
+    if (ast == null) {
+      // Usually indicates test was not setup correctly
+      println("Source compilation failed");
+      return null;
+    }
     printBinding(input);
     Object result = null;
     try {
@@ -411,18 +416,6 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "1 / y == 1 || true";
     runTest(ImmutableMap.of("y", 0L));
 
-    source = "1 / y == 1 || false";
-    runTest(ImmutableMap.of("y", 0L));
-
-    source = "false || 1 / y == 1";
-    runTest(ImmutableMap.of("y", 0L));
-
-    source = "1 / y == 1 && true";
-    runTest(ImmutableMap.of("y", 0L));
-
-    source = "true && 1 / y == 1";
-    runTest(ImmutableMap.of("y", 0L));
-
     source = "1 / y == 1 && false";
     runTest(ImmutableMap.of("y", 0L));
 
@@ -473,6 +466,23 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     source = "(true <= true) == true";
     runTest();
+  }
+
+  @Test
+  public void booleans_error() {
+    declareVariable("y", CelProtoTypes.INT64);
+
+    source = "1 / y == 1 || false";
+    runTest(ImmutableMap.of("y", 0L));
+
+    source = "false || 1 / y == 1";
+    runTest(ImmutableMap.of("y", 0L));
+
+    source = "1 / y == 1 && true";
+    runTest(ImmutableMap.of("y", 0L));
+
+    source = "true && 1 / y == 1";
+    runTest(ImmutableMap.of("y", 0L));
   }
 
   @Test
@@ -745,6 +755,12 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     source = "y in list";
     runTest(ImmutableMap.of("y", 1L, "list", ImmutableList.of(1L, 2L, 3L)));
+  }
+
+  @Test
+  public void lists_error() {
+    declareVariable("y", CelProtoTypes.INT64);
+    declareVariable("list", CelProtoTypes.createList(CelProtoTypes.INT64));
 
     source = "list[3]";
     runTest(ImmutableMap.of("y", 1L, "list", ImmutableList.of(1L, 2L, 3L)));
@@ -1348,14 +1364,16 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "duration(\"1h2m3.4s\")";
     runTest();
 
-    // Not supported.
-    source = "duration('inf')";
-    runTest();
-
     source = "duration(duration('15.0s'))"; // Identity
     runTest();
 
     source = "timestamp(timestamp(123))"; // Identity
+    runTest();
+  }
+
+  @Test
+  public void timeConversions_error() {
+    source = "duration('inf')";
     runTest();
   }
 
@@ -1549,13 +1567,16 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "int(2.1)"; // double converts to 2
     runTest();
 
+    source = "int(42u)"; // converts to 42
+    runTest();
+  }
+
+  @Test
+  public void int64Conversions_error() {
     source = "int(18446744073709551615u)"; // 2^64-1 should error
     runTest();
 
     source = "int(1e99)"; // out of range should error
-    runTest();
-
-    source = "int(42u)"; // converts to 42
     runTest();
   }
 
@@ -1573,25 +1594,28 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "uint(2.1)"; // double converts to 2u
     runTest();
 
-    source = "uint(-1)"; // should error
-    runTest();
-
     source = "uint(1e19)"; // valid uint but outside of int range
     runTest();
 
-    source = "uint(6.022e23)"; // outside uint range
-    runTest();
-
     source = "uint(42)"; // int converts to 42u
-    runTest();
-
-    source = "uint('f1')"; // should error
     runTest();
 
     source = "uint(1u)"; // identity
     runTest();
 
     source = "uint(dyn(1u))"; // identity, check dynamic dispatch
+    runTest();
+  }
+
+  @Test
+  public void uint64Conversions_error() {
+    source = "uint(-1)"; // should error
+    runTest();
+
+    source = "uint(6.022e23)"; // outside uint range
+    runTest();
+
+    source = "uint('f1')"; // should error
     runTest();
   }
 
@@ -1606,10 +1630,13 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "double(-1)"; // int converts to -1.0
     runTest();
 
-    source = "double('bad')";
-    runTest();
-
     source = "double(1.5)"; // Identity
+    runTest();
+  }
+
+  @Test
+  public void doubleConversions_error() {
+    source = "double('bad')";
     runTest();
   }
 
@@ -1664,12 +1691,15 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     source = "bool('false') || bool('FALSE') || bool('False') || bool('f') || bool('0')";
     runTest(); // result is false
+  }
 
+  @Test
+  public void boolConversions_error() {
     source = "bool('TrUe')";
-    runTest(); // exception
+    runTest();
 
     source = "bool('FaLsE')";
-    runTest(); // exception
+    runTest();
   }
 
   @Test

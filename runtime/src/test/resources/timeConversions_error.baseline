@@ -1,0 +1,5 @@
+Source: duration('inf')
+=====>
+bindings: {}
+error:    evaluation error at test_location:8: invalid duration format
+error_code:    BAD_FORMAT

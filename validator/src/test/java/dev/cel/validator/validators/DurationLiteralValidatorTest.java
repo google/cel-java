@@ -89,7 +89,9 @@ public class DurationLiteralValidatorTest {
         assertThrows(
             CelEvaluationException.class,
             () -> CEL.createProgram(ast).eval(ImmutableMap.of("str_var", "bad")));
-    assertThat(e).hasMessageThat().contains("evaluation error: invalid duration format");
+    assertThat(e)
+        .hasMessageThat()
+        .contains("evaluation error at <input>:8: invalid duration format");
   }
 
   @Test
@@ -124,7 +126,9 @@ public class DurationLiteralValidatorTest {
     // However, the same AST fails on evaluation when the function dispatch fails.
     assertThat(e)
         .hasMessageThat()
-        .contains("evaluation error: Function 'testFuncOverloadId' failed with arg(s) 'bad'");
+        .contains(
+            "evaluation error at <input>:17: Function 'testFuncOverloadId' failed with arg(s)"
+                + " 'bad'");
   }
 
   @Test

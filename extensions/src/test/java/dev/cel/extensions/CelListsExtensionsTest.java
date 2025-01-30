@@ -76,7 +76,7 @@ public class CelListsExtensionsTest {
 
     assertThat(e)
         .hasMessageThat()
-        .contains("evaluation error: Function 'list_flatten_list_int' failed");
+        .contains("evaluation error at <input>:17: Function 'list_flatten_list_int' failed");
     assertThat(e).hasCauseThat().hasMessageThat().isEqualTo("Level must be non-negative");
   }
 

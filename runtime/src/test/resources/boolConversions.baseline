@@ -12,15 +12,3 @@ Source: bool('false') || bool('FALSE') || bool('False') || bool('f') || bool('0'
 =====>
 bindings: {}
 result:   false
-
-Source: bool('TrUe')
-=====>
-bindings: {}
-error:    evaluation error: Type conversion error from 'string' to 'bool': [TrUe]
-error_code:    BAD_FORMAT
-
-Source: bool('FaLsE')
-=====>
-bindings: {}
-error:    evaluation error: Type conversion error from 'string' to 'bool': [FaLsE]
-error_code:    BAD_FORMAT

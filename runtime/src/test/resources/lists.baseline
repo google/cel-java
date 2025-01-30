@@ -95,18 +95,3 @@ declare list {
 =====>
 bindings: {y=1, list=[1, 2, 3]}
 result:   true
-
-Source: list[3]
-declare x {
-  value cel.expr.conformance.proto3.TestAllTypes
-}
-declare y {
-  value int
-}
-declare list {
-  value list(int)
-}
-=====>
-bindings: {y=1, list=[1, 2, 3]}
-error:    evaluation error: Index out of bounds: 3
-error_code:    INDEX_OUT_OF_BOUNDS

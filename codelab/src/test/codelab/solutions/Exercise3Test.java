@@ -57,7 +57,8 @@ public final class Exercise3Test {
 
     assertThat(exception).hasMessageThat().contains("Evaluation error has occurred.");
     assertThat(exception).hasCauseThat().isInstanceOf(CelEvaluationException.class);
-    assertThat(exception).hasCauseThat().hasMessageThat().contains("evaluation error: / by zero");
+    assertThat(exception).hasCauseThat().hasMessageThat().contains("evaluation error");
+    assertThat(exception).hasCauseThat().hasMessageThat().contains("/ by zero");
   }
 
   @Test
@@ -83,7 +84,8 @@ public final class Exercise3Test {
 
     assertThat(exception).hasMessageThat().contains("Evaluation error has occurred.");
     assertThat(exception).hasCauseThat().isInstanceOf(CelEvaluationException.class);
-    assertThat(exception).hasCauseThat().hasMessageThat().contains("evaluation error: / by zero");
+    assertThat(exception).hasCauseThat().hasMessageThat().contains("evaluation error");
+    assertThat(exception).hasCauseThat().hasMessageThat().contains("/ by zero");
   }
 
   @Test
@@ -108,6 +110,7 @@ public final class Exercise3Test {
 
     assertThat(exception).hasMessageThat().contains("Evaluation error has occurred.");
     assertThat(exception).hasCauseThat().isInstanceOf(CelEvaluationException.class);
-    assertThat(exception).hasCauseThat().hasMessageThat().contains("evaluation error: / by zero");
+    assertThat(exception).hasCauseThat().hasMessageThat().contains("evaluation error");
+    assertThat(exception).hasCauseThat().hasMessageThat().contains("/ by zero");
   }
 }

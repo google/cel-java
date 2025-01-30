@@ -33,4 +33,7 @@ public interface Metadata {
    * Returns the character position of the node in the source. This is a 0-based character offset.
    */
   int getPosition(long exprId);
+
+  /** Checks if a source position recorded for the provided expression id. */
+  boolean hasPosition(long exprId);
 }

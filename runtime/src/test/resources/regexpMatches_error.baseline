@@ -1,11 +1,11 @@
 Source: matches("alpha", "**")
 =====>
 bindings: {}
-error:    evaluation error: error parsing regexp: missing argument to repetition operator: `*`
+error:    evaluation error at test_location:7: error parsing regexp: missing argument to repetition operator: `*`
 error_code:    INVALID_ARGUMENT
 
 Source: "alpha".matches("**")
 =====>
 bindings: {}
-error:    evaluation error: error parsing regexp: missing argument to repetition operator: `*`
+error:    evaluation error at test_location:15: error parsing regexp: missing argument to repetition operator: `*`
 error_code:    INVALID_ARGUMENT

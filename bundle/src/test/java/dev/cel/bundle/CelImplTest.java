@@ -2063,8 +2063,8 @@ public final class CelImplTest {
     assertThat(e)
         .hasMessageThat()
         .contains(
-            "evaluation error: Regex pattern exceeds allowed program size. Allowed: 6, Provided:"
-                + " 7");
+            "evaluation error at <input>:13: Regex pattern exceeds allowed program size. Allowed:"
+                + " 6, Provided: 7");
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.INVALID_ARGUMENT);
   }
 

@@ -1,0 +1,11 @@
+Source: bool('TrUe')
+=====>
+bindings: {}
+error:    evaluation error at test_location:4: Type conversion error from 'string' to 'bool': [TrUe]
+error_code:    BAD_FORMAT
+
+Source: bool('FaLsE')
+=====>
+bindings: {}
+error:    evaluation error at test_location:4: Type conversion error from 'string' to 'bool': [FaLsE]
+error_code:    BAD_FORMAT

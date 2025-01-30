@@ -44,9 +44,12 @@ public final class CelEvaluationExceptionBuilder {
 
   @CanIgnoreReturnValue
   public CelEvaluationExceptionBuilder setMetadata(Metadata metadata, long exprId) {
-    this.errorLocation =
-        SafeStringFormatter.format(
-            " at %s:%d", metadata.getLocation(), metadata.getPosition(exprId));
+    if (metadata.hasPosition(exprId)) {
+      this.errorLocation =
+          SafeStringFormatter.format(
+              " at %s:%d", metadata.getLocation(), metadata.getPosition(exprId));
+    }
+
     return this;
   }
 

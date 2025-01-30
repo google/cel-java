@@ -8,18 +8,6 @@ Source: int(2.1)
 bindings: {}
 result:   2
 
-Source: int(18446744073709551615u)
-=====>
-bindings: {}
-error:    evaluation error: unsigned out of int range
-error_code:    NUMERIC_OVERFLOW
-
-Source: int(1e99)
-=====>
-bindings: {}
-error:    evaluation error: double is out of range for int
-error_code:    NUMERIC_OVERFLOW
-
 Source: int(42u)
 =====>
 bindings: {}

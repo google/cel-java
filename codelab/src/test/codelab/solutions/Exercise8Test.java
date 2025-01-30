@@ -128,7 +128,7 @@ public final class Exercise8Test {
         .contains("evaluation error at <input>:15: key 'referer' is not present in map.");
     assertThat(e2)
         .hasMessageThat()
-        .contains("evaluation error at <input>:0: key 'referer' is not present in map.");
+        .contains("evaluation error: key 'referer' is not present in map.");
   }
 
   @Test

@@ -1,0 +1,35 @@
+Source: 1 / y == 1 || false
+declare y {
+  value int
+}
+=====>
+bindings: {y=0}
+error:    evaluation error at test_location:2: / by zero
+error_code:    DIVIDE_BY_ZERO
+
+Source: false || 1 / y == 1
+declare y {
+  value int
+}
+=====>
+bindings: {y=0}
+error:    evaluation error at test_location:11: / by zero
+error_code:    DIVIDE_BY_ZERO
+
+Source: 1 / y == 1 && true
+declare y {
+  value int
+}
+=====>
+bindings: {y=0}
+error:    evaluation error at test_location:2: / by zero
+error_code:    DIVIDE_BY_ZERO
+
+Source: true && 1 / y == 1
+declare y {
+  value int
+}
+=====>
+bindings: {y=0}
+error:    evaluation error at test_location:10: / by zero
+error_code:    DIVIDE_BY_ZERO

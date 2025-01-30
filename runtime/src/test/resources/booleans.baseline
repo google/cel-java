@@ -41,54 +41,6 @@ declare y {
 bindings: {y=0}
 result:   true
 
-Source: 1 / y == 1 || false
-declare x {
-  value bool
-}
-declare y {
-  value int
-}
-=====>
-bindings: {y=0}
-error:    evaluation error: / by zero
-error_code:    DIVIDE_BY_ZERO
-
-Source: false || 1 / y == 1
-declare x {
-  value bool
-}
-declare y {
-  value int
-}
-=====>
-bindings: {y=0}
-error:    evaluation error: / by zero
-error_code:    DIVIDE_BY_ZERO
-
-Source: 1 / y == 1 && true
-declare x {
-  value bool
-}
-declare y {
-  value int
-}
-=====>
-bindings: {y=0}
-error:    evaluation error: / by zero
-error_code:    DIVIDE_BY_ZERO
-
-Source: true && 1 / y == 1
-declare x {
-  value bool
-}
-declare y {
-  value int
-}
-=====>
-bindings: {y=0}
-error:    evaluation error: / by zero
-error_code:    DIVIDE_BY_ZERO
-
 Source: 1 / y == 1 && false
 declare x {
   value bool
@@ -275,4 +227,3 @@ declare y {
 =====>
 bindings: {}
 result:   true
-

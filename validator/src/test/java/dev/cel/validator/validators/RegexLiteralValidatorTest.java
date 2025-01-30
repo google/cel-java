@@ -97,7 +97,8 @@ public class RegexLiteralValidatorTest {
     assertThat(e)
         .hasMessageThat()
         .contains(
-            "evaluation error: error parsing regexp: missing argument to repetition operator: `*`");
+            "evaluation error at <input>:7: error parsing regexp: missing argument to repetition"
+                + " operator: `*`");
   }
 
   @Test
@@ -118,7 +119,8 @@ public class RegexLiteralValidatorTest {
     assertThat(e)
         .hasMessageThat()
         .contains(
-            "evaluation error: error parsing regexp: missing argument to repetition operator: `*`");
+            "evaluation error at <input>:14: error parsing regexp: missing argument to repetition"
+                + " operator: `*`");
   }
 
   @Test
@@ -144,7 +146,8 @@ public class RegexLiteralValidatorTest {
     assertThat(e)
         .hasMessageThat()
         .contains(
-            "evaluation error: error parsing regexp: missing argument to repetition operator: `*`");
+            "evaluation error at <input>:7: error parsing regexp: missing argument to repetition"
+                + " operator: `*`");
   }
 
   @Test
@@ -170,7 +173,8 @@ public class RegexLiteralValidatorTest {
     assertThat(e)
         .hasMessageThat()
         .contains(
-            "evaluation error: error parsing regexp: missing argument to repetition operator: `*`");
+            "evaluation error at <input>:14: error parsing regexp: missing argument to repetition"
+                + " operator: `*`");
   }
 
   @Test

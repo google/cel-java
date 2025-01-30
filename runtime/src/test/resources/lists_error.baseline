@@ -1,0 +1,11 @@
+Source: list[3]
+declare y {
+  value int
+}
+declare list {
+  value list(int)
+}
+=====>
+bindings: {y=1, list=[1, 2, 3]}
+error:    evaluation error at test_location:4: Index out of bounds: 3
+error_code:    INDEX_OUT_OF_BOUNDS

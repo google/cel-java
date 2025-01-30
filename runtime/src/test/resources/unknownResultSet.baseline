@@ -60,7 +60,7 @@ declare x {
 }
 =====>
 bindings: {}
-error:    evaluation error: Failed to parse timestamp: invalid timestamp "bad timestamp string"
+error:    evaluation error at test_location:31: Failed to parse timestamp: invalid timestamp "bad timestamp string"
 error_code:    BAD_FORMAT
 
 Source: x.single_int32 == 1 || x.single_string == "test"
@@ -125,7 +125,7 @@ declare x {
 }
 =====>
 bindings: {}
-error:    evaluation error: Failed to parse timestamp: invalid timestamp "bad timestamp string"
+error:    evaluation error at test_location:31: Failed to parse timestamp: invalid timestamp "bad timestamp string"
 error_code:    BAD_FORMAT
 
 Source: x.single_int32.f(1)
@@ -427,5 +427,5 @@ declare f {
 }
 =====>
 bindings: {}
-error:    evaluation error: / by zero
+error:    evaluation error at test_location:7: / by zero
 error_code:    DIVIDE_BY_ZERO

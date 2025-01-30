@@ -68,6 +68,6 @@ public final class Exercise1Test {
     IllegalArgumentException exception =
         assertThrows(IllegalArgumentException.class, () -> exercise1.eval(ast));
 
-    assertThat(exception).hasMessageThat().contains("evaluation error: / by zero");
+    assertThat(exception).hasMessageThat().contains("evaluation error at <input>:1: / by zero");
   }
 }

@@ -212,7 +212,7 @@ public final class DefaultInterpreter implements Interpreter {
       } catch (RuntimeException e) {
         throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
             .setCause(e)
-            // .setMetadata(metadata, expr.id()) TODO: Uncomment in the upcoming cl
+            .setMetadata(metadata, expr.id())
             .build();
       }
     }
@@ -419,13 +419,13 @@ public final class DefaultInterpreter implements Interpreter {
         return IntermediateResult.create(attr, dispatchResult);
       } catch (CelRuntimeException ce) {
         throw CelEvaluationExceptionBuilder.newBuilder(ce)
-            // .setMetadata(metadata, expr.id()) // TODO: Uncomment in the upcoming cl
+            .setMetadata(metadata, expr.id())
             .build();
       } catch (RuntimeException e) {
         throw CelEvaluationExceptionBuilder.newBuilder(
                 "Function '%s' failed with arg(s) '%s'",
                 overload.getOverloadId(), Joiner.on(", ").join(argArray))
-            // .setMetadata(metadata, expr.id()) // TODO: Uncomment in the upcoming cl
+            .setMetadata(metadata, expr.id())
             .setCause(e)
             .build();
       }
@@ -456,7 +456,7 @@ public final class DefaultInterpreter implements Interpreter {
                         .build());
       } catch (CelRuntimeException e) {
         throw CelEvaluationExceptionBuilder.newBuilder(e)
-            // .setMetadata(metadata, expr.id()) // TODO: Uncomment in the upcoming cl
+            .setMetadata(metadata, expr.id())
             .build();
       }
     }

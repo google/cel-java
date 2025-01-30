@@ -46,15 +46,6 @@ result:   seconds: 3723
 nanos: 400000000
 
 
-Source: duration('inf')
-declare t1 {
-  value google.protobuf.Timestamp
-}
-=====>
-bindings: {}
-error:    evaluation error: invalid duration format
-error_code:    BAD_FORMAT
-
 Source: duration(duration('15.0s'))
 declare t1 {
   value google.protobuf.Timestamp

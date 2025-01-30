@@ -100,7 +100,8 @@ public class TimestampLiteralValidatorTest {
             () -> CEL.createProgram(ast).eval(ImmutableMap.of("str_var", "bad")));
     assertThat(e)
         .hasMessageThat()
-        .contains("evaluation error: Failed to parse timestamp: invalid timestamp \"bad\"");
+        .contains(
+            "evaluation error at <input>:9: Failed to parse timestamp: invalid timestamp \"bad\"");
   }
 
   @Test
@@ -136,7 +137,9 @@ public class TimestampLiteralValidatorTest {
     // However, the same AST fails on evaluation when the function dispatch fails.
     assertThat(e)
         .hasMessageThat()
-        .contains("evaluation error: Function 'testFuncOverloadId' failed with arg(s) 'bad'");
+        .contains(
+            "evaluation error at <input>:18: Function 'testFuncOverloadId' failed with arg(s)"
+                + " 'bad'");
   }
 
   @Test

@@ -8,33 +8,15 @@ Source: uint(2.1)
 bindings: {}
 result:   2
 
-Source: uint(-1)
-=====>
-bindings: {}
-error:    evaluation error: int out of uint range
-error_code:    NUMERIC_OVERFLOW
-
 Source: uint(1e19)
 =====>
 bindings: {}
 result:   10000000000000000000
 
-Source: uint(6.022e23)
-=====>
-bindings: {}
-error:    evaluation error: double out of uint range
-error_code:    NUMERIC_OVERFLOW
-
 Source: uint(42)
 =====>
 bindings: {}
 result:   42
-
-Source: uint('f1')
-=====>
-bindings: {}
-error:    evaluation error: f1
-error_code:    BAD_FORMAT
 
 Source: uint(1u)
 =====>

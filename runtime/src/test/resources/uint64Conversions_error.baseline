@@ -1,0 +1,17 @@
+Source: uint(-1)
+=====>
+bindings: {}
+error:    evaluation error at test_location:4: int out of uint range
+error_code:    NUMERIC_OVERFLOW
+
+Source: uint(6.022e23)
+=====>
+bindings: {}
+error:    evaluation error at test_location:4: double out of uint range
+error_code:    NUMERIC_OVERFLOW
+
+Source: uint('f1')
+=====>
+bindings: {}
+error:    evaluation error at test_location:4: f1
+error_code:    BAD_FORMAT

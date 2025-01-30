@@ -43,6 +43,11 @@ public final class DefaultMetadata implements Metadata {
   @Override
   public int getPosition(long exprId) {
     ImmutableMap<Long, Integer> positions = ast.getSource().getPositionsMap();
-    return positions.containsKey(exprId) ? positions.get(exprId) : 0;
+    return positions.getOrDefault(exprId, 0);
+  }
+
+  @Override
+  public boolean hasPosition(long exprId) {
+    return ast.getSource().getPositionsMap().containsKey(exprId);
   }
 }

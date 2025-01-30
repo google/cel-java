@@ -69,6 +69,11 @@ public class CelEvaluationExceptionBuilderTest {
                   public int getPosition(long exprId) {
                     return 10;
                   }
+
+                  @Override
+                  public boolean hasPosition(long exprId) {
+                    return true;
+                  }
                 },
                 0);
 
