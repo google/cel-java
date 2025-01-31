@@ -319,7 +319,7 @@ public class CelUnparserVisitor extends CelExprVisitor {
     stringBuilder.append(RIGHT_BRACKET);
   }
 
-  private void visitMaybeNested(CelExpr expr, boolean nested) {
+  protected void visitMaybeNested(CelExpr expr, boolean nested) {
     if (nested) {
       stringBuilder.append(LEFT_PAREN);
     }
@@ -329,7 +329,7 @@ public class CelUnparserVisitor extends CelExprVisitor {
     }
   }
 
-  private boolean isBinaryOrTernaryOperator(CelExpr expr) {
+  protected boolean isBinaryOrTernaryOperator(CelExpr expr) {
     if (!isComplexOperator(expr)) {
       return false;
     }

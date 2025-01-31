@@ -25,6 +25,11 @@ java_library(
 )
 
 java_library(
+    name = "unparser_visitor",
+    exports = ["//parser/src/main/java/dev/cel/parser:unparser_visitor"],
+)
+
+java_library(
     name = "macro",
     exports = ["//parser/src/main/java/dev/cel/parser:macro"],
 )

@@ -94,14 +94,12 @@ java_library(
     deps = [
         ":operator",
         "//:auto_value",
-        "//common",
         "//common:compiler_common",
         "//common:source_location",
         "//common/ast",
         "//common/ast:expr_factory",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:org_jspecify_jspecify",
     ],
 )
 
