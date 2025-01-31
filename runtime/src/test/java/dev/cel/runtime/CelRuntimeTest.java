@@ -288,7 +288,7 @@ public class CelRuntimeTest {
     String configSource =
         "name: late_bound_function_config\n"
             + "functions:\n"
-            + "  - name: 'test'\n"
+            + "  - name: 'foo'\n"
             + "    overloads:\n"
             + "      - id: 'test_bool'\n"
             + "        args:\n"
