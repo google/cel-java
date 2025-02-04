@@ -376,8 +376,6 @@ Java 8 or newer is required.
 
 Released under the [Apache License](LICENSE).
 
-Disclaimer: This is not an official Google product.
-
 [1]:  https://github.com/google/cel-spec
 [2]:  https://groups.google.com/forum/#!forum/cel-java-discuss
 [3]:  https://github.com/google/guava
