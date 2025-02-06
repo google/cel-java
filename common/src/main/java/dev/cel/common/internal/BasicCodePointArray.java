@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkPositionIndexes;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
@@ -31,7 +30,6 @@ import dev.cel.common.annotations.Internal;
  * <p>CEL Library Internals. Do Not Use.
  */
 @Immutable
-@VisibleForTesting
 @Internal
 @AutoValue
 @AutoValue.CopyAnnotations
