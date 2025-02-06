@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("//tools/build_defs/android:rules.bzl", "android_library")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -10,9 +11,21 @@ java_library(
     exports = ["//common/src/main/java/dev/cel/common/ast"],
 )
 
+android_library(
+    name = "ast_android",
+    visibility = ["//third_party/java/cel:android_allow_list"],
+    exports = ["//common/src/main/java/dev/cel/common/ast:ast_android"],
+)
+
 java_library(
     name = "expr_converter",
     exports = ["//common/src/main/java/dev/cel/common/ast:expr_converter"],
+)
+
+android_library(
+    name = "expr_converter_android",
+    visibility = ["//third_party/java/cel:android_allow_list"],
+    exports = ["//common/src/main/java/dev/cel/common/ast:expr_converter_android"],
 )
 
 java_library(

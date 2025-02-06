@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("//tools/build_defs/android:rules.bzl", "android_library")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -15,8 +16,14 @@ java_library(
     exports = ["//common/src/main/java/dev/cel/common/internal:comparison_functions"],
 )
 
+android_library(
+    name = "comparison_functions_android",
+    exports = ["//common/src/main/java/dev/cel/common/internal:comparison_functions_android"],
+)
+
 java_library(
     name = "converter",
+    constraints = ["android"],
     exports = ["//common/src/main/java/dev/cel/common/internal:converter"],
 )
 
@@ -72,5 +79,12 @@ java_library(
 
 java_library(
     name = "safe_string_formatter",
+    constraints = ["android"],
     exports = ["//common/src/main/java/dev/cel/common/internal:safe_string_formatter"],
+)
+
+android_library(
+    name = "internal_android",
+    visibility = ["//third_party/java/cel:android_allow_list"],
+    exports = ["//common/src/main/java/dev/cel/common/internal:internal_android"],
 )
