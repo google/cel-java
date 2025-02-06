@@ -122,17 +122,17 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 ### end of rules_jvm_external setup
 
-# Important: there can only be one maven_install rule. Add new maven deps here.
 ANTLR4_VERSION = "4.13.2"
 maven_install(
+    name = "maven",
     # keep sorted
     artifacts = [
         "com.google.auto.value:auto-value:1.11.0",
         "com.google.auto.value:auto-value-annotations:1.11.0",
         "com.google.code.findbugs:annotations:3.0.1",
         "com.google.errorprone:error_prone_annotations:2.36.0",
-        "com.google.guava:guava:33.3.1-jre",
-        "com.google.guava:guava-testlib:33.3.1-jre",
+        "com.google.guava:guava:33.4.0-jre",
+        "com.google.guava:guava-testlib:33.4.0-jre",
         "com.google.protobuf:protobuf-java:4.29.3",
         "com.google.protobuf:protobuf-java-util:4.29.3",
         "com.google.re2j:re2j:1.8",
@@ -150,6 +150,45 @@ maven_install(
         "https://repo1.maven.org/maven2",
     ],
 )
+
+maven_install(
+    name = "maven_android",
+    # keep sorted
+    artifacts = [
+        "com.google.guava:guava:33.4.0-android",
+        "com.google.protobuf:protobuf-javalite:4.29.3",
+    ],
+    repositories = [
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
+)
+
+### rules_android setup
+http_archive(
+    name = "rules_android",
+    sha256 = "7dc7a6ed0b9bf53f1f363292733e3d7164e140e96ed433a2937b19570d01d517",
+    strip_prefix = "rules_android-0.6.1",
+    url = "https://github.com/bazelbuild/rules_android/releases/download/v0.6.1/rules_android-v0.6.1.tar.gz",
+)
+
+load("@rules_android//:prereqs.bzl", "rules_android_prereqs")
+rules_android_prereqs()
+
+load("@rules_android//:defs.bzl", "rules_android_workspace")
+rules_android_workspace()
+
+load("@rules_android//rules:rules.bzl", "android_sdk_repository")
+android_sdk_repository(
+    name = "androidsdk"
+)
+
+register_toolchains(
+    "@rules_android//toolchains/android:android_default_toolchain",
+    "@rules_android//toolchains/android_sdk:android_sdk_tools",
+)
+
+### end of rules_android setup
 
 ### googleapis setup
 
