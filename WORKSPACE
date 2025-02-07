@@ -18,6 +18,19 @@ register_toolchains("//:repository_default_toolchain_definition")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 
+# Load license rules.
+# Must be loaded first due to https://github.com/bazel-contrib/rules_jvm_external/issues/1244
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+http_archive(
+    name = "rules_license",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/1.0.0/rules_license-1.0.0.tar.gz",
+        "https://github.com/bazelbuild/rules_license/releases/download/1.0.0/rules_license-1.0.0.tar.gz",
+    ],
+    sha256 = "26d4021f6898e23b82ef953078389dd49ac2b5618ac564ade4ef87cced147b38",
+)
+
 http_archive(
     name = "bazel_skylib",
     sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
@@ -31,21 +44,64 @@ load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
 
-# Transitive dependency required by protobuf v4 https://github.com/protocolbuffers/protobuf/issues/17200
+### Protobuf Setup
+
 http_archive(
-    name = "rules_python",
-    sha256 = "778aaeab3e6cfd56d681c89f5c10d7ad6bf8d2f1a72de9de55b23081b2d31618",
-    strip_prefix = "rules_python-0.34.0",
-    url = "https://github.com/bazelbuild/rules_python/releases/download/0.34.0/rules_python-0.34.0.tar.gz",
+    name = "rules_java",
+    urls = [
+        "https://github.com/bazelbuild/rules_java/releases/download/8.9.0/rules_java-8.9.0.tar.gz",
+    ],
+    sha256 = "8daa0e4f800979c74387e4cd93f97e576ec6d52beab8ac94710d2931c57f8d8b",
 )
 
-load("@rules_python//python:repositories.bzl", "py_repositories")
+http_archive(
+    name = "rules_python",
+    sha256 = "9c6e26911a79fbf510a8f06d8eedb40f412023cf7fa6d1461def27116bff022c",
+    strip_prefix = "rules_python-1.1.0",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/1.1.0/rules_python-1.1.0.tar.gz",
+)
 
+http_archive(
+    name = "rules_proto",
+    sha256 = "14a225870ab4e91869652cfd69ef2028277fc1dc4910d65d353b62d6e0ae21f4",
+    strip_prefix = "rules_proto-7.1.0",
+    url = "https://github.com/bazelbuild/rules_proto/releases/download/7.1.0/rules_proto-7.1.0.tar.gz",
+)
+
+http_archive(
+    name = "com_google_protobuf",
+    sha256 = "008a11cc56f9b96679b4c285fd05f46d317d685be3ab524b2a310be0fbad987e",
+    strip_prefix = "protobuf-29.3",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v29.3.tar.gz"],
+)
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+protobuf_deps()
+
+load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
+rules_java_dependencies()
+
+load("@rules_java//java:repositories.bzl", "rules_java_toolchains")
+rules_java_toolchains()
+
+load("@rules_python//python:repositories.bzl", "py_repositories")
 py_repositories()
 
-RULES_JVM_EXTERNAL_TAG = "6.2"
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
+rules_proto_dependencies()
 
-RULES_JVM_EXTERNAL_SHA = "808cb5c30b5f70d12a2a745a29edc46728fd35fa195c1762a596b63ae9cebe05"
+load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
+rules_proto_toolchains()
+
+
+### End of Protobuf Setup
+
+
+### rules_jvm_external setup
+
+RULES_JVM_EXTERNAL_TAG = "6.6"
+
+RULES_JVM_EXTERNAL_SHA = "3afe5195069bd379373528899c03a3072f568d33bd96fe037bd43b1f590535e7"
 
 http_archive(
     name = "rules_jvm_external",
@@ -53,7 +109,7 @@ http_archive(
     strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
     url = "https://github.com/bazelbuild/rules_jvm_external/releases/download/%s/rules_jvm_external-%s.tar.gz" % (RULES_JVM_EXTERNAL_TAG, RULES_JVM_EXTERNAL_TAG),
 )
-
+ 
 load("@rules_jvm_external//:repositories.bzl", "rules_jvm_external_deps")
 
 rules_jvm_external_deps()
@@ -64,9 +120,10 @@ rules_jvm_external_setup()
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 
-ANTLR4_VERSION = "4.13.2"
+### end of rules_jvm_external setup
 
 # Important: there can only be one maven_install rule. Add new maven deps here.
+ANTLR4_VERSION = "4.13.2"
 maven_install(
     # keep sorted
     artifacts = [
@@ -76,8 +133,8 @@ maven_install(
         "com.google.errorprone:error_prone_annotations:2.36.0",
         "com.google.guava:guava:33.3.1-jre",
         "com.google.guava:guava-testlib:33.3.1-jre",
-        "com.google.protobuf:protobuf-java:4.28.3",
-        "com.google.protobuf:protobuf-java-util:4.28.3",
+        "com.google.protobuf:protobuf-java:4.29.3",
+        "com.google.protobuf:protobuf-java-util:4.29.3",
         "com.google.re2j:re2j:1.8",
         "com.google.testparameterinjector:test-parameter-injector:1.18",
         "com.google.truth.extensions:truth-java8-extension:1.4.4",
@@ -94,19 +151,9 @@ maven_install(
     ],
 )
 
-http_archive(
-    name = "com_google_protobuf",
-    sha256 = "7c3ebd7aaedd86fa5dc479a0fda803f602caaf78d8aff7ce83b89e1b8ae7442a",
-    strip_prefix = "protobuf-28.3",
-    urls = ["https://github.com/protocolbuffers/protobuf/archive/v28.3.tar.gz"],
-)
+### googleapis setup 
 
-# Required by com_google_protobuf
-load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
-
-protobuf_deps()
-
-# googleapis as of 12/08/2022
+# as of 12/08/2022
 http_archive(
     name = "com_google_googleapis",
     sha256 = "8503282213779a3c230251218c924f385f457a053b4f82ff95d068f71815e558",
@@ -123,7 +170,6 @@ switched_rules_by_language(
     java = True,
 )
 
-# Required by googleapis
 http_archive(
     name = "rules_pkg",
     sha256 = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
@@ -131,10 +177,14 @@ http_archive(
         "https://github.com/bazelbuild/rules_pkg/releases/download/0.7.0/rules_pkg-0.7.0.tar.gz",
     ],
 )
-
+ 
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 
 rules_pkg_dependencies()
+
+### end of googleapis setup 
+
+# bazel_common required for maven jar publishing
 
 BAZEL_COMMON_TAG = "aaa4d801588f7744c6f4428e4f133f26b8518f42"
 
@@ -148,16 +198,16 @@ http_archive(
 )
 
 # cel-spec api/expr canonical protos
-# v0.19.0 2024-12-02
-CEL_SPEC_COMMIT = "afa18f9bd5a83f5960ca06c1f9faea406ab34ccc"
+CEL_SPEC_VERSION = "0.19.2"
 
 http_archive(
     name = "cel_spec",
-    sha256 = "3b74fc98b5efd10c53a220c694e80342db4e516151364dae97ec26dd308ce1c7",
-    strip_prefix = "cel-spec-" + CEL_SPEC_COMMIT,
+    sha256 = "f96bafe9d1c71784f631a20ccc890ae625959baf2083d00efdc883058065055a",
+    strip_prefix = "cel-spec-" + CEL_SPEC_VERSION,
     urls = [
         "https://github.com/google/cel-spec/archive/" +
-        CEL_SPEC_COMMIT + ".tar.gz",
+        "v" + CEL_SPEC_VERSION +
+        ".tar.gz",
     ],
 )
 
@@ -172,17 +222,8 @@ http_archive(
 )
 
 http_jar(
-    name = "antlr4_jar",
-    sha256 = "eae2dfa119a64327444672aff63e9ec35a20180dc5b8090b7a6ab85125df4d76",
-    urls = ["https://www.antlr.org/download/antlr-" + ANTLR4_VERSION + "-complete.jar"],
+     name = "antlr4_jar",
+     sha256 = "eae2dfa119a64327444672aff63e9ec35a20180dc5b8090b7a6ab85125df4d76",
+     urls = ["https://www.antlr.org/download/antlr-" + ANTLR4_VERSION + "-complete.jar"],
 )
-
-# Load license rules.
-http_archive(
-    name = "rules_license",
-    sha256 = "6157e1e68378532d0241ecd15d3c45f6e5cfd98fc10846045509fb2a7cc9e381",
-    urls = [
-        "https://github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
-    ],
-)
+ 

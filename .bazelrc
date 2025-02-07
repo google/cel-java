@@ -1,2 +1,4 @@
 common --noenable_bzlmod
 common --enable_workspace
+build --java_runtime_version=remotejdk_8
+build --java_language_version=8
