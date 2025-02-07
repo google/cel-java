@@ -53,6 +53,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -2042,7 +2043,7 @@ public final class CelStandardFunctions {
         // Example: "-9:30" -> "-09:30" and "9:30" -> "+09:30"
         String formattedOffset =
             ((hourOffset < 0) ? "-" : "+")
-                + String.format("%02d:%02d", Math.abs(hourOffset), minOffset);
+                + String.format(Locale.getDefault(), "%02d:%02d", Math.abs(hourOffset), minOffset);
 
         return ZoneId.of(formattedOffset);
 

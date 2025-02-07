@@ -15,6 +15,7 @@
 package dev.cel.common.ast;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Locale;
 
 /** Provides string formatting support for {@link CelExpr}. */
 final class CelExprFormatter {
@@ -33,7 +34,7 @@ final class CelExprFormatter {
 
   private void formatExpr(CelExpr celExpr) {
     CelExpr.ExprKind.Kind exprKind = celExpr.exprKind().getKind();
-    append(String.format("%s [%d] {", exprKind, celExpr.id()));
+    append(String.format(Locale.getDefault(), "%s [%d] {", exprKind, celExpr.id()));
     if (!EXCLUDED_NEWLINE_KINDS.contains(exprKind)) {
       appendNewline();
     }
@@ -103,7 +104,8 @@ final class CelExprFormatter {
         appendWithoutIndent("\"" + celConstant.stringValue() + "\"");
         break;
       case BYTES_VALUE:
-        appendWithoutIndent(String.format("b\"%s\"", celConstant.bytesValue().toStringUtf8()));
+        appendWithoutIndent(
+            String.format(Locale.getDefault(), "b\"%s\"", celConstant.bytesValue().toStringUtf8()));
         break;
       default:
         append("Unknown kind: " + celConstant.getKind());
@@ -184,7 +186,7 @@ final class CelExprFormatter {
     indent();
     for (CelExpr.CelStruct.Entry entry : celStruct.entries()) {
       appendNewline();
-      appendWithNewline(String.format("ENTRY [%d] {", entry.id()));
+      appendWithNewline(String.format(Locale.getDefault(), "ENTRY [%d] {", entry.id()));
       indent();
       appendWithNewline("field_key: " + entry.fieldKey());
       if (entry.optionalEntry()) {
@@ -214,7 +216,7 @@ final class CelExprFormatter {
       } else {
         firstLine = false;
       }
-      appendWithNewline(String.format("MAP_ENTRY [%d] {", entry.id()));
+      appendWithNewline(String.format(Locale.getDefault(), "MAP_ENTRY [%d] {", entry.id()));
       indent();
       appendWithNewline("key: {");
       indent();
