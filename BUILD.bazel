@@ -91,7 +91,6 @@ java_library(
 default_java_toolchain(
     name = "repository_default_toolchain",
     configuration = DEFAULT_TOOLCHAIN_CONFIGURATION,
-    java_runtime = "@bazel_tools//tools/jdk:remote_jdk11",
     javacopts = DEFAULT_JAVACOPTS,
     jvm_opts = BASE_JDK9_JVM_OPTS,
     package_configuration = [

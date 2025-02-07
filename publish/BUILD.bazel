@@ -69,6 +69,11 @@ EXCLUDED_TARGETS = [
     "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
 ]
 
+JAVA_DOC_OPTIONS = [
+    "-Xdoclint:none",
+    "--ignore-source-errors",
+]
+
 pom_file(
     name = "cel_pom",
     substitutions = {
@@ -84,6 +89,7 @@ pom_file(
 java_export(
     name = "cel",
     deploy_env = EXCLUDED_TARGETS,
+    javadocopts = JAVA_DOC_OPTIONS,
     maven_coordinates = "dev.cel:cel:%s" % CEL_VERSION,
     pom_template = ":cel_pom",
     runtime_deps = ALL_TARGETS,
@@ -104,6 +110,7 @@ pom_file(
 java_export(
     name = "cel_compiler",
     deploy_env = EXCLUDED_TARGETS,
+    javadocopts = JAVA_DOC_OPTIONS,
     maven_coordinates = "dev.cel:compiler:%s" % CEL_VERSION,
     pom_template = ":cel_compiler_pom",
     runtime_deps = COMPILER_TARGETS,
@@ -124,6 +131,7 @@ pom_file(
 java_export(
     name = "cel_runtime",
     deploy_env = EXCLUDED_TARGETS,
+    javadocopts = JAVA_DOC_OPTIONS,
     maven_coordinates = "dev.cel:runtime:%s" % CEL_VERSION,
     pom_template = ":cel_runtime_pom",
     runtime_deps = RUNTIME_TARGETS,
@@ -144,6 +152,7 @@ pom_file(
 java_export(
     name = "cel_v1alpha1",
     deploy_env = EXCLUDED_TARGETS,
+    javadocopts = JAVA_DOC_OPTIONS,
     maven_coordinates = "dev.cel:v1alpha1:%s" % CEL_VERSION,
     pom_template = ":cel_v1alpha1_pom",
     runtime_deps = V1ALPHA1_AST_TARGETS,
@@ -164,6 +173,7 @@ pom_file(
 java_export(
     name = "cel_protobuf",
     deploy_env = EXCLUDED_TARGETS,
+    javadocopts = JAVA_DOC_OPTIONS,
     maven_coordinates = "dev.cel:protobuf:%s" % CEL_VERSION,
     pom_template = ":cel_protobuf_pom",
     runtime_deps = CANONICAL_AST_TARGETS,
