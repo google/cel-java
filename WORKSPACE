@@ -151,6 +151,32 @@ maven_install(
     ],
 )
 
+### rules_android setup
+http_archive(
+    name = "rules_android",
+    sha256 = "7dc7a6ed0b9bf53f1f363292733e3d7164e140e96ed433a2937b19570d01d517",
+    strip_prefix = "rules_android-0.6.1",
+    url = "https://github.com/bazelbuild/rules_android/releases/download/v0.6.1/rules_android-v0.6.1.tar.gz",
+)
+
+load("@rules_android//:prereqs.bzl", "rules_android_prereqs")
+rules_android_prereqs()
+
+load("@rules_android//:defs.bzl", "rules_android_workspace")
+rules_android_workspace()
+
+load("@rules_android//rules:rules.bzl", "android_sdk_repository")
+android_sdk_repository(
+    name = "androidsdk"
+)
+
+register_toolchains(
+    "@rules_android//toolchains/android:android_default_toolchain",
+    "@rules_android//toolchains/android_sdk:android_sdk_tools",
+)
+
+### end of rules_android setup
+
 ### googleapis setup
 
 # as of 12/08/2022
