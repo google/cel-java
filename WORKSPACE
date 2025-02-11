@@ -122,17 +122,17 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 ### end of rules_jvm_external setup
 
-# Important: there can only be one maven_install rule. Add new maven deps here.
 ANTLR4_VERSION = "4.13.2"
 maven_install(
+    name = "maven",
     # keep sorted
     artifacts = [
         "com.google.auto.value:auto-value:1.11.0",
         "com.google.auto.value:auto-value-annotations:1.11.0",
         "com.google.code.findbugs:annotations:3.0.1",
         "com.google.errorprone:error_prone_annotations:2.36.0",
-        "com.google.guava:guava:33.3.1-jre",
-        "com.google.guava:guava-testlib:33.3.1-jre",
+        "com.google.guava:guava:33.4.0-jre",
+        "com.google.guava:guava-testlib:33.4.0-jre",
         "com.google.protobuf:protobuf-java:4.29.3",
         "com.google.protobuf:protobuf-java-util:4.29.3",
         "com.google.re2j:re2j:1.8",
@@ -144,6 +144,19 @@ maven_install(
         "org.jspecify:jspecify:1.0.0",
         "org.threeten:threeten-extra:1.8.0",
         "org.yaml:snakeyaml:2.3",
+    ],
+    repositories = [
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
+)
+
+maven_install(
+    name = "maven_android",
+    # keep sorted
+    artifacts = [
+        "com.google.guava:guava:33.4.0-android",
+        "com.google.protobuf:protobuf-javalite:4.29.3",
     ],
     repositories = [
         "https://maven.google.com",
