@@ -1,0 +1,32 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_visibility = [
+        "//compiler/tools:__pkg__",
+    ],
+)
+
+java_binary(
+    name = "cel_compiler_tool",
+    srcs = ["CelCompilerTool.java"],
+    main_class = "dev.cel.compiler.tools.CelCompilerTool",
+    neverlink = 1,
+    deps = [
+        "//common",
+        "//common:compiler_common",
+        "//common:options",
+        "//common:proto_ast",
+        "//compiler",
+        "//compiler:compiler_builder",
+        "//extensions",
+        "//extensions:optional_library",
+        "//parser:macro",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:info_picocli_picocli",
+    ],
+)

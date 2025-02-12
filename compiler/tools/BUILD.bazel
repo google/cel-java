@@ -1,0 +1,11 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "cel_compiler_tool",
+    actual = "//compiler/src/main/java/dev/cel/compiler/tools:cel_compiler_tool",
+)

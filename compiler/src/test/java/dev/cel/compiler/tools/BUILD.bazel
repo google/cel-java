@@ -1,0 +1,60 @@
+load("@rules_java//java:defs.bzl", "java_library")
+load("//:testing.bzl", "junit4_test_suites")
+load("//compiler/tools:compile_cel.bzl", "compile_cel")
+
+package(default_applicable_licenses = [
+    "//:license",
+])
+
+compile_cel(
+    name = "compiled_hello_world",
+    expression = "'hello world'",
+)
+
+compile_cel(
+    name = "compiled_comprehension",
+    expression = "[1,2,3].map(x, x + 1)",
+)
+
+compile_cel(
+    name = "compiled_proto_message",
+    expression = "cel.expr.conformance.proto2.TestAllTypes{single_int32: 1}",
+    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto"],
+)
+
+filegroup(
+    name = "compiled_exprs",
+    srcs = [
+        "compiled_proto_message",
+        ":compiled_comprehension",
+        ":compiled_hello_world",
+    ],
+)
+
+java_library(
+    name = "tests",
+    testonly = True,
+    srcs = glob(["*Test.java"]),
+    resources = [":compiled_exprs"],
+    deps = [
+        "//common:cel_ast",
+        "//common:compiler_common",
+        "//common:proto_ast",
+        "//compiler/tools:cel_compiler_tool",
+        "//runtime",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
+    ],
+)
+
+junit4_test_suites(
+    name = "test_suites",
+    sizes = [
+        "small",
+    ],
+    src_dir = "src/test/java",
+    deps = [":tests"],
+)
