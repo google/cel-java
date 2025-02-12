@@ -43,7 +43,7 @@ java_library(
         "CelDebug.java",
     ],
     deps = [
-        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:syntax_java_proto",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -56,7 +56,7 @@ java_library(
         "//common/types:cel_proto_types",
         "//common/types:type_providers",
         "//compiler:compiler_builder",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:checked_java_proto",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -78,7 +78,7 @@ java_library(
         "//compiler",
         "//compiler:compiler_builder",
         "//parser:macro",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:checked_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
     ],
@@ -109,7 +109,7 @@ java_library(
         "//runtime",
         "//runtime:runtime_helper",
         "//runtime:unknown_attributes",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:checked_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",

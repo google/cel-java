@@ -10,11 +10,8 @@ package(
 
 BASE_SOURCES = [
     "DefaultMetadata.java",
-    "FunctionResolver.java",
-    "FunctionOverload.java",
     "MessageProvider.java",
     "Registrar.java",
-    "ResolvedOverload.java",
 ]
 
 # keep sorted
@@ -37,9 +34,24 @@ INTERPRETER_SOURCES = [
 ]
 
 java_library(
-    name = "cel_type_resolver",
-    srcs = ["CelTypeResolver.java"],
+    name = "type_resolver",
+    srcs = ["TypeResolver.java"],
+    visibility = ["//visibility:private"],
     deps = [
+        "//common/types",
+        "//common/types:type_providers",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "descriptor_type_resolver",
+    srcs = ["DescriptorTypeResolver.java"],
+    visibility = ["//visibility:private"],
+    deps = [
+        ":type_resolver",
         "//common/types",
         "//common/types:type_providers",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -54,15 +66,12 @@ java_library(
     tags = [
     ],
     deps = [
-        ":evaluation_exception",
         ":metadata",
-        "//:auto_value",
-        "//common",
+        "//common:cel_ast",
         "//common/annotations",
-        "@maven//:com_google_code_findbugs_annotations",
+        "//runtime:function_overload",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -75,12 +84,12 @@ java_library(
     exports = [":base"],
     deps = [
         ":base",
-        ":cel_type_resolver",
         ":evaluation_exception",
         ":evaluation_exception_builder",
         ":evaluation_listener",
         ":metadata",
         ":runtime_helper",
+        ":type_resolver",
         ":unknown_attributes",
         "//:auto_value",
         "//common",
@@ -96,6 +105,7 @@ java_library(
         "//common/types",
         "//common/types:cel_types",
         "//common/types:type_providers",
+        "//runtime:function_overload",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -105,23 +115,55 @@ java_library(
 )
 
 java_library(
-    name = "runtime_helper",
+    name = "runtime_equality",
     srcs = [
         "RuntimeEquality.java",
-        "RuntimeHelpers.java",
+    ],
+    visibility = ["//visibility:private"],
+    deps = [
+        ":runtime_helper",
+        "//common:error_codes",
+        "//common:options",
+        "//common:runtime_exception",
+        "//common/internal:comparison_functions",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "proto_message_runtime_equality",
+    srcs = [
+        "ProtoMessageRuntimeEquality.java",
     ],
     tags = [
     ],
-    # NOTE: do not grow this dependencies arbitrarily
+    deps = [
+        ":proto_message_runtime_helper",
+        ":runtime_equality",
+        "//common:options",
+        "//common/annotations",
+        "//common/internal:dynamic_proto",
+        "//common/internal:proto_equality",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "runtime_helper",
+    srcs = [
+        "RuntimeHelper.java",
+    ],
+    tags = [
+    ],
     deps = [
         "//common:error_codes",
         "//common:options",
         "//common:runtime_exception",
-        "//common/annotations",
-        "//common/internal:comparison_functions",
         "//common/internal:converter",
-        "//common/internal:dynamic_proto",
-        "//common/internal:proto_equality",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -130,9 +172,24 @@ java_library(
     ],
 )
 
+java_library(
+    name = "proto_message_runtime_helper",
+    srcs = [
+        "ProtoMessageRuntimeHelper.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":runtime_helper",
+        "//common:options",
+        "//common/annotations",
+        "//common/internal:dynamic_proto",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
 # keep sorted
 RUNTIME_SOURCES = [
-    "CelFunctionOverload.java",
     "CelFunctionResolver.java",
     "CelLateFunctionBindings.java",
     "CelResolvedOverload.java",
@@ -141,7 +198,6 @@ RUNTIME_SOURCES = [
     "CelRuntimeFactory.java",
     "CelRuntimeLegacyImpl.java",
     "CelRuntimeLibrary.java",
-    "CelStandardFunctions.java",
     "CelVariableResolver.java",
     "HierarchicalVariableResolver.java",
     "UnknownContext.java",
@@ -189,37 +245,94 @@ java_library(
 )
 
 java_library(
+    name = "standard_functions",
+    srcs = ["CelStandardFunctions.java"],
+    tags = [
+    ],
+    deps = [
+        ":function_binding",
+        ":runtime_equality",
+        ":runtime_helper",
+        "//common:error_codes",
+        "//common:options",
+        "//common:runtime_exception",
+        "//common/annotations",
+        "//common/internal:comparison_functions",
+        "//common/internal:safe_string_formatter",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_protobuf_protobuf_java_util",
+    ],
+)
+
+java_library(
+    name = "function_binding",
+    srcs = [
+        "CelFunctionBinding.java",
+        "FunctionBindingImpl.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":function_overload",
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "function_overload",
+    srcs = [
+        "CelFunctionOverload.java",
+        "FunctionOverload.java",
+        "FunctionResolver.java",
+        "ResolvedOverload.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":evaluation_exception",
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
     name = "runtime",
     srcs = RUNTIME_SOURCES,
     tags = [
     ],
     deps = [
+        ":descriptor_type_resolver",
         ":evaluation_exception",
         ":evaluation_listener",
-        ":runtime_helper",
+        ":proto_message_runtime_equality",
+        ":runtime_equality",
         ":runtime_type_provider_legacy",
         ":unknown_attributes",
         "//:auto_value",
         "//common",
-        "//common:error_codes",
         "//common:options",
-        "//common:runtime_exception",
         "//common/annotations",
         "//common/internal:cel_descriptor_pools",
-        "//common/internal:comparison_functions",
         "//common/internal:default_message_factory",
         "//common/internal:dynamic_proto",
         "//common/internal:proto_message_factory",
-        "//common/internal:safe_string_formatter",
         "//common/types:cel_types",
         "//common/values:cel_value_provider",
         "//common/values:proto_message_value_provider",
+        "//runtime:function_binding",
+        "//runtime:function_overload",
         "//runtime:interpreter",
+        "//runtime:standard_functions",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:org_jspecify_jspecify",
     ],
 )
@@ -271,6 +384,7 @@ java_library(
     name = "runtime_type_provider_legacy",
     srcs = ["RuntimeTypeProviderLegacyImpl.java"],
     deps = [
+        ":interpreter",
         ":unknown_attributes",
         "//common:error_codes",
         "//common:options",
@@ -282,7 +396,6 @@ java_library(
         "//common/values:cel_value",
         "//common/values:cel_value_provider",
         "//common/values:proto_message_value",
-        "//runtime:interpreter",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],

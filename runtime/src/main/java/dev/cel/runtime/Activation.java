@@ -50,12 +50,12 @@ public abstract class Activation implements GlobalResolver {
 
         @Override
         public @Nullable Object resolve(String name) {
-          return null;
+          return GlobalResolver.EMPTY.resolve(name);
         }
 
         @Override
         public String toString() {
-          return "{}";
+          return GlobalResolver.EMPTY.toString();
         }
       };
 
@@ -66,7 +66,7 @@ public abstract class Activation implements GlobalResolver {
       @Override
       public @Nullable Object resolve(String theName) {
         if (theName.equals(name)) {
-          return RuntimeHelpers.maybeAdaptPrimitive(value);
+          return RuntimeHelper.maybeAdaptPrimitive(value);
         }
         return null;
       }
@@ -99,7 +99,7 @@ public abstract class Activation implements GlobalResolver {
       @Override
       public @Nullable Object resolve(String theName) {
         if (theName.equals(name)) {
-          return RuntimeHelpers.maybeAdaptPrimitive(supplier.get());
+          return RuntimeHelper.maybeAdaptPrimitive(supplier.get());
         }
         return null;
       }
@@ -126,7 +126,7 @@ public abstract class Activation implements GlobalResolver {
 
       @Override
       public @Nullable Object resolve(String name) {
-        return RuntimeHelpers.maybeAdaptPrimitive(copy.get(name));
+        return RuntimeHelper.maybeAdaptPrimitive(copy.get(name));
       }
 
       @Override

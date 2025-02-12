@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("//:cel_android_library.bzl", "cel_android_library")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -7,13 +8,6 @@ package(
         "//publish:__pkg__",
     ],
 )
-
-# keep sorted
-COMMON_SOURCES = [
-    "CelDescriptorUtil.java",
-    "CelDescriptors.java",
-    "CelException.java",
-]
 
 # keep sorted
 COMPILER_COMMON_SOURCES = [
@@ -42,24 +36,18 @@ PROTO_V1ALPHA1_AST_SOURCE = [
 ]
 
 java_library(
-    name = "common",
-    srcs = COMMON_SOURCES,
+    name = "cel_descriptors",
+    srcs = [
+        "CelDescriptorUtil.java",
+        "CelDescriptors.java",
+    ],
     tags = [
     ],
     deps = [
-        ":cel_ast",
-        ":cel_source",
-        ":error_codes",
-        ":source",
-        ":source_location",
         "//:auto_value",
         "//common/annotations",
-        "//common/ast",
-        "//common/internal",
         "//common/internal:file_descriptor_converter",
-        "//common/types",
         "//common/types:cel_types",
-        "//common/types:type_providers",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -73,8 +61,8 @@ java_library(
     ],
     deps = [
         ":cel_ast",
+        ":cel_exception",
         ":cel_source",
-        ":common",
         ":source",
         ":source_location",
         "//:auto_value",
@@ -82,10 +70,21 @@ java_library(
         "//common/internal:safe_string_formatter",
         "//common/types:cel_proto_types",
         "//common/types:type_providers",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:checked_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "cel_exception",
+    srcs = ["CelException.java"],
+    tags = [
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":error_codes",
     ],
 )
 
@@ -97,7 +96,6 @@ java_library(
     deps = [
         "//:auto_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_guava_guava",
     ],
 )
 
@@ -112,9 +110,27 @@ java_library(
         "//common",
         "//common/ast:expr_converter",
         "//common/types:cel_proto_types",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:checked_java_proto",
+        "@cel_spec//proto/cel/expr:syntax_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "proto_ast_android",
+    srcs = PROTO_AST_SOURCE,
+    tags = [
+    ],
+    deps = [
+        ":cel_ast_android",
+        ":cel_source_android",
+        "//common/ast:expr_converter_android",
+        "//common/types:cel_proto_types_android",
+        "@cel_spec//proto/cel/expr:checked_java_proto_lite",
+        "@cel_spec//proto/cel/expr:syntax_java_proto_lite",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
     ],
 )
 
@@ -126,7 +142,6 @@ java_library(
     deps = [
         ":cel_ast",
         ":cel_source",
-        ":common",
         "//common:cel_source",
         "//common/ast:expr_v1alpha1_converter",
         "//common/types:cel_v1alpha1_types",
@@ -176,7 +191,6 @@ java_library(
     ],
     deps = [
         ":cel_source",
-        ":common",
         "//:auto_value",
         "//common/ast:mutable_expr",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -230,6 +244,22 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "cel_source_android",
+    srcs = ["CelSource.java"],
+    tags = [
+    ],
+    deps = [
+        ":source_android",
+        ":source_location_android",
+        "//:auto_value",
+        "//common/ast:ast_android",
+        "//common/internal:internal_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
 java_library(
     name = "cel_ast",
     srcs = ["CelAbstractSyntaxTree.java"],
@@ -249,6 +279,23 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "cel_ast_android",
+    srcs = ["CelAbstractSyntaxTree.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_source_android",
+        "//:auto_value",
+        "//common/annotations",
+        "//common/ast:ast_android",
+        "//common/types:type_providers_android",
+        "//common/types:types_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
 java_library(
     name = "source",
     srcs = SOURCE_SOURCES,
@@ -257,5 +304,28 @@ java_library(
         "//common/annotations",
         "//common/internal",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "source_android",
+    srcs = SOURCE_SOURCES,
+    visibility = ["//visibility:private"],
+    deps = [
+        ":source_location_android",
+        "//common/annotations",
+        "//common/internal:internal_android",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "source_location_android",
+    srcs = ["CelSourceLocation.java"],
+    visibility = ["//visibility:private"],
+    deps = [
+        "//:auto_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
     ],
 )
