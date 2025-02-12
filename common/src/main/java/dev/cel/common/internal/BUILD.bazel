@@ -172,7 +172,7 @@ java_library(
     ],
     deps = [
         "//common/annotations",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:checked_java_proto",
     ],
 )
 

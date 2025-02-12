@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("//:cel_android_library.bzl", "cel_android_library")
 
 package(
     default_applicable_licenses = [
@@ -62,8 +63,22 @@ java_library(
     ],
     deps = [
         ":ast",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:checked_java_proto",
+        "@cel_spec//proto/cel/expr:syntax_java_proto",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "expr_converter_android",
+    srcs = EXPR_CONVERTER_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":ast_android",
+        "@cel_spec//proto/cel/expr:checked_java_proto_lite",
+        "@cel_spec//proto/cel/expr:syntax_java_proto_lite",
+        "@maven_android//:com_google_guava_guava",
     ],
 )
 
@@ -111,5 +126,21 @@ java_library(
     deps = [
         ":ast",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "ast_android",
+    srcs = AST_SOURCES,
+    tags = [
+    ],
+    deps = [
+        "//:auto_value",
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_jspecify_jspecify",
+        "@maven_android//:com_google_guava_guava",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
