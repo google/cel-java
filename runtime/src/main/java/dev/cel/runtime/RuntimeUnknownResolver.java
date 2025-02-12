@@ -66,7 +66,7 @@ public class RuntimeUnknownResolver {
     private GlobalResolver resolver;
 
     private Builder() {
-      resolver = Activation.EMPTY;
+      resolver = GlobalResolver.EMPTY;
       attributeResolver = DEFAULT_RESOLVER;
     }
 

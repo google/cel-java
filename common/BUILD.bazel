@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("//:cel_android_library.bzl", "cel_android_library")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -9,8 +10,9 @@ java_library(
     # TODO: Split this target and migrate consumers
     name = "common",
     exports = [
-        "//common/src/main/java/dev/cel/common",
         "//common/src/main/java/dev/cel/common:cel_ast",
+        "//common/src/main/java/dev/cel/common:cel_descriptors",
+        "//common/src/main/java/dev/cel/common:cel_exception",
         "//common/src/main/java/dev/cel/common:cel_source",
     ],
 )
@@ -28,6 +30,12 @@ java_library(
 java_library(
     name = "proto_ast",
     exports = ["//common/src/main/java/dev/cel/common:proto_ast"],
+)
+
+cel_android_library(
+    name = "proto_ast_android",
+    visibility = ["//visibility:public"],
+    exports = ["//common/src/main/java/dev/cel/common:proto_ast_android"],
 )
 
 java_library(
@@ -78,7 +86,27 @@ java_library(
     exports = ["//common/src/main/java/dev/cel/common:cel_source"],
 )
 
+cel_android_library(
+    name = "cel_source_android",
+    visibility = ["//visibility:public"],
+    exports = ["//common/src/main/java/dev/cel/common:cel_source_android"],
+)
+
 java_library(
     name = "cel_ast",
     exports = ["//common/src/main/java/dev/cel/common:cel_ast"],
+)
+
+cel_android_library(
+    name = "cel_ast_android",
+    visibility = ["//visibility:public"],
+    exports = [
+        "//common/src/main/java/dev/cel/common:cel_ast_android",
+    ],
+)
+
+java_library(
+    name = "cel_exception",
+    visibility = ["//visibility:public"],
+    exports = ["//common/src/main/java/dev/cel/common:cel_exception"],
 )

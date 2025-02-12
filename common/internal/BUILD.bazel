@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("//:cel_android_library.bzl", "cel_android_library")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -13,6 +14,11 @@ java_library(
 java_library(
     name = "comparison_functions",
     exports = ["//common/src/main/java/dev/cel/common/internal:comparison_functions"],
+)
+
+cel_android_library(
+    name = "comparison_functions_android",
+    exports = ["//common/src/main/java/dev/cel/common/internal:comparison_functions_android"],
 )
 
 java_library(
@@ -73,4 +79,10 @@ java_library(
 java_library(
     name = "safe_string_formatter",
     exports = ["//common/src/main/java/dev/cel/common/internal:safe_string_formatter"],
+)
+
+cel_android_library(
+    name = "internal_android",
+    visibility = ["//visibility:public"],
+    exports = ["//common/src/main/java/dev/cel/common/internal:internal_android"],
 )

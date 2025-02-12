@@ -24,7 +24,7 @@ java_library(
         "//validator/validators:homogeneous_literal",
         "//validator/validators:regex",
         "//validator/validators:timestamp",
-        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr:checked_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
