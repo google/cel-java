@@ -62,6 +62,7 @@ public final class EnumType extends CelType {
   /** Functional interface for lookup up an enum number by its local or fully qualified name. */
   @Immutable
   @FunctionalInterface
+  @SuppressWarnings("AndroidJdkLibsChecker") // FunctionalInterface added in 24
   public interface EnumNumberResolver {
     Optional<Integer> findNumber(String enumName);
   }
@@ -69,6 +70,7 @@ public final class EnumType extends CelType {
   /** Functional interface for looking up an enum name by its number. */
   @Immutable
   @FunctionalInterface
+  @SuppressWarnings("AndroidJdkLibsChecker") // FunctionalInterface added in 24
   public interface EnumNameResolver {
     Optional<String> findName(Integer enumNumber);
   }

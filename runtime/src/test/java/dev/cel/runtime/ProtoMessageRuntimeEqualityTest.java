@@ -61,7 +61,7 @@ import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public final class RuntimeEqualityTest {
+public final class ProtoMessageRuntimeEqualityTest {
   private static final CelOptions EMPTY_OPTIONS =
       CelOptions.newBuilder().disableCelStandardEquality(false).build();
   private static final CelOptions PROTO_EQUALITY =
@@ -69,104 +69,106 @@ public final class RuntimeEqualityTest {
           .disableCelStandardEquality(false)
           .enableProtoDifferencerEquality(true)
           .build();
-  private static final CelOptions UNSIGNED_LONGS =
-      CelOptions.newBuilder().disableCelStandardEquality(false).build();
-  private static final CelOptions PROTO_EQUALITY_UNSIGNED_LONGS =
-      CelOptions.newBuilder()
-          .disableCelStandardEquality(false)
-          .enableProtoDifferencerEquality(true)
-          .build();
+  private static final DynamicProto DYNAMIC_PROTO =
+      DynamicProto.create(
+          DefaultMessageFactory.create(
+              DefaultDescriptorPool.create(
+                  CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+                      AttributeContext.getDescriptor().getFile()))));
 
-  private static final RuntimeEquality RUNTIME_EQUALITY =
-      new RuntimeEquality(
-          DynamicProto.create(
-              DefaultMessageFactory.create(
-                  DefaultDescriptorPool.create(
-                      CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-                          AttributeContext.getDescriptor().getFile())))));
+  private static final ProtoMessageRuntimeEquality RUNTIME_EQUALITY_LEGACY_OPTIONS =
+      ProtoMessageRuntimeEquality.create(DYNAMIC_PROTO, CelOptions.LEGACY);
+
+  private static final ProtoMessageRuntimeEquality RUNTIME_EQUALITY_DEFAULT_OPTIONS =
+      ProtoMessageRuntimeEquality.create(DYNAMIC_PROTO, CelOptions.DEFAULT);
+
+  private static final ProtoMessageRuntimeEquality RUNTIME_EQUALITY_EMPTY_OPTIONS =
+      ProtoMessageRuntimeEquality.create(DYNAMIC_PROTO, EMPTY_OPTIONS);
+
+  private static final ProtoMessageRuntimeEquality RUNTIME_EQUALITY_PROTO_EQUALITY =
+      ProtoMessageRuntimeEquality.create(DYNAMIC_PROTO, PROTO_EQUALITY);
 
   @Test
   public void inMap() throws Exception {
-    CelOptions celOptions = CelOptions.newBuilder().disableCelStandardEquality(false).build();
     ImmutableMap<String, String> map = ImmutableMap.of("key", "value", "key2", "value2");
-    assertThat(RUNTIME_EQUALITY.inMap(map, "key2", celOptions)).isTrue();
-    assertThat(RUNTIME_EQUALITY.inMap(map, "key3", celOptions)).isFalse();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(map, "key2")).isTrue();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(map, "key3")).isFalse();
 
     ImmutableMap<Object, String> mixedKeyMap =
         ImmutableMap.of(
             "key", "value", 2L, "value2", UnsignedLong.valueOf(42), "answer to everything");
     // Integer tests.
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, 2, celOptions)).isTrue();
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, 3, celOptions)).isFalse();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(mixedKeyMap, 2)).isTrue();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(mixedKeyMap, 3)).isFalse();
 
     // Long tests.
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, -1L, celOptions)).isFalse();
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, 3L, celOptions)).isFalse();
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, 2L, celOptions)).isTrue();
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, 42L, celOptions)).isTrue();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(mixedKeyMap, -1L)).isFalse();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(mixedKeyMap, 3L)).isFalse();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(mixedKeyMap, 2L)).isTrue();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(mixedKeyMap, 42L)).isTrue();
 
     // Floating point tests
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, -1.0d, celOptions)).isFalse();
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, 2.1d, celOptions)).isFalse();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(mixedKeyMap, -1.0d)).isFalse();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(mixedKeyMap, 2.1d)).isFalse();
     assertThat(
-            RUNTIME_EQUALITY.inMap(mixedKeyMap, UnsignedLong.MAX_VALUE.doubleValue(), celOptions))
+            RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(mixedKeyMap, UnsignedLong.MAX_VALUE.doubleValue()))
         .isFalse();
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, 2.0d, celOptions)).isTrue();
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, Double.NaN, celOptions)).isFalse();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(mixedKeyMap, 2.0d)).isTrue();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(mixedKeyMap, Double.NaN)).isFalse();
 
     // Unsigned long tests.
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, UnsignedLong.valueOf(1L), celOptions)).isFalse();
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, UnsignedLong.valueOf(2L), celOptions)).isTrue();
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, UnsignedLong.MAX_VALUE, celOptions)).isFalse();
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, UInt64Value.of(2L), celOptions)).isTrue();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(mixedKeyMap, UnsignedLong.valueOf(1L)))
+        .isFalse();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(mixedKeyMap, UnsignedLong.valueOf(2L)))
+        .isTrue();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(mixedKeyMap, UnsignedLong.MAX_VALUE)).isFalse();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inMap(mixedKeyMap, UInt64Value.of(2L))).isTrue();
 
     // Validate the legacy behavior as well.
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, 2, CelOptions.LEGACY)).isFalse();
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, 2L, CelOptions.LEGACY)).isTrue();
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, Int64Value.of(2L), CelOptions.LEGACY)).isFalse();
-    assertThat(RUNTIME_EQUALITY.inMap(mixedKeyMap, UInt64Value.of(2L), CelOptions.LEGACY))
-        .isFalse();
+    assertThat(RUNTIME_EQUALITY_LEGACY_OPTIONS.inMap(mixedKeyMap, 2)).isFalse();
+    assertThat(RUNTIME_EQUALITY_LEGACY_OPTIONS.inMap(mixedKeyMap, 2L)).isTrue();
+    assertThat(RUNTIME_EQUALITY_LEGACY_OPTIONS.inMap(mixedKeyMap, Int64Value.of(2L))).isFalse();
+    assertThat(RUNTIME_EQUALITY_LEGACY_OPTIONS.inMap(mixedKeyMap, UInt64Value.of(2L))).isFalse();
   }
 
   @Test
   public void inList() throws Exception {
-    CelOptions celOptions = CelOptions.newBuilder().disableCelStandardEquality(false).build();
     ImmutableList<String> list = ImmutableList.of("value", "value2");
-    assertThat(RUNTIME_EQUALITY.inList(list, "value", celOptions)).isTrue();
-    assertThat(RUNTIME_EQUALITY.inList(list, "value3", celOptions)).isFalse();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inList(list, "value")).isTrue();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inList(list, "value3")).isFalse();
 
     ImmutableList<Object> mixedValueList = ImmutableList.of(1, "value", 2, "value2");
-    assertThat(RUNTIME_EQUALITY.inList(mixedValueList, 2, celOptions)).isTrue();
-    assertThat(RUNTIME_EQUALITY.inList(mixedValueList, 3, celOptions)).isFalse();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inList(mixedValueList, 2)).isTrue();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inList(mixedValueList, 3)).isFalse();
 
-    assertThat(RUNTIME_EQUALITY.inList(mixedValueList, 2L, celOptions)).isTrue();
-    assertThat(RUNTIME_EQUALITY.inList(mixedValueList, 3L, celOptions)).isFalse();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inList(mixedValueList, 2L)).isTrue();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inList(mixedValueList, 3L)).isFalse();
 
-    assertThat(RUNTIME_EQUALITY.inList(mixedValueList, 2.0, celOptions)).isTrue();
-    assertThat(RUNTIME_EQUALITY.inList(mixedValueList, Double.NaN, celOptions)).isFalse();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inList(mixedValueList, 2.0)).isTrue();
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inList(mixedValueList, Double.NaN)).isFalse();
 
-    assertThat(RUNTIME_EQUALITY.inList(mixedValueList, UnsignedLong.valueOf(2L), celOptions))
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inList(mixedValueList, UnsignedLong.valueOf(2L)))
         .isTrue();
-    assertThat(RUNTIME_EQUALITY.inList(mixedValueList, UnsignedLong.valueOf(3L), celOptions))
+    assertThat(RUNTIME_EQUALITY_EMPTY_OPTIONS.inList(mixedValueList, UnsignedLong.valueOf(3L)))
         .isFalse();
 
     // Validate the legacy behavior as well.
-    assertThat(RUNTIME_EQUALITY.inList(mixedValueList, 2, CelOptions.LEGACY)).isTrue();
-    assertThat(RUNTIME_EQUALITY.inList(mixedValueList, 2L, CelOptions.LEGACY)).isFalse();
+    assertThat(RUNTIME_EQUALITY_LEGACY_OPTIONS.inList(mixedValueList, 2)).isTrue();
+    assertThat(RUNTIME_EQUALITY_LEGACY_OPTIONS.inList(mixedValueList, 2L)).isFalse();
   }
 
   @Test
   public void indexMap() throws Exception {
     ImmutableMap<Object, String> mixedKeyMap =
         ImmutableMap.of(1L, "value", UnsignedLong.valueOf(2L), "value2");
-    assertThat(RUNTIME_EQUALITY.indexMap(mixedKeyMap, 1.0, CelOptions.DEFAULT)).isEqualTo("value");
-    assertThat(RUNTIME_EQUALITY.indexMap(mixedKeyMap, 2.0, CelOptions.DEFAULT)).isEqualTo("value2");
+    assertThat(RUNTIME_EQUALITY_DEFAULT_OPTIONS.indexMap(mixedKeyMap, 1.0)).isEqualTo("value");
+    assertThat(RUNTIME_EQUALITY_DEFAULT_OPTIONS.indexMap(mixedKeyMap, 2.0)).isEqualTo("value2");
     Assert.assertThrows(
         CelRuntimeException.class,
-        () -> RUNTIME_EQUALITY.indexMap(mixedKeyMap, 1.0, CelOptions.LEGACY));
+        () -> RUNTIME_EQUALITY_LEGACY_OPTIONS.indexMap(mixedKeyMap, 1.0));
     Assert.assertThrows(
         CelRuntimeException.class,
-        () -> RUNTIME_EQUALITY.indexMap(mixedKeyMap, 1.1, CelOptions.DEFAULT));
+        () -> RUNTIME_EQUALITY_DEFAULT_OPTIONS.indexMap(mixedKeyMap, 1.1));
   }
 
   @AutoValue
@@ -178,11 +180,12 @@ public final class RuntimeEqualityTest {
      */
     public abstract @Nullable Boolean outcome();
 
-    /** Set of options to use when performing the equality check. */
-    public abstract CelOptions celOptions();
+    /** Runtime equality instance to use when performing the equality check. */
+    public abstract ProtoMessageRuntimeEquality runtimeEquality();
 
-    public static State create(@Nullable Boolean outcome, CelOptions celOptions) {
-      return new AutoValue_RuntimeEqualityTest_State(outcome, celOptions);
+    public static State create(
+        @Nullable Boolean outcome, ProtoMessageRuntimeEquality runtimeEquality) {
+      return new AutoValue_ProtoMessageRuntimeEqualityTest_State(outcome, runtimeEquality);
     }
   }
 
@@ -211,20 +214,12 @@ public final class RuntimeEqualityTest {
       return always(true);
     }
 
-    public static Result signed(Boolean outcome) {
-      return Result.builder()
-          .states(
-              ImmutableList.of(
-                  State.create(outcome, EMPTY_OPTIONS), State.create(outcome, PROTO_EQUALITY)))
-          .build();
-    }
-
     public static Result unsigned(Boolean outcome) {
       return Result.builder()
           .states(
               ImmutableList.of(
-                  State.create(outcome, UNSIGNED_LONGS),
-                  State.create(outcome, PROTO_EQUALITY_UNSIGNED_LONGS)))
+                  State.create(outcome, RUNTIME_EQUALITY_EMPTY_OPTIONS),
+                  State.create(outcome, RUNTIME_EQUALITY_PROTO_EQUALITY)))
           .build();
     }
 
@@ -232,9 +227,8 @@ public final class RuntimeEqualityTest {
       return Result.builder()
           .states(
               ImmutableList.of(
-                  State.create(outcome, EMPTY_OPTIONS),
-                  State.create(outcome, PROTO_EQUALITY),
-                  State.create(outcome, PROTO_EQUALITY_UNSIGNED_LONGS)))
+                  State.create(outcome, RUNTIME_EQUALITY_EMPTY_OPTIONS),
+                  State.create(outcome, RUNTIME_EQUALITY_PROTO_EQUALITY)))
           .build();
     }
 
@@ -242,14 +236,13 @@ public final class RuntimeEqualityTest {
       return Result.builder()
           .states(
               ImmutableList.of(
-                  State.create(equalsOutcome, EMPTY_OPTIONS),
-                  State.create(diffOutcome, PROTO_EQUALITY),
-                  State.create(diffOutcome, PROTO_EQUALITY_UNSIGNED_LONGS)))
+                  State.create(equalsOutcome, RUNTIME_EQUALITY_EMPTY_OPTIONS),
+                  State.create(diffOutcome, RUNTIME_EQUALITY_PROTO_EQUALITY)))
           .build();
     }
 
     public static Builder builder() {
-      return new AutoValue_RuntimeEqualityTest_Result.Builder();
+      return new AutoValue_ProtoMessageRuntimeEqualityTest_Result.Builder();
     }
 
     @AutoValue.Builder
@@ -396,9 +389,11 @@ public final class RuntimeEqualityTest {
           {Arrays.asList(1.0, 2.0, 3.0), Arrays.asList(1.0, 2.0), Result.alwaysFalse()},
           {Arrays.asList(1.0, 3.0), Arrays.asList(1.0, 2.0), Result.alwaysFalse()},
           {
-            AdaptingTypes.<Integer, Long>adaptingList(
+            AdaptingTypes.adaptingList(
                 ImmutableList.of(1, 2, 3),
-                BidiConverter.of(RuntimeHelpers.INT32_TO_INT64, RuntimeHelpers.INT64_TO_INT32)),
+                BidiConverter.of(
+                    ProtoMessageRuntimeHelper.INT32_TO_INT64,
+                    ProtoMessageRuntimeHelper.INT64_TO_INT32)),
             Arrays.asList(1L, 2L, 3L),
             Result.alwaysTrue()
           },
@@ -437,9 +432,11 @@ public final class RuntimeEqualityTest {
                         .addValues(Value.newBuilder().setNumberValue(-1.5))
                         .addValues(Value.newBuilder().setNumberValue(42.25)))
                 .build(),
-            AdaptingTypes.<Float, Double>adaptingList(
+            AdaptingTypes.adaptingList(
                 ImmutableList.of(-1.5f, 42.25f),
-                BidiConverter.of(RuntimeHelpers.FLOAT_TO_DOUBLE, RuntimeHelpers.DOUBLE_TO_FLOAT)),
+                BidiConverter.of(
+                    ProtoMessageRuntimeHelper.FLOAT_TO_DOUBLE,
+                    ProtoMessageRuntimeHelper.DOUBLE_TO_FLOAT)),
             Result.alwaysTrue()
           },
 
@@ -463,34 +460,44 @@ public final class RuntimeEqualityTest {
           {ImmutableMap.of("key", 42), ImmutableMap.of("key", 42L), Result.alwaysTrue()},
           {ImmutableMap.of("key", 42.0), ImmutableMap.of("key", 42L), Result.alwaysTrue()},
           {
-            AdaptingTypes.<String, Integer, String, Long>adaptingMap(
+            AdaptingTypes.adaptingMap(
                 ImmutableMap.of("key1", 42, "key2", 31, "key3", 20),
                 BidiConverter.identity(),
-                BidiConverter.of(RuntimeHelpers.INT32_TO_INT64, RuntimeHelpers.INT64_TO_INT32)),
+                BidiConverter.of(
+                    ProtoMessageRuntimeHelper.INT32_TO_INT64,
+                    ProtoMessageRuntimeHelper.INT64_TO_INT32)),
             ImmutableMap.of("key1", 42L, "key2", 31L, "key3", 20L),
             Result.alwaysTrue()
           },
           {
-            AdaptingTypes.<Integer, Float, Long, Double>adaptingMap(
+            AdaptingTypes.adaptingMap(
                 ImmutableMap.of(1, 42.5f, 2, 31f, 3, 20.25f),
-                BidiConverter.of(RuntimeHelpers.INT32_TO_INT64, RuntimeHelpers.INT64_TO_INT32),
-                BidiConverter.of(RuntimeHelpers.FLOAT_TO_DOUBLE, RuntimeHelpers.DOUBLE_TO_FLOAT)),
+                BidiConverter.of(
+                    ProtoMessageRuntimeHelper.INT32_TO_INT64,
+                    ProtoMessageRuntimeHelper.INT64_TO_INT32),
+                BidiConverter.of(
+                    ProtoMessageRuntimeHelper.FLOAT_TO_DOUBLE,
+                    ProtoMessageRuntimeHelper.DOUBLE_TO_FLOAT)),
             ImmutableMap.of(1L, 42.5D, 2L, 31D, 3L, 20.25D),
             Result.alwaysTrue()
           },
           {
-            AdaptingTypes.<String, Float, String, Double>adaptingMap(
+            AdaptingTypes.adaptingMap(
                 ImmutableMap.of("1", 42.5f, "2", 31f, "3", 20.25f),
                 BidiConverter.identity(),
-                BidiConverter.of(RuntimeHelpers.FLOAT_TO_DOUBLE, RuntimeHelpers.DOUBLE_TO_FLOAT)),
+                BidiConverter.of(
+                    ProtoMessageRuntimeHelper.FLOAT_TO_DOUBLE,
+                    ProtoMessageRuntimeHelper.DOUBLE_TO_FLOAT)),
             Struct.getDefaultInstance(),
             Result.alwaysFalse()
           },
           {
-            AdaptingTypes.<String, Float, String, Double>adaptingMap(
+            AdaptingTypes.adaptingMap(
                 ImmutableMap.of("1", 42.5f, "2", 31f, "3", 20.25f),
                 BidiConverter.identity(),
-                BidiConverter.of(RuntimeHelpers.FLOAT_TO_DOUBLE, RuntimeHelpers.DOUBLE_TO_FLOAT)),
+                BidiConverter.of(
+                    ProtoMessageRuntimeHelper.FLOAT_TO_DOUBLE,
+                    ProtoMessageRuntimeHelper.DOUBLE_TO_FLOAT)),
             Struct.newBuilder()
                 .putFields("1", Value.newBuilder().setNumberValue(42.5D).build())
                 .putFields("2", Value.newBuilder().setNumberValue(31D).build())
@@ -499,10 +506,12 @@ public final class RuntimeEqualityTest {
             Result.alwaysTrue()
           },
           {
-            AdaptingTypes.<String, Float, String, Double>adaptingMap(
+            AdaptingTypes.adaptingMap(
                 ImmutableMap.of("1", 42.5f, "2", 31f, "3", 20.25f),
                 BidiConverter.identity(),
-                BidiConverter.of(RuntimeHelpers.FLOAT_TO_DOUBLE, RuntimeHelpers.DOUBLE_TO_FLOAT)),
+                BidiConverter.of(
+                    ProtoMessageRuntimeHelper.FLOAT_TO_DOUBLE,
+                    ProtoMessageRuntimeHelper.DOUBLE_TO_FLOAT)),
             Struct.newBuilder()
                 .putFields("1", Value.newBuilder().setNumberValue(42.5D).build())
                 .putFields("2", Value.newBuilder().setNumberValue(31D).build())
@@ -544,7 +553,8 @@ public final class RuntimeEqualityTest {
             Result.builder()
                 .states(
                     ImmutableList.of(
-                        State.create(false, EMPTY_OPTIONS), State.create(true, PROTO_EQUALITY)))
+                        State.create(false, RUNTIME_EQUALITY_EMPTY_OPTIONS),
+                        State.create(true, RUNTIME_EQUALITY_PROTO_EQUALITY)))
                 .build()
           },
           // If type url is missing, fallback to bytes comparison for payload.
@@ -669,17 +679,13 @@ public final class RuntimeEqualityTest {
     for (State state : result.states()) {
       if (state.outcome() == null) {
         Assert.assertThrows(
-            CelRuntimeException.class,
-            () -> RUNTIME_EQUALITY.objectEquals(lhs, rhs, state.celOptions()));
+            CelRuntimeException.class, () -> state.runtimeEquality().objectEquals(lhs, rhs));
         Assert.assertThrows(
-            CelRuntimeException.class,
-            () -> RUNTIME_EQUALITY.objectEquals(rhs, lhs, state.celOptions()));
+            CelRuntimeException.class, () -> state.runtimeEquality().objectEquals(rhs, lhs));
         return;
       }
-      assertThat(RUNTIME_EQUALITY.objectEquals(lhs, rhs, state.celOptions()))
-          .isEqualTo(state.outcome());
-      assertThat(RUNTIME_EQUALITY.objectEquals(rhs, lhs, state.celOptions()))
-          .isEqualTo(state.outcome());
+      assertThat(state.runtimeEquality().objectEquals(lhs, rhs)).isEqualTo(state.outcome());
+      assertThat(state.runtimeEquality().objectEquals(rhs, lhs)).isEqualTo(state.outcome());
     }
   }
 }

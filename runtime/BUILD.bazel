@@ -15,6 +15,22 @@ java_library(
 )
 
 java_library(
+    name = "function_binding",
+    visibility = ["//visibility:public"],
+    exports = [
+        "//runtime/src/main/java/dev/cel/runtime:function_binding",
+    ],
+)
+
+java_library(
+    name = "function_overload",
+    visibility = ["//visibility:public"],
+    exports = [
+        "//runtime/src/main/java/dev/cel/runtime:function_overload",
+    ],
+)
+
+java_library(
     name = "evaluation_exception_builder",
     exports = ["//runtime/src/main/java/dev/cel/runtime:evaluation_exception_builder"],
 )
@@ -28,6 +44,18 @@ java_library(
     name = "runtime_helper",
     visibility = ["//visibility:public"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:runtime_helper"],
+)
+
+java_library(
+    name = "proto_message_runtime_helper",
+    visibility = ["//visibility:public"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:proto_message_runtime_helper"],
+)
+
+java_library(
+    name = "proto_message_runtime_equality",
+    visibility = ["//visibility:public"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:proto_message_runtime_equality"],
 )
 
 java_library(
