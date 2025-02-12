@@ -31,10 +31,9 @@ import com.google.protobuf.util.Timestamps;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
+import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.ComparisonFunctions;
-import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.SafeStringFormatter;
-import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Arithmetic;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.BooleanOperator;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Comparison;
@@ -251,16 +250,14 @@ public final class CelStandardFunctions {
                     Object.class,
                     List.class,
                     (Object value, List list) ->
-                        bindingHelper.runtimeEquality.inList(
-                            list, value, bindingHelper.celOptions))),
+                        bindingHelper.runtimeEquality.inList(list, value))),
         IN_MAP(
             (bindingHelper) ->
                 CelFunctionBinding.from(
                     "in_map",
                     Object.class,
                     Map.class,
-                    (Object key, Map map) ->
-                        bindingHelper.runtimeEquality.inMap(map, key, bindingHelper.celOptions)));
+                    (Object key, Map map) -> bindingHelper.runtimeEquality.inMap(map, key)));
 
         private final FunctionBindingCreator bindingCreator;
 
@@ -282,18 +279,14 @@ public final class CelStandardFunctions {
                     "equals",
                     Object.class,
                     Object.class,
-                    (Object x, Object y) ->
-                        bindingHelper.runtimeEquality.objectEquals(
-                            x, y, bindingHelper.celOptions))),
+                    bindingHelper.runtimeEquality::objectEquals)),
         NOT_EQUALS(
             (bindingHelper) ->
                 CelFunctionBinding.from(
                     "not_equals",
                     Object.class,
                     Object.class,
-                    (Object x, Object y) ->
-                        !bindingHelper.runtimeEquality.objectEquals(
-                            x, y, bindingHelper.celOptions)));
+                    (Object x, Object y) -> !bindingHelper.runtimeEquality.objectEquals(x, y)));
 
         private final FunctionBindingCreator bindingCreator;
 
@@ -317,7 +310,7 @@ public final class CelStandardFunctions {
                     Long.class,
                     (Long x, Long y) -> {
                       try {
-                        return RuntimeHelpers.int64Add(x, y, bindingHelper.celOptions);
+                        return RuntimeHelper.int64Add(x, y, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
                         throw new CelRuntimeException(e, getArithmeticErrorCode(e));
                       }
@@ -331,7 +324,7 @@ public final class CelStandardFunctions {
                     UnsignedLong.class,
                     (UnsignedLong x, UnsignedLong y) -> {
                       try {
-                        return RuntimeHelpers.uint64Add(x, y);
+                        return RuntimeHelper.uint64Add(x, y);
                       } catch (ArithmeticException e) {
                         throw new CelRuntimeException(e, getArithmeticErrorCode(e));
                       }
@@ -343,7 +336,7 @@ public final class CelStandardFunctions {
                     Long.class,
                     (Long x, Long y) -> {
                       try {
-                        return RuntimeHelpers.uint64Add(x, y, bindingHelper.celOptions);
+                        return RuntimeHelper.uint64Add(x, y, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
                         throw new CelRuntimeException(e, getArithmeticErrorCode(e));
                       }
@@ -378,8 +371,7 @@ public final class CelStandardFunctions {
                     (Duration x, Timestamp y) -> Timestamps.add(y, x))),
         ADD_LIST(
             (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "add_list", List.class, List.class, RuntimeHelpers::concat)),
+                CelFunctionBinding.from("add_list", List.class, List.class, RuntimeHelper::concat)),
         SUBTRACT_INT64(
             (bindingHelper) ->
                 CelFunctionBinding.from(
@@ -388,7 +380,7 @@ public final class CelStandardFunctions {
                     Long.class,
                     (Long x, Long y) -> {
                       try {
-                        return RuntimeHelpers.int64Subtract(x, y, bindingHelper.celOptions);
+                        return RuntimeHelper.int64Subtract(x, y, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
                         throw new CelRuntimeException(e, getArithmeticErrorCode(e));
                       }
@@ -416,7 +408,7 @@ public final class CelStandardFunctions {
                     UnsignedLong.class,
                     (UnsignedLong x, UnsignedLong y) -> {
                       try {
-                        return RuntimeHelpers.uint64Subtract(x, y);
+                        return RuntimeHelper.uint64Subtract(x, y);
                       } catch (ArithmeticException e) {
                         throw new CelRuntimeException(e, getArithmeticErrorCode(e));
                       }
@@ -428,7 +420,7 @@ public final class CelStandardFunctions {
                     Long.class,
                     (Long x, Long y) -> {
                       try {
-                        return RuntimeHelpers.uint64Subtract(x, y, bindingHelper.celOptions);
+                        return RuntimeHelper.uint64Subtract(x, y, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
                         throw new CelRuntimeException(e, getArithmeticErrorCode(e));
                       }
@@ -454,7 +446,7 @@ public final class CelStandardFunctions {
                     Long.class,
                     (Long x, Long y) -> {
                       try {
-                        return RuntimeHelpers.int64Multiply(x, y, bindingHelper.celOptions);
+                        return RuntimeHelper.int64Multiply(x, y, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
                         throw new CelRuntimeException(e, getArithmeticErrorCode(e));
                       }
@@ -472,7 +464,7 @@ public final class CelStandardFunctions {
                     UnsignedLong.class,
                     (UnsignedLong x, UnsignedLong y) -> {
                       try {
-                        return RuntimeHelpers.uint64Multiply(x, y);
+                        return RuntimeHelper.uint64Multiply(x, y);
                       } catch (ArithmeticException e) {
                         throw new CelRuntimeException(e, getArithmeticErrorCode(e));
                       }
@@ -484,7 +476,7 @@ public final class CelStandardFunctions {
                     Long.class,
                     (Long x, Long y) -> {
                       try {
-                        return RuntimeHelpers.uint64Multiply(x, y, bindingHelper.celOptions);
+                        return RuntimeHelper.uint64Multiply(x, y, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
                         throw new CelRuntimeException(e, getArithmeticErrorCode(e));
                       }
@@ -503,7 +495,7 @@ public final class CelStandardFunctions {
                     Long.class,
                     (Long x, Long y) -> {
                       try {
-                        return RuntimeHelpers.int64Divide(x, y, bindingHelper.celOptions);
+                        return RuntimeHelper.int64Divide(x, y, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
                         throw new CelRuntimeException(e, getArithmeticErrorCode(e));
                       }
@@ -515,14 +507,13 @@ public final class CelStandardFunctions {
                     "divide_uint64",
                     UnsignedLong.class,
                     UnsignedLong.class,
-                    RuntimeHelpers::uint64Divide);
+                    RuntimeHelper::uint64Divide);
               } else {
                 return CelFunctionBinding.from(
                     "divide_uint64",
                     Long.class,
                     Long.class,
-                    (Long x, Long y) ->
-                        RuntimeHelpers.uint64Divide(x, y, bindingHelper.celOptions));
+                    (Long x, Long y) -> RuntimeHelper.uint64Divide(x, y, bindingHelper.celOptions));
               }
             }),
         MODULO_INT64(
@@ -545,13 +536,13 @@ public final class CelStandardFunctions {
                     "modulo_uint64",
                     UnsignedLong.class,
                     UnsignedLong.class,
-                    RuntimeHelpers::uint64Mod);
+                    RuntimeHelper::uint64Mod);
               } else {
                 return CelFunctionBinding.from(
                     "modulo_uint64",
                     Long.class,
                     Long.class,
-                    (Long x, Long y) -> RuntimeHelpers.uint64Mod(x, y, bindingHelper.celOptions));
+                    (Long x, Long y) -> RuntimeHelper.uint64Mod(x, y, bindingHelper.celOptions));
               }
             }),
         NEGATE_INT64(
@@ -561,7 +552,7 @@ public final class CelStandardFunctions {
                     Long.class,
                     (Long x) -> {
                       try {
-                        return RuntimeHelpers.int64Negate(x, bindingHelper.celOptions);
+                        return RuntimeHelper.int64Negate(x, bindingHelper.celOptions);
                       } catch (ArithmeticException e) {
                         throw new CelRuntimeException(e, getArithmeticErrorCode(e));
                       }
@@ -587,16 +578,11 @@ public final class CelStandardFunctions {
         INDEX_LIST(
             (bindingHelper) ->
                 CelFunctionBinding.from(
-                    "index_list", List.class, Number.class, RuntimeHelpers::indexList)),
+                    "index_list", List.class, Number.class, RuntimeHelper::indexList)),
         INDEX_MAP(
             (bindingHelper) ->
                 CelFunctionBinding.from(
-                    "index_map",
-                    Map.class,
-                    Object.class,
-                    (Map map, Object key) ->
-                        bindingHelper.runtimeEquality.indexMap(
-                            map, key, bindingHelper.celOptions)));
+                    "index_map", Map.class, Object.class, bindingHelper.runtimeEquality::indexMap));
 
         private final FunctionBindingCreator bindingCreator;
 
@@ -703,7 +689,7 @@ public final class CelStandardFunctions {
                     Double.class,
                     (Double arg) -> {
                       if (bindingHelper.celOptions.errorOnIntWrap()) {
-                        return RuntimeHelpers.doubleToLongChecked(arg)
+                        return RuntimeHelper.doubleToLongChecked(arg)
                             .orElseThrow(
                                 () ->
                                     new CelRuntimeException(
@@ -803,7 +789,7 @@ public final class CelStandardFunctions {
                     Double.class,
                     (Double arg) -> {
                       if (bindingHelper.celOptions.errorOnIntWrap()) {
-                        return RuntimeHelpers.doubleToUnsignedChecked(arg)
+                        return RuntimeHelper.doubleToUnsignedChecked(arg)
                             .orElseThrow(
                                 () ->
                                     new CelRuntimeException(
@@ -818,7 +804,7 @@ public final class CelStandardFunctions {
                     Double.class,
                     (Double arg) -> {
                       if (bindingHelper.celOptions.errorOnIntWrap()) {
-                        return RuntimeHelpers.doubleToUnsignedChecked(arg)
+                        return RuntimeHelper.doubleToUnsignedChecked(arg)
                             .map(UnsignedLong::longValue)
                             .orElseThrow(
                                 () ->
@@ -937,7 +923,7 @@ public final class CelStandardFunctions {
                     String.class,
                     (String d) -> {
                       try {
-                        return RuntimeHelpers.createDurationFromString(d);
+                        return RuntimeHelper.createDurationFromString(d);
                       } catch (IllegalArgumentException e) {
                         throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
                       }
@@ -991,7 +977,7 @@ public final class CelStandardFunctions {
                     String.class,
                     (String string, String regexp) -> {
                       try {
-                        return RuntimeHelpers.matches(string, regexp, bindingHelper.celOptions);
+                        return RuntimeHelper.matches(string, regexp, bindingHelper.celOptions);
                       } catch (RuntimeException e) {
                         throw new CelRuntimeException(e, CelErrorCode.INVALID_ARGUMENT);
                       }
@@ -1005,7 +991,7 @@ public final class CelStandardFunctions {
                     String.class,
                     (String string, String regexp) -> {
                       try {
-                        return RuntimeHelpers.matches(string, regexp, bindingHelper.celOptions);
+                        return RuntimeHelper.matches(string, regexp, bindingHelper.celOptions);
                       } catch (RuntimeException e) {
                         throw new CelRuntimeException(e, CelErrorCode.INVALID_ARGUMENT);
                       }
@@ -1254,14 +1240,14 @@ public final class CelStandardFunctions {
                     "less_uint64",
                     UnsignedLong.class,
                     UnsignedLong.class,
-                    (UnsignedLong x, UnsignedLong y) -> RuntimeHelpers.uint64CompareTo(x, y) < 0);
+                    (UnsignedLong x, UnsignedLong y) -> RuntimeHelper.uint64CompareTo(x, y) < 0);
               } else {
                 return CelFunctionBinding.from(
                     "less_uint64",
                     Long.class,
                     Long.class,
                     (Long x, Long y) ->
-                        RuntimeHelpers.uint64CompareTo(x, y, bindingHelper.celOptions) < 0);
+                        RuntimeHelper.uint64CompareTo(x, y, bindingHelper.celOptions) < 0);
               }
             },
             false),
@@ -1414,14 +1400,14 @@ public final class CelStandardFunctions {
                     "less_equals_uint64",
                     UnsignedLong.class,
                     UnsignedLong.class,
-                    (UnsignedLong x, UnsignedLong y) -> RuntimeHelpers.uint64CompareTo(x, y) <= 0);
+                    (UnsignedLong x, UnsignedLong y) -> RuntimeHelper.uint64CompareTo(x, y) <= 0);
               } else {
                 return CelFunctionBinding.from(
                     "less_equals_uint64",
                     Long.class,
                     Long.class,
                     (Long x, Long y) ->
-                        RuntimeHelpers.uint64CompareTo(x, y, bindingHelper.celOptions) <= 0);
+                        RuntimeHelper.uint64CompareTo(x, y, bindingHelper.celOptions) <= 0);
               }
             },
             false),
@@ -1531,14 +1517,14 @@ public final class CelStandardFunctions {
                     "greater_uint64",
                     UnsignedLong.class,
                     UnsignedLong.class,
-                    (UnsignedLong x, UnsignedLong y) -> RuntimeHelpers.uint64CompareTo(x, y) > 0);
+                    (UnsignedLong x, UnsignedLong y) -> RuntimeHelper.uint64CompareTo(x, y) > 0);
               } else {
                 return CelFunctionBinding.from(
                     "greater_uint64",
                     Long.class,
                     Long.class,
                     (Long x, Long y) ->
-                        RuntimeHelpers.uint64CompareTo(x, y, bindingHelper.celOptions) > 0);
+                        RuntimeHelper.uint64CompareTo(x, y, bindingHelper.celOptions) > 0);
               }
             },
             false),
@@ -1651,14 +1637,14 @@ public final class CelStandardFunctions {
                     "greater_equals_uint64",
                     UnsignedLong.class,
                     UnsignedLong.class,
-                    (UnsignedLong x, UnsignedLong y) -> RuntimeHelpers.uint64CompareTo(x, y) >= 0);
+                    (UnsignedLong x, UnsignedLong y) -> RuntimeHelper.uint64CompareTo(x, y) >= 0);
               } else {
                 return CelFunctionBinding.from(
                     "greater_equals_uint64",
                     Long.class,
                     Long.class,
                     (Long x, Long y) ->
-                        RuntimeHelpers.uint64CompareTo(x, y, bindingHelper.celOptions) >= 0);
+                        RuntimeHelper.uint64CompareTo(x, y, bindingHelper.celOptions) >= 0);
               }
             },
             false),
@@ -1738,18 +1724,14 @@ public final class CelStandardFunctions {
                     // special cased inside the interpreter.
                     Map.class,
                     String.class,
-                    (Map map, String key) ->
-                        bindingHelper.runtimeEquality.findInMap(
-                            map, key, bindingHelper.celOptions))),
+                    bindingHelper.runtimeEquality::findInMap)),
         MAP_OPTINDEX_OPTIONAL_VALUE(
             (bindingHelper) ->
                 CelFunctionBinding.from(
                     "map_optindex_optional_value",
                     Map.class,
                     Object.class,
-                    (Map map, Object key) ->
-                        bindingHelper.runtimeEquality.findInMap(
-                            map, key, bindingHelper.celOptions))),
+                    bindingHelper.runtimeEquality::findInMap)),
         OPTIONAL_MAP_OPTINDEX_OPTIONAL_VALUE(
             (bindingHelper) ->
                 CelFunctionBinding.from(
@@ -1757,11 +1739,7 @@ public final class CelStandardFunctions {
                     Optional.class,
                     Object.class,
                     (Optional optionalMap, Object key) ->
-                        indexOptionalMap(
-                            optionalMap,
-                            key,
-                            bindingHelper.celOptions,
-                            bindingHelper.runtimeEquality))),
+                        indexOptionalMap(optionalMap, key, bindingHelper.runtimeEquality))),
         OPTIONAL_MAP_INDEX_VALUE(
             (bindingHelper) ->
                 CelFunctionBinding.from(
@@ -1769,11 +1747,7 @@ public final class CelStandardFunctions {
                     Optional.class,
                     Object.class,
                     (Optional optionalMap, Object key) ->
-                        indexOptionalMap(
-                            optionalMap,
-                            key,
-                            bindingHelper.celOptions,
-                            bindingHelper.runtimeEquality))),
+                        indexOptionalMap(optionalMap, key, bindingHelper.runtimeEquality))),
         OPTIONAL_LIST_INDEX_INT(
             (bindingHelper) ->
                 CelFunctionBinding.from(
@@ -1834,9 +1808,10 @@ public final class CelStandardFunctions {
     return standardOverloads;
   }
 
+  @Internal
   public ImmutableSet<CelFunctionBinding> newFunctionBindings(
-      DynamicProto dynamicProto, CelOptions celOptions) {
-    FunctionBindingHelper helper = new FunctionBindingHelper(celOptions, dynamicProto);
+      RuntimeEquality runtimeEquality, CelOptions celOptions) {
+    FunctionBindingHelper helper = new FunctionBindingHelper(celOptions, runtimeEquality);
     ImmutableSet.Builder<CelFunctionBinding> builder = ImmutableSet.builder();
     for (StandardOverload overload : standardOverloads) {
       builder.add(overload.newFunctionBinding(helper));
@@ -1961,6 +1936,7 @@ public final class CelStandardFunctions {
      * Functional interface for filtering standard functions. Returning true in the callback will
      * include the function in the environment.
      */
+    @SuppressWarnings("AndroidJdkLibsChecker") // FunctionalInterface added in 24
     @FunctionalInterface
     public interface FunctionFilter {
       boolean include(StandardFunction standardFunction, StandardOverload standardOverload);
@@ -1977,12 +1953,13 @@ public final class CelStandardFunctions {
     private final CelOptions celOptions;
     private final RuntimeEquality runtimeEquality;
 
-    private FunctionBindingHelper(CelOptions celOptions, DynamicProto dynamicProto) {
+    private FunctionBindingHelper(CelOptions celOptions, RuntimeEquality runtimeEquality) {
       this.celOptions = celOptions;
-      this.runtimeEquality = new RuntimeEquality(dynamicProto);
+      this.runtimeEquality = runtimeEquality;
     }
   }
 
+  @SuppressWarnings("AndroidJdkLibsChecker") // FunctionalInterface added in 24
   @FunctionalInterface
   @Immutable
   private interface FunctionBindingCreator {
@@ -2054,14 +2031,14 @@ public final class CelStandardFunctions {
   }
 
   private static Object indexOptionalMap(
-      Optional<?> optionalMap, Object key, CelOptions options, RuntimeEquality runtimeEquality) {
+      Optional<?> optionalMap, Object key, RuntimeEquality runtimeEquality) {
     if (!optionalMap.isPresent()) {
       return Optional.empty();
     }
 
     Map<?, ?> map = (Map<?, ?>) optionalMap.get();
 
-    return runtimeEquality.findInMap(map, key, options);
+    return runtimeEquality.findInMap(map, key);
   }
 
   private static Object indexOptionalList(Optional<?> optionalList, long index) {

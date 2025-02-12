@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Duration;
-import com.google.protobuf.MessageOrBuilder;
+import com.google.protobuf.MessageLiteOrBuilder;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.Timestamp;
 import dev.cel.common.types.CelType;
@@ -40,11 +40,15 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * {@code CelTypeResolver} resolves incoming {@link CelType} into {@link TypeType}., either as part
- * of a type call (type('foo'), type(1), etc.) or as a type literal (type, int, string, etc.)
+ * {@code TypeResolver} resolves incoming {@link CelType} into {@link TypeType}., either as part of
+ * a type call (type('foo'), type(1), etc.) or as a type literal (type, int, string, etc.)
  */
 @Immutable
-final class CelTypeResolver {
+class TypeResolver {
+
+  static TypeResolver create() {
+    return new TypeResolver();
+  }
 
   // Sentinel runtime value representing the special "type" ident. This ensures following to be
   // true: type == type(string) && type == type(type("foo"))
@@ -75,7 +79,7 @@ final class CelTypeResolver {
           .buildOrThrow();
 
   /** Adapt the type-checked {@link CelType} into a runtime type value {@link TypeType}. */
-  static TypeType adaptType(CelType typeCheckedType) {
+  TypeType adaptType(CelType typeCheckedType) {
     checkNotNull(typeCheckedType);
 
     switch (typeCheckedType.kind()) {
@@ -94,24 +98,30 @@ final class CelTypeResolver {
     }
   }
 
-  /** Resolve the CEL type of the {@code obj}. */
-  static TypeType resolveObjectType(Object obj, CelType typeCheckedType) {
-    checkNotNull(obj);
+  Optional<TypeType> resolveWellKnownObjectType(Object obj) {
     if (obj instanceof TypeType) {
-      return RUNTIME_TYPE_TYPE;
+      return Optional.of(RUNTIME_TYPE_TYPE);
     }
 
     Class<?> currentClass = obj.getClass();
-    TypeType runtimeType = COMMON_TYPES.get(currentClass);
-    if (runtimeType != null) {
-      return runtimeType;
+    return Optional.ofNullable(COMMON_TYPES.get(currentClass));
+  }
+
+  /** Resolve the CEL type of the {@code obj}. */
+  TypeType resolveObjectType(Object obj, CelType typeCheckedType) {
+    checkNotNull(obj);
+    Optional<TypeType> wellKnownTypeType = resolveWellKnownObjectType(obj);
+    if (wellKnownTypeType.isPresent()) {
+      return wellKnownTypeType.get();
     }
 
-    if (obj instanceof MessageOrBuilder) {
-      MessageOrBuilder msg = (MessageOrBuilder) obj;
+    if (obj instanceof MessageLiteOrBuilder) {
       // TODO: Replace with CelLiteDescriptor
-      return TypeType.create(StructTypeReference.create(msg.getDescriptorForType().getFullName()));
+      throw new UnsupportedOperationException("Not implemented yet");
     }
+
+    Class<?> currentClass = obj.getClass();
+    TypeType runtimeType;
 
     // Handle types that the client may have extended.
     while (currentClass != null) {
@@ -151,5 +161,5 @@ final class CelTypeResolver {
     return newTypeOfType;
   }
 
-  private CelTypeResolver() {}
+  TypeResolver() {}
 }

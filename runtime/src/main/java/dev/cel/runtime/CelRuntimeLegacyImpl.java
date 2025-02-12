@@ -241,10 +241,12 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
               runtimeTypeFactory, DefaultMessageFactory.create(celDescriptorPool));
 
       DynamicProto dynamicProto = DynamicProto.create(runtimeTypeFactory);
+      RuntimeEquality runtimeEquality = ProtoMessageRuntimeEquality.create(dynamicProto, options);
 
-      ImmutableMap.Builder<String, CelFunctionBinding> functionBindingsBuilder =
+      ImmutableMap.Builder<String, dev.cel.runtime.CelFunctionBinding> functionBindingsBuilder =
           ImmutableMap.builder();
-      for (CelFunctionBinding standardFunctionBinding : newStandardFunctionBindings(dynamicProto)) {
+      for (dev.cel.runtime.CelFunctionBinding standardFunctionBinding :
+          newStandardFunctionBindings(runtimeEquality)) {
         functionBindingsBuilder.put(
             standardFunctionBinding.getOverloadId(), standardFunctionBinding);
       }
@@ -255,7 +257,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       functionBindingsBuilder
           .buildOrThrow()
           .forEach(
-              (String overloadId, CelFunctionBinding func) ->
+              (String overloadId, dev.cel.runtime.CelFunctionBinding func) ->
                   dispatcher.add(
                       overloadId, func.getArgTypes(), (args) -> func.getDefinition().apply(args)));
 
@@ -277,13 +279,17 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       }
 
       return new CelRuntimeLegacyImpl(
-          new DefaultInterpreter(runtimeTypeProvider, dispatcher.immutableCopy(), options),
+          new DefaultInterpreter(
+              DescriptorTypeResolver.create(),
+              runtimeTypeProvider,
+              dispatcher.immutableCopy(),
+              options),
           options,
           this);
     }
 
-    private ImmutableSet<CelFunctionBinding> newStandardFunctionBindings(
-        DynamicProto dynamicProto) {
+    private ImmutableSet<dev.cel.runtime.CelFunctionBinding> newStandardFunctionBindings(
+        RuntimeEquality runtimeEquality) {
       CelStandardFunctions celStandardFunctions;
       if (standardEnvironmentEnabled) {
         celStandardFunctions =
@@ -336,7 +342,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
         return ImmutableSet.of();
       }
 
-      return celStandardFunctions.newFunctionBindings(dynamicProto, options);
+      return celStandardFunctions.newFunctionBindings(runtimeEquality, options);
     }
 
     private static CelDescriptorPool newDescriptorPool(
@@ -375,6 +381,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       this.extensionRegistry = builder.extensionRegistry;
       this.customTypeFactory = builder.customTypeFactory;
       this.standardEnvironmentEnabled = builder.standardEnvironmentEnabled;
+      this.overriddenStandardFunctions = builder.overriddenStandardFunctions;
       this.celValueProvider = builder.celValueProvider;
       // The following needs to be deep copied as they are collection builders
       this.fileTypes = deepCopy(builder.fileTypes);
