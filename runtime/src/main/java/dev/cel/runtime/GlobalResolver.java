@@ -23,9 +23,24 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>CEL Library Internals. Do Not Use.
  */
+@SuppressWarnings("AndroidJdkLibsChecker") // FunctionalInterface added in 24
 @FunctionalInterface
 @Internal
 public interface GlobalResolver {
+
+  /** An empty binder which resolves everything to null. */
+  GlobalResolver EMPTY =
+      new GlobalResolver() {
+        @Override
+        public @Nullable Object resolve(String name) {
+          return null;
+        }
+
+        @Override
+        public String toString() {
+          return "{}";
+        }
+      };
 
   /** Resolves the given name to its value. Returns null if resolution fails. */
   @Nullable Object resolve(String name);
