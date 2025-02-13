@@ -9,8 +9,9 @@ java_library(
     # TODO: Split this target and migrate consumers
     name = "common",
     exports = [
-        "//common/src/main/java/dev/cel/common",
         "//common/src/main/java/dev/cel/common:cel_ast",
+        "//common/src/main/java/dev/cel/common:cel_descriptors",
+        "//common/src/main/java/dev/cel/common:cel_exception",
         "//common/src/main/java/dev/cel/common:cel_source",
     ],
 )
@@ -81,4 +82,10 @@ java_library(
 java_library(
     name = "cel_ast",
     exports = ["//common/src/main/java/dev/cel/common:cel_ast"],
+)
+
+java_library(
+    name = "cel_exception",
+    visibility = ["//visibility:public"],
+    exports = ["//common/src/main/java/dev/cel/common:cel_exception"],
 )

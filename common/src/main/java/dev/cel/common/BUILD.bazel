@@ -9,13 +9,6 @@ package(
 )
 
 # keep sorted
-COMMON_SOURCES = [
-    "CelDescriptorUtil.java",
-    "CelDescriptors.java",
-    "CelException.java",
-]
-
-# keep sorted
 COMPILER_COMMON_SOURCES = [
     "CelFunctionDecl.java",
     "CelIssue.java",
@@ -42,24 +35,16 @@ PROTO_V1ALPHA1_AST_SOURCE = [
 ]
 
 java_library(
-    name = "common",
-    srcs = COMMON_SOURCES,
-    tags = [
+    name = "cel_descriptors",
+    srcs = [
+        "CelDescriptorUtil.java",
+        "CelDescriptors.java",
     ],
     deps = [
-        ":cel_ast",
-        ":cel_source",
-        ":error_codes",
-        ":source",
-        ":source_location",
         "//:auto_value",
         "//common/annotations",
-        "//common/ast",
-        "//common/internal",
         "//common/internal:file_descriptor_converter",
-        "//common/types",
         "//common/types:cel_types",
-        "//common/types:type_providers",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -73,8 +58,8 @@ java_library(
     ],
     deps = [
         ":cel_ast",
+        ":cel_exception",
         ":cel_source",
-        ":common",
         ":source",
         ":source_location",
         "//:auto_value",
@@ -86,6 +71,17 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "cel_exception",
+    srcs = ["CelException.java"],
+    tags = [
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":error_codes",
     ],
 )
 
@@ -127,7 +123,6 @@ java_library(
     deps = [
         ":cel_ast",
         ":cel_source",
-        ":common",
         "//common:cel_source",
         "//common/ast:expr_v1alpha1_converter",
         "//common/types:cel_v1alpha1_types",
@@ -177,7 +172,6 @@ java_library(
     ],
     deps = [
         ":cel_source",
-        ":common",
         "//:auto_value",
         "//common/ast:mutable_expr",
         "@maven//:com_google_errorprone_error_prone_annotations",
