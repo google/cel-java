@@ -93,6 +93,7 @@ public final class ConformanceTest extends Statement {
           .enableHeterogeneousNumericComparisons(true)
           .enableProtoDifferencerEquality(true)
           .enableOptionalSyntax(true)
+          .enableQuotedIdentifierSyntax(true)
           .build();
 
   private static final CelParser PARSER_WITH_MACROS =
@@ -103,7 +104,7 @@ public final class ConformanceTest extends Statement {
               CelExtensions.encoders(),
               CelExtensions.math(OPTIONS),
               CelExtensions.protos(),
-              CelExtensions.sets(),
+              CelExtensions.sets(OPTIONS),
               CelExtensions.strings(),
               CelOptionalLibrary.INSTANCE)
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
@@ -117,7 +118,7 @@ public final class ConformanceTest extends Statement {
               CelExtensions.encoders(),
               CelExtensions.math(OPTIONS),
               CelExtensions.protos(),
-              CelExtensions.sets(),
+              CelExtensions.sets(OPTIONS),
               CelExtensions.strings(),
               CelOptionalLibrary.INSTANCE)
           .setStandardMacros()
@@ -142,7 +143,7 @@ public final class ConformanceTest extends Statement {
             CelExtensions.bindings(),
             CelExtensions.encoders(),
             CelExtensions.math(OPTIONS),
-            CelExtensions.sets(),
+            CelExtensions.sets(OPTIONS),
             CelExtensions.strings(),
             CelOptionalLibrary.INSTANCE)
         .addMessageTypes(dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor())
@@ -156,11 +157,13 @@ public final class ConformanceTest extends Statement {
           .addLibraries(
               CelExtensions.encoders(),
               CelExtensions.math(OPTIONS),
-              CelExtensions.sets(),
+              CelExtensions.sets(OPTIONS),
               CelExtensions.strings(),
               CelOptionalLibrary.INSTANCE)
+          .setExtensionRegistry(DEFAULT_EXTENSION_REGISTRY)
           .addMessageTypes(dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor())
           .addMessageTypes(dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor())
+          .addFileTypes(dev.cel.expr.conformance.proto2.TestAllTypesExtensions.getDescriptor())
           .build();
 
   private static ImmutableMap<String, Object> getBindings(SimpleTest test) throws Exception {
