@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("//:cel_android_library.bzl", "cel_android_library")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -23,12 +24,19 @@ java_library(
 
 java_library(
     name = "options",
+    # used_by_android
     exports = ["//common/src/main/java/dev/cel/common:options"],
 )
 
 java_library(
     name = "proto_ast",
     exports = ["//common/src/main/java/dev/cel/common:proto_ast"],
+)
+
+cel_android_library(
+    name = "proto_ast_android",
+    visibility = ["//visibility:public"],
+    exports = ["//common/src/main/java/dev/cel/common:proto_ast_android"],
 )
 
 java_library(
@@ -55,6 +63,7 @@ java_library(
 
 java_library(
     name = "runtime_exception",
+    # used_by_android
     visibility = ["//visibility:public"],
     exports = ["//common/src/main/java/dev/cel/common:runtime_exception"],
 )
@@ -80,9 +89,23 @@ java_library(
     exports = ["//common/src/main/java/dev/cel/common:cel_source"],
 )
 
+cel_android_library(
+    name = "cel_source_android",
+    visibility = ["//visibility:public"],
+    exports = ["//common/src/main/java/dev/cel/common:cel_source_android"],
+)
+
 java_library(
     name = "cel_ast",
     exports = ["//common/src/main/java/dev/cel/common:cel_ast"],
+)
+
+cel_android_library(
+    name = "cel_ast_android",
+    visibility = ["//visibility:public"],
+    exports = [
+        "//common/src/main/java/dev/cel/common:cel_ast_android",
+    ],
 )
 
 java_library(
