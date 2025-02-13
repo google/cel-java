@@ -57,6 +57,7 @@ public abstract class CelCodePointArray {
   @Override
   public abstract String toString();
 
+  @SuppressWarnings("AndroidJdkLibsChecker") // PrimitiveIterator added in 23
   public static CelCodePointArray fromString(String text) {
     if (isNullOrEmpty(text)) {
       return EmptyCodePointArray.INSTANCE;
