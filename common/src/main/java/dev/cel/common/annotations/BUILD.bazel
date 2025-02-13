@@ -17,6 +17,7 @@ ANNOTATION_SOURCES = [
 java_library(
     name = "annotations",
     srcs = ANNOTATION_SOURCES,
+    # used_by_android
     tags = [
     ],
 )

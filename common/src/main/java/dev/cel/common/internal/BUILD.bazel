@@ -100,6 +100,7 @@ java_library(
         "BidiConverter.java",
         "Converter.java",
     ],
+    # used_by_android
     tags = [
     ],
     deps = [
@@ -264,6 +265,7 @@ java_library(
 java_library(
     name = "safe_string_formatter",
     srcs = ["SafeStringFormatter.java"],
+    # used_by_android
     tags = [
     ],
     deps = [

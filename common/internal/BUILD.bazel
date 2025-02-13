@@ -23,6 +23,7 @@ cel_android_library(
 
 java_library(
     name = "converter",
+    # used_by_android
     exports = ["//common/src/main/java/dev/cel/common/internal:converter"],
 )
 
@@ -78,6 +79,7 @@ java_library(
 
 java_library(
     name = "safe_string_formatter",
+    # used_by_android
     exports = ["//common/src/main/java/dev/cel/common/internal:safe_string_formatter"],
 )
 

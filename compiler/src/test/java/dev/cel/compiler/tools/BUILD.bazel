@@ -1,0 +1,69 @@
+load("@rules_java//java:defs.bzl", "java_library")
+load("//:testing.bzl", "junit4_test_suites")
+load("//compiler/tools:compile_cel.bzl", "compile_cel")
+
+package(default_applicable_licenses = [
+    "//:license",
+])
+
+compile_cel(
+    name = "compiled_hello_world",
+    expression = "'hello world'",
+)
+
+compile_cel(
+    name = "compiled_comprehension",
+    expression = "[1,2,3].map(x, x + 1)",
+)
+
+compile_cel(
+    name = "compiled_proto_message",
+    expression = "cel.expr.conformance.proto2.TestAllTypes{single_int32: 1}",
+    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto"],
+)
+
+compile_cel(
+    name = "compiled_extensions",
+    expression = "cel.bind(x, 10, math.greatest([1,x])) < int(' 11  '.trim()) && optional.none().orValue(true) && [].flatten() == []",
+    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto"],
+)
+
+filegroup(
+    name = "compiled_exprs",
+    srcs = [
+        ":compiled_comprehension",
+        ":compiled_extensions",
+        ":compiled_hello_world",
+        ":compiled_proto_message",
+    ],
+)
+
+java_library(
+    name = "tests",
+    testonly = True,
+    srcs = glob(["*Test.java"]),
+    resources = [":compiled_exprs"],
+    deps = [
+        "//:java_truth",
+        "//common:cel_ast",
+        "//common:options",
+        "//common:proto_ast",
+        "//extensions",
+        "//extensions:optional_library",
+        "//runtime",
+        "@cel_spec//proto/cel/expr:checked_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:junit_junit",
+    ],
+)
+
+junit4_test_suites(
+    name = "test_suites",
+    sizes = [
+        "small",
+    ],
+    src_dir = "src/test/java",
+    deps = [":tests"],
+)

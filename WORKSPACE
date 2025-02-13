@@ -140,6 +140,7 @@ maven_install(
         "com.google.truth.extensions:truth-java8-extension:1.4.4",
         "com.google.truth.extensions:truth-proto-extension:1.4.4",
         "com.google.truth:truth:1.4.4",
+        "info.picocli:picocli:4.7.6",
         "org.antlr:antlr4-runtime:" + ANTLR4_VERSION,
         "org.jspecify:jspecify:1.0.0",
         "org.threeten:threeten-extra:1.8.0",

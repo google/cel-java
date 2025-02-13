@@ -77,6 +77,7 @@ java_library(
 java_library(
     name = "cel_exception",
     srcs = ["CelException.java"],
+    # used_by_android
     tags = [
     ],
     visibility = ["//visibility:public"],
@@ -135,6 +136,7 @@ java_library(
 java_library(
     name = "error_codes",
     srcs = ["CelErrorCode.java"],
+    # used_by_android
     tags = [
     ],
 )

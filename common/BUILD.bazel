@@ -39,6 +39,7 @@ java_library(
 
 java_library(
     name = "error_codes",
+    # used_by_android
     exports = ["//common/src/main/java/dev/cel/common:error_codes"],
 )
 
@@ -86,6 +87,7 @@ java_library(
 
 java_library(
     name = "cel_exception",
+    # used_by_android
     visibility = ["//visibility:public"],
     exports = ["//common/src/main/java/dev/cel/common:cel_exception"],
 )

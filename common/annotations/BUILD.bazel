@@ -7,5 +7,6 @@ package(
 
 java_library(
     name = "annotations",
+    # used_by_android
     exports = ["//common/src/main/java/dev/cel/common/annotations"],
 )
