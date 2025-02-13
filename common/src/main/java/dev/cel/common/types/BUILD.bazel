@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("//:cel_android_library.bzl", "cel_android_library")
 
 package(
     default_applicable_licenses = [
@@ -94,13 +95,29 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "cel_proto_types_android",
+    srcs = ["CelProtoTypes.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_internal_types_android",
+        ":cel_types_android",
+        ":type_providers_android",
+        ":types_android",
+        "@cel_spec//proto/cel/expr:checked_java_proto_lite",
+        "@maven_android//:com_google_guava_guava",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
+    ],
+)
+
 java_library(
     name = "cel_proto_message_types",
     srcs = ["CelProtoMessageTypes.java"],
     tags = [
     ],
     deps = [
-        "//common/types:cel_proto_types",
+        ":cel_proto_types",
         "@cel_spec//proto/cel/expr:checked_java_proto",
         "@maven//:com_google_protobuf_protobuf_java",
     ],
@@ -162,5 +179,54 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+cel_android_library(
+    name = "cel_types_android",
+    srcs = ["CelTypes.java"],
+    tags = [
+    ],
+    deps = [
+        "//common/annotations",
+        "//common/types:type_providers_android",
+        "//common/types:types_android",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "type_providers_android",
+    srcs = CEL_TYPE_PROVIDER_SOURCES,
+    tags = [
+    ],
+    deps = [
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "types_android",
+    srcs = CEL_TYPE_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":type_providers_android",
+        "//:auto_value",
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "cel_internal_types_android",
+    srcs = CEL_INTERNAL_TYPE_SOURCES,
+    deps = [
+        "//:auto_value",
+        "//common/annotations",
+        "//common/types:type_providers_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
