@@ -264,7 +264,7 @@ robust to evaluation against dynamic data types such as JSON inputs.
 
 In the following truth-table, the symbols `<x>` and `<y>` represent error or
 unknown values, with the `?` indicating that the branch is not taken due to
-short-circuiting. When the result is `<x, y>` this means that the both args are
+short-circuiting. When the result is `<x, y>` this means that both the args are
 possibly relevant to the result.
 
 | Expression          | Result   |
