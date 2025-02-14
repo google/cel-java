@@ -80,7 +80,7 @@ java_library(
         ":evaluation_exception_builder",
         ":evaluation_listener",
         ":metadata",
-        ":runtime_helper",
+        ":runtime_helpers",
         ":unknown_attributes",
         "//:auto_value",
         "//common",
@@ -105,28 +105,77 @@ java_library(
 )
 
 java_library(
-    name = "runtime_helper",
+    name = "runtime_equality",
     srcs = [
         "RuntimeEquality.java",
-        "RuntimeHelpers.java",
     ],
     tags = [
     ],
-    # NOTE: do not grow this dependencies arbitrarily
     deps = [
+        ":runtime_helpers",
         "//common:error_codes",
         "//common:options",
         "//common:runtime_exception",
-        "//common/annotations",
         "//common/internal:comparison_functions",
-        "//common/internal:converter",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "proto_message_runtime_equality",
+    srcs = [
+        "ProtoMessageRuntimeEquality.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":proto_message_runtime_helpers",
+        ":runtime_equality",
+        "//common:options",
+        "//common/annotations",
         "//common/internal:dynamic_proto",
         "//common/internal:proto_equality",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "runtime_helpers",
+    srcs = [
+        "RuntimeHelpers.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//common:error_codes",
+        "//common:options",
+        "//common:runtime_exception",
+        "//common/internal:converter",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_re2j_re2j",
         "@maven//:org_threeten_threeten_extra",
+    ],
+)
+
+java_library(
+    name = "proto_message_runtime_helpers",
+    srcs = [
+        "ProtoMessageRuntimeHelpers.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":runtime_helpers",
+        "//common:options",
+        "//common/annotations",
+        "//common/internal:dynamic_proto",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -196,7 +245,10 @@ java_library(
     deps = [
         ":evaluation_exception",
         ":evaluation_listener",
-        ":runtime_helper",
+        ":interpreter",
+        ":proto_message_runtime_equality",
+        ":runtime_equality",
+        ":runtime_helpers",
         ":runtime_type_provider_legacy",
         ":unknown_attributes",
         "//:auto_value",
@@ -214,7 +266,6 @@ java_library(
         "//common/types:cel_types",
         "//common/values:cel_value_provider",
         "//common/values:proto_message_value_provider",
-        "//runtime:interpreter",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -271,6 +322,7 @@ java_library(
     name = "runtime_type_provider_legacy",
     srcs = ["RuntimeTypeProviderLegacyImpl.java"],
     deps = [
+        ":interpreter",
         ":unknown_attributes",
         "//common:error_codes",
         "//common:options",
@@ -282,7 +334,6 @@ java_library(
         "//common/values:cel_value",
         "//common/values:cel_value_provider",
         "//common/values:proto_message_value",
-        "//runtime:interpreter",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],

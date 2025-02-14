@@ -75,7 +75,6 @@ import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeFactory;
 import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.CelVariableResolver;
-import dev.cel.runtime.RuntimeHelpers;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.io.IOException;
 import java.util.Arrays;
@@ -227,7 +226,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     declareVariable("y", CelProtoTypes.DYN);
     source = "x + y == 1";
-    runTest(extend(ImmutableMap.of("x", -5L), ImmutableMap.of("y", 6)));
+    runTest(extend(ImmutableMap.of("x", -5L), ImmutableMap.of("y", 6L)));
   }
 
   @Test
@@ -2333,7 +2332,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     @Override
     public Optional<Object> find(String name) {
-      return Optional.ofNullable(RuntimeHelpers.maybeAdaptPrimitive(map.get(name)));
+      return Optional.ofNullable(map.get(name));
     }
 
     @Override

@@ -9,7 +9,7 @@ RUNTIME_TARGETS = [
     "//runtime/src/main/java/dev/cel/runtime",
     "//runtime/src/main/java/dev/cel/runtime:base",
     "//runtime/src/main/java/dev/cel/runtime:interpreter",
-    "//runtime/src/main/java/dev/cel/runtime:runtime_helper",
+    "//runtime/src/main/java/dev/cel/runtime:runtime_helpers",
     "//runtime/src/main/java/dev/cel/runtime:unknown_attributes",
 ]
 

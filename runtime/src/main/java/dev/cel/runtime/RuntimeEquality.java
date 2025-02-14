@@ -16,46 +16,40 @@ package dev.cel.runtime;
 
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
-import com.google.protobuf.Message;
-import com.google.protobuf.MessageOrBuilder;
+import com.google.protobuf.MessageLiteOrBuilder;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
-import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.ComparisonFunctions;
-import dev.cel.common.internal.DynamicProto;
-import dev.cel.common.internal.ProtoEquality;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-/** CEL Library Internals. Do Not Use. */
-@Internal
+/** RuntimeEquality contains methods for performing CEL related equality checks. */
 @Immutable
-public final class RuntimeEquality {
+class RuntimeEquality {
+  protected final RuntimeHelpers runtimeHelper;
+  protected final CelOptions celOptions;
 
-  private final DynamicProto dynamicProto;
-  private final ProtoEquality protoEquality;
-
-  public RuntimeEquality(DynamicProto dynamicProto) {
-    this.dynamicProto = dynamicProto;
-    this.protoEquality = new ProtoEquality(dynamicProto);
+  static RuntimeEquality create(RuntimeHelpers runtimeHelper, CelOptions celOptions) {
+    return new RuntimeEquality(runtimeHelper, celOptions);
   }
 
   // Functions
   // =========
 
   /** Determine whether the {@code list} contains the given {@code value}. */
-  public <A> boolean inList(List<A> list, A value, CelOptions celOptions) {
+  public <A> boolean inList(List<A> list, A value) {
     if (list.contains(value)) {
       return true;
     }
     if (value instanceof Number) {
       for (A elem : list) {
-        if (objectEquals(elem, value, celOptions)) {
+        if (objectEquals(elem, value)) {
           return true;
         }
       }
@@ -65,8 +59,8 @@ public final class RuntimeEquality {
 
   /** Bound-checked indexing of maps. */
   @SuppressWarnings("unchecked")
-  public <A, B> B indexMap(Map<A, B> map, A index, CelOptions celOptions) {
-    Optional<Object> value = findInMap(map, index, celOptions);
+  public <A, B> B indexMap(Map<A, B> map, A index) {
+    Optional<Object> value = findInMap(map, index);
     // Use this method rather than the standard 'orElseThrow' method because of the unchecked cast.
     if (value.isPresent()) {
       return (B) value.get();
@@ -76,17 +70,17 @@ public final class RuntimeEquality {
   }
 
   /** Determine whether the {@code map} contains the given {@code key}. */
-  public <A, B> boolean inMap(Map<A, B> map, A key, CelOptions celOptions) {
-    return findInMap(map, key, celOptions).isPresent();
+  public <A, B> boolean inMap(Map<A, B> map, A key) {
+    return findInMap(map, key).isPresent();
   }
 
-  public Optional<Object> findInMap(Map<?, ?> map, Object index, CelOptions celOptions) {
+  public Optional<Object> findInMap(Map<?, ?> map, Object index) {
     if (celOptions.disableCelStandardEquality()) {
       return Optional.ofNullable(map.get(index));
     }
 
-    if (index instanceof MessageOrBuilder) {
-      index = RuntimeHelpers.adaptProtoToValue(dynamicProto, (MessageOrBuilder) index, celOptions);
+    if (index instanceof MessageLiteOrBuilder) {
+      index = runtimeHelper.adaptProtoToValue((MessageLiteOrBuilder) index);
     }
     Object v = map.get(index);
     if (v != null) {
@@ -138,23 +132,18 @@ public final class RuntimeEquality {
    *
    * <p>Heterogeneous equality differs from homogeneous equality in that two objects may be
    * comparable even if they are not of the same type, where type differences are usually trivially
-   * false. Heterogeneous runtime equality is under consideration in b/71516544.
-   *
-   * <p>Note, uint values are problematic in that they cannot be properly type-tested for equality
-   * in comparisons with 64-int signed integer values, see b/159183198. This problem only affects
-   * Java and is typically inconsequential due to the requirement for type-checking expressions
-   * before they are evaluated.
+   * false.
    */
   @SuppressWarnings({"rawtypes", "unchecked"})
-  public boolean objectEquals(Object x, Object y, CelOptions celOptions) {
+  public boolean objectEquals(Object x, Object y) {
     if (celOptions.disableCelStandardEquality()) {
       return Objects.equals(x, y);
     }
     if (x == y) {
       return true;
     }
-    x = RuntimeHelpers.adaptValue(dynamicProto, x, celOptions);
-    y = RuntimeHelpers.adaptValue(dynamicProto, y, celOptions);
+    x = runtimeHelper.adaptValue(x);
+    y = runtimeHelper.adaptValue(y);
     if (x instanceof Number) {
       if (!(y instanceof Number)) {
         return false;
@@ -162,11 +151,13 @@ public final class RuntimeEquality {
       return ComparisonFunctions.numericEquals((Number) x, (Number) y);
     }
     if (celOptions.enableProtoDifferencerEquality()) {
-      if (x instanceof Message) {
-        if (!(y instanceof Message)) {
+      if (x instanceof MessageLiteOrBuilder) {
+        if (!(y instanceof MessageLiteOrBuilder)) {
           return false;
         }
-        return protoEquality.equals((Message) x, (Message) y);
+        // TODO: Implement when CelLiteDescriptor is available
+        throw new UnsupportedOperationException(
+            "Proto Differencer equality is not supported for MessageLite.");
       }
     }
     if (x instanceof Iterable) {
@@ -182,7 +173,7 @@ public final class RuntimeEquality {
           return false;
         }
         try {
-          if (!objectEquals(xElem, yElems.next(), celOptions)) {
+          if (!objectEquals(xElem, yElems.next())) {
             return false;
           }
         } catch (IllegalArgumentException iae) {
@@ -207,15 +198,15 @@ public final class RuntimeEquality {
         return false;
       }
       IllegalArgumentException e = null;
-      Set<Map.Entry> entrySet = xMap.entrySet();
+      Set<Entry> entrySet = xMap.entrySet();
       for (Map.Entry xEntry : entrySet) {
-        Optional<Object> yVal = findInMap(yMap, xEntry.getKey(), celOptions);
+        Optional<Object> yVal = findInMap(yMap, xEntry.getKey());
         // Use isPresent() rather than isEmpty() to stay backwards compatible with Java 8.
         if (!yVal.isPresent()) {
           return false;
         }
         try {
-          if (!objectEquals(xEntry.getValue(), yVal.get(), celOptions)) {
+          if (!objectEquals(xEntry.getValue(), yVal.get())) {
             return false;
           }
         } catch (IllegalArgumentException iae) {
@@ -247,5 +238,10 @@ public final class RuntimeEquality {
       return Optional.of(v.longValue());
     }
     return Optional.empty();
+  }
+
+  RuntimeEquality(RuntimeHelpers runtimeHelper, CelOptions celOptions) {
+    this.runtimeHelper = runtimeHelper;
+    this.celOptions = celOptions;
   }
 }

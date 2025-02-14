@@ -206,9 +206,7 @@ public final class DefaultInterpreter implements Interpreter {
         frame.getEvaluationListener().callback(expr, result.value());
         return result;
       } catch (CelRuntimeException e) {
-        throw CelEvaluationExceptionBuilder.newBuilder(e)
-            .setMetadata(metadata, expr.id())
-            .build();
+        throw CelEvaluationExceptionBuilder.newBuilder(e).setMetadata(metadata, expr.id()).build();
       } catch (RuntimeException e) {
         throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
             .setCause(e)
@@ -418,9 +416,7 @@ public final class DefaultInterpreter implements Interpreter {
         }
         return IntermediateResult.create(attr, dispatchResult);
       } catch (CelRuntimeException ce) {
-        throw CelEvaluationExceptionBuilder.newBuilder(ce)
-            .setMetadata(metadata, expr.id())
-            .build();
+        throw CelEvaluationExceptionBuilder.newBuilder(ce).setMetadata(metadata, expr.id()).build();
       } catch (RuntimeException e) {
         throw CelEvaluationExceptionBuilder.newBuilder(
                 "Function '%s' failed with arg(s) '%s'",
@@ -455,9 +451,7 @@ public final class DefaultInterpreter implements Interpreter {
                         .setMetadata(metadata, expr.id())
                         .build());
       } catch (CelRuntimeException e) {
-        throw CelEvaluationExceptionBuilder.newBuilder(e)
-            .setMetadata(metadata, expr.id())
-            .build();
+        throw CelEvaluationExceptionBuilder.newBuilder(e).setMetadata(metadata, expr.id()).build();
       }
     }
 

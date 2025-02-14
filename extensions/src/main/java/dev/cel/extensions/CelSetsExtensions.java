@@ -29,7 +29,7 @@ import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
-import dev.cel.runtime.RuntimeEquality;
+import dev.cel.runtime.ProtoMessageRuntimeEquality;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
@@ -65,9 +65,6 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
           + " lists may not be of the same size as they do not guarantee the elements within them"
           + " are unique, so size does not factor into the computation. If either list is empty,"
           + " the result will be false.";
-
-  private static final RuntimeEquality RUNTIME_EQUALITY =
-      new RuntimeEquality(DynamicProto.create(DefaultMessageFactory.INSTANCE));
 
   /** Denotes the set extension function. */
   public enum Function {
@@ -111,7 +108,7 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
   }
 
   private final ImmutableSet<Function> functions;
-  private final CelOptions celOptions;
+  private final ProtoMessageRuntimeEquality runtimeEquality;
 
   CelSetsExtensions(CelOptions celOptions) {
     this(celOptions, ImmutableSet.copyOf(Function.values()));
@@ -119,7 +116,9 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
 
   CelSetsExtensions(CelOptions celOptions, Set<Function> functions) {
     this.functions = ImmutableSet.copyOf(functions);
-    this.celOptions = celOptions;
+    this.runtimeEquality =
+        ProtoMessageRuntimeEquality.create(
+            DynamicProto.create(DefaultMessageFactory.INSTANCE), celOptions);
   }
 
   @Override
@@ -208,7 +207,7 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
   }
 
   private boolean objectsEquals(Object o1, Object o2) {
-    return RUNTIME_EQUALITY.objectEquals(o1, o2, celOptions);
+    return runtimeEquality.objectEquals(o1, o2);
   }
 
   private <T> boolean setIntersects(Collection<T> listA, Collection<T> listB) {

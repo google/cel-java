@@ -25,9 +25,27 @@ java_library(
 )
 
 java_library(
-    name = "runtime_helper",
+    name = "runtime_helpers",
     visibility = ["//visibility:public"],
-    exports = ["//runtime/src/main/java/dev/cel/runtime:runtime_helper"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:runtime_helpers"],
+)
+
+java_library(
+    name = "proto_message_runtime_helpers",
+    visibility = ["//visibility:public"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:proto_message_runtime_helpers"],
+)
+
+java_library(
+    name = "runtime_equality",
+    visibility = ["//visibility:public"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:runtime_equality"],
+)
+
+java_library(
+    name = "proto_message_runtime_equality",
+    visibility = ["//visibility:public"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:proto_message_runtime_equality"],
 )
 
 java_library(

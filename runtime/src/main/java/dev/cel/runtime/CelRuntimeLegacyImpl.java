@@ -241,10 +241,12 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
               runtimeTypeFactory, DefaultMessageFactory.create(celDescriptorPool));
 
       DynamicProto dynamicProto = DynamicProto.create(runtimeTypeFactory);
+      RuntimeEquality runtimeEquality = ProtoMessageRuntimeEquality.create(dynamicProto, options);
 
       ImmutableMap.Builder<String, CelFunctionBinding> functionBindingsBuilder =
           ImmutableMap.builder();
-      for (CelFunctionBinding standardFunctionBinding : newStandardFunctionBindings(dynamicProto)) {
+      for (CelFunctionBinding standardFunctionBinding :
+          newStandardFunctionBindings(runtimeEquality)) {
         functionBindingsBuilder.put(
             standardFunctionBinding.getOverloadId(), standardFunctionBinding);
       }
@@ -283,7 +285,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     }
 
     private ImmutableSet<CelFunctionBinding> newStandardFunctionBindings(
-        DynamicProto dynamicProto) {
+        RuntimeEquality runtimeEquality) {
       CelStandardFunctions celStandardFunctions;
       if (standardEnvironmentEnabled) {
         celStandardFunctions =
@@ -336,7 +338,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
         return ImmutableSet.of();
       }
 
-      return celStandardFunctions.newFunctionBindings(dynamicProto, options);
+      return celStandardFunctions.newFunctionBindings(runtimeEquality, options);
     }
 
     private static CelDescriptorPool newDescriptorPool(

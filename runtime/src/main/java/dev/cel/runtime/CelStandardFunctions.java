@@ -31,8 +31,8 @@ import com.google.protobuf.util.Timestamps;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
+import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.ComparisonFunctions;
-import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.SafeStringFormatter;
 import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Arithmetic;
@@ -251,16 +251,14 @@ public final class CelStandardFunctions {
                     Object.class,
                     List.class,
                     (Object value, List list) ->
-                        bindingHelper.runtimeEquality.inList(
-                            list, value, bindingHelper.celOptions))),
+                        bindingHelper.runtimeEquality.inList(list, value))),
         IN_MAP(
             (bindingHelper) ->
                 CelFunctionBinding.from(
                     "in_map",
                     Object.class,
                     Map.class,
-                    (Object key, Map map) ->
-                        bindingHelper.runtimeEquality.inMap(map, key, bindingHelper.celOptions)));
+                    (Object key, Map map) -> bindingHelper.runtimeEquality.inMap(map, key)));
 
         private final FunctionBindingCreator bindingCreator;
 
@@ -282,18 +280,14 @@ public final class CelStandardFunctions {
                     "equals",
                     Object.class,
                     Object.class,
-                    (Object x, Object y) ->
-                        bindingHelper.runtimeEquality.objectEquals(
-                            x, y, bindingHelper.celOptions))),
+                    bindingHelper.runtimeEquality::objectEquals)),
         NOT_EQUALS(
             (bindingHelper) ->
                 CelFunctionBinding.from(
                     "not_equals",
                     Object.class,
                     Object.class,
-                    (Object x, Object y) ->
-                        !bindingHelper.runtimeEquality.objectEquals(
-                            x, y, bindingHelper.celOptions)));
+                    (Object x, Object y) -> !bindingHelper.runtimeEquality.objectEquals(x, y)));
 
         private final FunctionBindingCreator bindingCreator;
 
@@ -591,12 +585,7 @@ public final class CelStandardFunctions {
         INDEX_MAP(
             (bindingHelper) ->
                 CelFunctionBinding.from(
-                    "index_map",
-                    Map.class,
-                    Object.class,
-                    (Map map, Object key) ->
-                        bindingHelper.runtimeEquality.indexMap(
-                            map, key, bindingHelper.celOptions)));
+                    "index_map", Map.class, Object.class, bindingHelper.runtimeEquality::indexMap));
 
         private final FunctionBindingCreator bindingCreator;
 
@@ -1738,18 +1727,14 @@ public final class CelStandardFunctions {
                     // special cased inside the interpreter.
                     Map.class,
                     String.class,
-                    (Map map, String key) ->
-                        bindingHelper.runtimeEquality.findInMap(
-                            map, key, bindingHelper.celOptions))),
+                    bindingHelper.runtimeEquality::findInMap)),
         MAP_OPTINDEX_OPTIONAL_VALUE(
             (bindingHelper) ->
                 CelFunctionBinding.from(
                     "map_optindex_optional_value",
                     Map.class,
                     Object.class,
-                    (Map map, Object key) ->
-                        bindingHelper.runtimeEquality.findInMap(
-                            map, key, bindingHelper.celOptions))),
+                    bindingHelper.runtimeEquality::findInMap)),
         OPTIONAL_MAP_OPTINDEX_OPTIONAL_VALUE(
             (bindingHelper) ->
                 CelFunctionBinding.from(
@@ -1757,11 +1742,7 @@ public final class CelStandardFunctions {
                     Optional.class,
                     Object.class,
                     (Optional optionalMap, Object key) ->
-                        indexOptionalMap(
-                            optionalMap,
-                            key,
-                            bindingHelper.celOptions,
-                            bindingHelper.runtimeEquality))),
+                        indexOptionalMap(optionalMap, key, bindingHelper.runtimeEquality))),
         OPTIONAL_MAP_INDEX_VALUE(
             (bindingHelper) ->
                 CelFunctionBinding.from(
@@ -1769,11 +1750,7 @@ public final class CelStandardFunctions {
                     Optional.class,
                     Object.class,
                     (Optional optionalMap, Object key) ->
-                        indexOptionalMap(
-                            optionalMap,
-                            key,
-                            bindingHelper.celOptions,
-                            bindingHelper.runtimeEquality))),
+                        indexOptionalMap(optionalMap, key, bindingHelper.runtimeEquality))),
         OPTIONAL_LIST_INDEX_INT(
             (bindingHelper) ->
                 CelFunctionBinding.from(
@@ -1834,9 +1811,10 @@ public final class CelStandardFunctions {
     return standardOverloads;
   }
 
+  @Internal
   public ImmutableSet<CelFunctionBinding> newFunctionBindings(
-      DynamicProto dynamicProto, CelOptions celOptions) {
-    FunctionBindingHelper helper = new FunctionBindingHelper(celOptions, dynamicProto);
+      RuntimeEquality runtimeEquality, CelOptions celOptions) {
+    FunctionBindingHelper helper = new FunctionBindingHelper(celOptions, runtimeEquality);
     ImmutableSet.Builder<CelFunctionBinding> builder = ImmutableSet.builder();
     for (StandardOverload overload : standardOverloads) {
       builder.add(overload.newFunctionBinding(helper));
@@ -1977,9 +1955,9 @@ public final class CelStandardFunctions {
     private final CelOptions celOptions;
     private final RuntimeEquality runtimeEquality;
 
-    private FunctionBindingHelper(CelOptions celOptions, DynamicProto dynamicProto) {
+    private FunctionBindingHelper(CelOptions celOptions, RuntimeEquality runtimeEquality) {
       this.celOptions = celOptions;
-      this.runtimeEquality = new RuntimeEquality(dynamicProto);
+      this.runtimeEquality = runtimeEquality;
     }
   }
 
@@ -2054,14 +2032,14 @@ public final class CelStandardFunctions {
   }
 
   private static Object indexOptionalMap(
-      Optional<?> optionalMap, Object key, CelOptions options, RuntimeEquality runtimeEquality) {
+      Optional<?> optionalMap, Object key, RuntimeEquality runtimeEquality) {
     if (!optionalMap.isPresent()) {
       return Optional.empty();
     }
 
     Map<?, ?> map = (Map<?, ?>) optionalMap.get();
 
-    return runtimeEquality.findInMap(map, key, options);
+    return runtimeEquality.findInMap(map, key);
   }
 
   private static Object indexOptionalList(Optional<?> optionalList, long index) {
