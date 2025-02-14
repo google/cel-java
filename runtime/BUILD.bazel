@@ -49,6 +49,12 @@ java_library(
 )
 
 java_library(
+    name = "type_resolver",
+    visibility = ["//visibility:public"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:type_resolver"],
+)
+
+java_library(
     name = "unknown_attributes",
     exports = ["//runtime/src/main/java/dev/cel/runtime:unknown_attributes"],
 )

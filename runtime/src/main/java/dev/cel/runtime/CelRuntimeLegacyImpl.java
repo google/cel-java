@@ -279,7 +279,11 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       }
 
       return new CelRuntimeLegacyImpl(
-          new DefaultInterpreter(runtimeTypeProvider, dispatcher.immutableCopy(), options),
+          new DefaultInterpreter(
+              DescriptorTypeResolver.create(),
+              runtimeTypeProvider,
+              dispatcher.immutableCopy(),
+              options),
           options,
           this);
     }

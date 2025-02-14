@@ -48,6 +48,7 @@ java_library(
         "//runtime:proto_message_runtime_helpers",
         "//runtime:runtime_equality",
         "//runtime:runtime_helpers",
+        "//runtime:type_resolver",
         "//runtime:unknown_attributes",
         "//runtime:unknown_options",
         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",

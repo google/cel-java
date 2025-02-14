@@ -36,7 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public class CelTypeResolverTest {
+public class DescriptorTypeResolverTest {
 
   private static final ProtoMessageTypeProvider PROTO_MESSAGE_TYPE_PROVIDER =
       new ProtoMessageTypeProvider(ImmutableList.of(TestAllTypes.getDescriptor()));

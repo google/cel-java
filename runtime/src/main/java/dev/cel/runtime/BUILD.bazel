@@ -37,9 +37,25 @@ INTERPRETER_SOURCES = [
 ]
 
 java_library(
-    name = "cel_type_resolver",
-    srcs = ["CelTypeResolver.java"],
+    name = "type_resolver",
+    srcs = ["TypeResolver.java"],
+    tags = [
+    ],
     deps = [
+        "//common/types",
+        "//common/types:type_providers",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "descriptor_type_resolver",
+    srcs = ["DescriptorTypeResolver.java"],
+    visibility = ["//visibility:private"],
+    deps = [
+        ":type_resolver",
         "//common/types",
         "//common/types:type_providers",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -56,8 +72,7 @@ java_library(
     deps = [
         ":evaluation_exception",
         ":metadata",
-        "//:auto_value",
-        "//common",
+        "//common:cel_ast",
         "//common/annotations",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -75,12 +90,12 @@ java_library(
     exports = [":base"],
     deps = [
         ":base",
-        ":cel_type_resolver",
         ":evaluation_exception",
         ":evaluation_exception_builder",
         ":evaluation_listener",
         ":metadata",
         ":runtime_helpers",
+        ":type_resolver",
         ":unknown_attributes",
         "//:auto_value",
         "//common",
@@ -243,6 +258,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":descriptor_type_resolver",
         ":evaluation_exception",
         ":evaluation_listener",
         ":interpreter",

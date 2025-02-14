@@ -61,6 +61,7 @@ import java.util.Optional;
 @Internal
 public final class DefaultInterpreter implements Interpreter {
 
+  private final TypeResolver typeResolver;
   private final RuntimeTypeProvider typeProvider;
   private final Dispatcher dispatcher;
   private final CelOptions celOptions;
@@ -98,20 +99,25 @@ public final class DefaultInterpreter implements Interpreter {
    * @param celOptions the configurable flags for adjusting evaluation behavior.
    */
   public DefaultInterpreter(
-      RuntimeTypeProvider typeProvider, Dispatcher dispatcher, CelOptions celOptions) {
+      TypeResolver typeResolver,
+      RuntimeTypeProvider typeProvider,
+      Dispatcher dispatcher,
+      CelOptions celOptions) {
+    this.typeResolver = checkNotNull(typeResolver);
     this.typeProvider = checkNotNull(typeProvider);
     this.dispatcher = checkNotNull(dispatcher);
-    this.celOptions = celOptions;
+    this.celOptions = checkNotNull(celOptions);
   }
 
   @Override
   public Interpretable createInterpretable(CelAbstractSyntaxTree ast) {
-    return new DefaultInterpretable(typeProvider, dispatcher, ast, celOptions);
+    return new DefaultInterpretable(typeResolver, typeProvider, dispatcher, ast, celOptions);
   }
 
   @Immutable
   private static final class DefaultInterpretable
       implements Interpretable, UnknownTrackingInterpretable {
+    private final TypeResolver typeResolver;
     private final RuntimeTypeProvider typeProvider;
     private final Dispatcher.ImmutableCopy dispatcher;
     private final Metadata metadata;
@@ -119,10 +125,12 @@ public final class DefaultInterpreter implements Interpreter {
     private final CelOptions celOptions;
 
     DefaultInterpretable(
+        TypeResolver typeResolver,
         RuntimeTypeProvider typeProvider,
         Dispatcher dispatcher,
         CelAbstractSyntaxTree ast,
         CelOptions celOptions) {
+      this.typeResolver = checkNotNull(typeResolver);
       this.typeProvider = checkNotNull(typeProvider);
       this.dispatcher = checkNotNull(dispatcher).immutableCopy();
       this.ast = checkNotNull(ast);
@@ -263,7 +271,7 @@ public final class DefaultInterpreter implements Interpreter {
       // Check whether the type exists in the type check map as a 'type'.
       Optional<CelType> checkedType = ast.getType(expr.id());
       if (checkedType.isPresent() && checkedType.get().kind() == CelKind.TYPE) {
-        TypeType typeValue = CelTypeResolver.adaptType(checkedType.get());
+        TypeType typeValue = typeResolver.adaptType(checkedType.get());
         return IntermediateResult.create(typeValue);
       }
 
@@ -643,9 +651,9 @@ public final class DefaultInterpreter implements Interpreter {
                           .setMetadata(metadata, typeExprArg.id())
                           .build());
 
-      CelType checkedTypeValue = CelTypeResolver.adaptType(checkedType);
+      CelType checkedTypeValue = typeResolver.adaptType(checkedType);
       return IntermediateResult.create(
-          CelTypeResolver.resolveObjectType(argResult.value(), checkedTypeValue));
+          typeResolver.resolveObjectType(argResult.value(), checkedTypeValue));
     }
 
     private IntermediateResult evalOptionalOr(ExecutionFrame frame, CelCall callExpr)
