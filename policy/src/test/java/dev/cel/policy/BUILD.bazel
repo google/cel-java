@@ -8,7 +8,7 @@ java_library(
     testonly = True,
     srcs = glob(["*.java"]),
     resources = [
-        "//policy/src/test/resources:policy_yaml_files",
+        "//testing:policy_test_resources",
     ],
     deps = [
         "//:java_truth",

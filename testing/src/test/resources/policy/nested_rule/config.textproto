@@ -1,0 +1,14 @@
+# proto-file: google3/google/api/expr/conformance/test_config.proto
+# proto-message: google.api.expr.conformance.Environment
+
+declarations: {
+  name: "resource"
+  ident {
+    type {
+      map_type {
+        key_type { primitive: STRING }
+        value_type { well_known: ANY }
+      }
+    }
+  }
+}

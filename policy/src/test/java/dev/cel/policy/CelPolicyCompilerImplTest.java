@@ -393,15 +393,15 @@ public final class CelPolicyCompilerImplTest {
     }
 
     private String readPolicyYamlContent() throws IOException {
-      return readFromYaml(String.format("%s/policy.yaml", name));
+      return readFromYaml(String.format("policy/%s/policy.yaml", name));
     }
 
     private String readConfigYamlContent() throws IOException {
-      return readFromYaml(String.format("%s/config.yaml", name));
+      return readFromYaml(String.format("policy/%s/config.yaml", name));
     }
 
     private String readExpectedErrorsBaseline() throws IOException {
-      return readFromYaml(String.format("%s/expected_errors.baseline", name));
+      return readFromYaml(String.format("policy/%s/expected_errors.baseline", name));
     }
 
     TestErrorYamlPolicy(String name) {

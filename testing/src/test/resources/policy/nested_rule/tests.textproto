@@ -1,0 +1,69 @@
+# proto-file: google3/google/api/expr/conformance/test_suite.proto
+# proto-message: google.api.expr.conformance.TestSuite
+
+description: "Nested rule conformance tests"
+
+sections {
+  name: "valid"
+  tests {
+    name: "restricted_origin"
+    input {
+      key: "resource"
+      value {
+        expr_value {
+          object_value {
+            [type.googleapis.com/google.protobuf.Struct] {
+              fields {
+                key: "origin"
+                value { string_value: "ir" }
+              }
+            }
+          }
+        }
+      }
+    }
+    expr: "{'banned': true}"
+  }
+  tests {
+    name: "by_default"
+    input {
+      key: "resource"
+      value {
+        expr_value {
+          object_value {
+            [type.googleapis.com/google.protobuf.Struct] {
+              fields {
+                key: "origin"
+                value { string_value: "'de'" }
+              }
+            }
+          }
+        }
+      }
+    }
+    expr: "{'banned': true}"
+  }
+}
+
+sections {
+  name: "permitted"
+  tests {
+    name: "valid_origin"
+    input {
+      key: "resource"
+      value {
+        expr_value {
+          object_value {
+            [type.googleapis.com/google.protobuf.Struct] {
+              fields {
+                key: "origin"
+                value { string_value: "uk" }
+              }
+            }
+          }
+        }
+      }
+    }
+    expr: "{'banned': false}"
+  }
+}

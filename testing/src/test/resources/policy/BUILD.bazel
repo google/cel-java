@@ -4,7 +4,7 @@ package(
     ],
     default_testonly = True,
     default_visibility = [
-        "//policy:__subpackages__",
+        "//testing:__pkg__",
     ],
 )
 

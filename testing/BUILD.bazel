@@ -35,3 +35,8 @@ java_library(
     name = "base_interpreter_test",
     exports = ["//testing/src/main/java/dev/cel/testing:base_interpreter_test"],
 )
+
+alias(
+    name = "policy_test_resources",
+    actual = "//testing/src/test/resources/policy:policy_yaml_files",
+)

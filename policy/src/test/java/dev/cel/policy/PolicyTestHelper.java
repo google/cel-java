@@ -142,16 +142,16 @@ final class PolicyTestHelper {
     }
 
     String readPolicyYamlContent() throws IOException {
-      return readFromYaml(String.format("%s/policy.yaml", name));
+      return readFromYaml(String.format("policy/%s/policy.yaml", name));
     }
 
     String readConfigYamlContent() throws IOException {
-      return readFromYaml(String.format("%s/config.yaml", name));
+      return readFromYaml(String.format("policy/%s/config.yaml", name));
     }
 
     PolicyTestSuite readTestYamlContent() throws IOException {
       Yaml yaml = new Yaml(new Constructor(PolicyTestSuite.class, new LoaderOptions()));
-      String testContent = readFile(String.format("%s/tests.yaml", name));
+      String testContent = readFile(String.format("policy/%s/tests.yaml", name));
 
       return yaml.load(testContent);
     }
