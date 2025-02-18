@@ -85,6 +85,10 @@ public final class CelProtoJsonAdapter {
       }
       return json.setNumberValue((double) ((UnsignedLong) value).longValue()).build();
     }
+    if (value instanceof UnsignedLong) {
+      UnsignedLong ul = (UnsignedLong) value;
+      System.out.println(ul);
+    }
     if (value instanceof Float || value instanceof Double) {
       return json.setNumberValue(((Number) value).doubleValue()).build();
     }
