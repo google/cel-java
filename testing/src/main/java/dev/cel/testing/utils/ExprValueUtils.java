@@ -49,6 +49,7 @@ public final class ExprValueUtils {
   public static final TypeRegistry DEFAULT_TYPE_REGISTRY = newDefaultTypeRegistry();
   public static final ExtensionRegistry DEFAULT_EXTENSION_REGISTRY = newDefaultExtensionRegistry();
 
+  // TODO: Add support for user provided extensions.
   private static ExtensionRegistry newDefaultExtensionRegistry() {
     ExtensionRegistry extensionRegistry = ExtensionRegistry.newInstance();
     dev.cel.expr.conformance.proto2.TestAllTypesExtensions.registerAllExtensions(extensionRegistry);
