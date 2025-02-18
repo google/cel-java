@@ -27,7 +27,7 @@ import java.util.Optional;
  */
 @ThreadSafe
 @Internal
-public interface FunctionResolver {
+interface FunctionResolver {
 
   /**
    * Finds a specific function overload to invoke based on given parameters.

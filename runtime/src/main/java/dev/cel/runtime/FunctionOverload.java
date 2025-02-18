@@ -19,7 +19,7 @@ import com.google.errorprone.annotations.Immutable;
 /** Interface describing the general signature of all CEL custom function implementations. */
 @FunctionalInterface
 @Immutable
-public interface FunctionOverload {
+interface FunctionOverload {
 
   /** Evaluate a set of arguments throwing a {@code CelException} on error. */
   Object apply(Object[] args) throws CelEvaluationException;

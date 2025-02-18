@@ -10,11 +10,8 @@ package(
 
 BASE_SOURCES = [
     "DefaultMetadata.java",
-    "FunctionResolver.java",
-    "FunctionOverload.java",
     "MessageProvider.java",
     "Registrar.java",
-    "ResolvedOverload.java",
 ]
 
 # keep sorted
@@ -70,14 +67,12 @@ java_library(
     tags = [
     ],
     deps = [
-        ":evaluation_exception",
+        ":function_overload_impl",
         ":metadata",
         "//common:cel_ast",
         "//common/annotations",
-        "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -93,6 +88,7 @@ java_library(
         ":evaluation_exception",
         ":evaluation_exception_builder",
         ":evaluation_listener",
+        ":function_overload_impl",
         ":metadata",
         ":runtime_helpers",
         ":type_resolver",
@@ -196,7 +192,6 @@ java_library(
 
 # keep sorted
 RUNTIME_SOURCES = [
-    "CelFunctionOverload.java",
     "CelFunctionResolver.java",
     "CelLateFunctionBindings.java",
     "CelResolvedOverload.java",
@@ -253,6 +248,54 @@ java_library(
 )
 
 java_library(
+    name = "function_binding",
+    srcs = [
+        "CelFunctionBinding.java",
+        "FunctionBindingImpl.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":function_overload",
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "function_overload",
+    srcs = [
+        "CelFunctionOverload.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":function_overload_impl",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "function_overload_impl",
+    srcs = [
+        "FunctionOverload.java",
+        "FunctionResolver.java",
+        "ResolvedOverload.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":evaluation_exception",
+        "//common/annotations",
+        "@maven//:com_google_code_findbugs_annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
     name = "runtime",
     srcs = RUNTIME_SOURCES,
     tags = [
@@ -261,6 +304,9 @@ java_library(
         ":descriptor_type_resolver",
         ":evaluation_exception",
         ":evaluation_listener",
+        ":function_binding",
+        ":function_overload",
+        ":function_overload_impl",
         ":interpreter",
         ":proto_message_runtime_equality",
         ":runtime_equality",

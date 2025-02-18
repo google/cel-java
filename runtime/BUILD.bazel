@@ -10,7 +10,24 @@ java_library(
     exports = [
         "//runtime/src/main/java/dev/cel/runtime",
         "//runtime/src/main/java/dev/cel/runtime:evaluation_exception",
+        "//runtime/src/main/java/dev/cel/runtime:function_overload",
         "//runtime/src/main/java/dev/cel/runtime:metadata",
+    ],
+)
+
+java_library(
+    name = "function_binding",
+    visibility = ["//visibility:public"],
+    exports = [
+        "//runtime/src/main/java/dev/cel/runtime:function_binding",
+    ],
+)
+
+java_library(
+    name = "function_overload_impl",
+    visibility = ["//visibility:public"],
+    exports = [
+        "//runtime/src/main/java/dev/cel/runtime:function_overload_impl",
     ],
 )
 

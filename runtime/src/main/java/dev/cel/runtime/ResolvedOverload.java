@@ -24,7 +24,7 @@ import java.util.Map;
  * and a function definition.
  */
 @Immutable
-public interface ResolvedOverload {
+interface ResolvedOverload {
 
   /** The overload id of the function. */
   String getOverloadId();
