@@ -49,6 +49,7 @@ java_library(
         "//runtime:proto_message_runtime_helpers",
         "//runtime:runtime_equality",
         "//runtime:runtime_helpers",
+        "//runtime:standard_functions",
         "//runtime:type_resolver",
         "//runtime:unknown_attributes",
         "//runtime:unknown_options",

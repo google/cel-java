@@ -243,9 +243,9 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       DynamicProto dynamicProto = DynamicProto.create(runtimeTypeFactory);
       RuntimeEquality runtimeEquality = ProtoMessageRuntimeEquality.create(dynamicProto, options);
 
-      ImmutableMap.Builder<String, CelFunctionBinding> functionBindingsBuilder =
+      ImmutableMap.Builder<String, dev.cel.runtime.CelFunctionBinding> functionBindingsBuilder =
           ImmutableMap.builder();
-      for (CelFunctionBinding standardFunctionBinding :
+      for (dev.cel.runtime.CelFunctionBinding standardFunctionBinding :
           newStandardFunctionBindings(runtimeEquality)) {
         functionBindingsBuilder.put(
             standardFunctionBinding.getOverloadId(), standardFunctionBinding);
@@ -257,7 +257,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       functionBindingsBuilder
           .buildOrThrow()
           .forEach(
-              (String overloadId, CelFunctionBinding func) ->
+              (String overloadId, dev.cel.runtime.CelFunctionBinding func) ->
                   dispatcher.add(
                       overloadId, func.getArgTypes(), (args) -> func.getDefinition().apply(args)));
 
@@ -288,7 +288,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
           this);
     }
 
-    private ImmutableSet<CelFunctionBinding> newStandardFunctionBindings(
+    private ImmutableSet<dev.cel.runtime.CelFunctionBinding> newStandardFunctionBindings(
         RuntimeEquality runtimeEquality) {
       CelStandardFunctions celStandardFunctions;
       if (standardEnvironmentEnabled) {
@@ -381,6 +381,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       this.extensionRegistry = builder.extensionRegistry;
       this.customTypeFactory = builder.customTypeFactory;
       this.standardEnvironmentEnabled = builder.standardEnvironmentEnabled;
+      this.overriddenStandardFunctions = builder.overriddenStandardFunctions;
       this.celValueProvider = builder.celValueProvider;
       // The following needs to be deep copied as they are collection builders
       this.fileTypes = deepCopy(builder.fileTypes);

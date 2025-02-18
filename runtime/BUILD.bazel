@@ -16,6 +16,13 @@ java_library(
 )
 
 java_library(
+    name = "standard_functions",
+    exports = [
+        "//runtime/src/main/java/dev/cel/runtime:standard_functions",
+    ],
+)
+
+java_library(
     name = "function_binding",
     visibility = ["//visibility:public"],
     exports = [
