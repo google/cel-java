@@ -26,6 +26,7 @@ java_library(
         "//common:compiler_common",
         "//common:options",
         "//common:proto_ast",
+        "//common:source_location",
         "//common/ast",
         "//common/internal:env_visitor",
         "//common/internal:errors",

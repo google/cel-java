@@ -232,7 +232,7 @@ public final class ExprChecker {
 
   @CheckReturnValue
   private CelExpr visit(CelExpr expr, CelExpr.CelIdent ident) {
-    CelIdentDecl decl = env.lookupIdent(getPosition(expr), inContainer, ident.name());
+    CelIdentDecl decl = env.lookupIdent(expr.id(), getPosition(expr), inContainer, ident.name());
     checkNotNull(decl);
     if (decl.equals(Env.ERROR_IDENT_DECL)) {
       // error reported
@@ -257,7 +257,7 @@ public final class ExprChecker {
       CelIdentDecl decl = env.tryLookupCelIdent(inContainer, qname);
       if (decl != null) {
         if (select.testOnly()) {
-          env.reportError(getPosition(expr), "expression does not select a field");
+          env.reportError(expr.id(), getPosition(expr), "expression does not select a field");
           env.setType(expr, SimpleType.BOOL);
         } else {
           if (namespacedDeclarations) {
@@ -308,8 +308,8 @@ public final class ExprChecker {
 
     if (!call.target().isPresent()) {
       // Regular static call with simple name.
-      CelFunctionDecl decl = env.lookupFunction(position, inContainer, call.function());
-      resolution = resolveOverload(position, decl, null, call.args());
+      CelFunctionDecl decl = env.lookupFunction(expr.id(), position, inContainer, call.function());
+      resolution = resolveOverload(expr.id(), position, decl, null, call.args());
 
       if (!decl.name().equals(call.function())) {
         if (namespacedDeclarations) {
@@ -323,7 +323,7 @@ public final class ExprChecker {
       CelFunctionDecl decl =
           env.tryLookupCelFunction(inContainer, qualifiedName + "." + call.function());
       if (decl != null) {
-        resolution = resolveOverload(position, decl, null, call.args());
+        resolution = resolveOverload(expr.id(), position, decl, null, call.args());
 
         if (namespacedDeclarations) {
           // The function name is namespaced and so preserving the target operand would
@@ -342,8 +342,9 @@ public final class ExprChecker {
         }
         resolution =
             resolveOverload(
+                expr.id(),
                 position,
-                env.lookupFunction(getPosition(expr), inContainer, call.function()),
+                env.lookupFunction(expr.id(), getPosition(expr), inContainer, call.function()),
                 target,
                 call.args());
       }
@@ -359,18 +360,22 @@ public final class ExprChecker {
   private CelExpr visit(CelExpr expr, CelExpr.CelStruct struct) {
     // Determine the type of the message.
     CelType messageType = SimpleType.ERROR;
-    CelIdentDecl decl = env.lookupIdent(getPosition(expr), inContainer, struct.messageName());
+    CelIdentDecl decl =
+        env.lookupIdent(expr.id(), getPosition(expr), inContainer, struct.messageName());
     env.setRef(expr, CelReference.newBuilder().setName(decl.name()).build());
     CelType type = decl.type();
     if (type.kind() != CelKind.ERROR) {
       if (type.kind() != CelKind.TYPE) {
         // expected type of types
-        env.reportError(getPosition(expr), "'%s' is not a type", CelTypes.format(type));
+        env.reportError(expr.id(), getPosition(expr), "'%s' is not a type", CelTypes.format(type));
       } else {
         messageType = ((TypeType) type).type();
         if (messageType.kind() != CelKind.STRUCT) {
           env.reportError(
-              getPosition(expr), "'%s' is not a message type", CelTypes.format(messageType));
+              expr.id(),
+              getPosition(expr),
+              "'%s' is not a message type",
+              CelTypes.format(messageType));
           messageType = SimpleType.ERROR;
         }
       }
@@ -392,18 +397,23 @@ public final class ExprChecker {
         // Subtree has been rewritten. Replace the struct value.
         expr = replaceStructEntryValueSubtree(expr, visitedValueExpr, i);
       }
-      CelType fieldType = getFieldType(getPosition(entry), messageType, entry.fieldKey()).celType();
+      CelType fieldType =
+          getFieldType(entry.id(), getPosition(entry), messageType, entry.fieldKey()).celType();
       CelType valueType = env.getType(visitedValueExpr);
       if (entry.optionalEntry()) {
         if (valueType instanceof OptionalType) {
           valueType = unwrapOptional(valueType);
         } else {
           assertIsAssignable(
-              getPosition(visitedValueExpr), valueType, OptionalType.create(valueType));
+              visitedValueExpr.id(),
+              getPosition(visitedValueExpr),
+              valueType,
+              OptionalType.create(valueType));
         }
       }
       if (!inferenceContext.isAssignable(fieldType, valueType)) {
         env.reportError(
+            expr.id(),
             getPosition(entry),
             "expected type of field '%s' is '%s' but provided type is '%s'",
             entry.fieldKey(),
@@ -427,7 +437,11 @@ public final class ExprChecker {
         expr = replaceMapEntryKeySubtree(expr, visitedMapKeyExpr, i);
       }
       mapKeyType =
-          joinTypes(getPosition(visitedMapKeyExpr), mapKeyType, env.getType(visitedMapKeyExpr));
+          joinTypes(
+              visitedMapKeyExpr.id(),
+              getPosition(visitedMapKeyExpr),
+              mapKeyType,
+              env.getType(visitedMapKeyExpr));
 
       CelExpr visitedValueExpr = visit(entry.value());
       if (namespacedDeclarations && !visitedValueExpr.equals(entry.value())) {
@@ -440,11 +454,15 @@ public final class ExprChecker {
           valueType = unwrapOptional(valueType);
         } else {
           assertIsAssignable(
-              getPosition(visitedValueExpr), valueType, OptionalType.create(valueType));
+              visitedValueExpr.id(),
+              getPosition(visitedValueExpr),
+              valueType,
+              OptionalType.create(valueType));
         }
       }
 
-      mapValueType = joinTypes(getPosition(visitedValueExpr), mapValueType, valueType);
+      mapValueType =
+          joinTypes(visitedValueExpr.id(), getPosition(visitedValueExpr), mapValueType, valueType);
     }
     if (mapKeyType == null) {
       // If the map is empty, assign free type variables to key and value type.
@@ -471,11 +489,12 @@ public final class ExprChecker {
         if (elemType instanceof OptionalType) {
           elemType = unwrapOptional(elemType);
         } else {
-          assertIsAssignable(getPosition(visitedElem), elemType, OptionalType.create(elemType));
+          assertIsAssignable(
+              visitedElem.id(), getPosition(visitedElem), elemType, OptionalType.create(elemType));
         }
       }
 
-      elemsType = joinTypes(getPosition(visitedElem), elemsType, elemType);
+      elemsType = joinTypes(visitedElem.id(), getPosition(visitedElem), elemsType, elemType);
     }
     if (elemsType == null) {
       // If the list is empty, assign free type var to elem type.
@@ -514,6 +533,7 @@ public final class ExprChecker {
         break;
       default:
         env.reportError(
+            expr.id(),
             getPosition(visitedRange),
             "expression of type '%s' cannot be range of a comprehension "
                 + "(must be list, map, or dynamic)",
@@ -563,6 +583,7 @@ public final class ExprChecker {
   }
 
   private OverloadResolution resolveOverload(
+      long callExprId,
       int position,
       @Nullable CelFunctionDecl function,
       @Nullable CelExpr target,
@@ -620,6 +641,7 @@ public final class ExprChecker {
           if (compileTimeOverloadResolution) {
             // In compile-time overload resolution mode report this situation as an error.
             env.reportError(
+                callExprId,
                 position,
                 "found more than one matching overload for '%s' applied to '%s': %s and also %s",
                 function.name(),
@@ -634,6 +656,7 @@ public final class ExprChecker {
     }
     if (resultType == null) {
       env.reportError(
+          callExprId,
           position,
           "found no matching overload for '%s' applied to '%s'%s",
           function.name(),
@@ -660,7 +683,8 @@ public final class ExprChecker {
 
     if (!Types.isDynOrError(operandType)) {
       if (operandType.kind() == CelKind.STRUCT) {
-        TypeProvider.FieldType fieldType = getFieldType(getPosition(expr), operandType, field);
+        TypeProvider.FieldType fieldType =
+            getFieldType(expr.id(), getPosition(expr), operandType, field);
         // Type of the field
         resultType = fieldType.celType();
       } else if (operandType.kind() == CelKind.MAP) {
@@ -679,6 +703,7 @@ public final class ExprChecker {
         resultType = SimpleType.DYN;
       } else {
         env.reportError(
+            expr.id(),
             getPosition(expr),
             "type '%s' does not support field selection",
             CelTypes.format(operandType));
@@ -699,7 +724,7 @@ public final class ExprChecker {
     CelExpr field = call.args().get(1);
     if (!field.exprKind().getKind().equals(CelExpr.ExprKind.Kind.CONSTANT)
         || field.constant().getKind() != CelConstant.Kind.STRING_VALUE) {
-      env.reportError(getPosition(field), "unsupported optional field selection");
+      env.reportError(expr.id(), getPosition(field), "unsupported optional field selection");
       return expr;
     }
 
@@ -736,7 +761,8 @@ public final class ExprChecker {
   }
 
   /** Returns the field type give a type instance and field name. */
-  private TypeProvider.FieldType getFieldType(int position, CelType type, String fieldName) {
+  private TypeProvider.FieldType getFieldType(
+      long exprId, int position, CelType type, String fieldName) {
     String typeName = type.name();
     if (typeProvider.lookupCelType(typeName).isPresent()) {
       TypeProvider.FieldType fieldType = typeProvider.lookupFieldType(type, fieldName);
@@ -748,11 +774,12 @@ public final class ExprChecker {
       if (extensionFieldType != null) {
         return extensionFieldType.fieldType();
       }
-      env.reportError(position, "undefined field '%s'", fieldName);
+      env.reportError(exprId, position, "undefined field '%s'", fieldName);
     } else {
       // Proto message was added as a variable to the environment but the descriptor was not
       // provided
       env.reportError(
+          exprId,
           position,
           "Message type resolution failure while referencing field '%s'. Ensure that the descriptor"
               + " for type '%s' was added to the environment",
@@ -763,21 +790,22 @@ public final class ExprChecker {
   }
 
   /** Checks compatibility of joined types, and returns the most general common type. */
-  private CelType joinTypes(int position, CelType previousType, CelType type) {
+  private CelType joinTypes(long exprId, int position, CelType previousType, CelType type) {
     if (previousType == null) {
       return type;
     }
     if (homogeneousLiterals) {
-      assertIsAssignable(position, type, previousType);
+      assertIsAssignable(exprId, position, type, previousType);
     } else if (!inferenceContext.isAssignable(previousType, type)) {
       return SimpleType.DYN;
     }
     return Types.mostGeneral(previousType, type);
   }
 
-  private void assertIsAssignable(int position, CelType actual, CelType expected) {
+  private void assertIsAssignable(long exprId, int position, CelType actual, CelType expected) {
     if (!inferenceContext.isAssignable(expected, actual)) {
       env.reportError(
+          exprId,
           position,
           "expected type '%s' but found '%s'",
           CelTypes.format(expected),
@@ -790,7 +818,7 @@ public final class ExprChecker {
   }
 
   private void assertType(CelExpr expr, CelType type) {
-    assertIsAssignable(getPosition(expr), env.getType(expr), type);
+    assertIsAssignable(expr.id(), getPosition(expr), env.getType(expr), type);
   }
 
   private int getPosition(CelExpr expr) {
