@@ -14,8 +14,8 @@
 
 package dev.cel.conformance;
 
-import static dev.cel.conformance.ConformanceTest.DEFAULT_EXTENSION_REGISTRY;
-import static dev.cel.conformance.ConformanceTest.DEFAULT_TYPE_REGISTRY;
+import static dev.cel.testing.utils.ExprValueUtils.DEFAULT_EXTENSION_REGISTRY;
+import static dev.cel.testing.utils.ExprValueUtils.DEFAULT_TYPE_REGISTRY;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;

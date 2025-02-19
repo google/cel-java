@@ -40,3 +40,8 @@ alias(
     name = "policy_test_resources",
     actual = "//testing/src/test/resources/policy:policy_yaml_files",
 )
+
+java_library(
+    name = "expr_value_utils",
+    exports = ["//testing/src/main/java/dev/cel/testing/utils:expr_value_utils"],
+)

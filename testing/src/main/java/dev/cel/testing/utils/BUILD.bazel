@@ -1,0 +1,27 @@
+load("@rules_java//java:java_library.bzl", "java_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+    default_visibility = [
+        "//testing:__pkg__",
+    ],
+)
+
+java_library(
+    name = "expr_value_utils",
+    srcs = ["ExprValueUtils.java"],
+    tags = [
+    ],
+    deps = [
+        "//common",
+        "//common/internal:default_instance_message_factory",
+        "//common/types",
+        "//common/types:type_providers",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
