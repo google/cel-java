@@ -35,13 +35,13 @@ java_library(
 
 cel_android_library(
     name = "proto_ast_android",
-    visibility = ["//visibility:public"],
+    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common:proto_ast_android"],
 )
 
 java_library(
     name = "proto_v1alpha1_ast",
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = ["//common/src/main/java/dev/cel/common:proto_v1alpha1_ast"],
 )
 
@@ -64,7 +64,7 @@ java_library(
 java_library(
     name = "runtime_exception",
     # used_by_android
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = ["//common/src/main/java/dev/cel/common:runtime_exception"],
 )
 
@@ -75,7 +75,7 @@ java_library(
 
 java_library(
     name = "source",
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = ["//common/src/main/java/dev/cel/common:source"],
 )
 
@@ -91,7 +91,7 @@ java_library(
 
 cel_android_library(
     name = "cel_source_android",
-    visibility = ["//visibility:public"],
+    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common:cel_source_android"],
 )
 
@@ -102,7 +102,7 @@ java_library(
 
 cel_android_library(
     name = "cel_ast_android",
-    visibility = ["//visibility:public"],
+    visibility = ["//:android_allow_list"],
     exports = [
         "//common/src/main/java/dev/cel/common:cel_ast_android",
     ],
@@ -111,6 +111,6 @@ cel_android_library(
 java_library(
     name = "cel_exception",
     # used_by_android
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = ["//common/src/main/java/dev/cel/common:cel_exception"],
 )

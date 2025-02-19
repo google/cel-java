@@ -3,7 +3,7 @@ load("//:cel_android_library.bzl", "cel_android_library")
 
 package(
     default_applicable_licenses = ["//:license"],
-    default_visibility = ["//visibility:public"],
+    default_visibility = ["//:internal"],
 )
 
 java_library(
@@ -85,6 +85,6 @@ java_library(
 
 cel_android_library(
     name = "internal_android",
-    visibility = ["//visibility:public"],
+    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common/internal:internal_android"],
 )

@@ -13,7 +13,7 @@ java_library(
 
 cel_android_library(
     name = "ast_android",
-    visibility = ["//visibility:public"],
+    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common/ast:ast_android"],
 )
 
@@ -24,7 +24,7 @@ java_library(
 
 cel_android_library(
     name = "expr_converter_android",
-    visibility = ["//visibility:public"],
+    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common/ast:expr_converter_android"],
 )
 

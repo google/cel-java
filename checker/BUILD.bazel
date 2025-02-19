@@ -28,7 +28,7 @@ java_library(
 
 java_library(
     name = "type_provider_legacy_impl",
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = ["//checker/src/main/java/dev/cel/checker:type_provider_legacy_impl"],
 )
 
@@ -39,13 +39,13 @@ java_library(
 
 java_library(
     name = "checker_legacy_environment",
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = ["//checker/src/main/java/dev/cel/checker:checker_legacy_environment"],
 )
 
 java_library(
     name = "type_inferencer",
-    visibility = ["//visibility:public"],  # Planned for use in a new type-checker.
+    visibility = ["//:internal"],  # Planned for use in a new type-checker.
     exports = ["//checker/src/main/java/dev/cel/checker:type_inferencer"],
 )
 

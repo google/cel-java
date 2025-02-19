@@ -7,7 +7,7 @@ package(
 
 java_library(
     name = "parser",
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = ["//parser/src/main/java/dev/cel/parser"],
 )
 
@@ -38,7 +38,7 @@ java_library(
 
 java_library(
     name = "cel_g4_visitors",
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = ["//parser/src/main/java/dev/cel/parser/gen:cel_g4_visitors"],
 )
 

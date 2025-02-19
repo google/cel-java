@@ -24,7 +24,7 @@ java_library(
 
 java_library(
     name = "function_binding",
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = [
         "//runtime/src/main/java/dev/cel/runtime:function_binding",
     ],
@@ -32,7 +32,7 @@ java_library(
 
 java_library(
     name = "function_overload_impl",
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = [
         "//runtime/src/main/java/dev/cel/runtime:function_overload_impl",
     ],
@@ -50,31 +50,31 @@ java_library(
 
 java_library(
     name = "runtime_helpers",
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:runtime_helpers"],
 )
 
 java_library(
     name = "proto_message_runtime_helpers",
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:proto_message_runtime_helpers"],
 )
 
 java_library(
     name = "runtime_equality",
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:runtime_equality"],
 )
 
 java_library(
     name = "proto_message_runtime_equality",
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:proto_message_runtime_equality"],
 )
 
 java_library(
     name = "type_resolver",
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:type_resolver"],
 )
 

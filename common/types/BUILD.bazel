@@ -13,14 +13,14 @@ java_library(
 
 java_library(
     name = "cel_internal_types",
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = ["//common/src/main/java/dev/cel/common/types:cel_internal_types"],
 )
 
 java_library(
     name = "json",
     visibility = [
-        "//visibility:public",
+        "//:internal",
     ],
     exports = ["//common/src/main/java/dev/cel/common/types:json"],
 )
@@ -52,30 +52,30 @@ java_library(
 
 java_library(
     name = "cel_v1alpha1_types",
-    visibility = ["//visibility:public"],
+    visibility = ["//:internal"],
     exports = ["//common/src/main/java/dev/cel/common/types:cel_v1alpha1_types"],
 )
 
 cel_android_library(
     name = "cel_types_android",
-    visibility = ["//visibility:public"],
+    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common/types:cel_types_android"],
 )
 
 cel_android_library(
     name = "types_android",
-    visibility = ["//visibility:public"],
+    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common/types:types_android"],
 )
 
 cel_android_library(
     name = "type_providers_android",
-    visibility = ["//visibility:public"],
+    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common/types:type_providers_android"],
 )
 
 cel_android_library(
     name = "cel_proto_types_android",
-    visibility = ["//visibility:public"],
+    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common/types:cel_proto_types_android"],
 )

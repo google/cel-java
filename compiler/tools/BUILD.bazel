@@ -1,6 +1,6 @@
 package(
     default_applicable_licenses = ["//:license"],
-    default_visibility = ["//visibility:public"],
+    default_visibility = ["//:android_allow_list"],
 )
 
 alias(
