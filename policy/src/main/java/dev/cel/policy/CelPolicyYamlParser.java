@@ -15,18 +15,21 @@
 package dev.cel.policy;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static dev.cel.policy.YamlHelper.ERROR;
-import static dev.cel.policy.YamlHelper.assertRequiredFields;
-import static dev.cel.policy.YamlHelper.assertYamlType;
+import static dev.cel.common.formats.YamlHelper.ERROR;
+import static dev.cel.common.formats.YamlHelper.assertRequiredFields;
+import static dev.cel.common.formats.YamlHelper.assertYamlType;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelIssue;
+import dev.cel.common.formats.ParserContext;
+import dev.cel.common.formats.ValueString;
+import dev.cel.common.formats.YamlHelper;
+import dev.cel.common.formats.YamlHelper.YamlNodeType;
+import dev.cel.common.formats.YamlParserContextImpl;
 import dev.cel.common.internal.CelCodePointArray;
 import dev.cel.policy.CelPolicy.Match;
 import dev.cel.policy.CelPolicy.Match.Result;
 import dev.cel.policy.CelPolicy.Variable;
-import dev.cel.policy.ParserContext.PolicyParserContext;
-import dev.cel.policy.YamlHelper.YamlNodeType;
 import java.util.List;
 import java.util.Map;
 import org.yaml.snakeyaml.nodes.MappingNode;

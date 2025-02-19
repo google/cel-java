@@ -46,3 +46,72 @@ java_library(
         "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
+
+java_library(
+    name = "environment",
+    srcs = [
+        "CelEnvironment.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":environment_exception",
+        ":required_fields_checker",
+        "//:auto_value",
+        "//bundle:cel",
+        "//common:compiler_common",
+        "//common:options",
+        "//common:source",
+        "//common/types",
+        "//common/types:type_providers",
+        "//extensions",
+        "//extensions:optional_library",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "environment_exception",
+    srcs = [
+        "CelEnvironmentException.java",
+    ],
+    tags = [
+    ],
+    deps = ["//common:cel_exception"],
+)
+
+java_library(
+    name = "environment_yaml_parser",
+    srcs = [
+        "CelEnvironmentYamlParser.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":environment",
+        ":environment_exception",
+        "//common:compiler_common",
+        "//common/formats:file_source",
+        "//common/formats:parser_context",
+        "//common/formats:yaml_helper",
+        "//common/formats:yaml_parser_context_impl",
+        "//common/internal",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
+        "@maven//:org_yaml_snakeyaml",
+    ],
+)
+
+java_library(
+    name = "required_fields_checker",
+    srcs = [
+        "RequiredFieldsChecker.java",
+    ],
+    visibility = ["//visibility:private"],
+    deps = [
+        "//:auto_value",
+        "@maven//:com_google_guava_guava",
+    ],
+)
