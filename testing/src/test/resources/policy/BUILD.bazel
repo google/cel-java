@@ -10,5 +10,17 @@ package(
 
 filegroup(
     name = "policy_yaml_files",
-    srcs = glob(["**/*.yaml"]) + glob(["**/*.baseline"]),
+    srcs = glob([
+        "**/*.yaml",
+        "**/*.baseline",
+        "**/*.textproto",
+    ]),
+)
+
+exports_files(
+    srcs = glob([
+        "**/*.yaml",
+        "**/*.baseline",
+        "**/*.textproto",
+    ]),
 )
