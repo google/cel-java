@@ -14,7 +14,12 @@
 
 package dev.cel.policy;
 
-/** Public interface for parsing CEL policy sources. */
+/**
+ * Public interface for parsing CEL policy sources.
+ *
+ * @deprecated Use {@code CelEnvironmentYamlParser} instead.
+ */
+@Deprecated
 public interface CelPolicyConfigParser {
 
   /** Parsers the input {@code policyConfigSource} and returns a {@link CelPolicyConfig}. */

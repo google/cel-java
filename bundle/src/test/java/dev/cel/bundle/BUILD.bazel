@@ -9,9 +9,15 @@ java_library(
     name = "tests",
     testonly = True,
     srcs = glob(["*Test.java"]),
+    resources = [
+        "//testing/environment:environment_yaml_files",
+    ],
     deps = [
         "//:java_truth",
         "//bundle:cel",
+        "//bundle:environment",
+        "//bundle:environment_exception",
+        "//bundle:environment_yaml_parser",
         "//checker",
         "//checker:checker_legacy_environment",
         "//checker:proto_type_mask",
