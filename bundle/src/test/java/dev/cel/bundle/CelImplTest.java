@@ -65,6 +65,7 @@ import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
+import dev.cel.common.CelSourceLocation;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.CelVarDecl;
@@ -473,7 +474,10 @@ public final class CelImplTest {
     assertThat(syntaxErrorResult.hasError()).isTrue();
     assertThat(syntaxErrorResult.getErrors())
         .containsExactly(
-            CelIssue.formatError(1, 0, "undeclared reference to 'variable' (in container '')"));
+            CelIssue.formatError(
+                /* exprId= */ 1L,
+                CelSourceLocation.of(1, 0),
+                "undeclared reference to 'variable' (in container '')"));
     assertThat(syntaxErrorResult.getErrorString())
         .isEqualTo(
             "ERROR: <input>:1:1: undeclared reference to 'variable' (in container '')\n"
