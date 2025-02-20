@@ -12,15 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.policy;
+package dev.cel.common.formats;
 
-import static dev.cel.policy.YamlHelper.ERROR;
-import static dev.cel.policy.YamlHelper.assertYamlType;
+import static dev.cel.common.formats.YamlHelper.ERROR;
+import static dev.cel.common.formats.YamlHelper.assertYamlType;
 
 import com.google.common.base.Strings;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelSourceLocation;
-import dev.cel.policy.YamlHelper.YamlNodeType;
+import dev.cel.common.Source;
+import dev.cel.common.annotations.Internal;
+import dev.cel.common.formats.YamlHelper.YamlNodeType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,13 +32,18 @@ import org.yaml.snakeyaml.DumperOptions.ScalarStyle;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 
-/** Package-private class to assist with storing policy parsing context. */
-final class YamlParserContextImpl implements ParserContext<Node> {
+/**
+ * Class to assist with storing generic configuration parsing context.
+ *
+ * <p>CEL Library Internals. Do not use.
+ */
+@Internal
+public final class YamlParserContextImpl implements ParserContext<Node> {
 
   private final ArrayList<CelIssue> issues;
   private final HashMap<Long, CelSourceLocation> idToLocationMap;
   private final HashMap<Long, Integer> idToOffsetMap;
-  private final CelPolicySource policySource;
+  private final Source policySource;
   private long id;
 
   @Override
@@ -137,11 +144,11 @@ final class YamlParserContextImpl implements ParserContext<Node> {
     return ++id;
   }
 
-  static ParserContext<Node> newInstance(CelPolicySource source) {
+  public static ParserContext<Node> newInstance(Source source) {
     return new YamlParserContextImpl(source);
   }
 
-  private YamlParserContextImpl(CelPolicySource source) {
+  private YamlParserContextImpl(Source source) {
     this.issues = new ArrayList<>();
     this.idToLocationMap = new HashMap<>();
     this.idToOffsetMap = new HashMap<>();

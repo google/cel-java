@@ -1,0 +1,14 @@
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_testonly = True,
+    default_visibility = [
+        "//testing/environment:__pkg__",
+    ],
+)
+
+filegroup(
+    name = "environment_yaml_files",
+    srcs = glob(["**/*.yaml"]),
+)

@@ -17,8 +17,8 @@ java_library(
     deps = [
         ":required_fields_checker",
         ":source",
-        ":value_string",
         "//:auto_value",
+        "//common/formats:value_string",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
@@ -107,16 +107,17 @@ java_library(
         "CelPolicyYamlParser.java",
     ],
     deps = [
-        ":common_internal",
         ":parser",
         ":parser_builder",
-        ":parser_context",
         ":policy",
+        ":policy_parser_context",
         ":source",
         ":validation_exception",
-        ":value_string",
-        ":yaml_helper",
         "//common:compiler_common",
+        "//common/formats:parser_context",
+        "//common/formats:value_string",
+        "//common/formats:yaml_helper",
+        "//common/formats:yaml_parser_context_impl",
         "//common/internal",
         "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",
@@ -131,8 +132,8 @@ java_library(
     tags = [
     ],
     deps = [
-        ":parser_context",
         ":policy",
+        ":policy_parser_context",
         ":validation_exception",
     ],
 )
@@ -196,28 +197,15 @@ java_library(
 )
 
 java_library(
-    name = "value_string",
+    name = "policy_parser_context",
     srcs = [
-        "ValueString.java",
-    ],
-    tags = [
-    ],
-    deps = [
-        "//:auto_value",
-    ],
-)
-
-java_library(
-    name = "parser_context",
-    srcs = [
-        "ParserContext.java",
+        "PolicyParserContext.java",
     ],
     tags = [
     ],
     deps = [
         ":policy",
-        ":value_string",
-        "//common:compiler_common",
+        "//common/formats:parser_context",
     ],
 )
 
@@ -225,12 +213,12 @@ java_library(
     name = "compiled_rule",
     srcs = ["CelCompiledRule.java"],
     deps = [
-        ":value_string",
         "//:auto_value",
         "//bundle:cel",
         "//common",
         "//common:compiler_common",
         "//common/ast",
+        "//common/formats:value_string",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
@@ -250,12 +238,12 @@ java_library(
         ":rule_composer",
         ":source",
         ":validation_exception",
-        ":value_string",
         "//bundle:cel",
         "//common",
         "//common:compiler_common",
         "//common:source_location",
         "//common/ast",
+        "//common/formats:value_string",
         "//common/types",
         "//common/types:type_providers",
         "//optimizer",
@@ -289,14 +277,14 @@ java_library(
     ],
     visibility = ["//visibility:private"],
     deps = [
-        ":common_internal",
         ":config",
         ":config_parser",
-        ":parser_context",
         ":source",
         ":validation_exception",
-        ":yaml_helper",
         "//common:compiler_common",
+        "//common/formats:parser_context",
+        "//common/formats:yaml_helper",
+        "//common/formats:yaml_parser_context_impl",
         "//common/internal",
         "@maven//:com_google_guava_guava",
         "@maven//:org_yaml_snakeyaml",
@@ -314,45 +302,12 @@ java_library(
         "//common",
         "//common:compiler_common",
         "//common:mutable_ast",
+        "//common/formats:value_string",
         "//extensions:optional_library",
         "//optimizer:ast_optimizer",
         "//optimizer:mutable_ast",
         "//parser:operator",
-        "//policy:value_string",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-    ],
-)
-
-java_library(
-    name = "common_internal",
-    srcs = [
-        "YamlParserContextImpl.java",
-    ],
-    visibility = ["//visibility:private"],
-    deps = [
-        ":parser_context",
-        ":source",
-        ":value_string",
-        ":yaml_helper",
-        "//common",
-        "//common:compiler_common",
-        "//common:source_location",
-        "@maven//:com_google_guava_guava",
-        "@maven//:org_yaml_snakeyaml",
-    ],
-)
-
-java_library(
-    name = "yaml_helper",
-    srcs = [
-        "YamlHelper.java",
-    ],
-    tags = [
-    ],
-    deps = [
-        ":parser_context",
-        "@maven//:com_google_guava_guava",
-        "@maven//:org_yaml_snakeyaml",
     ],
 )
