@@ -35,6 +35,7 @@ import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeType;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -49,6 +50,7 @@ public final class ExprValueUtils {
   public static final TypeRegistry DEFAULT_TYPE_REGISTRY = newDefaultTypeRegistry();
   public static final ExtensionRegistry DEFAULT_EXTENSION_REGISTRY = newDefaultExtensionRegistry();
 
+  // TODO: Add support for user provided extensions.
   private static ExtensionRegistry newDefaultExtensionRegistry() {
     ExtensionRegistry extensionRegistry = ExtensionRegistry.newInstance();
     dev.cel.expr.conformance.proto2.TestAllTypesExtensions.registerAllExtensions(extensionRegistry);
@@ -71,9 +73,9 @@ public final class ExprValueUtils {
    *
    * @param value The {@link Value} to convert.
    * @return The converted Java object.
-   * @throws Exception If the value type is unsupported or if there's an error during conversion.
+   * @throws IOException If there's an error during conversion.
    */
-  public static Object fromValue(Value value) throws Exception {
+  public static Object fromValue(Value value) throws IOException {
     switch (value.getKindCase()) {
       case NULL_VALUE:
         return value.getNullValue();
