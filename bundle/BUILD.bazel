@@ -9,3 +9,21 @@ java_library(
     name = "cel",
     exports = ["//bundle/src/main/java/dev/cel/bundle:cel"],
 )
+
+java_library(
+    name = "environment",
+    visibility = ["//visibility:public"],
+    exports = ["//bundle/src/main/java/dev/cel/bundle:environment"],
+)
+
+java_library(
+    name = "environment_exception",
+    visibility = ["//visibility:public"],
+    exports = ["//bundle/src/main/java/dev/cel/bundle:environment_exception"],
+)
+
+java_library(
+    name = "environment_yaml_parser",
+    visibility = ["//visibility:public"],
+    exports = ["//bundle/src/main/java/dev/cel/bundle:environment_yaml_parser"],
+)

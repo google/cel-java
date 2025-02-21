@@ -30,7 +30,10 @@ public final class CelPolicyParserFactory {
   /**
    * Configure a builder to construct a {@link CelPolicyConfigParser} instance that takes in a YAML
    * document.
+   *
+   * @deprecated Use {@code CelEnvironmentYamlParser} instead.
    */
+  @Deprecated
   public static CelPolicyConfigParser newYamlConfigParser() {
     return CelPolicyYamlConfigParser.newInstance();
   }
