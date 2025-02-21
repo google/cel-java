@@ -517,7 +517,11 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
             e -> {
               Errors.SourceLocation loc = errors.getPositionLocation(e.position());
               CelSourceLocation newLoc = CelSourceLocation.of(loc.line(), loc.column() - 1);
-              return issueBuilder.setMessage(e.rawMessage()).setSourceLocation(newLoc).build();
+              return issueBuilder
+                  .setExprId(e.exprId())
+                  .setMessage(e.rawMessage())
+                  .setSourceLocation(newLoc)
+                  .build();
             })
         .collect(toImmutableList());
   }
