@@ -1,0 +1,34 @@
+# proto-file: google3/google/api/expr/conformance/test_suite.proto
+# proto-message: google.api.expr.conformance.TestSuite
+
+# This testcase is used to test the eval error output in the test runner which
+# fails because the function is declared in the compiler but not in the runtime.
+
+description: "Nested rule conformance tests with eval errors"
+
+sections {
+  name: "permitted"
+  tests {
+    name: "valid_origin"
+    input {
+      key: "resource"
+      value {
+        expr_value {
+          object_value {
+            [type.googleapis.com/google.protobuf.Struct] {
+              fields {
+                key: "origin"
+                value { string_value: "uk" }
+              }
+            }
+          }
+        }
+      }
+    }
+    eval_error {
+      errors {
+        message: "evaluation error: No matching overload for function 'foo'. Overload candidates: foo"
+      }
+    }
+  }
+}
