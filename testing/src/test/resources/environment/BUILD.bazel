@@ -1,0 +1,19 @@
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_testonly = True,
+    default_visibility = [
+        "//testing/environment:__pkg__",
+    ],
+)
+
+filegroup(
+    name = "extended_env",
+    srcs = ["extended_env.yaml"],
+)
+
+filegroup(
+    name = "all_extensions",
+    srcs = ["all_extensions.yaml"],
+)

@@ -17,15 +17,18 @@ package dev.cel.compiler.tools;
 import static com.google.common.truth.Truth.assertThat;
 
 import dev.cel.expr.CheckedExpr;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import com.google.protobuf.ExtensionRegistryLite;
+import com.google.protobuf.StringValue;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
-import dev.cel.expr.conformance.proto2.TestAllTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeFactory;
 import java.net.URL;
 import java.util.List;
@@ -37,6 +40,8 @@ import org.junit.runners.JUnit4;
 public class CelCompilerToolTest {
   private static final CelRuntime CEL_RUNTIME =
       CelRuntimeFactory.standardCelRuntimeBuilder()
+          .addFunctionBindings(
+              CelFunctionBinding.from("wrapper_string_isEmpty", String.class, String::isEmpty))
           .addLibraries(
               CelExtensions.encoders(),
               CelExtensions.math(CelOptions.DEFAULT),
@@ -76,6 +81,24 @@ public class CelCompilerToolTest {
     CelAbstractSyntaxTree ast = readCheckedExpr("compiled_extensions");
 
     assertThat(CEL_RUNTIME.createProgram(ast).eval()).isEqualTo(true);
+  }
+
+  @Test
+  public void compiledCheckedExpr_extended_env() throws Exception {
+    CelAbstractSyntaxTree ast = readCheckedExpr("compiled_extended_env");
+
+    boolean result =
+        (boolean)
+            CEL_RUNTIME
+                .createProgram(ast)
+                .eval(
+                    ImmutableMap.of(
+                        "msg",
+                        TestAllTypes.newBuilder()
+                            .setSingleStringWrapper(StringValue.of("foo"))
+                            .build()));
+
+    assertThat(result).isTrue();
   }
 
   private static CelAbstractSyntaxTree readCheckedExpr(String compiledCelTarget) throws Exception {

@@ -1,0 +1,15 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+    default_visibility = ["//:internal"],
+)
+
+alias(
+    name = "extended_env",
+    actual = "//testing/src/test/resources/environment:extended_env",
+)
+
+alias(
+    name = "all_extensions",
+    actual = "//testing/src/test/resources/environment:all_extensions",
+)

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.policy;
+package dev.cel.common.formats;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
@@ -29,7 +29,7 @@ import org.yaml.snakeyaml.nodes.ScalarNode;
 
 /** Helper class for parsing YAML. */
 public final class YamlHelper {
-  static final String ERROR = "*error*";
+  public static final String ERROR = "*error*";
 
   /** Enum for YAML node types. */
   public enum YamlNodeType {
@@ -69,12 +69,12 @@ public final class YamlHelper {
     return false;
   }
 
-  static Optional<Node> parseYamlSource(String policyContent) {
+  public static Optional<Node> parseYamlSource(String policyContent) {
     Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
     return Optional.ofNullable(yaml.compose(new StringReader(policyContent)));
   }
 
-  static boolean assertRequiredFields(
+  public static boolean assertRequiredFields(
       ParserContext<Node> ctx, long id, List<String> missingRequiredFields) {
     if (missingRequiredFields.isEmpty()) {
       return true;
@@ -87,7 +87,7 @@ public final class YamlHelper {
     return false;
   }
 
-  static boolean validateYamlType(Node node, YamlNodeType... expectedNodeTypes) {
+  public static boolean validateYamlType(Node node, YamlNodeType... expectedNodeTypes) {
     String nodeTag = node.getTag().getValue();
     for (YamlNodeType expectedNodeType : expectedNodeTypes) {
       if (expectedNodeType.tag().equals(nodeTag)) {
@@ -97,7 +97,7 @@ public final class YamlHelper {
     return false;
   }
 
-  static Integer newInteger(ParserContext<Node> ctx, Node node) {
+  public static Integer newInteger(ParserContext<Node> ctx, Node node) {
     long id = ctx.collectMetadata(node);
     if (!assertYamlType(ctx, id, node, YamlNodeType.INTEGER)) {
       return 0;
@@ -106,7 +106,7 @@ public final class YamlHelper {
     return Integer.parseInt(((ScalarNode) node).getValue());
   }
 
-  static boolean newBoolean(ParserContext<Node> ctx, Node node) {
+  public static boolean newBoolean(ParserContext<Node> ctx, Node node) {
     long id = ctx.collectMetadata(node);
     if (!assertYamlType(ctx, id, node, YamlNodeType.BOOLEAN)) {
       return false;
@@ -115,7 +115,7 @@ public final class YamlHelper {
     return Boolean.parseBoolean(((ScalarNode) node).getValue());
   }
 
-  static String newString(ParserContext<Node> ctx, Node node) {
+  public static String newString(ParserContext<Node> ctx, Node node) {
     return ctx.newValueString(node).value();
   }
 
