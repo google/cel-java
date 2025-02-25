@@ -42,7 +42,7 @@ import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelMacroExprFactory;
 import dev.cel.parser.CelParserBuilder;
 import dev.cel.parser.Operator;
-import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
 import java.util.Collection;
@@ -174,8 +174,8 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
   @SuppressWarnings("unchecked")
   public void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder) {
     runtimeBuilder.addFunctionBindings(
-        CelRuntime.CelFunctionBinding.from("optional_of", Object.class, Optional::of),
-        CelRuntime.CelFunctionBinding.from(
+        CelFunctionBinding.from("optional_of", Object.class, Optional::of),
+        CelFunctionBinding.from(
             "optional_ofNonZeroValue",
             Object.class,
             val -> {
@@ -184,13 +184,11 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
               }
               return Optional.of(val);
             }),
-        CelRuntime.CelFunctionBinding.from(
+        CelFunctionBinding.from(
             "optional_unwrap_list", Collection.class, CelOptionalLibrary::elideOptionalCollection),
-        CelRuntime.CelFunctionBinding.from(
-            "optional_none", ImmutableList.of(), val -> Optional.empty()),
-        CelRuntime.CelFunctionBinding.from(
-            "optional_value", Object.class, val -> ((Optional<?>) val).get()),
-        CelRuntime.CelFunctionBinding.from(
+        CelFunctionBinding.from("optional_none", ImmutableList.of(), val -> Optional.empty()),
+        CelFunctionBinding.from("optional_value", Object.class, val -> ((Optional<?>) val).get()),
+        CelFunctionBinding.from(
             "optional_hasValue", Object.class, val -> ((Optional<?>) val).isPresent()));
   }
 

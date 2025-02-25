@@ -24,7 +24,6 @@ java_library(
 
 java_library(
     name = "function_binding",
-    visibility = ["//:internal"],
     exports = [
         "//runtime/src/main/java/dev/cel/runtime:function_binding",
     ],
