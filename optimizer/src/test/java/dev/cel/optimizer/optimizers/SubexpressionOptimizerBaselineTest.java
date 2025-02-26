@@ -41,7 +41,7 @@ import dev.cel.optimizer.optimizers.SubexpressionOptimizer.SubexpressionOptimize
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparser;
 import dev.cel.parser.CelUnparserFactory;
-import dev.cel.runtime.CelRuntime.CelFunctionBinding;
+import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.testing.BaselineTestCase;
 import java.util.Optional;
 import org.junit.Before;

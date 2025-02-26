@@ -24,8 +24,7 @@ import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.compiler.CelCompilerLibrary;
-import dev.cel.runtime.CelRuntime;
-import dev.cel.runtime.CelRuntime.CelFunctionBinding;
+import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
 import java.util.Collection;
@@ -53,9 +52,8 @@ final class CelListsExtensions implements CelCompilerLibrary, CelRuntimeLibrary 
                 ListType.create(SimpleType.DYN),
                 ListType.create(SimpleType.DYN),
                 SimpleType.INT)),
-        CelRuntime.CelFunctionBinding.from(
-            "list_flatten", Collection.class, list -> flatten(list, 1)),
-        CelRuntime.CelFunctionBinding.from(
+        CelFunctionBinding.from("list_flatten", Collection.class, list -> flatten(list, 1)),
+        CelFunctionBinding.from(
             "list_flatten_list_int", Collection.class, Long.class, CelListsExtensions::flatten));
 
     private final CelFunctionDecl functionDecl;
@@ -65,7 +63,7 @@ final class CelListsExtensions implements CelCompilerLibrary, CelRuntimeLibrary 
       return functionDecl.name();
     }
 
-    Function(CelFunctionDecl functionDecl, CelRuntime.CelFunctionBinding... functionBindings) {
+    Function(CelFunctionDecl functionDecl, CelFunctionBinding... functionBindings) {
       this.functionDecl = functionDecl;
       this.functionBindings = ImmutableSet.copyOf(functionBindings);
     }

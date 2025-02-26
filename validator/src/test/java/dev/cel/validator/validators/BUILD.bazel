@@ -17,6 +17,7 @@ java_library(
         "//common/types",
         "//extensions:optional_library",
         "//runtime",
+        "//runtime:function_binding",
         "//validator",
         "//validator:validator_builder",
         "//validator/validators:ast_depth_limit_validator",

@@ -28,8 +28,8 @@ import dev.cel.common.types.TypeParamType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime;
-import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeFactory;
 import java.util.Map;
 

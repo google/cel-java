@@ -39,6 +39,7 @@ java_library(
         "//parser:macro",
         "//parser:parser_builder",
         "//runtime",
+        "//runtime:function_binding",
         "@cel_spec//proto/cel/expr:checked_java_proto",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",

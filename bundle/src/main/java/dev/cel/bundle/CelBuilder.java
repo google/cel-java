@@ -33,7 +33,7 @@ import dev.cel.common.values.CelValueProvider;
 import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelStandardMacro;
-import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeLibrary;
 import java.util.function.Function;
 
@@ -144,20 +144,20 @@ public interface CelBuilder {
   CelBuilder addProtoTypeMasks(Iterable<ProtoTypeMask> typeMasks);
 
   /**
-   * Add one or more {@link CelRuntime.CelFunctionBinding} objects to the CEL runtime.
+   * Add one or more {@link CelFunctionBinding} objects to the CEL runtime.
    *
    * <p>Functions with duplicate overload ids will be replaced in favor of the new overload.
    */
   @CanIgnoreReturnValue
-  CelBuilder addFunctionBindings(CelRuntime.CelFunctionBinding... bindings);
+  CelBuilder addFunctionBindings(CelFunctionBinding... bindings);
 
   /**
-   * Bind a collection of {@link CelRuntime.CelFunctionBinding} objects to the runtime.
+   * Bind a collection of {@link CelFunctionBinding} objects to the runtime.
    *
    * <p>Functions with duplicate overload ids will be replaced in favor of the new overload.
    */
   @CanIgnoreReturnValue
-  CelBuilder addFunctionBindings(Iterable<CelRuntime.CelFunctionBinding> bindings);
+  CelBuilder addFunctionBindings(Iterable<CelFunctionBinding> bindings);
 
   /** Set the expected {@code resultType} for the type-checked expression. */
   @CanIgnoreReturnValue

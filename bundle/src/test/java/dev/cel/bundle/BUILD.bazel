@@ -34,6 +34,7 @@ java_library(
         "//parser:macro",
         "//runtime",
         "//runtime:evaluation_exception_builder",
+        "//runtime:function_binding",
         "//runtime:unknown_attributes",
         "@cel_spec//proto/cel/expr:checked_java_proto",
         "@cel_spec//proto/cel/expr:syntax_java_proto",

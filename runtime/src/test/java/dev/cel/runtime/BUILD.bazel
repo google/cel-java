@@ -43,6 +43,7 @@ java_library(
         "//runtime",
         "//runtime:evaluation_exception_builder",
         "//runtime:evaluation_listener",
+        "//runtime:function_binding",
         "//runtime:function_overload_impl",
         "//runtime:interpreter",
         "//runtime:proto_message_runtime_equality",
