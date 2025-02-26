@@ -51,19 +51,31 @@ public abstract class CelIssue {
 
   public abstract String getMessage();
 
+  public abstract long getExprId();
+
   public static Builder newBuilder() {
     return new AutoValue_CelIssue.Builder();
+  }
+
+  /**
+   * Build {@link CelIssue} from the given expression id, {@link CelSourceLocation}, format string,
+   * and arguments.
+   */
+  public static CelIssue formatError(
+      long exprId, CelSourceLocation sourceLocation, String message) {
+    return newBuilder()
+        .setExprId(exprId)
+        .setSeverity(Severity.ERROR)
+        .setSourceLocation(sourceLocation)
+        .setMessage(message)
+        .build();
   }
 
   /**
    * Build {@link CelIssue} from the given {@link CelSourceLocation}, format string, and arguments.
    */
   public static CelIssue formatError(CelSourceLocation sourceLocation, String message) {
-    return newBuilder()
-        .setSeverity(Severity.ERROR)
-        .setSourceLocation(sourceLocation)
-        .setMessage(message)
-        .build();
+    return formatError(0L, sourceLocation, message);
   }
 
   /** Build {@link CelIssue} from the given line, column, format string, and arguments. */
@@ -136,6 +148,8 @@ public abstract class CelIssue {
     public abstract Builder setSourceLocation(CelSourceLocation location);
 
     public abstract Builder setMessage(String message);
+
+    public abstract Builder setExprId(long exprId);
 
     @CheckReturnValue
     public abstract CelIssue build();

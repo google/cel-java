@@ -18,13 +18,26 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import dev.cel.common.CelIssue;
+import dev.cel.common.CelIssue.Severity;
 import dev.cel.common.CelSource;
+import dev.cel.common.CelSourceLocation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public final class CelIssueTest {
+
+  @Test
+  public void formatError_withExprId() {
+    CelIssue celIssue = CelIssue.formatError(1L, CelSourceLocation.of(2, 3), "Error message");
+
+    assertThat(celIssue.getExprId()).isEqualTo(1L);
+    assertThat(celIssue.getSourceLocation().getLine()).isEqualTo(2);
+    assertThat(celIssue.getSourceLocation().getColumn()).isEqualTo(3);
+    assertThat(celIssue.getSeverity()).isEqualTo(Severity.ERROR);
+    assertThat(celIssue.getMessage()).isEqualTo("Error message");
+  }
 
   @Test
   public void toDisplayString_narrow() throws Exception {

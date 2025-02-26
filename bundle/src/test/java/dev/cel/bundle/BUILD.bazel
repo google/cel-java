@@ -26,6 +26,7 @@ java_library(
         "//common:error_codes",
         "//common:options",
         "//common:proto_ast",
+        "//common:source_location",
         "//common/ast",
         "//common/resources/testdata/proto3:standalone_global_enum_java_proto",
         "//common/testing",

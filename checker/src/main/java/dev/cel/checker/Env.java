@@ -490,10 +490,11 @@ public class Env {
    * Lookup a name like {@link #tryLookupCelIdent}, but report an error if the name is not found and
    * return the {@link #ERROR_IDENT_DECL}.
    */
-  public CelIdentDecl lookupIdent(int position, String inContainer, String name) {
+  public CelIdentDecl lookupIdent(long exprId, int position, String inContainer, String name) {
     CelIdentDecl result = tryLookupCelIdent(inContainer, name);
     if (result == null) {
-      reportError(position, "undeclared reference to '%s' (in container '%s')", name, inContainer);
+      reportError(
+          exprId, position, "undeclared reference to '%s' (in container '%s')", name, inContainer);
       return ERROR_IDENT_DECL;
     }
     return result;
@@ -503,18 +504,30 @@ public class Env {
    * Lookup a name like {@link #tryLookupCelFunction} but report an error if the name is not found
    * and return the {@link #ERROR_FUNCTION_DECL}.
    */
-  public CelFunctionDecl lookupFunction(int position, String inContainer, String name) {
+  public CelFunctionDecl lookupFunction(
+      long exprId, int position, String inContainer, String name) {
     CelFunctionDecl result = tryLookupCelFunction(inContainer, name);
     if (result == null) {
-      reportError(position, "undeclared reference to '%s' (in container '%s')", name, inContainer);
+      reportError(
+          exprId, position, "undeclared reference to '%s' (in container '%s')", name, inContainer);
       return ERROR_FUNCTION_DECL;
     }
     return result;
   }
 
-  /** Reports an error. */
+  /**
+   * Note: Used by codegen
+   *
+   * @deprecated Use {@link #reportError(long, int, String, Object...) instead.}
+   */
+  @Deprecated
   public void reportError(int position, String message, Object... args) {
-    errors.reportError(position, message, args);
+    reportError(0L, position, message, args);
+  }
+
+  /** Reports an error. */
+  public void reportError(long exprId, int position, String message, Object... args) {
+    errors.reportError(exprId, position, message, args);
   }
 
   boolean enableCompileTimeOverloadResolution() {
@@ -549,7 +562,8 @@ public class Env {
       getDeclGroup().putIdent(celIdentDecl);
     } else {
       reportError(
-          0,
+          /* exprId= */ 0,
+          /* position= */ 0,
           "overlapping declaration name '%s' (type '%s' cannot be distinguished from '%s')",
           celIdentDecl.name(),
           CelTypes.format(current.type()),
@@ -595,7 +609,8 @@ public class Env {
               || Types.isAssignable(emptySubs, existingTypeErased, overloadTypeErased) != null;
       if (overlap && existing.isInstanceFunction() == overload.isInstanceFunction()) {
         reportError(
-            0,
+            /* exprId= */ 0,
+            /* position= */ 0,
             "overlapping overload for name '%s' (type '%s' cannot be distinguished from '%s')",
             builder.name(),
             CelTypes.format(existingFunction),
@@ -610,7 +625,8 @@ public class Env {
           && macro.getDefinition().isReceiverStyle() == overload.isInstanceFunction()
           && macro.getDefinition().getArgumentCount() == overload.parameterTypes().size()) {
         reportError(
-            0,
+            /* exprId= */ 0,
+            /* position= */ 0,
             "overload for name '%s' with %s argument(s) overlaps with predefined macro",
             builder.name(),
             macro.getDefinition().getArgumentCount());

@@ -62,6 +62,7 @@ public interface CelAstValidator {
       }
       issuesBuilder.add(
           CelIssue.newBuilder()
+              .setExprId(exprId)
               .setSeverity(severity)
               .setMessage(message)
               .setSourceLocation(sourceLocation)

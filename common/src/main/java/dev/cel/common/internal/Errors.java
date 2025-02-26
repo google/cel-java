@@ -137,8 +137,10 @@ public final class Errors {
     private final Context context;
     private final int position;
     private final String message;
+    private final long exprId;
 
-    private Error(Context context, int position, String message) {
+    private Error(long exprId, Context context, int position, String message) {
+      this.exprId = exprId;
       this.context = context;
       this.position = position;
       this.message = message;
@@ -152,6 +154,14 @@ public final class Errors {
     /** Returns the raw error message without the container or line number. */
     public String rawMessage() {
       return message;
+    }
+
+    /**
+     * Returns the expression ID associated with this error. May return 0 if the error is not caused
+     * by an expression (ex: environment misconfiguration).
+     */
+    public long exprId() {
+      return exprId;
     }
 
     /** Formats the error into a string which indicates where it occurs within the expression. */
@@ -278,13 +288,23 @@ public final class Errors {
     return Joiner.on(NEWLINE).join(errors);
   }
 
+  /**
+   * Note: Used by codegen
+   *
+   * @deprecated Use {@link #reportError(long, int, String, Object...) instead}
+   */
+  @Deprecated
+  public void reportError(int position, String message, Object... args) {
+    reportError(0L, position, message, args);
+  }
+
   /** Reports an error. */
   // TODO: Consider adding @FormatMethod here and updating all upstream callers.
-  public void reportError(int position, String message, Object... args) {
+  public void reportError(long exprId, int position, String message, Object... args) {
     if (args.length > 0) {
       message = String.format(message, args);
     }
-    errors.add(new Error(context.peekFirst(), position, message));
+    errors.add(new Error(exprId, context.peekFirst(), position, message));
   }
 
   /**
