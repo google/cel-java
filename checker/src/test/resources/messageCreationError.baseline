@@ -1,0 +1,41 @@
+Source: x{foo: 1}
+declare x {
+  value int
+}
+=====>
+ERROR: test_location:1:2: 'int' is not a type
+ | x{foo: 1}
+ | .^
+ERROR: test_location:1:6: Message type resolution failure while referencing field 'foo'.
+ | x{foo: 1}
+ | .....^
+
+Source: y{foo: 1}
+declare x {
+  value int
+}
+declare y {
+  value type(int)
+}
+=====>
+ERROR: test_location:1:2: 'int' is not a message type
+ | y{foo: 1}
+ | .^
+ERROR: test_location:1:6: Message type resolution failure while referencing field 'foo'.
+ | y{foo: 1}
+ | .....^
+
+Source: z{foo: 1}
+declare x {
+  value int
+}
+declare y {
+  value type(int)
+}
+declare z {
+  value type(msg_without_descriptor)
+}
+=====>
+ERROR: test_location:1:6: Message type resolution failure while referencing field 'foo'. Ensure that the descriptor for type 'msg_without_descriptor' was added to the environment
+ | z{foo: 1}
+ | .....^

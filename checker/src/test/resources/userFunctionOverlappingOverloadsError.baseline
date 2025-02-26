@@ -1,0 +1,9 @@
+Source: func(1)
+declare func {
+  function overlapping_overload_1 int.() -> int
+  function overlapping_overload_2 int.() -> int
+}
+=====>
+ERROR: test_location:1:1: overlapping overload for name 'func' (type '(int) -> int' cannot be distinguished from '(int) -> int')
+ | func(1)
+ | ^

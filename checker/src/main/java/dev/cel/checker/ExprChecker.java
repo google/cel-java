@@ -778,13 +778,14 @@ public final class ExprChecker {
     } else {
       // Proto message was added as a variable to the environment but the descriptor was not
       // provided
-      env.reportError(
-          exprId,
-          position,
-          "Message type resolution failure while referencing field '%s'. Ensure that the descriptor"
-              + " for type '%s' was added to the environment",
-          fieldName,
-          typeName);
+      String errorMessage =
+          String.format("Message type resolution failure while referencing field '%s'.", fieldName);
+      if (type.kind().equals(CelKind.STRUCT)) {
+        errorMessage +=
+            String.format(
+                " Ensure that the descriptor for type '%s' was added to the environment", typeName);
+      }
+      env.reportError(exprId, position, errorMessage, fieldName, typeName);
     }
     return ERROR;
   }

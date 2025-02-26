@@ -212,6 +212,22 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   }
 
   @Test
+  public void messageCreationError() throws Exception {
+    declareVariable("x", CelProtoTypes.INT64);
+    source = "x{foo: 1}";
+    runTest();
+
+    declareVariable("y", CelProtoTypes.create(CelProtoTypes.INT64));
+    source = "y{foo: 1}";
+    runTest();
+
+    declareVariable(
+        "z", CelProtoTypes.create(CelProtoTypes.createMessage("msg_without_descriptor")));
+    source = "z{foo: 1}";
+    runTest();
+  }
+
+  @Test
   public void messageFieldSelectError() throws Exception {
     declareVariable("x", createMessage("cel.expr.conformance.proto3.TestAllTypes"));
     source = "x.single_nested_message.undefined == x.undefined";
@@ -393,6 +409,18 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     runTest();
 
     source = "1 in dyn([1, 2, 3])";
+    runTest();
+  }
+
+  @Test
+  public void userFunctionOverlappingOverloadsError() throws Exception {
+    declareFunction(
+        "func",
+        memberOverload(
+            "overlapping_overload_1", ImmutableList.of(CelProtoTypes.INT64), CelProtoTypes.INT64),
+        memberOverload(
+            "overlapping_overload_2", ImmutableList.of(CelProtoTypes.INT64), CelProtoTypes.INT64));
+    source = "func(1)";
     runTest();
   }
 
