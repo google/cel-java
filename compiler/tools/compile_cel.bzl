@@ -20,23 +20,28 @@ def compile_cel(
         name,
         expression,
         proto_srcs = [],
+        environment = None,
         output = None):
-    """Compiles a CEL expression, generating a cel.expr.ChecekdExpr proto. This proto is written to a `.binarypb` file.
+    """Compiles a CEL expression, generating a cel.expr.CheckedExpr proto. This proto is written to a `.binarypb` file.
 
     Args:
           name: str name for the generated artifact
           expression: str CEL expression to compile
           proto_srcs: (optional) list of str label(s) pointing to a proto_library rule (important: NOT java_proto_library). This must be provided when compiling a CEL expression containing protobuf messages.
+          environment: (optional) str label or filename pointing to a YAML file that describes a CEL environment.
           output: (optional) str file name for the output checked expression. `.binarypb` extension is automatically appended in the filename.
     """
+
+    args = []
+    genrule_srcs = []
+
+    args.append("--cel_expression \"%s\" " % expression)
 
     if output == None:
         output = name
 
     output = output + ".binarypb"
-
-    transitive_descriptor_set_flag = ""
-    genrule_srcs = []
+    args.append("--output $(location %s) " % output)
 
     if len(proto_srcs) > 0:
         transitive_descriptor_set_name = "%s_transitive_descriptor_set" % name
@@ -44,14 +49,17 @@ def compile_cel(
             name = transitive_descriptor_set_name,
             deps = proto_srcs,
         )
-        transitive_descriptor_set_flag = "--transitive_descriptor_set $(location %s) " % transitive_descriptor_set_name
+        args.append("--transitive_descriptor_set $(location %s) " % transitive_descriptor_set_name)
         genrule_srcs.append(transitive_descriptor_set_name)
 
+    if environment != None:
+        args.append("--environment_path=$(location {})".format(environment))
+        genrule_srcs.append(environment)
+
+    arg_str = " ".join(args)
     cmd = (
         "$(location //compiler/tools:cel_compiler_tool) " +
-        "--cel_expression \"%s\" " % expression +
-        transitive_descriptor_set_flag +
-        "--output $(location %s) " % output
+        arg_str
     )
 
     native.genrule(

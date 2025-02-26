@@ -20,6 +20,7 @@ import static org.junit.Assert.assertThrows;
 import com.google.common.collect.Iterables;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.common.formats.ValueString;
 import dev.cel.policy.PolicyTestHelper.K8sTagHandler;
 import dev.cel.policy.PolicyTestHelper.TestYamlPolicy;
 import org.junit.Test;

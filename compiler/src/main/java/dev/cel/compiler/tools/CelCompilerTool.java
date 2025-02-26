@@ -20,22 +20,24 @@ import com.google.common.io.Files;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
+import dev.cel.bundle.CelEnvironment;
+import dev.cel.bundle.CelEnvironmentException;
+import dev.cel.bundle.CelEnvironmentYamlParser;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
-import dev.cel.common.CelValidationException;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerFactory;
-import dev.cel.extensions.CelExtensions;
-import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.parser.CelStandardMacro;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
@@ -52,6 +54,11 @@ final class CelCompilerTool implements Callable<Integer> {
   private String celExpression = "";
 
   @Option(
+      names = {"--environment_path"},
+      description = "Path to the CEL environment (in YAML)")
+  private String celEnvironmentPath = "";
+
+  @Option(
       names = {"--transitive_descriptor_set"},
       description = "Path to the transitive set of descriptors")
   private String transitiveDescriptorSetPath = "";
@@ -63,40 +70,35 @@ final class CelCompilerTool implements Callable<Integer> {
 
   private static final CelOptions CEL_OPTIONS = CelOptions.DEFAULT;
 
-  private static FileDescriptorSet load(String descriptorSetPath) {
-    try {
-      byte[] descriptorBytes = Files.toByteArray(new File(descriptorSetPath));
-      return FileDescriptorSet.parseFrom(descriptorBytes, ExtensionRegistry.getEmptyRegistry());
-    } catch (IOException e) {
-      throw new IllegalArgumentException(
-          "Failed to load FileDescriptorSet from path: " + descriptorSetPath, e);
-    }
-  }
-
-  private static CelAbstractSyntaxTree compile(
-      String expression, String transitiveDescriptorSetPath) throws CelValidationException {
-    CelCompilerBuilder compilerBuilder =
+  private static CelCompiler prepareCompiler(
+      String celEnvironmentPath, String transitiveDescriptorSetPath)
+      throws CelEnvironmentException, IOException {
+    CelCompilerBuilder celCompilerBuilder =
         CelCompilerFactory.standardCelCompilerBuilder()
+            // TODO: Configure the below through YAML
             .setOptions(CEL_OPTIONS)
-            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-            .addLibraries(
-                CelExtensions.bindings(),
-                CelExtensions.encoders(),
-                CelExtensions.math(CEL_OPTIONS),
-                CelExtensions.lists(),
-                CelExtensions.protos(),
-                CelExtensions.strings(),
-                CelOptionalLibrary.INSTANCE);
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS);
+
     if (!transitiveDescriptorSetPath.isEmpty()) {
       ImmutableSet<FileDescriptor> transitiveFileDescriptors =
           CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(
               load(transitiveDescriptorSetPath));
-      compilerBuilder.addFileTypes(transitiveFileDescriptors);
+      celCompilerBuilder.addFileTypes(transitiveFileDescriptors);
+    }
+    if (celEnvironmentPath.isEmpty()) {
+      return celCompilerBuilder.build();
     }
 
-    CelCompiler celCompiler = compilerBuilder.build();
+    if (!celEnvironmentPath.toLowerCase(Locale.getDefault()).trim().endsWith(".yaml")) {
+      throw new IllegalArgumentException(
+          "Only YAML extension is supported for CEL environments. Got: " + celEnvironmentPath);
+    }
 
-    return celCompiler.compile(expression).getAst();
+    CelEnvironmentYamlParser environmentYamlParser = CelEnvironmentYamlParser.newInstance();
+    String yamlContent = new String(readFileBytes(celEnvironmentPath), StandardCharsets.UTF_8);
+    CelEnvironment environment = environmentYamlParser.parse(yamlContent);
+
+    return environment.extend(celCompilerBuilder.build(), CEL_OPTIONS);
   }
 
   private static void writeCheckedExpr(CelAbstractSyntaxTree ast, String filePath)
@@ -108,10 +110,35 @@ final class CelCompilerTool implements Callable<Integer> {
     }
   }
 
+  private static FileDescriptorSet load(String descriptorSetPath) {
+    try {
+      byte[] descriptorBytes = readFileBytes(descriptorSetPath);
+      return FileDescriptorSet.parseFrom(descriptorBytes, ExtensionRegistry.getEmptyRegistry());
+    } catch (IOException e) {
+      throw new IllegalArgumentException(
+          "Failed to load FileDescriptorSet from path: " + descriptorSetPath, e);
+    }
+  }
+
+  private static byte[] readFileBytes(String path) throws IOException {
+    return Files.toByteArray(new File(path));
+  }
+
   @Override
   public Integer call() {
+    CelCompiler celCompiler;
     try {
-      CelAbstractSyntaxTree ast = compile(celExpression, transitiveDescriptorSetPath);
+      celCompiler = prepareCompiler(celEnvironmentPath, transitiveDescriptorSetPath);
+    } catch (Exception e) {
+      String errorMessage =
+          String.format(
+              "Failed to create a CEL compilation environment. Reason: %s", e.getMessage());
+      System.err.print(errorMessage);
+      return -1;
+    }
+
+    try {
+      CelAbstractSyntaxTree ast = celCompiler.compile(celExpression).getAst();
       writeCheckedExpr(ast, output);
     } catch (Exception e) {
       String errorMessage =
