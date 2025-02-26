@@ -16,15 +16,12 @@ BASE_SOURCES = [
 
 # keep sorted
 INTERPRETER_SOURCES = [
-    "Activation.java",
     "CallArgumentChecker.java",
     "DefaultDispatcher.java",
     "DefaultInterpreter.java",
     "DescriptorMessageProvider.java",
     "Dispatcher.java",
     "DynamicMessageFactory.java",
-    "GlobalResolver.java",
-    "Interpretable.java",
     "Interpreter.java",
     "InterpreterUtil.java",
     "MessageFactory.java",
@@ -32,6 +29,36 @@ INTERPRETER_SOURCES = [
     "RuntimeUnknownResolver.java",
     "UnknownTrackingInterpretable.java",
 ]
+
+java_library(
+    name = "activation",
+    srcs = ["Activation.java"],
+    tags = [
+    ],
+    deps = [
+        ":interpretable",
+        ":runtime_helpers",
+        "//common/annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "proto_message_activation_factory",
+    srcs = ["ProtoMessageActivationFactory.java"],
+    tags = [
+    ],
+    deps = [
+        ":activation",
+        ":evaluation_exception_builder",
+        "//common:options",
+        "//common/internal:default_message_factory",
+        "//common/internal:dynamic_proto",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
 
 java_library(
     name = "type_resolver",
@@ -89,6 +116,7 @@ java_library(
         ":evaluation_exception_builder",
         ":evaluation_listener",
         ":function_overload_impl",
+        ":interpretable",
         ":metadata",
         ":runtime_helpers",
         ":type_resolver",
@@ -247,6 +275,23 @@ java_library(
 )
 
 java_library(
+    name = "interpretable",
+    srcs = [
+        "GlobalResolver.java",
+        "Interpretable.java",
+    ],
+    visibility = ["//visibility:private"],
+    deps = [
+        ":evaluation_exception",
+        ":evaluation_listener",
+        ":function_overload_impl",
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
     name = "standard_functions",
     srcs = ["CelStandardFunctions.java"],
     tags = [
@@ -322,13 +367,16 @@ java_library(
     tags = [
     ],
     deps = [
+        ":activation",
         ":descriptor_type_resolver",
         ":evaluation_exception",
         ":evaluation_listener",
         ":function_binding",
         ":function_overload",
         ":function_overload_impl",
+        ":interpretable",
         ":interpreter",
+        ":proto_message_activation_factory",
         ":proto_message_runtime_equality",
         ":runtime_equality",
         ":runtime_type_provider_legacy",

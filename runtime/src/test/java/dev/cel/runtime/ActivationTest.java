@@ -56,25 +56,27 @@ public final class ActivationTest {
   @Test
   public void fromProto() {
     NestedMessage nestedMessage = NestedMessage.newBuilder().setBb(1).build();
-    Activation activation = Activation.fromProto(nestedMessage, TEST_OPTIONS);
+    Activation activation = ProtoMessageActivationFactory.fromProto(nestedMessage, TEST_OPTIONS);
     assertThat(activation.resolve("bb")).isEqualTo(1);
 
     TestAllTypes testMessage =
         TestAllTypes.newBuilder().setSingleNestedMessage(nestedMessage).build();
-    activation = Activation.fromProto(testMessage, TEST_OPTIONS);
+    activation = ProtoMessageActivationFactory.fromProto(testMessage, TEST_OPTIONS);
     assertThat(activation.resolve("single_nested_message")).isEqualTo(nestedMessage);
   }
 
   @Test
   public void fromProto_unsetScalarField() {
-    Activation activation = Activation.fromProto(NestedMessage.getDefaultInstance(), TEST_OPTIONS);
+    Activation activation =
+        ProtoMessageActivationFactory.fromProto(NestedMessage.getDefaultInstance(), TEST_OPTIONS);
     assertThat(activation.resolve("bb")).isEqualTo(0);
   }
 
   @Test
   public void fromProto_unsetScalarField_skipUnsetFields() {
     Activation activation =
-        Activation.fromProto(NestedMessage.getDefaultInstance(), TEST_OPTIONS_SKIP_UNSET_FIELDS);
+        ProtoMessageActivationFactory.fromProto(
+            NestedMessage.getDefaultInstance(), TEST_OPTIONS_SKIP_UNSET_FIELDS);
     assertThat(activation.resolve("bb")).isNull();
   }
 
@@ -83,7 +85,8 @@ public final class ActivationTest {
     // An unset Any field is the only field which cannot be accurately published into an Activation,
     // and is instead published as an error value which should fit nicely with the CEL evaluation
     // semantics.
-    Activation activation = Activation.fromProto(TestAllTypes.getDefaultInstance(), TEST_OPTIONS);
+    Activation activation =
+        ProtoMessageActivationFactory.fromProto(TestAllTypes.getDefaultInstance(), TEST_OPTIONS);
     assertThat(activation.resolve("single_any")).isInstanceOf(Throwable.class);
     assertThat((Throwable) activation.resolve("single_any"))
         .hasMessageThat()
@@ -95,20 +98,23 @@ public final class ActivationTest {
 
   @Test
   public void fromProto_unsetValueField() {
-    Activation activation = Activation.fromProto(TestAllTypes.getDefaultInstance(), TEST_OPTIONS);
+    Activation activation =
+        ProtoMessageActivationFactory.fromProto(TestAllTypes.getDefaultInstance(), TEST_OPTIONS);
     assertThat(activation.resolve("single_value")).isEqualTo(NullValue.NULL_VALUE);
   }
 
   @Test
   public void fromProto_unsetMessageField() {
     Activation activation =
-        Activation.fromProto(NestedTestAllTypes.getDefaultInstance(), TEST_OPTIONS);
+        ProtoMessageActivationFactory.fromProto(
+            NestedTestAllTypes.getDefaultInstance(), TEST_OPTIONS);
     assertThat(activation.resolve("payload")).isEqualTo(TestAllTypes.getDefaultInstance());
   }
 
   @Test
   public void fromProto_unsetRepeatedField() {
-    Activation activation = Activation.fromProto(TestAllTypes.getDefaultInstance(), TEST_OPTIONS);
+    Activation activation =
+        ProtoMessageActivationFactory.fromProto(TestAllTypes.getDefaultInstance(), TEST_OPTIONS);
     assertThat(activation.resolve("repeated_int64")).isInstanceOf(List.class);
     assertThat((List) activation.resolve("repeated_int64")).isEmpty();
 
@@ -119,7 +125,8 @@ public final class ActivationTest {
   @Test
   public void fromProto_unsetRepeatedField_skipUnsetFields() {
     Activation activation =
-        Activation.fromProto(TestAllTypes.getDefaultInstance(), TEST_OPTIONS_SKIP_UNSET_FIELDS);
+        ProtoMessageActivationFactory.fromProto(
+            TestAllTypes.getDefaultInstance(), TEST_OPTIONS_SKIP_UNSET_FIELDS);
     assertThat(activation.resolve("repeated_int64")).isInstanceOf(List.class);
     assertThat((List) activation.resolve("repeated_int64")).isEmpty();
 
@@ -129,7 +136,8 @@ public final class ActivationTest {
 
   @Test
   public void fromProto_unsetMapField() {
-    Activation activation = Activation.fromProto(TestAllTypes.getDefaultInstance(), TEST_OPTIONS);
+    Activation activation =
+        ProtoMessageActivationFactory.fromProto(TestAllTypes.getDefaultInstance(), TEST_OPTIONS);
     assertThat(activation.resolve("map_int32_int64")).isInstanceOf(Map.class);
     assertThat((Map) activation.resolve("map_int32_int64")).isEmpty();
   }
@@ -137,7 +145,8 @@ public final class ActivationTest {
   @Test
   public void fromProto_unsetMapField_skipUnsetFields() {
     Activation activation =
-        Activation.fromProto(TestAllTypes.getDefaultInstance(), TEST_OPTIONS_SKIP_UNSET_FIELDS);
+        ProtoMessageActivationFactory.fromProto(
+            TestAllTypes.getDefaultInstance(), TEST_OPTIONS_SKIP_UNSET_FIELDS);
     assertThat(activation.resolve("map_int32_int64")).isInstanceOf(Map.class);
     assertThat((Map) activation.resolve("map_int32_int64")).isEmpty();
   }
@@ -145,7 +154,7 @@ public final class ActivationTest {
   @Test
   public void fromProto_unsignedLongField_unsignedResult() {
     Activation activation =
-        Activation.fromProto(
+        ProtoMessageActivationFactory.fromProto(
             TestAllTypes.newBuilder()
                 .setSingleUint32(1)
                 .setSingleUint64(UnsignedLong.MAX_VALUE.longValue())

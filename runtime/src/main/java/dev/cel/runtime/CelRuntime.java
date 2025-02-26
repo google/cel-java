@@ -56,7 +56,7 @@ public interface CelRuntime {
 
     /** Evaluate the expression using {@code message} fields as the source of input variables. */
     public Object eval(Message message) throws CelEvaluationException {
-      return evalInternal(Activation.fromProto(message, getOptions()));
+      return evalInternal(ProtoMessageActivationFactory.fromProto(message, getOptions()));
     }
 
     /** Evaluate a compiled program with a custom variable {@code resolver}. */
@@ -111,7 +111,7 @@ public interface CelRuntime {
      */
     public Object trace(Message message, CelEvaluationListener listener)
         throws CelEvaluationException {
-      return evalInternal(Activation.fromProto(message, getOptions()), listener);
+      return evalInternal(ProtoMessageActivationFactory.fromProto(message, getOptions()), listener);
     }
 
     /**

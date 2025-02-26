@@ -20,16 +20,8 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.ByteString.ByteIterator;
-import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.Message;
-import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
-import dev.cel.common.internal.DefaultMessageFactory;
-import dev.cel.common.internal.DynamicProto;
-import dev.cel.common.internal.ProtoAdapter;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -134,50 +126,6 @@ public abstract class Activation implements GlobalResolver {
         return copy.toString();
       }
     };
-  }
-
-  /**
-   * Creates an {@code Activation} from a {@code Message} where each field in the message is exposed
-   * as a top-level variable in the {@code Activation}.
-   *
-   * <p>Unset message fields are published with the default value for the field type. However, an
-   * unset {@code google.protobuf.Any} value is not a valid CEL value, and will be published as an
-   * {@code Exception} value on the {@code Activation} just as though an unset {@code Any} would if
-   * it were accessed during a CEL evaluation.
-   */
-  public static Activation fromProto(Message message, CelOptions celOptions) {
-    Map<String, Object> variables = new HashMap<>();
-    Map<FieldDescriptor, Object> msgFieldValues = message.getAllFields();
-
-    ProtoAdapter protoAdapter =
-        new ProtoAdapter(
-            DynamicProto.create(DefaultMessageFactory.INSTANCE), celOptions.enableUnsignedLongs());
-
-    boolean skipUnsetFields =
-        celOptions.fromProtoUnsetFieldOption().equals(CelOptions.ProtoUnsetFieldOptions.SKIP);
-
-    for (FieldDescriptor field : message.getDescriptorForType().getFields()) {
-      // If skipping unset fields and the field is not repeated, then continue.
-      if (skipUnsetFields && !field.isRepeated() && !msgFieldValues.containsKey(field)) {
-        continue;
-      }
-
-      // Get the value of the field set on the message, if present, otherwise use reflection to
-      // get the default value for the field using the FieldDescriptor.
-      Object fieldValue = msgFieldValues.getOrDefault(field, message.getField(field));
-      try {
-        Optional<Object> adapted = protoAdapter.adaptFieldToValue(field, fieldValue);
-        variables.put(field.getName(), adapted.orElse(null));
-      } catch (IllegalArgumentException e) {
-        variables.put(
-            field.getName(),
-            CelEvaluationExceptionBuilder.newBuilder(
-                    "illegal field value. field=%s, value=%s", field.getName(), fieldValue)
-                .setCause(e)
-                .build());
-      }
-    }
-    return copyOf(variables);
   }
 
   /**

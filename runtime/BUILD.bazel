@@ -23,6 +23,22 @@ java_library(
 )
 
 java_library(
+    name = "activation",
+    visibility = ["//:internal"],
+    exports = [
+        "//runtime/src/main/java/dev/cel/runtime:activation",
+    ],
+)
+
+java_library(
+    name = "proto_message_activation_factory",
+    visibility = ["//:internal"],
+    exports = [
+        "//runtime/src/main/java/dev/cel/runtime:proto_message_activation_factory",
+    ],
+)
+
+java_library(
     name = "function_binding",
     visibility = ["//:internal"],
     exports = [
