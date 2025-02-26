@@ -16,7 +16,12 @@ package dev.cel.bundle;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.bundle.CelEnvironment.CanonicalCelExtension;
+import dev.cel.bundle.CelEnvironment.ExtensionConfig;
+import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelOptions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -34,5 +39,33 @@ public class CelEnvironmentTest {
     assertThat(environment.extensions()).isEmpty();
     assertThat(environment.variables()).isEmpty();
     assertThat(environment.functions()).isEmpty();
+  }
+
+  @Test
+  public void extend_allExtensions() throws Exception {
+    ImmutableSet<ExtensionConfig> extensionConfigs =
+        ImmutableSet.of(
+            ExtensionConfig.of("bindings"),
+            ExtensionConfig.of("encoders"),
+            ExtensionConfig.of("lists"),
+            ExtensionConfig.of("math"),
+            ExtensionConfig.of("optional"),
+            ExtensionConfig.of("protos"),
+            ExtensionConfig.of("sets"),
+            ExtensionConfig.of("strings"));
+    CelEnvironment environment =
+        CelEnvironment.newBuilder().setExtensions(extensionConfigs).build();
+
+    Cel cel = environment.extend(CelFactory.standardCelBuilder().build(), CelOptions.DEFAULT);
+    CelAbstractSyntaxTree ast =
+        cel.compile(
+                "cel.bind(x, 10, math.greatest([1,x])) < int(' 11  '.trim()) &&"
+                    + " optional.none().orValue(true) && [].flatten() == []")
+            .getAst();
+    boolean result = (boolean) cel.createProgram(ast).eval();
+
+    assertThat(extensionConfigs.size()).isEqualTo(CelEnvironment.CEL_EXTENSION_CONFIG_MAP.size());
+    assertThat(extensionConfigs.size()).isEqualTo(CanonicalCelExtension.values().length);
+    assertThat(result).isTrue();
   }
 }

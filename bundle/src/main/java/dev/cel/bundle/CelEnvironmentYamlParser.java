@@ -47,7 +47,11 @@ import org.yaml.snakeyaml.nodes.ScalarNode;
 import org.yaml.snakeyaml.nodes.SequenceNode;
 import org.yaml.snakeyaml.nodes.Tag;
 
-final class CelEnvironmentYamlParser {
+/**
+ * CelEnvironmentYamlParser intakes a YAML document that describes the structure of a CEL
+ * environment, parses it then creates a {@link CelEnvironment}.
+ */
+public final class CelEnvironmentYamlParser {
   // Sentinel values to be returned for various declarations when parsing failure is encountered.
   private static final TypeDecl ERROR_TYPE_DECL = TypeDecl.create(ERROR);
   private static final VariableDecl ERROR_VARIABLE_DECL =

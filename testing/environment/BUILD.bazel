@@ -5,6 +5,11 @@ package(
 )
 
 alias(
-    name = "environment_yaml_files",
-    actual = "//testing/src/test/resources/environment:environment_yaml_files",
+    name = "extended_env",
+    actual = "//testing/src/test/resources/environment:extended_env",
+)
+
+alias(
+    name = "all_extensions",
+    actual = "//testing/src/test/resources/environment:all_extensions",
 )

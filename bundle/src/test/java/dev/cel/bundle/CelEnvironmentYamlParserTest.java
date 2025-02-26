@@ -74,6 +74,7 @@ public final class CelEnvironmentYamlParserTest {
         "extensions:\n"
             + "  - name: 'bindings'\n"
             + "  - name: 'encoders'\n"
+            + "  - name: 'lists'\n"
             + "  - name: 'math'\n"
             + "  - name: 'optional'\n"
             + "  - name: 'protos'\n"
@@ -91,6 +92,7 @@ public final class CelEnvironmentYamlParserTest {
                     ImmutableSet.of(
                         ExtensionConfig.of("bindings"),
                         ExtensionConfig.of("encoders"),
+                        ExtensionConfig.of("lists"),
                         ExtensionConfig.of("math"),
                         ExtensionConfig.of("optional"),
                         ExtensionConfig.of("protos"),
@@ -297,6 +299,31 @@ public final class CelEnvironmentYamlParserTest {
     assertThat(environment)
         .isEqualTo(
             CelEnvironment.newBuilder()
+                .setSource(environment.source().get())
+                .setVariables(
+                    ImmutableSet.of(
+                        VariableDecl.create(
+                            "request",
+                            TypeDecl.create("google.rpc.context.AttributeContext.Request"))))
+                .build());
+    assertThat(environment.extend(CEL_WITH_MESSAGE_TYPES, CelOptions.DEFAULT)).isNotNull();
+  }
+
+  @Test
+  public void environment_setContainer() throws Exception {
+    String yamlConfig =
+        "container: google.rpc.context\n"
+            + "variables:\n"
+            + "- name: 'request'\n"
+            + "  type:\n"
+            + "    type_name: 'google.rpc.context.AttributeContext.Request'";
+
+    CelEnvironment environment = ENVIRONMENT_PARSER.parse(yamlConfig);
+
+    assertThat(environment)
+        .isEqualTo(
+            CelEnvironment.newBuilder()
+                .setContainer("google.rpc.context")
                 .setSource(environment.source().get())
                 .setVariables(
                     ImmutableSet.of(
@@ -675,8 +702,7 @@ public final class CelEnvironmentYamlParserTest {
     private final String yamlFileContent;
     private final CelEnvironment expectedEnvironment;
 
-    EnvironmentYamlResourceTestCase(String yamlResourcePath, CelEnvironment expectedEnvironment)
-        throws RuntimeException {
+    EnvironmentYamlResourceTestCase(String yamlResourcePath, CelEnvironment expectedEnvironment) {
       try {
         this.yamlFileContent = readFile(yamlResourcePath);
       } catch (IOException e) {

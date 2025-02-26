@@ -19,7 +19,9 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
@@ -35,8 +37,11 @@ import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
+import dev.cel.compiler.CelCompiler;
+import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
+import dev.cel.runtime.CelRuntimeBuilder;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -46,6 +51,18 @@ import java.util.Optional;
  */
 @AutoValue
 public abstract class CelEnvironment {
+
+  @VisibleForTesting
+  static final ImmutableMap<String, CanonicalCelExtension> CEL_EXTENSION_CONFIG_MAP =
+      ImmutableMap.of(
+          "bindings", CanonicalCelExtension.BINDINGS,
+          "encoders", CanonicalCelExtension.ENCODERS,
+          "lists", CanonicalCelExtension.LISTS,
+          "math", CanonicalCelExtension.MATH,
+          "optional", CanonicalCelExtension.OPTIONAL,
+          "protos", CanonicalCelExtension.PROTOS,
+          "sets", CanonicalCelExtension.SETS,
+          "strings", CanonicalCelExtension.STRINGS);
 
   /** Environment source in textual format (ex: textproto, YAML). */
   public abstract Optional<Source> source();
@@ -126,12 +143,14 @@ public abstract class CelEnvironment {
         .setFunctions(ImmutableSet.of());
   }
 
-  /** Extends the provided {@code cel} environment with this configuration. */
-  public Cel extend(Cel cel, CelOptions celOptions) throws CelEnvironmentException {
+  /** Extends the provided {@link CelCompiler} environment with this configuration. */
+  public CelCompiler extend(CelCompiler celCompiler, CelOptions celOptions)
+      throws CelEnvironmentException {
     try {
-      CelTypeProvider celTypeProvider = cel.getTypeProvider();
-      CelBuilder celBuilder =
-          cel.toCelBuilder()
+      CelTypeProvider celTypeProvider = celCompiler.getTypeProvider();
+      CelCompilerBuilder compilerBuilder =
+          celCompiler
+              .toCompilerBuilder()
               .setTypeProvider(celTypeProvider)
               .setContainer(container())
               .addVarDeclarations(
@@ -144,51 +163,56 @@ public abstract class CelEnvironment {
                       .collect(toImmutableList()));
 
       if (!container().isEmpty()) {
-        celBuilder.setContainer(container());
+        compilerBuilder.setContainer(container());
       }
 
-      addAllExtensions(celBuilder, celOptions);
+      addAllCompilerExtensions(compilerBuilder, celOptions);
 
-      return celBuilder.build();
+      return compilerBuilder.build();
     } catch (RuntimeException e) {
       throw new CelEnvironmentException(e.getMessage(), e);
     }
   }
 
-  private void addAllExtensions(CelBuilder celBuilder, CelOptions celOptions) {
+  /** Extends the provided {@link Cel} environment with this configuration. */
+  public Cel extend(Cel cel, CelOptions celOptions) throws CelEnvironmentException {
+    try {
+      // Casting is necessary to only extend the compiler here
+      CelCompiler celCompiler = extend((CelCompiler) cel, celOptions);
+
+      CelRuntimeBuilder celRuntimeBuilder = cel.toRuntimeBuilder();
+      addAllRuntimeExtensions(celRuntimeBuilder, celOptions);
+
+      return CelFactory.combine(celCompiler, celRuntimeBuilder.build());
+    } catch (RuntimeException e) {
+      throw new CelEnvironmentException(e.getMessage(), e);
+    }
+  }
+
+  private void addAllCompilerExtensions(
+      CelCompilerBuilder celCompilerBuilder, CelOptions celOptions) {
     // TODO: Add capability to accept user defined exceptions
     for (ExtensionConfig extensionConfig : extensions()) {
-      switch (extensionConfig.name()) {
-        case "bindings":
-          celBuilder.addCompilerLibraries(CelExtensions.bindings());
-          break;
-        case "encoders":
-          celBuilder.addCompilerLibraries(CelExtensions.encoders());
-          celBuilder.addRuntimeLibraries(CelExtensions.encoders());
-          break;
-        case "math":
-          celBuilder.addCompilerLibraries(CelExtensions.math(celOptions));
-          celBuilder.addRuntimeLibraries(CelExtensions.math(celOptions));
-          break;
-        case "optional":
-          celBuilder.addCompilerLibraries(CelOptionalLibrary.INSTANCE);
-          celBuilder.addRuntimeLibraries(CelOptionalLibrary.INSTANCE);
-          break;
-        case "protos":
-          celBuilder.addCompilerLibraries(CelExtensions.protos());
-          break;
-        case "strings":
-          celBuilder.addCompilerLibraries(CelExtensions.strings());
-          celBuilder.addRuntimeLibraries(CelExtensions.strings());
-          break;
-        case "sets":
-          celBuilder.addCompilerLibraries(CelExtensions.sets(celOptions));
-          celBuilder.addRuntimeLibraries(CelExtensions.sets(celOptions));
-          break;
-        default:
-          throw new IllegalArgumentException("Unrecognized extension: " + extensionConfig.name());
-      }
+      CanonicalCelExtension extension = getExtensionOrThrow(extensionConfig.name());
+      extension.addCompilerExtension(celCompilerBuilder, celOptions);
     }
+  }
+
+  private void addAllRuntimeExtensions(CelRuntimeBuilder celRuntimeBuilder, CelOptions celOptions) {
+    // TODO: Add capability to accept user defined exceptions
+    for (ExtensionConfig extensionConfig : extensions()) {
+      CanonicalCelExtension extension = getExtensionOrThrow(extensionConfig.name());
+      extension.addRuntimeExtension(celRuntimeBuilder, celOptions);
+    }
+  }
+
+  private static CanonicalCelExtension getExtensionOrThrow(String extensionName) {
+    CanonicalCelExtension extension = CEL_EXTENSION_CONFIG_MAP.get(extensionName);
+    if (extension == null) {
+      throw new IllegalArgumentException("Unrecognized extension: " + extensionName);
+    }
+
+    return extension;
   }
 
   /** Represents a policy variable declaration. */
@@ -527,6 +551,65 @@ public abstract class CelEnvironment {
     /** Create a new extension config with the specified name and version. */
     public static ExtensionConfig of(String name, int version) {
       return newBuilder().setName(name).setVersion(version).build();
+    }
+  }
+
+  @VisibleForTesting
+  enum CanonicalCelExtension {
+    BINDINGS((compilerBuilder, options) -> compilerBuilder.addLibraries(CelExtensions.bindings())),
+    PROTOS((compilerBuilder, options) -> compilerBuilder.addLibraries(CelExtensions.protos())),
+    ENCODERS(
+        (compilerBuilder, options) -> compilerBuilder.addLibraries(CelExtensions.encoders()),
+        (runtimeBuilder, options) -> runtimeBuilder.addLibraries(CelExtensions.encoders())),
+    MATH(
+        (compilerBuilder, options) -> compilerBuilder.addLibraries(CelExtensions.math(options)),
+        (runtimeBuilder, options) -> runtimeBuilder.addLibraries(CelExtensions.math(options))),
+    OPTIONAL(
+        (compilerBuilder, options) -> compilerBuilder.addLibraries(CelOptionalLibrary.INSTANCE),
+        (runtimeBuilder, options) -> runtimeBuilder.addLibraries(CelOptionalLibrary.INSTANCE)),
+    STRINGS(
+        (compilerBuilder, options) -> compilerBuilder.addLibraries(CelExtensions.strings()),
+        (runtimeBuilder, options) -> runtimeBuilder.addLibraries(CelExtensions.strings())),
+    SETS(
+        (compilerBuilder, options) -> compilerBuilder.addLibraries(CelExtensions.sets(options)),
+        (runtimeBuilder, options) -> runtimeBuilder.addLibraries(CelExtensions.sets(options))),
+    LISTS(
+        (compilerBuilder, options) -> compilerBuilder.addLibraries(CelExtensions.lists()),
+        (runtimeBuilder, options) -> runtimeBuilder.addLibraries(CelExtensions.lists()));
+
+    @SuppressWarnings("ImmutableEnumChecker")
+    private final CompilerExtensionApplier compilerExtensionApplier;
+
+    @SuppressWarnings("ImmutableEnumChecker")
+    private final RuntimeExtensionApplier runtimeExtensionApplier;
+
+    interface CompilerExtensionApplier {
+      void apply(CelCompilerBuilder compilerBuilder, CelOptions options);
+    }
+
+    interface RuntimeExtensionApplier {
+      void apply(CelRuntimeBuilder runtimeBuilder, CelOptions options);
+    }
+
+    void addCompilerExtension(CelCompilerBuilder compilerBuilder, CelOptions options) {
+      compilerExtensionApplier.apply(compilerBuilder, options);
+    }
+
+    void addRuntimeExtension(CelRuntimeBuilder runtimeBuilder, CelOptions options) {
+      runtimeExtensionApplier.apply(runtimeBuilder, options);
+    }
+
+    CanonicalCelExtension(CompilerExtensionApplier compilerExtensionApplier) {
+      this(
+          compilerExtensionApplier,
+          (runtimeBuilder, options) -> {}); // no-op. Not all extensions augment the runtime.
+    }
+
+    CanonicalCelExtension(
+        CompilerExtensionApplier compilerExtensionApplier,
+        RuntimeExtensionApplier runtimeExtensionApplier) {
+      this.compilerExtensionApplier = compilerExtensionApplier;
+      this.runtimeExtensionApplier = runtimeExtensionApplier;
     }
   }
 }

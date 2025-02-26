@@ -9,6 +9,11 @@ package(
 )
 
 filegroup(
-    name = "environment_yaml_files",
-    srcs = glob(["**/*.yaml"]),
+    name = "extended_env",
+    srcs = ["extended_env.yaml"],
+)
+
+filegroup(
+    name = "all_extensions",
+    srcs = ["all_extensions.yaml"],
 )

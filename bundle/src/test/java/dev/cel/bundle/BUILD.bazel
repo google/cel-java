@@ -10,7 +10,7 @@ java_library(
     testonly = True,
     srcs = glob(["*Test.java"]),
     resources = [
-        "//testing/environment:environment_yaml_files",
+        "//testing/environment:extended_env",
     ],
     deps = [
         "//:java_truth",
