@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.policy;
+package dev.cel.bundle;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -23,12 +23,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
-import dev.cel.bundle.Cel;
-import dev.cel.bundle.CelBuilder;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelVarDecl;
+import dev.cel.common.Source;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.ListType;
@@ -42,31 +41,32 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * CelPolicyConfig represents the policy configuration object to extend the CEL's compilation and
- * runtime environment with.
- *
- * @deprecated Use {@code CelEnvironment} instead.
+ * CelEnvironment is a native representation of a CEL environment for compiler and runtime. This
+ * object is amenable to being serialized into YAML, textproto or other formats as needed.
  */
 @AutoValue
-@Deprecated
-public abstract class CelPolicyConfig {
+public abstract class CelEnvironment {
 
-  /** Config source. */
-  public abstract CelPolicySource configSource();
+  /** Environment source in textual format (ex: textproto, YAML). */
+  public abstract Optional<Source> source();
 
-  /** Name of the config. */
+  /** Name of the environment. */
   public abstract String name();
 
   /**
    * An optional description of the config (example: location of the file containing the config
    * content).
    */
-  public abstract String description();
+  public abstract String container();
 
   /**
-   * Container name to use as the namespace for resolving CEL expression variables and functions.
+   * An optional description of the environment (example: location of the file containing the config
+   * content).
    */
-  public abstract String container();
+  public abstract String description();
+
+  /** Converts this {@code CelEnvironment} object into a builder. */
+  public abstract Builder toBuilder();
 
   /**
    * Canonical extensions to enable in the environment, such as Optional, String and Math
@@ -80,11 +80,14 @@ public abstract class CelPolicyConfig {
   /** New function declarations to add in the compilation environment. */
   public abstract ImmutableSet<FunctionDecl> functions();
 
-  /** Builder for {@link CelPolicyConfig}. */
+  /** Builder for {@link CelEnvironment}. */
   @AutoValue.Builder
   public abstract static class Builder {
 
-    public abstract Builder setConfigSource(CelPolicySource value);
+    // For testing only, to empty out the source.
+    abstract Builder setSource(Optional<Source> source);
+
+    public abstract Builder setSource(Source source);
 
     public abstract Builder setName(String name);
 
@@ -94,17 +97,27 @@ public abstract class CelPolicyConfig {
 
     public abstract Builder setExtensions(ImmutableSet<ExtensionConfig> extensions);
 
+    @CanIgnoreReturnValue
+    public Builder setVariables(VariableDecl... variables) {
+      return setVariables(ImmutableSet.copyOf(variables));
+    }
+
     public abstract Builder setVariables(ImmutableSet<VariableDecl> variables);
+
+    @CanIgnoreReturnValue
+    public Builder setFunctions(FunctionDecl... functions) {
+      return setFunctions(ImmutableSet.copyOf(functions));
+    }
 
     public abstract Builder setFunctions(ImmutableSet<FunctionDecl> functions);
 
     @CheckReturnValue
-    public abstract CelPolicyConfig build();
+    public abstract CelEnvironment build();
   }
 
-  /** Creates a new builder to construct a {@link CelPolicyConfig} instance. */
+  /** Creates a new builder to construct a {@link CelEnvironment} instance. */
   public static Builder newBuilder() {
-    return new AutoValue_CelPolicyConfig.Builder()
+    return new AutoValue_CelEnvironment.Builder()
         .setName("")
         .setDescription("")
         .setContainer("")
@@ -114,7 +127,7 @@ public abstract class CelPolicyConfig {
   }
 
   /** Extends the provided {@code cel} environment with this configuration. */
-  public Cel extend(Cel cel, CelOptions celOptions) throws CelPolicyValidationException {
+  public Cel extend(Cel cel, CelOptions celOptions) throws CelEnvironmentException {
     try {
       CelTypeProvider celTypeProvider = cel.getTypeProvider();
       CelBuilder celBuilder =
@@ -138,11 +151,12 @@ public abstract class CelPolicyConfig {
 
       return celBuilder.build();
     } catch (RuntimeException e) {
-      throw new CelPolicyValidationException(e.getMessage(), e);
+      throw new CelEnvironmentException(e.getMessage(), e);
     }
   }
 
   private void addAllExtensions(CelBuilder celBuilder, CelOptions celOptions) {
+    // TODO: Add capability to accept user defined exceptions
     for (ExtensionConfig extensionConfig : extensions()) {
       switch (extensionConfig.name()) {
         case "bindings":
@@ -168,8 +182,8 @@ public abstract class CelPolicyConfig {
           celBuilder.addRuntimeLibraries(CelExtensions.strings());
           break;
         case "sets":
-          celBuilder.addCompilerLibraries(CelExtensions.sets());
-          celBuilder.addRuntimeLibraries(CelExtensions.sets());
+          celBuilder.addCompilerLibraries(CelExtensions.sets(celOptions));
+          celBuilder.addRuntimeLibraries(CelExtensions.sets(celOptions));
           break;
         default:
           throw new IllegalArgumentException("Unrecognized extension: " + extensionConfig.name());
@@ -195,9 +209,9 @@ public abstract class CelPolicyConfig {
 
       public abstract Optional<TypeDecl> type();
 
-      public abstract Builder setName(String name);
+      public abstract VariableDecl.Builder setName(String name);
 
-      public abstract Builder setType(TypeDecl typeDecl);
+      public abstract VariableDecl.Builder setType(TypeDecl typeDecl);
 
       @Override
       public ImmutableList<RequiredField> requiredFields() {
@@ -209,8 +223,8 @@ public abstract class CelPolicyConfig {
       public abstract VariableDecl build();
     }
 
-    public static Builder newBuilder() {
-      return new AutoValue_CelPolicyConfig_VariableDecl.Builder();
+    public static VariableDecl.Builder newBuilder() {
+      return new AutoValue_CelEnvironment_VariableDecl.Builder();
     }
 
     /** Creates a new builder to construct a {@link VariableDecl} instance. */
@@ -240,9 +254,9 @@ public abstract class CelPolicyConfig {
 
       public abstract Optional<ImmutableSet<OverloadDecl>> overloads();
 
-      public abstract Builder setName(String name);
+      public abstract FunctionDecl.Builder setName(String name);
 
-      public abstract Builder setOverloads(ImmutableSet<OverloadDecl> overloads);
+      public abstract FunctionDecl.Builder setOverloads(ImmutableSet<OverloadDecl> overloads);
 
       @Override
       public ImmutableList<RequiredField> requiredFields() {
@@ -255,8 +269,8 @@ public abstract class CelPolicyConfig {
     }
 
     /** Creates a new builder to construct a {@link FunctionDecl} instance. */
-    public static Builder newBuilder() {
-      return new AutoValue_CelPolicyConfig_FunctionDecl.Builder();
+    public static FunctionDecl.Builder newBuilder() {
+      return new AutoValue_CelEnvironment_FunctionDecl.Builder();
     }
 
     /** Creates a new {@link FunctionDecl} with the provided function name and its overloads. */
@@ -301,27 +315,27 @@ public abstract class CelPolicyConfig {
 
       public abstract Optional<TypeDecl> returnType();
 
-      public abstract Builder setId(String overloadId);
+      public abstract OverloadDecl.Builder setId(String overloadId);
 
-      public abstract Builder setTarget(TypeDecl target);
+      public abstract OverloadDecl.Builder setTarget(TypeDecl target);
 
       // This should stay package-private to encourage add/set methods to be used instead.
       abstract ImmutableList.Builder<TypeDecl> argumentsBuilder();
 
-      public abstract Builder setArguments(ImmutableList<TypeDecl> args);
+      public abstract OverloadDecl.Builder setArguments(ImmutableList<TypeDecl> args);
 
       @CanIgnoreReturnValue
-      public Builder addArguments(Iterable<TypeDecl> args) {
+      public OverloadDecl.Builder addArguments(Iterable<TypeDecl> args) {
         this.argumentsBuilder().addAll(checkNotNull(args));
         return this;
       }
 
       @CanIgnoreReturnValue
-      public Builder addArguments(TypeDecl... args) {
+      public OverloadDecl.Builder addArguments(TypeDecl... args) {
         return addArguments(Arrays.asList(args));
       }
 
-      public abstract Builder setReturnType(TypeDecl returnType);
+      public abstract OverloadDecl.Builder setReturnType(TypeDecl returnType);
 
       @Override
       public ImmutableList<RequiredField> requiredFields() {
@@ -335,8 +349,8 @@ public abstract class CelPolicyConfig {
     }
 
     /** Creates a new builder to construct a {@link OverloadDecl} instance. */
-    public static Builder newBuilder() {
-      return new AutoValue_CelPolicyConfig_OverloadDecl.Builder().setArguments(ImmutableList.of());
+    public static OverloadDecl.Builder newBuilder() {
+      return new AutoValue_CelEnvironment_OverloadDecl.Builder().setArguments(ImmutableList.of());
     }
 
     /** Converts this policy function overload into a {@link CelOverloadDecl}. */
@@ -380,25 +394,25 @@ public abstract class CelPolicyConfig {
 
       public abstract Optional<String> name();
 
-      public abstract Builder setName(String name);
+      public abstract TypeDecl.Builder setName(String name);
 
       // This should stay package-private to encourage add/set methods to be used instead.
       abstract ImmutableList.Builder<TypeDecl> paramsBuilder();
 
-      public abstract Builder setParams(ImmutableList<TypeDecl> typeDecls);
+      public abstract TypeDecl.Builder setParams(ImmutableList<TypeDecl> typeDecls);
 
       @CanIgnoreReturnValue
-      public Builder addParams(TypeDecl... params) {
+      public TypeDecl.Builder addParams(TypeDecl... params) {
         return addParams(Arrays.asList(params));
       }
 
       @CanIgnoreReturnValue
-      public Builder addParams(Iterable<TypeDecl> params) {
+      public TypeDecl.Builder addParams(Iterable<TypeDecl> params) {
         this.paramsBuilder().addAll(checkNotNull(params));
         return this;
       }
 
-      public abstract Builder setIsTypeParam(boolean isTypeParam);
+      public abstract TypeDecl.Builder setIsTypeParam(boolean isTypeParam);
 
       @Override
       public ImmutableList<RequiredField> requiredFields() {
@@ -414,8 +428,8 @@ public abstract class CelPolicyConfig {
       return newBuilder().setName(name).build();
     }
 
-    public static Builder newBuilder() {
-      return new AutoValue_CelPolicyConfig_TypeDecl.Builder().setIsTypeParam(false);
+    public static TypeDecl.Builder newBuilder() {
+      return new AutoValue_CelEnvironment_TypeDecl.Builder().setIsTypeParam(false);
     }
 
     /** Converts this type declaration into a {@link CelType}. */
@@ -487,9 +501,9 @@ public abstract class CelPolicyConfig {
 
       public abstract Optional<Integer> version();
 
-      public abstract Builder setName(String name);
+      public abstract ExtensionConfig.Builder setName(String name);
 
-      public abstract Builder setVersion(int version);
+      public abstract ExtensionConfig.Builder setVersion(int version);
 
       @Override
       public ImmutableList<RequiredField> requiredFields() {
@@ -501,8 +515,8 @@ public abstract class CelPolicyConfig {
     }
 
     /** Creates a new builder to construct a {@link ExtensionConfig} instance. */
-    public static Builder newBuilder() {
-      return new AutoValue_CelPolicyConfig_ExtensionConfig.Builder().setVersion(0);
+    public static ExtensionConfig.Builder newBuilder() {
+      return new AutoValue_CelEnvironment_ExtensionConfig.Builder().setVersion(0);
     }
 
     /** Create a new extension config with the specified name and version set to 0. */

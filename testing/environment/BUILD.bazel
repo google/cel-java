@@ -1,0 +1,10 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+    default_visibility = ["//:internal"],
+)
+
+alias(
+    name = "environment_yaml_files",
+    actual = "//testing/src/test/resources/environment:environment_yaml_files",
+)

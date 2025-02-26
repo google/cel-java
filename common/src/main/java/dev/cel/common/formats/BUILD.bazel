@@ -1,0 +1,80 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//common/formats:__pkg__"],
+)
+
+java_library(
+    name = "yaml_helper",
+    srcs = [
+        "YamlHelper.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":parser_context",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_yaml_snakeyaml",
+    ],
+)
+
+java_library(
+    name = "value_string",
+    srcs = [
+        "ValueString.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//:auto_value",
+    ],
+)
+
+java_library(
+    name = "parser_context",
+    srcs = [
+        "ParserContext.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":value_string",
+        "//common:compiler_common",
+    ],
+)
+
+java_library(
+    name = "yaml_parser_context_impl",
+    srcs = [
+        "YamlParserContextImpl.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//common:compiler_common",
+        "//common:source",
+        "//common:source_location",
+        "//common/annotations",
+        "//common/formats:parser_context",
+        "//common/formats:value_string",
+        "//common/formats:yaml_helper",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_yaml_snakeyaml",
+    ],
+)
+
+java_library(
+    name = "file_source",
+    srcs = ["CelFileSource.java"],
+    tags = [
+    ],
+    deps = [
+        "//:auto_value",
+        "//common:source",
+        "//common:source_location",
+        "//common/internal",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)

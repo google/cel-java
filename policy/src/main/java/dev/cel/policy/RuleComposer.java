@@ -24,6 +24,7 @@ import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelMutableAst;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.formats.ValueString;
 import dev.cel.extensions.CelOptionalLibrary.Function;
 import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.CelAstOptimizer;

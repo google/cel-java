@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import dev.cel.common.formats.ValueString;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;

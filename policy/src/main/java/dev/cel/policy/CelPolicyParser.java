@@ -14,8 +14,6 @@
 
 package dev.cel.policy;
 
-import dev.cel.policy.ParserContext.PolicyParserContext;
-
 /** CelPolicyParser is the interface for parsing policies into a canonical Policy representation. */
 public interface CelPolicyParser {
 

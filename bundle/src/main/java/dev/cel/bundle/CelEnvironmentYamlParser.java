@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.policy;
+package dev.cel.bundle;
 
 import static dev.cel.common.formats.YamlHelper.ERROR;
 import static dev.cel.common.formats.YamlHelper.assertRequiredFields;
@@ -22,27 +22,32 @@ import static dev.cel.common.formats.YamlHelper.newInteger;
 import static dev.cel.common.formats.YamlHelper.newString;
 import static dev.cel.common.formats.YamlHelper.parseYamlSource;
 import static dev.cel.common.formats.YamlHelper.validateYamlType;
+import static java.util.Collections.singletonList;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import dev.cel.bundle.CelEnvironment.ExtensionConfig;
+import dev.cel.bundle.CelEnvironment.FunctionDecl;
+import dev.cel.bundle.CelEnvironment.OverloadDecl;
+import dev.cel.bundle.CelEnvironment.TypeDecl;
+import dev.cel.bundle.CelEnvironment.VariableDecl;
 import dev.cel.common.CelIssue;
+import dev.cel.common.formats.CelFileSource;
 import dev.cel.common.formats.ParserContext;
 import dev.cel.common.formats.YamlHelper.YamlNodeType;
 import dev.cel.common.formats.YamlParserContextImpl;
 import dev.cel.common.internal.CelCodePointArray;
-import dev.cel.policy.CelPolicyConfig.ExtensionConfig;
-import dev.cel.policy.CelPolicyConfig.FunctionDecl;
-import dev.cel.policy.CelPolicyConfig.OverloadDecl;
-import dev.cel.policy.CelPolicyConfig.TypeDecl;
-import dev.cel.policy.CelPolicyConfig.VariableDecl;
+import org.jspecify.annotations.Nullable;
+import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.nodes.MappingNode;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 import org.yaml.snakeyaml.nodes.SequenceNode;
+import org.yaml.snakeyaml.nodes.Tag;
 
-/** Package-private class for parsing YAML config files. */
-final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
+final class CelEnvironmentYamlParser {
   // Sentinel values to be returned for various declarations when parsing failure is encountered.
   private static final TypeDecl ERROR_TYPE_DECL = TypeDecl.create(ERROR);
   private static final VariableDecl ERROR_VARIABLE_DECL =
@@ -51,17 +56,27 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
       FunctionDecl.create(ERROR, ImmutableSet.of());
   private static final ExtensionConfig ERROR_EXTENSION_DECL = ExtensionConfig.of(ERROR);
 
-  @Override
-  public CelPolicyConfig parse(String policyConfigSource) throws CelPolicyValidationException {
-    return parse(policyConfigSource, "<input>");
+  /** Generates a new instance of {@code CelEnvironmentYamlParser}. */
+  public static CelEnvironmentYamlParser newInstance() {
+    return new CelEnvironmentYamlParser();
   }
 
-  @Override
-  public CelPolicyConfig parse(String policyConfigSource, String description)
-      throws CelPolicyValidationException {
-    ParserImpl parser = new ParserImpl();
+  /** Parsers the input {@code environmentYamlSource} and returns a {@link CelEnvironment}. */
+  public CelEnvironment parse(String environmentYamlSource) throws CelEnvironmentException {
+    return parse(environmentYamlSource, "<input>");
+  }
 
-    return parser.parseYaml(policyConfigSource, description);
+  /**
+   * Parses the input {@code environmentYamlSource} and returns a {@link CelEnvironment}.
+   *
+   * <p>The {@code description} may be used to help tailor error messages for the location where the
+   * {@code environmentYamlSource} originates, e.g. a file name or form UI element.
+   */
+  public CelEnvironment parse(String environmentYamlSource, String description)
+      throws CelEnvironmentException {
+    CelEnvironmentYamlParser.ParserImpl parser = new CelEnvironmentYamlParser.ParserImpl();
+
+    return parser.parseYaml(environmentYamlSource, description);
   }
 
   private ImmutableSet<VariableDecl> parseVariables(ParserContext<Node> ctx, Node node) {
@@ -87,6 +102,7 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
 
     MappingNode variableMap = (MappingNode) node;
     VariableDecl.Builder builder = VariableDecl.newBuilder();
+    TypeDecl.Builder typeDeclBuilder = null;
     for (NodeTuple nodeTuple : variableMap.getValue()) {
       Node keyNode = nodeTuple.getKeyNode();
       long keyId = ctx.collectMetadata(keyNode);
@@ -97,12 +113,36 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
           builder.setName(newString(ctx, valueNode));
           break;
         case "type":
+          if (typeDeclBuilder != null) {
+            ctx.reportError(
+                keyId,
+                String.format(
+                    "'type' tag cannot be used together with inlined 'type_name', 'is_type_param'"
+                        + " or 'params': %s",
+                    keyName));
+            break;
+          }
           builder.setType(parseTypeDecl(ctx, valueNode));
+          break;
+        case "type_name":
+        case "is_type_param":
+        case "params":
+          if (typeDeclBuilder == null) {
+            typeDeclBuilder = TypeDecl.newBuilder();
+          }
+          typeDeclBuilder = parseInlinedTypeDecl(ctx, keyId, keyNode, valueNode, typeDeclBuilder);
           break;
         default:
           ctx.reportError(keyId, String.format("Unsupported variable tag: %s", keyName));
           break;
       }
+    }
+
+    if (typeDeclBuilder != null) {
+      if (!assertRequiredFields(ctx, variableId, typeDeclBuilder.getMissingRequiredFieldNames())) {
+        return ERROR_VARIABLE_DECL;
+      }
+      builder.setType(typeDeclBuilder.build());
     }
 
     if (!assertRequiredFields(ctx, variableId, builder.getMissingRequiredFieldNames())) {
@@ -270,6 +310,12 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
               builder.setVersion(Integer.MAX_VALUE);
               break;
             }
+
+            Integer versionInt = tryParse(versionStr);
+            if (versionInt != null) {
+              builder.setVersion(versionInt);
+              break;
+            }
             // Fall-through
           }
           ctx.reportError(keyId, String.format("Unsupported version tag: %s", keyName));
@@ -287,6 +333,29 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
     return builder.build();
   }
 
+  private static @Nullable Integer tryParse(String str) {
+    try {
+      return Integer.parseInt(str);
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
+  @CanIgnoreReturnValue
+  private static TypeDecl.Builder parseInlinedTypeDecl(
+      ParserContext<Node> ctx, long keyId, Node keyNode, Node valueNode, TypeDecl.Builder builder) {
+    if (!assertYamlType(ctx, keyId, keyNode, YamlNodeType.STRING, YamlNodeType.TEXT)) {
+      return builder;
+    }
+
+    // Create a synthetic node to make this behave as if a `type: ` parent node actually exists.
+    MappingNode mapNode =
+        new MappingNode(
+            Tag.MAP, /* value= */ singletonList(new NodeTuple(keyNode, valueNode)), FlowStyle.AUTO);
+
+    return parseTypeDeclFields(ctx, mapNode, builder);
+  }
+
   private static TypeDecl parseTypeDecl(ParserContext<Node> ctx, Node node) {
     TypeDecl.Builder builder = TypeDecl.newBuilder();
     long id = ctx.collectMetadata(node);
@@ -295,6 +364,12 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
     }
 
     MappingNode mapNode = (MappingNode) node;
+    return parseTypeDeclFields(ctx, mapNode, builder).build();
+  }
+
+  @CanIgnoreReturnValue
+  private static TypeDecl.Builder parseTypeDeclFields(
+      ParserContext<Node> ctx, MappingNode mapNode, TypeDecl.Builder builder) {
     for (NodeTuple nodeTuple : mapNode.getValue()) {
       Node keyNode = nodeTuple.getKeyNode();
       long keyId = ctx.collectMetadata(keyNode);
@@ -312,7 +387,7 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
           builder.setIsTypeParam(newBoolean(ctx, valueNode));
           break;
         case "params":
-          long listValueId = ctx.collectMetadata(node);
+          long listValueId = ctx.collectMetadata(valueNode);
           if (!assertYamlType(ctx, listValueId, valueNode, YamlNodeType.LIST)) {
             break;
           }
@@ -326,49 +401,44 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
           break;
       }
     }
-
-    if (!assertRequiredFields(ctx, id, builder.getMissingRequiredFieldNames())) {
-      return ERROR_TYPE_DECL;
-    }
-
-    return builder.build();
+    return builder;
   }
 
   private class ParserImpl {
 
-    private CelPolicyConfig parseYaml(String source, String description)
-        throws CelPolicyValidationException {
+    private CelEnvironment parseYaml(String source, String description)
+        throws CelEnvironmentException {
       Node node;
       try {
-        Node yamlNode =
+        node =
             parseYamlSource(source)
                 .orElseThrow(
                     () ->
-                        new CelPolicyValidationException(
+                        new CelEnvironmentException(
                             String.format("YAML document empty or malformed: %s", source)));
-        node = yamlNode;
       } catch (RuntimeException e) {
-        throw new CelPolicyValidationException("YAML document is malformed: " + e.getMessage(), e);
+        throw new CelEnvironmentException("YAML document is malformed: " + e.getMessage(), e);
       }
 
-      CelPolicySource configSource =
-          CelPolicySource.newBuilder(CelCodePointArray.fromString(source))
+      CelFileSource environmentSource =
+          CelFileSource.newBuilder(CelCodePointArray.fromString(source))
               .setDescription(description)
               .build();
-      ParserContext<Node> ctx = YamlParserContextImpl.newInstance(configSource);
-      CelPolicyConfig.Builder policyConfig = parseConfig(ctx, node);
-      configSource = configSource.toBuilder().setPositionsMap(ctx.getIdToOffsetMap()).build();
+      ParserContext<Node> ctx = YamlParserContextImpl.newInstance(environmentSource);
+      CelEnvironment.Builder builder = parseConfig(ctx, node);
+      environmentSource =
+          environmentSource.toBuilder().setPositionsMap(ctx.getIdToOffsetMap()).build();
 
       if (!ctx.getIssues().isEmpty()) {
-        throw new CelPolicyValidationException(
-            CelIssue.toDisplayString(ctx.getIssues(), configSource));
+        throw new CelEnvironmentException(
+            CelIssue.toDisplayString(ctx.getIssues(), environmentSource));
       }
 
-      return policyConfig.setConfigSource(configSource).build();
+      return builder.setSource(environmentSource).build();
     }
 
-    private CelPolicyConfig.Builder parseConfig(ParserContext<Node> ctx, Node node) {
-      CelPolicyConfig.Builder builder = CelPolicyConfig.newBuilder();
+    private CelEnvironment.Builder parseConfig(ParserContext<Node> ctx, Node node) {
+      CelEnvironment.Builder builder = CelEnvironment.newBuilder();
       long id = ctx.collectMetadata(node);
       if (!assertYamlType(ctx, id, node, YamlNodeType.MAP)) {
         return builder;
@@ -413,9 +483,5 @@ final class CelPolicyYamlConfigParser implements CelPolicyConfigParser {
     }
   }
 
-  static CelPolicyYamlConfigParser newInstance() {
-    return new CelPolicyYamlConfigParser();
-  }
-
-  private CelPolicyYamlConfigParser() {}
+  private CelEnvironmentYamlParser() {}
 }

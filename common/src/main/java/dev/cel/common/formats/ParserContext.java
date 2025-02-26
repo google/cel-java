@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,12 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.policy;
+package dev.cel.common.formats;
 
 import dev.cel.common.CelIssue;
-import dev.cel.policy.CelPolicy.Match;
-import dev.cel.policy.CelPolicy.Rule;
-import dev.cel.policy.CelPolicy.Variable;
 import java.util.List;
 import java.util.Map;
 
@@ -47,18 +44,4 @@ public interface ParserContext<T> {
 
   /** NewString creates a new ValueString from the YAML node. */
   ValueString newValueString(T node);
-
-  /**
-   * PolicyParserContext declares a set of interfaces for creating and managing metadata
-   * specifically for {@link CelPolicy}.
-   */
-  interface PolicyParserContext<T> extends ParserContext<T> {
-    CelPolicy parsePolicy(PolicyParserContext<T> ctx, T node);
-
-    Rule parseRule(PolicyParserContext<T> ctx, CelPolicy.Builder policyBuilder, T node);
-
-    Match parseMatch(PolicyParserContext<T> ctx, CelPolicy.Builder policyBuilder, T node);
-
-    Variable parseVariable(PolicyParserContext<T> ctx, CelPolicy.Builder policyBuilder, T node);
-  }
 }

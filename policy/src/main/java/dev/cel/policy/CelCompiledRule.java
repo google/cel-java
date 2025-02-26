@@ -22,6 +22,7 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
+import dev.cel.common.formats.ValueString;
 import java.util.Optional;
 
 /**

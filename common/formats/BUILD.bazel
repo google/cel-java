@@ -1,0 +1,39 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//:internal"],
+)
+
+java_library(
+    name = "yaml_helper",
+    visibility = [
+        "//:internal",
+        "//java/com/google/cloud/security/green/rundetector/custommodules/detectors:__pkg__",
+    ],
+    exports = ["//common/src/main/java/dev/cel/common/formats:yaml_helper"],
+)
+
+java_library(
+    name = "value_string",
+    visibility = [
+        "//:internal",
+        "//java/com/google/cloud/security/green/rundetector/custommodules/detectors:__pkg__",
+    ],
+    exports = ["//common/src/main/java/dev/cel/common/formats:value_string"],
+)
+
+java_library(
+    name = "parser_context",
+    exports = ["//common/src/main/java/dev/cel/common/formats:parser_context"],
+)
+
+java_library(
+    name = "yaml_parser_context_impl",
+    exports = ["//common/src/main/java/dev/cel/common/formats:yaml_parser_context_impl"],
+)
+
+java_library(
+    name = "file_source",
+    exports = ["//common/src/main/java/dev/cel/common/formats:file_source"],
+)

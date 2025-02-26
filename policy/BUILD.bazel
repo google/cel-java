@@ -16,11 +16,6 @@ java_library(
 )
 
 java_library(
-    name = "value_string",
-    exports = ["//policy/src/main/java/dev/cel/policy:value_string"],
-)
-
-java_library(
     name = "source",
     exports = ["//policy/src/main/java/dev/cel/policy:source"],
 )
@@ -46,8 +41,8 @@ java_library(
 )
 
 java_library(
-    name = "parser_context",
-    exports = ["//policy/src/main/java/dev/cel/policy:parser_context"],
+    name = "policy_parser_context",
+    exports = ["//policy/src/main/java/dev/cel/policy:policy_parser_context"],
 )
 
 java_library(
@@ -73,9 +68,4 @@ java_library(
 java_library(
     name = "compiler_builder",
     exports = ["//policy/src/main/java/dev/cel/policy:compiler_builder"],
-)
-
-java_library(
-    name = "yaml_helper",
-    exports = ["//policy/src/main/java/dev/cel/policy:yaml_helper"],
 )
