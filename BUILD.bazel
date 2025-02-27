@@ -96,8 +96,8 @@ default_java_toolchain(
     package_configuration = [
         ":error_prone",
     ],
-    source_version = "8",
-    target_version = "8",
+    source_version = "11",
+    target_version = "11",
 )
 
 # This associates a set of javac flags with a set of packages

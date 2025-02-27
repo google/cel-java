@@ -26,6 +26,7 @@
 
 
 ALL_TARGETS=("//publish:cel.publish" "//publish:cel_compiler.publish" "//publish:cel_runtime.publish" "//publish:cel_v1alpha1.publish" "//publish:cel_protobuf.publish")
+JDK8_FLAGS="--java_language_version=8 --java_runtime_version=8"
 
 function publish_maven_remote() {
   maven_repo_url=$1
@@ -41,7 +42,8 @@ function publish_maven_remote() {
           --define gpg_sign=true \
           --define "maven_user=$maven_user" \
           --define "maven_password=$maven_password" \
-          $PUBLISH_TARGET
+          $PUBLISH_TARGET \
+          $JDK8_FLAGS
    done
 
 }
@@ -78,6 +80,6 @@ else
  echo "Pushing to local Maven repository $local_maven_repo"
   for PUBLISH_TARGET in "${ALL_TARGETS[@]}"
   do
-     bazel run --define "maven_repo=file://$local_maven_repo" $PUBLISH_TARGET
+     bazel run --define "maven_repo=file://$local_maven_repo" $PUBLISH_TARGET $JDK8_FLAGS
   done
 fi
