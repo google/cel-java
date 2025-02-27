@@ -19,6 +19,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.base.Ascii;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import com.google.rpc.context.AttributeContext;
@@ -29,10 +30,19 @@ import dev.cel.bundle.CelEnvironment.FunctionDecl;
 import dev.cel.bundle.CelEnvironment.OverloadDecl;
 import dev.cel.bundle.CelEnvironment.TypeDecl;
 import dev.cel.bundle.CelEnvironment.VariableDecl;
+import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelSource;
+import dev.cel.common.ast.CelExpr;
+import dev.cel.common.types.SimpleType;
+import dev.cel.parser.CelUnparserFactory;
+import dev.cel.runtime.CelEvaluationListener;
+import dev.cel.runtime.CelLateFunctionBindings;
+import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -721,6 +731,83 @@ public final class CelEnvironmentYamlParserTest {
     // only obtainable through the yaml parser.
     environment = environment.toBuilder().setSource(Optional.empty()).build();
     assertThat(environment).isEqualTo(testCase.expectedEnvironment);
+  }
+
+  @Test
+  public void lateBoundFunction_evaluate_callExpr() throws Exception {
+    String configSource =
+        "name: late_bound_function_config\n"
+            + "functions:\n"
+            + "  - name: 'test'\n"
+            + "    overloads:\n"
+            + "      - id: 'test_bool'\n"
+            + "        args:\n"
+            + "          - type_name: 'bool'\n"
+            + "        return:\n"
+            + "          type_name: 'bool'";
+    CelEnvironment celEnvironment = ENVIRONMENT_PARSER.parse(configSource);
+    Cel celDetails =
+        CelFactory.standardCelBuilder()
+            .addVar("a", SimpleType.INT)
+            .addVar("b", SimpleType.INT)
+            .addVar("c", SimpleType.INT)
+            .build();
+    Cel cel = celEnvironment.extend(celDetails, CelOptions.DEFAULT);
+    CelAbstractSyntaxTree ast = cel.compile("a < 0 && b < 0 && c < 0 && test(a<0)").getAst();
+    CelLateFunctionBindings bindings =
+        CelLateFunctionBindings.from(
+            CelFunctionBinding.from("test_bool", Boolean.class, result -> result));
+
+    boolean result =
+        (boolean) cel.createProgram(ast).eval(ImmutableMap.of("a", -1, "b", -1, "c", -4), bindings);
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void lateBoundFunction_trace_callExpr_identifyFalseBranch() throws Exception {
+    AtomicReference<CelExpr> capturedExpr = new AtomicReference<>();
+    CelEvaluationListener listener =
+        (expr, res) -> {
+          if (res instanceof Boolean && !(boolean) res && capturedExpr.get() == null) {
+            capturedExpr.set(expr);
+          }
+        };
+
+    String configSource =
+        "name: late_bound_function_config\n"
+            + "functions:\n"
+            + "  - name: 'test'\n"
+            + "    overloads:\n"
+            + "      - id: 'test_bool'\n"
+            + "        args:\n"
+            + "          - type_name: 'bool'\n"
+            + "        return:\n"
+            + "          type_name: 'bool'";
+
+    CelEnvironment celEnvironment = ENVIRONMENT_PARSER.parse(configSource);
+    Cel celDetails =
+        CelFactory.standardCelBuilder()
+            .addVar("a", SimpleType.INT)
+            .addVar("b", SimpleType.INT)
+            .addVar("c", SimpleType.INT)
+            .build();
+    Cel cel = celEnvironment.extend(celDetails, CelOptions.DEFAULT);
+    CelAbstractSyntaxTree ast = cel.compile("a < 0 && b < 0 && c < 0 && test(a<0)").getAst();
+    CelLateFunctionBindings bindings =
+        CelLateFunctionBindings.from(
+            CelFunctionBinding.from("test_bool", Boolean.class, result -> result));
+
+    boolean result =
+        (boolean)
+            cel.createProgram(ast)
+                .trace(ImmutableMap.of("a", -1, "b", 1, "c", -4), bindings, listener);
+
+    assertThat(result).isFalse();
+    // Demonstrate that "b < 0" is what caused the expression to be false
+    CelAbstractSyntaxTree subtree =
+        CelAbstractSyntaxTree.newParsedAst(capturedExpr.get(), CelSource.newBuilder().build());
+    assertThat(CelUnparserFactory.newUnparser().unparse(subtree)).isEqualTo("b < 0");
   }
 
   private static String readFile(String path) throws IOException {

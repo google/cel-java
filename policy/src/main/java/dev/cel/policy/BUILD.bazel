@@ -51,51 +51,12 @@ java_library(
 )
 
 java_library(
-    name = "config",
-    srcs = [
-        "CelPolicyConfig.java",
-    ],
-    tags = [
-    ],
-    deps = [
-        ":required_fields_checker",
-        ":source",
-        ":validation_exception",
-        "//:auto_value",
-        "//bundle:cel",
-        "//common:compiler_common",
-        "//common:options",
-        "//common/types",
-        "//common/types:type_providers",
-        "//extensions",
-        "//extensions:optional_library",
-        "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_guava_guava",
-    ],
-)
-
-java_library(
-    name = "config_parser",
-    srcs = [
-        "CelPolicyConfigParser.java",
-    ],
-    tags = [
-    ],
-    deps = [
-        ":config",
-        ":validation_exception",
-    ],
-)
-
-java_library(
     name = "parser_factory",
     srcs = ["CelPolicyParserFactory.java"],
     tags = [
     ],
     deps = [
-        ":config_parser",
         ":parser_builder",
-        ":yaml_config_parser",
         ":yaml_parser",
         "@maven//:org_yaml_snakeyaml",
     ],
@@ -267,27 +228,6 @@ java_library(
     deps = [
         "//:auto_value",
         "@maven//:com_google_guava_guava",
-    ],
-)
-
-java_library(
-    name = "yaml_config_parser",
-    srcs = [
-        "CelPolicyYamlConfigParser.java",
-    ],
-    visibility = ["//visibility:private"],
-    deps = [
-        ":config",
-        ":config_parser",
-        ":source",
-        ":validation_exception",
-        "//common:compiler_common",
-        "//common/formats:parser_context",
-        "//common/formats:yaml_helper",
-        "//common/formats:yaml_parser_context_impl",
-        "//common/internal",
-        "@maven//:com_google_guava_guava",
-        "@maven//:org_yaml_snakeyaml",
     ],
 )
 

@@ -26,16 +26,6 @@ java_library(
 )
 
 java_library(
-    name = "config",
-    exports = ["//policy/src/main/java/dev/cel/policy:config"],
-)
-
-java_library(
-    name = "config_parser",
-    exports = ["//policy/src/main/java/dev/cel/policy:config_parser"],
-)
-
-java_library(
     name = "parser",
     exports = ["//policy/src/main/java/dev/cel/policy:parser"],
 )

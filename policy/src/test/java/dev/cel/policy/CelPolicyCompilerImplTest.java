@@ -26,6 +26,8 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameterValue;
 import com.google.testing.junit.testparameterinjector.TestParameterValuesProvider;
 import dev.cel.bundle.Cel;
+import dev.cel.bundle.CelEnvironment;
+import dev.cel.bundle.CelEnvironmentYamlParser;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
@@ -52,8 +54,8 @@ public final class CelPolicyCompilerImplTest {
 
   private static final CelPolicyParser POLICY_PARSER =
       CelPolicyParserFactory.newYamlParserBuilder().addTagVisitor(new K8sTagHandler()).build();
-  private static final CelPolicyConfigParser POLICY_CONFIG_PARSER =
-      CelPolicyParserFactory.newYamlConfigParser();
+  private static final CelEnvironmentYamlParser ENVIRONMENT_PARSER =
+      CelEnvironmentYamlParser.newInstance();
   private static final CelOptions CEL_OPTIONS =
       CelOptions.current().populateMacroCalls(true).build();
 
@@ -61,8 +63,8 @@ public final class CelPolicyCompilerImplTest {
   public void compileYamlPolicy_success(@TestParameter TestYamlPolicy yamlPolicy) throws Exception {
     // Read config and produce an environment to compile policies
     String configSource = yamlPolicy.readConfigYamlContent();
-    CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(configSource);
-    Cel cel = policyConfig.extend(newCel(), CEL_OPTIONS);
+    CelEnvironment celEnvironment = ENVIRONMENT_PARSER.parse(configSource);
+    Cel cel = celEnvironment.extend(newCel(), CEL_OPTIONS);
     // Read the policy source
     String policySource = yamlPolicy.readPolicyYamlContent();
     CelPolicy policy = POLICY_PARSER.parse(policySource);
@@ -78,8 +80,8 @@ public final class CelPolicyCompilerImplTest {
       @TestParameter TestErrorYamlPolicy testCase) throws Exception {
     // Read config and produce an environment to compile policies
     String configSource = testCase.readConfigYamlContent();
-    CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(configSource);
-    Cel cel = policyConfig.extend(newCel(), CEL_OPTIONS);
+    CelEnvironment celEnvironment = ENVIRONMENT_PARSER.parse(configSource);
+    Cel cel = celEnvironment.extend(newCel(), CEL_OPTIONS);
     // Read the policy source
     String policySource = testCase.readPolicyYamlContent();
     CelPolicy policy = POLICY_PARSER.parse(policySource, testCase.getPolicyFilePath());
@@ -151,8 +153,8 @@ public final class CelPolicyCompilerImplTest {
     // Setup
     // Read config and produce an environment to compile policies
     String configSource = testData.yamlPolicy.readConfigYamlContent();
-    CelPolicyConfig policyConfig = POLICY_CONFIG_PARSER.parse(configSource);
-    Cel cel = policyConfig.extend(newCel(), CEL_OPTIONS);
+    CelEnvironment celEnvironment = ENVIRONMENT_PARSER.parse(configSource);
+    Cel cel = celEnvironment.extend(newCel(), CEL_OPTIONS);
     // Read the policy source
     String policySource = testData.yamlPolicy.readPolicyYamlContent();
     CelPolicy policy = POLICY_PARSER.parse(policySource);
@@ -225,8 +227,8 @@ public final class CelPolicyCompilerImplTest {
             + "          - type_name: 'string'\n"
             + "        return:\n"
             + "          type_name: 'string'\n";
-    CelPolicyConfig celPolicyConfig = POLICY_CONFIG_PARSER.parse(configSource);
-    Cel cel = celPolicyConfig.extend(newCel(), CelOptions.DEFAULT);
+    CelEnvironment celEnvironment = ENVIRONMENT_PARSER.parse(configSource);
+    Cel cel = celEnvironment.extend(newCel(), CelOptions.DEFAULT);
     String policySource =
         "name: late_bound_function_policy\n"
             + "rule:\n"

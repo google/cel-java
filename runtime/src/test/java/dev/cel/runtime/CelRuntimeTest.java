@@ -48,10 +48,6 @@ import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparserFactory;
-import dev.cel.policy.CelPolicyConfig;
-import dev.cel.policy.CelPolicyConfigParser;
-import dev.cel.policy.CelPolicyParserFactory;
-import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -61,9 +57,6 @@ import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public class CelRuntimeTest {
-
-  private static final CelPolicyConfigParser POLICY_CONFIG_PARSER =
-      CelPolicyParserFactory.newYamlConfigParser();
 
   @Test
   public void evaluate_anyPackedEqualityUsingProtoDifferencer_success() throws Exception {
@@ -98,37 +91,6 @@ public class CelRuntimeTest {
                     .build()));
 
     assertThat(evaluatedResult).isEqualTo(true);
-  }
-
-  @Test
-  public void evaluate_callExprWithLateBindings_success() throws Exception {
-    String configSource =
-        "name: late_bound_function_config\n"
-            + "functions:\n"
-            + "  - name: 'test'\n"
-            + "    overloads:\n"
-            + "      - id: 'test_bool'\n"
-            + "        args:\n"
-            + "          - type_name: 'bool'\n"
-            + "        return:\n"
-            + "          type_name: 'bool'";
-    CelPolicyConfig celPolicyConfig = POLICY_CONFIG_PARSER.parse(configSource);
-    Cel celDetails =
-        CelFactory.standardCelBuilder()
-            .addVar("a", SimpleType.INT)
-            .addVar("b", SimpleType.INT)
-            .addVar("c", SimpleType.INT)
-            .build();
-    Cel cel = celPolicyConfig.extend(celDetails, CelOptions.DEFAULT);
-    CelAbstractSyntaxTree ast = cel.compile("a < 0 && b < 0 && c < 0 && test(a<0)").getAst();
-    CelLateFunctionBindings bindings =
-        CelLateFunctionBindings.from(
-            CelFunctionBinding.from("test_bool", Boolean.class, result -> result));
-
-    boolean result =
-        (boolean) cel.createProgram(ast).eval(ImmutableMap.of("a", -1, "b", -1, "c", -4), bindings);
-
-    assertThat(result).isTrue();
   }
 
   @Test
@@ -267,52 +229,6 @@ public class CelRuntimeTest {
 
     boolean result =
         (boolean) cel.createProgram(ast).trace(ImmutableMap.of("a", -1, "b", 1, "c", -4), listener);
-
-    assertThat(result).isFalse();
-    // Demonstrate that "b < 0" is what caused the expression to be false
-    CelAbstractSyntaxTree subtree =
-        CelAbstractSyntaxTree.newParsedAst(capturedExpr.get(), CelSource.newBuilder().build());
-    assertThat(CelUnparserFactory.newUnparser().unparse(subtree)).isEqualTo("b < 0");
-  }
-
-  @Test
-  public void trace_callExprWithLateBindings_identifyFalseBranch() throws Exception {
-    AtomicReference<CelExpr> capturedExpr = new AtomicReference<>();
-    CelEvaluationListener listener =
-        (expr, res) -> {
-          if (res instanceof Boolean && !(boolean) res && capturedExpr.get() == null) {
-            capturedExpr.set(expr);
-          }
-        };
-
-    String configSource =
-        "name: late_bound_function_config\n"
-            + "functions:\n"
-            + "  - name: 'test'\n"
-            + "    overloads:\n"
-            + "      - id: 'test_bool'\n"
-            + "        args:\n"
-            + "          - type_name: 'bool'\n"
-            + "        return:\n"
-            + "          type_name: 'bool'";
-
-    CelPolicyConfig celPolicyConfig = POLICY_CONFIG_PARSER.parse(configSource);
-    Cel celDetails =
-        CelFactory.standardCelBuilder()
-            .addVar("a", SimpleType.INT)
-            .addVar("b", SimpleType.INT)
-            .addVar("c", SimpleType.INT)
-            .build();
-    Cel cel = celPolicyConfig.extend(celDetails, CelOptions.DEFAULT);
-    CelAbstractSyntaxTree ast = cel.compile("a < 0 && b < 0 && c < 0 && test(a<0)").getAst();
-    CelLateFunctionBindings bindings =
-        CelLateFunctionBindings.from(
-            CelFunctionBinding.from("test_bool", Boolean.class, result -> result));
-
-    boolean result =
-        (boolean)
-            cel.createProgram(ast)
-                .trace(ImmutableMap.of("a", -1, "b", 1, "c", -4), bindings, listener);
 
     assertThat(result).isFalse();
     // Demonstrate that "b < 0" is what caused the expression to be false
