@@ -51,7 +51,6 @@ import dev.cel.parser.CelUnparserFactory;
 import dev.cel.policy.CelPolicyConfig;
 import dev.cel.policy.CelPolicyConfigParser;
 import dev.cel.policy.CelPolicyParserFactory;
-import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

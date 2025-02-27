@@ -37,7 +37,7 @@ import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelMacroExprFactory;
 import dev.cel.parser.CelParserBuilder;
-import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
 import java.util.List;
@@ -175,50 +175,50 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
                 SimpleType.DYN,
                 ListType.create(SimpleType.DYN))),
         ImmutableSet.of(
-            CelRuntime.CelFunctionBinding.from("math_@max_double", Double.class, x -> x),
-            CelRuntime.CelFunctionBinding.from("math_@max_int", Long.class, x -> x),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from("math_@max_double", Double.class, x -> x),
+            CelFunctionBinding.from("math_@max_int", Long.class, x -> x),
+            CelFunctionBinding.from(
                 "math_@max_double_double", Double.class, Double.class, CelMathExtensions::maxPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@max_int_int", Long.class, Long.class, CelMathExtensions::maxPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@max_int_double", Long.class, Double.class, CelMathExtensions::maxPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@max_double_int", Double.class, Long.class, CelMathExtensions::maxPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@max_list_dyn", List.class, CelMathExtensions::maxList)),
         ImmutableSet.of(
-            CelRuntime.CelFunctionBinding.from("math_@max_uint", Long.class, x -> x),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from("math_@max_uint", Long.class, x -> x),
+            CelFunctionBinding.from(
                 "math_@max_uint_uint", Long.class, Long.class, CelMathExtensions::maxPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@max_double_uint", Double.class, Long.class, CelMathExtensions::maxPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@max_uint_int", Long.class, Long.class, CelMathExtensions::maxPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@max_uint_double", Long.class, Double.class, CelMathExtensions::maxPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@max_int_uint", Long.class, Long.class, CelMathExtensions::maxPair)),
         ImmutableSet.of(
-            CelRuntime.CelFunctionBinding.from("math_@max_uint", UnsignedLong.class, x -> x),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from("math_@max_uint", UnsignedLong.class, x -> x),
+            CelFunctionBinding.from(
                 "math_@max_uint_uint",
                 UnsignedLong.class,
                 UnsignedLong.class,
                 CelMathExtensions::maxPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@max_double_uint",
                 Double.class,
                 UnsignedLong.class,
                 CelMathExtensions::maxPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@max_uint_int", UnsignedLong.class, Long.class, CelMathExtensions::maxPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@max_uint_double",
                 UnsignedLong.class,
                 Double.class,
                 CelMathExtensions::maxPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@max_int_uint", Long.class, UnsignedLong.class, CelMathExtensions::maxPair))),
     MIN(
         CelFunctionDecl.newFunctionDeclaration(
@@ -290,56 +290,56 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
                 SimpleType.DYN,
                 ListType.create(SimpleType.DYN))),
         ImmutableSet.of(
-            CelRuntime.CelFunctionBinding.from("math_@min_double", Double.class, x -> x),
-            CelRuntime.CelFunctionBinding.from("math_@min_int", Long.class, x -> x),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from("math_@min_double", Double.class, x -> x),
+            CelFunctionBinding.from("math_@min_int", Long.class, x -> x),
+            CelFunctionBinding.from(
                 "math_@min_double_double", Double.class, Double.class, CelMathExtensions::minPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@min_int_int", Long.class, Long.class, CelMathExtensions::minPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@min_int_double", Long.class, Double.class, CelMathExtensions::minPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@min_double_int", Double.class, Long.class, CelMathExtensions::minPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@min_list_dyn", List.class, CelMathExtensions::minList)),
         ImmutableSet.of(
-            CelRuntime.CelFunctionBinding.from("math_@min_uint", Long.class, x -> x),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from("math_@min_uint", Long.class, x -> x),
+            CelFunctionBinding.from(
                 "math_@min_uint_uint", Long.class, Long.class, CelMathExtensions::minPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@min_double_uint", Double.class, Long.class, CelMathExtensions::minPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@min_uint_int", Long.class, Long.class, CelMathExtensions::minPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@min_uint_double", Long.class, Double.class, CelMathExtensions::minPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@min_int_uint", Long.class, Long.class, CelMathExtensions::minPair)),
         ImmutableSet.of(
-            CelRuntime.CelFunctionBinding.from("math_@min_uint", UnsignedLong.class, x -> x),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from("math_@min_uint", UnsignedLong.class, x -> x),
+            CelFunctionBinding.from(
                 "math_@min_uint_uint",
                 UnsignedLong.class,
                 UnsignedLong.class,
                 CelMathExtensions::minPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@min_double_uint",
                 Double.class,
                 UnsignedLong.class,
                 CelMathExtensions::minPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@min_uint_int", UnsignedLong.class, Long.class, CelMathExtensions::minPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@min_uint_double",
                 UnsignedLong.class,
                 Double.class,
                 CelMathExtensions::minPair),
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "math_@min_int_uint", Long.class, UnsignedLong.class, CelMathExtensions::minPair)));
 
     private final CelFunctionDecl functionDecl;
-    private final ImmutableSet<CelRuntime.CelFunctionBinding> functionBindings;
-    private final ImmutableSet<CelRuntime.CelFunctionBinding> functionBindingsULongSigned;
-    private final ImmutableSet<CelRuntime.CelFunctionBinding> functionBindingsULongUnsigned;
+    private final ImmutableSet<CelFunctionBinding> functionBindings;
+    private final ImmutableSet<CelFunctionBinding> functionBindingsULongSigned;
+    private final ImmutableSet<CelFunctionBinding> functionBindingsULongUnsigned;
 
     String getFunction() {
       return functionDecl.name();
@@ -347,9 +347,9 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
 
     Function(
         CelFunctionDecl functionDecl,
-        ImmutableSet<CelRuntime.CelFunctionBinding> functionBindings,
-        ImmutableSet<CelRuntime.CelFunctionBinding> functionBindingsULongSigned,
-        ImmutableSet<CelRuntime.CelFunctionBinding> functionBindingsULongUnsigned) {
+        ImmutableSet<CelFunctionBinding> functionBindings,
+        ImmutableSet<CelFunctionBinding> functionBindingsULongSigned,
+        ImmutableSet<CelFunctionBinding> functionBindingsULongUnsigned) {
       this.functionDecl = functionDecl;
       this.functionBindings = functionBindings;
       this.functionBindingsULongSigned = functionBindingsULongSigned;
