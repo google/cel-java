@@ -42,14 +42,16 @@ public interface CelRuntime {
   /** Creates an evaluable {@code Program} instance which is thread-safe and immutable. */
   @AutoValue
   @Immutable
-  abstract class Program {
+  abstract class Program implements CelLiteRuntime.Program {
 
     /** Evaluate the expression without any variables. */
+    @Override
     public Object eval() throws CelEvaluationException {
       return evalInternal(Activation.EMPTY);
     }
 
     /** Evaluate the expression using a {@code mapValue} as the source of input variables. */
+    @Override
     public Object eval(Map<String, ?> mapValue) throws CelEvaluationException {
       return evalInternal(Activation.copyOf(mapValue));
     }

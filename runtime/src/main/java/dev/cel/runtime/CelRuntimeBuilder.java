@@ -28,7 +28,6 @@ import java.util.function.Function;
 /** Interface for building an instance of CelRuntime */
 public interface CelRuntimeBuilder {
 
-  /** Set the {@code CelOptions} used to enable fixes and features for this CEL instance. */
   @CanIgnoreReturnValue
   CelRuntimeBuilder setOptions(CelOptions options);
 
@@ -155,8 +154,10 @@ public interface CelRuntimeBuilder {
 
   /**
    * Override the standard functions for the runtime. This can be used to subset the standard
-   * environment to only expose the desired function overloads to the runtime. {@link
-   * #setStandardEnvironmentEnabled(boolean)} must be set to false for this to take effect.
+   * environment to only expose the desired function overloads to the runtime.
+   *
+   * <p>{@link #setStandardEnvironmentEnabled(boolean)} must be set to false for this to take
+   * effect.
    */
   @CanIgnoreReturnValue
   CelRuntimeBuilder setStandardFunctions(CelStandardFunctions standardFunctions);

@@ -98,6 +98,7 @@ public final class DefaultInterpreter implements Interpreter {
    * @param dispatcher a method dispatcher.
    * @param celOptions the configurable flags for adjusting evaluation behavior.
    */
+  @Internal
   public DefaultInterpreter(
       TypeResolver typeResolver,
       RuntimeTypeProvider typeProvider,
