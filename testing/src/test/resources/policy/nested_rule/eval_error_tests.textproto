@@ -27,7 +27,7 @@ sections {
     }
     eval_error {
       errors {
-        message: "evaluation error: No matching overload for function 'foo'. Overload candidates: foo"
+        message: "evaluation error: No matching overload for function 'foo'. Overload candidates: foo_id"
       }
     }
   }
