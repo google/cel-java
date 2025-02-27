@@ -26,7 +26,6 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
-import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
@@ -54,12 +53,9 @@ import java.util.Optional;
 
 /**
  * Default implementation of the CEL interpreter.
- *
- * <p>CEL Library Internals. Do Not Use.
  */
 @ThreadSafe
-@Internal
-public final class DefaultInterpreter implements Interpreter {
+final class DefaultInterpreter implements Interpreter {
 
   private final TypeResolver typeResolver;
   private final RuntimeTypeProvider typeProvider;

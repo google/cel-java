@@ -90,7 +90,7 @@ public final class CelEvaluationExceptionBuilder {
   }
 
   private CelEvaluationExceptionBuilder(String message) {
-    this.message = message;
+    this.message = message == null ? "" : message;
     this.errorCode = CelErrorCode.INTERNAL_ERROR;
     this.errorLocation = "";
   }
