@@ -12,18 +12,15 @@ java_library(
 
 java_library(
     name = "environment",
-    visibility = ["//:internal"],
     exports = ["//bundle/src/main/java/dev/cel/bundle:environment"],
 )
 
 java_library(
     name = "environment_exception",
-    visibility = ["//:internal"],
     exports = ["//bundle/src/main/java/dev/cel/bundle:environment_exception"],
 )
 
 java_library(
     name = "environment_yaml_parser",
-    visibility = ["//:internal"],
     exports = ["//bundle/src/main/java/dev/cel/bundle:environment_yaml_parser"],
 )
