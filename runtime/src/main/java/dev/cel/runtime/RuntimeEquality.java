@@ -32,7 +32,7 @@ import java.util.Set;
 /** RuntimeEquality contains methods for performing CEL related equality checks. */
 @Immutable
 class RuntimeEquality {
-  protected final RuntimeHelpers runtimeHelper;
+  protected final RuntimeHelpers runtimeHelpers;
   protected final CelOptions celOptions;
 
   static RuntimeEquality create(RuntimeHelpers runtimeHelper, CelOptions celOptions) {
@@ -80,7 +80,7 @@ class RuntimeEquality {
     }
 
     if (index instanceof MessageLiteOrBuilder) {
-      index = runtimeHelper.adaptProtoToValue((MessageLiteOrBuilder) index);
+      index = runtimeHelpers.adaptProtoToValue((MessageLiteOrBuilder) index);
     }
     Object v = map.get(index);
     if (v != null) {
@@ -142,8 +142,8 @@ class RuntimeEquality {
     if (x == y) {
       return true;
     }
-    x = runtimeHelper.adaptValue(x);
-    y = runtimeHelper.adaptValue(y);
+    x = runtimeHelpers.adaptValue(x);
+    y = runtimeHelpers.adaptValue(y);
     if (x instanceof Number) {
       if (!(y instanceof Number)) {
         return false;
@@ -240,8 +240,8 @@ class RuntimeEquality {
     return Optional.empty();
   }
 
-  RuntimeEquality(RuntimeHelpers runtimeHelper, CelOptions celOptions) {
-    this.runtimeHelper = runtimeHelper;
+  RuntimeEquality(RuntimeHelpers runtimeHelpers, CelOptions celOptions) {
+    this.runtimeHelpers = runtimeHelpers;
     this.celOptions = celOptions;
   }
 }

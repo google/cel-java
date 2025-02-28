@@ -13,7 +13,11 @@
 # limitations under the License.
 """Macro to create android_library rules with CEL specific options applied."""
 
-load("@rules_android//rules:rules.bzl", "android_library")
+load("@rules_android//rules:rules.bzl", "android_library", "android_local_test")
+
+DEFAULT_JAVACOPTS = [
+    "-XDstringConcat=inline",  # SDK forces usage of StringConcatFactory (java 9+)
+]
 
 def cel_android_library(name, **kwargs):
     """
@@ -23,14 +27,29 @@ def cel_android_library(name, **kwargs):
       name: name of the android_library target
       **kwargs: rest of the args accepted by android_library
     """
-    default_javacopts = [
-        "-XDstringConcat=inline",  # SDK forces usage of StringConcatFactory (java 9+)
-    ]
 
     javacopts = kwargs.get("javacopts", [])
-    all_javacopts = default_javacopts + javacopts
+    all_javacopts = DEFAULT_JAVACOPTS + javacopts
 
     android_library(
+        name = name,
+        javacopts = all_javacopts,
+        **kwargs
+    )
+
+def cel_android_local_test(name, **kwargs):
+    """
+    Generates android_local_test target with CEL specific javacopts applied
+
+    Args:
+      name: name of the android_local_test target
+      **kwargs: rest of the args accepted by android_local_test
+    """
+
+    javacopts = kwargs.get("javacopts", [])
+    all_javacopts = DEFAULT_JAVACOPTS + javacopts
+
+    android_local_test(
         name = name,
         javacopts = all_javacopts,
         **kwargs
