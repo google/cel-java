@@ -99,11 +99,33 @@ java_library(
 )
 
 java_library(
+    name = "base_proto_cel_value_converter",
+    srcs = ["BaseProtoCelValueConverter.java"],
+    tags = [
+        "alt_dep=//common/values:base_proto_cel_value_converter",
+        "avoid_dep",
+    ],
+    deps = [
+        ":cel_byte_string",
+        ":cel_value",
+        ":values",
+        "//common:options",
+        "//common/annotations",
+        "//common/internal:well_known_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_protobuf_protobuf_java_util",
+    ],
+)
+
+java_library(
     name = "proto_message_value",
     srcs = PROTO_MESSAGE_VALUE_SOURCES,
     tags = [
     ],
     deps = [
+        ":base_proto_cel_value_converter",
         ":cel_value",
         ":values",
         "//:auto_value",
@@ -115,11 +137,9 @@ java_library(
         "//common/types",
         "//common/types:cel_types",
         "//common/types:type_providers",
-        "//common/values:cel_byte_string",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:org_jspecify_jspecify",
     ],
 )
@@ -140,6 +160,56 @@ java_library(
         "//common/internal:dynamic_proto",
         "//common/internal:proto_message_factory",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "proto_message_lite_value",
+    srcs = [
+        "ProtoLiteCelValueConverter.java",
+        "ProtoMessageLiteValue.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":base_proto_cel_value_converter",
+        ":cel_value",
+        ":values",
+        "//:auto_value",
+        "//common:options",
+        "//common/annotations",
+        "//common/internal:cel_lite_descriptor_pool",
+        "//common/internal:reflection_util",
+        "//common/internal:well_known_proto",
+        "//common/types",
+        "//protobuf:cel_lite_descriptor",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "proto_message_lite_value_provider",
+    srcs = ["ProtoMessageLiteValueProvider.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_value",
+        ":cel_value_provider",
+        ":proto_message_lite_value",
+        "//common:error_codes",
+        "//common:runtime_exception",
+        "//common/internal:cel_lite_descriptor_pool",
+        "//common/internal:default_instance_message_lite_factory",
+        "//common/internal:proto_lite_adapter",
+        "//common/internal:reflection_util",
+        "//common/internal:well_known_proto",
+        "//protobuf:cel_lite_descriptor",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
     ],
 )

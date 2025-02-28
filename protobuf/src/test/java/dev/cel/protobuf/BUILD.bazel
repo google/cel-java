@@ -1,0 +1,46 @@
+load("@rules_java//java:defs.bzl", "java_library")
+load("//:java_lite_proto_cel_library.bzl", "java_lite_proto_cel_library")
+load("//:testing.bzl", "junit4_test_suites")
+
+package(default_applicable_licenses = ["//:license"])
+
+java_library(
+    name = "tests",
+    testonly = 1,
+    srcs = glob(["*.java"]),
+    deps = [
+        ":test_all_types_proto3_java_lite_cel_proto",
+        "//:java_truth",
+        "//common",
+        "//common:options",
+        "//common/types",
+        "//compiler",
+        "//compiler:compiler_builder",
+        "//parser:macro",
+        "//protobuf:cel_lite_descriptor",
+        "//protobuf:proto_descriptor_collector",
+        "//runtime",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_lite_proto_cel_library(
+    name = "test_all_types_proto3_java_lite_cel_proto",
+    descriptor_class_prefix = "TestAllTypes",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
+    ],
+)
+
+junit4_test_suites(
+    name = "test_suites",
+    sizes = [
+        "small",
+    ],
+    src_dir = "src/test/java",
+    deps = [":tests"],
+)
