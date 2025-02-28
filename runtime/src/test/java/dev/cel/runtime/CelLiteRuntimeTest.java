@@ -23,8 +23,10 @@ import com.google.common.io.Resources;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.ExtensionRegistryLite;
+import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.CelSource;
 import dev.cel.common.ast.CelConstant;
@@ -61,6 +63,14 @@ public class CelLiteRuntimeTest {
     Program program = runtime.createProgram(ast);
 
     assertThat(program).isNotNull();
+  }
+
+  @Test
+  public void setCelOptions_unallowedOptionsSet_throws(@TestParameter CelOptionsTestCase testCase) {
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            CelLiteRuntimeFactory.newLiteRuntimeBuilder().setOptions(testCase.celOptions).build());
   }
 
   @Test
@@ -186,5 +196,25 @@ public class CelLiteRuntimeTest {
     CheckedExpr checkedExpr =
         CheckedExpr.parseFrom(checkedExprBytes, ExtensionRegistryLite.getEmptyRegistry());
     return CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst();
+  }
+
+  private enum CelOptionsTestCase {
+    CEL_VALUE_DISABLED(newBaseTestOptions().enableCelValue(false).build()),
+    UNSIGNED_LONG_DISABLED(newBaseTestOptions().enableUnsignedLongs(false).build()),
+    UNWRAP_WKT_DISABLED(newBaseTestOptions().unwrapWellKnownTypesOnFunctionDispatch(false).build()),
+    STRING_CONCAT_DISABLED(newBaseTestOptions().enableStringConcatenation(false).build()),
+    STRING_CONVERSION_DISABLED(newBaseTestOptions().enableStringConversion(false).build()),
+    LIST_CONCATENATION_DISABLED(newBaseTestOptions().enableListConcatenation(false).build()),
+    ;
+
+    private final CelOptions celOptions;
+
+    private static CelOptions.Builder newBaseTestOptions() {
+      return CelOptions.current().enableCelValue(true);
+    }
+
+    CelOptionsTestCase(CelOptions celOptions) {
+      this.celOptions = celOptions;
+    }
   }
 }

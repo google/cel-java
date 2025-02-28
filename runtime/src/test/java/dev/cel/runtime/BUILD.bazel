@@ -160,6 +160,7 @@ cel_android_local_test(
         "//:java_truth",
         "//common:cel_ast_android",
         "//common:cel_source_android",
+        "//common:options",
         "//common:proto_ast_android",
         "//common/ast:ast_android",
         "//common/types:types_android",

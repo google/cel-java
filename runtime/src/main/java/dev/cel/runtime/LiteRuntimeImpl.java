@@ -68,8 +68,42 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
       return this;
     }
 
+    /** Throws if an unsupported flag in CelOptions is toggled. */
+    private static void assertAllowedCelOptions(CelOptions celOptions) {
+      String prefix = "Misconfigured CelOptions: ";
+      if (!celOptions.enableCelValue()) {
+        throw new IllegalArgumentException(prefix + "enableCelValue must be enabled.");
+      }
+      if (!celOptions.enableUnsignedLongs()) {
+        throw new IllegalArgumentException(prefix + "enableUnsignedLongs cannot be disabled.");
+      }
+      if (!celOptions.unwrapWellKnownTypesOnFunctionDispatch()) {
+        throw new IllegalArgumentException(
+            prefix + "unwrapWellKnownTypesOnFunctionDispatch cannot be disabled.");
+      }
+      if (!celOptions.enableStringConcatenation()) {
+        throw new IllegalArgumentException(
+            prefix
+                + "enableStringConcatenation cannot be disabled. Subset the environment instead"
+                + " using setStandardFunctions method.");
+      }
+      if (!celOptions.enableStringConversion()) {
+        throw new IllegalArgumentException(
+            prefix
+                + "enableStringConversion cannot be disabled. Subset the environment instead using"
+                + " setStandardFunctions method.");
+      }
+      if (!celOptions.enableListConcatenation()) {
+        throw new IllegalArgumentException(
+            prefix
+                + "enableListConcatenation cannot be disabled. Subset the environment instead using"
+                + " setStandardFunctions method.");
+      }
+    }
+
     @Override
     public CelLiteRuntime build() {
+      assertAllowedCelOptions(celOptions);
       ImmutableMap.Builder<String, CelFunctionBinding> functionBindingsBuilder =
           ImmutableMap.builder();
       if (celStandardFunctions != null) {
