@@ -155,8 +155,10 @@ public interface CelRuntimeBuilder {
 
   /**
    * Override the standard functions for the runtime. This can be used to subset the standard
-   * environment to only expose the desired function overloads to the runtime. {@link
-   * #setStandardEnvironmentEnabled(boolean)} must be set to false for this to take effect.
+   * environment to only expose the desired function overloads to the runtime.
+   *
+   * <p>{@link #setStandardEnvironmentEnabled(boolean)} must be set to false for this to take
+   * effect.
    */
   @CanIgnoreReturnValue
   CelRuntimeBuilder setStandardFunctions(CelStandardFunctions standardFunctions);

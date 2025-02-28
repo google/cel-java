@@ -14,9 +14,9 @@
 
 package dev.cel.runtime;
 
-import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.MessageLite;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,7 +30,7 @@ interface ResolvedOverload {
   String getOverloadId();
 
   /** The types of the function parameters. */
-  ImmutableList<Class<?>> getParameterTypes();
+  List<Class<?>> getParameterTypes();
 
   /** The function definition. */
   FunctionOverload getDefinition();
@@ -39,7 +39,7 @@ interface ResolvedOverload {
    * Returns true if the overload's expected argument types match the types of the given arguments.
    */
   default boolean canHandle(Object[] arguments) {
-    ImmutableList<Class<?>> parameterTypes = getParameterTypes();
+    List<Class<?>> parameterTypes = getParameterTypes();
     if (parameterTypes.size() != arguments.length) {
       return false;
     }

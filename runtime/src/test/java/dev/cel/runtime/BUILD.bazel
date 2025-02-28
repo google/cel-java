@@ -1,7 +1,57 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("//:cel_android_rules.bzl", "cel_android_local_test")
 load("//:testing.bzl", "junit4_test_suites")
+load("//compiler/tools:compile_cel.bzl", "compile_cel")
 
-package(default_applicable_licenses = ["//:license"])
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+)
+
+compile_cel(
+    name = "compiled_hello_world",
+    expression = "'hello world'",
+)
+
+compile_cel(
+    name = "compiled_one_plus_two",
+    expression = "1 + 2",
+)
+
+compile_cel(
+    name = "compiled_list_literal",
+    expression = "['a', 1, 2u, 3.5]",
+)
+
+compile_cel(
+    name = "compiled_comprehension_exists",
+    expression = "[1,2,3].exists(x, x == 3)",
+)
+
+compile_cel(
+    name = "compiled_primitive_variables",
+    environment = "//testing/environment:primitive_variables",
+    expression = "bool_var && bytes_var == b'abc' && double_var == 1.0 && int_var == 42 && uint_var == 42u && str_var == 'foo'",
+)
+
+compile_cel(
+    name = "compiled_custom_functions",
+    environment = "//testing/environment:custom_functions",
+    expression = "''.isEmpty() && [].isEmpty()",
+)
+
+filegroup(
+    name = "compiled_exprs",
+    # keep sorted
+    srcs = [
+        ":compiled_comprehension_exists",
+        ":compiled_custom_functions",
+        ":compiled_hello_world",
+        ":compiled_list_literal",
+        ":compiled_one_plus_two",
+        ":compiled_primitive_variables",
+    ],
+)
 
 java_library(
     name = "tests",
@@ -13,6 +63,7 @@ java_library(
             "InterpreterTest.java",
         ],
     ),
+    resources = [":compiled_exprs"],
     deps = [
         "//:auto_value",
         "//:java_truth",
@@ -20,6 +71,7 @@ java_library(
         "//common",
         "//common:error_codes",
         "//common:options",
+        "//common:proto_ast",
         "//common:proto_v1alpha1_ast",
         "//common:runtime_exception",
         "//common/ast",
@@ -39,10 +91,14 @@ java_library(
         "//parser:unparser",
         "//runtime",
         "//runtime:activation",
+        "//runtime:dispatcher",
         "//runtime:evaluation_exception_builder",
         "//runtime:evaluation_listener",
+        "//runtime:function_binding",
         "//runtime:function_overload_impl",
-        "//runtime:interpreter",
+        "//runtime:interpreter_util",
+        "//runtime:lite_runtime",
+        "//runtime:lite_runtime_factory",
         "//runtime:proto_message_activation_factory",
         "//runtime:proto_message_runtime_equality",
         "//runtime:proto_message_runtime_helpers",
@@ -52,6 +108,7 @@ java_library(
         "//runtime:type_resolver",
         "//runtime:unknown_attributes",
         "//runtime:unknown_options",
+        "@cel_spec//proto/cel/expr:checked_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
@@ -91,6 +148,31 @@ java_library(
         "//testing:base_interpreter_test",
         "@maven//:junit_junit",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
+    ],
+)
+
+cel_android_local_test(
+    name = "android_tests",
+    srcs = ["CelLiteRuntimeTest.java"],
+    resources = [":compiled_exprs"],
+    test_class = "dev.cel.runtime.CelLiteRuntimeTest",
+    deps = [
+        "//:java_truth",
+        "//common:cel_ast_android",
+        "//common:cel_source_android",
+        "//common:proto_ast_android",
+        "//common/ast:ast_android",
+        "//common/types:types_android",
+        "//runtime:evaluation_exception",
+        "//runtime:function_binding_android",
+        "//runtime:lite_runtime_android",
+        "//runtime:lite_runtime_factory_android",
+        "//runtime:standard_functions_android",
+        "@cel_spec//proto/cel/expr:checked_java_proto_lite",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven_android//:com_google_guava_guava",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
