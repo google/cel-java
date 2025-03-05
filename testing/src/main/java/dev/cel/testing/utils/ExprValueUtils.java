@@ -19,12 +19,18 @@ import dev.cel.expr.MapValue;
 import dev.cel.expr.Value;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.io.Files;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
+import com.google.protobuf.MessageFactories;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.TypeRegistry;
 import dev.cel.common.CelDescriptorUtil;
@@ -35,6 +41,7 @@ import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeType;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -50,22 +57,27 @@ public final class ExprValueUtils {
   public static final TypeRegistry DEFAULT_TYPE_REGISTRY = newDefaultTypeRegistry();
   public static final ExtensionRegistry DEFAULT_EXTENSION_REGISTRY = newDefaultExtensionRegistry();
 
-  // TODO: Add support for user provided extensions.
-  private static ExtensionRegistry newDefaultExtensionRegistry() {
-    ExtensionRegistry extensionRegistry = ExtensionRegistry.newInstance();
-    dev.cel.expr.conformance.proto2.TestAllTypesExtensions.registerAllExtensions(extensionRegistry);
-
-    return extensionRegistry;
+  /** Returns the {@link TypeRegistry} for the given file descriptor set path. */
+  public static TypeRegistry getTypeRegistry(String fileDescriptorSetPath) throws IOException {
+    if (fileDescriptorSetPath != null) {
+      return createTypeRegistry(getFileDescriptorSet(fileDescriptorSetPath));
+    }
+    return DEFAULT_TYPE_REGISTRY;
   }
 
-  private static TypeRegistry newDefaultTypeRegistry() {
-    CelDescriptors allDescriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-            ImmutableList.of(
-                dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor().getFile(),
-                dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor().getFile()));
+  /** Returns the {@link ExtensionRegistry} for the given file descriptor set path. */
+  public static ExtensionRegistry getExtensionRegistry(String fileDescriptorSetPath) throws IOException {
+    if (fileDescriptorSetPath != null) {
+      return createExtensionRegistry(getFileDescriptorSet(fileDescriptorSetPath));
+    }
+    return DEFAULT_EXTENSION_REGISTRY;
+  }
 
-    return TypeRegistry.newBuilder().add(allDescriptors.messageTypeDescriptors()).build();
+  /** Returns the {@link FileDescriptorSet} for the given file descriptor set path. */
+  public static FileDescriptorSet getFileDescriptorSet(String fileDescriptorSetPath)
+      throws IOException {
+    return FileDescriptorSet.parseFrom(
+        Files.toByteArray(new File(fileDescriptorSetPath)), ExtensionRegistry.newInstance());
   }
 
   /**
@@ -253,5 +265,53 @@ public final class ExprValueUtils {
 
     throw new IllegalArgumentException(
         String.format("Unexpected result type: %s", object.getClass()));
+  }
+
+  // TODO: Add support for user provided extensions.
+  private static ExtensionRegistry newDefaultExtensionRegistry() {
+    ExtensionRegistry extensionRegistry = ExtensionRegistry.newInstance();
+    dev.cel.expr.conformance.proto2.TestAllTypesExtensions.registerAllExtensions(extensionRegistry);
+
+    return extensionRegistry;
+  }
+
+  private static TypeRegistry newDefaultTypeRegistry() {
+    CelDescriptors allDescriptors =
+        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+            ImmutableList.of(
+                dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor().getFile(),
+                dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor().getFile()));
+
+    return TypeRegistry.newBuilder().add(allDescriptors.messageTypeDescriptors()).build();
+  }
+
+  private static TypeRegistry createTypeRegistry(FileDescriptorSet fileDescriptorSet) {
+    ImmutableSet<FileDescriptor> fileDescriptors =
+        CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fileDescriptorSet);
+    CelDescriptors allDescriptors =
+        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileDescriptors);
+    return TypeRegistry.newBuilder().add(allDescriptors.messageTypeDescriptors()).build();
+  }
+
+  private static ExtensionRegistry createExtensionRegistry(FileDescriptorSet fileDescriptorSet) {
+    ImmutableSet<FileDescriptor> fileDescriptors =
+        CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fileDescriptorSet);
+
+    ExtensionRegistry extensionRegistry = ExtensionRegistry.newInstance();
+    CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileDescriptors)
+        .extensionDescriptors()
+        .forEach(
+            (descriptorName, descriptor) -> {
+              if (descriptor.getType() == FieldDescriptor.Type.MESSAGE) {
+                Message defaultInstance =
+                    MessageFactories.getImmutableMessageFactory()
+                        .getPrototype(descriptor.getMessageType());
+                extensionRegistry.add(descriptor, defaultInstance);
+              } else {
+                extensionRegistry.add(descriptor);
+              }
+            });
+
+    return extensionRegistry;
   }
 }
