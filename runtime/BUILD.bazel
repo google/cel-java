@@ -182,3 +182,15 @@ java_library(
         "//runtime/src/main/java/dev/cel/runtime:metadata",
     ],
 )
+
+java_library(
+    name = "lite_runtime_impl",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:lite_runtime_impl"],
+)
+
+cel_android_library(
+    name = "lite_runtime_impl_android",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:lite_runtime_impl_android"],
+)

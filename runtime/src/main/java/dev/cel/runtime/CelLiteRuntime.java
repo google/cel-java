@@ -31,6 +31,8 @@ public interface CelLiteRuntime {
 
   Program createProgram(CelAbstractSyntaxTree ast) throws CelEvaluationException;
 
+  CelLiteRuntimeBuilder toRuntimeBuilder();
+
   /** Creates an evaluable {@code Program} instance which is thread-safe and immutable. */
   @Immutable
   interface Program {

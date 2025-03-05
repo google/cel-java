@@ -66,6 +66,37 @@ public class CelLiteRuntimeTest {
   }
 
   @Test
+  public void toRuntimeBuilder_isNewInstance() {
+    CelLiteRuntimeBuilder runtimeBuilder = CelLiteRuntimeFactory.newLiteRuntimeBuilder();
+    CelLiteRuntime runtime = runtimeBuilder.build();
+
+    CelLiteRuntimeBuilder newRuntimeBuilder = runtime.toRuntimeBuilder();
+
+    assertThat(newRuntimeBuilder).isNotEqualTo(runtimeBuilder);
+  }
+
+  @Test
+  public void toRuntimeBuilder_propertiesCopied() {
+    CelOptions celOptions = CelOptions.current().enableCelValue(true).build();
+    CelStandardFunctions celStandardFunctions = CelStandardFunctions.newBuilder().build();
+    CelLiteRuntimeBuilder runtimeBuilder =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setOptions(celOptions)
+            .setStandardFunctions(celStandardFunctions)
+            .addFunctionBindings(
+                CelFunctionBinding.from("string_isEmpty", String.class, String::isEmpty));
+    CelLiteRuntime runtime = runtimeBuilder.build();
+
+    LiteRuntimeImpl.Builder newRuntimeBuilder =
+        (LiteRuntimeImpl.Builder) runtime.toRuntimeBuilder();
+
+    assertThat(newRuntimeBuilder.celOptions).isEqualTo(celOptions);
+    assertThat(newRuntimeBuilder.celStandardFunctions).isEqualTo(celStandardFunctions);
+    assertThat(newRuntimeBuilder.customFunctionBindings).hasSize(1);
+    assertThat(newRuntimeBuilder.customFunctionBindings).containsKey("string_isEmpty");
+  }
+
+  @Test
   public void setCelOptions_unallowedOptionsSet_throws(@TestParameter CelOptionsTestCase testCase) {
     assertThrows(
         IllegalArgumentException.class,

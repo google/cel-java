@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import javax.annotation.concurrent.ThreadSafe;
@@ -30,6 +31,9 @@ import java.util.Map;
 @ThreadSafe
 final class LiteRuntimeImpl implements CelLiteRuntime {
   private final Interpreter interpreter;
+  private final CelOptions celOptions;
+  private final ImmutableList<CelFunctionBinding> customFunctionBindings;
+  private final CelStandardFunctions celStandardFunctions;
 
   @Override
   public Program createProgram(CelAbstractSyntaxTree ast) {
@@ -37,12 +41,19 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     return LiteProgramImpl.plan(interpreter.createInterpretable(ast));
   }
 
+  @Override
+  public CelLiteRuntimeBuilder toRuntimeBuilder() {
+    return new Builder()
+        .setOptions(celOptions)
+        .setStandardFunctions(celStandardFunctions)
+        .addFunctionBindings(customFunctionBindings);
+  }
+
   static final class Builder implements CelLiteRuntimeBuilder {
 
-    private final HashMap<String, CelFunctionBinding> customFunctionBindings;
-
-    private CelOptions celOptions;
-
+    // Following is visible to test `toBuilder`.
+    @VisibleForTesting CelOptions celOptions;
+    @VisibleForTesting final HashMap<String, CelFunctionBinding> customFunctionBindings;
     @VisibleForTesting CelStandardFunctions celStandardFunctions;
 
     @Override
@@ -158,7 +169,8 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
               dispatcher,
               celOptions);
 
-      return new LiteRuntimeImpl(interpreter);
+      return new LiteRuntimeImpl(
+          interpreter, celOptions, customFunctionBindings.values(), celStandardFunctions);
     }
 
     private Builder() {
@@ -171,7 +183,14 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     return new Builder();
   }
 
-  private LiteRuntimeImpl(Interpreter interpreter) {
+  private LiteRuntimeImpl(
+      Interpreter interpreter,
+      CelOptions celOptions,
+      Iterable<CelFunctionBinding> customFunctionBindings,
+      CelStandardFunctions celStandardFunctions) {
     this.interpreter = interpreter;
+    this.celOptions = celOptions;
+    this.customFunctionBindings = ImmutableList.copyOf(customFunctionBindings);
+    this.celStandardFunctions = celStandardFunctions;
   }
 }

@@ -701,7 +701,8 @@ java_library(
 java_library(
     name = "lite_runtime_impl",
     srcs = LITE_RUNTIME_IMPL_SOURCES,
-    visibility = ["//visibility:private"],
+    tags = [
+    ],
     deps = [
         ":activation",
         ":dispatcher",
@@ -725,6 +726,35 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "lite_runtime_impl_android",
+    srcs = LITE_RUNTIME_IMPL_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":activation_android",
+        ":dispatcher_android",
+        ":evaluation_exception",
+        ":function_binding_android",
+        ":interpretable_android",
+        ":interpreter_android",
+        ":lite_runtime_android",
+        ":runtime_equality_android",
+        ":runtime_helpers_android",
+        ":runtime_type_provider_android",
+        ":standard_functions_android",
+        ":type_resolver_android",
+        "//:auto_value",
+        "//common:cel_ast_android",
+        "//common:options",
+        "@maven//:com_google_code_findbugs_annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
 java_library(
     name = "lite_runtime_factory",
     srcs = [
@@ -735,6 +765,19 @@ java_library(
     deps = [
         ":lite_runtime",
         ":lite_runtime_impl",
+    ],
+)
+
+cel_android_library(
+    name = "lite_runtime_factory_android",
+    srcs = [
+        "CelLiteRuntimeFactory.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":lite_runtime_android",
+        ":lite_runtime_impl_android",
     ],
 )
 
@@ -880,46 +923,5 @@ cel_android_library(
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
-    ],
-)
-
-cel_android_library(
-    name = "lite_runtime_impl_android",
-    srcs = LITE_RUNTIME_IMPL_SOURCES,
-    visibility = ["//visibility:private"],
-    deps = [
-        ":activation_android",
-        ":dispatcher_android",
-        ":evaluation_exception",
-        ":function_binding_android",
-        ":interpretable_android",
-        ":interpreter_android",
-        ":lite_runtime_android",
-        ":runtime_equality_android",
-        ":runtime_helpers_android",
-        ":runtime_type_provider_android",
-        ":standard_functions_android",
-        ":type_resolver_android",
-        "//:auto_value",
-        "//common:cel_ast_android",
-        "//common:options",
-        "@maven//:com_google_code_findbugs_annotations",
-        "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
-        "@maven_android//:com_google_guava_guava",
-    ],
-)
-
-cel_android_library(
-    name = "lite_runtime_factory_android",
-    srcs = [
-        "CelLiteRuntimeFactory.java",
-    ],
-    tags = [
-    ],
-    deps = [
-        ":lite_runtime_android",
-        ":lite_runtime_impl_android",
     ],
 )
