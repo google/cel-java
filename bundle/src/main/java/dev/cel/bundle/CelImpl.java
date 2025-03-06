@@ -255,13 +255,13 @@ final class CelImpl implements Cel, EnvVisitable {
     }
 
     @Override
-    public CelBuilder addFunctionBindings(CelRuntime.CelFunctionBinding... bindings) {
+    public CelBuilder addFunctionBindings(dev.cel.runtime.CelFunctionBinding... bindings) {
       runtimeBuilder.addFunctionBindings(bindings);
       return this;
     }
 
     @Override
-    public CelBuilder addFunctionBindings(Iterable<CelRuntime.CelFunctionBinding> bindings) {
+    public CelBuilder addFunctionBindings(Iterable<dev.cel.runtime.CelFunctionBinding> bindings) {
       runtimeBuilder.addFunctionBindings(bindings);
       return this;
     }

@@ -38,7 +38,7 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.parser.CelUnparserFactory;
 import dev.cel.runtime.CelEvaluationListener;
 import dev.cel.runtime.CelLateFunctionBindings;
-import dev.cel.runtime.CelRuntime.CelFunctionBinding;
+import dev.cel.runtime.CelFunctionBinding;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Optional;

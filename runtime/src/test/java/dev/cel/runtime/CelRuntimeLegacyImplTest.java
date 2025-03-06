@@ -20,7 +20,6 @@ import dev.cel.common.CelException;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
-import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;

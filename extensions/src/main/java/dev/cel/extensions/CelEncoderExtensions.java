@@ -22,7 +22,7 @@ import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompilerLibrary;
-import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
 import java.util.Base64;
@@ -45,7 +45,7 @@ public class CelEncoderExtensions implements CelCompilerLibrary, CelRuntimeLibra
             CelOverloadDecl.newGlobalOverload(
                 "base64_decode_string", SimpleType.BYTES, SimpleType.STRING)),
         ImmutableSet.of(
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "base64_decode_string",
                 String.class,
                 str -> ByteString.copyFrom(BASE64_DECODER.decode(str))))),
@@ -55,22 +55,20 @@ public class CelEncoderExtensions implements CelCompilerLibrary, CelRuntimeLibra
             CelOverloadDecl.newGlobalOverload(
                 "base64_encode_bytes", SimpleType.STRING, SimpleType.BYTES)),
         ImmutableSet.of(
-            CelRuntime.CelFunctionBinding.from(
+            CelFunctionBinding.from(
                 "base64_encode_bytes",
                 ByteString.class,
                 bytes -> BASE64_ENCODER.encodeToString(bytes.toByteArray())))),
     ;
 
     private final CelFunctionDecl functionDecl;
-    private final ImmutableSet<CelRuntime.CelFunctionBinding> functionBindings;
+    private final ImmutableSet<CelFunctionBinding> functionBindings;
 
     String getFunction() {
       return functionDecl.name();
     }
 
-    Function(
-        CelFunctionDecl functionDecl,
-        ImmutableSet<CelRuntime.CelFunctionBinding> functionBindings) {
+    Function(CelFunctionDecl functionDecl, ImmutableSet<CelFunctionBinding> functionBindings) {
       this.functionDecl = functionDecl;
       this.functionBindings = functionBindings;
     }

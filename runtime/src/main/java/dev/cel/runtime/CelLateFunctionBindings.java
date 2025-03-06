@@ -41,20 +41,20 @@ public final class CelLateFunctionBindings implements CelFunctionResolver {
     return DefaultDispatcher.findOverload(functionName, overloadIds, functions, args);
   }
 
-  public static CelLateFunctionBindings from(CelRuntime.CelFunctionBinding... functions) {
+  public static CelLateFunctionBindings from(CelFunctionBinding... functions) {
     return from(Arrays.asList(functions));
   }
 
-  public static CelLateFunctionBindings from(List<CelRuntime.CelFunctionBinding> functions) {
+  public static CelLateFunctionBindings from(List<CelFunctionBinding> functions) {
     return new CelLateFunctionBindings(
         functions.stream()
             .collect(
                 toImmutableMap(
-                    CelRuntime.CelFunctionBinding::getOverloadId,
+                    CelFunctionBinding::getOverloadId,
                     CelLateFunctionBindings::createResolvedOverload)));
   }
 
-  private static ResolvedOverload createResolvedOverload(CelRuntime.CelFunctionBinding binding) {
+  private static ResolvedOverload createResolvedOverload(CelFunctionBinding binding) {
     return CelResolvedOverload.of(
         binding.getOverloadId(),
         binding.getArgTypes(),

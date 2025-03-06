@@ -26,7 +26,7 @@ import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.compiler.CelCompilerLibrary;
-import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
 import dev.cel.runtime.ProtoMessageRuntimeEquality;
@@ -132,7 +132,7 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
       switch (function) {
         case CONTAINS:
           runtimeBuilder.addFunctionBindings(
-              CelRuntime.CelFunctionBinding.from(
+              CelFunctionBinding.from(
                   "list_sets_contains_list",
                   Collection.class,
                   Collection.class,
@@ -140,7 +140,7 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
           break;
         case EQUIVALENT:
           runtimeBuilder.addFunctionBindings(
-              CelRuntime.CelFunctionBinding.from(
+              CelFunctionBinding.from(
                   "list_sets_equivalent_list",
                   Collection.class,
                   Collection.class,
@@ -148,7 +148,7 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
           break;
         case INTERSECTS:
           runtimeBuilder.addFunctionBindings(
-              CelRuntime.CelFunctionBinding.from(
+              CelFunctionBinding.from(
                   "list_sets_intersects_list",
                   Collection.class,
                   Collection.class,

@@ -61,6 +61,7 @@ java_library(
         "//extensions",
         "//extensions:optional_library",
         "//runtime",
+        "//runtime:function_binding",
         "@cel_spec//proto/cel/expr:checked_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
         "@maven//:com_google_guava_guava",
