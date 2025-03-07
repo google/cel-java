@@ -27,7 +27,7 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.types.SimpleType;
 import dev.cel.extensions.CelOptionalLibrary;
-import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.validator.CelValidator;
 import dev.cel.validator.CelValidatorFactory;
 import java.util.List;

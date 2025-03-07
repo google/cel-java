@@ -229,13 +229,26 @@ public interface CelRuntime {
   }
 
   /**
-   * Deprecated. Do not use.
+   * Binding consisting of an overload id, a Java-native argument signature, and an overload
+   * definition.
    *
-   * @deprecated {@link dev.cel.runtime.CelFunctionBinding} instead.
-   *     <p>TODO: Migrate users to dev.cel.runtime.CelFunctionBinding
+   * <p>While the CEL function has a human-readable {@code camelCase} name, overload ids should use
+   * the following convention where all {@code <type>} names should be ASCII lower-cased. For types
+   * prefer the unparameterized simple name of time, or unqualified name of any proto-based type:
+   *
+   * <ul>
+   *   <li>unary member function: <type>_<function>
+   *   <li>binary member function: <type>_<function>_<arg_type>
+   *   <li>unary global function: <function>_<type>
+   *   <li>binary global function: <function>_<arg_type1>_<arg_type2>
+   *   <li>global function: <function>_<arg_type1>_<arg_type2>_<arg_typeN>
+   * </ul>
+   *
+   * <p>Examples: string_startsWith_string, mathMax_list, lessThan_money_money
+   *
+   * <p>TODO: Migrate users to dev.cel.runtime.CelFunctionBinding
    */
   @Immutable
-  @Deprecated
   final class CelFunctionBinding implements dev.cel.runtime.CelFunctionBinding {
     private final dev.cel.runtime.CelFunctionBinding functionBinding;
 
@@ -263,7 +276,8 @@ public interface CelRuntime {
      */
     public static <T> CelFunctionBinding from(
         String overloadId, Class<T> arg, CelFunctionOverload.Unary<T> impl) {
-      return new CelFunctionBinding(dev.cel.runtime.CelFunctionBinding.from(overloadId, arg, impl));
+      return new CelRuntime.CelFunctionBinding(
+          dev.cel.runtime.CelFunctionBinding.from(overloadId, arg, impl));
     }
 
     /**
@@ -275,7 +289,7 @@ public interface CelRuntime {
         Class<T1> arg1,
         Class<T2> arg2,
         CelFunctionOverload.Binary<T1, T2> impl) {
-      return new CelFunctionBinding(
+      return new CelRuntime.CelFunctionBinding(
           dev.cel.runtime.CelFunctionBinding.from(overloadId, arg1, arg2, impl));
     }
 
@@ -284,7 +298,7 @@ public interface CelRuntime {
      */
     public static CelFunctionBinding from(
         String overloadId, Iterable<Class<?>> argTypes, CelFunctionOverload impl) {
-      return new CelFunctionBinding(
+      return new CelRuntime.CelFunctionBinding(
           dev.cel.runtime.CelFunctionBinding.from(overloadId, argTypes, impl));
     }
   }

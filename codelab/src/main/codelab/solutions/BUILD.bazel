@@ -28,7 +28,6 @@ java_library(
         "//optimizer/optimizers:constant_folding",
         "//parser:macro",
         "//runtime",
-        "//runtime:function_binding",
         "//validator",
         "//validator:ast_validator",
         "//validator:validator_builder",

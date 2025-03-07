@@ -69,9 +69,9 @@ import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelLateFunctionBindings;
 import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeFactory;
 import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.CelVariableResolver;
@@ -2355,7 +2355,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     return hierarchicalVariableResolver(primary, TestOnlyVariableResolver.newInstance(secondary));
   }
 
-  private void addFunctionBinding(CelFunctionBinding... functionBindings) {
+  private void addFunctionBinding(CelRuntime.CelFunctionBinding... functionBindings) {
     celRuntime = celRuntime.toRuntimeBuilder().addFunctionBindings(functionBindings).build();
   }
 

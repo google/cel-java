@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.UnsignedLong;
 import dev.cel.common.CelErrorCode;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;

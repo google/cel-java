@@ -33,7 +33,7 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationExceptionBuilder;
-import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
 import java.util.ArrayList;
@@ -56,7 +56,7 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
                     + " greater than the length of the string, the function will produce an error.",
                 SimpleType.STRING,
                 ImmutableList.of(SimpleType.STRING, SimpleType.INT))),
-        CelFunctionBinding.from(
+        CelRuntime.CelFunctionBinding.from(
             "string_char_at_int", String.class, Long.class, CelStringExtensions::charAt)),
     INDEX_OF(
         CelFunctionDecl.newFunctionDeclaration(
@@ -75,9 +75,9 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
                     + " is returned (zero or custom).",
                 SimpleType.INT,
                 ImmutableList.of(SimpleType.STRING, SimpleType.STRING, SimpleType.INT))),
-        CelFunctionBinding.from(
+        CelRuntime.CelFunctionBinding.from(
             "string_index_of_string", String.class, String.class, CelStringExtensions::indexOf),
-        CelFunctionBinding.from(
+        CelRuntime.CelFunctionBinding.from(
             "string_index_of_string_int",
             ImmutableList.of(String.class, String.class, Long.class),
             CelStringExtensions::indexOf)),
@@ -95,8 +95,8 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
                     + " separator.",
                 SimpleType.STRING,
                 ImmutableList.of(ListType.create(SimpleType.STRING), SimpleType.STRING))),
-        CelFunctionBinding.from("list_join", List.class, CelStringExtensions::join),
-        CelFunctionBinding.from(
+        CelRuntime.CelFunctionBinding.from("list_join", List.class, CelStringExtensions::join),
+        CelRuntime.CelFunctionBinding.from(
             "list_join_string", List.class, String.class, CelStringExtensions::join)),
     LAST_INDEX_OF(
         CelFunctionDecl.newFunctionDeclaration(
@@ -115,12 +115,12 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
                     + " returned (string length or custom).",
                 SimpleType.INT,
                 ImmutableList.of(SimpleType.STRING, SimpleType.STRING, SimpleType.INT))),
-        CelFunctionBinding.from(
+        CelRuntime.CelFunctionBinding.from(
             "string_last_index_of_string",
             String.class,
             String.class,
             CelStringExtensions::lastIndexOf),
-        CelFunctionBinding.from(
+        CelRuntime.CelFunctionBinding.from(
             "string_last_index_of_string_int",
             ImmutableList.of(String.class, String.class, Long.class),
             CelStringExtensions::lastIndexOf)),
@@ -134,7 +134,7 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
                     + " range.",
                 SimpleType.STRING,
                 SimpleType.STRING)),
-        CelFunctionBinding.from("string_lower_ascii", String.class, Ascii::toLowerCase)),
+        CelRuntime.CelFunctionBinding.from("string_lower_ascii", String.class, Ascii::toLowerCase)),
     REPLACE(
         CelFunctionDecl.newFunctionDeclaration(
             "replace",
@@ -154,11 +154,11 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
                 SimpleType.STRING,
                 ImmutableList.of(
                     SimpleType.STRING, SimpleType.STRING, SimpleType.STRING, SimpleType.INT))),
-        CelFunctionBinding.from(
+        CelRuntime.CelFunctionBinding.from(
             "string_replace_string_string",
             ImmutableList.of(String.class, String.class, String.class),
             CelStringExtensions::replaceAll),
-        CelFunctionBinding.from(
+        CelRuntime.CelFunctionBinding.from(
             "string_replace_string_string_int",
             ImmutableList.of(String.class, String.class, String.class, Long.class),
             CelStringExtensions::replace)),
@@ -176,9 +176,9 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
                     + " the specified limit on the number of substrings produced by the split.",
                 ListType.create(SimpleType.STRING),
                 ImmutableList.of(SimpleType.STRING, SimpleType.STRING, SimpleType.INT))),
-        CelFunctionBinding.from(
+        CelRuntime.CelFunctionBinding.from(
             "string_split_string", String.class, String.class, CelStringExtensions::split),
-        CelFunctionBinding.from(
+        CelRuntime.CelFunctionBinding.from(
             "string_split_string_int",
             ImmutableList.of(String.class, String.class, Long.class),
             CelStringExtensions::split)),
@@ -198,9 +198,9 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
                     + " Thus the length of the substring is {@code endIndex-beginIndex}.",
                 SimpleType.STRING,
                 ImmutableList.of(SimpleType.STRING, SimpleType.INT, SimpleType.INT))),
-        CelFunctionBinding.from(
+        CelRuntime.CelFunctionBinding.from(
             "string_substring_int", String.class, Long.class, CelStringExtensions::substring),
-        CelFunctionBinding.from(
+        CelRuntime.CelFunctionBinding.from(
             "string_substring_int_int",
             ImmutableList.of(String.class, Long.class, Long.class),
             CelStringExtensions::substring)),
@@ -214,7 +214,7 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
                     + " which does not include the zero-width spaces. ",
                 SimpleType.STRING,
                 SimpleType.STRING)),
-        CelFunctionBinding.from("string_trim", String.class, CelStringExtensions::trim)),
+        CelRuntime.CelFunctionBinding.from("string_trim", String.class, CelStringExtensions::trim)),
     UPPER_ASCII(
         CelFunctionDecl.newFunctionDeclaration(
             "upperAscii",
@@ -225,16 +225,16 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
                     + " range.",
                 SimpleType.STRING,
                 SimpleType.STRING)),
-        CelFunctionBinding.from("string_upper_ascii", String.class, Ascii::toUpperCase));
+        CelRuntime.CelFunctionBinding.from("string_upper_ascii", String.class, Ascii::toUpperCase));
 
     private final CelFunctionDecl functionDecl;
-    private final ImmutableSet<CelFunctionBinding> functionBindings;
+    private final ImmutableSet<CelRuntime.CelFunctionBinding> functionBindings;
 
     String getFunction() {
       return functionDecl.name();
     }
 
-    Function(CelFunctionDecl functionDecl, CelFunctionBinding... functionBindings) {
+    Function(CelFunctionDecl functionDecl, CelRuntime.CelFunctionBinding... functionBindings) {
       this.functionDecl = functionDecl;
       this.functionBindings = ImmutableSet.copyOf(functionBindings);
     }

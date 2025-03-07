@@ -90,7 +90,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
   public static final class Builder implements CelRuntimeBuilder {
 
     private final ImmutableSet.Builder<FileDescriptor> fileTypes;
-    private final HashMap<String, dev.cel.runtime.CelFunctionBinding> customFunctionBindings;
+    private final HashMap<String, CelFunctionBinding> customFunctionBindings;
     private final ImmutableSet.Builder<CelRuntimeLibrary> celRuntimeLibraries;
 
     @SuppressWarnings("unused")
@@ -109,13 +109,12 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     }
 
     @Override
-    public CelRuntimeBuilder addFunctionBindings(dev.cel.runtime.CelFunctionBinding... bindings) {
+    public CelRuntimeBuilder addFunctionBindings(CelFunctionBinding... bindings) {
       return addFunctionBindings(Arrays.asList(bindings));
     }
 
     @Override
-    public CelRuntimeBuilder addFunctionBindings(
-        Iterable<dev.cel.runtime.CelFunctionBinding> bindings) {
+    public CelRuntimeBuilder addFunctionBindings(Iterable<CelFunctionBinding> bindings) {
       bindings.forEach(o -> customFunctionBindings.putIfAbsent(o.getOverloadId(), o));
       return this;
     }
@@ -194,7 +193,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     // The following getters exist for asserting immutability for collections held by this builder,
     // and shouldn't be exposed to the public.
     @VisibleForTesting
-    Map<String, dev.cel.runtime.CelFunctionBinding> getFunctionBindings() {
+    Map<String, CelFunctionBinding> getFunctionBindings() {
       return this.customFunctionBindings;
     }
 

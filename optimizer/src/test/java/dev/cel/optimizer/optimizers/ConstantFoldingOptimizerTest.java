@@ -39,7 +39,7 @@ import dev.cel.optimizer.optimizers.ConstantFoldingOptimizer.ConstantFoldingOpti
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparser;
 import dev.cel.parser.CelUnparserFactory;
-import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 

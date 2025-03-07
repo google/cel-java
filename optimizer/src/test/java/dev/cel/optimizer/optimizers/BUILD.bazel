@@ -29,7 +29,6 @@ java_library(
         "//parser:operator",
         "//parser:unparser",
         "//runtime",
-        "//runtime:function_binding",
         "//testing:baseline_test_case",
         "@maven//:junit_junit",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",

@@ -28,7 +28,7 @@ import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.runtime.CelRuntime;
-import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.runtime.CelRuntime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeFactory;
 import java.net.URL;
 import java.util.List;

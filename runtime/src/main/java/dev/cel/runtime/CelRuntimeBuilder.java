@@ -33,20 +33,20 @@ public interface CelRuntimeBuilder {
   CelRuntimeBuilder setOptions(CelOptions options);
 
   /**
-   * Add one or more {@link CelFunctionBinding} objects to the CEL runtime.
+   * Add one or more {@link CelRuntime.CelFunctionBinding} objects to the CEL runtime.
    *
    * <p>Functions with duplicate overload ids will be replaced in favor of the new overload.
    */
   @CanIgnoreReturnValue
-  CelRuntimeBuilder addFunctionBindings(CelFunctionBinding... bindings);
+  CelRuntimeBuilder addFunctionBindings(CelRuntime.CelFunctionBinding... bindings);
 
   /**
-   * Bind a collection of {@link CelFunctionBinding} objects to the runtime.
+   * Bind a collection of {@link CelRuntime.CelFunctionBinding} objects to the runtime.
    *
    * <p>Functions with duplicate overload ids will be replaced in favor of the new overload.
    */
   @CanIgnoreReturnValue
-  CelRuntimeBuilder addFunctionBindings(Iterable<CelFunctionBinding> bindings);
+  CelRuntimeBuilder addFunctionBindings(Iterable<CelRuntime.CelFunctionBinding> bindings);
 
   /**
    * Add message {@link Descriptor}s to the builder for type-checking and object creation at
