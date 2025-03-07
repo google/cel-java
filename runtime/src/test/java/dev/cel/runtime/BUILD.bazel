@@ -84,6 +84,7 @@ java_library(
         "//common/types",
         "//common/types:cel_v1alpha1_types",
         "//common/types:message_type_provider",
+        "//common/values:cel_value_provider",
         "//compiler",
         "//compiler:compiler_builder",
         "//extensions:optional_library",

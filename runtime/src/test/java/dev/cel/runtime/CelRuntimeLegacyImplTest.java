@@ -16,10 +16,15 @@ package dev.cel.runtime;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.protobuf.Message;
 import dev.cel.common.CelException;
+import dev.cel.common.values.CelValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.runtime.CelStandardFunctions.StandardFunction;
+import java.util.Optional;
+import java.util.function.Function;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,7 +62,7 @@ public final class CelRuntimeLegacyImplTest {
     CelRuntimeLegacyImpl.Builder newRuntimeBuilder =
         (CelRuntimeLegacyImpl.Builder) celRuntime.toRuntimeBuilder();
 
-    assertThat(newRuntimeBuilder.getRuntimeLibraries().build()).isEmpty();
+    assertThat(newRuntimeBuilder.celRuntimeLibraries.build()).isEmpty();
   }
 
   @Test
@@ -68,15 +73,15 @@ public final class CelRuntimeLegacyImplTest {
     celRuntimeBuilder.addFunctionBindings(CelFunctionBinding.from("test", Integer.class, arg -> 1));
     celRuntimeBuilder.addLibraries(runtimeBuilder -> {});
     int originalFileTypesSize =
-        ((CelRuntimeLegacyImpl.Builder) celRuntimeBuilder).getFileTypes().build().size();
+        ((CelRuntimeLegacyImpl.Builder) celRuntimeBuilder).fileTypes.build().size();
     CelRuntimeLegacyImpl celRuntime = (CelRuntimeLegacyImpl) celRuntimeBuilder.build();
 
     CelRuntimeLegacyImpl.Builder newRuntimeBuilder =
         (CelRuntimeLegacyImpl.Builder) celRuntime.toRuntimeBuilder();
 
-    assertThat(newRuntimeBuilder.getFunctionBindings()).hasSize(1);
-    assertThat(newRuntimeBuilder.getRuntimeLibraries().build()).hasSize(1);
-    assertThat(newRuntimeBuilder.getFileTypes().build()).hasSize(originalFileTypesSize);
+    assertThat(newRuntimeBuilder.customFunctionBindings).hasSize(1);
+    assertThat(newRuntimeBuilder.celRuntimeLibraries.build()).hasSize(1);
+    assertThat(newRuntimeBuilder.fileTypes.build()).hasSize(originalFileTypesSize);
   }
 
   @Test
@@ -92,8 +97,31 @@ public final class CelRuntimeLegacyImplTest {
     celRuntimeBuilder.addFunctionBindings(CelFunctionBinding.from("test", Integer.class, arg -> 1));
     celRuntimeBuilder.addLibraries(runtimeBuilder -> {});
 
-    assertThat(newRuntimeBuilder.getFunctionBindings()).isEmpty();
-    assertThat(newRuntimeBuilder.getRuntimeLibraries().build()).isEmpty();
-    assertThat(newRuntimeBuilder.getFileTypes().build()).isEmpty();
+    assertThat(newRuntimeBuilder.customFunctionBindings).isEmpty();
+    assertThat(newRuntimeBuilder.celRuntimeLibraries.build()).isEmpty();
+    assertThat(newRuntimeBuilder.fileTypes.build()).isEmpty();
+  }
+
+  @Test
+  public void toRuntimeBuilder_optionalProperties() {
+    Function<String, Message.Builder> customTypeFactory = (typeName) -> TestAllTypes.newBuilder();
+    CelStandardFunctions overriddenStandardFunctions =
+        CelStandardFunctions.newBuilder().includeFunctions(StandardFunction.ADD).build();
+    CelValueProvider noOpValueProvider = (structType, fields) -> Optional.empty();
+    CelRuntimeBuilder celRuntimeBuilder =
+        CelRuntimeFactory.standardCelRuntimeBuilder()
+            .setStandardEnvironmentEnabled(false)
+            .setTypeFactory(customTypeFactory)
+            .setStandardFunctions(overriddenStandardFunctions)
+            .setValueProvider(noOpValueProvider);
+    CelRuntime celRuntime = celRuntimeBuilder.build();
+
+    CelRuntimeLegacyImpl.Builder newRuntimeBuilder =
+        (CelRuntimeLegacyImpl.Builder) celRuntime.toRuntimeBuilder();
+
+    assertThat(newRuntimeBuilder.customTypeFactory).isEqualTo(customTypeFactory);
+    assertThat(newRuntimeBuilder.overriddenStandardFunctions)
+        .isEqualTo(overriddenStandardFunctions);
+    assertThat(newRuntimeBuilder.celValueProvider).isEqualTo(noOpValueProvider);
   }
 }

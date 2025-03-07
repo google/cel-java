@@ -48,7 +48,6 @@ import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Comparison
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Conversions;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import org.jspecify.annotations.Nullable;
@@ -66,9 +65,26 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
   private final Interpreter interpreter;
   private final CelOptions options;
 
-  // Builder is mutable by design. APIs must guarantee a new instance to be returned.
+  private final boolean standardEnvironmentEnabled;
+
+  // Extension registry is thread-safe. Just not marked as such from Protobuf's implementation.
   // CEL-Internal-4
-  private final Builder runtimeBuilder;
+  private final ExtensionRegistry extensionRegistry;
+
+  // A user-provided custom type factory should presumably be thread-safe. This is documented, but
+  // not enforced.
+  // CEL-Internal-4
+  private final Function<String, Message.Builder> customTypeFactory;
+
+  private final CelStandardFunctions overriddenStandardFunctions;
+  private final CelValueProvider celValueProvider;
+  private final ImmutableSet<FileDescriptor> fileDescriptors;
+
+  // This does not affect the evaluation behavior in any manner.
+  // CEL-Internal-4
+  private final ImmutableSet<CelRuntimeLibrary> celRuntimeLibraries;
+
+  private final ImmutableList<dev.cel.runtime.CelFunctionBinding> celFunctionBindings;
 
   @Override
   public CelRuntime.Program createProgram(CelAbstractSyntaxTree ast) {
@@ -78,7 +94,28 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
   @Override
   public CelRuntimeBuilder toRuntimeBuilder() {
-    return new Builder(runtimeBuilder);
+    CelRuntimeBuilder builder =
+        new Builder()
+            .setOptions(options)
+            .setStandardEnvironmentEnabled(standardEnvironmentEnabled)
+            .setExtensionRegistry(extensionRegistry)
+            .addFileTypes(fileDescriptors)
+            .addLibraries(celRuntimeLibraries)
+            .addFunctionBindings(celFunctionBindings);
+
+    if (customTypeFactory != null) {
+      builder.setTypeFactory(customTypeFactory);
+    }
+
+    if (overriddenStandardFunctions != null) {
+      builder.setStandardFunctions(overriddenStandardFunctions);
+    }
+
+    if (celValueProvider != null) {
+      builder.setValueProvider(celValueProvider);
+    }
+
+    return builder;
   }
 
   /** Create a new builder for constructing a {@code CelRuntime} instance. */
@@ -89,18 +126,23 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
   /** Builder class for {@code CelRuntimeLegacyImpl}. */
   public static final class Builder implements CelRuntimeBuilder {
 
-    private final ImmutableSet.Builder<FileDescriptor> fileTypes;
-    private final HashMap<String, dev.cel.runtime.CelFunctionBinding> customFunctionBindings;
-    private final ImmutableSet.Builder<CelRuntimeLibrary> celRuntimeLibraries;
+    // The following properties are for testing purposes only. Do not expose to public.
+    @VisibleForTesting final ImmutableSet.Builder<FileDescriptor> fileTypes;
 
-    @SuppressWarnings("unused")
+    @VisibleForTesting
+    final HashMap<String, dev.cel.runtime.CelFunctionBinding> customFunctionBindings;
+
+    @VisibleForTesting final ImmutableSet.Builder<CelRuntimeLibrary> celRuntimeLibraries;
+
+    @VisibleForTesting Function<String, Message.Builder> customTypeFactory;
+    @VisibleForTesting CelValueProvider celValueProvider;
+    @VisibleForTesting CelStandardFunctions overriddenStandardFunctions;
+
     private CelOptions options;
 
-    private boolean standardEnvironmentEnabled;
-    private Function<String, Message.Builder> customTypeFactory;
     private ExtensionRegistry extensionRegistry;
-    private CelValueProvider celValueProvider;
-    private CelStandardFunctions overriddenStandardFunctions;
+
+    private boolean standardEnvironmentEnabled;
 
     @Override
     public CelRuntimeBuilder setOptions(CelOptions options) {
@@ -191,23 +233,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       return this;
     }
 
-    // The following getters exist for asserting immutability for collections held by this builder,
-    // and shouldn't be exposed to the public.
-    @VisibleForTesting
-    Map<String, dev.cel.runtime.CelFunctionBinding> getFunctionBindings() {
-      return this.customFunctionBindings;
-    }
-
-    @VisibleForTesting
-    ImmutableSet.Builder<CelRuntimeLibrary> getRuntimeLibraries() {
-      return this.celRuntimeLibraries;
-    }
-
-    @VisibleForTesting
-    ImmutableSet.Builder<FileDescriptor> getFileTypes() {
-      return this.fileTypes;
-    }
-
     /** Build a new {@code CelRuntimeLegacyImpl} instance from the builder config. */
     @Override
     public CelRuntimeLegacyImpl build() {
@@ -216,12 +241,15 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
             "setStandardEnvironmentEnabled must be set to false to override standard function"
                 + " bindings.");
       }
-      // Add libraries, such as extensions
-      celRuntimeLibraries.build().forEach(celLibrary -> celLibrary.setRuntimeOptions(this));
 
+      ImmutableSet<CelRuntimeLibrary> runtimeLibraries = celRuntimeLibraries.build();
+      // Add libraries, such as extensions
+      runtimeLibraries.forEach(celLibrary -> celLibrary.setRuntimeOptions(this));
+
+      ImmutableSet<FileDescriptor> fileDescriptors = fileTypes.build();
       CelDescriptors celDescriptors =
           CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-              fileTypes.build(), options.resolveTypeDependencies());
+              fileDescriptors, options.resolveTypeDependencies());
 
       CelDescriptorPool celDescriptorPool =
           newDescriptorPool(
@@ -279,14 +307,24 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
         runtimeTypeProvider = new DescriptorMessageProvider(runtimeTypeFactory, options);
       }
 
-      return new CelRuntimeLegacyImpl(
+      DefaultInterpreter interpreter =
           new DefaultInterpreter(
               DescriptorTypeResolver.create(),
               runtimeTypeProvider,
               dispatcher.immutableCopy(),
-              options),
+              options);
+
+      return new CelRuntimeLegacyImpl(
+          interpreter,
           options,
-          this);
+          standardEnvironmentEnabled,
+          extensionRegistry,
+          customTypeFactory,
+          overriddenStandardFunctions,
+          celValueProvider,
+          fileDescriptors,
+          runtimeLibraries,
+          ImmutableList.copyOf(customFunctionBindings.values()));
     }
 
     private ImmutableSet<dev.cel.runtime.CelFunctionBinding> newStandardFunctionBindings(
@@ -374,33 +412,28 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       this.extensionRegistry = ExtensionRegistry.getEmptyRegistry();
       this.customTypeFactory = null;
     }
-
-    private Builder(Builder builder) {
-      // The following properties are either immutable or simple primitives, thus can be assigned
-      // directly.
-      this.options = builder.options;
-      this.extensionRegistry = builder.extensionRegistry;
-      this.customTypeFactory = builder.customTypeFactory;
-      this.standardEnvironmentEnabled = builder.standardEnvironmentEnabled;
-      this.overriddenStandardFunctions = builder.overriddenStandardFunctions;
-      this.celValueProvider = builder.celValueProvider;
-      // The following needs to be deep copied as they are collection builders
-      this.fileTypes = deepCopy(builder.fileTypes);
-      this.celRuntimeLibraries = deepCopy(builder.celRuntimeLibraries);
-      this.customFunctionBindings = new HashMap<>(builder.customFunctionBindings);
-    }
-
-    private static <T> ImmutableSet.Builder<T> deepCopy(ImmutableSet.Builder<T> builderToCopy) {
-      ImmutableSet.Builder<T> newBuilder = ImmutableSet.builder();
-      newBuilder.addAll(builderToCopy.build());
-      return newBuilder;
-    }
   }
 
   private CelRuntimeLegacyImpl(
-      Interpreter interpreter, CelOptions options, Builder runtimeBuilder) {
+      Interpreter interpreter,
+      CelOptions options,
+      boolean standardEnvironmentEnabled,
+      ExtensionRegistry extensionRegistry,
+      @Nullable Function<String, Message.Builder> customTypeFactory,
+      @Nullable CelStandardFunctions overriddenStandardFunctions,
+      @Nullable CelValueProvider celValueProvider,
+      ImmutableSet<FileDescriptor> fileDescriptors,
+      ImmutableSet<CelRuntimeLibrary> celRuntimeLibraries,
+      ImmutableList<dev.cel.runtime.CelFunctionBinding> celFunctionBindings) {
     this.interpreter = interpreter;
     this.options = options;
-    this.runtimeBuilder = new Builder(runtimeBuilder);
+    this.standardEnvironmentEnabled = standardEnvironmentEnabled;
+    this.extensionRegistry = extensionRegistry;
+    this.customTypeFactory = customTypeFactory;
+    this.overriddenStandardFunctions = overriddenStandardFunctions;
+    this.celValueProvider = celValueProvider;
+    this.fileDescriptors = fileDescriptors;
+    this.celRuntimeLibraries = celRuntimeLibraries;
+    this.celFunctionBindings = celFunctionBindings;
   }
 }
