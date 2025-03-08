@@ -58,6 +58,11 @@ java_library(
 )
 
 java_library(
+    name = "default_instance_message_lite_factory",
+    exports = ["//common/src/main/java/dev/cel/common/internal:default_instance_message_lite_factory"],
+)
+
+java_library(
     name = "well_known_proto",
     exports = ["//common/src/main/java/dev/cel/common/internal:well_known_proto"],
 )
