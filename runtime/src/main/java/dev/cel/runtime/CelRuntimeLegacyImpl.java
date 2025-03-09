@@ -84,7 +84,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
   // CEL-Internal-4
   private final ImmutableSet<CelRuntimeLibrary> celRuntimeLibraries;
 
-  private final ImmutableList<dev.cel.runtime.CelFunctionBinding> celFunctionBindings;
+  private final ImmutableList<CelFunctionBinding> celFunctionBindings;
 
   @Override
   public CelRuntime.Program createProgram(CelAbstractSyntaxTree ast) {
@@ -129,8 +129,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     // The following properties are for testing purposes only. Do not expose to public.
     @VisibleForTesting final ImmutableSet.Builder<FileDescriptor> fileTypes;
 
-    @VisibleForTesting
-    final HashMap<String, dev.cel.runtime.CelFunctionBinding> customFunctionBindings;
+    @VisibleForTesting final HashMap<String, CelFunctionBinding> customFunctionBindings;
 
     @VisibleForTesting final ImmutableSet.Builder<CelRuntimeLibrary> celRuntimeLibraries;
 
@@ -151,13 +150,12 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     }
 
     @Override
-    public CelRuntimeBuilder addFunctionBindings(dev.cel.runtime.CelFunctionBinding... bindings) {
+    public CelRuntimeBuilder addFunctionBindings(CelFunctionBinding... bindings) {
       return addFunctionBindings(Arrays.asList(bindings));
     }
 
     @Override
-    public CelRuntimeBuilder addFunctionBindings(
-        Iterable<dev.cel.runtime.CelFunctionBinding> bindings) {
+    public CelRuntimeBuilder addFunctionBindings(Iterable<CelFunctionBinding> bindings) {
       bindings.forEach(o -> customFunctionBindings.putIfAbsent(o.getOverloadId(), o));
       return this;
     }
@@ -272,9 +270,9 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       DynamicProto dynamicProto = DynamicProto.create(runtimeTypeFactory);
       RuntimeEquality runtimeEquality = ProtoMessageRuntimeEquality.create(dynamicProto, options);
 
-      ImmutableMap.Builder<String, dev.cel.runtime.CelFunctionBinding> functionBindingsBuilder =
+      ImmutableMap.Builder<String, CelFunctionBinding> functionBindingsBuilder =
           ImmutableMap.builder();
-      for (dev.cel.runtime.CelFunctionBinding standardFunctionBinding :
+      for (CelFunctionBinding standardFunctionBinding :
           newStandardFunctionBindings(runtimeEquality)) {
         functionBindingsBuilder.put(
             standardFunctionBinding.getOverloadId(), standardFunctionBinding);
@@ -286,7 +284,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       functionBindingsBuilder
           .buildOrThrow()
           .forEach(
-              (String overloadId, dev.cel.runtime.CelFunctionBinding func) ->
+              (String overloadId, CelFunctionBinding func) ->
                   dispatcher.add(
                       overloadId, func.getArgTypes(), (args) -> func.getDefinition().apply(args)));
 
@@ -327,7 +325,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
           ImmutableList.copyOf(customFunctionBindings.values()));
     }
 
-    private ImmutableSet<dev.cel.runtime.CelFunctionBinding> newStandardFunctionBindings(
+    private ImmutableSet<CelFunctionBinding> newStandardFunctionBindings(
         RuntimeEquality runtimeEquality) {
       CelStandardFunctions celStandardFunctions;
       if (standardEnvironmentEnabled) {
@@ -424,7 +422,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       @Nullable CelValueProvider celValueProvider,
       ImmutableSet<FileDescriptor> fileDescriptors,
       ImmutableSet<CelRuntimeLibrary> celRuntimeLibraries,
-      ImmutableList<dev.cel.runtime.CelFunctionBinding> celFunctionBindings) {
+      ImmutableList<CelFunctionBinding> celFunctionBindings) {
     this.interpreter = interpreter;
     this.options = options;
     this.standardEnvironmentEnabled = standardEnvironmentEnabled;

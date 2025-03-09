@@ -16,7 +16,6 @@ package dev.cel.runtime;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -225,67 +224,6 @@ public interface CelRuntime {
     /** Instantiate a new {@code Program} from the input {@code interpretable}. */
     static Program from(Interpretable interpretable, CelOptions options) {
       return new AutoValue_CelRuntime_Program(interpretable, options);
-    }
-  }
-
-  /**
-   * Deprecated. Do not use.
-   *
-   * @deprecated {@link dev.cel.runtime.CelFunctionBinding} instead.
-   *     <p>TODO: Migrate users to dev.cel.runtime.CelFunctionBinding
-   */
-  @Immutable
-  @Deprecated
-  final class CelFunctionBinding implements dev.cel.runtime.CelFunctionBinding {
-    private final dev.cel.runtime.CelFunctionBinding functionBinding;
-
-    private CelFunctionBinding(dev.cel.runtime.CelFunctionBinding functionBinding) {
-      this.functionBinding = functionBinding;
-    }
-
-    @Override
-    public String getOverloadId() {
-      return functionBinding.getOverloadId();
-    }
-
-    @Override
-    public ImmutableList<Class<?>> getArgTypes() {
-      return functionBinding.getArgTypes();
-    }
-
-    @Override
-    public CelFunctionOverload getDefinition() {
-      return functionBinding.getDefinition();
-    }
-
-    /**
-     * Create a unary function binding from the {@code overloadId}, {@code arg}, and {@code impl}.
-     */
-    public static <T> CelFunctionBinding from(
-        String overloadId, Class<T> arg, CelFunctionOverload.Unary<T> impl) {
-      return new CelFunctionBinding(dev.cel.runtime.CelFunctionBinding.from(overloadId, arg, impl));
-    }
-
-    /**
-     * Create a binary function binding from the {@code overloadId}, {@code arg1}, {@code arg2}, and
-     * {@code impl}.
-     */
-    public static <T1, T2> CelFunctionBinding from(
-        String overloadId,
-        Class<T1> arg1,
-        Class<T2> arg2,
-        CelFunctionOverload.Binary<T1, T2> impl) {
-      return new CelFunctionBinding(
-          dev.cel.runtime.CelFunctionBinding.from(overloadId, arg1, arg2, impl));
-    }
-
-    /**
-     * Create a function binding from the {@code overloadId}, {@code argTypes}, and {@code impl}.
-     */
-    public static CelFunctionBinding from(
-        String overloadId, Iterable<Class<?>> argTypes, CelFunctionOverload impl) {
-      return new CelFunctionBinding(
-          dev.cel.runtime.CelFunctionBinding.from(overloadId, argTypes, impl));
     }
   }
 }
