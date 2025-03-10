@@ -289,7 +289,6 @@ CelAbstractSyntaxTree compile(String expression, String variableName, CelType va
   CelCompiler celCompiler =
       CelCompilerFactory.standardCelCompilerBuilder()
           .addVar(variableName, variableType)
-          .addMessageTypes(AttributeContext.Request.getDescriptor())
           .setResultType(SimpleType.BOOL)
           .build();
   try {
