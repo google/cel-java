@@ -26,6 +26,7 @@ java_library(
         "//common/internal:errors",
         "//common/internal:proto_equality",
         "//common/internal:proto_message_factory",
+        "//common/internal:well_known_proto",
         "//common/src/test/resources:default_instance_message_test_protos_java_proto",
         "//common/src/test/resources:multi_file_java_proto",
         "//common/src/test/resources:service_conflicting_name_java_proto",
