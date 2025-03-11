@@ -157,7 +157,7 @@ public final class ProtoAdapter {
     // If the proto is not a well-known type, then the input Message is what's expected as the
     // output return value.
     WellKnownProto wellKnownProto =
-        WellKnownProto.getByTypeName(typeName(proto.getDescriptorForType()));
+        WellKnownProto.getByDescriptorName(typeName(proto.getDescriptorForType()));
     if (wellKnownProto == null) {
       return proto;
     }
@@ -335,7 +335,7 @@ public final class ProtoAdapter {
    */
   @SuppressWarnings("unchecked")
   public Optional<Message> adaptValueToProto(Object value, String protoTypeName) {
-    WellKnownProto wellKnownProto = WellKnownProto.getByTypeName(protoTypeName);
+    WellKnownProto wellKnownProto = WellKnownProto.getByDescriptorName(protoTypeName);
     if (wellKnownProto == null) {
       if (value instanceof Message) {
         return Optional.of((Message) value);
@@ -376,7 +376,7 @@ public final class ProtoAdapter {
         break;
       case DOUBLE_VALUE:
         return Optional.ofNullable(adaptValueToDouble(value));
-      case DURATION:
+      case DURATION_VALUE:
         return Optional.of((Duration) value);
       case FLOAT_VALUE:
         return Optional.ofNullable(adaptValueToFloat(value));
@@ -389,14 +389,12 @@ public final class ProtoAdapter {
           return Optional.of(StringValue.of((String) value));
         }
         break;
-      case TIMESTAMP:
+      case TIMESTAMP_VALUE:
         return Optional.of((Timestamp) value);
       case UINT32_VALUE:
         return Optional.ofNullable(adaptValueToUint32(value));
       case UINT64_VALUE:
         return Optional.ofNullable(adaptValueToUint64(value));
-      default:
-        throw new IllegalArgumentException("Unsupported conversion: " + wellKnownProto);
     }
     return Optional.empty();
   }
@@ -581,7 +579,7 @@ public final class ProtoAdapter {
       return false;
     }
     String fieldTypeName = fieldDescriptor.getMessageType().getFullName();
-    WellKnownProto wellKnownProto = WellKnownProto.getByTypeName(fieldTypeName);
+    WellKnownProto wellKnownProto = WellKnownProto.getByDescriptorName(fieldTypeName);
     return wellKnownProto != null && wellKnownProto.isWrapperType();
   }
 

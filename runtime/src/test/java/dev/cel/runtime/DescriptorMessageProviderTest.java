@@ -207,8 +207,7 @@ public final class DescriptorMessageProviderTest {
       return;
     }
 
-    Descriptor wellKnownDescriptor =
-        DefaultDescriptorPool.INSTANCE.findDescriptor(wellKnownProto.typeName()).get();
+    Descriptor wellKnownDescriptor = wellKnownProto.descriptor();
     DescriptorMessageProvider messageProvider =
         new DescriptorMessageProvider(
             msgName ->
