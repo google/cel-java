@@ -157,7 +157,7 @@ public final class ProtoAdapter {
     // If the proto is not a well-known type, then the input Message is what's expected as the
     // output return value.
     WellKnownProto wellKnownProto =
-        WellKnownProto.getByDescriptorName(typeName(proto.getDescriptorForType()));
+        WellKnownProto.getByTypeName(typeName(proto.getDescriptorForType()));
     if (wellKnownProto == null) {
       return proto;
     }
@@ -335,14 +335,20 @@ public final class ProtoAdapter {
    */
   @SuppressWarnings("unchecked")
   public Optional<Message> adaptValueToProto(Object value, String protoTypeName) {
-    WellKnownProto wellKnownProto = WellKnownProto.getByDescriptorName(protoTypeName);
+    WellKnownProto wellKnownProto = WellKnownProto.getByTypeName(protoTypeName);
     if (wellKnownProto == null) {
       if (value instanceof Message) {
         return Optional.of((Message) value);
       }
       return Optional.empty();
     }
+
     switch (wellKnownProto) {
+      // TODO: These should be converted properly to their primitive types. This is
+      // here to retain compatibility for time being.
+      case FIELD_MASK:
+      case EMPTY:
+        return Optional.of((Message) value);
       case ANY_VALUE:
         return Optional.ofNullable(adaptValueToAny(value));
       case JSON_VALUE:
@@ -376,7 +382,7 @@ public final class ProtoAdapter {
         break;
       case DOUBLE_VALUE:
         return Optional.ofNullable(adaptValueToDouble(value));
-      case DURATION_VALUE:
+      case DURATION:
         return Optional.of((Duration) value);
       case FLOAT_VALUE:
         return Optional.ofNullable(adaptValueToFloat(value));
@@ -389,13 +395,14 @@ public final class ProtoAdapter {
           return Optional.of(StringValue.of((String) value));
         }
         break;
-      case TIMESTAMP_VALUE:
+      case TIMESTAMP:
         return Optional.of((Timestamp) value);
       case UINT32_VALUE:
         return Optional.ofNullable(adaptValueToUint32(value));
       case UINT64_VALUE:
         return Optional.ofNullable(adaptValueToUint64(value));
     }
+
     return Optional.empty();
   }
 
@@ -579,7 +586,7 @@ public final class ProtoAdapter {
       return false;
     }
     String fieldTypeName = fieldDescriptor.getMessageType().getFullName();
-    WellKnownProto wellKnownProto = WellKnownProto.getByDescriptorName(fieldTypeName);
+    WellKnownProto wellKnownProto = WellKnownProto.getByTypeName(fieldTypeName);
     return wellKnownProto != null && wellKnownProto.isWrapperType();
   }
 

@@ -107,7 +107,7 @@ public final class ProtoCelValueConverter extends CelValueConverter {
     }
 
     WellKnownProto wellKnownProto =
-        WellKnownProto.getByDescriptorName(message.getDescriptorForType().getFullName());
+        WellKnownProto.getByTypeName(message.getDescriptorForType().getFullName());
     if (wellKnownProto == null) {
       return ProtoMessageValue.create((Message) message, celDescriptorPool, this);
     }
@@ -128,10 +128,10 @@ public final class ProtoCelValueConverter extends CelValueConverter {
         return adaptJsonStructToCelValue((Struct) message);
       case JSON_LIST_VALUE:
         return adaptJsonListToCelValue((com.google.protobuf.ListValue) message);
-      case DURATION_VALUE:
+      case DURATION:
         return DurationValue.create(
             TimeUtils.toJavaDuration((com.google.protobuf.Duration) message));
-      case TIMESTAMP_VALUE:
+      case TIMESTAMP:
         return TimestampValue.create(TimeUtils.toJavaInstant((Timestamp) message));
       case BOOL_VALUE:
         return fromJavaPrimitiveToCelValue(((BoolValue) message).getValue());
@@ -154,10 +154,10 @@ public final class ProtoCelValueConverter extends CelValueConverter {
       case UINT64_VALUE:
         return UintValue.create(
             ((UInt64Value) message).getValue(), celOptions.enableUnsignedLongs());
+      default:
+        throw new UnsupportedOperationException(
+            "Unsupported message to CelValue conversion - " + message);
     }
-
-    throw new UnsupportedOperationException(
-        "Unsupported message to CelValue conversion - " + message);
   }
 
   /**
