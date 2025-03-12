@@ -219,8 +219,6 @@ java_library(
     name = "source_location",
     srcs = ["CelSourceLocation.java"],
     tags = [
-        "alt_dep=//common:source_location",
-        "avoid_dep",
     ],
     deps = [
         "//:auto_value",
@@ -233,8 +231,6 @@ java_library(
     name = "cel_source",
     srcs = ["CelSource.java"],
     tags = [
-        "alt_dep=//common:cel_source",
-        "avoid_dep",
     ],
     deps = [
         ":source",
@@ -268,8 +264,6 @@ java_library(
     name = "cel_ast",
     srcs = ["CelAbstractSyntaxTree.java"],
     tags = [
-        "alt_dep=//common:cel_ast",
-        "avoid_dep",
     ],
     deps = [
         ":cel_source",

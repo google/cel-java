@@ -118,8 +118,6 @@ java_library(
     name = "optional_library",
     srcs = ["CelOptionalLibrary.java"],
     tags = [
-        "alt_dep=//extensions:optional_library",
-        "avoid_dep",
     ],
     deps = [
         "//checker:checker_builder",
