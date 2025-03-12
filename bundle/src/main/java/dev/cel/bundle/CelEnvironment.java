@@ -101,6 +101,8 @@ public abstract class CelEnvironment {
   @AutoValue.Builder
   public abstract static class Builder {
 
+    public abstract ImmutableSet.Builder<ExtensionConfig> extensionsBuilder();
+
     // For testing only, to empty out the source.
     abstract Builder setSource(Optional<Source> source);
 
@@ -112,7 +114,18 @@ public abstract class CelEnvironment {
 
     public abstract Builder setContainer(String container);
 
-    public abstract Builder setExtensions(ImmutableSet<ExtensionConfig> extensions);
+    @CanIgnoreReturnValue
+    public Builder addExtensions(ExtensionConfig... extensions) {
+      checkNotNull(extensions);
+      return addExtensions(Arrays.asList(extensions));
+    }
+
+    @CanIgnoreReturnValue
+    public Builder addExtensions(Iterable<ExtensionConfig> extensions) {
+      checkNotNull(extensions);
+      this.extensionsBuilder().addAll(extensions);
+      return this;
+    }
 
     @CanIgnoreReturnValue
     public Builder setVariables(VariableDecl... variables) {
@@ -138,7 +151,6 @@ public abstract class CelEnvironment {
         .setName("")
         .setDescription("")
         .setContainer("")
-        .setExtensions(ImmutableSet.of())
         .setVariables(ImmutableSet.of())
         .setFunctions(ImmutableSet.of());
   }

@@ -475,7 +475,7 @@ public final class CelEnvironmentYamlParser {
             builder.setFunctions(parseFunctions(ctx, valueNode));
             break;
           case "extensions":
-            builder.setExtensions(parseExtensions(ctx, valueNode));
+            builder.addExtensions(parseExtensions(ctx, valueNode));
             break;
           default:
             ctx.reportError(id, "Unknown config tag: " + fieldName);

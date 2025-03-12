@@ -54,7 +54,7 @@ public class CelEnvironmentTest {
             ExtensionConfig.of("sets"),
             ExtensionConfig.of("strings"));
     CelEnvironment environment =
-        CelEnvironment.newBuilder().setExtensions(extensionConfigs).build();
+        CelEnvironment.newBuilder().addExtensions(extensionConfigs).build();
 
     Cel cel = environment.extend(CelFactory.standardCelBuilder().build(), CelOptions.DEFAULT);
     CelAbstractSyntaxTree ast =

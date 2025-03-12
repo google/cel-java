@@ -98,7 +98,7 @@ public final class CelEnvironmentYamlParserTest {
         .isEqualTo(
             CelEnvironment.newBuilder()
                 .setSource(environment.source().get())
-                .setExtensions(
+                .addExtensions(
                     ImmutableSet.of(
                         ExtensionConfig.of("bindings"),
                         ExtensionConfig.of("encoders"),
@@ -125,7 +125,7 @@ public final class CelEnvironmentYamlParserTest {
         .isEqualTo(
             CelEnvironment.newBuilder()
                 .setSource(environment.source().get())
-                .setExtensions(ImmutableSet.of(ExtensionConfig.of("bindings", Integer.MAX_VALUE)))
+                .addExtensions(ImmutableSet.of(ExtensionConfig.of("bindings", Integer.MAX_VALUE)))
                 .build());
     assertThat(environment.extend(CEL_WITH_MESSAGE_TYPES, CelOptions.DEFAULT)).isNotNull();
   }
@@ -675,7 +675,7 @@ public final class CelEnvironmentYamlParserTest {
         CelEnvironment.newBuilder()
             .setName("extended-env")
             .setContainer("cel.expr")
-            .setExtensions(
+            .addExtensions(
                 ImmutableSet.of(
                     ExtensionConfig.of("optional", 2),
                     ExtensionConfig.of("math", Integer.MAX_VALUE)))
