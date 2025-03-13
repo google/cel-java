@@ -83,7 +83,6 @@ java_library(
     # used_by_android
     tags = [
     ],
-    visibility = ["//:internal"],
     deps = [
         ":error_codes",
     ],

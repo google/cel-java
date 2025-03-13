@@ -9,6 +9,7 @@ package(
 java_library(
     # TODO: Split this target and migrate consumers
     name = "common",
+    deprecation = "Use split targets instead",
     exports = [
         "//common/src/main/java/dev/cel/common:cel_ast",
         "//common/src/main/java/dev/cel/common:cel_descriptors",
@@ -113,4 +114,9 @@ java_library(
     # used_by_android
     visibility = ["//:internal"],
     exports = ["//common/src/main/java/dev/cel/common:cel_exception"],
+)
+
+java_library(
+    name = "cel_descriptors",
+    exports = ["//common/src/main/java/dev/cel/common:cel_descriptors"],
 )
