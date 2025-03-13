@@ -15,42 +15,23 @@
 package dev.cel.common.internal;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedInts;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
-import com.google.protobuf.BoolValue;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.BytesValue;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.DoubleValue;
-import com.google.protobuf.Duration;
 import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.FloatValue;
-import com.google.protobuf.Int32Value;
-import com.google.protobuf.Int64Value;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.ListValue;
 import com.google.protobuf.MapEntry;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.NullValue;
-import com.google.protobuf.StringValue;
-import com.google.protobuf.Struct;
-import com.google.protobuf.Timestamp;
-import com.google.protobuf.UInt32Value;
-import com.google.protobuf.UInt64Value;
-import com.google.protobuf.Value;
 import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelProtoJsonAdapter;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import java.util.ArrayList;
@@ -58,7 +39,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.jspecify.annotations.Nullable;
 
 /**
  * The {@code ProtoAdapter} utilities handle conversion between native Java objects which represent
@@ -136,12 +116,14 @@ public final class ProtoAdapter {
   public static final BidiConverter<Number, Number> DOUBLE_CONVERTER =
       BidiConverter.of(Number::doubleValue, Number::floatValue);
 
+  private final ProtoLiteAdapter protoLiteAdapter;
   private final DynamicProto dynamicProto;
   private final boolean enableUnsignedLongs;
 
   public ProtoAdapter(DynamicProto dynamicProto, boolean enableUnsignedLongs) {
     this.dynamicProto = checkNotNull(dynamicProto);
     this.enableUnsignedLongs = enableUnsignedLongs;
+    this.protoLiteAdapter = new ProtoLiteAdapter(enableUnsignedLongs);
   }
 
   /**
@@ -166,39 +148,8 @@ public final class ProtoAdapter {
     switch (wellKnownProto) {
       case ANY_VALUE:
         return unpackAnyProto((Any) proto);
-      case JSON_VALUE:
-        return adaptJsonToValue((Value) proto);
-      case JSON_STRUCT_VALUE:
-        return adaptJsonStructToValue((Struct) proto);
-      case JSON_LIST_VALUE:
-        return adaptJsonListToValue((ListValue) proto);
-      case BOOL_VALUE:
-        return ((BoolValue) proto).getValue();
-      case BYTES_VALUE:
-        return ((BytesValue) proto).getValue();
-      case DOUBLE_VALUE:
-        return ((DoubleValue) proto).getValue();
-      case FLOAT_VALUE:
-        return (double) ((FloatValue) proto).getValue();
-      case INT32_VALUE:
-        return (long) ((Int32Value) proto).getValue();
-      case INT64_VALUE:
-        return ((Int64Value) proto).getValue();
-      case STRING_VALUE:
-        return ((StringValue) proto).getValue();
-      case UINT32_VALUE:
-        if (enableUnsignedLongs) {
-          return UnsignedLong.fromLongBits(
-              Integer.toUnsignedLong(((UInt32Value) proto).getValue()));
-        }
-        return (long) ((UInt32Value) proto).getValue();
-      case UINT64_VALUE:
-        if (enableUnsignedLongs) {
-          return UnsignedLong.fromLongBits(((UInt64Value) proto).getValue());
-        }
-        return ((UInt64Value) proto).getValue();
       default:
-        return proto;
+        return protoLiteAdapter.adaptWellKnownProtoToValue(proto, wellKnownProto);
     }
   }
 
@@ -314,12 +265,7 @@ public final class ProtoAdapter {
       case MESSAGE:
         return BidiConverter.<MessageOrBuilder, Object>of(
             this::adaptProtoToValue,
-            value ->
-                adaptValueToProto(value, fieldDescriptor.getMessageType().getFullName())
-                    .orElseThrow(
-                        () ->
-                            new IllegalStateException(
-                                String.format("value not convertible to proto: %s", value))));
+            value -> adaptValueToProto(value, fieldDescriptor.getMessageType().getFullName()));
       default:
         return BidiConverter.IDENTITY;
     }
@@ -333,14 +279,14 @@ public final class ProtoAdapter {
    * protoTypeName} will indicate an alternative packaging of the value which needs to be
    * considered, such as a packing an {@code google.protobuf.StringValue} into a {@code Any} value.
    */
-  @SuppressWarnings("unchecked")
-  public Optional<Message> adaptValueToProto(Object value, String protoTypeName) {
+  public Message adaptValueToProto(Object value, String protoTypeName) {
     WellKnownProto wellKnownProto = WellKnownProto.getByTypeName(protoTypeName);
     if (wellKnownProto == null) {
       if (value instanceof Message) {
-        return Optional.of((Message) value);
+        return (Message) value;
       }
-      return Optional.empty();
+
+      throw new IllegalStateException(String.format("value not convertible to proto: %s", value));
     }
 
     switch (wellKnownProto) {
@@ -348,205 +294,15 @@ public final class ProtoAdapter {
       // here to retain compatibility for time being.
       case FIELD_MASK:
       case EMPTY:
-        return Optional.of((Message) value);
+        return (Message) value;
       case ANY_VALUE:
-        return Optional.ofNullable(adaptValueToAny(value));
-      case JSON_VALUE:
-        try {
-          return Optional.of(CelProtoJsonAdapter.adaptValueToJsonValue(value));
-        } catch (RuntimeException e) {
-          return Optional.empty();
+        if (value instanceof Message) {
+          protoTypeName = ((Message) value).getDescriptorForType().getFullName();
         }
-      case JSON_LIST_VALUE:
-        try {
-          return Optional.of(CelProtoJsonAdapter.adaptToJsonListValue((Iterable<Object>) value));
-        } catch (RuntimeException e) {
-          return Optional.empty();
-        }
-      case JSON_STRUCT_VALUE:
-        try {
-          return Optional.of(
-              CelProtoJsonAdapter.adaptToJsonStructValue((Map<String, Object>) value));
-        } catch (RuntimeException e) {
-          return Optional.empty();
-        }
-      case BOOL_VALUE:
-        if (value instanceof Boolean) {
-          return Optional.of(BoolValue.of((Boolean) value));
-        }
-        break;
-      case BYTES_VALUE:
-        if (value instanceof ByteString) {
-          return Optional.of(BytesValue.of((ByteString) value));
-        }
-        break;
-      case DOUBLE_VALUE:
-        return Optional.ofNullable(adaptValueToDouble(value));
-      case DURATION:
-        return Optional.of((Duration) value);
-      case FLOAT_VALUE:
-        return Optional.ofNullable(adaptValueToFloat(value));
-      case INT32_VALUE:
-        return Optional.ofNullable(adaptValueToInt32(value));
-      case INT64_VALUE:
-        return Optional.ofNullable(adaptValueToInt64(value));
-      case STRING_VALUE:
-        if (value instanceof String) {
-          return Optional.of(StringValue.of((String) value));
-        }
-        break;
-      case TIMESTAMP:
-        return Optional.of((Timestamp) value);
-      case UINT32_VALUE:
-        return Optional.ofNullable(adaptValueToUint32(value));
-      case UINT64_VALUE:
-        return Optional.ofNullable(adaptValueToUint64(value));
+        return protoLiteAdapter.adaptValueToAny(value, protoTypeName);
+      default:
+        return (Message) protoLiteAdapter.adaptValueToWellKnownProto(value, wellKnownProto);
     }
-
-    return Optional.empty();
-  }
-
-  // Helper functions which return a {@code null} value if the conversion is not successful.
-  // This technique was chosen over {@code Optional} for brevity as any call site which might
-  // care about an Optional return is handled higher up the call stack.
-
-  private @Nullable Message adaptValueToAny(Object value) {
-    if (value == null || value instanceof NullValue) {
-      return Any.pack(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build());
-    }
-    if (value instanceof Boolean) {
-      return maybePackAny(value, WellKnownProto.BOOL_VALUE);
-    }
-    if (value instanceof ByteString) {
-      return maybePackAny(value, WellKnownProto.BYTES_VALUE);
-    }
-    if (value instanceof Double) {
-      return maybePackAny(value, WellKnownProto.DOUBLE_VALUE);
-    }
-    if (value instanceof Float) {
-      return maybePackAny(value, WellKnownProto.FLOAT_VALUE);
-    }
-    if (value instanceof Integer) {
-      return maybePackAny(value, WellKnownProto.INT32_VALUE);
-    }
-    if (value instanceof Long) {
-      return maybePackAny(value, WellKnownProto.INT64_VALUE);
-    }
-    if (value instanceof Message) {
-      return Any.pack((Message) value);
-    }
-    if (value instanceof Iterable) {
-      return maybePackAny(value, WellKnownProto.JSON_LIST_VALUE);
-    }
-    if (value instanceof Map) {
-      return maybePackAny(value, WellKnownProto.JSON_STRUCT_VALUE);
-    }
-    if (value instanceof String) {
-      return maybePackAny(value, WellKnownProto.STRING_VALUE);
-    }
-    if (value instanceof UnsignedLong) {
-      return maybePackAny(value, WellKnownProto.UINT64_VALUE);
-    }
-    return null;
-  }
-
-  private @Nullable Any maybePackAny(Object value, WellKnownProto wellKnownProto) {
-    Optional<Message> protoValue = adaptValueToProto(value, wellKnownProto.typeName());
-    return protoValue.map(Any::pack).orElse(null);
-  }
-
-  private @Nullable Message adaptValueToDouble(Object value) {
-    if (value instanceof Double) {
-      return DoubleValue.of((Double) value);
-    }
-    if (value instanceof Float) {
-      return DoubleValue.of(((Float) value).doubleValue());
-    }
-    return null;
-  }
-
-  private @Nullable Message adaptValueToFloat(Object value) {
-    if (value instanceof Double) {
-      return FloatValue.of(((Double) value).floatValue());
-    }
-    if (value instanceof Float) {
-      return FloatValue.of((Float) value);
-    }
-    return null;
-  }
-
-  private @Nullable Message adaptValueToInt32(Object value) {
-    if (value instanceof Integer) {
-      return Int32Value.of((Integer) value);
-    }
-    if (value instanceof Long) {
-      return Int32Value.of(intCheckedCast((Long) value));
-    }
-    return null;
-  }
-
-  private @Nullable Message adaptValueToInt64(Object value) {
-    if (value instanceof Integer) {
-      return Int64Value.of(((Integer) value).longValue());
-    }
-    if (value instanceof Long) {
-      return Int64Value.of((Long) value);
-    }
-    return null;
-  }
-
-  private @Nullable Message adaptValueToUint32(Object value) {
-    if (value instanceof Integer) {
-      return UInt32Value.of((Integer) value);
-    }
-    if (value instanceof Long) {
-      try {
-        return UInt32Value.of(unsignedIntCheckedCast((Long) value));
-      } catch (IllegalArgumentException e) {
-        throw new CelRuntimeException(e, CelErrorCode.NUMERIC_OVERFLOW);
-      }
-    }
-    if (value instanceof UnsignedLong) {
-      try {
-        return UInt32Value.of(unsignedIntCheckedCast(((UnsignedLong) value).longValue()));
-      } catch (IllegalArgumentException e) {
-        throw new CelRuntimeException(e, CelErrorCode.NUMERIC_OVERFLOW);
-      }
-    }
-    return null;
-  }
-
-  private @Nullable Message adaptValueToUint64(Object value) {
-    if (value instanceof Integer) {
-      return UInt64Value.of(UnsignedInts.toLong((Integer) value));
-    }
-    if (value instanceof Long) {
-      return UInt64Value.of((Long) value);
-    }
-    if (value instanceof UnsignedLong) {
-      return UInt64Value.of(((UnsignedLong) value).longValue());
-    }
-    return null;
-  }
-
-  private @Nullable Object adaptJsonToValue(Value value) {
-    switch (value.getKindCase()) {
-      case BOOL_VALUE:
-        return value.getBoolValue();
-      case NULL_VALUE:
-        return value.getNullValue();
-      case NUMBER_VALUE:
-        return value.getNumberValue();
-      case STRING_VALUE:
-        return value.getStringValue();
-      case LIST_VALUE:
-        return adaptJsonListToValue(value.getListValue());
-      case STRUCT_VALUE:
-        return adaptJsonStructToValue(value.getStructValue());
-      case KIND_NOT_SET:
-        return NullValue.NULL_VALUE;
-    }
-    return null;
   }
 
   private Object unpackAnyProto(Any anyProto) {
@@ -555,17 +311,6 @@ public final class ProtoAdapter {
     } catch (InvalidProtocolBufferException e) {
       throw new IllegalArgumentException(e);
     }
-  }
-
-  private ImmutableList<Object> adaptJsonListToValue(ListValue listValue) {
-    return listValue.getValuesList().stream()
-        .map(this::adaptJsonToValue)
-        .collect(ImmutableList.<Object>toImmutableList());
-  }
-
-  private ImmutableMap<String, Object> adaptJsonStructToValue(Struct struct) {
-    return struct.getFieldsMap().entrySet().stream()
-        .collect(toImmutableMap(e -> e.getKey(), e -> adaptJsonToValue(e.getValue())));
   }
 
   /** Returns the default value for a field that can be a proto message */

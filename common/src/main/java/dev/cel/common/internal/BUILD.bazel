@@ -163,18 +163,34 @@ java_library(
     ],
     deps = [
         ":converter",
+        ":proto_lite_adapter",
         ":proto_message_factory",
         ":well_known_proto",
         "//:auto_value",
         "//common:error_codes",
-        "//common:proto_json_adapter",
         "//common:runtime_exception",
         "//common/annotations",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "proto_lite_adapter",
+    srcs = ["ProtoLiteAdapter.java"],
+    tags = [
+    ],
+    deps = [
+        ":well_known_proto",
+        "//common:error_codes",
+        "//common:proto_json_adapter",
+        "//common:runtime_exception",
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
