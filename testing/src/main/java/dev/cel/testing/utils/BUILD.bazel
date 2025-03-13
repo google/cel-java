@@ -11,6 +11,8 @@ package(
 java_library(
     name = "expr_value_utils",
     srcs = ["ExprValueUtils.java"],
+    tags = [
+    ],
     deps = [
         "//common",
         "//common/internal:default_instance_message_factory",

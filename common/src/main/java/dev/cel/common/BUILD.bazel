@@ -297,6 +297,8 @@ cel_android_library(
 java_library(
     name = "source",
     srcs = SOURCE_SOURCES,
+    tags = [
+    ],
     deps = [
         ":source_location",
         "//common/annotations",
