@@ -1,4 +1,4 @@
-# Copyright 2025 Google LLC
+# Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,15 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "custom_variable_bindings"
-description: "Tests for custom variable bindings."
+name: "eval_error"
+description: evaluation error tests
 sections:
-  - name: "custom_variable_bindings"
-    description: "Tests for custom variable bindings."
+  - name: "eval_error"
+    description: "Tests for evaluation errors"
     tests:
-    - name: "true_by_default"
-      description: "Tests that the custom variable bindings are set to true by default."
-      # The input for this test is configured programmatically in the test
-      # class with a value of 1 (see CustomVariableBindingsUserTest.java).
+    - name: "eval_error_no_matching_overload"
+      description: "No matching overload for function"
+      input:
+        bindings:
+          resource:
+            value:
+              origin: "uk"
       output:
-        result_expr: "true"
+        eval_error:
+        - "evaluation error: No matching overload for function 'foo'. Overload candidates: foo_id"
