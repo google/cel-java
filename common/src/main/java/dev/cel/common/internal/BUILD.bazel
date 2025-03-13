@@ -136,13 +136,25 @@ java_library(
     tags = [
     ],
     deps = [
+        ":default_instance_message_lite_factory",
+        ":proto_java_qualified_names",
+        "//common/annotations",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "default_instance_message_lite_factory",
+    srcs = ["DefaultInstanceMessageLiteFactory.java"],
+    tags = [
+    ],
+    deps = [
+        ":reflection_util",
         "//common/annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
-
-# keep sorted
 
 java_library(
     name = "dynamic_proto",
@@ -272,5 +284,24 @@ java_library(
     deps = [
         "//common/annotations",
         "@maven//:com_google_re2j_re2j",
+    ],
+)
+
+java_library(
+    name = "proto_java_qualified_names",
+    srcs = ["ProtoJavaQualifiedNames.java"],
+    tags = [
+    ],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "reflection_util",
+    srcs = ["ReflectionUtil.java"],
+    deps = [
+        "//common/annotations",
     ],
 )

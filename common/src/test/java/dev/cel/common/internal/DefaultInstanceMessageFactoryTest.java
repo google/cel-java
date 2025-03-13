@@ -44,12 +44,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public final class DefaultInstanceMessageFactoryTest {
+public class DefaultInstanceMessageFactoryTest {
 
   @Before
   public void setUp() {
     // Reset the statically initialized descriptor map to get clean test runs.
-    DefaultInstanceMessageFactory.getInstance().resetDescriptorMapForTesting();
+    DefaultInstanceMessageLiteFactory.getInstance().resetTypeMap();
   }
 
   private enum PrototypeDescriptorTestCase {
@@ -112,7 +112,7 @@ public final class DefaultInstanceMessageFactoryTest {
 
   @Test
   public void getPrototype_concurrentAccess_doesNotThrow(
-      @TestParameter(valuesProvider = RepeatedTestProvider.class) int testRunIndex)
+      @TestParameter(valuesProvider = RepeatedTestProvider.class) int unusedTestRunIndex)
       throws Exception {
     // Arrange
     int threadCount = 10;
