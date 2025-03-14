@@ -1,0 +1,17 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//:internal"],  # TODO: Expose when ready
+)
+
+java_library(
+    name = "cel_lite_descriptor",
+    exports = ["//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor"],
+)
+
+alias(
+    name = "cel_lite_descriptor_generator",
+    actual = "//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor_generator",
+    visibility = ["//:internal"],
+)
