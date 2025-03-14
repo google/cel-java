@@ -11,10 +11,10 @@ java_library(
     name = "common",
     deprecation = "Use split targets instead",
     exports = [
-        "//common/src/main/java/dev/cel/common:cel_ast",
-        "//common/src/main/java/dev/cel/common:cel_descriptors",
-        "//common/src/main/java/dev/cel/common:cel_exception",
-        "//common/src/main/java/dev/cel/common:cel_source",
+        ":cel_ast",
+        ":cel_descriptors",
+        ":cel_exception",
+        ":cel_source",
     ],
 )
 
@@ -112,7 +112,6 @@ cel_android_library(
 java_library(
     name = "cel_exception",
     # used_by_android
-    visibility = ["//:internal"],
     exports = ["//common/src/main/java/dev/cel/common:cel_exception"],
 )
 
