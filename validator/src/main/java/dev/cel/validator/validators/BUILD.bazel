@@ -59,7 +59,7 @@ java_library(
     ],
     deps = [
         "//bundle:cel",
-        "//common",
+        "//common:cel_ast",
         "//common/ast",
         "//common/navigation",
         "//common/types:cel_types",
@@ -92,7 +92,8 @@ java_library(
     visibility = ["//visibility:private"],
     deps = [
         "//bundle:cel",
-        "//common",
+        "//common:cel_ast",
+        "//common:cel_source",
         "//common:compiler_common",
         "//common/ast",
         "//common/ast:expr_factory",

@@ -123,7 +123,7 @@ java_library(
         ":compiled_rule",
         ":policy",
         ":validation_exception",
-        "//common",
+        "//common:cel_ast",
     ],
 )
 
@@ -176,7 +176,7 @@ java_library(
     deps = [
         "//:auto_value",
         "//bundle:cel",
-        "//common",
+        "//common:cel_ast",
         "//common:compiler_common",
         "//common/ast",
         "//common/formats:value_string",
@@ -200,7 +200,8 @@ java_library(
         ":source",
         ":validation_exception",
         "//bundle:cel",
-        "//common",
+        "//common:cel_ast",
+        "//common:cel_source",
         "//common:compiler_common",
         "//common:source_location",
         "//common/ast",
@@ -239,7 +240,7 @@ java_library(
         ":compiled_rule",
         "//:auto_value",
         "//bundle:cel",
-        "//common",
+        "//common:cel_ast",
         "//common:compiler_common",
         "//common:mutable_ast",
         "//common/formats:value_string",

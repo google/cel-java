@@ -38,7 +38,7 @@ java_library(
     deps = [
         ":ast_optimizer",
         ":optimization_exception",
-        "//common",
+        "//common:cel_ast",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
@@ -55,7 +55,7 @@ java_library(
         ":optimization_exception",
         ":optimizer_builder",
         "//bundle:cel",
-        "//common",
+        "//common:cel_ast",
         "//common:compiler_common",
         "@maven//:com_google_guava_guava",
     ],
@@ -70,7 +70,7 @@ java_library(
         ":optimization_exception",
         "//:auto_value",
         "//bundle:cel",
-        "//common",
+        "//common:cel_ast",
         "//common:compiler_common",
         "@maven//:com_google_guava_guava",
     ],
@@ -86,7 +86,7 @@ java_library(
     ],
     deps = [
         "//:auto_value",
-        "//common",
+        "//common:cel_ast",
         "//common:mutable_ast",
         "//common:mutable_source",
         "//common/annotations",

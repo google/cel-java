@@ -26,7 +26,7 @@ java_library(
     srcs = ASYNC_RUNTIME_SOURCES,
     deps = [
         "//:auto_value",
-        "//common",
+        "//common:cel_ast",
         "//runtime",
         "//runtime:unknown_attributes",
         "@maven//:com_google_code_findbugs_annotations",

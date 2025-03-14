@@ -12,7 +12,7 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//bundle:cel",  # unuseddeps: keep
-        "//common",  # unuseddeps: keep
+        "//common:cel_ast",
         "//common:compiler_common",  # unuseddeps: keep
         "//common:proto_json_adapter",  # unuseddeps: keep
         "//common/ast",  # unuseddeps: keep

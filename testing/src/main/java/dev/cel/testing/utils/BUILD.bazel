@@ -14,7 +14,7 @@ java_library(
     tags = [
     ],
     deps = [
-        "//common",
+        "//common:cel_descriptors",
         "//common/internal:default_instance_message_factory",
         "//common/types",
         "//common/types:type_providers",

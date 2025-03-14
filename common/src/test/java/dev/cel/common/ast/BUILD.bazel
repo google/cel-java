@@ -12,7 +12,7 @@ java_library(
     deps = [
         "//:auto_value",
         "//:java_truth",
-        "//common",
+        "//common:cel_ast",
         "//common:compiler_common",
         "//common:mutable_ast",
         "//common:mutable_source",

@@ -11,7 +11,7 @@ java_test(
     deps = [
         "//:java_truth",
         "//codelab:solutions",
-        "//common",
+        "//common:cel_ast",
         "//compiler",
         "//compiler:compiler_builder",
         "@maven//:junit_junit",
@@ -25,7 +25,7 @@ java_test(
     deps = [
         "//:java_truth",
         "//codelab:solutions",
-        "//common",
+        "//common:cel_ast",
         "//common/types",
         "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
         "@maven//:com_google_guava_guava",
@@ -55,7 +55,7 @@ java_test(
     deps = [
         "//:java_truth",
         "//codelab:solutions",
-        "//common",
+        "//common:cel_ast",
         "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -71,7 +71,7 @@ java_test(
     deps = [
         "//:java_truth",
         "//codelab:solutions",
-        "//common",
+        "//common:cel_ast",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
@@ -86,7 +86,7 @@ java_test(
     deps = [
         "//:java_truth",
         "//codelab:solutions",
-        "//common",
+        "//common:cel_ast",
         "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -103,7 +103,7 @@ java_test(
     deps = [
         "//:java_truth",
         "//codelab:solutions",
-        "//common",
+        "//common:cel_ast",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",
@@ -117,7 +117,7 @@ java_test(
     deps = [
         "//:java_truth",
         "//codelab:solutions",
-        "//common",
+        "//common:cel_ast",
         "//common:compiler_common",
         "//parser:unparser",
         "//runtime",
@@ -135,7 +135,7 @@ java_test(
     deps = [
         "//:java_truth",
         "//codelab:solutions",
-        "//common",
+        "//common:cel_ast",
         "//common:compiler_common",
         "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",

@@ -101,7 +101,7 @@ java_library(
     ],
     deps = [
         ":ast",
-        "//common",
+        "//common:cel_ast",
     ],
 )
 

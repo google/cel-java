@@ -39,7 +39,7 @@ java_library(
     deps = [
         ":common",
         "//:auto_value",
-        "//common",
+        "//common:cel_ast",
         "//common/ast",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",

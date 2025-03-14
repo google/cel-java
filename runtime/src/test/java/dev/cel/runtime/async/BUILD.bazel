@@ -12,7 +12,7 @@ java_library(
     deps = [
         #         "//java/com/google/testing/testsize:annotations",
         "//bundle:cel",
-        "//common",
+        "//common:cel_ast",
         "//common:options",
         "//common/testing",
         "//common/types",

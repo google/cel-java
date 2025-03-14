@@ -108,7 +108,8 @@ java_library(
     deps = [
         ":cel_ast",
         ":cel_source",
-        "//common",
+        "//common:cel_ast",
+        "//common:cel_source",
         "//common/ast:expr_converter",
         "//common/types:cel_proto_types",
         "@cel_spec//proto/cel/expr:checked_java_proto",
@@ -180,7 +181,7 @@ java_library(
     deps = [
         ":cel_ast",
         ":mutable_source",
-        "//common",
+        "//common:cel_ast",
         "//common/ast",
         "//common/ast:mutable_expr",
         "//common/types:type_providers",

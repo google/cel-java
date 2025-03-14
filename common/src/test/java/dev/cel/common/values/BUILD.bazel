@@ -10,7 +10,8 @@ java_library(
     deps = [
         "//:java_truth",
         "//bundle:cel",
-        "//common",
+        "//common:cel_ast",
+        "//common:cel_descriptors",
         "//common:options",
         "//common:runtime_exception",
         "//common/internal:cel_descriptor_pools",

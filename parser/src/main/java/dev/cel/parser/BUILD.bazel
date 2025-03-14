@@ -58,7 +58,8 @@ java_library(
         ":macro",
         ":operator",
         ":parser_builder",
-        "//common",
+        "//common:cel_ast",
+        "//common:cel_source",
         "//common:compiler_common",
         "//common:options",
         "//common:source_location",
@@ -79,7 +80,7 @@ java_library(
     ],
     deps = [
         ":macro",
-        "//common",
+        "//common:cel_source",
         "//common:compiler_common",
         "//common:options",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -121,7 +122,7 @@ java_library(
     ],
     deps = [
         ":unparser_visitor",
-        "//common",
+        "//common:cel_ast",
         "//common:options",
     ],
 )
@@ -133,7 +134,8 @@ java_library(
     ],
     deps = [
         ":operator",
-        "//common",
+        "//common:cel_ast",
+        "//common:cel_source",
         "//common/ast",
         "//common/ast:cel_expr_visitor",
         "@maven//:com_google_guava_guava",

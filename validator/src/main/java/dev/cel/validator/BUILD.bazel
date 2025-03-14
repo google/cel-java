@@ -37,7 +37,7 @@ java_library(
     ],
     deps = [
         ":ast_validator",
-        "//common",
+        "//common:cel_ast",
         "//common:compiler_common",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
@@ -54,7 +54,7 @@ java_library(
         ":ast_validator",
         ":validator_builder",
         "//bundle:cel",
-        "//common",
+        "//common:cel_ast",
         "//common:compiler_common",
         "//common/navigation",
         "@maven//:com_google_guava_guava",
@@ -68,7 +68,7 @@ java_library(
     ],
     deps = [
         "//bundle:cel",
-        "//common",
+        "//common:cel_source",
         "//common:compiler_common",
         "//common:source_location",
         "//common/navigation",

@@ -68,7 +68,7 @@ java_library(
         ":baseline_test_case",
         ":test_decls",
         "//:java_truth",
-        "//common",
+        "//common:cel_ast",
         "//common:compiler_common",
         "//common:options",
         "//common/types:cel_proto_types",
@@ -97,7 +97,7 @@ java_library(
     deps = [
         ":cel_baseline_test_case",
         "//:java_truth",
-        "//common",
+        "//common:cel_ast",
         "//common:options",
         "//common:proto_ast",
         "//common/internal:cel_descriptor_pools",

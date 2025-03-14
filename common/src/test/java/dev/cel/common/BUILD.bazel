@@ -11,7 +11,9 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//:java_truth",
-        "//common",
+        "//common:cel_ast",
+        "//common:cel_descriptors",
+        "//common:cel_source",
         "//common:compiler_common",
         "//common:options",
         "//common:proto_ast",

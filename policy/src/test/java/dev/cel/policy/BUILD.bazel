@@ -15,7 +15,7 @@ java_library(
         "//bundle:cel",
         "//bundle:environment",
         "//bundle:environment_yaml_parser",
-        "//common",
+        "//common:cel_ast",
         "//common:options",
         "//common/formats:value_string",
         "//common/internal",
