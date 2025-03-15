@@ -14,10 +14,14 @@
 
 package dev.cel.common;
 
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Joiner;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Duration;
+import com.google.protobuf.Empty;
+import com.google.protobuf.FieldMask;
 import com.google.protobuf.ListValue;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.Struct;
@@ -25,7 +29,9 @@ import com.google.protobuf.Timestamp;
 import com.google.protobuf.Value;
 import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.Timestamps;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -113,9 +119,34 @@ public final class CelProtoJsonAdapter {
       String duration = Durations.toString((Duration) value);
       return json.setStringValue(duration).build();
     }
+    if (value instanceof FieldMask) {
+      String fieldMaskStr = toJsonString((FieldMask) value);
+      return json.setStringValue(fieldMaskStr).build();
+    }
+    if (value instanceof Empty) {
+      // google.protobuf.Empty is just an empty json map {}
+      return json.setStructValue(Struct.getDefaultInstance()).build();
+    }
 
     throw new IllegalArgumentException(
         String.format("Value %s cannot be adapted to a JSON Value.", value));
+  }
+
+  /**
+   * Joins the field mask's paths into a single string with commas. This logic is copied from
+   * Protobuf's FieldMaskUtil.java, which we cannot directly use here due to its dependency to
+   * descriptors.
+   */
+  private static String toJsonString(FieldMask fieldMask) {
+    List<String> paths = new ArrayList<>(fieldMask.getPathsCount());
+
+    for (String path : fieldMask.getPathsList()) {
+      if (!path.isEmpty()) {
+        paths.add(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, path));
+      }
+    }
+
+    return Joiner.on(",").join(paths);
   }
 
   /**
