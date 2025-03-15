@@ -96,7 +96,7 @@ public final class ProtoLiteAdapter {
       case TIMESTAMP:
         return (Timestamp) value;
       default:
-        throw new IllegalArgumentException("Unexpceted wellKnownProto kind: " + wellKnownProto);
+        throw new IllegalArgumentException("Unexpected wellKnownProto kind: " + wellKnownProto);
     }
   }
 
