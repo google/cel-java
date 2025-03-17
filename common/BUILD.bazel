@@ -7,18 +7,6 @@ package(
 )
 
 java_library(
-    # TODO: Split this target and migrate consumers
-    name = "common",
-    deprecation = "Use split targets instead",
-    exports = [
-        ":cel_ast",
-        ":cel_descriptors",
-        ":cel_exception",
-        ":cel_source",
-    ],
-)
-
-java_library(
     name = "compiler_common",
     exports = ["//common/src/main/java/dev/cel/common:compiler_common"],
 )
