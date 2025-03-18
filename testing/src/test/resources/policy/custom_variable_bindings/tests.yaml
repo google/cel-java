@@ -12,11 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+name: "custom_variable_bindings"
 description: "Tests for custom variable bindings."
-section:
+sections:
   - name: "custom_variable_bindings"
+    description: "Tests for custom variable bindings."
     tests:
     - name: "true_by_default"
+      description: "Tests that the custom variable bindings are set to true by default."
       # The input for this test is configured programmatically in the test
       # class with a value of 1 (see CustomVariableBindingsUserTest.java).
-      output: "true"
+      output:
+        expr: "true"

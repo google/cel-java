@@ -1,4 +1,4 @@
-# Copyright 2025 Google LLC
+# Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,23 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "late_function_binding_tests"
-description: "Tests for late function binding."
+name: "eval_error"
+description: evaluation error tests
 sections:
-  - name: "late_function_binding_tests_section"
-    description: "Tests for late function binding."
+  - name: "eval_error"
+    description: "Tests for evaluation errors"
     tests:
-    - name: "true_by_default"
-      description: "Test that the default value of a late function binding is true."
+    - name: "eval_error_no_matching_overload"
+      description: "No matching overload for function"
       input:
-        a:
-          expr: "'foo'"
+        resource:
+            value:
+              origin: "uk"
       output:
-        value: true
-    - name: "false_by_default"
-      description: "Test that the default value of a late function binding is false."
-      input:
-        a:
-          value: "baz"
-      output:
-        value: false
+        error_set:
+        - "evaluation error: No matching overload for function 'foo'. Overload candidates: foo_id"
