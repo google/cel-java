@@ -95,8 +95,15 @@ public final class ProtoLiteAdapter {
         return (Duration) value;
       case TIMESTAMP:
         return (Timestamp) value;
+      case EMPTY:
+      case FIELD_MASK:
+        // These two WKTs are typically used in context of JSON conversions, in which they are
+        // automatically unwrapped into equivalent primitive types.
+        // In other cases, just return the original message itself.
+        return (MessageLite) value;
       default:
-        throw new IllegalArgumentException("Unexpceted wellKnownProto kind: " + wellKnownProto);
+        throw new IllegalArgumentException(
+            "Unexpected wellKnownProto kind: " + wellKnownProto + " for value: " + value);
     }
   }
 

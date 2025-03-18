@@ -290,11 +290,6 @@ public final class ProtoAdapter {
     }
 
     switch (wellKnownProto) {
-      // TODO: These should be converted properly to their primitive types. This is
-      // here to retain compatibility for time being.
-      case FIELD_MASK:
-      case EMPTY:
-        return (Message) value;
       case ANY_VALUE:
         if (value instanceof Message) {
           protoTypeName = ((Message) value).getDescriptorForType().getFullName();

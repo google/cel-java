@@ -26,6 +26,8 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.DoubleValue;
 import com.google.protobuf.Duration;
+import com.google.protobuf.Empty;
+import com.google.protobuf.FieldMask;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int64Value;
 import com.google.protobuf.ListValue;
@@ -134,9 +136,13 @@ public final class ProtoAdapterTest {
               Timestamp.newBuilder().setSeconds(123).build(),
               Any.pack(Timestamp.newBuilder().setSeconds(123).build()),
             },
-            // Adaption support for the most current CelOptions.
             {UnsignedLong.valueOf(1L), UInt64Value.of(1L)},
             {UnsignedLong.valueOf(1L), Any.pack(UInt64Value.of(1L))},
+            {Empty.getDefaultInstance(), Empty.getDefaultInstance()},
+            {
+              FieldMask.newBuilder().addPaths("foo").build(),
+              FieldMask.newBuilder().addPaths("foo").build()
+            }
           });
     }
 

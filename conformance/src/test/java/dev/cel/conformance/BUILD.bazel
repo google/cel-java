@@ -91,10 +91,6 @@ _TESTS_TO_SKIP = [
     "timestamps/timestamp_arithmetic/add_time_to_duration_nanos_negative",
 
     # Skip until fixed.
-    "wrappers/field_mask/to_json",
-    "wrappers/empty/to_json",
-    "wrappers/duration/to_json",
-    "wrappers/timestamp/to_json",
     "fields/qualified_identifier_resolution/map_value_repeat_key_heterogeneous",
     # TODO: Add strings.format and strings.quote.
     "string_ext/quote",

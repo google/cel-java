@@ -91,7 +91,7 @@ final class ProtoJavaQualifiedNames {
     FileOptions options = fileDescriptor.getFile().getOptions();
     StringBuilder javaPackageName = new StringBuilder();
     if (options.hasJavaPackage()) {
-      javaPackageName.append(fileDescriptor.getFile().getOptions().getJavaPackage());
+      javaPackageName.append(options.getJavaPackage());
     } else {
       javaPackageName
           // CEL-Internal-1
