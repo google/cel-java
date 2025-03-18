@@ -119,6 +119,7 @@ load("@rules_jvm_external//:setup.bzl", "rules_jvm_external_setup")
 rules_jvm_external_setup()
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
+load("//:maven_utils.bzl", "maven_artifact_compile_only", "maven_artifact_test_only")
 
 ### end of rules_jvm_external setup
 
@@ -129,22 +130,25 @@ maven_install(
     artifacts = [
         "com.google.auto.value:auto-value:1.11.0",
         "com.google.auto.value:auto-value-annotations:1.11.0",
-        "com.google.code.findbugs:annotations:3.0.1",
-        "com.google.errorprone:error_prone_annotations:2.36.0",
         "com.google.guava:guava:33.4.0-jre",
         "com.google.guava:guava-testlib:33.4.0-jre",
         "com.google.protobuf:protobuf-java:4.29.3",
         "com.google.protobuf:protobuf-java-util:4.29.3",
         "com.google.re2j:re2j:1.8",
-        "com.google.testparameterinjector:test-parameter-injector:1.18",
-        "com.google.truth.extensions:truth-java8-extension:1.4.4",
-        "com.google.truth.extensions:truth-proto-extension:1.4.4",
-        "com.google.truth:truth:1.4.4",
         "info.picocli:picocli:4.7.6",
         "org.antlr:antlr4-runtime:" + ANTLR4_VERSION,
+        "info.picocli:picocli:4.7.6",
+        "org.freemarker:freemarker:2.3.33",
         "org.jspecify:jspecify:1.0.0",
         "org.threeten:threeten-extra:1.8.0",
         "org.yaml:snakeyaml:2.3",
+        maven_artifact_test_only("com.google.testparameterinjector", "test-parameter-injector", "1.18"),
+        maven_artifact_test_only("com.google.truth", "truth", "1.4.4"),
+        maven_artifact_test_only("com.google.truth.extensions", "truth-java8-extension", "1.4.4"),
+        maven_artifact_test_only("com.google.truth.extensions", "truth-proto-extension", "1.4.4"),
+        maven_artifact_test_only("com.google.truth.extensions", "truth-liteproto-extension", "1.4.4"),
+        maven_artifact_compile_only("com.google.code.findbugs", "annotations", "3.0.1"),
+        maven_artifact_compile_only("com.google.errorprone", "error_prone_annotations", "2.36.0"),
     ],
     repositories = [
         "https://maven.google.com",
