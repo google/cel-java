@@ -12,17 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+name: "late_function_binding_tests"
 description: "Tests for late function binding."
-section:
-  - name: "late_function_binding"
+sections:
+  - name: "late_function_binding_tests_section"
+    description: "Tests for late function binding."
     tests:
     - name: "true_by_default"
-      input:
-        a:
-          value: "foo"
-      output: "true"
+      description: "Test that the default value of a late function binding is true."
+      bindings:
+        a: "'foo'"
+      result_value: true
     - name: "false_by_default"
-      input:
-        a:
-          value: "baz"
-      output: "false"
+      description: "Test that the default value of a late function binding is false."
+      bindings:
+        a: "'baz'"
+      result_value: false

@@ -44,7 +44,7 @@ public final class YamlHelper {
 
     private final String tag;
 
-    String tag() {
+    public String tag() {
       return tag;
     }
 
@@ -95,6 +95,15 @@ public final class YamlHelper {
       }
     }
     return false;
+  }
+
+  public static Double newDouble(ParserContext<Node> ctx, Node node) {
+    long id = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, id, node, YamlNodeType.DOUBLE)) {
+      return 0.0;
+    }
+
+    return Double.parseDouble(((ScalarNode) node).getValue());
   }
 
   public static Integer newInteger(ParserContext<Node> ctx, Node node) {
