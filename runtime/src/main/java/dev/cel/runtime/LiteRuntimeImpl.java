@@ -21,12 +21,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import javax.annotation.concurrent.ThreadSafe;
-import com.google.protobuf.MessageLiteOrBuilder;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.internal.DefaultLiteDescriptorPool;
+import dev.cel.common.values.CelValueProvider;
+import dev.cel.common.values.ProtoLiteCelValueConverter;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 
 @ThreadSafe
 final class LiteRuntimeImpl implements CelLiteRuntime {
@@ -55,6 +57,7 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     @VisibleForTesting CelOptions celOptions;
     @VisibleForTesting final HashMap<String, CelFunctionBinding> customFunctionBindings;
     @VisibleForTesting CelStandardFunctions celStandardFunctions;
+    @VisibleForTesting CelValueProvider celValueProvider;
 
     @Override
     public CelLiteRuntimeBuilder setOptions(CelOptions celOptions) {
@@ -76,6 +79,12 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     @Override
     public CelLiteRuntimeBuilder addFunctionBindings(Iterable<CelFunctionBinding> bindings) {
       bindings.forEach(o -> customFunctionBindings.putIfAbsent(o.getOverloadId(), o));
+      return this;
+    }
+
+    @Override
+    public CelLiteRuntimeBuilder setValueProvider(CelValueProvider celValueProvider) {
+      this.celValueProvider = celValueProvider;
       return this;
     }
 
@@ -137,37 +146,23 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
                   dispatcher.add(
                       overloadId, func.getArgTypes(), (args) -> func.getDefinition().apply(args)));
 
-      // TODO: provide implementations for dependencies
+      CelValueProvider valueProvider = celValueProvider;
+      if (valueProvider == null) {
+        valueProvider = (structType, fields) -> Optional.empty();
+      }
+
+      // TODO: Propagate descriptor through value provider?
+      DefaultLiteDescriptorPool celLiteDescriptorPool =
+          DefaultLiteDescriptorPool.newInstance(ImmutableSet.of());
+      ProtoLiteCelValueConverter protoLiteCelValueConverter =
+          ProtoLiteCelValueConverter.newInstance(celOptions, celLiteDescriptorPool);
+
+      RuntimeTypeProvider runtimeTypeProvider =
+          new RuntimeTypeProviderLegacyImpl(valueProvider, protoLiteCelValueConverter);
+
       Interpreter interpreter =
           new DefaultInterpreter(
-              TypeResolver.create(),
-              new RuntimeTypeProvider() {
-                @Override
-                public Object createMessage(String messageName, Map<String, Object> values) {
-                  throw new UnsupportedOperationException("Not implemented yet");
-                }
-
-                @Override
-                public Object selectField(Object message, String fieldName) {
-                  throw new UnsupportedOperationException("Not implemented yet");
-                }
-
-                @Override
-                public Object hasField(Object message, String fieldName) {
-                  throw new UnsupportedOperationException("Not implemented yet");
-                }
-
-                @Override
-                public Object adapt(Object message) {
-                  if (message instanceof MessageLiteOrBuilder) {
-                    throw new UnsupportedOperationException("Not implemented yet");
-                  }
-
-                  return message;
-                }
-              },
-              dispatcher,
-              celOptions);
+              TypeResolver.create(), runtimeTypeProvider, dispatcher, celOptions);
 
       return new LiteRuntimeImpl(
           interpreter, celOptions, customFunctionBindings.values(), celStandardFunctions);

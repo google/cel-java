@@ -1,5 +1,6 @@
 load("@rules_java//java:defs.bzl", "java_library")
 load("//:cel_android_rules.bzl", "cel_android_local_test")
+load("//:java_lite_proto_cel_library.bzl", "java_lite_proto_cel_library")
 load("//:testing.bzl", "junit4_test_suites")
 load("//compiler/tools:compile_cel.bzl", "compile_cel")
 
@@ -60,6 +61,7 @@ java_library(
         ["*.java"],
         exclude = [
             "CelValueInterpreterTest.java",
+            "CelLiteDescriptorInterpreterTest.java",
             "InterpreterTest.java",
         ],
     ),
@@ -113,6 +115,7 @@ java_library(
         "//runtime:type_resolver",
         "//runtime:unknown_attributes",
         "//runtime:unknown_options",
+        "//testing:test_all_types_cel_java_proto_lite",
         "@cel_spec//proto/cel/expr:checked_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
@@ -125,6 +128,7 @@ java_library(
         "@maven//:com_google_truth_extensions_truth_proto_extension",
         "@maven//:junit_junit",
         "@maven//:org_jspecify_jspecify",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -176,10 +180,25 @@ cel_android_local_test(
         "//runtime:lite_runtime_impl_android",
         "//runtime:standard_functions_android",
         "@cel_spec//proto/cel/expr:checked_java_proto_lite",
-        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven_android//:com_google_guava_guava",
         "@maven_android//:com_google_protobuf_protobuf_javalite",
+    ],
+)
+
+java_library(
+    name = "cel_lite_descriptor_interpreter_test",
+    testonly = 1,
+    srcs = [
+        "CelLiteDescriptorInterpreterTest.java",
+    ],
+    deps = [
+        "//extensions:optional_library",
+        "//runtime",
+        "//testing:base_interpreter_test",
+        "//testing:test_all_types_cel_java_proto_lite",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -192,6 +211,7 @@ junit4_test_suites(
     ],
     src_dir = "src/test/java",
     deps = [
+        ":cel_lite_descriptor_interpreter_test",
         ":cel_value_interpreter_test",
         ":interpreter_test",
         ":tests",

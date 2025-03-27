@@ -156,8 +156,8 @@ java_library(
         ":runtime_helpers",
         "//common/annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_jspecify_jspecify",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -169,9 +169,9 @@ cel_android_library(
         ":interpretable_android",
         ":runtime_helpers_android",
         "//common/annotations",
-        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_jspecify_jspecify",
         "@maven_android//:com_google_guava_guava",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -201,6 +201,7 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -213,7 +214,6 @@ cel_android_library(
         "//common/types:types_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
         "@maven_android//:com_google_guava_guava",
         "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
@@ -347,7 +347,7 @@ java_library(
         "//common/internal:comparison_functions",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -364,8 +364,8 @@ cel_android_library(
         "//common:runtime_exception",
         "//common/internal:comparison_functions_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_protobuf_protobuf_java",
         "@maven_android//:com_google_guava_guava",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -401,7 +401,6 @@ cel_android_library(
         "//common:runtime_exception",
         "//common/internal:converter",
         "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_re2j_re2j",
         "@maven//:org_threeten_threeten_extra",
         "@maven_android//:com_google_guava_guava",
@@ -426,6 +425,7 @@ java_library(
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_re2j_re2j",
         "@maven//:org_threeten_threeten_extra",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -550,6 +550,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -570,7 +571,6 @@ cel_android_library(
         "//common/internal:safe_string_formatter",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven_android//:com_google_guava_guava",
         "@maven_android//:com_google_protobuf_protobuf_javalite",
@@ -632,7 +632,7 @@ java_library(
         "//common/annotations",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -667,12 +667,18 @@ java_library(
         "//common:options",
         "//common/annotations",
         "//common/internal:cel_descriptor_pools",
+        "//common/internal:default_lite_descriptor_pool",
         "//common/internal:default_message_factory",
         "//common/internal:dynamic_proto",
+        "//common/internal:proto_lite_adapter",
         "//common/internal:proto_message_factory",
         "//common/types:cel_types",
         "//common/values:cel_value_provider",
+        "//common/values:proto_message_lite_value",
+        "//common/values:proto_message_lite_value_provider",
+        "//common/values:proto_message_value",
         "//common/values:proto_message_value_provider",
+        "//protobuf:cel_lite_descriptor",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -693,6 +699,7 @@ java_library(
         "//:auto_value",
         "//common:cel_ast",
         "//common:options",
+        "//common/values:cel_value_provider",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -715,15 +722,18 @@ java_library(
         ":runtime_equality",
         ":runtime_helpers",
         ":runtime_type_provider",
+        ":runtime_type_provider_legacy",
         ":standard_functions",
         ":type_resolver",
         "//:auto_value",
         "//common:cel_ast",
         "//common:options",
+        "//common/internal:default_lite_descriptor_pool",
+        "//common/values:cel_value_provider",
+        "//common/values:proto_message_lite_value",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -743,15 +753,18 @@ cel_android_library(
         ":runtime_equality_android",
         ":runtime_helpers_android",
         ":runtime_type_provider_android",
+        ":runtime_type_provider_legacy_android",
         ":standard_functions_android",
         ":type_resolver_android",
         "//:auto_value",
         "//common:cel_ast_android",
         "//common:options",
+        "//common/internal:default_lite_descriptor_pool_android",
+        "//common/values:cel_value_provider_android",
+        "//common/values:proto_message_lite_value_android",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
         "@maven_android//:com_google_guava_guava",
     ],
 )
@@ -844,17 +857,31 @@ java_library(
         ":runtime_type_provider",
         ":unknown_attributes",
         "//common:error_codes",
-        "//common:options",
         "//common:runtime_exception",
         "//common/annotations",
-        "//common/internal:cel_descriptor_pools",
-        "//common/internal:dynamic_proto",
         "//common/values",
+        "//common/values:base_proto_cel_value_converter",
         "//common/values:cel_value",
         "//common/values:cel_value_provider",
-        "//common/values:proto_message_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "runtime_type_provider_legacy_android",
+    srcs = ["RuntimeTypeProviderLegacyImpl.java"],
+    deps = [
+        ":runtime_type_provider_android",
+        ":unknown_attributes_android",
+        "//common:error_codes",
+        "//common:runtime_exception",
+        "//common/annotations",
+        "//common/values:base_proto_cel_value_converter_android",
+        "//common/values:cel_value_android",
+        "//common/values:cel_value_provider_android",
+        "//common/values:values_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
 
@@ -921,6 +948,7 @@ cel_android_library(
         "//:auto_value",
         "//common:cel_ast_android",
         "//common:options",
+        "//common/values:cel_value_provider_android",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
