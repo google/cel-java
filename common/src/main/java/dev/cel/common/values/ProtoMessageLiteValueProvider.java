@@ -18,6 +18,7 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.util.Arrays.stream;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
@@ -31,6 +32,7 @@ import dev.cel.common.internal.DefaultLiteDescriptorPool;
 import dev.cel.common.internal.ProtoLiteAdapter;
 import dev.cel.common.internal.ReflectionUtil;
 import dev.cel.common.internal.WellKnownProto;
+import dev.cel.protobuf.CelLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.lang.reflect.Method;
@@ -44,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -195,12 +198,13 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
   }
 
   public static ProtoMessageLiteValueProvider newInstance(
-      DefaultLiteDescriptorPool celLiteDescriptorPool) {
+      Set<CelLiteDescriptor> descriptors) {
+    DefaultLiteDescriptorPool descriptorPool = DefaultLiteDescriptorPool.newInstance(ImmutableSet.copyOf(descriptors));
     ProtoLiteAdapter protoLiteAdapter = new ProtoLiteAdapter(true);
     ProtoLiteCelValueConverter protoLiteCelValueConverter =
-        ProtoLiteCelValueConverter.newInstance(celLiteDescriptorPool);
+        ProtoLiteCelValueConverter.newInstance(descriptorPool);
     return new ProtoMessageLiteValueProvider(
-        protoLiteCelValueConverter, protoLiteAdapter, celLiteDescriptorPool);
+        protoLiteCelValueConverter, protoLiteAdapter, descriptorPool);
   }
 
   public static ProtoMessageLiteValueProvider newInstance(
