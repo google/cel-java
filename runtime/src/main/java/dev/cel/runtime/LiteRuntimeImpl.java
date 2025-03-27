@@ -20,12 +20,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import dev.cel.common.internal.DefaultLiteDescriptorPool;
+import dev.cel.common.values.ProtoLiteCelValueConverter;
+import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
-import dev.cel.common.internal.DefaultLiteDescriptorPool;
 import dev.cel.common.values.CelValueProvider;
-import dev.cel.common.values.ProtoLiteCelValueConverter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
@@ -151,14 +152,14 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
         valueProvider = (structType, fields) -> Optional.empty();
       }
 
-      // TODO: Propagate descriptor through value provider?
-      DefaultLiteDescriptorPool celLiteDescriptorPool =
-          DefaultLiteDescriptorPool.newInstance(ImmutableSet.of());
-      ProtoLiteCelValueConverter protoLiteCelValueConverter =
-          ProtoLiteCelValueConverter.newInstance(celLiteDescriptorPool);
-
-      RuntimeTypeProvider runtimeTypeProvider =
-          new RuntimeTypeProviderLegacyImpl(valueProvider, protoLiteCelValueConverter);
+      // TODO: Combine value providers if necessary
+      RuntimeTypeProvider runtimeTypeProvider = null;
+      if (valueProvider instanceof ProtoMessageLiteValueProvider) {
+        runtimeTypeProvider = new RuntimeTypeProviderLegacyImpl((ProtoMessageLiteValueProvider) valueProvider);
+      } else {
+        runtimeTypeProvider = new RuntimeTypeProviderLegacyImpl(celValueProvider,
+            ProtoLiteCelValueConverter.newInstance(DefaultLiteDescriptorPool.newInstance(ImmutableSet.of())));
+      }
 
       Interpreter interpreter =
           new DefaultInterpreter(

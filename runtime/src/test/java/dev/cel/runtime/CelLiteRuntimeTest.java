@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.expr.CheckedExpr;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
@@ -32,6 +33,8 @@ import dev.cel.common.CelSource;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.types.SimpleType;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
 import dev.cel.runtime.CelLiteRuntime.Program;
 import java.net.URL;
 import java.util.List;
@@ -220,6 +223,25 @@ public class CelLiteRuntimeTest {
 
     assertThat(result).isTrue();
   }
+
+  @Test
+  public void eval_protoMessage() throws Exception {
+    CelLiteRuntime runtime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setValueProvider(ProtoMessageLiteValueProvider.newInstance(
+                TestAllTypesCelLiteDescriptor.getDescriptor()))
+            .build();
+    // Expr: msg.single_int64
+    CelAbstractSyntaxTree ast = readCheckedExpr("compiled_proto_message_variable");
+    Program program = runtime.createProgram(ast);
+
+    long result = (long) program.eval(
+        ImmutableMap.of("msg", TestAllTypes.newBuilder().setSingleInt64(1L).build()));
+
+    assertThat(result).isEqualTo(1L);
+  }
+
 
   private static CelAbstractSyntaxTree readCheckedExpr(String compiledCelTarget) throws Exception {
     URL url = Resources.getResource(CelLiteRuntimeTest.class, compiledCelTarget + ".binarypb");

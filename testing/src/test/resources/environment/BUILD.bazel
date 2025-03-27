@@ -27,3 +27,8 @@ filegroup(
     name = "custom_functions",
     srcs = ["custom_functions.yaml"],
 )
+
+filegroup(
+    name = "proto_message_variable",
+    srcs = ["proto_message_variable.yaml"],
+)

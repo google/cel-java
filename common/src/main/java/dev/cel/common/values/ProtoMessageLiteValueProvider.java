@@ -68,6 +68,10 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
             .collect(toImmutableMap(WellKnownProto::javaClassName, Function.identity()));
   }
 
+  public ProtoLiteCelValueConverter getProtoLiteCelValueConverter() {
+    return protoLiteCelValueConverter;
+  }
+
   @Override
   public Optional<CelValue> newValue(String structType, Map<String, Object> fields) {
     MessageLiteDescriptor messageInfo =
@@ -195,6 +199,11 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
     }
 
     return (Class<?>) paramType;
+  }
+
+  public static ProtoMessageLiteValueProvider newInstance(
+      CelLiteDescriptor... descriptors) {
+    return newInstance(ImmutableSet.copyOf(descriptors));
   }
 
   public static ProtoMessageLiteValueProvider newInstance(

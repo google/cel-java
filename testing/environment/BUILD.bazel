@@ -23,3 +23,8 @@ alias(
     name = "custom_functions",
     actual = "//testing/src/test/resources/environment:custom_functions",
 )
+
+alias(
+    name = "proto_message_variable",
+    actual = "//testing/src/test/resources/environment:proto_message_variable",
+)

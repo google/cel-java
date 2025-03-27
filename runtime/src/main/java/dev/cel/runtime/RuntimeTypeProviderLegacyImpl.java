@@ -21,6 +21,7 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.values.BaseProtoCelValueConverter;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueProvider;
+import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.common.values.SelectableValue;
 import dev.cel.common.values.StringValue;
 import java.util.Map;
@@ -33,6 +34,13 @@ final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider {
 
   private final CelValueProvider valueProvider;
   private final BaseProtoCelValueConverter protoCelValueConverter;
+
+  RuntimeTypeProviderLegacyImpl(
+      ProtoMessageLiteValueProvider protoMessageLiteValueProvider) {
+    this.valueProvider = protoMessageLiteValueProvider;
+    this.protoCelValueConverter = protoMessageLiteValueProvider.getProtoLiteCelValueConverter();
+  }
+
 
   RuntimeTypeProviderLegacyImpl(
       CelValueProvider valueProvider, BaseProtoCelValueConverter protoCelValueConverter) {
