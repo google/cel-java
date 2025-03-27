@@ -16,6 +16,10 @@ java_binary(
     name = "cel_lite_descriptor_generator",
     srcs = ["CelLiteDescriptorGenerator.java"],
     main_class = "dev.cel.protobuf.CelLiteDescriptorGenerator",
+    runtime_deps = [
+        # Prevent Classloader from picking protolite. We need full version to access descriptors to codegen CelLiteDescriptor.
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
     deps = [
         ":debug_printer",
         ":java_file_generator",
