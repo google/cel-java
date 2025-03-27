@@ -42,7 +42,6 @@ import dev.cel.expr.conformance.proto3.NestedTestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
-import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
 import dev.cel.parser.CelStandardMacro;
 import java.util.Arrays;
 import java.util.List;
@@ -61,10 +60,11 @@ public class CelLiteDescriptorEvaluationTest {
           .setContainer("cel.expr.conformance.proto3")
           .build();
 
-  private static final CelRuntime CEL_RUNTIME =
-      CelRuntimeFactory.standardCelRuntimeBuilder()
+  private static final CelLiteRuntime CEL_RUNTIME =
+      CelLiteRuntimeFactory.newLiteRuntimeBuilder()
           .setOptions(CelOptions.current().enableCelValue(true).build())
-          .addCelLiteDescriptors(TestAllTypesCelLiteDescriptor.getDescriptor())
+          // .setValueProvider(ProtoMessageLiteValueProvider.newInstance())
+          // .addCelLiteDescriptors(TestAllTypesCelLiteDescriptor.getDescriptor())
           .build();
 
   @Test

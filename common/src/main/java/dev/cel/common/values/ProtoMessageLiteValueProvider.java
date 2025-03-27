@@ -195,6 +195,15 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
   }
 
   public static ProtoMessageLiteValueProvider newInstance(
+      DefaultLiteDescriptorPool celLiteDescriptorPool) {
+    ProtoLiteAdapter protoLiteAdapter = new ProtoLiteAdapter(true);
+    ProtoLiteCelValueConverter protoLiteCelValueConverter =
+        ProtoLiteCelValueConverter.newInstance(celLiteDescriptorPool);
+    return new ProtoMessageLiteValueProvider(
+        protoLiteCelValueConverter, protoLiteAdapter, celLiteDescriptorPool);
+  }
+
+  public static ProtoMessageLiteValueProvider newInstance(
       ProtoLiteCelValueConverter protoLiteCelValueConverter,
       ProtoLiteAdapter protoLiteAdapter,
       DefaultLiteDescriptorPool celLiteDescriptorPool) {

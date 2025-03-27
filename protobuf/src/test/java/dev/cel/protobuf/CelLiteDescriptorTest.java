@@ -20,6 +20,7 @@ import static org.junit.Assert.assertThrows;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.WireFormat;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.expr.TestLiteProto;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldDescriptor;
@@ -308,10 +309,33 @@ public class CelLiteDescriptorTest {
   }
 
   @Test
+  public void serialization() throws Exception {
+    // TestLiteProto t1 = TestLiteProto.newBuilder()
+    //     .setSimpleBool(true)
+    //     .putSimpleMap("bar", 2.5d)
+    //     .setSimpleString("foo").build();
+    // byte[] bytes = t1.toByteArray();
+    // System.out.println(bytes[0]);
+
+    byte[] bytes = new byte[] {10, 3, 102, 111, 111, 16, 1, 26, 14, 10, 3, 98, 97, 114, 17, 0, 0, 0, 0, 0, 0, 4, 64};
+    TestLiteProto t1 = TestLiteProto.parseFrom(bytes);
+    TestLiteProto t2 = TestLiteProto.parseFrom(bytes);
+
+    boolean equals = t1.equals(t2);
+
+    assertThat(equals).isTrue();
+  }
+
+  @Test
   public void smokeTest() throws Exception {
     TestAllTypes testAllTypes =
         TestAllTypes.newBuilder().setSingleBool(true).setSingleString("foo").build();
     byte[] bytes = testAllTypes.toByteArray();
+    TestAllTypes t1 = TestAllTypes.parseFrom(bytes);
+    TestAllTypes t2 = TestAllTypes.parseFrom(bytes);
+    boolean areEqual = t1.equals(t2);
+    System.out.println(areEqual);
+
     CodedInputStream inputStream = CodedInputStream.newInstance(bytes);
     while (true) {
       int tag = inputStream.readTag();

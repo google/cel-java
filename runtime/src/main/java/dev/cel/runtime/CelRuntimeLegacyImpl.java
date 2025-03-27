@@ -313,14 +313,14 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
         ImmutableSet<CelLiteDescriptor> liteDescriptors = celLiteDescriptorBuilder.build();
         if (liteDescriptors.isEmpty()) {
           CelValueProvider messageValueProvider =
-              ProtoMessageValueProvider.newInstance(dynamicProto, options);
+              ProtoMessageValueProvider.newInstance(dynamicProto);
           if (celValueProvider != null) {
             messageValueProvider =
                 CombinedCelValueProvider.newInstance(celValueProvider, messageValueProvider);
           }
 
           ProtoCelValueConverter protoCelValueConverter =
-              ProtoCelValueConverter.newInstance(options, celDescriptorPool, dynamicProto);
+              ProtoCelValueConverter.newInstance(celDescriptorPool, dynamicProto);
 
           runtimeTypeProvider =
               new RuntimeTypeProviderLegacyImpl(messageValueProvider, protoCelValueConverter);
@@ -333,7 +333,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
           // adapter.
           ProtoLiteAdapter protoLiteAdapter = new ProtoLiteAdapter(options.enableUnsignedLongs());
           ProtoLiteCelValueConverter protoLiteCelValueConverter =
-              ProtoLiteCelValueConverter.newInstance(options, celLiteDescriptorPool);
+              ProtoLiteCelValueConverter.newInstance(celLiteDescriptorPool);
           CelValueProvider messageValueProvider =
               ProtoMessageLiteValueProvider.newInstance(
                   protoLiteCelValueConverter, protoLiteAdapter, celLiteDescriptorPool);

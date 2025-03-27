@@ -21,7 +21,6 @@ import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.Timestamps;
-import dev.cel.common.CelOptions;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
@@ -35,7 +34,6 @@ public class ProtoCelValueConverterTest {
 
   private static final ProtoCelValueConverter PROTO_CEL_VALUE_CONVERTER =
       ProtoCelValueConverter.newInstance(
-          CelOptions.DEFAULT,
           DefaultDescriptorPool.INSTANCE,
           DynamicProto.create(DefaultMessageFactory.INSTANCE));
 

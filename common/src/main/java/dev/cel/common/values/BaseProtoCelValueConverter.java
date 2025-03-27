@@ -36,7 +36,6 @@ import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
 import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.Timestamps;
-import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.WellKnownProto;
 import java.time.Duration;
@@ -123,10 +122,10 @@ public abstract class BaseProtoCelValueConverter extends CelValueConverter {
         return fromJavaPrimitiveToCelValue(((StringValue) message).getValue());
       case UINT32_VALUE:
         return UintValue.create(
-            ((UInt32Value) message).getValue(), celOptions.enableUnsignedLongs());
+            ((UInt32Value) message).getValue(), true);
       case UINT64_VALUE:
         return UintValue.create(
-            ((UInt64Value) message).getValue(), celOptions.enableUnsignedLongs());
+            ((UInt64Value) message).getValue(), true);
       default:
         throw new UnsupportedOperationException(
             "Unsupported message to CelValue conversion - " + message);
@@ -223,7 +222,5 @@ public abstract class BaseProtoCelValueConverter extends CelValueConverter {
     }
   }
 
-  protected BaseProtoCelValueConverter(CelOptions celOptions) {
-    super(celOptions);
-  }
+  protected BaseProtoCelValueConverter() {}
 }

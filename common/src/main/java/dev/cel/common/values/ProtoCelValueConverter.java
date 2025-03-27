@@ -24,7 +24,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MapEntry;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageOrBuilder;
-import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelDescriptorPool;
 import dev.cel.common.internal.DynamicProto;
@@ -52,8 +51,8 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
 
   /** Constructs a new instance of ProtoCelValueConverter. */
   public static ProtoCelValueConverter newInstance(
-      CelOptions celOptions, CelDescriptorPool celDescriptorPool, DynamicProto dynamicProto) {
-    return new ProtoCelValueConverter(celOptions, celDescriptorPool, dynamicProto);
+      CelDescriptorPool celDescriptorPool, DynamicProto dynamicProto) {
+    return new ProtoCelValueConverter(celDescriptorPool, dynamicProto);
   }
 
   /** Adapts a Protobuf message into a {@link CelValue}. */
@@ -149,9 +148,9 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
         }
         break;
       case UINT32:
-        return UintValue.create((int) result, celOptions.enableUnsignedLongs());
+        return UintValue.create((int) result, true);
       case UINT64:
-        return UintValue.create((long) result, celOptions.enableUnsignedLongs());
+        return UintValue.create((long) result, true);
       default:
         break;
     }
@@ -160,8 +159,7 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
   }
 
   private ProtoCelValueConverter(
-      CelOptions celOptions, CelDescriptorPool celDescriptorPool, DynamicProto dynamicProto) {
-    super(celOptions);
+      CelDescriptorPool celDescriptorPool, DynamicProto dynamicProto) {
     Preconditions.checkNotNull(celDescriptorPool);
     Preconditions.checkNotNull(dynamicProto);
     this.celDescriptorPool = celDescriptorPool;

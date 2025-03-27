@@ -155,7 +155,7 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
       DefaultLiteDescriptorPool celLiteDescriptorPool =
           DefaultLiteDescriptorPool.newInstance(ImmutableSet.of());
       ProtoLiteCelValueConverter protoLiteCelValueConverter =
-          ProtoLiteCelValueConverter.newInstance(celOptions, celLiteDescriptorPool);
+          ProtoLiteCelValueConverter.newInstance(celLiteDescriptorPool);
 
       RuntimeTypeProvider runtimeTypeProvider =
           new RuntimeTypeProviderLegacyImpl(valueProvider, protoLiteCelValueConverter);

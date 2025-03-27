@@ -22,7 +22,6 @@ import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Internal.EnumLite;
 import com.google.protobuf.MessageLite;
-import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.DefaultLiteDescriptorPool;
 import dev.cel.common.internal.ReflectionUtil;
@@ -49,8 +48,8 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
   private final DefaultLiteDescriptorPool descriptorPool;
 
   public static ProtoLiteCelValueConverter newInstance(
-      CelOptions celOptions, DefaultLiteDescriptorPool celLiteDescriptorPool) {
-    return new ProtoLiteCelValueConverter(celOptions, celLiteDescriptorPool);
+      DefaultLiteDescriptorPool celLiteDescriptorPool) {
+    return new ProtoLiteCelValueConverter(celLiteDescriptorPool);
   }
 
   /** Adapts the protobuf message field into {@link CelValue}. */
@@ -149,9 +148,7 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     return Optional.empty();
   }
 
-  private ProtoLiteCelValueConverter(
-      CelOptions celOptions, DefaultLiteDescriptorPool celLiteDescriptorPool) {
-    super(celOptions);
+  private ProtoLiteCelValueConverter(DefaultLiteDescriptorPool celLiteDescriptorPool) {
     this.descriptorPool = celLiteDescriptorPool;
   }
 }
