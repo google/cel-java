@@ -40,113 +40,113 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
 
   private static MessageLiteDescriptor newMessageInfo(WellKnownProto wellKnownProto) {
     ImmutableMap.Builder<String, FieldDescriptor> fieldInfoMap = ImmutableMap.builder();
-    switch (wellKnownProto) {
-      case JSON_STRUCT_VALUE:
-        fieldInfoMap.put(
-            "fields",
-            new FieldDescriptor(
-                "google.protobuf.Struct.fields",
-                "MESSAGE",
-                "Fields",
-                FieldDescriptor.CelFieldValueType.MAP.toString(),
-                FieldDescriptor.Type.MESSAGE.toString(),
-                String.valueOf(false),
-                "com.google.protobuf.Struct$FieldsEntry",
-                "google.protobuf.Struct.FieldsEntry"));
-        break;
-      case BOOL_VALUE:
-        fieldInfoMap.put(
-            "value",
-            newPrimitiveFieldInfo(
-                "google.protobuf.BoolValue",
-                "BOOLEAN",
-                FieldDescriptor.CelFieldValueType.SCALAR,
-                FieldDescriptor.Type.BOOL));
-        break;
-      case BYTES_VALUE:
-        fieldInfoMap.put(
-            "value",
-            newPrimitiveFieldInfo(
-                "google.protobuf.BytesValue",
-                "BYTE_STRING",
-                FieldDescriptor.CelFieldValueType.SCALAR,
-                FieldDescriptor.Type.BYTES));
-        break;
-      case DOUBLE_VALUE:
-        fieldInfoMap.put(
-            "value",
-            newPrimitiveFieldInfo(
-                "google.protobuf.DoubleValue",
-                "DOUBLE",
-                FieldDescriptor.CelFieldValueType.SCALAR,
-                FieldDescriptor.Type.DOUBLE));
-        break;
-      case FLOAT_VALUE:
-        fieldInfoMap.put(
-            "value",
-            newPrimitiveFieldInfo(
-                "google.protobuf.FloatValue",
-                "FLOAT",
-                FieldDescriptor.CelFieldValueType.SCALAR,
-                FieldDescriptor.Type.FLOAT));
-        break;
-      case INT32_VALUE:
-        fieldInfoMap.put(
-            "value",
-            newPrimitiveFieldInfo(
-                "google.protobuf.Int32Value",
-                "INT",
-                FieldDescriptor.CelFieldValueType.SCALAR,
-                FieldDescriptor.Type.INT32));
-        break;
-      case INT64_VALUE:
-        fieldInfoMap.put(
-            "value",
-            newPrimitiveFieldInfo(
-                "google.protobuf.Int64Value",
-                "LONG",
-                FieldDescriptor.CelFieldValueType.SCALAR,
-                FieldDescriptor.Type.INT64));
-        break;
-      case STRING_VALUE:
-        fieldInfoMap.put(
-            "value",
-            newPrimitiveFieldInfo(
-                "google.protobuf.StringValue",
-                "STRING",
-                FieldDescriptor.CelFieldValueType.SCALAR,
-                FieldDescriptor.Type.STRING));
-        break;
-      case UINT32_VALUE:
-        fieldInfoMap.put(
-            "value",
-            newPrimitiveFieldInfo(
-                "google.protobuf.UInt32Value",
-                "INT",
-                FieldDescriptor.CelFieldValueType.SCALAR,
-                FieldDescriptor.Type.UINT32));
-        break;
-      case UINT64_VALUE:
-        fieldInfoMap.put(
-            "value",
-            newPrimitiveFieldInfo(
-                "google.protobuf.UInt64Value",
-                "LONG",
-                FieldDescriptor.CelFieldValueType.SCALAR,
-                FieldDescriptor.Type.UINT64));
-        break;
-      case JSON_VALUE:
-      case JSON_LIST_VALUE:
-      case DURATION:
-      case TIMESTAMP:
-        // TODO: Complete these
-        break;
-      default:
-        break;
-    }
+    // switch (wellKnownProto) {
+    //   case JSON_STRUCT_VALUE:
+    //     fieldInfoMap.put(
+    //         "fields",
+    //         new FieldDescriptor(
+    //             "google.protobuf.Struct.fields",
+    //             "MESSAGE",
+    //             "Fields",
+    //             FieldDescriptor.CelFieldValueType.MAP.toString(),
+    //             FieldDescriptor.Type.MESSAGE.toString(),
+    //             String.valueOf(false),
+    //             "com.google.protobuf.Struct$FieldsEntry",
+    //             "google.protobuf.Struct.FieldsEntry"));
+    //     break;
+    //   case BOOL_VALUE:
+    //     fieldInfoMap.put(
+    //         "value",
+    //         newPrimitiveFieldInfo(
+    //             "google.protobuf.BoolValue",
+    //             "BOOLEAN",
+    //             FieldDescriptor.CelFieldValueType.SCALAR,
+    //             FieldDescriptor.Type.BOOL));
+    //     break;
+    //   case BYTES_VALUE:
+    //     fieldInfoMap.put(
+    //         "value",
+    //         newPrimitiveFieldInfo(
+    //             "google.protobuf.BytesValue",
+    //             "BYTE_STRING",
+    //             FieldDescriptor.CelFieldValueType.SCALAR,
+    //             FieldDescriptor.Type.BYTES));
+    //     break;
+    //   case DOUBLE_VALUE:
+    //     fieldInfoMap.put(
+    //         "value",
+    //         newPrimitiveFieldInfo(
+    //             "google.protobuf.DoubleValue",
+    //             "DOUBLE",
+    //             FieldDescriptor.CelFieldValueType.SCALAR,
+    //             FieldDescriptor.Type.DOUBLE));
+    //     break;
+    //   case FLOAT_VALUE:
+    //     fieldInfoMap.put(
+    //         "value",
+    //         newPrimitiveFieldInfo(
+    //             "google.protobuf.FloatValue",
+    //             "FLOAT",
+    //             FieldDescriptor.CelFieldValueType.SCALAR,
+    //             FieldDescriptor.Type.FLOAT));
+    //     break;
+    //   case INT32_VALUE:
+    //     fieldInfoMap.put(
+    //         "value",
+    //         newPrimitiveFieldInfo(
+    //             "google.protobuf.Int32Value",
+    //             "INT",
+    //             FieldDescriptor.CelFieldValueType.SCALAR,
+    //             FieldDescriptor.Type.INT32));
+    //     break;
+    //   case INT64_VALUE:
+    //     fieldInfoMap.put(
+    //         "value",
+    //         newPrimitiveFieldInfo(
+    //             "google.protobuf.Int64Value",
+    //             "LONG",
+    //             FieldDescriptor.CelFieldValueType.SCALAR,
+    //             FieldDescriptor.Type.INT64));
+    //     break;
+    //   case STRING_VALUE:
+    //     fieldInfoMap.put(
+    //         "value",
+    //         newPrimitiveFieldInfo(
+    //             "google.protobuf.StringValue",
+    //             "STRING",
+    //             FieldDescriptor.CelFieldValueType.SCALAR,
+    //             FieldDescriptor.Type.STRING));
+    //     break;
+    //   case UINT32_VALUE:
+    //     fieldInfoMap.put(
+    //         "value",
+    //         newPrimitiveFieldInfo(
+    //             "google.protobuf.UInt32Value",
+    //             "INT",
+    //             FieldDescriptor.CelFieldValueType.SCALAR,
+    //             FieldDescriptor.Type.UINT32));
+    //     break;
+    //   case UINT64_VALUE:
+    //     fieldInfoMap.put(
+    //         "value",
+    //         newPrimitiveFieldInfo(
+    //             "google.protobuf.UInt64Value",
+    //             "LONG",
+    //             FieldDescriptor.CelFieldValueType.SCALAR,
+    //             FieldDescriptor.Type.UINT64));
+    //     break;
+    //   case JSON_VALUE:
+    //   case JSON_LIST_VALUE:
+    //   case DURATION:
+    //   case TIMESTAMP:
+    //     // TODO: Complete these
+    //     break;
+    //   default:
+    //     break;
+    // }
 
     return new MessageLiteDescriptor(
-        wellKnownProto.typeName(), wellKnownProto.messageClass(), fieldInfoMap.buildOrThrow());
+        wellKnownProto.typeName(), fieldInfoMap.buildOrThrow());
   }
 
   private static FieldDescriptor newPrimitiveFieldInfo(
@@ -157,11 +157,9 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
     return new FieldDescriptor(
         fullyQualifiedProtoName + ".value",
         javaTypeName,
-        "Value",
         valueType.toString(),
         protoFieldType.toString(),
         String.valueOf(false),
-        "",
         fullyQualifiedProtoName);
   }
 

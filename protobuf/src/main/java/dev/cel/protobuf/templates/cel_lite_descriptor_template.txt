@@ -44,11 +44,9 @@ public final class ${descriptor_class_name} extends CelLiteDescriptor {
     fieldDescriptors.put("${key}", new FieldDescriptor(
       "${value.fullyQualifiedProtoFieldName}",
       "${value.javaType}",
-      "${value.methodSuffixName}",
       "${value.celFieldValueType}",
       "${value.protoFieldType}",
       "${value.hasHasser}",
-      "${value.fieldJavaClassName}",
       "${value.fieldProtoTypeName}"
       ));
       </#list>
@@ -56,7 +54,6 @@ public final class ${descriptor_class_name} extends CelLiteDescriptor {
     descriptors.add(
       new MessageLiteDescriptor(
         "${message_info.protoTypeName}",
-        Void.class,
         Collections.unmodifiableMap(fieldDescriptors))
     );
     </#list>

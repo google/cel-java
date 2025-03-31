@@ -25,7 +25,6 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
-import dev.cel.common.internal.ProtoJavaQualifiedNames;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.FieldDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldDescriptor.CelFieldValueType;
@@ -56,19 +55,12 @@ final class ProtoDescriptorCollector {
             CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, fieldDescriptor.getName());
 
         String javaType = fieldDescriptor.getJavaType().toString();
-        String embeddedFieldJavaClassName = "";
         String embeddedFieldProtoTypeName = "";
         switch (javaType) {
           case "ENUM":
-            embeddedFieldJavaClassName =
-                ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(
-                    fieldDescriptor.getEnumType());
             embeddedFieldProtoTypeName = fieldDescriptor.getEnumType().getFullName();
             break;
           case "MESSAGE":
-            embeddedFieldJavaClassName =
-                ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(
-                    fieldDescriptor.getMessageType());
             embeddedFieldProtoTypeName = fieldDescriptor.getMessageType().getFullName();
             break;
           default:
@@ -89,11 +81,9 @@ final class ProtoDescriptorCollector {
             new FieldDescriptor(
                 /* fullyQualifiedProtoTypeName= */ fieldDescriptor.getFullName(),
                 /* javaTypeName= */ javaType,
-                /* methodSuffixName= */ methodSuffixName,
                 /* celFieldValueType= */ fieldValueType.toString(),
                 /* protoFieldType= */ fieldDescriptor.getType().toString(),
                 /* hasHasser= */ String.valueOf(fieldDescriptor.hasPresence()),
-                /* fieldJavaClassName= */ embeddedFieldJavaClassName,
                 /* fieldProtoTypeName= */ embeddedFieldProtoTypeName));
 
         debugPrinter.print(
@@ -101,21 +91,12 @@ final class ProtoDescriptorCollector {
                 "Method suffix name in %s, for field %s: %s",
                 descriptor.getFullName(), fieldDescriptor.getFullName(), methodSuffixName));
         debugPrinter.print(String.format("FieldType: %s", fieldValueType));
-        if (!embeddedFieldJavaClassName.isEmpty()) {
-          debugPrinter.print(
-              String.format(
-                  "Java class name for field %s: %s",
-                  fieldDescriptor.getName(), embeddedFieldJavaClassName));
-        }
       }
 
 
       messageInfoListBuilder.add(
           new MessageLiteDescriptor(
               descriptor.getFullName(),
-              // TODO: Message class instead
-              descriptor.getClass(),
-              // ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor),
               fieldMap.buildOrThrow()));
     }
 

@@ -19,13 +19,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
+import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.MessageLite;
+import com.google.protobuf.WireFormat;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.internal.ReflectionUtil;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.FieldDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -50,13 +53,54 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     return new ProtoLiteCelValueConverter(celLiteDescriptorPool);
   }
 
+  private Object readFromWireFormat(MessageLite messageLite, FieldDescriptor fieldDescriptor) throws IOException {
+    byte[] bytes = messageLite.toByteArray();
+    CodedInputStream inputStream = CodedInputStream.newInstance(bytes);
+
+    while (true) {
+      int tag = inputStream.readTag();
+      if (tag == 0) {
+        break;
+      }
+
+      int fieldType = WireFormat.getTagWireType(tag);
+      Object payload = null;
+      switch (fieldType) {
+        case WireFormat.WIRETYPE_VARINT:
+          payload = inputStream.readInt64();
+          break;
+        case WireFormat.WIRETYPE_FIXED32:
+          payload = inputStream.readRawLittleEndian32();
+          break;
+        case WireFormat.WIRETYPE_FIXED64:
+          payload = inputStream.readRawLittleEndian64();
+          break;
+        case WireFormat.WIRETYPE_LENGTH_DELIMITED:
+          payload = inputStream.readBytes();
+          break;
+      }
+
+      int fieldNumber = WireFormat.getTagFieldNumber(tag);
+      System.out.println(payload);
+      System.out.println(fieldNumber);
+    }
+
+    return StringValue.create("foo");
+  }
+
   /** Adapts the protobuf message field into {@link CelValue}. */
   public CelValue fromProtoMessageFieldToCelValue(MessageLite msg, FieldDescriptor fieldInfo) {
     checkNotNull(msg);
     checkNotNull(fieldInfo);
 
-    Method getterMethod = ReflectionUtil.getMethod(msg.getClass(), fieldInfo.getGetterName());
-    Object fieldValue = ReflectionUtil.invoke(getterMethod, msg);
+    // Method getterMethod = ReflectionUtil.getMethod(msg.getClass(), fieldInfo.getGetterName());
+    // Object fieldValue = ReflectionUtil.invoke(getterMethod, msg);
+    Object fieldValue = null;
+    try {
+      fieldValue = readFromWireFormat(msg, fieldInfo);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
 
     switch (fieldInfo.getProtoFieldType()) {
       case UINT32:
