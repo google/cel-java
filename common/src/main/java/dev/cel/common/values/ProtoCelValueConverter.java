@@ -87,8 +87,8 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
   }
 
   @Override
-  public CelValue fromProtoMessageToCelValue(String protoTypeName, MessageLite msg) {
-    throw new UnsupportedOperationException("TODO");
+  public CelValue fromProtoMessageToCelValue(String unusedProtoTypeName, MessageLite msg) {
+    return fromProtoMessageToCelValue((MessageOrBuilder) msg);
   }
   /**
    * Adapts a plain old Java Object to a {@link CelValue}. Protobuf semantics take precedence for

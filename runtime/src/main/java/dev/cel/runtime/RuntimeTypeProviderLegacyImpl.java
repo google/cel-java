@@ -64,9 +64,8 @@ final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider {
   @SuppressWarnings("unchecked")
   public Object selectField(String typeName, Object message, String fieldName) {
     // TODO
-    // TODO
     SelectableValue<CelValue> selectableValue = getSelectableValueOrThrow(typeName,
-        (MessageLite) message, fieldName);
+        message, fieldName);
 
     return unwrapCelValue(selectableValue.select(StringValue.create(fieldName)));
   }
@@ -76,22 +75,20 @@ final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider {
   public Object hasField(String typeName, Object message, String fieldName) {
     // TODO
     SelectableValue<CelValue> selectableValue = getSelectableValueOrThrow(typeName,
-        (MessageLite) message, fieldName);
+        message, fieldName);
 
     return selectableValue.find(StringValue.create(fieldName)).isPresent();
   }
 
-  private SelectableValue<CelValue> getSelectableValueOrThrow(String typeName, MessageLite message, String fieldName) {
+  private SelectableValue<CelValue> getSelectableValueOrThrow(String typeName, Object message, String fieldName) {
+    if (!(message instanceof MessageLite)) {
+      throwInvalidFieldSelection(fieldName);
+    }
+
     CelValue convertedCelValue = protoCelValueConverter.fromProtoMessageToCelValue(typeName,
-        message);
+        (MessageLite) message);
     if (!(convertedCelValue instanceof SelectableValue)) {
-      throw new CelRuntimeException(
-          new IllegalArgumentException(
-              String.format(
-                  "Error resolving field '%s'. Field selections must be performed on messages or"
-                      + " maps.",
-                  fieldName)),
-          CelErrorCode.ATTRIBUTE_NOT_FOUND);
+      throwInvalidFieldSelection(fieldName);
     }
 
     return (SelectableValue<CelValue>) convertedCelValue;
@@ -120,5 +117,15 @@ final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider {
    */
   private Object unwrapCelValue(CelValue object) {
     return protoCelValueConverter.fromCelValueToJavaObject(object);
+  }
+
+  private static void throwInvalidFieldSelection(String fieldName) {
+    throw new CelRuntimeException(
+        new IllegalArgumentException(
+            String.format(
+                "Error resolving field '%s'. Field selections must be performed on messages or"
+                    + " maps.",
+                fieldName)),
+        CelErrorCode.ATTRIBUTE_NOT_FOUND);
   }
 }
