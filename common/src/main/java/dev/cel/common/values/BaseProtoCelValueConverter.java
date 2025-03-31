@@ -27,6 +27,7 @@ import com.google.protobuf.DoubleValue;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
+import com.google.protobuf.MessageLite;
 import com.google.protobuf.MessageLiteOrBuilder;
 import com.google.protobuf.StringValue;
 import com.google.protobuf.Struct;
@@ -52,6 +53,8 @@ import java.time.Instant;
 @Immutable
 @Internal
 public abstract class BaseProtoCelValueConverter extends CelValueConverter {
+
+  public abstract CelValue fromProtoMessageToCelValue(String protoTypeName, MessageLite msg);
 
   /**
    * Adapts a {@link CelValue} to a native Java object. The CelValue is adapted into protobuf object
@@ -81,6 +84,11 @@ public abstract class BaseProtoCelValueConverter extends CelValueConverter {
   @Override
   public CelValue fromJavaObjectToCelValue(Object value) {
     Preconditions.checkNotNull(value);
+
+    WellKnownProto wellKnownProto = WellKnownProto.getByClass(value.getClass());
+    if (wellKnownProto != null) {
+      return fromWellKnownProtoToCelValue((MessageLiteOrBuilder) value, wellKnownProto);
+    }
 
     if (value instanceof ByteString) {
       return BytesValue.create(CelByteString.of(((ByteString) value).toByteArray()));

@@ -15,14 +15,11 @@
 package dev.cel.common.internal;
 
 import com.google.errorprone.annotations.Immutable;
-import com.google.protobuf.MessageLite;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.util.Optional;
 
 /** TODO: Replace with CelLiteDescriptor */
 @Immutable
 public interface CelLiteDescriptorPool {
-  Optional<MessageLiteDescriptor> findDescriptorByTypeName(String protoTypeName);
-
-  Optional<MessageLiteDescriptor> findDescriptor(MessageLite msg);
+  Optional<MessageLiteDescriptor> findDescriptor(String protoTypeName);
 }

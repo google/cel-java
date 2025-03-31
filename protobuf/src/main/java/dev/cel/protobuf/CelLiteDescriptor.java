@@ -38,13 +38,13 @@ public abstract class CelLiteDescriptor {
   private final Map<String, MessageLiteDescriptor> protoFqnToDescriptors;
 
   @SuppressWarnings("Immutable") // Copied to unmodifiable map
-  private final Map<String, MessageLiteDescriptor> protoJavaClassNameToDescriptors;
+  private final Map<Class<?>, MessageLiteDescriptor> protoJavaClassNameToDescriptors;
 
   public Map<String, MessageLiteDescriptor> getProtoTypeNamesToDescriptors() {
     return protoFqnToDescriptors;
   }
 
-  public Map<String, MessageLiteDescriptor> getProtoJavaClassNameToDescriptors() {
+  public Map<Class<?>, MessageLiteDescriptor> getProtoJavaClassNameToDescriptors() {
     return protoJavaClassNameToDescriptors;
   }
 
@@ -57,29 +57,29 @@ public abstract class CelLiteDescriptor {
   @Immutable
   public static final class MessageLiteDescriptor {
     private final String fullyQualifiedProtoTypeName;
-    private final String fullyQualifiedProtoJavaClassName;
+    private final Class<?> clazz;
 
     @SuppressWarnings("Immutable") // Copied to unmodifiable map
     private final Map<String, FieldDescriptor> fieldInfoMap;
 
-    public String getFullyQualifiedProtoTypeName() {
+    public String getProtoTypeName() {
       return fullyQualifiedProtoTypeName;
     }
 
-    public String getFullyQualifiedProtoJavaClassName() {
-      return fullyQualifiedProtoJavaClassName;
+    public Class<?> getMessageClass() {
+      return clazz;
     }
-
     public Map<String, FieldDescriptor> getFieldInfoMap() {
       return fieldInfoMap;
     }
 
     public MessageLiteDescriptor(
         String fullyQualifiedProtoTypeName,
-        String fullyQualifiedProtoJavaClassName,
+        Class<?> clazz,
         Map<String, FieldDescriptor> fieldInfoMap) {
       this.fullyQualifiedProtoTypeName = checkNotNull(fullyQualifiedProtoTypeName);
-      this.fullyQualifiedProtoJavaClassName = checkNotNull(fullyQualifiedProtoJavaClassName);
+      // this.clazz = clazz;
+      this.clazz = clazz;
       // This is a cheap operation. View over the existing map with mutators disabled.
       this.fieldInfoMap = checkNotNull(Collections.unmodifiableMap(fieldInfoMap));
     }
@@ -384,11 +384,11 @@ public abstract class CelLiteDescriptor {
   protected CelLiteDescriptor(List<MessageLiteDescriptor> messageInfoList) {
     Map<String, MessageLiteDescriptor> protoFqnMap =
         new HashMap<>(getMapInitialCapacity(messageInfoList.size()));
-    Map<String, MessageLiteDescriptor> protoJavaClassNameMap =
+    Map<Class<?>, MessageLiteDescriptor> protoJavaClassNameMap =
         new HashMap<>(getMapInitialCapacity(messageInfoList.size()));
     for (MessageLiteDescriptor msgInfo : messageInfoList) {
-      protoFqnMap.put(msgInfo.getFullyQualifiedProtoTypeName(), msgInfo);
-      protoJavaClassNameMap.put(msgInfo.getFullyQualifiedProtoJavaClassName(), msgInfo);
+      protoFqnMap.put(msgInfo.getProtoTypeName(), msgInfo);
+      protoJavaClassNameMap.put(msgInfo.clazz, msgInfo);
     }
 
     this.protoFqnToDescriptors = Collections.unmodifiableMap(protoFqnMap);

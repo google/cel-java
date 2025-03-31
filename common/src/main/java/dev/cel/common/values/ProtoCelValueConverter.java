@@ -23,6 +23,7 @@ import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MapEntry;
 import com.google.protobuf.Message;
+import com.google.protobuf.MessageLite;
 import com.google.protobuf.MessageOrBuilder;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelDescriptorPool;
@@ -85,6 +86,10 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
     }
   }
 
+  @Override
+  public CelValue fromProtoMessageToCelValue(String protoTypeName, MessageLite msg) {
+    throw new UnsupportedOperationException("TODO");
+  }
   /**
    * Adapts a plain old Java Object to a {@link CelValue}. Protobuf semantics take precedence for
    * conversion.

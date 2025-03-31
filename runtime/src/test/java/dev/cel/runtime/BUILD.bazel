@@ -42,9 +42,10 @@ compile_cel(
 )
 
 compile_cel(
-    name = "compiled_proto_message_variable",
+    name = "compiled_proto_select_int64",
     environment = "//testing/environment:proto_message_variable",
-    expression = "msg.single_int64",
+    #    expression = "msg.single_int64",
+    expression = "msg.single_int64_wrapper",
     proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto"],
 )
 
@@ -58,7 +59,7 @@ filegroup(
         ":compiled_list_literal",
         ":compiled_one_plus_two",
         ":compiled_primitive_variables",
-        ":compiled_proto_message_variable",
+        ":compiled_proto_select_int64",
     ],
 )
 
@@ -182,13 +183,16 @@ cel_android_local_test(
         "//common:proto_ast_android",
         "//common/ast:ast_android",
         "//common/types:types_android",
+        "//common/values:proto_message_lite_value_provider",
         "//runtime:evaluation_exception",
         "//runtime:function_binding_android",
         "//runtime:lite_runtime_android",
         "//runtime:lite_runtime_factory_android",
         "//runtime:lite_runtime_impl_android",
         "//runtime:standard_functions_android",
+        "//testing:test_all_types_cel_java_proto_lite",
         "@cel_spec//proto/cel/expr:checked_java_proto_lite",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto_lite",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven_android//:com_google_guava_guava",
         "@maven_android//:com_google_protobuf_protobuf_javalite",

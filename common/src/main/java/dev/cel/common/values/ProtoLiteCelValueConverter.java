@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.Internal.EnumLite;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.annotations.Internal;
@@ -73,38 +72,42 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
 
     return fromJavaObjectToCelValue(fieldValue);
   }
+  //
+  // @Override
+  // public CelValue fromJavaObjectToCelValue(Object value) {
+  //   // checkNotNull(value);
+  //   //
+  //   // if (value instanceof MessageLite) {
+  //   //   return fromProtoMessageToCelValue("todo", (MessageLite) value);
+  //   // } else if (value instanceof MessageLite.Builder) {
+  //   //   return fromProtoMessageToCelValue("todo", ((MessageLite.Builder) value).build());
+  //   // } else if (value instanceof EnumLite) {
+  //   //   // Coerce proto enum values back into int
+  //   //   Method method = ReflectionUtil.getMethod(value.getClass(), "getNumber");
+  //   //   value = ReflectionUtil.invoke(method, value);
+  //   // }
+  //   //
+  //   // return super.fromJavaObjectToCelValue(value);
+  //   throw new UnsupportedOperationException("Don't use?")
+  // }
 
   @Override
-  public CelValue fromJavaObjectToCelValue(Object value) {
-    checkNotNull(value);
-
-    if (value instanceof MessageLite) {
-      return fromProtoMessageToCelValue((MessageLite) value);
-    } else if (value instanceof MessageLite.Builder) {
-      return fromProtoMessageToCelValue(((MessageLite.Builder) value).build());
-    } else if (value instanceof EnumLite) {
-      // Coerce proto enum values back into int
-      Method method = ReflectionUtil.getMethod(value.getClass(), "getNumber");
-      value = ReflectionUtil.invoke(method, value);
-    }
-
-    return super.fromJavaObjectToCelValue(value);
-  }
-
-  public CelValue fromProtoMessageToCelValue(MessageLite msg) {
+  public CelValue fromProtoMessageToCelValue(String protoTypeName, MessageLite msg) {
+    checkNotNull(msg);
+    checkNotNull(protoTypeName);
     MessageLiteDescriptor messageInfo =
         descriptorPool
-            .findDescriptor(msg)
+            .findDescriptor(protoTypeName)
             .orElseThrow(
                 () ->
                     new NoSuchElementException(
-                        "Could not find message info for class: " + msg.getClass()));
+                        "Could not find message info for : " + protoTypeName));
     WellKnownProto wellKnownProto =
-        WellKnownProto.getByTypeName(messageInfo.getFullyQualifiedProtoTypeName());
+        WellKnownProto.getByTypeName(messageInfo.getProtoTypeName());
 
     if (wellKnownProto == null) {
       return ProtoMessageLiteValue.create(
-          msg, messageInfo.getFullyQualifiedProtoTypeName(), descriptorPool, this);
+          msg, messageInfo.getProtoTypeName(), descriptorPool, this);
     }
 
     switch (wellKnownProto) {
@@ -116,28 +119,29 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
   }
 
   private CelValue unpackAnyMessage(Any anyMsg) {
-    String typeUrl =
-        getTypeNameFromTypeUrl(anyMsg.getTypeUrl())
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        String.format("malformed type URL: %s", anyMsg.getTypeUrl())));
-    MessageLiteDescriptor messageInfo =
-        descriptorPool
-            .findDescriptorByTypeName(typeUrl)
-            .orElseThrow(
-                () ->
-                    new NoSuchElementException(
-                        "Could not find message info for any packed message's type name: "
-                            + anyMsg));
-
-    Method method =
-        ReflectionUtil.getMethod(
-            messageInfo.getFullyQualifiedProtoJavaClassName(), "parseFrom", ByteString.class);
-    ByteString packedBytes = anyMsg.getValue();
-    MessageLite unpackedMsg = (MessageLite) ReflectionUtil.invoke(method, null, packedBytes);
-
-    return fromProtoMessageToCelValue(unpackedMsg);
+    throw new UnsupportedOperationException("Unsupported");
+    // String typeUrl =
+    //     getTypeNameFromTypeUrl(anyMsg.getTypeUrl())
+    //         .orElseThrow(
+    //             () ->
+    //                 new IllegalArgumentException(
+    //                     String.format("malformed type URL: %s", anyMsg.getTypeUrl())));
+    // MessageLiteDescriptor messageInfo =
+    //     descriptorPool
+    //         .findDescriptorByTypeName(typeUrl)
+    //         .orElseThrow(
+    //             () ->
+    //                 new NoSuchElementException(
+    //                     "Could not find message info for any packed message's type name: "
+    //                         + anyMsg));
+    //
+    // Method method =
+    //     ReflectionUtil.getMethod(
+    //         messageInfo.getFullyQualifiedProtoJavaClassName(), "parseFrom", ByteString.class);
+    // ByteString packedBytes = anyMsg.getValue();
+    // MessageLite unpackedMsg = (MessageLite) ReflectionUtil.invoke(method, null, packedBytes);
+    //
+    // return fromProtoMessageToCelValue(unpackedMsg);
   }
 
   private static Optional<String> getTypeNameFromTypeUrl(String typeUrl) {

@@ -98,7 +98,7 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
 
   @Override
   @SuppressWarnings("unchecked")
-  public @Nullable Object selectField(Object message, String fieldName) {
+  public @Nullable Object selectField(String unusedTypeName, Object message, String fieldName) {
     boolean isOptionalMessage = false;
     if (message instanceof Optional) {
       isOptionalMessage = true;
@@ -139,15 +139,16 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
 
   /** Adapt object to its message value. */
   @Override
-  public Object adapt(Object message) {
+  public Object adapt(String unusedTypeName, Object message) {
     if (message instanceof Message) {
       return protoAdapter.adaptProtoToValue((Message) message);
     }
+
     return message;
   }
 
   @Override
-  public Object hasField(Object message, String fieldName) {
+  public Object hasField(String unusedTypeName, Object message, String fieldName) {
     if (message instanceof Optional<?>) {
       Optional<?> optionalMessage = (Optional<?>) message;
       if (!optionalMessage.isPresent()) {

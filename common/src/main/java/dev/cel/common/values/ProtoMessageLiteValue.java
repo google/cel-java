@@ -51,7 +51,7 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
   @Override
   public CelValue select(StringValue field) {
     MessageLiteDescriptor messageInfo =
-        descriptorPool().findDescriptorByTypeName(celType().name()).get();
+        descriptorPool().findDescriptor(celType().name()).get();
     FieldDescriptor fieldInfo = messageInfo.getFieldInfoMap().get(field.value());
     if (fieldInfo.getProtoFieldType().equals(FieldDescriptor.Type.MESSAGE)
         && WellKnownProto.isWrapperType(fieldInfo.getFieldProtoTypeName())) {
@@ -77,7 +77,7 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
 
   private PresenceTestResult presenceTest(StringValue field) {
     MessageLiteDescriptor messageInfo =
-        descriptorPool().findDescriptorByTypeName(celType().name()).get();
+        descriptorPool().findDescriptor(celType().name()).get();
     FieldDescriptor fieldInfo = messageInfo.getFieldInfoMap().get(field.value());
     CelValue selectedValue = null;
     boolean presenceTestResult;

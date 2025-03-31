@@ -763,6 +763,7 @@ cel_android_library(
         "//common/internal:default_lite_descriptor_pool_android",
         "//common/values:cel_value_provider_android",
         "//common/values:proto_message_lite_value_android",
+        "//common/values:proto_message_lite_value_provider",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -867,6 +868,7 @@ java_library(
         "//common/values:proto_message_lite_value_provider",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -882,6 +884,7 @@ cel_android_library(
         "//common/values:base_proto_cel_value_converter_android",
         "//common/values:cel_value_android",
         "//common/values:cel_value_provider_android",
+        "//common/values:proto_message_lite_value_provider",
         "//common/values:values_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],

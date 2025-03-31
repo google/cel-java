@@ -17,7 +17,6 @@ package dev.cel.common.internal;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
-import com.google.protobuf.MessageLite;
 import dev.cel.common.annotations.Internal;
 import dev.cel.protobuf.CelLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldDescriptor;
@@ -29,21 +28,14 @@ import java.util.Optional;
 @Internal
 public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
   private final ImmutableMap<String, MessageLiteDescriptor> protoFqnToMessageInfo;
-  private final ImmutableMap<String, MessageLiteDescriptor> protoJavaClassNameToMessageInfo;
 
   public static DefaultLiteDescriptorPool newInstance(ImmutableSet<CelLiteDescriptor> descriptors) {
     return new DefaultLiteDescriptorPool(descriptors);
   }
 
   @Override
-  public Optional<MessageLiteDescriptor> findDescriptorByTypeName(String protoTypeName) {
+  public Optional<MessageLiteDescriptor> findDescriptor(String protoTypeName) {
     return Optional.ofNullable(protoFqnToMessageInfo.get(protoTypeName));
-  }
-
-  @Override
-  public Optional<MessageLiteDescriptor> findDescriptor(MessageLite msg) {
-    String className = msg.getClass().getName();
-    return Optional.ofNullable(protoJavaClassNameToMessageInfo.get(className));
   }
 
   private static MessageLiteDescriptor newMessageInfo(WellKnownProto wellKnownProto) {
@@ -154,7 +146,7 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
     }
 
     return new MessageLiteDescriptor(
-        wellKnownProto.typeName(), wellKnownProto.javaClassName(), fieldInfoMap.buildOrThrow());
+        wellKnownProto.typeName(), wellKnownProto.messageClass(), fieldInfoMap.buildOrThrow());
   }
 
   private static FieldDescriptor newPrimitiveFieldInfo(
@@ -175,20 +167,15 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
 
   private DefaultLiteDescriptorPool(ImmutableSet<CelLiteDescriptor> descriptors) {
     ImmutableMap.Builder<String, MessageLiteDescriptor> protoFqnMapBuilder = ImmutableMap.builder();
-    ImmutableMap.Builder<String, MessageLiteDescriptor> protoJavaClassNameMapBuilder =
-        ImmutableMap.builder();
     for (WellKnownProto wellKnownProto : WellKnownProto.values()) {
       MessageLiteDescriptor wktMessageInfo = newMessageInfo(wellKnownProto);
       protoFqnMapBuilder.put(wellKnownProto.typeName(), wktMessageInfo);
-      protoJavaClassNameMapBuilder.put(wellKnownProto.javaClassName(), wktMessageInfo);
     }
 
     for (CelLiteDescriptor descriptor : descriptors) {
       protoFqnMapBuilder.putAll(descriptor.getProtoTypeNamesToDescriptors());
-      protoJavaClassNameMapBuilder.putAll(descriptor.getProtoJavaClassNameToDescriptors());
     }
 
     this.protoFqnToMessageInfo = protoFqnMapBuilder.buildOrThrow();
-    this.protoJavaClassNameToMessageInfo = protoJavaClassNameMapBuilder.buildOrThrow();
   }
 }

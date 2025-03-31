@@ -15,6 +15,7 @@
 package dev.cel.runtime;
 
 import com.google.errorprone.annotations.Immutable;
+import com.google.protobuf.MessageLite;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
@@ -61,27 +62,28 @@ final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider {
 
   @Override
   @SuppressWarnings("unchecked")
-  public Object selectField(Object message, String fieldName) {
-    CelValue convertedCelValue = protoCelValueConverter.fromJavaObjectToCelValue(message);
-    if (!(convertedCelValue instanceof SelectableValue)) {
-      throw new CelRuntimeException(
-          new IllegalArgumentException(
-              String.format(
-                  "Error resolving field '%s'. Field selections must be performed on messages or"
-                      + " maps.",
-                  fieldName)),
-          CelErrorCode.ATTRIBUTE_NOT_FOUND);
-    }
-
-    SelectableValue<CelValue> selectableValue = (SelectableValue<CelValue>) convertedCelValue;
+  public Object selectField(String typeName, Object message, String fieldName) {
+    // TODO
+    // TODO
+    SelectableValue<CelValue> selectableValue = getSelectableValueOrThrow(typeName,
+        (MessageLite) message, fieldName);
 
     return unwrapCelValue(selectableValue.select(StringValue.create(fieldName)));
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public Object hasField(Object message, String fieldName) {
-    CelValue convertedCelValue = protoCelValueConverter.fromJavaObjectToCelValue(message);
+  public Object hasField(String typeName, Object message, String fieldName) {
+    // TODO
+    SelectableValue<CelValue> selectableValue = getSelectableValueOrThrow(typeName,
+        (MessageLite) message, fieldName);
+
+    return selectableValue.find(StringValue.create(fieldName)).isPresent();
+  }
+
+  private SelectableValue<CelValue> getSelectableValueOrThrow(String typeName, MessageLite message, String fieldName) {
+    CelValue convertedCelValue = protoCelValueConverter.fromProtoMessageToCelValue(typeName,
+        message);
     if (!(convertedCelValue instanceof SelectableValue)) {
       throw new CelRuntimeException(
           new IllegalArgumentException(
@@ -92,20 +94,25 @@ final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider {
           CelErrorCode.ATTRIBUTE_NOT_FOUND);
     }
 
-    SelectableValue<CelValue> selectableValue = (SelectableValue<CelValue>) convertedCelValue;
-
-    return selectableValue.find(StringValue.create(fieldName)).isPresent();
+    return (SelectableValue<CelValue>) convertedCelValue;
   }
 
   @Override
-  public Object adapt(Object message) {
+  public Object adapt(String typeName, Object message) {
     if (message instanceof CelUnknownSet) {
       return message; // CelUnknownSet is handled specially for iterative evaluation. No need to
       // adapt to CelValue.
     }
-    return unwrapCelValue(protoCelValueConverter.fromJavaObjectToCelValue(message));
-  }
 
+    CelValue convertedCelValue;
+    if (message instanceof MessageLite) {
+      convertedCelValue = protoCelValueConverter.fromProtoMessageToCelValue(typeName, (MessageLite) message);
+    } else {
+      convertedCelValue = protoCelValueConverter.fromJavaObjectToCelValue(message);
+    }
+
+    return unwrapCelValue(convertedCelValue);
+  }
   /**
    * DefaultInterpreter cannot handle CelValue and instead expects plain Java objects.
    *

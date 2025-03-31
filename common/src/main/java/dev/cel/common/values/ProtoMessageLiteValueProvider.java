@@ -27,14 +27,12 @@ import com.google.protobuf.Internal;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelRuntimeException;
-import dev.cel.common.internal.DefaultInstanceMessageLiteFactory;
 import dev.cel.common.internal.DefaultLiteDescriptorPool;
 import dev.cel.common.internal.ProtoLiteAdapter;
 import dev.cel.common.internal.ReflectionUtil;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldDescriptor;
-import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
@@ -57,16 +55,11 @@ import java.util.function.Function;
  */
 @Immutable
 public class ProtoMessageLiteValueProvider implements CelValueProvider {
-  private static final ImmutableMap<String, WellKnownProto> CLASS_NAME_TO_WELL_KNOWN_PROTO_MAP;
+  private static final ImmutableMap<Class<?>, WellKnownProto> CLASS_TO_WELL_KNOWN_PROTO_MAP = stream(WellKnownProto.values())
+      .collect(toImmutableMap(WellKnownProto::messageClass, Function.identity()));;
   private final ProtoLiteCelValueConverter protoLiteCelValueConverter;
   private final DefaultLiteDescriptorPool descriptorPool;
   private final ProtoLiteAdapter protoLiteAdapter;
-
-  static {
-    CLASS_NAME_TO_WELL_KNOWN_PROTO_MAP =
-        stream(WellKnownProto.values())
-            .collect(toImmutableMap(WellKnownProto::javaClassName, Function.identity()));
-  }
 
   public ProtoLiteCelValueConverter getProtoLiteCelValueConverter() {
     return protoLiteCelValueConverter;
@@ -74,39 +67,40 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
 
   @Override
   public Optional<CelValue> newValue(String structType, Map<String, Object> fields) {
-    MessageLiteDescriptor messageInfo =
-        descriptorPool.findDescriptorByTypeName(structType).orElse(null);
-
-    if (messageInfo == null) {
-      return Optional.empty();
-    }
-
-    MessageLite msg =
-        DefaultInstanceMessageLiteFactory.getInstance()
-            .getPrototype(
-                messageInfo.getFullyQualifiedProtoTypeName(),
-                messageInfo.getFullyQualifiedProtoJavaClassName())
-            .orElse(null);
-
-    if (msg == null) {
-      return Optional.empty();
-    }
-
-    MessageLite.Builder msgBuilder = msg.toBuilder();
-    for (Map.Entry<String, Object> entry : fields.entrySet()) {
-      FieldDescriptor fieldInfo = messageInfo.getFieldInfoMap().get(entry.getKey());
-
-      Method setterMethod =
-          ReflectionUtil.getMethod(
-              msgBuilder.getClass(), fieldInfo.getSetterName(), fieldInfo.getFieldJavaClass());
-      Object newFieldValue =
-          adaptToProtoFieldCompatibleValue(
-              entry.getValue(), fieldInfo, setterMethod.getParameters()[0]);
-      msgBuilder =
-          (MessageLite.Builder) ReflectionUtil.invoke(setterMethod, msgBuilder, newFieldValue);
-    }
-
-    return Optional.of(protoLiteCelValueConverter.fromProtoMessageToCelValue(msgBuilder.build()));
+    throw new UnsupportedOperationException("Message creation unsupported");
+    // MessageLiteDescriptor messageInfo =
+    //     descriptorPool.findDescriptorByTypeName(structType).orElse(null);
+    //
+    // if (messageInfo == null) {
+    //   return Optional.empty();
+    // }
+    //
+    // MessageLite msg =
+    //     DefaultInstanceMessageLiteFactory.getInstance()
+    //         .getPrototype(
+    //             messageInfo.getFullyQualifiedProtoTypeName(),
+    //             messageInfo.getFullyQualifiedProtoJavaClassName())
+    //         .orElse(null);
+    //
+    // if (msg == null) {
+    //   return Optional.empty();
+    // }
+    //
+    // MessageLite.Builder msgBuilder = msg.toBuilder();
+    // for (Map.Entry<String, Object> entry : fields.entrySet()) {
+    //   FieldDescriptor fieldInfo = messageInfo.getFieldInfoMap().get(entry.getKey());
+    //
+    //   Method setterMethod =
+    //       ReflectionUtil.getMethod(
+    //           msgBuilder.getClass(), fieldInfo.getSetterName(), fieldInfo.getFieldJavaClass());
+    //   Object newFieldValue =
+    //       adaptToProtoFieldCompatibleValue(
+    //           entry.getValue(), fieldInfo, setterMethod.getParameters()[0]);
+    //   msgBuilder =
+    //       (MessageLite.Builder) ReflectionUtil.invoke(setterMethod, msgBuilder, newFieldValue);
+    // }
+    //
+    // return Optional.of(protoLiteCelValueConverter.fromProtoMessageToCelValue(msgBuilder.build()));
   }
 
   private Object adaptToProtoFieldCompatibleValue(
@@ -144,7 +138,7 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
 
   private Object adaptToProtoFieldCompatibleValueImpl(
       Object value, FieldDescriptor fieldInfo, Class<?> parameterType) {
-    WellKnownProto wellKnownProto = CLASS_NAME_TO_WELL_KNOWN_PROTO_MAP.get(parameterType.getName());
+    WellKnownProto wellKnownProto = CLASS_TO_WELL_KNOWN_PROTO_MAP.get(parameterType);
     if (wellKnownProto != null) {
       switch (wellKnownProto) {
         case ANY_VALUE:
@@ -153,12 +147,12 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
             MessageLite messageLite = (MessageLite) value;
             typeUrl =
                 descriptorPool
-                    .findDescriptor(messageLite)
+                    .findDescriptor("todo")
                     .orElseThrow(
                         () ->
                             new NoSuchElementException(
                                 "Could not find message info for class: " + messageLite.getClass()))
-                    .getFullyQualifiedProtoTypeName();
+                    .getProtoTypeName();
           }
           return protoLiteAdapter.adaptValueToAny(value, typeUrl);
         default:

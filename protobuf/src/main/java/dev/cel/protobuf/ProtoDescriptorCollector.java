@@ -109,10 +109,13 @@ final class ProtoDescriptorCollector {
         }
       }
 
+
       messageInfoListBuilder.add(
           new MessageLiteDescriptor(
               descriptor.getFullName(),
-              ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor),
+              // TODO: Message class instead
+              descriptor.getClass(),
+              // ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor),
               fieldMap.buildOrThrow()));
     }
 
