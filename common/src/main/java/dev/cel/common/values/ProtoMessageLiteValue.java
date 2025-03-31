@@ -18,7 +18,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.MessageLite;
-import dev.cel.common.internal.DefaultLiteDescriptorPool;
+import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.internal.ReflectionUtil;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.common.types.StructTypeReference;
@@ -39,7 +39,7 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
   @Override
   public abstract StructTypeReference celType();
 
-  abstract DefaultLiteDescriptorPool descriptorPool();
+  abstract CelLiteDescriptorPool descriptorPool();
 
   abstract ProtoLiteCelValueConverter protoLiteCelValueConverter();
 
@@ -119,7 +119,7 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
   public static ProtoMessageLiteValue create(
       MessageLite value,
       String protoFqn,
-      DefaultLiteDescriptorPool descriptorPool,
+      CelLiteDescriptorPool descriptorPool,
       ProtoLiteCelValueConverter protoLiteCelValueConverter) {
     Preconditions.checkNotNull(value);
     return new AutoValue_ProtoMessageLiteValue(

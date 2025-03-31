@@ -51,26 +51,6 @@ public class CelLiteDescriptorTest {
   }
 
   @Test
-  public void getDescriptors_fromProtoTypeAndJavaClassNames_referenceEquals() {
-    // Map<String, MessageLiteDescriptor> protoNamesToDescriptors =
-    //     TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR.getProtoTypeNamesToDescriptors();
-    // Map<String, MessageLiteDescriptor> javaClassNamesToDescriptors =
-    //     TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR.getProtoJavaClassNameToDescriptors();
-    //
-    // assertThat(protoNamesToDescriptors.get("cel.expr.conformance.proto3.TestAllTypes"))
-    //     .isSameInstanceAs(
-    //         javaClassNamesToDescriptors.get("dev.cel.expr.conformance.proto3.TestAllTypes"));
-    // assertThat(
-    //         protoNamesToDescriptors.get("cel.expr.conformance.proto3.TestAllTypes.NestedMessage"))
-    //     .isSameInstanceAs(
-    //         javaClassNamesToDescriptors.get(
-    //             "dev.cel.expr.conformance.proto3.TestAllTypes$NestedMessage"));
-    // assertThat(protoNamesToDescriptors.get("cel.expr.conformance.proto3.NestedTestAllTypes"))
-    //     .isSameInstanceAs(
-    //         javaClassNamesToDescriptors.get("dev.cel.expr.conformance.proto3.NestedTestAllTypes"));
-  }
-
-  @Test
   public void testAllTypesMessageLiteDescriptor_fullyQualifiedNames() {
     MessageLiteDescriptor testAllTypesDescriptor =
         TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
@@ -79,8 +59,6 @@ public class CelLiteDescriptorTest {
 
     assertThat(testAllTypesDescriptor.getProtoTypeName())
         .isEqualTo("cel.expr.conformance.proto3.TestAllTypes");
-    // assertThat(testAllTypesDescriptor.getFullyQualifiedProtoJavaClassName())
-    //     .isEqualTo("dev.cel.expr.conformance.proto3.TestAllTypes");
   }
 
   @Test

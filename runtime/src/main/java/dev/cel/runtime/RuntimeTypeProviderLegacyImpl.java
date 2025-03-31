@@ -80,13 +80,16 @@ final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider {
     return selectableValue.find(StringValue.create(fieldName)).isPresent();
   }
 
-  private SelectableValue<CelValue> getSelectableValueOrThrow(String typeName, Object message, String fieldName) {
-    if (!(message instanceof MessageLite)) {
+  private SelectableValue<CelValue> getSelectableValueOrThrow(String typeName, Object obj, String fieldName) {
+    CelValue convertedCelValue = null;
+    if ((obj instanceof MessageLite)) {
+      convertedCelValue = protoCelValueConverter.fromProtoMessageToCelValue(typeName, (MessageLite) obj);
+    } else if ((obj instanceof Map)) {
+      convertedCelValue = protoCelValueConverter.fromJavaObjectToCelValue(obj);
+    } else {
       throwInvalidFieldSelection(fieldName);
     }
 
-    CelValue convertedCelValue = protoCelValueConverter.fromProtoMessageToCelValue(typeName,
-        (MessageLite) message);
     if (!(convertedCelValue instanceof SelectableValue)) {
       throwInvalidFieldSelection(fieldName);
     }

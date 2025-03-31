@@ -19,10 +19,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
-import com.google.protobuf.Internal.EnumLite;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.annotations.Internal;
-import dev.cel.common.internal.DefaultLiteDescriptorPool;
+import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.internal.ReflectionUtil;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.FieldDescriptor;
@@ -44,10 +43,10 @@ import java.util.Optional;
 @Immutable
 @Internal
 public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter {
-  private final DefaultLiteDescriptorPool descriptorPool;
+  private final CelLiteDescriptorPool descriptorPool;
 
   public static ProtoLiteCelValueConverter newInstance(
-      DefaultLiteDescriptorPool celLiteDescriptorPool) {
+      CelLiteDescriptorPool celLiteDescriptorPool) {
     return new ProtoLiteCelValueConverter(celLiteDescriptorPool);
   }
 
@@ -72,24 +71,6 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
 
     return fromJavaObjectToCelValue(fieldValue);
   }
-  //
-  // @Override
-  // public CelValue fromJavaObjectToCelValue(Object value) {
-  //   // checkNotNull(value);
-  //   //
-  //   // if (value instanceof MessageLite) {
-  //   //   return fromProtoMessageToCelValue("todo", (MessageLite) value);
-  //   // } else if (value instanceof MessageLite.Builder) {
-  //   //   return fromProtoMessageToCelValue("todo", ((MessageLite.Builder) value).build());
-  //   // } else if (value instanceof EnumLite) {
-  //   //   // Coerce proto enum values back into int
-  //   //   Method method = ReflectionUtil.getMethod(value.getClass(), "getNumber");
-  //   //   value = ReflectionUtil.invoke(method, value);
-  //   // }
-  //   //
-  //   // return super.fromJavaObjectToCelValue(value);
-  //   throw new UnsupportedOperationException("Don't use?")
-  // }
 
   @Override
   public CelValue fromProtoMessageToCelValue(String protoTypeName, MessageLite msg) {
@@ -152,7 +133,7 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     return Optional.empty();
   }
 
-  private ProtoLiteCelValueConverter(DefaultLiteDescriptorPool celLiteDescriptorPool) {
+  private ProtoLiteCelValueConverter(CelLiteDescriptorPool celLiteDescriptorPool) {
     this.descriptorPool = celLiteDescriptorPool;
   }
 }
