@@ -16,20 +16,23 @@ package dev.cel.common.values;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.Defaults;
+import com.google.common.collect.Iterables;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.MessageLite;
 import com.google.protobuf.WireFormat;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelLiteDescriptorPool;
-import dev.cel.common.internal.ReflectionUtil;
 import dev.cel.common.internal.WellKnownProto;
-import dev.cel.protobuf.CelLiteDescriptor.FieldDescriptor;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.JavaType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.io.IOException;
-import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -53,8 +56,97 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     return new ProtoLiteCelValueConverter(celLiteDescriptorPool);
   }
 
-  private Object readFromWireFormat(MessageLite messageLite, FieldDescriptor fieldDescriptor) throws IOException {
-    byte[] bytes = messageLite.toByteArray();
+  private static Object readVariableLengthField(CodedInputStream inputStream, FieldLiteDescriptor.Type fieldType)
+      throws IOException {
+    switch (fieldType) {
+      case SINT32:
+        return inputStream.readSInt32();
+      case SINT64:
+        return inputStream.readSInt64();
+      case INT32:
+        return inputStream.readInt32();
+      case INT64:
+        return inputStream.readInt64();
+      case UINT32:
+        return inputStream.readUInt32();
+      case UINT64:
+        return inputStream.readUInt64();
+      case BOOL:
+        return inputStream.readBool();
+      default:
+        throw new IllegalStateException("Unexpected field type: " + fieldType);
+    }
+  }
+
+  private static Object readFixed32BitField(CodedInputStream inputStream, FieldLiteDescriptor.Type fieldType) throws IOException {
+    switch (fieldType) {
+      case FLOAT:
+        return inputStream.readFloat();
+      case FIXED32:
+      case SFIXED32:
+        return inputStream.readRawLittleEndian32();
+      default:
+        throw new IllegalStateException("Unexpected field type: " + fieldType);
+    }
+  }
+
+  private static Object readFixed64BitField(CodedInputStream inputStream, FieldLiteDescriptor.Type fieldType) throws IOException {
+    switch (fieldType) {
+      case DOUBLE:
+        return inputStream.readDouble();
+      case FIXED64:
+      case SFIXED64:
+        return inputStream.readRawLittleEndian64();
+      default:
+        throw new IllegalStateException("Unexpected field type: " + fieldType);
+    }
+  }
+
+  private static Object readLengthDelimitedField(CodedInputStream inputStream, FieldLiteDescriptor.Type fieldType) throws IOException {
+    ByteString byteString = inputStream.readBytes();
+    switch (fieldType) {
+      case BYTES:
+      case MESSAGE:
+        return byteString;
+      case STRING:
+        return byteString.toString(StandardCharsets.UTF_8);
+      default:
+        throw new IllegalStateException("Unexpected field type: " + fieldType);
+    }
+  }
+
+  private static Object getDefaultValue(JavaType type) {
+    switch (type) {
+      case INT:
+        return Defaults.defaultValue(int.class);
+      case LONG:
+        return Defaults.defaultValue(long.class);
+      case FLOAT:
+        return Defaults.defaultValue(float.class);
+      case DOUBLE:
+        return Defaults.defaultValue(double.class);
+      case BOOLEAN:
+        return Defaults.defaultValue(boolean.class);
+      case STRING:
+        return "";
+      case BYTE_STRING:
+        return ByteString.EMPTY;
+      case ENUM: // Ordinarily, an enum value descriptor is returned for this one. We'll need a different representation here.
+        throw new UnsupportedOperationException("Not yet implemented");
+      case MESSAGE:
+        throw new UnsupportedOperationException("Not yet implemented");
+      default:
+        throw new IllegalStateException("Unexpected java type: " + type);
+    }
+  }
+
+  /**
+   * TODO: Naive implementation. We could cache incrementally as we read the bytes, or just parse the whole thing then store it in a map.
+   */
+  private Object parsePayloadFromBytes(
+      byte[] bytes,
+      MessageLiteDescriptor messageDescriptor,
+      FieldLiteDescriptor selectedFieldDescriptor) throws IOException {
     CodedInputStream inputStream = CodedInputStream.newInstance(bytes);
 
     while (true) {
@@ -63,46 +155,67 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
         break;
       }
 
-      int fieldType = WireFormat.getTagWireType(tag);
+      int tagWireType = WireFormat.getTagWireType(tag);
+      int fieldNumber = WireFormat.getTagFieldNumber(tag);
+      FieldLiteDescriptor.Type fieldType = messageDescriptor.getByFieldNumberOrThrow(fieldNumber).getProtoFieldType();
+
       Object payload = null;
-      switch (fieldType) {
+      switch (tagWireType) {
         case WireFormat.WIRETYPE_VARINT:
-          payload = inputStream.readInt64();
+          payload = readVariableLengthField(inputStream, fieldType);
           break;
         case WireFormat.WIRETYPE_FIXED32:
-          payload = inputStream.readRawLittleEndian32();
+          payload = readFixed32BitField(inputStream, fieldType);
           break;
         case WireFormat.WIRETYPE_FIXED64:
-          payload = inputStream.readRawLittleEndian64();
+          payload = readFixed64BitField(inputStream, fieldType);
           break;
         case WireFormat.WIRETYPE_LENGTH_DELIMITED:
-          payload = inputStream.readBytes();
+          payload = readLengthDelimitedField(inputStream, fieldType);
           break;
+        case WireFormat.WIRETYPE_START_GROUP:
+        case WireFormat.WIRETYPE_END_GROUP:
+          throw new UnsupportedOperationException("Groups are not supported");
       }
 
-      int fieldNumber = WireFormat.getTagFieldNumber(tag);
-      System.out.println(payload);
-      System.out.println(fieldNumber);
+      if (fieldNumber == selectedFieldDescriptor.getFieldNumber()) {
+        String fieldProtoTypeName = selectedFieldDescriptor.getFieldProtoTypeName();
+        if (fieldProtoTypeName.isEmpty()) {
+          // This is a primitive.
+          return payload;
+        }
+
+        MessageLiteDescriptor descriptor = descriptorPool.findDescriptor(fieldProtoTypeName).get();
+        WellKnownProto wellKnownProto = WellKnownProto.getByTypeName(fieldProtoTypeName);
+        if (wellKnownProto != null) {
+          // TODO: Maybe handle more generally?
+          if (wellKnownProto.isWrapperType()) {
+            ByteString byteString = (ByteString) payload;
+            FieldLiteDescriptor wrapperFieldLiteDescriptor = Iterables.getOnlyElement(descriptor.getFieldDescriptorsMap().values());
+            return parsePayloadFromBytes(byteString.toByteArray(), descriptor, wrapperFieldLiteDescriptor);
+          }
+        }
+
+        System.out.println(descriptor);
+      }
     }
 
-    return StringValue.create("foo");
+    return getDefaultValue(selectedFieldDescriptor.getJavaType());
   }
 
   /** Adapts the protobuf message field into {@link CelValue}. */
-  public CelValue fromProtoMessageFieldToCelValue(MessageLite msg, FieldDescriptor fieldInfo) {
+  CelValue fromProtoMessageFieldToCelValue(MessageLite msg, MessageLiteDescriptor messageDescriptor, FieldLiteDescriptor fieldDescriptor) {
     checkNotNull(msg);
-    checkNotNull(fieldInfo);
+    checkNotNull(fieldDescriptor);
 
-    // Method getterMethod = ReflectionUtil.getMethod(msg.getClass(), fieldInfo.getGetterName());
-    // Object fieldValue = ReflectionUtil.invoke(getterMethod, msg);
     Object fieldValue = null;
     try {
-      fieldValue = readFromWireFormat(msg, fieldInfo);
+      fieldValue = parsePayloadFromBytes(msg.toByteArray(), messageDescriptor, fieldDescriptor);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
 
-    switch (fieldInfo.getProtoFieldType()) {
+    switch (fieldDescriptor.getProtoFieldType()) {
       case UINT32:
         fieldValue = UnsignedLong.valueOf((int) fieldValue);
         break;

@@ -25,6 +25,11 @@ alias(
 )
 
 alias(
-    name = "proto_message_variable",
-    actual = "//testing/src/test/resources/environment:proto_message_variable",
+    name = "proto2_message_variables",
+    actual = "//testing/src/test/resources/environment:proto2_message_variables",
+)
+
+alias(
+    name = "proto3_message_variables",
+    actual = "//testing/src/test/resources/environment:proto3_message_variables",
 )

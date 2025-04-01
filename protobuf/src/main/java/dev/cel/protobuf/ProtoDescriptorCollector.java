@@ -18,7 +18,6 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.Descriptor;
@@ -26,8 +25,8 @@ import com.google.protobuf.Descriptors.FileDescriptor;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
 import dev.cel.common.internal.WellKnownProto;
-import dev.cel.protobuf.CelLiteDescriptor.FieldDescriptor;
-import dev.cel.protobuf.CelLiteDescriptor.FieldDescriptor.CelFieldValueType;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.CelFieldValueType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 
 /**
@@ -49,7 +48,7 @@ final class ProtoDescriptorCollector {
             .collect(toImmutableSet());
 
     for (Descriptor descriptor : messageTypes) {
-      ImmutableMap.Builder<String, FieldDescriptor> fieldMap = ImmutableMap.builder();
+      ImmutableList.Builder<FieldLiteDescriptor> fieldMap = ImmutableList.builder();
       for (Descriptors.FieldDescriptor fieldDescriptor : descriptor.getFields()) {
         String methodSuffixName =
             CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, fieldDescriptor.getName());
@@ -76,14 +75,15 @@ final class ProtoDescriptorCollector {
           fieldValueType = CelFieldValueType.SCALAR;
         }
 
-        fieldMap.put(
-            fieldDescriptor.getName(),
-            new FieldDescriptor(
+        fieldMap.add(
+            new FieldLiteDescriptor(
+                /* fieldNumber= */ fieldDescriptor.getNumber(),
+                /* fieldName= */ fieldDescriptor.getName(),
                 /* fullyQualifiedProtoTypeName= */ fieldDescriptor.getFullName(),
                 /* javaTypeName= */ javaType,
                 /* celFieldValueType= */ fieldValueType.toString(),
                 /* protoFieldType= */ fieldDescriptor.getType().toString(),
-                /* hasHasser= */ String.valueOf(fieldDescriptor.hasPresence()),
+                /* hasHasser= */ fieldDescriptor.hasPresence(),
                 /* fieldProtoTypeName= */ embeddedFieldProtoTypeName));
 
         debugPrinter.print(
@@ -97,7 +97,7 @@ final class ProtoDescriptorCollector {
       messageInfoListBuilder.add(
           new MessageLiteDescriptor(
               descriptor.getFullName(),
-              fieldMap.buildOrThrow()));
+              fieldMap.build()));
     }
 
     return messageInfoListBuilder.build();

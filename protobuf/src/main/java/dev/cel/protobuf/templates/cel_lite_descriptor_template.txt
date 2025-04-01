@@ -36,17 +36,19 @@ public final class ${descriptor_class_name} extends CelLiteDescriptor {
 
   private static List<MessageLiteDescriptor> newDescriptors() {
     List<MessageLiteDescriptor> descriptors = new ArrayList<>(${message_info_list?size});
-    Map<String, FieldDescriptor> fieldDescriptors;
+    List<FieldLiteDescriptor> fieldDescriptors;
     <#list message_info_list as message_info>
 
-    fieldDescriptors = new HashMap<>(${message_info.fieldInfoMap?size});
-      <#list message_info.fieldInfoMap as key, value>
-    fieldDescriptors.put("${key}", new FieldDescriptor(
+    fieldDescriptors = new ArrayList<>(${message_info.fieldDescriptorsMap?size});
+      <#list message_info.fieldDescriptorsMap as key, value>
+    fieldDescriptors.add(new FieldLiteDescriptor(
+      ${value.fieldNumber},
+      "${value.fieldName}",
       "${value.fullyQualifiedProtoFieldName}",
       "${value.javaType}",
       "${value.celFieldValueType}",
       "${value.protoFieldType}",
-      "${value.hasHasser}",
+      ${value.hasHasser},
       "${value.fieldProtoTypeName}"
       ));
       </#list>
@@ -54,7 +56,7 @@ public final class ${descriptor_class_name} extends CelLiteDescriptor {
     descriptors.add(
       new MessageLiteDescriptor(
         "${message_info.protoTypeName}",
-        Collections.unmodifiableMap(fieldDescriptors))
+        fieldDescriptors)
     );
     </#list>
 
@@ -62,6 +64,6 @@ public final class ${descriptor_class_name} extends CelLiteDescriptor {
   }
 
   private ${descriptor_class_name}() {
-    super(newDescriptors());
+    super("${version}", newDescriptors());
   }
 }

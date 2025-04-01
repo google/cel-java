@@ -35,10 +35,19 @@ import java.util.Map;
 public abstract class CelLiteDescriptor {
   @SuppressWarnings("Immutable") // Copied to unmodifiable map
   private final Map<String, MessageLiteDescriptor> protoFqnToDescriptors;
+  private final String version;
 
   public Map<String, MessageLiteDescriptor> getProtoTypeNamesToDescriptors() {
     return protoFqnToDescriptors;
   }
+
+  /**
+   * Retrieves the CEL-Java version this descriptor was generated with
+   */
+  public String getVersion() {
+    return version;
+  }
+
 
   /**
    * Contains a collection of classes which describe protobuf messagelite types.
@@ -50,23 +59,57 @@ public abstract class CelLiteDescriptor {
   public static final class MessageLiteDescriptor {
     private final String fullyQualifiedProtoTypeName;
 
-    @SuppressWarnings("Immutable") // Copied to unmodifiable map
-    private final Map<String, FieldDescriptor> fieldInfoMap;
+    @SuppressWarnings("Immutable") // Copied to an unmodifiable list
+    private final List<FieldLiteDescriptor> fieldLiteDescriptors;
+
+    @SuppressWarnings("Immutable") // Copied to an unmodifiable map
+    private final Map<String, FieldLiteDescriptor> fieldNameToFieldDescriptors;
+
+    @SuppressWarnings("Immutable") // Copied to an unmodifiable map
+    private final Map<Integer, FieldLiteDescriptor> fieldNumberToFieldDescriptors;
 
     public String getProtoTypeName() {
       return fullyQualifiedProtoTypeName;
     }
 
-    public Map<String, FieldDescriptor> getFieldInfoMap() {
-      return fieldInfoMap;
+    public List<FieldLiteDescriptor> getFieldDescriptors() {
+      return fieldLiteDescriptors;
     }
 
+    public FieldLiteDescriptor getByFieldNameOrThrow(String protoTypeName) {
+      return fieldNameToFieldDescriptors.get(protoTypeName);
+    }
+
+    public FieldLiteDescriptor getByFieldNumberOrThrow(int fieldNumber) {
+      return fieldNumberToFieldDescriptors.get(fieldNumber);
+    }
+
+    public Map<String, FieldLiteDescriptor> getFieldDescriptorsMap() {
+      return fieldNameToFieldDescriptors;
+    }
+
+    /**
+     * CEL Library Internals. Do not use.
+     *
+     * <p>Public visibility due to codegen.
+     */
+    @Internal
     public MessageLiteDescriptor(
         String fullyQualifiedProtoTypeName,
-        Map<String, FieldDescriptor> fieldInfoMap) {
+        List<FieldLiteDescriptor> fieldLiteDescriptors) {
       this.fullyQualifiedProtoTypeName = checkNotNull(fullyQualifiedProtoTypeName);
       // This is a cheap operation. View over the existing map with mutators disabled.
-      this.fieldInfoMap = checkNotNull(Collections.unmodifiableMap(fieldInfoMap));
+      this.fieldLiteDescriptors = Collections.unmodifiableList(checkNotNull(fieldLiteDescriptors));
+      Map<String, FieldLiteDescriptor> fieldNameMap = new HashMap<>(getMapInitialCapacity(
+          fieldLiteDescriptors.size()));
+      Map<Integer, FieldLiteDescriptor> fieldNumberMap = new HashMap<>(getMapInitialCapacity(
+          fieldLiteDescriptors.size()));
+      for (FieldLiteDescriptor fd : fieldLiteDescriptors) {
+        fieldNameMap.put(fd.fieldName, fd);
+        fieldNumberMap.put(fd.fieldNumber, fd);
+      }
+      this.fieldNameToFieldDescriptors = Collections.unmodifiableMap(fieldNameMap);
+      this.fieldNumberToFieldDescriptors = Collections.unmodifiableMap(fieldNumberMap);
     }
   }
 
@@ -77,7 +120,9 @@ public abstract class CelLiteDescriptor {
    */
   @Internal
   @Immutable
-  public static final class FieldDescriptor {
+  public static final class FieldLiteDescriptor {
+    private final int fieldNumber;
+    private final String fieldName;
     private final JavaType javaType;
     private final String fieldProtoTypeName;
     private final String fullyQualifiedProtoFieldName;
@@ -142,6 +187,14 @@ public abstract class CelLiteDescriptor {
       SFIXED64,
       SINT32,
       SINT64
+    }
+
+    public int getFieldNumber() {
+      return fieldNumber;
+    }
+
+    public String getFieldName() {
+      return fieldName;
     }
 
     /**
@@ -242,6 +295,8 @@ public abstract class CelLiteDescriptor {
     /**
      * Must be public, used for codegen only. Do not use.
      *
+     * @param fieldNumber Field index
+     * @param fieldName Name of the field
      * @param fullyQualifiedProtoTypeName Fully qualified protobuf type name including the namespace
      *     (ex: cel.expr.conformance.proto3.TestAllTypes)
      * @param javaTypeName Canonical Java type name (ex: Long, Double, Float, Message... see
@@ -255,29 +310,34 @@ public abstract class CelLiteDescriptor {
      *     field is a primitive.
      */
     @Internal
-    public FieldDescriptor(
+    public FieldLiteDescriptor(
+        int fieldNumber,
+        String fieldName,
         String fullyQualifiedProtoTypeName,
         String javaTypeName,
         String celFieldValueType, // LIST, MAP, SCALAR
         String protoFieldType, // INT32, SINT32, GROUP, MESSAGE... (See Descriptors#Type)
-        String hasHasser, //
+        boolean hasHasser,
         String fieldProtoTypeName) {
+      this.fieldNumber = fieldNumber;
+      this.fieldName = checkNotNull(fieldName);
       this.fullyQualifiedProtoFieldName = checkNotNull(fullyQualifiedProtoTypeName);
       this.javaType = JavaType.valueOf(javaTypeName);
       this.celFieldValueType = CelFieldValueType.valueOf(checkNotNull(celFieldValueType));
       this.protoFieldType = Type.valueOf(protoFieldType);
-      this.hasHasser = Boolean.parseBoolean(hasHasser);
+      this.hasHasser = hasHasser;
       this.fieldProtoTypeName = checkNotNull(fieldProtoTypeName);
     }
   }
 
-  protected CelLiteDescriptor(List<MessageLiteDescriptor> messageInfoList) {
+  protected CelLiteDescriptor(String version, List<MessageLiteDescriptor> messageInfoList) {
     Map<String, MessageLiteDescriptor> protoFqnMap =
         new HashMap<>(getMapInitialCapacity(messageInfoList.size()));
     for (MessageLiteDescriptor msgInfo : messageInfoList) {
       protoFqnMap.put(msgInfo.getProtoTypeName(), msgInfo);
     }
 
+    this.version = version;
     this.protoFqnToDescriptors = Collections.unmodifiableMap(protoFqnMap);
   }
 

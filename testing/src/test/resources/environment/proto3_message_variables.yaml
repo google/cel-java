@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: "proto-message-variable"
+name: "proto3-message-variables"
 variables:
-- name: "msg"
+- name: "proto3"
   type_name: "cel.expr.conformance.proto3.TestAllTypes"

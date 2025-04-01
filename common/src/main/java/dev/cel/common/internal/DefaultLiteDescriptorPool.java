@@ -14,12 +14,14 @@
 
 package dev.cel.common.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
 import dev.cel.protobuf.CelLiteDescriptor;
-import dev.cel.protobuf.CelLiteDescriptor.FieldDescriptor;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.JavaType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.util.Optional;
 
@@ -39,128 +41,100 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
   }
 
   private static MessageLiteDescriptor newMessageInfo(WellKnownProto wellKnownProto) {
-    ImmutableMap.Builder<String, FieldDescriptor> fieldInfoMap = ImmutableMap.builder();
-    // switch (wellKnownProto) {
-    //   case JSON_STRUCT_VALUE:
-    //     fieldInfoMap.put(
-    //         "fields",
-    //         new FieldDescriptor(
-    //             "google.protobuf.Struct.fields",
-    //             "MESSAGE",
-    //             "Fields",
-    //             FieldDescriptor.CelFieldValueType.MAP.toString(),
-    //             FieldDescriptor.Type.MESSAGE.toString(),
-    //             String.valueOf(false),
-    //             "com.google.protobuf.Struct$FieldsEntry",
-    //             "google.protobuf.Struct.FieldsEntry"));
-    //     break;
-    //   case BOOL_VALUE:
-    //     fieldInfoMap.put(
-    //         "value",
-    //         newPrimitiveFieldInfo(
-    //             "google.protobuf.BoolValue",
-    //             "BOOLEAN",
-    //             FieldDescriptor.CelFieldValueType.SCALAR,
-    //             FieldDescriptor.Type.BOOL));
-    //     break;
-    //   case BYTES_VALUE:
-    //     fieldInfoMap.put(
-    //         "value",
-    //         newPrimitiveFieldInfo(
-    //             "google.protobuf.BytesValue",
-    //             "BYTE_STRING",
-    //             FieldDescriptor.CelFieldValueType.SCALAR,
-    //             FieldDescriptor.Type.BYTES));
-    //     break;
-    //   case DOUBLE_VALUE:
-    //     fieldInfoMap.put(
-    //         "value",
-    //         newPrimitiveFieldInfo(
-    //             "google.protobuf.DoubleValue",
-    //             "DOUBLE",
-    //             FieldDescriptor.CelFieldValueType.SCALAR,
-    //             FieldDescriptor.Type.DOUBLE));
-    //     break;
-    //   case FLOAT_VALUE:
-    //     fieldInfoMap.put(
-    //         "value",
-    //         newPrimitiveFieldInfo(
-    //             "google.protobuf.FloatValue",
-    //             "FLOAT",
-    //             FieldDescriptor.CelFieldValueType.SCALAR,
-    //             FieldDescriptor.Type.FLOAT));
-    //     break;
-    //   case INT32_VALUE:
-    //     fieldInfoMap.put(
-    //         "value",
-    //         newPrimitiveFieldInfo(
-    //             "google.protobuf.Int32Value",
-    //             "INT",
-    //             FieldDescriptor.CelFieldValueType.SCALAR,
-    //             FieldDescriptor.Type.INT32));
-    //     break;
-    //   case INT64_VALUE:
-    //     fieldInfoMap.put(
-    //         "value",
-    //         newPrimitiveFieldInfo(
-    //             "google.protobuf.Int64Value",
-    //             "LONG",
-    //             FieldDescriptor.CelFieldValueType.SCALAR,
-    //             FieldDescriptor.Type.INT64));
-    //     break;
-    //   case STRING_VALUE:
-    //     fieldInfoMap.put(
-    //         "value",
-    //         newPrimitiveFieldInfo(
-    //             "google.protobuf.StringValue",
-    //             "STRING",
-    //             FieldDescriptor.CelFieldValueType.SCALAR,
-    //             FieldDescriptor.Type.STRING));
-    //     break;
-    //   case UINT32_VALUE:
-    //     fieldInfoMap.put(
-    //         "value",
-    //         newPrimitiveFieldInfo(
-    //             "google.protobuf.UInt32Value",
-    //             "INT",
-    //             FieldDescriptor.CelFieldValueType.SCALAR,
-    //             FieldDescriptor.Type.UINT32));
-    //     break;
-    //   case UINT64_VALUE:
-    //     fieldInfoMap.put(
-    //         "value",
-    //         newPrimitiveFieldInfo(
-    //             "google.protobuf.UInt64Value",
-    //             "LONG",
-    //             FieldDescriptor.CelFieldValueType.SCALAR,
-    //             FieldDescriptor.Type.UINT64));
-    //     break;
-    //   case JSON_VALUE:
-    //   case JSON_LIST_VALUE:
-    //   case DURATION:
-    //   case TIMESTAMP:
-    //     // TODO: Complete these
-    //     break;
-    //   default:
-    //     break;
-    // }
+    ImmutableList.Builder<FieldLiteDescriptor> fieldDescriptors = ImmutableList.builder();
+    switch (wellKnownProto) {
+      case JSON_STRUCT_VALUE:
+        fieldDescriptors.add(
+            new FieldLiteDescriptor(
+                1,
+                "fields",
+                "google.protobuf.Struct.fields",
+                JavaType.MESSAGE.toString(),
+                FieldLiteDescriptor.CelFieldValueType.MAP.toString(),
+                FieldLiteDescriptor.Type.MESSAGE.toString(),
+                false,
+                "google.protobuf.Struct.FieldsEntry"));
+        break;
+      case BOOL_VALUE:
+        fieldDescriptors.add(
+            newPrimitiveFieldInfo(
+                JavaType.BOOLEAN,
+                FieldLiteDescriptor.Type.BOOL));
+        break;
+      case BYTES_VALUE:
+        fieldDescriptors.add(
+            newPrimitiveFieldInfo(
+                JavaType.BYTE_STRING,
+                FieldLiteDescriptor.Type.BYTES));
+        break;
+      case DOUBLE_VALUE:
+        fieldDescriptors.add(
+            newPrimitiveFieldInfo(
+                JavaType.DOUBLE,
+                FieldLiteDescriptor.Type.DOUBLE));
+        break;
+      case FLOAT_VALUE:
+        fieldDescriptors.add(
+            newPrimitiveFieldInfo(
+                JavaType.FLOAT,
+                FieldLiteDescriptor.Type.FLOAT));
+        break;
+      case INT32_VALUE:
+        fieldDescriptors.add(
+            newPrimitiveFieldInfo(
+                JavaType.INT,
+                FieldLiteDescriptor.Type.INT32));
+        break;
+      case INT64_VALUE:
+        fieldDescriptors.add(
+            newPrimitiveFieldInfo(
+                JavaType.LONG,
+                FieldLiteDescriptor.Type.INT64));
+        break;
+      case STRING_VALUE:
+        fieldDescriptors.add(
+            newPrimitiveFieldInfo(
+                JavaType.STRING,
+                FieldLiteDescriptor.Type.STRING));
+        break;
+      case UINT32_VALUE:
+        fieldDescriptors.add(
+            newPrimitiveFieldInfo(
+                JavaType.INT,
+                FieldLiteDescriptor.Type.UINT32));
+        break;
+      case UINT64_VALUE:
+        fieldDescriptors.add(
+            newPrimitiveFieldInfo(
+                JavaType.LONG,
+                FieldLiteDescriptor.Type.UINT64));
+        break;
+      case JSON_VALUE:
+      case JSON_LIST_VALUE:
+      case DURATION:
+      case TIMESTAMP:
+        // TODO: Complete these
+        break;
+      default:
+        break;
+    }
 
     return new MessageLiteDescriptor(
-        wellKnownProto.typeName(), fieldInfoMap.buildOrThrow());
+        wellKnownProto.typeName(), fieldDescriptors.build());
   }
 
-  private static FieldDescriptor newPrimitiveFieldInfo(
-      String fullyQualifiedProtoName,
-      String javaTypeName,
-      FieldDescriptor.CelFieldValueType valueType,
-      FieldDescriptor.Type protoFieldType) {
-    return new FieldDescriptor(
-        fullyQualifiedProtoName + ".value",
-        javaTypeName,
-        valueType.toString(),
+  private static FieldLiteDescriptor newPrimitiveFieldInfo(
+      JavaType javaType,
+      FieldLiteDescriptor.Type protoFieldType) {
+    return new FieldLiteDescriptor(
+        1,
+        "value",
+        "",
+        javaType.toString(),
+        FieldLiteDescriptor.CelFieldValueType.SCALAR.toString(),
         protoFieldType.toString(),
-        String.valueOf(false),
-        fullyQualifiedProtoName);
+        false,
+        "");
   }
 
   private DefaultLiteDescriptorPool(ImmutableSet<CelLiteDescriptor> descriptors) {

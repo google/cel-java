@@ -42,10 +42,31 @@ compile_cel(
 )
 
 compile_cel(
-    name = "compiled_proto_select_int64",
-    environment = "//testing/environment:proto_message_variable",
-    #    expression = "msg.single_int64",
-    expression = "msg.single_int64_wrapper",
+    name = "compiled_proto3_select_primitives_all_ored",
+    environment = "//testing/environment:proto3_message_variables",
+    expression = "proto3.single_int32 == 1 || proto3.single_int64 == 2 || proto3.single_uint32 == 3u || proto3.single_uint64 == 4u ||" +
+                 "proto3.single_sint32 == 5 || proto3.single_sint64 == 6 || proto3.single_fixed32 == 7u || proto3.single_fixed64 == 8u ||" +
+                 "proto3.single_sfixed32 == 9 || proto3.single_sfixed64 == 10 || proto3.single_float == 1.5 || proto3.single_double == 2.5 ||" +
+                 "proto3.single_bool || proto3.single_string == 'hello world' || proto3.single_bytes == b\'abc\'",
+    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto"],
+)
+
+compile_cel(
+    name = "compiled_proto3_select_primitives",
+    environment = "//testing/environment:proto3_message_variables",
+    expression = "proto3.single_int32 == 1 && proto3.single_int64 == 2 && proto3.single_uint32 == 3u && proto3.single_uint64 == 4u &&" +
+                 "proto3.single_sint32 == 5 && proto3.single_sint64 == 6 && proto3.single_fixed32 == 7u && proto3.single_fixed64 == 8u &&" +
+                 "proto3.single_sfixed32 == 9 && proto3.single_sfixed64 == 10 && proto3.single_float == 1.5 && proto3.single_double == 2.5 &&" +
+                 "proto3.single_bool && proto3.single_string == 'hello world' && proto3.single_bytes == b\'abc\'",
+    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto"],
+)
+
+compile_cel(
+    name = "compiled_proto3_select_wrappers",
+    environment = "//testing/environment:proto3_message_variables",
+    expression = "proto3.single_int32_wrapper == 1 && proto3.single_int64_wrapper == 2 && proto3.single_float_wrapper == 1.5 &&" +
+                 "proto3.single_double_wrapper == 2.5 && proto3.single_uint32_wrapper == 3u && proto3.single_uint64_wrapper == 4u &&" +
+                 "proto3.single_string_wrapper == 'hello world' && proto3.single_bool_wrapper && proto3.single_bytes_wrapper == b\'abc\'",
     proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto"],
 )
 
@@ -59,7 +80,9 @@ filegroup(
         ":compiled_list_literal",
         ":compiled_one_plus_two",
         ":compiled_primitive_variables",
-        ":compiled_proto_select_int64",
+        ":compiled_proto3_select_primitives",
+        ":compiled_proto3_select_primitives_all_ored",
+        ":compiled_proto3_select_wrappers",
     ],
 )
 

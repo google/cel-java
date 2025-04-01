@@ -23,9 +23,9 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.expr.TestLiteProto;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
-import dev.cel.protobuf.CelLiteDescriptor.FieldDescriptor;
-import dev.cel.protobuf.CelLiteDescriptor.FieldDescriptor.CelFieldValueType;
-import dev.cel.protobuf.CelLiteDescriptor.FieldDescriptor.JavaType;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.CelFieldValueType;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.JavaType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.util.Map;
 import org.junit.Test;
@@ -68,7 +68,7 @@ public class CelLiteDescriptorTest {
             .getProtoTypeNamesToDescriptors()
             .get("cel.expr.conformance.proto3.TestAllTypes");
 
-    assertThat(testAllTypesDescriptor.getFieldInfoMap()).hasSize(243);
+    assertThat(testAllTypesDescriptor.getFieldDescriptors()).hasSize(243);
   }
 
   @Test
@@ -77,11 +77,11 @@ public class CelLiteDescriptorTest {
         TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
             .getProtoTypeNamesToDescriptors()
             .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor = testAllTypesDescriptor.getFieldInfoMap().get("single_string");
+    FieldLiteDescriptor fieldLiteDescriptor = testAllTypesDescriptor.getByFieldNameOrThrow("single_string");
 
-    assertThat(fieldDescriptor.getCelFieldValueType()).isEqualTo(CelFieldValueType.SCALAR);
-    assertThat(fieldDescriptor.getJavaType()).isEqualTo(JavaType.STRING);
-    assertThat(fieldDescriptor.getProtoFieldType()).isEqualTo(FieldDescriptor.Type.STRING);
+    assertThat(fieldLiteDescriptor.getCelFieldValueType()).isEqualTo(CelFieldValueType.SCALAR);
+    assertThat(fieldLiteDescriptor.getJavaType()).isEqualTo(JavaType.STRING);
+    assertThat(fieldLiteDescriptor.getProtoFieldType()).isEqualTo(FieldLiteDescriptor.Type.STRING);
   }
 
   @Test
@@ -90,23 +90,11 @@ public class CelLiteDescriptorTest {
         TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
             .getProtoTypeNamesToDescriptors()
             .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor = testAllTypesDescriptor.getFieldInfoMap().get("single_string");
+    FieldLiteDescriptor fieldLiteDescriptor = testAllTypesDescriptor.getByFieldNameOrThrow("single_string");
 
-    assertThat(fieldDescriptor.getFullyQualifiedProtoFieldName())
+    assertThat(fieldLiteDescriptor.getFullyQualifiedProtoFieldName())
         .isEqualTo("cel.expr.conformance.proto3.TestAllTypes.single_string");
-    assertThat(fieldDescriptor.getFieldProtoTypeName()).isEmpty();
-  }
-
-  @Test
-  public void fieldDescriptor_primitiveField_getFieldJavaClass() {
-    MessageLiteDescriptor testAllTypesDescriptor =
-        TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
-            .getProtoTypeNamesToDescriptors()
-            .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor = testAllTypesDescriptor.getFieldInfoMap().get("single_string");
-
-    assertThat(fieldDescriptor.getFieldJavaClass()).isEqualTo(String.class);
-    assertThat(fieldDescriptor.getFieldJavaClassName()).isEmpty();
+    assertThat(fieldLiteDescriptor.getFieldProtoTypeName()).isEmpty();
   }
 
   @Test
@@ -115,11 +103,11 @@ public class CelLiteDescriptorTest {
         TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
             .getProtoTypeNamesToDescriptors()
             .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor = testAllTypesDescriptor.getFieldInfoMap().get("single_string");
+    FieldLiteDescriptor fieldLiteDescriptor = testAllTypesDescriptor.getByFieldNameOrThrow("single_string");
 
-    assertThat(fieldDescriptor.getHasHasser()).isFalse();
-    assertThat(fieldDescriptor.getGetterName()).isEqualTo("getSingleString");
-    assertThat(fieldDescriptor.getSetterName()).isEqualTo("setSingleString");
+    assertThat(fieldLiteDescriptor.getHasHasser()).isFalse();
+    assertThat(fieldLiteDescriptor.getGetterName()).isEqualTo("getSingleString");
+    assertThat(fieldLiteDescriptor.getSetterName()).isEqualTo("setSingleString");
   }
 
   @Test
@@ -128,9 +116,9 @@ public class CelLiteDescriptorTest {
         TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
             .getProtoTypeNamesToDescriptors()
             .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor = testAllTypesDescriptor.getFieldInfoMap().get("single_string");
+    FieldLiteDescriptor fieldLiteDescriptor = testAllTypesDescriptor.getByFieldNameOrThrow("single_string");
 
-    assertThrows(IllegalArgumentException.class, fieldDescriptor::getHasserName);
+    assertThrows(IllegalArgumentException.class, fieldLiteDescriptor::getHasserName);
   }
 
   @Test
@@ -139,11 +127,11 @@ public class CelLiteDescriptorTest {
         TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
             .getProtoTypeNamesToDescriptors()
             .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor =
-        testAllTypesDescriptor.getFieldInfoMap().get("single_string_wrapper");
+    FieldLiteDescriptor fieldLiteDescriptor =
+        testAllTypesDescriptor.getByFieldNameOrThrow("single_string_wrapper");
 
-    assertThat(fieldDescriptor.getHasHasser()).isTrue();
-    assertThat(fieldDescriptor.getHasserName()).isEqualTo("hasSingleStringWrapper");
+    assertThat(fieldLiteDescriptor.getHasHasser()).isTrue();
+    assertThat(fieldLiteDescriptor.getHasserName()).isEqualTo("hasSingleStringWrapper");
   }
 
   @Test
@@ -152,12 +140,12 @@ public class CelLiteDescriptorTest {
         TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
             .getProtoTypeNamesToDescriptors()
             .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor =
-        testAllTypesDescriptor.getFieldInfoMap().get("map_bool_string");
+    FieldLiteDescriptor fieldLiteDescriptor =
+        testAllTypesDescriptor.getByFieldNameOrThrow("map_bool_string");
 
-    assertThat(fieldDescriptor.getCelFieldValueType()).isEqualTo(CelFieldValueType.MAP);
-    assertThat(fieldDescriptor.getJavaType()).isEqualTo(JavaType.MESSAGE);
-    assertThat(fieldDescriptor.getProtoFieldType()).isEqualTo(FieldDescriptor.Type.MESSAGE);
+    assertThat(fieldLiteDescriptor.getCelFieldValueType()).isEqualTo(CelFieldValueType.MAP);
+    assertThat(fieldLiteDescriptor.getJavaType()).isEqualTo(JavaType.MESSAGE);
+    assertThat(fieldLiteDescriptor.getProtoFieldType()).isEqualTo(FieldLiteDescriptor.Type.MESSAGE);
   }
 
   @Test
@@ -166,26 +154,12 @@ public class CelLiteDescriptorTest {
         TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
             .getProtoTypeNamesToDescriptors()
             .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor =
-        testAllTypesDescriptor.getFieldInfoMap().get("map_bool_string");
+    FieldLiteDescriptor fieldLiteDescriptor =
+        testAllTypesDescriptor.getByFieldNameOrThrow("map_bool_string");
 
-    assertThat(fieldDescriptor.getHasHasser()).isFalse();
-    assertThat(fieldDescriptor.getGetterName()).isEqualTo("getMapBoolStringMap");
-    assertThat(fieldDescriptor.getSetterName()).isEqualTo("putAllMapBoolString");
-  }
-
-  @Test
-  public void fieldDescriptor_mapField_getFieldJavaClass() {
-    MessageLiteDescriptor testAllTypesDescriptor =
-        TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
-            .getProtoTypeNamesToDescriptors()
-            .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor =
-        testAllTypesDescriptor.getFieldInfoMap().get("map_bool_string");
-
-    assertThat(fieldDescriptor.getFieldJavaClass()).isEqualTo(Map.class);
-    assertThat(fieldDescriptor.getFieldJavaClassName())
-        .isEqualTo("dev.cel.expr.conformance.proto3.TestAllTypes$MapBoolStringEntry");
+    assertThat(fieldLiteDescriptor.getHasHasser()).isFalse();
+    assertThat(fieldLiteDescriptor.getGetterName()).isEqualTo("getMapBoolStringMap");
+    assertThat(fieldLiteDescriptor.getSetterName()).isEqualTo("putAllMapBoolString");
   }
 
   @Test
@@ -194,12 +168,12 @@ public class CelLiteDescriptorTest {
         TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
             .getProtoTypeNamesToDescriptors()
             .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor =
-        testAllTypesDescriptor.getFieldInfoMap().get("repeated_int64");
+    FieldLiteDescriptor fieldLiteDescriptor =
+        testAllTypesDescriptor.getByFieldNameOrThrow("repeated_int64");
 
-    assertThat(fieldDescriptor.getCelFieldValueType()).isEqualTo(CelFieldValueType.LIST);
-    assertThat(fieldDescriptor.getJavaType()).isEqualTo(JavaType.LONG);
-    assertThat(fieldDescriptor.getProtoFieldType()).isEqualTo(FieldDescriptor.Type.INT64);
+    assertThat(fieldLiteDescriptor.getCelFieldValueType()).isEqualTo(CelFieldValueType.LIST);
+    assertThat(fieldLiteDescriptor.getJavaType()).isEqualTo(JavaType.LONG);
+    assertThat(fieldLiteDescriptor.getProtoFieldType()).isEqualTo(FieldLiteDescriptor.Type.INT64);
   }
 
   @Test
@@ -208,39 +182,12 @@ public class CelLiteDescriptorTest {
         TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
             .getProtoTypeNamesToDescriptors()
             .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor =
-        testAllTypesDescriptor.getFieldInfoMap().get("repeated_int64");
+    FieldLiteDescriptor fieldLiteDescriptor =
+        testAllTypesDescriptor.getByFieldNameOrThrow("repeated_int64");
 
-    assertThat(fieldDescriptor.getHasHasser()).isFalse();
-    assertThat(fieldDescriptor.getGetterName()).isEqualTo("getRepeatedInt64List");
-    assertThat(fieldDescriptor.getSetterName()).isEqualTo("addAllRepeatedInt64");
-  }
-
-  @Test
-  public void fieldDescriptor_repeatedField_primitives_getFieldJavaClass() {
-    MessageLiteDescriptor testAllTypesDescriptor =
-        TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
-            .getProtoTypeNamesToDescriptors()
-            .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor =
-        testAllTypesDescriptor.getFieldInfoMap().get("repeated_int64");
-
-    assertThat(fieldDescriptor.getFieldJavaClass()).isEqualTo(Iterable.class);
-    assertThat(fieldDescriptor.getFieldJavaClassName()).isEmpty();
-  }
-
-  @Test
-  public void fieldDescriptor_repeatedField_wrappers_getFieldJavaClass() {
-    MessageLiteDescriptor testAllTypesDescriptor =
-        TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
-            .getProtoTypeNamesToDescriptors()
-            .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor =
-        testAllTypesDescriptor.getFieldInfoMap().get("repeated_double_wrapper");
-
-    assertThat(fieldDescriptor.getFieldJavaClass()).isEqualTo(Iterable.class);
-    assertThat(fieldDescriptor.getFieldJavaClassName())
-        .isEqualTo("com.google.protobuf.DoubleValue");
+    assertThat(fieldLiteDescriptor.getHasHasser()).isFalse();
+    assertThat(fieldLiteDescriptor.getGetterName()).isEqualTo("getRepeatedInt64List");
+    assertThat(fieldLiteDescriptor.getSetterName()).isEqualTo("addAllRepeatedInt64");
   }
 
   @Test
@@ -249,26 +196,12 @@ public class CelLiteDescriptorTest {
         TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
             .getProtoTypeNamesToDescriptors()
             .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor =
-        testAllTypesDescriptor.getFieldInfoMap().get("standalone_message");
+    FieldLiteDescriptor fieldLiteDescriptor =
+        testAllTypesDescriptor.getByFieldNameOrThrow("standalone_message");
 
-    assertThat(fieldDescriptor.getCelFieldValueType()).isEqualTo(CelFieldValueType.SCALAR);
-    assertThat(fieldDescriptor.getJavaType()).isEqualTo(JavaType.MESSAGE);
-    assertThat(fieldDescriptor.getProtoFieldType()).isEqualTo(FieldDescriptor.Type.MESSAGE);
-  }
-
-  @Test
-  public void fieldDescriptor_nestedMessage_getFieldJavaClass() {
-    MessageLiteDescriptor testAllTypesDescriptor =
-        TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
-            .getProtoTypeNamesToDescriptors()
-            .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor =
-        testAllTypesDescriptor.getFieldInfoMap().get("standalone_message");
-
-    assertThat(fieldDescriptor.getFieldJavaClass()).isEqualTo(TestAllTypes.NestedMessage.class);
-    assertThat(fieldDescriptor.getFieldJavaClassName())
-        .isEqualTo("dev.cel.expr.conformance.proto3.TestAllTypes$NestedMessage");
+    assertThat(fieldLiteDescriptor.getCelFieldValueType()).isEqualTo(CelFieldValueType.SCALAR);
+    assertThat(fieldLiteDescriptor.getJavaType()).isEqualTo(JavaType.MESSAGE);
+    assertThat(fieldLiteDescriptor.getProtoFieldType()).isEqualTo(FieldLiteDescriptor.Type.MESSAGE);
   }
 
   @Test
@@ -277,12 +210,12 @@ public class CelLiteDescriptorTest {
         TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
             .getProtoTypeNamesToDescriptors()
             .get("cel.expr.conformance.proto3.TestAllTypes");
-    FieldDescriptor fieldDescriptor =
-        testAllTypesDescriptor.getFieldInfoMap().get("standalone_message");
+    FieldLiteDescriptor fieldLiteDescriptor =
+        testAllTypesDescriptor.getByFieldNameOrThrow("standalone_message");
 
-    assertThat(fieldDescriptor.getFullyQualifiedProtoFieldName())
+    assertThat(fieldLiteDescriptor.getFullyQualifiedProtoFieldName())
         .isEqualTo("cel.expr.conformance.proto3.TestAllTypes.standalone_message");
-    assertThat(fieldDescriptor.getFieldProtoTypeName())
+    assertThat(fieldLiteDescriptor.getFieldProtoTypeName())
         .isEqualTo("cel.expr.conformance.proto3.TestAllTypes.NestedMessage");
   }
 
