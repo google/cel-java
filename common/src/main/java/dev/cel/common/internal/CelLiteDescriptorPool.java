@@ -22,4 +22,5 @@ import java.util.Optional;
 @Immutable
 public interface CelLiteDescriptorPool {
   Optional<MessageLiteDescriptor> findDescriptor(String protoTypeName);
+  MessageLiteDescriptor getDescriptorOrThrow(String protoTypeName);
 }

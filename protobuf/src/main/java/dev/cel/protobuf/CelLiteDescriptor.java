@@ -82,8 +82,8 @@ public abstract class CelLiteDescriptor {
       return fieldLiteDescriptors;
     }
 
-    public FieldLiteDescriptor getByFieldNameOrThrow(String protoTypeName) {
-      return Objects.requireNonNull(fieldNameToFieldDescriptors.get(protoTypeName));
+    public FieldLiteDescriptor getByFieldNameOrThrow(String fieldName) {
+      return Objects.requireNonNull(fieldNameToFieldDescriptors.get(fieldName));
     }
 
     public FieldLiteDescriptor getByFieldNumberOrThrow(int fieldNumber) {

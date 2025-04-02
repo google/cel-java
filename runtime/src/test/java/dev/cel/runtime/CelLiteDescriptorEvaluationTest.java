@@ -134,7 +134,7 @@ public class CelLiteDescriptorEvaluationTest {
   @TestParameters("{expression: 'msg.repeated_int32'}")
   @TestParameters("{expression: 'msg.repeated_int64'}")
   @SuppressWarnings("unchecked")
-  public void fieldSelection_list(String expression) throws Exception {
+  public void fieldSelection_list_repeatedInts(String expression) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
     TestAllTypes msg =
         TestAllTypes.newBuilder()
@@ -148,6 +148,20 @@ public class CelLiteDescriptorEvaluationTest {
         (List<Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
     assertThat(result).containsExactly(1L, 2L).inOrder();
+  }
+  @Test
+  @SuppressWarnings("unchecked")
+  public void fieldSelection_list_repeatedStrings() throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("msg.repeated_string").getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder()
+            .addRepeatedString("hello")
+            .addRepeatedString("world")
+            .build();
+    List<Long> result =
+        (List<Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).containsExactly("hello", "world").inOrder();
   }
 
   @Test
@@ -236,6 +250,24 @@ public class CelLiteDescriptorEvaluationTest {
     boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
     assertThat(result).isTrue();
+  }
+
+  @Test
+  public void smokeTest2() throws Exception {
+    String expression = "msg.repeated_int32";
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder()
+            .addRepeatedInt32(1)
+            .addRepeatedInt32(2)
+            // .addRepeatedInt64(1L)
+            // .addRepeatedInt64(2L)
+            .build();
+
+    List<Long> result =
+        (List<Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).containsExactly(1L, 2L).inOrder();
   }
 
   @Test

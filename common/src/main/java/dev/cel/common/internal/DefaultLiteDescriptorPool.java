@@ -38,6 +38,7 @@ import dev.cel.protobuf.CelLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.JavaType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -54,6 +55,11 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
   @Override
   public Optional<MessageLiteDescriptor> findDescriptor(String protoTypeName) {
     return Optional.ofNullable(protoFqnToMessageInfo.get(protoTypeName));
+  }
+
+  @Override
+  public MessageLiteDescriptor getDescriptorOrThrow(String protoTypeName) {
+    return findDescriptor(protoTypeName).orElseThrow(() -> new NoSuchElementException("Could not find a descriptor for: " + protoTypeName));
   }
 
   private static MessageLiteDescriptor newMessageInfo(WellKnownProto wellKnownProto) {

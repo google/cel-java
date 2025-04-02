@@ -45,7 +45,7 @@ final class ProtoDescriptorCollector {
     ImmutableSet<Descriptor> messageTypes =
         celDescriptors.messageTypeDescriptors().stream()
             // Don't collect WKTs. They are included separately in the default descriptor pool.
-            .filter(d -> WellKnownProto.getByTypeName(d.getFullName()).isEmpty())
+            .filter(d -> !WellKnownProto.getByTypeName(d.getFullName()).isPresent())
             .collect(toImmutableSet());
 
     for (Descriptor descriptor : messageTypes) {
