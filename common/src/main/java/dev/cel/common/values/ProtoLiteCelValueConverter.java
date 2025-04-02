@@ -24,12 +24,12 @@ import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.MessageLite;
+import com.google.protobuf.NullValue;
 import com.google.protobuf.WireFormat;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
-import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.JavaType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -64,6 +64,7 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
       case SINT64:
         return inputStream.readSInt64();
       case INT32:
+      case ENUM:
         return inputStream.readInt32();
       case INT64:
         return inputStream.readInt64();
@@ -115,7 +116,8 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     }
   }
 
-  private static Object getDefaultValue(JavaType type) {
+  private static Object getDefaultValue(FieldLiteDescriptor fieldDescriptor) {
+    FieldLiteDescriptor.JavaType type = fieldDescriptor.getJavaType();
     switch (type) {
       case INT:
         return Defaults.defaultValue(int.class);
@@ -134,7 +136,11 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
       case ENUM: // Ordinarily, an enum value descriptor is returned for this one. We'll need a different representation here.
         throw new UnsupportedOperationException("Not yet implemented");
       case MESSAGE:
-        throw new UnsupportedOperationException("Not yet implemented");
+        if (WellKnownProto.isWrapperType(fieldDescriptor.getFieldProtoTypeName())) {
+          return NullValue.NULL_VALUE;
+        } else {
+          throw new UnsupportedOperationException("Not yet implemented");
+        }
       default:
         throw new IllegalStateException("Unexpected java type: " + type);
     }
@@ -149,7 +155,7 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
       FieldLiteDescriptor selectedFieldDescriptor) throws IOException {
     CodedInputStream inputStream = CodedInputStream.newInstance(bytes);
 
-    while (true) {
+    for (int iterCount = 0; iterCount < bytes.length; iterCount++) {
       int tag = inputStream.readTag();
       if (tag == 0) {
         break;
@@ -180,27 +186,26 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
 
       if (fieldNumber == selectedFieldDescriptor.getFieldNumber()) {
         String fieldProtoTypeName = selectedFieldDescriptor.getFieldProtoTypeName();
-        if (fieldProtoTypeName.isEmpty()) {
-          // This is a primitive.
+        // Enums have a type name, but it's considered a primitive integer in CEL.
+        boolean isPrimitive = fieldProtoTypeName.isEmpty()
+            || selectedFieldDescriptor.getProtoFieldType().equals(FieldLiteDescriptor.Type.ENUM);
+        if (isPrimitive) {
           return payload;
         }
 
-        MessageLiteDescriptor descriptor = descriptorPool.findDescriptor(fieldProtoTypeName).get();
-        WellKnownProto wellKnownProto = WellKnownProto.getByTypeName(fieldProtoTypeName);
-        if (wellKnownProto != null) {
-          // TODO: Maybe handle more generally?
-          if (wellKnownProto.isWrapperType()) {
-            ByteString byteString = (ByteString) payload;
-            FieldLiteDescriptor wrapperFieldLiteDescriptor = Iterables.getOnlyElement(descriptor.getFieldDescriptorsMap().values());
-            return parsePayloadFromBytes(byteString.toByteArray(), descriptor, wrapperFieldLiteDescriptor);
-          }
+        WellKnownProto wellKnownProto = WellKnownProto.getByTypeName(fieldProtoTypeName).orElse(null);
+        if (wellKnownProto != null && wellKnownProto.isWrapperType()) {
+          // TODO: Maybe handle this more generally?
+          MessageLiteDescriptor messageDescriptorForField = descriptorPool.findDescriptor(fieldProtoTypeName).orElseThrow(
+              NoSuchElementException::new);
+          ByteString byteString = (ByteString) payload;
+          FieldLiteDescriptor wrapperFieldLiteDescriptor = Iterables.getOnlyElement(messageDescriptorForField.getFieldDescriptorsMap().values());
+          return parsePayloadFromBytes(byteString.toByteArray(), messageDescriptorForField, wrapperFieldLiteDescriptor);
         }
-
-        System.out.println(descriptor);
       }
     }
 
-    return getDefaultValue(selectedFieldDescriptor.getJavaType());
+    return getDefaultValue(selectedFieldDescriptor);
   }
 
   /** Adapts the protobuf message field into {@link CelValue}. */
@@ -233,6 +238,7 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
   public CelValue fromProtoMessageToCelValue(String protoTypeName, MessageLite msg) {
     checkNotNull(msg);
     checkNotNull(protoTypeName);
+
     MessageLiteDescriptor messageInfo =
         descriptorPool
             .findDescriptor(protoTypeName)
@@ -241,7 +247,7 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
                     new NoSuchElementException(
                         "Could not find message info for : " + protoTypeName));
     WellKnownProto wellKnownProto =
-        WellKnownProto.getByTypeName(messageInfo.getProtoTypeName());
+        WellKnownProto.getByTypeName(messageInfo.getProtoTypeName()).orElse(null);
 
     if (wellKnownProto == null) {
       return ProtoMessageLiteValue.create(

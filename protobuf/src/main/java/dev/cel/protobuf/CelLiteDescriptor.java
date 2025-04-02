@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Base class for code generated CEL lite descriptors to extend from.
@@ -77,11 +78,11 @@ public abstract class CelLiteDescriptor {
     }
 
     public FieldLiteDescriptor getByFieldNameOrThrow(String protoTypeName) {
-      return fieldNameToFieldDescriptors.get(protoTypeName);
+      return Objects.requireNonNull(fieldNameToFieldDescriptors.get(protoTypeName));
     }
 
     public FieldLiteDescriptor getByFieldNumberOrThrow(int fieldNumber) {
-      return fieldNumberToFieldDescriptors.get(fieldNumber);
+      return Objects.requireNonNull(fieldNumberToFieldDescriptors.get(fieldNumber));
     }
 
     public Map<String, FieldLiteDescriptor> getFieldDescriptorsMap() {
@@ -206,58 +207,6 @@ public abstract class CelLiteDescriptor {
       return javaType;
     }
 
-    /**
-     * Returns the setter name for the field used in protobuf message's builder (Ex:
-     * setSingleString).
-     */
-    public String getSetterName() {
-      String prefix = "";
-      switch (celFieldValueType) {
-        case SCALAR:
-          prefix = "set";
-          break;
-        case LIST:
-          prefix = "addAll";
-          break;
-        case MAP:
-          prefix = "putAll";
-          break;
-      }
-      return prefix + "";
-    }
-
-    /**
-     * Returns the getter name for the field used in protobuf message's builder (Ex:
-     * getSingleString).
-     */
-    public String getGetterName() {
-      String suffix = "";
-      switch (celFieldValueType) {
-        case SCALAR:
-          break;
-        case LIST:
-          suffix = "List";
-          break;
-        case MAP:
-          suffix = "Map";
-          break;
-      }
-      return "get" + "";
-    }
-
-    /**
-     * Returns the hasser name for the field (Ex: hasSingleString).
-     *
-     * @throws IllegalArgumentException If the message does not have a hasser.
-     */
-    public String getHasserName() {
-      if (!getHasHasser()) {
-        throw new IllegalArgumentException("This message does not have a hasser.");
-      }
-      return "has" + "";
-    }
-
-
     public CelFieldValueType getCelFieldValueType() {
       return celFieldValueType;
     }
@@ -271,6 +220,9 @@ public abstract class CelLiteDescriptor {
       return protoFieldType;
     }
 
+    /**
+     * Checks whether the field contains a hasser method (i.e: wrappers).
+     */
     public boolean getHasHasser() {
       return hasHasser && celFieldValueType.equals(CelFieldValueType.SCALAR);
     }

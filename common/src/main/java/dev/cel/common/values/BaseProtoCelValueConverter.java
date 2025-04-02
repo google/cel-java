@@ -41,6 +41,7 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.WellKnownProto;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 
 /**
  * {@code BaseProtoCelValueConverter} contains the common logic for converting between native Java
@@ -85,9 +86,9 @@ public abstract class BaseProtoCelValueConverter extends CelValueConverter {
   public CelValue fromJavaObjectToCelValue(Object value) {
     Preconditions.checkNotNull(value);
 
-    WellKnownProto wellKnownProto = WellKnownProto.getByClass(value.getClass());
-    if (wellKnownProto != null) {
-      return fromWellKnownProtoToCelValue((MessageLiteOrBuilder) value, wellKnownProto);
+    Optional<WellKnownProto> wellKnownProto = WellKnownProto.getByClass(value.getClass());
+    if (wellKnownProto.isPresent()) {
+      return fromWellKnownProtoToCelValue((MessageLiteOrBuilder) value, wellKnownProto.get());
     }
 
     if (value instanceof ByteString) {

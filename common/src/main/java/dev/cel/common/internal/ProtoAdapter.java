@@ -139,7 +139,7 @@ public final class ProtoAdapter {
     // If the proto is not a well-known type, then the input Message is what's expected as the
     // output return value.
     WellKnownProto wellKnownProto =
-        WellKnownProto.getByTypeName(typeName(proto.getDescriptorForType()));
+        WellKnownProto.getByTypeName(typeName(proto.getDescriptorForType())).orElse(null);
     if (wellKnownProto == null) {
       return proto;
     }
@@ -280,7 +280,7 @@ public final class ProtoAdapter {
    * considered, such as a packing an {@code google.protobuf.StringValue} into a {@code Any} value.
    */
   public Message adaptValueToProto(Object value, String protoTypeName) {
-    WellKnownProto wellKnownProto = WellKnownProto.getByTypeName(protoTypeName);
+    WellKnownProto wellKnownProto = WellKnownProto.getByTypeName(protoTypeName).orElse(null);
     if (wellKnownProto == null) {
       if (value instanceof Message) {
         return (Message) value;
@@ -326,8 +326,7 @@ public final class ProtoAdapter {
       return false;
     }
     String fieldTypeName = fieldDescriptor.getMessageType().getFullName();
-    WellKnownProto wellKnownProto = WellKnownProto.getByTypeName(fieldTypeName);
-    return wellKnownProto != null && wellKnownProto.isWrapperType();
+    return WellKnownProto.isWrapperType(fieldTypeName);
   }
 
   private static int intCheckedCast(long value) {

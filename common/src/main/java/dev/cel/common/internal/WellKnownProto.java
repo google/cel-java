@@ -36,6 +36,7 @@ import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
 import dev.cel.common.annotations.Internal;
+import java.util.Optional;
 import java.util.function.Function;
 import org.jspecify.annotations.Nullable;
 
@@ -93,21 +94,21 @@ public enum WellKnownProto {
     return clazz;
   }
 
-  public static @Nullable WellKnownProto getByTypeName(String typeName) {
-    return TYPE_NAME_TO_WELL_KNOWN_PROTO_MAP.get(typeName);
+  public static Optional<WellKnownProto> getByTypeName(String typeName) {
+    return Optional.ofNullable(TYPE_NAME_TO_WELL_KNOWN_PROTO_MAP.get(typeName));
   }
 
-  public static @Nullable WellKnownProto getByClass(Class<?> clazz) {
-    return CLASS_TO_NAME_TO_WELL_KNOWN_PROTO_MAP.get(clazz);
+  public static Optional<WellKnownProto> getByClass(Class<?> clazz) {
+    return Optional.ofNullable(CLASS_TO_NAME_TO_WELL_KNOWN_PROTO_MAP.get(clazz));
   }
 
+  /**
+   * Returns true if the provided {@code typeName} is a well known type, and it's a wrapper. False otherwise.
+   */
   public static boolean isWrapperType(String typeName) {
-    WellKnownProto wellKnownProto = getByTypeName(typeName);
-    if (wellKnownProto == null) {
-      return false;
-    }
-
-    return wellKnownProto.isWrapperType();
+    return getByTypeName(typeName)
+        .map(WellKnownProto::isWrapperType)
+        .orElse(false);
   }
 
   public boolean isWrapperType() {

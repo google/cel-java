@@ -15,6 +15,7 @@
 package dev.cel.runtime;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -33,17 +34,16 @@ import com.google.protobuf.UInt64Value;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
-import dev.cel.common.CelOptions;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
+import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
-import dev.cel.expr.conformance.proto3.NestedTestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
+import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
 import dev.cel.parser.CelStandardMacro;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
@@ -62,76 +62,18 @@ public class CelLiteDescriptorEvaluationTest {
 
   private static final CelLiteRuntime CEL_RUNTIME =
       CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-          .setOptions(CelOptions.current().enableCelValue(true).build())
-          // .setValueProvider(ProtoMessageLiteValueProvider.newInstance())
-          // .addCelLiteDescriptors(TestAllTypesCelLiteDescriptor.getDescriptor())
+          .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+          .setValueProvider(ProtoMessageLiteValueProvider.newInstance(
+              TestAllTypesCelLiteDescriptor.getDescriptor()))
           .build();
 
   @Test
-  public void messageCreation_emptyMessage() throws Exception {
+  public void messageCreation_throws() throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile("TestAllTypes{}").getAst();
 
-    TestAllTypes simpleTest = (TestAllTypes) CEL_RUNTIME.createProgram(ast).eval();
-
-    assertThat(simpleTest).isEqualTo(TestAllTypes.getDefaultInstance());
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, () -> CEL_RUNTIME.createProgram(ast).eval());
+    assertThat(e).hasCauseThat().hasMessageThat().contains("Message creation is not supported yet.");
   }
-
-  @Test
-  public void messageCreation_fieldsPopulated() throws Exception {
-    CelAbstractSyntaxTree ast =
-        CEL_COMPILER
-            .compile(
-                "TestAllTypes{"
-                    + "single_int32: 4,"
-                    + "single_int64: 6,"
-                    + "single_float: 7.1,"
-                    + "single_double: 8.2,"
-                    + "single_nested_enum: TestAllTypes.NestedEnum.BAR,"
-                    + "repeated_int32: [1,2],"
-                    + "repeated_int64: [3,4],"
-                    + "map_string_int32: {'a': 1},"
-                    + "map_string_int64: {'b': 2},"
-                    + "single_int32_wrapper: google.protobuf.Int32Value{value: 9},"
-                    + "single_int64_wrapper: google.protobuf.Int64Value{value: 10},"
-                    + "single_float_wrapper: 11.1,"
-                    + "single_double_wrapper: 12.2,"
-                    + "single_uint32_wrapper: google.protobuf.UInt32Value{value: 13u},"
-                    + "single_uint64_wrapper: google.protobuf.UInt64Value{value: 14u},"
-                    + "oneof_type: NestedTestAllTypes {"
-                    + "    payload: TestAllTypes {"
-                    + "       single_bytes: b'abc',"
-                    + "    }"
-                    + "  },"
-                    + "}")
-            .getAst();
-    TestAllTypes expectedMessage =
-        TestAllTypes.newBuilder()
-            .setSingleInt32(4)
-            .setSingleInt64(6L)
-            .setSingleFloat(7.1f)
-            .setSingleDouble(8.2d)
-            .setSingleNestedEnum(NestedEnum.BAR)
-            .addAllRepeatedInt32(Arrays.asList(1, 2))
-            .addAllRepeatedInt64(Arrays.asList(3L, 4L))
-            .putMapStringInt32("a", 1)
-            .putMapStringInt64("b", 2)
-            .setSingleInt32Wrapper(Int32Value.of(9))
-            .setSingleInt64Wrapper(Int64Value.of(10L))
-            .setSingleFloatWrapper(FloatValue.of(11.1f))
-            .setSingleDoubleWrapper(DoubleValue.of(12.2d))
-            .setSingleUint32Wrapper(UInt32Value.of(13))
-            .setSingleUint64Wrapper(UInt64Value.of(14L))
-            .setOneofType(
-                NestedTestAllTypes.newBuilder()
-                    .setPayload(
-                        TestAllTypes.newBuilder().setSingleBytes(ByteString.copyFromUtf8("abc"))))
-            .build();
-
-    TestAllTypes simpleTest = (TestAllTypes) CEL_RUNTIME.createProgram(ast).eval();
-
-    assertThat(simpleTest).isEqualTo(expectedMessage);
-  }
-
   @Test
   @TestParameters("{expression: 'msg.single_int32 == 1'}")
   @TestParameters("{expression: 'msg.single_int64 == 2'}")
@@ -364,7 +306,6 @@ public class CelLiteDescriptorEvaluationTest {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile("msg.single_nested_enum").getAst();
     TestAllTypes nestedMessage =
         TestAllTypes.newBuilder().setSingleNestedEnum(NestedEnum.BAR).build();
-
     Long result = (Long) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", nestedMessage));
 
     assertThat(result).isEqualTo(NestedEnum.BAR.getNumber());
