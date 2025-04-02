@@ -19,12 +19,10 @@ import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.internal.CelLiteDescriptorPool;
-import dev.cel.common.internal.WellKnownProto;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.util.Optional;
-import org.jspecify.annotations.Nullable;
 
 /** ProtoMessageLiteValue is a struct value with protobuf support. */
 @AutoValue
@@ -41,6 +39,8 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
 
   abstract ProtoLiteCelValueConverter protoLiteCelValueConverter();
 
+  // TODO: Store parsed message in a map here (lazily loaded)
+
   @Override
   public boolean isZeroValue() {
     return value().getDefaultInstanceForType().equals(value());
@@ -51,68 +51,26 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
     MessageLiteDescriptor messageInfo =
         descriptorPool().findDescriptor(celType().name()).get();
     FieldLiteDescriptor fieldInfo = messageInfo.getFieldDescriptorsMap().get(field.value());
-    if (fieldInfo.getProtoFieldType().equals(FieldLiteDescriptor.Type.MESSAGE)
-        && WellKnownProto.isWrapperType(fieldInfo.getFieldProtoTypeName())) {
-      PresenceTestResult presenceTestResult = presenceTest(field);
-      // Special semantics for wrapper types per CEL spec. NullValue is returned instead of the
-      // default value for unset fields.
-      if (!presenceTestResult.hasPresence()) {
-        return NullValue.NULL_VALUE;
-      }
-
-      return presenceTestResult.selectedValue().get();
-    }
 
     return protoLiteCelValueConverter().fromProtoMessageFieldToCelValue(value(), messageInfo, fieldInfo);
   }
 
   @Override
   public Optional<CelValue> find(StringValue field) {
-    PresenceTestResult presenceTestResult = presenceTest(field);
-
-    return presenceTestResult.selectedValue();
-  }
-
-  private PresenceTestResult presenceTest(StringValue field) {
     MessageLiteDescriptor messageInfo =
         descriptorPool().findDescriptor(celType().name()).get();
     FieldLiteDescriptor fieldInfo = messageInfo.getFieldDescriptorsMap().get(field.value());
-    CelValue selectedValue = null;
-    boolean presenceTestResult;
+
+    CelValue selectedValue = protoLiteCelValueConverter().fromProtoMessageFieldToCelValue(value(), messageInfo, fieldInfo);
     if (fieldInfo.getHasHasser()) {
-      // Method hasserMethod = ReflectionUtil.getMethod(value().getClass(), fieldInfo.getHasserName());
-      // presenceTestResult = (boolean) ReflectionUtil.invoke(hasserMethod, value());
-      presenceTestResult = true; // TODO
-    } else {
-      // Lists, Maps and Opaque Values
-      selectedValue =
-          protoLiteCelValueConverter().fromProtoMessageFieldToCelValue(value(), messageInfo, fieldInfo);
-      presenceTestResult = !selectedValue.isZeroValue();
+      if (selectedValue.equals(NullValue.NULL_VALUE)) {
+        return Optional.empty();
+      }
+    } else if (selectedValue.isZeroValue()){
+      return Optional.empty();
     }
 
-    if (!presenceTestResult) {
-      return PresenceTestResult.create(null);
-    }
-
-    if (selectedValue == null) {
-      selectedValue =
-          protoLiteCelValueConverter().fromProtoMessageFieldToCelValue(value(), messageInfo, fieldInfo);
-    }
-
-    return PresenceTestResult.create(selectedValue);
-  }
-
-  @AutoValue
-  abstract static class PresenceTestResult {
-    abstract boolean hasPresence();
-
-    abstract Optional<CelValue> selectedValue();
-
-    static PresenceTestResult create(@Nullable CelValue presentValue) {
-      Optional<CelValue> maybePresentValue = Optional.ofNullable(presentValue);
-      return new AutoValue_ProtoMessageLiteValue_PresenceTestResult(
-          maybePresentValue.isPresent(), maybePresentValue);
-    }
+    return Optional.of(selectedValue);
   }
 
   public static ProtoMessageLiteValue create(

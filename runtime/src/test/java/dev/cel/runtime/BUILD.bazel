@@ -213,6 +213,7 @@ cel_android_local_test(
         "//runtime:lite_runtime_factory_android",
         "//runtime:lite_runtime_impl_android",
         "//runtime:standard_functions_android",
+        "//runtime:unknown_attributes_android",
         "//testing:test_all_types_cel_java_proto_lite",
         "@cel_spec//proto/cel/expr:checked_java_proto_lite",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto_lite",

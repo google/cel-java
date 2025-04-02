@@ -18,12 +18,14 @@ import static java.lang.Math.ceil;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
+import com.google.protobuf.MessageLite;
 import dev.cel.common.annotations.Internal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * Base class for code generated CEL lite descriptors to extend from.
@@ -69,6 +71,9 @@ public abstract class CelLiteDescriptor {
     @SuppressWarnings("Immutable") // Copied to an unmodifiable map
     private final Map<Integer, FieldLiteDescriptor> fieldNumberToFieldDescriptors;
 
+    @SuppressWarnings("Immutable") // Does not alter the descriptor content
+    private final Supplier<MessageLite.Builder> messageBuilderSupplier;
+
     public String getProtoTypeName() {
       return fullyQualifiedProtoTypeName;
     }
@@ -89,6 +94,14 @@ public abstract class CelLiteDescriptor {
       return fieldNameToFieldDescriptors;
     }
 
+    public MessageLite.Builder newMessageBuilder() {
+      // TODO: Guard?
+      if (messageBuilderSupplier == null) {
+        return null;
+      }
+      return messageBuilderSupplier.get();
+    }
+
     /**
      * CEL Library Internals. Do not use.
      *
@@ -98,6 +111,19 @@ public abstract class CelLiteDescriptor {
     public MessageLiteDescriptor(
         String fullyQualifiedProtoTypeName,
         List<FieldLiteDescriptor> fieldLiteDescriptors) {
+      this(fullyQualifiedProtoTypeName, fieldLiteDescriptors, null);
+    }
+
+    /**
+     * CEL Library Internals. Do not use.
+     *
+     * <p>Public visibility due to codegen.
+     */
+    @Internal
+    public MessageLiteDescriptor(
+        String fullyQualifiedProtoTypeName,
+        List<FieldLiteDescriptor> fieldLiteDescriptors,
+        Supplier<MessageLite.Builder> messageBuilderSupplier) {
       this.fullyQualifiedProtoTypeName = checkNotNull(fullyQualifiedProtoTypeName);
       // This is a cheap operation. View over the existing map with mutators disabled.
       this.fieldLiteDescriptors = Collections.unmodifiableList(checkNotNull(fieldLiteDescriptors));
@@ -111,6 +137,7 @@ public abstract class CelLiteDescriptor {
       }
       this.fieldNameToFieldDescriptors = Collections.unmodifiableMap(fieldNameMap);
       this.fieldNumberToFieldDescriptors = Collections.unmodifiableMap(fieldNumberMap);
+      this.messageBuilderSupplier = messageBuilderSupplier;
     }
   }
 
@@ -282,7 +309,9 @@ public abstract class CelLiteDescriptor {
     }
   }
 
-  protected CelLiteDescriptor(String version, List<MessageLiteDescriptor> messageInfoList) {
+  protected CelLiteDescriptor(
+      String version,
+      List<MessageLiteDescriptor> messageInfoList) {
     Map<String, MessageLiteDescriptor> protoFqnMap =
         new HashMap<>(getMapInitialCapacity(messageInfoList.size()));
     for (MessageLiteDescriptor msgInfo : messageInfoList) {

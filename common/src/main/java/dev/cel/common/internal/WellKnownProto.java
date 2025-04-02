@@ -38,7 +38,6 @@ import com.google.protobuf.Value;
 import dev.cel.common.annotations.Internal;
 import java.util.Optional;
 import java.util.function.Function;
-import org.jspecify.annotations.Nullable;
 
 /**
  * WellKnownProto types used throughout CEL. These types are specially handled to ensure that
@@ -93,6 +92,8 @@ public enum WellKnownProto {
   public Class<?> messageClass() {
     return clazz;
   }
+
+
 
   public static Optional<WellKnownProto> getByTypeName(String typeName) {
     return Optional.ofNullable(TYPE_NAME_TO_WELL_KNOWN_PROTO_MAP.get(typeName));

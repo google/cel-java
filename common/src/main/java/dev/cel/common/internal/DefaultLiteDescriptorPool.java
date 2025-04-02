@@ -18,12 +18,28 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
+import com.google.protobuf.BoolValue;
+import com.google.protobuf.BytesValue;
+import com.google.protobuf.DoubleValue;
+import com.google.protobuf.Duration;
+import com.google.protobuf.FloatValue;
+import com.google.protobuf.Int32Value;
+import com.google.protobuf.Int64Value;
+import com.google.protobuf.ListValue;
+import com.google.protobuf.MessageLite;
+import com.google.protobuf.StringValue;
+import com.google.protobuf.Struct;
+import com.google.protobuf.Timestamp;
+import com.google.protobuf.UInt32Value;
+import com.google.protobuf.UInt64Value;
+import com.google.protobuf.Value;
 import dev.cel.common.annotations.Internal;
 import dev.cel.protobuf.CelLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.JavaType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /** Descriptor pool for {@link CelLiteDescriptor}s. */
 @Immutable
@@ -42,8 +58,10 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
 
   private static MessageLiteDescriptor newMessageInfo(WellKnownProto wellKnownProto) {
     ImmutableList.Builder<FieldLiteDescriptor> fieldDescriptors = ImmutableList.builder();
+    Supplier<MessageLite.Builder> messageBuilder = null;
     switch (wellKnownProto) {
       case JSON_STRUCT_VALUE:
+        messageBuilder = Struct::newBuilder;
         fieldDescriptors.add(
             new FieldLiteDescriptor(
                 1,
@@ -56,63 +74,79 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
                 "google.protobuf.Struct.FieldsEntry"));
         break;
       case BOOL_VALUE:
+        messageBuilder = BoolValue::newBuilder;
         fieldDescriptors.add(
             newPrimitiveFieldInfo(
                 JavaType.BOOLEAN,
                 FieldLiteDescriptor.Type.BOOL));
         break;
       case BYTES_VALUE:
+        messageBuilder = BytesValue::newBuilder;
         fieldDescriptors.add(
             newPrimitiveFieldInfo(
                 JavaType.BYTE_STRING,
                 FieldLiteDescriptor.Type.BYTES));
         break;
       case DOUBLE_VALUE:
+        messageBuilder = DoubleValue::newBuilder;
         fieldDescriptors.add(
             newPrimitiveFieldInfo(
                 JavaType.DOUBLE,
                 FieldLiteDescriptor.Type.DOUBLE));
         break;
       case FLOAT_VALUE:
+        messageBuilder = FloatValue::newBuilder;
         fieldDescriptors.add(
             newPrimitiveFieldInfo(
                 JavaType.FLOAT,
                 FieldLiteDescriptor.Type.FLOAT));
         break;
       case INT32_VALUE:
+        messageBuilder = Int32Value::newBuilder;
         fieldDescriptors.add(
             newPrimitiveFieldInfo(
                 JavaType.INT,
                 FieldLiteDescriptor.Type.INT32));
         break;
       case INT64_VALUE:
+        messageBuilder = Int64Value::newBuilder;
         fieldDescriptors.add(
             newPrimitiveFieldInfo(
                 JavaType.LONG,
                 FieldLiteDescriptor.Type.INT64));
         break;
       case STRING_VALUE:
+        messageBuilder = StringValue::newBuilder;
         fieldDescriptors.add(
             newPrimitiveFieldInfo(
                 JavaType.STRING,
                 FieldLiteDescriptor.Type.STRING));
         break;
       case UINT32_VALUE:
+        messageBuilder = UInt32Value::newBuilder;
         fieldDescriptors.add(
             newPrimitiveFieldInfo(
                 JavaType.INT,
                 FieldLiteDescriptor.Type.UINT32));
         break;
       case UINT64_VALUE:
+        messageBuilder = UInt64Value::newBuilder;
         fieldDescriptors.add(
             newPrimitiveFieldInfo(
                 JavaType.LONG,
                 FieldLiteDescriptor.Type.UINT64));
         break;
       case JSON_VALUE:
+        messageBuilder = Value::newBuilder;
+        break;
       case JSON_LIST_VALUE:
+        messageBuilder = ListValue::newBuilder;
+        break;
       case DURATION:
+        messageBuilder = Duration::newBuilder;
+        break;
       case TIMESTAMP:
+        messageBuilder = Timestamp::newBuilder;
         // TODO: Complete these
         break;
       default:
@@ -120,7 +154,10 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
     }
 
     return new MessageLiteDescriptor(
-        wellKnownProto.typeName(), fieldDescriptors.build());
+        wellKnownProto.typeName(),
+        fieldDescriptors.build(),
+        messageBuilder
+      );
   }
 
   private static FieldLiteDescriptor newPrimitiveFieldInfo(

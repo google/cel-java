@@ -220,6 +220,25 @@ public class CelLiteDescriptorEvaluationTest {
   }
 
   @Test
+  public void smokeTest() throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("msg.single_bool_wrapper").getAst();
+    // CelAbstractSyntaxTree ast = CEL_COMPILER.compile("has(msg.single_bool_wrapper)").getAst();
+    // CelAbstractSyntaxTree ast = CEL_COMPILER.compile("has(msg.single_nested_message)").getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder()
+            // .setSingleNestedMessage(NestedMessage.getDefaultInstance())
+            .setSingleBoolWrapper(BoolValue.of(true))
+            .build();
+
+    Object foo = msg.getSingleBoolWrapper();
+    System.out.println(foo);
+
+    boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
   @TestParameters("{expression: 'has(msg.single_int32)'}")
   @TestParameters("{expression: 'has(msg.single_int64)'}")
   @TestParameters("{expression: 'has(msg.single_int32_wrapper)'}")
