@@ -36,7 +36,9 @@ import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -111,23 +113,6 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
 
   private Object readLengthDelimitedField(CodedInputStream inputStream, FieldLiteDescriptor fieldDescriptor) throws IOException {
     FieldLiteDescriptor.Type fieldType = fieldDescriptor.getProtoFieldType();
-    if (fieldDescriptor.getCelFieldValueType().equals(CelFieldValueType.LIST)) {
-      // Non-packed example
-      // evil.add(readPrimitiveField(inputStream, fieldType));
-      // return evil;
-
-      // Assume packed structure for now. We will have to separately collect this information.
-      int length = inputStream.readInt32();
-      int limit = inputStream.pushLimit(length);
-      List<Object> repeatedFieldValues = new ArrayList<>();
-      while (inputStream.getBytesUntilLimit() > 0) {
-        Object value = readPrimitiveField(inputStream, fieldDescriptor.getProtoFieldType());
-        repeatedFieldValues.add(value);
-      }
-      inputStream.popLimit(limit);
-
-      return Collections.unmodifiableList(repeatedFieldValues);
-    }
 
     switch (fieldType) {
       case BYTES:
@@ -181,58 +166,17 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     }
   }
 
-  /**
-   * TODO: Naive implementation. We could cache incrementally as we read the bytes, or just parse the whole thing then store it in a map.
-   */
-  private Object parsePayloadFromBytes(
-      byte[] bytes,
-      MessageLiteDescriptor messageDescriptor,
-      FieldLiteDescriptor selectedFieldDescriptor) throws IOException {
-    CodedInputStream inputStream = CodedInputStream.newInstance(bytes);
-
-    for (int iterCount = 0; iterCount < bytes.length; iterCount++) {
-      int tag = inputStream.readTag();
-      if (tag == 0) {
-        break;
-      }
-
-      int tagWireType = WireFormat.getTagWireType(tag);
-      int fieldNumber = WireFormat.getTagFieldNumber(tag);
-      FieldLiteDescriptor currentFieldDescriptor = messageDescriptor.getByFieldNumberOrThrow(fieldNumber);
-
-      Object payload = null;
-      switch (tagWireType) {
-        case WireFormat.WIRETYPE_VARINT:
-          payload = readPrimitiveField(inputStream, currentFieldDescriptor.getProtoFieldType());
-          break;
-        case WireFormat.WIRETYPE_FIXED32:
-          payload = readFixed32BitField(inputStream, currentFieldDescriptor);
-          break;
-        case WireFormat.WIRETYPE_FIXED64:
-          payload = readFixed64BitField(inputStream, currentFieldDescriptor);
-          break;
-        case WireFormat.WIRETYPE_LENGTH_DELIMITED:
-          payload = readLengthDelimitedField(inputStream, currentFieldDescriptor);
-          break;
-        case WireFormat.WIRETYPE_START_GROUP:
-        case WireFormat.WIRETYPE_END_GROUP:
-          throw new UnsupportedOperationException("Groups are not supported");
-      }
-
-      if (fieldNumber == selectedFieldDescriptor.getFieldNumber()) {
-        // Enums have a type name, but it's considered a primitive integer in CEL.
-        String fieldProtoTypeName = selectedFieldDescriptor.getFieldProtoTypeName();
-        boolean isPrimitive = fieldProtoTypeName.isEmpty()
-            || selectedFieldDescriptor.getProtoFieldType().equals(FieldLiteDescriptor.Type.ENUM);
-        if (isPrimitive) {
-          return payload;
-        }
-
-        return payload;
-      }
+  private List<Object> readPackedRepeatedFields(CodedInputStream inputStream, FieldLiteDescriptor fieldDescriptor)
+      throws IOException {
+    int length = inputStream.readInt32();
+    int limit = inputStream.pushLimit(length);
+    List<Object> repeatedFieldValues = new ArrayList<>();
+    while (inputStream.getBytesUntilLimit() > 0) {
+      Object value = readPrimitiveField(inputStream, fieldDescriptor.getProtoFieldType());
+      repeatedFieldValues.add(value);
     }
-
-    return getDefaultValue(selectedFieldDescriptor);
+    inputStream.popLimit(limit);
+    return Collections.unmodifiableList(repeatedFieldValues);
   }
 
   ImmutableMap<String, Object> readAllFields(MessageLite msg, String protoTypeName)
@@ -241,7 +185,8 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     byte[] bytes = msg.toByteArray();
     CodedInputStream inputStream = CodedInputStream.newInstance(bytes);
 
-    ImmutableMap.Builder<String, Object> fieldValues = ImmutableMap.builder();
+    Map<String, Object> fieldValues = new HashMap<>();
+    Map<Integer, List<Object>> nonPackedRepeatedFields = new HashMap<>();
     for (int iterCount = 0; iterCount < bytes.length; iterCount++) {
       int tag = inputStream.readTag();
       if (tag == 0) {
@@ -264,7 +209,17 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
           payload = readFixed64BitField(inputStream, fieldDescriptor);
           break;
         case WireFormat.WIRETYPE_LENGTH_DELIMITED:
-          payload = readLengthDelimitedField(inputStream, fieldDescriptor);
+          if (fieldDescriptor.getCelFieldValueType().equals(CelFieldValueType.LIST)) {
+            if (fieldDescriptor.getIsPacked()) {
+              payload = readPackedRepeatedFields(inputStream, fieldDescriptor);
+            } else {
+              List<Object> repeatedValues = nonPackedRepeatedFields.computeIfAbsent(fieldNumber, (unused) -> new ArrayList<>());
+              repeatedValues.add(readPrimitiveField(inputStream, fieldDescriptor.getProtoFieldType()));
+              payload = repeatedValues;
+            }
+          } else {
+            payload = readLengthDelimitedField(inputStream, fieldDescriptor);
+          }
           break;
         case WireFormat.WIRETYPE_START_GROUP:
         case WireFormat.WIRETYPE_END_GROUP:
@@ -287,9 +242,7 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
       fieldValues.put(fieldDescriptor.getFieldName(), payload);
     }
 
-    // return getDefaultValue(selectedFieldDescriptor);
-
-    return fieldValues.buildOrThrow();
+    return ImmutableMap.copyOf(fieldValues);
   }
 
   Object getDefaultValue(String protoTypeName, String fieldName) {
@@ -297,32 +250,6 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     FieldLiteDescriptor fieldDescriptor = messageDescriptor.getByFieldNameOrThrow(fieldName);
 
     return getDefaultValue(fieldDescriptor);
-  }
-
-  /** Adapts the protobuf message field into {@link CelValue}. */
-  CelValue fromProtoMessageFieldToCelValue(MessageLite msg, MessageLiteDescriptor messageDescriptor, FieldLiteDescriptor fieldDescriptor) {
-    checkNotNull(msg);
-    checkNotNull(fieldDescriptor);
-
-    Object fieldValue;
-    try {
-      fieldValue = parsePayloadFromBytes(msg.toByteArray(), messageDescriptor, fieldDescriptor);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-
-    switch (fieldDescriptor.getProtoFieldType()) {
-      case UINT32:
-        fieldValue = UnsignedLong.valueOf((int) fieldValue);
-        break;
-      case UINT64:
-        fieldValue = UnsignedLong.valueOf((long) fieldValue);
-        break;
-      default:
-        break;
-    }
-
-    return fromJavaObjectToCelValue(fieldValue);
   }
 
   @Override

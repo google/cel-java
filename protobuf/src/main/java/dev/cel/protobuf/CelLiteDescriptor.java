@@ -157,6 +157,7 @@ public abstract class CelLiteDescriptor {
     private final Type protoFieldType;
     private final CelFieldValueType celFieldValueType;
     private final boolean hasHasser;
+    private final boolean isPacked;
 
     /**
      * Enumeration of the CEL field value type. This is analogous to the following from field
@@ -255,6 +256,13 @@ public abstract class CelLiteDescriptor {
     }
 
     /**
+     * Checks whether the repeated field is packed.
+     */
+    public boolean getIsPacked() {
+      return isPacked;
+    }
+
+    /**
      * Gets the fully qualified protobuf message field name, including its package name (ex:
      * cel.expr.conformance.proto3.TestAllTypes.single_string)
      */
@@ -297,6 +305,7 @@ public abstract class CelLiteDescriptor {
         String celFieldValueType, // LIST, MAP, SCALAR
         String protoFieldType, // INT32, SINT32, GROUP, MESSAGE... (See Descriptors#Type)
         boolean hasHasser,
+        boolean isPacked,
         String fieldProtoTypeName) {
       this.fieldNumber = fieldNumber;
       this.fieldName = checkNotNull(fieldName);
@@ -305,6 +314,7 @@ public abstract class CelLiteDescriptor {
       this.celFieldValueType = CelFieldValueType.valueOf(checkNotNull(celFieldValueType));
       this.protoFieldType = Type.valueOf(protoFieldType);
       this.hasHasser = hasHasser;
+      this.isPacked = isPacked;
       this.fieldProtoTypeName = checkNotNull(fieldProtoTypeName);
     }
   }

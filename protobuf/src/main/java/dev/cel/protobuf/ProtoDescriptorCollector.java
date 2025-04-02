@@ -85,6 +85,7 @@ final class ProtoDescriptorCollector {
                 /* celFieldValueType= */ fieldValueType.toString(),
                 /* protoFieldType= */ fieldDescriptor.getType().toString(),
                 /* hasHasser= */ fieldDescriptor.hasPresence(),
+                /* isPacked= */ fieldDescriptor.isPacked(),
                 /* fieldProtoTypeName= */ embeddedFieldProtoTypeName));
 
         debugPrinter.print(

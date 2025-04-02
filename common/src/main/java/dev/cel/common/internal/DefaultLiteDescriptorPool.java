@@ -77,6 +77,7 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
                 FieldLiteDescriptor.CelFieldValueType.MAP.toString(),
                 FieldLiteDescriptor.Type.MESSAGE.toString(),
                 false,
+                false,
                 "google.protobuf.Struct.FieldsEntry"));
         break;
       case BOOL_VALUE:
@@ -176,6 +177,7 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
         javaType.toString(),
         FieldLiteDescriptor.CelFieldValueType.SCALAR.toString(),
         protoFieldType.toString(),
+        false,
         false,
         "");
   }

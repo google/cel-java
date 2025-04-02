@@ -143,12 +143,12 @@ public class CelLiteDescriptorEvaluationTest {
             .addRepeatedInt64(1L)
             .addRepeatedInt64(2L)
             .build();
-
     List<Long> result =
         (List<Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
     assertThat(result).containsExactly(1L, 2L).inOrder();
   }
+
   @Test
   @SuppressWarnings("unchecked")
   public void fieldSelection_list_repeatedStrings() throws Exception {

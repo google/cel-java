@@ -49,6 +49,7 @@ public final class ${descriptor_class_name} extends CelLiteDescriptor {
       "${value.celFieldValueType}",
       "${value.protoFieldType}",
       ${value.hasHasser},
+      ${value.isPacked},
       "${value.fieldProtoTypeName}"
       ));
       </#list>

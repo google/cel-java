@@ -60,9 +60,12 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
 
   @Override
   public CelValue select(StringValue field) {
-    Object fieldValue = fieldValues().getOrDefault(
-          field.value(),
-          protoLiteCelValueConverter().getDefaultValue(celType().name(), field.value()));
+    String fieldName = field.value();
+    Object fieldValue = fieldValues().get(fieldName);
+    if (fieldValue == null) {
+      fieldValue = protoLiteCelValueConverter().getDefaultValue(celType().name(), fieldName);
+    }
+
     return protoLiteCelValueConverter().fromJavaObjectToCelValue(fieldValue);
   }
 
