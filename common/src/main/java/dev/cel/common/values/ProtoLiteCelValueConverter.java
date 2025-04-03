@@ -126,8 +126,7 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
           inputStream.readMessage(builder, ExtensionRegistryLite.getEmptyRegistry());
           return builder.build();
         } else {
-          // This is typically not very useful
-          return inputStream.readBytes();
+          throw new UnsupportedOperationException("Nested message not supported yet.");
         }
       case STRING:
         return inputStream.readStringRequireUtf8();
@@ -137,32 +136,42 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
   }
 
   private static Object getDefaultValue(FieldLiteDescriptor fieldDescriptor) {
-    FieldLiteDescriptor.JavaType type = fieldDescriptor.getJavaType();
-    switch (type) {
-      case INT:
-        return fieldDescriptor.getProtoFieldType().equals(FieldLiteDescriptor.Type.UINT32) ? UnsignedLong.ZERO : Defaults.defaultValue(long.class);
-      case LONG:
-        return fieldDescriptor.getProtoFieldType().equals(FieldLiteDescriptor.Type.UINT64) ? UnsignedLong.ZERO : Defaults.defaultValue(long.class);
-      case FLOAT:
-        return Defaults.defaultValue(float.class);
-      case DOUBLE:
-        return Defaults.defaultValue(double.class);
-      case BOOLEAN:
-        return Defaults.defaultValue(boolean.class);
-      case STRING:
-        return "";
-      case BYTE_STRING:
-        return ByteString.EMPTY;
-      case ENUM: // Ordinarily, an enum value descriptor is returned for this one. We'll need a different representation here.
-        throw new UnsupportedOperationException("Not yet implemented");
-      case MESSAGE:
-        if (WellKnownProto.isWrapperType(fieldDescriptor.getFieldProtoTypeName())) {
-          return NullValue.NULL_VALUE;
-        } else {
-          throw new UnsupportedOperationException("Not yet implemented");
-        }
+    FieldLiteDescriptor.CelFieldValueType celFieldValueType = fieldDescriptor.getCelFieldValueType();
+    switch (celFieldValueType) {
+      case LIST:
+        return Collections.unmodifiableList(new ArrayList<>());
+      case MAP:
+        return Collections.unmodifiableMap(new HashMap<>());
+      case SCALAR:
+        FieldLiteDescriptor.JavaType type = fieldDescriptor.getJavaType();
+        switch (type) {
+          case INT:
+            return fieldDescriptor.getProtoFieldType().equals(FieldLiteDescriptor.Type.UINT32) ? UnsignedLong.ZERO : Defaults.defaultValue(long.class);
+          case LONG:
+            return fieldDescriptor.getProtoFieldType().equals(FieldLiteDescriptor.Type.UINT64) ? UnsignedLong.ZERO : Defaults.defaultValue(long.class);
+          case ENUM:
+            return Defaults.defaultValue(long.class);
+          case FLOAT:
+            return Defaults.defaultValue(float.class);
+          case DOUBLE:
+            return Defaults.defaultValue(double.class);
+          case BOOLEAN:
+            return Defaults.defaultValue(boolean.class);
+          case STRING:
+            return "";
+          case BYTE_STRING:
+            return ByteString.EMPTY;
+          case MESSAGE:
+            if (WellKnownProto.isWrapperType(fieldDescriptor.getFieldProtoTypeName())) {
+              return NullValue.NULL_VALUE;
+            } else {
+              throw new UnsupportedOperationException("Default value for nested message not yet implemented.");
+            }
+          default:
+            throw new IllegalStateException("Unexpected java type: " + type);
+          }
       default:
-        throw new IllegalStateException("Unexpected java type: " + type);
+        throw new IllegalStateException("Unexpected cel field value type: " + celFieldValueType);
     }
   }
 
@@ -216,20 +225,29 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
           payload = readFixed64BitField(inputStream, fieldDescriptor);
           break;
         case WireFormat.WIRETYPE_LENGTH_DELIMITED:
-          if (fieldDescriptor.getCelFieldValueType().equals(CelFieldValueType.LIST)) {
-            if (fieldDescriptor.getIsPacked()) {
-              payload = readPackedRepeatedFields(inputStream, fieldDescriptor);
-            } else {
-              List<Object> repeatedValues = nonPackedRepeatedFields.computeIfAbsent(fieldNumber, (unused) -> new ArrayList<>());
-              repeatedValues.add(readPrimitiveField(inputStream, fieldDescriptor.getProtoFieldType()));
-              payload = repeatedValues;
-            }
-          } else if (fieldDescriptor.getCelFieldValueType().equals(CelFieldValueType.MAP)){
-            Map<Object, Object> fieldMap = mapFieldValues.computeIfAbsent(fieldNumber, (unused) -> new HashMap<>());
-            fieldMap.putAll(readSingleMapEntry(inputStream, fieldDescriptor));
-            payload = fieldMap;
-          } else {
-            payload = readLengthDelimitedField(inputStream, fieldDescriptor);
+          CelFieldValueType celFieldValueType = fieldDescriptor.getCelFieldValueType();
+          switch (celFieldValueType) {
+            case LIST:
+              if (fieldDescriptor.getIsPacked()) {
+                payload = readPackedRepeatedFields(inputStream, fieldDescriptor);
+              } else {
+                List<Object> repeatedValues = nonPackedRepeatedFields.computeIfAbsent(fieldNumber, (unused) -> new ArrayList<>());
+                Object elementValue = fieldDescriptor.getProtoFieldType().equals(
+                    FieldLiteDescriptor.Type.MESSAGE) ?
+                    readLengthDelimitedField(inputStream, fieldDescriptor) :
+                    readPrimitiveField(inputStream, fieldDescriptor.getProtoFieldType());
+                repeatedValues.add(elementValue);
+                payload = repeatedValues;
+              }
+              break;
+            case MAP:
+              Map<Object, Object> fieldMap = mapFieldValues.computeIfAbsent(fieldNumber, (unused) -> new HashMap<>());
+              fieldMap.putAll(readSingleMapEntry(inputStream, fieldDescriptor));
+              payload = fieldMap;
+              break;
+            default:
+              payload = readLengthDelimitedField(inputStream, fieldDescriptor);
+              break;
           }
           break;
         case WireFormat.WIRETYPE_START_GROUP:

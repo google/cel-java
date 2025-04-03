@@ -45,6 +45,9 @@ import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
 import dev.cel.parser.CelStandardMacro;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
@@ -135,7 +138,8 @@ public class CelLiteDescriptorEvaluationTest {
   @TestParameters("{expression: 'msg.repeated_int32'}")
   @TestParameters("{expression: 'msg.repeated_int64'}")
   @SuppressWarnings("unchecked")
-  public void fieldSelection_list_repeatedInts(String expression) throws Exception {
+  public void fieldSelection_packedRepeatedInts(String expression) throws Exception {
+    // Note: non-LEN delimited primitives such as ints are packed by default in proto3
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
     TestAllTypes msg =
         TestAllTypes.newBuilder()
@@ -144,6 +148,7 @@ public class CelLiteDescriptorEvaluationTest {
             .addRepeatedInt64(1L)
             .addRepeatedInt64(2L)
             .build();
+
     List<Long> result =
         (List<Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
@@ -152,18 +157,38 @@ public class CelLiteDescriptorEvaluationTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void fieldSelection_list_repeatedStrings() throws Exception {
+  public void fieldSelection_repeatedStrings() throws Exception {
+    // Note: len-delimited fields, such as string and messages are not packed.
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile("msg.repeated_string").getAst();
     TestAllTypes msg =
         TestAllTypes.newBuilder()
             .addRepeatedString("hello")
             .addRepeatedString("world")
             .build();
+
     List<Long> result =
         (List<Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
     assertThat(result).containsExactly("hello", "world").inOrder();
   }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void fieldSelection_repeatedBoolWrappers() throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("msg.repeated_bool_wrapper").getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder()
+            .addRepeatedBoolWrapper(BoolValue.of(true))
+            .addRepeatedBoolWrapper(BoolValue.of(false))
+            .addRepeatedBoolWrapper(BoolValue.of(true))
+            .build();
+
+    List<Boolean> result =
+        (List<Boolean>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).containsExactly(true, false, true).inOrder();
+  }
+
 
   @Test
   @TestParameters("{expression: 'msg.map_string_int32'}")
@@ -232,49 +257,6 @@ public class CelLiteDescriptorEvaluationTest {
     Object result = CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
     assertThat(result).isEqualTo(NullValue.NULL_VALUE);
-  }
-
-  @Test
-  public void smokeTest() throws Exception {
-    String expression = "has(msg.single_int32)";
-    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
-    TestAllTypes msg =
-        TestAllTypes.newBuilder()
-            .setSingleInt32(1)
-            .setSingleInt64(2)
-            .setSingleInt32Wrapper(Int32Value.of(0))
-            .setSingleInt64Wrapper(Int64Value.of(0))
-            .addAllRepeatedInt32(ImmutableList.of(1))
-            .addAllRepeatedInt64(ImmutableList.of(2L))
-            .addAllRepeatedInt32Wrapper(ImmutableList.of(Int32Value.of(0)))
-            .addAllRepeatedInt64Wrapper(ImmutableList.of(Int64Value.of(0L)))
-            .putAllMapStringInt32Wrapper(ImmutableMap.of("a", Int32Value.of(1)))
-            .putAllMapStringInt64Wrapper(ImmutableMap.of("b", Int64Value.of(2L)))
-            .putMapStringInt32("a", 1)
-            .putMapStringInt64("b", 2)
-            .build();
-
-    boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
-
-    assertThat(result).isTrue();
-  }
-
-  @Test
-  public void smokeTest2() throws Exception {
-    String expression = "msg.map_string_int32";
-    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
-    TestAllTypes msg =
-        TestAllTypes.newBuilder()
-            .putMapStringInt32("a", 1)
-            .putMapStringInt32("b", 2)
-            // .putMapStringInt64("a", 1L)
-            // .putMapStringInt64("b", 2L)
-            .build();
-
-    Map<String, Long> result =
-        (Map<String, Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
-
-    assertThat(result).containsExactly("a", 1L, "b", 2L);
   }
 
   @Test
@@ -387,18 +369,21 @@ public class CelLiteDescriptorEvaluationTest {
     INT64("msg.single_int64", 0L),
     UINT32("msg.single_uint32", UnsignedLong.ZERO),
     UINT64("msg.single_uint64", UnsignedLong.ZERO),
-    SINT32("msg.single_sint32", 0),
+    SINT32("msg.single_sint32", 0L),
     SINT64("msg.single_sint64", 0L),
-    FIXED32("msg.single_fixed32", 0),
+    FIXED32("msg.single_fixed32", 0L),
     FIXED64("msg.single_fixed64", 0L),
-    SFIXED32("msg.single_sfixed32", 0),
+    SFIXED32("msg.single_sfixed32", 0L),
     SFIXED64("msg.single_sfixed64", 0L),
     FLOAT("msg.single_float", 0.0d),
     DOUBLE("msg.single_double", 0.0d),
     BOOL("msg.single_bool", false),
     STRING("msg.single_string", ""),
     BYTES("msg.single_bytes", ByteString.EMPTY),
+    ENUM("msg.standalone_enum", 0L),
     OPTIONAL_BOOL("msg.optional_bool", false),
+    REPEATED_STRING("msg.repeated_string", Collections.unmodifiableList(new ArrayList<>())),
+    MAP_INT32_BOOL("msg.map_int32_bool", Collections.unmodifiableMap(new HashMap<>())),
     ;
 
     private final String expression;
