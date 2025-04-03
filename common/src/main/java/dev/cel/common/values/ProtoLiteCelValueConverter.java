@@ -20,7 +20,6 @@ import com.google.common.base.Defaults;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
-import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.ExtensionRegistryLite;
@@ -40,7 +39,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 /**
  * {@code ProtoLiteCelValueConverter} handles bidirectional conversion between native Java and
@@ -310,44 +308,10 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
 
     switch (wellKnownProto) {
       case ANY_VALUE:
-        return unpackAnyMessage((Any) msg);
+        throw new UnsupportedOperationException("Any messages are not supported yet");
       default:
         return super.fromWellKnownProtoToCelValue(msg, wellKnownProto);
     }
-  }
-
-  private CelValue unpackAnyMessage(Any anyMsg) {
-    throw new UnsupportedOperationException("Unsupported");
-    // String typeUrl =
-    //     getTypeNameFromTypeUrl(anyMsg.getTypeUrl())
-    //         .orElseThrow(
-    //             () ->
-    //                 new IllegalArgumentException(
-    //                     String.format("malformed type URL: %s", anyMsg.getTypeUrl())));
-    // MessageLiteDescriptor messageInfo =
-    //     descriptorPool
-    //         .findDescriptorByTypeName(typeUrl)
-    //         .orElseThrow(
-    //             () ->
-    //                 new NoSuchElementException(
-    //                     "Could not find message info for any packed message's type name: "
-    //                         + anyMsg));
-    //
-    // Method method =
-    //     ReflectionUtil.getMethod(
-    //         messageInfo.getFullyQualifiedProtoJavaClassName(), "parseFrom", ByteString.class);
-    // ByteString packedBytes = anyMsg.getValue();
-    // MessageLite unpackedMsg = (MessageLite) ReflectionUtil.invoke(method, null, packedBytes);
-    //
-    // return fromProtoMessageToCelValue(unpackedMsg);
-  }
-
-  private static Optional<String> getTypeNameFromTypeUrl(String typeUrl) {
-    int pos = typeUrl.lastIndexOf('/');
-    if (pos != -1) {
-      return Optional.of(typeUrl.substring(pos + 1));
-    }
-    return Optional.empty();
   }
 
   private ProtoLiteCelValueConverter(CelLiteDescriptorPool celLiteDescriptorPool) {

@@ -95,10 +95,6 @@ public abstract class CelLiteDescriptor {
     }
 
     public MessageLite.Builder newMessageBuilder() {
-      // TODO: Guard?
-      if (messageBuilderSupplier == null) {
-        return null;
-      }
       return messageBuilderSupplier.get();
     }
 
@@ -111,7 +107,7 @@ public abstract class CelLiteDescriptor {
     public MessageLiteDescriptor(
         String fullyQualifiedProtoTypeName,
         List<FieldLiteDescriptor> fieldLiteDescriptors) {
-      this(fullyQualifiedProtoTypeName, fieldLiteDescriptors, null);
+      this(fullyQualifiedProtoTypeName, fieldLiteDescriptors, () -> null);
     }
 
     /**

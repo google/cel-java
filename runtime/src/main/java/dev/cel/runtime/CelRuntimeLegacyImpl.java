@@ -40,7 +40,6 @@ import dev.cel.common.internal.DefaultLiteDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 // CEL-Internal-3
-import dev.cel.common.internal.ProtoLiteAdapter;
 import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.values.CelValueProvider;
@@ -323,7 +322,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
               ProtoCelValueConverter.newInstance(celDescriptorPool, dynamicProto);
 
           runtimeTypeProvider =
-              new RuntimeTypeProviderLegacyImpl(messageValueProvider, protoCelValueConverter);
+              new CelValueRuntimeTypeProvider(messageValueProvider, protoCelValueConverter);
         } else {
           DefaultLiteDescriptorPool celLiteDescriptorPool =
               DefaultLiteDescriptorPool.newInstance(liteDescriptors);
@@ -341,7 +340,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
           }
 
           runtimeTypeProvider =
-              new RuntimeTypeProviderLegacyImpl(messageValueProvider, protoLiteCelValueConverter);
+              new CelValueRuntimeTypeProvider(messageValueProvider, protoLiteCelValueConverter);
         }
 
       } else {

@@ -21,8 +21,6 @@ import static dev.cel.common.CelOverloadDecl.newGlobalOverload;
 import static dev.cel.common.CelOverloadDecl.newMemberOverload;
 import static org.junit.Assert.assertThrows;
 
-import com.google.protobuf.Descriptors.Descriptor;
-import com.google.protobuf.Descriptors.FieldDescriptor;
 import dev.cel.expr.CheckedExpr;
 import dev.cel.expr.Constant;
 import dev.cel.expr.Decl;

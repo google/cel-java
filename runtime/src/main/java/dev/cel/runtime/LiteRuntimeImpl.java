@@ -155,9 +155,9 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
       // TODO: Combine value providers if necessary
       RuntimeTypeProvider runtimeTypeProvider = null;
       if (valueProvider instanceof ProtoMessageLiteValueProvider) {
-        runtimeTypeProvider = new RuntimeTypeProviderLegacyImpl((ProtoMessageLiteValueProvider) valueProvider);
+        runtimeTypeProvider = new CelValueRuntimeTypeProvider((ProtoMessageLiteValueProvider) valueProvider);
       } else {
-        runtimeTypeProvider = new RuntimeTypeProviderLegacyImpl(celValueProvider,
+        runtimeTypeProvider = new CelValueRuntimeTypeProvider(celValueProvider,
             ProtoLiteCelValueConverter.newInstance(DefaultLiteDescriptorPool.newInstance(ImmutableSet.of())));
       }
 

@@ -67,8 +67,10 @@ public class CelLiteDescriptorEvaluationTest {
   private static final CelLiteRuntime CEL_RUNTIME =
       CelLiteRuntimeFactory.newLiteRuntimeBuilder()
           .setStandardFunctions(CelStandardFunctions.newBuilder().build())
-          .setValueProvider(ProtoMessageLiteValueProvider.newInstance(
-              TestAllTypesCelLiteDescriptor.getDescriptor()))
+          .setValueProvider(
+              ProtoMessageLiteValueProvider.newInstance(
+                TestAllTypesCelLiteDescriptor.getDescriptor())
+          )
           .build();
 
   @Test

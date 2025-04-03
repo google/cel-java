@@ -32,7 +32,7 @@ import java.util.NoSuchElementException;
 /** Bridge between the old RuntimeTypeProvider and CelValueProvider APIs. */
 @Internal
 @Immutable
-final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider {
+final class CelValueRuntimeTypeProvider implements RuntimeTypeProvider {
 
   private final CelValueProvider valueProvider;
   private final BaseProtoCelValueConverter protoCelValueConverter;
@@ -40,7 +40,7 @@ final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider {
   @SuppressWarnings("Immutable") // Lazily populated cache. Does not change any observable behavior.
   private final HashMap<MessageLite, CelValue> celMessageLiteCache;
 
-  RuntimeTypeProviderLegacyImpl(
+  CelValueRuntimeTypeProvider(
       ProtoMessageLiteValueProvider protoMessageLiteValueProvider) {
     this.valueProvider = protoMessageLiteValueProvider;
     this.protoCelValueConverter = protoMessageLiteValueProvider.getProtoLiteCelValueConverter();
@@ -48,7 +48,7 @@ final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider {
   }
 
 
-  RuntimeTypeProviderLegacyImpl(
+  CelValueRuntimeTypeProvider(
       CelValueProvider valueProvider, BaseProtoCelValueConverter protoCelValueConverter) {
     this.valueProvider = valueProvider;
     this.protoCelValueConverter = protoCelValueConverter;
@@ -89,11 +89,8 @@ final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider {
   private SelectableValue<CelValue> getSelectableValueOrThrow(String typeName, Object obj, String fieldName) {
     CelValue convertedCelValue = null;
     if ((obj instanceof MessageLite)) {
-      convertedCelValue = celMessageLiteCache.get((MessageLite) obj);
-      if (convertedCelValue == null) {
-        throwInvalidFieldSelection(fieldName);
-      }
-      // convertedCelValue = protoCelValueConverter.fromProtoMessageToCelValue(typeName, (MessageLite) obj);
+      convertedCelValue = celMessageLiteCache.computeIfAbsent((MessageLite) obj, (msg) -> protoCelValueConverter.fromProtoMessageToCelValue(typeName,
+          msg));
     } else if ((obj instanceof Map)) {
       convertedCelValue = protoCelValueConverter.fromJavaObjectToCelValue(obj);
     } else {
@@ -116,7 +113,7 @@ final class RuntimeTypeProviderLegacyImpl implements RuntimeTypeProvider {
 
     CelValue convertedCelValue;
     if (message instanceof MessageLite) {
-      convertedCelValue = celMessageLiteCache.computeIfAbsent((MessageLite) message, (msg) -> protoCelValueConverter.fromProtoMessageToCelValue(typeName, (MessageLite) message));
+      convertedCelValue = celMessageLiteCache.computeIfAbsent((MessageLite) message, (msg) -> protoCelValueConverter.fromProtoMessageToCelValue(typeName, (MessageLite) msg));
     } else {
       convertedCelValue = protoCelValueConverter.fromJavaObjectToCelValue(message);
     }

@@ -643,6 +643,7 @@ java_library(
     ],
     deps = [
         ":activation",
+        ":cel_value_runtime_type_provider",
         ":descriptor_message_provider",
         ":descriptor_type_resolver",
         ":dispatcher",
@@ -658,7 +659,6 @@ java_library(
         ":proto_message_runtime_equality",
         ":runtime_equality",
         ":runtime_type_provider",
-        ":runtime_type_provider_legacy",
         ":standard_functions",
         ":unknown_attributes",
         "//:auto_value",
@@ -713,6 +713,7 @@ java_library(
     ],
     deps = [
         ":activation",
+        ":cel_value_runtime_type_provider",
         ":dispatcher",
         ":evaluation_exception",
         ":function_binding",
@@ -722,7 +723,6 @@ java_library(
         ":runtime_equality",
         ":runtime_helpers",
         ":runtime_type_provider",
-        ":runtime_type_provider_legacy",
         ":standard_functions",
         ":type_resolver",
         "//:auto_value",
@@ -745,6 +745,7 @@ cel_android_library(
     ],
     deps = [
         ":activation_android",
+        ":cel_value_runtime_type_provider_android",
         ":dispatcher_android",
         ":evaluation_exception",
         ":function_binding_android",
@@ -754,7 +755,6 @@ cel_android_library(
         ":runtime_equality_android",
         ":runtime_helpers_android",
         ":runtime_type_provider_android",
-        ":runtime_type_provider_legacy_android",
         ":standard_functions_android",
         ":type_resolver_android",
         "//:auto_value",
@@ -852,8 +852,8 @@ cel_android_library(
 )
 
 java_library(
-    name = "runtime_type_provider_legacy",
-    srcs = ["RuntimeTypeProviderLegacyImpl.java"],
+    name = "cel_value_runtime_type_provider",
+    srcs = ["CelValueRuntimeTypeProvider.java"],
     deps = [
         ":runtime_type_provider",
         ":unknown_attributes",
@@ -872,8 +872,8 @@ java_library(
 )
 
 cel_android_library(
-    name = "runtime_type_provider_legacy_android",
-    srcs = ["RuntimeTypeProviderLegacyImpl.java"],
+    name = "cel_value_runtime_type_provider_android",
+    srcs = ["CelValueRuntimeTypeProvider.java"],
     deps = [
         ":runtime_type_provider_android",
         ":unknown_attributes_android",
