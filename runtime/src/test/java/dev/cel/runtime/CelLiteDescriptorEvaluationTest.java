@@ -31,6 +31,7 @@ import com.google.protobuf.NullValue;
 import com.google.protobuf.StringValue;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
+import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -235,17 +236,23 @@ public class CelLiteDescriptorEvaluationTest {
 
   @Test
   public void smokeTest() throws Exception {
-    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("msg.single_bool_wrapper").getAst();
-    // CelAbstractSyntaxTree ast = CEL_COMPILER.compile("has(msg.single_bool_wrapper)").getAst();
-    // CelAbstractSyntaxTree ast = CEL_COMPILER.compile("has(msg.single_nested_message)").getAst();
+    String expression = "has(msg.single_int32)";
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
     TestAllTypes msg =
         TestAllTypes.newBuilder()
-            // .setSingleNestedMessage(NestedMessage.getDefaultInstance())
-            .setSingleBoolWrapper(BoolValue.of(true))
+            .setSingleInt32(1)
+            .setSingleInt64(2)
+            .setSingleInt32Wrapper(Int32Value.of(0))
+            .setSingleInt64Wrapper(Int64Value.of(0))
+            .addAllRepeatedInt32(ImmutableList.of(1))
+            .addAllRepeatedInt64(ImmutableList.of(2L))
+            .addAllRepeatedInt32Wrapper(ImmutableList.of(Int32Value.of(0)))
+            .addAllRepeatedInt64Wrapper(ImmutableList.of(Int64Value.of(0L)))
+            .putAllMapStringInt32Wrapper(ImmutableMap.of("a", Int32Value.of(1)))
+            .putAllMapStringInt64Wrapper(ImmutableMap.of("b", Int64Value.of(2L)))
+            .putMapStringInt32("a", 1)
+            .putMapStringInt64("b", 2)
             .build();
-
-    Object foo = msg.getSingleBoolWrapper();
-    System.out.println(foo);
 
     boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
@@ -254,20 +261,20 @@ public class CelLiteDescriptorEvaluationTest {
 
   @Test
   public void smokeTest2() throws Exception {
-    String expression = "msg.repeated_int32";
+    String expression = "msg.map_string_int32";
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
     TestAllTypes msg =
         TestAllTypes.newBuilder()
-            .addRepeatedInt32(1)
-            .addRepeatedInt32(2)
-            // .addRepeatedInt64(1L)
-            // .addRepeatedInt64(2L)
+            .putMapStringInt32("a", 1)
+            .putMapStringInt32("b", 2)
+            // .putMapStringInt64("a", 1L)
+            // .putMapStringInt64("b", 2L)
             .build();
 
-    List<Long> result =
-        (List<Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+    Map<String, Long> result =
+        (Map<String, Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
-    assertThat(result).containsExactly(1L, 2L).inOrder();
+    assertThat(result).containsExactly("a", 1L, "b", 2L);
   }
 
   @Test
@@ -372,5 +379,43 @@ public class CelLiteDescriptorEvaluationTest {
         (TestAllTypes) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("content", content));
 
     assertThat(result).isEqualTo(content);
+  }
+
+  @SuppressWarnings("ImmutableEnumChecker") // Test only
+  private enum DefaultValueTestCase {
+    INT32("msg.single_int32", 0L),
+    INT64("msg.single_int64", 0L),
+    UINT32("msg.single_uint32", UnsignedLong.ZERO),
+    UINT64("msg.single_uint64", UnsignedLong.ZERO),
+    SINT32("msg.single_sint32", 0),
+    SINT64("msg.single_sint64", 0L),
+    FIXED32("msg.single_fixed32", 0),
+    FIXED64("msg.single_fixed64", 0L),
+    SFIXED32("msg.single_sfixed32", 0),
+    SFIXED64("msg.single_sfixed64", 0L),
+    FLOAT("msg.single_float", 0.0d),
+    DOUBLE("msg.single_double", 0.0d),
+    BOOL("msg.single_bool", false),
+    STRING("msg.single_string", ""),
+    BYTES("msg.single_bytes", ByteString.EMPTY),
+    OPTIONAL_BOOL("msg.optional_bool", false),
+    ;
+
+    private final String expression;
+    private final Object expectedValue;
+
+    DefaultValueTestCase(String expression, Object expectedValue) {
+      this.expression = expression;
+      this.expectedValue = expectedValue;
+    }
+  }
+
+  @Test
+  public void unsetField_defaultValue(@TestParameter DefaultValueTestCase testCase) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(testCase.expression).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", TestAllTypes.getDefaultInstance()));
+
+    assertThat(result).isEqualTo(testCase.expectedValue);
   }
 }

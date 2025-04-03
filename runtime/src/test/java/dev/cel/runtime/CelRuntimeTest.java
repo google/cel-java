@@ -700,4 +700,18 @@ public class CelRuntimeTest {
         .hasMessageThat()
         .contains("No matching overload for function 'size'. Overload candidates: size_string");
   }
+
+  @Test
+  public void smokeTest() throws Exception {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .setContainer("cel.expr.conformance.proto3")
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("TestAllTypes{}.optional_string").getAst();
+
+    Object result = cel.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(3L);
+  }
 }

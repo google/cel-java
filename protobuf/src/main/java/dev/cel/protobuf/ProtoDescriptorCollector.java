@@ -16,7 +16,6 @@ package dev.cel.protobuf;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
-import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Descriptors;
@@ -28,6 +27,8 @@ import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.CelFieldValueType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
+import java.util.ArrayDeque;
+import java.util.stream.Collectors;
 
 /**
  * ProtoDescriptorCollector inspects a {@link FileDescriptor} to collect message information into
@@ -42,18 +43,16 @@ final class ProtoDescriptorCollector {
     CelDescriptors celDescriptors =
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
             ImmutableList.of(targetFileDescriptor), /* resolveTypeDependencies= */ false);
-    ImmutableSet<Descriptor> messageTypes =
+    ArrayDeque<Descriptor> descriptorQueue =
         celDescriptors.messageTypeDescriptors().stream()
             // Don't collect WKTs. They are included separately in the default descriptor pool.
             .filter(d -> !WellKnownProto.getByTypeName(d.getFullName()).isPresent())
-            .collect(toImmutableSet());
+            .collect(Collectors.toCollection(ArrayDeque::new));
 
-    for (Descriptor descriptor : messageTypes) {
+    while (!descriptorQueue.isEmpty()) {
+      Descriptor descriptor = descriptorQueue.pop();
       ImmutableList.Builder<FieldLiteDescriptor> fieldMap = ImmutableList.builder();
       for (Descriptors.FieldDescriptor fieldDescriptor : descriptor.getFields()) {
-        String methodSuffixName =
-            CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, fieldDescriptor.getName());
-
         String javaType = fieldDescriptor.getJavaType().toString();
         String embeddedFieldProtoTypeName = "";
         switch (javaType) {
@@ -70,6 +69,9 @@ final class ProtoDescriptorCollector {
         CelFieldValueType fieldValueType;
         if (fieldDescriptor.isMapField()) {
           fieldValueType = CelFieldValueType.MAP;
+          // Maps are treated as messages in proto.
+          // TODO: Maybe create MapFieldLiteDescriptor, and just store key/value separately
+          descriptorQueue.push(fieldDescriptor.getMessageType());
         } else if (fieldDescriptor.isRepeated()) {
           fieldValueType = CelFieldValueType.LIST;
         } else {
@@ -90,9 +92,8 @@ final class ProtoDescriptorCollector {
 
         debugPrinter.print(
             String.format(
-                "Method suffix name in %s, for field %s: %s",
-                descriptor.getFullName(), fieldDescriptor.getFullName(), methodSuffixName));
-        debugPrinter.print(String.format("FieldType: %s", fieldValueType));
+                "Collecting message %s, for field %s, type: %s",
+                descriptor.getFullName(), fieldDescriptor.getFullName(), fieldValueType));
       }
 
 

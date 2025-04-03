@@ -140,9 +140,9 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     FieldLiteDescriptor.JavaType type = fieldDescriptor.getJavaType();
     switch (type) {
       case INT:
-        return Defaults.defaultValue(int.class);
+        return fieldDescriptor.getProtoFieldType().equals(FieldLiteDescriptor.Type.UINT32) ? UnsignedLong.ZERO : Defaults.defaultValue(long.class);
       case LONG:
-        return Defaults.defaultValue(long.class);
+        return fieldDescriptor.getProtoFieldType().equals(FieldLiteDescriptor.Type.UINT64) ? UnsignedLong.ZERO : Defaults.defaultValue(long.class);
       case FLOAT:
         return Defaults.defaultValue(float.class);
       case DOUBLE:
@@ -179,14 +179,21 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     return Collections.unmodifiableList(repeatedFieldValues);
   }
 
-  ImmutableMap<String, Object> readAllFields(MessageLite msg, String protoTypeName)
+  private ImmutableMap<Object, Object> readSingleMapEntry(CodedInputStream inputStream, FieldLiteDescriptor fieldDescriptor) throws IOException {
+    ImmutableMap<String, Object> singleMapEntry = readAllFields(inputStream.readByteArray(), fieldDescriptor.getFieldProtoTypeName());
+    Object key = checkNotNull(singleMapEntry.get("key"));
+    Object value = checkNotNull(singleMapEntry.get("value"));
+    return ImmutableMap.of(key, value);
+  }
+
+  private ImmutableMap<String, Object> readAllFields(byte[] bytes, String protoTypeName)
       throws IOException {
     MessageLiteDescriptor messageDescriptor = descriptorPool.getDescriptorOrThrow(protoTypeName);
-    byte[] bytes = msg.toByteArray();
     CodedInputStream inputStream = CodedInputStream.newInstance(bytes);
 
-    Map<String, Object> fieldValues = new HashMap<>();
+    ImmutableMap.Builder<String, Object> fieldValues = ImmutableMap.builder();
     Map<Integer, List<Object>> nonPackedRepeatedFields = new HashMap<>();
+    Map<Integer, Map<Object, Object>> mapFieldValues = new HashMap<>();
     for (int iterCount = 0; iterCount < bytes.length; iterCount++) {
       int tag = inputStream.readTag();
       if (tag == 0) {
@@ -217,6 +224,10 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
               repeatedValues.add(readPrimitiveField(inputStream, fieldDescriptor.getProtoFieldType()));
               payload = repeatedValues;
             }
+          } else if (fieldDescriptor.getCelFieldValueType().equals(CelFieldValueType.MAP)){
+            Map<Object, Object> fieldMap = mapFieldValues.computeIfAbsent(fieldNumber, (unused) -> new HashMap<>());
+            fieldMap.putAll(readSingleMapEntry(inputStream, fieldDescriptor));
+            payload = fieldMap;
           } else {
             payload = readLengthDelimitedField(inputStream, fieldDescriptor);
           }
@@ -242,7 +253,14 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
       fieldValues.put(fieldDescriptor.getFieldName(), payload);
     }
 
-    return ImmutableMap.copyOf(fieldValues);
+    // Protobuf encoding follows a "last one wins" semantics. This means for duplicated fields,
+    // we accept the last value encountered.
+    return fieldValues.buildKeepingLast();
+  }
+
+  ImmutableMap<String, Object> readAllFields(MessageLite msg, String protoTypeName)
+      throws IOException {
+    return readAllFields(msg.toByteArray(), protoTypeName);
   }
 
   Object getDefaultValue(String protoTypeName, String fieldName) {
