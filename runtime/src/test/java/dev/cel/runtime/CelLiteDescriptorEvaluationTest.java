@@ -28,13 +28,17 @@ import com.google.protobuf.Duration;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
+import com.google.protobuf.ListValue;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.StringValue;
+import com.google.protobuf.Struct;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
+import com.google.protobuf.Value;
 import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.Timestamps;
+import com.google.protobuf.util.Values;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
@@ -195,7 +199,6 @@ public class CelLiteDescriptorEvaluationTest {
     assertThat(result).containsExactly(true, false, true).inOrder();
   }
 
-
   @Test
   @TestParameters("{expression: 'msg.map_string_int32'}")
   @TestParameters("{expression: 'msg.map_string_int64'}")
@@ -287,6 +290,52 @@ public class CelLiteDescriptorEvaluationTest {
         (Timestamp) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
     assertThat(result).isEqualTo(Timestamps.fromSeconds(50));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void fieldSelection_jsonStruct() throws Exception {
+    String expression = "msg.single_struct";
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg = TestAllTypes.newBuilder().setSingleStruct(
+        Struct.newBuilder()
+            .putFields("one", Values.of(1))
+            .putFields("two", Values.of(true))
+    ).build();
+
+    Map<Object, Object> result =
+        (Map<Object, Object>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).containsExactly("one", 1.0d, "two", true).inOrder();
+  }
+
+  @Test
+  public void fieldSelection_jsonValue() throws Exception {
+    String expression = "msg.single_value";
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg = TestAllTypes.newBuilder().setSingleValue(
+        Values.of("foo")
+    ).build();
+
+    String result =
+        (String) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isEqualTo("foo");
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void fieldSelection_jsonListValue() throws Exception {
+    String expression = "msg.list_value";
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg = TestAllTypes.newBuilder().setListValue(
+        ListValue.newBuilder().addValues(Values.of(true)).addValues(Values.of("foo"))
+    ).build();
+
+    List<Object> result =
+        (List<Object>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).containsExactly(true, "foo").inOrder();
   }
 
   @Test
