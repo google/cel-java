@@ -38,6 +38,7 @@ final class CelValueRuntimeTypeProvider implements RuntimeTypeProvider {
   private final BaseProtoCelValueConverter protoCelValueConverter;
 
   @SuppressWarnings("Immutable") // Lazily populated cache. Does not change any observable behavior.
+  // TODO: Move to interpreter
   private final HashMap<MessageLite, CelValue> celMessageLiteCache;
 
   CelValueRuntimeTypeProvider(

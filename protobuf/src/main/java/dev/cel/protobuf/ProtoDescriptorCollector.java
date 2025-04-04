@@ -14,12 +14,14 @@
 
 package dev.cel.protobuf;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
+import dev.cel.common.internal.ProtoJavaQualifiedNames;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.CelFieldValueType;
@@ -67,7 +69,6 @@ final class ProtoDescriptorCollector {
         if (fieldDescriptor.isMapField()) {
           fieldValueType = CelFieldValueType.MAP;
           // Maps are treated as messages in proto.
-          // TODO: Maybe create MapFieldLiteDescriptor, and just store key/value separately
           descriptorQueue.push(fieldDescriptor.getMessageType());
         } else if (fieldDescriptor.isRepeated()) {
           fieldValueType = CelFieldValueType.LIST;
@@ -92,13 +93,26 @@ final class ProtoDescriptorCollector {
                 descriptor.getFullName(), fieldDescriptor.getFullName(), fieldValueType));
       }
 
-      messageInfoListBuilder.add(
-          new MessageLiteDescriptor(
-              descriptor.getFullName(),
-              fieldMap.build()));
+      if (descriptor.getOptions().getMapEntry()) {
+        messageInfoListBuilder.add(new MessageLiteDescriptor(
+            descriptor.getFullName(),
+            fieldMap.build()));
+      } else {
+        messageInfoListBuilder.add(
+            new MessageLiteDescriptor(
+                descriptor.getFullName(),
+                fieldMap.build(),
+                ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor).replaceAll("\\$", ".") // TODO: Add overloaded method that takes in a separator
+            ));
+      }
     }
 
     return messageInfoListBuilder.build();
+  }
+
+  @VisibleForTesting
+  static ProtoDescriptorCollector newInstance() {
+    return new ProtoDescriptorCollector(DebugPrinter.newInstance(false));
   }
 
   static ProtoDescriptorCollector newInstance(DebugPrinter debugPrinter) {

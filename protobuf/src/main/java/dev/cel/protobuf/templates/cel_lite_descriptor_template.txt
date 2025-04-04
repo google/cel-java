@@ -56,7 +56,11 @@ public final class ${descriptor_class_name} extends CelLiteDescriptor {
     descriptors.add(
       new MessageLiteDescriptor(
         "${message_info.protoTypeName}",
-        fieldDescriptors)
+        fieldDescriptors
+        <#if message_info.fullyQualifiedJavaClassName??>
+        ,${message_info.fullyQualifiedJavaClassName}::newBuilder
+        </#if>
+        )
     );
     </#list>
 

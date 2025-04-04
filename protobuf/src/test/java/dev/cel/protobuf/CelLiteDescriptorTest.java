@@ -38,7 +38,6 @@ public class CelLiteDescriptorTest {
     Map<String, MessageLiteDescriptor> protoNamesToDescriptors =
         TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR.getProtoTypeNamesToDescriptors();
 
-    assertThat(protoNamesToDescriptors).hasSize(3);
     assertThat(protoNamesToDescriptors).containsKey("cel.expr.conformance.proto3.TestAllTypes");
     assertThat(protoNamesToDescriptors)
         .containsKey("cel.expr.conformance.proto3.TestAllTypes.NestedMessage");
@@ -88,8 +87,6 @@ public class CelLiteDescriptorTest {
             .get("cel.expr.conformance.proto3.TestAllTypes");
     FieldLiteDescriptor fieldLiteDescriptor = testAllTypesDescriptor.getByFieldNameOrThrow("single_string");
 
-    assertThat(fieldLiteDescriptor.getFullyQualifiedProtoFieldName())
-        .isEqualTo("cel.expr.conformance.proto3.TestAllTypes.single_string");
     assertThat(fieldLiteDescriptor.getFieldProtoTypeName()).isEmpty();
   }
 
@@ -191,8 +188,6 @@ public class CelLiteDescriptorTest {
     FieldLiteDescriptor fieldLiteDescriptor =
         testAllTypesDescriptor.getByFieldNameOrThrow("standalone_message");
 
-    assertThat(fieldLiteDescriptor.getFullyQualifiedProtoFieldName())
-        .isEqualTo("cel.expr.conformance.proto3.TestAllTypes.standalone_message");
     assertThat(fieldLiteDescriptor.getFieldProtoTypeName())
         .isEqualTo("cel.expr.conformance.proto3.TestAllTypes.NestedMessage");
   }

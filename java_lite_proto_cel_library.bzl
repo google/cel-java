@@ -14,6 +14,7 @@
 
 """Starlark rule for generating descriptors that is compatible with Protolite Messages."""
 
+load("@com_google_protobuf//bazel:java_lite_proto_library.bzl", "java_lite_proto_library")
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_proto//proto:defs.bzl", "proto_descriptor_set")
 load("//publish:cel_version.bzl", "CEL_VERSION")
@@ -50,7 +51,14 @@ def java_lite_proto_cel_library(
         debug,
     )
 
+    java_lite_proto_library_dep_name = name + "_java_lite_proto_dep"
+    java_lite_proto_library(
+        name = java_lite_proto_library_dep_name,
+        deps = deps,
+    )
+
     descriptor_codegen_deps = [
+        java_lite_proto_library_dep_name,
         "//protobuf:cel_lite_descriptor",
     ]
 

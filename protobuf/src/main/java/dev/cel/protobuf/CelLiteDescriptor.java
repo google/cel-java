@@ -73,6 +73,7 @@ public abstract class CelLiteDescriptor {
 
     @SuppressWarnings("Immutable") // Does not alter the descriptor content
     private final Supplier<MessageLite.Builder> messageBuilderSupplier;
+    private final String fullyQualifiedJavaClassName;
 
     public String getProtoTypeName() {
       return fullyQualifiedProtoTypeName;
@@ -94,8 +95,20 @@ public abstract class CelLiteDescriptor {
       return fieldNameToFieldDescriptors;
     }
 
+    public String getFullyQualifiedJavaClassName() {
+      return fullyQualifiedJavaClassName;
+    }
+
     public MessageLite.Builder newMessageBuilder() {
       return messageBuilderSupplier.get();
+    }
+
+    @Internal
+    MessageLiteDescriptor(
+        String fullyQualifiedProtoTypeName,
+        List<FieldLiteDescriptor> fieldLiteDescriptors,
+        String fullyQualifiedJavaClassName) {
+      this(fullyQualifiedProtoTypeName, fieldLiteDescriptors, () -> null, fullyQualifiedJavaClassName);
     }
 
     /**
@@ -107,7 +120,7 @@ public abstract class CelLiteDescriptor {
     public MessageLiteDescriptor(
         String fullyQualifiedProtoTypeName,
         List<FieldLiteDescriptor> fieldLiteDescriptors) {
-      this(fullyQualifiedProtoTypeName, fieldLiteDescriptors, () -> null);
+      this(fullyQualifiedProtoTypeName, fieldLiteDescriptors, () -> null, null);
     }
 
     /**
@@ -120,6 +133,20 @@ public abstract class CelLiteDescriptor {
         String fullyQualifiedProtoTypeName,
         List<FieldLiteDescriptor> fieldLiteDescriptors,
         Supplier<MessageLite.Builder> messageBuilderSupplier) {
+      this(fullyQualifiedProtoTypeName, fieldLiteDescriptors, messageBuilderSupplier, null);
+    }
+
+    /**
+     * CEL Library Internals. Do not use.
+     *
+     * <p>Public visibility due to codegen.
+     */
+    @Internal
+    private MessageLiteDescriptor(
+        String fullyQualifiedProtoTypeName,
+        List<FieldLiteDescriptor> fieldLiteDescriptors,
+        Supplier<MessageLite.Builder> messageBuilderSupplier,
+        String fullyQualifiedJavaClassName) {
       this.fullyQualifiedProtoTypeName = checkNotNull(fullyQualifiedProtoTypeName);
       // This is a cheap operation. View over the existing map with mutators disabled.
       this.fieldLiteDescriptors = Collections.unmodifiableList(checkNotNull(fieldLiteDescriptors));
@@ -134,6 +161,7 @@ public abstract class CelLiteDescriptor {
       this.fieldNameToFieldDescriptors = Collections.unmodifiableMap(fieldNameMap);
       this.fieldNumberToFieldDescriptors = Collections.unmodifiableMap(fieldNumberMap);
       this.messageBuilderSupplier = messageBuilderSupplier;
+      this.fullyQualifiedJavaClassName = fullyQualifiedJavaClassName;
     }
   }
 

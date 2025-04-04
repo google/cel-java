@@ -12,6 +12,12 @@ java_library(
     exports = ["//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor"],
 )
 
+java_library(
+    name = "proto_descriptor_collector",
+    testonly = 1,
+    exports = ["//protobuf/src/main/java/dev/cel/protobuf:proto_descriptor_collector"],
+)
+
 alias(
     name = "cel_lite_descriptor_generator",
     actual = "//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor_generator",

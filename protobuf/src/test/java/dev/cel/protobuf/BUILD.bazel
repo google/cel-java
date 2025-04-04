@@ -1,7 +1,7 @@
 load("@com_google_protobuf//bazel:java_lite_proto_library.bzl", "java_lite_proto_library")
 load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
 load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
-load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_java//java:defs.bzl", "java_library", "java_test")
 load("//:java_lite_proto_cel_library.bzl", "java_lite_proto_cel_library")
 load("//:testing.bzl", "junit4_test_suites")
 
@@ -10,12 +10,11 @@ package(
     default_testonly = True,
 )
 
-java_library(
+java_test(
     name = "cel_lite_descriptor_test",
-    testonly = 1,
     srcs = ["CelLiteDescriptorTest.java"],
+    test_class = "dev.cel.protobuf.CelLiteDescriptorTest",
     deps = [
-        ":test_java_proto_lite",
         "//:java_truth",
         "//protobuf:cel_lite_descriptor",
         "//testing:test_all_types_cel_java_proto_lite",
@@ -26,13 +25,18 @@ java_library(
     ],
 )
 
-junit4_test_suites(
-    name = "test_suites_proto_lite",
-    sizes = [
-        "small",
-    ],
-    src_dir = "src/test/java",
+java_test(
+    name = "proto_descriptor_collector_test",
+    srcs = ["ProtoDescriptorCollectorTest.java"],
+    test_class = "dev.cel.protobuf.ProtoDescriptorCollectorTest",
+    runtime_deps = ["@maven//:com_google_protobuf_protobuf_java"],
     deps = [
-        ":cel_lite_descriptor_test",
+        "//protobuf:cel_lite_descriptor",
+        "//protobuf:proto_descriptor_collector",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
     ],
 )
