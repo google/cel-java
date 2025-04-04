@@ -35,30 +35,30 @@ public final class ${descriptor_class_name} extends CelLiteDescriptor {
   }
 
   private static List<MessageLiteDescriptor> newDescriptors() {
-    List<MessageLiteDescriptor> descriptors = new ArrayList<>(${message_info_list?size});
+    List<MessageLiteDescriptor> descriptors = new ArrayList<>(${descriptor_metadata_list?size});
     List<FieldLiteDescriptor> fieldDescriptors;
-    <#list message_info_list as message_info>
+    <#list descriptor_metadata_list as descriptor_metadata>
 
-    fieldDescriptors = new ArrayList<>(${message_info.fieldDescriptorsMap?size});
-      <#list message_info.fieldDescriptorsMap as key, value>
+    fieldDescriptors = new ArrayList<>(${descriptor_metadata.fieldDescriptors?size});
+      <#list descriptor_metadata.fieldDescriptors as field_descriptor>
     fieldDescriptors.add(new FieldLiteDescriptor(
-      ${value.fieldNumber},
-      "${value.fieldName}",
-      "${value.javaType}",
-      "${value.celFieldValueType}",
-      "${value.protoFieldType}",
-      ${value.hasHasser},
-      ${value.isPacked},
-      "${value.fieldProtoTypeName}"
+      ${field_descriptor.fieldNumber},
+      "${field_descriptor.fieldName}",
+      ${field_descriptor.javaTypeEnumName},
+      ${field_descriptor.celFieldValueTypeEnumName},
+      ${field_descriptor.protoFieldTypeEnumName},
+      ${field_descriptor.hasPresence},
+      ${field_descriptor.isPacked},
+      "${field_descriptor.fieldProtoTypeName}"
       ));
       </#list>
 
     descriptors.add(
       new MessageLiteDescriptor(
-        "${message_info.protoTypeName}",
+        "${descriptor_metadata.protoTypeName}",
         fieldDescriptors
-        <#if message_info.fullyQualifiedJavaClassName??>
-        ,${message_info.fullyQualifiedJavaClassName}::newBuilder
+        <#if descriptor_metadata.javaClassName??>
+        ,${descriptor_metadata.javaClassName}::newBuilder
         </#if>
         )
     );

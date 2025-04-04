@@ -51,10 +51,6 @@ public final class ProtoJavaQualifiedNames {
     return getFullyQualifiedJavaClassNameImpl(descriptor);
   }
 
-  public static String getFullyQualifiedJavaClassName(EnumDescriptor descriptor) {
-    return getFullyQualifiedJavaClassNameImpl(descriptor);
-  }
-
   private static String getFullyQualifiedJavaClassNameImpl(GenericDescriptor descriptor) {
     StringBuilder fullClassName = new StringBuilder();
 

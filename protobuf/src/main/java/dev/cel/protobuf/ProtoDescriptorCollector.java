@@ -18,6 +18,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.Descriptors.FieldDescriptor.Type;
+import com.google.protobuf.Descriptors.FieldDescriptor.JavaType;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
@@ -25,20 +27,20 @@ import dev.cel.common.internal.ProtoJavaQualifiedNames;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.CelFieldValueType;
-import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
+import dev.cel.protobuf.LiteDescriptorCodegenMetadata.FieldLiteDescriptorMetadata;
 import java.util.ArrayDeque;
 import java.util.stream.Collectors;
 
 /**
  * ProtoDescriptorCollector inspects a {@link FileDescriptor} to collect message information into
- * {@link MessageLiteDescriptor}.
+ * {@link LiteDescriptorCodegenMetadata}. This is later utilized to create an instance of {@code MessageLiteDescriptor}.
  */
 final class ProtoDescriptorCollector {
 
   private final DebugPrinter debugPrinter;
 
-  ImmutableList<MessageLiteDescriptor> collectMessageInfo(FileDescriptor targetFileDescriptor) {
-    ImmutableList.Builder<MessageLiteDescriptor> messageInfoListBuilder = ImmutableList.builder();
+  ImmutableList<LiteDescriptorCodegenMetadata> collectCodegenMetadata(FileDescriptor targetFileDescriptor) {
+    ImmutableList.Builder<LiteDescriptorCodegenMetadata> descriptorListBuilder = ImmutableList.builder();
     CelDescriptors celDescriptors =
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
             ImmutableList.of(targetFileDescriptor), /* resolveTypeDependencies= */ false);
@@ -50,64 +52,55 @@ final class ProtoDescriptorCollector {
 
     while (!descriptorQueue.isEmpty()) {
       Descriptor descriptor = descriptorQueue.pop();
-      ImmutableList.Builder<FieldLiteDescriptor> fieldMap = ImmutableList.builder();
+      LiteDescriptorCodegenMetadata.Builder descriptorCodegenBuilder = LiteDescriptorCodegenMetadata.newBuilder();
       for (Descriptors.FieldDescriptor fieldDescriptor : descriptor.getFields()) {
-        String javaType = fieldDescriptor.getJavaType().toString();
-        String embeddedFieldProtoTypeName = "";
-        switch (javaType) {
-          case "ENUM":
-            embeddedFieldProtoTypeName = fieldDescriptor.getEnumType().getFullName();
+        FieldLiteDescriptorMetadata.Builder fieldDescriptorCodegenBuilder = FieldLiteDescriptorMetadata.newBuilder()
+            .setFieldNumber(fieldDescriptor.getNumber())
+            .setFieldName(fieldDescriptor.getName())
+            .setIsPacked(fieldDescriptor.isPacked())
+            .setJavaType(adaptJavaType(fieldDescriptor.getJavaType()))
+            .setProtoFieldType(adaptProtoType(fieldDescriptor.getType()))
+            .setHasPresence(fieldDescriptor.hasPresence());
+
+        switch (fieldDescriptor.getJavaType()) {
+          case ENUM:
+            fieldDescriptorCodegenBuilder.setFieldProtoTypeName(fieldDescriptor.getEnumType().getFullName());
             break;
-          case "MESSAGE":
-            embeddedFieldProtoTypeName = fieldDescriptor.getMessageType().getFullName();
+          case MESSAGE:
+            fieldDescriptorCodegenBuilder.setFieldProtoTypeName(fieldDescriptor.getMessageType().getFullName());
             break;
           default:
             break;
         }
 
-        CelFieldValueType fieldValueType;
         if (fieldDescriptor.isMapField()) {
-          fieldValueType = CelFieldValueType.MAP;
+          fieldDescriptorCodegenBuilder.setCelFieldValueType(CelFieldValueType.MAP);
           // Maps are treated as messages in proto.
           descriptorQueue.push(fieldDescriptor.getMessageType());
         } else if (fieldDescriptor.isRepeated()) {
-          fieldValueType = CelFieldValueType.LIST;
+          fieldDescriptorCodegenBuilder.setCelFieldValueType(CelFieldValueType.LIST);
         } else {
-          fieldValueType = CelFieldValueType.SCALAR;
+          fieldDescriptorCodegenBuilder.setCelFieldValueType(CelFieldValueType.SCALAR);
         }
 
-        fieldMap.add(
-            new FieldLiteDescriptor(
-                /* fieldNumber= */ fieldDescriptor.getNumber(),
-                /* fieldName= */ fieldDescriptor.getName(),
-                /* javaType= */ javaType,
-                /* celFieldValueType= */ fieldValueType.toString(),
-                /* protoFieldType= */ fieldDescriptor.getType().toString(),
-                /* hasHasser= */ fieldDescriptor.hasPresence(),
-                /* isPacked= */ fieldDescriptor.isPacked(),
-                /* fieldProtoTypeName= */ embeddedFieldProtoTypeName));
+        descriptorCodegenBuilder.addFieldDescriptor(fieldDescriptorCodegenBuilder.build());
 
         debugPrinter.print(
             String.format(
                 "Collecting message %s, for field %s, type: %s",
-                descriptor.getFullName(), fieldDescriptor.getFullName(), fieldValueType));
+                descriptor.getFullName(), fieldDescriptor.getFullName(), fieldDescriptor.getType()));
       }
 
-      if (descriptor.getOptions().getMapEntry()) {
-        messageInfoListBuilder.add(new MessageLiteDescriptor(
-            descriptor.getFullName(),
-            fieldMap.build()));
-      } else {
-        messageInfoListBuilder.add(
-            new MessageLiteDescriptor(
-                descriptor.getFullName(),
-                fieldMap.build(),
-                ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor).replaceAll("\\$", ".") // TODO: Add overloaded method that takes in a separator
-            ));
+      descriptorCodegenBuilder.setProtoTypeName(descriptor.getFullName());
+      if (!descriptor.getOptions().getMapEntry()) {
+        String sanitizedJavaClassName = ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor).replaceAll("\\$", ".");
+        descriptorCodegenBuilder.setJavaClassName(sanitizedJavaClassName);
       }
+
+      descriptorListBuilder.add(descriptorCodegenBuilder.build());
     }
 
-    return messageInfoListBuilder.build();
+    return descriptorListBuilder.build();
   }
 
   @VisibleForTesting
@@ -117,6 +110,74 @@ final class ProtoDescriptorCollector {
 
   static ProtoDescriptorCollector newInstance(DebugPrinter debugPrinter) {
     return new ProtoDescriptorCollector(debugPrinter);
+  }
+
+  private static FieldLiteDescriptor.Type adaptProtoType(Type type) {
+    switch (type) {
+      case DOUBLE:
+        return FieldLiteDescriptor.Type.DOUBLE;
+      case FLOAT:
+        return FieldLiteDescriptor.Type.FLOAT;
+      case INT64:
+        return FieldLiteDescriptor.Type.INT64;
+      case UINT64:
+        return FieldLiteDescriptor.Type.UINT64;
+      case INT32:
+        return FieldLiteDescriptor.Type.INT32;
+      case FIXED64:
+        return FieldLiteDescriptor.Type.FIXED64;
+      case FIXED32:
+        return FieldLiteDescriptor.Type.FIXED32;
+      case BOOL:
+        return FieldLiteDescriptor.Type.BOOL;
+      case STRING:
+        return FieldLiteDescriptor.Type.STRING;
+      case GROUP:
+        return FieldLiteDescriptor.Type.GROUP;
+      case MESSAGE:
+        return FieldLiteDescriptor.Type.MESSAGE;
+      case BYTES:
+        return FieldLiteDescriptor.Type.BYTES;
+      case UINT32:
+        return FieldLiteDescriptor.Type.UINT32;
+      case ENUM:
+        return FieldLiteDescriptor.Type.ENUM;
+      case SFIXED32:
+        return FieldLiteDescriptor.Type.SFIXED32;
+      case SFIXED64:
+        return FieldLiteDescriptor.Type.SFIXED64;
+      case SINT32:
+        return FieldLiteDescriptor.Type.SINT32;
+      case SINT64:
+        return FieldLiteDescriptor.Type.SINT64;
+      default:
+        throw new IllegalArgumentException("Unknown Type: " + type);
+    }
+  }
+
+  private static FieldLiteDescriptor.JavaType adaptJavaType(JavaType javaType) {
+    switch (javaType) {
+      case INT:
+        return FieldLiteDescriptor.JavaType.INT;
+      case LONG:
+        return FieldLiteDescriptor.JavaType.LONG;
+      case FLOAT:
+        return FieldLiteDescriptor.JavaType.FLOAT;
+      case DOUBLE:
+        return FieldLiteDescriptor.JavaType.DOUBLE;
+      case BOOLEAN:
+        return FieldLiteDescriptor.JavaType.BOOLEAN;
+      case STRING:
+        return FieldLiteDescriptor.JavaType.STRING;
+      case BYTE_STRING:
+        return FieldLiteDescriptor.JavaType.BYTE_STRING;
+      case ENUM:
+        return FieldLiteDescriptor.JavaType.ENUM;
+      case MESSAGE:
+        return FieldLiteDescriptor.JavaType.MESSAGE;
+      default:
+        throw new IllegalArgumentException("Unknown JavaType: " + javaType);
+    }
   }
 
   private ProtoDescriptorCollector(DebugPrinter debugPrinter) {

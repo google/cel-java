@@ -14,7 +14,7 @@ public class ProtoDescriptorCollectorTest {
   public void smokeTest() {
     ProtoDescriptorCollector collector = ProtoDescriptorCollector.newInstance();
 
-    ImmutableList<MessageLiteDescriptor> descriptors = collector.collectMessageInfo(
+    ImmutableList<MessageLiteDescriptor> descriptors = collector.collectCodegenMetadata(
         TestAllTypes.getDescriptor().getFile());
 
     System.out.println(descriptors);

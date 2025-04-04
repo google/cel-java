@@ -110,7 +110,7 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
             .setVersion(version)
             .setDescriptorClassName(descriptorClassName)
             .setPackageName(javaPackageName)
-            .setMessageInfoList(descriptorCollector.collectMessageInfo(targetFileDescriptor))
+            .setDescriptorMetadataList(descriptorCollector.collectCodegenMetadata(targetFileDescriptor))
             .build());
   }
 

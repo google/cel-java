@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 // CEL-Internal-5
-import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
@@ -64,14 +63,14 @@ final class JavaFileGenerator {
 
     abstract String version();
 
-    abstract ImmutableList<MessageLiteDescriptor> messageInfoList();
+    abstract ImmutableList<LiteDescriptorCodegenMetadata> descriptorMetadataList();
 
     ImmutableMap<String, Object> getTemplateMap() {
       return ImmutableMap.of(
           "package_name", packageName(),
           "descriptor_class_name", descriptorClassName(),
           "version", version(),
-          "message_info_list", messageInfoList());
+          "descriptor_metadata_list", descriptorMetadataList());
     }
 
     @AutoValue.Builder
@@ -82,7 +81,7 @@ final class JavaFileGenerator {
 
       abstract Builder setVersion(String version);
 
-      abstract Builder setMessageInfoList(ImmutableList<MessageLiteDescriptor> messageInfo);
+      abstract Builder setDescriptorMetadataList(ImmutableList<LiteDescriptorCodegenMetadata> messageInfo);
 
       abstract JavaFileGeneratorOption build();
     }

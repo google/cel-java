@@ -103,7 +103,6 @@ public abstract class CelLiteDescriptor {
       return messageBuilderSupplier.get();
     }
 
-    @Internal
     MessageLiteDescriptor(
         String fullyQualifiedProtoTypeName,
         List<FieldLiteDescriptor> fieldLiteDescriptors,
@@ -313,17 +312,17 @@ public abstract class CelLiteDescriptor {
     public FieldLiteDescriptor(
         int fieldNumber,
         String fieldName,
-        String javaType,
-        String celFieldValueType, // LIST, MAP, SCALAR
-        String protoFieldType, // INT32, SINT32, GROUP, MESSAGE... (See Descriptors#Type)
+        JavaType javaType,
+        CelFieldValueType celFieldValueType, // LIST, MAP, SCALAR
+        Type protoFieldType, // INT32, SINT32, GROUP, MESSAGE... (See Descriptors#Type)
         boolean hasHasser,
         boolean isPacked,
         String fieldProtoTypeName) {
       this.fieldNumber = fieldNumber;
       this.fieldName = checkNotNull(fieldName);
-      this.javaType = JavaType.valueOf(javaType);
-      this.celFieldValueType = CelFieldValueType.valueOf(checkNotNull(celFieldValueType));
-      this.protoFieldType = Type.valueOf(protoFieldType);
+      this.javaType = javaType;
+      this.celFieldValueType = celFieldValueType;
+      this.protoFieldType = protoFieldType;
       this.hasHasser = hasHasser;
       this.isPacked = isPacked;
       this.fieldProtoTypeName = checkNotNull(fieldProtoTypeName);

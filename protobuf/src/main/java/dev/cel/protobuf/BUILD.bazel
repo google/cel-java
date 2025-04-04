@@ -38,6 +38,7 @@ java_library(
     deps = [
         ":cel_lite_descriptor",
         ":debug_printer",
+        ":lite_descriptor_codegen_metadata",
         "//common:cel_descriptors",
         "//common/internal:proto_java_qualified_names",
         "//common/internal:well_known_proto",
@@ -54,6 +55,7 @@ java_library(
     ],
     deps = [
         ":cel_lite_descriptor",
+        ":lite_descriptor_codegen_metadata",
         "//:auto_value",
         "@maven//:com_google_guava_guava",
         "@maven//:org_freemarker_freemarker",
@@ -77,6 +79,22 @@ java_library(
     deps = [
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
+    ],
+)
+
+java_library(
+    name = "lite_descriptor_codegen_metadata",
+    srcs = ["LiteDescriptorCodegenMetadata.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_lite_descriptor",
+        "//:auto_value",
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
         "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )

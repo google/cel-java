@@ -156,9 +156,9 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
             new FieldLiteDescriptor(
                 /* fieldNumber= */ 1,
                 /* fieldName= */ "fields",
-                /* javaType= */ JavaType.MESSAGE.toString(),
-                /* celFieldValueType= */ CelFieldValueType.MAP.toString(),
-                /* protoFieldType= */ Type.MESSAGE.toString(),
+                /* javaType= */ JavaType.MESSAGE,
+                /* celFieldValueType= */ CelFieldValueType.MAP,
+                /* protoFieldType= */ Type.MESSAGE,
                 /* hasHasser= */ false,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ "google.protobuf.Struct.FieldsEntry"));
@@ -169,9 +169,9 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
             new FieldLiteDescriptor(
                 /* fieldNumber= */ 1,
                 /* fieldName= */ "null_value",
-                /* javaType= */ JavaType.ENUM.toString(),
-                /* celFieldValueType= */ CelFieldValueType.SCALAR.toString(),
-                /* protoFieldType= */ Type.ENUM.toString(),
+                /* javaType= */ JavaType.ENUM,
+                /* celFieldValueType= */ CelFieldValueType.SCALAR,
+                /* protoFieldType= */ Type.ENUM,
                 /* hasHasser= */ true,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ "google.protobuf.NullValue")
@@ -180,9 +180,9 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
             new FieldLiteDescriptor(
                 /* fieldNumber= */ 2,
                 /* fieldName= */ "number_value",
-                /* javaType= */ JavaType.DOUBLE.toString(),
-                /* celFieldValueType= */ CelFieldValueType.SCALAR.toString(),
-                /* protoFieldType= */ Type.DOUBLE.toString(),
+                /* javaType= */ JavaType.DOUBLE,
+                /* celFieldValueType= */ CelFieldValueType.SCALAR,
+                /* protoFieldType= */ Type.DOUBLE,
                 /* hasHasser= */ true,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ ""));
@@ -190,9 +190,9 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
             new FieldLiteDescriptor(
                 /* fieldNumber= */ 3,
                 /* fieldName= */ "string_value",
-                /* javaType= */ JavaType.STRING.toString(),
-                /* celFieldValueType= */ CelFieldValueType.SCALAR.toString(),
-                /* protoFieldType= */ Type.STRING.toString(),
+                /* javaType= */ JavaType.STRING,
+                /* celFieldValueType= */ CelFieldValueType.SCALAR,
+                /* protoFieldType= */ Type.STRING,
                 /* hasHasser= */ true,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ ""));
@@ -200,9 +200,9 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
             new FieldLiteDescriptor(
                 /* fieldNumber= */ 4,
                 /* fieldName= */ "bool_value",
-                /* javaType= */ JavaType.BOOLEAN.toString(),
-                /* celFieldValueType= */ CelFieldValueType.SCALAR.toString(),
-                /* protoFieldType= */ Type.BOOL.toString(),
+                /* javaType= */ JavaType.BOOLEAN,
+                /* celFieldValueType= */ CelFieldValueType.SCALAR,
+                /* protoFieldType= */ Type.BOOL,
                 /* hasHasser= */ true,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ ""));
@@ -210,9 +210,9 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
             new FieldLiteDescriptor(
                 /* fieldNumber= */ 5,
                 /* fieldName= */ "struct_value",
-                /* javaType= */ JavaType.MESSAGE.toString(),
-                /* celFieldValueType= */ CelFieldValueType.SCALAR.toString(),
-                /* protoFieldType= */ Type.MESSAGE.toString(),
+                /* javaType= */ JavaType.MESSAGE,
+                /* celFieldValueType= */ CelFieldValueType.SCALAR,
+                /* protoFieldType= */ Type.MESSAGE,
                 /* hasHasser= */ true,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ "google.protobuf.Struct"));
@@ -220,9 +220,9 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
             new FieldLiteDescriptor(
                 /* fieldNumber= */ 6,
                 /* fieldName= */ "list_value",
-                /* javaType= */ JavaType.MESSAGE.toString(),
-                /* celFieldValueType= */ CelFieldValueType.SCALAR.toString(),
-                /* protoFieldType= */ Type.MESSAGE.toString(),
+                /* javaType= */ JavaType.MESSAGE,
+                /* celFieldValueType= */ CelFieldValueType.SCALAR,
+                /* protoFieldType= */ Type.MESSAGE,
                 /* hasHasser= */ true,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ "google.protobuf.ListValue"));
@@ -233,9 +233,9 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
             new FieldLiteDescriptor(
                 /* fieldNumber= */ 1,
                 /* fieldName= */ "values",
-                /* javaTypeName= */ JavaType.MESSAGE.toString(),
-                /* celFieldValueType= */ CelFieldValueType.LIST.toString(),
-                /* protoFieldType= */ Type.MESSAGE.toString(),
+                /* javaTypeName= */ JavaType.MESSAGE,
+                /* celFieldValueType= */ CelFieldValueType.LIST,
+                /* protoFieldType= */ Type.MESSAGE,
                 /* hasHasser= */ false,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ "google.protobuf.Value")
@@ -290,9 +290,9 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
     return new FieldLiteDescriptor(
         /* fieldNumber= */ fieldNumber,
         /* fieldName= */ fieldName,
-        /* javaType= */ javaType.toString(),
-        /* celFieldValueType= */ CelFieldValueType.SCALAR.toString(),
-        /* protoFieldType= */ protoFieldType.toString(),
+        /* javaType= */ javaType,
+        /* celFieldValueType= */ CelFieldValueType.SCALAR,
+        /* protoFieldType= */ protoFieldType,
         /* hasHasser= */ false,
         /* isPacked= */ false,
         /* fieldProtoTypeName= */ "");
