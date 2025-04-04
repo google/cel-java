@@ -293,6 +293,7 @@ java_library(
         ":proto_message_lite_value",
         "//common:error_codes",
         "//common:runtime_exception",
+        "//common/internal:cel_lite_descriptor_pool",
         "//common/internal:default_instance_message_lite_factory",
         "//common/internal:default_lite_descriptor_pool",
         "//common/internal:proto_lite_adapter",

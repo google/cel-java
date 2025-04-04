@@ -81,12 +81,23 @@ public class CelLiteDescriptorEvaluationTest {
           .build();
 
   @Test
-  public void messageCreation_throws() throws Exception {
+  public void messageCreation_emptyMessage() throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile("TestAllTypes{}").getAst();
 
-    CelEvaluationException e = assertThrows(CelEvaluationException.class, () -> CEL_RUNTIME.createProgram(ast).eval());
-    assertThat(e).hasCauseThat().hasMessageThat().contains("Message creation is not supported yet.");
+    TestAllTypes simpleTest = (TestAllTypes) CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(simpleTest).isEqualTo(TestAllTypes.getDefaultInstance());
   }
+
+  @Test
+  public void messageCreation_fieldsPopulated() throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("TestAllTypes{single_int32: 4}").getAst();
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, () -> CEL_RUNTIME.createProgram(ast).eval());
+
+    assertThat(e.getMessage()).contains("Message creation with prepopulated fields is not supported yet.");
+  }
+
   @Test
   @TestParameters("{expression: 'msg.single_int32 == 1'}")
   @TestParameters("{expression: 'msg.single_int64 == 2'}")
@@ -403,7 +414,7 @@ public class CelLiteDescriptorEvaluationTest {
   }
 
   @Test
-  public void nestedMessage() throws Exception {
+  public void nestedMessage_traversalThroughSetField() throws Exception {
     CelAbstractSyntaxTree ast =
         CEL_COMPILER
             .compile("msg.single_nested_message.bb == 43 && has(msg.single_nested_message)")
@@ -417,6 +428,23 @@ public class CelLiteDescriptorEvaluationTest {
         (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", nestedMessage));
 
     assertThat(result).isTrue();
+  }
+
+  @Test
+  public void nestedMessage_safeTraversal() throws Exception {
+    CelAbstractSyntaxTree ast =
+        CEL_COMPILER
+            .compile("msg.single_nested_message.bb == 43")
+            .getAst();
+    TestAllTypes nestedMessage =
+        TestAllTypes.newBuilder()
+            .setSingleNestedMessage(NestedMessage.getDefaultInstance())
+            .build();
+
+    boolean result =
+        (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", nestedMessage));
+
+    assertThat(result).isFalse();
   }
 
   @Test

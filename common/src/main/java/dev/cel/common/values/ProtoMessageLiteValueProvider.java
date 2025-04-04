@@ -16,8 +16,11 @@ package dev.cel.common.values;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
+import com.google.protobuf.MessageLite;
+import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.internal.DefaultLiteDescriptorPool;
 import dev.cel.protobuf.CelLiteDescriptor;
+import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -30,6 +33,7 @@ import java.util.Set;
  */
 @Immutable
 public class ProtoMessageLiteValueProvider implements CelValueProvider {
+  private final CelLiteDescriptorPool descriptorPool;
   private final ProtoLiteCelValueConverter protoLiteCelValueConverter;
 
   public ProtoLiteCelValueConverter getProtoLiteCelValueConverter() {
@@ -38,7 +42,17 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
 
   @Override
   public Optional<CelValue> newValue(String structType, Map<String, Object> fields) {
-    throw new UnsupportedOperationException("Message creation is not supported yet.");
+    MessageLiteDescriptor descriptor = descriptorPool.findDescriptor(structType).orElse(null);
+    if (descriptor == null) {
+      return Optional.empty();
+    }
+
+    if (!fields.isEmpty()) {
+      throw new UnsupportedOperationException("Message creation with prepopulated fields is not supported yet.");
+    }
+
+    MessageLite message = descriptor.newMessageBuilder().build();
+    return Optional.of(protoLiteCelValueConverter.fromProtoMessageToCelValue(structType, message));
   }
 
 
@@ -51,11 +65,13 @@ public class ProtoMessageLiteValueProvider implements CelValueProvider {
     DefaultLiteDescriptorPool descriptorPool = DefaultLiteDescriptorPool.newInstance(ImmutableSet.copyOf(descriptors));
     ProtoLiteCelValueConverter protoLiteCelValueConverter =
         ProtoLiteCelValueConverter.newInstance(descriptorPool);
-    return new ProtoMessageLiteValueProvider(protoLiteCelValueConverter);
+    return new ProtoMessageLiteValueProvider(protoLiteCelValueConverter, descriptorPool);
   }
 
   private ProtoMessageLiteValueProvider(
-      ProtoLiteCelValueConverter protoLiteCelValueConverter) {
+      ProtoLiteCelValueConverter protoLiteCelValueConverter,
+      CelLiteDescriptorPool descriptorPool) {
     this.protoLiteCelValueConverter = protoLiteCelValueConverter;
+    this.descriptorPool = descriptorPool;
   }
 }
