@@ -24,13 +24,17 @@ import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.DoubleValue;
+import com.google.protobuf.Duration;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.StringValue;
+import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
+import com.google.protobuf.util.Durations;
+import com.google.protobuf.util.Timestamps;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
@@ -259,6 +263,30 @@ public class CelLiteDescriptorEvaluationTest {
     Object result = CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
     assertThat(result).isEqualTo(NullValue.NULL_VALUE);
+  }
+
+  @Test
+  public void fieldSelection_duration() throws Exception {
+    String expression = "msg.single_duration";
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg = TestAllTypes.newBuilder().setSingleDuration(Durations.fromMinutes(10)).build();
+
+    Duration result =
+        (Duration) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isEqualTo(Durations.fromMinutes(10));
+  }
+
+  @Test
+  public void fieldSelection_timestamp() throws Exception {
+    String expression = "msg.single_timestamp";
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg = TestAllTypes.newBuilder().setSingleTimestamp(Timestamps.fromSeconds(50)).build();
+
+    Timestamp result =
+        (Timestamp) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isEqualTo(Timestamps.fromSeconds(50));
   }
 
   @Test

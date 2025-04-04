@@ -14,8 +14,6 @@
 
 package dev.cel.protobuf;
 
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
-
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.Descriptor;
@@ -44,7 +42,7 @@ final class ProtoDescriptorCollector {
             ImmutableList.of(targetFileDescriptor), /* resolveTypeDependencies= */ false);
     ArrayDeque<Descriptor> descriptorQueue =
         celDescriptors.messageTypeDescriptors().stream()
-            // Don't collect WKTs. They are included separately in the default descriptor pool.
+            // Don't collect WKTs. They are included in the default descriptor pool.
             .filter(d -> !WellKnownProto.getByTypeName(d.getFullName()).isPresent())
             .collect(Collectors.toCollection(ArrayDeque::new));
 
@@ -81,8 +79,7 @@ final class ProtoDescriptorCollector {
             new FieldLiteDescriptor(
                 /* fieldNumber= */ fieldDescriptor.getNumber(),
                 /* fieldName= */ fieldDescriptor.getName(),
-                /* fullyQualifiedProtoTypeName= */ fieldDescriptor.getFullName(),
-                /* javaTypeName= */ javaType,
+                /* javaType= */ javaType,
                 /* celFieldValueType= */ fieldValueType.toString(),
                 /* protoFieldType= */ fieldDescriptor.getType().toString(),
                 /* hasHasser= */ fieldDescriptor.hasPresence(),
@@ -94,7 +91,6 @@ final class ProtoDescriptorCollector {
                 "Collecting message %s, for field %s, type: %s",
                 descriptor.getFullName(), fieldDescriptor.getFullName(), fieldValueType));
       }
-
 
       messageInfoListBuilder.add(
           new MessageLiteDescriptor(

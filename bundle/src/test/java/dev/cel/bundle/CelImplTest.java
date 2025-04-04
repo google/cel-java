@@ -320,7 +320,6 @@ public final class CelImplTest {
 
   @Test
   public void compile_customTypesWithAliasingSelfContainedProvider() throws Exception {
-
     // The custom type provider sets up an alias from "Condition" to "google.type.Expr".
     TypeProvider customTypeProvider =
         aliasingProvider(

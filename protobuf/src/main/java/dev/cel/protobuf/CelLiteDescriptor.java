@@ -149,7 +149,6 @@ public abstract class CelLiteDescriptor {
     private final String fieldName;
     private final JavaType javaType;
     private final String fieldProtoTypeName;
-    private final String fullyQualifiedProtoFieldName;
     private final Type protoFieldType;
     private final CelFieldValueType celFieldValueType;
     private final boolean hasHasser;
@@ -259,14 +258,6 @@ public abstract class CelLiteDescriptor {
     }
 
     /**
-     * Gets the fully qualified protobuf message field name, including its package name (ex:
-     * cel.expr.conformance.proto3.TestAllTypes.single_string)
-     */
-    public String getFullyQualifiedProtoFieldName() {
-      return fullyQualifiedProtoFieldName;
-    }
-
-    /**
      * Gets the fully qualified protobuf type name for the field, including its package name (ex:
      * cel.expr.conformance.proto3.TestAllTypes.SingleStringWrapper). Returns an empty string for
      * primitives.
@@ -280,14 +271,12 @@ public abstract class CelLiteDescriptor {
      *
      * @param fieldNumber Field index
      * @param fieldName Name of the field
-     * @param fullyQualifiedProtoTypeName Fully qualified protobuf type name including the namespace
-     *     (ex: cel.expr.conformance.proto3.TestAllTypes)
-     * @param javaTypeName Canonical Java type name (ex: Long, Double, Float, Message... see
-     *     Descriptors#JavaType)
+     * @param javaType Canonical Java type name (ex: Long, Double, Float, Message... see
+     *     com.google.protobuf.Descriptors#JavaType)
      * @param celFieldValueType Describes whether the field is a scalar, list or a map with respect
      *     to CEL.
      * @param protoFieldType Protobuf Field Type (ex: INT32, SINT32, GROUP, MESSAGE... see
-     *     Descriptors#Type)
+     *     com.google.protobuf.Descriptors#Type)
      * @param hasHasser True if the message has a presence test method (ex: wrappers).
      * @param fieldProtoTypeName Fully qualified protobuf type name for the field. Empty if the
      *     field is a primitive.
@@ -296,8 +285,7 @@ public abstract class CelLiteDescriptor {
     public FieldLiteDescriptor(
         int fieldNumber,
         String fieldName,
-        String fullyQualifiedProtoTypeName,
-        String javaTypeName,
+        String javaType,
         String celFieldValueType, // LIST, MAP, SCALAR
         String protoFieldType, // INT32, SINT32, GROUP, MESSAGE... (See Descriptors#Type)
         boolean hasHasser,
@@ -305,8 +293,7 @@ public abstract class CelLiteDescriptor {
         String fieldProtoTypeName) {
       this.fieldNumber = fieldNumber;
       this.fieldName = checkNotNull(fieldName);
-      this.fullyQualifiedProtoFieldName = checkNotNull(fullyQualifiedProtoTypeName);
-      this.javaType = JavaType.valueOf(javaTypeName);
+      this.javaType = JavaType.valueOf(javaType);
       this.celFieldValueType = CelFieldValueType.valueOf(checkNotNull(celFieldValueType));
       this.protoFieldType = Type.valueOf(protoFieldType);
       this.hasHasser = hasHasser;

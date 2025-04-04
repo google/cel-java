@@ -14,6 +14,7 @@
 
 package dev.cel.common.internal;
 
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -36,6 +37,8 @@ import com.google.protobuf.Value;
 import dev.cel.common.annotations.Internal;
 import dev.cel.protobuf.CelLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.Type;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.CelFieldValueType;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.JavaType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.util.NoSuchElementException;
@@ -66,95 +69,207 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
     ImmutableList.Builder<FieldLiteDescriptor> fieldDescriptors = ImmutableList.builder();
     Supplier<MessageLite.Builder> messageBuilder = null;
     switch (wellKnownProto) {
-      case JSON_STRUCT_VALUE:
-        messageBuilder = Struct::newBuilder;
-        fieldDescriptors.add(
-            new FieldLiteDescriptor(
-                1,
-                "fields",
-                "google.protobuf.Struct.fields",
-                JavaType.MESSAGE.toString(),
-                FieldLiteDescriptor.CelFieldValueType.MAP.toString(),
-                FieldLiteDescriptor.Type.MESSAGE.toString(),
-                false,
-                false,
-                "google.protobuf.Struct.FieldsEntry"));
-        break;
       case BOOL_VALUE:
         messageBuilder = BoolValue::newBuilder;
         fieldDescriptors.add(
-            newPrimitiveFieldInfo(
+            newPrimitiveFieldDescriptor(
+                1,
+                "value",
                 JavaType.BOOLEAN,
-                FieldLiteDescriptor.Type.BOOL));
+                Type.BOOL));
         break;
       case BYTES_VALUE:
         messageBuilder = BytesValue::newBuilder;
         fieldDescriptors.add(
-            newPrimitiveFieldInfo(
+            newPrimitiveFieldDescriptor(
+                1,
+                "value",
                 JavaType.BYTE_STRING,
-                FieldLiteDescriptor.Type.BYTES));
+                Type.BYTES));
         break;
       case DOUBLE_VALUE:
         messageBuilder = DoubleValue::newBuilder;
         fieldDescriptors.add(
-            newPrimitiveFieldInfo(
+            newPrimitiveFieldDescriptor(
+                1,
+                "value",
                 JavaType.DOUBLE,
-                FieldLiteDescriptor.Type.DOUBLE));
+                Type.DOUBLE));
         break;
       case FLOAT_VALUE:
         messageBuilder = FloatValue::newBuilder;
         fieldDescriptors.add(
-            newPrimitiveFieldInfo(
+            newPrimitiveFieldDescriptor(
+                1,
+                "value",
                 JavaType.FLOAT,
-                FieldLiteDescriptor.Type.FLOAT));
+                Type.FLOAT));
         break;
       case INT32_VALUE:
         messageBuilder = Int32Value::newBuilder;
         fieldDescriptors.add(
-            newPrimitiveFieldInfo(
+            newPrimitiveFieldDescriptor(
+                1,
+                "value",
                 JavaType.INT,
-                FieldLiteDescriptor.Type.INT32));
+                Type.INT32));
         break;
       case INT64_VALUE:
         messageBuilder = Int64Value::newBuilder;
         fieldDescriptors.add(
-            newPrimitiveFieldInfo(
+            newPrimitiveFieldDescriptor(
+                1,
+                "value",
                 JavaType.LONG,
-                FieldLiteDescriptor.Type.INT64));
+                Type.INT64));
         break;
       case STRING_VALUE:
         messageBuilder = StringValue::newBuilder;
         fieldDescriptors.add(
-            newPrimitiveFieldInfo(
+            newPrimitiveFieldDescriptor(
+                1,
+                "value",
                 JavaType.STRING,
-                FieldLiteDescriptor.Type.STRING));
+                Type.STRING));
         break;
       case UINT32_VALUE:
         messageBuilder = UInt32Value::newBuilder;
         fieldDescriptors.add(
-            newPrimitiveFieldInfo(
+            newPrimitiveFieldDescriptor(
+                1,
+                "value",
                 JavaType.INT,
-                FieldLiteDescriptor.Type.UINT32));
+                Type.UINT32));
         break;
       case UINT64_VALUE:
         messageBuilder = UInt64Value::newBuilder;
         fieldDescriptors.add(
-            newPrimitiveFieldInfo(
+            newPrimitiveFieldDescriptor(
+                1,
+                "value",
                 JavaType.LONG,
-                FieldLiteDescriptor.Type.UINT64));
+                Type.UINT64));
+        break;
+      case JSON_STRUCT_VALUE:
+        messageBuilder = Struct::newBuilder;
+        fieldDescriptors.add(
+            new FieldLiteDescriptor(
+                /* fieldNumber= */ 1,
+                /* fieldName= */ "fields",
+                /* javaType= */ JavaType.MESSAGE.toString(),
+                /* celFieldValueType= */ CelFieldValueType.MAP.toString(),
+                /* protoFieldType= */ Type.MESSAGE.toString(),
+                /* hasHasser= */ false,
+                /* isPacked= */ false,
+                /* fieldProtoTypeName= */ "google.protobuf.Struct.FieldsEntry"));
         break;
       case JSON_VALUE:
         messageBuilder = Value::newBuilder;
+        fieldDescriptors.add(
+            new FieldLiteDescriptor(
+                /* fieldNumber= */ 1,
+                /* fieldName= */ "null_value",
+                /* javaType= */ JavaType.ENUM.toString(),
+                /* celFieldValueType= */ CelFieldValueType.SCALAR.toString(),
+                /* protoFieldType= */ Type.ENUM.toString(),
+                /* hasHasser= */ true,
+                /* isPacked= */ false,
+                /* fieldProtoTypeName= */ "google.protobuf.NullValue")
+        );
+        fieldDescriptors.add(
+            new FieldLiteDescriptor(
+                /* fieldNumber= */ 2,
+                /* fieldName= */ "number_value",
+                /* javaType= */ JavaType.DOUBLE.toString(),
+                /* celFieldValueType= */ CelFieldValueType.SCALAR.toString(),
+                /* protoFieldType= */ Type.DOUBLE.toString(),
+                /* hasHasser= */ true,
+                /* isPacked= */ false,
+                /* fieldProtoTypeName= */ ""));
+        fieldDescriptors.add(
+            new FieldLiteDescriptor(
+                /* fieldNumber= */ 3,
+                /* fieldName= */ "string_value",
+                /* javaType= */ JavaType.STRING.toString(),
+                /* celFieldValueType= */ CelFieldValueType.SCALAR.toString(),
+                /* protoFieldType= */ Type.STRING.toString(),
+                /* hasHasser= */ true,
+                /* isPacked= */ false,
+                /* fieldProtoTypeName= */ ""));
+        fieldDescriptors.add(
+            new FieldLiteDescriptor(
+                /* fieldNumber= */ 4,
+                /* fieldName= */ "bool_value",
+                /* javaType= */ JavaType.BOOLEAN.toString(),
+                /* celFieldValueType= */ CelFieldValueType.SCALAR.toString(),
+                /* protoFieldType= */ Type.BOOL.toString(),
+                /* hasHasser= */ true,
+                /* isPacked= */ false,
+                /* fieldProtoTypeName= */ ""));
+        fieldDescriptors.add(
+            new FieldLiteDescriptor(
+                /* fieldNumber= */ 5,
+                /* fieldName= */ "struct_value",
+                /* javaType= */ JavaType.MESSAGE.toString(),
+                /* celFieldValueType= */ CelFieldValueType.SCALAR.toString(),
+                /* protoFieldType= */ Type.MESSAGE.toString(),
+                /* hasHasser= */ true,
+                /* isPacked= */ false,
+                /* fieldProtoTypeName= */ "google.protobuf.Struct"));
+        fieldDescriptors.add(
+            new FieldLiteDescriptor(
+                /* fieldNumber= */ 6,
+                /* fieldName= */ "list_value",
+                /* javaType= */ JavaType.MESSAGE.toString(),
+                /* celFieldValueType= */ CelFieldValueType.SCALAR.toString(),
+                /* protoFieldType= */ Type.MESSAGE.toString(),
+                /* hasHasser= */ true,
+                /* isPacked= */ false,
+                /* fieldProtoTypeName= */ "google.protobuf.ListValue"));
         break;
       case JSON_LIST_VALUE:
         messageBuilder = ListValue::newBuilder;
+        fieldDescriptors.add(
+            new FieldLiteDescriptor(
+                /* fieldNumber= */ 1,
+                /* fieldName= */ "values",
+                /* javaTypeName= */ JavaType.MESSAGE.toString(),
+                /* celFieldValueType= */ CelFieldValueType.LIST.toString(),
+                /* protoFieldType= */ Type.MESSAGE.toString(),
+                /* hasHasser= */ false,
+                /* isPacked= */ false,
+                /* fieldProtoTypeName= */ "google.protobuf.Value")
+        );
         break;
       case DURATION:
         messageBuilder = Duration::newBuilder;
+        fieldDescriptors.add(
+            newPrimitiveFieldDescriptor(
+                1,
+                "seconds",
+                JavaType.LONG,
+                Type.INT64));
+        fieldDescriptors.add(
+            newPrimitiveFieldDescriptor(
+                2,
+                "nanos",
+                JavaType.INT,
+                Type.INT32));
         break;
       case TIMESTAMP:
         messageBuilder = Timestamp::newBuilder;
-        // TODO: Complete these
+        fieldDescriptors.add(
+            newPrimitiveFieldDescriptor(
+                1,
+                "nanos",
+                JavaType.INT,
+                Type.INT32));
+        fieldDescriptors.add(
+            newPrimitiveFieldDescriptor(
+                2,
+                "seconds",
+                JavaType.LONG,
+                Type.INT64));
         break;
       default:
         break;
@@ -167,19 +282,20 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
       );
   }
 
-  private static FieldLiteDescriptor newPrimitiveFieldInfo(
+  private static FieldLiteDescriptor newPrimitiveFieldDescriptor(
+      int fieldNumber,
+      String fieldName,
       JavaType javaType,
-      FieldLiteDescriptor.Type protoFieldType) {
+      Type protoFieldType) {
     return new FieldLiteDescriptor(
-        1,
-        "value",
-        "",
-        javaType.toString(),
-        FieldLiteDescriptor.CelFieldValueType.SCALAR.toString(),
-        protoFieldType.toString(),
-        false,
-        false,
-        "");
+        /* fieldNumber= */ fieldNumber,
+        /* fieldName= */ fieldName,
+        /* javaType= */ javaType.toString(),
+        /* celFieldValueType= */ CelFieldValueType.SCALAR.toString(),
+        /* protoFieldType= */ protoFieldType.toString(),
+        /* hasHasser= */ false,
+        /* isPacked= */ false,
+        /* fieldProtoTypeName= */ "");
   }
 
   private DefaultLiteDescriptorPool(ImmutableSet<CelLiteDescriptor> descriptors) {

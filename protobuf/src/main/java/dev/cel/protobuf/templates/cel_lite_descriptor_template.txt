@@ -44,7 +44,6 @@ public final class ${descriptor_class_name} extends CelLiteDescriptor {
     fieldDescriptors.add(new FieldLiteDescriptor(
       ${value.fieldNumber},
       "${value.fieldName}",
-      "${value.fullyQualifiedProtoFieldName}",
       "${value.javaType}",
       "${value.celFieldValueType}",
       "${value.protoFieldType}",
