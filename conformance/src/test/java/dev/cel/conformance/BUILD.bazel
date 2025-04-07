@@ -117,23 +117,6 @@ _TESTS_TO_SKIP = [
     # "enums/legacy_proto3/assign_standalone_int_big",
     # "enums/legacy_proto3/assign_standalone_int_neg",
 
-    # Not yet implemented.
-    "math_ext/ceil",
-    "math_ext/floor",
-    "math_ext/round",
-    "math_ext/trunc",
-    "math_ext/abs",
-    "math_ext/sign",
-    "math_ext/isNaN",
-    "math_ext/isInf",
-    "math_ext/isFinite",
-    "math_ext/bit_and",
-    "math_ext/bit_or",
-    "math_ext/bit_xor",
-    "math_ext/bit_not",
-    "math_ext/bit_shift_left",
-    "math_ext/bit_shift_right",
-
     # Type inference edgecases around null(able) assignability.
     # These type check, but resolve to a different type.
     # list(int), want list(wrapper(int))

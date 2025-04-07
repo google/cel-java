@@ -20,6 +20,7 @@ import static com.google.common.collect.Comparators.min;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
+import com.google.common.math.DoubleMath;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.checker.CelCheckerBuilder;
@@ -40,6 +41,7 @@ import dev.cel.parser.CelParserBuilder;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -63,6 +65,31 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
   private static final String MATH_MIN_FUNCTION = "math.@min";
   private static final String MATH_MIN_OVERLOAD_DOC =
       "Returns the least valued number present in the arguments.";
+
+  // Rounding Functions
+  private static final String MATH_CEIL_FUNCTION = "math.ceil";
+  private static final String MATH_FLOOR_FUNCTION = "math.floor";
+  private static final String MATH_ROUND_FUNCTION = "math.round";
+  private static final String MATH_TRUNC_FUNCTION = "math.trunc";
+
+  // Floating Point Functions
+  private static final String MATH_ISFINITE_FUNCTION = "math.isFinite";
+  private static final String MATH_ISNAN_FUNCTION = "math.isNaN";
+  private static final String MATH_ISINF_FUNCTION = "math.isInf";
+
+  // Signedness Functions
+  private static final String MATH_ABS_FUNCTION = "math.abs";
+  private static final String MATH_SIGN_FUNCTION = "math.sign";
+
+  // Bitwise Functions
+  private static final String MATH_BIT_AND_FUNCTION = "math.bitAnd";
+  private static final String MATH_BIT_OR_FUNCTION = "math.bitOr";
+  private static final String MATH_BIT_XOR_FUNCTION = "math.bitXor";
+  private static final String MATH_BIT_NOT_FUNCTION = "math.bitNot";
+  private static final String MATH_BIT_LEFT_SHIFT_FUNCTION = "math.bitShiftLeft";
+  private static final String MATH_BIT_RIGHT_SHIFT_FUNCTION = "math.bitShiftRight";
+
+  private static final int MAX_BIT_SHIFT = 63;
 
   /**
    * Returns the proper comparison function to use for a math function call involving different
@@ -300,8 +327,7 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
                 "math_@min_int_double", Long.class, Double.class, CelMathExtensions::minPair),
             CelFunctionBinding.from(
                 "math_@min_double_int", Double.class, Long.class, CelMathExtensions::minPair),
-            CelFunctionBinding.from(
-                "math_@min_list_dyn", List.class, CelMathExtensions::minList)),
+            CelFunctionBinding.from("math_@min_list_dyn", List.class, CelMathExtensions::minList)),
         ImmutableSet.of(
             CelFunctionBinding.from("math_@min_uint", Long.class, x -> x),
             CelFunctionBinding.from(
@@ -334,7 +360,261 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
                 Double.class,
                 CelMathExtensions::minPair),
             CelFunctionBinding.from(
-                "math_@min_int_uint", Long.class, UnsignedLong.class, CelMathExtensions::minPair)));
+                "math_@min_int_uint", Long.class, UnsignedLong.class, CelMathExtensions::minPair))),
+    CEIL(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_CEIL_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_ceil_double",
+                "Compute the ceiling of a double value.",
+                SimpleType.DOUBLE,
+                SimpleType.DOUBLE)),
+        ImmutableSet.of(CelFunctionBinding.from("math_ceil_double", Double.class, Math::ceil))),
+    FLOOR(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_FLOOR_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_floor_double",
+                "Compute the floor of a double value.",
+                SimpleType.DOUBLE,
+                SimpleType.DOUBLE)),
+        ImmutableSet.of(CelFunctionBinding.from("math_floor_double", Double.class, Math::floor))),
+    ROUND(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_ROUND_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_round_double",
+                "Rounds the double value to the nearest whole number with ties rounding away from"
+                    + " zero.",
+                SimpleType.DOUBLE,
+                SimpleType.DOUBLE)),
+        ImmutableSet.of(
+            CelFunctionBinding.from("math_round_double", Double.class, CelMathExtensions::round))),
+    TRUNC(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_TRUNC_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_trunc_double",
+                "Truncates the fractional portion of the double value.",
+                SimpleType.DOUBLE,
+                SimpleType.DOUBLE)),
+        ImmutableSet.of(
+            CelFunctionBinding.from("math_trunc_double", Double.class, CelMathExtensions::trunc))),
+    ISFINITE(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_ISFINITE_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_isFinite_double",
+                "Returns true if the value is a finite number.",
+                SimpleType.BOOL,
+                SimpleType.DOUBLE)),
+        ImmutableSet.of(
+            CelFunctionBinding.from("math_isFinite_double", Double.class, Double::isFinite))),
+    ISNAN(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_ISNAN_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_isNaN_double",
+                "Returns true if the input double value is NaN, false otherwise.",
+                SimpleType.BOOL,
+                SimpleType.DOUBLE)),
+        ImmutableSet.of(
+            CelFunctionBinding.from("math_isNaN_double", Double.class, CelMathExtensions::isNaN))),
+    ISINF(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_ISINF_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_isInf_double",
+                "Returns true if the input double value is -Inf or +Inf.",
+                SimpleType.BOOL,
+                SimpleType.DOUBLE)),
+        ImmutableSet.of(
+            CelFunctionBinding.from(
+                "math_isInf_double", Double.class, CelMathExtensions::isInfinite))),
+    ABS(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_ABS_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_abs_double",
+                "Compute the absolute value of a double value.",
+                SimpleType.DOUBLE,
+                SimpleType.DOUBLE),
+            CelOverloadDecl.newGlobalOverload(
+                "math_abs_int",
+                "Compute the absolute value of an int value.",
+                SimpleType.INT,
+                SimpleType.INT),
+            CelOverloadDecl.newGlobalOverload(
+                "math_abs_uint",
+                "Compute the absolute value of a uint value.",
+                SimpleType.UINT,
+                SimpleType.UINT)),
+        ImmutableSet.of(
+            CelFunctionBinding.from("math_abs_double", Double.class, Math::abs),
+            CelFunctionBinding.from("math_abs_int", Long.class, CelMathExtensions::absExact),
+            CelFunctionBinding.from("math_abs_uint", UnsignedLong.class, x -> x))),
+    SIGN(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_SIGN_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_sign_double",
+                "Returns the sign of the input numeric type, either -1, 0, 1 cast as double.",
+                SimpleType.DOUBLE,
+                SimpleType.DOUBLE),
+            CelOverloadDecl.newGlobalOverload(
+                "math_sign_uint",
+                "Returns the sign of the input numeric type, either -1, 0, 1 case as uint.",
+                SimpleType.UINT,
+                SimpleType.UINT),
+            CelOverloadDecl.newGlobalOverload(
+                "math_sign_int",
+                "Returns the sign of the input numeric type, either -1, 0, 1.",
+                SimpleType.INT,
+                SimpleType.INT)),
+        ImmutableSet.of(
+            CelFunctionBinding.from("math_sign_double", Double.class, CelMathExtensions::sign),
+            CelFunctionBinding.from("math_sign_int", Long.class, CelMathExtensions::sign),
+            CelFunctionBinding.from(
+                "math_sign_uint", UnsignedLong.class, CelMathExtensions::sign))),
+    BITAND(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_BIT_AND_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_bitAnd_int_int",
+                "Performs a bitwise-AND operation over two int values.",
+                SimpleType.INT,
+                SimpleType.INT,
+                SimpleType.INT),
+            CelOverloadDecl.newGlobalOverload(
+                "math_bitAnd_uint_uint",
+                "Performs a bitwise-AND operation over two uint values.",
+                SimpleType.UINT,
+                SimpleType.UINT,
+                SimpleType.UINT)),
+        ImmutableSet.of(
+            CelFunctionBinding.from(
+                "math_bitAnd_int_int", Long.class, Long.class, CelMathExtensions::intBitAnd),
+            CelFunctionBinding.from(
+                "math_bitAnd_uint_uint",
+                UnsignedLong.class,
+                UnsignedLong.class,
+                CelMathExtensions::uintBitAnd))),
+    BITOR(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_BIT_OR_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_bitOr_int_int",
+                "Performs a bitwise-OR operation over two int values.",
+                SimpleType.INT,
+                SimpleType.INT,
+                SimpleType.INT),
+            CelOverloadDecl.newGlobalOverload(
+                "math_bitOr_uint_uint",
+                "Performs a bitwise-OR operation over two uint values.",
+                SimpleType.UINT,
+                SimpleType.UINT,
+                SimpleType.UINT)),
+        ImmutableSet.of(
+            CelFunctionBinding.from(
+                "math_bitOr_int_int", Long.class, Long.class, CelMathExtensions::intBitOr),
+            CelFunctionBinding.from(
+                "math_bitOr_uint_uint",
+                UnsignedLong.class,
+                UnsignedLong.class,
+                CelMathExtensions::uintBitOr))),
+    BITXOR(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_BIT_XOR_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_bitXor_int_int",
+                "Performs a bitwise-XOR operation over two int values.",
+                SimpleType.INT,
+                SimpleType.INT,
+                SimpleType.INT),
+            CelOverloadDecl.newGlobalOverload(
+                "math_bitXor_uint_uint",
+                "Performs a bitwise-XOR operation over two uint values.",
+                SimpleType.UINT,
+                SimpleType.UINT,
+                SimpleType.UINT)),
+        ImmutableSet.of(
+            CelFunctionBinding.from(
+                "math_bitXor_int_int", Long.class, Long.class, CelMathExtensions::intBitXor),
+            CelFunctionBinding.from(
+                "math_bitXor_uint_uint",
+                UnsignedLong.class,
+                UnsignedLong.class,
+                CelMathExtensions::uintBitXor))),
+    BITNOT(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_BIT_NOT_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_bitNot_int_int",
+                "Performs a bitwise-NOT operation over two int values.",
+                SimpleType.INT,
+                SimpleType.INT),
+            CelOverloadDecl.newGlobalOverload(
+                "math_bitNot_uint_uint",
+                "Performs a bitwise-NOT operation over two uint values.",
+                SimpleType.UINT,
+                SimpleType.UINT)),
+        ImmutableSet.of(
+            CelFunctionBinding.from(
+                "math_bitNot_int_int", Long.class, CelMathExtensions::intBitNot),
+            CelFunctionBinding.from(
+                "math_bitNot_uint_uint", UnsignedLong.class, CelMathExtensions::uintBitNot))),
+    BITSHIFTLEFT(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_BIT_LEFT_SHIFT_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_bitShiftLeft_int_int",
+                "Performs a bitwise-SHIFTLEFT operation over two int values.",
+                SimpleType.INT,
+                SimpleType.INT,
+                SimpleType.INT),
+            CelOverloadDecl.newGlobalOverload(
+                "math_bitShiftLeft_uint_int",
+                "Performs a bitwise-SHIFTLEFT operation over two uint values.",
+                SimpleType.UINT,
+                SimpleType.UINT,
+                SimpleType.INT)),
+        ImmutableSet.of(
+            CelFunctionBinding.from(
+                "math_bitShiftLeft_int_int",
+                Long.class,
+                Long.class,
+                CelMathExtensions::intBitShiftLeft),
+            CelFunctionBinding.from(
+                "math_bitShiftLeft_uint_int",
+                UnsignedLong.class,
+                Long.class,
+                CelMathExtensions::uintBitShiftLeft))),
+    BITSHIFTRIGHT(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_BIT_RIGHT_SHIFT_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_bitShiftRight_int_int",
+                "Performs a bitwise-SHIFTRIGHT operation over two int values.",
+                SimpleType.INT,
+                SimpleType.INT,
+                SimpleType.INT),
+            CelOverloadDecl.newGlobalOverload(
+                "math_bitShiftRight_uint_int",
+                "Performs a bitwise-SHIFTRIGHT operation over two uint values.",
+                SimpleType.UINT,
+                SimpleType.UINT,
+                SimpleType.INT)),
+        ImmutableSet.of(
+            CelFunctionBinding.from(
+                "math_bitShiftRight_int_int",
+                Long.class,
+                Long.class,
+                CelMathExtensions::intBitShiftRight),
+            CelFunctionBinding.from(
+                "math_bitShiftRight_uint_int",
+                UnsignedLong.class,
+                Long.class,
+                CelMathExtensions::uintBitShiftRight)));
 
     private final CelFunctionDecl functionDecl;
     private final ImmutableSet<CelFunctionBinding> functionBindings;
@@ -343,6 +623,10 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
 
     String getFunction() {
       return functionDecl.name();
+    }
+
+    Function(CelFunctionDecl functionDecl, ImmutableSet<CelFunctionBinding> bindings) {
+      this(functionDecl, bindings, ImmutableSet.of(), ImmutableSet.of());
     }
 
     Function(
@@ -457,6 +741,143 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
     }
 
     return CLASSES_TO_COMPARATORS.get(x.getClass(), y.getClass()).apply(x, y) <= 0 ? x : y;
+  }
+
+  private static long absExact(long x) {
+    if (x == Long.MIN_VALUE) {
+      // The only case where standard Math.abs overflows silently
+      throw new ArithmeticException("integer overflow");
+    }
+    return Math.abs(x);
+  }
+
+  private static boolean isNaN(double x) {
+    return Double.isNaN(x);
+  }
+
+  private static Double trunc(Double x) {
+    if (isNaN(x) || isInfinite(x)) {
+      return x;
+    }
+    return (double) x.longValue();
+  }
+
+  private static boolean isInfinite(double x) {
+    return Double.isInfinite(x);
+  }
+
+  private static double round(double x) {
+    if (isNaN(x) || isInfinite(x)) {
+      return x;
+    }
+    return DoubleMath.roundToLong(x, RoundingMode.HALF_EVEN);
+  }
+
+  private static Number sign(Number x) {
+    if (x instanceof Double) {
+      double val = x.doubleValue();
+      if (isNaN(val)) {
+        return val;
+      }
+      if (val == 0) {
+        return 0.0;
+      }
+      return val > 0 ? 1.0 : -1.0;
+    }
+
+    if (x instanceof Long) {
+      long val = x.longValue();
+      if (val == 0) {
+        return 0L;
+      }
+      return val > 0 ? 1L : -1L;
+    }
+
+    if (x instanceof UnsignedLong) {
+      UnsignedLong val = (UnsignedLong) x;
+      if (val.equals(UnsignedLong.ZERO)) {
+        return val;
+      }
+      return UnsignedLong.ONE;
+    }
+
+    throw new IllegalArgumentException("Unsupported type: " + x.getClass());
+  }
+
+  private static Long intBitAnd(long x, long y) {
+    return x & y;
+  }
+
+  private static UnsignedLong uintBitAnd(UnsignedLong x, UnsignedLong y) {
+    return UnsignedLong.fromLongBits(x.longValue() & y.longValue());
+  }
+
+  private static Long intBitOr(long x, long y) {
+    return x | y;
+  }
+
+  private static UnsignedLong uintBitOr(UnsignedLong x, UnsignedLong y) {
+    return UnsignedLong.fromLongBits(x.longValue() | y.longValue());
+  }
+
+  private static Long intBitXor(long x, long y) {
+    return x ^ y;
+  }
+
+  private static UnsignedLong uintBitXor(UnsignedLong x, UnsignedLong y) {
+    return UnsignedLong.fromLongBits(x.longValue() ^ y.longValue());
+  }
+
+  private static Long intBitNot(long x) {
+    return ~x;
+  }
+
+  private static UnsignedLong uintBitNot(UnsignedLong x) {
+    return UnsignedLong.fromLongBits(~x.longValue());
+  }
+
+  private static Long intBitShiftLeft(long value, long shiftAmount) {
+    if (shiftAmount < 0) {
+      throw new IllegalArgumentException("math.bitShiftLeft() negative offset:" + shiftAmount);
+    }
+
+    if (shiftAmount > MAX_BIT_SHIFT) {
+      return 0L;
+    }
+    return value << shiftAmount;
+  }
+
+  private static UnsignedLong uintBitShiftLeft(UnsignedLong value, long shiftAmount) {
+    if (shiftAmount < 0) {
+      throw new IllegalArgumentException("math.bitShiftLeft() negative offset:" + shiftAmount);
+    }
+
+    if (shiftAmount > MAX_BIT_SHIFT) {
+      return UnsignedLong.ZERO;
+    }
+    return UnsignedLong.fromLongBits(value.longValue() << shiftAmount);
+  }
+
+  private static Long intBitShiftRight(long value, long shiftAmount) {
+    if (shiftAmount < 0) {
+      throw new IllegalArgumentException("math.bitShiftRight() negative offset:" + shiftAmount);
+    }
+
+    if (shiftAmount > MAX_BIT_SHIFT) {
+      return 0L;
+    }
+    return value >>> shiftAmount;
+  }
+
+  private static UnsignedLong uintBitShiftRight(UnsignedLong value, long shiftAmount) {
+    if (shiftAmount < 0) {
+      throw new IllegalArgumentException("math.bitShiftRight() negative offset:" + shiftAmount);
+    }
+
+    if (shiftAmount > MAX_BIT_SHIFT) {
+      return UnsignedLong.ZERO;
+    }
+    return UnsignedLong.fromLongBits(value.longValue() >>> shiftAmount);
   }
 
   private static Comparable minList(List<Comparable> list) {

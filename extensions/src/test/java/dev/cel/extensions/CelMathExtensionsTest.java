@@ -52,6 +52,17 @@ public class CelMathExtensionsTest {
           .setOptions(CEL_OPTIONS)
           .addLibraries(CelExtensions.math(CEL_OPTIONS))
           .build();
+  private static final CelOptions CEL_UNSIGNED_OPTIONS = CelOptions.current().build();
+  private static final CelCompiler CEL_UNSIGNED_COMPILER =
+      CelCompilerFactory.standardCelCompilerBuilder()
+          .setOptions(CEL_UNSIGNED_OPTIONS)
+          .addLibraries(CelExtensions.math(CEL_UNSIGNED_OPTIONS))
+          .build();
+  private static final CelRuntime CEL_UNSIGNED_RUNTIME =
+      CelRuntimeFactory.standardCelRuntimeBuilder()
+          .setOptions(CEL_UNSIGNED_OPTIONS)
+          .addLibraries(CelExtensions.math(CEL_UNSIGNED_OPTIONS))
+          .build();
 
   @Test
   @TestParameters("{expr: 'math.greatest(-5)', expectedResult: -5}")
@@ -654,5 +665,503 @@ public class CelMathExtensionsTest {
     boolean result = (boolean) celRuntime.createProgram(ast).eval();
 
     assertThat(result).isTrue();
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.isNaN(0.0/0.0)', expectedResult: true}")
+  @TestParameters("{expr: 'math.isNaN(1.0/1.0)', expectedResult: false}")
+  @TestParameters("{expr: 'math.isNaN(12.031)', expectedResult: false}")
+  @TestParameters("{expr: 'math.isNaN(-1.0/0.0)', expectedResult: false}")
+  @TestParameters("{expr: 'math.isNaN(math.round(0.0/0.0))', expectedResult: true}")
+  @TestParameters("{expr: 'math.isNaN(math.sign(0.0/0.0))', expectedResult: true}")
+  public void isNaN_success(String expr, boolean expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.isNaN()'}")
+  @TestParameters("{expr: 'math.isNaN(1)'}")
+  @TestParameters("{expr: 'math.isNaN(9223372036854775807)'}")
+  @TestParameters("{expr: 'math.isNaN(1u)'}")
+  public void isNaN_invalidArgs_throwsException(String expr) {
+    CelValidationException e =
+        assertThrows(CelValidationException.class, () -> CEL_COMPILER.compile(expr).getAst());
+
+    assertThat(e).hasMessageThat().contains("found no matching overload for 'math.isNaN'");
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.isFinite(1.0/1.5)', expectedResult: true}")
+  @TestParameters("{expr: 'math.isFinite(15312.2121)', expectedResult: true}")
+  @TestParameters("{expr: 'math.isFinite(1.0/0.0)', expectedResult: false}")
+  @TestParameters("{expr: 'math.isFinite(0.0/0.0)', expectedResult: false}")
+  public void isFinite_success(String expr, boolean expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.isFinite()'}")
+  @TestParameters("{expr: 'math.isFinite(1)'}")
+  @TestParameters("{expr: 'math.isFinite(9223372036854775807)'}")
+  @TestParameters("{expr: 'math.isFinite(1u)'}")
+  public void isFinite_invalidArgs_throwsException(String expr) {
+    CelValidationException e =
+        assertThrows(CelValidationException.class, () -> CEL_COMPILER.compile(expr).getAst());
+
+    assertThat(e).hasMessageThat().contains("found no matching overload for 'math.isFinite'");
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.isInf(1.0/0.0)', expectedResult: true}")
+  @TestParameters("{expr: 'math.isInf(-1.0/0.0)', expectedResult: true}")
+  @TestParameters("{expr: 'math.isInf(0.0/0.0)', expectedResult: false}")
+  @TestParameters("{expr: 'math.isInf(10.0)', expectedResult: false}")
+  public void isInf_success(String expr, boolean expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.isInf()'}")
+  @TestParameters("{expr: 'math.isInf(1)'}")
+  @TestParameters("{expr: 'math.isInf(9223372036854775807)'}")
+  @TestParameters("{expr: 'math.isInf(1u)'}")
+  public void isInf_invalidArgs_throwsException(String expr) {
+    CelValidationException e =
+        assertThrows(CelValidationException.class, () -> CEL_COMPILER.compile(expr).getAst());
+
+    assertThat(e).hasMessageThat().contains("found no matching overload for 'math.isInf'");
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.ceil(1.2)' , expectedResult: 2.0}")
+  @TestParameters("{expr: 'math.ceil(54.78)' , expectedResult: 55.0}")
+  @TestParameters("{expr: 'math.ceil(-2.2)' , expectedResult: -2.0}")
+  @TestParameters("{expr: 'math.ceil(20.0)' , expectedResult: 20.0}")
+  @TestParameters("{expr: 'math.ceil(0.0/0.0)' , expectedResult: NaN}")
+  public void ceil_success(String expr, double expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.ceil()'}")
+  @TestParameters("{expr: 'math.ceil(1)'}")
+  @TestParameters("{expr: 'math.ceil(9223372036854775807)'}")
+  @TestParameters("{expr: 'math.ceil(1u)'}")
+  public void ceil_invalidArgs_throwsException(String expr) {
+    CelValidationException e =
+        assertThrows(CelValidationException.class, () -> CEL_COMPILER.compile(expr).getAst());
+
+    assertThat(e).hasMessageThat().contains("found no matching overload for 'math.ceil'");
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.floor(1.2)' , expectedResult: 1.0}")
+  @TestParameters("{expr: 'math.floor(-5.2)' , expectedResult: -6.0}")
+  @TestParameters("{expr: 'math.floor(0.0/0.0)' , expectedResult: NaN}")
+  @TestParameters("{expr: 'math.floor(50.0)' , expectedResult: 50.0}")
+  public void floor_success(String expr, double expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.floor()'}")
+  @TestParameters("{expr: 'math.floor(1)'}")
+  @TestParameters("{expr: 'math.floor(9223372036854775807)'}")
+  @TestParameters("{expr: 'math.floor(1u)'}")
+  public void floor_invalidArgs_throwsException(String expr) {
+    CelValidationException e =
+        assertThrows(CelValidationException.class, () -> CEL_COMPILER.compile(expr).getAst());
+
+    assertThat(e).hasMessageThat().contains("found no matching overload for 'math.floor'");
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.round(1.2)' , expectedResult: 1.0}")
+  @TestParameters("{expr: 'math.round(1.5)' , expectedResult: 2.0}")
+  @TestParameters("{expr: 'math.round(-1.5)' , expectedResult: -2.0}")
+  @TestParameters("{expr: 'math.round(-1.2)' , expectedResult: -1.0}")
+  @TestParameters("{expr: 'math.round(-1.6)' , expectedResult: -2.0}")
+  @TestParameters("{expr: 'math.round(0.0/0.0)' , expectedResult: NaN}")
+  @TestParameters("{expr: 'math.round(1.0/0.0)' , expectedResult: Infinity}")
+  @TestParameters("{expr: 'math.round(-1.0/0.0)' , expectedResult: -Infinity}")
+  public void round_success(String expr, double expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.round()'}")
+  @TestParameters("{expr: 'math.round(1)'}")
+  @TestParameters("{expr: 'math.round(9223372036854775807)'}")
+  @TestParameters("{expr: 'math.round(1u)'}")
+  public void round_invalidArgs_throwsException(String expr) {
+    CelValidationException e =
+        assertThrows(CelValidationException.class, () -> CEL_COMPILER.compile(expr).getAst());
+
+    assertThat(e).hasMessageThat().contains("found no matching overload for 'math.round'");
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.trunc(-1.3)' , expectedResult: -1.0}")
+  @TestParameters("{expr: 'math.trunc(1.3)' , expectedResult: 1.0}")
+  @TestParameters("{expr: 'math.trunc(0.0/0.0)' , expectedResult: NaN}")
+  @TestParameters("{expr: 'math.trunc(1.0/0.0)' , expectedResult: Infinity}")
+  @TestParameters("{expr: 'math.trunc(-1.0/0.0)' , expectedResult: -Infinity}")
+  public void trunc_success(String expr, double expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.trunc()'}")
+  @TestParameters("{expr: 'math.trunc(1)'}")
+  @TestParameters("{expr: 'math.trunc()'}")
+  @TestParameters("{expr: 'math.trunc(1u)'}")
+  public void trunc_invalidArgs_throwsException(String expr) {
+    CelValidationException e =
+        assertThrows(CelValidationException.class, () -> CEL_COMPILER.compile(expr).getAst());
+
+    assertThat(e).hasMessageThat().contains("found no matching overload for 'math.trunc'");
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.abs(1)',  expectedResult: 1}")
+  @TestParameters("{expr: 'math.abs(-1657643)', expectedResult: 1657643}")
+  @TestParameters("{expr: 'math.abs(-2147483648)', expectedResult: 2147483648}")
+  public void abs_intResult_success(String expr, long expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.abs(-234.5)' , expectedResult: 234.5}")
+  @TestParameters("{expr: 'math.abs(234.5)' , expectedResult: 234.5}")
+  @TestParameters("{expr: 'math.abs(0.0/0.0)' , expectedResult: NaN}")
+  @TestParameters("{expr: 'math.abs(-0.0/0.0)' , expectedResult: NaN}")
+  @TestParameters("{expr: 'math.abs(1.0/0.0)' , expectedResult: Infinity}")
+  @TestParameters("{expr: 'math.abs(-1.0/0.0)' , expectedResult: Infinity}")
+  public void abs_doubleResult_success(String expr, double expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  public void abs_overflow_throwsException() {
+    CelValidationException e =
+        assertThrows(
+            CelValidationException.class,
+            () -> CEL_COMPILER.compile("math.abs(-9223372036854775809)").getAst());
+
+    assertThat(e)
+        .hasMessageThat()
+        .contains("ERROR: <input>:1:10: For input string: \"-9223372036854775809\"");
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.sign(-100)', expectedResult: -1}")
+  @TestParameters("{expr: 'math.sign(0)', expectedResult: 0}")
+  @TestParameters("{expr: 'math.sign(-0)', expectedResult: 0}")
+  @TestParameters("{expr: 'math.sign(11213)', expectedResult: 1}")
+  public void sign_intResult_success(String expr, int expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.sign(-234.5)' , expectedResult: -1.0}")
+  @TestParameters("{expr: 'math.sign(234.5)' , expectedResult: 1.0}")
+  @TestParameters("{expr: 'math.sign(0.2321)' , expectedResult: 1.0}")
+  @TestParameters("{expr: 'math.sign(0.0)' , expectedResult: 0.0}")
+  @TestParameters("{expr: 'math.sign(-0.0)' , expectedResult: 0.0}")
+  @TestParameters("{expr: 'math.sign(0.0/0.0)' , expectedResult: NaN}")
+  @TestParameters("{expr: 'math.sign(-0.0/0.0)' , expectedResult: NaN}")
+  @TestParameters("{expr: 'math.sign(1.0/0.0)' , expectedResult: 1.0}")
+  @TestParameters("{expr: 'math.sign(-1.0/0.0)' , expectedResult: -1.0}")
+  public void sign_doubleResult_success(String expr, double expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.sign()'}")
+  @TestParameters("{expr: 'math.sign(\"\")'}")
+  public void sign_invalidArgs_throwsException(String expr) {
+    CelValidationException e =
+        assertThrows(CelValidationException.class, () -> CEL_COMPILER.compile(expr).getAst());
+
+    assertThat(e).hasMessageThat().contains("found no matching overload for 'math.sign'");
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitAnd(1,2)' , expectedResult: 0}")
+  @TestParameters("{expr: 'math.bitAnd(1,-1)' , expectedResult: 1}")
+  @TestParameters(
+      "{expr: 'math.bitAnd(9223372036854775807,9223372036854775807)' , expectedResult:"
+          + " 9223372036854775807}")
+  public void bitAnd_signedInt_success(String expr, long expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitAnd(1u,2u)' , expectedResult: 0}")
+  @TestParameters("{expr: 'math.bitAnd(1u,3u)' , expectedResult: 1}")
+  public void bitAnd_unSignedInt_success(String expr, UnsignedLong expectedResult)
+      throws Exception {
+    CelAbstractSyntaxTree ast = CEL_UNSIGNED_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_UNSIGNED_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitAnd()'}")
+  @TestParameters("{expr: 'math.bitAnd(1u, 1)'}")
+  @TestParameters("{expr: 'math.bitAnd(1)'}")
+  public void bitAnd_invalidArgs_throwsException(String expr) {
+    CelValidationException e =
+        assertThrows(CelValidationException.class, () -> CEL_COMPILER.compile(expr).getAst());
+
+    assertThat(e).hasMessageThat().contains("found no matching overload for 'math.bitAnd'");
+  }
+
+  @Test
+  public void bitAnd_maxValArg_throwsException() {
+    CelValidationException e =
+        assertThrows(
+            CelValidationException.class,
+            () ->
+                CEL_COMPILER
+                    .compile("math.bitAnd(9223372036854775807,9223372036854775809)")
+                    .getAst());
+
+    assertThat(e)
+        .hasMessageThat()
+        .contains("ERROR: <input>:1:33: For input string: \"9223372036854775809\"");
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitOr(1,2)' , expectedResult: 3}")
+  @TestParameters("{expr: 'math.bitOr(1,-1)' , expectedResult: -1}")
+  public void bitOr_signedInt_success(String expr, long expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitOr(1u,2u)' , expectedResult: 3}")
+  @TestParameters("{expr: 'math.bitOr(1090u,3u)' , expectedResult: 1091}")
+  public void bitOr_unSignedInt_success(String expr, UnsignedLong expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_UNSIGNED_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_UNSIGNED_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitOr()'}")
+  @TestParameters("{expr: 'math.bitOr(1u, 1)'}")
+  @TestParameters("{expr: 'math.bitOr(1)'}")
+  public void bitOr_invalidArgs_throwsException(String expr) {
+    CelValidationException e =
+        assertThrows(CelValidationException.class, () -> CEL_COMPILER.compile(expr).getAst());
+
+    assertThat(e).hasMessageThat().contains("found no matching overload for 'math.bitOr'");
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitXor(1,2)' , expectedResult: 3}")
+  @TestParameters("{expr: 'math.bitXor(3,5)' , expectedResult: 6}")
+  public void bitXor_signedInt_success(String expr, long expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitXor(1u, 3u)' , expectedResult: 2}")
+  @TestParameters("{expr: 'math.bitXor(3u, 5u)' , expectedResult: 6}")
+  public void bitXor_unSignedInt_success(String expr, UnsignedLong expectedResult)
+      throws Exception {
+    CelAbstractSyntaxTree ast = CEL_UNSIGNED_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_UNSIGNED_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitXor()'}")
+  @TestParameters("{expr: 'math.bitXor(1u, 1)'}")
+  @TestParameters("{expr: 'math.bitXor(1)'}")
+  public void bitXor_invalidArgs_throwsException(String expr) {
+    CelValidationException e =
+        assertThrows(CelValidationException.class, () -> CEL_COMPILER.compile(expr).getAst());
+
+    assertThat(e).hasMessageThat().contains("found no matching overload for 'math.bitXor'");
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitNot(1)' , expectedResult: -2}")
+  @TestParameters("{expr: 'math.bitNot(0)' , expectedResult: -1}")
+  @TestParameters("{expr: 'math.bitNot(-1)' , expectedResult: 0}")
+  public void bitNot_signedInt_success(String expr, long expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitNot(1u)' , expectedResult: 18446744073709551614}")
+  @TestParameters("{expr: 'math.bitNot(12310u)' , expectedResult: 18446744073709539305}")
+  public void bitNot_unSignedInt_success(String expr, UnsignedLong expectedResult)
+      throws Exception {
+    CelAbstractSyntaxTree ast = CEL_UNSIGNED_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_UNSIGNED_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitNot()'}")
+  @TestParameters("{expr: 'math.bitNot(1u, 1)'}")
+  @TestParameters("{expr: 'math.bitNot(\"\")'}")
+  public void bitNot_invalidArgs_throwsException(String expr) {
+    CelValidationException e =
+        assertThrows(CelValidationException.class, () -> CEL_COMPILER.compile(expr).getAst());
+
+    assertThat(e).hasMessageThat().contains("found no matching overload for 'math.bitNot'");
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitShiftLeft(1, 2)' , expectedResult: 4}")
+  @TestParameters("{expr: 'math.bitShiftLeft(12121, 11)' , expectedResult: 24823808}")
+  @TestParameters("{expr: 'math.bitShiftLeft(-1, 64)' , expectedResult: 0}")
+  public void bitShiftLeft_signedInt_success(String expr, long expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitShiftLeft(1u, 2)' , expectedResult: 4}")
+  @TestParameters("{expr: 'math.bitShiftLeft(2147483648u, 22)' , expectedResult: 9007199254740992}")
+  @TestParameters("{expr: 'math.bitShiftLeft(1u, 65)' , expectedResult: 0}")
+  public void bitShiftLeft_unSignedInt_success(String expr, UnsignedLong expectedResult)
+      throws Exception {
+    CelAbstractSyntaxTree ast = CEL_UNSIGNED_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_UNSIGNED_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitShiftLeft(1, -2)'}")
+  @TestParameters("{expr: 'math.bitShiftLeft(1u, -2)'}")
+  public void bitShiftLeft_invalidArgs_throwsException(String expr) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    CelEvaluationException e =
+        assertThrows(
+            CelEvaluationException.class, () -> CEL_UNSIGNED_RUNTIME.createProgram(ast).eval());
+
+    assertThat(e).hasMessageThat().contains("evaluation error");
+    assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
+    assertThat(e).hasCauseThat().hasMessageThat().contains("math.bitShiftLeft() negative offset");
+  }
+
+  @Test
+  @TestParameters(
+      "{expr: 'math.bitShiftRight(9223372036854775807, 12)' , expectedResult: 2251799813685247}")
+  @TestParameters("{expr: 'math.bitShiftRight(12121, 11)' , expectedResult: 5}")
+  @TestParameters("{expr: 'math.bitShiftRight(-1, 64)' , expectedResult: 0}")
+  public void bitShiftRight_signedInt_success(String expr, long expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitShiftRight(23111u, 12)' , expectedResult: 5}")
+  @TestParameters("{expr: 'math.bitShiftRight(2147483648u, 22)' , expectedResult: 512}")
+  @TestParameters("{expr: 'math.bitShiftRight(1u, 65)' , expectedResult: 0}")
+  public void bitShiftRight_unSignedInt_success(String expr, UnsignedLong expectedResult)
+      throws Exception {
+    CelAbstractSyntaxTree ast = CEL_UNSIGNED_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_UNSIGNED_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.bitShiftRight(23111u, -212)'}")
+  @TestParameters("{expr: 'math.bitShiftRight(23, -212)'}")
+  public void bitShiftRight_invalidArgs_throwsException(String expr) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    CelEvaluationException e =
+        assertThrows(
+            CelEvaluationException.class, () -> CEL_UNSIGNED_RUNTIME.createProgram(ast).eval());
+
+    assertThat(e).hasMessageThat().contains("evaluation error");
+    assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
+    assertThat(e).hasCauseThat().hasMessageThat().contains("math.bitShiftRight() negative offset");
   }
 }
