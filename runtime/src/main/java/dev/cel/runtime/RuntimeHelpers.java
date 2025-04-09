@@ -30,7 +30,9 @@ import dev.cel.common.CelRuntimeException;
 import dev.cel.common.internal.Converter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.threeten.extra.AmountFormats;
 
@@ -93,6 +95,31 @@ class RuntimeHelpers {
     List<E> result = new ArrayList<>(first.size() + second.size());
     result.addAll(first);
     result.addAll(second);
+    return result;
+  }
+
+  /** Concatenates two maps into a new map */
+  static Map<Object, Object> mapInsert(Map<Object, Object> first, Map<Object, Object> second) {
+    // TODO: return a mutable map instead of an actual copy.
+    Map<Object, Object> result = new HashMap<>(first.size() + second.size());
+    result.putAll(first);
+    result.putAll(second);
+    return result;
+  }
+
+  /** Add new key value pair to an existing map. */
+  static Map<Object, Object> mapInsert(Object[] args) {
+    Map<?, ?> map = (Map<?, ?>) args[0];
+    Object key = args[1];
+    Object value = args[2];
+    // TODO: return a mutable map instead of an actual copy.
+    if (map.containsKey(key)) {
+      throw new IllegalArgumentException(
+          String.format("insert failed: key %s already exists", key));
+    }
+    Map<Object, Object> result = new HashMap<>(map.size() + 1);
+    result.putAll(map);
+    result.put(key, value);
     return result;
   }
 

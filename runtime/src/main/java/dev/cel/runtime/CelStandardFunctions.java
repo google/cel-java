@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedLong;
@@ -83,6 +84,8 @@ public final class CelStandardFunctions {
         Arithmetic.ADD_STRING,
         Arithmetic.ADD_BYTES,
         Arithmetic.ADD_LIST,
+        Arithmetic.MAP_INSERT_MAP_MAP,
+        Arithmetic.MAP_INSERT_MAP_KEY_VALUE,
         Arithmetic.ADD_TIMESTAMP_DURATION,
         Arithmetic.ADD_DURATION_TIMESTAMP,
         Arithmetic.ADD_DURATION_DURATION),
@@ -373,6 +376,16 @@ public final class CelStandardFunctions {
             (bindingHelper) ->
                 CelFunctionBinding.from(
                     "add_list", List.class, List.class, RuntimeHelpers::concat)),
+        MAP_INSERT_MAP_MAP(
+            (bindingHelper) ->
+                CelFunctionBinding.from(
+                    "mapInsert_map_map", Map.class, Map.class, RuntimeHelpers::mapInsert)),
+        MAP_INSERT_MAP_KEY_VALUE(
+            (bindingHelper) ->
+                CelFunctionBinding.from(
+                    "mapInsert_map_key_value",
+                    ImmutableList.of(Map.class, Object.class, Object.class),
+                    RuntimeHelpers::mapInsert)),
         SUBTRACT_INT64(
             (bindingHelper) ->
                 CelFunctionBinding.from(
