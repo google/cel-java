@@ -93,6 +93,8 @@ public final class CelStandardDeclarations {
         Overload.Arithmetic.ADD_STRING,
         Overload.Arithmetic.ADD_BYTES,
         Overload.Arithmetic.ADD_LIST,
+        Overload.Arithmetic.MAP_INSERT_KEY_VALUE,
+        Overload.Arithmetic.MAP_INSERT_MAP,
         Overload.Arithmetic.ADD_TIMESTAMP_DURATION,
         Overload.Arithmetic.ADD_DURATION_TIMESTAMP,
         Overload.Arithmetic.ADD_DURATION_DURATION),
@@ -410,6 +412,12 @@ public final class CelStandardDeclarations {
         ADD_LIST(
             CelOverloadDecl.newGlobalOverload(
                 "add_list", "list concatenation", LIST_OF_A, LIST_OF_A, LIST_OF_A)),
+        MAP_INSERT_KEY_VALUE(
+            CelOverloadDecl.newGlobalOverload(
+                "mapInsert_map_key_value", "map insertion", MAP_OF_AB, MAP_OF_AB, TYPE_PARAM_A, TYPE_PARAM_B)),
+        MAP_INSERT_MAP(
+            CelOverloadDecl.newGlobalOverload(
+                "mapInsert_map_map", "map insertion", MAP_OF_AB, MAP_OF_AB, MAP_OF_AB)),
         ADD_TIMESTAMP_DURATION(
             CelOverloadDecl.newGlobalOverload(
                 "add_timestamp_duration",
