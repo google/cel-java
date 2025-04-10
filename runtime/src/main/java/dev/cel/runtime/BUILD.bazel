@@ -328,6 +328,7 @@ cel_android_library(
         "//common/types:types_android",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
         "@maven_android//:com_google_guava_guava",
     ],
 )
@@ -506,7 +507,6 @@ java_library(
 java_library(
     name = "interpretable",
     srcs = INTERPRABLE_SOURCES,
-    visibility = ["//visibility:private"],
     deps = [
         ":evaluation_exception",
         ":evaluation_listener",
