@@ -506,7 +506,6 @@ java_library(
 java_library(
     name = "interpretable",
     srcs = INTERPRABLE_SOURCES,
-    visibility = ["//visibility:private"],
     deps = [
         ":evaluation_exception",
         ":evaluation_listener",

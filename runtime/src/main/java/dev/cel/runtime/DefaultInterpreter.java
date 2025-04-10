@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -111,7 +112,8 @@ final class DefaultInterpreter implements Interpreter {
   }
 
   @Immutable
-  private static final class DefaultInterpretable
+  @VisibleForTesting
+  static final class DefaultInterpretable
       implements Interpretable, UnknownTrackingInterpretable {
     private final TypeResolver typeResolver;
     private final RuntimeTypeProvider typeProvider;
@@ -165,12 +167,38 @@ final class DefaultInterpreter implements Interpreter {
         Optional<? extends FunctionResolver> functionResolver,
         CelEvaluationListener listener)
         throws CelEvaluationException {
-      int comprehensionMaxIterations =
-          celOptions.enableComprehension() ? celOptions.comprehensionMaxIterations() : 0;
-      ExecutionFrame frame =
-          new ExecutionFrame(listener, resolver, functionResolver, comprehensionMaxIterations);
+      ExecutionFrame frame = newExecutionFrame(resolver, functionResolver, listener);
       IntermediateResult internalResult = evalInternal(frame, ast.getExpr());
       return internalResult.value();
+    }
+
+    /**
+     * Evaluates this interpretable and returns the resulting execution frame populated with evaluation state.
+     * This method is specifically designed for testing the interpreter's internal invariants.
+     *
+     * <p><b>Do not expose to public. This method is strictly for internal testing purposes only.</b>
+     */
+    @VisibleForTesting
+    ExecutionFrame populateExecutionFrame(ExecutionFrame frame) throws CelEvaluationException {
+      evalInternal(frame, ast.getExpr());
+
+      return frame;
+    }
+
+    @VisibleForTesting
+    ExecutionFrame newTestExecutionFrame(GlobalResolver resolver) throws CelEvaluationException {
+      return newExecutionFrame(RuntimeUnknownResolver.fromResolver(resolver), Optional.empty(), CelEvaluationListener.noOpListener());
+    }
+
+
+    private ExecutionFrame newExecutionFrame(
+        RuntimeUnknownResolver resolver,
+        Optional<? extends FunctionResolver> functionResolver,
+        CelEvaluationListener listener) throws CelEvaluationException {
+      int comprehensionMaxIterations =
+          celOptions.enableComprehension() ? celOptions.comprehensionMaxIterations() : 0;
+      return
+          new ExecutionFrame(listener, resolver, functionResolver, comprehensionMaxIterations);
     }
 
     private IntermediateResult evalInternal(ExecutionFrame frame, CelExpr expr)
@@ -916,6 +944,7 @@ final class DefaultInterpreter implements Interpreter {
             iterVar, IntermediateResult.create(iterAttr, RuntimeHelpers.maybeAdaptPrimitive(elem)));
         loopVars.put(accuVar, accuValue);
 
+        System.out.println("Push scope");
         frame.pushScope(Collections.unmodifiableMap(loopVars));
         IntermediateResult evalObject = evalBooleanStrict(frame, compre.loopCondition());
         if (!isUnknownValue(evalObject.value()) && !(boolean) evalObject.value()) {
@@ -927,8 +956,13 @@ final class DefaultInterpreter implements Interpreter {
       }
 
       frame.pushScope(Collections.singletonMap(accuVar, accuValue));
-      IntermediateResult result = evalInternal(frame, compre.result());
-      frame.popScope();
+      IntermediateResult result;
+      try {
+        result = evalInternal(frame, compre.result());
+      }
+      finally {
+        frame.popScope();
+      }
       return result;
     }
 
@@ -975,14 +1009,17 @@ final class DefaultInterpreter implements Interpreter {
     }
   }
 
+
   /** This class tracks the state meaningful to a single evaluation pass. */
-  private static class ExecutionFrame {
+  static class ExecutionFrame {
     private final CelEvaluationListener evaluationListener;
     private final int maxIterations;
     private final ArrayDeque<RuntimeUnknownResolver> resolvers;
     private final Optional<? extends FunctionResolver> lateBoundFunctionResolver;
     private RuntimeUnknownResolver currentResolver;
     private int iterations;
+    @VisibleForTesting
+    int scopeLevel;
 
     private ExecutionFrame(
         CelEvaluationListener evaluationListener,
@@ -1040,12 +1077,14 @@ final class DefaultInterpreter implements Interpreter {
 
     /** Note: we utilize a HashMap instead of ImmutableMap to make lookups faster on string keys. */
     private void pushScope(Map<String, IntermediateResult> scope) {
+      scopeLevel++;
       RuntimeUnknownResolver scopedResolver = currentResolver.withScope(scope);
       currentResolver = scopedResolver;
       resolvers.addLast(scopedResolver);
     }
 
     private void popScope() {
+      scopeLevel--;
       if (resolvers.isEmpty()) {
         throw new IllegalStateException("Execution frame error: more scopes popped than pushed");
       }
