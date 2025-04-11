@@ -76,7 +76,7 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
 
     CelValue selectedValue = select(field);
     if (fieldInfo.getHasHasser()) {
-      if (selectedValue.equals(NullValue.NULL_VALUE)) {
+      if (!fieldValues().containsKey(field.value())) {
         return Optional.empty();
       }
     } else if (selectedValue.isZeroValue()){

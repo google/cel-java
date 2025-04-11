@@ -361,7 +361,7 @@ public class CelLiteDescriptorEvaluationTest {
   @TestParameters("{expression: 'has(msg.map_string_int64)'}")
   @TestParameters("{expression: 'has(msg.map_bool_int32_wrapper)'}")
   @TestParameters("{expression: 'has(msg.map_bool_int64_wrapper)'}")
-  public void presenceTest_evaluatesToFalse(String expression) throws Exception {
+  public void presenceTest_proto3_evaluatesToFalse(String expression) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
     TestAllTypes msg =
         TestAllTypes.newBuilder()
@@ -390,7 +390,7 @@ public class CelLiteDescriptorEvaluationTest {
   @TestParameters("{expression: 'has(msg.map_string_int64)'}")
   @TestParameters("{expression: 'has(msg.map_string_int32_wrapper)'}")
   @TestParameters("{expression: 'has(msg.map_string_int64_wrapper)'}")
-  public void presenceTest_evaluatesToTrue(String expression) throws Exception {
+  public void presenceTest_proto3_evaluatesToTrue(String expression) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
     TestAllTypes msg =
         TestAllTypes.newBuilder()

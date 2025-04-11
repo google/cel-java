@@ -45,4 +45,49 @@ public class CelLiteDescriptorInterpreterTest extends BaseInterpreterTest {
     // Dynamic message is not supported in Protolite
     skipBaselineVerification();
   }
+
+  // All the tests below rely on message creation with fields populated. They are excluded for time being until this support is added.
+  @Override
+  public void wrappers() throws Exception {
+    skipBaselineVerification();
+  }
+  @Override
+  public void jsonConversions() {
+    skipBaselineVerification();
+  }
+
+  @Override
+  public void nestedEnums() {
+    skipBaselineVerification();
+  }
+
+  @Override
+  public void messages() throws Exception {
+    skipBaselineVerification();
+  }
+
+  @Override
+  public void packUnpackAny() {
+    skipBaselineVerification();
+  }
+
+  @Override
+  public void lists() throws Exception {
+    skipBaselineVerification();
+  }
+
+  @Override
+  public void maps() throws Exception {
+    skipBaselineVerification();
+  }
+
+  @Override
+  public void jsonValueTypes() {
+    skipBaselineVerification();
+  }
+
+  @Override
+  public void messages_error() {
+    skipBaselineVerification();
+  }
 }

@@ -116,16 +116,10 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
       case BYTES:
         return inputStream.readBytes();
       case MESSAGE:
-        MessageLite.Builder builder = descriptorPool.findDescriptor(fieldDescriptor.getFieldProtoTypeName())
-            .map(MessageLiteDescriptor::newMessageBuilder)
-            .orElse(null);
+        MessageLite.Builder builder = getDefaultMessageBuilder(fieldDescriptor.getFieldProtoTypeName());
 
-        if (builder != null) {
-          inputStream.readMessage(builder, ExtensionRegistryLite.getEmptyRegistry());
-          return builder.build();
-        } else {
-          throw new UnsupportedOperationException("Nested message not supported yet.");
-        }
+        inputStream.readMessage(builder, ExtensionRegistryLite.getEmptyRegistry());
+        return builder.build();
       case STRING:
         return inputStream.readStringRequireUtf8();
       default:
@@ -133,7 +127,13 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     }
   }
 
-  private static Object getDefaultValue(FieldLiteDescriptor fieldDescriptor) {
+  private MessageLite.Builder getDefaultMessageBuilder(String protoTypeName) {
+    return descriptorPool.findDescriptor(protoTypeName)
+        .map(MessageLiteDescriptor::newMessageBuilder)
+        .orElseThrow(() -> new NoSuchElementException("Could not find a descriptor for: " + protoTypeName));
+  }
+
+  private Object getDefaultValue(FieldLiteDescriptor fieldDescriptor) {
     FieldLiteDescriptor.CelFieldValueType celFieldValueType = fieldDescriptor.getCelFieldValueType();
     switch (celFieldValueType) {
       case LIST:
@@ -163,7 +163,7 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
             if (WellKnownProto.isWrapperType(fieldDescriptor.getFieldProtoTypeName())) {
               return NullValue.NULL_VALUE;
             } else {
-              throw new UnsupportedOperationException("Default value for nested message not yet implemented.");
+              return getDefaultMessageBuilder(fieldDescriptor.getFieldProtoTypeName()).build();
             }
           default:
             throw new IllegalStateException("Unexpected java type: " + type);
