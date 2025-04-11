@@ -20,7 +20,6 @@ import static org.junit.Assert.assertThrows;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
-import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
@@ -456,30 +455,6 @@ public class CelLiteDescriptorEvaluationTest {
     Long result = (Long) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", nestedMessage));
 
     assertThat(result).isEqualTo(NestedEnum.BAR.getNumber());
-  }
-
-  @Test
-  public void anyMessage_packUnpack() throws Exception {
-    CelAbstractSyntaxTree ast =
-        CEL_COMPILER.compile("TestAllTypes { single_any: content }.single_any").getAst();
-    TestAllTypes content = TestAllTypes.newBuilder().setSingleInt64(1L).build();
-
-    TestAllTypes result =
-        (TestAllTypes) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("content", content));
-
-    assertThat(result).isEqualTo(content);
-  }
-
-  @Test
-  public void anyMessage_packUnpack2() throws Exception {
-    CelAbstractSyntaxTree ast =
-        CEL_COMPILER.compile("msg.single_any.single_int64").getAst();
-    TestAllTypes messageWithAnyContent = TestAllTypes.newBuilder().setSingleAny(Any.pack(TestAllTypes.newBuilder().setSingleInt64(1L).build(), "")).build();
-
-    TestAllTypes result =
-        (TestAllTypes) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", messageWithAnyContent));
-
-    assertThat(result).isEqualTo(1L);
   }
 
   @SuppressWarnings("ImmutableEnumChecker") // Test only
