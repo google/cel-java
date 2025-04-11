@@ -140,24 +140,24 @@ public final class DescriptorMessageProviderTest {
 
   @Test
   public void hasField_mapKeyFound() {
-    assertThat(provider.hasField(ImmutableMap.of("hello", "world"), "hello")).isEqualTo(true);
+    assertThat(provider.hasField(TestAllTypes.getDescriptor().getFullName(), ImmutableMap.of("hello", "world"), "hello")).isEqualTo(true);
   }
 
   @Test
   public void hasField_mapKeyNotFound() {
-    assertThat(provider.hasField(ImmutableMap.of(), "hello")).isEqualTo(false);
+    assertThat(provider.hasField(TestAllTypes.getDescriptor().getFullName(), ImmutableMap.of(), "hello")).isEqualTo(false);
   }
 
   @Test
   public void selectField_mapKeyFound() {
-    assertThat(provider.selectField(ImmutableMap.of("hello", "world"), "hello")).isEqualTo("world");
+    assertThat(provider.selectField(TestAllTypes.getDescriptor().getFullName(), ImmutableMap.of("hello", "world"), "hello")).isEqualTo("world");
   }
 
   @Test
   public void selectField_mapKeyNotFound() {
     CelRuntimeException e =
         Assert.assertThrows(
-            CelRuntimeException.class, () -> provider.selectField(ImmutableMap.of(), "hello"));
+            CelRuntimeException.class, () -> provider.selectField(TestAllTypes.getDescriptor().getFullName(), ImmutableMap.of(), "hello"));
     assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.ATTRIBUTE_NOT_FOUND);
   }
@@ -166,7 +166,7 @@ public final class DescriptorMessageProviderTest {
   public void selectField_unsetWrapperField() {
     assertThat(
             provider.selectField(
-                dev.cel.expr.conformance.proto3.TestAllTypes.getDefaultInstance(),
+                TestAllTypes.getDescriptor().getFullName(), dev.cel.expr.conformance.proto3.TestAllTypes.getDefaultInstance(),
                 "single_int64_wrapper"))
         .isEqualTo(NullValue.NULL_VALUE);
   }
@@ -175,7 +175,7 @@ public final class DescriptorMessageProviderTest {
   public void selectField_nonProtoObjectError() {
     CelRuntimeException e =
         Assert.assertThrows(
-            CelRuntimeException.class, () -> provider.selectField("hello", "not_a_field"));
+            CelRuntimeException.class, () -> provider.selectField(TestAllTypes.getDescriptor().getFullName(), "hello", "not_a_field"));
     assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.ATTRIBUTE_NOT_FOUND);
   }
@@ -194,6 +194,7 @@ public final class DescriptorMessageProviderTest {
     long result =
         (long)
             provider.selectField(
+                TestAllTypes.getDescriptor().getFullName(),
                 TestAllTypes.newBuilder().setExtension(TestAllTypesExtensions.int32Ext, 10).build(),
                 TestAllTypesProto.getDescriptor().getPackage() + ".int32_ext");
 

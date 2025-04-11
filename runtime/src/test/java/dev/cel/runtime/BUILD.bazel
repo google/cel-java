@@ -1,5 +1,6 @@
 load("@rules_java//java:defs.bzl", "java_library")
 load("//:cel_android_rules.bzl", "cel_android_local_test")
+load("//:java_lite_proto_cel_library.bzl", "java_lite_proto_cel_library")
 load("//:testing.bzl", "junit4_test_suites")
 load("//compiler/tools:compile_cel.bzl", "compile_cel")
 
@@ -40,6 +41,35 @@ compile_cel(
     expression = "''.isEmpty() && [].isEmpty()",
 )
 
+compile_cel(
+    name = "compiled_proto3_select_primitives_all_ored",
+    environment = "//testing/environment:proto3_message_variables",
+    expression = "proto3.single_int32 == 1 || proto3.single_int64 == 2 || proto3.single_uint32 == 3u || proto3.single_uint64 == 4u ||" +
+                 "proto3.single_sint32 == 5 || proto3.single_sint64 == 6 || proto3.single_fixed32 == 7u || proto3.single_fixed64 == 8u ||" +
+                 "proto3.single_sfixed32 == 9 || proto3.single_sfixed64 == 10 || proto3.single_float == 1.5 || proto3.single_double == 2.5 ||" +
+                 "proto3.single_bool || proto3.single_string == 'hello world' || proto3.single_bytes == b\'abc\'",
+    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto"],
+)
+
+compile_cel(
+    name = "compiled_proto3_select_primitives",
+    environment = "//testing/environment:proto3_message_variables",
+    expression = "proto3.single_int32 == 1 && proto3.single_int64 == 2 && proto3.single_uint32 == 3u && proto3.single_uint64 == 4u &&" +
+                 "proto3.single_sint32 == 5 && proto3.single_sint64 == 6 && proto3.single_fixed32 == 7u && proto3.single_fixed64 == 8u &&" +
+                 "proto3.single_sfixed32 == 9 && proto3.single_sfixed64 == 10 && proto3.single_float == 1.5 && proto3.single_double == 2.5 &&" +
+                 "proto3.single_bool && proto3.single_string == 'hello world' && proto3.single_bytes == b\'abc\'",
+    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto"],
+)
+
+compile_cel(
+    name = "compiled_proto3_select_wrappers",
+    environment = "//testing/environment:proto3_message_variables",
+    expression = "proto3.single_int32_wrapper == 1 && proto3.single_int64_wrapper == 2 && proto3.single_float_wrapper == 1.5 &&" +
+                 "proto3.single_double_wrapper == 2.5 && proto3.single_uint32_wrapper == 3u && proto3.single_uint64_wrapper == 4u &&" +
+                 "proto3.single_string_wrapper == 'hello world' && proto3.single_bool_wrapper && proto3.single_bytes_wrapper == b\'abc\'",
+    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto"],
+)
+
 filegroup(
     name = "compiled_exprs",
     # keep sorted
@@ -50,6 +80,9 @@ filegroup(
         ":compiled_list_literal",
         ":compiled_one_plus_two",
         ":compiled_primitive_variables",
+        ":compiled_proto3_select_primitives",
+        ":compiled_proto3_select_primitives_all_ored",
+        ":compiled_proto3_select_wrappers",
     ],
 )
 
@@ -60,6 +93,7 @@ java_library(
         ["*.java"],
         exclude = [
             "CelValueInterpreterTest.java",
+            "CelLiteDescriptorInterpreterTest.java",
             "InterpreterTest.java",
         ],
     ),
@@ -88,6 +122,7 @@ java_library(
         "//common/types:cel_v1alpha1_types",
         "//common/types:message_type_provider",
         "//common/values:cel_value_provider",
+        "//common/values:proto_message_lite_value_provider",
         "//compiler",
         "//compiler:compiler_builder",
         "//extensions:optional_library",
@@ -113,6 +148,7 @@ java_library(
         "//runtime:type_resolver",
         "//runtime:unknown_attributes",
         "//runtime:unknown_options",
+        "//testing:test_all_types_cel_java_proto_lite",
         "@cel_spec//proto/cel/expr:checked_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
@@ -125,6 +161,7 @@ java_library(
         "@maven//:com_google_truth_extensions_truth_proto_extension",
         "@maven//:junit_junit",
         "@maven//:org_jspecify_jspecify",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -169,17 +206,36 @@ cel_android_local_test(
         "//common:proto_ast_android",
         "//common/ast:ast_android",
         "//common/types:types_android",
+        "//common/values:proto_message_lite_value_provider",
         "//runtime:evaluation_exception",
         "//runtime:function_binding_android",
         "//runtime:lite_runtime_android",
         "//runtime:lite_runtime_factory_android",
         "//runtime:lite_runtime_impl_android",
         "//runtime:standard_functions_android",
+        "//runtime:unknown_attributes_android",
+        "//testing:test_all_types_cel_java_proto_lite",
         "@cel_spec//proto/cel/expr:checked_java_proto_lite",
-        "@maven//:com_google_protobuf_protobuf_java",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto_lite",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven_android//:com_google_guava_guava",
         "@maven_android//:com_google_protobuf_protobuf_javalite",
+    ],
+)
+
+java_library(
+    name = "cel_lite_descriptor_interpreter_test",
+    testonly = 1,
+    srcs = [
+        "CelLiteDescriptorInterpreterTest.java",
+    ],
+    deps = [
+        "//extensions:optional_library",
+        "//runtime",
+        "//testing:base_interpreter_test",
+        "//testing:test_all_types_cel_java_proto_lite",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -192,6 +248,7 @@ junit4_test_suites(
     ],
     src_dir = "src/test/java",
     deps = [
+        ":cel_lite_descriptor_interpreter_test",
         ":cel_value_interpreter_test",
         ":interpreter_test",
         ":tests",

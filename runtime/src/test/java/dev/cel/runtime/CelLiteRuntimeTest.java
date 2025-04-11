@@ -17,6 +17,16 @@ package dev.cel.runtime;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.protobuf.BoolValue;
+import com.google.protobuf.BytesValue;
+import com.google.protobuf.DoubleValue;
+import com.google.protobuf.FloatValue;
+import com.google.protobuf.Int32Value;
+import com.google.protobuf.Int64Value;
+import com.google.protobuf.StringValue;
+import com.google.protobuf.UInt32Value;
+import com.google.protobuf.UInt64Value;
+import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.expr.CheckedExpr;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
@@ -32,6 +42,8 @@ import dev.cel.common.CelSource;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.types.SimpleType;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
 import dev.cel.runtime.CelLiteRuntime.Program;
 import java.net.URL;
 import java.util.List;
@@ -217,6 +229,101 @@ public class CelLiteRuntimeTest {
     Program program = runtime.createProgram(ast);
 
     boolean result = (boolean) program.eval();
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void eval_proto3Message_unknowns() throws Exception {
+    CelLiteRuntime runtime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setValueProvider(ProtoMessageLiteValueProvider.newInstance(
+                TestAllTypesCelLiteDescriptor.getDescriptor()))
+            .build();
+    CelAbstractSyntaxTree ast = readCheckedExpr("compiled_proto3_select_primitives");
+    Program program = runtime.createProgram(ast);
+
+    CelUnknownSet result = (CelUnknownSet) program.eval();
+
+    assertThat(result.unknownExprIds()).hasSize(15);
+  }
+
+  @Test
+  public void eval_proto3Message_primitiveWithDefaults() throws Exception {
+    CelLiteRuntime runtime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setValueProvider(ProtoMessageLiteValueProvider.newInstance(
+                TestAllTypesCelLiteDescriptor.getDescriptor()))
+            .build();
+    // Ensures that all branches of the OR conditions are evaluated, and that appropriate defaults are
+    // returned for primitives.
+    CelAbstractSyntaxTree ast = readCheckedExpr("compiled_proto3_select_primitives_all_ored");
+    Program program = runtime.createProgram(ast);
+
+    boolean result = (boolean) program.eval(ImmutableMap.of("proto3", TestAllTypes.newBuilder().build()));
+
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  public void eval_protoMessage_primitives() throws Exception {
+    CelLiteRuntime runtime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setValueProvider(ProtoMessageLiteValueProvider.newInstance(
+                TestAllTypesCelLiteDescriptor.getDescriptor()))
+            .build();
+    CelAbstractSyntaxTree ast = readCheckedExpr("compiled_proto3_select_primitives");
+    Program program = runtime.createProgram(ast);
+
+    boolean result = (boolean) program.eval(
+        ImmutableMap.of("proto3",
+            TestAllTypes.newBuilder()
+                .setSingleInt32(1)
+                .setSingleInt64(2L)
+                .setSingleUint32(3)
+                .setSingleUint64(4L)
+                .setSingleSint32(5)
+                .setSingleSint64(6L)
+                .setSingleFixed32(7)
+                .setSingleFixed64(8L)
+                .setSingleSfixed32(9)
+                .setSingleSfixed64(10L)
+                .setSingleFloat(1.5f)
+                .setSingleDouble(2.5d)
+                .setSingleBool(true)
+                .setSingleString("hello world")
+                .setSingleBytes(ByteString.copyFromUtf8("abc"))
+            .build()));
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void eval_protoMessage_wrappers() throws Exception {
+    CelLiteRuntime runtime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setValueProvider(ProtoMessageLiteValueProvider.newInstance(
+                TestAllTypesCelLiteDescriptor.getDescriptor()))
+            .build();
+    CelAbstractSyntaxTree ast = readCheckedExpr("compiled_proto3_select_wrappers");
+    Program program = runtime.createProgram(ast);
+
+    boolean result = (boolean) program.eval(
+        ImmutableMap.of("proto3", TestAllTypes.newBuilder()
+            .setSingleInt32Wrapper(Int32Value.of(1))
+            .setSingleInt64Wrapper(Int64Value.of(2L))
+            .setSingleUint32Wrapper(UInt32Value.of(3))
+            .setSingleUint64Wrapper(UInt64Value.of(4L))
+            .setSingleFloatWrapper(FloatValue.of(1.5f))
+            .setSingleDoubleWrapper(DoubleValue.of(2.5d))
+            .setSingleBoolWrapper(BoolValue.of(true))
+            .setSingleStringWrapper(StringValue.of("hello world"))
+            .setSingleBytesWrapper(BytesValue.of(ByteString.copyFromUtf8("abc")))
+            .build()));
 
     assertThat(result).isTrue();
   }

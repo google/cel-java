@@ -48,6 +48,7 @@ import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparserFactory;
+import dev.cel.runtime.CelLiteRuntime.Program;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -286,6 +287,20 @@ public class CelRuntimeTest {
     Long result = (Long) cel.createProgram(ast).trace(listener);
 
     assertThat(result).isEqualTo(3L);
+  }
+
+  @Test
+  public void fooTest() throws Exception {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addVar("proto3", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
+            .addMessageTypes(TestAllTypes.getDescriptor()).build();
+    CelAbstractSyntaxTree ast = cel.compile("proto3.standalone_message").getAst();
+    Program program = cel.createProgram(ast);
+
+    Object result = program.eval(ImmutableMap.of("proto3", TestAllTypes.newBuilder().build()));
+
+    assertThat(result).isNotNull();
   }
 
   @Test

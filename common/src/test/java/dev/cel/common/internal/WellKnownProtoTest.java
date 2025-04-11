@@ -51,9 +51,4 @@ public class WellKnownProtoTest {
   public void isWrapperType_withTypeName_false(String typeName) {
     assertThat(WellKnownProto.isWrapperType(typeName)).isFalse();
   }
-
-  @Test
-  public void getJavaClassName() {
-    assertThat(WellKnownProto.ANY_VALUE.javaClassName()).isEqualTo("com.google.protobuf.Any");
-  }
 }

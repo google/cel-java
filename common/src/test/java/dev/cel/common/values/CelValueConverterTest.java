@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import dev.cel.common.CelOptions;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +26,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class CelValueConverterTest {
   private static final CelValueConverter CEL_VALUE_CONVERTER =
-      new CelValueConverter(CelOptions.DEFAULT) {};
+      new CelValueConverter() {};
 
   @Test
   public void fromJavaPrimitiveToCelValue_returnsOpaqueValue() {

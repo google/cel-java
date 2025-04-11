@@ -36,13 +36,19 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelDescriptorPool;
 import dev.cel.common.internal.CombinedDescriptorPool;
 import dev.cel.common.internal.DefaultDescriptorPool;
+import dev.cel.common.internal.DefaultLiteDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 // CEL-Internal-3
 import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.values.CelValueProvider;
+import dev.cel.common.values.CelValueProvider.CombinedCelValueProvider;
+import dev.cel.common.values.ProtoCelValueConverter;
+import dev.cel.common.values.ProtoLiteCelValueConverter;
+import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.common.values.ProtoMessageValueProvider;
+import dev.cel.protobuf.CelLiteDescriptor;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Arithmetic;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Comparison;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Conversions;
@@ -130,6 +136,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     @VisibleForTesting final ImmutableSet.Builder<FileDescriptor> fileTypes;
 
     @VisibleForTesting final HashMap<String, CelFunctionBinding> customFunctionBindings;
+    private final ImmutableSet.Builder<CelLiteDescriptor> celLiteDescriptorBuilder;
 
     @VisibleForTesting final ImmutableSet.Builder<CelRuntimeLibrary> celRuntimeLibraries;
 
@@ -168,6 +175,17 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     @Override
     public CelRuntimeBuilder addMessageTypes(Iterable<Descriptor> descriptors) {
       return addFileTypes(CelDescriptorUtil.getFileDescriptorsForDescriptors(descriptors));
+    }
+
+    @Override
+    public CelRuntimeBuilder addCelLiteDescriptors(CelLiteDescriptor... descriptors) {
+      return addCelLiteDescriptors(Arrays.asList(descriptors));
+    }
+
+    @Override
+    public CelRuntimeBuilder addCelLiteDescriptors(Iterable<CelLiteDescriptor> descriptors) {
+      this.celLiteDescriptorBuilder.addAll(descriptors);
+      return this;
     }
 
     @Override
@@ -291,16 +309,40 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       RuntimeTypeProvider runtimeTypeProvider;
 
       if (options.enableCelValue()) {
-        CelValueProvider messageValueProvider =
-            ProtoMessageValueProvider.newInstance(dynamicProto, options);
-        if (celValueProvider != null) {
-          messageValueProvider =
-              new CelValueProvider.CombinedCelValueProvider(celValueProvider, messageValueProvider);
+        ImmutableSet<CelLiteDescriptor> liteDescriptors = celLiteDescriptorBuilder.build();
+        if (liteDescriptors.isEmpty()) {
+          CelValueProvider messageValueProvider =
+              ProtoMessageValueProvider.newInstance(dynamicProto);
+          if (celValueProvider != null) {
+            messageValueProvider =
+                CombinedCelValueProvider.newInstance(celValueProvider, messageValueProvider);
+          }
+
+          ProtoCelValueConverter protoCelValueConverter =
+              ProtoCelValueConverter.newInstance(celDescriptorPool, dynamicProto);
+
+          runtimeTypeProvider =
+              new CelValueRuntimeTypeProvider(messageValueProvider, protoCelValueConverter);
+        } else {
+          DefaultLiteDescriptorPool celLiteDescriptorPool =
+              DefaultLiteDescriptorPool.newInstance(liteDescriptors);
+
+          // TODO: instantiate these dependencies within ProtoMessageLiteValueProvider.
+          // For now, they need to be outside to instantiate the RuntimeTypeProviderLegacyImpl
+          // adapter.
+          ProtoLiteCelValueConverter protoLiteCelValueConverter =
+              ProtoLiteCelValueConverter.newInstance(celLiteDescriptorPool);
+          CelValueProvider messageValueProvider =
+              ProtoMessageLiteValueProvider.newInstance(liteDescriptors);
+          if (celValueProvider != null) {
+            messageValueProvider =
+                CombinedCelValueProvider.newInstance(celValueProvider, messageValueProvider);
+          }
+
+          runtimeTypeProvider =
+              new CelValueRuntimeTypeProvider(messageValueProvider, protoLiteCelValueConverter);
         }
 
-        runtimeTypeProvider =
-            new RuntimeTypeProviderLegacyImpl(
-                options, messageValueProvider, celDescriptorPool, dynamicProto);
       } else {
         runtimeTypeProvider = new DescriptorMessageProvider(runtimeTypeFactory, options);
       }
@@ -407,6 +449,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       this.fileTypes = ImmutableSet.builder();
       this.customFunctionBindings = new HashMap<>();
       this.celRuntimeLibraries = ImmutableSet.builder();
+      this.celLiteDescriptorBuilder = ImmutableSet.builder();
       this.extensionRegistry = ExtensionRegistry.getEmptyRegistry();
       this.customTypeFactory = null;
     }

@@ -264,10 +264,11 @@ final class DefaultInterpreter implements Interpreter {
 
     private IntermediateResult resolveIdent(ExecutionFrame frame, CelExpr expr, String name)
         throws CelEvaluationException {
+      // TODO: Check if this is safe
       // Check whether the type exists in the type check map as a 'type'.
-      Optional<CelType> checkedType = ast.getType(expr.id());
-      if (checkedType.isPresent() && checkedType.get().kind() == CelKind.TYPE) {
-        TypeType typeValue = typeResolver.adaptType(checkedType.get());
+      CelType checkedType = getCheckedTypeOrThrow(expr);
+      if (checkedType.kind() == CelKind.TYPE) {
+        TypeType typeValue = typeResolver.adaptType(checkedType);
         return IntermediateResult.create(typeValue);
       }
 
@@ -279,7 +280,7 @@ final class DefaultInterpreter implements Interpreter {
       }
 
       // Value resolved from Binding, it could be Message, PartialMessage or unbound(null)
-      value = InterpreterUtil.strict(typeProvider.adapt(value));
+      value = InterpreterUtil.strict(typeProvider.adapt(checkedType.name(), value));
       IntermediateResult result = IntermediateResult.create(rawResult.attribute(), value);
 
       if (isLazyExpression) {
@@ -327,10 +328,11 @@ final class DefaultInterpreter implements Interpreter {
         return IntermediateResult.create(attribute, operand);
       }
 
+      CelType operandCheckedType = getCheckedTypeOrThrow(operandExpr);
       if (isTestOnly) {
-        return IntermediateResult.create(attribute, typeProvider.hasField(operand, field));
+        return IntermediateResult.create(attribute, typeProvider.hasField(operandCheckedType.name(), operand, field));
       }
-      Object fieldValue = typeProvider.selectField(operand, field);
+      Object fieldValue = typeProvider.selectField(operandCheckedType.name(), operand, field);
 
       return IntermediateResult.create(
           attribute, InterpreterUtil.valueOrUnknown(fieldValue, expr.id()));
@@ -416,7 +418,8 @@ final class DefaultInterpreter implements Interpreter {
       try {
         Object dispatchResult = overload.getDefinition().apply(argArray);
         if (celOptions.unwrapWellKnownTypesOnFunctionDispatch()) {
-          dispatchResult = typeProvider.adapt(dispatchResult);
+          CelType checkedType = getCheckedTypeOrThrow(expr);
+          dispatchResult = typeProvider.adapt(checkedType.name(), dispatchResult);
         }
         return IntermediateResult.create(attr, dispatchResult);
       } catch (CelRuntimeException ce) {
@@ -508,6 +511,17 @@ final class DefaultInterpreter implements Interpreter {
             InterpreterUtil.strict((boolean) condition.value() ? lhs.value() : rhs.value());
         return IntermediateResult.create(result);
       }
+    }
+
+    private CelType getCheckedTypeOrThrow(CelExpr expr) throws CelEvaluationException {
+      return ast.getType(expr.id()).orElseThrow(() ->
+          CelEvaluationExceptionBuilder.newBuilder(
+                  "expected a runtime type for expression ID '%d' from checked expression, but found"
+                      + " none.",
+                  expr.id())
+              .setErrorCode(CelErrorCode.TYPE_NOT_FOUND)
+              .setMetadata(metadata, expr.id())
+              .build());
     }
 
     private IntermediateResult mergeBooleanUnknowns(IntermediateResult lhs, IntermediateResult rhs)
@@ -635,18 +649,7 @@ final class DefaultInterpreter implements Interpreter {
         return argResult;
       }
 
-      CelType checkedType =
-          ast.getType(typeExprArg.id())
-              .orElseThrow(
-                  () ->
-                      CelEvaluationExceptionBuilder.newBuilder(
-                              "expected a runtime type for '%s' from checked expression, but found"
-                                  + " none.",
-                              argResult.getClass().getSimpleName())
-                          .setErrorCode(CelErrorCode.TYPE_NOT_FOUND)
-                          .setMetadata(metadata, typeExprArg.id())
-                          .build());
-
+      CelType checkedType = getCheckedTypeOrThrow(typeExprArg);
       CelType checkedTypeValue = typeResolver.adaptType(checkedType);
       return IntermediateResult.create(
           typeResolver.resolveObjectType(argResult.value(), checkedTypeValue));
@@ -706,7 +709,8 @@ final class DefaultInterpreter implements Interpreter {
       }
 
       String field = callExpr.args().get(1).constant().stringValue();
-      boolean hasField = (boolean) typeProvider.hasField(lhsResult.value(), field);
+      CelType checkedType = getCheckedTypeOrThrow(expr);
+      boolean hasField = (boolean) typeProvider.hasField(checkedType.name(), lhsResult.value(), field);
       if (!hasField) {
         // Protobuf sets default (zero) values to uninitialized fields.
         // In case of CEL's optional values, we want to explicitly return Optional.none()
