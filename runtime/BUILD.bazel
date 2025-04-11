@@ -106,6 +106,12 @@ java_library(
 )
 
 java_library(
+    name = "interpretable",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:interpretable"],
+)
+
+java_library(
     name = "runtime_helpers",
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:runtime_helpers"],
