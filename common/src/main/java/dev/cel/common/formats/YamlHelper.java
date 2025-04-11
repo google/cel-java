@@ -14,13 +14,16 @@
 
 package dev.cel.common.formats;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import java.io.StringReader;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
@@ -42,9 +45,17 @@ public final class YamlHelper {
     LIST("tag:yaml.org,2002:seq"),
     ;
 
+    private static final ImmutableMap<String, YamlNodeType> TAG_TO_NODE_TYPE =
+        stream(YamlNodeType.values())
+            .collect(toImmutableMap(YamlNodeType::tag, Function.identity()));
+
     private final String tag;
 
-    String tag() {
+    public static Optional<YamlNodeType> nodeType(String tag) {
+      return Optional.ofNullable(TAG_TO_NODE_TYPE.get(tag));
+    }
+
+    public String tag() {
       return tag;
     }
 
@@ -95,6 +106,15 @@ public final class YamlHelper {
       }
     }
     return false;
+  }
+
+  public static Double newDouble(ParserContext<Node> ctx, Node node) {
+    long id = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, id, node, YamlNodeType.DOUBLE)) {
+      return 0.0;
+    }
+
+    return Double.parseDouble(((ScalarNode) node).getValue());
   }
 
   public static Integer newInteger(ParserContext<Node> ctx, Node node) {
