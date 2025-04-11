@@ -19,7 +19,6 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.DynamicProto;
@@ -40,6 +39,10 @@ public class ProtoMessageValueProvider implements CelValueProvider {
   private final ProtoAdapter protoAdapter;
   private final ProtoMessageFactory protoMessageFactory;
   private final ProtoCelValueConverter protoCelValueConverter;
+
+  public ProtoCelValueConverter getProtoCelValueConverter() {
+    return protoCelValueConverter;
+  }
 
   @Override
   public Optional<CelValue> newValue(String structType, Map<String, Object> fields) {
@@ -88,16 +91,14 @@ public class ProtoMessageValueProvider implements CelValueProvider {
                         fieldName, descriptor.getFullName())));
   }
 
-  public static ProtoMessageValueProvider newInstance(
-      DynamicProto dynamicProto, CelOptions celOptions) {
-    return new ProtoMessageValueProvider(dynamicProto, celOptions);
+  public static ProtoMessageValueProvider newInstance(DynamicProto dynamicProto) {
+    return new ProtoMessageValueProvider(dynamicProto);
   }
 
-  private ProtoMessageValueProvider(DynamicProto dynamicProto, CelOptions celOptions) {
+  private ProtoMessageValueProvider(DynamicProto dynamicProto) {
     this.protoMessageFactory = dynamicProto.getProtoMessageFactory();
     this.protoCelValueConverter =
-        ProtoCelValueConverter.newInstance(
-            celOptions, protoMessageFactory.getDescriptorPool(), dynamicProto);
-    this.protoAdapter = new ProtoAdapter(dynamicProto, celOptions.enableUnsignedLongs());
+        ProtoCelValueConverter.newInstance(protoMessageFactory.getDescriptorPool(), dynamicProto);
+    this.protoAdapter = new ProtoAdapter(dynamicProto, true);
   }
 }
