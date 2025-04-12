@@ -23,5 +23,6 @@ java_library(
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
