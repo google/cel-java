@@ -107,7 +107,7 @@ public final class ProtoCelValueConverter extends CelValueConverter {
     }
 
     WellKnownProto wellKnownProto =
-        WellKnownProto.getByTypeName(message.getDescriptorForType().getFullName());
+        WellKnownProto.getByTypeName(message.getDescriptorForType().getFullName()).orElse(null);
     if (wellKnownProto == null) {
       return ProtoMessageValue.create((Message) message, celDescriptorPool, this);
     }
