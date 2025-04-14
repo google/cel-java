@@ -242,11 +242,11 @@ http_archive(
 )
 
 # cel-spec api/expr canonical protos
-CEL_SPEC_VERSION = "0.20.0"
+CEL_SPEC_VERSION = "0.22.1"
 
 http_archive(
     name = "cel_spec",
-    sha256 = "9f4acb83116f68af8a6b6acf700561a22a1bd8a9ad2f49bf642b7f9b8f285043",
+    sha256 = "1f1ad32bce5d31cf82e9c8f40685b1902de3ab07c78403601e7a43c3fb4de9a6",
     strip_prefix = "cel-spec-" + CEL_SPEC_VERSION,
     urls = [
         "https://github.com/google/cel-spec/archive/" +
