@@ -258,6 +258,10 @@ public final class CelExtensions {
     return new CelListsExtensions(functions);
   }
 
+  public static CelComprehensions comprehensions() {
+    return new CelComprehensions();
+  }
+
   /**
    * Retrieves all function names used by every extension libraries.
    *
@@ -276,7 +280,9 @@ public final class CelExtensions {
             stream(CelEncoderExtensions.Function.values())
                 .map(CelEncoderExtensions.Function::getFunction),
             stream(CelListsExtensions.Function.values())
-                .map(CelListsExtensions.Function::getFunction))
+                .map(CelListsExtensions.Function::getFunction),
+            stream(CelComprehensions.Function.values())
+                .map(CelComprehensions.Function::getFunction))
         .collect(toImmutableSet());
   }
 
