@@ -47,6 +47,7 @@ import dev.cel.runtime.CelRuntimeFactory;
 import java.util.Map;
 import org.junit.runners.model.Statement;
 
+/** Conformance test suite for CEL-Java. */
 // Qualifying proto2/proto3 TestAllTypes makes it less clear.
 @SuppressWarnings("UnnecessarilyFullyQualified")
 public final class ConformanceTest extends Statement {

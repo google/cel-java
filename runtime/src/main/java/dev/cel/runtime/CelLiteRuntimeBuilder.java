@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.CelOptions;
+import dev.cel.common.values.CelValueProvider;
 
 /** Interface for building an instance of {@link CelLiteRuntime} */
 public interface CelLiteRuntimeBuilder {
@@ -39,6 +40,9 @@ public interface CelLiteRuntimeBuilder {
   /** Bind a collection of {@link CelFunctionBinding} objects to the runtime. */
   @CanIgnoreReturnValue
   CelLiteRuntimeBuilder addFunctionBindings(Iterable<CelFunctionBinding> bindings);
+
+  @CanIgnoreReturnValue
+  CelLiteRuntimeBuilder setValueProvider(CelValueProvider celValueProvider);
 
   @CheckReturnValue
   CelLiteRuntime build();
