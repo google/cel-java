@@ -95,6 +95,5 @@ java_library(
 
 cel_android_library(
     name = "internal_android",
-    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common/internal:internal_android"],
 )

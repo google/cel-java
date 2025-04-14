@@ -58,24 +58,20 @@ java_library(
 
 cel_android_library(
     name = "cel_types_android",
-    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common/types:cel_types_android"],
 )
 
 cel_android_library(
     name = "types_android",
-    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common/types:types_android"],
 )
 
 cel_android_library(
     name = "type_providers_android",
-    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common/types:type_providers_android"],
 )
 
 cel_android_library(
     name = "cel_proto_types_android",
-    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common/types:cel_proto_types_android"],
 )

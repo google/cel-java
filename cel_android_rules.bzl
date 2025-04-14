@@ -31,10 +31,15 @@ def cel_android_library(name, **kwargs):
     javacopts = kwargs.get("javacopts", [])
     all_javacopts = DEFAULT_JAVACOPTS + javacopts
 
+    # By default, set visibility to android_allow_list, unless if overridden at the call site.
+    provided_visibility_or_default = kwargs.get("visibility", ["//:android_allow_list"])
+    filtered_kwargs = {k: v for k, v in kwargs.items() if k != "visibility"}
+
     android_library(
         name = name,
+        visibility = provided_visibility_or_default,
         javacopts = all_javacopts,
-        **kwargs
+        **filtered_kwargs
     )
 
 def cel_android_local_test(name, **kwargs):

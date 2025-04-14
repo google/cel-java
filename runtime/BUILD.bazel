@@ -58,7 +58,6 @@ java_library(
 
 cel_android_library(
     name = "function_binding_android",
-    visibility = ["//:android_allow_list"],
     exports = [
         "//runtime/src/main/java/dev/cel/runtime:function_binding_android",
     ],
@@ -170,13 +169,11 @@ cel_android_library(
 
 cel_android_library(
     name = "lite_runtime_android",
-    visibility = ["//:android_allow_list"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:lite_runtime_android"],
 )
 
 cel_android_library(
     name = "lite_runtime_factory_android",
-    visibility = ["//:android_allow_list"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:lite_runtime_factory_android"],
 )
 

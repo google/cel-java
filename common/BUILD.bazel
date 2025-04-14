@@ -24,7 +24,6 @@ java_library(
 
 cel_android_library(
     name = "proto_ast_android",
-    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common:proto_ast_android"],
 )
 
@@ -80,7 +79,6 @@ java_library(
 
 cel_android_library(
     name = "cel_source_android",
-    visibility = ["//:android_allow_list"],
     exports = ["//common/src/main/java/dev/cel/common:cel_source_android"],
 )
 
@@ -91,7 +89,6 @@ java_library(
 
 cel_android_library(
     name = "cel_ast_android",
-    visibility = ["//:android_allow_list"],
     exports = [
         "//common/src/main/java/dev/cel/common:cel_ast_android",
     ],
