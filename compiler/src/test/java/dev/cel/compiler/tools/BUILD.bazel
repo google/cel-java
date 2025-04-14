@@ -67,6 +67,7 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:junit_junit",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
