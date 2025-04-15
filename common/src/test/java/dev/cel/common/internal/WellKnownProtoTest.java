@@ -16,8 +16,10 @@ package dev.cel.common.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.protobuf.FloatValue;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -53,7 +55,12 @@ public class WellKnownProtoTest {
   }
 
   @Test
-  public void getJavaClassName() {
-    assertThat(WellKnownProto.ANY_VALUE.javaClassName()).isEqualTo("com.google.protobuf.Any");
+  public void getByClass_success() {
+    assertThat(WellKnownProto.getByClass(FloatValue.class)).hasValue(WellKnownProto.FLOAT_VALUE);
+  }
+
+  @Test
+  public void getByClass_unknownClass_returnsEmpty() {
+    assertThat(WellKnownProto.getByClass(List.class)).isEmpty();
   }
 }

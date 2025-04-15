@@ -36,8 +36,8 @@ import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
 import dev.cel.common.annotations.Internal;
+import java.util.Optional;
 import java.util.function.Function;
-import org.jspecify.annotations.Nullable;
 
 /**
  * WellKnownProto types used throughout CEL. These types are specially handled to ensure that
@@ -46,77 +46,79 @@ import org.jspecify.annotations.Nullable;
  */
 @Internal
 public enum WellKnownProto {
-  ANY_VALUE("google.protobuf.Any", Any.class.getName()),
-  DURATION("google.protobuf.Duration", Duration.class.getName()),
-  JSON_LIST_VALUE("google.protobuf.ListValue", ListValue.class.getName()),
-  JSON_STRUCT_VALUE("google.protobuf.Struct", Struct.class.getName()),
-  JSON_VALUE("google.protobuf.Value", Value.class.getName()),
-  TIMESTAMP("google.protobuf.Timestamp", Timestamp.class.getName()),
+  ANY_VALUE("google.protobuf.Any", Any.class),
+  DURATION("google.protobuf.Duration", Duration.class),
+  JSON_LIST_VALUE("google.protobuf.ListValue", ListValue.class),
+  JSON_STRUCT_VALUE("google.protobuf.Struct", Struct.class),
+  JSON_VALUE("google.protobuf.Value", Value.class),
+  TIMESTAMP("google.protobuf.Timestamp", Timestamp.class),
   // Wrapper types
-  FLOAT_VALUE("google.protobuf.FloatValue", FloatValue.class.getName(), /* isWrapperType= */ true),
-  INT32_VALUE("google.protobuf.Int32Value", Int32Value.class.getName(), /* isWrapperType= */ true),
-  INT64_VALUE("google.protobuf.Int64Value", Int64Value.class.getName(), /* isWrapperType= */ true),
-  STRING_VALUE(
-      "google.protobuf.StringValue", StringValue.class.getName(), /* isWrapperType= */ true),
-  BOOL_VALUE("google.protobuf.BoolValue", BoolValue.class.getName(), /* isWrapperType= */ true),
-  BYTES_VALUE("google.protobuf.BytesValue", BytesValue.class.getName(), /* isWrapperType= */ true),
-  DOUBLE_VALUE(
-      "google.protobuf.DoubleValue", DoubleValue.class.getName(), /* isWrapperType= */ true),
-  UINT32_VALUE(
-      "google.protobuf.UInt32Value", UInt32Value.class.getName(), /* isWrapperType= */ true),
-  UINT64_VALUE(
-      "google.protobuf.UInt64Value", UInt64Value.class.getName(), /* isWrapperType= */ true),
+  FLOAT_VALUE("google.protobuf.FloatValue", FloatValue.class, /* isWrapperType= */ true),
+  INT32_VALUE("google.protobuf.Int32Value", Int32Value.class, /* isWrapperType= */ true),
+  INT64_VALUE("google.protobuf.Int64Value", Int64Value.class, /* isWrapperType= */ true),
+  STRING_VALUE("google.protobuf.StringValue", StringValue.class, /* isWrapperType= */ true),
+  BOOL_VALUE("google.protobuf.BoolValue", BoolValue.class, /* isWrapperType= */ true),
+  BYTES_VALUE("google.protobuf.BytesValue", BytesValue.class, /* isWrapperType= */ true),
+  DOUBLE_VALUE("google.protobuf.DoubleValue", DoubleValue.class, /* isWrapperType= */ true),
+  UINT32_VALUE("google.protobuf.UInt32Value", UInt32Value.class, /* isWrapperType= */ true),
+  UINT64_VALUE("google.protobuf.UInt64Value", UInt64Value.class, /* isWrapperType= */ true),
   // These aren't explicitly called out as wrapper types in the spec, but behave like one, because
   // they are still converted into an equivalent primitive type.
 
-  EMPTY("google.protobuf.Empty", Empty.class.getName(), /* isWrapperType= */ true),
-  FIELD_MASK("google.protobuf.FieldMask", FieldMask.class.getName(), /* isWrapperType= */ true),
+  EMPTY("google.protobuf.Empty", Empty.class, /* isWrapperType= */ true),
+  FIELD_MASK("google.protobuf.FieldMask", FieldMask.class, /* isWrapperType= */ true),
   ;
 
-  private static final ImmutableMap<String, WellKnownProto> WELL_KNOWN_PROTO_MAP;
+  private static final ImmutableMap<String, WellKnownProto> TYPE_NAME_TO_WELL_KNOWN_PROTO_MAP =
+      stream(WellKnownProto.values())
+          .collect(toImmutableMap(WellKnownProto::typeName, Function.identity()));
 
-  static {
-    WELL_KNOWN_PROTO_MAP =
-        stream(WellKnownProto.values())
-            .collect(toImmutableMap(WellKnownProto::typeName, Function.identity()));
-  }
+  private static final ImmutableMap<Class<?>, WellKnownProto>
+      CLASS_TO_NAME_TO_WELL_KNOWN_PROTO_MAP =
+          stream(WellKnownProto.values())
+              .collect(toImmutableMap(WellKnownProto::messageClass, Function.identity()));
 
-  private final String wellKnownProtoFullName;
-  private final String javaClassName;
+  private final String wellKnownProtoTypeName;
+  private final Class<?> clazz;
   private final boolean isWrapperType;
 
+  /** Gets the fully qualified prototype name (ex: google.protobuf.FloatValue) */
   public String typeName() {
-    return wellKnownProtoFullName;
+    return wellKnownProtoTypeName;
   }
 
-  public String javaClassName() {
-    return this.javaClassName;
+  /** Gets the underlying java class for this WellKnownProto. */
+  public Class<?> messageClass() {
+    return clazz;
   }
 
-  public static @Nullable WellKnownProto getByTypeName(String typeName) {
-    return WELL_KNOWN_PROTO_MAP.get(typeName);
+  public static Optional<WellKnownProto> getByTypeName(String typeName) {
+    return Optional.ofNullable(TYPE_NAME_TO_WELL_KNOWN_PROTO_MAP.get(typeName));
   }
 
+  public static Optional<WellKnownProto> getByClass(Class<?> clazz) {
+    return Optional.ofNullable(CLASS_TO_NAME_TO_WELL_KNOWN_PROTO_MAP.get(clazz));
+  }
+
+  /**
+   * Returns true if the provided {@code typeName} is a well known type, and it's a wrapper. False
+   * otherwise.
+   */
   public static boolean isWrapperType(String typeName) {
-    WellKnownProto wellKnownProto = getByTypeName(typeName);
-    if (wellKnownProto == null) {
-      return false;
-    }
-
-    return wellKnownProto.isWrapperType();
+    return getByTypeName(typeName).map(WellKnownProto::isWrapperType).orElse(false);
   }
 
   public boolean isWrapperType() {
     return isWrapperType;
   }
 
-  WellKnownProto(String wellKnownProtoFullName, String javaClassName) {
-    this(wellKnownProtoFullName, javaClassName, /* isWrapperType= */ false);
+  WellKnownProto(String wellKnownProtoTypeName, Class<?> clazz) {
+    this(wellKnownProtoTypeName, clazz, /* isWrapperType= */ false);
   }
 
-  WellKnownProto(String wellKnownProtoFullName, String javaClassName, boolean isWrapperType) {
-    this.wellKnownProtoFullName = wellKnownProtoFullName;
-    this.javaClassName = javaClassName;
+  WellKnownProto(String wellKnownProtoFullName, Class<?> clazz, boolean isWrapperType) {
+    this.wellKnownProtoTypeName = wellKnownProtoFullName;
+    this.clazz = clazz;
     this.isWrapperType = isWrapperType;
   }
 }
