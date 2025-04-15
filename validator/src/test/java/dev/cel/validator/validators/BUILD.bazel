@@ -31,6 +31,7 @@ java_library(
         "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
