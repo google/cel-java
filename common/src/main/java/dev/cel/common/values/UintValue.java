@@ -27,11 +27,10 @@ import dev.cel.common.types.SimpleType;
 @Immutable
 @AutoValue
 @AutoValue.CopyAnnotations
-@SuppressWarnings("Immutable") // value is either a boxed long or an immutable UnsignedLong.
 public abstract class UintValue extends CelValue {
 
   @Override
-  public abstract Number value();
+  public abstract UnsignedLong value();
 
   @Override
   public boolean isZeroValue() {
@@ -47,8 +46,7 @@ public abstract class UintValue extends CelValue {
     return new AutoValue_UintValue(value);
   }
 
-  public static UintValue create(long value, boolean enableUnsignedLongs) {
-    Number unsignedLong = enableUnsignedLongs ? UnsignedLong.fromLongBits(value) : value;
-    return new AutoValue_UintValue(unsignedLong);
+  public static UintValue create(long value) {
+    return new AutoValue_UintValue(UnsignedLong.fromLongBits(value));
   }
 }
