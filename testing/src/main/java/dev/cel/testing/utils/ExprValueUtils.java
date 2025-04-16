@@ -33,6 +33,7 @@ import dev.cel.common.internal.DefaultInstanceMessageFactory;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
+import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeType;
 import java.io.IOException;
@@ -144,6 +145,9 @@ public final class ExprValueUtils {
    */
   @SuppressWarnings("unchecked")
   public static Value toValue(Object object, CelType type) throws Exception {
+    if (!(object instanceof Optional) && type instanceof OptionalType) {
+      return toValue(object, type.parameters().get(0));
+    }
     if (object == null) {
       object = NullValue.NULL_VALUE;
     }
@@ -230,7 +234,11 @@ public final class ExprValueUtils {
     }
 
     if (object instanceof Optional) {
-      return toValue(((Optional<?>) object).get(), type);
+      // TODO: Remove this once the ExprValue Native representation is added.
+      if (!((Optional<?>) object).isPresent()) {
+        return Value.getDefaultInstance();
+      }
+      return toValue(((Optional<?>) object).get(), type.parameters().get(0));
     }
 
     throw new IllegalArgumentException(
