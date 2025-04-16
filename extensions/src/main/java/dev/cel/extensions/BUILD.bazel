@@ -17,6 +17,7 @@ java_library(
     ],
     deps = [
         ":bindings",
+        ":comprehensions",
         ":encoders",
         ":lists",
         ":math",
@@ -166,6 +167,25 @@ java_library(
         "//common:compiler_common",
         "//common/types",
         "//compiler:compiler_builder",
+        "//runtime",
+        "//runtime:function_binding",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "comprehensions",
+    srcs = ["CelComprehensions.java"],
+    tags = [
+    ],
+    deps = [
+        "//checker:checker_builder",
+        "//common:compiler_common",
+        "//common/ast",
+        "//common/types",
+        "//compiler:compiler_builder",
+        "//parser:macro",
+        "//parser:parser_builder",
         "//runtime",
         "//runtime:function_binding",
         "@maven//:com_google_guava_guava",
