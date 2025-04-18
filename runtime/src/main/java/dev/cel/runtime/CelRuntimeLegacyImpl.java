@@ -41,7 +41,10 @@ import dev.cel.common.internal.DynamicProto;
 // CEL-Internal-3
 import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.types.CelTypes;
+import dev.cel.common.values.BaseProtoCelValueConverter;
 import dev.cel.common.values.CelValueProvider;
+import dev.cel.common.values.ProtoCelValueConverter;
+import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.common.values.ProtoMessageValueProvider;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Arithmetic;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Comparison;
@@ -291,16 +294,26 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       RuntimeTypeProvider runtimeTypeProvider;
 
       if (options.enableCelValue()) {
-        CelValueProvider messageValueProvider =
-            ProtoMessageValueProvider.newInstance(dynamicProto, options);
-        if (celValueProvider != null) {
-          messageValueProvider =
-              new CelValueProvider.CombinedCelValueProvider(celValueProvider, messageValueProvider);
+        CelValueProvider messageValueProvider = celValueProvider;
+        BaseProtoCelValueConverter protoCelValueConverter = null;
+
+        if (messageValueProvider == null) {
+          messageValueProvider = ProtoMessageValueProvider.newInstance(dynamicProto);
+          protoCelValueConverter =
+              ((ProtoMessageValueProvider) messageValueProvider).getProtoCelValueConverter();
+        } else if (messageValueProvider instanceof ProtoMessageLiteValueProvider) {
+          protoCelValueConverter =
+              ((ProtoMessageLiteValueProvider) messageValueProvider)
+                  .getProtoLiteCelValueConverter();
+        }
+
+        if (protoCelValueConverter == null) {
+          protoCelValueConverter =
+              ProtoCelValueConverter.newInstance(celDescriptorPool, dynamicProto);
         }
 
         runtimeTypeProvider =
-            new RuntimeTypeProviderLegacyImpl(
-                options, messageValueProvider, celDescriptorPool, dynamicProto);
+            CelValueRuntimeTypeProvider.newInstance(messageValueProvider, protoCelValueConverter);
       } else {
         runtimeTypeProvider = new DescriptorMessageProvider(runtimeTypeFactory, options);
       }

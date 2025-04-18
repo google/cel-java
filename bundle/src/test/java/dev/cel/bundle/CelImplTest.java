@@ -320,7 +320,6 @@ public final class CelImplTest {
 
   @Test
   public void compile_customTypesWithAliasingSelfContainedProvider() throws Exception {
-
     // The custom type provider sets up an alias from "Condition" to "google.type.Expr".
     TypeProvider customTypeProvider =
         aliasingProvider(
@@ -409,6 +408,7 @@ public final class CelImplTest {
   }
 
   @Test
+  @SuppressWarnings("unused")
   public void program_concurrentMessageConstruction_succeeds(
       @TestParameter(valuesProvider = RepeatedTestProvider.class) int testRunIndex)
       throws Exception {

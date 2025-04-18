@@ -17,235 +17,551 @@ package dev.cel.runtime;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
-import dev.cel.expr.CheckedExpr;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Resources;
 import com.google.common.primitives.UnsignedLong;
+import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.ExtensionRegistryLite;
+import com.google.protobuf.BytesValue;
+import com.google.protobuf.DoubleValue;
+import com.google.protobuf.Duration;
+import com.google.protobuf.FloatValue;
+import com.google.protobuf.Int32Value;
+import com.google.protobuf.Int64Value;
+import com.google.protobuf.ListValue;
+import com.google.protobuf.NullValue;
+import com.google.protobuf.StringValue;
+import com.google.protobuf.Struct;
+import com.google.protobuf.Timestamp;
+import com.google.protobuf.UInt32Value;
+import com.google.protobuf.UInt64Value;
+import com.google.protobuf.util.Durations;
+import com.google.protobuf.util.Timestamps;
+import com.google.protobuf.util.Values;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
-import dev.cel.common.CelOptions;
-import dev.cel.common.CelProtoAbstractSyntaxTree;
-import dev.cel.common.CelSource;
-import dev.cel.common.ast.CelConstant;
-import dev.cel.common.ast.CelExpr;
 import dev.cel.common.types.SimpleType;
-import dev.cel.runtime.CelLiteRuntime.Program;
-import java.net.URL;
+import dev.cel.common.types.StructTypeReference;
+import dev.cel.common.values.ProtoMessageLiteValueProvider;
+import dev.cel.compiler.CelCompiler;
+import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.expr.conformance.proto2.TestAllTypesProto2CelDescriptor;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
+import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
+import dev.cel.expr.conformance.proto3.TestAllTypesProto3CelDescriptor;
+import dev.cel.parser.CelStandardMacro;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+/** Exercises tests for CelLiteRuntime using <b>full version of protobuf messages</b>. */
 @RunWith(TestParameterInjector.class)
 public class CelLiteRuntimeTest {
+  private static final CelCompiler CEL_COMPILER =
+      CelCompilerFactory.standardCelCompilerBuilder()
+          .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+          .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
+          .addVar("content", SimpleType.DYN)
+          .addMessageTypes(TestAllTypes.getDescriptor())
+          .setContainer("cel.expr.conformance.proto3")
+          .build();
+
+  private static final CelLiteRuntime CEL_RUNTIME =
+      CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+          .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+          .setValueProvider(
+              ProtoMessageLiteValueProvider.newInstance(
+                  TestAllTypesProto2CelDescriptor.getDescriptor(),
+                  TestAllTypesProto3CelDescriptor.getDescriptor()))
+          .build();
 
   @Test
-  public void runtimeConstruction() {
-    CelLiteRuntimeBuilder builder = CelLiteRuntimeFactory.newLiteRuntimeBuilder();
+  public void messageCreation_emptyMessage() throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("TestAllTypes{}").getAst();
 
-    CelLiteRuntime runtime = builder.build();
+    TestAllTypes simpleTest = (TestAllTypes) CEL_RUNTIME.createProgram(ast).eval();
 
-    assertThat(runtime).isNotNull();
+    assertThat(simpleTest).isEqualTo(TestAllTypes.getDefaultInstance());
   }
 
   @Test
-  public void programConstruction() throws Exception {
-    CelLiteRuntime runtime = CelLiteRuntimeFactory.newLiteRuntimeBuilder().build();
-    CelAbstractSyntaxTree ast =
-        CelAbstractSyntaxTree.newCheckedAst(
-            CelExpr.ofConstant(1L, CelConstant.ofValue("hello")),
-            CelSource.newBuilder("hello").build(),
-            ImmutableMap.of(),
-            ImmutableMap.of(1L, SimpleType.STRING));
-
-    Program program = runtime.createProgram(ast);
-
-    assertThat(program).isNotNull();
-  }
-
-  @Test
-  public void toRuntimeBuilder_isNewInstance() {
-    CelLiteRuntimeBuilder runtimeBuilder = CelLiteRuntimeFactory.newLiteRuntimeBuilder();
-    CelLiteRuntime runtime = runtimeBuilder.build();
-
-    CelLiteRuntimeBuilder newRuntimeBuilder = runtime.toRuntimeBuilder();
-
-    assertThat(newRuntimeBuilder).isNotEqualTo(runtimeBuilder);
-  }
-
-  @Test
-  public void toRuntimeBuilder_propertiesCopied() {
-    CelOptions celOptions = CelOptions.current().enableCelValue(true).build();
-    CelStandardFunctions celStandardFunctions = CelStandardFunctions.newBuilder().build();
-    CelLiteRuntimeBuilder runtimeBuilder =
-        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setOptions(celOptions)
-            .setStandardFunctions(celStandardFunctions)
-            .addFunctionBindings(
-                CelFunctionBinding.from("string_isEmpty", String.class, String::isEmpty));
-    CelLiteRuntime runtime = runtimeBuilder.build();
-
-    LiteRuntimeImpl.Builder newRuntimeBuilder =
-        (LiteRuntimeImpl.Builder) runtime.toRuntimeBuilder();
-
-    assertThat(newRuntimeBuilder.celOptions).isEqualTo(celOptions);
-    assertThat(newRuntimeBuilder.celStandardFunctions).isEqualTo(celStandardFunctions);
-    assertThat(newRuntimeBuilder.customFunctionBindings).hasSize(1);
-    assertThat(newRuntimeBuilder.customFunctionBindings).containsKey("string_isEmpty");
-  }
-
-  @Test
-  public void setCelOptions_unallowedOptionsSet_throws(@TestParameter CelOptionsTestCase testCase) {
-    assertThrows(
-        IllegalArgumentException.class,
-        () ->
-            CelLiteRuntimeFactory.newLiteRuntimeBuilder().setOptions(testCase.celOptions).build());
-  }
-
-  @Test
-  public void standardEnvironment_disabledByDefault() throws Exception {
-    CelLiteRuntime runtime = CelLiteRuntimeFactory.newLiteRuntimeBuilder().build();
-    // Expr: 1 + 2
-    CelAbstractSyntaxTree ast = readCheckedExpr("compiled_one_plus_two");
+  public void messageCreation_fieldsPopulated() throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("TestAllTypes{single_int32: 4}").getAst();
 
     CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> runtime.createProgram(ast).eval());
-    assertThat(e)
-        .hasMessageThat()
-        .contains(
-            "evaluation error at <input>:2: No matching overload for function '_+_'. Overload"
-                + " candidates: add_int64");
+        assertThrows(CelEvaluationException.class, () -> CEL_RUNTIME.createProgram(ast).eval());
+
+    assertThat(e.getMessage())
+        .contains("Message creation with prepopulated fields is not supported yet.");
   }
 
   @Test
-  public void eval_add() throws Exception {
-    CelLiteRuntime runtime =
-        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+  @TestParameters("{expression: 'msg.single_int32 == 1'}")
+  @TestParameters("{expression: 'msg.single_int64 == 2'}")
+  @TestParameters("{expression: 'msg.single_uint32 == 3u'}")
+  @TestParameters("{expression: 'msg.single_uint64 == 4u'}")
+  @TestParameters("{expression: 'msg.single_sint32 == 5'}")
+  @TestParameters("{expression: 'msg.single_sint64 == 6'}")
+  @TestParameters("{expression: 'msg.single_fixed32 == 7u'}")
+  @TestParameters("{expression: 'msg.single_fixed64 == 8u'}")
+  @TestParameters("{expression: 'msg.single_sfixed32 == 9'}")
+  @TestParameters("{expression: 'msg.single_sfixed64 == 10'}")
+  @TestParameters("{expression: 'msg.single_float == 1.5'}")
+  @TestParameters("{expression: 'msg.single_double == 2.5'}")
+  @TestParameters("{expression: 'msg.single_bool == true'}")
+  @TestParameters("{expression: 'msg.single_string == \"foo\"'}")
+  @TestParameters("{expression: 'msg.single_bytes == b\"abc\"'}")
+  @TestParameters("{expression: 'msg.optional_bool == true'}")
+  public void fieldSelection_literals(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder()
+            .setSingleInt32(1)
+            .setSingleInt64(2L)
+            .setSingleUint32(3)
+            .setSingleUint64(4L)
+            .setSingleSint32(5)
+            .setSingleSint64(6L)
+            .setSingleFixed32(7)
+            .setSingleFixed64(8L)
+            .setSingleSfixed32(9)
+            .setSingleSfixed64(10L)
+            .setSingleFloat(1.5f)
+            .setSingleDouble(2.5d)
+            .setSingleBool(true)
+            .setSingleString("foo")
+            .setSingleBytes(ByteString.copyFromUtf8("abc"))
+            .setOptionalBool(true)
             .build();
-    // Expr: 1 + 2
-    CelAbstractSyntaxTree ast = readCheckedExpr("compiled_one_plus_two");
 
-    assertThat(runtime.createProgram(ast).eval()).isEqualTo(3L);
+    boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isTrue();
   }
 
   @Test
-  public void eval_stringLiteral() throws Exception {
-    CelLiteRuntime runtime = CelLiteRuntimeFactory.newLiteRuntimeBuilder().build();
-    // Expr: 'hello world'
-    CelAbstractSyntaxTree ast = readCheckedExpr("compiled_hello_world");
-    Program program = runtime.createProgram(ast);
+  @TestParameters("{expression: 'msg.single_uint32'}")
+  @TestParameters("{expression: 'msg.single_uint64'}")
+  public void fieldSelection_unsigned(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg = TestAllTypes.newBuilder().setSingleUint32(4).setSingleUint64(4L).build();
 
-    String result = (String) program.eval();
+    Object result = CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
-    assertThat(result).isEqualTo("hello world");
+    assertThat(result).isEqualTo(UnsignedLong.valueOf(4L));
+  }
+
+  @Test
+  @TestParameters("{expression: 'msg.repeated_int32'}")
+  @TestParameters("{expression: 'msg.repeated_int64'}")
+  @SuppressWarnings("unchecked")
+  public void fieldSelection_packedRepeatedInts(String expression) throws Exception {
+    // Note: non-LEN delimited primitives such as ints are packed by default in proto3
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder()
+            .addRepeatedInt32(1)
+            .addRepeatedInt32(2)
+            .addRepeatedInt64(1L)
+            .addRepeatedInt64(2L)
+            .build();
+
+    List<Long> result =
+        (List<Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).containsExactly(1L, 2L).inOrder();
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void eval_listLiteral() throws Exception {
-    CelLiteRuntime runtime = CelLiteRuntimeFactory.newLiteRuntimeBuilder().build();
-    // Expr: ['a', 1, 2u, 3.5]
-    CelAbstractSyntaxTree ast = readCheckedExpr("compiled_list_literal");
-    Program program = runtime.createProgram(ast);
+  public void fieldSelection_repeatedStrings() throws Exception {
+    // Note: len-delimited fields, such as string and messages are not packed.
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("msg.repeated_string").getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder().addRepeatedString("hello").addRepeatedString("world").build();
 
-    List<Object> result = (List<Object>) program.eval();
+    List<String> result =
+        (List<String>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
-    assertThat(result).containsExactly("a", 1L, UnsignedLong.valueOf(2L), 3.5d).inOrder();
+    assertThat(result).containsExactly("hello", "world").inOrder();
   }
 
   @Test
-  public void eval_comprehensionExists() throws Exception {
-    CelLiteRuntime runtime =
-        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+  @SuppressWarnings("unchecked")
+  public void fieldSelection_repeatedBoolWrappers() throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("msg.repeated_bool_wrapper").getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder()
+            .addRepeatedBoolWrapper(BoolValue.of(true))
+            .addRepeatedBoolWrapper(BoolValue.of(false))
+            .addRepeatedBoolWrapper(BoolValue.of(true))
             .build();
-    // Expr: [1,2,3].exists(x, x == 3)
-    CelAbstractSyntaxTree ast = readCheckedExpr("compiled_comprehension_exists");
-    Program program = runtime.createProgram(ast);
 
-    boolean result = (boolean) program.eval();
+    List<Boolean> result =
+        (List<Boolean>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).containsExactly(true, false, true).inOrder();
+  }
+
+  @Test
+  @TestParameters("{expression: 'msg.map_string_int32'}")
+  @TestParameters("{expression: 'msg.map_string_int64'}")
+  @SuppressWarnings("unchecked")
+  public void fieldSelection_map(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder()
+            .putMapStringInt32("a", 1)
+            .putMapStringInt32("b", 2)
+            .putMapStringInt64("a", 1L)
+            .putMapStringInt64("b", 2L)
+            .build();
+
+    Map<String, Long> result =
+        (Map<String, Long>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).containsExactly("a", 1L, "b", 2L);
+  }
+
+  @Test
+  @TestParameters("{expression: 'msg.single_int32_wrapper == 1'}")
+  @TestParameters("{expression: 'msg.single_int64_wrapper == 2'}")
+  @TestParameters("{expression: 'msg.single_uint32_wrapper == 3u'}")
+  @TestParameters("{expression: 'msg.single_uint64_wrapper == 4u'}")
+  @TestParameters("{expression: 'msg.single_float_wrapper == 1.5'}")
+  @TestParameters("{expression: 'msg.single_double_wrapper == 2.5'}")
+  @TestParameters("{expression: 'msg.single_bool_wrapper == true'}")
+  @TestParameters("{expression: 'msg.single_string_wrapper == \"foo\"'}")
+  @TestParameters("{expression: 'msg.single_bytes_wrapper == b\"abc\"'}")
+  public void fieldSelection_wrappers(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder()
+            .setSingleInt32Wrapper(Int32Value.of(1))
+            .setSingleInt64Wrapper(Int64Value.of(2L))
+            .setSingleUint32Wrapper(UInt32Value.of(3))
+            .setSingleUint64Wrapper(UInt64Value.of(4L))
+            .setSingleFloatWrapper(FloatValue.of(1.5f))
+            .setSingleDoubleWrapper(DoubleValue.of(2.5d))
+            .setSingleBoolWrapper(BoolValue.of(true))
+            .setSingleStringWrapper(StringValue.of("foo"))
+            .setSingleBytesWrapper(BytesValue.of(ByteString.copyFromUtf8("abc")))
+            .build();
+
+    boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
     assertThat(result).isTrue();
   }
 
   @Test
-  public void eval_primitiveVariables() throws Exception {
-    CelLiteRuntime runtime =
-        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+  @TestParameters("{expression: 'msg.single_int32_wrapper'}")
+  @TestParameters("{expression: 'msg.single_int64_wrapper'}")
+  @TestParameters("{expression: 'msg.single_uint32_wrapper'}")
+  @TestParameters("{expression: 'msg.single_uint64_wrapper'}")
+  @TestParameters("{expression: 'msg.single_float_wrapper'}")
+  @TestParameters("{expression: 'msg.single_double_wrapper'}")
+  @TestParameters("{expression: 'msg.single_bool_wrapper'}")
+  @TestParameters("{expression: 'msg.single_string_wrapper'}")
+  @TestParameters("{expression: 'msg.single_bytes_wrapper'}")
+  public void fieldSelection_wrappersNullability(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg = TestAllTypes.newBuilder().build();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isEqualTo(NullValue.NULL_VALUE);
+  }
+
+  @Test
+  public void fieldSelection_duration() throws Exception {
+    String expression = "msg.single_duration";
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder().setSingleDuration(Durations.fromMinutes(10)).build();
+
+    Duration result = (Duration) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isEqualTo(Durations.fromMinutes(10));
+  }
+
+  @Test
+  public void fieldSelection_timestamp() throws Exception {
+    String expression = "msg.single_timestamp";
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder().setSingleTimestamp(Timestamps.fromSeconds(50)).build();
+
+    Timestamp result = (Timestamp) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isEqualTo(Timestamps.fromSeconds(50));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void fieldSelection_jsonStruct() throws Exception {
+    String expression = "msg.single_struct";
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder()
+            .setSingleStruct(
+                Struct.newBuilder()
+                    .putFields("one", Values.of(1))
+                    .putFields("two", Values.of(true)))
             .build();
-    // Expr: bool_var && bytes_var == b'abc' && double_var == 1.0 && int_var == 42 && uint_var ==
-    //       42u && str_var == 'foo'
-    CelAbstractSyntaxTree ast = readCheckedExpr("compiled_primitive_variables");
-    Program program = runtime.createProgram(ast);
+
+    Map<Object, Object> result =
+        (Map<Object, Object>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).containsExactly("one", 1.0d, "two", true).inOrder();
+  }
+
+  @Test
+  public void fieldSelection_jsonValue() throws Exception {
+    String expression = "msg.single_value";
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg = TestAllTypes.newBuilder().setSingleValue(Values.of("foo")).build();
+
+    String result = (String) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isEqualTo("foo");
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void fieldSelection_jsonListValue() throws Exception {
+    String expression = "msg.list_value";
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder()
+            .setListValue(
+                ListValue.newBuilder().addValues(Values.of(true)).addValues(Values.of("foo")))
+            .build();
+
+    List<Object> result =
+        (List<Object>) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).containsExactly(true, "foo").inOrder();
+  }
+
+  @Test
+  @TestParameters("{expression: 'has(msg.single_int32)'}")
+  @TestParameters("{expression: 'has(msg.single_int64)'}")
+  @TestParameters("{expression: 'has(msg.single_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.single_int64_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int32)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int64)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int64_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int32)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int64)'}")
+  @TestParameters("{expression: 'has(msg.map_bool_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.map_bool_int64_wrapper)'}")
+  public void presenceTest_proto2_evaluatesToFalse(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    dev.cel.expr.conformance.proto2.TestAllTypes msg =
+        dev.cel.expr.conformance.proto2.TestAllTypes.newBuilder()
+            .addAllRepeatedInt32(ImmutableList.of())
+            .addAllRepeatedInt32Wrapper(ImmutableList.of())
+            .putAllMapBoolInt32(ImmutableMap.of())
+            .putAllMapBoolInt32Wrapper(ImmutableMap.of())
+            .build();
+
+    boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  @TestParameters("{expression: 'has(msg.single_int32)'}")
+  @TestParameters("{expression: 'has(msg.single_int64)'}")
+  @TestParameters("{expression: 'has(msg.single_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.single_int64_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int32)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int64)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int64_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int32)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int64)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int64_wrapper)'}")
+  public void presenceTest_proto2_evaluatesToTrue(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    dev.cel.expr.conformance.proto2.TestAllTypes msg =
+        dev.cel.expr.conformance.proto2.TestAllTypes.newBuilder()
+            .setSingleInt32(0)
+            .setSingleInt64(0)
+            .setSingleInt32Wrapper(Int32Value.of(0))
+            .setSingleInt64Wrapper(Int64Value.of(0))
+            .addAllRepeatedInt32(ImmutableList.of(1))
+            .addAllRepeatedInt64(ImmutableList.of(2L))
+            .addAllRepeatedInt32Wrapper(ImmutableList.of(Int32Value.of(0)))
+            .addAllRepeatedInt64Wrapper(ImmutableList.of(Int64Value.of(0L)))
+            .putAllMapStringInt32Wrapper(ImmutableMap.of("a", Int32Value.of(1)))
+            .putAllMapStringInt64Wrapper(ImmutableMap.of("b", Int64Value.of(2L)))
+            .putMapStringInt32("a", 1)
+            .putMapStringInt64("b", 2)
+            .build();
+
+    boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  @TestParameters("{expression: 'has(msg.single_int32)'}")
+  @TestParameters("{expression: 'has(msg.single_int64)'}")
+  @TestParameters("{expression: 'has(msg.single_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.single_int64_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int32)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int64)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int64_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int32)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int64)'}")
+  @TestParameters("{expression: 'has(msg.map_bool_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.map_bool_int64_wrapper)'}")
+  public void presenceTest_proto3_evaluatesToFalse(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder()
+            .setSingleInt32(0)
+            .addAllRepeatedInt32(ImmutableList.of())
+            .addAllRepeatedInt32Wrapper(ImmutableList.of())
+            .putAllMapBoolInt32(ImmutableMap.of())
+            .putAllMapBoolInt32Wrapper(ImmutableMap.of())
+            .build();
+
+    boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  @TestParameters("{expression: 'has(msg.single_int32)'}")
+  @TestParameters("{expression: 'has(msg.single_int64)'}")
+  @TestParameters("{expression: 'has(msg.single_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.single_int64_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int32)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int64)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.repeated_int64_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int32)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int64)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int32_wrapper)'}")
+  @TestParameters("{expression: 'has(msg.map_string_int64_wrapper)'}")
+  public void presenceTest_proto3_evaluatesToTrue(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
+    TestAllTypes msg =
+        TestAllTypes.newBuilder()
+            .setSingleInt32(1)
+            .setSingleInt64(2)
+            .setSingleInt32Wrapper(Int32Value.of(0))
+            .setSingleInt64Wrapper(Int64Value.of(0))
+            .addAllRepeatedInt32(ImmutableList.of(1))
+            .addAllRepeatedInt64(ImmutableList.of(2L))
+            .addAllRepeatedInt32Wrapper(ImmutableList.of(Int32Value.of(0)))
+            .addAllRepeatedInt64Wrapper(ImmutableList.of(Int64Value.of(0L)))
+            .putAllMapStringInt32Wrapper(ImmutableMap.of("a", Int32Value.of(1)))
+            .putAllMapStringInt64Wrapper(ImmutableMap.of("b", Int64Value.of(2L)))
+            .putMapStringInt32("a", 1)
+            .putMapStringInt64("b", 2)
+            .build();
+
+    boolean result = (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void nestedMessage_traversalThroughSetField() throws Exception {
+    CelAbstractSyntaxTree ast =
+        CEL_COMPILER
+            .compile("msg.single_nested_message.bb == 43 && has(msg.single_nested_message)")
+            .getAst();
+    TestAllTypes nestedMessage =
+        TestAllTypes.newBuilder()
+            .setSingleNestedMessage(NestedMessage.newBuilder().setBb(43))
+            .build();
 
     boolean result =
-        (boolean)
-            program.eval(
-                ImmutableMap.of(
-                    "bool_var",
-                    true,
-                    "bytes_var",
-                    ByteString.copyFromUtf8("abc"),
-                    "double_var",
-                    1.0,
-                    "int_var",
-                    42L,
-                    "uint_var",
-                    UnsignedLong.valueOf(42L),
-                    "str_var",
-                    "foo"));
+        (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", nestedMessage));
 
     assertThat(result).isTrue();
   }
 
   @Test
-  @SuppressWarnings("rawtypes")
-  public void eval_customFunctions() throws Exception {
-    CelLiteRuntime runtime =
-        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .addFunctionBindings(
-                CelFunctionBinding.from("string_isEmpty", String.class, String::isEmpty),
-                CelFunctionBinding.from("list_isEmpty", List.class, List::isEmpty))
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+  public void nestedMessage_safeTraversal() throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("msg.single_nested_message.bb == 43").getAst();
+    TestAllTypes nestedMessage =
+        TestAllTypes.newBuilder()
+            .setSingleNestedMessage(NestedMessage.getDefaultInstance())
             .build();
-    // Expr: ''.isEmpty() && [].isEmpty()
-    CelAbstractSyntaxTree ast = readCheckedExpr("compiled_custom_functions");
-    Program program = runtime.createProgram(ast);
 
-    boolean result = (boolean) program.eval();
+    boolean result =
+        (boolean) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", nestedMessage));
 
-    assertThat(result).isTrue();
+    assertThat(result).isFalse();
   }
 
-  private static CelAbstractSyntaxTree readCheckedExpr(String compiledCelTarget) throws Exception {
-    URL url = Resources.getResource(CelLiteRuntimeTest.class, compiledCelTarget + ".binarypb");
-    byte[] checkedExprBytes = Resources.toByteArray(url);
-    CheckedExpr checkedExpr =
-        CheckedExpr.parseFrom(checkedExprBytes, ExtensionRegistryLite.getEmptyRegistry());
-    return CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst();
+  @Test
+  public void enumSelection() throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("msg.single_nested_enum").getAst();
+    TestAllTypes nestedMessage =
+        TestAllTypes.newBuilder().setSingleNestedEnum(NestedEnum.BAR).build();
+    Long result = (Long) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", nestedMessage));
+
+    assertThat(result).isEqualTo(NestedEnum.BAR.getNumber());
   }
 
-  private enum CelOptionsTestCase {
-    CEL_VALUE_DISABLED(newBaseTestOptions().enableCelValue(false).build()),
-    UNSIGNED_LONG_DISABLED(newBaseTestOptions().enableUnsignedLongs(false).build()),
-    UNWRAP_WKT_DISABLED(newBaseTestOptions().unwrapWellKnownTypesOnFunctionDispatch(false).build()),
-    STRING_CONCAT_DISABLED(newBaseTestOptions().enableStringConcatenation(false).build()),
-    STRING_CONVERSION_DISABLED(newBaseTestOptions().enableStringConversion(false).build()),
-    LIST_CONCATENATION_DISABLED(newBaseTestOptions().enableListConcatenation(false).build()),
+  @SuppressWarnings("ImmutableEnumChecker") // Test only
+  private enum DefaultValueTestCase {
+    INT32("msg.single_int32", 0L),
+    INT64("msg.single_int64", 0L),
+    UINT32("msg.single_uint32", UnsignedLong.ZERO),
+    UINT64("msg.single_uint64", UnsignedLong.ZERO),
+    SINT32("msg.single_sint32", 0L),
+    SINT64("msg.single_sint64", 0L),
+    FIXED32("msg.single_fixed32", 0L),
+    FIXED64("msg.single_fixed64", 0L),
+    SFIXED32("msg.single_sfixed32", 0L),
+    SFIXED64("msg.single_sfixed64", 0L),
+    FLOAT("msg.single_float", 0.0d),
+    DOUBLE("msg.single_double", 0.0d),
+    BOOL("msg.single_bool", false),
+    STRING("msg.single_string", ""),
+    BYTES("msg.single_bytes", ByteString.EMPTY),
+    ENUM("msg.standalone_enum", 0L),
+    OPTIONAL_BOOL("msg.optional_bool", false),
+    REPEATED_STRING("msg.repeated_string", Collections.unmodifiableList(new ArrayList<>())),
+    MAP_INT32_BOOL("msg.map_int32_bool", Collections.unmodifiableMap(new HashMap<>())),
     ;
 
-    private final CelOptions celOptions;
+    private final String expression;
+    private final Object expectedValue;
 
-    private static CelOptions.Builder newBaseTestOptions() {
-      return CelOptions.current().enableCelValue(true);
+    DefaultValueTestCase(String expression, Object expectedValue) {
+      this.expression = expression;
+      this.expectedValue = expectedValue;
     }
+  }
 
-    CelOptionsTestCase(CelOptions celOptions) {
-      this.celOptions = celOptions;
-    }
+  @Test
+  public void unsetField_defaultValue(@TestParameter DefaultValueTestCase testCase)
+      throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(testCase.expression).getAst();
+
+    Object result =
+        CEL_RUNTIME
+            .createProgram(ast)
+            .eval(ImmutableMap.of("msg", TestAllTypes.getDefaultInstance()));
+
+    assertThat(result).isEqualTo(testCase.expectedValue);
   }
 }
