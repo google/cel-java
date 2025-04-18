@@ -24,10 +24,16 @@ import com.google.protobuf.Descriptors.EnumDescriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.Descriptors.GenericDescriptor;
 import com.google.protobuf.Descriptors.ServiceDescriptor;
+import dev.cel.common.annotations.Internal;
 import java.util.ArrayDeque;
 
-/** Helper class for constructing a fully qualified Java class name from a protobuf descriptor. */
-final class ProtoJavaQualifiedNames {
+/**
+ * Helper class for constructing a fully qualified Java class name from a protobuf descriptor. * *
+ *
+ * <p>CEL Library Internals. Do Not Use.
+ */
+@Internal
+public final class ProtoJavaQualifiedNames {
   // Controls how many times we should recursively inspect a nested message for building fully
   // qualified java class name before aborting.
   private static final int SAFE_RECURSE_LIMIT = 50;

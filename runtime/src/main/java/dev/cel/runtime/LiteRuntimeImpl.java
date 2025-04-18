@@ -148,17 +148,17 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
                 }
 
                 @Override
-                public Object selectField(Object message, String fieldName) {
+                public Object selectField(String typeName, Object message, String fieldName) {
                   throw new UnsupportedOperationException("Not implemented yet");
                 }
 
                 @Override
-                public Object hasField(Object message, String fieldName) {
+                public Object hasField(String messageName, Object message, String fieldName) {
                   throw new UnsupportedOperationException("Not implemented yet");
                 }
 
                 @Override
-                public Object adapt(Object message) {
+                public Object adapt(String messageName, Object message) {
                   if (message instanceof MessageLiteOrBuilder) {
                     throw new UnsupportedOperationException("Not implemented yet");
                   }
