@@ -1,0 +1,41 @@
+# proto-file: google3/third_party/cel/spec/proto/cel/expr/conformance/test/suite.proto
+# proto-message: cel.expr.conformance.test.TestSuite
+
+name: "late_function_binding_tests"
+description: "Tests for late function binding."
+sections: {
+  name: "late_function_binding_tests_section"
+  description: "Tests for late function binding."
+  tests: {
+    name: "true_by_default"
+    description: "Test that the default value of a late function binding is true."
+    input: {
+      key: "a"
+      value: {
+        expr: "'foo'"
+      }
+    }
+    output: {
+      result_value: {
+        bool_value: true
+      }
+    }
+  }
+  tests: {
+    name: "false_by_default"
+    description: "Test that the default value of a late function binding is false."
+    input: {
+      key: "a"
+      value: {
+        value: {
+          string_value: "baz"
+        }
+      }
+    }
+    output {
+      result_value {
+        bool_value: false
+      }
+    }
+  }
+}
