@@ -97,3 +97,8 @@ cel_android_library(
     name = "internal_android",
     exports = ["//common/src/main/java/dev/cel/common/internal:internal_android"],
 )
+
+java_library(
+    name = "proto_java_qualified_names",
+    exports = ["//common/src/main/java/dev/cel/common/internal:proto_java_qualified_names"],
+)

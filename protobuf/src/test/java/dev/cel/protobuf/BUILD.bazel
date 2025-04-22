@@ -1,0 +1,37 @@
+load("@rules_java//java:defs.bzl", "java_test")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+)
+
+java_test(
+    name = "cel_lite_descriptor_test",
+    srcs = ["CelLiteDescriptorTest.java"],
+    test_class = "dev.cel.protobuf.CelLiteDescriptorTest",
+    deps = [
+        "//:java_truth",
+        "//protobuf:cel_lite_descriptor",
+        "//testing:test_all_types_cel_java_proto3_lite",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto_lite",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_test(
+    name = "proto_descriptor_collector_test",
+    srcs = ["ProtoDescriptorCollectorTest.java"],
+    test_class = "dev.cel.protobuf.ProtoDescriptorCollectorTest",
+    runtime_deps = ["@maven//:com_google_protobuf_protobuf_java"],
+    deps = [
+        "//:java_truth",
+        "//protobuf:debug_printer",
+        "//protobuf:lite_descriptor_codegen_metadata",
+        "//protobuf:proto_descriptor_collector",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)

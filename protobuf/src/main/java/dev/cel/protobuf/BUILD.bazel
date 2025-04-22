@@ -1,0 +1,102 @@
+load("@rules_java//java:defs.bzl", "java_binary", "java_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//protobuf:__pkg__"],
+)
+
+java_binary(
+    name = "cel_lite_descriptor_generator",
+    srcs = ["CelLiteDescriptorGenerator.java"],
+    main_class = "dev.cel.protobuf.CelLiteDescriptorGenerator",
+    runtime_deps = [
+        # Prevent Classloader from picking protolite. We need full version to access descriptors to codegen CelLiteDescriptor.
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+    deps = [
+        ":debug_printer",
+        ":java_file_generator",
+        ":proto_descriptor_collector",
+        "//common:cel_descriptors",
+        "//common/internal:proto_java_qualified_names",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:info_picocli_picocli",
+    ],
+)
+
+java_library(
+    name = "cel_lite_descriptor",
+    srcs = ["CelLiteDescriptor.java"],
+    # used_by_android
+    tags = [
+    ],
+    deps = [
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
+    ],
+)
+
+java_library(
+    name = "proto_descriptor_collector",
+    srcs = ["ProtoDescriptorCollector.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_lite_descriptor",
+        ":debug_printer",
+        ":lite_descriptor_codegen_metadata",
+        "//common:cel_descriptors",
+        "//common/internal:proto_java_qualified_names",
+        "//common/internal:well_known_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+filegroup(
+    name = "cel_lite_descriptor_template_file",
+    srcs = ["templates/cel_lite_descriptor_template.txt"],
+    visibility = ["//visibility:private"],
+)
+
+java_library(
+    name = "java_file_generator",
+    srcs = ["JavaFileGenerator.java"],
+    resources = [
+        ":cel_lite_descriptor_template_file",
+    ],
+    visibility = ["//visibility:private"],
+    deps = [
+        ":lite_descriptor_codegen_metadata",
+        "//:auto_value",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_freemarker_freemarker",
+    ],
+)
+
+java_library(
+    name = "debug_printer",
+    srcs = ["DebugPrinter.java"],
+    tags = [
+    ],
+    deps = [
+        "@maven//:info_picocli_picocli",
+    ],
+)
+
+java_library(
+    name = "lite_descriptor_codegen_metadata",
+    srcs = ["LiteDescriptorCodegenMetadata.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_lite_descriptor",
+        "//:auto_value",
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)

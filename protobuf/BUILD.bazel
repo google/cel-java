@@ -1,0 +1,39 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//:internal"],
+)
+
+java_library(
+    name = "cel_lite_descriptor",
+    # used_by_android
+    exports = ["//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor"],
+)
+
+java_library(
+    name = "proto_descriptor_collector",
+    testonly = 1,
+    visibility = ["//:internal"],
+    exports = ["//protobuf/src/main/java/dev/cel/protobuf:proto_descriptor_collector"],
+)
+
+java_library(
+    name = "debug_printer",
+    testonly = 1,
+    visibility = ["//:internal"],
+    exports = ["//protobuf/src/main/java/dev/cel/protobuf:debug_printer"],
+)
+
+java_library(
+    name = "lite_descriptor_codegen_metadata",
+    testonly = 1,
+    visibility = ["//:internal"],
+    exports = ["//protobuf/src/main/java/dev/cel/protobuf:lite_descriptor_codegen_metadata"],
+)
+
+alias(
+    name = "cel_lite_descriptor_generator",
+    actual = "//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor_generator",
+    visibility = ["//:internal"],
+)
