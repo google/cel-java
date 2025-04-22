@@ -1,19 +1,20 @@
-# proto-file: google3/google/api/expr/conformance/test_suite.proto
-# proto-message: google.api.expr.conformance.TestSuite
-
+# proto-file: google3/third_party/cel/spec/proto/cel/expr/conformance/test/suite.proto
+# proto-message: cel.expr.conformance.test.TestSuite
 # This testcase is used to test the eval error output in the test runner which
 # fails because the function is declared in the compiler but not in the runtime.
 
+name: "eval_error_tests"
 description: "Nested rule conformance tests with eval errors"
-
 sections {
   name: "permitted"
+  description: "Permitted nested rule"
   tests {
     name: "valid_origin"
+    description: "Valid origin"
     input {
       key: "resource"
       value {
-        expr_value {
+        value {
           object_value {
             [type.googleapis.com/google.protobuf.Struct] {
               fields {
@@ -25,9 +26,11 @@ sections {
         }
       }
     }
-    eval_error {
-      errors {
-        message: "evaluation error: No matching overload for function 'foo'. Overload candidates: foo_id"
+    output {
+      eval_error {
+        errors {
+          message: "evaluation error: No matching overload for function 'foo'. Overload candidates: foo_id"
+        }
       }
     }
   }

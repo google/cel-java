@@ -1,0 +1,79 @@
+# proto-file: google3/third_party/cel/spec/proto/cel/expr/conformance/test/suite.proto
+# proto-message: cel.expr.conformance.test.TestSuite
+
+name: "nested_rule"
+description: "Nested rule conformance tests"
+sections {
+  name: "valid"
+  description: "Valid nested rule"
+  tests {
+    name: "restricted_origin"
+    description: "Restricted origin"
+    input {
+      key: "resource"
+      value {
+        value {
+          object_value {
+            [type.googleapis.com/google.protobuf.Struct] {
+              fields {
+                key: "origin"
+                value { string_value: "ir" }
+              }
+            }
+          }
+        }
+      }
+    }
+    output {
+      result_expr: "{'banned': true}"
+    }
+  }
+  tests {
+    name: "by_default"
+    description: "By default"
+    input {
+      key: "resource"
+      value {
+        value {
+          object_value {
+            [type.googleapis.com/google.protobuf.Struct] {
+              fields {
+                key: "origin"
+                value { string_value: "'de'" }
+              }
+            }
+          }
+        }
+      }
+    }
+    output {
+      result_expr: "{'banned': true}"
+    }
+  }
+}
+
+sections {
+  name: "permitted"
+  description: "Permitted nested rule"
+  tests {
+    name: "valid_origin"
+    input {
+      key: "resource"
+      value {
+        value {
+          object_value {
+            [type.googleapis.com/google.protobuf.Struct] {
+              fields {
+                key: "origin"
+                value { string_value: "uk" }
+              }
+            }
+          }
+        }
+      }
+    }
+    output {
+      result_expr: "{'banned': false}"
+    }
+  }
+}
