@@ -89,6 +89,7 @@ java_library(
     name = "environment_yaml_parser",
     srcs = [
         "CelEnvironmentYamlParser.java",
+        "CelEnvironmentYamlSerializer.java",
     ],
     tags = [
     ],

@@ -154,7 +154,7 @@ public abstract class CelEnvironment {
         .setVariables(ImmutableSet.of())
         .setFunctions(ImmutableSet.of());
   }
-
+  
   /** Extends the provided {@link CelCompiler} environment with this configuration. */
   public CelCompiler extend(CelCompiler celCompiler, CelOptions celOptions)
       throws CelEnvironmentException {

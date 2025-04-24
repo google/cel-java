@@ -5,6 +5,11 @@ package(
 )
 
 alias(
+    name = "dump_env",
+    actual = "//testing/src/test/resources/environment:dump_env",
+)
+
+alias(
     name = "extended_env",
     actual = "//testing/src/test/resources/environment:extended_env",
 )

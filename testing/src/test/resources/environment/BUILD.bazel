@@ -9,6 +9,11 @@ package(
 )
 
 filegroup(
+    name = "dump_env",
+    srcs = ["dump_env.yaml"],
+)
+
+filegroup(
     name = "extended_env",
     srcs = ["extended_env.yaml"],
 )

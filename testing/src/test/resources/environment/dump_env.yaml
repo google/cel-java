@@ -1,0 +1,63 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: dump_env
+description: dump_env description
+container: test.container
+extensions:
+- name: bindings
+- name: encoders
+- name: lists
+- name: math
+- name: optional
+- name: protos
+- name: sets
+- name: strings
+  version: 1
+variables:
+- name: request
+  type_name: google.rpc.context.AttributeContext.Request
+- name: map_var
+  type_name: map
+  params:
+  - type_name: string
+  - type_name: string
+functions:
+- name: getOrDefault
+  overloads:
+  - id: getOrDefault_key_value
+    target:
+      type_name: map
+      params:
+      - type_name: K
+        is_type_param: true
+      - type_name: V
+        is_type_param: true
+    args:
+    - type_name: K
+      is_type_param: true
+    - type_name: V
+      is_type_param: true
+    return:
+      type_name: V
+      is_type_param: true
+- name: coalesce
+  overloads:
+  - id: coalesce_null_int
+    target:
+      type_name: google.protobuf.Int64Value
+    args:
+    - type_name: int
+    return:
+      type_name: int
