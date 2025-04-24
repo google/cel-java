@@ -24,7 +24,6 @@ import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.Timestamps;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelDescriptorUtil;
-import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.internal.CelDescriptorPool;
 import dev.cel.common.internal.DefaultDescriptorPool;
@@ -56,7 +55,7 @@ public class ProtoMessageValueProviderTest {
   @Test
   public void newValue_createEmptyProtoMessage() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO, CelOptions.DEFAULT);
+        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
 
     ProtoMessageValue protoMessageValue =
         (ProtoMessageValue)
@@ -70,7 +69,7 @@ public class ProtoMessageValueProviderTest {
   @Test
   public void newValue_createProtoMessage_fieldsPopulated() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO, CelOptions.DEFAULT);
+        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
 
     ProtoMessageValue protoMessageValue =
         (ProtoMessageValue)
@@ -104,9 +103,9 @@ public class ProtoMessageValueProviderTest {
     assertThat(protoMessageValue.select(StringValue.create("single_int64")))
         .isEqualTo(IntValue.create(2L));
     assertThat(protoMessageValue.select(StringValue.create("single_uint32")))
-        .isEqualTo(UintValue.create(3L, true));
+        .isEqualTo(UintValue.create(3L));
     assertThat(protoMessageValue.select(StringValue.create("single_uint64")))
-        .isEqualTo(UintValue.create(4L, true));
+        .isEqualTo(UintValue.create(4L));
     assertThat(protoMessageValue.select(StringValue.create("single_double")))
         .isEqualTo(DoubleValue.create(5.5d));
     assertThat(protoMessageValue.select(StringValue.create("single_bool")))
@@ -122,7 +121,7 @@ public class ProtoMessageValueProviderTest {
   @Test
   public void newValue_createProtoMessage_unsignedLongFieldsPopulated() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO, CelOptions.current().build());
+        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
 
     ProtoMessageValue protoMessageValue =
         (ProtoMessageValue)
@@ -143,7 +142,7 @@ public class ProtoMessageValueProviderTest {
   @Test
   public void newValue_createProtoMessage_wrappersPopulated() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO, CelOptions.DEFAULT);
+        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
 
     ProtoMessageValue protoMessageValue =
         (ProtoMessageValue)
@@ -189,7 +188,7 @@ public class ProtoMessageValueProviderTest {
   @Test
   public void newValue_createProtoMessage_extensionFieldsPopulated() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO, CelOptions.DEFAULT);
+        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
 
     ProtoMessageValue protoMessageValue =
         (ProtoMessageValue)
@@ -210,7 +209,7 @@ public class ProtoMessageValueProviderTest {
   @Test
   public void newValue_invalidMessageName_throws() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO, CelOptions.DEFAULT);
+        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
 
     CelRuntimeException e =
         assertThrows(
@@ -225,7 +224,7 @@ public class ProtoMessageValueProviderTest {
   @Test
   public void newValue_invalidField_throws() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO, CelOptions.DEFAULT);
+        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
 
     IllegalArgumentException e =
         assertThrows(
@@ -245,7 +244,7 @@ public class ProtoMessageValueProviderTest {
   public void newValue_onCombinedProvider() {
     CelValueProvider celValueProvider = (structType, fields) -> Optional.empty();
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO, CelOptions.DEFAULT);
+        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
     CelValueProvider combinedProvider =
         new CombinedCelValueProvider(celValueProvider, protoMessageValueProvider);
 

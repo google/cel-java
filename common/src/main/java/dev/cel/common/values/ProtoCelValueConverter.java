@@ -153,9 +153,9 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
 
         return fromProtoMessageToCelValue((MessageOrBuilder) result);
       case UINT32:
-        return UintValue.create((int) result, true);
+        return UintValue.create((int) result);
       case UINT64:
-        return UintValue.create((long) result, true);
+        return UintValue.create((long) result);
       default:
         break;
     }

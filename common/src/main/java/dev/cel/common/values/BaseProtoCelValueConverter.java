@@ -127,9 +127,9 @@ public abstract class BaseProtoCelValueConverter extends CelValueConverter {
       case STRING_VALUE:
         return fromJavaPrimitiveToCelValue(((StringValue) message).getValue());
       case UINT32_VALUE:
-        return UintValue.create(((UInt32Value) message).getValue(), true);
+        return UintValue.create(((UInt32Value) message).getValue());
       case UINT64_VALUE:
-        return UintValue.create(((UInt64Value) message).getValue(), true);
+        return UintValue.create(((UInt64Value) message).getValue());
       default:
         throw new UnsupportedOperationException(
             "Unsupported message to CelValue conversion - " + message);

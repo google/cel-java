@@ -149,7 +149,6 @@ java_library(
         ":cel_value_provider",
         ":proto_message_value",
         "//common:error_codes",
-        "//common:options",
         "//common:runtime_exception",
         "//common/annotations",
         "//common/internal:dynamic_proto",
