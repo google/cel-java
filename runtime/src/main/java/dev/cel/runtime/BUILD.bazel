@@ -643,6 +643,7 @@ java_library(
     ],
     deps = [
         ":activation",
+        ":cel_value_runtime_type_provider",
         ":descriptor_message_provider",
         ":descriptor_type_resolver",
         ":dispatcher",
@@ -658,7 +659,6 @@ java_library(
         ":proto_message_runtime_equality",
         ":runtime_equality",
         ":runtime_type_provider",
-        ":runtime_type_provider_legacy",
         ":standard_functions",
         ":unknown_attributes",
         "//:auto_value",
@@ -714,12 +714,12 @@ java_library(
         ":lite_runtime",
         ":runtime_equality",
         ":runtime_helpers",
-        ":runtime_type_provider",
         ":standard_functions",
         ":type_resolver",
         "//:auto_value",
         "//common:cel_ast",
         "//common:options",
+        "//runtime",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -838,23 +838,21 @@ cel_android_library(
 )
 
 java_library(
-    name = "runtime_type_provider_legacy",
-    srcs = ["RuntimeTypeProviderLegacyImpl.java"],
+    name = "cel_value_runtime_type_provider",
+    srcs = ["CelValueRuntimeTypeProvider.java"],
     deps = [
         ":runtime_type_provider",
         ":unknown_attributes",
         "//common:error_codes",
-        "//common:options",
         "//common:runtime_exception",
         "//common/annotations",
-        "//common/internal:cel_descriptor_pools",
-        "//common/internal:dynamic_proto",
         "//common/values",
+        "//common/values:base_proto_cel_value_converter",
         "//common/values:cel_value",
         "//common/values:cel_value_provider",
-        "//common/values:proto_message_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 

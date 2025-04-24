@@ -1958,6 +1958,10 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             + "x.single_uint32_wrapper == null && "
             + "x.single_uint64_wrapper == null";
     runTest(ImmutableMap.of("x", TestAllTypes.getDefaultInstance()));
+
+    declareVariable("dyn_var", CelProtoTypes.DYN);
+    source = "dyn_var";
+    runTest(ImmutableMap.of("dyn_var", NullValue.NULL_VALUE));
   }
 
   @Test

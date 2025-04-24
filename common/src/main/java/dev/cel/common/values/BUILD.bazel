@@ -76,7 +76,6 @@ java_library(
         ":cel_value",
         "//:auto_value",
         "//common:error_codes",
-        "//common:options",
         "//common:runtime_exception",
         "//common/annotations",
         "//common/types",
@@ -94,7 +93,25 @@ java_library(
     ],
     deps = [
         "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "base_proto_cel_value_converter",
+    srcs = ["BaseProtoCelValueConverter.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_byte_string",
+        ":cel_value",
+        ":values",
+        "//common/annotations",
+        "//common/internal:well_known_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_protobuf_protobuf_java_util",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -104,22 +121,19 @@ java_library(
     tags = [
     ],
     deps = [
+        ":base_proto_cel_value_converter",
         ":cel_value",
         ":values",
         "//:auto_value",
-        "//common:options",
         "//common/annotations",
         "//common/internal:cel_descriptor_pools",
         "//common/internal:dynamic_proto",
         "//common/internal:well_known_proto",
         "//common/types",
-        "//common/types:cel_types",
         "//common/types:type_providers",
-        "//common/values:cel_byte_string",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:org_jspecify_jspecify",
         "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],

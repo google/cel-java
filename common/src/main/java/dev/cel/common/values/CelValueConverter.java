@@ -18,7 +18,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
-import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -33,8 +32,6 @@ import java.util.Optional;
 @SuppressWarnings("unchecked") // Unchecked cast of generics due to type-erasure (ex: MapValue).
 @Internal
 abstract class CelValueConverter {
-
-  protected final CelOptions celOptions;
 
   /** Adapts a {@link CelValue} to a plain old Java Object. */
   public Object fromCelValueToJavaObject(CelValue celValue) {
@@ -112,7 +109,7 @@ abstract class CelValueConverter {
     } else if (value instanceof Float) {
       return DoubleValue.create(Double.valueOf((Float) value));
     } else if (value instanceof UnsignedLong) {
-      return UintValue.create(((UnsignedLong) value).longValue(), celOptions.enableUnsignedLongs());
+      return UintValue.create(((UnsignedLong) value).longValue(), /* enableUnsignedLongs= */ true);
     }
 
     // Fall back to an Opaque value, as a custom class was supplied in the runtime. The legacy
@@ -145,8 +142,5 @@ abstract class CelValueConverter {
     return ImmutableMapValue.create(mapBuilder.buildOrThrow());
   }
 
-  protected CelValueConverter(CelOptions celOptions) {
-    Preconditions.checkNotNull(celOptions);
-    this.celOptions = celOptions;
-  }
+  protected CelValueConverter() {}
 }

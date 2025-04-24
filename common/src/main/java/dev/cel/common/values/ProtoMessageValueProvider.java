@@ -41,6 +41,10 @@ public class ProtoMessageValueProvider implements CelValueProvider {
   private final ProtoMessageFactory protoMessageFactory;
   private final ProtoCelValueConverter protoCelValueConverter;
 
+  public ProtoCelValueConverter getProtoCelValueConverter() {
+    return protoCelValueConverter;
+  }
+
   @Override
   public Optional<CelValue> newValue(String structType, Map<String, Object> fields) {
     try {
@@ -96,8 +100,7 @@ public class ProtoMessageValueProvider implements CelValueProvider {
   private ProtoMessageValueProvider(DynamicProto dynamicProto, CelOptions celOptions) {
     this.protoMessageFactory = dynamicProto.getProtoMessageFactory();
     this.protoCelValueConverter =
-        ProtoCelValueConverter.newInstance(
-            celOptions, protoMessageFactory.getDescriptorPool(), dynamicProto);
+        ProtoCelValueConverter.newInstance(protoMessageFactory.getDescriptorPool(), dynamicProto);
     this.protoAdapter = new ProtoAdapter(dynamicProto, celOptions.enableUnsignedLongs());
   }
 }

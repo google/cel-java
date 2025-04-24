@@ -35,7 +35,6 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelDescriptorUtil;
-import dev.cel.common.CelOptions;
 import dev.cel.common.internal.CelDescriptorPool;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
@@ -55,9 +54,7 @@ public final class ProtoMessageValueTest {
 
   private static final ProtoCelValueConverter PROTO_CEL_VALUE_CONVERTER =
       ProtoCelValueConverter.newInstance(
-          CelOptions.current().build(),
-          DefaultDescriptorPool.INSTANCE,
-          DynamicProto.create(DefaultMessageFactory.INSTANCE));
+          DefaultDescriptorPool.INSTANCE, DynamicProto.create(DefaultMessageFactory.INSTANCE));
 
   @Test
   public void emptyProtoMessage() {
@@ -140,7 +137,6 @@ public final class ProtoMessageValueTest {
                 ImmutableList.of(TestAllTypesExtensions.getDescriptor())));
     ProtoCelValueConverter protoCelValueConverter =
         ProtoCelValueConverter.newInstance(
-            CelOptions.DEFAULT,
             DefaultDescriptorPool.INSTANCE,
             DynamicProto.create(DefaultMessageFactory.create(descriptorPool)));
     TestAllTypes proto2Message =
