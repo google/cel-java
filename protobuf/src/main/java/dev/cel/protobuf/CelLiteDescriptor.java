@@ -16,7 +16,6 @@ package dev.cel.protobuf;
 
 import static java.lang.Math.ceil;
 
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.annotations.Internal;
@@ -102,9 +101,12 @@ public abstract class CelLiteDescriptor {
         String fullyQualifiedProtoTypeName,
         List<FieldLiteDescriptor> fieldLiteDescriptors,
         Supplier<MessageLite.Builder> messageBuilderSupplier) {
-      this.fullyQualifiedProtoTypeName = checkNotNull(fullyQualifiedProtoTypeName);
+      this.fullyQualifiedProtoTypeName = Objects.requireNonNull(fullyQualifiedProtoTypeName);
       // This is a cheap operation. View over the existing map with mutators disabled.
-      this.fieldLiteDescriptors = Collections.unmodifiableList(checkNotNull(fieldLiteDescriptors));
+      this.fieldLiteDescriptors =
+          Collections.unmodifiableList(Objects.requireNonNull(fieldLiteDescriptors));
+      this.messageBuilderSupplier = Objects.requireNonNull(messageBuilderSupplier);
+
       Map<String, FieldLiteDescriptor> fieldNameMap =
           new HashMap<>(getMapInitialCapacity(fieldLiteDescriptors.size()));
       Map<Integer, FieldLiteDescriptor> fieldNumberMap =
@@ -115,7 +117,6 @@ public abstract class CelLiteDescriptor {
       }
       this.fieldNameToFieldDescriptors = Collections.unmodifiableMap(fieldNameMap);
       this.fieldNumberToFieldDescriptors = Collections.unmodifiableMap(fieldNumberMap);
-      this.messageBuilderSupplier = messageBuilderSupplier;
     }
   }
 
@@ -258,12 +259,12 @@ public abstract class CelLiteDescriptor {
         boolean isPacked,
         String fieldProtoTypeName) {
       this.fieldNumber = fieldNumber;
-      this.fieldName = checkNotNull(fieldName);
+      this.fieldName = Objects.requireNonNull(fieldName);
       this.javaType = javaType;
       this.celFieldValueType = celFieldValueType;
       this.protoFieldType = protoFieldType;
       this.isPacked = isPacked;
-      this.fieldProtoTypeName = checkNotNull(fieldProtoTypeName);
+      this.fieldProtoTypeName = Objects.requireNonNull(fieldProtoTypeName);
     }
   }
 
@@ -290,13 +291,5 @@ public abstract class CelLiteDescriptor {
     // See https://github.com/openjdk/jdk/commit/3e393047e12147a81e2899784b943923fc34da8e. 0.75 is
     // used as a load factor.
     return (int) ceil(expectedSize / 0.75);
-  }
-
-  @CanIgnoreReturnValue
-  private static <T> T checkNotNull(T reference) {
-    if (reference == null) {
-      throw new NullPointerException();
-    }
-    return reference;
   }
 }

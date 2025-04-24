@@ -16,6 +16,11 @@ java_library(
     exports = ["//common/src/main/java/dev/cel/common/internal:comparison_functions"],
 )
 
+java_library(
+    name = "default_lite_descriptor_pool",
+    exports = ["//common/src/main/java/dev/cel/common/internal:default_lite_descriptor_pool"],
+)
+
 cel_android_library(
     name = "comparison_functions_android",
     exports = ["//common/src/main/java/dev/cel/common/internal:comparison_functions_android"],
