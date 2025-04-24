@@ -157,3 +157,29 @@ java_library(
         "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
+
+java_library(
+    name = "proto_message_lite_value",
+    srcs = [
+        "ProtoLiteCelValueConverter.java",
+        "ProtoMessageLiteValue.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":base_proto_cel_value_converter",
+        ":cel_value",
+        ":values",
+        "//:auto_value",
+        "//common/annotations",
+        "//common/internal:cel_lite_descriptor_pool",
+        "//common/internal:well_known_proto",
+        "//common/types",
+        "//common/types:type_providers",
+        "//protobuf:cel_lite_descriptor",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
+    ],
+)
