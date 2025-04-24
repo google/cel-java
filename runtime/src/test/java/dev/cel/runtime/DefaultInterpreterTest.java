@@ -58,17 +58,17 @@ public class DefaultInterpreterTest {
           }
 
           @Override
-          public Object selectField(Object message, String fieldName) {
+          public Object selectField(String typeName, Object message, String fieldName) {
             return null;
           }
 
           @Override
-          public Object hasField(Object message, String fieldName) {
+          public Object hasField(String messageName, Object message, String fieldName) {
             return null;
           }
 
           @Override
-          public Object adapt(Object message) {
+          public Object adapt(String messageName, Object message) {
             return message;
           }
         };
