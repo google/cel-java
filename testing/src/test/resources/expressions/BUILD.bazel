@@ -1,0 +1,16 @@
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_testonly = True,
+    default_visibility = [
+        "//testing:__pkg__",
+    ],
+)
+
+exports_files(
+    srcs = glob([
+        "**/*.cel",
+        "**/*.textproto",
+    ]),
+)
