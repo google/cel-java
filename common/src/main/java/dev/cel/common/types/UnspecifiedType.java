@@ -32,7 +32,7 @@ import dev.cel.common.annotations.Internal;
 @CheckReturnValue
 @Immutable
 @Internal
-public class UnspecifiedType extends CelType {
+public abstract class UnspecifiedType extends CelType {
 
   @Override
   public CelKind kind() {
