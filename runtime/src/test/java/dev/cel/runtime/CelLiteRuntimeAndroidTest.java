@@ -39,7 +39,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-public class CelLiteRuntimeTest {
+public class CelLiteRuntimeAndroidTest {
 
   @Test
   public void runtimeConstruction() {
@@ -222,7 +222,8 @@ public class CelLiteRuntimeTest {
   }
 
   private static CelAbstractSyntaxTree readCheckedExpr(String compiledCelTarget) throws Exception {
-    URL url = Resources.getResource(CelLiteRuntimeTest.class, compiledCelTarget + ".binarypb");
+    URL url =
+        Resources.getResource(CelLiteRuntimeAndroidTest.class, compiledCelTarget + ".binarypb");
     byte[] checkedExprBytes = Resources.toByteArray(url);
     CheckedExpr checkedExpr =
         CheckedExpr.parseFrom(checkedExprBytes, ExtensionRegistryLite.getEmptyRegistry());

@@ -162,9 +162,9 @@ java_library(
 
 cel_android_local_test(
     name = "android_tests",
-    srcs = ["CelLiteRuntimeTest.java"],
+    srcs = ["CelLiteRuntimeAndroidTest.java"],
     resources = [":compiled_exprs"],
-    test_class = "dev.cel.runtime.CelLiteRuntimeTest",
+    test_class = "dev.cel.runtime.CelLiteRuntimeAndroidTest",
     deps = [
         "//:java_truth",
         "//common:cel_ast_android",
