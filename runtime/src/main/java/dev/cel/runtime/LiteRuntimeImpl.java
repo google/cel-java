@@ -21,12 +21,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import javax.annotation.concurrent.ThreadSafe;
-import com.google.protobuf.MessageLiteOrBuilder;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.internal.DefaultLiteDescriptorPool;
+import dev.cel.common.values.BaseProtoCelValueConverter;
+import dev.cel.common.values.CelValueProvider;
+import dev.cel.common.values.ProtoLiteCelValueConverter;
+import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 
 @ThreadSafe
 final class LiteRuntimeImpl implements CelLiteRuntime {
@@ -55,6 +59,7 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     @VisibleForTesting CelOptions celOptions;
     @VisibleForTesting final HashMap<String, CelFunctionBinding> customFunctionBindings;
     @VisibleForTesting CelStandardFunctions celStandardFunctions;
+    @VisibleForTesting CelValueProvider celValueProvider;
 
     @Override
     public CelLiteRuntimeBuilder setOptions(CelOptions celOptions) {
@@ -76,6 +81,12 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     @Override
     public CelLiteRuntimeBuilder addFunctionBindings(Iterable<CelFunctionBinding> bindings) {
       bindings.forEach(o -> customFunctionBindings.putIfAbsent(o.getOverloadId(), o));
+      return this;
+    }
+
+    @Override
+    public CelLiteRuntimeBuilder setValueProvider(CelValueProvider celValueProvider) {
+      this.celValueProvider = celValueProvider;
       return this;
     }
 
@@ -137,35 +148,19 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
                   dispatcher.add(
                       overloadId, func.getArgTypes(), (args) -> func.getDefinition().apply(args)));
 
-      // TODO: provide implementations for dependencies
+      BaseProtoCelValueConverter protoCelValueConverter;
+      if (celValueProvider instanceof ProtoMessageLiteValueProvider) {
+        protoCelValueConverter =
+            ((ProtoMessageLiteValueProvider) celValueProvider).getProtoLiteCelValueConverter();
+      } else {
+        protoCelValueConverter =
+            ProtoLiteCelValueConverter.newInstance(DefaultLiteDescriptorPool.newInstance());
+      }
+
       Interpreter interpreter =
           new DefaultInterpreter(
               TypeResolver.create(),
-              new RuntimeTypeProvider() {
-                @Override
-                public Object createMessage(String messageName, Map<String, Object> values) {
-                  throw new UnsupportedOperationException("Not implemented yet");
-                }
-
-                @Override
-                public Object selectField(String typeName, Object message, String fieldName) {
-                  throw new UnsupportedOperationException("Not implemented yet");
-                }
-
-                @Override
-                public Object hasField(String messageName, Object message, String fieldName) {
-                  throw new UnsupportedOperationException("Not implemented yet");
-                }
-
-                @Override
-                public Object adapt(String messageName, Object message) {
-                  if (message instanceof MessageLiteOrBuilder) {
-                    throw new UnsupportedOperationException("Not implemented yet");
-                  }
-
-                  return message;
-                }
-              },
+              CelValueRuntimeTypeProvider.newInstance(celValueProvider, protoCelValueConverter),
               dispatcher,
               celOptions);
 
@@ -175,6 +170,7 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
 
     private Builder() {
       this.celOptions = CelOptions.current().enableCelValue(true).build();
+      this.celValueProvider = (structType, fields) -> Optional.empty();
       this.customFunctionBindings = new HashMap<>();
     }
   }

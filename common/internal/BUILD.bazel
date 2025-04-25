@@ -16,16 +16,6 @@ java_library(
     exports = ["//common/src/main/java/dev/cel/common/internal:comparison_functions"],
 )
 
-java_library(
-    name = "cel_lite_descriptor_pool",
-    exports = ["//common/src/main/java/dev/cel/common/internal:cel_lite_descriptor_pool"],
-)
-
-java_library(
-    name = "default_lite_descriptor_pool",
-    exports = ["//common/src/main/java/dev/cel/common/internal:default_lite_descriptor_pool"],
-)
-
 cel_android_library(
     name = "comparison_functions_android",
     exports = ["//common/src/main/java/dev/cel/common/internal:comparison_functions_android"],
@@ -82,6 +72,11 @@ java_library(
     exports = ["//common/src/main/java/dev/cel/common/internal:well_known_proto"],
 )
 
+cel_android_library(
+    name = "well_known_proto_android",
+    exports = ["//common/src/main/java/dev/cel/common/internal:well_known_proto_android"],
+)
+
 java_library(
     name = "proto_message_factory",
     exports = ["//common/src/main/java/dev/cel/common/internal:proto_message_factory"],
@@ -95,6 +90,26 @@ java_library(
 java_library(
     name = "cel_descriptor_pools",
     exports = ["//common/src/main/java/dev/cel/common/internal:cel_descriptor_pools"],
+)
+
+java_library(
+    name = "cel_lite_descriptor_pool",
+    exports = ["//common/src/main/java/dev/cel/common/internal:cel_lite_descriptor_pool"],
+)
+
+cel_android_library(
+    name = "cel_lite_descriptor_pool_android",
+    exports = ["//common/src/main/java/dev/cel/common/internal:cel_lite_descriptor_pool_android"],
+)
+
+java_library(
+    name = "default_lite_descriptor_pool",
+    exports = ["//common/src/main/java/dev/cel/common/internal:default_lite_descriptor_pool"],
+)
+
+cel_android_library(
+    name = "default_lite_descriptor_pool_android",
+    exports = ["//common/src/main/java/dev/cel/common/internal:default_lite_descriptor_pool_android"],
 )
 
 java_library(

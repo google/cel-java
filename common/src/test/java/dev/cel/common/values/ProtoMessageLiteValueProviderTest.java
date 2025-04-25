@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
-import dev.cel.expr.conformance.proto3.TestAllTypesCelDescriptor;
+import dev.cel.expr.conformance.proto3.TestAllTypesProto3CelDescriptor;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 public class ProtoMessageLiteValueProviderTest {
   private static final ProtoMessageLiteValueProvider VALUE_PROVIDER =
-      ProtoMessageLiteValueProvider.newInstance(TestAllTypesCelDescriptor.getDescriptor());
+      ProtoMessageLiteValueProvider.newInstance(TestAllTypesProto3CelDescriptor.getDescriptor());
 
   @Test
   public void newValue_unknownType_returnsEmpty() {

@@ -58,6 +58,7 @@ java_library(
     testonly = 1,
     srcs = glob(
         ["*.java"],
+        # keep sorted
         exclude = [
             "CelValueInterpreterTest.java",
             "InterpreterTest.java",
@@ -89,6 +90,7 @@ java_library(
         "//common/types:cel_v1alpha1_types",
         "//common/types:message_type_provider",
         "//common/values:cel_value_provider",
+        "//common/values:proto_message_lite_value_provider",
         "//compiler",
         "//compiler:compiler_builder",
         "//extensions:optional_library",
@@ -116,6 +118,8 @@ java_library(
         "//runtime:type_resolver",
         "//runtime:unknown_attributes",
         "//runtime:unknown_options",
+        "//testing:test_all_types_cel_java_proto2",
+        "//testing:test_all_types_cel_java_proto3",
         "@cel_spec//proto/cel/expr:checked_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",

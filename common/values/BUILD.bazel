@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("//:cel_android_rules.bzl", "cel_android_library")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -11,9 +12,19 @@ java_library(
     exports = ["//common/src/main/java/dev/cel/common/values:cel_value"],
 )
 
+cel_android_library(
+    name = "cel_value_android",
+    exports = ["//common/src/main/java/dev/cel/common/values:cel_value_android"],
+)
+
 java_library(
     name = "cel_value_provider",
     exports = ["//common/src/main/java/dev/cel/common/values:cel_value_provider"],
+)
+
+cel_android_library(
+    name = "cel_value_provider_android",
+    exports = ["//common/src/main/java/dev/cel/common/values:cel_value_provider_android"],
 )
 
 java_library(
@@ -21,9 +32,19 @@ java_library(
     exports = ["//common/src/main/java/dev/cel/common/values"],
 )
 
+cel_android_library(
+    name = "values_android",
+    exports = ["//common/src/main/java/dev/cel/common/values:values_android"],
+)
+
 java_library(
     name = "base_proto_cel_value_converter",
     exports = ["//common/src/main/java/dev/cel/common/values:base_proto_cel_value_converter"],
+)
+
+cel_android_library(
+    name = "base_proto_cel_value_converter_android",
+    exports = ["//common/src/main/java/dev/cel/common/values:base_proto_cel_value_converter_android"],
 )
 
 java_library(
@@ -33,6 +54,7 @@ java_library(
 
 java_library(
     name = "cel_byte_string",
+    # used_by_android
     exports = ["//common/src/main/java/dev/cel/common/values:cel_byte_string"],
 )
 
@@ -46,7 +68,17 @@ java_library(
     exports = ["//common/src/main/java/dev/cel/common/values:proto_message_lite_value"],
 )
 
+cel_android_library(
+    name = "proto_message_lite_value_android",
+    exports = ["//common/src/main/java/dev/cel/common/values:proto_message_lite_value_android"],
+)
+
 java_library(
     name = "proto_message_lite_value_provider",
     exports = ["//common/src/main/java/dev/cel/common/values:proto_message_lite_value_provider"],
+)
+
+cel_android_library(
+    name = "proto_message_lite_value_provider_android",
+    exports = ["//common/src/main/java/dev/cel/common/values:proto_message_lite_value_provider_android"],
 )

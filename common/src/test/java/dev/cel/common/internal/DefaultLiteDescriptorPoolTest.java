@@ -22,7 +22,7 @@ import com.google.common.truth.Expect;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
-import dev.cel.expr.conformance.proto3.TestAllTypesCelDescriptor;
+import dev.cel.expr.conformance.proto3.TestAllTypesProto3CelDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.CelFieldValueType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
@@ -104,7 +104,7 @@ public class DefaultLiteDescriptorPoolTest {
   public void findDescriptor_success() {
     DefaultLiteDescriptorPool descriptorPool =
         DefaultLiteDescriptorPool.newInstance(
-            ImmutableSet.of(TestAllTypesCelDescriptor.getDescriptor()));
+            ImmutableSet.of(TestAllTypesProto3CelDescriptor.getDescriptor()));
 
     MessageLiteDescriptor liteDescriptor =
         descriptorPool.getDescriptorOrThrow("cel.expr.conformance.proto3.TestAllTypes");

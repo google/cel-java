@@ -51,6 +51,10 @@ import java.util.function.Supplier;
 public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
   private final ImmutableMap<String, MessageLiteDescriptor> protoFqnToMessageInfo;
 
+  public static DefaultLiteDescriptorPool newInstance(CelLiteDescriptor... descriptors) {
+    return newInstance(ImmutableSet.copyOf(descriptors));
+  }
+
   public static DefaultLiteDescriptorPool newInstance(ImmutableSet<CelLiteDescriptor> descriptors) {
     return new DefaultLiteDescriptorPool(descriptors);
   }

@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("//:cel_android_rules.bzl", "cel_android_library")
 
 package(
     default_applicable_licenses = [
@@ -52,17 +53,39 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "cel_value_android",
+    srcs = ["CelValue.java"],
+    tags = [
+    ],
+    deps = [
+        "//common/annotations",
+        "//common/types:type_providers_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
 java_library(
     name = "cel_value_provider",
-    srcs = [
-        "CelValueProvider.java",
-    ],
+    srcs = ["CelValueProvider.java"],
     tags = [
     ],
     deps = [
         ":cel_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "cel_value_provider_android",
+    srcs = ["CelValueProvider.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_value_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
     ],
 )
 
@@ -86,9 +109,30 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "values_android",
+    srcs = CEL_VALUES_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":cel_byte_string",
+        ":cel_value_android",
+        "//:auto_value",
+        "//common:error_codes",
+        "//common:runtime_exception",
+        "//common/annotations",
+        "//common/types:type_providers_android",
+        "//common/types:types_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:org_jspecify_jspecify",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
 java_library(
     name = "cel_byte_string",
     srcs = ["CelByteString.java"],
+    # used_by_android
     tags = [
     ],
     deps = [
@@ -111,6 +155,24 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
+    ],
+)
+
+cel_android_library(
+    name = "base_proto_cel_value_converter_android",
+    srcs = ["BaseProtoCelValueConverter.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_byte_string",
+        ":cel_value_android",
+        ":values_android",
+        "//common/annotations",
+        "//common/internal:well_known_proto_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_protobuf_protobuf_java_util",
+        "@maven_android//:com_google_guava_guava",
         "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
@@ -185,6 +247,33 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "proto_message_lite_value_android",
+    srcs = [
+        "ProtoLiteCelValueConverter.java",
+        "ProtoMessageLiteValue.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":base_proto_cel_value_converter_android",
+        ":cel_value_android",
+        ":values_android",
+        "//:auto_value",
+        "//common/annotations",
+        "//common/internal:cel_lite_descriptor_pool_android",
+        "//common/internal:well_known_proto_android",
+        "//common/types:type_providers_android",
+        "//common/types:types_android",
+        "//protobuf:cel_lite_descriptor",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
+        "@maven_android//:com_google_guava_guava",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
+    ],
+)
+
 java_library(
     name = "proto_message_lite_value_provider",
     srcs = ["ProtoMessageLiteValueProvider.java"],
@@ -199,6 +288,24 @@ java_library(
         "//protobuf:cel_lite_descriptor",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
+    ],
+)
+
+cel_android_library(
+    name = "proto_message_lite_value_provider_android",
+    srcs = ["ProtoMessageLiteValueProvider.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_value_android",
+        ":cel_value_provider_android",
+        ":proto_message_lite_value_android",
+        "//common/internal:cel_lite_descriptor_pool_android",
+        "//common/internal:default_lite_descriptor_pool_android",
+        "//protobuf:cel_lite_descriptor",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
         "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
