@@ -887,6 +887,7 @@ public final class CelStringExtensionsTest {
   }
 
   @Test
+  @TestParameters("{string: '@', lastIndexOf: '@@', expectedResult: -1}")
   @TestParameters("{string: '', lastIndexOf: '', expectedResult: 0}")
   @TestParameters("{string: 'hello mellow', lastIndexOf: '', expectedResult: 12}")
   @TestParameters("{string: 'hello mellow', lastIndexOf: 'hello', expectedResult: 0}")
@@ -953,21 +954,20 @@ public final class CelStringExtensionsTest {
   }
 
   @Test
+  @TestParameters("{lastIndexOf: '@@'}")
   @TestParameters("{lastIndexOf: '  '}")
   @TestParameters("{lastIndexOf: 'a'}")
   @TestParameters("{lastIndexOf: 'abc'}")
   @TestParameters("{lastIndexOf: '나'}")
   @TestParameters("{lastIndexOf: '😁'}")
-  public void lastIndexOf_onEmptyString_throwsException(String lastIndexOf) throws Exception {
+  public void lastIndexOf_strLengthLessThanSubstrLength_returnsMinusOne(String lastIndexOf)
+      throws Exception {
     CelAbstractSyntaxTree ast = COMPILER.compile("''.lastIndexOf(indexOfParam)").getAst();
     CelRuntime.Program program = RUNTIME.createProgram(ast);
 
-    CelEvaluationException exception =
-        assertThrows(
-            CelEvaluationException.class,
-            () -> program.eval(ImmutableMap.of("indexOfParam", lastIndexOf)));
+    Object evaluatedResult = program.eval(ImmutableMap.of("s", "", "indexOfParam", lastIndexOf));
 
-    assertThat(exception).hasMessageThat().contains("lastIndexOf failure: Offset out of range");
+    assertThat(evaluatedResult).isEqualTo(-1);
   }
 
   @Test

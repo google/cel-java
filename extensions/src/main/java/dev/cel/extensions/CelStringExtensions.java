@@ -360,6 +360,10 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
       return (long) strCpa.length();
     }
 
+    if (strCpa.length() < substrCpa.length()) {
+      return -1L;
+    }
+
     return lastIndexOf(strCpa, substrCpa, (long) strCpa.length() - 1);
   }
 
