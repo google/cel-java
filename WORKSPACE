@@ -18,13 +18,17 @@ register_toolchains("//:repository_default_toolchain_definition")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 
+# Load license rules.
+# Must be loaded first due to https://github.com/bazel-contrib/rules_jvm_external/issues/1244
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
     name = "rules_license",
+    sha256 = "26d4021f6898e23b82ef953078389dd49ac2b5618ac564ade4ef87cced147b38",
     urls = [
         "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/1.0.0/rules_license-1.0.0.tar.gz",
         "https://github.com/bazelbuild/rules_license/releases/download/1.0.0/rules_license-1.0.0.tar.gz",
     ],
-    sha256 = "26d4021f6898e23b82ef953078389dd49ac2b5618ac564ade4ef87cced147b38",
 )
 
 http_archive(
@@ -44,10 +48,10 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "rules_java",
+    sha256 = "8daa0e4f800979c74387e4cd93f97e576ec6d52beab8ac94710d2931c57f8d8b",
     urls = [
         "https://github.com/bazelbuild/rules_java/releases/download/8.9.0/rules_java-8.9.0.tar.gz",
     ],
-    sha256 = "8daa0e4f800979c74387e4cd93f97e576ec6d52beab8ac94710d2931c57f8d8b",
 )
 
 http_archive(
@@ -72,26 +76,30 @@ http_archive(
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
 protobuf_deps()
 
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
+
 rules_java_dependencies()
 
 load("@rules_java//java:repositories.bzl", "rules_java_toolchains")
+
 rules_java_toolchains()
 
 load("@rules_python//python:repositories.bzl", "py_repositories")
+
 py_repositories()
 
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
+
 rules_proto_dependencies()
 
 load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
+
 rules_proto_toolchains()
 
-
 ### End of Protobuf Setup
-
 
 ### rules_jvm_external setup
 
@@ -120,6 +128,7 @@ load("//:maven_utils.bzl", "maven_artifact_compile_only", "maven_artifact_test_o
 ### end of rules_jvm_external setup
 
 ANTLR4_VERSION = "4.13.2"
+
 maven_install(
     name = "maven",
     # keep sorted
@@ -133,11 +142,13 @@ maven_install(
         "com.google.re2j:re2j:1.8",
         "info.picocli:picocli:4.7.6",
         "org.antlr:antlr4-runtime:" + ANTLR4_VERSION,
+        "com.google.api.grpc:proto-google-common-protos:2.54.1",
         "info.picocli:picocli:4.7.6",
         "org.freemarker:freemarker:2.3.33",
         "org.jspecify:jspecify:1.0.0",
         "org.threeten:threeten-extra:1.8.0",
         "org.yaml:snakeyaml:2.3",
+        maven_artifact_test_only("org.mockito", "mockito-core", "4.11.0"),
         maven_artifact_test_only("io.github.classgraph", "classgraph", "4.8.179"),
         maven_artifact_test_only("com.google.testparameterinjector", "test-parameter-injector", "1.18"),
         maven_artifact_test_only("com.google.truth", "truth", "1.4.4"),
@@ -175,14 +186,17 @@ http_archive(
 )
 
 load("@rules_android//:prereqs.bzl", "rules_android_prereqs")
+
 rules_android_prereqs()
 
 load("@rules_android//:defs.bzl", "rules_android_workspace")
+
 rules_android_workspace()
 
 load("@rules_android//rules:rules.bzl", "android_sdk_repository")
+
 android_sdk_repository(
-    name = "androidsdk"
+    name = "androidsdk",
 )
 
 register_toolchains(
@@ -267,4 +281,3 @@ http_jar(
     sha256 = "eae2dfa119a64327444672aff63e9ec35a20180dc5b8090b7a6ab85125df4d76",
     urls = ["https://www.antlr.org/download/antlr-" + ANTLR4_VERSION + "-complete.jar"],
 )
-
