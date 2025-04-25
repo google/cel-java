@@ -184,3 +184,21 @@ java_library(
         "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
+
+java_library(
+    name = "proto_message_lite_value_provider",
+    srcs = ["ProtoMessageLiteValueProvider.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_value",
+        ":cel_value_provider",
+        ":proto_message_lite_value",
+        "//common/internal:cel_lite_descriptor_pool",
+        "//common/internal:default_lite_descriptor_pool",
+        "//protobuf:cel_lite_descriptor",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
+    ],
+)

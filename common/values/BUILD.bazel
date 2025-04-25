@@ -45,3 +45,8 @@ java_library(
     name = "proto_message_lite_value",
     exports = ["//common/src/main/java/dev/cel/common/values:proto_message_lite_value"],
 )
+
+java_library(
+    name = "proto_message_lite_value_provider",
+    exports = ["//common/src/main/java/dev/cel/common/values:proto_message_lite_value_provider"],
+)

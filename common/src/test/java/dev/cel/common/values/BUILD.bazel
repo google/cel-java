@@ -28,6 +28,7 @@ java_library(
         "//common/values:cel_value",
         "//common/values:cel_value_provider",
         "//common/values:proto_message_lite_value",
+        "//common/values:proto_message_lite_value_provider",
         "//common/values:proto_message_value",
         "//common/values:proto_message_value_provider",
         "//testing:test_all_types_cel_java_proto3",
