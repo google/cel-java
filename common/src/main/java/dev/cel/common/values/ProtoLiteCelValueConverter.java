@@ -16,12 +16,31 @@ package dev.cel.common.values;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Defaults;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.CodedInputStream;
+import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.MessageLite;
+import com.google.protobuf.WireFormat;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.internal.WellKnownProto;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.CelFieldValueType;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.JavaType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
+import java.io.IOException;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * {@code ProtoLiteCelValueConverter} handles bidirectional conversion between native Java and
@@ -41,6 +60,270 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
   public static ProtoLiteCelValueConverter newInstance(
       CelLiteDescriptorPool celLiteDescriptorPool) {
     return new ProtoLiteCelValueConverter(celLiteDescriptorPool);
+  }
+
+  private static Object readPrimitiveField(
+      CodedInputStream inputStream, FieldLiteDescriptor fieldDescriptor) throws IOException {
+    switch (fieldDescriptor.getProtoFieldType()) {
+      case SINT32:
+        return inputStream.readSInt32();
+      case SINT64:
+        return inputStream.readSInt64();
+      case INT32:
+      case ENUM:
+        return inputStream.readInt32();
+      case INT64:
+        return inputStream.readInt64();
+      case UINT32:
+        return UnsignedLong.fromLongBits(inputStream.readUInt32());
+      case UINT64:
+        return UnsignedLong.fromLongBits(inputStream.readUInt64());
+      case BOOL:
+        return inputStream.readBool();
+      case FLOAT:
+      case FIXED32:
+      case SFIXED32:
+        return readFixed32BitField(inputStream, fieldDescriptor);
+      case DOUBLE:
+      case FIXED64:
+      case SFIXED64:
+        return readFixed64BitField(inputStream, fieldDescriptor);
+      default:
+        throw new IllegalStateException(
+            "Unexpected field type: " + fieldDescriptor.getProtoFieldType());
+    }
+  }
+
+  private static Object readFixed32BitField(
+      CodedInputStream inputStream, FieldLiteDescriptor fieldDescriptor) throws IOException {
+    switch (fieldDescriptor.getProtoFieldType()) {
+      case FLOAT:
+        return inputStream.readFloat();
+      case FIXED32:
+      case SFIXED32:
+        return inputStream.readRawLittleEndian32();
+      default:
+        throw new IllegalStateException(
+            "Unexpected field type: " + fieldDescriptor.getProtoFieldType());
+    }
+  }
+
+  private static Object readFixed64BitField(
+      CodedInputStream inputStream, FieldLiteDescriptor fieldDescriptor) throws IOException {
+    switch (fieldDescriptor.getProtoFieldType()) {
+      case DOUBLE:
+        return inputStream.readDouble();
+      case FIXED64:
+      case SFIXED64:
+        return inputStream.readRawLittleEndian64();
+      default:
+        throw new IllegalStateException(
+            "Unexpected field type: " + fieldDescriptor.getProtoFieldType());
+    }
+  }
+
+  private Object readLengthDelimitedField(
+      CodedInputStream inputStream, FieldLiteDescriptor fieldDescriptor) throws IOException {
+    FieldLiteDescriptor.Type fieldType = fieldDescriptor.getProtoFieldType();
+
+    switch (fieldType) {
+      case BYTES:
+        return inputStream.readBytes();
+      case MESSAGE:
+        MessageLite.Builder builder =
+            getDefaultMessageBuilder(fieldDescriptor.getFieldProtoTypeName());
+
+        inputStream.readMessage(builder, ExtensionRegistryLite.getEmptyRegistry());
+        return builder.build();
+      case STRING:
+        return inputStream.readStringRequireUtf8();
+      default:
+        throw new IllegalStateException("Unexpected field type: " + fieldType);
+    }
+  }
+
+  private MessageLite.Builder getDefaultMessageBuilder(String protoTypeName) {
+    return descriptorPool.getDescriptorOrThrow(protoTypeName).newMessageBuilder();
+  }
+
+  CelValue getDefaultCelValue(String protoTypeName, String fieldName) {
+    MessageLiteDescriptor messageDescriptor = descriptorPool.getDescriptorOrThrow(protoTypeName);
+    FieldLiteDescriptor fieldDescriptor = messageDescriptor.getByFieldNameOrThrow(fieldName);
+
+    Object defaultValue = getDefaultValue(fieldDescriptor);
+    if (defaultValue instanceof MessageLite) {
+      return fromProtoMessageToCelValue(
+          fieldDescriptor.getFieldProtoTypeName(), (MessageLite) defaultValue);
+    } else {
+      return fromJavaObjectToCelValue(getDefaultValue(fieldDescriptor));
+    }
+  }
+
+  private Object getDefaultValue(FieldLiteDescriptor fieldDescriptor) {
+    FieldLiteDescriptor.CelFieldValueType celFieldValueType =
+        fieldDescriptor.getCelFieldValueType();
+    switch (celFieldValueType) {
+      case LIST:
+        return ImmutableList.of();
+      case MAP:
+        return ImmutableMap.of();
+      case SCALAR:
+        return getScalarDefaultValue(fieldDescriptor);
+    }
+    throw new IllegalStateException("Unexpected cel field value type: " + celFieldValueType);
+  }
+
+  private Object getScalarDefaultValue(FieldLiteDescriptor fieldDescriptor) {
+    JavaType type = fieldDescriptor.getJavaType();
+    switch (type) {
+      case INT:
+        return fieldDescriptor.getProtoFieldType().equals(FieldLiteDescriptor.Type.UINT32)
+            ? UnsignedLong.ZERO
+            : Defaults.defaultValue(long.class);
+      case LONG:
+        return fieldDescriptor.getProtoFieldType().equals(FieldLiteDescriptor.Type.UINT64)
+            ? UnsignedLong.ZERO
+            : Defaults.defaultValue(long.class);
+      case ENUM:
+        return Defaults.defaultValue(long.class);
+      case FLOAT:
+        return Defaults.defaultValue(float.class);
+      case DOUBLE:
+        return Defaults.defaultValue(double.class);
+      case BOOLEAN:
+        return Defaults.defaultValue(boolean.class);
+      case STRING:
+        return "";
+      case BYTE_STRING:
+        return ByteString.EMPTY;
+      case MESSAGE:
+        if (WellKnownProto.isWrapperType(fieldDescriptor.getFieldProtoTypeName())) {
+          return NullValue.NULL_VALUE;
+        }
+
+        return getDefaultMessageBuilder(fieldDescriptor.getFieldProtoTypeName()).build();
+    }
+    throw new IllegalStateException("Unexpected java type: " + type);
+  }
+
+  private ImmutableList<Object> readPackedRepeatedFields(
+      CodedInputStream inputStream, FieldLiteDescriptor fieldDescriptor) throws IOException {
+    int length = inputStream.readInt32();
+    int oldLimit = inputStream.pushLimit(length);
+    ImmutableList.Builder<Object> builder = ImmutableList.builder();
+    while (inputStream.getBytesUntilLimit() > 0) {
+      builder.add(readPrimitiveField(inputStream, fieldDescriptor));
+    }
+    inputStream.popLimit(oldLimit);
+    return builder.build();
+  }
+
+  private Map.Entry<Object, Object> readSingleMapEntry(
+      CodedInputStream inputStream, FieldLiteDescriptor fieldDescriptor) throws IOException {
+    ImmutableMap<String, Object> singleMapEntry =
+        readAllFields(inputStream.readByteArray(), fieldDescriptor.getFieldProtoTypeName());
+    Object key = checkNotNull(singleMapEntry.get("key"));
+    Object value = checkNotNull(singleMapEntry.get("value"));
+
+    return new AbstractMap.SimpleEntry<>(key, value);
+  }
+
+  @VisibleForTesting
+  ImmutableMap<String, Object> readAllFields(byte[] bytes, String protoTypeName)
+      throws IOException {
+    // TODO: Handle unknown fields by collecting them into a separate map.
+    MessageLiteDescriptor messageDescriptor = descriptorPool.getDescriptorOrThrow(protoTypeName);
+    CodedInputStream inputStream = CodedInputStream.newInstance(bytes);
+
+    ImmutableMap.Builder<String, Object> fieldValues = ImmutableMap.builder();
+    Map<Integer, List<Object>> repeatedFieldValues = new LinkedHashMap<>();
+    Map<Integer, Map<Object, Object>> mapFieldValues = new LinkedHashMap<>();
+    for (int tag = inputStream.readTag(); tag != 0; tag = inputStream.readTag()) {
+      int tagWireType = WireFormat.getTagWireType(tag);
+      int fieldNumber = WireFormat.getTagFieldNumber(tag);
+      FieldLiteDescriptor fieldDescriptor = messageDescriptor.getByFieldNumberOrThrow(fieldNumber);
+
+      Object payload;
+      switch (tagWireType) {
+        case WireFormat.WIRETYPE_VARINT:
+          payload = readPrimitiveField(inputStream, fieldDescriptor);
+          break;
+        case WireFormat.WIRETYPE_FIXED32:
+          payload = readFixed32BitField(inputStream, fieldDescriptor);
+          break;
+        case WireFormat.WIRETYPE_FIXED64:
+          payload = readFixed64BitField(inputStream, fieldDescriptor);
+          break;
+        case WireFormat.WIRETYPE_LENGTH_DELIMITED:
+          CelFieldValueType celFieldValueType = fieldDescriptor.getCelFieldValueType();
+          switch (celFieldValueType) {
+            case LIST:
+              if (fieldDescriptor.getIsPacked()) {
+                payload = readPackedRepeatedFields(inputStream, fieldDescriptor);
+              } else {
+                FieldLiteDescriptor.Type protoFieldType = fieldDescriptor.getProtoFieldType();
+                boolean isLenDelimited =
+                    protoFieldType.equals(FieldLiteDescriptor.Type.MESSAGE)
+                        || protoFieldType.equals(FieldLiteDescriptor.Type.STRING)
+                        || protoFieldType.equals(FieldLiteDescriptor.Type.BYTES);
+                if (!isLenDelimited) {
+                  throw new IllegalStateException(
+                      "Unexpected field type encountered for LEN-Delimited record: "
+                          + protoFieldType);
+                }
+
+                payload = readLengthDelimitedField(inputStream, fieldDescriptor);
+              }
+              break;
+            case MAP:
+              Map<Object, Object> fieldMap =
+                  mapFieldValues.computeIfAbsent(fieldNumber, (unused) -> new LinkedHashMap<>());
+              Map.Entry<Object, Object> mapEntry = readSingleMapEntry(inputStream, fieldDescriptor);
+              fieldMap.put(mapEntry.getKey(), mapEntry.getValue());
+              payload = fieldMap;
+              break;
+            default:
+              payload = readLengthDelimitedField(inputStream, fieldDescriptor);
+              break;
+          }
+          break;
+        case WireFormat.WIRETYPE_START_GROUP:
+        case WireFormat.WIRETYPE_END_GROUP:
+          // TODO: Support groups
+          throw new UnsupportedOperationException("Groups are not supported");
+        default:
+          throw new IllegalArgumentException("Unexpected wire type: " + tagWireType);
+      }
+
+      if (fieldDescriptor.getCelFieldValueType().equals(CelFieldValueType.LIST)) {
+        String fieldName = fieldDescriptor.getFieldName();
+        List<Object> repeatedValues =
+            repeatedFieldValues.computeIfAbsent(
+                fieldNumber,
+                (unused) -> {
+                  List<Object> newList = new ArrayList<>();
+                  fieldValues.put(fieldName, newList);
+                  return newList;
+                });
+
+        if (payload instanceof Collection) {
+          repeatedValues.addAll((Collection<?>) payload);
+        } else {
+          repeatedValues.add(payload);
+        }
+      } else {
+        fieldValues.put(fieldDescriptor.getFieldName(), payload);
+      }
+    }
+
+    // Protobuf encoding follows a "last one wins" semantics. This means for duplicated fields,
+    // we accept the last value encountered.
+    return fieldValues.buildKeepingLast();
+  }
+
+  ImmutableMap<String, Object> readAllFields(MessageLite msg, String protoTypeName)
+      throws IOException {
+    return readAllFields(msg.toByteArray(), protoTypeName);
   }
 
   @Override

@@ -15,11 +15,14 @@
 package dev.cel.common.values;
 
 import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.MessageLite;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.StructTypeReference;
+import java.io.IOException;
 import java.util.Optional;
 
 /**
@@ -42,6 +45,15 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
 
   abstract ProtoLiteCelValueConverter protoLiteCelValueConverter();
 
+  @Memoized
+  ImmutableMap<String, Object> fieldValues() {
+    try {
+      return protoLiteCelValueConverter().readAllFields(value(), celType().name());
+    } catch (IOException e) {
+      throw new IllegalStateException("Unable to read message fields for " + celType().name(), e);
+    }
+  }
+
   @Override
   public boolean isZeroValue() {
     return value().getDefaultInstanceForType().equals(value());
@@ -49,12 +61,16 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
 
   @Override
   public CelValue select(StringValue field) {
-    throw new UnsupportedOperationException("Not implemented yet");
+    return find(field)
+        .orElseGet(
+            () -> protoLiteCelValueConverter().getDefaultCelValue(celType().name(), field.value()));
   }
 
   @Override
   public Optional<CelValue> find(StringValue field) {
-    throw new UnsupportedOperationException("Not implemented yet");
+    Object fieldValue = fieldValues().get(field.value());
+    return Optional.ofNullable(fieldValue)
+        .map(value -> protoLiteCelValueConverter().fromJavaObjectToCelValue(fieldValue));
   }
 
   public static ProtoMessageLiteValue create(
