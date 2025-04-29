@@ -30,11 +30,12 @@ import java.util.Set;
  * fully qualified name and its fields to populate.
  */
 @Immutable
-public class ProtoMessageLiteValueProvider implements CelValueProvider {
+public class ProtoMessageLiteValueProvider extends BaseProtoMessageValueProvider {
   private final CelLiteDescriptorPool descriptorPool;
   private final ProtoLiteCelValueConverter protoLiteCelValueConverter;
 
-  public ProtoLiteCelValueConverter getProtoLiteCelValueConverter() {
+  @Override
+  public BaseProtoCelValueConverter protoCelValueConverter() {
     return protoLiteCelValueConverter;
   }
 

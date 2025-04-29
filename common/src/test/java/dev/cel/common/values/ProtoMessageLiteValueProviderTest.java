@@ -49,6 +49,6 @@ public class ProtoMessageLiteValueProviderTest {
 
   @Test
   public void getProtoLiteCelValueConverter() {
-    assertThat(VALUE_PROVIDER.getProtoLiteCelValueConverter()).isNotNull();
+    assertThat(VALUE_PROVIDER.protoCelValueConverter()).isNotNull();
   }
 }

@@ -22,14 +22,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelDescriptorUtil;
-import dev.cel.common.CelRuntimeException;
 import dev.cel.common.internal.CelDescriptorPool;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.internal.ProtoTimeUtils;
-import dev.cel.common.values.CelValueProvider.CombinedCelValueProvider;
 import dev.cel.expr.conformance.proto2.TestAllTypes;
 import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
 import java.time.Duration;
@@ -206,18 +204,11 @@ public class ProtoMessageValueProviderTest {
   }
 
   @Test
-  public void newValue_invalidMessageName_throws() {
+  public void newValue_invalidMessageName_returnsEmpty() {
     ProtoMessageValueProvider protoMessageValueProvider =
         ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
 
-    CelRuntimeException e =
-        assertThrows(
-            CelRuntimeException.class,
-            () -> protoMessageValueProvider.newValue("bogus", ImmutableMap.of()));
-
-    assertThat(e)
-        .hasMessageThat()
-        .isEqualTo("java.lang.IllegalArgumentException: cannot resolve 'bogus' as a message");
+    assertThat(protoMessageValueProvider.newValue("bogus", ImmutableMap.of())).isEmpty();
   }
 
   @Test
@@ -245,7 +236,7 @@ public class ProtoMessageValueProviderTest {
     ProtoMessageValueProvider protoMessageValueProvider =
         ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
     CelValueProvider combinedProvider =
-        new CombinedCelValueProvider(celValueProvider, protoMessageValueProvider);
+        CombinedCelValueProvider.combine(celValueProvider, protoMessageValueProvider);
 
     ProtoMessageValue protoMessageValue =
         (ProtoMessageValue)

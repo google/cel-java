@@ -18,8 +18,6 @@ import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
-import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoAdapter;
@@ -35,19 +33,23 @@ import java.util.Optional;
  */
 @Immutable
 @Internal
-public class ProtoMessageValueProvider implements CelValueProvider {
+public class ProtoMessageValueProvider extends BaseProtoMessageValueProvider {
   private final ProtoAdapter protoAdapter;
   private final ProtoMessageFactory protoMessageFactory;
   private final ProtoCelValueConverter protoCelValueConverter;
 
-  public ProtoCelValueConverter getProtoCelValueConverter() {
+  @Override
+  public BaseProtoCelValueConverter protoCelValueConverter() {
     return protoCelValueConverter;
   }
 
   @Override
   public Optional<CelValue> newValue(String structType, Map<String, Object> fields) {
+    Message.Builder builder = protoMessageFactory.newBuilder(structType).orElse(null);
+    if (builder == null) {
+      return Optional.empty();
+    }
     try {
-      Message.Builder builder = getMessageBuilderOrThrow(structType);
       Descriptor descriptor = builder.getDescriptorForType();
       for (Map.Entry<String, Object> entry : fields.entrySet()) {
         FieldDescriptor fieldDescriptor = findField(descriptor, entry.getKey());
@@ -61,17 +63,6 @@ public class ProtoMessageValueProvider implements CelValueProvider {
     } catch (ArrayIndexOutOfBoundsException e) {
       throw new IllegalArgumentException(e.getMessage());
     }
-  }
-
-  private Message.Builder getMessageBuilderOrThrow(String messageName) {
-    return protoMessageFactory
-        .newBuilder(messageName)
-        .orElseThrow(
-            () ->
-                new CelRuntimeException(
-                    new IllegalArgumentException(
-                        String.format("cannot resolve '%s' as a message", messageName)),
-                    CelErrorCode.ATTRIBUTE_NOT_FOUND));
   }
 
   private FieldDescriptor findField(Descriptor descriptor, String fieldName) {

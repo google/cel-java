@@ -291,18 +291,13 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       RuntimeTypeProvider runtimeTypeProvider;
 
       if (options.enableCelValue()) {
-        ProtoMessageValueProvider messageValueProvider =
-            ProtoMessageValueProvider.newInstance(dynamicProto);
-        if (celValueProvider != null) {
-          celValueProvider =
-              new CelValueProvider.CombinedCelValueProvider(celValueProvider, messageValueProvider);
-        } else {
-          celValueProvider = messageValueProvider;
+        CelValueProvider messageValueProvider = celValueProvider;
+
+        if (messageValueProvider == null) {
+          messageValueProvider = ProtoMessageValueProvider.newInstance(dynamicProto);
         }
 
-        runtimeTypeProvider =
-            CelValueRuntimeTypeProvider.newInstance(
-                celValueProvider, messageValueProvider.getProtoCelValueConverter());
+        runtimeTypeProvider = CelValueRuntimeTypeProvider.newInstance(messageValueProvider);
       } else {
         runtimeTypeProvider = new DescriptorMessageProvider(runtimeTypeFactory, options);
       }

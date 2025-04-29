@@ -41,7 +41,12 @@ public interface CelLiteRuntimeBuilder {
   @CanIgnoreReturnValue
   CelLiteRuntimeBuilder addFunctionBindings(Iterable<CelFunctionBinding> bindings);
 
-  /** Sets the {@link CelValueProvider} for resolving struct values during evaluation. */
+  /**
+   * Sets the {@link CelValueProvider} for resolving struct values during evaluation. Multiple
+   * providers can be combined using {@code CombinedCelValueProvider}. Note that if you intend to
+   * support proto messages in addition to custom struct values, protobuf value provider must be
+   * configured first before the custom value provider.
+   */
   @CanIgnoreReturnValue
   CelLiteRuntimeBuilder setValueProvider(CelValueProvider celValueProvider);
 

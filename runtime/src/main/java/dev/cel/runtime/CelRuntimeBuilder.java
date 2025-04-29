@@ -140,9 +140,10 @@ public interface CelRuntimeBuilder {
   CelRuntimeBuilder setTypeFactory(Function<String, Message.Builder> typeFactory);
 
   /**
-   * Sets the {@code celValueProvider} for resolving values during evaluation. The provided value
-   * provider will be used first before falling back to the built-in {@link
-   * dev.cel.common.values.ProtoMessageValueProvider} for resolving protobuf messages.
+   * Sets the {@link CelValueProvider} for resolving struct values during evaluation. Multiple
+   * providers can be combined using {@code CombinedCelValueProvider}. Note that if you intend to
+   * support proto messages in addition to custom struct values, protobuf value provider must be
+   * configured first before the custom value provider.
    *
    * <p>Note {@link CelOptions#enableCelValue()} must be enabled or this method will be a no-op.
    */

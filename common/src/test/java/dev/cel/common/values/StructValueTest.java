@@ -26,10 +26,12 @@ import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.Test;
@@ -174,6 +176,55 @@ public final class StructValueTest {
     Object result = cel.createProgram(ast).eval();
 
     assertThat(result).isEqualTo(5L);
+  }
+
+  @Test
+  public void evaluate_usingMultipleProviders_selectFieldFromCustomClass() throws Exception {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .setOptions(CelOptions.current().enableCelValue(true).build())
+            .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
+            .setValueProvider(
+                CombinedCelValueProvider.combine(
+                    ProtoMessageValueProvider.newInstance(
+                        DynamicProto.create(typeName -> Optional.empty())),
+                    CUSTOM_STRUCT_VALUE_PROVIDER))
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("custom_struct{data: 5}.data").getAst();
+
+    Object result = cel.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(5L);
+  }
+
+  @Test
+  public void evaluate_usingMultipleProviders_selectFieldFromProtobufMessage() throws Exception {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .setOptions(CelOptions.current().enableCelValue(true).build())
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
+            .setValueProvider(
+                CombinedCelValueProvider.combine(
+                    ProtoMessageValueProvider.newInstance(
+                        // Note: this is unideal. Future iterations should make DynamicProto
+                        // completely an internal concern, and not expose it at all.
+                        DynamicProto.create(
+                            typeName -> {
+                              if (typeName.equals(TestAllTypes.getDescriptor().getFullName())) {
+                                return Optional.of(TestAllTypes.newBuilder());
+                              }
+                              return Optional.empty();
+                            })),
+                    CUSTOM_STRUCT_VALUE_PROVIDER))
+            .build();
+    CelAbstractSyntaxTree ast =
+        cel.compile("cel.expr.conformance.proto3.TestAllTypes{single_string: 'foo'}.single_string")
+            .getAst();
+
+    String result = (String) cel.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo("foo");
   }
 
   @SuppressWarnings("Immutable") // Test only

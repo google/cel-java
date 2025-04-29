@@ -18,6 +18,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
+import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,6 +32,7 @@ import java.util.Optional;
  */
 @SuppressWarnings("unchecked") // Unchecked cast of generics due to type-erasure (ex: MapValue).
 @Internal
+@Immutable
 abstract class CelValueConverter {
 
   /** Adapts a {@link CelValue} to a plain old Java Object. */

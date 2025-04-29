@@ -23,11 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
-import dev.cel.common.internal.DefaultLiteDescriptorPool;
-import dev.cel.common.values.BaseProtoCelValueConverter;
 import dev.cel.common.values.CelValueProvider;
-import dev.cel.common.values.ProtoLiteCelValueConverter;
-import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
@@ -148,19 +144,10 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
                   dispatcher.add(
                       overloadId, func.getArgTypes(), (args) -> func.getDefinition().apply(args)));
 
-      BaseProtoCelValueConverter protoCelValueConverter;
-      if (celValueProvider instanceof ProtoMessageLiteValueProvider) {
-        protoCelValueConverter =
-            ((ProtoMessageLiteValueProvider) celValueProvider).getProtoLiteCelValueConverter();
-      } else {
-        protoCelValueConverter =
-            ProtoLiteCelValueConverter.newInstance(DefaultLiteDescriptorPool.newInstance());
-      }
-
       Interpreter interpreter =
           new DefaultInterpreter(
               TypeResolver.create(),
-              CelValueRuntimeTypeProvider.newInstance(celValueProvider, protoCelValueConverter),
+              CelValueRuntimeTypeProvider.newInstance(celValueProvider),
               dispatcher,
               celOptions);
 

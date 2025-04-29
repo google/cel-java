@@ -1,4 +1,4 @@
-// Copyright 2023 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,18 +15,17 @@
 package dev.cel.common.values;
 
 import com.google.errorprone.annotations.Immutable;
-import java.util.Map;
-import java.util.Optional;
+import dev.cel.common.annotations.Internal;
 
-/** CelValueProvider is an interface for constructing new struct values. */
+/**
+ * {@code BaseProtoMessageValueProvider} is a common parent to {@code ProtoMessageValueProvider} and
+ * {@code ProtoMessageLiteValueProvider}.
+ *
+ * <p>CEL-Java internals. Do not use. Use one of the inherited variants mentioned above.
+ */
+@Internal
 @Immutable
-public interface CelValueProvider {
+public abstract class BaseProtoMessageValueProvider implements CelValueProvider {
 
-  /**
-   * Constructs a new struct value.
-   *
-   * <p>Note that the return type is defined as CelValue rather than StructValue to account for
-   * special cases such as wrappers where its primitive is returned.
-   */
-  Optional<CelValue> newValue(String structType, Map<String, Object> fields);
+  public abstract BaseProtoCelValueConverter protoCelValueConverter();
 }
