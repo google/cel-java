@@ -184,6 +184,7 @@ java_library(
         ["*.java"],
         # keep sorted
         exclude = [
+            "CelLiteInterpreterTest.java",
             "CelValueInterpreterTest.java",
             "InterpreterTest.java",
         ] + ANDROID_TESTS,
@@ -316,6 +317,23 @@ cel_android_local_test(
     ],
 )
 
+java_library(
+    name = "cel_lite_interpreter_test",
+    testonly = 1,
+    srcs = [
+        "CelLiteInterpreterTest.java",
+    ],
+    deps = [
+        "//common/values:proto_message_lite_value_provider",
+        "//extensions:optional_library",
+        "//runtime",
+        "//testing:base_interpreter_test",
+        "//testing:test_all_types_cel_java_proto3",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
 junit4_test_suites(
     name = "test_suites",
     shard_count = 4,
@@ -325,6 +343,7 @@ junit4_test_suites(
     ],
     src_dir = "src/test/java",
     deps = [
+        ":cel_lite_interpreter_test",
         ":cel_value_interpreter_test",
         ":interpreter_test",
         ":tests",

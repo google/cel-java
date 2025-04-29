@@ -124,14 +124,21 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   private CelRuntime celRuntime;
 
   public BaseInterpreterTest(CelOptions celOptions, boolean useNativeCelType) {
-    super(useNativeCelType);
-    this.celOptions = celOptions;
-    this.celRuntime =
+    this(
+        celOptions,
+        useNativeCelType,
         CelRuntimeFactory.standardCelRuntimeBuilder()
             .addLibraries(CelOptionalLibrary.INSTANCE)
             .addFileTypes(TEST_FILE_DESCRIPTORS)
             .setOptions(celOptions)
-            .build();
+            .build());
+  }
+
+  public BaseInterpreterTest(
+      CelOptions celOptions, boolean useNativeCelType, CelRuntime celRuntime) {
+    super(useNativeCelType);
+    this.celOptions = celOptions;
+    this.celRuntime = celRuntime;
   }
 
   @Override

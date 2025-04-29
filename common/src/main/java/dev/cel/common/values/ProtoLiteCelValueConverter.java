@@ -154,9 +154,9 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     if (defaultValue instanceof MessageLite) {
       return fromProtoMessageToCelValue(
           fieldDescriptor.getFieldProtoTypeName(), (MessageLite) defaultValue);
-    } else {
-      return fromJavaObjectToCelValue(getDefaultValue(fieldDescriptor));
     }
+
+    return fromJavaObjectToCelValue(defaultValue);
   }
 
   private Object getDefaultValue(FieldLiteDescriptor fieldDescriptor) {
@@ -198,7 +198,7 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
         return ByteString.EMPTY;
       case MESSAGE:
         if (WellKnownProto.isWrapperType(fieldDescriptor.getFieldProtoTypeName())) {
-          return NullValue.NULL_VALUE;
+          return com.google.protobuf.NullValue.NULL_VALUE;
         }
 
         return getDefaultMessageBuilder(fieldDescriptor.getFieldProtoTypeName()).build();

@@ -28,7 +28,7 @@ import dev.cel.common.annotations.Internal;
 import java.util.ArrayDeque;
 
 /**
- * Helper class for constructing a fully qualified Java class name from a protobuf descriptor. * *
+ * Helper class for constructing a fully qualified Java class name from a protobuf descriptor.
  *
  * <p>CEL Library Internals. Do Not Use.
  */
