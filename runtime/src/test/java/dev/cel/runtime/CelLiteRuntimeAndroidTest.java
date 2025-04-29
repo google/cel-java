@@ -18,52 +18,95 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import dev.cel.expr.CheckedExpr;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import com.google.common.primitives.UnsignedLong;
+import com.google.common.truth.Correspondence;
+import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.BytesValue;
+import com.google.protobuf.DoubleValue;
 import com.google.protobuf.ExtensionRegistryLite;
+import com.google.protobuf.FloatValue;
+import com.google.protobuf.Int32Value;
+import com.google.protobuf.Int64Value;
+import com.google.protobuf.StringValue;
+import com.google.protobuf.UInt32Value;
+import com.google.protobuf.UInt64Value;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
-import dev.cel.common.CelSource;
-import dev.cel.common.ast.CelConstant;
-import dev.cel.common.ast.CelExpr;
-import dev.cel.common.types.SimpleType;
+import dev.cel.common.internal.ProtoTimeUtils;
+import dev.cel.common.values.ProtoMessageLiteValueProvider;
+import dev.cel.expr.conformance.proto2.TestAllTypesProto2LiteCelDescriptor;
+import dev.cel.expr.conformance.proto3.NestedTestAllTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypesProto3LiteCelDescriptor;
 import dev.cel.runtime.CelLiteRuntime.Program;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public class CelLiteRuntimeAndroidTest {
+  private static final double DOUBLE_TOLERANCE = 0.00001d;
+  private static final Correspondence<List<?>, List<?>> LIST_WITH_DOUBLE_TOLERANCE =
+      Correspondence.from(
+          (actualList, expectedList) -> {
+            if (actualList == null
+                || expectedList == null
+                || actualList.size() != expectedList.size()) {
+              return false;
+            }
+            for (int i = 0; i < actualList.size(); i++) {
+              Object actual = actualList.get(i);
+              Object expected = expectedList.get(i);
 
-  @Test
-  public void runtimeConstruction() {
-    CelLiteRuntimeBuilder builder = CelLiteRuntimeFactory.newLiteRuntimeBuilder();
+              if (actual instanceof Double && expected instanceof Double) {
+                return Math.abs((Double) actual - (Double) expected) <= DOUBLE_TOLERANCE;
+              } else if (!actual.equals(expected)) {
+                return false;
+              }
+            }
+            return true;
+          },
+          String.format(
+              "has elements that are equal (with tolerance of %f for doubles)", DOUBLE_TOLERANCE));
 
-    CelLiteRuntime runtime = builder.build();
+  private static final Correspondence<Map<?, ?>, Map<?, ?>> MAP_WITH_DOUBLE_TOLERANCE =
+      Correspondence.from(
+          (actualMap, expectedMap) -> {
+            if (actualMap == null
+                || expectedMap == null
+                || actualMap.size() != expectedMap.size()) {
+              return false;
+            }
 
-    assertThat(runtime).isNotNull();
-  }
+            for (Map.Entry<?, ?> actualEntry : actualMap.entrySet()) {
+              if (!expectedMap.containsKey(actualEntry.getKey())) {
+                return false;
+              }
 
-  @Test
-  public void programConstruction() throws Exception {
-    CelLiteRuntime runtime = CelLiteRuntimeFactory.newLiteRuntimeBuilder().build();
-    CelAbstractSyntaxTree ast =
-        CelAbstractSyntaxTree.newCheckedAst(
-            CelExpr.ofConstant(1L, CelConstant.ofValue("hello")),
-            CelSource.newBuilder("hello").build(),
-            ImmutableMap.of(),
-            ImmutableMap.of(1L, SimpleType.STRING));
+              Object actualEntryValue = actualEntry.getValue();
+              Object expectedEntryValue = expectedMap.get(actualEntry.getKey());
+              if (actualEntryValue instanceof Double && expectedEntryValue instanceof Double) {
+                return Math.abs((Double) actualEntryValue - (Double) expectedEntryValue)
+                    <= DOUBLE_TOLERANCE;
+              } else if (!actualEntryValue.equals(expectedEntryValue)) {
+                return false;
+              }
+            }
 
-    Program program = runtime.createProgram(ast);
-
-    assertThat(program).isNotNull();
-  }
+            return true;
+          },
+          String.format(
+              "has elements that are equal (with tolerance of %f for doubles)", DOUBLE_TOLERANCE));
 
   @Test
   public void toRuntimeBuilder_isNewInstance() {
@@ -219,6 +262,403 @@ public class CelLiteRuntimeAndroidTest {
     boolean result = (boolean) program.eval();
 
     assertThat(result).isTrue();
+  }
+
+  @Test
+  @TestParameters("{checkedExpr: 'compiled_proto2_select_primitives'}")
+  @TestParameters("{checkedExpr: 'compiled_proto3_select_primitives'}")
+  public void eval_protoMessage_unknowns(String checkedExpr) throws Exception {
+    CelLiteRuntime runtime = CelLiteRuntimeFactory.newLiteRuntimeBuilder().build();
+    CelAbstractSyntaxTree ast = readCheckedExpr(checkedExpr);
+    Program program = runtime.createProgram(ast);
+
+    CelUnknownSet result = (CelUnknownSet) program.eval();
+
+    assertThat(result.unknownExprIds()).hasSize(15);
+  }
+
+  @Test
+  @TestParameters("{checkedExpr: 'compiled_proto2_select_primitives_all_ored'}")
+  @TestParameters("{checkedExpr: 'compiled_proto3_select_primitives_all_ored'}")
+  public void eval_protoMessage_primitiveWithDefaults(String checkedExpr) throws Exception {
+    CelLiteRuntime runtime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setValueProvider(
+                ProtoMessageLiteValueProvider.newInstance(
+                    TestAllTypesProto2LiteCelDescriptor.getDescriptor(),
+                    TestAllTypesProto3LiteCelDescriptor.getDescriptor()))
+            .build();
+    // Ensures that all branches of the OR conditions are evaluated, and that appropriate defaults
+    // are returned for primitives.
+    CelAbstractSyntaxTree ast = readCheckedExpr(checkedExpr);
+    Program program = runtime.createProgram(ast);
+
+    boolean result =
+        (boolean)
+            program.eval(
+                ImmutableMap.of(
+                    "proto2", dev.cel.expr.conformance.proto2.TestAllTypes.getDefaultInstance(),
+                    "proto3", TestAllTypes.getDefaultInstance()));
+
+    assertThat(result).isFalse(); // False should be returned to avoid short circuiting.
+  }
+
+  @Test
+  @TestParameters("{checkedExpr: 'compiled_proto2_select_primitives'}")
+  @TestParameters("{checkedExpr: 'compiled_proto3_select_primitives'}")
+  public void eval_protoMessage_primitives(String checkedExpr) throws Exception {
+    CelLiteRuntime runtime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setValueProvider(
+                ProtoMessageLiteValueProvider.newInstance(
+                    TestAllTypesProto2LiteCelDescriptor.getDescriptor(),
+                    TestAllTypesProto3LiteCelDescriptor.getDescriptor()))
+            .build();
+    CelAbstractSyntaxTree ast = readCheckedExpr(checkedExpr);
+    Program program = runtime.createProgram(ast);
+
+    boolean result =
+        (boolean)
+            program.eval(
+                ImmutableMap.of(
+                    "proto2",
+                    dev.cel.expr.conformance.proto2.TestAllTypes.newBuilder()
+                        .setSingleInt32(1)
+                        .setSingleInt64(2L)
+                        .setSingleUint32(3)
+                        .setSingleUint64(4L)
+                        .setSingleSint32(5)
+                        .setSingleSint64(6L)
+                        .setSingleFixed32(7)
+                        .setSingleFixed64(8L)
+                        .setSingleSfixed32(9)
+                        .setSingleSfixed64(10L)
+                        .setSingleFloat(1.5f)
+                        .setSingleDouble(2.5d)
+                        .setSingleBool(true)
+                        .setSingleString("hello world")
+                        .setSingleBytes(ByteString.copyFromUtf8("abc"))
+                        .build(),
+                    "proto3",
+                    TestAllTypes.newBuilder()
+                        .setSingleInt32(1)
+                        .setSingleInt64(2L)
+                        .setSingleUint32(3)
+                        .setSingleUint64(4L)
+                        .setSingleSint32(5)
+                        .setSingleSint64(6L)
+                        .setSingleFixed32(7)
+                        .setSingleFixed64(8L)
+                        .setSingleSfixed32(9)
+                        .setSingleSfixed64(10L)
+                        .setSingleFloat(1.5f)
+                        .setSingleDouble(2.5d)
+                        .setSingleBool(true)
+                        .setSingleString("hello world")
+                        .setSingleBytes(ByteString.copyFromUtf8("abc"))
+                        .build()));
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  @TestParameters("{checkedExpr: 'compiled_proto2_select_wrappers'}")
+  @TestParameters("{checkedExpr: 'compiled_proto3_select_wrappers'}")
+  public void eval_protoMessage_wrappers(String checkedExpr) throws Exception {
+    CelLiteRuntime runtime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setValueProvider(
+                ProtoMessageLiteValueProvider.newInstance(
+                    TestAllTypesProto2LiteCelDescriptor.getDescriptor(),
+                    TestAllTypesProto3LiteCelDescriptor.getDescriptor()))
+            .build();
+    CelAbstractSyntaxTree ast = readCheckedExpr(checkedExpr);
+    Program program = runtime.createProgram(ast);
+
+    boolean result =
+        (boolean)
+            program.eval(
+                ImmutableMap.of(
+                    "proto2",
+                    dev.cel.expr.conformance.proto2.TestAllTypes.newBuilder()
+                        .setSingleInt32Wrapper(Int32Value.of(1))
+                        .setSingleInt64Wrapper(Int64Value.of(2L))
+                        .setSingleUint32Wrapper(UInt32Value.of(3))
+                        .setSingleUint64Wrapper(UInt64Value.of(4L))
+                        .setSingleFloatWrapper(FloatValue.of(1.5f))
+                        .setSingleDoubleWrapper(DoubleValue.of(2.5d))
+                        .setSingleBoolWrapper(BoolValue.of(true))
+                        .setSingleStringWrapper(StringValue.of("hello world"))
+                        .setSingleBytesWrapper(BytesValue.of(ByteString.copyFromUtf8("abc")))
+                        .build(),
+                    "proto3",
+                    TestAllTypes.newBuilder()
+                        .setSingleInt32Wrapper(Int32Value.of(1))
+                        .setSingleInt64Wrapper(Int64Value.of(2L))
+                        .setSingleUint32Wrapper(UInt32Value.of(3))
+                        .setSingleUint64Wrapper(UInt64Value.of(4L))
+                        .setSingleFloatWrapper(FloatValue.of(1.5f))
+                        .setSingleDoubleWrapper(DoubleValue.of(2.5d))
+                        .setSingleBoolWrapper(BoolValue.of(true))
+                        .setSingleStringWrapper(StringValue.of("hello world"))
+                        .setSingleBytesWrapper(BytesValue.of(ByteString.copyFromUtf8("abc")))
+                        .build()));
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  @TestParameters("{checkedExpr: 'compiled_proto2_deep_traversal'}")
+  @TestParameters("{checkedExpr: 'compiled_proto3_deep_traversal'}")
+  public void eval_protoMessage_safeTraversal(String checkedExpr) throws Exception {
+    CelLiteRuntime runtime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setValueProvider(
+                ProtoMessageLiteValueProvider.newInstance(
+                    TestAllTypesProto2LiteCelDescriptor.getDescriptor(),
+                    TestAllTypesProto3LiteCelDescriptor.getDescriptor()))
+            .build();
+    // Expr: proto2.oneof_type.payload.repeated_string
+    CelAbstractSyntaxTree ast = readCheckedExpr(checkedExpr);
+
+    Program program = runtime.createProgram(ast);
+
+    List<String> result =
+        (List<String>)
+            program.eval(
+                ImmutableMap.of(
+                    "proto2", dev.cel.expr.conformance.proto2.TestAllTypes.getDefaultInstance(),
+                    "proto3", TestAllTypes.getDefaultInstance()));
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  @TestParameters("{checkedExpr: 'compiled_proto2_deep_traversal'}")
+  @TestParameters("{checkedExpr: 'compiled_proto3_deep_traversal'}")
+  public void eval_protoMessage_deepTraversalReturnsRepeatedStrings(String checkedExpr)
+      throws Exception {
+    CelLiteRuntime runtime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setValueProvider(
+                ProtoMessageLiteValueProvider.newInstance(
+                    TestAllTypesProto2LiteCelDescriptor.getDescriptor(),
+                    TestAllTypesProto3LiteCelDescriptor.getDescriptor()))
+            .build();
+    // Expr: proto2.oneof_type.payload.repeated_string
+    CelAbstractSyntaxTree ast = readCheckedExpr(checkedExpr);
+    Program program = runtime.createProgram(ast);
+    ImmutableList<String> data = ImmutableList.of("hello", "world");
+
+    List<String> result =
+        (List<String>)
+            program.eval(
+                ImmutableMap.of(
+                    "proto2",
+                        dev.cel.expr.conformance.proto2.TestAllTypes.newBuilder()
+                            .setOneofType(
+                                dev.cel.expr.conformance.proto2.NestedTestAllTypes.newBuilder()
+                                    .setPayload(
+                                        dev.cel.expr.conformance.proto2.TestAllTypes.newBuilder()
+                                            .addAllRepeatedString(data)
+                                            .build())),
+                    "proto3",
+                        TestAllTypes.newBuilder()
+                            .setOneofType(
+                                NestedTestAllTypes.newBuilder()
+                                    .setPayload(
+                                        TestAllTypes.newBuilder()
+                                            .addAllRepeatedString(data)
+                                            .build()))));
+
+    assertThat(result).isEqualTo(data);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  @TestParameters("{checkedExpr: 'compiled_proto2_select_repeated_fields'}")
+  @TestParameters("{checkedExpr: 'compiled_proto3_select_repeated_fields'}")
+  public void eval_protoMessage_repeatedFields(String checkedExpr) throws Exception {
+    CelLiteRuntime runtime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setValueProvider(
+                ProtoMessageLiteValueProvider.newInstance(
+                    TestAllTypesProto2LiteCelDescriptor.getDescriptor(),
+                    TestAllTypesProto3LiteCelDescriptor.getDescriptor()))
+            .build();
+    dev.cel.expr.conformance.proto2.TestAllTypes proto2TestMsg =
+        dev.cel.expr.conformance.proto2.TestAllTypes.newBuilder()
+            .addAllRepeatedInt32(ImmutableList.of(1, 2))
+            .addAllRepeatedInt64(ImmutableList.of(3L, 4L))
+            .addAllRepeatedUint32(ImmutableList.of(5, 6))
+            .addAllRepeatedUint64(ImmutableList.of(7L, 8L))
+            .addAllRepeatedSint32(ImmutableList.of(9, 10))
+            .addAllRepeatedSint64(ImmutableList.of(11L, 12L))
+            .addAllRepeatedFixed32(ImmutableList.of(13, 14))
+            .addAllRepeatedFixed64(ImmutableList.of(15L, 16L))
+            .addAllRepeatedSfixed32(ImmutableList.of(17, 18))
+            .addAllRepeatedSfixed64(ImmutableList.of(19L, 20L))
+            .addAllRepeatedFloat(ImmutableList.of(21.1f, 22.2f))
+            .addAllRepeatedDouble(ImmutableList.of(23.3, 24.4))
+            .addAllRepeatedBool(ImmutableList.of(true, false))
+            .addAllRepeatedString(ImmutableList.of("alpha", "beta"))
+            .addAllRepeatedBytes(
+                ImmutableList.of(
+                    ByteString.copyFromUtf8("gamma"), ByteString.copyFromUtf8("delta")))
+            .build();
+    TestAllTypes proto3TestMsg =
+        TestAllTypes.newBuilder()
+            .addAllRepeatedInt32(ImmutableList.of(1, 2))
+            .addAllRepeatedInt64(ImmutableList.of(3L, 4L))
+            .addAllRepeatedUint32(ImmutableList.of(5, 6))
+            .addAllRepeatedUint64(ImmutableList.of(7L, 8L))
+            .addAllRepeatedSint32(ImmutableList.of(9, 10))
+            .addAllRepeatedSint64(ImmutableList.of(11L, 12L))
+            .addAllRepeatedFixed32(ImmutableList.of(13, 14))
+            .addAllRepeatedFixed64(ImmutableList.of(15L, 16L))
+            .addAllRepeatedSfixed32(ImmutableList.of(17, 18))
+            .addAllRepeatedSfixed64(ImmutableList.of(19L, 20L))
+            .addAllRepeatedFloat(ImmutableList.of(21.1f, 22.2f))
+            .addAllRepeatedDouble(ImmutableList.of(23.3, 24.4))
+            .addAllRepeatedBool(ImmutableList.of(true, false))
+            .addAllRepeatedString(ImmutableList.of("alpha", "beta"))
+            .addAllRepeatedBytes(
+                ImmutableList.of(
+                    ByteString.copyFromUtf8("gamma"), ByteString.copyFromUtf8("delta")))
+            .build();
+    CelAbstractSyntaxTree ast = readCheckedExpr(checkedExpr);
+    Program program = runtime.createProgram(ast);
+
+    List<Object> result =
+        (List<Object>)
+            program.eval(ImmutableMap.of("proto2", proto2TestMsg, "proto3", proto3TestMsg));
+
+    assertThat(result)
+        .comparingElementsUsing(LIST_WITH_DOUBLE_TOLERANCE)
+        .containsExactly(
+            ImmutableList.of(1L, 2L),
+            ImmutableList.of(3L, 4L),
+            ImmutableList.of(UnsignedLong.valueOf(5L), UnsignedLong.valueOf(6L)),
+            ImmutableList.of(UnsignedLong.valueOf(7L), UnsignedLong.valueOf(8L)),
+            ImmutableList.of(9L, 10L),
+            ImmutableList.of(11L, 12L),
+            ImmutableList.of(13L, 14L),
+            ImmutableList.of(15L, 16L),
+            ImmutableList.of(17L, 18L),
+            ImmutableList.of(19L, 20L),
+            ImmutableList.of(21.1d, 22.2d),
+            ImmutableList.of(23.3d, 24.4d),
+            ImmutableList.of(true, false),
+            ImmutableList.of("alpha", "beta"),
+            ImmutableList.of(ByteString.copyFromUtf8("gamma"), ByteString.copyFromUtf8("delta")))
+        .inOrder();
+  }
+
+  @Test
+  // leave proto2.TestAllTypes qualification as is for clarity
+  @SuppressWarnings({"UnnecessarilyFullyQualified", "unchecked"})
+  @TestParameters("{checkedExpr: 'compiled_proto2_select_map_fields'}")
+  @TestParameters("{checkedExpr: 'compiled_proto3_select_map_fields'}")
+  public void eval_protoMessage_mapFields(String checkedExpr) throws Exception {
+    CelLiteRuntime runtime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setValueProvider(
+                ProtoMessageLiteValueProvider.newInstance(
+                    TestAllTypesProto2LiteCelDescriptor.getDescriptor(),
+                    TestAllTypesProto3LiteCelDescriptor.getDescriptor()))
+            .build();
+    dev.cel.expr.conformance.proto2.TestAllTypes proto2TestMsg =
+        dev.cel.expr.conformance.proto2.TestAllTypes.newBuilder()
+            .putAllMapBoolBool(ImmutableMap.of(true, false, false, true))
+            .putAllMapBoolString(ImmutableMap.of(true, "foo", false, "bar"))
+            .putAllMapBoolBytes(
+                ImmutableMap.of(
+                    true, ByteString.copyFromUtf8("baz"), false, ByteString.copyFromUtf8("qux")))
+            .putAllMapBoolInt32(ImmutableMap.of(true, 1, false, 2))
+            .putAllMapBoolInt64(ImmutableMap.of(true, 3L, false, 4L))
+            .putAllMapBoolUint32(ImmutableMap.of(true, 5, false, 6))
+            .putAllMapBoolUint64(ImmutableMap.of(true, 7L, false, 8L))
+            .putAllMapBoolFloat(ImmutableMap.of(true, 9.1f, false, 10.2f))
+            .putAllMapBoolDouble(ImmutableMap.of(true, 11.3, false, 12.4))
+            .putAllMapBoolEnum(
+                ImmutableMap.of(
+                    true,
+                    dev.cel.expr.conformance.proto2.TestAllTypes.NestedEnum.BAR,
+                    false,
+                    dev.cel.expr.conformance.proto2.TestAllTypes.NestedEnum.BAZ))
+            .putAllMapBoolDuration(
+                ImmutableMap.of(
+                    true,
+                    ProtoTimeUtils.fromSecondsToDuration(15),
+                    false,
+                    ProtoTimeUtils.fromSecondsToDuration(16)))
+            .putAllMapBoolTimestamp(
+                ImmutableMap.of(
+                    true, ProtoTimeUtils.fromSecondsToTimestamp(17), false, ProtoTimeUtils.fromSecondsToTimestamp(18)))
+            .build();
+    TestAllTypes proto3TestMsg =
+        TestAllTypes.newBuilder()
+            .putAllMapBoolBool(ImmutableMap.of(true, false, false, true))
+            .putAllMapBoolString(ImmutableMap.of(true, "foo", false, "bar"))
+            .putAllMapBoolBytes(
+                ImmutableMap.of(
+                    true, ByteString.copyFromUtf8("baz"), false, ByteString.copyFromUtf8("qux")))
+            .putAllMapBoolInt32(ImmutableMap.of(true, 1, false, 2))
+            .putAllMapBoolInt64(ImmutableMap.of(true, 3L, false, 4L))
+            .putAllMapBoolUint32(ImmutableMap.of(true, 5, false, 6))
+            .putAllMapBoolUint64(ImmutableMap.of(true, 7L, false, 8L))
+            .putAllMapBoolFloat(ImmutableMap.of(true, 9.1f, false, 10.2f))
+            .putAllMapBoolDouble(ImmutableMap.of(true, 11.3, false, 12.4))
+            .putAllMapBoolEnum(
+                ImmutableMap.of(
+                    true, TestAllTypes.NestedEnum.BAR, false, TestAllTypes.NestedEnum.BAZ))
+            .putAllMapBoolDuration(
+                ImmutableMap.of(
+                    true,
+                    ProtoTimeUtils.fromSecondsToDuration(15),
+                    false,
+                    ProtoTimeUtils.fromSecondsToDuration(16)))
+            .putAllMapBoolTimestamp(
+                ImmutableMap.of(
+                    true, ProtoTimeUtils.fromSecondsToTimestamp(17), false, ProtoTimeUtils.fromSecondsToTimestamp(18)))
+            .build();
+    CelAbstractSyntaxTree ast = readCheckedExpr(checkedExpr);
+    Program program = runtime.createProgram(ast);
+
+    List<Object> result =
+        (List<Object>)
+            program.eval(ImmutableMap.of("proto2", proto2TestMsg, "proto3", proto3TestMsg));
+
+    assertThat(result)
+        .comparingElementsUsing(MAP_WITH_DOUBLE_TOLERANCE)
+        .containsExactly(
+            ImmutableMap.of(true, false, false, true),
+            ImmutableMap.of(true, "foo", false, "bar"),
+            ImmutableMap.of(
+                true, ByteString.copyFromUtf8("baz"), false, ByteString.copyFromUtf8("qux")),
+            ImmutableMap.of(true, 1L, false, 2L),
+            ImmutableMap.of(true, 3L, false, 4L),
+            ImmutableMap.of(true, UnsignedLong.valueOf(5), false, UnsignedLong.valueOf(6)),
+            ImmutableMap.of(true, UnsignedLong.valueOf(7L), false, UnsignedLong.valueOf(8L)),
+            ImmutableMap.of(true, 9.1d, false, 10.2d),
+            ImmutableMap.of(true, 11.3d, false, 12.4d),
+            ImmutableMap.of(true, 1L, false, 2L), // Note: Enums are converted into integers
+            ImmutableMap.of(
+                true,
+                ProtoTimeUtils.fromSecondsToDuration(15),
+                false,
+                ProtoTimeUtils.fromSecondsToDuration(16)),
+            ImmutableMap.of(true, ProtoTimeUtils.fromSecondsToTimestamp(17), false, ProtoTimeUtils.fromSecondsToTimestamp(18)))
+        .inOrder();
   }
 
   private static CelAbstractSyntaxTree readCheckedExpr(String compiledCelTarget) throws Exception {

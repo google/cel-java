@@ -837,7 +837,8 @@ java_library(
 cel_android_library(
     name = "unknown_attributes_android",
     srcs = UNKNOWN_ATTRIBUTE_SOURCES,
-    visibility = ["//visibility:private"],
+    tags = [
+    ],
     deps = [
         "//:auto_value",
         "@maven//:com_google_errorprone_error_prone_annotations",

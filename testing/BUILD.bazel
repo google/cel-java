@@ -49,8 +49,14 @@ java_library(
 )
 
 java_lite_proto_cel_library(
+    name = "test_all_types_cel_java_proto2_lite",
+    java_descriptor_class_name = "TestAllTypesProto2LiteCelDescriptor",
+    proto_src = "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
+)
+
+java_lite_proto_cel_library(
     name = "test_all_types_cel_java_proto3_lite",
-    java_descriptor_class_name = "TestAllTypesLiteCelDescriptor",
+    java_descriptor_class_name = "TestAllTypesProto3LiteCelDescriptor",
     proto_src = "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
 )
 

@@ -32,3 +32,13 @@ filegroup(
     name = "custom_functions",
     srcs = ["custom_functions.yaml"],
 )
+
+filegroup(
+    name = "proto2_message_variables",
+    srcs = ["proto2_message_variables.yaml"],
+)
+
+filegroup(
+    name = "proto3_message_variables",
+    srcs = ["proto3_message_variables.yaml"],
+)

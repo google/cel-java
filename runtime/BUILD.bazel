@@ -145,6 +145,11 @@ java_library(
     exports = ["//runtime/src/main/java/dev/cel/runtime:unknown_attributes"],
 )
 
+cel_android_library(
+    name = "unknown_attributes_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:unknown_attributes_android"],
+)
+
 java_library(
     name = "unknown_options",
     exports = ["//runtime/src/main/java/dev/cel/runtime:unknown_options"],

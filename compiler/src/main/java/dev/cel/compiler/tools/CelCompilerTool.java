@@ -143,7 +143,8 @@ final class CelCompilerTool implements Callable<Integer> {
     } catch (Exception e) {
       String errorMessage =
           String.format(
-              "Expression [%s] failed to compile. Reason: %s", celExpression, e.getMessage());
+              "\nFailed to compile CEL Expression: [%s].\nReason: %s\n\n",
+              celExpression, e.getMessage());
       System.err.print(errorMessage);
       return -1;
     }

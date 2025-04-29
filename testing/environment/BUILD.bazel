@@ -28,3 +28,13 @@ alias(
     name = "custom_functions",
     actual = "//testing/src/test/resources/environment:custom_functions",
 )
+
+alias(
+    name = "proto2_message_variables",
+    actual = "//testing/src/test/resources/environment:proto2_message_variables",
+)
+
+alias(
+    name = "proto3_message_variables",
+    actual = "//testing/src/test/resources/environment:proto3_message_variables",
+)

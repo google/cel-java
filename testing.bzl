@@ -72,7 +72,11 @@ def junit4_test_suites(
     # "common/src/test/java/dev/cel/common/internal" becomes "dev/cel/common/internal"
     package_name = package_name.rpartition("/test/java/")[2]
 
-    test_files = srcs or native.glob(["**/*Test.java"])
+    test_files = srcs or native.glob(
+        ["**/*Test.java"],
+        # TODO: Inspect built JAR and derive the included test files from classpath instead (provided from java_library deps).
+        exclude = ["**/*AndroidTest.java"],
+    )
     test_classes = []
     for src in test_files:
         test_name = src.replace(".java", "")
