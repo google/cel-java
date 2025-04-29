@@ -36,13 +36,12 @@ import com.google.protobuf.Struct;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
-import com.google.protobuf.util.Durations;
-import com.google.protobuf.util.Timestamps;
 import com.google.protobuf.util.Values;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
@@ -286,11 +285,13 @@ public class CelLiteRuntimeTest {
     String expression = "msg.single_duration";
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
     TestAllTypes msg =
-        TestAllTypes.newBuilder().setSingleDuration(Durations.fromMinutes(10)).build();
+        TestAllTypes.newBuilder()
+            .setSingleDuration(ProtoTimeUtils.fromSecondsToDuration(600))
+            .build();
 
     Duration result = (Duration) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
-    assertThat(result).isEqualTo(Durations.fromMinutes(10));
+    assertThat(result).isEqualTo(ProtoTimeUtils.fromSecondsToDuration(600));
   }
 
   @Test
@@ -298,11 +299,13 @@ public class CelLiteRuntimeTest {
     String expression = "msg.single_timestamp";
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expression).getAst();
     TestAllTypes msg =
-        TestAllTypes.newBuilder().setSingleTimestamp(Timestamps.fromSeconds(50)).build();
+        TestAllTypes.newBuilder()
+            .setSingleTimestamp(ProtoTimeUtils.fromSecondsToTimestamp(50))
+            .build();
 
     Timestamp result = (Timestamp) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
-    assertThat(result).isEqualTo(Timestamps.fromSeconds(50));
+    assertThat(result).isEqualTo(ProtoTimeUtils.fromSecondsToTimestamp(50));
   }
 
   @Test

@@ -19,11 +19,10 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
-import com.google.protobuf.util.Durations;
-import com.google.protobuf.util.Timestamps;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
+import dev.cel.common.internal.ProtoTimeUtils;
 import java.time.Instant;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +42,7 @@ public class ProtoCelValueConverterTest {
             PROTO_CEL_VALUE_CONVERTER.fromCelValueToJavaObject(
                 TimestampValue.create(Instant.ofEpochSecond(50)));
 
-    assertThat(timestamp).isEqualTo(Timestamps.fromSeconds(50));
+    assertThat(timestamp).isEqualTo(ProtoTimeUtils.fromSecondsToTimestamp(50));
   }
 
   @Test
@@ -53,7 +52,7 @@ public class ProtoCelValueConverterTest {
             PROTO_CEL_VALUE_CONVERTER.fromCelValueToJavaObject(
                 DurationValue.create(java.time.Duration.ofSeconds(10)));
 
-    assertThat(duration).isEqualTo(Durations.fromSeconds(10));
+    assertThat(duration).isEqualTo(ProtoTimeUtils.fromSecondsToDuration(10));
   }
 
   @Test

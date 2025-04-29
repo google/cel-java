@@ -23,8 +23,6 @@ import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.DoubleValue;
 import com.google.protobuf.NullValue;
-import com.google.protobuf.util.Durations;
-import com.google.protobuf.util.Timestamps;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
@@ -36,6 +34,7 @@ import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
@@ -68,12 +67,16 @@ public class CelOptionalLibraryTest {
     UINT("5u", "0u", SimpleType.UINT, UnsignedLong.valueOf(5)),
     BOOL("true", "false", SimpleType.BOOL, true),
     BYTES("b'abc'", "b''", SimpleType.BYTES, ByteString.copyFromUtf8("abc")),
-    DURATION("duration('180s')", "duration('0s')", SimpleType.DURATION, Durations.fromSeconds(180)),
+    DURATION(
+        "duration('180s')",
+        "duration('0s')",
+        SimpleType.DURATION,
+        ProtoTimeUtils.fromSecondsToDuration(180)),
     TIMESTAMP(
         "timestamp(1685552643)",
         "timestamp(0)",
         SimpleType.TIMESTAMP,
-        Timestamps.fromSeconds(1685552643));
+        ProtoTimeUtils.fromSecondsToTimestamp(1685552643));
 
     private final String sourceWithNonZeroValue;
     private final String sourceWithZeroValue;

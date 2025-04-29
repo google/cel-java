@@ -36,8 +36,6 @@ import com.google.protobuf.Struct;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
-import com.google.protobuf.util.Durations;
-import com.google.protobuf.util.Timestamps;
 import com.google.rpc.context.AttributeContext;
 import com.google.rpc.context.AttributeContext.Auth;
 import com.google.rpc.context.AttributeContext.Peer;
@@ -50,6 +48,7 @@ import dev.cel.common.internal.BidiConverter;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
+import dev.cel.common.internal.ProtoTimeUtils;
 import java.util.Arrays;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
@@ -332,8 +331,8 @@ public final class ProtoMessageRuntimeEqualityTest {
           {null, ImmutableList.of(), Result.alwaysFalse()},
           {ImmutableMap.of(), null, Result.alwaysFalse()},
           {ByteString.copyFromUtf8(""), null, Result.alwaysFalse()},
-          {null, Timestamps.EPOCH, Result.alwaysFalse()},
-          {Durations.ZERO, null, Result.alwaysFalse()},
+          {null, ProtoTimeUtils.TIMESTAMP_EPOCH, Result.alwaysFalse()},
+          {ProtoTimeUtils.DURATION_ZERO, null, Result.alwaysFalse()},
           {NullValue.NULL_VALUE, NullValue.NULL_VALUE, Result.alwaysTrue()},
           {
             Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build(),

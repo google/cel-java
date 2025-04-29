@@ -51,7 +51,6 @@ import com.google.protobuf.NullValue;
 import com.google.protobuf.Struct;
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.Timestamp;
-import com.google.protobuf.util.Timestamps;
 import com.google.rpc.context.AttributeContext;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
@@ -71,6 +70,7 @@ import dev.cel.common.CelValidationResult;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelList;
+import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.testing.RepeatedTestProvider;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelProtoMessageTypes;
@@ -409,6 +409,7 @@ public final class CelImplTest {
   }
 
   @Test
+  @SuppressWarnings("unused") // testRunIndex name retained for test result readability
   public void program_concurrentMessageConstruction_succeeds(
       @TestParameter(valuesProvider = RepeatedTestProvider.class) int testRunIndex)
       throws Exception {
@@ -814,7 +815,7 @@ public final class CelImplTest {
             .build();
     CelRuntime.Program program =
         cel.createProgram(cel.compile("protobuf.Timestamp{seconds: 12}").getAst());
-    assertThat(program.eval()).isEqualTo(Timestamps.fromSeconds(12));
+    assertThat(program.eval()).isEqualTo(ProtoTimeUtils.fromSecondsToTimestamp(12));
   }
 
   @Test
@@ -827,7 +828,7 @@ public final class CelImplTest {
             .build();
     CelRuntime.Program program =
         cel.createProgram(cel.compile("protobuf.Timestamp{seconds: 12}").getAst());
-    assertThat(program.eval()).isEqualTo(Timestamps.fromSeconds(12));
+    assertThat(program.eval()).isEqualTo(ProtoTimeUtils.fromSecondsToTimestamp(12));
   }
 
   @Test
@@ -956,7 +957,7 @@ public final class CelImplTest {
             .build();
     CelRuntime.Program program =
         cel.createProgram(cel.compile("protobuf.Timestamp{seconds: 12}").getAst());
-    assertThat(program.eval()).isEqualTo(Timestamps.fromSeconds(12));
+    assertThat(program.eval()).isEqualTo(ProtoTimeUtils.fromSecondsToTimestamp(12));
   }
 
   @Test

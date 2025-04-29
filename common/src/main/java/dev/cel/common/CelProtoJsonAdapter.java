@@ -27,8 +27,7 @@ import com.google.protobuf.NullValue;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.Value;
-import com.google.protobuf.util.Durations;
-import com.google.protobuf.util.Timestamps;
+import dev.cel.common.internal.ProtoTimeUtils;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -112,11 +111,11 @@ public final class CelProtoJsonAdapter {
     }
     if (value instanceof Timestamp) {
       // CEL follows the proto3 to JSON conversion which formats as an RFC 3339 encoded JSON string.
-      String ts = Timestamps.toString((Timestamp) value);
+      String ts = ProtoTimeUtils.toString((Timestamp) value);
       return json.setStringValue(ts).build();
     }
     if (value instanceof Duration) {
-      String duration = Durations.toString((Duration) value);
+      String duration = ProtoTimeUtils.toString((Duration) value);
       return json.setStringValue(duration).build();
     }
     if (value instanceof FieldMask) {

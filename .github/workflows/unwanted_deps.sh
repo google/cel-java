@@ -13,16 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Script ran as part of Github CEL-Java CI to verify that the runtime jar does not contain generated cel protos from @cel_spec.
+# Script ran as part of Github CEL-Java CI to verify that the runtime jar does not contain unwanted dependencies.
 
-runtime_deps="$(bazel query 'deps(//publish:cel_runtime)' --nohost_deps --noimplicit_deps --output graph | grep '@cel_spec')"
+UNWANTED_DEPS=(
+  '@cel_spec' # Do not include generated CEL protos in the jar
+  'protobuf_java_util' # Does not support protolite
+)
 
-if [[ ! -z $runtime_deps ]]; then
-  echo -e "Runtime contains unwanted @cel_spec dependency!\n"
-  echo "cel_spec dependency graph:"
-  echo -e "$runtime_deps"
-  exit 1
-fi
+runtime_deps="$(bazel query 'deps(//publish:cel_runtime)' --nohost_deps --noimplicit_deps --output graph)"
+
+for unwanted_dep in "${UNWANTED_DEPS[@]}"; do
+  if echo "$runtime_deps" | grep "$unwanted_dep" > /dev/null; then
+    echo -e "Runtime contains unwanted dependency: $unwanted_dep!\n"
+    echo "cel_spec dependency graph (including '$unwanted_dep'):"
+    echo "$(echo "$runtime_deps" | grep "$unwanted_dep")"
+    exit 1
+  fi
+done
 
 exit 0
 

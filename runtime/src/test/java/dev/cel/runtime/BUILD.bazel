@@ -85,6 +85,7 @@ java_library(
         "//common/internal:default_message_factory",
         "//common/internal:dynamic_proto",
         "//common/internal:proto_message_factory",
+        "//common/internal:proto_time_utils",
         "//common/internal:well_known_proto",
         "//common/types",
         "//common/types:cel_v1alpha1_types",

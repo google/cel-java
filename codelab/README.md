@@ -667,7 +667,7 @@ public void evaluate_jwtWithTimeVariable_producesJsonString() throws Exception {
   @SuppressWarnings("unchecked")
   Map<String, Object> evaluatedResult =
       (Map<String, Object>)
-          exercise5.eval(ast, ImmutableMap.of("time", Timestamps.fromSeconds(1698361778)));
+          exercise5.eval(ast, ImmutableMap.of("time", ProtoTimeUtils.fromSecondsToTimestamp(1698361778)));
   String jsonOutput = exercise5.toJson(evaluatedResult);
 
   assertThat(jsonOutput)
@@ -776,7 +776,7 @@ public void evaluate_constructAttributeContext() {
           + "time: now"
           + "}";
   // Values for `now` and `jwt` variables to be passed into the runtime
-  Timestamp now = Timestamps.now();
+  Timestamp now = ProtoTimeUtils.now();
   ImmutableMap<String, Object> jwt =
       ImmutableMap.of(
           "sub", "serviceAccount:delegate@acme.co",

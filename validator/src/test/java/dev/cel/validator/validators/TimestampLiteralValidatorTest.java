@@ -21,7 +21,6 @@ import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Timestamp;
-import com.google.protobuf.util.Timestamps;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
@@ -30,6 +29,7 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelIssue.Severity;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationResult;
+import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.types.SimpleType;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
@@ -118,7 +118,7 @@ public class TimestampLiteralValidatorTest {
                     String.class,
                     stringArg -> {
                       try {
-                        return Timestamps.parse(stringArg).getSeconds();
+                        return ProtoTimeUtils.parse(stringArg).getSeconds();
                       } catch (ParseException e) {
                         throw new RuntimeException(e);
                       }

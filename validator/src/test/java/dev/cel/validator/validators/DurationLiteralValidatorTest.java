@@ -21,7 +21,6 @@ import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Duration;
-import com.google.protobuf.util.Durations;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
@@ -29,6 +28,7 @@ import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelIssue.Severity;
 import dev.cel.common.CelValidationResult;
+import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.types.SimpleType;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
@@ -108,7 +108,7 @@ public class DurationLiteralValidatorTest {
                     String.class,
                     stringArg -> {
                       try {
-                        return Durations.parse(stringArg).toString();
+                        return ProtoTimeUtils.parse(stringArg).toString();
                       } catch (ParseException e) {
                         throw new RuntimeException(e);
                       }

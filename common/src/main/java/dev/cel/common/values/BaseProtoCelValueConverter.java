@@ -16,14 +16,13 @@ package dev.cel.common.values;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
-import static com.google.common.math.LongMath.checkedAdd;
-import static com.google.common.math.LongMath.checkedSubtract;
 
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.DoubleValue;
+import com.google.protobuf.Duration;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
@@ -35,12 +34,9 @@ import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
-import com.google.protobuf.util.Durations;
-import com.google.protobuf.util.Timestamps;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.internal.WellKnownProto;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Optional;
 
 /**
@@ -66,9 +62,9 @@ public abstract class BaseProtoCelValueConverter extends CelValueConverter {
     Preconditions.checkNotNull(celValue);
 
     if (celValue instanceof TimestampValue) {
-      return TimeUtils.toProtoTimestamp(((TimestampValue) celValue).value());
+      return ProtoTimeUtils.toProtoTimestamp(((TimestampValue) celValue).value());
     } else if (celValue instanceof DurationValue) {
-      return TimeUtils.toProtoDuration(((DurationValue) celValue).value());
+      return ProtoTimeUtils.toProtoDuration(((DurationValue) celValue).value());
     } else if (celValue instanceof BytesValue) {
       return ByteString.copyFrom(((BytesValue) celValue).value().toByteArray());
     } else if (celValue.equals(NullValue.NULL_VALUE)) {
@@ -107,10 +103,9 @@ public abstract class BaseProtoCelValueConverter extends CelValueConverter {
       case JSON_LIST_VALUE:
         return adaptJsonListToCelValue((com.google.protobuf.ListValue) message);
       case DURATION:
-        return DurationValue.create(
-            TimeUtils.toJavaDuration((com.google.protobuf.Duration) message));
+        return DurationValue.create(ProtoTimeUtils.toJavaDuration((Duration) message));
       case TIMESTAMP:
-        return TimestampValue.create(TimeUtils.toJavaInstant((Timestamp) message));
+        return TimestampValue.create(ProtoTimeUtils.toJavaInstant((Timestamp) message));
       case BOOL_VALUE:
         return fromJavaPrimitiveToCelValue(((BoolValue) message).getValue());
       case BYTES_VALUE:
@@ -171,60 +166,6 @@ public abstract class BaseProtoCelValueConverter extends CelValueConverter {
                 toImmutableMap(
                     e -> fromJavaObjectToCelValue(e.getKey()),
                     e -> adaptJsonValueToCelValue(e.getValue()))));
-  }
-
-  /** Helper to convert between java.util.time and protobuf duration/timestamp. */
-  private static class TimeUtils {
-    private static final int NANOS_PER_SECOND = 1000000000;
-
-    private static Instant toJavaInstant(Timestamp timestamp) {
-      timestamp = normalizedTimestamp(timestamp.getSeconds(), timestamp.getNanos());
-      return Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos());
-    }
-
-    private static Duration toJavaDuration(com.google.protobuf.Duration duration) {
-      duration = normalizedDuration(duration.getSeconds(), duration.getNanos());
-      return java.time.Duration.ofSeconds(duration.getSeconds(), duration.getNanos());
-    }
-
-    private static Timestamp toProtoTimestamp(Instant instant) {
-      return normalizedTimestamp(instant.getEpochSecond(), instant.getNano());
-    }
-
-    private static com.google.protobuf.Duration toProtoDuration(Duration duration) {
-      return normalizedDuration(duration.getSeconds(), duration.getNano());
-    }
-
-    private static Timestamp normalizedTimestamp(long seconds, int nanos) {
-      if (nanos <= -NANOS_PER_SECOND || nanos >= NANOS_PER_SECOND) {
-        seconds = checkedAdd(seconds, nanos / NANOS_PER_SECOND);
-        nanos = nanos % NANOS_PER_SECOND;
-      }
-      if (nanos < 0) {
-        nanos = nanos + NANOS_PER_SECOND; // no overflow since nanos is negative (and we're adding)
-        seconds = checkedSubtract(seconds, 1);
-      }
-      Timestamp timestamp = Timestamp.newBuilder().setSeconds(seconds).setNanos(nanos).build();
-      return Timestamps.checkValid(timestamp);
-    }
-
-    private static com.google.protobuf.Duration normalizedDuration(long seconds, int nanos) {
-      if (nanos <= -NANOS_PER_SECOND || nanos >= NANOS_PER_SECOND) {
-        seconds = checkedAdd(seconds, nanos / NANOS_PER_SECOND);
-        nanos %= NANOS_PER_SECOND;
-      }
-      if (seconds > 0 && nanos < 0) {
-        nanos += NANOS_PER_SECOND; // no overflow since nanos is negative (and we're adding)
-        seconds--; // no overflow since seconds is positive (and we're decrementing)
-      }
-      if (seconds < 0 && nanos > 0) {
-        nanos -= NANOS_PER_SECOND; // no overflow since nanos is positive (and we're subtracting)
-        seconds++; // no overflow since seconds is negative (and we're incrementing)
-      }
-      com.google.protobuf.Duration duration =
-          com.google.protobuf.Duration.newBuilder().setSeconds(seconds).setNanos(nanos).build();
-      return Durations.checkValid(duration);
-    }
   }
 
   protected BaseProtoCelValueConverter() {}

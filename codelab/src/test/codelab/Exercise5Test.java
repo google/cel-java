@@ -17,7 +17,7 @@ package codelab;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.protobuf.util.Timestamps;
+import com.google.protobuf.Timestamp;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
 import java.util.Map;
@@ -48,7 +48,9 @@ public final class Exercise5Test {
     @SuppressWarnings("unchecked")
     Map<String, Object> evaluatedResult =
         (Map<String, Object>)
-            exercise5.eval(ast, ImmutableMap.of("time", Timestamps.fromSeconds(1698361778)));
+            exercise5.eval(
+                ast,
+                ImmutableMap.of("time", Timestamp.newBuilder().setSeconds(1698361778).build()));
     String jsonOutput = exercise5.toJson(evaluatedResult);
 
     assertThat(jsonOutput)

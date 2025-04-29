@@ -20,10 +20,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.Value;
-import com.google.protobuf.util.Timestamps;
 import com.google.rpc.context.AttributeContext;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.internal.ProtoTimeUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -51,7 +51,7 @@ public final class Exercise6Test {
             + "time: now"
             + "}";
     // Values for `now` and `jwt` variables to be passed into the runtime
-    Timestamp now = Timestamps.now();
+    Timestamp now = ProtoTimeUtils.now();
     ImmutableMap<String, Object> jwt =
         ImmutableMap.of(
             "sub", "serviceAccount:delegate@acme.co",

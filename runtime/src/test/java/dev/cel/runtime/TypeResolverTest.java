@@ -20,10 +20,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.NullValue;
-import com.google.protobuf.util.Durations;
-import com.google.protobuf.util.Timestamps;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
@@ -70,8 +69,8 @@ public class TypeResolverTest {
     UNSIGNED_LONG(UnsignedLong.valueOf(1L), TypeType.create(SimpleType.UINT)),
     STRING("test", TypeType.create(SimpleType.STRING)),
     NULL(NullValue.NULL_VALUE, TypeType.create(SimpleType.NULL_TYPE)),
-    DURATION(Durations.fromSeconds(1), TypeType.create(SimpleType.DURATION)),
-    TIMESTAMP(Timestamps.fromSeconds(1), TypeType.create(SimpleType.TIMESTAMP)),
+    DURATION(ProtoTimeUtils.fromSecondsToDuration(1), TypeType.create(SimpleType.DURATION)),
+    TIMESTAMP(ProtoTimeUtils.fromSecondsToTimestamp(1), TypeType.create(SimpleType.TIMESTAMP)),
     ARRAY_LIST(new ArrayList<>(), TypeType.create(ListType.create(SimpleType.DYN))),
     IMMUTABLE_LIST(ImmutableList.of(), TypeType.create(ListType.create(SimpleType.DYN))),
     HASH_MAP(new HashMap<>(), TypeType.create(MapType.create(SimpleType.DYN, SimpleType.DYN))),

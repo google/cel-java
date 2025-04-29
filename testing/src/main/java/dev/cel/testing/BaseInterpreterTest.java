@@ -54,14 +54,13 @@ import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
-import com.google.protobuf.util.Durations;
 import com.google.protobuf.util.JsonFormat;
-import com.google.protobuf.util.Timestamps;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.FileDescriptorSetConverter;
+import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
@@ -662,7 +661,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     declareVariable(
         "message", CelProtoTypes.createMessage(TestAllTypes.getDescriptor().getFullName()));
     declareVariable("list", CelProtoTypes.createList(CelProtoTypes.DYN));
-    Duration duration = Durations.fromSeconds(100);
+    Duration duration = ProtoTimeUtils.fromSecondsToDuration(100);
     Any any = Any.pack(duration);
     TestAllTypes message = TestAllTypes.newBuilder().setSingleAny(any).build();
 
@@ -982,7 +981,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     declareVariable("ts1", CelProtoTypes.TIMESTAMP);
     container = Type.getDescriptor().getFile().getPackage();
     Timestamp ts1 = Timestamp.newBuilder().setSeconds(1).setNanos(11000000).build();
-    Timestamp ts2 = Timestamps.fromSeconds(-1);
+    Timestamp ts2 = ProtoTimeUtils.fromSecondsToTimestamp(-1);
 
     source = "ts1.getFullYear(\"America/Los_Angeles\")";
     runTest(ImmutableMap.of("ts1", ts1));
@@ -1034,7 +1033,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "ts1.getDate(\"9:30\")";
     runTest(ImmutableMap.of("ts1", ts1));
 
-    Timestamp tsSunday = Timestamps.fromSeconds(3 * 24 * 3600);
+    Timestamp tsSunday = ProtoTimeUtils.fromSecondsToTimestamp(3 * 24 * 3600);
     source = "ts1.getDayOfWeek(\"America/Los_Angeles\")";
     runTest(ImmutableMap.of("ts1", tsSunday));
     source = "ts1.getDayOfWeek()";
@@ -1358,7 +1357,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     runTest();
 
     source = "int(t1) == 100";
-    runTest(ImmutableMap.of("t1", Timestamps.fromSeconds(100)));
+    runTest(ImmutableMap.of("t1", ProtoTimeUtils.fromSecondsToTimestamp(100)));
 
     source = "duration(\"1h2m3.4s\")";
     runTest();
@@ -1845,7 +1844,12 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     declareVariable("ts", CelProtoTypes.TIMESTAMP);
     declareVariable("du", CelProtoTypes.DURATION);
     source = "google.protobuf.Struct { fields: {'timestamp': ts, 'duration': du } }";
-    runTest(ImmutableMap.of("ts", Timestamps.fromSeconds(100), "du", Durations.fromMillis(200)));
+    runTest(
+        ImmutableMap.of(
+            "ts",
+            ProtoTimeUtils.fromSecondsToTimestamp(100),
+            "du",
+            ProtoTimeUtils.fromMillisToDuration(200)));
   }
 
   @Test
@@ -2173,7 +2177,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     // Test any unpacking
     // With well-known type
-    Any anyDuration = Any.pack(Durations.fromSeconds(100));
+    Any anyDuration = Any.pack(ProtoTimeUtils.fromSecondsToDuration(100));
     declareVariable("dur", CelProtoTypes.TIMESTAMP);
     source = "TestAllTypes { single_any: dur }.single_any";
     assertThat(runTest(ImmutableMap.of("dur", anyDuration))).isInstanceOf(Duration.class);

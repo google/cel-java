@@ -20,8 +20,6 @@ import static org.junit.Assert.assertThrows;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
-import com.google.protobuf.util.Durations;
-import com.google.protobuf.util.Timestamps;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelRuntimeException;
@@ -30,6 +28,7 @@ import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoMessageFactory;
+import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.values.CelValueProvider.CombinedCelValueProvider;
 import dev.cel.expr.conformance.proto2.TestAllTypes;
 import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
@@ -92,9 +91,9 @@ public class ProtoMessageValueProviderTest {
                         "single_string",
                         "hello",
                         "single_timestamp",
-                        Timestamps.fromSeconds(50),
+                        ProtoTimeUtils.fromSecondsToTimestamp(50),
                         "single_duration",
-                        Durations.fromSeconds(100)))
+                        ProtoTimeUtils.fromSecondsToDuration(100)))
                 .get();
 
     assertThat(protoMessageValue.isZeroValue()).isFalse();

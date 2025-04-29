@@ -26,13 +26,12 @@ import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
-import com.google.protobuf.util.Durations;
-import com.google.protobuf.util.Timestamps;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.ComparisonFunctions;
+import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.internal.SafeStringFormatter;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Arithmetic;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.BooleanOperator;
@@ -353,11 +352,14 @@ public final class CelStandardFunctions {
         ADD_DURATION_DURATION(
             (bindingHelper) ->
                 CelFunctionBinding.from(
-                    "add_duration_duration", Duration.class, Duration.class, Durations::add)),
+                    "add_duration_duration", Duration.class, Duration.class, ProtoTimeUtils::add)),
         ADD_TIMESTAMP_DURATION(
             (bindingHelper) ->
                 CelFunctionBinding.from(
-                    "add_timestamp_duration", Timestamp.class, Duration.class, Timestamps::add)),
+                    "add_timestamp_duration",
+                    Timestamp.class,
+                    Duration.class,
+                    ProtoTimeUtils::add)),
         ADD_STRING(
             (bindingHelper) ->
                 CelFunctionBinding.from(
@@ -368,7 +370,7 @@ public final class CelStandardFunctions {
                     "add_duration_timestamp",
                     Duration.class,
                     Timestamp.class,
-                    (Duration x, Timestamp y) -> Timestamps.add(y, x))),
+                    (Duration x, Timestamp y) -> ProtoTimeUtils.add(y, x))),
         ADD_LIST(
             (bindingHelper) ->
                 CelFunctionBinding.from(
@@ -392,14 +394,14 @@ public final class CelStandardFunctions {
                     "subtract_timestamp_timestamp",
                     Timestamp.class,
                     Timestamp.class,
-                    (Timestamp x, Timestamp y) -> Timestamps.between(y, x))),
+                    (Timestamp x, Timestamp y) -> ProtoTimeUtils.between(y, x))),
         SUBTRACT_TIMESTAMP_DURATION(
             (bindingHelper) ->
                 CelFunctionBinding.from(
                     "subtract_timestamp_duration",
                     Timestamp.class,
                     Duration.class,
-                    Timestamps::subtract)),
+                    ProtoTimeUtils::subtract)),
         SUBTRACT_UINT64(
             (bindingHelper) -> {
               if (bindingHelper.celOptions.enableUnsignedLongs()) {
@@ -438,7 +440,7 @@ public final class CelStandardFunctions {
                     "subtract_duration_duration",
                     Duration.class,
                     Duration.class,
-                    Durations::subtract)),
+                    ProtoTimeUtils::subtract)),
         MULTIPLY_INT64(
             (bindingHelper) ->
                 CelFunctionBinding.from(
@@ -716,7 +718,7 @@ public final class CelStandardFunctions {
         TIMESTAMP_TO_INT64(
             (bindingHelper) ->
                 CelFunctionBinding.from(
-                    "timestamp_to_int64", Timestamp.class, Timestamps::toSeconds)),
+                    "timestamp_to_int64", Timestamp.class, ProtoTimeUtils::toSeconds)),
         UINT64_TO_INT64(
             (bindingHelper) -> {
               if (bindingHelper.celOptions.enableUnsignedLongs()) {
@@ -892,10 +894,11 @@ public final class CelStandardFunctions {
         TIMESTAMP_TO_STRING(
             (bindingHelper) ->
                 CelFunctionBinding.from(
-                    "timestamp_to_string", Timestamp.class, Timestamps::toString)),
+                    "timestamp_to_string", Timestamp.class, ProtoTimeUtils::toString)),
         DURATION_TO_STRING(
             (bindingHelper) ->
-                CelFunctionBinding.from("duration_to_string", Duration.class, Durations::toString)),
+                CelFunctionBinding.from(
+                    "duration_to_string", Duration.class, ProtoTimeUtils::toString)),
         UINT64_TO_STRING(
             (bindingHelper) -> {
               if (bindingHelper.celOptions.enableUnsignedLongs()) {
@@ -938,7 +941,7 @@ public final class CelStandardFunctions {
                     String.class,
                     (String ts) -> {
                       try {
-                        return Timestamps.parse(ts);
+                        return ProtoTimeUtils.parse(ts);
                       } catch (ParseException e) {
                         throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
                       }
@@ -949,7 +952,8 @@ public final class CelStandardFunctions {
                     "timestamp_to_timestamp", Timestamp.class, (Timestamp x) -> x)),
         INT64_TO_TIMESTAMP(
             (bindingHelper) ->
-                CelFunctionBinding.from("int64_to_timestamp", Long.class, Timestamps::fromSeconds)),
+                CelFunctionBinding.from(
+                    "int64_to_timestamp", Long.class, ProtoTimeUtils::fromSecondsToTimestamp)),
         TO_DYN(
             (bindingHelper) ->
                 CelFunctionBinding.from("to_dyn", Object.class, (Object arg) -> arg));
@@ -1194,22 +1198,23 @@ public final class CelStandardFunctions {
                         (long) (newLocalDateTime(ts, tz).getNano() / 1e+6))),
         DURATION_TO_HOURS(
             (bindingHelper) ->
-                CelFunctionBinding.from("duration_to_hours", Duration.class, Durations::toHours)),
+                CelFunctionBinding.from(
+                    "duration_to_hours", Duration.class, ProtoTimeUtils::toHours)),
         DURATION_TO_MINUTES(
             (bindingHelper) ->
                 CelFunctionBinding.from(
-                    "duration_to_minutes", Duration.class, Durations::toMinutes)),
+                    "duration_to_minutes", Duration.class, ProtoTimeUtils::toMinutes)),
         DURATION_TO_SECONDS(
             (bindingHelper) ->
                 CelFunctionBinding.from(
-                    "duration_to_seconds", Duration.class, Durations::toSeconds)),
+                    "duration_to_seconds", Duration.class, ProtoTimeUtils::toSeconds)),
         DURATION_TO_MILLISECONDS(
             (bindingHelper) ->
                 CelFunctionBinding.from(
                     "duration_to_milliseconds",
                     Duration.class,
                     (Duration arg) ->
-                        Durations.toMillis(arg) % java.time.Duration.ofSeconds(1).toMillis()));
+                        ProtoTimeUtils.toMillis(arg) % java.time.Duration.ofSeconds(1).toMillis()));
 
         private final FunctionBindingCreator bindingCreator;
 
@@ -1323,7 +1328,7 @@ public final class CelStandardFunctions {
                     "less_duration",
                     Duration.class,
                     Duration.class,
-                    (Duration x, Duration y) -> Durations.compare(x, y) < 0),
+                    (Duration x, Duration y) -> ProtoTimeUtils.compare(x, y) < 0),
             false),
         LESS_STRING(
             (bindingHelper) ->
@@ -1339,7 +1344,7 @@ public final class CelStandardFunctions {
                     "less_timestamp",
                     Timestamp.class,
                     Timestamp.class,
-                    (Timestamp x, Timestamp y) -> Timestamps.compare(x, y) < 0),
+                    (Timestamp x, Timestamp y) -> ProtoTimeUtils.compare(x, y) < 0),
             false),
         LESS_EQUALS_BOOL(
             (bindingHelper) ->
@@ -1372,7 +1377,7 @@ public final class CelStandardFunctions {
                     "less_equals_duration",
                     Duration.class,
                     Duration.class,
-                    (Duration x, Duration y) -> Durations.compare(x, y) <= 0),
+                    (Duration x, Duration y) -> ProtoTimeUtils.compare(x, y) <= 0),
             false),
         LESS_EQUALS_INT64(
             (bindingHelper) ->
@@ -1393,7 +1398,7 @@ public final class CelStandardFunctions {
                     "less_equals_timestamp",
                     Timestamp.class,
                     Timestamp.class,
-                    (Timestamp x, Timestamp y) -> Timestamps.compare(x, y) <= 0),
+                    (Timestamp x, Timestamp y) -> ProtoTimeUtils.compare(x, y) <= 0),
             false),
         LESS_EQUALS_UINT64(
             (bindingHelper) -> {
@@ -1489,7 +1494,7 @@ public final class CelStandardFunctions {
                     "greater_duration",
                     Duration.class,
                     Duration.class,
-                    (Duration x, Duration y) -> Durations.compare(x, y) > 0),
+                    (Duration x, Duration y) -> ProtoTimeUtils.compare(x, y) > 0),
             false),
         GREATER_INT64(
             (bindingHelper) ->
@@ -1510,7 +1515,7 @@ public final class CelStandardFunctions {
                     "greater_timestamp",
                     Timestamp.class,
                     Timestamp.class,
-                    (Timestamp x, Timestamp y) -> Timestamps.compare(x, y) > 0),
+                    (Timestamp x, Timestamp y) -> ProtoTimeUtils.compare(x, y) > 0),
             false),
         GREATER_UINT64(
             (bindingHelper) -> {
@@ -1609,7 +1614,7 @@ public final class CelStandardFunctions {
                     "greater_equals_duration",
                     Duration.class,
                     Duration.class,
-                    (Duration x, Duration y) -> Durations.compare(x, y) >= 0),
+                    (Duration x, Duration y) -> ProtoTimeUtils.compare(x, y) >= 0),
             false),
         GREATER_EQUALS_INT64(
             (bindingHelper) ->
@@ -1630,7 +1635,7 @@ public final class CelStandardFunctions {
                     "greater_equals_timestamp",
                     Timestamp.class,
                     Timestamp.class,
-                    (Timestamp x, Timestamp y) -> Timestamps.compare(x, y) >= 0),
+                    (Timestamp x, Timestamp y) -> ProtoTimeUtils.compare(x, y) >= 0),
             false),
         GREATER_EQUALS_UINT64(
             (bindingHelper) -> {
