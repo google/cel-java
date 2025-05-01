@@ -89,4 +89,14 @@ public class CelListsExtensionsTest {
     // due to the lack of full-fledged dynamic dispatch.
     assertThrows(CelValidationException.class, () -> CEL.compile(expression).getAst());
   }
+
+  @Test
+  @TestParameters("{expression: 'lists.range(9) == [0,1,2,3,4,5,6,7,8]'}")
+  @TestParameters("{expression: 'lists.range(0) == []'}")
+  @TestParameters("{expression: 'lists.range(-1) == []'}")
+  public void range_success(String expression) throws Exception {
+    boolean result = (boolean) CEL.createProgram(CEL.compile(expression).getAst()).eval();
+
+    assertThat(result).isTrue();
+  }
 }

@@ -54,7 +54,16 @@ final class CelListsExtensions implements CelCompilerLibrary, CelRuntimeLibrary 
                 SimpleType.INT)),
         CelFunctionBinding.from("list_flatten", Collection.class, list -> flatten(list, 1)),
         CelFunctionBinding.from(
-            "list_flatten_list_int", Collection.class, Long.class, CelListsExtensions::flatten));
+            "list_flatten_list_int", Collection.class, Long.class, CelListsExtensions::flatten)),
+    RANGE(
+        CelFunctionDecl.newFunctionDeclaration(
+            "lists.range",
+            CelOverloadDecl.newGlobalOverload(
+                "lists_range",
+                "Returns a list of integers from 0 to n-1.",
+                ListType.create(SimpleType.INT),
+                SimpleType.INT)),
+        CelFunctionBinding.from("lists_range", Long.class, CelListsExtensions::genRange));
 
     private final CelFunctionDecl functionDecl;
     private final ImmutableSet<CelFunctionBinding> functionBindings;
@@ -102,6 +111,14 @@ final class CelListsExtensions implements CelCompilerLibrary, CelRuntimeLibrary 
       }
     }
 
+    return builder.build();
+  }
+
+  public static ImmutableList<Long> genRange(long end) {
+    ImmutableList.Builder<Long> builder = ImmutableList.builder();
+    for (long i = 0; i < end; i++) {
+      builder.add(i);
+    }
     return builder.build();
   }
 }

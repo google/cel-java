@@ -688,3 +688,19 @@ dyn([1,2,3]).flatten() // [1,2,3]
 
 This will be addressed once we add the appropriate capabilities in the
 type-checker to handle type-reductions, or union types.
+
+### Range
+
+Given integer size n returns a list of integers from 0 to n-1. If size <= 0
+then return empty list.
+
+```
+lists.range(int) -> list(int)
+```
+
+Examples:
+
+```
+lists.range(5) -> [0, 1, 2, 3, 4]
+lists.range(0) -> []
+```
