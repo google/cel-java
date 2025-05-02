@@ -43,6 +43,7 @@ final class JavaFileGenerator {
     cfg.setDefaultEncoding("UTF-8");
     cfg.setBooleanFormat("c");
     cfg.setAPIBuiltinEnabled(true);
+    cfg.setNumberFormat("#"); // Prevent thousandth separator in numbers (eg: 1000 instead of 1,000)
     DefaultObjectWrapperBuilder wrapperBuilder = new DefaultObjectWrapperBuilder(version);
     wrapperBuilder.setExposeFields(true);
     cfg.setObjectWrapper(wrapperBuilder.build());

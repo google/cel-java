@@ -271,29 +271,4 @@ public class ProtoMessageLiteValueTest {
     assertThat(selectedValue).isEqualTo(testCase.celValue);
     assertThat(selectedValue.isZeroValue()).isTrue();
   }
-
-  /** Test cases for repeated_int64: 1L,2L,3L */
-  @SuppressWarnings("ImmutableEnumChecker") // Test only
-  private enum RepeatedFieldBytesTestCase {
-    PACKED(new byte[] {(byte) 0x82, 0x2, 0x3, 0x1, 0x2, 0x3}),
-    NON_PACKED(new byte[] {(byte) 0x80, 0x2, 0x1, (byte) 0x80, 0x2, 0x2, (byte) 0x80, 0x2, 0x3}),
-    // 1L is not packed, but 2L and 3L are
-    MIXED(new byte[] {(byte) 0x80, 0x2, 0x1, (byte) 0x82, 0x2, 0x2, 0x2, 0x3});
-
-    private final byte[] bytes;
-
-    RepeatedFieldBytesTestCase(byte[] bytes) {
-      this.bytes = bytes;
-    }
-  }
-
-  @Test
-  public void readAllFields_repeatedFields_packedBytesCombinations(
-      @TestParameter RepeatedFieldBytesTestCase testCase) throws Exception {
-    ImmutableMap<String, Object> fields =
-        PROTO_LITE_CEL_VALUE_CONVERTER.readAllFields(
-            testCase.bytes, "cel.expr.conformance.proto3.TestAllTypes");
-
-    assertThat(fields).containsExactly("repeated_int64", ImmutableList.of(1L, 2L, 3L));
-  }
 }

@@ -23,7 +23,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -78,12 +80,18 @@ public abstract class CelLiteDescriptor {
       return fieldLiteDescriptors;
     }
 
+    public Optional<FieldLiteDescriptor> findByFieldNumber(int fieldNumber) {
+      return Optional.ofNullable(fieldNumberToFieldDescriptors.get(fieldNumber));
+    }
+
     public FieldLiteDescriptor getByFieldNameOrThrow(String fieldName) {
       return Objects.requireNonNull(fieldNameToFieldDescriptors.get(fieldName));
     }
 
     public FieldLiteDescriptor getByFieldNumberOrThrow(int fieldNumber) {
-      return Objects.requireNonNull(fieldNumberToFieldDescriptors.get(fieldNumber));
+      return findByFieldNumber(fieldNumber)
+          .orElseThrow(
+              () -> new NoSuchElementException("Could not find field number: " + fieldNumber));
     }
 
     /** Gets the builder for the message. Returns null for maps. */

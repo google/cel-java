@@ -16,10 +16,13 @@ package dev.cel.common.values;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Defaults;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.ByteString;
@@ -41,6 +44,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * {@code ProtoLiteCelValueConverter} handles bidirectional conversion between native Java and
@@ -221,7 +225,8 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
   private Map.Entry<Object, Object> readSingleMapEntry(
       CodedInputStream inputStream, FieldLiteDescriptor fieldDescriptor) throws IOException {
     ImmutableMap<String, Object> singleMapEntry =
-        readAllFields(inputStream.readByteArray(), fieldDescriptor.getFieldProtoTypeName());
+        readAllFields(inputStream.readByteArray(), fieldDescriptor.getFieldProtoTypeName())
+            .values();
     Object key = checkNotNull(singleMapEntry.get("key"));
     Object value = checkNotNull(singleMapEntry.get("value"));
 
@@ -229,19 +234,24 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
   }
 
   @VisibleForTesting
-  ImmutableMap<String, Object> readAllFields(byte[] bytes, String protoTypeName)
-      throws IOException {
-    // TODO: Handle unknown fields by collecting them into a separate map.
+  MessageFields readAllFields(byte[] bytes, String protoTypeName) throws IOException {
     MessageLiteDescriptor messageDescriptor = descriptorPool.getDescriptorOrThrow(protoTypeName);
     CodedInputStream inputStream = CodedInputStream.newInstance(bytes);
 
+    Multimap<Integer, Object> unknownFields =
+        Multimaps.newMultimap(new TreeMap<>(), ArrayList::new);
     ImmutableMap.Builder<String, Object> fieldValues = ImmutableMap.builder();
     Map<Integer, List<Object>> repeatedFieldValues = new LinkedHashMap<>();
     Map<Integer, Map<Object, Object>> mapFieldValues = new LinkedHashMap<>();
     for (int tag = inputStream.readTag(); tag != 0; tag = inputStream.readTag()) {
       int tagWireType = WireFormat.getTagWireType(tag);
       int fieldNumber = WireFormat.getTagFieldNumber(tag);
-      FieldLiteDescriptor fieldDescriptor = messageDescriptor.getByFieldNumberOrThrow(fieldNumber);
+      FieldLiteDescriptor fieldDescriptor =
+          messageDescriptor.findByFieldNumber(fieldNumber).orElse(null);
+      if (fieldDescriptor == null) {
+        unknownFields.put(fieldNumber, readUnknownField(tagWireType, inputStream));
+        continue;
+      }
 
       Object payload;
       switch (tagWireType) {
@@ -318,12 +328,32 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
 
     // Protobuf encoding follows a "last one wins" semantics. This means for duplicated fields,
     // we accept the last value encountered.
-    return fieldValues.buildKeepingLast();
+    return MessageFields.create(fieldValues.buildKeepingLast(), unknownFields);
   }
 
   ImmutableMap<String, Object> readAllFields(MessageLite msg, String protoTypeName)
       throws IOException {
-    return readAllFields(msg.toByteArray(), protoTypeName);
+    return readAllFields(msg.toByteArray(), protoTypeName).values();
+  }
+
+  private static Object readUnknownField(int tagWireType, CodedInputStream inputStream)
+      throws IOException {
+    switch (tagWireType) {
+      case WireFormat.WIRETYPE_VARINT:
+        return inputStream.readInt64();
+      case WireFormat.WIRETYPE_FIXED64:
+        return inputStream.readFixed64();
+      case WireFormat.WIRETYPE_LENGTH_DELIMITED:
+        return inputStream.readBytes();
+      case WireFormat.WIRETYPE_FIXED32:
+        return inputStream.readFixed32();
+      case WireFormat.WIRETYPE_START_GROUP:
+      case WireFormat.WIRETYPE_END_GROUP:
+        // TODO: Support groups
+        throw new UnsupportedOperationException("Groups are not supported");
+      default:
+        throw new IllegalArgumentException("Unknown wire type: " + tagWireType);
+    }
   }
 
   @Override
@@ -340,6 +370,20 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     }
 
     return super.fromWellKnownProtoToCelValue(msg, wellKnownProto);
+  }
+
+  @AutoValue
+  @SuppressWarnings("AutoValueImmutableFields") // Unknowns are inaccessible to users.
+  abstract static class MessageFields {
+
+    abstract ImmutableMap<String, Object> values();
+
+    abstract Multimap<Integer, Object> unknowns();
+
+    static MessageFields create(
+        ImmutableMap<String, Object> fieldValues, Multimap<Integer, Object> unknownFields) {
+      return new AutoValue_ProtoLiteCelValueConverter_MessageFields(fieldValues, unknownFields);
+    }
   }
 
   private ProtoLiteCelValueConverter(CelLiteDescriptorPool celLiteDescriptorPool) {
