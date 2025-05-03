@@ -45,7 +45,7 @@ public final class ${descriptor_class_name} extends CelLiteDescriptor {
       ${field_descriptor.fieldNumber},
       "${field_descriptor.fieldName}",
       ${field_descriptor.javaTypeEnumName},
-      ${field_descriptor.celFieldValueTypeEnumName},
+      ${field_descriptor.encodingTypeEnumName},
       ${field_descriptor.protoFieldTypeEnumName},
       ${field_descriptor.isPacked},
       "${field_descriptor.fieldProtoTypeName}"

@@ -26,7 +26,7 @@ import dev.cel.common.CelDescriptors;
 import dev.cel.common.internal.ProtoJavaQualifiedNames;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
-import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.CelFieldValueType;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.EncodingType;
 import dev.cel.protobuf.LiteDescriptorCodegenMetadata.FieldLiteDescriptorMetadata;
 import java.util.ArrayDeque;
 
@@ -79,15 +79,15 @@ final class ProtoDescriptorCollector {
         }
 
         if (fieldDescriptor.isMapField()) {
-          fieldDescriptorCodegenBuilder.setCelFieldValueType(CelFieldValueType.MAP);
+          fieldDescriptorCodegenBuilder.setEncodingType(EncodingType.MAP);
           // Maps are treated as messages in proto.
           // TODO: Directly embed key/value information within the field descriptor.
           // This will further reduce descriptor binary size.
           descriptorQueue.push(fieldDescriptor.getMessageType());
         } else if (fieldDescriptor.isRepeated()) {
-          fieldDescriptorCodegenBuilder.setCelFieldValueType(CelFieldValueType.LIST);
+          fieldDescriptorCodegenBuilder.setEncodingType(EncodingType.LIST);
         } else {
-          fieldDescriptorCodegenBuilder.setCelFieldValueType(CelFieldValueType.SCALAR);
+          fieldDescriptorCodegenBuilder.setEncodingType(EncodingType.SINGULAR);
         }
 
         descriptorCodegenBuilder.addFieldDescriptor(fieldDescriptorCodegenBuilder.build());

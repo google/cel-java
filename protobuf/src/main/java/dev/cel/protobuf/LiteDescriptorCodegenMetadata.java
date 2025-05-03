@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.common.annotations.Internal;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.EncodingType;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -86,10 +87,10 @@ public abstract class LiteDescriptorCodegenMetadata {
       return getFullyQualifiedEnumName(getJavaType());
     }
 
-    // Fully-qualified name to the CelFieldValueType enumeration (ex:
-    // dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.SCALAR)
-    public String getCelFieldValueTypeEnumName() {
-      return getFullyQualifiedEnumName(getCelFieldValueType());
+    // Fully-qualified name to the EncodingType enumeration (ex:
+    // dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.SINGULAR)
+    public String getEncodingTypeEnumName() {
+      return getFullyQualifiedEnumName(getEncodingType());
     }
 
     // Fully-qualified name to the Proto Type enumeration (ex:
@@ -106,7 +107,7 @@ public abstract class LiteDescriptorCodegenMetadata {
 
     abstract FieldLiteDescriptor.Type getProtoFieldType();
 
-    abstract FieldLiteDescriptor.CelFieldValueType getCelFieldValueType();
+    abstract EncodingType getEncodingType();
 
     private static String getFullyQualifiedEnumName(Object enumValue) {
       String enumClassName = enumValue.getClass().getName();
@@ -122,8 +123,7 @@ public abstract class LiteDescriptorCodegenMetadata {
 
       abstract Builder setJavaType(FieldLiteDescriptor.JavaType javaTypeEnum);
 
-      abstract Builder setCelFieldValueType(
-          FieldLiteDescriptor.CelFieldValueType celFieldValueTypeEnum);
+      abstract Builder setEncodingType(EncodingType encodingTypeEnum);
 
       abstract Builder setProtoFieldType(FieldLiteDescriptor.Type protoFieldTypeEnum);
 

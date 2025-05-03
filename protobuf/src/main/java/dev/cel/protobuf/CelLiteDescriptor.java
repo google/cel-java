@@ -141,21 +141,22 @@ public abstract class CelLiteDescriptor {
     private final JavaType javaType;
     private final String fieldProtoTypeName;
     private final Type protoFieldType;
-    private final CelFieldValueType celFieldValueType;
+    private final EncodingType encodingType;
     private final boolean isPacked;
 
     /**
-     * Enumeration of the CEL field value type. This is analogous to the following from field
+     * Enumeration of encoding type. This describes how CEL should deserialize the encoded message
+     * bytes using protobuf's wire format. This is analogous to the following from field
      * descriptors:
      *
      * <ul>
      *   <li>LIST: Repeated Field
      *   <li>MAP: Map Field
-     *   <li>SCALAR: Neither of above (scalars, messages)
+     *   <li>SINGULAR: Neither of above (scalars, messages)
      * </ul>
      */
-    public enum CelFieldValueType {
-      SCALAR,
+    public enum EncodingType {
+      SINGULAR,
       LIST,
       MAP
     }
@@ -216,8 +217,8 @@ public abstract class CelLiteDescriptor {
       return javaType;
     }
 
-    public CelFieldValueType getCelFieldValueType() {
-      return celFieldValueType;
+    public EncodingType getEncodingType() {
+      return encodingType;
     }
 
     /**
@@ -250,8 +251,8 @@ public abstract class CelLiteDescriptor {
      * @param fieldName Name of the field
      * @param javaType Canonical Java type name (ex: Long, Double, Float, Message... see
      *     com.google.protobuf.Descriptors#JavaType)
-     * @param celFieldValueType Describes whether the field is a scalar, list or a map with respect
-     *     to CEL.
+     * @param encodingType Describes whether the field is a singular (primitives or messages), list
+     *     or a map with respect to CEL.
      * @param protoFieldType Protobuf Field Type (ex: INT32, SINT32, GROUP, MESSAGE... see
      *     com.google.protobuf.Descriptors#Type)
      * @param fieldProtoTypeName Fully qualified protobuf type name for the field. Empty if the
@@ -262,14 +263,14 @@ public abstract class CelLiteDescriptor {
         int fieldNumber,
         String fieldName,
         JavaType javaType,
-        CelFieldValueType celFieldValueType, // LIST, MAP, SCALAR
+        EncodingType encodingType, // LIST, MAP, SINGULAR
         Type protoFieldType, // INT32, SINT32, GROUP, MESSAGE... (See Descriptors#Type)
         boolean isPacked,
         String fieldProtoTypeName) {
       this.fieldNumber = fieldNumber;
       this.fieldName = Objects.requireNonNull(fieldName);
       this.javaType = javaType;
-      this.celFieldValueType = celFieldValueType;
+      this.encodingType = encodingType;
       this.protoFieldType = protoFieldType;
       this.isPacked = isPacked;
       this.fieldProtoTypeName = Objects.requireNonNull(fieldProtoTypeName);

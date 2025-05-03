@@ -39,7 +39,7 @@ import com.google.protobuf.Value;
 import dev.cel.common.annotations.Internal;
 import dev.cel.protobuf.CelLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
-import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.CelFieldValueType;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.EncodingType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -98,7 +98,7 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
                 /* fieldNumber= */ 1,
                 /* fieldName= */ "paths",
                 /* javaType= */ FieldLiteDescriptor.JavaType.STRING,
-                /* celFieldValueType= */ CelFieldValueType.LIST,
+                /* encodingType= */ EncodingType.LIST,
                 /* protoFieldType= */ FieldLiteDescriptor.Type.STRING,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ ""));
@@ -167,7 +167,7 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
                 /* fieldNumber= */ 1,
                 /* fieldName= */ "fields",
                 /* javaType= */ FieldLiteDescriptor.JavaType.MESSAGE,
-                /* celFieldValueType= */ CelFieldValueType.MAP,
+                /* encodingType= */ EncodingType.MAP,
                 /* protoFieldType= */ FieldLiteDescriptor.Type.MESSAGE,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ "google.protobuf.Struct.FieldsEntry"));
@@ -179,7 +179,7 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
                 /* fieldNumber= */ 1,
                 /* fieldName= */ "null_value",
                 /* javaType= */ FieldLiteDescriptor.JavaType.ENUM,
-                /* celFieldValueType= */ CelFieldValueType.SCALAR,
+                /* encodingType= */ EncodingType.SINGULAR,
                 /* protoFieldType= */ FieldLiteDescriptor.Type.ENUM,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ "google.protobuf.NullValue"));
@@ -188,7 +188,7 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
                 /* fieldNumber= */ 2,
                 /* fieldName= */ "number_value",
                 /* javaType= */ FieldLiteDescriptor.JavaType.DOUBLE,
-                /* celFieldValueType= */ CelFieldValueType.SCALAR,
+                /* encodingType= */ EncodingType.SINGULAR,
                 /* protoFieldType= */ FieldLiteDescriptor.Type.DOUBLE,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ ""));
@@ -197,7 +197,7 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
                 /* fieldNumber= */ 3,
                 /* fieldName= */ "string_value",
                 /* javaType= */ FieldLiteDescriptor.JavaType.STRING,
-                /* celFieldValueType= */ CelFieldValueType.SCALAR,
+                /* encodingType= */ EncodingType.SINGULAR,
                 /* protoFieldType= */ FieldLiteDescriptor.Type.STRING,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ ""));
@@ -206,7 +206,7 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
                 /* fieldNumber= */ 4,
                 /* fieldName= */ "bool_value",
                 /* javaType= */ FieldLiteDescriptor.JavaType.BOOLEAN,
-                /* celFieldValueType= */ CelFieldValueType.SCALAR,
+                /* encodingType= */ EncodingType.SINGULAR,
                 /* protoFieldType= */ FieldLiteDescriptor.Type.BOOL,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ ""));
@@ -215,7 +215,7 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
                 /* fieldNumber= */ 5,
                 /* fieldName= */ "struct_value",
                 /* javaType= */ FieldLiteDescriptor.JavaType.MESSAGE,
-                /* celFieldValueType= */ CelFieldValueType.SCALAR,
+                /* encodingType= */ EncodingType.SINGULAR,
                 /* protoFieldType= */ FieldLiteDescriptor.Type.MESSAGE,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ "google.protobuf.Struct"));
@@ -224,7 +224,7 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
                 /* fieldNumber= */ 6,
                 /* fieldName= */ "list_value",
                 /* javaType= */ FieldLiteDescriptor.JavaType.MESSAGE,
-                /* celFieldValueType= */ CelFieldValueType.SCALAR,
+                /* encodingType= */ EncodingType.SINGULAR,
                 /* protoFieldType= */ FieldLiteDescriptor.Type.MESSAGE,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ "google.protobuf.ListValue"));
@@ -236,7 +236,7 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
                 /* fieldNumber= */ 1,
                 /* fieldName= */ "values",
                 /* javaType= */ FieldLiteDescriptor.JavaType.MESSAGE,
-                /* celFieldValueType= */ CelFieldValueType.LIST,
+                /* encodingType= */ EncodingType.LIST,
                 /* protoFieldType= */ FieldLiteDescriptor.Type.MESSAGE,
                 /* isPacked= */ false,
                 /* fieldProtoTypeName= */ "google.protobuf.Value"));
@@ -284,7 +284,7 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
         /* fieldNumber= */ fieldNumber,
         /* fieldName= */ fieldName,
         /* javaType= */ javaType,
-        /* celFieldValueType= */ CelFieldValueType.SCALAR,
+        /* encodingType= */ EncodingType.SINGULAR,
         /* protoFieldType= */ protoFieldType,
         /* isPacked= */ false,
         /* fieldProtoTypeName= */ "");

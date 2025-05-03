@@ -19,7 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.expr.conformance.proto3.TestAllTypesProto3LiteCelDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
-import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.CelFieldValueType;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.EncodingType;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.JavaType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.util.Map;
@@ -86,7 +86,7 @@ public class CelLiteDescriptorTest {
     FieldLiteDescriptor fieldLiteDescriptor =
         testAllTypesDescriptor.getByFieldNameOrThrow("single_string");
 
-    assertThat(fieldLiteDescriptor.getCelFieldValueType()).isEqualTo(CelFieldValueType.SCALAR);
+    assertThat(fieldLiteDescriptor.getEncodingType()).isEqualTo(EncodingType.SINGULAR);
     assertThat(fieldLiteDescriptor.getJavaType()).isEqualTo(JavaType.STRING);
     assertThat(fieldLiteDescriptor.getProtoFieldType()).isEqualTo(FieldLiteDescriptor.Type.STRING);
   }
@@ -112,7 +112,7 @@ public class CelLiteDescriptorTest {
     FieldLiteDescriptor fieldLiteDescriptor =
         testAllTypesDescriptor.getByFieldNameOrThrow("map_bool_string");
 
-    assertThat(fieldLiteDescriptor.getCelFieldValueType()).isEqualTo(CelFieldValueType.MAP);
+    assertThat(fieldLiteDescriptor.getEncodingType()).isEqualTo(EncodingType.MAP);
     assertThat(fieldLiteDescriptor.getJavaType()).isEqualTo(JavaType.MESSAGE);
     assertThat(fieldLiteDescriptor.getProtoFieldType()).isEqualTo(FieldLiteDescriptor.Type.MESSAGE);
   }
@@ -126,7 +126,7 @@ public class CelLiteDescriptorTest {
     FieldLiteDescriptor fieldLiteDescriptor =
         testAllTypesDescriptor.getByFieldNameOrThrow("repeated_int64");
 
-    assertThat(fieldLiteDescriptor.getCelFieldValueType()).isEqualTo(CelFieldValueType.LIST);
+    assertThat(fieldLiteDescriptor.getEncodingType()).isEqualTo(EncodingType.LIST);
     assertThat(fieldLiteDescriptor.getJavaType()).isEqualTo(JavaType.LONG);
     assertThat(fieldLiteDescriptor.getIsPacked()).isTrue();
     assertThat(fieldLiteDescriptor.getProtoFieldType()).isEqualTo(FieldLiteDescriptor.Type.INT64);
@@ -141,7 +141,7 @@ public class CelLiteDescriptorTest {
     FieldLiteDescriptor fieldLiteDescriptor =
         testAllTypesDescriptor.getByFieldNameOrThrow("standalone_message");
 
-    assertThat(fieldLiteDescriptor.getCelFieldValueType()).isEqualTo(CelFieldValueType.SCALAR);
+    assertThat(fieldLiteDescriptor.getEncodingType()).isEqualTo(EncodingType.SINGULAR);
     assertThat(fieldLiteDescriptor.getJavaType()).isEqualTo(JavaType.MESSAGE);
     assertThat(fieldLiteDescriptor.getProtoFieldType()).isEqualTo(FieldLiteDescriptor.Type.MESSAGE);
   }

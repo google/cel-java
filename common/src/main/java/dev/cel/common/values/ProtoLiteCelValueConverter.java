@@ -34,7 +34,7 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
-import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.CelFieldValueType;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.EncodingType;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.JavaType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.io.IOException;
@@ -164,17 +164,16 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
   }
 
   private Object getDefaultValue(FieldLiteDescriptor fieldDescriptor) {
-    FieldLiteDescriptor.CelFieldValueType celFieldValueType =
-        fieldDescriptor.getCelFieldValueType();
-    switch (celFieldValueType) {
+    EncodingType encodingType = fieldDescriptor.getEncodingType();
+    switch (encodingType) {
       case LIST:
         return ImmutableList.of();
       case MAP:
         return ImmutableMap.of();
-      case SCALAR:
+      case SINGULAR:
         return getScalarDefaultValue(fieldDescriptor);
     }
-    throw new IllegalStateException("Unexpected cel field value type: " + celFieldValueType);
+    throw new IllegalStateException("Unexpected encoding type: " + encodingType);
   }
 
   private Object getScalarDefaultValue(FieldLiteDescriptor fieldDescriptor) {
@@ -265,8 +264,8 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
           payload = readFixed64BitField(inputStream, fieldDescriptor);
           break;
         case WireFormat.WIRETYPE_LENGTH_DELIMITED:
-          CelFieldValueType celFieldValueType = fieldDescriptor.getCelFieldValueType();
-          switch (celFieldValueType) {
+          EncodingType encodingType = fieldDescriptor.getEncodingType();
+          switch (encodingType) {
             case LIST:
               if (fieldDescriptor.getIsPacked()) {
                 payload = readPackedRepeatedFields(inputStream, fieldDescriptor);
@@ -305,7 +304,7 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
           throw new IllegalArgumentException("Unexpected wire type: " + tagWireType);
       }
 
-      if (fieldDescriptor.getCelFieldValueType().equals(CelFieldValueType.LIST)) {
+      if (fieldDescriptor.getEncodingType().equals(EncodingType.LIST)) {
         String fieldName = fieldDescriptor.getFieldName();
         List<Object> repeatedValues =
             repeatedFieldValues.computeIfAbsent(

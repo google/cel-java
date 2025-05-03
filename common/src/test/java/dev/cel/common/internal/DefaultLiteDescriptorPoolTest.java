@@ -24,7 +24,7 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.expr.conformance.proto3.TestAllTypesProto3CelDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
-import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.CelFieldValueType;
+import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.EncodingType;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.util.NoSuchElementException;
 import org.junit.Rule;
@@ -74,13 +74,11 @@ public class DefaultLiteDescriptorPoolTest {
             .isEqualTo(fullFieldDescriptor.isPacked());
         expect
             .withMessage(expectMessageTitle)
-            .that(fieldLiteDescriptor.getCelFieldValueType())
+            .that(fieldLiteDescriptor.getEncodingType())
             .isEqualTo(
                 fullFieldDescriptor.isMapField()
-                    ? CelFieldValueType.MAP
-                    : fullFieldDescriptor.isRepeated()
-                        ? CelFieldValueType.LIST
-                        : CelFieldValueType.SCALAR);
+                    ? EncodingType.MAP
+                    : fullFieldDescriptor.isRepeated() ? EncodingType.LIST : EncodingType.SINGULAR);
         // Note: enums such as JavaType are semantically equal, but their instances differ.
         expect
             .withMessage(expectMessageTitle)
