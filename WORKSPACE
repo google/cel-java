@@ -142,6 +142,7 @@ maven_install(
         "org.jspecify:jspecify:1.0.0",
         "org.threeten:threeten-extra:1.8.0",
         "org.yaml:snakeyaml:2.3",
+        maven_artifact_test_only("io.github.classgraph", "classgraph", "4.8.179"),
         maven_artifact_test_only("com.google.testparameterinjector", "test-parameter-injector", "1.18"),
         maven_artifact_test_only("com.google.truth", "truth", "1.4.4"),
         maven_artifact_test_only("com.google.truth.extensions", "truth-java8-extension", "1.4.4"),
