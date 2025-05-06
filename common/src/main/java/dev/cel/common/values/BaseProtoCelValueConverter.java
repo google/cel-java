@@ -158,13 +158,20 @@ public abstract class BaseProtoCelValueConverter extends CelValueConverter {
             .collect(toImmutableList()));
   }
 
-  // TODO: Investigate changing MapValue key to StringValue
-  private MapValue<CelValue, CelValue> adaptJsonStructToCelValue(Struct struct) {
+  private MapValue<dev.cel.common.values.StringValue, CelValue> adaptJsonStructToCelValue(
+      Struct struct) {
     return ImmutableMapValue.create(
         struct.getFieldsMap().entrySet().stream()
             .collect(
                 toImmutableMap(
-                    e -> fromJavaObjectToCelValue(e.getKey()),
+                    e -> {
+                      CelValue key = fromJavaObjectToCelValue(e.getKey());
+                      if (!(key instanceof dev.cel.common.values.StringValue)) {
+                        throw new IllegalStateException(
+                            "Expected a string type for the key, but instead got: " + key);
+                      }
+                      return (dev.cel.common.values.StringValue) key;
+                    },
                     e -> adaptJsonValueToCelValue(e.getValue()))));
   }
 
