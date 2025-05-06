@@ -17,7 +17,7 @@ package dev.cel.protobuf;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
-import dev.cel.expr.conformance.proto3.TestAllTypesProto3LiteCelDescriptor;
+import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.EncodingType;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.JavaType;
@@ -29,8 +29,8 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 public class CelLiteDescriptorTest {
 
-  private static final TestAllTypesProto3LiteCelDescriptor TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR =
-      TestAllTypesProto3LiteCelDescriptor.getDescriptor();
+  private static final TestAllTypesCelLiteDescriptor TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR =
+      TestAllTypesCelLiteDescriptor.getDescriptor();
 
   @Test
   public void getProtoTypeNamesToDescriptors_containsAllMessages() {

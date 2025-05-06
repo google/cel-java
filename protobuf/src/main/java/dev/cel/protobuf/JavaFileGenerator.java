@@ -19,17 +19,22 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Files;
+import com.google.common.io.ByteStreams;
 // CEL-Internal-5
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.Version;
-import java.io.File;
+import java.io.ByteArrayInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Locale;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 final class JavaFileGenerator {
 
@@ -50,10 +55,27 @@ final class JavaFileGenerator {
 
     Template template = cfg.getTemplate(HELPER_CLASS_TEMPLATE_FILE);
     Writer out = new StringWriter();
-
     template.process(option.getTemplateMap(), out);
 
-    Files.asCharSink(new File(filePath), UTF_8).write(out.toString());
+    writeSrcJar(filePath, option.descriptorClassName(), out.toString());
+  }
+
+  private static void writeSrcJar(
+      String srcjarFilePath, String javaClassName, String javaClassContent) throws IOException {
+    if (!srcjarFilePath.toLowerCase(Locale.getDefault()).endsWith(".srcjar")) {
+      throw new IllegalArgumentException("File must end with .srcjar, provided: " + srcjarFilePath);
+    }
+    try (FileOutputStream fos = new FileOutputStream(srcjarFilePath);
+        ZipOutputStream zos = new ZipOutputStream(fos)) {
+      ZipEntry entry = new ZipEntry(javaClassName + ".java");
+      zos.putNextEntry(entry);
+
+      try (InputStream inputStream = new ByteArrayInputStream(javaClassContent.getBytes(UTF_8))) {
+        ByteStreams.copy(inputStream, zos);
+      }
+
+      zos.closeEntry();
+    }
   }
 
   @AutoValue

@@ -25,12 +25,16 @@ import dev.cel.common.internal.ProtoJavaQualifiedNames;
 import dev.cel.protobuf.JavaFileGenerator.JavaFileGeneratorOption;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.OptionSpec;
 import picocli.CommandLine.Option;
 
 final class CelLiteDescriptorGenerator implements Callable<Integer> {
+
+  private static final String DEFAULT_CEL_LITE_DESCRIPTOR_CLASS_SUFFIX = "CelLiteDescriptor";
 
   @Option(
       names = {"--out"},
@@ -46,13 +50,14 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
 
   @Option(
       names = {"--transitive_descriptor_set"},
+      split = ",",
       description = "Path to the transitive set of descriptors")
-  private String transitiveDescriptorSetPath = "";
+  private List<String> transitiveDescriptorSetPath = new ArrayList<>();
 
   @Option(
-      names = {"--descriptor_class_name"},
-      description = "Class name for the CelLiteDescriptor")
-  private String descriptorClassName = "";
+      names = {"--overridden_descriptor_class_name"},
+      description = "Java class name for the CelLiteDescriptor")
+  private String overriddenDescriptorClassName = "";
 
   @Option(
       names = {"--version"},
@@ -70,14 +75,13 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
   public Integer call() throws Exception {
     String targetDescriptorProtoPath = extractProtoPath(targetDescriptorPath);
     debugPrinter.print("Target descriptor proto path: " + targetDescriptorProtoPath);
+    FileDescriptorSet transitiveDescriptorSet = combineFileDescriptors(transitiveDescriptorSetPath);
 
     FileDescriptor targetFileDescriptor = null;
     ImmutableSet<FileDescriptor> transitiveFileDescriptors =
-        CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(
-            load(transitiveDescriptorSetPath));
+        CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(transitiveDescriptorSet);
     for (FileDescriptor fd : transitiveFileDescriptors) {
       if (fd.getFullName().equals(targetDescriptorProtoPath)) {
-        debugPrinter.print("Transitive Descriptor Path: " + fd.getFullName());
         targetFileDescriptor = fd;
         break;
       }
@@ -97,17 +101,34 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
 
   private void codegenCelLiteDescriptor(FileDescriptor targetFileDescriptor) throws Exception {
     String javaPackageName = ProtoJavaQualifiedNames.getJavaPackageName(targetFileDescriptor);
+    String javaClassName = overriddenDescriptorClassName;
+    if (javaClassName.isEmpty()) {
+      // Derive the java class name. Use first encountered message/enum in the FDS as a default,
+      // with a suffix applied for uniqueness (we don't want to collide with java protoc default
+      // generated class name).
+      if (!targetFileDescriptor.getMessageTypes().isEmpty()) {
+        javaClassName = targetFileDescriptor.getMessageTypes().get(0).getName();
+      } else if (!targetFileDescriptor.getEnumTypes().isEmpty()) {
+        javaClassName = targetFileDescriptor.getEnumTypes().get(0).getName();
+      } else {
+        throw new IllegalArgumentException(
+            "File descriptor does not contain any messages or enums!");
+      }
+
+      javaClassName += DEFAULT_CEL_LITE_DESCRIPTOR_CLASS_SUFFIX;
+    }
     ProtoDescriptorCollector descriptorCollector =
         ProtoDescriptorCollector.newInstance(debugPrinter);
 
     debugPrinter.print(
-        String.format("Descriptor Java class name: %s.%s", javaPackageName, descriptorClassName));
+        String.format(
+            "Fully qualified descriptor java class name: %s.%s", javaPackageName, javaClassName));
 
     JavaFileGenerator.createFile(
         outPath,
         JavaFileGeneratorOption.newBuilder()
             .setVersion(version)
-            .setDescriptorClassName(descriptorClassName)
+            .setDescriptorClassName(javaClassName)
             .setPackageName(javaPackageName)
             .setDescriptorMetadataList(
                 descriptorCollector.collectCodegenMetadata(targetFileDescriptor))
@@ -127,7 +148,18 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
     return fileDescriptorProto.getName();
   }
 
-  private FileDescriptorSet load(String descriptorSetPath) {
+  private FileDescriptorSet combineFileDescriptors(List<String> descriptorPaths) {
+    FileDescriptorSet.Builder combinedDescriptorBuilder = FileDescriptorSet.newBuilder();
+
+    for (String descriptorPath : descriptorPaths) {
+      FileDescriptorSet loadedFds = load(descriptorPath);
+      combinedDescriptorBuilder.addAllFile(loadedFds.getFileList());
+    }
+
+    return combinedDescriptorBuilder.build();
+  }
+
+  private static FileDescriptorSet load(String descriptorSetPath) {
     try {
       byte[] descriptorBytes = Files.toByteArray(new File(descriptorSetPath));
       return FileDescriptorSet.parseFrom(descriptorBytes, ExtensionRegistry.getEmptyRegistry());

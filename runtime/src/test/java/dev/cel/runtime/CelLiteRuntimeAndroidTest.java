@@ -42,10 +42,9 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
-import dev.cel.expr.conformance.proto2.TestAllTypesProto2LiteCelDescriptor;
 import dev.cel.expr.conformance.proto3.NestedTestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
-import dev.cel.expr.conformance.proto3.TestAllTypesProto3LiteCelDescriptor;
+import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
 import dev.cel.runtime.CelLiteRuntime.Program;
 import java.net.URL;
 import java.util.List;
@@ -286,8 +285,8 @@ public class CelLiteRuntimeAndroidTest {
             .setStandardFunctions(CelStandardFunctions.newBuilder().build())
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
-                    TestAllTypesProto2LiteCelDescriptor.getDescriptor(),
-                    TestAllTypesProto3LiteCelDescriptor.getDescriptor()))
+                    dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
+                    TestAllTypesCelLiteDescriptor.getDescriptor()))
             .build();
     // Ensures that all branches of the OR conditions are evaluated, and that appropriate defaults
     // are returned for primitives.
@@ -313,8 +312,8 @@ public class CelLiteRuntimeAndroidTest {
             .setStandardFunctions(CelStandardFunctions.newBuilder().build())
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
-                    TestAllTypesProto2LiteCelDescriptor.getDescriptor(),
-                    TestAllTypesProto3LiteCelDescriptor.getDescriptor()))
+                    dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
+                    TestAllTypesCelLiteDescriptor.getDescriptor()))
             .build();
     CelAbstractSyntaxTree ast = readCheckedExpr(checkedExpr);
     Program program = runtime.createProgram(ast);
@@ -372,8 +371,8 @@ public class CelLiteRuntimeAndroidTest {
             .setStandardFunctions(CelStandardFunctions.newBuilder().build())
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
-                    TestAllTypesProto2LiteCelDescriptor.getDescriptor(),
-                    TestAllTypesProto3LiteCelDescriptor.getDescriptor()))
+                    dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
+                    TestAllTypesCelLiteDescriptor.getDescriptor()))
             .build();
     CelAbstractSyntaxTree ast = readCheckedExpr(checkedExpr);
     Program program = runtime.createProgram(ast);
@@ -420,8 +419,8 @@ public class CelLiteRuntimeAndroidTest {
             .setStandardFunctions(CelStandardFunctions.newBuilder().build())
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
-                    TestAllTypesProto2LiteCelDescriptor.getDescriptor(),
-                    TestAllTypesProto3LiteCelDescriptor.getDescriptor()))
+                    dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
+                    TestAllTypesCelLiteDescriptor.getDescriptor()))
             .build();
     // Expr: proto2.oneof_type.payload.repeated_string
     CelAbstractSyntaxTree ast = readCheckedExpr(checkedExpr);
@@ -449,8 +448,8 @@ public class CelLiteRuntimeAndroidTest {
             .setStandardFunctions(CelStandardFunctions.newBuilder().build())
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
-                    TestAllTypesProto2LiteCelDescriptor.getDescriptor(),
-                    TestAllTypesProto3LiteCelDescriptor.getDescriptor()))
+                    dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
+                    TestAllTypesCelLiteDescriptor.getDescriptor()))
             .build();
     // Expr: proto2.oneof_type.payload.repeated_string
     CelAbstractSyntaxTree ast = readCheckedExpr(checkedExpr);
@@ -491,8 +490,8 @@ public class CelLiteRuntimeAndroidTest {
             .setStandardFunctions(CelStandardFunctions.newBuilder().build())
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
-                    TestAllTypesProto2LiteCelDescriptor.getDescriptor(),
-                    TestAllTypesProto3LiteCelDescriptor.getDescriptor()))
+                    dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
+                    TestAllTypesCelLiteDescriptor.getDescriptor()))
             .build();
     dev.cel.expr.conformance.proto2.TestAllTypes proto2TestMsg =
         dev.cel.expr.conformance.proto2.TestAllTypes.newBuilder()
@@ -573,8 +572,8 @@ public class CelLiteRuntimeAndroidTest {
             .setStandardFunctions(CelStandardFunctions.newBuilder().build())
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
-                    TestAllTypesProto2LiteCelDescriptor.getDescriptor(),
-                    TestAllTypesProto3LiteCelDescriptor.getDescriptor()))
+                    dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
+                    TestAllTypesCelLiteDescriptor.getDescriptor()))
             .build();
     dev.cel.expr.conformance.proto2.TestAllTypes proto2TestMsg =
         dev.cel.expr.conformance.proto2.TestAllTypes.newBuilder()
@@ -603,7 +602,10 @@ public class CelLiteRuntimeAndroidTest {
                     ProtoTimeUtils.fromSecondsToDuration(16)))
             .putAllMapBoolTimestamp(
                 ImmutableMap.of(
-                    true, ProtoTimeUtils.fromSecondsToTimestamp(17), false, ProtoTimeUtils.fromSecondsToTimestamp(18)))
+                    true,
+                    ProtoTimeUtils.fromSecondsToTimestamp(17),
+                    false,
+                    ProtoTimeUtils.fromSecondsToTimestamp(18)))
             .build();
     TestAllTypes proto3TestMsg =
         TestAllTypes.newBuilder()
@@ -629,7 +631,10 @@ public class CelLiteRuntimeAndroidTest {
                     ProtoTimeUtils.fromSecondsToDuration(16)))
             .putAllMapBoolTimestamp(
                 ImmutableMap.of(
-                    true, ProtoTimeUtils.fromSecondsToTimestamp(17), false, ProtoTimeUtils.fromSecondsToTimestamp(18)))
+                    true,
+                    ProtoTimeUtils.fromSecondsToTimestamp(17),
+                    false,
+                    ProtoTimeUtils.fromSecondsToTimestamp(18)))
             .build();
     CelAbstractSyntaxTree ast = readCheckedExpr(checkedExpr);
     Program program = runtime.createProgram(ast);
@@ -657,7 +662,11 @@ public class CelLiteRuntimeAndroidTest {
                 ProtoTimeUtils.fromSecondsToDuration(15),
                 false,
                 ProtoTimeUtils.fromSecondsToDuration(16)),
-            ImmutableMap.of(true, ProtoTimeUtils.fromSecondsToTimestamp(17), false, ProtoTimeUtils.fromSecondsToTimestamp(18)))
+            ImmutableMap.of(
+                true,
+                ProtoTimeUtils.fromSecondsToTimestamp(17),
+                false,
+                ProtoTimeUtils.fromSecondsToTimestamp(18)))
         .inOrder();
   }
 
