@@ -44,6 +44,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.TreeMap;
 
 /**
@@ -360,7 +361,13 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     checkNotNull(msg);
     checkNotNull(protoTypeName);
 
-    MessageLiteDescriptor descriptor = descriptorPool.getDescriptorOrThrow(protoTypeName);
+    MessageLiteDescriptor descriptor =
+        descriptorPool
+            .findDescriptor(msg)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "Could not find a descriptor for: " + protoTypeName));
     WellKnownProto wellKnownProto =
         WellKnownProto.getByTypeName(descriptor.getProtoTypeName()).orElse(null);
 

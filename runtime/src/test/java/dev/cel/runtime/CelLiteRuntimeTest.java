@@ -633,4 +633,31 @@ public class CelLiteRuntimeTest {
 
     assertThat(result).isEqualTo("hello world");
   }
+
+  @Test
+  public void eval_dynFunctionReturnsProto() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                    "func", CelOverloadDecl.newGlobalOverload("func_identity", SimpleType.DYN)))
+            .build();
+    CelLiteRuntime celRuntime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setValueProvider(
+                ProtoMessageLiteValueProvider.newInstance(
+                    TestAllTypesCelDescriptor.getDescriptor()))
+            .addFunctionBindings(
+                CelFunctionBinding.from(
+                    "func_identity",
+                    ImmutableList.of(),
+                    unused -> TestAllTypes.getDefaultInstance()))
+            .build();
+
+    CelAbstractSyntaxTree ast = celCompiler.compile("func()").getAst();
+
+    TestAllTypes result = (TestAllTypes) celRuntime.createProgram(ast).eval();
+
+    assertThat(result).isEqualToDefaultInstance();
+  }
 }

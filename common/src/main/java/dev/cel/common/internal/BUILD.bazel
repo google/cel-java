@@ -314,6 +314,7 @@ java_library(
     deps = [
         "//protobuf:cel_lite_descriptor",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -325,6 +326,7 @@ cel_android_library(
     deps = [
         "//protobuf:cel_lite_descriptor",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 

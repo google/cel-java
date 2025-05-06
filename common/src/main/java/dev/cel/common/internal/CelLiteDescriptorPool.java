@@ -15,6 +15,7 @@
 package dev.cel.common.internal;
 
 import com.google.errorprone.annotations.Immutable;
+import com.google.protobuf.MessageLite;
 import dev.cel.protobuf.CelLiteDescriptor.MessageLiteDescriptor;
 import java.util.Optional;
 
@@ -24,6 +25,8 @@ import java.util.Optional;
 @Immutable
 public interface CelLiteDescriptorPool {
   Optional<MessageLiteDescriptor> findDescriptor(String protoTypeName);
+
+  Optional<MessageLiteDescriptor> findDescriptor(MessageLite messageLite);
 
   MessageLiteDescriptor getDescriptorOrThrow(String protoTypeName);
 }
