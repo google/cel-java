@@ -16,6 +16,8 @@ syntax = "proto3";
 
 package dev.cel.testing.testdata;
 
+import "testing/src/test/resources/protos/single_file.proto";
+
 option java_multiple_files = true;
 option java_package = "dev.cel.testing.testdata";
 option java_outer_classname = "MultiFileProto";
@@ -26,9 +28,11 @@ message MultiFile {
       repeated string fragments = 1;
     }
 
-    string name = 1;
-    Path path = 2;
+    string name = 2;
+    Path path = 3;
   }
 
-  repeated File files = 1;
+  repeated File files = 4;
+
+  SingleFile nested_single_file = 5;
 }

@@ -23,10 +23,15 @@ java_proto_library(
 
 proto_library(
     name = "multi_file_proto",
-    srcs = ["multi_file.proto"],
+    srcs = [
+        "multi_file.proto",
+    ],
+    deps = [":single_file_proto"],
 )
 
 java_proto_library(
     name = "multi_file_java_proto",
-    deps = [":multi_file_proto"],
+    deps = [
+        ":multi_file_proto",
+    ],
 )
