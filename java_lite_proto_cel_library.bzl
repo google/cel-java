@@ -14,12 +14,12 @@
 
 """Starlark rule for generating descriptors that is compatible with Protolite Messages."""
 
-load("//:java_lite_proto_cel_library_impl.bzl", "java_lite_proto_cel_library_impl")
 load("@com_google_protobuf//bazel:java_lite_proto_library.bzl", "java_lite_proto_library")
+load("//:java_lite_proto_cel_library_impl.bzl", "java_lite_proto_cel_library_impl")
 
 def java_lite_proto_cel_library(
         name,
-        proto_src,
+        deps,
         java_descriptor_class_name = None,
         debug = False):
     """Generates a CelLiteDescriptor
@@ -32,15 +32,21 @@ def java_lite_proto_cel_library(
                                   suffixed as the class name. Use this field to override this name.
        debug: (optional) If true, prints additional information during codegen for debugging purposes.
     """
+    if not name:
+        fail("You must provide a name.")
+
+    if not deps or len(deps) < 1:
+        fail("You must provide at least one proto_library dependency.")
+
     java_proto_library_dep = name + "_java_lite_proto_dep"
     java_lite_proto_library(
         name = java_proto_library_dep,
-        deps = [proto_src],
+        deps = deps,
     )
 
     java_lite_proto_cel_library_impl(
         name = name,
-        proto_src = proto_src,
+        deps = deps,
         java_descriptor_class_name = java_descriptor_class_name,
         java_proto_library_dep = java_proto_library_dep,
         debug = debug,

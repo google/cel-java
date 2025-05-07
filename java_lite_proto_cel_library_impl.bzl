@@ -17,24 +17,24 @@ Starlark rule for generating descriptors that is compatible with Protolite Messa
 This is an implementation detail. Clients should use 'java_lite_proto_cel_library' instead.
 """
 
-load("@rules_java//java:defs.bzl", "java_library")
-load("//publish:cel_version.bzl", "CEL_VERSION")
 load("@com_google_protobuf//bazel:java_lite_proto_library.bzl", "java_lite_proto_library")
+load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_proto//proto:defs.bzl", "ProtoInfo")
+load("//publish:cel_version.bzl", "CEL_VERSION")
 
 def java_lite_proto_cel_library_impl(
         name,
-        proto_src,
+        deps,
         java_proto_library_dep,
         java_descriptor_class_name = None,
         debug = False):
     """Generates a CelLiteDescriptor
 
     Args:
-       name: name of this target.
-       proto_src: Name of the proto_library target.
+       name: Name of this target.
+       deps: The list of proto_library rules to generate Java code for.
        java_descriptor_class_name (optional): Java class name for the generated CEL lite descriptor.
-                                   By default, CEL will use the first encountered message name in proto_src with "CelLiteDescriptor"
+                                   By default, CEL will use the first encountered message name in deps with "CelLiteDescriptor"
                                    suffixed as the class name. Use this field to override this name.
        java_proto_library_dep: (optional) Uses the provided java_lite_proto_library or java_proto_library to generate the lite descriptors.
                                 If none is provided, java_lite_proto_library is used by default behind the scenes. Most use cases should not need to provide this.
@@ -43,13 +43,13 @@ def java_lite_proto_cel_library_impl(
     if not name:
         fail("You must provide a name.")
 
-    if not proto_src:
-        fail("You must provide a proto_library dependency.")
+    if not deps or len(deps) < 1:
+        fail("You must provide at least one proto_library dependency.")
 
     generated = name + "_cel_lite_descriptor"
     java_lite_proto_cel_library_rule(
         name = generated,
-        descriptor = proto_src,
+        descriptor = deps[0],
         java_descriptor_class_name = java_descriptor_class_name,
     )
 
@@ -57,7 +57,7 @@ def java_lite_proto_cel_library_impl(
         java_proto_library_dep = name + "_java_lite_proto_dep"
         java_lite_proto_library(
             name = java_proto_library_dep,
-            deps = [proto_src],
+            deps = deps,
         )
 
     descriptor_codegen_deps = [
