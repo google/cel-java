@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.protobuf.Any;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.util.TestUtil;
 import dev.cel.bundle.CelFactory;
@@ -78,36 +77,6 @@ public class TestRunnerLibraryTest {
                     simpleOutputTestCase, CelTestContext.newBuilder().build(), celExprFileSource));
 
     assertThat(thrown).hasMessageThat().contains("modified: value.bool_value: true -> false");
-  }
-
-  @Test
-  public void runPolicyTest_fileDescriptorSetPathNotSet_failureInUnpackAny() throws Exception {
-    CelTestCase simpleOutputTestCase =
-        CelTestCase.newBuilder()
-            .setName("fileDescriptorSetPathNotSet_test")
-            .setDescription("fileDescriptorSetPathNotSet_test_description")
-            .setInput(
-                CelTestSuite.CelTestSection.CelTestCase.Input.ofContextMessage(
-                    Any.pack(TestAllTypes.getDefaultInstance())))
-            .setOutput(CelTestSuite.CelTestSection.CelTestCase.Output.ofResultValue(true))
-            .build();
-    CelExprFileSource celExprFileSource =
-        CelExprFileSource.fromFile(
-            TestUtil.getSrcDir()
-                + "/google3/third_party/java/cel/testing/src/test/java/dev/cel/testing/testrunner/resources/empty_policy.yaml");
-
-    NullPointerException thrown =
-        assertThrows(
-            NullPointerException.class,
-            () ->
-                TestRunnerLibrary.evaluateTestCase(
-                    simpleOutputTestCase, CelTestContext.newBuilder().build(), celExprFileSource));
-
-    assertThat(thrown)
-        .hasMessageThat()
-        .contains(
-            "File descriptor set is required to unpack Any of type:"
-                + " type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes.");
   }
 
   @Test

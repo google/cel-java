@@ -85,6 +85,18 @@ java_library(
     exports = ["//testing/src/main/java/dev/cel/testing/testrunner:registry_utils"],
 )
 
+java_library(
+    name = "class_loader_utils",
+    visibility = ["//:internal"],
+    exports = ["//testing/src/main/java/dev/cel/testing/utils:class_loader_utils"],
+)
+
+java_library(
+    name = "proto_descriptor_utils",
+    visibility = ["//:internal"],
+    exports = ["//testing/src/main/java/dev/cel/testing/utils:proto_descriptor_utils"],
+)
+
 bzl_library(
     name = "cel_java_test",
     srcs = ["cel_java_test.bzl"],
