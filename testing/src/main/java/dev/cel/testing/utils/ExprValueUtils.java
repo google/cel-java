@@ -19,10 +19,12 @@ import dev.cel.expr.MapValue;
 import dev.cel.expr.Value;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.NullValue;
@@ -36,6 +38,7 @@ import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeType;
+import dev.cel.testing.testrunner.RegistryUtils;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +82,19 @@ public final class ExprValueUtils {
       case OBJECT_VALUE:
         {
           Any object = value.getObjectValue();
+
+          // If the file_descriptor_set_path is set, use the provided file descriptor set created at
+          // runtime after deserializing the file_descriptor_set file.
+          // Because of the above reason, DefaultInstanceMessageFactory cannot be used since it
+          // would always result in a descriptor reference mismatch. Instead, we use
+          // DefaultMessageFactory to create a DynamicMessage and parse it with `<Any>.getValue()`.
+          //
+          // TODO: Remove DynamicMessage parsing once default instance generation is
+          // fixed.
+          String fileDescriptorSetPath = System.getProperty("file_descriptor_set_path");
+          if (fileDescriptorSetPath != null) {
+            return parseAny(object, fileDescriptorSetPath);
+          }
           Descriptor descriptor =
               DEFAULT_TYPE_REGISTRY.getDescriptorForTypeUrl(object.getTypeUrl());
           Message prototype =
@@ -243,6 +259,26 @@ public final class ExprValueUtils {
 
     throw new IllegalArgumentException(
         String.format("Unexpected result type: %s", object.getClass()));
+  }
+
+  private static Message parseAny(Any value, String fileDescriptorSetPath) throws IOException {
+    ImmutableSet<FileDescriptor> fileDescriptors =
+        CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(
+            RegistryUtils.getFileDescriptorSet(fileDescriptorSetPath));
+
+    TypeRegistry typeRegistry = RegistryUtils.getTypeRegistry(fileDescriptors);
+    ExtensionRegistry extensionRegistry = RegistryUtils.getExtensionRegistry(fileDescriptors);
+
+    Descriptor descriptor = typeRegistry.getDescriptorForTypeUrl(value.getTypeUrl());
+
+    return unpackAny(value, descriptor, extensionRegistry);
+  }
+
+  private static Message unpackAny(
+      Any value, Descriptor descriptor, ExtensionRegistry extensionRegistry) throws IOException {
+    ImmutableList<Descriptor> compileTimeDescriptors = RegistryUtils.loadDescriptorsFromJvm();
+    Message defaultInstance = RegistryUtils.getDefaultInstance(descriptor, compileTimeDescriptors);
+    return defaultInstance.getParserForType().parseFrom(value.getValue(), extensionRegistry);
   }
 
   private static ExtensionRegistry newDefaultExtensionRegistry() {
