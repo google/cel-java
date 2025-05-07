@@ -1,0 +1,32 @@
+load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
+load("@com_google_protobuf//bazel:proto_library.bzl", "proto_library")
+
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_testonly = True,
+    default_visibility = [
+        "//testing/protos:__pkg__",
+    ],
+)
+
+proto_library(
+    name = "single_file_proto",
+    srcs = ["single_file.proto"],
+)
+
+java_proto_library(
+    name = "single_file_java_proto",
+    deps = [":single_file_proto"],
+)
+
+proto_library(
+    name = "multi_file_proto",
+    srcs = ["multi_file.proto"],
+)
+
+java_proto_library(
+    name = "multi_file_java_proto",
+    deps = [":multi_file_proto"],
+)
