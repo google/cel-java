@@ -53,6 +53,9 @@ import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.expr.conformance.proto3.TestAllTypesProto3CelDescriptor;
 import dev.cel.parser.CelStandardMacro;
+import dev.cel.testing.testdata.MultiFile;
+import dev.cel.testing.testdata.MultiFileCelDescriptor;
+import dev.cel.testing.testdata.SingleFileProto.SingleFile;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -73,13 +76,16 @@ public class CelLiteRuntimeTest {
           .setContainer("cel.expr.conformance.proto3")
           .build();
 
+
   private static final CelLiteRuntime CEL_RUNTIME =
       CelLiteRuntimeFactory.newLiteRuntimeBuilder()
           .setStandardFunctions(CelStandardFunctions.newBuilder().build())
           .setValueProvider(
               ProtoMessageLiteValueProvider.newInstance(
                   TestAllTypesProto2CelDescriptor.getDescriptor(),
-                  TestAllTypesProto3CelDescriptor.getDescriptor()))
+                  TestAllTypesProto3CelDescriptor.getDescriptor()
+
+              ))
           .build();
 
   @Test
@@ -569,5 +575,27 @@ public class CelLiteRuntimeTest {
             .eval(ImmutableMap.of("msg", TestAllTypes.getDefaultInstance()));
 
     assertThat(result).isEqualTo(testCase.expectedValue);
+  }
+
+  @Test
+  public void nestedMessage_fromImportedProto() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addVar("multiFile", StructTypeReference.create(MultiFile.getDescriptor().getFullName()))
+            .addMessageTypes(MultiFile.getDescriptor())
+            .build();
+    CelLiteRuntime celRuntime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setValueProvider(
+                ProtoMessageLiteValueProvider.newInstance(MultiFileCelDescriptor.getDescriptor()))
+            .build();
+
+    CelAbstractSyntaxTree ast = celCompiler.compile("multiFile.nested_single_file.name").getAst();
+
+    String result = (String) celRuntime.createProgram(ast).eval(ImmutableMap.of("multiFile",
+        MultiFile.newBuilder().setNestedSingleFile(SingleFile.newBuilder().setName("foo").build())));
+
+    assertThat(result).isEqualTo("foo");
   }
 }
