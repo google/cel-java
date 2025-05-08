@@ -14,6 +14,7 @@
 
 package dev.cel.protobuf;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
@@ -42,16 +43,17 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
   private String outPath = "";
 
   @Option(
-      names = {"--descriptor"},
+      names = {"--descriptor_set"},
+      split = ",",
       description =
-          "Path to the descriptor (from proto_library) that the CelLiteDescriptor is to be"
-              + " generated from")
-  private String targetDescriptorPath = "";
+          "Paths to the descriptor set (from proto_library) that the CelLiteDescriptor is to be"
+              + " generated from (comma-separated)")
+  private List<String> targetDescriptorSetPath = new ArrayList<>();
 
   @Option(
       names = {"--transitive_descriptor_set"},
       split = ",",
-      description = "Path to the transitive set of descriptors")
+      description = "Paths to the transitive set of descriptors (comma-separated)")
   private List<String> transitiveDescriptorSetPath = new ArrayList<>();
 
   @Option(
@@ -73,28 +75,33 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
 
   @Override
   public Integer call() throws Exception {
-    String targetDescriptorProtoPath = extractProtoPath(targetDescriptorPath);
-    debugPrinter.print("Target descriptor proto path: " + targetDescriptorProtoPath);
-    FileDescriptorSet transitiveDescriptorSet = combineFileDescriptors(transitiveDescriptorSetPath);
+    Preconditions.checkArgument(!targetDescriptorSetPath.isEmpty());
 
-    FileDescriptor targetFileDescriptor = null;
-    ImmutableSet<FileDescriptor> transitiveFileDescriptors =
-        CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(transitiveDescriptorSet);
-    for (FileDescriptor fd : transitiveFileDescriptors) {
-      if (fd.getFullName().equals(targetDescriptorProtoPath)) {
-        targetFileDescriptor = fd;
-        break;
+    for (String descriptorFilePath : targetDescriptorSetPath)   {
+      debugPrinter.print("Target descriptor file path: " + descriptorFilePath);
+      String targetDescriptorProtoPath = extractProtoPath(descriptorFilePath);
+      debugPrinter.print("Target descriptor proto path: " + targetDescriptorProtoPath);
+      FileDescriptorSet transitiveDescriptorSet = combineFileDescriptors(transitiveDescriptorSetPath);
+
+      FileDescriptor targetFileDescriptor = null;
+      ImmutableSet<FileDescriptor> transitiveFileDescriptors =
+          CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(transitiveDescriptorSet);
+      for (FileDescriptor fd : transitiveFileDescriptors) {
+        if (fd.getFullName().equals(targetDescriptorProtoPath)) {
+          targetFileDescriptor = fd;
+          break;
+        }
       }
-    }
 
-    if (targetFileDescriptor == null) {
-      throw new IllegalArgumentException(
-          String.format(
-              "Target descriptor %s not found from transitive set of descriptors!",
-              targetDescriptorProtoPath));
-    }
+      if (targetFileDescriptor == null) {
+        throw new IllegalArgumentException(
+            String.format(
+                "Target descriptor %s not found from transitive set of descriptors!",
+                targetDescriptorProtoPath));
+      }
 
-    codegenCelLiteDescriptor(targetFileDescriptor);
+      codegenCelLiteDescriptor(targetFileDescriptor);
+    }
 
     return 0;
   }

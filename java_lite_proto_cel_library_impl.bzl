@@ -49,7 +49,7 @@ def java_lite_proto_cel_library_impl(
     generated = name + "_cel_lite_descriptor"
     java_lite_proto_cel_library_rule(
         name = generated,
-        descriptor = deps[0],
+        descriptors = deps,
         java_descriptor_class_name = java_descriptor_class_name,
     )
 
@@ -75,24 +75,35 @@ def _generate_cel_lite_descriptor_class(ctx):
     srcjar_output = ctx.actions.declare_file(ctx.attr.name + ".srcjar")
     java_file_path = srcjar_output.path
 
-    proto_info = ctx.attr.descriptor[ProtoInfo]
-    transitive_descriptors = proto_info.transitive_descriptor_sets
+    direct_descriptor_set = depset(
+        direct = [
+            descriptor[ProtoInfo].direct_descriptor_set
+            for descriptor in ctx.attr.descriptors
+        ],
+    )
+    transitive_descriptor_set = depset(
+        transitive = [
+            descriptor[ProtoInfo].transitive_descriptor_sets
+            for descriptor in ctx.attr.descriptors
+        ],
+    )
 
     args = ctx.actions.args()
     args.add("--version", CEL_VERSION)
-    args.add("--descriptor", proto_info.direct_descriptor_set)
-    args.add_joined("--transitive_descriptor_set", transitive_descriptors, join_with = ",")
+    args.add_joined("--descriptor_set", direct_descriptor_set, join_with = ",")
+    args.add_joined("--transitive_descriptor_set", transitive_descriptor_set, join_with = ",")
     args.add("--out", java_file_path)
 
     if ctx.attr.java_descriptor_class_name:
         args.add("--overridden_descriptor_class_name", ctx.attr.java_descriptor_class_name)
-    if ctx.attr.debug:
-        args.add("--debug")
+
+    #    if ctx.attr.debug:
+    args.add("--debug")
 
     ctx.actions.run(
         mnemonic = "CelLiteDescriptorGenerator",
         arguments = [args],
-        inputs = transitive_descriptors,
+        inputs = transitive_descriptor_set,
         outputs = [srcjar_output],
         progress_message = "Generating CelLiteDescriptor for: " + ctx.attr.name,
         executable = ctx.executable._tool,
@@ -104,7 +115,7 @@ java_lite_proto_cel_library_rule = rule(
     implementation = _generate_cel_lite_descriptor_class,
     attrs = {
         "java_descriptor_class_name": attr.string(),
-        "descriptor": attr.label(
+        "descriptors": attr.label_list(
             providers = [ProtoInfo],
         ),
         "debug": attr.bool(),
