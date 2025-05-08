@@ -15,6 +15,7 @@
 package dev.cel.protobuf;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
@@ -23,6 +24,7 @@ import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.internal.ProtoJavaQualifiedNames;
+import dev.cel.protobuf.JavaFileGenerator.GeneratedClass;
 import dev.cel.protobuf.JavaFileGenerator.JavaFileGeneratorOption;
 import java.io.File;
 import java.io.IOException;
@@ -77,6 +79,7 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
   public Integer call() throws Exception {
     Preconditions.checkArgument(!targetDescriptorSetPath.isEmpty());
 
+    ImmutableList.Builder<GeneratedClass> generatedClassesBuilder = ImmutableList.builder();
     for (String descriptorFilePath : targetDescriptorSetPath)   {
       debugPrinter.print("Target descriptor file path: " + descriptorFilePath);
       String targetDescriptorProtoPath = extractProtoPath(descriptorFilePath);
@@ -100,13 +103,18 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
                 targetDescriptorProtoPath));
       }
 
-      codegenCelLiteDescriptor(targetFileDescriptor);
+      GeneratedClass generatedClass = codegenCelLiteDescriptor(targetFileDescriptor);
+      debugPrinter.print("Generated Class:\n" + generatedClass.code());
+
+      generatedClassesBuilder.add(generatedClass);
     }
+
+    JavaFileGenerator.writeSrcJar(outPath, generatedClassesBuilder.build());
 
     return 0;
   }
 
-  private void codegenCelLiteDescriptor(FileDescriptor targetFileDescriptor) throws Exception {
+  private GeneratedClass codegenCelLiteDescriptor(FileDescriptor targetFileDescriptor) throws Exception {
     String javaPackageName = ProtoJavaQualifiedNames.getJavaPackageName(targetFileDescriptor);
     String javaClassName;
 
@@ -132,8 +140,7 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
         String.format(
             "Fully qualified descriptor java class name: %s.%s", javaPackageName, javaClassName));
 
-    JavaFileGenerator.createFile(
-        outPath,
+    return JavaFileGenerator.generateClass(
         JavaFileGeneratorOption.newBuilder()
             .setVersion(version)
             .setDescriptorClassName(javaClassName)

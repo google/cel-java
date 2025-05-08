@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -40,7 +41,7 @@ final class JavaFileGenerator {
 
   private static final String HELPER_CLASS_TEMPLATE_FILE = "cel_lite_descriptor_template.txt";
 
-  public static void createFile(String filePath, JavaFileGeneratorOption option)
+  static GeneratedClass generateClass(JavaFileGeneratorOption option)
       throws IOException, TemplateException {
     Version version = Configuration.VERSION_2_3_32;
     Configuration cfg = new Configuration(version);
@@ -57,25 +58,36 @@ final class JavaFileGenerator {
     Writer out = new StringWriter();
     template.process(option.getTemplateMap(), out);
 
-    writeSrcJar(filePath, option.descriptorClassName(), out.toString());
+    return GeneratedClass.create(option.descriptorClassName(), out.toString());
   }
 
-  private static void writeSrcJar(
-      String srcjarFilePath, String javaClassName, String javaClassContent) throws IOException {
-    System.out.println(javaClassContent);
+  static void writeSrcJar(
+      String srcjarFilePath, Collection<GeneratedClass> generatedClasses) throws IOException {
     if (!srcjarFilePath.toLowerCase(Locale.getDefault()).endsWith(".srcjar")) {
       throw new IllegalArgumentException("File must end with .srcjar, provided: " + srcjarFilePath);
     }
     try (FileOutputStream fos = new FileOutputStream(srcjarFilePath);
         ZipOutputStream zos = new ZipOutputStream(fos)) {
-      ZipEntry entry = new ZipEntry(javaClassName + ".java");
-      zos.putNextEntry(entry);
+      for (GeneratedClass generatedClass : generatedClasses) {
+        ZipEntry entry = new ZipEntry(generatedClass.className() + ".java");
+        zos.putNextEntry(entry);
 
-      try (InputStream inputStream = new ByteArrayInputStream(javaClassContent.getBytes(UTF_8))) {
-        ByteStreams.copy(inputStream, zos);
+        try (InputStream inputStream = new ByteArrayInputStream(generatedClass.code().getBytes(UTF_8))) {
+          ByteStreams.copy(inputStream, zos);
+        }
       }
 
       zos.closeEntry();
+    }
+  }
+
+  @AutoValue
+  abstract static class GeneratedClass {
+    abstract String className();
+    abstract String code();
+
+    static GeneratedClass create(String className, String code) {
+      return new AutoValue_JavaFileGenerator_GeneratedClass(className, code);
     }
   }
 

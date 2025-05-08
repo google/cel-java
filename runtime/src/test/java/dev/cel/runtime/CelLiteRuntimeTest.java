@@ -54,6 +54,7 @@ import dev.cel.expr.conformance.proto3.TestAllTypesCelDescriptor;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.testing.testdata.MultiFile;
 import dev.cel.testing.testdata.MultiFileCelDescriptor;
+import dev.cel.testing.testdata.SingleFileCelDescriptor;
 import dev.cel.testing.testdata.SingleFileProto.SingleFile;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -587,7 +588,10 @@ public class CelLiteRuntimeTest {
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
             .setStandardFunctions(CelStandardFunctions.newBuilder().build())
             .setValueProvider(
-                ProtoMessageLiteValueProvider.newInstance(MultiFileCelDescriptor.getDescriptor()))
+                ProtoMessageLiteValueProvider.newInstance(
+                    SingleFileCelDescriptor.getDescriptor(),
+                    MultiFileCelDescriptor.getDescriptor())
+            )
             .build();
 
     CelAbstractSyntaxTree ast = celCompiler.compile("multiFile.nested_single_file.name").getAst();
