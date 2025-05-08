@@ -62,6 +62,7 @@ final class JavaFileGenerator {
 
   private static void writeSrcJar(
       String srcjarFilePath, String javaClassName, String javaClassContent) throws IOException {
+    System.out.println(javaClassContent);
     if (!srcjarFilePath.toLowerCase(Locale.getDefault()).endsWith(".srcjar")) {
       throw new IllegalArgumentException("File must end with .srcjar, provided: " + srcjarFilePath);
     }

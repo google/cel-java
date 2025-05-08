@@ -47,11 +47,10 @@ import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
-import dev.cel.expr.conformance.proto2.TestAllTypesProto2CelDescriptor;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
-import dev.cel.expr.conformance.proto3.TestAllTypesProto3CelDescriptor;
+import dev.cel.expr.conformance.proto3.TestAllTypesCelDescriptor;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.testing.testdata.MultiFile;
 import dev.cel.testing.testdata.MultiFileCelDescriptor;
@@ -82,8 +81,8 @@ public class CelLiteRuntimeTest {
           .setStandardFunctions(CelStandardFunctions.newBuilder().build())
           .setValueProvider(
               ProtoMessageLiteValueProvider.newInstance(
-                  TestAllTypesProto2CelDescriptor.getDescriptor(),
-                  TestAllTypesProto3CelDescriptor.getDescriptor()
+                  dev.cel.expr.conformance.proto2.TestAllTypesCelDescriptor.getDescriptor(),
+                  TestAllTypesCelDescriptor.getDescriptor()
 
               ))
           .build();

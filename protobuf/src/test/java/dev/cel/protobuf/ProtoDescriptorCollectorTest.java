@@ -39,15 +39,25 @@ public class ProtoDescriptorCollectorTest {
   }
 
   @Test
-  public void collectCodegenMetadata_withProtoDependencies_containsAllDescriptors() throws Exception {
+  public void collectCodegenMetadata_withProtoDependencies_containsAllDescriptors() {
     ProtoDescriptorCollector collector =
         ProtoDescriptorCollector.newInstance(DebugPrinter.newInstance(false));
 
     ImmutableList<LiteDescriptorCodegenMetadata> descriptors =
         collector.collectCodegenMetadata(MultiFile.getDescriptor().getFile());
 
-    assertThat(descriptors).hasSize(5);
-    assertThat(descriptors.stream().filter(d -> d.getProtoTypeName().equals("dev.cel.testing.testdata.SingleFile")).findAny()).isPresent();
+    assertThat(descriptors).hasSize(3);
     assertThat(descriptors.stream().filter(d -> d.getProtoTypeName().equals("dev.cel.testing.testdata.MultiFile")).findAny()).isPresent();
+  }
+
+  @Test
+  public void collectCodegenMetadata_withProtoDependencies_doesNotContainImportedProto() {
+    ProtoDescriptorCollector collector =
+        ProtoDescriptorCollector.newInstance(DebugPrinter.newInstance(false));
+
+    ImmutableList<LiteDescriptorCodegenMetadata> descriptors =
+        collector.collectCodegenMetadata(MultiFile.getDescriptor().getFile());
+
+    assertThat(descriptors.stream().filter(d -> d.getProtoTypeName().equals("dev.cel.testing.testdata.SingleFile")).findAny()).isEmpty();
   }
 }

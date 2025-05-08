@@ -20,16 +20,15 @@ load("//:java_lite_proto_cel_library_impl.bzl", "java_lite_proto_cel_library_imp
 def java_lite_proto_cel_library(
         name,
         deps,
-        java_descriptor_class_name = None,
+        java_descriptor_class_suffix = None,
         debug = False):
     """Generates a CelLiteDescriptor
 
     Args:
        name: name of this target.
        proto_src: Name of the proto_library target.
-       java_descriptor_class_name (optional): Java class name for the generated CEL lite descriptor.
-                                  By default, CEL will use the first encountered message name in proto_src with "CelLiteDescriptor"
-                                  suffixed as the class name. Use this field to override this name.
+       java_descriptor_class_suffix (optional): Suffix for the Java class name of the generated CEL lite descriptor.
+                                                Default is "CelLiteDescriptor".
        debug: (optional) If true, prints additional information during codegen for debugging purposes.
     """
     if not name:
@@ -47,7 +46,7 @@ def java_lite_proto_cel_library(
     java_lite_proto_cel_library_impl(
         name = name,
         deps = deps,
-        java_descriptor_class_name = java_descriptor_class_name,
+        java_descriptor_class_suffix = java_descriptor_class_suffix,
         java_proto_library_dep = java_proto_library_dep,
         debug = debug,
     )

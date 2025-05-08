@@ -57,9 +57,9 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
   private List<String> transitiveDescriptorSetPath = new ArrayList<>();
 
   @Option(
-      names = {"--overridden_descriptor_class_name"},
-      description = "Java class name for the CelLiteDescriptor")
-  private String overriddenDescriptorClassName = "";
+      names = {"--overridden_descriptor_class_suffix"},
+      description = "Suffix name for the generated CelLiteDescriptor Java class")
+  private String overriddenDescriptorClassSuffix = "";
 
   @Option(
       names = {"--version"},
@@ -108,22 +108,23 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
 
   private void codegenCelLiteDescriptor(FileDescriptor targetFileDescriptor) throws Exception {
     String javaPackageName = ProtoJavaQualifiedNames.getJavaPackageName(targetFileDescriptor);
-    String javaClassName = overriddenDescriptorClassName;
-    if (javaClassName.isEmpty()) {
-      // Derive the java class name. Use first encountered message/enum in the FDS as a default,
-      // with a suffix applied for uniqueness (we don't want to collide with java protoc default
-      // generated class name).
-      if (!targetFileDescriptor.getMessageTypes().isEmpty()) {
-        javaClassName = targetFileDescriptor.getMessageTypes().get(0).getName();
-      } else if (!targetFileDescriptor.getEnumTypes().isEmpty()) {
-        javaClassName = targetFileDescriptor.getEnumTypes().get(0).getName();
-      } else {
-        throw new IllegalArgumentException(
-            "File descriptor does not contain any messages or enums!");
-      }
+    String javaClassName;
 
-      javaClassName += DEFAULT_CEL_LITE_DESCRIPTOR_CLASS_SUFFIX;
+    // Derive the java class name. Use first encountered message/enum in the FDS as a default,
+    // with a suffix applied for uniqueness (we don't want to collide with java protoc default
+    // generated class name).
+    if (!targetFileDescriptor.getMessageTypes().isEmpty()) {
+      javaClassName = targetFileDescriptor.getMessageTypes().get(0).getName();
+    } else if (!targetFileDescriptor.getEnumTypes().isEmpty()) {
+      javaClassName = targetFileDescriptor.getEnumTypes().get(0).getName();
+    } else {
+      throw new IllegalArgumentException(
+          "File descriptor does not contain any messages or enums!");
     }
+
+    String javaSuffixName = overriddenDescriptorClassSuffix.isEmpty() ? DEFAULT_CEL_LITE_DESCRIPTOR_CLASS_SUFFIX : overriddenDescriptorClassSuffix;
+    javaClassName += javaSuffixName;
+
     ProtoDescriptorCollector descriptorCollector =
         ProtoDescriptorCollector.newInstance(debugPrinter);
 

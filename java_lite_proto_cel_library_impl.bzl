@@ -26,16 +26,15 @@ def java_lite_proto_cel_library_impl(
         name,
         deps,
         java_proto_library_dep,
-        java_descriptor_class_name = None,
+        java_descriptor_class_suffix = None,
         debug = False):
     """Generates a CelLiteDescriptor
 
     Args:
        name: Name of this target.
        deps: The list of proto_library rules to generate Java code for.
-       java_descriptor_class_name (optional): Java class name for the generated CEL lite descriptor.
-                                   By default, CEL will use the first encountered message name in deps with "CelLiteDescriptor"
-                                   suffixed as the class name. Use this field to override this name.
+       java_descriptor_class_suffix (optional): Suffix for the Java class name of the generated CEL lite descriptor.
+                                                Default is "CelLiteDescriptor".
        java_proto_library_dep: (optional) Uses the provided java_lite_proto_library or java_proto_library to generate the lite descriptors.
                                 If none is provided, java_lite_proto_library is used by default behind the scenes. Most use cases should not need to provide this.
        debug: (optional) If true, prints additional information during codegen for debugging purposes.
@@ -50,7 +49,7 @@ def java_lite_proto_cel_library_impl(
     java_lite_proto_cel_library_rule(
         name = generated,
         descriptors = deps,
-        java_descriptor_class_name = java_descriptor_class_name,
+        java_descriptor_class_suffix = java_descriptor_class_suffix,
     )
 
     if not java_proto_library_dep:
@@ -94,11 +93,12 @@ def _generate_cel_lite_descriptor_class(ctx):
     args.add_joined("--transitive_descriptor_set", transitive_descriptor_set, join_with = ",")
     args.add("--out", java_file_path)
 
-    if ctx.attr.java_descriptor_class_name:
-        args.add("--overridden_descriptor_class_name", ctx.attr.java_descriptor_class_name)
+    if ctx.attr.java_descriptor_class_suffix:
+        args.add("--overridden_descriptor_class_suffix", ctx.attr.java_descriptor_class_suffix)
 
-    #    if ctx.attr.debug:
-    args.add("--debug")
+    if ctx.attr.debug:
+        print("debug enabled")
+        args.add("--debug")
 
     ctx.actions.run(
         mnemonic = "CelLiteDescriptorGenerator",
@@ -114,7 +114,7 @@ def _generate_cel_lite_descriptor_class(ctx):
 java_lite_proto_cel_library_rule = rule(
     implementation = _generate_cel_lite_descriptor_class,
     attrs = {
-        "java_descriptor_class_name": attr.string(),
+        "java_descriptor_class_suffix": attr.string(),
         "descriptors": attr.label_list(
             providers = [ProtoInfo],
         ),
