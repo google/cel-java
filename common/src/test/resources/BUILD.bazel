@@ -19,26 +19,6 @@ filegroup(
 )
 
 proto_library(
-    name = "multi_file_proto",
-    srcs = ["multi_file.proto"],
-)
-
-java_proto_library(
-    name = "multi_file_java_proto",
-    deps = [":multi_file_proto"],
-)
-
-proto_library(
-    name = "single_file_proto",
-    srcs = ["single_file.proto"],
-)
-
-java_proto_library(
-    name = "single_file_java_proto",
-    deps = [":single_file_proto"],
-)
-
-proto_library(
     name = "default_instance_message_test_protos",
     srcs = [
         "enum_conflicting_name.proto",
