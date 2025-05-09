@@ -47,7 +47,6 @@ java_library(
         ":cel_lite_descriptor",
         ":debug_printer",
         ":lite_descriptor_codegen_metadata",
-        "//common:cel_descriptors",
         "//common/internal:proto_java_qualified_names",
         "//common/internal:well_known_proto",
         "@maven//:com_google_guava_guava",

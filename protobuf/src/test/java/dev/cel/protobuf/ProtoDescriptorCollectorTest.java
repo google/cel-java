@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableList;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.testing.testdata.MultiFile;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -35,5 +36,36 @@ public class ProtoDescriptorCollectorTest {
 
     // All proto messages, including transitive ones + maps
     assertThat(descriptors).hasSize(166);
+  }
+
+  @Test
+  public void collectCodegenMetadata_withProtoDependencies_containsAllDescriptors() {
+    ProtoDescriptorCollector collector =
+        ProtoDescriptorCollector.newInstance(DebugPrinter.newInstance(false));
+
+    ImmutableList<LiteDescriptorCodegenMetadata> descriptors =
+        collector.collectCodegenMetadata(MultiFile.getDescriptor().getFile());
+
+    assertThat(descriptors).hasSize(3);
+    assertThat(
+            descriptors.stream()
+                .filter(d -> d.getProtoTypeName().equals("dev.cel.testing.testdata.MultiFile"))
+                .findAny())
+        .isPresent();
+  }
+
+  @Test
+  public void collectCodegenMetadata_withProtoDependencies_doesNotContainImportedProto() {
+    ProtoDescriptorCollector collector =
+        ProtoDescriptorCollector.newInstance(DebugPrinter.newInstance(false));
+
+    ImmutableList<LiteDescriptorCodegenMetadata> descriptors =
+        collector.collectCodegenMetadata(MultiFile.getDescriptor().getFile());
+
+    assertThat(
+            descriptors.stream()
+                .filter(d -> d.getProtoTypeName().equals("dev.cel.testing.testdata.SingleFile"))
+                .findAny())
+        .isEmpty();
   }
 }
