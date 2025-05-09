@@ -1,0 +1,45 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+    default_visibility = ["//:internal"],
+)
+
+alias(
+    name = "single_file_java_proto",
+    actual = "//testing/src/test/resources/protos:single_file_java_proto",
+)
+
+alias(
+    name = "multi_file_java_proto",
+    actual = "//testing/src/test/resources/protos:multi_file_java_proto",
+)
+
+alias(
+    name = "multi_file_cel_java_proto",
+    actual = "//testing/src/test/resources/protos:multi_file_cel_java_proto",
+)
+
+alias(
+    name = "multi_file_cel_java_proto_lite",
+    actual = "//testing/src/test/resources/protos:multi_file_cel_java_proto_lite",
+)
+
+alias(
+    name = "test_all_types_cel_java_proto2_lite",
+    actual = "//testing/src/test/resources/protos:test_all_types_cel_java_proto2_lite",
+)
+
+alias(
+    name = "test_all_types_cel_java_proto3_lite",
+    actual = "//testing/src/test/resources/protos:test_all_types_cel_java_proto3_lite",
+)
+
+alias(
+    name = "test_all_types_cel_java_proto2",
+    actual = "//testing/src/test/resources/protos:test_all_types_cel_java_proto2",
+)
+
+alias(
+    name = "test_all_types_cel_java_proto3",
+    actual = "//testing/src/test/resources/protos:test_all_types_cel_java_proto3",
+)

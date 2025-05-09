@@ -14,21 +14,19 @@
 
 package dev.cel.protobuf;
 
-import static java.util.stream.Collectors.toCollection;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor.JavaType;
 import com.google.protobuf.Descriptors.FileDescriptor;
-import dev.cel.common.CelDescriptorUtil;
-import dev.cel.common.CelDescriptors;
 import dev.cel.common.internal.ProtoJavaQualifiedNames;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor;
 import dev.cel.protobuf.CelLiteDescriptor.FieldLiteDescriptor.EncodingType;
 import dev.cel.protobuf.LiteDescriptorCodegenMetadata.FieldLiteDescriptorMetadata;
-import java.util.ArrayDeque;
 
 /**
  * ProtoDescriptorCollector inspects a {@link FileDescriptor} to collect message information into
@@ -43,17 +41,13 @@ final class ProtoDescriptorCollector {
       FileDescriptor targetFileDescriptor) {
     ImmutableList.Builder<LiteDescriptorCodegenMetadata> descriptorListBuilder =
         ImmutableList.builder();
-    CelDescriptors celDescriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-            ImmutableList.of(targetFileDescriptor), /* resolveTypeDependencies= */ false);
-    ArrayDeque<Descriptor> descriptorQueue =
-        celDescriptors.messageTypeDescriptors().stream()
+    ImmutableList<Descriptor> descriptorList =
+        collect(targetFileDescriptor).stream()
             // Don't collect WKTs. They are included in the default descriptor pool.
             .filter(d -> !WellKnownProto.getByTypeName(d.getFullName()).isPresent())
-            .collect(toCollection(ArrayDeque::new));
+            .collect(toImmutableList());
 
-    while (!descriptorQueue.isEmpty()) {
-      Descriptor descriptor = descriptorQueue.pop();
+    for (Descriptor descriptor : descriptorList) {
       LiteDescriptorCodegenMetadata.Builder descriptorCodegenBuilder =
           LiteDescriptorCodegenMetadata.newBuilder();
       for (Descriptors.FieldDescriptor fieldDescriptor : descriptor.getFields()) {
@@ -80,10 +74,6 @@ final class ProtoDescriptorCollector {
 
         if (fieldDescriptor.isMapField()) {
           fieldDescriptorCodegenBuilder.setEncodingType(EncodingType.MAP);
-          // Maps are treated as messages in proto.
-          // TODO: Directly embed key/value information within the field descriptor.
-          // This will further reduce descriptor binary size.
-          descriptorQueue.push(fieldDescriptor.getMessageType());
         } else if (fieldDescriptor.isRepeated()) {
           fieldDescriptorCodegenBuilder.setEncodingType(EncodingType.LIST);
         } else {
@@ -185,6 +175,22 @@ final class ProtoDescriptorCollector {
     }
 
     throw new IllegalArgumentException("Unknown JavaType: " + javaType);
+  }
+
+  private static ImmutableSet<Descriptor> collect(FileDescriptor fileDescriptor) {
+    ImmutableSet.Builder<Descriptor> builder = ImmutableSet.builder();
+    for (Descriptor descriptor : fileDescriptor.getMessageTypes()) {
+      collect(builder, descriptor);
+    }
+
+    return builder.build();
+  }
+
+  private static void collect(ImmutableSet.Builder<Descriptor> builder, Descriptor descriptor) {
+    builder.add(descriptor);
+    for (Descriptor nested : descriptor.getNestedTypes()) {
+      collect(builder, nested);
+    }
   }
 
   private ProtoDescriptorCollector(DebugPrinter debugPrinter) {
