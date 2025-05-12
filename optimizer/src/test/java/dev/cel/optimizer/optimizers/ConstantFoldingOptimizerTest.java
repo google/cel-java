@@ -64,13 +64,13 @@ public class ConstantFoldingOptimizerTest {
               CelOptionalLibrary.INSTANCE,
               CelExtensions.math(CelOptions.DEFAULT),
               CelExtensions.strings(),
-              CelExtensions.sets(),
+              CelExtensions.sets(CelOptions.DEFAULT),
               CelExtensions.encoders())
           .addRuntimeLibraries(
               CelOptionalLibrary.INSTANCE,
               CelExtensions.math(CelOptions.DEFAULT),
               CelExtensions.strings(),
-              CelExtensions.sets(),
+              CelExtensions.sets(CelOptions.DEFAULT),
               CelExtensions.encoders())
           .build();
 
