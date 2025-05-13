@@ -15,9 +15,12 @@ java_library(
     ],
     deps = [
         "//common:cel_descriptors",
+        "//common/internal:cel_descriptor_pools",
         "//common/internal:default_instance_message_factory",
+        "//common/internal:default_message_factory",
         "//common/types",
         "//common/types:type_providers",
+        "//testing/testrunner:registry_utils",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
