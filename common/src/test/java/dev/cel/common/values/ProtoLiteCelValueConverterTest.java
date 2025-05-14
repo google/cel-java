@@ -28,6 +28,7 @@ import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
 import com.google.protobuf.MessageLite;
+import com.google.protobuf.TextFormat;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
@@ -239,7 +240,8 @@ public class ProtoLiteCelValueConverterTest {
 
     assertThat(messageFields.values()).isEmpty();
     assertThat(messageFields.unknowns()).containsExactlyEntriesIn(testCase.unknownMap).inOrder();
-    assertThat(parsedMsg.toString().trim()).isEqualTo(testCase.formattedOutput);
+    assertThat(TextFormat.printer().printToString(parsedMsg).trim())
+        .isEqualTo(testCase.formattedOutput);
   }
 
   /**
@@ -277,7 +279,7 @@ public class ProtoLiteCelValueConverterTest {
         PROTO_LITE_CEL_VALUE_CONVERTER.readAllFields(
             unknownMessageBytes, "cel.expr.conformance.proto3.TestAllTypes");
 
-    assertThat(parsedMsg.toString())
+    assertThat(TextFormat.printer().printToString(parsedMsg))
         .isEqualTo(
             "map_bool_double {\n"
                 + "  key: false\n"
