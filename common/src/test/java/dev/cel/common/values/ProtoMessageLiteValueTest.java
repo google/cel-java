@@ -36,7 +36,7 @@ import dev.cel.common.internal.DefaultLiteDescriptorPool;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
-import dev.cel.expr.conformance.proto3.TestAllTypesProto3CelDescriptor;
+import dev.cel.expr.conformance.proto3.TestAllTypesCelDescriptor;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.Test;
@@ -46,7 +46,7 @@ import org.junit.runner.RunWith;
 public class ProtoMessageLiteValueTest {
   private static final CelLiteDescriptorPool DESCRIPTOR_POOL =
       DefaultLiteDescriptorPool.newInstance(
-          ImmutableSet.of(TestAllTypesProto3CelDescriptor.getDescriptor()));
+          ImmutableSet.of(TestAllTypesCelDescriptor.getDescriptor()));
 
   private static final ProtoLiteCelValueConverter PROTO_LITE_CEL_VALUE_CONVERTER =
       ProtoLiteCelValueConverter.newInstance(DESCRIPTOR_POOL);

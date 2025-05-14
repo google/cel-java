@@ -19,29 +19,35 @@ load("@com_google_protobuf//bazel:java_lite_proto_library.bzl", "java_lite_proto
 
 def java_lite_proto_cel_library(
         name,
-        proto_src,
-        java_descriptor_class_name = None,
+        deps,
+        java_descriptor_class_suffix = None,
         debug = False):
     """Generates a CelLiteDescriptor
 
     Args:
        name: name of this target.
+       deps: The list of proto_library rules to generate Java code for.
        proto_src: Name of the proto_library target.
-       java_descriptor_class_name (optional): Java class name for the generated CEL lite descriptor.
-                                  By default, CEL will use the first encountered message name in proto_src with "CelLiteDescriptor"
-                                  suffixed as the class name. Use this field to override this name.
+       java_descriptor_class_suffix (optional): Suffix for the Java class name of the generated CEL lite descriptor.
+                                                Default is "CelLiteDescriptor".
        debug: (optional) If true, prints additional information during codegen for debugging purposes.
     """
+    if not name:
+        fail("You must provide a name.")
+
+    if not deps or len(deps) < 1:
+        fail("You must provide at least one proto_library dependency.")
+
     java_proto_library_dep = name + "_java_lite_proto_dep"
     java_lite_proto_library(
         name = java_proto_library_dep,
-        deps = [proto_src],
+        deps = deps,
     )
 
     java_lite_proto_cel_library_impl(
         name = name,
-        proto_src = proto_src,
-        java_descriptor_class_name = java_descriptor_class_name,
+        deps = deps,
+        java_descriptor_class_suffix = java_descriptor_class_suffix,
         java_proto_library_dep = java_proto_library_dep,
         debug = debug,
     )

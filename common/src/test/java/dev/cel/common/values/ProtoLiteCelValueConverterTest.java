@@ -39,7 +39,7 @@ import dev.cel.common.internal.DefaultLiteDescriptorPool;
 import dev.cel.common.internal.WellKnownProto;
 import dev.cel.common.values.ProtoLiteCelValueConverter.MessageFields;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
-import dev.cel.expr.conformance.proto3.TestAllTypesProto3CelDescriptor;
+import dev.cel.expr.conformance.proto3.TestAllTypesCelDescriptor;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import org.junit.Test;
@@ -49,7 +49,7 @@ import org.junit.runner.RunWith;
 public class ProtoLiteCelValueConverterTest {
   private static final CelLiteDescriptorPool DESCRIPTOR_POOL =
       DefaultLiteDescriptorPool.newInstance(
-          ImmutableSet.of(TestAllTypesProto3CelDescriptor.getDescriptor()));
+          ImmutableSet.of(TestAllTypesCelDescriptor.getDescriptor()));
 
   private static final ProtoLiteCelValueConverter PROTO_LITE_CEL_VALUE_CONVERTER =
       ProtoLiteCelValueConverter.newInstance(DESCRIPTOR_POOL);
