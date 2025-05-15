@@ -27,6 +27,7 @@ import com.google.re2j.Pattern;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
+import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.Converter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -40,13 +41,14 @@ import org.threeten.extra.AmountFormats;
  * <p>CEL Library Internals. Do Not Use.
  */
 @Immutable
-class RuntimeHelpers {
+@Internal
+public class RuntimeHelpers {
 
   // Maximum and minimum range supported by protobuf Duration values.
   private static final java.time.Duration DURATION_MAX = java.time.Duration.ofDays(3652500);
   private static final java.time.Duration DURATION_MIN = DURATION_MAX.negated();
 
-  static RuntimeHelpers create() {
+  public static RuntimeHelpers create() {
     return new RuntimeHelpers();
   }
 

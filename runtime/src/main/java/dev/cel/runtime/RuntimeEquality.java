@@ -20,6 +20,7 @@ import com.google.protobuf.MessageLiteOrBuilder;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
+import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.ComparisonFunctions;
 import java.util.Iterator;
 import java.util.List;
@@ -31,11 +32,12 @@ import java.util.Set;
 
 /** RuntimeEquality contains methods for performing CEL related equality checks. */
 @Immutable
-class RuntimeEquality {
+@Internal
+public class RuntimeEquality {
   protected final RuntimeHelpers runtimeHelpers;
   protected final CelOptions celOptions;
 
-  static RuntimeEquality create(RuntimeHelpers runtimeHelper, CelOptions celOptions) {
+  public static RuntimeEquality create(RuntimeHelpers runtimeHelper, CelOptions celOptions) {
     return new RuntimeEquality(runtimeHelper, celOptions);
   }
 

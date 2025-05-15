@@ -41,10 +41,13 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.internal.ProtoTimeUtils;
+import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.expr.conformance.proto3.NestedTestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
+import dev.cel.extensions.CelLiteExtensions;
+import dev.cel.extensions.SetsFunction;
 import dev.cel.runtime.CelLiteRuntime.Program;
 import java.net.URL;
 import java.util.List;
@@ -120,13 +123,18 @@ public class CelLiteRuntimeAndroidTest {
   @Test
   public void toRuntimeBuilder_propertiesCopied() {
     CelOptions celOptions = CelOptions.current().enableCelValue(true).build();
+    CelLiteRuntimeLibrary runtimeExtension =
+        CelLiteExtensions.sets(celOptions, SetsFunction.INTERSECTS);
     CelStandardFunctions celStandardFunctions = CelStandardFunctions.newBuilder().build();
+    CelValueProvider celValueProvider = ProtoMessageLiteValueProvider.newInstance();
     CelLiteRuntimeBuilder runtimeBuilder =
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
             .setOptions(celOptions)
             .setStandardFunctions(celStandardFunctions)
             .addFunctionBindings(
-                CelFunctionBinding.from("string_isEmpty", String.class, String::isEmpty));
+                CelFunctionBinding.from("string_isEmpty", String.class, String::isEmpty))
+            .setValueProvider(celValueProvider)
+            .addLibraries(runtimeExtension);
     CelLiteRuntime runtime = runtimeBuilder.build();
 
     LiteRuntimeImpl.Builder newRuntimeBuilder =
@@ -134,8 +142,11 @@ public class CelLiteRuntimeAndroidTest {
 
     assertThat(newRuntimeBuilder.celOptions).isEqualTo(celOptions);
     assertThat(newRuntimeBuilder.celStandardFunctions).isEqualTo(celStandardFunctions);
-    assertThat(newRuntimeBuilder.customFunctionBindings).hasSize(1);
+    assertThat(newRuntimeBuilder.celValueProvider).isSameInstanceAs(celValueProvider);
+    assertThat(newRuntimeBuilder.runtimeLibrariesBuilder.build()).containsExactly(runtimeExtension);
+    assertThat(newRuntimeBuilder.customFunctionBindings).hasSize(2);
     assertThat(newRuntimeBuilder.customFunctionBindings).containsKey("string_isEmpty");
+    assertThat(newRuntimeBuilder.customFunctionBindings).containsKey("list_sets_intersects_list");
   }
 
   @Test

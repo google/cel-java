@@ -1,4 +1,4 @@
-// Copyright 2022 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,16 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.runtime;
+package dev.cel.extensions;
 
-/**
- * CelRuntimeLibrary defines the interface to extend functionalities beyond the CEL standard
- * functions for {@link CelRuntime}.
- */
-public interface CelRuntimeLibrary {
+/** Denotes the extension function used in {@code CelSetsExtension}. */
+public enum SetsFunction {
+  CONTAINS("sets.contains"),
+  EQUIVALENT("sets.equivalent"),
+  INTERSECTS("sets.intersects");
 
-  /**
-   * Configures the runtime to support the library implementation, such as adding function bindings.
-   */
-  void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder);
+  private final String functionName;
+
+  String getFunction() {
+    return functionName;
+  }
+
+  SetsFunction(String functionName) {
+    this.functionName = functionName;
+  }
 }

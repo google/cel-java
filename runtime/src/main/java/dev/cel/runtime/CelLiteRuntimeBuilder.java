@@ -50,6 +50,12 @@ public interface CelLiteRuntimeBuilder {
   @CanIgnoreReturnValue
   CelLiteRuntimeBuilder setValueProvider(CelValueProvider celValueProvider);
 
+  @CanIgnoreReturnValue
+  CelLiteRuntimeBuilder addLibraries(CelLiteRuntimeLibrary... libraries);
+
+  @CanIgnoreReturnValue
+  CelLiteRuntimeBuilder addLibraries(Iterable<? extends CelLiteRuntimeLibrary> libraries);
+
   @CheckReturnValue
   CelLiteRuntime build();
 }

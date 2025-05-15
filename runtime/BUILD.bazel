@@ -74,17 +74,13 @@ java_library(
 java_library(
     name = "lite_runtime",
     visibility = ["//:internal"],
-    exports = [
-        "//runtime/src/main/java/dev/cel/runtime:lite_runtime",
-    ],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:lite_runtime"],
 )
 
 java_library(
     name = "lite_runtime_factory",
     visibility = ["//:internal"],
-    exports = [
-        "//runtime/src/main/java/dev/cel/runtime:lite_runtime_factory",
-    ],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:lite_runtime_factory"],
 )
 
 java_library(
@@ -110,6 +106,12 @@ java_library(
     exports = ["//runtime/src/main/java/dev/cel/runtime:runtime_helpers"],
 )
 
+cel_android_library(
+    name = "runtime_helpers_android",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:runtime_helpers_android"],
+)
+
 java_library(
     name = "proto_message_runtime_helpers",
     visibility = ["//:internal"],
@@ -120,6 +122,12 @@ java_library(
     name = "runtime_equality",
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:runtime_equality"],
+)
+
+cel_android_library(
+    name = "runtime_equality_android",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:runtime_equality_android"],
 )
 
 java_library(

@@ -14,6 +14,7 @@
 
 package dev.cel.extensions;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.checker.CelCheckerBuilder;
@@ -26,12 +27,9 @@ import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.compiler.CelCompilerLibrary;
-import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
 import dev.cel.runtime.ProtoMessageRuntimeEquality;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -43,22 +41,18 @@ import java.util.Set;
  * rewrite the AST into a map to achieve a O(1) lookup.
  */
 @Immutable
-@SuppressWarnings({"unchecked"}) // Unchecked: Type-checker guarantees casting safety.
-public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
+final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
 
-  private static final String SET_CONTAINS_FUNCTION = "sets.contains";
   private static final String SET_CONTAINS_OVERLOAD_DOC =
       "Returns whether the first list argument contains all elements in the second list"
           + " argument. The list may contain elements of any type and standard CEL"
           + " equality is used to determine whether a value exists in both lists. If the"
           + " second list is empty, the result will always return true.";
-  private static final String SET_EQUIVALENT_FUNCTION = "sets.equivalent";
   private static final String SET_EQUIVALENT_OVERLOAD_DOC =
       "Returns whether the first and second list are set equivalent. Lists are set equivalent if"
           + " for every item in the first list, there is an element in the second which is equal."
           + " The lists may not be of the same size as they do not guarantee the elements within"
           + " them are unique, so size does not factor into the computation.";
-  private static final String SET_INTERSECTS_FUNCTION = "sets.intersects";
   private static final String SET_INTERSECTS_OVERLOAD_DOC =
       "Returns whether the first and second list intersect. Lists intersect if there is at least"
           + " one element in the first list which is equal to an element in the second list. The"
@@ -66,159 +60,59 @@ public final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLi
           + " are unique, so size does not factor into the computation. If either list is empty,"
           + " the result will be false.";
 
-  /** Denotes the set extension function. */
-  public enum Function {
-    CONTAINS(
-        CelFunctionDecl.newFunctionDeclaration(
-            SET_CONTAINS_FUNCTION,
-            CelOverloadDecl.newGlobalOverload(
-                "list_sets_contains_list",
-                SET_CONTAINS_OVERLOAD_DOC,
-                SimpleType.BOOL,
-                ListType.create(TypeParamType.create("T")),
-                ListType.create(TypeParamType.create("T"))))),
-    EQUIVALENT(
-        CelFunctionDecl.newFunctionDeclaration(
-            SET_EQUIVALENT_FUNCTION,
-            CelOverloadDecl.newGlobalOverload(
-                "list_sets_equivalent_list",
-                SET_EQUIVALENT_OVERLOAD_DOC,
-                SimpleType.BOOL,
-                ListType.create(TypeParamType.create("T")),
-                ListType.create(TypeParamType.create("T"))))),
-    INTERSECTS(
-        CelFunctionDecl.newFunctionDeclaration(
-            SET_INTERSECTS_FUNCTION,
-            CelOverloadDecl.newGlobalOverload(
-                "list_sets_intersects_list",
-                SET_INTERSECTS_OVERLOAD_DOC,
-                SimpleType.BOOL,
-                ListType.create(TypeParamType.create("T")),
-                ListType.create(TypeParamType.create("T")))));
+  private static final ImmutableMap<SetsFunction, CelFunctionDecl> FUNCTION_DECL_MAP =
+      ImmutableMap.of(
+          SetsFunction.CONTAINS,
+          CelFunctionDecl.newFunctionDeclaration(
+              SetsFunction.CONTAINS.getFunction(),
+              CelOverloadDecl.newGlobalOverload(
+                  "list_sets_contains_list",
+                  SET_CONTAINS_OVERLOAD_DOC,
+                  SimpleType.BOOL,
+                  ListType.create(TypeParamType.create("T")),
+                  ListType.create(TypeParamType.create("T")))),
+          SetsFunction.EQUIVALENT,
+          CelFunctionDecl.newFunctionDeclaration(
+              SetsFunction.EQUIVALENT.getFunction(),
+              CelOverloadDecl.newGlobalOverload(
+                  "list_sets_equivalent_list",
+                  SET_EQUIVALENT_OVERLOAD_DOC,
+                  SimpleType.BOOL,
+                  ListType.create(TypeParamType.create("T")),
+                  ListType.create(TypeParamType.create("T")))),
+          SetsFunction.INTERSECTS,
+          CelFunctionDecl.newFunctionDeclaration(
+              SetsFunction.INTERSECTS.getFunction(),
+              CelOverloadDecl.newGlobalOverload(
+                  "list_sets_intersects_list",
+                  SET_INTERSECTS_OVERLOAD_DOC,
+                  SimpleType.BOOL,
+                  ListType.create(TypeParamType.create("T")),
+                  ListType.create(TypeParamType.create("T")))));
 
-    private final CelFunctionDecl functionDecl;
-
-    String getFunction() {
-      return functionDecl.name();
-    }
-
-    Function(CelFunctionDecl functionDecl) {
-      this.functionDecl = functionDecl;
-    }
-  }
-
-  private final ImmutableSet<Function> functions;
-  private final ProtoMessageRuntimeEquality runtimeEquality;
+  private final ImmutableSet<SetsFunction> functions;
+  private final SetsExtensionsRuntimeImpl setsExtensionsRuntime;
 
   CelSetsExtensions(CelOptions celOptions) {
-    this(celOptions, ImmutableSet.copyOf(Function.values()));
+    this(celOptions, ImmutableSet.copyOf(SetsFunction.values()));
   }
 
-  CelSetsExtensions(CelOptions celOptions, Set<Function> functions) {
+  CelSetsExtensions(CelOptions celOptions, Set<SetsFunction> functions) {
     this.functions = ImmutableSet.copyOf(functions);
-    this.runtimeEquality =
+    ProtoMessageRuntimeEquality runtimeEquality =
         ProtoMessageRuntimeEquality.create(
             DynamicProto.create(DefaultMessageFactory.INSTANCE), celOptions);
+    this.setsExtensionsRuntime = new SetsExtensionsRuntimeImpl(runtimeEquality, functions);
   }
 
   @Override
   public void setCheckerOptions(CelCheckerBuilder checkerBuilder) {
-    functions.forEach(function -> checkerBuilder.addFunctionDeclarations(function.functionDecl));
+    functions.forEach(
+        function -> checkerBuilder.addFunctionDeclarations(FUNCTION_DECL_MAP.get(function)));
   }
 
   @Override
   public void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder) {
-    for (Function function : functions) {
-      switch (function) {
-        case CONTAINS:
-          runtimeBuilder.addFunctionBindings(
-              CelFunctionBinding.from(
-                  "list_sets_contains_list",
-                  Collection.class,
-                  Collection.class,
-                  this::containsAll));
-          break;
-        case EQUIVALENT:
-          runtimeBuilder.addFunctionBindings(
-              CelFunctionBinding.from(
-                  "list_sets_equivalent_list",
-                  Collection.class,
-                  Collection.class,
-                  (listA, listB) -> containsAll(listA, listB) && containsAll(listB, listA)));
-          break;
-        case INTERSECTS:
-          runtimeBuilder.addFunctionBindings(
-              CelFunctionBinding.from(
-                  "list_sets_intersects_list",
-                  Collection.class,
-                  Collection.class,
-                  this::setIntersects));
-          break;
-      }
-    }
-  }
-
-  /**
-   * This implementation iterates over the specified collection, checking each element returned by
-   * the iterator in turn to see if it's contained in this collection. If all elements are so
-   * contained <tt>true</tt> is returned, otherwise <tt>false</tt>.
-   *
-   * <p>This is picked verbatim as implemented in the Java standard library
-   * Collections.containsAll() method.
-   *
-   * @see #contains(Object, Collection)
-   */
-  private <T> boolean containsAll(Collection<T> list, Collection<T> subList) {
-    for (T e : subList) {
-      if (!contains(e, list)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * This implementation iterates over the elements in the collection, checking each element in turn
-   * for equality with the specified element.
-   *
-   * <p>This is picked verbatim as implemented in the Java standard library Collections.contains()
-   * method.
-   *
-   * <p>Source:
-   * https://hg.openjdk.org/jdk8u/jdk8u-dev/jdk/file/c5d02f908fb2/src/share/classes/java/util/AbstractCollection.java#l98
-   */
-  private <T> boolean contains(Object o, Collection<T> list) {
-    Iterator<?> it = list.iterator();
-    if (o == null) {
-      while (it.hasNext()) {
-        if (it.next() == null) {
-          return true;
-        }
-      }
-    } else {
-      while (it.hasNext()) {
-        Object item = it.next();
-        if (objectsEquals(item, o)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private boolean objectsEquals(Object o1, Object o2) {
-    return runtimeEquality.objectEquals(o1, o2);
-  }
-
-  private <T> boolean setIntersects(Collection<T> listA, Collection<T> listB) {
-    if (listA.isEmpty() || listB.isEmpty()) {
-      return false;
-    }
-    for (T element : listB) {
-      if (contains(element, listA)) {
-        return true;
-      }
-    }
-    return false;
+    runtimeBuilder.addFunctionBindings(setsExtensionsRuntime.newFunctionBindings());
   }
 }

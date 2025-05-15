@@ -1,4 +1,4 @@
-// Copyright 2022 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
 package dev.cel.runtime;
 
 /**
- * CelRuntimeLibrary defines the interface to extend functionalities beyond the CEL standard
- * functions for {@link CelRuntime}.
+ * CelLiteRuntimeLibrary defines the interface to extend functionalities beyond the CEL standard
+ * functions for {@link CelLiteRuntime}.
  */
-public interface CelRuntimeLibrary {
+public interface CelLiteRuntimeLibrary {
 
   /**
    * Configures the runtime to support the library implementation, such as adding function bindings.
    */
-  void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder);
+  void setRuntimeOptions(CelLiteRuntimeBuilder runtimeBuilder);
 }

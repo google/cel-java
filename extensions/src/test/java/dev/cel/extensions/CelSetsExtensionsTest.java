@@ -32,7 +32,6 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
-import dev.cel.extensions.CelSetsExtensions.Function;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime;
@@ -443,7 +442,8 @@ public final class CelSetsExtensionsTest {
 
   @Test
   public void setsExtension_containsFunctionSubset_succeeds() throws Exception {
-    CelSetsExtensions setsExtensions = CelExtensions.sets(CelOptions.DEFAULT, Function.CONTAINS);
+    CelSetsExtensions setsExtensions =
+        CelExtensions.sets(CelOptions.DEFAULT, SetsFunction.CONTAINS);
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder().addLibraries(setsExtensions).build();
     CelRuntime celRuntime =
@@ -457,7 +457,8 @@ public final class CelSetsExtensionsTest {
 
   @Test
   public void setsExtension_equivalentFunctionSubset_succeeds() throws Exception {
-    CelSetsExtensions setsExtensions = CelExtensions.sets(CelOptions.DEFAULT, Function.EQUIVALENT);
+    CelSetsExtensions setsExtensions =
+        CelExtensions.sets(CelOptions.DEFAULT, SetsFunction.EQUIVALENT);
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder().addLibraries(setsExtensions).build();
     CelRuntime celRuntime =
@@ -473,7 +474,8 @@ public final class CelSetsExtensionsTest {
 
   @Test
   public void setsExtension_intersectsFunctionSubset_succeeds() throws Exception {
-    CelSetsExtensions setsExtensions = CelExtensions.sets(CelOptions.DEFAULT, Function.INTERSECTS);
+    CelSetsExtensions setsExtensions =
+        CelExtensions.sets(CelOptions.DEFAULT, SetsFunction.INTERSECTS);
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder().addLibraries(setsExtensions).build();
     CelRuntime celRuntime =
@@ -489,7 +491,8 @@ public final class CelSetsExtensionsTest {
 
   @Test
   public void setsExtension_compileUnallowedFunction_throws() {
-    CelSetsExtensions setsExtensions = CelExtensions.sets(CelOptions.DEFAULT, Function.EQUIVALENT);
+    CelSetsExtensions setsExtensions =
+        CelExtensions.sets(CelOptions.DEFAULT, SetsFunction.EQUIVALENT);
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder().addLibraries(setsExtensions).build();
 
@@ -501,12 +504,12 @@ public final class CelSetsExtensionsTest {
   @Test
   public void setsExtension_evaluateUnallowedFunction_throws() throws Exception {
     CelSetsExtensions setsExtensions =
-        CelExtensions.sets(CelOptions.DEFAULT, Function.CONTAINS, Function.EQUIVALENT);
+        CelExtensions.sets(CelOptions.DEFAULT, SetsFunction.CONTAINS, SetsFunction.EQUIVALENT);
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder().addLibraries(setsExtensions).build();
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder()
-            .addLibraries(CelExtensions.sets(CelOptions.DEFAULT, Function.EQUIVALENT))
+            .addLibraries(CelExtensions.sets(CelOptions.DEFAULT, SetsFunction.EQUIVALENT))
             .build();
 
     CelAbstractSyntaxTree ast = celCompiler.compile("sets.contains([1, 2], [2])").getAst();

@@ -189,9 +189,9 @@ public final class CelExtensions {
    *
    * <p>Refer to README.md for available functions.
    *
-   * <p>This will include all functions denoted in {@link CelSetsExtensions.Function}, including any
-   * future additions. To expose only a subset of functions, use {@link #sets(CelOptions,
-   * CelSetsExtensions.Function...)} instead.
+   * <p>This will include all functions denoted in {@link SetsFunction}, including any future
+   * additions. To expose only a subset of functions, use {@link #sets(CelOptions, SetsFunction...)}
+   * instead.
    */
   public static CelSetsExtensions sets(CelOptions celOptions) {
     return new CelSetsExtensions(celOptions);
@@ -202,10 +202,9 @@ public final class CelExtensions {
    *
    * <p>Refer to README.md for available functions.
    *
-   * <p>This will include only the specific functions denoted by {@link CelSetsExtensions.Function}.
+   * <p>This will include only the specific functions denoted by {@link SetsFunction}.
    */
-  public static CelSetsExtensions sets(
-      CelOptions celOptions, CelSetsExtensions.Function... functions) {
+  public static CelSetsExtensions sets(CelOptions celOptions, SetsFunction... functions) {
     return sets(celOptions, ImmutableSet.copyOf(functions));
   }
 
@@ -214,10 +213,9 @@ public final class CelExtensions {
    *
    * <p>Refer to README.md for available functions.
    *
-   * <p>This will include only the specific functions denoted by {@link CelSetsExtensions.Function}.
+   * <p>This will include only the specific functions denoted by {@link SetsFunction}.
    */
-  public static CelSetsExtensions sets(
-      CelOptions celOptions, Set<CelSetsExtensions.Function> functions) {
+  public static CelSetsExtensions sets(CelOptions celOptions, Set<SetsFunction> functions) {
     return new CelSetsExtensions(celOptions, functions);
   }
 
@@ -271,8 +269,7 @@ public final class CelExtensions {
                 .map(CelMathExtensions.Function::getFunction),
             stream(CelStringExtensions.Function.values())
                 .map(CelStringExtensions.Function::getFunction),
-            stream(CelSetsExtensions.Function.values())
-                .map(CelSetsExtensions.Function::getFunction),
+            stream(SetsFunction.values()).map(SetsFunction::getFunction),
             stream(CelEncoderExtensions.Function.values())
                 .map(CelEncoderExtensions.Function::getFunction),
             stream(CelListsExtensions.Function.values())

@@ -14,6 +14,7 @@
 
 package dev.cel.runtime;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -34,6 +35,11 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
   private final CelOptions celOptions;
   private final ImmutableList<CelFunctionBinding> customFunctionBindings;
   private final CelStandardFunctions celStandardFunctions;
+  private final CelValueProvider celValueProvider;
+
+  // This does not affect the evaluation behavior in any manner.
+  // CEL-Internal-4
+  private final ImmutableSet<CelLiteRuntimeLibrary> runtimeLibraries;
 
   @Override
   public Program createProgram(CelAbstractSyntaxTree ast) {
@@ -43,10 +49,18 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
 
   @Override
   public CelLiteRuntimeBuilder toRuntimeBuilder() {
-    return new Builder()
-        .setOptions(celOptions)
-        .setStandardFunctions(celStandardFunctions)
-        .addFunctionBindings(customFunctionBindings);
+    CelLiteRuntimeBuilder builder =
+        new Builder()
+            .setOptions(celOptions)
+            .setStandardFunctions(celStandardFunctions)
+            .addFunctionBindings(customFunctionBindings)
+            .addLibraries(runtimeLibraries);
+
+    if (celValueProvider != null) {
+      builder.setValueProvider(celValueProvider);
+    }
+
+    return builder;
   }
 
   static final class Builder implements CelLiteRuntimeBuilder {
@@ -54,6 +68,7 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     // Following is visible to test `toBuilder`.
     @VisibleForTesting CelOptions celOptions;
     @VisibleForTesting final HashMap<String, CelFunctionBinding> customFunctionBindings;
+    @VisibleForTesting final ImmutableSet.Builder<CelLiteRuntimeLibrary> runtimeLibrariesBuilder;
     @VisibleForTesting CelStandardFunctions celStandardFunctions;
     @VisibleForTesting CelValueProvider celValueProvider;
 
@@ -83,6 +98,17 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     @Override
     public CelLiteRuntimeBuilder setValueProvider(CelValueProvider celValueProvider) {
       this.celValueProvider = celValueProvider;
+      return this;
+    }
+
+    @Override
+    public CelLiteRuntimeBuilder addLibraries(CelLiteRuntimeLibrary... libraries) {
+      return addLibraries(Arrays.asList(checkNotNull(libraries)));
+    }
+
+    @Override
+    public CelLiteRuntimeBuilder addLibraries(Iterable<? extends CelLiteRuntimeLibrary> libraries) {
+      this.runtimeLibrariesBuilder.addAll(checkNotNull(libraries));
       return this;
     }
 
@@ -122,6 +148,9 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     @Override
     public CelLiteRuntime build() {
       assertAllowedCelOptions(celOptions);
+      ImmutableSet<CelLiteRuntimeLibrary> runtimeLibs = runtimeLibrariesBuilder.build();
+      runtimeLibs.forEach(lib -> lib.setRuntimeOptions(this));
+
       ImmutableMap.Builder<String, CelFunctionBinding> functionBindingsBuilder =
           ImmutableMap.builder();
       if (celStandardFunctions != null) {
@@ -152,13 +181,19 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
               celOptions);
 
       return new LiteRuntimeImpl(
-          interpreter, celOptions, customFunctionBindings.values(), celStandardFunctions);
+          interpreter,
+          celOptions,
+          customFunctionBindings.values(),
+          celStandardFunctions,
+          runtimeLibs,
+          celValueProvider);
     }
 
     private Builder() {
       this.celOptions = CelOptions.current().enableCelValue(true).build();
       this.celValueProvider = (structType, fields) -> Optional.empty();
       this.customFunctionBindings = new HashMap<>();
+      this.runtimeLibrariesBuilder = ImmutableSet.builder();
     }
   }
 
@@ -170,10 +205,14 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
       Interpreter interpreter,
       CelOptions celOptions,
       Iterable<CelFunctionBinding> customFunctionBindings,
-      CelStandardFunctions celStandardFunctions) {
+      CelStandardFunctions celStandardFunctions,
+      ImmutableSet<CelLiteRuntimeLibrary> runtimeLibraries,
+      CelValueProvider celValueProvider) {
     this.interpreter = interpreter;
     this.celOptions = celOptions;
     this.customFunctionBindings = ImmutableList.copyOf(customFunctionBindings);
     this.celStandardFunctions = celStandardFunctions;
+    this.runtimeLibraries = runtimeLibraries;
+    this.celValueProvider = celValueProvider;
   }
 }

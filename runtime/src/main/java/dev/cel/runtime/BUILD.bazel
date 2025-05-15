@@ -36,6 +36,7 @@ DESCRIPTOR_MESSAGE_PROVIDER_SOURCES = [
 LITE_RUNTIME_SOURCES = [
     "CelLiteRuntime.java",
     "CelLiteRuntimeBuilder.java",
+    "CelLiteRuntimeLibrary.java",
 ]
 
 # keep sorted
@@ -345,6 +346,7 @@ java_library(
         "//common:error_codes",
         "//common:options",
         "//common:runtime_exception",
+        "//common/annotations",
         "//common/internal:comparison_functions",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -354,15 +356,15 @@ java_library(
 
 cel_android_library(
     name = "runtime_equality_android",
-    srcs = [
-        "RuntimeEquality.java",
+    srcs = ["RuntimeEquality.java"],
+    tags = [
     ],
-    visibility = ["//visibility:private"],
     deps = [
         ":runtime_helpers_android",
         "//common:error_codes",
         "//common:options",
         "//common:runtime_exception",
+        "//common/annotations",
         "//common/internal:comparison_functions_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
@@ -392,14 +394,14 @@ java_library(
 
 cel_android_library(
     name = "runtime_helpers_android",
-    srcs = [
-        "RuntimeHelpers.java",
+    srcs = ["RuntimeHelpers.java"],
+    tags = [
     ],
-    visibility = ["//visibility:private"],
     deps = [
         "//common:error_codes",
         "//common:options",
         "//common:runtime_exception",
+        "//common/annotations",
         "//common/internal:converter",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_re2j_re2j",
@@ -420,6 +422,7 @@ java_library(
         "//common:error_codes",
         "//common:options",
         "//common:runtime_exception",
+        "//common/annotations",
         "//common/internal:converter",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -459,6 +462,18 @@ RUNTIME_SOURCES = [
     "HierarchicalVariableResolver.java",
     "UnknownContext.java",
 ]
+
+java_library(
+    name = "lite_runtime_library",
+    srcs = ["CelLiteRuntimeLibrary.java"],
+    deps = [":lite_runtime"],
+)
+
+cel_android_library(
+    name = "lite_runtime_library_android",
+    srcs = ["CelLiteRuntimeLibrary.java"],
+    deps = [":lite_runtime_android"],
+)
 
 java_library(
     name = "evaluation_exception",
