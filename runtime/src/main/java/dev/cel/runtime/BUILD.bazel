@@ -451,8 +451,6 @@ java_library(
 
 # keep sorted
 RUNTIME_SOURCES = [
-    "CelLateFunctionBindings.java",
-    "CelResolvedOverload.java",
     "CelRuntime.java",
     "CelRuntimeBuilder.java",
     "CelRuntimeFactory.java",
@@ -462,6 +460,47 @@ RUNTIME_SOURCES = [
     "HierarchicalVariableResolver.java",
     "UnknownContext.java",
 ]
+
+LATE_FUNCTION_BINDING_SOURCES = [
+    "CelLateFunctionBindings.java",
+    "CelResolvedOverload.java",
+]
+
+java_library(
+    name = "late_function_binding",
+    srcs = LATE_FUNCTION_BINDING_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":dispatcher",
+        ":evaluation_exception",
+        ":function_binding",
+        ":function_overload",
+        ":function_overload_impl",
+        ":function_resolver",
+        "//:auto_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "late_function_binding_android",
+    srcs = LATE_FUNCTION_BINDING_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":dispatcher_android",
+        ":evaluation_exception",
+        ":function_binding_android",
+        ":function_overload",
+        ":function_overload_impl",
+        ":function_resolver",
+        "//:auto_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
 
 java_library(
     name = "lite_runtime_library",
@@ -677,8 +716,6 @@ java_library(
         ":evaluation_exception",
         ":evaluation_listener",
         ":function_binding",
-        ":function_overload",
-        ":function_overload_impl",
         ":function_resolver",
         ":interpretable",
         ":interpreter",

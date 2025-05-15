@@ -26,6 +26,7 @@ def java_lite_proto_cel_library_impl(
         name,
         deps,
         java_proto_library_dep,
+        constraints = [],
         java_descriptor_class_suffix = None,
         debug = False):
     """Generates a CelLiteDescriptor
@@ -35,6 +36,7 @@ def java_lite_proto_cel_library_impl(
        deps: The list of proto_library rules to generate Java code for.
        java_descriptor_class_suffix (optional): Suffix for the Java class name of the generated CEL lite descriptor.
                                                 Default is "CelLiteDescriptor".
+       constraints: (optional) List of strings that denote which environment the produced java_library label is associated in.
        java_proto_library_dep: (optional) Uses the provided java_lite_proto_library or java_proto_library to generate the lite descriptors.
                                 If none is provided, java_lite_proto_library is used by default behind the scenes. Most use cases should not need to provide this.
        debug: (optional) If true, prints additional information during codegen for debugging purposes.
@@ -69,6 +71,7 @@ def java_lite_proto_cel_library_impl(
         name = name,
         srcs = [":" + generated],
         deps = descriptor_codegen_deps,
+        javacopts = ["-Xep:PackageLocation:OFF"],  # TODO: Add generated annotation
     )
 
 def _generate_cel_lite_descriptor_class(ctx):

@@ -109,6 +109,7 @@ java_library(
         "//extensions:optional_library",
         "//runtime",
         "//runtime:function_binding",
+        "//runtime:late_function_binding",
         "//runtime:unknown_attributes",
         "@cel_spec//proto/cel/expr:checked_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",

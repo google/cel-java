@@ -275,6 +275,29 @@ public class CelLiteRuntimeAndroidTest {
   }
 
   @Test
+  @SuppressWarnings("rawtypes")
+  public void eval_customFunctions_asLateBoundFunctions() throws Exception {
+    CelLiteRuntime runtime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .addFunctionBindings(CelFunctionBinding.from("list_isEmpty", List.class, List::isEmpty))
+            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .build();
+    // Expr: ''.isEmpty() && [].isEmpty()
+    CelAbstractSyntaxTree ast = readCheckedExpr("compiled_custom_functions");
+    Program program = runtime.createProgram(ast);
+
+    boolean result =
+        (boolean)
+            program.eval(
+                ImmutableMap.of(),
+                CelLateFunctionBindings.from(
+                    CelFunctionBinding.from("string_isEmpty", String.class, String::isEmpty),
+                    CelFunctionBinding.from("list_isEmpty", List.class, List::isEmpty)));
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
   @TestParameters("{checkedExpr: 'compiled_proto2_select_primitives'}")
   @TestParameters("{checkedExpr: 'compiled_proto3_select_primitives'}")
   public void eval_protoMessage_unknowns(String checkedExpr) throws Exception {

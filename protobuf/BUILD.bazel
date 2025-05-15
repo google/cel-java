@@ -8,6 +8,7 @@ package(
 java_library(
     name = "cel_lite_descriptor",
     # used_by_android
+    visibility = ["//:android_allow_list"],
     exports = ["//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor"],
 )
 

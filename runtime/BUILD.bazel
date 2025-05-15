@@ -10,6 +10,7 @@ java_library(
     name = "runtime",
     exports = [
         ":evaluation_exception",
+        ":late_function_binding",
         "//runtime/src/main/java/dev/cel/runtime",
         "//runtime/src/main/java/dev/cel/runtime:descriptor_message_provider",
         "//runtime/src/main/java/dev/cel/runtime:function_overload",
@@ -60,6 +61,16 @@ cel_android_library(
 )
 
 java_library(
+    name = "late_function_binding",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:late_function_binding"],
+)
+
+cel_android_library(
+    name = "late_function_binding_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:late_function_binding_android"],
+)
+
+java_library(
     name = "function_overload_impl",
     # used_by_android
     visibility = ["//:internal"],
@@ -85,6 +96,7 @@ java_library(
 
 java_library(
     name = "evaluation_exception",
+    # used_by_android
     exports = ["//runtime/src/main/java/dev/cel/runtime:evaluation_exception"],
 )
 

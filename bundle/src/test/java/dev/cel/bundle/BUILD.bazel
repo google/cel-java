@@ -47,6 +47,7 @@ java_library(
         "//runtime:evaluation_exception_builder",
         "//runtime:evaluation_listener",
         "//runtime:function_binding",
+        "//runtime:late_function_binding",
         "//runtime:unknown_attributes",
         "@cel_spec//proto/cel/expr:checked_java_proto",
         "@cel_spec//proto/cel/expr:syntax_java_proto",
