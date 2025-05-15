@@ -45,6 +45,17 @@ public interface Interpretable {
    * directly such as recording telemetry or evaluation state in a more granular fashion than a more
    * general evaluation listener might permit.
    */
+  Object eval(GlobalResolver resolver, FunctionResolver lateBoundFunctionResolver)
+      throws CelEvaluationException;
+
+  /**
+   * Runs interpretation with the given activation which supplies name/value bindings.
+   *
+   * <p>This method allows for late-binding functions to be provided per-evaluation, which can be
+   * useful for binding functions which might have side-effects that are not observable to CEL
+   * directly such as recording telemetry or evaluation state in a more granular fashion than a more
+   * general evaluation listener might permit.
+   */
   Object eval(
       GlobalResolver resolver,
       FunctionResolver lateBoundFunctionResolver,

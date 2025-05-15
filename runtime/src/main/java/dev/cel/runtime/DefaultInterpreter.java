@@ -148,6 +148,14 @@ final class DefaultInterpreter implements Interpreter {
     }
 
     @Override
+    public Object eval(GlobalResolver resolver, FunctionResolver lateBoundFunctionResolver)
+        throws CelEvaluationException {
+      return eval(resolver,
+          lateBoundFunctionResolver,
+          CelEvaluationListener.noOpListener());
+    }
+
+    @Override
     public Object eval(
         GlobalResolver resolver,
         FunctionResolver lateBoundFunctionResolver,

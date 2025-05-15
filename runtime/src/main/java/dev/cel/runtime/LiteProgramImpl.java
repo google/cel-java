@@ -34,6 +34,16 @@ abstract class LiteProgramImpl implements CelLiteRuntime.Program {
     return interpretable().eval(Activation.copyOf(mapValue));
   }
 
+  @Override
+  public Object eval(Map<String, ?> mapValue, CelFunctionResolver lateBoundFunctionResolver)
+      throws CelEvaluationException {
+    return interpretable()
+        .eval(
+            Activation.copyOf(mapValue),
+            lateBoundFunctionResolver,
+            CelEvaluationListener.noOpListener());
+  }
+
   static CelLiteRuntime.Program plan(Interpretable interpretable) {
     return new AutoValue_LiteProgramImpl(interpretable);
   }

@@ -41,6 +41,8 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
@@ -604,5 +606,31 @@ public class CelLiteRuntimeTest {
                             .setNestedSingleFile(SingleFile.newBuilder().setName("foo").build())));
 
     assertThat(result).isEqualTo("foo");
+  }
+
+  @Test
+  public void eval_withLateBoundFunction() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                    "lateBoundFunc",
+                    CelOverloadDecl.newGlobalOverload(
+                        "lateBoundFunc_string", SimpleType.STRING, SimpleType.STRING)))
+            .build();
+    CelLiteRuntime celRuntime = CelLiteRuntimeFactory.newLiteRuntimeBuilder().build();
+    CelAbstractSyntaxTree ast = celCompiler.compile("lateBoundFunc('hello')").getAst();
+
+    String result =
+        (String)
+            celRuntime
+                .createProgram(ast)
+                .eval(
+                    ImmutableMap.of(),
+                    CelLateFunctionBindings.from(
+                        CelFunctionBinding.from(
+                            "lateBoundFunc_string", String.class, arg -> arg + " world")));
+
+    assertThat(result).isEqualTo("hello world");
   }
 }

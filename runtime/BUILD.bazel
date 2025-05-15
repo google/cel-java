@@ -51,25 +51,19 @@ java_library(
 
 java_library(
     name = "function_binding",
-    exports = [
-        "//runtime/src/main/java/dev/cel/runtime:function_binding",
-    ],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:function_binding"],
 )
 
 cel_android_library(
     name = "function_binding_android",
-    exports = [
-        "//runtime/src/main/java/dev/cel/runtime:function_binding_android",
-    ],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:function_binding_android"],
 )
 
 java_library(
     name = "function_overload_impl",
     # used_by_android
     visibility = ["//:internal"],
-    exports = [
-        "//runtime/src/main/java/dev/cel/runtime:function_overload_impl",
-    ],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:function_overload_impl"],
 )
 
 java_library(

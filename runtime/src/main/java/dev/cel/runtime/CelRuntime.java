@@ -43,13 +43,11 @@ public interface CelRuntime {
   @Immutable
   abstract class Program implements CelLiteRuntime.Program {
 
-    /** Evaluate the expression without any variables. */
     @Override
     public Object eval() throws CelEvaluationException {
       return evalInternal(Activation.EMPTY);
     }
 
-    /** Evaluate the expression using a {@code mapValue} as the source of input variables. */
     @Override
     public Object eval(Map<String, ?> mapValue) throws CelEvaluationException {
       return evalInternal(Activation.copyOf(mapValue));
@@ -77,10 +75,7 @@ public interface CelRuntime {
           CelEvaluationListener.noOpListener());
     }
 
-    /**
-     * Evaluate a compiled program with {@code mapValue} and late-bound functions {@code
-     * lateBoundFunctionResolver}.
-     */
+    @Override
     public Object eval(Map<String, ?> mapValue, CelFunctionResolver lateBoundFunctionResolver)
         throws CelEvaluationException {
       return evalInternal(
