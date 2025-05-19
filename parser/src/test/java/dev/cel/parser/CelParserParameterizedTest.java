@@ -31,6 +31,7 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.EnumDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Descriptors.OneofDescriptor;
+import com.google.protobuf.TextFormat;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
@@ -354,7 +355,7 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
         CelProtoAbstractSyntaxTree.fromCelAst(ast).toParsedExpr().getSourceInfo();
     testOutput().println("I: " + expression);
     testOutput().println("=====>");
-    testOutput().println("S: " + sourceInfo);
+    testOutput().println("S: " + TextFormat.printer().printToString(sourceInfo));
   }
 
   private String convertMacroCallsToString(SourceInfo sourceInfo) {
