@@ -177,14 +177,6 @@ public final class CelExtensions {
   }
 
   /**
-   * @deprecated Use {@link #sets(CelOptions)} instead.
-   */
-  @Deprecated
-  public static CelSetsExtensions sets() {
-    return sets(CelOptions.DEFAULT);
-  }
-
-  /**
    * Extended functions for Set manipulation.
    *
    * <p>Refer to README.md for available functions.
