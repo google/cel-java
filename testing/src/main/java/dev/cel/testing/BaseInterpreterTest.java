@@ -53,6 +53,7 @@ import com.google.protobuf.TextFormat;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
+import com.google.protobuf.UnredactedDebugFormatForTest;
 import com.google.protobuf.Value;
 import com.google.protobuf.util.JsonFormat;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -212,7 +213,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
         // pretty well for test purposes.
         result = ((ByteString) result).toStringUtf8();
       }
-      println("result:   " + result);
+      println("result:   " + UnredactedDebugFormatForTest.unredactedToString(result));
     } catch (CelEvaluationException e) {
       println("error:    " + e.getMessage());
       println("error_code:    " + e.getErrorCode());
@@ -2313,7 +2314,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
         if (value instanceof ByteString) {
           sb.append(getHumanReadableString((ByteString) value));
         } else {
-          sb.append(entry.getValue());
+          sb.append(UnredactedDebugFormatForTest.unredactedToString(entry.getValue()));
         }
       }
       sb.append("}");
@@ -2352,7 +2353,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     @Override
     public String toString() {
-      return map.toString();
+      return UnredactedDebugFormatForTest.unredactedToString(map);
     }
 
     private TestOnlyVariableResolver(Map<String, ?> map) {
