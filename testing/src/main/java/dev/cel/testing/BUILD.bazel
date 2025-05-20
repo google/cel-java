@@ -111,6 +111,7 @@ java_library(
         "//runtime:function_binding",
         "//runtime:late_function_binding",
         "//runtime:unknown_attributes",
+        "//third_party/java/protobuf:unredacted_debug_format_for_test",
         "@cel_spec//proto/cel/expr:checked_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",
