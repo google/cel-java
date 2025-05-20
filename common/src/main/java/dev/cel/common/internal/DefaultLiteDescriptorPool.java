@@ -50,6 +50,7 @@ import java.util.function.Supplier;
 @Internal
 public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
   private final ImmutableMap<String, MessageLiteDescriptor> protoFqnToMessageInfo;
+  private final ImmutableMap<Class<?>, MessageLiteDescriptor> classToMessageInfo;
 
   public static DefaultLiteDescriptorPool newInstance(CelLiteDescriptor... descriptors) {
     return newInstance(ImmutableSet.copyOf(descriptors));
@@ -57,6 +58,11 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
 
   public static DefaultLiteDescriptorPool newInstance(ImmutableSet<CelLiteDescriptor> descriptors) {
     return new DefaultLiteDescriptorPool(descriptors);
+  }
+
+  @Override
+  public Optional<MessageLiteDescriptor> findDescriptor(MessageLite messageLite) {
+    return Optional.ofNullable(classToMessageInfo.get(messageLite.getClass()));
   }
 
   @Override
@@ -292,15 +298,28 @@ public final class DefaultLiteDescriptorPool implements CelLiteDescriptorPool {
 
   private DefaultLiteDescriptorPool(ImmutableSet<CelLiteDescriptor> descriptors) {
     ImmutableMap.Builder<String, MessageLiteDescriptor> protoFqnMapBuilder = ImmutableMap.builder();
+    ImmutableMap.Builder<Class<?>, MessageLiteDescriptor> classMapBuilder = ImmutableMap.builder();
     for (WellKnownProto wellKnownProto : WellKnownProto.values()) {
       MessageLiteDescriptor wktMessageInfo = newMessageInfo(wellKnownProto);
       protoFqnMapBuilder.put(wellKnownProto.typeName(), wktMessageInfo);
+      classMapBuilder.put(wellKnownProto.messageClass(), wktMessageInfo);
     }
 
     for (CelLiteDescriptor descriptor : descriptors) {
       protoFqnMapBuilder.putAll(descriptor.getProtoTypeNamesToDescriptors());
+
+      for (MessageLiteDescriptor messageLiteDescriptor :
+          descriptor.getProtoTypeNamesToDescriptors().values()) {
+        // Note: message builder is null for proto maps.
+        Optional.ofNullable(messageLiteDescriptor.newMessageBuilder())
+            .ifPresent(
+                builder ->
+                    classMapBuilder.put(
+                        builder.getDefaultInstanceForType().getClass(), messageLiteDescriptor));
+      }
     }
 
     this.protoFqnToMessageInfo = protoFqnMapBuilder.buildOrThrow();
+    this.classToMessageInfo = classMapBuilder.buildOrThrow();
   }
 }
