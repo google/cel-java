@@ -1,0 +1,111 @@
+load("@rules_java//java:java_library.bzl", "java_library")
+load("@rules_java//java:java_test.bzl", "java_test")
+load("@rules_proto//proto:defs.bzl", "proto_descriptor_set")
+load("//testing/testrunner:cel_java_test.bzl", "cel_java_test")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = 1,
+    default_visibility = [
+        "//testing/testrunner:__pkg__",
+    ],
+)
+
+proto_descriptor_set(
+    name = "test_all_types_fds",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
+    ],
+)
+
+# Since the user test class is triggered by the cel_test_runner rule, we should not add it to the
+# junit4_test_suite.
+# This is just a sample test class for the cel_test_runner rule.
+java_library(
+    name = "user_test",
+    srcs = ["UserTest.java"],
+    deps = [
+        "//bundle:cel",
+        "//common/types",
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@maven//:junit_junit",
+    ],
+)
+
+# This is just a sample test class for the cel_test_runner rule.
+java_library(
+    name = "env_config_user_test",
+    srcs = ["EnvConfigUserTest.java"],
+    deps = [
+        "//bundle:cel",
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_library(
+    name = "late_function_binding_user_test",
+    srcs = ["LateFunctionBindingUserTest.java"],
+    deps = [
+        "//runtime",
+        "//runtime:function_binding",
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_library(
+    name = "custom_variable_binding_user_test",
+    srcs = ["CustomVariableBindingUserTest.java"],
+    deps = [
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_library(
+    name = "context_pb_user_test",
+    srcs = ["ContextPbUserTest.java"],
+    deps = [
+        "//bundle:cel",
+        "//checker:proto_type_mask",
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_test(
+    name = "junit_xml_reporter_test",
+    srcs = ["JUnitXmlReporterTest.java"],
+    test_class = "dev.cel.testing.testrunner.JUnitXmlReporterTest",
+    deps = [
+        "//:java_truth",
+        "//testing/testrunner:junit_xml_reporter",
+        "@maven//:junit_junit",
+        "@maven//:org_mockito_mockito_core",
+    ],
+)
+
+cel_java_test(
+    name = "custom_variable_binding_test_runner_sample",
+    cel_expr = "custom_variable_bindings/policy.yaml",
+    config = "custom_variable_bindings/config.yaml",
+    file_descriptor_set = ":test_all_types_fds",
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":custom_variable_binding_user_test",
+    test_suite = "custom_variable_bindings/tests.yaml",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+    ],
+)
