@@ -18,10 +18,6 @@ register_toolchains("//:repository_default_toolchain_definition")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 
-# Load license rules.
-# Must be loaded first due to https://github.com/bazel-contrib/rules_jvm_external/issues/1244
-
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
     name = "rules_license",
     urls = [
@@ -71,7 +67,7 @@ http_archive(
 http_archive(
     name = "com_google_protobuf",
     sha256 = "008a11cc56f9b96679b4c285fd05f46d317d685be3ab524b2a310be0fbad987e",
-    strip_prefix = "protobuf-29.3",
+    strip_prefix = "protobuf-29.3", # See https://github.com/bazelbuild/rules_android/issues/373
     urls = ["https://github.com/protocolbuffers/protobuf/archive/v29.3.tar.gz"],
 )
 
@@ -132,8 +128,8 @@ maven_install(
         "com.google.auto.value:auto-value-annotations:1.11.0",
         "com.google.guava:guava:33.4.0-jre",
         "com.google.guava:guava-testlib:33.4.0-jre",
-        "com.google.protobuf:protobuf-java:4.29.3",
-        "com.google.protobuf:protobuf-java-util:4.29.3",
+        "com.google.protobuf:protobuf-java:4.31.0",
+        "com.google.protobuf:protobuf-java-util:4.31.0",
         "com.google.re2j:re2j:1.8",
         "info.picocli:picocli:4.7.6",
         "org.antlr:antlr4-runtime:" + ANTLR4_VERSION,
@@ -162,7 +158,7 @@ maven_install(
     # keep sorted
     artifacts = [
         "com.google.guava:guava:33.4.0-android",
-        "com.google.protobuf:protobuf-javalite:4.29.3",
+        "com.google.protobuf:protobuf-javalite:4.31.0",
     ],
     repositories = [
         "https://maven.google.com",
