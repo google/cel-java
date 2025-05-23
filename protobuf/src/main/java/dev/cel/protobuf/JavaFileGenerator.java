@@ -58,7 +58,10 @@ final class JavaFileGenerator {
     Writer out = new StringWriter();
     template.process(option.getTemplateMap(), out);
 
-    return GeneratedClass.create(option.descriptorClassName(), out.toString());
+    return GeneratedClass.create(
+        /* packageName= */ option.packageName(),
+        /* className= */ option.descriptorClassName(),
+        /* code= */ out.toString());
   }
 
   static void writeSrcJar(String srcjarFilePath, Collection<GeneratedClass> generatedClasses)
@@ -69,7 +72,9 @@ final class JavaFileGenerator {
     try (FileOutputStream fos = new FileOutputStream(srcjarFilePath);
         ZipOutputStream zos = new ZipOutputStream(fos)) {
       for (GeneratedClass generatedClass : generatedClasses) {
-        ZipEntry entry = new ZipEntry(generatedClass.className() + ".java");
+        // Replace com.foo.bar to com/foo/bar.java in order to conform with package location
+        String javaFileName = generatedClass.fullyQualifiedClassName().replace('.', '/') + ".java";
+        ZipEntry entry = new ZipEntry(javaFileName);
         zos.putNextEntry(entry);
 
         try (InputStream inputStream =
@@ -84,12 +89,12 @@ final class JavaFileGenerator {
 
   @AutoValue
   abstract static class GeneratedClass {
-    abstract String className();
+    abstract String fullyQualifiedClassName();
 
     abstract String code();
 
-    static GeneratedClass create(String className, String code) {
-      return new AutoValue_JavaFileGenerator_GeneratedClass(className, code);
+    static GeneratedClass create(String packageName, String className, String code) {
+      return new AutoValue_JavaFileGenerator_GeneratedClass(packageName + "." + className, code);
     }
   }
 

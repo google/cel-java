@@ -11,6 +11,7 @@ package(
 
 # keep sorted
 ANNOTATION_SOURCES = [
+    "Generated.java",
     "Internal.java",
 ]
 

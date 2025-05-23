@@ -63,6 +63,7 @@ def java_lite_proto_cel_library_impl(
         )
 
     descriptor_codegen_deps = [
+        "//common/annotations",
         "//protobuf:cel_lite_descriptor",
         java_proto_library_dep,
     ]
@@ -71,7 +72,6 @@ def java_lite_proto_cel_library_impl(
         name = name,
         srcs = [":" + generated],
         deps = descriptor_codegen_deps,
-        javacopts = ["-Xep:PackageLocation:OFF"],  # TODO: Add generated annotation
     )
 
 def _generate_cel_lite_descriptor_class(ctx):
