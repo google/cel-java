@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import dev.cel.common.CelDescriptorUtil;
@@ -104,10 +105,9 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
                 targetDescriptorProtoPath));
       }
 
-      GeneratedClass generatedClass = codegenCelLiteDescriptor(targetFileDescriptor);
-      debugPrinter.print("Generated Class:\n" + generatedClass.code());
-
-      generatedClassesBuilder.add(generatedClass);
+      ImmutableList<GeneratedClass> generatedClasses =
+          codegenCelLiteDescriptors(targetFileDescriptor);
+      generatedClassesBuilder.addAll(generatedClasses);
     }
 
     JavaFileGenerator.writeSrcJar(outPath, generatedClassesBuilder.build());
@@ -115,43 +115,44 @@ final class CelLiteDescriptorGenerator implements Callable<Integer> {
     return 0;
   }
 
-  private GeneratedClass codegenCelLiteDescriptor(FileDescriptor targetFileDescriptor)
-      throws Exception {
+  private ImmutableList<GeneratedClass> codegenCelLiteDescriptors(
+      FileDescriptor targetFileDescriptor) throws Exception {
     String javaPackageName = ProtoJavaQualifiedNames.getJavaPackageName(targetFileDescriptor);
     String javaClassName;
 
-    // Derive the java class name. Use first encountered message/enum in the FDS as a default,
-    // with a suffix applied for uniqueness (we don't want to collide with java protoc default
-    // generated class name).
-    if (!targetFileDescriptor.getMessageTypes().isEmpty()) {
-      javaClassName = targetFileDescriptor.getMessageTypes().get(0).getName();
-    } else if (!targetFileDescriptor.getEnumTypes().isEmpty()) {
-      javaClassName = targetFileDescriptor.getEnumTypes().get(0).getName();
-    } else {
-      throw new IllegalArgumentException("File descriptor does not contain any messages or enums!");
+    List<Descriptor> descriptors = targetFileDescriptor.getMessageTypes();
+    if (descriptors.isEmpty()) {
+      throw new IllegalArgumentException("File descriptor does not contain any messages!");
     }
-
-    String javaSuffixName =
-        overriddenDescriptorClassSuffix.isEmpty()
-            ? DEFAULT_CEL_LITE_DESCRIPTOR_CLASS_SUFFIX
-            : overriddenDescriptorClassSuffix;
-    javaClassName += javaSuffixName;
 
     ProtoDescriptorCollector descriptorCollector =
         ProtoDescriptorCollector.newInstance(debugPrinter);
 
-    debugPrinter.print(
-        String.format(
-            "Fully qualified descriptor java class name: %s.%s", javaPackageName, javaClassName));
+    ImmutableList.Builder<GeneratedClass> generatedClassBuilder = ImmutableList.builder();
+    for (Descriptor messageDescriptor : descriptors) {
+      javaClassName = messageDescriptor.getName();
+      String javaSuffixName =
+          overriddenDescriptorClassSuffix.isEmpty()
+              ? DEFAULT_CEL_LITE_DESCRIPTOR_CLASS_SUFFIX
+              : overriddenDescriptorClassSuffix;
+      javaClassName += javaSuffixName;
 
-    return JavaFileGenerator.generateClass(
-        JavaFileGeneratorOption.newBuilder()
-            .setVersion(version)
-            .setDescriptorClassName(javaClassName)
-            .setPackageName(javaPackageName)
-            .setDescriptorMetadataList(
-                descriptorCollector.collectCodegenMetadata(targetFileDescriptor))
-            .build());
+      debugPrinter.print(
+          String.format(
+              "Fully qualified descriptor java class name: %s.%s", javaPackageName, javaClassName));
+
+      generatedClassBuilder.add(
+          JavaFileGenerator.generateClass(
+              JavaFileGeneratorOption.newBuilder()
+                  .setVersion(version)
+                  .setDescriptorClassName(javaClassName)
+                  .setPackageName(javaPackageName)
+                  .setDescriptorMetadataList(
+                      descriptorCollector.collectCodegenMetadata(messageDescriptor))
+                  .build()));
+    }
+
+    return generatedClassBuilder.build();
   }
 
   private String extractProtoPath(String descriptorPath) {

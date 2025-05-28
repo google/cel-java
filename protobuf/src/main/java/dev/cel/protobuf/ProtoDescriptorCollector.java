@@ -37,20 +37,19 @@ final class ProtoDescriptorCollector {
 
   private final DebugPrinter debugPrinter;
 
-  ImmutableList<LiteDescriptorCodegenMetadata> collectCodegenMetadata(
-      FileDescriptor targetFileDescriptor) {
+  ImmutableList<LiteDescriptorCodegenMetadata> collectCodegenMetadata(Descriptor descriptor) {
     ImmutableList.Builder<LiteDescriptorCodegenMetadata> descriptorListBuilder =
         ImmutableList.builder();
     ImmutableList<Descriptor> descriptorList =
-        collect(targetFileDescriptor).stream()
+        collectNested(descriptor).stream()
             // Don't collect WKTs. They are included in the default descriptor pool.
             .filter(d -> !WellKnownProto.getByTypeName(d.getFullName()).isPresent())
             .collect(toImmutableList());
 
-    for (Descriptor descriptor : descriptorList) {
+    for (Descriptor messageDescriptor : descriptorList) {
       LiteDescriptorCodegenMetadata.Builder descriptorCodegenBuilder =
           LiteDescriptorCodegenMetadata.newBuilder();
-      for (Descriptors.FieldDescriptor fieldDescriptor : descriptor.getFields()) {
+      for (Descriptors.FieldDescriptor fieldDescriptor : messageDescriptor.getFields()) {
         FieldLiteDescriptorMetadata.Builder fieldDescriptorCodegenBuilder =
             FieldLiteDescriptorMetadata.newBuilder()
                 .setFieldNumber(fieldDescriptor.getNumber())
@@ -85,16 +84,17 @@ final class ProtoDescriptorCollector {
         debugPrinter.print(
             String.format(
                 "Collecting message %s, for field %s, type: %s",
-                descriptor.getFullName(),
+                messageDescriptor.getFullName(),
                 fieldDescriptor.getFullName(),
                 fieldDescriptor.getType()));
       }
 
-      descriptorCodegenBuilder.setProtoTypeName(descriptor.getFullName());
+      descriptorCodegenBuilder.setProtoTypeName(messageDescriptor.getFullName());
       // Maps are resolved as an actual Java map, and doesn't have a MessageLite.Builder associated.
-      if (!descriptor.getOptions().getMapEntry()) {
+      if (!messageDescriptor.getOptions().getMapEntry()) {
         String sanitizedJavaClassName =
-            ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(descriptor).replace('$', '.');
+            ProtoJavaQualifiedNames.getFullyQualifiedJavaClassName(messageDescriptor)
+                .replace('$', '.');
         descriptorCodegenBuilder.setJavaClassName(sanitizedJavaClassName);
       }
 
@@ -177,19 +177,17 @@ final class ProtoDescriptorCollector {
     throw new IllegalArgumentException("Unknown JavaType: " + javaType);
   }
 
-  private static ImmutableSet<Descriptor> collect(FileDescriptor fileDescriptor) {
+  private static ImmutableSet<Descriptor> collectNested(Descriptor descriptor) {
     ImmutableSet.Builder<Descriptor> builder = ImmutableSet.builder();
-    for (Descriptor descriptor : fileDescriptor.getMessageTypes()) {
-      collect(builder, descriptor);
-    }
-
+    collectNested(builder, descriptor);
     return builder.build();
   }
 
-  private static void collect(ImmutableSet.Builder<Descriptor> builder, Descriptor descriptor) {
+  private static void collectNested(
+      ImmutableSet.Builder<Descriptor> builder, Descriptor descriptor) {
     builder.add(descriptor);
     for (Descriptor nested : descriptor.getNestedTypes()) {
-      collect(builder, nested);
+      collectNested(builder, nested);
     }
   }
 

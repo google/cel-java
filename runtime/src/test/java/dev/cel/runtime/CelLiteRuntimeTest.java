@@ -54,8 +54,11 @@ import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.expr.conformance.proto3.TestAllTypesCelDescriptor;
 import dev.cel.parser.CelStandardMacro;
+import dev.cel.testing.testdata.MessageWithEnum;
+import dev.cel.testing.testdata.MessageWithEnumCelDescriptor;
 import dev.cel.testing.testdata.MultiFile;
 import dev.cel.testing.testdata.MultiFileCelDescriptor;
+import dev.cel.testing.testdata.SimpleEnum;
 import dev.cel.testing.testdata.SingleFileCelDescriptor;
 import dev.cel.testing.testdata.SingleFileProto.SingleFile;
 import java.util.ArrayList;
@@ -659,5 +662,33 @@ public class CelLiteRuntimeTest {
     TestAllTypes result = (TestAllTypes) celRuntime.createProgram(ast).eval();
 
     assertThat(result).isEqualToDefaultInstance();
+  }
+
+  @Test
+  public void eval_withEnumField() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addVar(
+                "msg", StructTypeReference.create(MessageWithEnum.getDescriptor().getFullName()))
+            .addMessageTypes(MessageWithEnum.getDescriptor())
+            .build();
+    CelLiteRuntime celLiteRuntime =
+        CelLiteRuntimeFactory.newLiteRuntimeBuilder()
+            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setValueProvider(
+                ProtoMessageLiteValueProvider.newInstance(
+                    MessageWithEnumCelDescriptor.getDescriptor()))
+            .build();
+    CelAbstractSyntaxTree ast = celCompiler.compile("msg.simple_enum").getAst();
+
+    Long result =
+        (Long)
+            celLiteRuntime
+                .createProgram(ast)
+                .eval(
+                    ImmutableMap.of(
+                        "msg", MessageWithEnum.newBuilder().setSimpleEnum(SimpleEnum.BAR)));
+
+    assertThat(result).isEqualTo(SimpleEnum.BAR.getNumber());
   }
 }

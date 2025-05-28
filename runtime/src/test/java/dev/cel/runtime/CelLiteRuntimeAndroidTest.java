@@ -44,6 +44,7 @@ import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.expr.conformance.proto3.NestedTestAllTypes;
+import dev.cel.expr.conformance.proto3.NestedTestAllTypesCelLiteDescriptor;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
 import dev.cel.extensions.CelLiteExtensions;
@@ -320,7 +321,10 @@ public class CelLiteRuntimeAndroidTest {
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
                     dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
-                    TestAllTypesCelLiteDescriptor.getDescriptor()))
+                    dev.cel.expr.conformance.proto2.NestedTestAllTypesCelLiteDescriptor
+                        .getDescriptor(),
+                    TestAllTypesCelLiteDescriptor.getDescriptor(),
+                    NestedTestAllTypesCelLiteDescriptor.getDescriptor()))
             .build();
     // Ensures that all branches of the OR conditions are evaluated, and that appropriate defaults
     // are returned for primitives.
@@ -454,7 +458,10 @@ public class CelLiteRuntimeAndroidTest {
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
                     dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
-                    TestAllTypesCelLiteDescriptor.getDescriptor()))
+                    dev.cel.expr.conformance.proto2.NestedTestAllTypesCelLiteDescriptor
+                        .getDescriptor(),
+                    TestAllTypesCelLiteDescriptor.getDescriptor(),
+                    NestedTestAllTypesCelLiteDescriptor.getDescriptor()))
             .build();
     // Expr: proto2.oneof_type.payload.repeated_string
     CelAbstractSyntaxTree ast = readCheckedExpr(checkedExpr);
@@ -483,7 +490,10 @@ public class CelLiteRuntimeAndroidTest {
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
                     dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
-                    TestAllTypesCelLiteDescriptor.getDescriptor()))
+                    dev.cel.expr.conformance.proto2.NestedTestAllTypesCelLiteDescriptor
+                        .getDescriptor(),
+                    TestAllTypesCelLiteDescriptor.getDescriptor(),
+                    NestedTestAllTypesCelLiteDescriptor.getDescriptor()))
             .build();
     // Expr: proto2.oneof_type.payload.repeated_string
     CelAbstractSyntaxTree ast = readCheckedExpr(checkedExpr);

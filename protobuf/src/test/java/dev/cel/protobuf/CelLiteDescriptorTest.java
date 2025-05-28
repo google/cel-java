@@ -40,8 +40,6 @@ public class CelLiteDescriptorTest {
     assertThat(protoNamesToDescriptors).containsKey("cel.expr.conformance.proto3.TestAllTypes");
     assertThat(protoNamesToDescriptors)
         .containsKey("cel.expr.conformance.proto3.TestAllTypes.NestedMessage");
-    assertThat(protoNamesToDescriptors)
-        .containsKey("cel.expr.conformance.proto3.NestedTestAllTypes");
   }
 
   @Test

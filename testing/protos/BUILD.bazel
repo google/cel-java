@@ -20,6 +20,11 @@ alias(
 )
 
 alias(
+    name = "message_with_enum_java_proto",
+    actual = "//testing/src/test/resources/protos:message_with_enum_java_proto",
+)
+
+alias(
     name = "multi_file_cel_java_proto_lite",
     actual = "//testing/src/test/resources/protos:multi_file_cel_java_proto_lite",
 )
@@ -42,4 +47,9 @@ alias(
 alias(
     name = "test_all_types_cel_java_proto3",
     actual = "//testing/src/test/resources/protos:test_all_types_cel_java_proto3",
+)
+
+alias(
+    name = "message_with_enum_cel_java_proto",
+    actual = "//testing/src/test/resources/protos:message_with_enum_cel_java_proto",
 )
