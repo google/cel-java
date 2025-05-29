@@ -150,9 +150,7 @@ final class DefaultInterpreter implements Interpreter {
     @Override
     public Object eval(GlobalResolver resolver, FunctionResolver lateBoundFunctionResolver)
         throws CelEvaluationException {
-      return eval(resolver,
-          lateBoundFunctionResolver,
-          CelEvaluationListener.noOpListener());
+      return eval(resolver, lateBoundFunctionResolver, CelEvaluationListener.noOpListener());
     }
 
     @Override
@@ -365,12 +363,10 @@ final class DefaultInterpreter implements Interpreter {
         return IntermediateResult.create(attribute, operand);
       }
 
-      CelType operandCheckedType = getCheckedTypeOrThrow(operandExpr);
       if (isTestOnly) {
-        return IntermediateResult.create(
-            attribute, typeProvider.hasField(operandCheckedType.name(), operand, field));
+        return IntermediateResult.create(attribute, typeProvider.hasField(operand, field));
       }
-      Object fieldValue = typeProvider.selectField(operandCheckedType.name(), operand, field);
+      Object fieldValue = typeProvider.selectField(operand, field);
 
       return IntermediateResult.create(
           attribute, InterpreterUtil.valueOrUnknown(fieldValue, expr.id()));
@@ -736,9 +732,7 @@ final class DefaultInterpreter implements Interpreter {
       }
 
       String field = callExpr.args().get(1).constant().stringValue();
-      CelType checkedType = getCheckedTypeOrThrow(expr);
-      boolean hasField =
-          (boolean) typeProvider.hasField(checkedType.name(), lhsResult.value(), field);
+      boolean hasField = (boolean) typeProvider.hasField(lhsResult.value(), field);
       if (!hasField) {
         // Protobuf sets default (zero) values to uninitialized fields.
         // In case of CEL's optional values, we want to explicitly return Optional.none()

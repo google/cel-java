@@ -36,7 +36,6 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.internal.DefaultLiteDescriptorPool;
-import dev.cel.common.internal.WellKnownProto;
 import dev.cel.common.values.ProtoLiteCelValueConverter.MessageFields;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypesCelDescriptor;
@@ -59,47 +58,36 @@ public class ProtoLiteCelValueConverterTest {
     ProtoMessageLiteValue protoMessageLiteValue =
         (ProtoMessageLiteValue)
             PROTO_LITE_CEL_VALUE_CONVERTER.fromProtoMessageToCelValue(
-                "cel.expr.conformance.proto3.TestAllTypes", TestAllTypes.getDefaultInstance());
+                TestAllTypes.getDefaultInstance());
 
     assertThat(protoMessageLiteValue.value()).isEqualTo(TestAllTypes.getDefaultInstance());
   }
 
   private enum WellKnownProtoTestCase {
-    BOOL(WellKnownProto.BOOL_VALUE, com.google.protobuf.BoolValue.of(true), BoolValue.create(true)),
+    BOOL(com.google.protobuf.BoolValue.of(true), BoolValue.create(true)),
     BYTES(
-        WellKnownProto.BYTES_VALUE,
         com.google.protobuf.BytesValue.of(ByteString.copyFromUtf8("test")),
         BytesValue.create(CelByteString.of("test".getBytes(UTF_8)))),
-    FLOAT(WellKnownProto.FLOAT_VALUE, FloatValue.of(1.0f), DoubleValue.create(1.0f)),
-    DOUBLE(
-        WellKnownProto.DOUBLE_VALUE,
-        com.google.protobuf.DoubleValue.of(1.0),
-        DoubleValue.create(1.0)),
-    INT32(WellKnownProto.INT32_VALUE, Int32Value.of(1), IntValue.create(1)),
-    INT64(WellKnownProto.INT64_VALUE, Int64Value.of(1L), IntValue.create(1L)),
-    STRING(
-        WellKnownProto.STRING_VALUE,
-        com.google.protobuf.StringValue.of("test"),
-        StringValue.create("test")),
+    FLOAT(FloatValue.of(1.0f), DoubleValue.create(1.0f)),
+    DOUBLE(com.google.protobuf.DoubleValue.of(1.0), DoubleValue.create(1.0)),
+    INT32(Int32Value.of(1), IntValue.create(1)),
+    INT64(Int64Value.of(1L), IntValue.create(1L)),
+    STRING(com.google.protobuf.StringValue.of("test"), StringValue.create("test")),
 
     DURATION(
-        WellKnownProto.DURATION,
         Duration.newBuilder().setSeconds(10).setNanos(50).build(),
         DurationValue.create(java.time.Duration.ofSeconds(10, 50))),
     TIMESTAMP(
-        WellKnownProto.TIMESTAMP,
         Timestamp.newBuilder().setSeconds(1678886400L).setNanos(123000000).build(),
         TimestampValue.create(Instant.ofEpochSecond(1678886400L, 123000000))),
-    UINT32(WellKnownProto.UINT32_VALUE, UInt32Value.of(1), UintValue.create(1)),
-    UINT64(WellKnownProto.UINT64_VALUE, UInt64Value.of(1L), UintValue.create(1L)),
+    UINT32(UInt32Value.of(1), UintValue.create(1)),
+    UINT64(UInt64Value.of(1L), UintValue.create(1L)),
     ;
 
-    private final WellKnownProto wellKnownProto;
     private final MessageLite msg;
     private final CelValue celValue;
 
-    WellKnownProtoTestCase(WellKnownProto wellKnownProto, MessageLite msg, CelValue celValue) {
-      this.wellKnownProto = wellKnownProto;
+    WellKnownProtoTestCase(MessageLite msg, CelValue celValue) {
       this.msg = msg;
       this.celValue = celValue;
     }
@@ -109,8 +97,7 @@ public class ProtoLiteCelValueConverterTest {
   public void fromProtoMessageToCelValue_withWellKnownProto_convertsToEquivalentCelValue(
       @TestParameter WellKnownProtoTestCase testCase) {
     CelValue convertedCelValue =
-        PROTO_LITE_CEL_VALUE_CONVERTER.fromProtoMessageToCelValue(
-            testCase.wellKnownProto.typeName(), testCase.msg);
+        PROTO_LITE_CEL_VALUE_CONVERTER.fromProtoMessageToCelValue(testCase.msg);
 
     assertThat(convertedCelValue).isEqualTo(testCase.celValue);
   }

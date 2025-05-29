@@ -57,12 +57,12 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
   }
 
   @Override
-  public CelValue fromProtoMessageToCelValue(String unusedProtoTypeName, MessageLite msg) {
-    return fromProtoMessageToCelValue((MessageOrBuilder) msg);
+  public CelValue fromProtoMessageToCelValue(MessageLite msg) {
+    return fromDescriptorMessageToCelValue((MessageOrBuilder) msg);
   }
 
   /** Adapts a Protobuf message into a {@link CelValue}. */
-  public CelValue fromProtoMessageToCelValue(MessageOrBuilder message) {
+  public CelValue fromDescriptorMessageToCelValue(MessageOrBuilder message) {
     Preconditions.checkNotNull(message);
 
     // Attempt to convert the proto from a dynamic message into a concrete message if possible.
@@ -151,7 +151,7 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
           return fromJavaObjectToCelValue(map);
         }
 
-        return fromProtoMessageToCelValue((MessageOrBuilder) result);
+        return fromDescriptorMessageToCelValue((MessageOrBuilder) result);
       case UINT32:
         return UintValue.create((int) result);
       case UINT64:

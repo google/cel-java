@@ -41,7 +41,7 @@ final class CelValueRuntimeTypeProvider implements RuntimeTypeProvider {
   private static final BaseProtoCelValueConverter DEFAULT_CEL_VALUE_CONVERTER =
       new BaseProtoCelValueConverter() {
         @Override
-        public CelValue fromProtoMessageToCelValue(String protoTypeName, MessageLite msg) {
+        public CelValue fromProtoMessageToCelValue(MessageLite msg) {
           throw new UnsupportedOperationException(
               "A value provider must be provided in the runtime to handle protobuf messages");
         }
@@ -82,28 +82,24 @@ final class CelValueRuntimeTypeProvider implements RuntimeTypeProvider {
   }
 
   @Override
-  public Object selectField(String typeName, Object message, String fieldName) {
-    SelectableValue<CelValue> selectableValue =
-        getSelectableValueOrThrow(typeName, message, fieldName);
+  public Object selectField(Object message, String fieldName) {
+    SelectableValue<CelValue> selectableValue = getSelectableValueOrThrow(message, fieldName);
 
     return unwrapCelValue(selectableValue.select(StringValue.create(fieldName)));
   }
 
   @Override
-  public Object hasField(String messageName, Object message, String fieldName) {
-    SelectableValue<CelValue> selectableValue =
-        getSelectableValueOrThrow(messageName, message, fieldName);
+  public Object hasField(Object message, String fieldName) {
+    SelectableValue<CelValue> selectableValue = getSelectableValueOrThrow(message, fieldName);
 
     return selectableValue.find(StringValue.create(fieldName)).isPresent();
   }
 
   @SuppressWarnings("unchecked")
-  private SelectableValue<CelValue> getSelectableValueOrThrow(
-      String typeName, Object obj, String fieldName) {
+  private SelectableValue<CelValue> getSelectableValueOrThrow(Object obj, String fieldName) {
     CelValue convertedCelValue;
     if ((obj instanceof MessageLite)) {
-      convertedCelValue =
-          protoCelValueConverter.fromProtoMessageToCelValue(typeName, (MessageLite) obj);
+      convertedCelValue = protoCelValueConverter.fromProtoMessageToCelValue((MessageLite) obj);
     } else {
       convertedCelValue = protoCelValueConverter.fromJavaObjectToCelValue(obj);
     }
@@ -128,7 +124,7 @@ final class CelValueRuntimeTypeProvider implements RuntimeTypeProvider {
 
     if (message instanceof MessageLite) {
       return unwrapCelValue(
-          protoCelValueConverter.fromProtoMessageToCelValue(messageName, (MessageLite) message));
+          protoCelValueConverter.fromProtoMessageToCelValue((MessageLite) message));
     } else {
       return unwrapCelValue(protoCelValueConverter.fromJavaObjectToCelValue(message));
     }

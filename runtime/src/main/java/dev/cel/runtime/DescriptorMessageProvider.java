@@ -98,7 +98,7 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
 
   @Override
   @SuppressWarnings("unchecked")
-  public @Nullable Object selectField(String unusedTypeName, Object message, String fieldName) {
+  public @Nullable Object selectField(Object message, String fieldName) {
     boolean isOptionalMessage = false;
     if (message instanceof Optional) {
       isOptionalMessage = true;
@@ -148,7 +148,7 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
   }
 
   @Override
-  public Object hasField(String messageName, Object message, String fieldName) {
+  public Object hasField(Object message, String fieldName) {
     if (message instanceof Optional<?>) {
       Optional<?> optionalMessage = (Optional<?>) message;
       if (!optionalMessage.isPresent()) {

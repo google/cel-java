@@ -157,8 +157,7 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
 
     Object defaultValue = getDefaultValue(fieldDescriptor);
     if (defaultValue instanceof MessageLite) {
-      return fromProtoMessageToCelValue(
-          fieldDescriptor.getFieldProtoTypeName(), (MessageLite) defaultValue);
+      return fromProtoMessageToCelValue((MessageLite) defaultValue);
     }
 
     return fromJavaObjectToCelValue(defaultValue);
@@ -357,17 +356,15 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
   }
 
   @Override
-  public CelValue fromProtoMessageToCelValue(String protoTypeName, MessageLite msg) {
+  @SuppressWarnings("LiteProtoToString") // No alternative identifier to use. Debug only info is OK.
+  public CelValue fromProtoMessageToCelValue(MessageLite msg) {
     checkNotNull(msg);
-    checkNotNull(protoTypeName);
 
     MessageLiteDescriptor descriptor =
         descriptorPool
             .findDescriptor(msg)
             .orElseThrow(
-                () ->
-                    new NoSuchElementException(
-                        "Could not find a descriptor for: " + protoTypeName));
+                () -> new NoSuchElementException("Could not find a descriptor for: " + msg));
     WellKnownProto wellKnownProto =
         WellKnownProto.getByTypeName(descriptor.getProtoTypeName()).orElse(null);
 

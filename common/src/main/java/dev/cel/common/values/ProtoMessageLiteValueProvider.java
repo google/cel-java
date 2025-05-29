@@ -53,7 +53,7 @@ public class ProtoMessageLiteValueProvider extends BaseProtoMessageValueProvider
     }
 
     MessageLite message = descriptor.newMessageBuilder().build();
-    return Optional.of(protoLiteCelValueConverter.fromProtoMessageToCelValue(structType, message));
+    return Optional.of(protoLiteCelValueConverter.fromProtoMessageToCelValue(message));
   }
 
   public static ProtoMessageLiteValueProvider newInstance(CelLiteDescriptor... descriptors) {

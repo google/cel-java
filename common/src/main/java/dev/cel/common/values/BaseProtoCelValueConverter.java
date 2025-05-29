@@ -51,7 +51,7 @@ import java.util.Optional;
 @Internal
 public abstract class BaseProtoCelValueConverter extends CelValueConverter {
 
-  public abstract CelValue fromProtoMessageToCelValue(String protoTypeName, MessageLite msg);
+  public abstract CelValue fromProtoMessageToCelValue(MessageLite msg);
 
   /**
    * Adapts a {@link CelValue} to a native Java object. The CelValue is adapted into protobuf object

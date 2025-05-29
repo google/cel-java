@@ -29,10 +29,10 @@ public interface MessageProvider {
   Object createMessage(String messageName, Map<String, Object> values);
 
   /** Select field from message. */
-  Object selectField(String messageName, Object message, String fieldName);
+  Object selectField(Object message, String fieldName);
 
   /** Check whether a field is set on message. */
-  Object hasField(String messageName, Object message, String fieldName);
+  Object hasField(Object message, String fieldName);
 
   /** Adapt object to its message value with source location metadata on failure. */
   Object adapt(String messageName, Object message);
