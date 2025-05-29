@@ -22,6 +22,7 @@ java_library(
         ":lists",
         ":math",
         ":protos",
+        ":regex",
         ":sets",
         ":sets_function",
         ":strings",
@@ -239,5 +240,21 @@ java_library(
         "//runtime",
         "//runtime:function_binding",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "regex",
+    srcs = ["CelRegexExtensions.java"],
+    deps = [
+        "//checker:checker_builder",
+        "//common:compiler_common",
+        "//common/types",
+        "//compiler:compiler_builder",
+        "//runtime",
+        "//runtime:function_binding",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_re2j_re2j",
     ],
 )
