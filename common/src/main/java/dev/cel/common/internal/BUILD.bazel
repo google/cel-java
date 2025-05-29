@@ -409,7 +409,7 @@ java_library(
 )
 
 cel_android_library(
-    name = "proto_time_util_android",
+    name = "proto_time_utils_android",
     srcs = ["ProtoTimeUtils.java"],
     tags = [
     ],
