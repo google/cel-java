@@ -195,7 +195,7 @@ cel_android_library(
         ":cel_value_android",
         ":values_android",
         "//common/annotations",
-        "//common/internal:proto_time_util_android",
+        "//common/internal:proto_time_utils_android",
         "//common/internal:well_known_proto_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
