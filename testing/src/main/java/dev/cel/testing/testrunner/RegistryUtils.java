@@ -31,23 +31,27 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 /** Utility class for creating registries from a file descriptor set. */
-final class RegistryUtils {
+public final class RegistryUtils {
 
   private RegistryUtils() {}
 
   /** Returns the {@link FileDescriptorSet} for the given file descriptor set path. */
-  static FileDescriptorSet getFileDescriptorSet(String fileDescriptorSetPath) throws IOException {
+  public static FileDescriptorSet getFileDescriptorSet(String fileDescriptorSetPath)
+      throws IOException {
+    // We can pass an empty extension registry here because extensions are recovered later when
+    // creating the extension registry in {@link #createExtensionRegistry}.
     return FileDescriptorSet.parseFrom(
         Files.toByteArray(new File(fileDescriptorSetPath)), ExtensionRegistry.newInstance());
   }
 
   /** Returns the {@link TypeRegistry} for the given file descriptor set. */
-  static TypeRegistry getTypeRegistry(Set<FileDescriptor> fileDescriptors) throws IOException {
+  public static TypeRegistry getTypeRegistry(Set<FileDescriptor> fileDescriptors)
+      throws IOException {
     return createTypeRegistry(fileDescriptors);
   }
 
   /** Returns the {@link ExtensionRegistry} for the given file descriptor set. */
-  static ExtensionRegistry getExtensionRegistry(Set<FileDescriptor> fileDescriptors)
+  public static ExtensionRegistry getExtensionRegistry(Set<FileDescriptor> fileDescriptors)
       throws IOException {
     return createExtensionRegistry(fileDescriptors);
   }

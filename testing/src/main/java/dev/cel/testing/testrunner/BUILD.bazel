@@ -142,6 +142,8 @@ java_library(
 java_library(
     name = "registry_utils",
     srcs = ["RegistryUtils.java"],
+    tags = [
+    ],
     deps = [
         "//common:cel_descriptors",
         "//common/internal:cel_descriptor_pools",
