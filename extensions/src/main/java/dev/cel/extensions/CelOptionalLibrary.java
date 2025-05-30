@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Duration;
@@ -28,6 +29,7 @@ import com.google.protobuf.Timestamp;
 import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelIssue;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelExpr;
@@ -43,14 +45,16 @@ import dev.cel.parser.CelMacroExprFactory;
 import dev.cel.parser.CelParserBuilder;
 import dev.cel.parser.Operator;
 import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.runtime.CelInternalRuntimeLibrary;
 import dev.cel.runtime.CelRuntimeBuilder;
-import dev.cel.runtime.CelRuntimeLibrary;
+import dev.cel.runtime.RuntimeEquality;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 /** Internal implementation of CEL optional values. */
-public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeLibrary {
+public final class CelOptionalLibrary implements CelCompilerLibrary, CelInternalRuntimeLibrary {
   public static final CelOptionalLibrary INSTANCE = new CelOptionalLibrary();
 
   /** Enumerations of function names used for supporting optionals. */
@@ -171,8 +175,14 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder) {
+    throw new UnsupportedOperationException("Unsupported");
+  }
+
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  @Override
+  public void setRuntimeOptions(
+      CelRuntimeBuilder runtimeBuilder, RuntimeEquality runtimeEquality, CelOptions celOptions) {
     runtimeBuilder.addFunctionBindings(
         CelFunctionBinding.from("optional_of", Object.class, Optional::of),
         CelFunctionBinding.from(
@@ -189,7 +199,48 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
         CelFunctionBinding.from("optional_none", ImmutableList.of(), val -> Optional.empty()),
         CelFunctionBinding.from("optional_value", Object.class, val -> ((Optional<?>) val).get()),
         CelFunctionBinding.from(
-            "optional_hasValue", Object.class, val -> ((Optional<?>) val).isPresent()));
+            "optional_hasValue", Object.class, val -> ((Optional<?>) val).isPresent()),
+        CelFunctionBinding.from(
+            "select_optional_field", // This only handles map selection. Proto selection is
+            // special cased inside the interpreter.
+            Map.class,
+            String.class,
+            runtimeEquality::findInMap),
+        CelFunctionBinding.from(
+            "map_optindex_optional_value", Map.class, Object.class, runtimeEquality::findInMap),
+        CelFunctionBinding.from(
+            "optional_map_optindex_optional_value",
+            Optional.class,
+            Object.class,
+            (Optional optionalMap, Object key) ->
+                indexOptionalMap(optionalMap, key, runtimeEquality)),
+        CelFunctionBinding.from(
+            "optional_map_index_value",
+            Optional.class,
+            Object.class,
+            (Optional optionalMap, Object key) ->
+                indexOptionalMap(optionalMap, key, runtimeEquality)),
+        CelFunctionBinding.from(
+            "optional_list_index_int",
+            Optional.class,
+            Long.class,
+            CelOptionalLibrary::indexOptionalList),
+        CelFunctionBinding.from(
+            "list_optindex_optional_int",
+            List.class,
+            Long.class,
+            (List list, Long index) -> {
+              int castIndex = Ints.checkedCast(index);
+              if (castIndex < 0 || castIndex >= list.size()) {
+                return Optional.empty();
+              }
+              return Optional.of(list.get(castIndex));
+            }),
+        CelFunctionBinding.from(
+            "optional_list_optindex_optional_int",
+            Optional.class,
+            Long.class,
+            CelOptionalLibrary::indexOptionalList));
   }
 
   private static ImmutableList<Object> elideOptionalCollection(Collection<Optional<Object>> list) {
@@ -296,6 +347,29 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelRuntimeL
                 exprFactory.newIdentifier(varName),
                 mapExpr),
             exprFactory.newGlobalCall(Function.OPTIONAL_NONE.getFunction())));
+  }
+
+  private static Object indexOptionalMap(
+      Optional<?> optionalMap, Object key, RuntimeEquality runtimeEquality) {
+    if (!optionalMap.isPresent()) {
+      return Optional.empty();
+    }
+
+    Map<?, ?> map = (Map<?, ?>) optionalMap.get();
+
+    return runtimeEquality.findInMap(map, key);
+  }
+
+  private static Object indexOptionalList(Optional<?> optionalList, long index) {
+    if (!optionalList.isPresent()) {
+      return Optional.empty();
+    }
+    List<?> list = (List<?>) optionalList.get();
+    int castIndex = Ints.checkedCast(index);
+    if (castIndex < 0 || castIndex >= list.size()) {
+      return Optional.empty();
+    }
+    return Optional.of(list.get(castIndex));
   }
 
   private CelOptionalLibrary() {}

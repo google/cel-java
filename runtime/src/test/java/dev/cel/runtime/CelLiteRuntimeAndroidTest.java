@@ -50,6 +50,9 @@ import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
 import dev.cel.extensions.CelLiteExtensions;
 import dev.cel.extensions.SetsFunction;
 import dev.cel.runtime.CelLiteRuntime.Program;
+import dev.cel.runtime.standard.EqualsOperator;
+import dev.cel.runtime.standard.IntFunction;
+import dev.cel.runtime.standard.IntFunction.IntOverload;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -126,12 +129,13 @@ public class CelLiteRuntimeAndroidTest {
     CelOptions celOptions = CelOptions.current().enableCelValue(true).build();
     CelLiteRuntimeLibrary runtimeExtension =
         CelLiteExtensions.sets(celOptions, SetsFunction.INTERSECTS);
-    CelStandardFunctions celStandardFunctions = CelStandardFunctions.newBuilder().build();
     CelValueProvider celValueProvider = ProtoMessageLiteValueProvider.newInstance();
+    IntFunction intFunction = IntFunction.create(IntOverload.INT64_TO_INT64);
+    EqualsOperator equalsOperator = EqualsOperator.create();
     CelLiteRuntimeBuilder runtimeBuilder =
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
             .setOptions(celOptions)
-            .setStandardFunctions(celStandardFunctions)
+            .setStandardFunctions(intFunction, equalsOperator)
             .addFunctionBindings(
                 CelFunctionBinding.from("string_isEmpty", String.class, String::isEmpty))
             .setValueProvider(celValueProvider)
@@ -142,9 +146,11 @@ public class CelLiteRuntimeAndroidTest {
         (LiteRuntimeImpl.Builder) runtime.toRuntimeBuilder();
 
     assertThat(newRuntimeBuilder.celOptions).isEqualTo(celOptions);
-    assertThat(newRuntimeBuilder.celStandardFunctions).isEqualTo(celStandardFunctions);
     assertThat(newRuntimeBuilder.celValueProvider).isSameInstanceAs(celValueProvider);
     assertThat(newRuntimeBuilder.runtimeLibrariesBuilder.build()).containsExactly(runtimeExtension);
+    assertThat(newRuntimeBuilder.standardFunctionBuilder.build())
+        .containsExactly(intFunction, equalsOperator)
+        .inOrder();
     assertThat(newRuntimeBuilder.customFunctionBindings).hasSize(2);
     assertThat(newRuntimeBuilder.customFunctionBindings).containsKey("string_isEmpty");
     assertThat(newRuntimeBuilder.customFunctionBindings).containsKey("list_sets_intersects_list");
@@ -177,7 +183,7 @@ public class CelLiteRuntimeAndroidTest {
   public void eval_add() throws Exception {
     CelLiteRuntime runtime =
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
             .build();
     // Expr: 1 + 2
     CelAbstractSyntaxTree ast = readCheckedExpr("compiled_one_plus_two");
@@ -214,7 +220,7 @@ public class CelLiteRuntimeAndroidTest {
   public void eval_comprehensionExists() throws Exception {
     CelLiteRuntime runtime =
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
             .build();
     // Expr: [1,2,3].exists(x, x == 3)
     CelAbstractSyntaxTree ast = readCheckedExpr("compiled_comprehension_exists");
@@ -229,7 +235,7 @@ public class CelLiteRuntimeAndroidTest {
   public void eval_primitiveVariables() throws Exception {
     CelLiteRuntime runtime =
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
             .build();
     // Expr: bool_var && bytes_var == b'abc' && double_var == 1.0 && int_var == 42 && uint_var ==
     //       42u && str_var == 'foo'
@@ -264,7 +270,7 @@ public class CelLiteRuntimeAndroidTest {
             .addFunctionBindings(
                 CelFunctionBinding.from("string_isEmpty", String.class, String::isEmpty),
                 CelFunctionBinding.from("list_isEmpty", List.class, List::isEmpty))
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
             .build();
     // Expr: ''.isEmpty() && [].isEmpty()
     CelAbstractSyntaxTree ast = readCheckedExpr("compiled_custom_functions");
@@ -281,7 +287,7 @@ public class CelLiteRuntimeAndroidTest {
     CelLiteRuntime runtime =
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
             .addFunctionBindings(CelFunctionBinding.from("list_isEmpty", List.class, List::isEmpty))
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
             .build();
     // Expr: ''.isEmpty() && [].isEmpty()
     CelAbstractSyntaxTree ast = readCheckedExpr("compiled_custom_functions");
@@ -317,7 +323,7 @@ public class CelLiteRuntimeAndroidTest {
   public void eval_protoMessage_primitiveWithDefaults(String checkedExpr) throws Exception {
     CelLiteRuntime runtime =
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
                     dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
@@ -347,7 +353,7 @@ public class CelLiteRuntimeAndroidTest {
   public void eval_protoMessage_primitives(String checkedExpr) throws Exception {
     CelLiteRuntime runtime =
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
                     dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
@@ -406,7 +412,7 @@ public class CelLiteRuntimeAndroidTest {
   public void eval_protoMessage_wrappers(String checkedExpr) throws Exception {
     CelLiteRuntime runtime =
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
                     dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
@@ -454,7 +460,7 @@ public class CelLiteRuntimeAndroidTest {
   public void eval_protoMessage_safeTraversal(String checkedExpr) throws Exception {
     CelLiteRuntime runtime =
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
                     dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
@@ -486,7 +492,7 @@ public class CelLiteRuntimeAndroidTest {
       throws Exception {
     CelLiteRuntime runtime =
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
                     dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
@@ -531,7 +537,7 @@ public class CelLiteRuntimeAndroidTest {
   public void eval_protoMessage_repeatedFields(String checkedExpr) throws Exception {
     CelLiteRuntime runtime =
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
                     dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
@@ -613,7 +619,7 @@ public class CelLiteRuntimeAndroidTest {
   public void eval_protoMessage_mapFields(String checkedExpr) throws Exception {
     CelLiteRuntime runtime =
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
                     dev.cel.expr.conformance.proto2.TestAllTypesCelLiteDescriptor.getDescriptor(),
