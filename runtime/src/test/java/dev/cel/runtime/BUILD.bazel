@@ -303,7 +303,7 @@ cel_android_local_test(
         "//common:cel_ast_android",
         "//common:options",
         "//common:proto_ast_android",
-        "//common/internal:proto_time_util_android",
+        "//common/internal:proto_time_utils_android",
         "//common/values:cel_value_provider_android",
         "//common/values:proto_message_lite_value_provider_android",
         "//extensions:lite_extensions_android",
