@@ -18,13 +18,16 @@ register_toolchains("//:repository_default_toolchain_definition")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 
+# Load license rules.
+# Must be loaded first due to https://github.com/bazel-contrib/rules_jvm_external/issues/1244
+
 http_archive(
     name = "rules_license",
+    sha256 = "26d4021f6898e23b82ef953078389dd49ac2b5618ac564ade4ef87cced147b38",
     urls = [
         "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/1.0.0/rules_license-1.0.0.tar.gz",
         "https://github.com/bazelbuild/rules_license/releases/download/1.0.0/rules_license-1.0.0.tar.gz",
     ],
-    sha256 = "26d4021f6898e23b82ef953078389dd49ac2b5618ac564ade4ef87cced147b38",
 )
 
 http_archive(
@@ -44,10 +47,10 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "rules_java",
+    sha256 = "8daa0e4f800979c74387e4cd93f97e576ec6d52beab8ac94710d2931c57f8d8b",
     urls = [
         "https://github.com/bazelbuild/rules_java/releases/download/8.9.0/rules_java-8.9.0.tar.gz",
     ],
-    sha256 = "8daa0e4f800979c74387e4cd93f97e576ec6d52beab8ac94710d2931c57f8d8b",
 )
 
 http_archive(
@@ -67,31 +70,35 @@ http_archive(
 http_archive(
     name = "com_google_protobuf",
     sha256 = "008a11cc56f9b96679b4c285fd05f46d317d685be3ab524b2a310be0fbad987e",
-    strip_prefix = "protobuf-29.3", # See https://github.com/bazelbuild/rules_android/issues/373
+    strip_prefix = "protobuf-29.3",  # See https://github.com/bazelbuild/rules_android/issues/373
     urls = ["https://github.com/protocolbuffers/protobuf/archive/v29.3.tar.gz"],
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
 protobuf_deps()
 
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
+
 rules_java_dependencies()
 
 load("@rules_java//java:repositories.bzl", "rules_java_toolchains")
+
 rules_java_toolchains()
 
 load("@rules_python//python:repositories.bzl", "py_repositories")
+
 py_repositories()
 
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
+
 rules_proto_dependencies()
 
 load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
+
 rules_proto_toolchains()
 
-
 ### End of Protobuf Setup
-
 
 ### rules_jvm_external setup
 
@@ -120,6 +127,7 @@ load("//:maven_utils.bzl", "maven_artifact_compile_only", "maven_artifact_test_o
 ### end of rules_jvm_external setup
 
 ANTLR4_VERSION = "4.13.2"
+
 maven_install(
     name = "maven",
     # keep sorted
@@ -138,6 +146,7 @@ maven_install(
         "org.jspecify:jspecify:1.0.0",
         "org.threeten:threeten-extra:1.8.0",
         "org.yaml:snakeyaml:2.3",
+        maven_artifact_test_only("org.mockito", "mockito-core", "4.11.0"),
         maven_artifact_test_only("io.github.classgraph", "classgraph", "4.8.179"),
         maven_artifact_test_only("com.google.testparameterinjector", "test-parameter-injector", "1.18"),
         maven_artifact_test_only("com.google.truth", "truth", "1.4.4"),
@@ -175,14 +184,17 @@ http_archive(
 )
 
 load("@rules_android//:prereqs.bzl", "rules_android_prereqs")
+
 rules_android_prereqs()
 
 load("@rules_android//:defs.bzl", "rules_android_workspace")
+
 rules_android_workspace()
 
 load("@rules_android//rules:rules.bzl", "android_sdk_repository")
+
 android_sdk_repository(
-    name = "androidsdk"
+    name = "androidsdk",
 )
 
 register_toolchains(
@@ -239,11 +251,11 @@ http_archive(
 )
 
 # cel-spec api/expr canonical protos
-CEL_SPEC_VERSION = "0.23.1"
+CEL_SPEC_VERSION = "0.24.0"
 
 http_archive(
     name = "cel_spec",
-    sha256 = "8bafa44e610eb281df8b1268a42b5e2d7b76d60d0b3c817835cfcfd14cc2bc9c",
+    sha256 = "5cba6b0029e727d1f4d8fd134de4e747cecc0bc293d026017d7edc48058d09f7",
     strip_prefix = "cel-spec-" + CEL_SPEC_VERSION,
     urls = [
         "https://github.com/google/cel-spec/archive/" +
@@ -267,4 +279,3 @@ http_jar(
     sha256 = "eae2dfa119a64327444672aff63e9ec35a20180dc5b8090b7a6ab85125df4d76",
     urls = ["https://www.antlr.org/download/antlr-" + ANTLR4_VERSION + "-complete.jar"],
 )
-

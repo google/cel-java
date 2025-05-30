@@ -1,0 +1,89 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_java//java:defs.bzl", "java_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "cel_user_test_template",
+    exports = ["//testing/src/main/java/dev/cel/testing/testrunner:cel_user_test_template"],
+)
+
+java_library(
+    name = "junit_xml_reporter",
+    visibility = ["//:internal"],
+    exports = ["//testing/src/main/java/dev/cel/testing/testrunner:junit_xml_reporter"],
+)
+
+java_library(
+    name = "test_runner_library",
+    exports = ["//testing/src/main/java/dev/cel/testing/testrunner:test_runner_library"],
+)
+
+java_library(
+    name = "test_executor",
+    exports = ["//testing/src/main/java/dev/cel/testing/testrunner:test_executor"],
+)
+
+java_library(
+    name = "cel_test_suite",
+    exports = ["//testing/src/main/java/dev/cel/testing/testrunner:cel_test_suite"],
+)
+
+java_library(
+    name = "cel_test_context",
+    exports = ["//testing/src/main/java/dev/cel/testing/testrunner:cel_test_context"],
+)
+
+java_library(
+    name = "cel_test_suite_yaml_parser",
+    visibility = ["//:internal"],
+    exports = ["//testing/src/main/java/dev/cel/testing/testrunner:cel_test_suite_yaml_parser"],
+)
+
+java_library(
+    name = "cel_test_suite_text_proto_parser",
+    visibility = ["//:internal"],
+    exports = ["//testing/src/main/java/dev/cel/testing/testrunner:cel_test_suite_text_proto_parser"],
+)
+
+java_library(
+    name = "cel_test_suite_exception",
+    exports = ["//testing/src/main/java/dev/cel/testing/testrunner:cel_test_suite_exception"],
+)
+
+java_library(
+    name = "result_matcher",
+    exports = ["//testing/src/main/java/dev/cel/testing/testrunner:result_matcher"],
+)
+
+java_library(
+    name = "default_result_matcher",
+    exports = ["//testing/src/main/java/dev/cel/testing/testrunner:default_result_matcher"],
+)
+
+alias(
+    name = "test_runner_binary",
+    actual = "//testing/src/main/java/dev/cel/testing/testrunner:test_runner_binary",
+)
+
+java_library(
+    name = "annotations",
+    exports = ["//testing/src/main/java/dev/cel/testing/testrunner:annotations"],
+)
+
+exports_files(
+    srcs = ["run_testrunner_binary.sh"],
+)
+
+bzl_library(
+    name = "cel_java_test",
+    srcs = ["cel_java_test.bzl"],
+    deps = [
+        "@bazel_skylib//lib:paths",
+        "@rules_java//java:core_rules",
+    ],
+)

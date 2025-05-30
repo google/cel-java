@@ -1,0 +1,277 @@
+load("@rules_java//java:java_library.bzl", "java_library")
+load("@rules_java//java:java_test.bzl", "java_test")
+load("@rules_proto//proto:defs.bzl", "proto_descriptor_set")
+load("//testing/testrunner:cel_java_test.bzl", "cel_java_test")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = 1,
+    default_visibility = [
+        "//testing/testrunner:__pkg__",
+    ],
+)
+
+proto_descriptor_set(
+    name = "test_all_types_fds",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
+    ],
+)
+
+# Since the user test class is triggered by the cel_test_runner rule, we should not add it to the
+# junit4_test_suite.
+# This is just a sample test class for the cel_test_runner rule.
+java_library(
+    name = "user_test",
+    srcs = ["UserTest.java"],
+    deps = [
+        "//bundle:cel",
+        "//common/types",
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@maven//:junit_junit",
+    ],
+)
+
+# This is just a sample test class for the cel_test_runner rule.
+java_library(
+    name = "env_config_user_test",
+    srcs = ["EnvConfigUserTest.java"],
+    deps = [
+        "//bundle:cel",
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_library(
+    name = "late_function_binding_user_test",
+    srcs = ["LateFunctionBindingUserTest.java"],
+    deps = [
+        "//runtime",
+        "//runtime:function_binding",
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_library(
+    name = "custom_variable_binding_user_test",
+    srcs = ["CustomVariableBindingUserTest.java"],
+    deps = [
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_library(
+    name = "context_pb_user_test",
+    srcs = ["ContextPbUserTest.java"],
+    deps = [
+        "//bundle:cel",
+        "//checker:proto_type_mask",
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_test(
+    name = "junit_xml_reporter_test",
+    srcs = ["JUnitXmlReporterTest.java"],
+    test_class = "dev.cel.testing.testrunner.JUnitXmlReporterTest",
+    deps = [
+        "//:java_truth",
+        "//testing/testrunner:junit_xml_reporter",
+        "@maven//:junit_junit",
+        "@maven//:org_mockito_mockito_core",
+    ],
+)
+
+java_test(
+    name = "default_result_matcher_test",
+    srcs = ["DefaultResultMatcherTest.java"],
+    test_class = "dev.cel.testing.testrunner.DefaultResultMatcherTest",
+    deps = [
+        "//:java_truth",
+        "//bundle:cel",
+        "//common/types",
+        "//runtime",
+        "//testing/testrunner:cel_test_suite",
+        "//testing/testrunner:default_result_matcher",
+        "//testing/testrunner:result_matcher",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_test(
+    name = "cel_test_suite_yaml_parser_test",
+    srcs = ["CelTestSuiteYamlParserTest.java"],
+    test_class = "dev.cel.testing.testrunner.CelTestSuiteYamlParserTest",
+    deps = [
+        "//:java_truth",
+        "//testing/testrunner:cel_test_suite",
+        "//testing/testrunner:cel_test_suite_exception",
+        "//testing/testrunner:cel_test_suite_yaml_parser",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_test(
+    name = "cel_test_suite_textproto_parser_test",
+    srcs = ["CelTestSuiteTextprotoParserTest.java"],
+    test_class = "dev.cel.testing.testrunner.CelTestSuiteTextprotoParserTest",
+    deps = [
+        "//:java_truth",
+        "//testing/testrunner:cel_test_suite_exception",
+        "//testing/testrunner:cel_test_suite_text_proto_parser",
+        "@cel_spec//proto/cel/expr/conformance/test:suite_java_proto",
+        "@maven//:junit_junit",
+    ],
+)
+
+cel_java_test(
+    name = "test_runner_sample_yaml",
+    cel_expr = "nested_rule/policy.yaml",
+    file_descriptor_set = "//testing/src/test/java/dev/cel/testing/testrunner:test_all_types_fds",
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":user_test",
+    test_suite = "nested_rule/testrunner_tests.yaml",
+)
+
+cel_java_test(
+    name = "test_runner_yaml_sample_with_eval_error",
+    cel_expr = "nested_rule/eval_error_policy.yaml",
+    config = "nested_rule/eval_error_config.yaml",
+    file_descriptor_set = ":test_all_types_fds",
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":env_config_user_test",
+    test_suite = "nested_rule/eval_error_tests.yaml",
+)
+
+cel_java_test(
+    name = "context_pb_user_test_runner_sample",
+    cel_expr = "context_pb/policy.yaml",
+    config = "context_pb/config.yaml",
+    file_descriptor_set = ":test_all_types_fds",
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":context_pb_user_test",
+    test_suite = "context_pb/tests.yaml",
+)
+
+cel_java_test(
+    name = "additional_config_test_runner_sample",
+    cel_expr = "nested_rule/policy.yaml",
+    config = "nested_rule/config.yaml",
+    file_descriptor_set = ":test_all_types_fds",
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":env_config_user_test",
+    test_suite = "nested_rule/testrunner_tests.textproto",
+)
+
+cel_java_test(
+    name = "test_runner_sample",
+    cel_expr = "nested_rule/policy.yaml",
+    file_descriptor_set = ":test_all_types_fds",
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":user_test",
+    test_suite = "nested_rule/testrunner_tests.textproto",
+)
+
+cel_java_test(
+    name = "test_runner_sample_with_expr_value_output",
+    cel_expr = "expr_value_output/policy.yaml",
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":user_test",
+    test_suite = "expr_value_output/tests.textproto",
+)
+
+java_library(
+    name = "custom_test_suite",
+    srcs = ["CustomTestSuite.java"],
+    deps = [
+        "//testing/testrunner:annotations",
+        "//testing/testrunner:cel_test_suite",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_java_test(
+    name = "test_runner_sample_with_eval_error",
+    cel_expr = "nested_rule/eval_error_policy.yaml",
+    config = "nested_rule/eval_error_config.yaml",
+    file_descriptor_set = ":test_all_types_fds",
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":env_config_user_test",
+    test_suite = "nested_rule/eval_error_tests.textproto",
+)
+
+cel_java_test(
+    name = "context_message_user_test_runner_textproto_sample",
+    cel_expr = "context_pb/policy.yaml",
+    config = "context_pb/config.yaml",
+    file_descriptor_set = ":test_all_types_fds",
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":context_pb_user_test",
+    test_suite = "context_pb/context_msg_tests.textproto",
+)
+
+cel_java_test(
+    name = "context_pb_user_test_runner_textproto_sample",
+    cel_expr = "context_pb/policy.yaml",
+    config = "context_pb/config.yaml",
+    file_descriptor_set = ":test_all_types_fds",
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":context_pb_user_test",
+    test_suite = "context_pb/tests.textproto",
+)
+
+cel_java_test(
+    name = "raw_expression_test",
+    cel_expr = "2 + 2 == 4",
+    is_raw_expr = True,
+    test_data_path = "//testing/src/test/resources/expressions",
+    test_src = ":user_test",
+    test_suite = "simple_test_case/tests.textproto",
+)
+
+cel_java_test(
+    name = "extension_as_input_test",
+    cel_expr = "2 + 2 == 4",
+    file_descriptor_set = ":test_all_types_fds",
+    is_raw_expr = True,
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":user_test",
+    test_suite = "protoextension_value_as_input/tests.textproto",
+)
+
+cel_java_test(
+    name = "custom_test_suite_test",
+    cel_expr = "2 + 2 == 4",
+    is_raw_expr = True,
+    test_src = ":user_test",
+    deps = [
+        ":custom_test_suite",
+    ],
+)
+
+cel_java_test(
+    name = "expression_cel_file_test",
+    cel_expr = "simple_test_case/simple_expression.cel",
+    test_data_path = "//testing/src/test/resources/expressions",
+    test_src = ":user_test",
+    test_suite = "simple_test_case/tests.textproto",
+)
