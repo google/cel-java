@@ -55,8 +55,7 @@ final class CelAsyncRuntimeImpl implements CelAsyncRuntime {
     this.maxEvaluateIterations = maxEvaluateIterations;
   }
 
-  @Override
-  public UnknownContext newAsyncContext() {
+  private UnknownContext newAsyncContext() {
     return UnknownContext.create(variableResolver, unknownAttributePatterns);
   }
 
@@ -66,7 +65,8 @@ final class CelAsyncRuntimeImpl implements CelAsyncRuntime {
         runtime.createProgram(ast),
         executorService,
         unknownAttributeResolvers,
-        maxEvaluateIterations);
+        maxEvaluateIterations,
+        newAsyncContext());
   }
 
   static Builder newBuilder() {

@@ -13,6 +13,7 @@ package(
 
 ASYNC_RUNTIME_SOURCES = [
     "AsyncProgramImpl.java",
+    "CelResolvableAttributePattern.java",
     "CelAsyncRuntimeImpl.java",
     "CelAsyncRuntime.java",
     "CelAsyncRuntimeBuilder.java",

@@ -38,7 +38,6 @@ import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.runtime.CelAttributeParser;
 import dev.cel.runtime.CelAttributePattern;
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.UnknownContext;
 import dev.cel.runtime.async.CelAsyncRuntime.AsyncProgram;
 import java.time.Duration;
 import java.util.concurrent.CancellationException;
@@ -92,11 +91,9 @@ public final class CelAsyncRuntimeImplTest {
             .getAst();
 
     AsyncProgram program = asyncRuntime.createProgram(ast);
-    // empty starting context
-    UnknownContext context = asyncRuntime.newAsyncContext();
 
     // Act
-    ListenableFuture<Object> future = program.evaluateToCompletion(context);
+    ListenableFuture<Object> future = program.evaluateToCompletion();
     Object result = future.get(2, SECONDS);
 
     // Assert
@@ -105,11 +102,11 @@ public final class CelAsyncRuntimeImplTest {
   }
 
   @Test
-  public void asyncProgram_basicAsyncResovler() throws Exception {
+  public void asyncProgram_basicAsyncResolver() throws Exception {
     // Arrange
-    final SettableFuture<Object> var1 = SettableFuture.create();
-    final SettableFuture<Object> var2 = SettableFuture.create();
-    final SettableFuture<Object> var3 = SettableFuture.create();
+    SettableFuture<Object> var1 = SettableFuture.create();
+    SettableFuture<Object> var2 = SettableFuture.create();
+    SettableFuture<Object> var3 = SettableFuture.create();
 
     Cel cel =
         CelFactory.standardCelBuilder()
@@ -125,15 +122,6 @@ public final class CelAsyncRuntimeImplTest {
     CelAsyncRuntime asyncRuntime =
         CelAsyncRuntimeFactory.defaultAsyncRuntime()
             .setRuntime(cel)
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var1"),
-                CelUnknownAttributeValueResolver.fromAsyncResolver((attr) -> var1))
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var2"),
-                CelUnknownAttributeValueResolver.fromAsyncResolver((attr) -> var2))
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var3"),
-                CelUnknownAttributeValueResolver.fromAsyncResolver((attr) -> var3))
             .setExecutorService(Executors.newSingleThreadExecutor())
             .build();
 
@@ -141,11 +129,19 @@ public final class CelAsyncRuntimeImplTest {
         cel.compile("var1 == 'first' && var2 == 'second' && var3 == 'third'").getAst();
 
     AsyncProgram program = asyncRuntime.createProgram(ast);
-    // empty starting context
-    UnknownContext context = asyncRuntime.newAsyncContext();
 
     // Act
-    ListenableFuture<Object> future = program.evaluateToCompletion(context);
+    ListenableFuture<Object> future =
+        program.evaluateToCompletion(
+            CelResolvableAttributePattern.of(
+                CelAttributePattern.fromQualifiedIdentifier("com.google.var1"),
+                CelUnknownAttributeValueResolver.fromAsyncResolver((attr) -> var1)),
+            CelResolvableAttributePattern.of(
+                CelAttributePattern.fromQualifiedIdentifier("com.google.var2"),
+                CelUnknownAttributeValueResolver.fromAsyncResolver((attr) -> var2)),
+            CelResolvableAttributePattern.of(
+                CelAttributePattern.fromQualifiedIdentifier("com.google.var3"),
+                CelUnknownAttributeValueResolver.fromAsyncResolver((attr) -> var3)));
     assertThrows(TimeoutException.class, () -> future.get(1, SECONDS));
     var1.set("first");
     var2.set("second");
@@ -160,9 +156,9 @@ public final class CelAsyncRuntimeImplTest {
   @Test
   public void asyncProgram_honorsCancellation() throws Exception {
     // Arrange
-    final SettableFuture<Object> var1 = SettableFuture.create();
-    final SettableFuture<Object> var2 = SettableFuture.create();
-    final SettableFuture<Object> var3 = SettableFuture.create();
+    SettableFuture<Object> var1 = SettableFuture.create();
+    SettableFuture<Object> var2 = SettableFuture.create();
+    SettableFuture<Object> var3 = SettableFuture.create();
 
     Cel cel =
         CelFactory.standardCelBuilder()
@@ -194,11 +190,9 @@ public final class CelAsyncRuntimeImplTest {
         cel.compile("var1 == 'first' && var2 == 'second' && var3 == 'third'").getAst();
 
     AsyncProgram program = asyncRuntime.createProgram(ast);
-    // empty starting context
-    UnknownContext context = asyncRuntime.newAsyncContext();
 
     // Act
-    ListenableFuture<Object> future = program.evaluateToCompletion(context);
+    ListenableFuture<Object> future = program.evaluateToCompletion();
     var1.set("first");
     future.cancel(true);
     assertThrows(CancellationException.class, () -> future.get(1, SECONDS));
@@ -214,7 +208,7 @@ public final class CelAsyncRuntimeImplTest {
   public void asyncProgram_concurrency(
       @TestParameter(valuesProvider = RepeatedTestProvider.class) int testRunIndex)
       throws Exception {
-    final Duration taskDelay = Duration.ofMillis(500);
+    Duration taskDelay = Duration.ofMillis(500);
     // Arrange
     Cel cel =
         CelFactory.standardCelBuilder()
@@ -254,11 +248,9 @@ public final class CelAsyncRuntimeImplTest {
         cel.compile("var1 == 'first' && var2 == 'second' && var3 == 'third'").getAst();
 
     AsyncProgram program = asyncRuntime.createProgram(ast);
-    // empty starting context
-    UnknownContext context = asyncRuntime.newAsyncContext();
 
     // Act
-    ListenableFuture<Object> future = program.evaluateToCompletion(context);
+    ListenableFuture<Object> future = program.evaluateToCompletion();
 
     // Total wait is 2 times the worker delay. This is a little conservative for the size of the
     // threadpool executor above, but should prevent flakes.
@@ -305,11 +297,9 @@ public final class CelAsyncRuntimeImplTest {
         cel.compile("listVar[0] == 'el0' && listVar[1] == 'el1' && listVar[2] == 'el2'").getAst();
 
     AsyncProgram program = asyncRuntime.createProgram(ast);
-    // empty starting context
-    UnknownContext context = asyncRuntime.newAsyncContext();
 
     // Act
-    ListenableFuture<Object> future = program.evaluateToCompletion(context);
+    ListenableFuture<Object> future = program.evaluateToCompletion();
     Object result = future.get(1, SECONDS);
 
     // Assert
@@ -362,10 +352,9 @@ public final class CelAsyncRuntimeImplTest {
             .getAst();
 
     AsyncProgram program = asyncRuntime.createProgram(ast);
-    UnknownContext context = asyncRuntime.newAsyncContext();
 
     // Act
-    ListenableFuture<Object> future = program.evaluateToCompletion(context);
+    ListenableFuture<Object> future = program.evaluateToCompletion();
 
     // Assert
     ExecutionException e = assertThrows(ExecutionException.class, () -> future.get(2, SECONDS));
@@ -416,10 +405,9 @@ public final class CelAsyncRuntimeImplTest {
             .getAst();
 
     AsyncProgram program = asyncRuntime.createProgram(ast);
-    UnknownContext context = asyncRuntime.newAsyncContext();
 
     // Act
-    ListenableFuture<Object> future = program.evaluateToCompletion(context);
+    ListenableFuture<Object> future = program.evaluateToCompletion();
 
     // Assert
     ExecutionException e = assertThrows(ExecutionException.class, () -> future.get(2, SECONDS));
@@ -468,10 +456,9 @@ public final class CelAsyncRuntimeImplTest {
             .getAst();
 
     AsyncProgram program = asyncRuntime.createProgram(ast);
-    UnknownContext context = asyncRuntime.newAsyncContext();
 
     // Act
-    ListenableFuture<Object> future = program.evaluateToCompletion(context);
+    ListenableFuture<Object> future = program.evaluateToCompletion();
     Object result = future.get(2, SECONDS);
 
     // Assert

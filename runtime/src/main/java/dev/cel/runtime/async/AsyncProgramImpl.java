@@ -14,12 +14,14 @@
 
 package dev.cel.runtime.async;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.util.concurrent.Futures.immediateFailedFuture;
 import static com.google.common.util.concurrent.Futures.immediateFuture;
 import static com.google.common.util.concurrent.Futures.transformAsync;
 import static com.google.common.util.concurrent.Futures.whenAllSucceed;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Futures;
@@ -55,6 +57,7 @@ import java.util.concurrent.ExecutionException;
 final class AsyncProgramImpl implements CelAsyncRuntime.AsyncProgram {
   // Safety limit for resolution rounds.
   private final int maxEvaluateIterations;
+  private final UnknownContext startingUnknownContext;
   private final Program program;
   private final ListeningExecutorService executor;
   private final ImmutableMap<CelAttributePattern, CelUnknownAttributeValueResolver> resolvers;
@@ -63,15 +66,26 @@ final class AsyncProgramImpl implements CelAsyncRuntime.AsyncProgram {
       Program program,
       ListeningExecutorService executor,
       ImmutableMap<CelAttributePattern, CelUnknownAttributeValueResolver> resolvers,
-      int maxEvaluateIterations) {
+      int maxEvaluateIterations,
+      UnknownContext startingUnknownContext) {
     this.program = program;
     this.executor = executor;
     this.resolvers = resolvers;
     this.maxEvaluateIterations = maxEvaluateIterations;
+    // The following is populated from CelAsyncRuntime. The impl is immutable, thus safe to reuse as
+    // a starting context.
+    this.startingUnknownContext = startingUnknownContext;
   }
 
-  private Optional<CelUnknownAttributeValueResolver> lookupResolver(CelAttribute attribute) {
+  private Optional<CelUnknownAttributeValueResolver> lookupResolver(
+      Iterable<CelResolvableAttributePattern> resolvableAttributePatterns, CelAttribute attribute) {
     // TODO: may need to handle multiple resolvers for partial case.
+    for (CelResolvableAttributePattern entry : resolvableAttributePatterns) {
+      if (entry.attributePattern().isPartialMatch(attribute)) {
+        return Optional.of(entry.resolver());
+      }
+    }
+
     for (Map.Entry<CelAttributePattern, CelUnknownAttributeValueResolver> entry :
         resolvers.entrySet()) {
       if (entry.getKey().isPartialMatch(attribute)) {
@@ -102,10 +116,14 @@ final class AsyncProgramImpl implements CelAsyncRuntime.AsyncProgram {
   }
 
   private ListenableFuture<Object> resolveAndReevaluate(
-      CelUnknownSet unknowns, UnknownContext ctx, int iteration) {
+      CelUnknownSet unknowns,
+      UnknownContext ctx,
+      Iterable<CelResolvableAttributePattern> resolvableAttributePatterns,
+      int iteration) {
     Map<CelAttribute, ListenableFuture<Object>> futureMap = new LinkedHashMap<>();
     for (CelAttribute attr : unknowns.attributes()) {
-      Optional<CelUnknownAttributeValueResolver> maybeResolver = lookupResolver(attr);
+      Optional<CelUnknownAttributeValueResolver> maybeResolver =
+          lookupResolver(resolvableAttributePatterns, attr);
 
       maybeResolver.ifPresent((resolver) -> futureMap.put(attr, resolver.resolve(executor, attr)));
     }
@@ -120,13 +138,21 @@ final class AsyncProgramImpl implements CelAsyncRuntime.AsyncProgram {
     // need to be configurable in the future.
     return transformAsync(
         allAsMapOnSuccess(futureMap),
-        (result) -> evalPass(ctx.withResolvedAttributes(result), unknowns, iteration),
+        (result) ->
+            evalPass(
+                ctx.withResolvedAttributes(result),
+                resolvableAttributePatterns,
+                unknowns,
+                iteration),
         executor);
   }
 
   private ListenableFuture<Object> evalPass(
-      UnknownContext ctx, CelUnknownSet lastSet, int iteration) {
-    Object result = null;
+      UnknownContext ctx,
+      Iterable<CelResolvableAttributePattern> resolvableAttributePatterns,
+      CelUnknownSet lastSet,
+      int iteration) {
+    Object result;
     try {
       result = program.advanceEvaluation(ctx);
     } catch (CelEvaluationException e) {
@@ -143,14 +169,29 @@ final class AsyncProgramImpl implements CelAsyncRuntime.AsyncProgram {
         return immediateFailedFuture(
             new CelEvaluationException("Max Evaluation iterations exceeded: " + iteration));
       }
-      return resolveAndReevaluate((CelUnknownSet) result, ctx, iteration);
+      return resolveAndReevaluate(
+          (CelUnknownSet) result, startingUnknownContext, resolvableAttributePatterns, iteration);
     }
 
     return immediateFuture(result);
   }
 
   @Override
-  public ListenableFuture<Object> evaluateToCompletion(UnknownContext ctx) {
-    return evalPass(ctx, CelUnknownSet.create(ImmutableSet.of()), 0);
+  public ListenableFuture<Object> evaluateToCompletion(
+      CelResolvableAttributePattern... resolvableAttributes) {
+    return evaluateToCompletion(ImmutableList.copyOf(resolvableAttributes));
+  }
+
+  @Override
+  public ListenableFuture<Object> evaluateToCompletion(
+      Iterable<CelResolvableAttributePattern> resolvableAttributePatterns) {
+    UnknownContext newAsyncContext =
+        startingUnknownContext.extend(
+            ImmutableList.copyOf(resolvableAttributePatterns).stream()
+                .map(CelResolvableAttributePattern::attributePattern)
+                .collect(toImmutableList()));
+
+    return evalPass(
+        newAsyncContext, resolvableAttributePatterns, CelUnknownSet.create(ImmutableSet.of()), 0);
   }
 }

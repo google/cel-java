@@ -36,17 +36,13 @@ import dev.cel.runtime.UnknownContext;
 @ThreadSafe
 public interface CelAsyncRuntime {
 
-  /**
-   * Initialize a new async context for iterative evaluation.
-   *
-   * <p>This maintains the state related to tracking which parts of the environment are unknown or
-   * have been resolved.
-   */
-  UnknownContext newAsyncContext();
-
   /** AsyncProgram wraps a CEL Program with a driver to resolve unknowns as they are encountered. */
   interface AsyncProgram {
-    ListenableFuture<Object> evaluateToCompletion(UnknownContext ctx);
+    ListenableFuture<Object> evaluateToCompletion(
+        CelResolvableAttributePattern... resolvableAttributes);
+
+    ListenableFuture<Object> evaluateToCompletion(
+        Iterable<CelResolvableAttributePattern> resolvableAttributes);
   }
 
   /**

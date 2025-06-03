@@ -1,5 +1,4 @@
 // Copyright 2022 Google LLC
-//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -17,23 +16,36 @@ package dev.cel.runtime.async;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.runtime.CelAttributePattern;
 import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.async.CelAsyncRuntime.AsyncProgram;
 import java.util.concurrent.ExecutorService;
 
 /** Builder interface for {@link CelAsyncRuntime}. */
 public interface CelAsyncRuntimeBuilder {
-  public static final int DEFAULT_MAX_EVALUATE_ITERATIONS = 10;
+  int DEFAULT_MAX_EVALUATE_ITERATIONS = 10;
 
   /** Set the CEL runtime for running incremental evaluation. */
   @CanIgnoreReturnValue
-  public CelAsyncRuntimeBuilder setRuntime(CelRuntime runtime);
+  CelAsyncRuntimeBuilder setRuntime(CelRuntime runtime);
 
-  /** Add attributes that are declared as Unknown, without any resolver. */
+  /**
+   * Add attributes that are declared as Unknown, without any resolver.
+   *
+   * @deprecated Use {@link AsyncProgram#evaluateToCompletion(CelResolvableAttributePattern...)}
+   *     instead to propagate the unknown attributes along with the resolvers into the program.
+   */
   @CanIgnoreReturnValue
-  public CelAsyncRuntimeBuilder addUnknownAttributePatterns(CelAttributePattern... attributes);
+  @Deprecated
+  CelAsyncRuntimeBuilder addUnknownAttributePatterns(CelAttributePattern... attributes);
 
-  /** Marks an attribute pattern as unknown and associates a resolver with it. */
+  /**
+   * Marks an attribute pattern as unknown and associates a resolver with it.
+   *
+   * @deprecated Use {@link AsyncProgram#evaluateToCompletion(CelResolvableAttributePattern...)}
+   *     instead to propagate the unknown attributes along with the resolvers into the program.
+   */
   @CanIgnoreReturnValue
-  public CelAsyncRuntimeBuilder addResolvableAttributePattern(
+  @Deprecated
+  CelAsyncRuntimeBuilder addResolvableAttributePattern(
       CelAttributePattern attribute, CelUnknownAttributeValueResolver resolver);
 
   /**
@@ -42,10 +54,10 @@ public interface CelAsyncRuntimeBuilder {
    * <p>This is a safety mechanism for expressions that chain dependent unknowns (e.g. via the
    * conditional operator or nested function calls).
    *
-   * <p>Implementations should default to {@value DEFAULT_MAX_EVALUATION_ITERATIONS}.
+   * <p>Implementations should default to {@value DEFAULT_MAX_EVALUATE_ITERATIONS}.
    */
   @CanIgnoreReturnValue
-  public CelAsyncRuntimeBuilder setMaxEvaluateIterations(int n);
+  CelAsyncRuntimeBuilder setMaxEvaluateIterations(int n);
 
   /**
    * Sets the variable resolver for simple CelVariable names (e.g. 'x' or 'com.google.x').
@@ -67,7 +79,7 @@ public interface CelAsyncRuntimeBuilder {
    * resolvers.
    */
   @CanIgnoreReturnValue
-  public CelAsyncRuntimeBuilder setExecutorService(ExecutorService executorService);
+  CelAsyncRuntimeBuilder setExecutorService(ExecutorService executorService);
 
-  public CelAsyncRuntime build();
+  CelAsyncRuntime build();
 }

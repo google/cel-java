@@ -55,7 +55,7 @@ public class UnknownContext {
       ImmutableList<CelAttributePattern> unresolvedAttributes,
       ImmutableMap<CelAttribute, Object> resolvedAttributes) {
     this.unresolvedAttributes = unresolvedAttributes;
-    variableResolver = resolver;
+    this.variableResolver = resolver;
     this.resolvedAttributes = resolvedAttributes;
   }
 
@@ -74,6 +74,17 @@ public class UnknownContext {
       CelVariableResolver resolver, Collection<CelAttributePattern> attributes) {
     return new UnknownContext(
         createExprVariableResolver(resolver), ImmutableList.copyOf(attributes), ImmutableMap.of());
+  }
+
+  /** Extends an existing {@code UnknownContext} by adding more attribute patterns to it. */
+  public UnknownContext extend(Collection<CelAttributePattern> attributePatterns) {
+    return new UnknownContext(
+        this.variableResolver(),
+        ImmutableList.<CelAttributePattern>builder()
+            .addAll(this.unresolvedAttributes)
+            .addAll(attributePatterns)
+            .build(),
+        this.resolvedAttributes);
   }
 
   /** Adapts a CelVariableResolver to the legacy impl equivalent GlobalResolver. */
