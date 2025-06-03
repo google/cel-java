@@ -15,13 +15,11 @@
 package dev.cel.runtime.async;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
-import dev.cel.runtime.CelAttributePattern;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
@@ -32,23 +30,16 @@ import java.util.concurrent.ExecutorService;
 /** Default {@link CelAsyncRuntime} runtime implementation. See {@link AsyncProgramImpl}. */
 @ThreadSafe
 final class CelAsyncRuntimeImpl implements CelAsyncRuntime {
-  private final ImmutableMap<CelAttributePattern, CelUnknownAttributeValueResolver>
-      unknownAttributeResolvers;
-  private final ImmutableSet<CelAttributePattern> unknownAttributePatterns;
   private final CelRuntime runtime;
   private final ListeningExecutorService executorService;
   private final ThreadSafeCelVariableResolver variableResolver;
   private final int maxEvaluateIterations;
 
   private CelAsyncRuntimeImpl(
-      ImmutableMap<CelAttributePattern, CelUnknownAttributeValueResolver> unknownAttributeResolvers,
-      ImmutableSet<CelAttributePattern> unknownAttributePatterns,
       ThreadSafeCelVariableResolver variableResolver,
       CelRuntime runtime,
       ListeningExecutorService executorService,
       int maxEvaluateIterations) {
-    this.unknownAttributeResolvers = unknownAttributeResolvers;
-    this.unknownAttributePatterns = unknownAttributePatterns;
     this.variableResolver = variableResolver;
     this.runtime = runtime;
     this.executorService = executorService;
@@ -56,7 +47,7 @@ final class CelAsyncRuntimeImpl implements CelAsyncRuntime {
   }
 
   private UnknownContext newAsyncContext() {
-    return UnknownContext.create(variableResolver, unknownAttributePatterns);
+    return UnknownContext.create(variableResolver, ImmutableList.of());
   }
 
   @Override
@@ -64,7 +55,6 @@ final class CelAsyncRuntimeImpl implements CelAsyncRuntime {
     return new AsyncProgramImpl(
         runtime.createProgram(ast),
         executorService,
-        unknownAttributeResolvers,
         maxEvaluateIterations,
         newAsyncContext());
   }
@@ -76,17 +66,12 @@ final class CelAsyncRuntimeImpl implements CelAsyncRuntime {
   /** {@link CelAsyncRuntimeBuilder} implementation for {@link CelAsyncRuntimeImpl}. */
   private static final class Builder implements CelAsyncRuntimeBuilder {
     private CelRuntime runtime;
-    private final ImmutableSet.Builder<CelAttributePattern> unknownAttributePatterns;
-    private final ImmutableMap.Builder<CelAttributePattern, CelUnknownAttributeValueResolver>
-        unknownAttributeResolvers;
     private ListeningExecutorService executorService;
     private Optional<ThreadSafeCelVariableResolver> variableResolver;
     private int maxEvaluateIterations;
 
     private Builder() {
       runtime = CelRuntimeFactory.standardCelRuntimeBuilder().build();
-      unknownAttributeResolvers = ImmutableMap.builder();
-      unknownAttributePatterns = ImmutableSet.builder();
       variableResolver = Optional.empty();
       maxEvaluateIterations = DEFAULT_MAX_EVALUATE_ITERATIONS;
     }
@@ -94,20 +79,6 @@ final class CelAsyncRuntimeImpl implements CelAsyncRuntime {
     @Override
     public Builder setRuntime(CelRuntime runtime) {
       this.runtime = runtime;
-      return this;
-    }
-
-    @Override
-    public Builder addUnknownAttributePatterns(CelAttributePattern... attributes) {
-      unknownAttributePatterns.add(attributes);
-      return this;
-    }
-
-    @Override
-    public Builder addResolvableAttributePattern(
-        CelAttributePattern attribute, CelUnknownAttributeValueResolver resolver) {
-      unknownAttributeResolvers.put(attribute, resolver);
-      unknownAttributePatterns.add(attribute);
       return this;
     }
 
@@ -134,8 +105,6 @@ final class CelAsyncRuntimeImpl implements CelAsyncRuntime {
     public CelAsyncRuntime build() {
       Preconditions.checkNotNull(executorService, "executorService must be specified.");
       return new CelAsyncRuntimeImpl(
-          unknownAttributeResolvers.buildOrThrow(),
-          unknownAttributePatterns.build(),
           variableResolver.orElse((unused) -> Optional.empty()),
           runtime,
           executorService,

@@ -29,7 +29,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.runtime.CelAttribute;
-import dev.cel.runtime.CelAttributePattern;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime.Program;
 import dev.cel.runtime.CelUnknownSet;
@@ -60,17 +59,14 @@ final class AsyncProgramImpl implements CelAsyncRuntime.AsyncProgram {
   private final UnknownContext startingUnknownContext;
   private final Program program;
   private final ListeningExecutorService executor;
-  private final ImmutableMap<CelAttributePattern, CelUnknownAttributeValueResolver> resolvers;
 
   AsyncProgramImpl(
       Program program,
       ListeningExecutorService executor,
-      ImmutableMap<CelAttributePattern, CelUnknownAttributeValueResolver> resolvers,
       int maxEvaluateIterations,
       UnknownContext startingUnknownContext) {
     this.program = program;
     this.executor = executor;
-    this.resolvers = resolvers;
     this.maxEvaluateIterations = maxEvaluateIterations;
     // The following is populated from CelAsyncRuntime. The impl is immutable, thus safe to reuse as
     // a starting context.
@@ -86,12 +82,6 @@ final class AsyncProgramImpl implements CelAsyncRuntime.AsyncProgram {
       }
     }
 
-    for (Map.Entry<CelAttributePattern, CelUnknownAttributeValueResolver> entry :
-        resolvers.entrySet()) {
-      if (entry.getKey().isPartialMatch(attribute)) {
-        return Optional.of(entry.getValue());
-      }
-    }
     return Optional.empty();
   }
 

@@ -74,12 +74,6 @@ public final class CelAsyncRuntimeImplTest {
     CelAsyncRuntime asyncRuntime =
         CelAsyncRuntimeFactory.defaultAsyncRuntime()
             .setRuntime(cel)
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var1"), resolveName)
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var2"), resolveName)
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var3"), resolveName)
             .setExecutorService(newDirectExecutorService())
             .build();
 
@@ -93,7 +87,14 @@ public final class CelAsyncRuntimeImplTest {
     AsyncProgram program = asyncRuntime.createProgram(ast);
 
     // Act
-    ListenableFuture<Object> future = program.evaluateToCompletion();
+    ListenableFuture<Object> future = program.evaluateToCompletion(
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var1"), resolveName),
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var2"), resolveName),
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var3"), resolveName)
+    );
     Object result = future.get(2, SECONDS);
 
     // Assert
@@ -174,15 +175,6 @@ public final class CelAsyncRuntimeImplTest {
     CelAsyncRuntime asyncRuntime =
         CelAsyncRuntimeFactory.defaultAsyncRuntime()
             .setRuntime(cel)
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var1"),
-                CelUnknownAttributeValueResolver.fromAsyncResolver((attr) -> var1))
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var2"),
-                CelUnknownAttributeValueResolver.fromAsyncResolver((attr) -> var2))
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var3"),
-                CelUnknownAttributeValueResolver.fromAsyncResolver((attr) -> var3))
             .setExecutorService(Executors.newSingleThreadExecutor())
             .build();
 
@@ -192,7 +184,17 @@ public final class CelAsyncRuntimeImplTest {
     AsyncProgram program = asyncRuntime.createProgram(ast);
 
     // Act
-    ListenableFuture<Object> future = program.evaluateToCompletion();
+    ListenableFuture<Object> future = program.evaluateToCompletion(
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var1"),
+            CelUnknownAttributeValueResolver.fromAsyncResolver((attr) -> var1)),
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var2"),
+            CelUnknownAttributeValueResolver.fromAsyncResolver((attr) -> var2)),
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var3"),
+            CelUnknownAttributeValueResolver.fromAsyncResolver((attr) -> var3))
+    );
     var1.set("first");
     future.cancel(true);
     assertThrows(CancellationException.class, () -> future.get(1, SECONDS));
@@ -232,15 +234,6 @@ public final class CelAsyncRuntimeImplTest {
     CelAsyncRuntime asyncRuntime =
         CelAsyncRuntimeFactory.defaultAsyncRuntime()
             .setRuntime(cel)
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var1"),
-                resolverFactory.get("first"))
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var2"),
-                resolverFactory.get("second"))
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var3"),
-                resolverFactory.get("third"))
             .setExecutorService(Executors.newFixedThreadPool(3))
             .build();
 
@@ -250,7 +243,17 @@ public final class CelAsyncRuntimeImplTest {
     AsyncProgram program = asyncRuntime.createProgram(ast);
 
     // Act
-    ListenableFuture<Object> future = program.evaluateToCompletion();
+    ListenableFuture<Object> future = program.evaluateToCompletion(
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var1"),
+            resolverFactory.get("first")),
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var2"),
+            resolverFactory.get("second")),
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var3"),
+            resolverFactory.get("third"))
+    );
 
     // Total wait is 2 times the worker delay. This is a little conservative for the size of the
     // threadpool executor above, but should prevent flakes.
@@ -284,12 +287,6 @@ public final class CelAsyncRuntimeImplTest {
     CelAsyncRuntime asyncRuntime =
         CelAsyncRuntimeFactory.defaultAsyncRuntime()
             .setRuntime(cel)
-            .addResolvableAttributePattern(
-                CelAttributeParser.parsePattern("com.google.listVar[0]"), resolver)
-            .addResolvableAttributePattern(
-                CelAttributeParser.parsePattern("com.google.listVar[1]"), resolver)
-            .addResolvableAttributePattern(
-                CelAttributeParser.parsePattern("com.google.listVar[2]"), resolver)
             .setExecutorService(Executors.newSingleThreadExecutor())
             .build();
 
@@ -299,7 +296,14 @@ public final class CelAsyncRuntimeImplTest {
     AsyncProgram program = asyncRuntime.createProgram(ast);
 
     // Act
-    ListenableFuture<Object> future = program.evaluateToCompletion();
+    ListenableFuture<Object> future = program.evaluateToCompletion(
+        CelResolvableAttributePattern.of(
+            CelAttributeParser.parsePattern("com.google.listVar[0]"), resolver),
+        CelResolvableAttributePattern.of(
+            CelAttributeParser.parsePattern("com.google.listVar[1]"), resolver),
+        CelResolvableAttributePattern.of(
+            CelAttributeParser.parsePattern("com.google.listVar[2]"), resolver)
+    );
     Object result = future.get(1, SECONDS);
 
     // Assert
@@ -331,16 +335,6 @@ public final class CelAsyncRuntimeImplTest {
     CelAsyncRuntime asyncRuntime =
         CelAsyncRuntimeFactory.defaultAsyncRuntime()
             .setRuntime(cel)
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var1"), resolveName)
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var2"),
-                CelUnknownAttributeValueResolver.fromResolver(
-                    (attr) -> {
-                      throw new IllegalArgumentException("example_var2");
-                    }))
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var3"), resolveName)
             .setExecutorService(newDirectExecutorService())
             .build();
 
@@ -354,7 +348,17 @@ public final class CelAsyncRuntimeImplTest {
     AsyncProgram program = asyncRuntime.createProgram(ast);
 
     // Act
-    ListenableFuture<Object> future = program.evaluateToCompletion();
+    ListenableFuture<Object> future = program.evaluateToCompletion(
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var1"), resolveName),
+        CelResolvableAttributePattern.of(
+                            CelAttributePattern.fromQualifiedIdentifier("com.google.var2"),
+                CelUnknownAttributeValueResolver.fromResolver(
+                    (attr) -> {
+                      throw new IllegalArgumentException("example_var2");
+                    })),
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var3"), resolveName));
 
     // Assert
     ExecutionException e = assertThrows(ExecutionException.class, () -> future.get(2, SECONDS));
@@ -386,14 +390,6 @@ public final class CelAsyncRuntimeImplTest {
     CelAsyncRuntime asyncRuntime =
         CelAsyncRuntimeFactory.defaultAsyncRuntime()
             .setRuntime(cel)
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var1"), resolveName)
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var2"),
-                CelUnknownAttributeValueResolver.fromResolver(
-                    (attr) -> new IllegalStateException("example_var2")))
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var3"), resolveName)
             .setExecutorService(newDirectExecutorService())
             .build();
 
@@ -407,7 +403,16 @@ public final class CelAsyncRuntimeImplTest {
     AsyncProgram program = asyncRuntime.createProgram(ast);
 
     // Act
-    ListenableFuture<Object> future = program.evaluateToCompletion();
+    ListenableFuture<Object> future = program.evaluateToCompletion(
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var1"), resolveName),
+        CelResolvableAttributePattern.of(
+                CelAttributePattern.fromQualifiedIdentifier("com.google.var2"),
+                CelUnknownAttributeValueResolver.fromResolver(
+                    (attr) -> new IllegalStateException("example_var2"))),
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var3"), resolveName)
+    );
 
     // Assert
     ExecutionException e = assertThrows(ExecutionException.class, () -> future.get(2, SECONDS));
@@ -440,14 +445,6 @@ public final class CelAsyncRuntimeImplTest {
     CelAsyncRuntime asyncRuntime =
         CelAsyncRuntimeFactory.defaultAsyncRuntime()
             .setRuntime(cel)
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var1"), resolveName)
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var2"),
-                CelUnknownAttributeValueResolver.fromResolver(
-                    (attr) -> new IllegalStateException("example")))
-            .addResolvableAttributePattern(
-                CelAttributePattern.fromQualifiedIdentifier("com.google.var3"), resolveName)
             .setExecutorService(newDirectExecutorService())
             .build();
 
@@ -458,7 +455,16 @@ public final class CelAsyncRuntimeImplTest {
     AsyncProgram program = asyncRuntime.createProgram(ast);
 
     // Act
-    ListenableFuture<Object> future = program.evaluateToCompletion();
+    ListenableFuture<Object> future = program.evaluateToCompletion(
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var1"), resolveName),
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var2"),
+            CelUnknownAttributeValueResolver.fromResolver(
+                (attr) -> new IllegalStateException("example"))),
+        CelResolvableAttributePattern.of(
+            CelAttributePattern.fromQualifiedIdentifier("com.google.var3"), resolveName)
+    );
     Object result = future.get(2, SECONDS);
 
     // Assert

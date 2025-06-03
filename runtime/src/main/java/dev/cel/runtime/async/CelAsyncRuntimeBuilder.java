@@ -14,9 +14,7 @@
 package dev.cel.runtime.async;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import dev.cel.runtime.CelAttributePattern;
 import dev.cel.runtime.CelRuntime;
-import dev.cel.runtime.async.CelAsyncRuntime.AsyncProgram;
 import java.util.concurrent.ExecutorService;
 
 /** Builder interface for {@link CelAsyncRuntime}. */
@@ -26,27 +24,6 @@ public interface CelAsyncRuntimeBuilder {
   /** Set the CEL runtime for running incremental evaluation. */
   @CanIgnoreReturnValue
   CelAsyncRuntimeBuilder setRuntime(CelRuntime runtime);
-
-  /**
-   * Add attributes that are declared as Unknown, without any resolver.
-   *
-   * @deprecated Use {@link AsyncProgram#evaluateToCompletion(CelResolvableAttributePattern...)}
-   *     instead to propagate the unknown attributes along with the resolvers into the program.
-   */
-  @CanIgnoreReturnValue
-  @Deprecated
-  CelAsyncRuntimeBuilder addUnknownAttributePatterns(CelAttributePattern... attributes);
-
-  /**
-   * Marks an attribute pattern as unknown and associates a resolver with it.
-   *
-   * @deprecated Use {@link AsyncProgram#evaluateToCompletion(CelResolvableAttributePattern...)}
-   *     instead to propagate the unknown attributes along with the resolvers into the program.
-   */
-  @CanIgnoreReturnValue
-  @Deprecated
-  CelAsyncRuntimeBuilder addResolvableAttributePattern(
-      CelAttributePattern attribute, CelUnknownAttributeValueResolver resolver);
 
   /**
    * Set the maximum number of allowed evaluation passes.
