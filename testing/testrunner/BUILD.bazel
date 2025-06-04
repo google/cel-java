@@ -91,5 +91,6 @@ bzl_library(
     deps = [
         "@bazel_skylib//lib:paths",
         "@rules_java//java:core_rules",
+        "@rules_proto//proto:defs",
     ],
 )
