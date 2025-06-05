@@ -13,6 +13,15 @@ RUNTIME_TARGETS = [
     "//runtime/src/main/java/dev/cel/runtime:unknown_attributes",
 ]
 
+LITE_RUNTIME_TARGETS = [
+    "//runtime/src/main/java/dev/cel/runtime:lite_runtime_android",
+    "//runtime/src/main/java/dev/cel/runtime:lite_runtime_factory_android",
+    "//runtime/src/main/java/dev/cel/runtime:lite_runtime_library_android",
+    "//common/src/main/java/dev/cel/common:proto_ast_android",  # Note: included due to generated protos requiring protolite dependency
+    "//common/src/main/java/dev/cel/common/values:proto_message_lite_value_provider_android",
+    "//protobuf/src/main/java/dev/cel/protobuf:cel_lite_descriptor",
+]
+
 COMPILER_TARGETS = [
     "//parser/src/main/java/dev/cel/parser",
     "//parser/src/main/java/dev/cel/parser:parser_builder",
@@ -47,6 +56,21 @@ OPTIMIZER_TARGETS = [
     "//optimizer/src/main/java/dev/cel/optimizer/optimizers:common_subexpression_elimination",
 ]
 
+POLICY_COMPILER_TARGETS = [
+    "//policy/src/main/java/dev/cel/policy:policy",
+    "//policy/src/main/java/dev/cel/policy:source",
+    "//policy/src/main/java/dev/cel/policy:validation_exception",
+    "//policy/src/main/java/dev/cel/policy:parser_factory",
+    "//policy/src/main/java/dev/cel/policy:yaml_parser",
+    "//policy/src/main/java/dev/cel/policy:parser",
+    "//policy/src/main/java/dev/cel/policy:parser_builder",
+    "//policy/src/main/java/dev/cel/policy:compiler",
+    "//policy/src/main/java/dev/cel/policy:compiler_builder",
+    "//policy/src/main/java/dev/cel/policy:compiler_factory",
+    "//policy/src/main/java/dev/cel/policy:policy_parser_context",
+    "//policy/src/main/java/dev/cel/policy:compiled_rule",
+]
+
 V1ALPHA1_AST_TARGETS = [
     "//common/src/main/java/dev/cel/common:proto_v1alpha1_ast",
 ]
@@ -62,7 +86,7 @@ EXTENSION_TARGETS = [
 
 ALL_TARGETS = [
     "//bundle/src/main/java/dev/cel/bundle:cel",
-] + RUNTIME_TARGETS + COMPILER_TARGETS + EXTENSION_TARGETS + V1ALPHA1_AST_TARGETS + CANONICAL_AST_TARGETS + OPTIMIZER_TARGETS + VALIDATOR_TARGETS
+] + RUNTIME_TARGETS + COMPILER_TARGETS + EXTENSION_TARGETS + V1ALPHA1_AST_TARGETS + CANONICAL_AST_TARGETS + OPTIMIZER_TARGETS + VALIDATOR_TARGETS + POLICY_COMPILER_TARGETS
 
 # Excluded from the JAR as their source of truth is elsewhere
 EXCLUDED_TARGETS = [
@@ -177,4 +201,25 @@ java_export(
     maven_coordinates = "dev.cel:protobuf:%s" % CEL_VERSION,
     pom_template = ":cel_protobuf_pom",
     runtime_deps = CANONICAL_AST_TARGETS,
+)
+
+pom_file(
+    name = "cel_runtime_android_pom",
+    substitutions = {
+        "CEL_VERSION": CEL_VERSION,
+        "CEL_ARTIFACT_ID": "runtime-android",
+        "PACKAGE_NAME": "CEL Java Runtime for Android",
+        "PACKAGE_DESC": "Common Expression Language Lite Runtime for Java (Suitable for Android)",
+    },
+    targets = LITE_RUNTIME_TARGETS,
+    template_file = "pom_template.xml",
+)
+
+java_export(
+    name = "cel_runtime_android",
+    deploy_env = EXCLUDED_TARGETS,
+    javadocopts = JAVA_DOC_OPTIONS,
+    maven_coordinates = "dev.cel:runtime-android:%s" % CEL_VERSION,
+    pom_template = ":cel_runtime_android_pom",
+    runtime_deps = LITE_RUNTIME_TARGETS,
 )
