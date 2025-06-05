@@ -36,6 +36,7 @@ public final class CelExtensions {
   private static final CelBindingsExtensions BINDINGS_EXTENSIONS = new CelBindingsExtensions();
   private static final CelEncoderExtensions ENCODER_EXTENSIONS = new CelEncoderExtensions();
   private static final CelListsExtensions LISTS_EXTENSIONS_ALL = new CelListsExtensions();
+  private static final CelRegexExtensions REGEX_EXTENSIONS = new CelRegexExtensions();
 
   /**
    * Extended functions for string manipulation.
@@ -249,6 +250,18 @@ public final class CelExtensions {
   }
 
   /**
+   * Extended functions for Regular Expressions.
+   *
+   * <p>Refer to README.md for available functions.
+   *
+   * <p>This will include all functions denoted in {@link CelRegexExtensions.Function}, including
+   * any future additions.
+   */
+  public static CelRegexExtensions regex() {
+    return REGEX_EXTENSIONS;
+  }
+
+  /**
    * Retrieves all function names used by every extension libraries.
    *
    * <p>Note: Certain extensions such as {@link CelProtoExtensions} and {@link
@@ -265,7 +278,9 @@ public final class CelExtensions {
             stream(CelEncoderExtensions.Function.values())
                 .map(CelEncoderExtensions.Function::getFunction),
             stream(CelListsExtensions.Function.values())
-                .map(CelListsExtensions.Function::getFunction))
+                .map(CelListsExtensions.Function::getFunction),
+            stream(CelRegexExtensions.Function.values())
+                .map(CelRegexExtensions.Function::getFunction))
         .collect(toImmutableSet());
   }
 

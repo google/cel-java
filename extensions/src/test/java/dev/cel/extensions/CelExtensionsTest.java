@@ -178,6 +178,10 @@ public class CelExtensionsTest {
             "base64.decode",
             "base64.encode",
             "flatten",
-            "lists.range");
+            "lists.range",
+            "regex.replace",
+            "regex.capture",
+            "regex.captureAll",
+            "regex.captureAllNamed");
   }
 }
