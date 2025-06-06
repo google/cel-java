@@ -1680,6 +1680,12 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   }
 
   @Test
+  public void stringConversions_error() throws Exception {
+    source = "string(b'\\xff')";
+    runTest();
+  }
+
+  @Test
   public void bytes() throws Exception {
     source =
         "b'a' < b'b' && b'a' <= b'b' && b'b' > b'a' && b'a' >= b'a' && b'a' == b'a' && b'a' !="

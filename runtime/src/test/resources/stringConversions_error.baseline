@@ -1,0 +1,5 @@
+Source: string(b'\xff')
+=====>
+bindings: {}
+error:    evaluation error at test_location:6: invalid UTF-8 in bytes, cannot convert to string
+error_code:    BAD_FORMAT
