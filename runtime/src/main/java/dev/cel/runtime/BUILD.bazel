@@ -759,6 +759,7 @@ java_library(
         "//:auto_value",
         "//common:cel_ast",
         "//common:options",
+        "//common/annotations",
         "//common/values:cel_value_provider",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -837,6 +838,7 @@ java_library(
     deps = [
         ":lite_runtime",
         ":lite_runtime_impl",
+        "//common/annotations",
     ],
 )
 
@@ -850,6 +852,7 @@ cel_android_library(
     deps = [
         ":lite_runtime_android",
         ":lite_runtime_impl_android",
+        "//common/annotations",
     ],
 )
 
@@ -1014,6 +1017,7 @@ cel_android_library(
         "//:auto_value",
         "//common:cel_ast_android",
         "//common:options",
+        "//common/annotations",
         "//common/values:cel_value_provider_android",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
