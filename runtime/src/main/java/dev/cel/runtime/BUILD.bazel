@@ -41,8 +41,12 @@ LITE_RUNTIME_SOURCES = [
 
 # keep sorted
 LITE_RUNTIME_IMPL_SOURCES = [
-    "LiteProgramImpl.java",
     "LiteRuntimeImpl.java",
+]
+
+# keep sorted
+LITE_PROGRAM_IMPL_SOURCES = [
+    "LiteProgramImpl.java",
 ]
 
 # keep sorted
@@ -897,7 +901,9 @@ java_library(
         ":function_resolver",
         ":interpretable",
         ":interpreter",
+        ":lite_program_impl",
         ":lite_runtime",
+        ":program_planner",
         ":runtime_equality",
         ":runtime_helpers",
         ":type_resolver",
@@ -909,6 +915,24 @@ java_library(
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "lite_program_impl",
+    srcs = LITE_PROGRAM_IMPL_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":activation",
+        ":evaluation_exception",
+        ":evaluation_listener",
+        ":function_resolver",
+        ":interpretable",
+        ":interpreter",
+        ":lite_runtime",
+        "//:auto_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
 
@@ -926,7 +950,9 @@ cel_android_library(
         ":function_resolver_android",
         ":interpretable_android",
         ":interpreter_android",
+        ":lite_program_impl",  # TODO - android target
         ":lite_runtime_android",
+        ":program_planner",  # TODO - android target
         ":runtime_equality_android",
         ":runtime_helpers_android",
         ":type_resolver_android",
@@ -1164,6 +1190,69 @@ cel_android_library(
     visibility = ["//visibility:private"],
     deps = [
         ":unknown_attributes_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ]
+)
+
+java_library(
+    name = "eval_const",
+    srcs = ["EvalConstant.java"],
+    deps = [
+        ":cel_value_interpretable",
+        ":evaluation_exception",
+        ":interpretable",
+        "//common/values",
+        "//common/values:cel_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "cel_value_interpretable",
+    srcs = ["CelValueInterpretable.java"],
+    deps = [
+        ":evaluation_exception",
+        ":interpretable",
+        "//common/annotations",
+        "//common/values:cel_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "cel_value_program",
+    srcs = ["CelValueProgram.java"],
+    tags = [
+    ],
+    deps = [
+        ":activation",
+        ":cel_value_interpretable",
+        ":evaluation_exception",
+        ":evaluation_listener",
+        ":function_resolver",
+        ":interpretable",
+        ":interpreter",
+        ":lite_runtime",
+        "//:auto_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "program_planner",
+    srcs = ["ProgramPlanner.java"],
+    deps = [
+        ":activation",
+        ":eval_const",
+        ":evaluation_exception",
+        ":function_resolver",
+        ":interpretable",
+        ":lite_program_impl",
+        ":lite_runtime",
+        "//common:cel_ast",
+        "//common/ast",
+        "//common/values",
+        "//common/values:cel_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )

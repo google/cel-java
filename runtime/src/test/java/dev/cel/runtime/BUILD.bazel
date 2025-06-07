@@ -72,6 +72,7 @@ java_library(
         "//runtime:late_function_binding",
         "//runtime:lite_runtime",
         "//runtime:lite_runtime_factory",
+        "//runtime:program_planner",
         "//runtime:proto_message_activation_factory",
         "//runtime:proto_message_runtime_equality",
         "//runtime:proto_message_runtime_helpers",

@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import dev.cel.runtime.DefaultInterpreter.DefaultInterpretable;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
@@ -37,6 +38,7 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
   private final ImmutableList<CelFunctionBinding> customFunctionBindings;
   private final ImmutableSet<CelStandardFunction> celStandardFunctions;
   private final CelValueProvider celValueProvider;
+  private final boolean enablePlanner;
 
   // This does not affect the evaluation behavior in any manner.
   // CEL-Internal-4
@@ -45,7 +47,11 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
   @Override
   public Program createProgram(CelAbstractSyntaxTree ast) {
     checkState(ast.isChecked(), "programs must be created from checked expressions");
-    return LiteProgramImpl.plan(interpreter.createInterpretable(ast));
+    if (enablePlanner) {
+      return ProgramPlanner.plan(ast);
+    } else {
+      return LiteProgramImpl.create(interpreter.createInterpretable(ast));
+    }
   }
 
   @Override
@@ -72,6 +78,7 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     @VisibleForTesting final ImmutableSet.Builder<CelLiteRuntimeLibrary> runtimeLibrariesBuilder;
     @VisibleForTesting final ImmutableSet.Builder<CelStandardFunction> standardFunctionBuilder;
     @VisibleForTesting CelValueProvider celValueProvider;
+    @VisibleForTesting boolean enablePlanner;
 
     @Override
     public CelLiteRuntimeBuilder setOptions(CelOptions celOptions) {
@@ -116,6 +123,11 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     @Override
     public CelLiteRuntimeBuilder addLibraries(Iterable<? extends CelLiteRuntimeLibrary> libraries) {
       this.runtimeLibrariesBuilder.addAll(checkNotNull(libraries));
+      return this;
+    }
+    @Override
+    public CelLiteRuntimeBuilder enablePlanner(boolean value) {
+      this.enablePlanner = value;
       return this;
     }
 
@@ -197,7 +209,8 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
           customFunctionBindings.values(),
           standardFunctions,
           runtimeLibs,
-          celValueProvider);
+          celValueProvider,
+          enablePlanner);
     }
 
     private Builder() {
@@ -223,12 +236,14 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
       Iterable<CelFunctionBinding> customFunctionBindings,
       ImmutableSet<CelStandardFunction> celStandardFunctions,
       ImmutableSet<CelLiteRuntimeLibrary> runtimeLibraries,
-      CelValueProvider celValueProvider) {
+      CelValueProvider celValueProvider,
+      boolean enablePlanner) {
     this.interpreter = interpreter;
     this.celOptions = celOptions;
     this.customFunctionBindings = ImmutableList.copyOf(customFunctionBindings);
     this.celStandardFunctions = celStandardFunctions;
     this.runtimeLibraries = runtimeLibraries;
     this.celValueProvider = celValueProvider;
+    this.enablePlanner = enablePlanner;
   }
 }

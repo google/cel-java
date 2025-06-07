@@ -16,6 +16,7 @@ package dev.cel.runtime;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.runtime.DefaultInterpreter.DefaultInterpretable;
 import javax.annotation.concurrent.ThreadSafe;
 import com.google.protobuf.Message;
 import dev.cel.common.CelAbstractSyntaxTree;

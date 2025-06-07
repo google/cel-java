@@ -62,6 +62,9 @@ public interface CelLiteRuntimeBuilder {
   @CanIgnoreReturnValue
   CelLiteRuntimeBuilder addLibraries(Iterable<? extends CelLiteRuntimeLibrary> libraries);
 
+  @CanIgnoreReturnValue
+  CelLiteRuntimeBuilder enablePlanner(boolean value);
+
   @CheckReturnValue
   CelLiteRuntime build();
 }

@@ -33,7 +33,7 @@ import java.util.Optional;
 @SuppressWarnings("unchecked") // Unchecked cast of generics due to type-erasure (ex: MapValue).
 @Internal
 @Immutable
-abstract class CelValueConverter {
+public class CelValueConverter {
 
   /** Adapts a {@link CelValue} to a plain old Java Object. */
   public Object fromCelValueToJavaObject(CelValue celValue) {
@@ -145,6 +145,4 @@ abstract class CelValueConverter {
 
     return ImmutableMapValue.create(mapBuilder.buildOrThrow());
   }
-
-  protected CelValueConverter() {}
 }
