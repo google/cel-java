@@ -1208,6 +1208,14 @@ java_library(
 )
 
 java_library(
+    name = "eval_attribute",
+    srcs = ["EvalAttribute.java"],
+    deps = [
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
     name = "cel_value_interpretable",
     srcs = ["CelValueInterpretable.java"],
     deps = [
@@ -1258,5 +1266,6 @@ java_library(
         "//common/values",
         "//common/values:cel_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
     ],
 )

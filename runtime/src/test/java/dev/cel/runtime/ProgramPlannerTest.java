@@ -10,6 +10,7 @@ import dev.cel.common.values.CelByteString;
 import dev.cel.common.values.NullValue;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.expr.conformance.proto2.TestAllTypes;
 import dev.cel.runtime.CelLiteRuntime.Program;
 import java.nio.charset.StandardCharsets;
 import org.junit.Test;
@@ -17,7 +18,10 @@ import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public final class ProgramPlannerTest {
-  private static final CelCompiler CEL_COMPILER = CelCompilerFactory.standardCelCompilerBuilder().build();
+  private static final CelCompiler CEL_COMPILER =
+      CelCompilerFactory.standardCelCompilerBuilder()
+          .addMessageTypes(TestAllTypes.getDescriptor())
+          .build();
 
   @SuppressWarnings("ImmutableEnumChecker") // Test only
   private enum ConstantTestCase {
@@ -52,5 +56,15 @@ public final class ProgramPlannerTest {
     Object result = program.eval();
 
     assertThat(result).isEqualTo(testCase.expected);
+  }
+
+  @Test
+  public void planIdentEnum() throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile("cel.expr.conformance.proto2.GlobalEnum.GAR").getAst();
+    Program program = ProgramPlanner.plan(ast);
+
+    Object result = program.eval();
+
+    assertThat(result).isEqualTo(1);
   }
 }
