@@ -21,8 +21,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import dev.cel.runtime.DefaultInterpreter.DefaultInterpretable;
-import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.values.CelValueProvider;
@@ -30,6 +28,7 @@ import dev.cel.runtime.standard.CelStandardFunction;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
+import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 final class LiteRuntimeImpl implements CelLiteRuntime {

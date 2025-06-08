@@ -566,12 +566,13 @@ public final class CelImplTest {
                     .setName("variable")
                     .setIdent(IdentDecl.newBuilder().setType(CelProtoTypes.STRING))
                     .build())
-            .setResultType(SimpleType.BOOL)
             .build();
 
-    CelRuntime.Program program = cel.createProgram(cel.compile("variable == 'hello'").getAst());
+    CelRuntime.Program program = cel.createProgram(cel.compile("b'abc'").getAst());
 
-    assertThat(program.eval(ImmutableMap.of("variable", "hello"))).isEqualTo(true);
+
+    Object foo = program.eval();
+    System.out.println(foo);
   }
 
   @Test

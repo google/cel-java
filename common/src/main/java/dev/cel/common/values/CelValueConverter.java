@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
+import com.google.protobuf.ByteString;
 import dev.cel.common.annotations.Internal;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -76,7 +77,11 @@ public class CelValueConverter {
       return (CelValue) value;
     }
 
-    if (value instanceof Iterable) {
+    if (value instanceof ByteString) {
+      // TODO: CelConstant should hold this value instead of adapting it here
+      return BytesValue.create(CelByteString.of(((ByteString) value).toByteArray()));
+    } else if (value instanceof Iterable) {
+
       return toListValue((Iterable<Object>) value);
     } else if (value instanceof Map) {
       return toMapValue((Map<Object, Object>) value);
@@ -87,6 +92,9 @@ public class CelValueConverter {
           .orElse(OptionalValue.EMPTY);
     } else if (value instanceof Exception) {
       return ErrorValue.create((Exception) value);
+    } else if (value instanceof com.google.protobuf.NullValue) {
+      // TODO: CelConstant should hold this value instead of adapting it here
+      return NullValue.NULL_VALUE;
     }
 
     return fromJavaPrimitiveToCelValue(value);

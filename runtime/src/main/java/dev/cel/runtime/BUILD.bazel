@@ -1234,6 +1234,8 @@ java_library(
         ":interpreter",
         ":lite_runtime",
         "//:auto_value",
+        "//common/values",
+        "//common/values:cel_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
@@ -1243,6 +1245,8 @@ java_library(
     srcs = ["ProgramPlanner.java"],
     deps = [
         ":activation",
+        ":cel_value_interpretable",
+        ":cel_value_program",
         ":eval_const",
         ":evaluation_exception",
         ":function_resolver",

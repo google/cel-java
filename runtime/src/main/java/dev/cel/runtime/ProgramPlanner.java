@@ -18,7 +18,6 @@ final class ProgramPlanner {
       case NOT_SET:
         break;
       case IDENT:
-        break;
       case SELECT:
         break;
       case CALL:
@@ -37,6 +36,6 @@ final class ProgramPlanner {
   }
 
   static CelLiteRuntime.Program plan(CelAbstractSyntaxTree ast) {
-    return CelValueProgram.create(plan(ast.getExpr())));
+    return CelValueProgram.create(plan(ast.getExpr()));
   }
 }
