@@ -680,30 +680,28 @@ final class DefaultInterpreter implements Interpreter {
 
     private IntermediateResult evalOptionalOr(ExecutionFrame frame, CelCall callExpr)
         throws CelEvaluationException {
-      CelExpr lhsExpr = callExpr.target().get();
-      IntermediateResult lhsResult = evalInternal(frame, lhsExpr);
-      if (!(lhsResult.value() instanceof Optional)) {
-        throw CelEvaluationExceptionBuilder.newBuilder(
-                "expected optional value, found: %s", lhsResult.value())
-            .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
-            .setMetadata(metadata, lhsExpr.id())
-            .build();
-      }
-
-      Optional<?> lhsOptionalValue = (Optional<?>) lhsResult.value();
-
-      if (lhsOptionalValue.isPresent()) {
-        // Short-circuit lhs if a value exists
-        return lhsResult;
-      }
-
-      return evalInternal(frame, callExpr.args().get(0));
+      return evalOptionalOrInternal(frame, callExpr, /* unwrapOptional= */ false);
     }
 
     private IntermediateResult evalOptionalOrValue(ExecutionFrame frame, CelCall callExpr)
         throws CelEvaluationException {
-      CelExpr lhsExpr = callExpr.target().get();
+      return evalOptionalOrInternal(frame, callExpr, /* unwrapOptional= */ true);
+    }
+
+    private IntermediateResult evalOptionalOrInternal(
+        ExecutionFrame frame, CelCall callExpr, boolean unwrapOptional)
+        throws CelEvaluationException {
+      CelExpr lhsExpr =
+          callExpr
+              .target()
+              .orElseThrow(
+                  () -> new IllegalStateException("Missing target for chained optional function"));
       IntermediateResult lhsResult = evalInternal(frame, lhsExpr);
+
+      if (isUnknownValue(lhsResult.value())) {
+        return lhsResult;
+      }
+
       if (!(lhsResult.value() instanceof Optional)) {
         throw CelEvaluationExceptionBuilder.newBuilder(
                 "expected optional value, found: %s", lhsResult.value())
@@ -716,7 +714,7 @@ final class DefaultInterpreter implements Interpreter {
 
       if (lhsOptionalValue.isPresent()) {
         // Short-circuit lhs if a value exists
-        return IntermediateResult.create(lhsOptionalValue.get());
+        return unwrapOptional ? IntermediateResult.create(lhsOptionalValue.get()) : lhsResult;
       }
 
       return evalInternal(frame, callExpr.args().get(0));

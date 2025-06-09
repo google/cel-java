@@ -914,6 +914,45 @@ public class CelOptionalLibraryTest {
   }
 
   @Test
+  // LHS
+  @TestParameters("{expression: 'optx.or(optional.of(1))'}")
+  @TestParameters("{expression: 'optx.orValue(1)'}")
+  // RHS
+  @TestParameters("{expression: 'optional.none().or(optx)'}")
+  @TestParameters("{expression: 'optional.none().orValue(optx)'}")
+  public void optionalChainedFunctions_lhsIsUnknown_returnsUnknown(String expression)
+      throws Exception {
+    Cel cel =
+        newCelBuilder()
+            .addVar("optx", OptionalType.create(SimpleType.INT))
+            .addVar("x", SimpleType.INT)
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+
+    Object result = cel.createProgram(ast).eval();
+
+    assertThat(InterpreterUtil.isUnknown(result)).isTrue();
+  }
+
+  @Test
+  // LHS
+  @TestParameters("{expression: 'optional.of(1/0).or(optional.of(1))'}")
+  @TestParameters("{expression: 'optional.of(1/0).orValue(1)'}")
+  // RHS
+  @TestParameters("{expression: 'optional.none().or(optional.of(1/0))'}")
+  @TestParameters("{expression: 'optional.none().orValue(1/0)'}")
+  public void optionalChainedFunctions_lhsIsError_returnsError(String expression) throws Exception {
+    Cel cel =
+        newCelBuilder()
+            .addVar("optx", OptionalType.create(SimpleType.INT))
+            .addVar("x", SimpleType.INT)
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+
+    assertThrows(CelEvaluationException.class, () -> cel.createProgram(ast).eval());
+  }
+
+  @Test
   public void traditionalIndex_onOptionalList_returnsOptionalValue() throws Exception {
     Cel cel =
         newCelBuilder()
