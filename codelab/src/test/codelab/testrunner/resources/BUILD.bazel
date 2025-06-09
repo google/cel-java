@@ -1,0 +1,21 @@
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_testonly = True,
+    default_visibility = [
+        "//codelab:__pkg__",
+    ],
+)
+
+filegroup(
+    name = "testrunner_codelab_data_files",
+    srcs = glob([
+        "**/*.yaml",
+        "**/*.textproto",
+        "**/*.cel",
+        "**/*.celpolicy",
+    ]),
+    tags = [
+    ],
+)
