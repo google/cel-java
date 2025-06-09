@@ -890,7 +890,18 @@ public final class CelStandardFunctions {
         BYTES_TO_STRING(
             (bindingHelper) ->
                 CelFunctionBinding.from(
-                    "bytes_to_string", ByteString.class, ByteString::toStringUtf8)),
+                    "bytes_to_string",
+                    ByteString.class,
+                    (byteStr) -> {
+                      if (!byteStr.isValidUtf8()) {
+                        throw new CelRuntimeException(
+                            new IllegalArgumentException(
+                                "invalid UTF-8 in bytes, cannot convert to string"),
+                            CelErrorCode.BAD_FORMAT);
+                      }
+
+                      return byteStr.toStringUtf8();
+                    })),
         TIMESTAMP_TO_STRING(
             (bindingHelper) ->
                 CelFunctionBinding.from(
