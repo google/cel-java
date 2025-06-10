@@ -1,0 +1,412 @@
+load("@rules_java//java:defs.bzl", "java_library")
+load("//:cel_android_rules.bzl", "cel_android_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//:internal"],
+)
+
+java_library(
+    name = "standard_function",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:standard_function"],
+)
+
+java_library(
+    name = "add",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:add"],
+)
+
+cel_android_library(
+    name = "add_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:add_android"],
+)
+
+java_library(
+    name = "subtract",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:subtract"],
+)
+
+cel_android_library(
+    name = "subtract_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:subtract_android"],
+)
+
+java_library(
+    name = "bool",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:bool"],
+)
+
+cel_android_library(
+    name = "bool_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:bool_android"],
+)
+
+java_library(
+    name = "bytes",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:bytes"],
+)
+
+cel_android_library(
+    name = "bytes_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:bytes_android"],
+)
+
+java_library(
+    name = "contains",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:contains"],
+)
+
+cel_android_library(
+    name = "contains_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:contains_android"],
+)
+
+java_library(
+    name = "double",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:double"],
+)
+
+cel_android_library(
+    name = "double_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:double_android"],
+)
+
+java_library(
+    name = "duration",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:duration"],
+)
+
+cel_android_library(
+    name = "duration_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:duration_android"],
+)
+
+java_library(
+    name = "dyn",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:dyn"],
+)
+
+cel_android_library(
+    name = "dyn_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:dyn_android"],
+)
+
+java_library(
+    name = "ends_with",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:ends_with"],
+)
+
+cel_android_library(
+    name = "ends_with_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:ends_with_android"],
+)
+
+java_library(
+    name = "equals",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:equals"],
+)
+
+cel_android_library(
+    name = "equals_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:equals_android"],
+)
+
+java_library(
+    name = "get_day_of_year",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_day_of_year"],
+)
+
+cel_android_library(
+    name = "get_day_of_year_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_day_of_year_android"],
+)
+
+java_library(
+    name = "get_day_of_month",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_day_of_month"],
+)
+
+cel_android_library(
+    name = "get_day_of_month_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_day_of_month_android"],
+)
+
+java_library(
+    name = "get_day_of_week",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_day_of_week"],
+)
+
+cel_android_library(
+    name = "get_day_of_week_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_day_of_week_android"],
+)
+
+java_library(
+    name = "get_date",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_date"],
+)
+
+cel_android_library(
+    name = "get_date_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_date_android"],
+)
+
+java_library(
+    name = "get_full_year",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_full_year"],
+)
+
+cel_android_library(
+    name = "get_full_year_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_full_year_android"],
+)
+
+java_library(
+    name = "get_hours",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_hours"],
+)
+
+cel_android_library(
+    name = "get_hours_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_hours_android"],
+)
+
+java_library(
+    name = "get_milliseconds",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_milliseconds"],
+)
+
+cel_android_library(
+    name = "get_milliseconds_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_milliseconds_android"],
+)
+
+java_library(
+    name = "get_minutes",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_minutes"],
+)
+
+cel_android_library(
+    name = "get_minutes_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_minutes_android"],
+)
+
+java_library(
+    name = "get_month",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_month"],
+)
+
+cel_android_library(
+    name = "get_month_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_month_android"],
+)
+
+java_library(
+    name = "get_seconds",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_seconds"],
+)
+
+cel_android_library(
+    name = "get_seconds_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_seconds_android"],
+)
+
+java_library(
+    name = "greater",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:greater"],
+)
+
+cel_android_library(
+    name = "greater_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:greater_android"],
+)
+
+java_library(
+    name = "greater_equals",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:greater_equals"],
+)
+
+cel_android_library(
+    name = "greater_equals_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:greater_equals_android"],
+)
+
+java_library(
+    name = "in",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:in"],
+)
+
+cel_android_library(
+    name = "in_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:in_android"],
+)
+
+java_library(
+    name = "index",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:index"],
+)
+
+cel_android_library(
+    name = "index_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:index_android"],
+)
+
+java_library(
+    name = "int",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:int"],
+)
+
+cel_android_library(
+    name = "int_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:int_android"],
+)
+
+java_library(
+    name = "less",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:less"],
+)
+
+cel_android_library(
+    name = "less_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:less_android"],
+)
+
+java_library(
+    name = "less_equals",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:less_equals"],
+)
+
+cel_android_library(
+    name = "less_equals_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:less_equals_android"],
+)
+
+java_library(
+    name = "logical_not",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:logical_not"],
+)
+
+cel_android_library(
+    name = "logical_not_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:logical_not_android"],
+)
+
+java_library(
+    name = "matches",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:matches"],
+)
+
+cel_android_library(
+    name = "matches_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:matches_android"],
+)
+
+java_library(
+    name = "modulo",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:modulo"],
+)
+
+cel_android_library(
+    name = "modulo_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:modulo_android"],
+)
+
+java_library(
+    name = "multiply",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:multiply"],
+)
+
+cel_android_library(
+    name = "multiply_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:multiply_android"],
+)
+
+java_library(
+    name = "divide",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:divide"],
+)
+
+cel_android_library(
+    name = "divide_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:divide_android"],
+)
+
+java_library(
+    name = "negate",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:negate"],
+)
+
+cel_android_library(
+    name = "negate_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:negate_android"],
+)
+
+java_library(
+    name = "not_equals",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:not_equals"],
+)
+
+cel_android_library(
+    name = "not_equals_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:not_equals_android"],
+)
+
+java_library(
+    name = "optional",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:optional"],
+)
+
+cel_android_library(
+    name = "optional_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:optional_android"],
+)
+
+java_library(
+    name = "size",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:size"],
+)
+
+cel_android_library(
+    name = "size_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:size_android"],
+)
+
+java_library(
+    name = "starts_with",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:starts_with"],
+)
+
+cel_android_library(
+    name = "starts_with_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:starts_with_android"],
+)
+
+java_library(
+    name = "string",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:string"],
+)
+
+cel_android_library(
+    name = "string_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:string_android"],
+)
+
+java_library(
+    name = "timestamp",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:timestamp"],
+)
+
+cel_android_library(
+    name = "timestamp_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:timestamp_android"],
+)
+
+java_library(
+    name = "uint",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:uint"],
+)
+
+cel_android_library(
+    name = "uint_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:uint_android"],
+)

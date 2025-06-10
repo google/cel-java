@@ -18,21 +18,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.primitives.Ints;
-import com.google.common.primitives.UnsignedLong;
-import com.google.common.primitives.UnsignedLongs;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.Duration;
-import com.google.protobuf.Timestamp;
-import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
-import dev.cel.common.internal.ComparisonFunctions;
-import dev.cel.common.internal.ProtoTimeUtils;
-import dev.cel.common.internal.SafeStringFormatter;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Arithmetic;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.BooleanOperator;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Comparison;
@@ -43,22 +32,50 @@ import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.InternalOp
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Relation;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Size;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.StringMatchers;
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.time.DateTimeException;
-import java.time.DayOfWeek;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import dev.cel.runtime.standard.AddOperator.AddOverload;
+import dev.cel.runtime.standard.BoolFunction.BoolOverload;
+import dev.cel.runtime.standard.BytesFunction.BytesOverload;
+import dev.cel.runtime.standard.ContainsFunction.ContainsOverload;
+import dev.cel.runtime.standard.DivideOperator.DivideOverload;
+import dev.cel.runtime.standard.DoubleFunction.DoubleOverload;
+import dev.cel.runtime.standard.DurationFunction.DurationOverload;
+import dev.cel.runtime.standard.DynFunction.DynOverload;
+import dev.cel.runtime.standard.EndsWithFunction.EndsWithOverload;
+import dev.cel.runtime.standard.EqualsOperator.EqualsOverload;
+import dev.cel.runtime.standard.GetDateFunction.GetDateOverload;
+import dev.cel.runtime.standard.GetDayOfMonthFunction.GetDayOfMonthOverload;
+import dev.cel.runtime.standard.GetDayOfWeekFunction.GetDayOfWeekOverload;
+import dev.cel.runtime.standard.GetDayOfYearFunction.GetDayOfYearOverload;
+import dev.cel.runtime.standard.GetFullYearFunction.GetFullYearOverload;
+import dev.cel.runtime.standard.GetHoursFunction.GetHoursOverload;
+import dev.cel.runtime.standard.GetMillisecondsFunction.GetMillisecondsOverload;
+import dev.cel.runtime.standard.GetMinutesFunction.GetMinutesOverload;
+import dev.cel.runtime.standard.GetMonthFunction.GetMonthOverload;
+import dev.cel.runtime.standard.GetSecondsFunction.GetSecondsOverload;
+import dev.cel.runtime.standard.GreaterEqualsOperator.GreaterEqualsOverload;
+import dev.cel.runtime.standard.GreaterOperator.GreaterOverload;
+import dev.cel.runtime.standard.InOperator.InOverload;
+import dev.cel.runtime.standard.IndexOperator.IndexOverload;
+import dev.cel.runtime.standard.IntFunction.IntOverload;
+import dev.cel.runtime.standard.LessEqualsOperator.LessEqualsOverload;
+import dev.cel.runtime.standard.LessOperator.LessOverload;
+import dev.cel.runtime.standard.LogicalNotOperator.LogicalNotOverload;
+import dev.cel.runtime.standard.MatchesFunction.MatchesOverload;
+import dev.cel.runtime.standard.ModuloOperator.ModuloOverload;
+import dev.cel.runtime.standard.MultiplyOperator.MultiplyOverload;
+import dev.cel.runtime.standard.NegateOperator.NegateOverload;
+import dev.cel.runtime.standard.NotEqualsOperator.NotEqualsOverload;
+import dev.cel.runtime.standard.OptionalFunction.OptionalOverload;
+import dev.cel.runtime.standard.SizeFunction.SizeOverload;
+import dev.cel.runtime.standard.StartsWithFunction.StartsWithOverload;
+import dev.cel.runtime.standard.StringFunction.StringOverload;
+import dev.cel.runtime.standard.SubtractOperator.SubtractOverload;
+import dev.cel.runtime.standard.TimestampFunction.TimestampOverload;
+import dev.cel.runtime.standard.UintFunction.UintOverload;
 
 /** Runtime function bindings for the standard functions in CEL. */
 @Immutable
 public final class CelStandardFunctions {
-  private static final String UTC = "UTC";
 
   private final ImmutableSet<StandardOverload> standardOverloads;
 
@@ -68,7 +85,6 @@ public final class CelStandardFunctions {
    * <p>Note: The conditional, logical_or, logical_and, not_strictly_false, and type functions are
    * currently special-cased, and does not appear in this enum.
    */
-  @SuppressWarnings({"rawtypes", "unchecked"})
   public enum StandardFunction {
     LOGICAL_NOT(BooleanOperator.LOGICAL_NOT),
     IN(InternalOperator.IN_LIST, InternalOperator.IN_MAP),
@@ -242,27 +258,15 @@ public final class CelStandardFunctions {
 
       /** Overloads for internal functions that may have been rewritten by macros (ex: @in) */
       public enum InternalOperator implements StandardOverload {
-        IN_LIST(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "in_list",
-                    Object.class,
-                    List.class,
-                    (Object value, List list) ->
-                        bindingHelper.runtimeEquality.inList(list, value))),
-        IN_MAP(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "in_map",
-                    Object.class,
-                    Map.class,
-                    (Object key, Map map) -> bindingHelper.runtimeEquality.inMap(map, key)));
+        IN_LIST(InOverload.IN_LIST::newFunctionBinding),
+        IN_MAP(InOverload.IN_MAP::newFunctionBinding);
 
         private final FunctionBindingCreator bindingCreator;
 
         @Override
-        public CelFunctionBinding newFunctionBinding(FunctionBindingHelper functionBindingHelper) {
-          return bindingCreator.create(functionBindingHelper);
+        public CelFunctionBinding newFunctionBinding(
+            CelOptions celOptions, RuntimeEquality runtimeEquality) {
+          return bindingCreator.create(celOptions, runtimeEquality);
         }
 
         InternalOperator(FunctionBindingCreator bindingCreator) {
@@ -272,26 +276,15 @@ public final class CelStandardFunctions {
 
       /** Overloads for functions that test relations. */
       public enum Relation implements StandardOverload {
-        EQUALS(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "equals",
-                    Object.class,
-                    Object.class,
-                    bindingHelper.runtimeEquality::objectEquals)),
-        NOT_EQUALS(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "not_equals",
-                    Object.class,
-                    Object.class,
-                    (Object x, Object y) -> !bindingHelper.runtimeEquality.objectEquals(x, y)));
+        EQUALS(EqualsOverload.EQUALS::newFunctionBinding),
+        NOT_EQUALS(NotEqualsOverload.NOT_EQUALS::newFunctionBinding);
 
         private final FunctionBindingCreator bindingCreator;
 
         @Override
-        public CelFunctionBinding newFunctionBinding(FunctionBindingHelper functionBindingHelper) {
-          return bindingCreator.create(functionBindingHelper);
+        public CelFunctionBinding newFunctionBinding(
+            CelOptions celOptions, RuntimeEquality runtimeEquality) {
+          return bindingCreator.create(celOptions, runtimeEquality);
         }
 
         Relation(FunctionBindingCreator bindingCreator) {
@@ -301,275 +294,45 @@ public final class CelStandardFunctions {
 
       /** Overloads for performing arithmetic operations. */
       public enum Arithmetic implements StandardOverload {
-        ADD_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "add_int64",
-                    Long.class,
-                    Long.class,
-                    (Long x, Long y) -> {
-                      try {
-                        return RuntimeHelpers.int64Add(x, y, bindingHelper.celOptions);
-                      } catch (ArithmeticException e) {
-                        throw new CelRuntimeException(e, getArithmeticErrorCode(e));
-                      }
-                    })),
-        ADD_UINT64(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "add_uint64",
-                    UnsignedLong.class,
-                    UnsignedLong.class,
-                    (UnsignedLong x, UnsignedLong y) -> {
-                      try {
-                        return RuntimeHelpers.uint64Add(x, y);
-                      } catch (ArithmeticException e) {
-                        throw new CelRuntimeException(e, getArithmeticErrorCode(e));
-                      }
-                    });
-              } else {
-                return CelFunctionBinding.from(
-                    "add_uint64",
-                    Long.class,
-                    Long.class,
-                    (Long x, Long y) -> {
-                      try {
-                        return RuntimeHelpers.uint64Add(x, y, bindingHelper.celOptions);
-                      } catch (ArithmeticException e) {
-                        throw new CelRuntimeException(e, getArithmeticErrorCode(e));
-                      }
-                    });
-              }
-            }),
-        ADD_BYTES(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "add_bytes", ByteString.class, ByteString.class, ByteString::concat)),
-        ADD_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from("add_double", Double.class, Double.class, Double::sum)),
-        ADD_DURATION_DURATION(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "add_duration_duration", Duration.class, Duration.class, ProtoTimeUtils::add)),
-        ADD_TIMESTAMP_DURATION(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "add_timestamp_duration",
-                    Timestamp.class,
-                    Duration.class,
-                    ProtoTimeUtils::add)),
-        ADD_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "add_string", String.class, String.class, (String x, String y) -> x + y)),
-        ADD_DURATION_TIMESTAMP(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "add_duration_timestamp",
-                    Duration.class,
-                    Timestamp.class,
-                    (Duration x, Timestamp y) -> ProtoTimeUtils.add(y, x))),
-        ADD_LIST(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "add_list", List.class, List.class, RuntimeHelpers::concat)),
-        SUBTRACT_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "subtract_int64",
-                    Long.class,
-                    Long.class,
-                    (Long x, Long y) -> {
-                      try {
-                        return RuntimeHelpers.int64Subtract(x, y, bindingHelper.celOptions);
-                      } catch (ArithmeticException e) {
-                        throw new CelRuntimeException(e, getArithmeticErrorCode(e));
-                      }
-                    })),
+        ADD_INT64(AddOverload.ADD_INT64::newFunctionBinding),
+        ADD_UINT64(AddOverload.ADD_UINT64::newFunctionBinding),
+        ADD_BYTES(AddOverload.ADD_BYTES::newFunctionBinding),
+        ADD_DOUBLE(AddOverload.ADD_DOUBLE::newFunctionBinding),
+        ADD_DURATION_DURATION(AddOverload.ADD_DURATION_DURATION::newFunctionBinding),
+        ADD_TIMESTAMP_DURATION(AddOverload.ADD_TIMESTAMP_DURATION::newFunctionBinding),
+        ADD_STRING(AddOverload.ADD_STRING::newFunctionBinding),
+        ADD_DURATION_TIMESTAMP(AddOverload.ADD_DURATION_TIMESTAMP::newFunctionBinding),
+        ADD_LIST(AddOverload.ADD_LIST::newFunctionBinding),
+
+        SUBTRACT_INT64(SubtractOverload.SUBTRACT_INT64::newFunctionBinding),
         SUBTRACT_TIMESTAMP_TIMESTAMP(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "subtract_timestamp_timestamp",
-                    Timestamp.class,
-                    Timestamp.class,
-                    (Timestamp x, Timestamp y) -> ProtoTimeUtils.between(y, x))),
+            SubtractOverload.SUBTRACT_TIMESTAMP_TIMESTAMP::newFunctionBinding),
         SUBTRACT_TIMESTAMP_DURATION(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "subtract_timestamp_duration",
-                    Timestamp.class,
-                    Duration.class,
-                    ProtoTimeUtils::subtract)),
-        SUBTRACT_UINT64(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "subtract_uint64",
-                    UnsignedLong.class,
-                    UnsignedLong.class,
-                    (UnsignedLong x, UnsignedLong y) -> {
-                      try {
-                        return RuntimeHelpers.uint64Subtract(x, y);
-                      } catch (ArithmeticException e) {
-                        throw new CelRuntimeException(e, getArithmeticErrorCode(e));
-                      }
-                    });
-              } else {
-                return CelFunctionBinding.from(
-                    "subtract_uint64",
-                    Long.class,
-                    Long.class,
-                    (Long x, Long y) -> {
-                      try {
-                        return RuntimeHelpers.uint64Subtract(x, y, bindingHelper.celOptions);
-                      } catch (ArithmeticException e) {
-                        throw new CelRuntimeException(e, getArithmeticErrorCode(e));
-                      }
-                    });
-              }
-            }),
-        SUBTRACT_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "subtract_double", Double.class, Double.class, (Double x, Double y) -> x - y)),
-        SUBTRACT_DURATION_DURATION(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "subtract_duration_duration",
-                    Duration.class,
-                    Duration.class,
-                    ProtoTimeUtils::subtract)),
-        MULTIPLY_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "multiply_int64",
-                    Long.class,
-                    Long.class,
-                    (Long x, Long y) -> {
-                      try {
-                        return RuntimeHelpers.int64Multiply(x, y, bindingHelper.celOptions);
-                      } catch (ArithmeticException e) {
-                        throw new CelRuntimeException(e, getArithmeticErrorCode(e));
-                      }
-                    })),
-        MULTIPLY_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "multiply_double", Double.class, Double.class, (Double x, Double y) -> x * y)),
-        MULTIPLY_UINT64(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "multiply_uint64",
-                    UnsignedLong.class,
-                    UnsignedLong.class,
-                    (UnsignedLong x, UnsignedLong y) -> {
-                      try {
-                        return RuntimeHelpers.uint64Multiply(x, y);
-                      } catch (ArithmeticException e) {
-                        throw new CelRuntimeException(e, getArithmeticErrorCode(e));
-                      }
-                    });
-              } else {
-                return CelFunctionBinding.from(
-                    "multiply_uint64",
-                    Long.class,
-                    Long.class,
-                    (Long x, Long y) -> {
-                      try {
-                        return RuntimeHelpers.uint64Multiply(x, y, bindingHelper.celOptions);
-                      } catch (ArithmeticException e) {
-                        throw new CelRuntimeException(e, getArithmeticErrorCode(e));
-                      }
-                    });
-              }
-            }),
-        DIVIDE_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "divide_double", Double.class, Double.class, (Double x, Double y) -> x / y)),
-        DIVIDE_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "divide_int64",
-                    Long.class,
-                    Long.class,
-                    (Long x, Long y) -> {
-                      try {
-                        return RuntimeHelpers.int64Divide(x, y, bindingHelper.celOptions);
-                      } catch (ArithmeticException e) {
-                        throw new CelRuntimeException(e, getArithmeticErrorCode(e));
-                      }
-                    })),
-        DIVIDE_UINT64(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "divide_uint64",
-                    UnsignedLong.class,
-                    UnsignedLong.class,
-                    RuntimeHelpers::uint64Divide);
-              } else {
-                return CelFunctionBinding.from(
-                    "divide_uint64",
-                    Long.class,
-                    Long.class,
-                    (Long x, Long y) ->
-                        RuntimeHelpers.uint64Divide(x, y, bindingHelper.celOptions));
-              }
-            }),
-        MODULO_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "modulo_int64",
-                    Long.class,
-                    Long.class,
-                    (Long x, Long y) -> {
-                      try {
-                        return x % y;
-                      } catch (ArithmeticException e) {
-                        throw new CelRuntimeException(e, getArithmeticErrorCode(e));
-                      }
-                    })),
-        MODULO_UINT64(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "modulo_uint64",
-                    UnsignedLong.class,
-                    UnsignedLong.class,
-                    RuntimeHelpers::uint64Mod);
-              } else {
-                return CelFunctionBinding.from(
-                    "modulo_uint64",
-                    Long.class,
-                    Long.class,
-                    (Long x, Long y) -> RuntimeHelpers.uint64Mod(x, y, bindingHelper.celOptions));
-              }
-            }),
-        NEGATE_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "negate_int64",
-                    Long.class,
-                    (Long x) -> {
-                      try {
-                        return RuntimeHelpers.int64Negate(x, bindingHelper.celOptions);
-                      } catch (ArithmeticException e) {
-                        throw new CelRuntimeException(e, getArithmeticErrorCode(e));
-                      }
-                    })),
-        NEGATE_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from("negate_double", Double.class, (Double x) -> -x));
+            SubtractOverload.SUBTRACT_TIMESTAMP_DURATION::newFunctionBinding),
+        SUBTRACT_UINT64(SubtractOverload.SUBTRACT_UINT64::newFunctionBinding),
+        SUBTRACT_DOUBLE(SubtractOverload.SUBTRACT_DOUBLE::newFunctionBinding),
+        SUBTRACT_DURATION_DURATION(SubtractOverload.SUBTRACT_DURATION_DURATION::newFunctionBinding),
+
+        MULTIPLY_INT64(MultiplyOverload.MULTIPLY_INT64::newFunctionBinding),
+        MULTIPLY_DOUBLE(MultiplyOverload.MULTIPLY_DOUBLE::newFunctionBinding),
+        MULTIPLY_UINT64(MultiplyOverload.MULTIPLY_UINT64::newFunctionBinding),
+
+        DIVIDE_DOUBLE(DivideOverload.DIVIDE_DOUBLE::newFunctionBinding),
+        DIVIDE_INT64(DivideOverload.DIVIDE_INT64::newFunctionBinding),
+        DIVIDE_UINT64(DivideOverload.DIVIDE_UINT64::newFunctionBinding),
+
+        MODULO_INT64(ModuloOverload.MODULO_INT64::newFunctionBinding),
+        MODULO_UINT64(ModuloOverload.MODULO_UINT64::newFunctionBinding),
+
+        NEGATE_INT64(NegateOverload.NEGATE_INT64::newFunctionBinding),
+        NEGATE_DOUBLE(NegateOverload.NEGATE_DOUBLE::newFunctionBinding);
 
         private final FunctionBindingCreator bindingCreator;
 
         @Override
-        public CelFunctionBinding newFunctionBinding(FunctionBindingHelper functionBindingHelper) {
-          return bindingCreator.create(functionBindingHelper);
+        public CelFunctionBinding newFunctionBinding(
+            CelOptions celOptions, RuntimeEquality runtimeEquality) {
+          return bindingCreator.create(celOptions, runtimeEquality);
         }
 
         Arithmetic(FunctionBindingCreator bindingCreator) {
@@ -579,20 +342,15 @@ public final class CelStandardFunctions {
 
       /** Overloads for indexing a list or a map. */
       public enum Index implements StandardOverload {
-        INDEX_LIST(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "index_list", List.class, Number.class, RuntimeHelpers::indexList)),
-        INDEX_MAP(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "index_map", Map.class, Object.class, bindingHelper.runtimeEquality::indexMap));
+        INDEX_LIST(IndexOverload.INDEX_LIST::newFunctionBinding),
+        INDEX_MAP(IndexOverload.INDEX_MAP::newFunctionBinding);
 
         private final FunctionBindingCreator bindingCreator;
 
         @Override
-        public CelFunctionBinding newFunctionBinding(FunctionBindingHelper functionBindingHelper) {
-          return bindingCreator.create(functionBindingHelper);
+        public CelFunctionBinding newFunctionBinding(
+            CelOptions celOptions, RuntimeEquality runtimeEquality) {
+          return bindingCreator.create(celOptions, runtimeEquality);
         }
 
         Index(FunctionBindingCreator bindingCreator) {
@@ -602,46 +360,21 @@ public final class CelStandardFunctions {
 
       /** Overloads for retrieving the size of a literal or a collection. */
       public enum Size implements StandardOverload {
-        SIZE_BYTES(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "size_bytes", ByteString.class, (ByteString bytes) -> (long) bytes.size())),
-        BYTES_SIZE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "bytes_size", ByteString.class, (ByteString bytes) -> (long) bytes.size())),
-        SIZE_LIST(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "size_list", List.class, (List list1) -> (long) list1.size())),
-        LIST_SIZE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "list_size", List.class, (List list1) -> (long) list1.size())),
-        SIZE_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "size_string",
-                    String.class,
-                    (String s) -> (long) s.codePointCount(0, s.length()))),
-        STRING_SIZE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "string_size",
-                    String.class,
-                    (String s) -> (long) s.codePointCount(0, s.length()))),
-        SIZE_MAP(
-            (bindingHelper) ->
-                CelFunctionBinding.from("size_map", Map.class, (Map map1) -> (long) map1.size())),
-        MAP_SIZE(
-            (bindingHelper) ->
-                CelFunctionBinding.from("map_size", Map.class, (Map map1) -> (long) map1.size()));
+        SIZE_BYTES(SizeOverload.SIZE_BYTES::newFunctionBinding),
+        BYTES_SIZE(SizeOverload.BYTES_SIZE::newFunctionBinding),
+        SIZE_LIST(SizeOverload.SIZE_LIST::newFunctionBinding),
+        LIST_SIZE(SizeOverload.LIST_SIZE::newFunctionBinding),
+        SIZE_STRING(SizeOverload.SIZE_STRING::newFunctionBinding),
+        STRING_SIZE(SizeOverload.STRING_SIZE::newFunctionBinding),
+        SIZE_MAP(SizeOverload.SIZE_MAP::newFunctionBinding),
+        MAP_SIZE(SizeOverload.MAP_SIZE::newFunctionBinding);
 
         private final FunctionBindingCreator bindingCreator;
 
         @Override
-        public CelFunctionBinding newFunctionBinding(FunctionBindingHelper functionBindingHelper) {
-          return bindingCreator.create(functionBindingHelper);
+        public CelFunctionBinding newFunctionBinding(
+            CelOptions celOptions, RuntimeEquality runtimeEquality) {
+          return bindingCreator.create(celOptions, runtimeEquality);
         }
 
         Size(FunctionBindingCreator bindingCreator) {
@@ -651,329 +384,50 @@ public final class CelStandardFunctions {
 
       /** Overloads for performing type conversions. */
       public enum Conversions implements StandardOverload {
-        // Bool conversions
-        BOOL_TO_BOOL(
-            (bindingHelper) ->
-                CelFunctionBinding.from("bool_to_bool", Boolean.class, (Boolean x) -> x)),
-        STRING_TO_BOOL(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "string_to_bool",
-                    String.class,
-                    (String str) -> {
-                      switch (str) {
-                        case "true":
-                        case "TRUE":
-                        case "True":
-                        case "t":
-                        case "1":
-                          return true;
-                        case "false":
-                        case "FALSE":
-                        case "False":
-                        case "f":
-                        case "0":
-                          return false;
-                        default:
-                          throw new CelRuntimeException(
-                              new IllegalArgumentException(
-                                  SafeStringFormatter.format(
-                                      "Type conversion error from 'string' to 'bool': [%s]", str)),
-                              CelErrorCode.BAD_FORMAT);
-                      }
-                    })),
-        // Int conversions
-        INT64_TO_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from("int64_to_int64", Long.class, (Long x) -> x)),
-        DOUBLE_TO_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "double_to_int64",
-                    Double.class,
-                    (Double arg) -> {
-                      if (bindingHelper.celOptions.errorOnIntWrap()) {
-                        return RuntimeHelpers.doubleToLongChecked(arg)
-                            .orElseThrow(
-                                () ->
-                                    new CelRuntimeException(
-                                        new IllegalArgumentException(
-                                            "double is out of range for int"),
-                                        CelErrorCode.NUMERIC_OVERFLOW));
-                      }
-                      return arg.longValue();
-                    })),
-        STRING_TO_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "string_to_int64",
-                    String.class,
-                    (String arg) -> {
-                      try {
-                        return Long.parseLong(arg);
-                      } catch (NumberFormatException e) {
-                        throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
-                      }
-                    })),
-        TIMESTAMP_TO_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_int64", Timestamp.class, ProtoTimeUtils::toSeconds)),
-        UINT64_TO_INT64(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "uint64_to_int64",
-                    UnsignedLong.class,
-                    (UnsignedLong arg) -> {
-                      if (arg.compareTo(UnsignedLong.valueOf(Long.MAX_VALUE)) > 0) {
-                        throw new CelRuntimeException(
-                            new IllegalArgumentException("unsigned out of int range"),
-                            CelErrorCode.NUMERIC_OVERFLOW);
-                      }
-                      return arg.longValue();
-                    });
-              } else {
-                return CelFunctionBinding.from(
-                    "uint64_to_int64",
-                    Long.class,
-                    (Long arg) -> {
-                      if (bindingHelper.celOptions.errorOnIntWrap() && arg < 0) {
-                        throw new CelRuntimeException(
-                            new IllegalArgumentException("unsigned out of int range"),
-                            CelErrorCode.NUMERIC_OVERFLOW);
-                      }
-                      return arg;
-                    });
-              }
-            }),
-        // Uint conversions
-        UINT64_TO_UINT64(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "uint64_to_uint64", UnsignedLong.class, (UnsignedLong x) -> x);
-              } else {
-                return CelFunctionBinding.from("uint64_to_uint64", Long.class, (Long x) -> x);
-              }
-            }),
-        INT64_TO_UINT64(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "int64_to_uint64",
-                    Long.class,
-                    (Long arg) -> {
-                      if (bindingHelper.celOptions.errorOnIntWrap() && arg < 0) {
-                        throw new CelRuntimeException(
-                            new IllegalArgumentException("int out of uint range"),
-                            CelErrorCode.NUMERIC_OVERFLOW);
-                      }
-                      return UnsignedLong.valueOf(arg);
-                    });
-              } else {
-                return CelFunctionBinding.from(
-                    "int64_to_uint64",
-                    Long.class,
-                    (Long arg) -> {
-                      if (bindingHelper.celOptions.errorOnIntWrap() && arg < 0) {
-                        throw new CelRuntimeException(
-                            new IllegalArgumentException("int out of uint range"),
-                            CelErrorCode.NUMERIC_OVERFLOW);
-                      }
-                      return arg;
-                    });
-              }
-            }),
-        DOUBLE_TO_UINT64(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "double_to_uint64",
-                    Double.class,
-                    (Double arg) -> {
-                      if (bindingHelper.celOptions.errorOnIntWrap()) {
-                        return RuntimeHelpers.doubleToUnsignedChecked(arg)
-                            .orElseThrow(
-                                () ->
-                                    new CelRuntimeException(
-                                        new IllegalArgumentException("double out of uint range"),
-                                        CelErrorCode.NUMERIC_OVERFLOW));
-                      }
-                      return UnsignedLong.valueOf(BigDecimal.valueOf(arg).toBigInteger());
-                    });
-              } else {
-                return CelFunctionBinding.from(
-                    "double_to_uint64",
-                    Double.class,
-                    (Double arg) -> {
-                      if (bindingHelper.celOptions.errorOnIntWrap()) {
-                        return RuntimeHelpers.doubleToUnsignedChecked(arg)
-                            .map(UnsignedLong::longValue)
-                            .orElseThrow(
-                                () ->
-                                    new CelRuntimeException(
-                                        new IllegalArgumentException("double out of uint range"),
-                                        CelErrorCode.NUMERIC_OVERFLOW));
-                      }
-                      return arg.longValue();
-                    });
-              }
-            }),
-        STRING_TO_UINT64(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "string_to_uint64",
-                    String.class,
-                    (String arg) -> {
-                      try {
-                        return UnsignedLong.valueOf(arg);
-                      } catch (NumberFormatException e) {
-                        throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
-                      }
-                    });
-              } else {
-                return CelFunctionBinding.from(
-                    "string_to_uint64",
-                    String.class,
-                    (String arg) -> {
-                      try {
-                        return UnsignedLongs.parseUnsignedLong(arg);
-                      } catch (NumberFormatException e) {
-                        throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
-                      }
-                    });
-              }
-            }),
-        // Double conversions
-        DOUBLE_TO_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from("double_to_double", Double.class, (Double x) -> x)),
-        INT64_TO_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from("int64_to_double", Long.class, Long::doubleValue)),
-        STRING_TO_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "string_to_double",
-                    String.class,
-                    (String arg) -> {
-                      try {
-                        return Double.parseDouble(arg);
-                      } catch (NumberFormatException e) {
-                        throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
-                      }
-                    })),
-        UINT64_TO_DOUBLE(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "uint64_to_double", UnsignedLong.class, UnsignedLong::doubleValue);
-              } else {
-                return CelFunctionBinding.from(
-                    "uint64_to_double",
-                    Long.class,
-                    (Long arg) -> UnsignedLong.fromLongBits(arg).doubleValue());
-              }
-            }),
-        // String conversions
-        STRING_TO_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from("string_to_string", String.class, (String x) -> x)),
-        INT64_TO_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from("int64_to_string", Long.class, Object::toString)),
-        DOUBLE_TO_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from("double_to_string", Double.class, Object::toString)),
-        BYTES_TO_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "bytes_to_string",
-                    ByteString.class,
-                    (byteStr) -> {
-                      if (!byteStr.isValidUtf8()) {
-                        throw new CelRuntimeException(
-                            new IllegalArgumentException(
-                                "invalid UTF-8 in bytes, cannot convert to string"),
-                            CelErrorCode.BAD_FORMAT);
-                      }
+        BOOL_TO_BOOL(BoolOverload.BOOL_TO_BOOL::newFunctionBinding),
+        STRING_TO_BOOL(BoolOverload.STRING_TO_BOOL::newFunctionBinding),
+        INT64_TO_INT64(IntOverload.INT64_TO_INT64::newFunctionBinding),
+        DOUBLE_TO_INT64(IntOverload.DOUBLE_TO_INT64::newFunctionBinding),
+        STRING_TO_INT64(IntOverload.STRING_TO_INT64::newFunctionBinding),
+        TIMESTAMP_TO_INT64(IntOverload.TIMESTAMP_TO_INT64::newFunctionBinding),
+        UINT64_TO_INT64(IntOverload.UINT64_TO_INT64::newFunctionBinding),
 
-                      return byteStr.toStringUtf8();
-                    })),
-        TIMESTAMP_TO_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_string", Timestamp.class, ProtoTimeUtils::toString)),
-        DURATION_TO_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "duration_to_string", Duration.class, ProtoTimeUtils::toString)),
-        UINT64_TO_STRING(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "uint64_to_string", UnsignedLong.class, UnsignedLong::toString);
-              } else {
-                return CelFunctionBinding.from(
-                    "uint64_to_string", Long.class, UnsignedLongs::toString);
-              }
-            }),
+        UINT64_TO_UINT64(UintOverload.UINT64_TO_UINT64::newFunctionBinding),
+        INT64_TO_UINT64(UintOverload.INT64_TO_UINT64::newFunctionBinding),
+        DOUBLE_TO_UINT64(UintOverload.DOUBLE_TO_UINT64::newFunctionBinding),
+        STRING_TO_UINT64(UintOverload.STRING_TO_UINT64::newFunctionBinding),
 
-        // Bytes conversions
-        BYTES_TO_BYTES(
-            (bindingHelper) ->
-                CelFunctionBinding.from("bytes_to_bytes", ByteString.class, (ByteString x) -> x)),
-        STRING_TO_BYTES(
-            (bindingHelper) ->
-                CelFunctionBinding.from("string_to_bytes", String.class, ByteString::copyFromUtf8)),
-        // Duration conversions
-        DURATION_TO_DURATION(
-            (bindingHelper) ->
-                CelFunctionBinding.from("duration_to_duration", Duration.class, (Duration x) -> x)),
-        STRING_TO_DURATION(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "string_to_duration",
-                    String.class,
-                    (String d) -> {
-                      try {
-                        return RuntimeHelpers.createDurationFromString(d);
-                      } catch (IllegalArgumentException e) {
-                        throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
-                      }
-                    })),
+        DOUBLE_TO_DOUBLE(DoubleOverload.DOUBLE_TO_DOUBLE::newFunctionBinding),
+        INT64_TO_DOUBLE(DoubleOverload.INT64_TO_DOUBLE::newFunctionBinding),
+        STRING_TO_DOUBLE(DoubleOverload.STRING_TO_DOUBLE::newFunctionBinding),
+        UINT64_TO_DOUBLE(DoubleOverload.UINT64_TO_DOUBLE::newFunctionBinding),
 
-        STRING_TO_TIMESTAMP(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "string_to_timestamp",
-                    String.class,
-                    (String ts) -> {
-                      try {
-                        return ProtoTimeUtils.parse(ts);
-                      } catch (ParseException e) {
-                        throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
-                      }
-                    })),
-        TIMESTAMP_TO_TIMESTAMP(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_timestamp", Timestamp.class, (Timestamp x) -> x)),
-        INT64_TO_TIMESTAMP(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "int64_to_timestamp", Long.class, ProtoTimeUtils::fromSecondsToTimestamp)),
-        TO_DYN(
-            (bindingHelper) ->
-                CelFunctionBinding.from("to_dyn", Object.class, (Object arg) -> arg));
+        STRING_TO_STRING(StringOverload.STRING_TO_STRING::newFunctionBinding),
+        INT64_TO_STRING(StringOverload.INT64_TO_STRING::newFunctionBinding),
+        DOUBLE_TO_STRING(StringOverload.DOUBLE_TO_STRING::newFunctionBinding),
+        BYTES_TO_STRING(StringOverload.BYTES_TO_STRING::newFunctionBinding),
+        TIMESTAMP_TO_STRING(StringOverload.TIMESTAMP_TO_STRING::newFunctionBinding),
+        DURATION_TO_STRING(StringOverload.DURATION_TO_STRING::newFunctionBinding),
+        UINT64_TO_STRING(StringOverload.UINT64_TO_STRING::newFunctionBinding),
+
+        BYTES_TO_BYTES(BytesOverload.BYTES_TO_BYTES::newFunctionBinding),
+        STRING_TO_BYTES(BytesOverload.STRING_TO_BYTES::newFunctionBinding),
+
+        DURATION_TO_DURATION(DurationOverload.DURATION_TO_DURATION::newFunctionBinding),
+        STRING_TO_DURATION(DurationOverload.STRING_TO_DURATION::newFunctionBinding),
+
+        STRING_TO_TIMESTAMP(TimestampOverload.STRING_TO_TIMESTAMP::newFunctionBinding),
+        TIMESTAMP_TO_TIMESTAMP(TimestampOverload.TIMESTAMP_TO_TIMESTAMP::newFunctionBinding),
+        INT64_TO_TIMESTAMP(TimestampOverload.INT64_TO_TIMESTAMP::newFunctionBinding),
+
+        TO_DYN(DynOverload.TO_DYN::newFunctionBinding);
 
         private final FunctionBindingCreator bindingCreator;
 
         @Override
-        public CelFunctionBinding newFunctionBinding(FunctionBindingHelper functionBindingHelper) {
-          return bindingCreator.create(functionBindingHelper);
+        public CelFunctionBinding newFunctionBinding(
+            CelOptions celOptions, RuntimeEquality runtimeEquality) {
+          return bindingCreator.create(celOptions, runtimeEquality);
         }
 
         Conversions(FunctionBindingCreator bindingCreator) {
@@ -986,51 +440,18 @@ public final class CelStandardFunctions {
        * check.
        */
       public enum StringMatchers implements StandardOverload {
-        MATCHES(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "matches",
-                    String.class,
-                    String.class,
-                    (String string, String regexp) -> {
-                      try {
-                        return RuntimeHelpers.matches(string, regexp, bindingHelper.celOptions);
-                      } catch (RuntimeException e) {
-                        throw new CelRuntimeException(e, CelErrorCode.INVALID_ARGUMENT);
-                      }
-                    })),
-        // Duplicate receiver-style matches overload.
-        MATCHES_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "matches_string",
-                    String.class,
-                    String.class,
-                    (String string, String regexp) -> {
-                      try {
-                        return RuntimeHelpers.matches(string, regexp, bindingHelper.celOptions);
-                      } catch (RuntimeException e) {
-                        throw new CelRuntimeException(e, CelErrorCode.INVALID_ARGUMENT);
-                      }
-                    })),
-        CONTAINS_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "contains_string", String.class, String.class, String::contains)),
-        ENDS_WITH_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "ends_with_string", String.class, String.class, String::endsWith)),
-        STARTS_WITH_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "starts_with_string", String.class, String.class, String::startsWith));
+        MATCHES(MatchesOverload.MATCHES::newFunctionBinding),
+        MATCHES_STRING(MatchesOverload.MATCHES_STRING::newFunctionBinding),
+        CONTAINS_STRING(ContainsOverload.CONTAINS_STRING::newFunctionBinding),
+        ENDS_WITH_STRING(EndsWithOverload.ENDS_WITH_STRING::newFunctionBinding),
+        STARTS_WITH_STRING(StartsWithOverload.STARTS_WITH_STRING::newFunctionBinding);
 
         private final FunctionBindingCreator bindingCreator;
 
         @Override
-        public CelFunctionBinding newFunctionBinding(FunctionBindingHelper functionBindingHelper) {
-          return bindingCreator.create(functionBindingHelper);
+        public CelFunctionBinding newFunctionBinding(
+            CelOptions celOptions, RuntimeEquality runtimeEquality) {
+          return bindingCreator.create(celOptions, runtimeEquality);
         }
 
         StringMatchers(FunctionBindingCreator bindingCreator) {
@@ -1040,15 +461,14 @@ public final class CelStandardFunctions {
 
       /** Overloads for logical operators that return a bool as a result. */
       public enum BooleanOperator implements StandardOverload {
-        LOGICAL_NOT(
-            (bindingHelper) ->
-                CelFunctionBinding.from("logical_not", Boolean.class, (Boolean x) -> !x));
+        LOGICAL_NOT(LogicalNotOverload.LOGICAL_NOT::newFunctionBinding);
 
         private final FunctionBindingCreator bindingCreator;
 
         @Override
-        public CelFunctionBinding newFunctionBinding(FunctionBindingHelper functionBindingHelper) {
-          return bindingCreator.create(functionBindingHelper);
+        public CelFunctionBinding newFunctionBinding(
+            CelOptions celOptions, RuntimeEquality runtimeEquality) {
+          return bindingCreator.create(celOptions, runtimeEquality);
         }
 
         BooleanOperator(FunctionBindingCreator bindingCreator) {
@@ -1058,180 +478,50 @@ public final class CelStandardFunctions {
 
       /** Overloads for functions performing date/time operations. */
       public enum DateTime implements StandardOverload {
-        TIMESTAMP_TO_YEAR(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_year",
-                    Timestamp.class,
-                    (Timestamp ts) -> (long) newLocalDateTime(ts, UTC).getYear())),
+        TIMESTAMP_TO_YEAR(GetFullYearOverload.TIMESTAMP_TO_YEAR::newFunctionBinding),
         TIMESTAMP_TO_YEAR_WITH_TZ(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_year_with_tz",
-                    Timestamp.class,
-                    String.class,
-                    (Timestamp ts, String tz) -> (long) newLocalDateTime(ts, tz).getYear())),
-        TIMESTAMP_TO_MONTH(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_month",
-                    Timestamp.class,
-                    (Timestamp ts) -> (long) newLocalDateTime(ts, UTC).getMonthValue() - 1)),
-        TIMESTAMP_TO_MONTH_WITH_TZ(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_month_with_tz",
-                    Timestamp.class,
-                    String.class,
-                    (Timestamp ts, String tz) ->
-                        (long) newLocalDateTime(ts, tz).getMonthValue() - 1)),
-        TIMESTAMP_TO_DAY_OF_YEAR(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_day_of_year",
-                    Timestamp.class,
-                    (Timestamp ts) -> (long) newLocalDateTime(ts, UTC).getDayOfYear() - 1)),
+            GetFullYearOverload.TIMESTAMP_TO_YEAR_WITH_TZ::newFunctionBinding),
+        TIMESTAMP_TO_MONTH(GetMonthOverload.TIMESTAMP_TO_MONTH::newFunctionBinding),
+        TIMESTAMP_TO_MONTH_WITH_TZ(GetMonthOverload.TIMESTAMP_TO_MONTH_WITH_TZ::newFunctionBinding),
+        TIMESTAMP_TO_DAY_OF_YEAR(GetDayOfYearOverload.TIMESTAMP_TO_DAY_OF_YEAR::newFunctionBinding),
         TIMESTAMP_TO_DAY_OF_YEAR_WITH_TZ(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_day_of_year_with_tz",
-                    Timestamp.class,
-                    String.class,
-                    (Timestamp ts, String tz) ->
-                        (long) newLocalDateTime(ts, tz).getDayOfYear() - 1)),
+            GetDayOfYearOverload.TIMESTAMP_TO_DAY_OF_YEAR_WITH_TZ::newFunctionBinding),
         TIMESTAMP_TO_DAY_OF_MONTH(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_day_of_month",
-                    Timestamp.class,
-                    (Timestamp ts) -> (long) newLocalDateTime(ts, UTC).getDayOfMonth() - 1)),
+            GetDayOfMonthOverload.TIMESTAMP_TO_DAY_OF_MONTH::newFunctionBinding),
         TIMESTAMP_TO_DAY_OF_MONTH_WITH_TZ(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_day_of_month_with_tz",
-                    Timestamp.class,
-                    String.class,
-                    (Timestamp ts, String tz) ->
-                        (long) newLocalDateTime(ts, tz).getDayOfMonth() - 1)),
-
+            GetDayOfMonthOverload.TIMESTAMP_TO_DAY_OF_MONTH_WITH_TZ::newFunctionBinding),
         TIMESTAMP_TO_DAY_OF_MONTH_1_BASED(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_day_of_month_1_based",
-                    Timestamp.class,
-                    (Timestamp ts) -> (long) newLocalDateTime(ts, UTC).getDayOfMonth())),
+            GetDateOverload.TIMESTAMP_TO_DAY_OF_MONTH_1_BASED::newFunctionBinding),
         TIMESTAMP_TO_DAY_OF_MONTH_1_BASED_WITH_TZ(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_day_of_month_1_based_with_tz",
-                    Timestamp.class,
-                    String.class,
-                    (Timestamp ts, String tz) -> (long) newLocalDateTime(ts, tz).getDayOfMonth())),
+            GetDateOverload.TIMESTAMP_TO_DAY_OF_MONTH_1_BASED_WITH_TZ::newFunctionBinding),
 
-        TIMESTAMP_TO_DAY_OF_WEEK(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_day_of_week",
-                    Timestamp.class,
-                    (Timestamp ts) -> {
-                      // CEL treats Sunday as day 0, but Java.time treats it as day 7.
-                      DayOfWeek dayOfWeek = newLocalDateTime(ts, UTC).getDayOfWeek();
-                      return (long) dayOfWeek.getValue() % 7;
-                    })),
+        TIMESTAMP_TO_DAY_OF_WEEK(GetDayOfWeekOverload.TIMESTAMP_TO_DAY_OF_WEEK::newFunctionBinding),
         TIMESTAMP_TO_DAY_OF_WEEK_WITH_TZ(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_day_of_week_with_tz",
-                    Timestamp.class,
-                    String.class,
-                    (Timestamp ts, String tz) -> {
-                      // CEL treats Sunday as day 0, but Java.time treats it as day 7.
-                      DayOfWeek dayOfWeek = newLocalDateTime(ts, tz).getDayOfWeek();
-                      return (long) dayOfWeek.getValue() % 7;
-                    })),
-        TIMESTAMP_TO_HOURS(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_hours",
-                    Timestamp.class,
-                    (Timestamp ts) -> (long) newLocalDateTime(ts, UTC).getHour())),
-        TIMESTAMP_TO_HOURS_WITH_TZ(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_hours_with_tz",
-                    Timestamp.class,
-                    String.class,
-                    (Timestamp ts, String tz) -> (long) newLocalDateTime(ts, tz).getHour())),
-        TIMESTAMP_TO_MINUTES(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_minutes",
-                    Timestamp.class,
-                    (Timestamp ts) -> (long) newLocalDateTime(ts, UTC).getMinute())),
+            GetDayOfWeekOverload.TIMESTAMP_TO_DAY_OF_WEEK_WITH_TZ::newFunctionBinding),
+        TIMESTAMP_TO_HOURS(GetHoursOverload.TIMESTAMP_TO_HOURS::newFunctionBinding),
+        TIMESTAMP_TO_HOURS_WITH_TZ(GetHoursOverload.TIMESTAMP_TO_HOURS_WITH_TZ::newFunctionBinding),
+        TIMESTAMP_TO_MINUTES(GetMinutesOverload.TIMESTAMP_TO_MINUTES::newFunctionBinding),
         TIMESTAMP_TO_MINUTES_WITH_TZ(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_minutes_with_tz",
-                    Timestamp.class,
-                    String.class,
-                    (Timestamp ts, String tz) -> (long) newLocalDateTime(ts, tz).getMinute())),
-        TIMESTAMP_TO_SECONDS(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_seconds",
-                    Timestamp.class,
-                    (Timestamp ts) -> (long) newLocalDateTime(ts, UTC).getSecond())),
+            GetMinutesOverload.TIMESTAMP_TO_MINUTES_WITH_TZ::newFunctionBinding),
+        TIMESTAMP_TO_SECONDS(GetSecondsOverload.TIMESTAMP_TO_SECONDS::newFunctionBinding),
         TIMESTAMP_TO_SECONDS_WITH_TZ(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_seconds_with_tz",
-                    Timestamp.class,
-                    String.class,
-                    (Timestamp ts, String tz) -> (long) newLocalDateTime(ts, tz).getSecond())),
-        // We specifically need to only access nanos-of-second field for
-        // timestamp_to_milliseconds overload
-        @SuppressWarnings("JavaLocalDateTimeGetNano")
+            GetSecondsOverload.TIMESTAMP_TO_SECONDS_WITH_TZ::newFunctionBinding),
         TIMESTAMP_TO_MILLISECONDS(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_milliseconds",
-                    Timestamp.class,
-                    (Timestamp ts) -> (long) (newLocalDateTime(ts, UTC).getNano() / 1e+6))),
-
-        @SuppressWarnings("JavaLocalDateTimeGetNano")
+            GetMillisecondsOverload.TIMESTAMP_TO_MILLISECONDS::newFunctionBinding),
         TIMESTAMP_TO_MILLISECONDS_WITH_TZ(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "timestamp_to_milliseconds_with_tz",
-                    Timestamp.class,
-                    String.class,
-                    (Timestamp ts, String tz) ->
-                        (long) (newLocalDateTime(ts, tz).getNano() / 1e+6))),
-        DURATION_TO_HOURS(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "duration_to_hours", Duration.class, ProtoTimeUtils::toHours)),
-        DURATION_TO_MINUTES(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "duration_to_minutes", Duration.class, ProtoTimeUtils::toMinutes)),
-        DURATION_TO_SECONDS(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "duration_to_seconds", Duration.class, ProtoTimeUtils::toSeconds)),
+            GetMillisecondsOverload.TIMESTAMP_TO_MILLISECONDS_WITH_TZ::newFunctionBinding),
+        DURATION_TO_HOURS(GetHoursOverload.DURATION_TO_HOURS::newFunctionBinding),
+        DURATION_TO_MINUTES(GetMinutesOverload.DURATION_TO_MINUTES::newFunctionBinding),
+        DURATION_TO_SECONDS(GetSecondsOverload.DURATION_TO_SECONDS::newFunctionBinding),
         DURATION_TO_MILLISECONDS(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "duration_to_milliseconds",
-                    Duration.class,
-                    (Duration arg) ->
-                        ProtoTimeUtils.toMillis(arg) % java.time.Duration.ofSeconds(1).toMillis()));
+            GetMillisecondsOverload.DURATION_TO_MILLISECONDS::newFunctionBinding);
 
         private final FunctionBindingCreator bindingCreator;
 
         @Override
-        public CelFunctionBinding newFunctionBinding(FunctionBindingHelper functionBindingHelper) {
-          return bindingCreator.create(functionBindingHelper);
+        public CelFunctionBinding newFunctionBinding(
+            CelOptions celOptions, RuntimeEquality runtimeEquality) {
+          return bindingCreator.create(celOptions, runtimeEquality);
         }
 
         DateTime(FunctionBindingCreator bindingCreator) {
@@ -1241,486 +531,87 @@ public final class CelStandardFunctions {
 
       /** Overloads for performing numeric comparisons. */
       public enum Comparison implements StandardOverload {
-        LESS_BOOL(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_bool", Boolean.class, Boolean.class, (Boolean x, Boolean y) -> !x && y),
-            false),
-        LESS_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_int64", Long.class, Long.class, (Long x, Long y) -> x < y),
-            false),
-        LESS_UINT64(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "less_uint64",
-                    UnsignedLong.class,
-                    UnsignedLong.class,
-                    (UnsignedLong x, UnsignedLong y) -> RuntimeHelpers.uint64CompareTo(x, y) < 0);
-              } else {
-                return CelFunctionBinding.from(
-                    "less_uint64",
-                    Long.class,
-                    Long.class,
-                    (Long x, Long y) ->
-                        RuntimeHelpers.uint64CompareTo(x, y, bindingHelper.celOptions) < 0);
-              }
-            },
-            false),
-        LESS_BYTES(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_bytes",
-                    ByteString.class,
-                    ByteString.class,
-                    (ByteString x, ByteString y) ->
-                        ByteString.unsignedLexicographicalComparator().compare(x, y) < 0),
-            false),
-        LESS_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_double", Double.class, Double.class, (Double x, Double y) -> x < y),
-            false),
-        LESS_DOUBLE_UINT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_double_uint64",
-                    Double.class,
-                    UnsignedLong.class,
-                    (Double x, UnsignedLong y) ->
-                        ComparisonFunctions.compareDoubleUint(x, y) == -1),
-            true),
-        LESS_INT64_UINT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_int64_uint64",
-                    Long.class,
-                    UnsignedLong.class,
-                    (Long x, UnsignedLong y) -> ComparisonFunctions.compareIntUint(x, y) == -1),
-            true),
-        LESS_UINT64_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_uint64_int64",
-                    UnsignedLong.class,
-                    Long.class,
-                    (UnsignedLong x, Long y) -> ComparisonFunctions.compareUintInt(x, y) == -1),
-            true),
-        LESS_INT64_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_int64_double",
-                    Long.class,
-                    Double.class,
-                    (Long x, Double y) -> ComparisonFunctions.compareIntDouble(x, y) == -1),
-            true),
-        LESS_DOUBLE_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_double_int64",
-                    Double.class,
-                    Long.class,
-                    (Double x, Long y) -> ComparisonFunctions.compareDoubleInt(x, y) == -1),
-            true),
-        LESS_UINT64_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_uint64_double",
-                    UnsignedLong.class,
-                    Double.class,
-                    (UnsignedLong x, Double y) ->
-                        ComparisonFunctions.compareUintDouble(x, y) == -1),
-            true),
-        LESS_DURATION(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_duration",
-                    Duration.class,
-                    Duration.class,
-                    (Duration x, Duration y) -> ProtoTimeUtils.compare(x, y) < 0),
-            false),
-        LESS_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_string",
-                    String.class,
-                    String.class,
-                    (String x, String y) -> x.compareTo(y) < 0),
-            false),
-        LESS_TIMESTAMP(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_timestamp",
-                    Timestamp.class,
-                    Timestamp.class,
-                    (Timestamp x, Timestamp y) -> ProtoTimeUtils.compare(x, y) < 0),
-            false),
-        LESS_EQUALS_BOOL(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_equals_bool",
-                    Boolean.class,
-                    Boolean.class,
-                    (Boolean x, Boolean y) -> !x || y),
-            false),
-        LESS_EQUALS_BYTES(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_equals_bytes",
-                    ByteString.class,
-                    ByteString.class,
-                    (ByteString x, ByteString y) ->
-                        ByteString.unsignedLexicographicalComparator().compare(x, y) <= 0),
-            false),
-        LESS_EQUALS_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_equals_double",
-                    Double.class,
-                    Double.class,
-                    (Double x, Double y) -> x <= y),
-            false),
-        LESS_EQUALS_DURATION(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_equals_duration",
-                    Duration.class,
-                    Duration.class,
-                    (Duration x, Duration y) -> ProtoTimeUtils.compare(x, y) <= 0),
-            false),
-        LESS_EQUALS_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_equals_int64", Long.class, Long.class, (Long x, Long y) -> x <= y),
-            false),
-        LESS_EQUALS_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_equals_string",
-                    String.class,
-                    String.class,
-                    (String x, String y) -> x.compareTo(y) <= 0),
-            false),
-        LESS_EQUALS_TIMESTAMP(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_equals_timestamp",
-                    Timestamp.class,
-                    Timestamp.class,
-                    (Timestamp x, Timestamp y) -> ProtoTimeUtils.compare(x, y) <= 0),
-            false),
-        LESS_EQUALS_UINT64(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "less_equals_uint64",
-                    UnsignedLong.class,
-                    UnsignedLong.class,
-                    (UnsignedLong x, UnsignedLong y) -> RuntimeHelpers.uint64CompareTo(x, y) <= 0);
-              } else {
-                return CelFunctionBinding.from(
-                    "less_equals_uint64",
-                    Long.class,
-                    Long.class,
-                    (Long x, Long y) ->
-                        RuntimeHelpers.uint64CompareTo(x, y, bindingHelper.celOptions) <= 0);
-              }
-            },
-            false),
+        LESS_BOOL(LessOverload.LESS_BOOL::newFunctionBinding, false),
+        LESS_INT64(LessOverload.LESS_INT64::newFunctionBinding, false),
+        LESS_UINT64(LessOverload.LESS_UINT64::newFunctionBinding, false),
+        LESS_BYTES(LessOverload.LESS_BYTES::newFunctionBinding, false),
+        LESS_DOUBLE(LessOverload.LESS_DOUBLE::newFunctionBinding, false),
+        LESS_DOUBLE_UINT64(LessOverload.LESS_DOUBLE_UINT64::newFunctionBinding, true),
+        LESS_INT64_UINT64(LessOverload.LESS_INT64_UINT64::newFunctionBinding, true),
+        LESS_UINT64_INT64(LessOverload.LESS_UINT64_INT64::newFunctionBinding, true),
+        LESS_INT64_DOUBLE(LessOverload.LESS_INT64_DOUBLE::newFunctionBinding, true),
+        LESS_DOUBLE_INT64(LessOverload.LESS_DOUBLE_INT64::newFunctionBinding, true),
+        LESS_UINT64_DOUBLE(LessOverload.LESS_UINT64_DOUBLE::newFunctionBinding, true),
+        LESS_DURATION(LessOverload.LESS_DURATION::newFunctionBinding, false),
+        LESS_STRING(LessOverload.LESS_STRING::newFunctionBinding, false),
+        LESS_TIMESTAMP(LessOverload.LESS_TIMESTAMP::newFunctionBinding, false),
+        LESS_EQUALS_BOOL(LessEqualsOverload.LESS_EQUALS_BOOL::newFunctionBinding, false),
+        LESS_EQUALS_BYTES(LessEqualsOverload.LESS_EQUALS_BYTES::newFunctionBinding, false),
+        LESS_EQUALS_DOUBLE(LessEqualsOverload.LESS_EQUALS_DOUBLE::newFunctionBinding, false),
+        LESS_EQUALS_DURATION(LessEqualsOverload.LESS_EQUALS_DURATION::newFunctionBinding, false),
+        LESS_EQUALS_INT64(LessEqualsOverload.LESS_EQUALS_INT64::newFunctionBinding, false),
+        LESS_EQUALS_STRING(LessEqualsOverload.LESS_EQUALS_STRING::newFunctionBinding, false),
+        LESS_EQUALS_TIMESTAMP(LessEqualsOverload.LESS_EQUALS_TIMESTAMP::newFunctionBinding, false),
+        LESS_EQUALS_UINT64(LessEqualsOverload.LESS_EQUALS_UINT64::newFunctionBinding, false),
         LESS_EQUALS_INT64_UINT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_equals_int64_uint64",
-                    Long.class,
-                    UnsignedLong.class,
-                    (Long x, UnsignedLong y) -> ComparisonFunctions.compareIntUint(x, y) <= 0),
-            true),
+            LessEqualsOverload.LESS_EQUALS_INT64_UINT64::newFunctionBinding, true),
         LESS_EQUALS_UINT64_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_equals_uint64_int64",
-                    UnsignedLong.class,
-                    Long.class,
-                    (UnsignedLong x, Long y) -> ComparisonFunctions.compareUintInt(x, y) <= 0),
-            true),
+            LessEqualsOverload.LESS_EQUALS_UINT64_INT64::newFunctionBinding, true),
         LESS_EQUALS_INT64_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_equals_int64_double",
-                    Long.class,
-                    Double.class,
-                    (Long x, Double y) -> ComparisonFunctions.compareIntDouble(x, y) <= 0),
-            true),
+            LessEqualsOverload.LESS_EQUALS_INT64_DOUBLE::newFunctionBinding, true),
         LESS_EQUALS_DOUBLE_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_equals_double_int64",
-                    Double.class,
-                    Long.class,
-                    (Double x, Long y) -> ComparisonFunctions.compareDoubleInt(x, y) <= 0),
-            true),
+            LessEqualsOverload.LESS_EQUALS_DOUBLE_INT64::newFunctionBinding, true),
         LESS_EQUALS_UINT64_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_equals_uint64_double",
-                    UnsignedLong.class,
-                    Double.class,
-                    (UnsignedLong x, Double y) -> ComparisonFunctions.compareUintDouble(x, y) <= 0),
-            true),
+            LessEqualsOverload.LESS_EQUALS_UINT64_DOUBLE::newFunctionBinding, true),
         LESS_EQUALS_DOUBLE_UINT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "less_equals_double_uint64",
-                    Double.class,
-                    UnsignedLong.class,
-                    (Double x, UnsignedLong y) -> ComparisonFunctions.compareDoubleUint(x, y) <= 0),
-            true),
-        GREATER_BOOL(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_bool",
-                    Boolean.class,
-                    Boolean.class,
-                    (Boolean x, Boolean y) -> x && !y),
-            false),
-        GREATER_BYTES(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_bytes",
-                    ByteString.class,
-                    ByteString.class,
-                    (ByteString x, ByteString y) ->
-                        ByteString.unsignedLexicographicalComparator().compare(x, y) > 0),
-            false),
-        GREATER_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_double", Double.class, Double.class, (Double x, Double y) -> x > y),
-            false),
-        GREATER_DURATION(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_duration",
-                    Duration.class,
-                    Duration.class,
-                    (Duration x, Duration y) -> ProtoTimeUtils.compare(x, y) > 0),
-            false),
-        GREATER_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_int64", Long.class, Long.class, (Long x, Long y) -> x > y),
-            false),
-        GREATER_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_string",
-                    String.class,
-                    String.class,
-                    (String x, String y) -> x.compareTo(y) > 0),
-            false),
-        GREATER_TIMESTAMP(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_timestamp",
-                    Timestamp.class,
-                    Timestamp.class,
-                    (Timestamp x, Timestamp y) -> ProtoTimeUtils.compare(x, y) > 0),
-            false),
-        GREATER_UINT64(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "greater_uint64",
-                    UnsignedLong.class,
-                    UnsignedLong.class,
-                    (UnsignedLong x, UnsignedLong y) -> RuntimeHelpers.uint64CompareTo(x, y) > 0);
-              } else {
-                return CelFunctionBinding.from(
-                    "greater_uint64",
-                    Long.class,
-                    Long.class,
-                    (Long x, Long y) ->
-                        RuntimeHelpers.uint64CompareTo(x, y, bindingHelper.celOptions) > 0);
-              }
-            },
-            false),
-        GREATER_INT64_UINT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_int64_uint64",
-                    Long.class,
-                    UnsignedLong.class,
-                    (Long x, UnsignedLong y) -> ComparisonFunctions.compareIntUint(x, y) == 1),
-            true),
-        GREATER_UINT64_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_uint64_int64",
-                    UnsignedLong.class,
-                    Long.class,
-                    (UnsignedLong x, Long y) -> ComparisonFunctions.compareUintInt(x, y) == 1),
-            true),
-        GREATER_INT64_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_int64_double",
-                    Long.class,
-                    Double.class,
-                    (Long x, Double y) -> ComparisonFunctions.compareIntDouble(x, y) == 1),
-            true),
-        GREATER_DOUBLE_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_double_int64",
-                    Double.class,
-                    Long.class,
-                    (Double x, Long y) -> ComparisonFunctions.compareDoubleInt(x, y) == 1),
-            true),
-        GREATER_UINT64_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_uint64_double",
-                    UnsignedLong.class,
-                    Double.class,
-                    (UnsignedLong x, Double y) -> ComparisonFunctions.compareUintDouble(x, y) == 1),
-            true),
-        GREATER_DOUBLE_UINT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_double_uint64",
-                    Double.class,
-                    UnsignedLong.class,
-                    (Double x, UnsignedLong y) -> ComparisonFunctions.compareDoubleUint(x, y) == 1),
-            true),
-        GREATER_EQUALS_BOOL(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_equals_bool",
-                    Boolean.class,
-                    Boolean.class,
-                    (Boolean x, Boolean y) -> x || !y),
-            false),
-        GREATER_EQUALS_BYTES(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_equals_bytes",
-                    ByteString.class,
-                    ByteString.class,
-                    (ByteString x, ByteString y) ->
-                        ByteString.unsignedLexicographicalComparator().compare(x, y) >= 0),
-            false),
+            LessEqualsOverload.LESS_EQUALS_DOUBLE_UINT64::newFunctionBinding, true),
+        GREATER_BOOL(GreaterOverload.GREATER_BOOL::newFunctionBinding, false),
+        GREATER_BYTES(GreaterOverload.GREATER_BYTES::newFunctionBinding, false),
+        GREATER_DOUBLE(GreaterOverload.GREATER_DOUBLE::newFunctionBinding, false),
+        GREATER_DURATION(GreaterOverload.GREATER_DURATION::newFunctionBinding, false),
+        GREATER_INT64(GreaterOverload.GREATER_INT64::newFunctionBinding, false),
+        GREATER_STRING(GreaterOverload.GREATER_STRING::newFunctionBinding, false),
+        GREATER_TIMESTAMP(GreaterOverload.GREATER_TIMESTAMP::newFunctionBinding, false),
+        GREATER_UINT64(GreaterOverload.GREATER_UINT64::newFunctionBinding, false),
+        GREATER_INT64_UINT64(GreaterOverload.GREATER_INT64_UINT64::newFunctionBinding, true),
+        GREATER_UINT64_INT64(GreaterOverload.GREATER_UINT64_INT64::newFunctionBinding, true),
+        GREATER_INT64_DOUBLE(GreaterOverload.GREATER_INT64_DOUBLE::newFunctionBinding, true),
+        GREATER_DOUBLE_INT64(GreaterOverload.GREATER_DOUBLE_INT64::newFunctionBinding, true),
+        GREATER_UINT64_DOUBLE(GreaterOverload.GREATER_UINT64_DOUBLE::newFunctionBinding, true),
+        GREATER_DOUBLE_UINT64(GreaterOverload.GREATER_DOUBLE_UINT64::newFunctionBinding, true),
+        GREATER_EQUALS_BOOL(GreaterEqualsOverload.GREATER_EQUALS_BOOL::newFunctionBinding, false),
+        GREATER_EQUALS_BYTES(GreaterEqualsOverload.GREATER_EQUALS_BYTES::newFunctionBinding, false),
         GREATER_EQUALS_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_equals_double",
-                    Double.class,
-                    Double.class,
-                    (Double x, Double y) -> x >= y),
-            false),
+            GreaterEqualsOverload.GREATER_EQUALS_DOUBLE::newFunctionBinding, false),
         GREATER_EQUALS_DURATION(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_equals_duration",
-                    Duration.class,
-                    Duration.class,
-                    (Duration x, Duration y) -> ProtoTimeUtils.compare(x, y) >= 0),
-            false),
-        GREATER_EQUALS_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_equals_int64", Long.class, Long.class, (Long x, Long y) -> x >= y),
-            false),
+            GreaterEqualsOverload.GREATER_EQUALS_DURATION::newFunctionBinding, false),
+        GREATER_EQUALS_INT64(GreaterEqualsOverload.GREATER_EQUALS_INT64::newFunctionBinding, false),
         GREATER_EQUALS_STRING(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_equals_string",
-                    String.class,
-                    String.class,
-                    (String x, String y) -> x.compareTo(y) >= 0),
-            false),
+            GreaterEqualsOverload.GREATER_EQUALS_STRING::newFunctionBinding, false),
         GREATER_EQUALS_TIMESTAMP(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_equals_timestamp",
-                    Timestamp.class,
-                    Timestamp.class,
-                    (Timestamp x, Timestamp y) -> ProtoTimeUtils.compare(x, y) >= 0),
-            false),
+            GreaterEqualsOverload.GREATER_EQUALS_TIMESTAMP::newFunctionBinding, false),
         GREATER_EQUALS_UINT64(
-            (bindingHelper) -> {
-              if (bindingHelper.celOptions.enableUnsignedLongs()) {
-                return CelFunctionBinding.from(
-                    "greater_equals_uint64",
-                    UnsignedLong.class,
-                    UnsignedLong.class,
-                    (UnsignedLong x, UnsignedLong y) -> RuntimeHelpers.uint64CompareTo(x, y) >= 0);
-              } else {
-                return CelFunctionBinding.from(
-                    "greater_equals_uint64",
-                    Long.class,
-                    Long.class,
-                    (Long x, Long y) ->
-                        RuntimeHelpers.uint64CompareTo(x, y, bindingHelper.celOptions) >= 0);
-              }
-            },
-            false),
+            GreaterEqualsOverload.GREATER_EQUALS_UINT64::newFunctionBinding, false),
         GREATER_EQUALS_INT64_UINT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_equals_int64_uint64",
-                    Long.class,
-                    UnsignedLong.class,
-                    (Long x, UnsignedLong y) -> ComparisonFunctions.compareIntUint(x, y) >= 0),
-            true),
+            GreaterEqualsOverload.GREATER_EQUALS_INT64_UINT64::newFunctionBinding, true),
         GREATER_EQUALS_UINT64_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_equals_uint64_int64",
-                    UnsignedLong.class,
-                    Long.class,
-                    (UnsignedLong x, Long y) -> ComparisonFunctions.compareUintInt(x, y) >= 0),
-            true),
+            GreaterEqualsOverload.GREATER_EQUALS_UINT64_INT64::newFunctionBinding, true),
         GREATER_EQUALS_INT64_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_equals_int64_double",
-                    Long.class,
-                    Double.class,
-                    (Long x, Double y) -> ComparisonFunctions.compareIntDouble(x, y) >= 0),
-            true),
+            GreaterEqualsOverload.GREATER_EQUALS_INT64_DOUBLE::newFunctionBinding, true),
         GREATER_EQUALS_DOUBLE_INT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_equals_double_int64",
-                    Double.class,
-                    Long.class,
-                    (Double x, Long y) -> ComparisonFunctions.compareDoubleInt(x, y) >= 0),
-            true),
+            GreaterEqualsOverload.GREATER_EQUALS_DOUBLE_INT64::newFunctionBinding, true),
         GREATER_EQUALS_UINT64_DOUBLE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_equals_uint64_double",
-                    UnsignedLong.class,
-                    Double.class,
-                    (UnsignedLong x, Double y) -> ComparisonFunctions.compareUintDouble(x, y) >= 0),
-            true),
+            GreaterEqualsOverload.GREATER_EQUALS_UINT64_DOUBLE::newFunctionBinding, true),
         GREATER_EQUALS_DOUBLE_UINT64(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "greater_equals_double_uint64",
-                    Double.class,
-                    UnsignedLong.class,
-                    (Double x, UnsignedLong y) -> ComparisonFunctions.compareDoubleUint(x, y) >= 0),
-            true);
+            GreaterEqualsOverload.GREATER_EQUALS_DOUBLE_UINT64::newFunctionBinding, true);
 
         private final FunctionBindingCreator bindingCreator;
         private final boolean isHeterogeneousComparison;
 
         @Override
-        public CelFunctionBinding newFunctionBinding(FunctionBindingHelper functionBindingHelper) {
-          return bindingCreator.create(functionBindingHelper);
+        public CelFunctionBinding newFunctionBinding(
+            CelOptions celOptions, RuntimeEquality runtimeEquality) {
+          return bindingCreator.create(celOptions, runtimeEquality);
         }
 
         Comparison(FunctionBindingCreator bindingCreator, boolean isHeterogeneousComparison) {
@@ -1735,70 +626,23 @@ public final class CelStandardFunctions {
 
       /** Overloads for optional values. */
       public enum OptionalValue implements StandardOverload {
-        SELECT_OPTIONAL_FIELD(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "select_optional_field", // This only handles map selection. Proto selection is
-                    // special cased inside the interpreter.
-                    Map.class,
-                    String.class,
-                    bindingHelper.runtimeEquality::findInMap)),
+        SELECT_OPTIONAL_FIELD(OptionalOverload.SELECT_OPTIONAL_FIELD::newFunctionBinding),
         MAP_OPTINDEX_OPTIONAL_VALUE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "map_optindex_optional_value",
-                    Map.class,
-                    Object.class,
-                    bindingHelper.runtimeEquality::findInMap)),
+            OptionalOverload.MAP_OPTINDEX_OPTIONAL_VALUE::newFunctionBinding),
         OPTIONAL_MAP_OPTINDEX_OPTIONAL_VALUE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "optional_map_optindex_optional_value",
-                    Optional.class,
-                    Object.class,
-                    (Optional optionalMap, Object key) ->
-                        indexOptionalMap(optionalMap, key, bindingHelper.runtimeEquality))),
-        OPTIONAL_MAP_INDEX_VALUE(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "optional_map_index_value",
-                    Optional.class,
-                    Object.class,
-                    (Optional optionalMap, Object key) ->
-                        indexOptionalMap(optionalMap, key, bindingHelper.runtimeEquality))),
-        OPTIONAL_LIST_INDEX_INT(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "optional_list_index_int",
-                    Optional.class,
-                    Long.class,
-                    CelStandardFunctions::indexOptionalList)),
-        LIST_OPTINDEX_OPTIONAL_INT(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "list_optindex_optional_int",
-                    List.class,
-                    Long.class,
-                    (List list, Long index) -> {
-                      int castIndex = Ints.checkedCast(index);
-                      if (castIndex < 0 || castIndex >= list.size()) {
-                        return Optional.empty();
-                      }
-                      return Optional.of(list.get(castIndex));
-                    })),
+            OptionalOverload.OPTIONAL_MAP_OPTINDEX_OPTIONAL_VALUE::newFunctionBinding),
+        OPTIONAL_MAP_INDEX_VALUE(OptionalOverload.OPTIONAL_MAP_INDEX_VALUE::newFunctionBinding),
+        OPTIONAL_LIST_INDEX_INT(OptionalOverload.OPTIONAL_LIST_INDEX_INT::newFunctionBinding),
+        LIST_OPTINDEX_OPTIONAL_INT(OptionalOverload.LIST_OPTINDEX_OPTIONAL_INT::newFunctionBinding),
         OPTIONAL_LIST_OPTINDEX_OPTIONAL_INT(
-            (bindingHelper) ->
-                CelFunctionBinding.from(
-                    "optional_list_optindex_optional_int",
-                    Optional.class,
-                    Long.class,
-                    CelStandardFunctions::indexOptionalList));
+            OptionalOverload.OPTIONAL_LIST_OPTINDEX_OPTIONAL_INT::newFunctionBinding);
 
         private final FunctionBindingCreator bindingCreator;
 
         @Override
-        public CelFunctionBinding newFunctionBinding(FunctionBindingHelper functionBindingHelper) {
-          return bindingCreator.create(functionBindingHelper);
+        public CelFunctionBinding newFunctionBinding(
+            CelOptions celOptions, RuntimeEquality runtimeEquality) {
+          return bindingCreator.create(celOptions, runtimeEquality);
         }
 
         OptionalValue(FunctionBindingCreator bindingCreator) {
@@ -1829,10 +673,9 @@ public final class CelStandardFunctions {
   @Internal
   public ImmutableSet<CelFunctionBinding> newFunctionBindings(
       RuntimeEquality runtimeEquality, CelOptions celOptions) {
-    FunctionBindingHelper helper = new FunctionBindingHelper(celOptions, runtimeEquality);
     ImmutableSet.Builder<CelFunctionBinding> builder = ImmutableSet.builder();
     for (StandardOverload overload : standardOverloads) {
-      builder.add(overload.newFunctionBinding(helper));
+      builder.add(overload.newFunctionBinding(celOptions, runtimeEquality));
     }
 
     return builder.build();
@@ -1841,7 +684,7 @@ public final class CelStandardFunctions {
   /** General interface for defining a standard function overload. */
   @Immutable
   public interface StandardOverload {
-    CelFunctionBinding newFunctionBinding(FunctionBindingHelper functionBindingHelper);
+    CelFunctionBinding newFunctionBinding(CelOptions celOptions, RuntimeEquality runtimeEquality);
   }
 
   /** Builder for constructing the set of standard function/identifiers. */
@@ -1966,109 +809,11 @@ public final class CelStandardFunctions {
     return new Builder();
   }
 
-  @Immutable
-  private static final class FunctionBindingHelper {
-    private final CelOptions celOptions;
-    private final RuntimeEquality runtimeEquality;
-
-    private FunctionBindingHelper(CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      this.celOptions = celOptions;
-      this.runtimeEquality = runtimeEquality;
-    }
-  }
-
   @SuppressWarnings("AndroidJdkLibsChecker") // FunctionalInterface added in 24
   @FunctionalInterface
   @Immutable
   private interface FunctionBindingCreator {
-    CelFunctionBinding create(FunctionBindingHelper helper);
-  }
-
-  private static CelErrorCode getArithmeticErrorCode(ArithmeticException e) {
-    String exceptionMessage = e.getMessage();
-    // The two known cases for an arithmetic exception is divide by zero and overflow.
-    if (exceptionMessage.equals("/ by zero")) {
-      return CelErrorCode.DIVIDE_BY_ZERO;
-    }
-    return CelErrorCode.NUMERIC_OVERFLOW;
-  }
-
-  /**
-   * Constructs a new {@link LocalDateTime} instance
-   *
-   * @param ts Timestamp protobuf object
-   * @param tz Timezone based on the CEL specification. This is either the canonical name from tz
-   *     database or a standard offset represented in (+/-)HH:MM. Few valid examples are:
-   *     <ul>
-   *       <li>UTC
-   *       <li>America/Los_Angeles
-   *       <li>-09:30 or -9:30 (Leading zeroes can be omitted though not allowed by spec)
-   *     </ul>
-   *
-   * @return If an Invalid timezone is supplied.
-   */
-  private static LocalDateTime newLocalDateTime(Timestamp ts, String tz) {
-    return Instant.ofEpochSecond(ts.getSeconds(), ts.getNanos())
-        .atZone(timeZone(tz))
-        .toLocalDateTime();
-  }
-
-  /**
-   * Get the DateTimeZone Instance.
-   *
-   * @param tz the ID of the datetime zone
-   * @return the ZoneId object
-   */
-  private static ZoneId timeZone(String tz) {
-    try {
-      return ZoneId.of(tz);
-    } catch (DateTimeException e) {
-      // If timezone is not a string name (for example, 'US/Central'), it should be a numerical
-      // offset from UTC in the format [+/-]HH:MM.
-      try {
-        int ind = tz.indexOf(":");
-        if (ind == -1) {
-          throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
-        }
-
-        int hourOffset = Integer.parseInt(tz.substring(0, ind));
-        int minOffset = Integer.parseInt(tz.substring(ind + 1));
-        // Ensures that the offset are properly formatted in [+/-]HH:MM to conform with
-        // ZoneOffset's format requirements.
-        // Example: "-9:30" -> "-09:30" and "9:30" -> "+09:30"
-        String formattedOffset =
-            ((hourOffset < 0) ? "-" : "+")
-                + String.format(Locale.getDefault(), "%02d:%02d", Math.abs(hourOffset), minOffset);
-
-        return ZoneId.of(formattedOffset);
-
-      } catch (DateTimeException e2) {
-        throw new CelRuntimeException(e2, CelErrorCode.BAD_FORMAT);
-      }
-    }
-  }
-
-  private static Object indexOptionalMap(
-      Optional<?> optionalMap, Object key, RuntimeEquality runtimeEquality) {
-    if (!optionalMap.isPresent()) {
-      return Optional.empty();
-    }
-
-    Map<?, ?> map = (Map<?, ?>) optionalMap.get();
-
-    return runtimeEquality.findInMap(map, key);
-  }
-
-  private static Object indexOptionalList(Optional<?> optionalList, long index) {
-    if (!optionalList.isPresent()) {
-      return Optional.empty();
-    }
-    List<?> list = (List<?>) optionalList.get();
-    int castIndex = Ints.checkedCast(index);
-    if (castIndex < 0 || castIndex >= list.size()) {
-      return Optional.empty();
-    }
-    return Optional.of(list.get(castIndex));
+    CelFunctionBinding create(CelOptions celOptions, RuntimeEquality runtimeEquality);
   }
 
   private CelStandardFunctions(ImmutableSet<StandardOverload> standardOverloads) {

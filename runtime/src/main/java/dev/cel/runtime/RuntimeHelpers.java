@@ -57,7 +57,7 @@ public class RuntimeHelpers {
 
   /** Convert a string to a Duration. */
   @SuppressWarnings("AndroidJdkLibsChecker") // DateTimeParseException added in 26
-  static Duration createDurationFromString(String d) {
+  public static Duration createDurationFromString(String d) {
     try {
       java.time.Duration dv = AmountFormats.parseUnitBasedDuration(d);
       // Ensure that the duration value can be adequately represented within a protobuf.Duration.
@@ -70,7 +70,7 @@ public class RuntimeHelpers {
     }
   }
 
-  static boolean matches(String string, String regexp, CelOptions celOptions) {
+  public static boolean matches(String string, String regexp, CelOptions celOptions) {
     Pattern pattern = Pattern.compile(regexp);
     int maxProgramSize = celOptions.maxRegexProgramSize();
     if (maxProgramSize >= 0 && pattern.programSize() > maxProgramSize) {
@@ -90,7 +90,7 @@ public class RuntimeHelpers {
   }
 
   /** Concatenates two lists into a new list. */
-  static <E> List<E> concat(List<E> first, List<E> second) {
+  public static <E> List<E> concat(List<E> first, List<E> second) {
     // TODO: return a view instead of an actual copy.
     List<E> result = new ArrayList<>(first.size() + second.size());
     result.addAll(first);
@@ -102,7 +102,7 @@ public class RuntimeHelpers {
   // ===========
 
   /** Bound-checked indexing of lists. */
-  static <A> A indexList(List<A> list, Number index) {
+  public static <A> A indexList(List<A> list, Number index) {
     if (index instanceof Double) {
       return doubleToLongLossless(index.doubleValue())
           .map(v -> indexList(list, v))
@@ -126,35 +126,35 @@ public class RuntimeHelpers {
   //
   // CEL requires exceptions to be thrown when int arithmetic exceeds the represented range.
 
-  static long int64Add(long x, long y, CelOptions celOptions) {
+  public static long int64Add(long x, long y, CelOptions celOptions) {
     if (celOptions.errorOnIntWrap()) {
       return Math.addExact(x, y);
     }
     return x + y;
   }
 
-  static long int64Divide(long x, long y, CelOptions celOptions) {
+  public static long int64Divide(long x, long y, CelOptions celOptions) {
     if (celOptions.errorOnIntWrap() && x == Long.MIN_VALUE && y == -1) {
       throw new ArithmeticException("most negative number wraps");
     }
     return x / y;
   }
 
-  static long int64Multiply(long x, long y, CelOptions celOptions) {
+  public static long int64Multiply(long x, long y, CelOptions celOptions) {
     if (celOptions.errorOnIntWrap()) {
       return Math.multiplyExact(x, y);
     }
     return x * y;
   }
 
-  static long int64Negate(long x, CelOptions celOptions) {
+  public static long int64Negate(long x, CelOptions celOptions) {
     if (celOptions.errorOnIntWrap()) {
       return Math.negateExact(x);
     }
     return -x;
   }
 
-  static long int64Subtract(long x, long y, CelOptions celOptions) {
+  public static long int64Subtract(long x, long y, CelOptions celOptions) {
     if (celOptions.errorOnIntWrap()) {
       return Math.subtractExact(x, y);
     }
@@ -172,7 +172,7 @@ public class RuntimeHelpers {
   // works for signed long values that are greater than or equal to 0. The former reinterprets the
   // long as unsigned, using the bits as is.
 
-  static long uint64Add(long x, long y, CelOptions celOptions) {
+  public static long uint64Add(long x, long y, CelOptions celOptions) {
     if (celOptions.errorOnIntWrap()) {
       if (x < 0 && y < 0) {
         // Both numbers are in the upper half of the range, so it must overflow.
@@ -189,14 +189,14 @@ public class RuntimeHelpers {
     return x + y;
   }
 
-  static UnsignedLong uint64Add(UnsignedLong x, UnsignedLong y) {
+  public static UnsignedLong uint64Add(UnsignedLong x, UnsignedLong y) {
     if (x.compareTo(UnsignedLong.MAX_VALUE.minus(y)) > 0) {
       throw new ArithmeticException("range overflow on unsigned addition");
     }
     return x.plus(y);
   }
 
-  static int uint64CompareTo(long x, long y, CelOptions celOptions) {
+  public static int uint64CompareTo(long x, long y, CelOptions celOptions) {
     return celOptions.enableUnsignedComparisonAndArithmeticIsUnsigned()
         ? UnsignedLongs.compare(x, y)
         : UnsignedLong.valueOf(x).compareTo(UnsignedLong.valueOf(y));
@@ -208,11 +208,11 @@ public class RuntimeHelpers {
     return uint64CompareTo(x, y, CelOptions.LEGACY);
   }
 
-  static int uint64CompareTo(UnsignedLong x, UnsignedLong y) {
+  public static int uint64CompareTo(UnsignedLong x, UnsignedLong y) {
     return x.compareTo(y);
   }
 
-  static long uint64Divide(long x, long y, CelOptions celOptions) {
+  public static long uint64Divide(long x, long y, CelOptions celOptions) {
     try {
       return celOptions.enableUnsignedComparisonAndArithmeticIsUnsigned()
           ? UnsignedLongs.divide(x, y)
@@ -228,7 +228,7 @@ public class RuntimeHelpers {
     return uint64Divide(x, y, CelOptions.LEGACY);
   }
 
-  static UnsignedLong uint64Divide(UnsignedLong x, UnsignedLong y) {
+  public static UnsignedLong uint64Divide(UnsignedLong x, UnsignedLong y) {
     if (y.equals(UnsignedLong.ZERO)) {
       throw new CelRuntimeException(
           new ArithmeticException("/ by zero"), CelErrorCode.DIVIDE_BY_ZERO);
@@ -236,7 +236,7 @@ public class RuntimeHelpers {
     return x.dividedBy(y);
   }
 
-  static long uint64Mod(long x, long y, CelOptions celOptions) {
+  public static long uint64Mod(long x, long y, CelOptions celOptions) {
     try {
       return celOptions.enableUnsignedComparisonAndArithmeticIsUnsigned()
           ? UnsignedLongs.remainder(x, y)
@@ -246,7 +246,7 @@ public class RuntimeHelpers {
     }
   }
 
-  static UnsignedLong uint64Mod(UnsignedLong x, UnsignedLong y) {
+  public static UnsignedLong uint64Mod(UnsignedLong x, UnsignedLong y) {
     if (y.equals(UnsignedLong.ZERO)) {
       throw new CelRuntimeException(
           new ArithmeticException("/ by zero"), CelErrorCode.DIVIDE_BY_ZERO);
@@ -260,7 +260,7 @@ public class RuntimeHelpers {
     return uint64Mod(x, y, CelOptions.LEGACY);
   }
 
-  static long uint64Multiply(long x, long y, CelOptions celOptions) {
+  public static long uint64Multiply(long x, long y, CelOptions celOptions) {
     long z =
         celOptions.enableUnsignedComparisonAndArithmeticIsUnsigned()
             ? x * y
@@ -277,14 +277,14 @@ public class RuntimeHelpers {
     return uint64Multiply(x, y, CelOptions.LEGACY);
   }
 
-  static UnsignedLong uint64Multiply(UnsignedLong x, UnsignedLong y) {
+  public static UnsignedLong uint64Multiply(UnsignedLong x, UnsignedLong y) {
     if (!y.equals(UnsignedLong.ZERO) && x.compareTo(UnsignedLong.MAX_VALUE.dividedBy(y)) > 0) {
       throw new ArithmeticException("multiply out of unsigned integer range");
     }
     return x.times(y);
   }
 
-  static long uint64Subtract(long x, long y, CelOptions celOptions) {
+  public static long uint64Subtract(long x, long y, CelOptions celOptions) {
     if (celOptions.errorOnIntWrap()) {
       // Throw an overflow error if x < y, as unsigned longs. This happens if y has its high
       // bit set and x does not, or if they have the same high bit and x < y as signed longs.
@@ -296,7 +296,7 @@ public class RuntimeHelpers {
     return x - y;
   }
 
-  static UnsignedLong uint64Subtract(UnsignedLong x, UnsignedLong y) {
+  public static UnsignedLong uint64Subtract(UnsignedLong x, UnsignedLong y) {
     // Throw an overflow error if x < y, as unsigned longs. This happens if y has its high
     // bit set and x does not, or if they have the same high bit and x < y as signed longs.
     if (x.compareTo(y) < 0) {
@@ -371,7 +371,7 @@ public class RuntimeHelpers {
     throw new UnsupportedOperationException("Not implemented yet");
   }
 
-  static Optional<UnsignedLong> doubleToUnsignedChecked(double v) {
+  public static Optional<UnsignedLong> doubleToUnsignedChecked(double v) {
     // getExponent of NaN or Infinite will return a Double.MAX_EXPONENT + 1 (or 128)
     if (v < 0.0 || Math.getExponent(v) >= 64) {
       return Optional.empty();
@@ -385,7 +385,7 @@ public class RuntimeHelpers {
     return Optional.of(UnsignedLong.fromLongBits((long) v));
   }
 
-  static Optional<Long> doubleToLongChecked(double v) {
+  public static Optional<Long> doubleToLongChecked(double v) {
     // getExponent of NaN or Infinite values will return a Double.MAX_EXPONENT + 1 (or 128)
     int exp = Math.getExponent(v);
     if (exp >= 63 && v != Math.scalb(-1.0, 63)) {
