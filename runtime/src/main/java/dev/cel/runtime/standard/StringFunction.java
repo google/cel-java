@@ -30,6 +30,11 @@ import java.util.Arrays;
 
 /** Standard function for {@code string} conversion function. */
 public final class StringFunction extends CelStandardFunction {
+  private static final StringFunction ALL_OVERLOADS = create(StringOverload.values());
+
+  public static StringFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static StringFunction create(StringFunction.StringOverload... overloads) {
     return create(Arrays.asList(overloads));

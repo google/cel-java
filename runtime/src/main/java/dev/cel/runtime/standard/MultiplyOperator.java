@@ -27,6 +27,11 @@ import java.util.Arrays;
 
 /** Standard function for the multiplication (*) operator. */
 public final class MultiplyOperator extends CelStandardFunction {
+  private static final MultiplyOperator ALL_OVERLOADS = create(MultiplyOverload.values());
+
+  public static MultiplyOperator create() {
+    return ALL_OVERLOADS;
+  }
 
   public static MultiplyOperator create(MultiplyOperator.MultiplyOverload... overloads) {
     return create(Arrays.asList(overloads));

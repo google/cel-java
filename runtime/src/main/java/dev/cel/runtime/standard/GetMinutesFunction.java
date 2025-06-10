@@ -28,6 +28,11 @@ import java.util.Arrays;
 
 /** Standard function for {@code getMinutes}. */
 public final class GetMinutesFunction extends CelStandardFunction {
+  private static final GetMinutesFunction ALL_OVERLOADS = create(GetMinutesOverload.values());
+
+  public static GetMinutesFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static GetMinutesFunction create(GetMinutesFunction.GetMinutesOverload... overloads) {
     return create(Arrays.asList(overloads));

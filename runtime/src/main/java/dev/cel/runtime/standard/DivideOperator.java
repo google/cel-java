@@ -27,6 +27,11 @@ import java.util.Arrays;
 
 /** Standard function for the division (/) operator. */
 public final class DivideOperator extends CelStandardFunction {
+  private static final DivideOperator ALL_OVERLOADS = create(DivideOverload.values());
+
+  public static DivideOperator create() {
+    return ALL_OVERLOADS;
+  }
 
   public static DivideOperator create(DivideOverload... overloads) {
     return create(Arrays.asList(overloads));

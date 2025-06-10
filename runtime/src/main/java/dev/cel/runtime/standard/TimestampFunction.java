@@ -27,6 +27,11 @@ import java.util.Arrays;
 
 /** Standard function for {@code timestamp} conversion function. */
 public final class TimestampFunction extends CelStandardFunction {
+  private static final TimestampFunction ALL_OVERLOADS = create(TimestampOverload.values());
+
+  public static TimestampFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static TimestampFunction create(TimestampFunction.TimestampOverload... overloads) {
     return create(Arrays.asList(overloads));

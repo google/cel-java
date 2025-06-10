@@ -25,6 +25,11 @@ import java.util.Arrays;
 
 /** Standard function for {@code double} conversion function. */
 public final class DoubleFunction extends CelStandardFunction {
+  private static final DoubleFunction ALL_OVERLOADS = create(DoubleOverload.values());
+
+  public static DoubleFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static DoubleFunction create(DoubleFunction.DoubleOverload... overloads) {
     return create(Arrays.asList(overloads));

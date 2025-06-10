@@ -29,6 +29,12 @@ import java.util.Arrays;
 /** Standard function for {@code getSeconds}. */
 public final class GetSecondsFunction extends CelStandardFunction {
 
+  private static final GetSecondsFunction ALL_OVERLOADS = create(GetSecondsOverload.values());
+
+  public static GetSecondsFunction create() {
+    return ALL_OVERLOADS;
+  }
+
   public static GetSecondsFunction create(GetSecondsFunction.GetSecondsOverload... overloads) {
     return create(Arrays.asList(overloads));
   }

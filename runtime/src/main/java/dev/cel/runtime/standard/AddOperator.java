@@ -32,6 +32,11 @@ import java.util.List;
 
 /** Standard function for the addition (+) operator. */
 public final class AddOperator extends CelStandardFunction {
+  private static final AddOperator ALL_OVERLOADS = create(AddOverload.values());
+
+  public static AddOperator create() {
+    return ALL_OVERLOADS;
+  }
 
   public static AddOperator create(AddOverload... overloads) {
     return create(Arrays.asList(overloads));

@@ -28,6 +28,12 @@ import java.util.Arrays;
 
 /** Standard function for {@code getMilliseconds}. */
 public final class GetMillisecondsFunction extends CelStandardFunction {
+  private static final GetMillisecondsFunction ALL_OVERLOADS =
+      create(GetMillisecondsOverload.values());
+
+  public static GetMillisecondsFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static GetMillisecondsFunction create(
       GetMillisecondsFunction.GetMillisecondsOverload... overloads) {

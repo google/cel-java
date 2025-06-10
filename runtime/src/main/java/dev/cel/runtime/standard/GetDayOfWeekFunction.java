@@ -27,6 +27,11 @@ import java.util.Arrays;
 
 /** Standard function for {@code getDayOfWeek}. */
 public final class GetDayOfWeekFunction extends CelStandardFunction {
+  private static final GetDayOfWeekFunction ALL_OVERLOADS = create(GetDayOfWeekOverload.values());
+
+  public static GetDayOfWeekFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static GetDayOfWeekFunction create(
       GetDayOfWeekFunction.GetDayOfWeekOverload... overloads) {

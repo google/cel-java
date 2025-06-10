@@ -22,6 +22,11 @@ import java.util.Arrays;
 
 /** Standard function for the not equals (!=) operator. */
 public final class NotEqualsOperator extends CelStandardFunction {
+  private static final NotEqualsOperator ALL_OVERLOADS = create(NotEqualsOverload.values());
+
+  public static NotEqualsOperator create() {
+    return ALL_OVERLOADS;
+  }
 
   public static NotEqualsOperator create(NotEqualsOperator.NotEqualsOverload... overloads) {
     return create(Arrays.asList(overloads));

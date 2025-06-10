@@ -83,7 +83,7 @@ public class CelLiteRuntimeTest {
 
   private static final CelLiteRuntime CEL_RUNTIME =
       CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-          .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+          .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
           .setValueProvider(
               ProtoMessageLiteValueProvider.newInstance(
                   dev.cel.expr.conformance.proto2.TestAllTypesCelDescriptor.getDescriptor(),
@@ -589,7 +589,7 @@ public class CelLiteRuntimeTest {
             .build();
     CelLiteRuntime celRuntime =
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
                     SingleFileCelDescriptor.getDescriptor(),
@@ -674,7 +674,7 @@ public class CelLiteRuntimeTest {
             .build();
     CelLiteRuntime celLiteRuntime =
         CelLiteRuntimeFactory.newLiteRuntimeBuilder()
-            .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+            .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
                     MessageWithEnumCelDescriptor.getDescriptor()))

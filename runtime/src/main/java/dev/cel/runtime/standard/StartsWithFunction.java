@@ -22,6 +22,11 @@ import java.util.Arrays;
 
 /** Standard function for {@code startsWith}. */
 public final class StartsWithFunction extends CelStandardFunction {
+  private static final StartsWithFunction ALL_OVERLOADS = create(StartsWithOverload.values());
+
+  public static StartsWithFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static StartsWithFunction create(StartsWithFunction.StartsWithOverload... overloads) {
     return create(Arrays.asList(overloads));

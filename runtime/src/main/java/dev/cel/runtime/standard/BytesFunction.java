@@ -23,6 +23,11 @@ import java.util.Arrays;
 
 /** Standard function for {@code bytes} conversion function. */
 public final class BytesFunction extends CelStandardFunction {
+  private static final BytesFunction ALL_OVERLOADS = create(BytesOverload.values());
+
+  public static BytesFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static BytesFunction create(BytesFunction.BytesOverload... overloads) {
     return create(Arrays.asList(overloads));

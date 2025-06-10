@@ -25,6 +25,11 @@ import java.util.Arrays;
 
 /** Standard function for {@code matches}. */
 public final class MatchesFunction extends CelStandardFunction {
+  private static final MatchesFunction ALL_OVERLOADS = create(MatchesOverload.values());
+
+  public static MatchesFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static MatchesFunction create(MatchesFunction.MatchesOverload... overloads) {
     return create(Arrays.asList(overloads));

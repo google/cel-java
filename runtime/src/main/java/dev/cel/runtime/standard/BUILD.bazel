@@ -19,6 +19,7 @@ java_library(
         "//common:options",
         "//runtime:function_binding",
         "//runtime:runtime_equality",
+        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -33,6 +34,7 @@ cel_android_library(
         "//common:options",
         "//runtime:function_binding_android",
         "//runtime:runtime_equality_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
     ],
 )

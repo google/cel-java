@@ -26,6 +26,11 @@ import java.util.Arrays;
 
 /** Standard function runtime definition for {@code getMonth}. */
 public final class GetMonthFunction extends CelStandardFunction {
+  private static final GetMonthFunction ALL_OVERLOADS = create(GetMonthOverload.values());
+
+  public static GetMonthFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static GetMonthFunction create(GetMonthFunction.GetMonthOverload... overloads) {
     return create(Arrays.asList(overloads));

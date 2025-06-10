@@ -30,6 +30,11 @@ import java.util.Arrays;
 
 /** Standard function for the subtraction (-) operator. */
 public final class SubtractOperator extends CelStandardFunction {
+  private static final SubtractOperator ALL_OVERLOADS = create(SubtractOverload.values());
+
+  public static SubtractOperator create() {
+    return ALL_OVERLOADS;
+  }
 
   public static SubtractOperator create(SubtractOverload... overloads) {
     return create(Arrays.asList(overloads));

@@ -25,6 +25,11 @@ import java.util.Map;
 /** Standard function for the ('in') operator. */
 @SuppressWarnings({"unchecked", "rawtypes"})
 public final class InOperator extends CelStandardFunction {
+  private static final InOperator ALL_OVERLOADS = create(InOverload.values());
+
+  public static InOperator create() {
+    return ALL_OVERLOADS;
+  }
 
   public static InOperator create(InOperator.InOverload... overloads) {
     return create(Arrays.asList(overloads));

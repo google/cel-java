@@ -24,6 +24,7 @@ import dev.cel.runtime.RuntimeEquality;
  * implementation should produce a concrete {@link CelFunctionBinding} for the standard function's
  * overload.
  */
+@Immutable
 interface CelStandardOverload {
 
   CelFunctionBinding newFunctionBinding(CelOptions celOptions, RuntimeEquality runtimeEquality);

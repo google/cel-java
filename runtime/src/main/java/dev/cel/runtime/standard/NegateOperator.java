@@ -26,6 +26,11 @@ import java.util.Arrays;
 
 /** Standard function for the negate (-) operator. */
 public final class NegateOperator extends CelStandardFunction {
+  private static final NegateOperator ALL_OVERLOADS = create(NegateOverload.values());
+
+  public static NegateOperator create() {
+    return ALL_OVERLOADS;
+  }
 
   public static NegateOperator create(NegateOperator.NegateOverload... overloads) {
     return create(Arrays.asList(overloads));

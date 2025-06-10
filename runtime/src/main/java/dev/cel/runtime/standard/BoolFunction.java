@@ -25,6 +25,11 @@ import java.util.Arrays;
 
 /** Standard function for {@code bool} conversion function. */
 public final class BoolFunction extends CelStandardFunction {
+  private static final BoolFunction ALL_OVERLOADS = create(BoolOverload.values());
+
+  public static BoolFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static BoolFunction create(BoolFunction.BoolOverload... overloads) {
     return create(Arrays.asList(overloads));

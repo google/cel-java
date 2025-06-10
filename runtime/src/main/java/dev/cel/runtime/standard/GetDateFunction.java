@@ -26,6 +26,11 @@ import java.util.Arrays;
 
 /** Standard function for {@code getDate}. */
 public final class GetDateFunction extends CelStandardFunction {
+  private static final GetDateFunction ALL_OVERLOADS = create(GetDateOverload.values());
+
+  public static GetDateFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static GetDateFunction create(GetDateFunction.GetDateOverload... overloads) {
     return create(Arrays.asList(overloads));

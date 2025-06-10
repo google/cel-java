@@ -27,6 +27,11 @@ import java.util.Arrays;
 
 /** Standard function for the modulus (%) operator. */
 public final class ModuloOperator extends CelStandardFunction {
+  private static final ModuloOperator ALL_OVERLOADS = create(ModuloOverload.values());
+
+  public static ModuloOperator create() {
+    return ALL_OVERLOADS;
+  }
 
   public static ModuloOperator create(ModuloOperator.ModuloOverload... overloads) {
     return create(Arrays.asList(overloads));

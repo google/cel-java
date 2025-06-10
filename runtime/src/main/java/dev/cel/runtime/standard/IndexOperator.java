@@ -25,6 +25,11 @@ import java.util.Map;
 
 /** Standard function for the indexing ({@code list[0] or map['foo']}) operator */
 public final class IndexOperator extends CelStandardFunction {
+  private static final IndexOperator ALL_OVERLOADS = create(IndexOverload.values());
+
+  public static IndexOperator create() {
+    return ALL_OVERLOADS;
+  }
 
   public static IndexOperator create(IndexOperator.IndexOverload... overloads) {
     return create(Arrays.asList(overloads));

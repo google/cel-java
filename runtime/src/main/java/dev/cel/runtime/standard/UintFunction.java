@@ -28,6 +28,11 @@ import java.util.Arrays;
 
 /** Standard function for {@code uint} conversion function. */
 public final class UintFunction extends CelStandardFunction {
+  private static final UintFunction ALL_OVERLOADS = create(UintOverload.values());
+
+  public static UintFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static UintFunction create(UintFunction.UintOverload... overloads) {
     return create(Arrays.asList(overloads));

@@ -26,6 +26,11 @@ import java.util.Arrays;
 
 /** Standard function for {@code getFullYear}. */
 public final class GetFullYearFunction extends CelStandardFunction {
+  private static final GetFullYearFunction ALL_OVERLOADS = create(GetFullYearOverload.values());
+
+  public static GetFullYearFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static GetFullYearFunction create(GetFullYearFunction.GetFullYearOverload... overloads) {
     return create(Arrays.asList(overloads));

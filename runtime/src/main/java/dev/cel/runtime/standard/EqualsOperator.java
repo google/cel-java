@@ -22,6 +22,11 @@ import java.util.Arrays;
 
 /** Standard function for the equals (=) operator. */
 public final class EqualsOperator extends CelStandardFunction {
+  private static final EqualsOperator ALL_OVERLOADS = create(EqualsOverload.values());
+
+  public static EqualsOperator create() {
+    return ALL_OVERLOADS;
+  }
 
   public static EqualsOperator create(EqualsOperator.EqualsOverload... overloads) {
     return create(Arrays.asList(overloads));

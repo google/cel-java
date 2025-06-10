@@ -29,6 +29,11 @@ import java.util.Arrays;
 
 /** Standard function for the less (<) operator. */
 public final class LessOperator extends CelStandardFunction {
+  private static final LessOperator ALL_OVERLOADS = create(LessOverload.values());
+
+  public static LessOperator create() {
+    return ALL_OVERLOADS;
+  }
 
   public static LessOperator create(LessOperator.LessOverload... overloads) {
     return create(Arrays.asList(overloads));

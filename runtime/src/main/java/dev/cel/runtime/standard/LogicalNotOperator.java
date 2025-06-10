@@ -22,6 +22,11 @@ import java.util.Arrays;
 
 /** Standard function for the logical not (!=) operator. */
 public final class LogicalNotOperator extends CelStandardFunction {
+  private static final LogicalNotOperator ALL_OVERLOADS = create(LogicalNotOverload.values());
+
+  public static LogicalNotOperator create() {
+    return ALL_OVERLOADS;
+  }
 
   public static LogicalNotOperator create(LogicalNotOperator.LogicalNotOverload... overloads) {
     return create(Arrays.asList(overloads));

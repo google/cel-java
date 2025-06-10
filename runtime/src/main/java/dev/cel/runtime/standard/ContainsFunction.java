@@ -22,6 +22,11 @@ import java.util.Arrays;
 
 /** Standard function for {@code contains}. */
 public final class ContainsFunction extends CelStandardFunction {
+  private static final ContainsFunction ALL_OVERLOADS = create(ContainsOverload.values());
+
+  public static ContainsFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static ContainsFunction create(ContainsFunction.ContainsOverload... overloads) {
     return create(Arrays.asList(overloads));
@@ -40,7 +45,6 @@ public final class ContainsFunction extends CelStandardFunction {
     ;
 
     private final FunctionBindingCreator bindingCreator;
-    ;
 
     @Override
     public CelFunctionBinding newFunctionBinding(

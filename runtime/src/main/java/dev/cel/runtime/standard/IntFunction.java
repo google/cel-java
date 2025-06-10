@@ -28,6 +28,11 @@ import java.util.Arrays;
 
 /** Standard function for {@code int} conversion function. */
 public final class IntFunction extends CelStandardFunction {
+  private static final IntFunction ALL_OVERLOADS = create(IntOverload.values());
+
+  public static IntFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static IntFunction create(IntFunction.IntOverload... overloads) {
     return create(Arrays.asList(overloads));

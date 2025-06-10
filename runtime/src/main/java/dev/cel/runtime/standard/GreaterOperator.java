@@ -29,6 +29,11 @@ import java.util.Arrays;
 
 /** Standard function for the greater (>) operator. */
 public final class GreaterOperator extends CelStandardFunction {
+  private static final GreaterOperator ALL_OVERLOADS = create(GreaterOverload.values());
+
+  public static GreaterOperator create() {
+    return ALL_OVERLOADS;
+  }
 
   public static GreaterOperator create(GreaterOperator.GreaterOverload... overloads) {
     return create(Arrays.asList(overloads));

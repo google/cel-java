@@ -23,6 +23,12 @@ import java.util.Arrays;
 /** Standard function for {@code dyn} conversion function. */
 public final class DynFunction extends CelStandardFunction {
 
+  private static final DynFunction ALL_OVERLOADS = create(DynOverload.values());
+
+  public static DynFunction create() {
+    return ALL_OVERLOADS;
+  }
+
   public static DynFunction create(DynFunction.DynOverload... overloads) {
     return create(Arrays.asList(overloads));
   }

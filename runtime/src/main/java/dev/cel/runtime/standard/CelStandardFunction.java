@@ -17,6 +17,7 @@ package dev.cel.runtime.standard;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelOptions;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
@@ -25,6 +26,7 @@ import dev.cel.runtime.RuntimeEquality;
  * An abstract class that describes a CEL standard function. An implementation should provide a set
  * of overloads for the standard function
  */
+@Immutable
 public abstract class CelStandardFunction {
   private final ImmutableSet<CelStandardOverload> overloads;
 

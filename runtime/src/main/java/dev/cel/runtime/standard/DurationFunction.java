@@ -26,6 +26,11 @@ import java.util.Arrays;
 
 /** Standard function for {@code duration} conversion function. */
 public final class DurationFunction extends CelStandardFunction {
+  private static final DurationFunction ALL_OVERLOADS = create(DurationOverload.values());
+
+  public static DurationFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static DurationFunction create(DurationFunction.DurationOverload... overloads) {
     return create(Arrays.asList(overloads));

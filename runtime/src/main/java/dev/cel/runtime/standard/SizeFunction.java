@@ -25,6 +25,11 @@ import java.util.Map;
 
 /** Standard function for {@code size}. */
 public final class SizeFunction extends CelStandardFunction {
+  private static final SizeFunction ALL_OVERLOADS = create(SizeOverload.values());
+
+  public static SizeFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static SizeFunction create(SizeFunction.SizeOverload... overloads) {
     return create(Arrays.asList(overloads));

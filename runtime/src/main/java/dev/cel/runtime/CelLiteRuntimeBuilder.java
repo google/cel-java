@@ -18,6 +18,7 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.CelOptions;
 import dev.cel.common.values.CelValueProvider;
+import dev.cel.runtime.standard.CelStandardFunction;
 
 /** Interface for building an instance of {@link CelLiteRuntime} */
 public interface CelLiteRuntimeBuilder {
@@ -27,11 +28,16 @@ public interface CelLiteRuntimeBuilder {
   CelLiteRuntimeBuilder setOptions(CelOptions options);
 
   /**
-   * Override the standard functions for the runtime. This can be used to subset the standard
-   * environment to only expose the desired function overloads to the runtime.
+   * Set the standard functions to enable in the runtime. These can be found in {@code
+   * dev.cel.runtime.standard} package. By default, lite runtime does not include any standard
+   * functions on its own.
    */
   @CanIgnoreReturnValue
-  CelLiteRuntimeBuilder setStandardFunctions(CelStandardFunctions standardFunctions);
+  CelLiteRuntimeBuilder setStandardFunctions(CelStandardFunction... standardFunctions);
+
+  @CanIgnoreReturnValue
+  CelLiteRuntimeBuilder setStandardFunctions(
+      Iterable<? extends CelStandardFunction> standardFunctions);
 
   /** Add one or more {@link CelFunctionBinding} objects to the CEL runtime. */
   @CanIgnoreReturnValue

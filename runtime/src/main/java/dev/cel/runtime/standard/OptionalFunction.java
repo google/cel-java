@@ -31,6 +31,11 @@ import java.util.Optional;
  * <p>TODO: Move into CelOptionalLibrary
  */
 public final class OptionalFunction extends CelStandardFunction {
+  private static final OptionalFunction ALL_OVERLOADS = create(OptionalOverload.values());
+
+  public static OptionalFunction create() {
+    return ALL_OVERLOADS;
+  }
 
   public static OptionalFunction create(OptionalFunction.OptionalOverload... overloads) {
     return create(Arrays.asList(overloads));
