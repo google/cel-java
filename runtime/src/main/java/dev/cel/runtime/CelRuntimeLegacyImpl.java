@@ -240,10 +240,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
                 + " bindings.");
       }
 
-      ImmutableSet<CelRuntimeLibrary> runtimeLibraries = celRuntimeLibraries.build();
-      // Add libraries, such as extensions
-      runtimeLibraries.forEach(celLibrary -> celLibrary.setRuntimeOptions(this));
-
       ImmutableSet<FileDescriptor> fileDescriptors = fileTypes.build();
       CelDescriptors celDescriptors =
           CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
@@ -269,6 +265,17 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
       DynamicProto dynamicProto = DynamicProto.create(runtimeTypeFactory);
       RuntimeEquality runtimeEquality = ProtoMessageRuntimeEquality.create(dynamicProto, options);
+
+      ImmutableSet<CelRuntimeLibrary> runtimeLibraries = celRuntimeLibraries.build();
+      // Add libraries, such as extensions
+      for (CelRuntimeLibrary celLibrary : runtimeLibraries) {
+        if (celLibrary instanceof CelInternalRuntimeLibrary) {
+          ((CelInternalRuntimeLibrary) celLibrary)
+              .setRuntimeOptions(this, runtimeEquality, options);
+        } else {
+          celLibrary.setRuntimeOptions(this);
+        }
+      }
 
       ImmutableMap.Builder<String, CelFunctionBinding> functionBindingsBuilder =
           ImmutableMap.builder();

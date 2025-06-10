@@ -99,8 +99,6 @@ import dev.cel.runtime.standard.NegateOperator;
 import dev.cel.runtime.standard.NegateOperator.NegateOverload;
 import dev.cel.runtime.standard.NotEqualsOperator;
 import dev.cel.runtime.standard.NotEqualsOperator.NotEqualsOverload;
-import dev.cel.runtime.standard.OptionalFunction;
-import dev.cel.runtime.standard.OptionalFunction.OptionalOverload;
 import dev.cel.runtime.standard.SizeFunction;
 import dev.cel.runtime.standard.SizeFunction.SizeOverload;
 import dev.cel.runtime.standard.StartsWithFunction;
@@ -155,7 +153,6 @@ public final class CelStandardFunctions {
           MultiplyOperator.create(),
           NegateOperator.create(),
           NotEqualsOperator.create(),
-          OptionalFunction.create(),
           SizeFunction.create(),
           StartsWithFunction.create(),
           StringFunction.create(),
@@ -327,15 +324,7 @@ public final class CelStandardFunctions {
         Comparison.GREATER_EQUALS_INT64_DOUBLE,
         Comparison.GREATER_EQUALS_DOUBLE_INT64,
         Comparison.GREATER_EQUALS_UINT64_DOUBLE,
-        Comparison.GREATER_EQUALS_DOUBLE_UINT64),
-    OPTIONAL(
-        Overload.OptionalValue.SELECT_OPTIONAL_FIELD,
-        Overload.OptionalValue.MAP_OPTINDEX_OPTIONAL_VALUE,
-        Overload.OptionalValue.OPTIONAL_MAP_OPTINDEX_OPTIONAL_VALUE,
-        Overload.OptionalValue.OPTIONAL_MAP_INDEX_VALUE,
-        Overload.OptionalValue.OPTIONAL_LIST_INDEX_INT,
-        Overload.OptionalValue.LIST_OPTINDEX_OPTIONAL_INT,
-        Overload.OptionalValue.OPTIONAL_LIST_OPTINDEX_OPTIONAL_INT);
+        Comparison.GREATER_EQUALS_DOUBLE_UINT64);
 
     /** Container class for CEL standard function overloads. */
     public static final class Overload {
@@ -705,32 +694,6 @@ public final class CelStandardFunctions {
 
         public boolean isHeterogeneousComparison() {
           return isHeterogeneousComparison;
-        }
-      }
-
-      /** Overloads for optional values. */
-      public enum OptionalValue implements StandardOverload {
-        SELECT_OPTIONAL_FIELD(OptionalOverload.SELECT_OPTIONAL_FIELD::newFunctionBinding),
-        MAP_OPTINDEX_OPTIONAL_VALUE(
-            OptionalOverload.MAP_OPTINDEX_OPTIONAL_VALUE::newFunctionBinding),
-        OPTIONAL_MAP_OPTINDEX_OPTIONAL_VALUE(
-            OptionalOverload.OPTIONAL_MAP_OPTINDEX_OPTIONAL_VALUE::newFunctionBinding),
-        OPTIONAL_MAP_INDEX_VALUE(OptionalOverload.OPTIONAL_MAP_INDEX_VALUE::newFunctionBinding),
-        OPTIONAL_LIST_INDEX_INT(OptionalOverload.OPTIONAL_LIST_INDEX_INT::newFunctionBinding),
-        LIST_OPTINDEX_OPTIONAL_INT(OptionalOverload.LIST_OPTINDEX_OPTIONAL_INT::newFunctionBinding),
-        OPTIONAL_LIST_OPTINDEX_OPTIONAL_INT(
-            OptionalOverload.OPTIONAL_LIST_OPTINDEX_OPTIONAL_INT::newFunctionBinding);
-
-        private final FunctionBindingCreator bindingCreator;
-
-        @Override
-        public CelFunctionBinding newFunctionBinding(
-            CelOptions celOptions, RuntimeEquality runtimeEquality) {
-          return bindingCreator.create(celOptions, runtimeEquality);
-        }
-
-        OptionalValue(FunctionBindingCreator bindingCreator) {
-          this.bindingCreator = bindingCreator;
         }
       }
 

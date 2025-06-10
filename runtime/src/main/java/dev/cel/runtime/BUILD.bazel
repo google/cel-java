@@ -451,6 +451,7 @@ java_library(
 
 # keep sorted
 RUNTIME_SOURCES = [
+    "CelInternalRuntimeLibrary.java",
     "CelRuntime.java",
     "CelRuntimeBuilder.java",
     "CelRuntimeFactory.java",
@@ -627,7 +628,6 @@ java_library(
         "//runtime/standard:multiply",
         "//runtime/standard:negate",
         "//runtime/standard:not_equals",
-        "//runtime/standard:optional",
         "//runtime/standard:size",
         "//runtime/standard:standard_function",
         "//runtime/standard:starts_with",
@@ -689,7 +689,6 @@ cel_android_library(
         "//runtime/standard:multiply_android",
         "//runtime/standard:negate_android",
         "//runtime/standard:not_equals_android",
-        "//runtime/standard:optional_android",
         "//runtime/standard:size_android",
         "//runtime/standard:standard_function_android",
         "//runtime/standard:starts_with_android",
