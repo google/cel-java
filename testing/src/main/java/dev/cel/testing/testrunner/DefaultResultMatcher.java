@@ -69,7 +69,9 @@ final class DefaultResultMatcher implements ResultMatcher {
         if (params.computedOutput().kind().equals(ComputedOutput.Kind.EXPR_VALUE)) {
           throw new AssertionError(
               "Evaluation was successful but no value was provided. Computed output: "
-                  + params.computedOutput().exprValue());
+                  +
+              params.computedOutput().exprValue()
+              );
         }
         assertThat(params.computedOutput().error().toString())
             .contains(result.evalError().get(0).toString());
