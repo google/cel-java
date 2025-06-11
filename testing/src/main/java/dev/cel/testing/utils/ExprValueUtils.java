@@ -16,6 +16,7 @@ package dev.cel.testing.utils;
 import dev.cel.expr.ExprValue;
 import dev.cel.expr.ListValue;
 import dev.cel.expr.MapValue;
+import dev.cel.expr.UnknownSet;
 import dev.cel.expr.Value;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -41,6 +42,7 @@ import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeType;
+import dev.cel.runtime.CelUnknownSet;
 import dev.cel.testing.testrunner.RegistryUtils;
 import java.io.IOException;
 import java.util.List;
@@ -151,7 +153,14 @@ public final class ExprValueUtils {
     if (object instanceof ExprValue) {
       return (ExprValue) object;
     }
+    if (object instanceof CelUnknownSet) {
+      return ExprValue.newBuilder().setUnknown(toUnknownSet((CelUnknownSet) object)).build();
+    }
     return ExprValue.newBuilder().setValue(toValue(object, type)).build();
+  }
+
+  public static UnknownSet toUnknownSet(CelUnknownSet unknownSet) {
+    return UnknownSet.newBuilder().addAllExprs(unknownSet.unknownExprIds()).build();
   }
 
   /**

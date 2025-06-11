@@ -74,6 +74,10 @@ final class DefaultResultMatcher implements ResultMatcher {
         assertThat(params.computedOutput().error().toString())
             .contains(result.evalError().get(0).toString());
         break;
+      case UNKNOWN_SET:
+        assertThat(params.computedOutput().unknownSet())
+            .containsExactlyElementsIn(result.unknownSet());
+        break;
       default:
         throw new IllegalArgumentException("Unexpected output type: " + result.kind());
     }

@@ -163,6 +163,7 @@ java_library(
         "//common/types:type_providers",
         "//runtime",
         "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@maven//:com_google_guava_guava",
     ],
 )
 

@@ -20,6 +20,7 @@ java_library(
         "//common/internal:default_message_factory",
         "//common/types",
         "//common/types:type_providers",
+        "//runtime:unknown_attributes",
         "//testing/testrunner:registry_utils",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",

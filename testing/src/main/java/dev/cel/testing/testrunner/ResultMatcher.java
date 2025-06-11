@@ -16,6 +16,7 @@ package dev.cel.testing.testrunner;
 import dev.cel.expr.ExprValue;
 import com.google.auto.value.AutoOneOf;
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import dev.cel.bundle.Cel;
 import dev.cel.common.types.CelType;
 import dev.cel.runtime.CelEvaluationException;
@@ -38,7 +39,8 @@ public interface ResultMatcher {
       /** Kind of the computed output. */
       public enum Kind {
         EXPR_VALUE,
-        ERROR
+        ERROR,
+        UNKNOWN_SET,
       }
 
       public abstract Kind kind();
@@ -47,12 +49,18 @@ public interface ResultMatcher {
 
       public abstract CelEvaluationException error();
 
+      public abstract ImmutableList<Long> unknownSet();
+
       public static ComputedOutput ofExprValue(ExprValue exprValue) {
         return AutoOneOf_ResultMatcher_ResultMatcherParams_ComputedOutput.exprValue(exprValue);
       }
 
       public static ComputedOutput ofError(CelEvaluationException error) {
         return AutoOneOf_ResultMatcher_ResultMatcherParams_ComputedOutput.error(error);
+      }
+
+      public static ComputedOutput ofUnknownSet(ImmutableList<Long> unknownSet) {
+        return AutoOneOf_ResultMatcher_ResultMatcherParams_ComputedOutput.unknownSet(unknownSet);
       }
     }
 

@@ -156,6 +156,18 @@ cel_java_test(
 )
 
 cel_java_test(
+    name = "unknown_set_yaml",
+    cel_expr = "nested_rule/policy.yaml",
+    proto_deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
+    ],
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":user_test",
+    test_suite = "nested_rule/testrunner_unknown_output_tests.yaml",
+)
+
+cel_java_test(
     name = "test_runner_yaml_sample_with_eval_error",
     cel_expr = "nested_rule/eval_error_policy.yaml",
     config = "nested_rule/eval_error_config.yaml",

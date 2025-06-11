@@ -457,6 +457,25 @@ public final class CelTestSuiteYamlParserTest {
             + " [tag:yaml.org,2002:str !txt]\n"
             + " | 1:\n"
             + " | ^"),
+    TEST_CASE_WITH_ILLEGAL_UNKNOWN_OUTPUT_TYPE(
+        "name: 'test_suite_name'\n"
+            + "description: 'test_suite_description'\n"
+            + "sections:\n"
+            + "- name: 'test_section_name'\n"
+            + "  description: 'test_section_description'\n"
+            + "  tests:\n"
+            + "  - name: 'test_case_name'\n"
+            + "    description: 'test_case_description'\n"
+            + "    input:\n"
+            + "       test_key:\n"
+            + "          value: 'test_value'\n"
+            + "    output:\n"
+            + "      unknown:\n"
+            + "        - 'test_result_value'\n",
+        "ERROR: <input>:14:9: Only integer ids are supported in unknown list. Found:"
+            + " java.lang.String\n"
+            + " |         - 'test_result_value'\n"
+            + " | ........^"),
     ;
 
     private final String testSuiteYamlContent;

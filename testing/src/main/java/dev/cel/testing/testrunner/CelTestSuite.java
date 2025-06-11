@@ -176,6 +176,7 @@ public abstract class CelTestSuite {
           RESULT_VALUE,
           RESULT_EXPR,
           EVAL_ERROR,
+          UNKNOWN_SET,
           NO_OUTPUT
         }
 
@@ -189,6 +190,8 @@ public abstract class CelTestSuite {
 
         public abstract ImmutableList<Object> evalError();
 
+        public abstract ImmutableList<Long> unknownSet();
+
         public static Output ofResultValue(Object resultValue) {
           return AutoOneOf_CelTestSuite_CelTestSection_CelTestCase_Output.resultValue(resultValue);
         }
@@ -199,6 +202,10 @@ public abstract class CelTestSuite {
 
         public static Output ofEvalError(ImmutableList<Object> errors) {
           return AutoOneOf_CelTestSuite_CelTestSection_CelTestCase_Output.evalError(errors);
+        }
+
+        public static Output ofUnknownSet(ImmutableList<Long> unknownSet) {
+          return AutoOneOf_CelTestSuite_CelTestSection_CelTestCase_Output.unknownSet(unknownSet);
         }
 
         public static Output ofNoOutput() {

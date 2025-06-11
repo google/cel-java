@@ -26,6 +26,7 @@ import dev.cel.expr.Value;
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Any;
@@ -264,10 +265,23 @@ public final class TestRunnerLibrary {
             .setExpectedOutput(Optional.ofNullable(testCase.output()))
             .setResultType(ast.getResultType());
 
-    if (exprValue != null) {
-      paramsBuilder.setComputedOutput(ResultMatcherParams.ComputedOutput.ofExprValue(exprValue));
-    } else {
+    if (error != null) {
       paramsBuilder.setComputedOutput(ResultMatcherParams.ComputedOutput.ofError(error));
+    } else {
+      switch (exprValue.getKindCase()) {
+        case VALUE:
+          paramsBuilder.setComputedOutput(
+              ResultMatcherParams.ComputedOutput.ofExprValue(exprValue));
+          break;
+        case UNKNOWN:
+          paramsBuilder.setComputedOutput(
+              ResultMatcherParams.ComputedOutput.ofUnknownSet(
+                  ImmutableList.copyOf(exprValue.getUnknown().getExprsList())));
+          break;
+        default:
+          throw new IllegalArgumentException(
+              String.format("Unexpected result type: %s", exprValue.getKindCase()));
+      }
     }
 
     celTestContext.resultMatcher().match(paramsBuilder.build(), cel);

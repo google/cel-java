@@ -320,6 +320,22 @@ final class CelTestSuiteYamlParser {
     return listBuilder.build();
   }
 
+  private ImmutableList<Long> parseUnknown(ParserContext<Node> ctx, Node node) {
+    ImmutableList<Object> unknown = parseList(ctx, node);
+    ImmutableList.Builder<Long> unknownBuilder = ImmutableList.builder();
+    for (Object object : unknown) {
+      if (object instanceof Integer) {
+        unknownBuilder.add(Long.valueOf((Integer) object));
+      } else {
+        ctx.reportError(
+            ctx.collectMetadata(node),
+            "Only integer ids are supported in unknown list. Found: "
+                + object.getClass().getName());
+      }
+    }
+    return unknownBuilder.build();
+  }
+
   private CelTestCase.Input parseContextExpr(ParserContext<Node> ctx, Node node) {
     long valueId = ctx.collectMetadata(node);
     if (!assertYamlType(ctx, valueId, node, YamlNodeType.STRING)) {
@@ -348,6 +364,8 @@ final class CelTestSuiteYamlParser {
           return CelTestCase.Output.ofResultExpr(newString(ctx, valueNode));
         case "error_set":
           return CelTestCase.Output.ofEvalError(parseList(ctx, valueNode));
+        case "unknown":
+          return CelTestCase.Output.ofUnknownSet(parseUnknown(ctx, valueNode));
         default:
           ctx.reportError(keyId, "Unknown output tag: " + fieldName);
           break;
