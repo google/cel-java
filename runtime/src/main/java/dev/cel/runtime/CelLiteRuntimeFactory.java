@@ -14,7 +14,10 @@
 
 package dev.cel.runtime;
 
+import dev.cel.common.annotations.Beta;
+
 /** Factory class for producing a lite runtime environment. */
+@Beta
 public final class CelLiteRuntimeFactory {
 
   /** Create a new builder for constructing a {@code CelLiteRuntime} instance. */
