@@ -14,3 +14,9 @@ java_library(
     name = "solutions",
     exports = ["//codelab/src/main/codelab/solutions"],
 )
+
+filegroup(
+    name = "testrunner_codelab_datafiles",
+    testonly = True,
+    srcs = ["//codelab/src/test/testrunnercodelab/datafiles:testrunner_codelab_data_files"],
+)
