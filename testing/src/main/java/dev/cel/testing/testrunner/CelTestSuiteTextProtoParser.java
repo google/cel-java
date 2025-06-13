@@ -18,12 +18,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.TextFormat.ParseException;
 import com.google.protobuf.TypeRegistry;
-import dev.cel.common.CelDescriptorUtil;
 import dev.cel.expr.conformance.test.InputValue;
 import dev.cel.expr.conformance.test.TestCase;
 import dev.cel.expr.conformance.test.TestSection;
@@ -55,11 +53,8 @@ final class CelTestSuiteTextProtoParser {
     TypeRegistry typeRegistry = TypeRegistry.getEmptyTypeRegistry();
     ExtensionRegistry extensionRegistry = ExtensionRegistry.getEmptyRegistry();
     if (fileDescriptorSetPath != null) {
-      ImmutableSet<FileDescriptor> fileDescriptors =
-          CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(
-              RegistryUtils.getFileDescriptorSet(fileDescriptorSetPath));
-      extensionRegistry = RegistryUtils.getExtensionRegistry(fileDescriptors);
-      typeRegistry = RegistryUtils.getTypeRegistry(fileDescriptors);
+      extensionRegistry = RegistryUtils.getExtensionRegistry();
+      typeRegistry = RegistryUtils.getTypeRegistry();
     }
     TextFormat.Parser parser = TextFormat.Parser.newBuilder().setTypeRegistry(typeRegistry).build();
     TestSuite.Builder builder = TestSuite.newBuilder();

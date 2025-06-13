@@ -15,6 +15,8 @@
 package dev.cel.testing.testrunner;
 
 import static com.google.common.collect.MoreCollectors.onlyElement;
+import static dev.cel.testing.utils.ClassLoaderUtils.loadClassesWithMethodAnnotation;
+import static dev.cel.testing.utils.ClassLoaderUtils.loadSubclasses;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.ZoneId.systemDefault;
 
@@ -23,9 +25,7 @@ import com.google.common.io.Files;
 import dev.cel.testing.testrunner.Annotations.TestSuiteSupplier;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase;
-import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfoList;
-import io.github.classgraph.ScanResult;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -166,12 +166,8 @@ public final class TestExecutor {
   public static void runTests() throws Exception {
     String testSuitePath = System.getProperty("test_suite_path");
 
-    // Using `enableAllInfo()` to scan all class files upfront. This avoids repeated parsing
-    // of class files by individual methods, improving efficiency.
-    ScanResult scanResult = new ClassGraph().enableAllInfo().scan();
-
     CelTestSuite testSuite;
-    testSuite = readCustomTestSuite(scanResult);
+    testSuite = readCustomTestSuite();
 
     if (testSuitePath != null) {
       if (testSuite != null) {
@@ -184,7 +180,7 @@ public final class TestExecutor {
       throw new IllegalArgumentException("Neither test_suite_path nor TestSuiteSupplier is set.");
     }
 
-    Class<?> testClass = getUserTestClass(scanResult);
+    Class<?> testClass = getUserTestClass();
     String envXmlFile = System.getenv("XML_OUTPUT_FILE");
     JUnitXmlReporter testReporter = new JUnitXmlReporter(envXmlFile);
     TestContext testContext = new TestContext();
@@ -245,9 +241,9 @@ public final class TestExecutor {
     }
   }
 
-  private static CelTestSuite readCustomTestSuite(ScanResult scanResult) throws Exception {
+  private static CelTestSuite readCustomTestSuite() throws Exception {
     ClassInfoList classInfoList =
-        scanResult.getClassesWithMethodAnnotation(CEL_TESTSUITE_ANNOTATION_CLASS.getName());
+        loadClassesWithMethodAnnotation(CEL_TESTSUITE_ANNOTATION_CLASS.getName());
     if (classInfoList.isEmpty()) {
       return null;
     }
@@ -278,8 +274,8 @@ public final class TestExecutor {
     return testSuiteSupplierMethod;
   }
 
-  private static Class<?> getUserTestClass(ScanResult scanResult) {
-    ClassInfoList subClassInfoList = scanResult.getSubclasses(CelUserTestTemplate.class);
+  private static Class<?> getUserTestClass() {
+    ClassInfoList subClassInfoList = loadSubclasses(CelUserTestTemplate.class);
     if (subClassInfoList.size() != 1) {
       throw new IllegalArgumentException(
           "Expected 1 subclass for CelUserTestTemplate, but got "

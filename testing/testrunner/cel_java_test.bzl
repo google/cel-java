@@ -18,6 +18,7 @@ load("@rules_java//java:java_binary.bzl", "java_binary")
 load("@rules_proto//proto:defs.bzl", "proto_descriptor_set")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
 
 def cel_java_test(
         name,
@@ -92,6 +93,12 @@ def cel_java_test(
         descriptor_set_path = ":" + name + "_proto_descriptor_set"
         data.append(descriptor_set_path)
         jvm_flags.append("-Dfile_descriptor_set_path=$(location {})".format(descriptor_set_path))
+
+        java_proto_library(
+            name = name + "_proto_descriptor_set_java_proto",
+            deps = proto_deps,
+        )
+        deps = deps + [":" + name + "_proto_descriptor_set_java_proto"]
 
     jvm_flags.append("-Dis_raw_expr=%s" % is_raw_expr)
 
