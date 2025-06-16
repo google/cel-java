@@ -123,7 +123,9 @@ public class DefaultResultMatcherTest {
 
     assertThat(thrown)
         .hasMessageThat()
-        .contains("Evaluation was successful but no value was provided. Computed output:");
-    assertThat(thrown).hasMessageThat().contains("value {\n  int64_value: 3\n}");
+        .contains(
+            "Evaluation was successful but no value was provided. Computed output: value {\n"
+                + "  int64_value: 3\n"
+                + "}");
   }
 }

@@ -15,6 +15,7 @@ package dev.cel.testing.testrunner;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
+import static com.google.protobuf.LegacyUnredactedTextFormat.legacyUnredactedStringValueOf;
 import static dev.cel.testing.utils.ExprValueUtils.toExprValue;
 
 import dev.cel.expr.ExprValue;
@@ -69,7 +70,7 @@ final class DefaultResultMatcher implements ResultMatcher {
         if (params.computedOutput().kind().equals(ComputedOutput.Kind.EXPR_VALUE)) {
           throw new AssertionError(
               "Evaluation was successful but no value was provided. Computed output: "
-                  + params.computedOutput().exprValue());
+                  + legacyUnredactedStringValueOf(params.computedOutput().exprValue()));
         }
         assertThat(params.computedOutput().error().toString())
             .contains(result.evalError().get(0).toString());
