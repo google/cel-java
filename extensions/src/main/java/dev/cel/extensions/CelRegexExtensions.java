@@ -15,7 +15,6 @@
 package dev.cel.extensions;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import com.google.re2j.Matcher;
@@ -25,7 +24,6 @@ import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.ListType;
-import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompilerLibrary;
@@ -40,9 +38,8 @@ import java.util.Set;
 final class CelRegexExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
 
   private static final String REGEX_REPLACE_FUNCTION = "regex.replace";
-  private static final String REGEX_CAPTURE_FUNCTION = "regex.capture";
-  private static final String REGEX_CAPTUREALL_FUNCTION = "regex.captureAll";
-  private static final String REGEX_CAPTUREALLNAMED_FUNCTION = "regex.captureAllNamed";
+  private static final String REGEX_EXTRACT_FUNCTION = "regex.extract";
+  private static final String REGEX_EXTRACT_ALL_FUNCTION = "regex.extractAll";
 
   enum Function {
     REPLACE(
@@ -83,52 +80,36 @@ final class CelRegexExtensions implements CelCompilerLibrary, CelRuntimeLibrary 
                   long count = (long) args[3];
                   return CelRegexExtensions.replace(target, pattern, replaceStr, count);
                 }))),
-    CAPTURE(
+    EXTRACT(
         CelFunctionDecl.newFunctionDeclaration(
-            REGEX_CAPTURE_FUNCTION,
+            REGEX_EXTRACT_FUNCTION,
             CelOverloadDecl.newGlobalOverload(
-                "regex_capture_string_string",
+                "regex_extract_string_string",
                 "Returns the first substring that matches the regex.",
                 OptionalType.create(SimpleType.STRING),
                 SimpleType.STRING,
                 SimpleType.STRING)),
         ImmutableSet.of(
             CelFunctionBinding.from(
-                "regex_capture_string_string",
+                "regex_extract_string_string",
                 String.class,
                 String.class,
-                CelRegexExtensions::captureFirstMatch))),
-    CAPTUREALL(
+                CelRegexExtensions::extract))),
+    EXTRACTALL(
         CelFunctionDecl.newFunctionDeclaration(
-            REGEX_CAPTUREALL_FUNCTION,
+            REGEX_EXTRACT_ALL_FUNCTION,
             CelOverloadDecl.newGlobalOverload(
-                "regex_captureAll_string_string",
-                "Returns an arrat of all substrings that match the regex.",
+                "regex_extractAll_string_string",
+                "Returns an array of all substrings that match the regex.",
                 ListType.create(SimpleType.STRING),
                 SimpleType.STRING,
                 SimpleType.STRING)),
         ImmutableSet.of(
             CelFunctionBinding.from(
-                "regex_captureAll_string_string",
+                "regex_extractAll_string_string",
                 String.class,
                 String.class,
-                CelRegexExtensions::captureAllMatches))),
-    CAPTUREALLNAMED(
-        CelFunctionDecl.newFunctionDeclaration(
-            REGEX_CAPTUREALLNAMED_FUNCTION,
-            CelOverloadDecl.newGlobalOverload(
-                "regex_captureAllNamed_string_string",
-                "Returns a map of all named captured groups as <named_group_name, captured_string>."
-                    + " Ignores the unnamed capture groups.",
-                MapType.create(SimpleType.STRING, SimpleType.STRING),
-                SimpleType.STRING,
-                SimpleType.STRING)),
-        ImmutableSet.of(
-            CelFunctionBinding.from(
-                "regex_captureAllNamed_string_string",
-                String.class,
-                String.class,
-                CelRegexExtensions::captureAllNamedGroups)));
+                CelRegexExtensions::extractAll)));
 
     private final CelFunctionDecl functionDecl;
     private final ImmutableSet<CelFunctionBinding> functionBindings;
@@ -200,67 +181,49 @@ final class CelRegexExtensions implements CelCompilerLibrary, CelRuntimeLibrary 
     return sb.toString();
   }
 
-  private static Optional<String> captureFirstMatch(String target, String regex) {
+  private static Optional<String> extract(String target, String regex) {
     Pattern pattern = compileRegexPattern(regex);
     Matcher matcher = pattern.matcher(target);
 
-    if (matcher.find()) {
-      // If there are capture groups, return the first one.
-      if (matcher.groupCount() > 0) {
-        return Optional.ofNullable(matcher.group(1));
-      } else {
-        // If there are no capture groups, return the entire match.
-        return Optional.of(matcher.group(0));
-      }
+    if (!matcher.find()) {
+      return Optional.empty();
     }
 
-    return Optional.empty();
+    int groupCount = matcher.groupCount();
+    if (groupCount > 1) {
+      throw new IllegalArgumentException(
+          "Regular expression has more than one capturing group: " + regex);
+    }
+
+    String result = (groupCount == 1) ? matcher.group(1) : matcher.group(0);
+
+    return Optional.ofNullable(result);
   }
 
-  private static ImmutableList<String> captureAllMatches(String target, String regex) {
+  private static ImmutableList<String> extractAll(String target, String regex) {
     Pattern pattern = compileRegexPattern(regex);
-
     Matcher matcher = pattern.matcher(target);
+
+    if (matcher.groupCount() > 1) {
+      throw new IllegalArgumentException(
+          "Regular expression has more than one capturing group: " + regex);
+    }
+
     ImmutableList.Builder<String> builder = ImmutableList.builder();
+    boolean hasOneGroup = matcher.groupCount() == 1;
 
     while (matcher.find()) {
-      // If there are capture groups, return all of them. Otherwise, return the entire match.
-      if (matcher.groupCount() > 0) {
-        // Add all the capture groups to the result list.
-        for (int i = 1; i <= matcher.groupCount(); i++) {
-          String group = matcher.group(i);
-          if (group != null) {
-            builder.add(group);
-          }
+      if (hasOneGroup) {
+        String group = matcher.group(1);
+        // Add the captured group's content only if it's not null (e.g. optional group didn't match)
+        if (group != null) {
+          builder.add(group);
         }
-      } else {
+      } else { // No capturing groups (matcher.groupCount() == 0)
         builder.add(matcher.group(0));
       }
     }
 
     return builder.build();
-  }
-
-  private static ImmutableMap<String, String> captureAllNamedGroups(String target, String regex) {
-    ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
-    Pattern pattern = compileRegexPattern(regex);
-
-    Set<String> groupNames = pattern.namedGroups().keySet();
-    if (groupNames.isEmpty()) {
-      return builder.buildOrThrow();
-    }
-
-    Matcher matcher = pattern.matcher(target);
-
-    while (matcher.find()) {
-
-      for (String groupName : groupNames) {
-        String capturedValue = matcher.group(groupName);
-        if (capturedValue != null) {
-          builder.put(groupName, capturedValue);
-        }
-      }
-    }
-    return builder.buildOrThrow();
   }
 }

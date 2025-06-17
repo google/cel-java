@@ -17,7 +17,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
@@ -27,7 +26,6 @@ import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +51,11 @@ public final class CelRegexExtensionsTest {
   @TestParameters(
       "{target: 'foo bar baz', regex: '\\\\w+', replaceStr: '($0)', res: '(foo) (bar) (baz)'}")
   @TestParameters("{target: '', regex: 'a', replaceStr: 'b', res: ''}")
+  @TestParameters(
+      "{target: 'User: Alice, Age: 30', regex: 'User: (?P<name>\\\\w+), Age: (?P<age>\\\\d+)',"
+          + " replaceStr: '${name} is ${age} years old', res: 'Alice is 30 years old'}")
+  @TestParameters(
+      "{target: 'abc', regex: '(?P<letter>b)', replaceStr: '[${letter}]', res: 'a[b]c'}")
   public void replaceAll_success(String target, String regex, String replaceStr, String res)
       throws Exception {
     String expr = String.format("regex.replace('%s', '%s', '%s')", target, regex, replaceStr);
@@ -61,6 +64,19 @@ public final class CelRegexExtensionsTest {
     Object result = program.eval();
 
     assertThat(result).isEqualTo(res);
+  }
+
+  @Test
+  public void replace_nested_success() throws Exception {
+    String expr =
+        "regex.replace("
+            + "    regex.replace('%(foo) %(bar) %2','%\\\\((\\\\w+)\\\\)','\\\\${$1}'),"
+            + "    '%(\\\\d+)', '\\\\$$1')";
+    CelRuntime.Program program = RUNTIME.createProgram(COMPILER.compile(expr).getAst());
+
+    Object result = program.eval();
+
+    assertThat(result).isEqualTo("${foo} ${bar} $2");
   }
 
   @Test
@@ -119,18 +135,34 @@ public final class CelRegexExtensionsTest {
   }
 
   @Test
+  @TestParameters(
+      "{target: 'id=123', regex: 'id=(?P<value>\\\\d+)', replaceStr: 'value: ${values}'}")
+  public void replace_invalid_replaceStr(String target, String regex, String replaceStr)
+      throws Exception {
+    String expr = String.format("regex.replace('%s', '%s', '%s')", target, regex, replaceStr);
+    CelAbstractSyntaxTree ast = COMPILER.compile(expr).getAst();
+
+    CelEvaluationException e =
+        assertThrows(CelEvaluationException.class, () -> RUNTIME.createProgram(ast).eval());
+
+    assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
+    assertThat(e).hasCauseThat().hasMessageThat().contains("group 'values' not found");
+  }
+
+  @Test
   @TestParameters("{target: 'hello world', regex: 'hello(.*)', expectedResult: ' world'}")
   @TestParameters("{target: 'item-A, item-B', regex: 'item-(\\\\w+)', expectedResult: 'A'}")
+  @TestParameters("{target: 'bananana', regex: 'ana', expectedResult: 'ana'}")
   @TestParameters(
       "{target: 'The color is red', regex: 'The color is (\\\\w+)', expectedResult: 'red'}")
   @TestParameters(
       "{target: 'The color is red', regex: 'The color is \\\\w+', expectedResult: 'The color is"
           + " red'}")
   @TestParameters(
-      "{target: 'phone: 415-5551212', regex: 'phone: ((\\\\d{3})-)?', expectedResult: '415-'}")
+      "{target: 'phone: 415-5551212', regex: 'phone: (\\\\d{3})?', expectedResult: '415'}")
   @TestParameters("{target: 'brand', regex: 'brand', expectedResult: 'brand'}")
-  public void capture_success(String target, String regex, String expectedResult) throws Exception {
-    String expr = String.format("regex.capture('%s', '%s')", target, regex);
+  public void extract_success(String target, String regex, String expectedResult) throws Exception {
+    String expr = String.format("regex.extract('%s', '%s')", target, regex);
     CelRuntime.Program program = RUNTIME.createProgram(COMPILER.compile(expr).getAst());
 
     Object result = program.eval();
@@ -141,11 +173,10 @@ public final class CelRegexExtensionsTest {
 
   @Test
   @TestParameters("{target: 'hello world', regex: 'goodbye (.*)'}")
-  @TestParameters("{target: 'phone: 5551212', regex: 'phone: ((\\\\d{3})-)?'}")
   @TestParameters("{target: 'HELLO', regex: 'hello'}")
   @TestParameters("{target: '', regex: '\\\\w+'}")
-  public void capture_no_match(String target, String regex) throws Exception {
-    String expr = String.format("regex.capture('%s', '%s')", target, regex);
+  public void extract_no_match(String target, String regex) throws Exception {
+    String expr = String.format("regex.extract('%s', '%s')", target, regex);
     CelRuntime.Program program = RUNTIME.createProgram(COMPILER.compile(expr).getAst());
 
     Object result = program.eval();
@@ -154,39 +185,45 @@ public final class CelRegexExtensionsTest {
     assertThat((Optional<?>) result).isEmpty();
   }
 
+  @Test
+  @TestParameters("{target: 'phone: 415-5551212', regex: 'phone: ((\\\\d{3})-)?'}")
+  @TestParameters("{target: 'testuser@testdomain', regex: '(.*)@([^.]*)'}")
+  public void extract_multipleCaptureGroups_throwsException(String target, String regex)
+      throws Exception {
+    String expr = String.format("regex.extract('%s', '%s')", target, regex);
+    CelAbstractSyntaxTree ast = COMPILER.compile(expr).getAst();
+
+    CelEvaluationException e =
+        assertThrows(CelEvaluationException.class, () -> RUNTIME.createProgram(ast).eval());
+
+    assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
+    assertThat(e)
+        .hasCauseThat()
+        .hasMessageThat()
+        .contains("Regular expression has more than one capturing group:");
+  }
+
   @SuppressWarnings("ImmutableEnumChecker") // Test only
-  private enum CaptureAllTestCase {
-    NO_MATCH("regex.captureAll('id:123, id:456', 'assa')", ImmutableList.of()),
-    OPTIONAL_MATCH_GROUP_NULL(
-        "regex.captureAll('phone: 5551212', 'phone: ((\\\\d{3})-)?')", ImmutableList.of()),
+  private enum ExtractAllTestCase {
+    NO_MATCH("regex.extractAll('id:123, id:456', 'assa')", ImmutableList.of()),
     NO_CAPTURE_GROUP(
-        "regex.captureAll('id:123, id:456', 'id:\\\\d+')", ImmutableList.of("id:123", "id:456")),
+        "regex.extractAll('id:123, id:456', 'id:\\\\d+')", ImmutableList.of("id:123", "id:456")),
     SINGLE_NAMED_GROUP(
-        "regex.captureAll('testuser@', '(?P<username>.*)@')", ImmutableList.of("testuser")),
+        "regex.extractAll('testuser@testdomain', '(?P<username>.*)@')",
+        ImmutableList.of("testuser")),
     SINGLE_NAMED_MULTIPLE_MATCH_GROUP(
-        "regex.captureAll('banananana', '(ana)')", ImmutableList.of("ana", "ana")),
-    MULTIPLE_NAMED_GROUP(
-        "regex.captureAll('Name: John Doe, Age:321', 'Name: (?P<Name>.*),"
-            + " Age:(?P<Age>\\\\d+)')",
-        ImmutableList.of("John Doe", "321")),
-    UNNAMED_GROUP(
-        "regex.captureAll('testuser@testdomain', '(.*)@([^.]*)')",
-        ImmutableList.of("testuser", "testdomain")),
-    NAMED_UNNAMED_COMBINED_GROUP(
-        "regex.captureAll('The user testuser belongs to testdomain',"
-            + "'The (user|domain) (?P<Username>.*) belongs (to) (?P<Domain>.*)')",
-        ImmutableList.of("user", "testuser", "to", "testdomain"));
+        "regex.extractAll('banananana', '(ana)')", ImmutableList.of("ana", "ana"));
     private final String expr;
     private final ImmutableList<String> expectedResult;
 
-    CaptureAllTestCase(String expr, ImmutableList<String> expectedResult) {
+    ExtractAllTestCase(String expr, ImmutableList<String> expectedResult) {
       this.expr = expr;
       this.expectedResult = expectedResult;
     }
   }
 
   @Test
-  public void captureAll_success(@TestParameter CaptureAllTestCase testCase) throws Exception {
+  public void extractAll_success(@TestParameter ExtractAllTestCase testCase) throws Exception {
     CelAbstractSyntaxTree ast = COMPILER.compile(testCase.expr).getAst();
 
     Object result = RUNTIME.createProgram(ast).eval();
@@ -194,42 +231,26 @@ public final class CelRegexExtensionsTest {
     assertThat(result).isEqualTo(testCase.expectedResult);
   }
 
-  @SuppressWarnings("ImmutableEnumChecker") // Test only
-  private enum CaptureAllNamedTestCase {
-    SINGLE_NAMED_GROUP(
-        "regex.captureAllNamed('testuser@', '(?P<username>.*)@')",
-        ImmutableMap.of("username", "testuser")),
-    MULTIPLE_NAMED_GROUP(
-        "regex.captureAllNamed('Name: John Doe, Age:321', 'Name: (?P<Name>.*),"
-            + " Age:(?P<Age>\\\\d+)')",
-        ImmutableMap.of("Name", "John Doe", "Age", "321")),
-    NO_MATCH("regex.captureAllNamed('id:123, id:456', 'assa')", ImmutableMap.of()),
-    NO_CAPTURE_GROUP("regex.captureAllNamed('id:123, id:456', 'id:\\\\d+')", ImmutableMap.of()),
-    UNNAMED_GROUPS_ONLY(
-        "regex.captureAllNamed('testuser@testdomain', '(.*)@([^.]*)')", ImmutableMap.of()),
-    NAMED_UNNAMED_COMBINED_GROUP(
-        "regex.captureAllNamed('The user testuser belongs to testdomain',"
-            + "'The (user|domain) (?P<Username>.*) belongs to (?P<Domain>.*)')",
-        ImmutableMap.of("Username", "testuser", "Domain", "testdomain")),
-    EMPTY_TARGET_STRING("regex.captureAllNamed('', '(?P<name>\\\\w+)')", ImmutableMap.of()),
-    NAMED_GROUP_CAPTURES_EMPTY_STRING(
-        "regex.captureAllNamed('id=', 'id=(?P<idValue>.*)')", ImmutableMap.of("idValue", ""));
-    private final String expr;
-    private final Map<String, String> expectedResult;
-
-    CaptureAllNamedTestCase(String expr, Map<String, String> expectedResult) {
-      this.expr = expr;
-      this.expectedResult = expectedResult;
-    }
-  }
-
   @Test
-  public void captureAllNamed_success(@TestParameter CaptureAllNamedTestCase testCase)
+  @TestParameters("{target: 'phone: 415-5551212', regex: 'phone: ((\\\\d{3})-)?'}")
+  @TestParameters("{target: 'testuser@testdomain', regex: '(.*)@([^.]*)'}")
+  @TestParameters(
+      "{target: 'Name: John Doe, Age:321', regex: 'Name: (?P<Name>.*), Age:(?P<Age>\\\\d+)'}")
+  @TestParameters(
+      "{target: 'The user testuser belongs to testdomain', regex: 'The (user|domain)"
+          + " (?P<Username>.*) belongs (to) (?P<Domain>.*)'}")
+  public void extractAll_multipleCaptureGroups_throwsException(String target, String regex)
       throws Exception {
-    CelAbstractSyntaxTree ast = COMPILER.compile(testCase.expr).getAst();
+    String expr = String.format("regex.extractAll('%s', '%s')", target, regex);
+    CelAbstractSyntaxTree ast = COMPILER.compile(expr).getAst();
 
-    Object result = RUNTIME.createProgram(ast).eval();
+    CelEvaluationException e =
+        assertThrows(CelEvaluationException.class, () -> RUNTIME.createProgram(ast).eval());
 
-    assertThat(result).isEqualTo(testCase.expectedResult);
+    assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
+    assertThat(e)
+        .hasCauseThat()
+        .hasMessageThat()
+        .contains("Regular expression has more than one capturing group:");
   }
 }

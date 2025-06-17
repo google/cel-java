@@ -180,8 +180,7 @@ public class CelExtensionsTest {
             "flatten",
             "lists.range",
             "regex.replace",
-            "regex.capture",
-            "regex.captureAll",
-            "regex.captureAllNamed");
+            "regex.extract",
+            "regex.extractAll");
   }
 }

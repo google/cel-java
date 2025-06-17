@@ -704,3 +704,80 @@ Examples:
 lists.range(5) -> [0, 1, 2, 3, 4]
 lists.range(0) -> []
 ```
+
+## Regex
+
+Regex introduces support for regular expressions in CEL.
+
+This library provides functions for capturing groups, replacing strings using
+regex patterns, Regex configures namespaced regex helper functions. Note, all
+functions use the 'regex' namespace. If you are currently using a variable named
+'regex', the macro will likely work just as intended; however, there is some
+chance for collision.
+
+### Replace
+
+The `regex.replace` function replaces all occurrences of a regex pattern in a
+string with a replacement string. Optionally, you can limit the number of
+replacements by providing a count argument. Both numeric ($N) and named
+(${name}) capture group references are supported in the replacement string, with
+validation for correctness. An error will be thrown for invalid regex or replace
+string.
+
+```
+regex.replace(target: string, pattern: string, replacement: string) -> string
+regex.replace(target: string, pattern: string, replacement: string, count: int) -> string
+```
+
+Examples:
+
+```
+regex.replace('banana', 'a', 'x', 0) == 'banana'
+regex.replace('banana', 'a', 'x', 1) == 'bxnana'
+regex.replace('banana', 'a', 'x', 2) == 'bxnxna'
+regex.replace('foo bar', '(fo)o (ba)r', '$2 $1') == 'ba fo'
+
+regex.replace('test', '(.)', '$2') \\ Runtime Error invalid replace string
+regex.replace('foo bar', '(', '$2 $1') \\ Runtime Error invalid regex string
+regex.replace('id=123', 'id=(?P<value>\\\\d+)', 'value: ${values}') \\ Runtime Error invalid replace string
+
+```
+
+### Extract
+
+The `regex.extract` function returns the first match of a regex pattern in a
+string. If no match is found, it returns an optional none value. An error will
+be thrown for invalid regex or for multiple capture groups.
+
+```
+regex.extract(target: string, pattern: string) -> optional<string>
+```
+
+Examples:
+
+```
+regex.extract('hello world', 'hello(.*)') == optional.of(' world')
+regex.extract('item-A, item-B', 'item-(\\w+)') == optional.of('A')
+regex.extract('HELLO', 'hello') == optional.empty()
+
+regex.extract('testuser@testdomain', '(.*)@([^.]*)')) \\ Runtime Error multiple extract group
+```
+
+### Extract All
+
+The `regex.extractAll` function returns a list of all matches of a regex
+pattern in a target string. If no matches are found, it returns an empty list.
+An error will be thrown for invalid regex or for multiple capture groups.
+
+```
+regex.extractAll(target: string, pattern: string) -> list<string>
+```
+
+Examples:
+
+```
+regex.extractAll('id:123, id:456', 'id:\\d+') == ['id:123', 'id:456']
+regex.extractAll('id:123, id:456', 'assa') == []
+
+regex.extractAll('testuser@testdomain', '(.*)@([^.]*)') \\ Runtime Error multiple capture group
+```
