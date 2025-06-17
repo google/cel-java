@@ -11,14 +11,6 @@ package(
     ],
 )
 
-proto_descriptor_set(
-    name = "test_all_types_fds",
-    deps = [
-        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
-        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
-    ],
-)
-
 # Since the user test class is triggered by the cel_test_runner rule, we should not add it to the
 # junit4_test_suite.
 # This is just a sample test class for the cel_test_runner rule.
@@ -153,6 +145,10 @@ cel_java_test(
     test_data_path = "//testing/src/test/resources/policy",
     test_src = ":user_test",
     test_suite = "nested_rule/testrunner_tests.yaml",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+    ],
 )
 
 cel_java_test(
@@ -165,6 +161,23 @@ cel_java_test(
     test_data_path = "//testing/src/test/resources/policy",
     test_src = ":user_test",
     test_suite = "nested_rule/testrunner_unknown_output_tests.yaml",
+)
+
+cel_java_test(
+    name = "custom_variable_binding_test_runner_sample",
+    cel_expr = "custom_variable_bindings/policy.yaml",
+    config = "custom_variable_bindings/config.yaml",
+    proto_deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
+    ],
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":custom_variable_binding_user_test",
+    test_suite = "custom_variable_bindings/tests.yaml",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+    ],
 )
 
 cel_java_test(
@@ -191,6 +204,10 @@ cel_java_test(
     test_data_path = "//testing/src/test/resources/policy",
     test_src = ":context_pb_user_test",
     test_suite = "context_pb/tests.yaml",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+    ],
 )
 
 cel_java_test(
@@ -204,6 +221,10 @@ cel_java_test(
     test_data_path = "//testing/src/test/resources/policy",
     test_src = ":env_config_user_test",
     test_suite = "nested_rule/testrunner_tests.textproto",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+    ],
 )
 
 cel_java_test(
@@ -216,6 +237,10 @@ cel_java_test(
     test_data_path = "//testing/src/test/resources/policy",
     test_src = ":user_test",
     test_suite = "nested_rule/testrunner_tests.textproto",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+    ],
 )
 
 cel_java_test(
@@ -224,16 +249,6 @@ cel_java_test(
     test_data_path = "//testing/src/test/resources/policy",
     test_src = ":user_test",
     test_suite = "expr_value_output/tests.textproto",
-)
-
-java_library(
-    name = "custom_test_suite",
-    srcs = ["CustomTestSuite.java"],
-    deps = [
-        "//testing/testrunner:annotations",
-        "//testing/testrunner:cel_test_suite",
-        "@maven//:com_google_guava_guava",
-    ],
 )
 
 cel_java_test(
@@ -247,6 +262,10 @@ cel_java_test(
     test_data_path = "//testing/src/test/resources/policy",
     test_src = ":env_config_user_test",
     test_suite = "nested_rule/eval_error_tests.textproto",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+    ],
 )
 
 cel_java_test(
@@ -260,6 +279,10 @@ cel_java_test(
     test_data_path = "//testing/src/test/resources/policy",
     test_src = ":context_pb_user_test",
     test_suite = "context_pb/context_msg_tests.textproto",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+    ],
 )
 
 cel_java_test(
@@ -273,6 +296,10 @@ cel_java_test(
     test_data_path = "//testing/src/test/resources/policy",
     test_src = ":context_pb_user_test",
     test_suite = "context_pb/tests.textproto",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+    ],
 )
 
 cel_java_test(
@@ -295,6 +322,20 @@ cel_java_test(
     test_data_path = "//testing/src/test/resources/policy",
     test_src = ":user_test",
     test_suite = "protoextension_value_as_input/tests.textproto",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+    ],
+)
+
+java_library(
+    name = "custom_test_suite",
+    srcs = ["CustomTestSuite.java"],
+    deps = [
+        "//testing/testrunner:annotations",
+        "//testing/testrunner:cel_test_suite",
+        "@maven//:com_google_guava_guava",
+    ],
 )
 
 cel_java_test(

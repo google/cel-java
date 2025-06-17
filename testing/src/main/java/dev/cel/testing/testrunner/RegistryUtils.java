@@ -13,91 +13,50 @@
 // limitations under the License.
 package dev.cel.testing.testrunner;
 
-import com.google.common.io.Files;
-import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+import static dev.cel.testing.utils.ProtoDescriptorUtils.getAllDescriptorsFromJvm;
+
 import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.TypeRegistry;
-import dev.cel.common.CelDescriptorUtil;
-import dev.cel.common.CelDescriptors;
-import dev.cel.common.internal.CelDescriptorPool;
-import dev.cel.common.internal.DefaultDescriptorPool;
-import dev.cel.common.internal.DefaultMessageFactory;
-import java.io.File;
+import dev.cel.common.internal.DefaultInstanceMessageFactory;
 import java.io.IOException;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 /** Utility class for creating registries from a file descriptor set. */
 public final class RegistryUtils {
 
-  private RegistryUtils() {}
-
-  /** Returns the {@link FileDescriptorSet} for the given file descriptor set path. */
-  public static FileDescriptorSet getFileDescriptorSet(String fileDescriptorSetPath)
-      throws IOException {
-    // We can pass an empty extension registry here because extensions are recovered later when
-    // creating the extension registry in {@link #createExtensionRegistry}.
-    return FileDescriptorSet.parseFrom(
-        Files.toByteArray(new File(fileDescriptorSetPath)), ExtensionRegistry.newInstance());
-  }
-
   /** Returns the {@link TypeRegistry} for the given file descriptor set. */
-  public static TypeRegistry getTypeRegistry(Set<FileDescriptor> fileDescriptors)
-      throws IOException {
-    return createTypeRegistry(fileDescriptors);
+  public static TypeRegistry getTypeRegistry() throws IOException {
+    return TypeRegistry.newBuilder()
+        .add(getAllDescriptorsFromJvm().messageTypeDescriptors())
+        .build();
   }
 
   /** Returns the {@link ExtensionRegistry} for the given file descriptor set. */
-  public static ExtensionRegistry getExtensionRegistry(Set<FileDescriptor> fileDescriptors)
-      throws IOException {
-    return createExtensionRegistry(fileDescriptors);
-  }
-
-  private static TypeRegistry createTypeRegistry(Set<FileDescriptor> fileDescriptors) {
-    CelDescriptors allDescriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileDescriptors);
-    return TypeRegistry.newBuilder().add(allDescriptors.messageTypeDescriptors()).build();
-  }
-
-  private static ExtensionRegistry createExtensionRegistry(Set<FileDescriptor> fileDescriptors) {
+  public static ExtensionRegistry getExtensionRegistry() throws IOException {
     ExtensionRegistry extensionRegistry = ExtensionRegistry.newInstance();
 
-    CelDescriptors allDescriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileDescriptors);
-
-    CelDescriptorPool pool = DefaultDescriptorPool.create(allDescriptors);
-
-    // We need to create a default message factory because there would always be difference in
-    // reference between the default instance's descriptor and the descriptor in the pool if the
-    // file descriptor set is created at runtime, therefore
-    // we need to create a default message factory to get the default instance for each descriptor
-    // because it falls back to the DynamicMessages.
-    //
-    // For more details, see: b/292174333
-    DefaultMessageFactory defaultMessageFactory = DefaultMessageFactory.create(pool);
-
-    allDescriptors
+    getAllDescriptorsFromJvm()
         .extensionDescriptors()
         .forEach(
             (descriptorName, descriptor) -> {
               if (descriptor.getType().equals(FieldDescriptor.Type.MESSAGE)) {
-                Message.Builder defaultInstance =
-                    defaultMessageFactory
-                        .newBuilder(descriptor.getMessageType().getFullName())
+                Message output =
+                    DefaultInstanceMessageFactory.getInstance()
+                        .getPrototype(descriptor.getMessageType())
                         .orElseThrow(
                             () ->
                                 new NoSuchElementException(
                                     "Could not find a default message for: "
                                         + descriptor.getFullName()));
-                extensionRegistry.add(descriptor, defaultInstance.build());
+                extensionRegistry.add(descriptor, output);
               } else {
                 extensionRegistry.add(descriptor);
               }
             });
-
     return extensionRegistry;
   }
+
+  private RegistryUtils() {}
 }

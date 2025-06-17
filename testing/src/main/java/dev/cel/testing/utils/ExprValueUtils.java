@@ -20,22 +20,17 @@ import dev.cel.expr.UnknownSet;
 import dev.cel.expr.Value;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors.Descriptor;
-import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.TypeRegistry;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
-import dev.cel.common.internal.CelDescriptorPool;
-import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultInstanceMessageFactory;
-import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
@@ -98,17 +93,11 @@ public final class ExprValueUtils {
           // fixed.
           String fileDescriptorSetPath = System.getProperty("file_descriptor_set_path");
           if (fileDescriptorSetPath != null) {
-            return parseAny(object, fileDescriptorSetPath);
+            return parseAny(object);
           }
           Descriptor descriptor =
               DEFAULT_TYPE_REGISTRY.getDescriptorForTypeUrl(object.getTypeUrl());
-          Message prototype =
-              DefaultInstanceMessageFactory.getInstance()
-                  .getPrototype(descriptor)
-                  .orElseThrow(
-                      () ->
-                          new NoSuchElementException(
-                              "Could not find a default message for: " + descriptor.getFullName()));
+          Message prototype = getDefaultInstance(descriptor);
           return prototype
               .getParserForType()
               .parseFrom(object.getValue(), DEFAULT_EXTENSION_REGISTRY);
@@ -273,43 +262,26 @@ public final class ExprValueUtils {
         String.format("Unexpected result type: %s", object.getClass()));
   }
 
-  private static Message parseAny(Any value, String fileDescriptorSetPath) throws IOException {
-    ImmutableSet<FileDescriptor> fileDescriptors =
-        CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(
-            RegistryUtils.getFileDescriptorSet(fileDescriptorSetPath));
-
-    TypeRegistry typeRegistry = RegistryUtils.getTypeRegistry(fileDescriptors);
-    ExtensionRegistry extensionRegistry = RegistryUtils.getExtensionRegistry(fileDescriptors);
-
-    CelDescriptors allDescriptors =
-        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileDescriptors);
-
-    CelDescriptorPool pool = DefaultDescriptorPool.create(allDescriptors);
-
-    DefaultMessageFactory defaultMessageFactory = DefaultMessageFactory.create(pool);
+  private static Message parseAny(Any value) throws IOException {
+    TypeRegistry typeRegistry = RegistryUtils.getTypeRegistry();
+    ExtensionRegistry extensionRegistry = RegistryUtils.getExtensionRegistry();
     Descriptor descriptor = typeRegistry.getDescriptorForTypeUrl(value.getTypeUrl());
-
-    return unpackAny(value, defaultMessageFactory, descriptor, extensionRegistry);
+    return unpackAny(value, descriptor, extensionRegistry);
   }
 
   private static Message unpackAny(
-      Any value,
-      DefaultMessageFactory defaultMessageFactory,
-      Descriptor descriptor,
-      ExtensionRegistry extensionRegistry)
-      throws IOException {
-    // Generate a default message for the given descriptor.
-    Message defaultInstance =
-        defaultMessageFactory
-            .newBuilder(descriptor.getFullName())
-            .orElseThrow(
-                () ->
-                    new NoSuchElementException(
-                        "Could not find a default message for: " + value.getTypeUrl()))
-            .build();
-
-    // Parse the default message using the value from the Any object.
+      Any value, Descriptor descriptor, ExtensionRegistry extensionRegistry) throws IOException {
+    Message defaultInstance = getDefaultInstance(descriptor);
     return defaultInstance.getParserForType().parseFrom(value.getValue(), extensionRegistry);
+  }
+
+  private static Message getDefaultInstance(Descriptor descriptor) throws IOException {
+    return DefaultInstanceMessageFactory.getInstance()
+        .getPrototype(descriptor)
+        .orElseThrow(
+            () ->
+                new NoSuchElementException(
+                    "Could not find a default message for: " + descriptor.getFullName()));
   }
 
   private static ExtensionRegistry newDefaultExtensionRegistry() {

@@ -25,27 +25,22 @@ import dev.cel.expr.ExprValue;
 import dev.cel.expr.Value;
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Any;
 import com.google.protobuf.Descriptors.Descriptor;
-import com.google.protobuf.Descriptors.FileDescriptor;
-import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelEnvironment;
 import dev.cel.bundle.CelEnvironment.ExtensionConfig;
-import dev.cel.bundle.CelEnvironmentException;
 import dev.cel.bundle.CelEnvironmentYamlParser;
 import dev.cel.common.CelAbstractSyntaxTree;
-import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.internal.DefaultInstanceMessageFactory;
 import dev.cel.policy.CelPolicy;
 import dev.cel.policy.CelPolicyCompilerFactory;
 import dev.cel.policy.CelPolicyParser;
@@ -56,10 +51,12 @@ import dev.cel.runtime.CelRuntime.Program;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase.Input.Binding;
 import dev.cel.testing.testrunner.ResultMatcher.ResultMatcherParams;
+import dev.cel.testing.utils.ProtoDescriptorUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -135,8 +132,7 @@ public final class TestRunnerLibrary {
   }
 
   private static CelTestContext extendCelTestContext(
-      CelTestContext celTestContext, CelExprFileSource celExprFileSource)
-      throws CelEnvironmentException, IOException {
+      CelTestContext celTestContext, CelExprFileSource celExprFileSource) throws Exception {
     CelOptions celOptions = celTestContext.celOptions();
     CelTestContext.Builder celTestContextBuilder =
         celTestContext.toBuilder().setCel(extendCel(celTestContext.cel(), celOptions));
@@ -150,8 +146,7 @@ public final class TestRunnerLibrary {
     return celTestContextBuilder.build();
   }
 
-  private static Cel extendCel(Cel cel, CelOptions celOptions)
-      throws IOException, CelEnvironmentException {
+  private static Cel extendCel(Cel cel, CelOptions celOptions) throws Exception {
     Cel extendedCel = cel;
 
     // Add the file descriptor set to the cel object if provided.
@@ -162,7 +157,9 @@ public final class TestRunnerLibrary {
     if (fileDescriptorSetPath != null) {
       extendedCel =
           cel.toCelBuilder()
-              .addFileTypes(RegistryUtils.getFileDescriptorSet(fileDescriptorSetPath))
+              .addMessageTypes(
+                  ProtoDescriptorUtils.getAllDescriptorsFromJvm().messageTypeDescriptors())
+              .setExtensionRegistry(RegistryUtils.getExtensionRegistry())
               .build();
     }
 
@@ -256,7 +253,7 @@ public final class TestRunnerLibrary {
           String.format(
               "Evaluation failed for test case: %s. Error: %s", testCase.name(), e.getMessage());
       error = new CelEvaluationException(errorMessage, e);
-      logger.severe(errorMessage);
+      logger.severe(e.toString());
     }
 
     // Perform the assertion on the result of the evaluation.
@@ -288,44 +285,48 @@ public final class TestRunnerLibrary {
   }
 
   private static Object getEvaluationResult(
-      CelTestCase testCase, CelTestContext celTestContext, Program program) throws Exception {
+      CelTestCase testCase, CelTestContext celTestContext, Program program)
+      throws CelEvaluationException, IOException, CelValidationException {
     if (celTestContext.celLateFunctionBindings().isPresent()) {
       return program.eval(
           getBindings(testCase, celTestContext), celTestContext.celLateFunctionBindings().get());
     }
     switch (testCase.input().kind()) {
       case CONTEXT_MESSAGE:
-        return program.eval(
-            unpackAny(
-                testCase.input().contextMessage(), System.getProperty("file_descriptor_set_path")));
+        return program.eval(unpackAny(testCase.input().contextMessage()));
       case CONTEXT_EXPR:
         return program.eval(getEvaluatedContextExpr(testCase, celTestContext));
       case BINDINGS:
         return program.eval(getBindings(testCase, celTestContext));
       case NO_INPUT:
-        return program.eval(celTestContext.variableBindings());
+        ImmutableMap.Builder<String, Object> newBindings = ImmutableMap.builder();
+        for (Map.Entry<String, Object> entry : celTestContext.variableBindings().entrySet()) {
+          if (entry.getValue() instanceof Any) {
+            newBindings.put(entry.getKey(), unpackAny((Any) entry.getValue()));
+          } else {
+            newBindings.put(entry);
+          }
+        }
+        return program.eval(newBindings.buildOrThrow());
     }
     throw new IllegalArgumentException("Unexpected input type: " + testCase.input().kind());
   }
 
-  // TODO: Remove DynamicMessage parsing once default instance generation is fixed.
-  //
-  // Dynamic Message parsing is added here to make the default instance generation code OSS
-  // compatible. Otherwise, we'd have to depend on AnyUtil which is not available in OSS.
-  // However, the functionality fails in OSS as the generated DynamicMessage descriptor is different
-  // from the message descriptor.
-  private static Message unpackAny(Any any, String fileDescriptorSetPath) throws IOException {
-    Preconditions.checkNotNull(
-        fileDescriptorSetPath,
-        "File descriptor set is required to unpack Any of type: %s.",
-        any.getTypeUrl());
-    ImmutableSet<FileDescriptor> fileDescriptors =
-        CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(
-            RegistryUtils.getFileDescriptorSet(fileDescriptorSetPath));
+  private static Message unpackAny(Any any) throws IOException {
     Descriptor descriptor =
-        RegistryUtils.getTypeRegistry(fileDescriptors).getDescriptorForTypeUrl(any.getTypeUrl());
-    return DynamicMessage.parseFrom(
-        descriptor, any.getValue(), RegistryUtils.getExtensionRegistry(fileDescriptors));
+        RegistryUtils.getTypeRegistry().getDescriptorForTypeUrl(any.getTypeUrl());
+    return getDefaultInstance(descriptor)
+        .getParserForType()
+        .parseFrom(any.getValue(), RegistryUtils.getExtensionRegistry());
+  }
+
+  private static Message getDefaultInstance(Descriptor descriptor) throws IOException {
+    return DefaultInstanceMessageFactory.getInstance()
+        .getPrototype(descriptor)
+        .orElseThrow(
+            () ->
+                new NoSuchElementException(
+                    "Could not find a default message for: " + descriptor.getFullName()));
   }
 
   private static Message getEvaluatedContextExpr(
@@ -340,7 +341,7 @@ public final class TestRunnerLibrary {
 
   private static ImmutableMap<String, Object> getBindings(
       CelTestCase testCase, CelTestContext celTestContext)
-      throws CelEvaluationException, CelValidationException, IOException {
+      throws IOException, CelEvaluationException, CelValidationException {
     Cel cel = celTestContext.cel();
     ImmutableMap.Builder<String, Object> inputBuilder = ImmutableMap.builder();
     for (Map.Entry<String, Binding> entry : testCase.input().bindings().entrySet()) {

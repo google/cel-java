@@ -5,6 +5,7 @@ package(
     default_testonly = True,
     default_visibility = [
         "//testing:__pkg__",
+        "//testing/testrunner:__pkg__",
     ],
 )
 
@@ -15,9 +16,7 @@ java_library(
     ],
     deps = [
         "//common:cel_descriptors",
-        "//common/internal:cel_descriptor_pools",
         "//common/internal:default_instance_message_factory",
-        "//common/internal:default_message_factory",
         "//common/types",
         "//common/types:type_providers",
         "//runtime:unknown_attributes",
@@ -28,5 +27,30 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven_android//:com_google_protobuf_protobuf_javalite",
+    ],
+)
+
+java_library(
+    name = "class_loader_utils",
+    srcs = ["ClassLoaderUtils.java"],
+    tags = [
+    ],
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:io_github_classgraph_classgraph",
+    ],
+)
+
+java_library(
+    name = "proto_descriptor_utils",
+    srcs = ["ProtoDescriptorUtils.java"],
+    tags = [
+    ],
+    deps = [
+        "//common:cel_descriptors",
+        "//testing/testrunner:class_loader_utils",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )

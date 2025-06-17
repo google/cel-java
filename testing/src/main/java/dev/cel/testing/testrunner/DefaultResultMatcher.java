@@ -20,11 +20,8 @@ import static dev.cel.testing.utils.ExprValueUtils.toExprValue;
 
 import dev.cel.expr.ExprValue;
 import dev.cel.expr.MapValue;
-import com.google.common.collect.ImmutableSet;
-import com.google.protobuf.Descriptors.FileDescriptor;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
-import dev.cel.common.CelDescriptorUtil;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime.Program;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase.Output;
@@ -88,15 +85,10 @@ final class DefaultResultMatcher implements ResultMatcher {
       throws IOException {
     String fileDescriptorSetPath = System.getProperty("file_descriptor_set_path");
     if (fileDescriptorSetPath != null) {
-      ImmutableSet<FileDescriptor> fileDescriptors =
-          CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(
-              RegistryUtils.getFileDescriptorSet(fileDescriptorSetPath));
       assertThat(exprValue)
           .ignoringRepeatedFieldOrderOfFieldDescriptors(
               MapValue.getDescriptor().findFieldByName("entries"))
-          .unpackingAnyUsing(
-              RegistryUtils.getTypeRegistry(fileDescriptors),
-              RegistryUtils.getExtensionRegistry(fileDescriptors))
+          .unpackingAnyUsing(RegistryUtils.getTypeRegistry(), RegistryUtils.getExtensionRegistry())
           .isEqualTo(expectedExprValue);
     } else {
       assertThat(exprValue)
