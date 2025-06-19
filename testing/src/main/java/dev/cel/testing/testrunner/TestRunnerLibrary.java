@@ -77,7 +77,16 @@ public final class TestRunnerLibrary {
    */
   public static void runTest(CelTestCase testCase, CelTestContext celTestContext) throws Exception {
     String celExpression = System.getProperty(CEL_EXPR_SYSTEM_PROPERTY);
-    CelExprFileSource celExprFileSource = CelExprFileSource.fromFile(celExpression);
+    CelExprFileSource celExprFileSource;
+    if (celExpression == null) {
+      celExprFileSource =
+          celTestContext
+              .celExpression()
+              .map(CelExprFileSource::fromFile)
+              .orElseThrow(() -> new IllegalArgumentException("No cel expression provided."));
+    } else {
+      celExprFileSource = CelExprFileSource.fromFile(celExpression);
+    }
     evaluateTestCase(testCase, celTestContext, celExprFileSource);
   }
 
@@ -219,10 +228,9 @@ public final class TestRunnerLibrary {
       if (filePath.endsWith(".cel")) {
         return CEL;
       }
-      if (System.getProperty("is_raw_expr").equals("True")) {
-        return RAW_EXPR;
-      }
-      throw new IllegalArgumentException("Unsupported expression type: " + filePath);
+      // Note: In case some unrecognized file format is provided, we will assume it is a raw cel
+      // expression and let it go through since it will fail at compile time.
+      return RAW_EXPR;
     }
   }
 

@@ -79,6 +79,9 @@ public abstract class CelTestContext {
    */
   public abstract ResultMatcher resultMatcher();
 
+  /** The CEL expression to be tested. Could be a expression string or a policy/cel file path. */
+  public abstract Optional<String> celExpression();
+
   /** Returns a builder for {@link CelTestContext} with the current instance's values. */
   public abstract Builder toBuilder();
 
@@ -106,6 +109,8 @@ public abstract class CelTestContext {
     public abstract Builder setVariableBindings(Map<String, Object> variableBindings);
 
     public abstract Builder setResultMatcher(ResultMatcher resultMatcher);
+
+    public abstract Builder setCelExpression(String celExpression);
 
     public abstract CelTestContext build();
   }

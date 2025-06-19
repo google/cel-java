@@ -22,6 +22,7 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.util.TestUtil;
 import dev.cel.bundle.CelFactory;
 import dev.cel.checker.ProtoTypeMask;
+import dev.cel.common.CelValidationException;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase;
 import dev.cel.testing.testrunner.TestRunnerLibrary.CelExprFileSource;
@@ -53,6 +54,39 @@ public class TestRunnerLibraryTest {
 
     TestRunnerLibrary.evaluateTestCase(
         simpleOutputTestCase, CelTestContext.newBuilder().build(), celExprFileSource);
+  }
+
+  @Test
+  public void triggerRunTest_evaluatePolicy_simpleBooleanOutput() throws Exception {
+    CelTestCase simpleOutputTestCase =
+        CelTestCase.newBuilder()
+            .setName("simple_output_test_case")
+            .setDescription("simple_output_test_case_description")
+            .setInput(CelTestSuite.CelTestSection.CelTestCase.Input.ofBindings(ImmutableMap.of()))
+            .setOutput(CelTestSuite.CelTestSection.CelTestCase.Output.ofResultValue(false))
+            .build();
+
+    TestRunnerLibrary.runTest(
+        simpleOutputTestCase,
+        CelTestContext.newBuilder()
+            .setCelExpression(
+                TestUtil.getSrcDir()
+                    + "/google3/third_party/java/cel/testing/src/test/java/dev/cel/testing/testrunner/resources/empty_policy.yaml")
+            .build());
+  }
+
+  @Test
+  public void triggerRunTest_evaluateRawExpr_simpleBooleanOutput() throws Exception {
+    CelTestCase simpleOutputTestCase =
+        CelTestCase.newBuilder()
+            .setName("simple_output_test_case")
+            .setDescription("simple_output_test_case_description")
+            .setInput(CelTestSuite.CelTestSection.CelTestCase.Input.ofBindings(ImmutableMap.of()))
+            .setOutput(CelTestSuite.CelTestSection.CelTestCase.Output.ofResultValue(false))
+            .build();
+
+    TestRunnerLibrary.runTest(
+        simpleOutputTestCase, CelTestContext.newBuilder().setCelExpression("1 > 0").build());
   }
 
   @Test
@@ -188,13 +222,13 @@ public class TestRunnerLibraryTest {
             .setOutput(CelTestSuite.CelTestSection.CelTestCase.Output.ofNoOutput())
             .build();
 
-    IllegalArgumentException thrown =
+    CelValidationException thrown =
         assertThrows(
-            IllegalArgumentException.class,
+            CelValidationException.class,
             () ->
                 TestRunnerLibrary.runTest(
                     simpleOutputTestCase, CelTestContext.newBuilder().build()));
 
-    assertThat(thrown).hasMessageThat().contains("Unsupported expression type: output.txt");
+    assertThat(thrown).hasMessageThat().contains("undeclared reference to 'output'");
   }
 }
