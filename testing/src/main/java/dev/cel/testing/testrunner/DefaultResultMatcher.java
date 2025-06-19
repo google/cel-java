@@ -88,7 +88,9 @@ final class DefaultResultMatcher implements ResultMatcher {
       assertThat(exprValue)
           .ignoringRepeatedFieldOrderOfFieldDescriptors(
               MapValue.getDescriptor().findFieldByName("entries"))
-          .unpackingAnyUsing(RegistryUtils.getTypeRegistry(), RegistryUtils.getExtensionRegistry())
+          .unpackingAnyUsing(
+              RegistryUtils.getTypeRegistry(fileDescriptorSetPath),
+              RegistryUtils.getExtensionRegistry(fileDescriptorSetPath))
           .isEqualTo(expectedExprValue);
     } else {
       assertThat(exprValue)

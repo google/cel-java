@@ -23,7 +23,6 @@ import static java.nio.file.Files.readAllBytes;
 import dev.cel.expr.CheckedExpr;
 import dev.cel.expr.ExprValue;
 import dev.cel.expr.Value;
-import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -66,8 +65,6 @@ public final class TestRunnerLibrary {
 
   private static final Logger logger = Logger.getLogger(TestRunnerLibrary.class.getName());
 
-  private static final String CEL_EXPR_SYSTEM_PROPERTY = "cel_expr";
-
   /**
    * Run the assertions for a given raw/checked expression test case.
    *
@@ -76,67 +73,73 @@ public final class TestRunnerLibrary {
    *     configurations.
    */
   public static void runTest(CelTestCase testCase, CelTestContext celTestContext) throws Exception {
-    String celExpression = System.getProperty(CEL_EXPR_SYSTEM_PROPERTY);
-    CelExprFileSource celExprFileSource = CelExprFileSource.fromFile(celExpression);
-    evaluateTestCase(testCase, celTestContext, celExprFileSource);
+    if (celTestContext.celExpression().isPresent()) {
+      evaluateTestCase(testCase, celTestContext);
+    } else {
+      throw new IllegalArgumentException("No cel expression provided.");
+    }
   }
 
   @VisibleForTesting
-  static void evaluateTestCase(
-      CelTestCase testCase, CelTestContext celTestContext, CelExprFileSource celExprFileSource)
+  static void evaluateTestCase(CelTestCase testCase, CelTestContext celTestContext)
       throws Exception {
-    celTestContext = extendCelTestContext(celTestContext, celExprFileSource);
+    celTestContext = extendCelTestContext(celTestContext);
     CelAbstractSyntaxTree ast;
-    switch (celExprFileSource.type()) {
+    CelExpressionSource celExpressionSource = celTestContext.celExpression().get();
+    switch (celExpressionSource.type()) {
       case POLICY:
         ast =
             compilePolicy(
                 celTestContext.cel(),
                 celTestContext.celPolicyParser().get(),
-                readFile(celExprFileSource.value()));
+                readFile(celExpressionSource.value()));
         break;
       case TEXTPROTO:
       case BINARYPB:
-        ast = readAstFromCheckedExpression(celExprFileSource);
+        ast = readAstFromCheckedExpression(celExpressionSource);
         break;
       case CEL:
-        ast = celTestContext.cel().compile(readFile(celExprFileSource.value())).getAst();
+        ast = celTestContext.cel().compile(readFile(celExpressionSource.value())).getAst();
         break;
       case RAW_EXPR:
-        ast = celTestContext.cel().compile(celExprFileSource.value()).getAst();
+        ast = celTestContext.cel().compile(celExpressionSource.value()).getAst();
         break;
       default:
         throw new IllegalArgumentException(
-            "Unsupported expression type: " + celExprFileSource.type());
+            "Unsupported expression type: " + celExpressionSource.type());
     }
     evaluate(ast, testCase, celTestContext);
   }
 
   private static CelAbstractSyntaxTree readAstFromCheckedExpression(
-      CelExprFileSource celExprFileSource) throws IOException {
-    switch (celExprFileSource.type()) {
+      CelExpressionSource celExpressionSource) throws IOException {
+    switch (celExpressionSource.type()) {
       case BINARYPB:
-        byte[] bytes = readAllBytes(Paths.get(celExprFileSource.value()));
+        byte[] bytes = readAllBytes(Paths.get(celExpressionSource.value()));
         CheckedExpr checkedExpr =
             CheckedExpr.parseFrom(bytes, ExtensionRegistry.getEmptyRegistry());
         return CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst();
       case TEXTPROTO:
-        String content = readFile(celExprFileSource.value());
+        String content = readFile(celExpressionSource.value());
         CheckedExpr.Builder builder = CheckedExpr.newBuilder();
         TextFormat.merge(content, builder);
         return CelProtoAbstractSyntaxTree.fromCheckedExpr(builder.build()).getAst();
       default:
         throw new IllegalArgumentException(
-            "Unsupported expression type: " + celExprFileSource.type());
+            "Unsupported expression type: " + celExpressionSource.type());
     }
   }
 
-  private static CelTestContext extendCelTestContext(
-      CelTestContext celTestContext, CelExprFileSource celExprFileSource) throws Exception {
+  private static CelTestContext extendCelTestContext(CelTestContext celTestContext)
+      throws Exception {
     CelOptions celOptions = celTestContext.celOptions();
     CelTestContext.Builder celTestContextBuilder =
-        celTestContext.toBuilder().setCel(extendCel(celTestContext.cel(), celOptions));
-    if (celExprFileSource.type().equals(ExpressionFileType.POLICY)) {
+        celTestContext.toBuilder().setCel(extendCel(celTestContext, celOptions));
+    if (celTestContext
+        .celExpression()
+        .get()
+        .type()
+        .equals(CelExpressionSource.ExpressionSourceType.POLICY)) {
       celTestContextBuilder.setCelPolicyParser(
           celTestContext
               .celPolicyParser()
@@ -146,29 +149,32 @@ public final class TestRunnerLibrary {
     return celTestContextBuilder.build();
   }
 
-  private static Cel extendCel(Cel cel, CelOptions celOptions) throws Exception {
-    Cel extendedCel = cel;
+  private static Cel extendCel(CelTestContext celTestContext, CelOptions celOptions)
+      throws Exception {
+    Cel extendedCel = celTestContext.cel();
 
     // Add the file descriptor set to the cel object if provided.
     //
     // Note: This needs to be added first because the config file may contain type information
     // regarding proto messages that need to be added to the cel object.
-    String fileDescriptorSetPath = System.getProperty("file_descriptor_set_path");
-    if (fileDescriptorSetPath != null) {
+    if (celTestContext.fileDescriptorSetPath().isPresent()) {
       extendedCel =
-          cel.toCelBuilder()
+          extendedCel
+              .toCelBuilder()
               .addMessageTypes(
-                  ProtoDescriptorUtils.getAllDescriptorsFromJvm().messageTypeDescriptors())
-              .setExtensionRegistry(RegistryUtils.getExtensionRegistry())
+                  ProtoDescriptorUtils.getAllDescriptorsFromJvm(
+                          celTestContext.fileDescriptorSetPath().get())
+                      .messageTypeDescriptors())
+              .setExtensionRegistry(
+                  RegistryUtils.getExtensionRegistry(celTestContext.fileDescriptorSetPath().get()))
               .build();
     }
 
     CelEnvironment environment = CelEnvironment.newBuilder().build();
 
     // Extend the cel object with the config file if provided.
-    String configPath = System.getProperty("config_path");
-    if (configPath != null) {
-      String configContent = readFile(configPath);
+    if (celTestContext.configFile().isPresent()) {
+      String configContent = readFile(celTestContext.configFile().get());
       environment = CelEnvironmentYamlParser.newInstance().parse(configContent);
     }
 
@@ -178,52 +184,6 @@ public final class TestRunnerLibrary {
         .addExtensions(ExtensionConfig.of("optional"))
         .build()
         .extend(extendedCel, celOptions);
-  }
-
-  /**
-   * CelExprFileSource is an encapsulation around cel_expr file format argument accepted in
-   * cel_java_test bzl macro. It either holds a {@link CheckedExpr} in binarypb/textproto format, a
-   * serialized {@link CelPolicy} file in yaml/celpolicy format or a raw cel expression in cel file
-   * format or string format.
-   */
-  @AutoValue
-  abstract static class CelExprFileSource {
-
-    abstract String value();
-
-    abstract ExpressionFileType type();
-
-    static CelExprFileSource fromFile(String value) {
-      return new AutoValue_TestRunnerLibrary_CelExprFileSource(
-          value, ExpressionFileType.fromFile(value));
-    }
-  }
-
-  enum ExpressionFileType {
-    BINARYPB,
-    TEXTPROTO,
-    POLICY,
-    CEL,
-    RAW_EXPR;
-
-    static ExpressionFileType fromFile(String filePath) {
-      if (filePath.endsWith(".binarypb")) {
-        return BINARYPB;
-      }
-      if (filePath.endsWith(".textproto")) {
-        return TEXTPROTO;
-      }
-      if (filePath.endsWith(".yaml") || filePath.endsWith(".celpolicy")) {
-        return POLICY;
-      }
-      if (filePath.endsWith(".cel")) {
-        return CEL;
-      }
-      if (System.getProperty("is_raw_expr").equals("True")) {
-        return RAW_EXPR;
-      }
-      throw new IllegalArgumentException("Unsupported expression type: " + filePath);
-    }
   }
 
   private static String readFile(String path) throws IOException {
@@ -293,7 +253,7 @@ public final class TestRunnerLibrary {
     }
     switch (testCase.input().kind()) {
       case CONTEXT_MESSAGE:
-        return program.eval(unpackAny(testCase.input().contextMessage()));
+        return program.eval(unpackAny(testCase.input().contextMessage(), celTestContext));
       case CONTEXT_EXPR:
         return program.eval(getEvaluatedContextExpr(testCase, celTestContext));
       case BINDINGS:
@@ -302,7 +262,7 @@ public final class TestRunnerLibrary {
         ImmutableMap.Builder<String, Object> newBindings = ImmutableMap.builder();
         for (Map.Entry<String, Object> entry : celTestContext.variableBindings().entrySet()) {
           if (entry.getValue() instanceof Any) {
-            newBindings.put(entry.getKey(), unpackAny((Any) entry.getValue()));
+            newBindings.put(entry.getKey(), unpackAny((Any) entry.getValue(), celTestContext));
           } else {
             newBindings.put(entry);
           }
@@ -312,12 +272,19 @@ public final class TestRunnerLibrary {
     throw new IllegalArgumentException("Unexpected input type: " + testCase.input().kind());
   }
 
-  private static Message unpackAny(Any any) throws IOException {
+  private static Message unpackAny(Any any, CelTestContext celTestContext) throws IOException {
+    if (!celTestContext.fileDescriptorSetPath().isPresent()) {
+      throw new IllegalArgumentException(
+          "Proto descriptors are required for unpacking Any messages.");
+    }
     Descriptor descriptor =
-        RegistryUtils.getTypeRegistry().getDescriptorForTypeUrl(any.getTypeUrl());
+        RegistryUtils.getTypeRegistry(celTestContext.fileDescriptorSetPath().get())
+            .getDescriptorForTypeUrl(any.getTypeUrl());
     return getDefaultInstance(descriptor)
         .getParserForType()
-        .parseFrom(any.getValue(), RegistryUtils.getExtensionRegistry());
+        .parseFrom(
+            any.getValue(),
+            RegistryUtils.getExtensionRegistry(celTestContext.fileDescriptorSetPath().get()));
   }
 
   private static Message getDefaultInstance(Descriptor descriptor) throws IOException {
@@ -348,13 +315,8 @@ public final class TestRunnerLibrary {
       if (entry.getValue().kind().equals(Binding.Kind.EXPR)) {
         inputBuilder.put(entry.getKey(), evaluateInput(cel, entry.getValue().expr()));
       } else {
-        Object value;
-        if (entry.getValue().value() instanceof Value) {
-          value = fromValue((Value) entry.getValue().value());
-        } else {
-          value = entry.getValue().value();
-        }
-        inputBuilder.put(entry.getKey(), value);
+        inputBuilder.put(
+            entry.getKey(), getValueFromBinding(entry.getValue().value(), celTestContext));
       }
     }
     return inputBuilder.buildOrThrow();
@@ -364,5 +326,16 @@ public final class TestRunnerLibrary {
       throws CelEvaluationException, CelValidationException {
     CelAbstractSyntaxTree exprInputAst = cel.compile(expr).getAst();
     return cel.createProgram(exprInputAst).eval();
+  }
+
+  private static Object getValueFromBinding(Object value, CelTestContext celTestContext)
+      throws IOException {
+    if (value instanceof Value) {
+      if (celTestContext.fileDescriptorSetPath().isPresent()) {
+        return fromValue((Value) value, celTestContext.fileDescriptorSetPath().get());
+      }
+      return fromValue((Value) value);
+    }
+    return value;
   }
 }

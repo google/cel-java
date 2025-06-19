@@ -12,6 +12,7 @@ filegroup(
     name = "policy_yaml_files",
     srcs = glob([
         "**/*.yaml",
+        "**/*.celpolicy",
         "**/*.baseline",
         "**/*.textproto",
     ]),
@@ -21,6 +22,7 @@ exports_files(
     srcs = glob([
         "**/*.yaml",
         "**/*.baseline",
+        "**/*.celpolicy",
         "**/*.textproto",
     ]),
 )
