@@ -717,12 +717,15 @@ chance for collision.
 
 ### Replace
 
-The `regex.replace` function replaces all occurrences of a regex pattern in a
-string with a replacement string. Optionally, you can limit the number of
-replacements by providing a count argument. Both numeric ($N) and named
-(${name}) capture group references are supported in the replacement string, with
-validation for correctness. An error will be thrown for invalid regex or replace
-string.
+The `regex.replace` function replaces all non-overlapping substring of a regex
+pattern in the target string with a replacement string. Optionally, you can
+limit the number of replacements by providing a count argument. When the count
+is a negative number, the function acts as replace all. Only numeric (\N)
+capture group references are supported in the replacement string, with
+validation for correctness. Backslashed-escaped digits (\1 to \9) within the
+replacement argument can be used to insert text matching the corresponding
+parenthesized group in the regexp pattern. An error will be thrown for invalid
+regex or replace string.
 
 ```
 regex.replace(target: string, pattern: string, replacement: string) -> string
@@ -732,14 +735,16 @@ regex.replace(target: string, pattern: string, replacement: string, count: int) 
 Examples:
 
 ```
+regex.replace('hello world hello', 'hello', 'hi') == 'hi world hi'
 regex.replace('banana', 'a', 'x', 0) == 'banana'
 regex.replace('banana', 'a', 'x', 1) == 'bxnana'
 regex.replace('banana', 'a', 'x', 2) == 'bxnxna'
-regex.replace('foo bar', '(fo)o (ba)r', '$2 $1') == 'ba fo'
+regex.replace('banana', 'a', 'x', -12) == 'bxnxnx'
+regex.replace('foo bar', '(fo)o (ba)r', '\\2 \\1') == 'ba fo'
 
 regex.replace('test', '(.)', '$2') \\ Runtime Error invalid replace string
 regex.replace('foo bar', '(', '$2 $1') \\ Runtime Error invalid regex string
-regex.replace('id=123', 'id=(?P<value>\\\\d+)', 'value: ${values}') \\ Runtime Error invalid replace string
+regex.replace('id=123', 'id=(?P<value>\\\\d+)', 'value: \\values') \\ Runtime Error invalid replace string
 
 ```
 

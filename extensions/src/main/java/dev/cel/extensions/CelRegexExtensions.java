@@ -78,7 +78,7 @@ final class CelRegexExtensions implements CelCompilerLibrary, CelRuntimeLibrary 
                   String pattern = (String) args[1];
                   String replaceStr = (String) args[2];
                   long count = (long) args[3];
-                  return CelRegexExtensions.replace(target, pattern, replaceStr, count);
+                  return CelRegexExtensions.replaceN(target, pattern, replaceStr, count);
                 }))),
     EXTRACT(
         CelFunctionDecl.newFunctionDeclaration(
@@ -153,18 +153,20 @@ final class CelRegexExtensions implements CelCompilerLibrary, CelRuntimeLibrary 
   }
 
   private static String replace(String target, String regex, String replaceStr) {
-    Pattern pattern = compileRegexPattern(regex);
-    Matcher matcher = pattern.matcher(target);
-    return matcher.replaceAll(replaceStr);
+    return replaceN(target, regex, replaceStr, -1);
   }
 
-  private static String replace(String target, String regex, String replaceStr, long replaceCount) {
-    Pattern pattern = compileRegexPattern(regex);
-
+  private static String replaceN(
+      String target, String regex, String replaceStr, long replaceCount) {
     if (replaceCount == 0) {
       return target;
     }
+    // For all negative replaceCount, do a replaceAll
+    if (replaceCount < 0) {
+      replaceCount = -1;
+    }
 
+    Pattern pattern = compileRegexPattern(regex);
     Matcher matcher = pattern.matcher(target);
     StringBuffer sb = new StringBuffer();
     int counter = 0;
@@ -173,11 +175,56 @@ final class CelRegexExtensions implements CelCompilerLibrary, CelRuntimeLibrary 
       if (replaceCount != -1 && counter >= replaceCount) {
         break;
       }
-      matcher.appendReplacement(sb, replaceStr);
+
+      String processedReplacement = replaceStrValidator(matcher, replaceStr);
+      matcher.appendReplacement(sb, Matcher.quoteReplacement(processedReplacement));
       counter++;
     }
     matcher.appendTail(sb);
 
+    return sb.toString();
+  }
+
+  private static String replaceStrValidator(Matcher matcher, String replacement) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < replacement.length(); i++) {
+      char c = replacement.charAt(i);
+
+      if (c != '\\') {
+        sb.append(c);
+        continue;
+      }
+
+      if (i + 1 >= replacement.length()) {
+        throw new IllegalArgumentException("Invalid replacement string: \\ not allowed at end");
+      }
+
+      char nextChar = replacement.charAt(++i);
+
+      if (Character.isDigit(nextChar)) {
+        int groupNum = Character.digit(nextChar, 10);
+        int groupCount = matcher.groupCount();
+
+        if (groupNum > groupCount) {
+          throw new IllegalArgumentException(
+              "Replacement string references group "
+                  + groupNum
+                  + " but regex has only "
+                  + groupCount
+                  + " group(s)");
+        }
+
+        String groupValue = matcher.group(groupNum);
+        if (groupValue != null) {
+          sb.append(groupValue);
+        }
+      } else if (nextChar == '\\') {
+        sb.append('\\');
+      } else {
+        throw new IllegalArgumentException(
+            "Invalid replacement string: \\ must be followed by a digit");
+      }
+    }
     return sb.toString();
   }
 
@@ -215,11 +262,12 @@ final class CelRegexExtensions implements CelCompilerLibrary, CelRuntimeLibrary 
     while (matcher.find()) {
       if (hasOneGroup) {
         String group = matcher.group(1);
-        // Add the captured group's content only if it's not null (e.g. optional group didn't match)
+        // Add the captured group's content only if it's not null
         if (group != null) {
           builder.add(group);
         }
-      } else { // No capturing groups (matcher.groupCount() == 0)
+      } else {
+        // No capturing groups
         builder.add(matcher.group(0));
       }
     }

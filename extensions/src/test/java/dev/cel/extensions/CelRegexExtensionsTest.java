@@ -39,23 +39,31 @@ public final class CelRegexExtensionsTest {
       CelRuntimeFactory.standardCelRuntimeBuilder().addLibraries(CelExtensions.regex()).build();
 
   @Test
-  @TestParameters("{target: 'foo bar', regex: '(fo)o (ba)r', replaceStr: '$2 $1', res: 'ba fo'}")
+  @TestParameters("{target: 'abc', regex: '^', replaceStr: 'start_', res: 'start_abc'}")
+  @TestParameters("{target: 'abc', regex: '$', replaceStr: '_end', res: 'abc_end'}")
+  @TestParameters("{target: 'a-b', regex: '\\\\b', replaceStr: '|', res: '|a|-|b|'}")
+  @TestParameters(
+      "{target: 'foo bar', regex: '(fo)o (ba)r', replaceStr: '\\\\2 \\\\1', res: 'ba fo'}")
+  @TestParameters("{target: 'foo bar', regex: 'foo', replaceStr: '\\\\\\\\', res: '\\ bar'}")
   @TestParameters("{target: 'banana', regex: 'ana', replaceStr: 'x', res: 'bxna'}")
-  @TestParameters("{target: 'abc', regex: 'b(.)', replaceStr: 'x$1', res: 'axc'}")
+  @TestParameters("{target: 'abc', regex: 'b(.)', replaceStr: 'x\\\\1', res: 'axc'}")
   @TestParameters(
       "{target: 'hello world hello', regex: 'hello', replaceStr: 'hi', res: 'hi world hi'}")
+  @TestParameters("{target: 'ac', regex: 'a(b)?c', replaceStr: '[\\\\1]', res: '[]'}")
   @TestParameters("{target: 'apple pie', regex: 'p', replaceStr: 'X', res: 'aXXle Xie'}")
   @TestParameters(
       "{target: 'remove all spaces', regex: '\\\\s', replaceStr: '', res: 'removeallspaces'}")
   @TestParameters("{target: 'digit:99919291992', regex: '\\\\d+', replaceStr: '3', res: 'digit:3'}")
   @TestParameters(
-      "{target: 'foo bar baz', regex: '\\\\w+', replaceStr: '($0)', res: '(foo) (bar) (baz)'}")
+      "{target: 'foo bar baz', regex: '\\\\w+', replaceStr: '(\\\\0)', res: '(foo) (bar) (baz)'}")
   @TestParameters("{target: '', regex: 'a', replaceStr: 'b', res: ''}")
   @TestParameters(
       "{target: 'User: Alice, Age: 30', regex: 'User: (?P<name>\\\\w+), Age: (?P<age>\\\\d+)',"
-          + " replaceStr: '${name} is ${age} years old', res: 'Alice is 30 years old'}")
+          + " replaceStr: '${name} is ${age} years old', res: '${name} is ${age} years old'}")
   @TestParameters(
-      "{target: 'abc', regex: '(?P<letter>b)', replaceStr: '[${letter}]', res: 'a[b]c'}")
+      "{target: 'User: Alice, Age: 30', regex: 'User: (?P<name>\\\\w+), Age: (?P<age>\\\\d+)',"
+          + " replaceStr: '\\\\1 is \\\\2 years old', res: 'Alice is 30 years old'}")
+  @TestParameters("{target: 'hello ☃', regex: '☃', replaceStr: '❄', res: 'hello ❄'}")
   public void replaceAll_success(String target, String regex, String replaceStr, String res)
       throws Exception {
     String expr = String.format("regex.replace('%s', '%s', '%s')", target, regex, replaceStr);
@@ -70,8 +78,8 @@ public final class CelRegexExtensionsTest {
   public void replace_nested_success() throws Exception {
     String expr =
         "regex.replace("
-            + "    regex.replace('%(foo) %(bar) %2','%\\\\((\\\\w+)\\\\)','\\\\${$1}'),"
-            + "    '%(\\\\d+)', '\\\\$$1')";
+            + "    regex.replace('%(foo) %(bar) %2','%\\\\((\\\\w+)\\\\)','${\\\\1}'),"
+            + "    '%(\\\\d+)', '$\\\\1')";
     CelRuntime.Program program = RUNTIME.createProgram(COMPILER.compile(expr).getAst());
 
     Object result = program.eval();
@@ -85,19 +93,18 @@ public final class CelRegexExtensionsTest {
   @TestParameters("{t: 'banana', re: 'a', rep: 'x', i: 2, res: 'bxnxna'}")
   @TestParameters("{t: 'banana', re: 'a', rep: 'x', i: 100, res: 'bxnxnx'}")
   @TestParameters("{t: 'banana', re: 'a', rep: 'x', i: -1, res: 'bxnxnx'}")
-  @TestParameters("{t: 'banana', re: 'a', rep: 'x', i: -100, res: 'banana'}")
+  @TestParameters("{t: 'banana', re: 'a', rep: 'x', i: -100, res: 'bxnxnx'}")
   @TestParameters(
-      "{t: 'cat-dog dog-cat cat-dog dog-cat', re: '(cat)-(dog)', rep: '$2-$1', i: 1,"
+      "{t: 'cat-dog dog-cat cat-dog dog-cat', re: '(cat)-(dog)', rep: '\\\\2-\\\\1', i: 1,"
           + " res: 'dog-cat dog-cat cat-dog dog-cat'}")
   @TestParameters(
-      "{t: 'cat-dog dog-cat cat-dog dog-cat', re: '(cat)-(dog)', rep: '$2-$1', i: 2, res: 'dog-cat"
-          + " dog-cat dog-cat dog-cat'}")
+      "{t: 'cat-dog dog-cat cat-dog dog-cat', re: '(cat)-(dog)', rep: '\\\\2-\\\\1', i: 2, res:"
+          + " 'dog-cat dog-cat dog-cat dog-cat'}")
   @TestParameters("{t: 'a.b.c', re: '\\\\.', rep: '-', i: 1, res: 'a-b.c'}")
   @TestParameters("{t: 'a.b.c', re: '\\\\.', rep: '-', i: -1, res: 'a-b-c'}")
   public void replaceCount_success(String t, String re, String rep, long i, String res)
       throws Exception {
     String expr = String.format("regex.replace('%s', '%s', '%s', %d)", t, re, rep, i);
-    System.out.println("expr: " + expr);
     CelRuntime.Program program = RUNTIME.createProgram(COMPILER.compile(expr).getAst());
 
     Object result = program.eval();
@@ -108,7 +115,7 @@ public final class CelRegexExtensionsTest {
   @Test
   @TestParameters("{target: 'foo bar', regex: '(', replaceStr: '$2 $1'}")
   @TestParameters("{target: 'foo bar', regex: '[a-z', replaceStr: '$2 $1'}")
-  public void replace_invalid_regex(String target, String regex, String replaceStr)
+  public void replace_invalidRegex_throwsException(String target, String regex, String replaceStr)
       throws Exception {
     String expr = String.format("regex.replace('%s', '%s', '%s')", target, regex, replaceStr);
     CelAbstractSyntaxTree ast = COMPILER.compile(expr).getAst();
@@ -121,32 +128,48 @@ public final class CelRegexExtensionsTest {
   }
 
   @Test
-  @TestParameters("{target: 'test', regex: '(.)', replaceStr: '$2'}")
-  public void replace_invalid_captureGroup(String target, String regex, String replaceStr)
-      throws Exception {
-    String expr = String.format("regex.replace('%s', '%s', '%s')", target, regex, replaceStr);
-    CelAbstractSyntaxTree ast = COMPILER.compile(expr).getAst();
-
-    CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> RUNTIME.createProgram(ast).eval());
-
-    assertThat(e).hasCauseThat().isInstanceOf(IndexOutOfBoundsException.class);
-    assertThat(e).hasCauseThat().hasMessageThat().contains("n > number of groups");
-  }
-
-  @Test
-  @TestParameters(
-      "{target: 'id=123', regex: 'id=(?P<value>\\\\d+)', replaceStr: 'value: ${values}'}")
-  public void replace_invalid_replaceStr(String target, String regex, String replaceStr)
-      throws Exception {
-    String expr = String.format("regex.replace('%s', '%s', '%s')", target, regex, replaceStr);
+  public void replace_invalidCaptureGroupReplaceStr_throwsException() throws Exception {
+    String expr = "regex.replace('test', '(.)', '\\\\2')";
     CelAbstractSyntaxTree ast = COMPILER.compile(expr).getAst();
 
     CelEvaluationException e =
         assertThrows(CelEvaluationException.class, () -> RUNTIME.createProgram(ast).eval());
 
     assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
-    assertThat(e).hasCauseThat().hasMessageThat().contains("group 'values' not found");
+    assertThat(e)
+        .hasCauseThat()
+        .hasMessageThat()
+        .contains("Replacement string references group 2 but regex has only 1 group(s)");
+  }
+
+  @Test
+  public void replace_trailingBackslashReplaceStr_throwsException() throws Exception {
+    String expr = "regex.replace('id=123', 'id=(?P<value>\\\\d+)', '\\\\')";
+    CelAbstractSyntaxTree ast = COMPILER.compile(expr).getAst();
+
+    CelEvaluationException e =
+        assertThrows(CelEvaluationException.class, () -> RUNTIME.createProgram(ast).eval());
+
+    assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
+    assertThat(e)
+        .hasCauseThat()
+        .hasMessageThat()
+        .contains("Invalid replacement string: \\ not allowed at end");
+  }
+
+  @Test
+  public void replace_invalidGroupReferenceReplaceStr_throwsException() throws Exception {
+    String expr = "regex.replace('id=123', 'id=(?P<value>\\\\d+)', '\\\\a')";
+    CelAbstractSyntaxTree ast = COMPILER.compile(expr).getAst();
+
+    CelEvaluationException e =
+        assertThrows(CelEvaluationException.class, () -> RUNTIME.createProgram(ast).eval());
+
+    assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
+    assertThat(e)
+        .hasCauseThat()
+        .hasMessageThat()
+        .contains("Invalid replacement string: \\ must be followed by a digit");
   }
 
   @Test
@@ -208,6 +231,9 @@ public final class CelRegexExtensionsTest {
     NO_MATCH("regex.extractAll('id:123, id:456', 'assa')", ImmutableList.of()),
     NO_CAPTURE_GROUP(
         "regex.extractAll('id:123, id:456', 'id:\\\\d+')", ImmutableList.of("id:123", "id:456")),
+    CAPTURE_GROUP(
+        "regex.extractAll('key=\"\", key=\"val\"', 'key=\"([^\"]*)\"')",
+        ImmutableList.of("", "val")),
     SINGLE_NAMED_GROUP(
         "regex.extractAll('testuser@testdomain', '(?P<username>.*)@')",
         ImmutableList.of("testuser")),
