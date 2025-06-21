@@ -15,19 +15,17 @@
 package dev.cel.runtime;
 
 import static com.google.common.truth.Truth.assertThat;
+import static dev.cel.testing.compiled.CompiledExprUtils.readCheckedExpr;
 import static org.junit.Assert.assertThrows;
 
-import dev.cel.expr.CheckedExpr;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Resources;
 import com.google.common.primitives.UnsignedLong;
 import com.google.common.truth.Correspondence;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.DoubleValue;
-import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
@@ -39,7 +37,6 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
@@ -53,7 +50,6 @@ import dev.cel.runtime.CelLiteRuntime.Program;
 import dev.cel.runtime.standard.EqualsOperator;
 import dev.cel.runtime.standard.IntFunction;
 import dev.cel.runtime.standard.IntFunction.IntOverload;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
@@ -718,15 +714,6 @@ public class CelLiteRuntimeAndroidTest {
                 false,
                 ProtoTimeUtils.fromSecondsToTimestamp(18)))
         .inOrder();
-  }
-
-  private static CelAbstractSyntaxTree readCheckedExpr(String compiledCelTarget) throws Exception {
-    URL url =
-        Resources.getResource(CelLiteRuntimeAndroidTest.class, compiledCelTarget + ".binarypb");
-    byte[] checkedExprBytes = Resources.toByteArray(url);
-    CheckedExpr checkedExpr =
-        CheckedExpr.parseFrom(checkedExprBytes, ExtensionRegistryLite.getEmptyRegistry());
-    return CelProtoAbstractSyntaxTree.fromCheckedExpr(checkedExpr).getAst();
   }
 
   private enum CelOptionsTestCase {
