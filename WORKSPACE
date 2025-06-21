@@ -206,15 +206,16 @@ register_toolchains(
 
 ### googleapis setup
 
-# as of 12/08/2022
+# as of 06/06/2025
 http_archive(
     name = "com_google_googleapis",
-    sha256 = "8503282213779a3c230251218c924f385f457a053b4f82ff95d068f71815e558",
-    strip_prefix = "googleapis-d73a41615b101c34c58b3534c2cc7ee1d89cccb0",
+    sha256 = "228c134e606a10d9103ff2b22622989bbf13cc2a54ff626ff9ef6c1c7713e3b8",
+    strip_prefix = "googleapis-1804a603281707a1f0e6fff27851cae115ac3c8b",
     urls = [
-        "https://github.com/googleapis/googleapis/archive/d73a41615b101c34c58b3534c2cc7ee1d89cccb0.tar.gz",
+        "https://github.com/googleapis/googleapis/archive/1804a603281707a1f0e6fff27851cae115ac3c8b.tar.gz",
     ],
 )
+
 
 load("@com_google_googleapis//:repository_rules.bzl", "switched_rules_by_language")
 
@@ -261,16 +262,6 @@ http_archive(
         "https://github.com/google/cel-spec/archive/" +
         "v" + CEL_SPEC_VERSION +
         ".tar.gz",
-    ],
-)
-
-# required by cel_spec
-http_archive(
-    name = "io_bazel_rules_go",
-    sha256 = "19ef30b21eae581177e0028f6f4b1f54c66467017be33d211ab6fc81da01ea4d",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.38.0/rules_go-v0.38.0.zip",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.38.0/rules_go-v0.38.0.zip",
     ],
 )
 

@@ -17,6 +17,7 @@ package dev.cel.common.values;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.MessageLite;
+import dev.cel.common.annotations.Beta;
 import dev.cel.common.internal.CelLiteDescriptorPool;
 import dev.cel.common.internal.DefaultLiteDescriptorPool;
 import dev.cel.protobuf.CelLiteDescriptor;
@@ -30,6 +31,7 @@ import java.util.Set;
  * fully qualified name and its fields to populate.
  */
 @Immutable
+@Beta
 public class ProtoMessageLiteValueProvider extends BaseProtoMessageValueProvider {
   private final CelLiteDescriptorPool descriptorPool;
   private final ProtoLiteCelValueConverter protoLiteCelValueConverter;
