@@ -15,6 +15,7 @@
 package dev.cel.runtime;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.protobuf.LegacyUnredactedTextFormat.legacyUnredactedToStringArray;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
@@ -461,7 +462,8 @@ final class DefaultInterpreter implements Interpreter {
       } catch (RuntimeException e) {
         throw CelEvaluationExceptionBuilder.newBuilder(
                 "Function '%s' failed with arg(s) '%s'",
-                overload.getOverloadId(), Joiner.on(", ").join(argArray))
+                overload.getOverloadId(),
+                Joiner.on(", ").join(legacyUnredactedToStringArray(argArray)))
             .setMetadata(metadata, expr.id())
             .setCause(e)
             .build();
