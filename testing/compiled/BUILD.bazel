@@ -1,0 +1,15 @@
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+    default_visibility = ["//:internal"],
+)
+
+alias(
+    name = "compiled_expr_utils",
+    actual = "//testing/src/main/java/dev/cel/testing/compiled:compiled_expr_utils",
+)
+
+alias(
+    name = "compiled_expr_utils_android",
+    actual = "//testing/src/main/java/dev/cel/testing/compiled:compiled_expr_utils_android",
+)
