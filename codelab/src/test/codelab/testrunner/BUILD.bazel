@@ -1,0 +1,199 @@
+load("@rules_java//java:java_library.bzl", "java_library")
+load("//third_party/cel/expr:cel_test.bzl", "cel_test", "make_test_targets", "test_runtime")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = 1,
+)
+
+java_library(
+    name = "basic_user_test",
+    srcs = ["BasicUserTest.java"],
+    deps = [
+        "//bundle:cel",
+        "//runtime:function_binding",
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_library(
+    name = "error_output_user_test",
+    srcs = ["ErrorOutputUserTest.java"],
+    deps = [
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_library(
+    name = "context_proto_user_test",
+    srcs = ["ContextProtoUserTest.java"],
+    deps = [
+        "//bundle:cel",
+        "//checker:proto_type_mask",
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_library(
+    name = "late_function_binding_user_test",
+    srcs = ["LateFunctionBindingUserTest.java"],
+    deps = [
+        "//bundle:cel",
+        "//runtime",
+        "//runtime:function_binding",
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_library(
+    name = "custom_variable_binding_user_test",
+    srcs = ["CustomVariableBindingUserTest.java"],
+    deps = [
+        "//bundle:cel",
+        "//runtime:function_binding",
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@maven//:com_google_guava_guava",
+        "@maven//:junit_junit",
+    ],
+)
+
+java_library(
+    name = "custom_test_suite",
+    srcs = ["CustomTestSuite.java"],
+    deps = [
+        "//testing/testrunner:annotations",
+        "//testing/testrunner:cel_test_suite",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_test(
+    name = "example_0_test",
+    cel_expr = "basictest/expression.cel",
+    config = "basictest/config.yaml",
+    filegroup = "//codelab:testrunner_codelab_resources",  # Users can use exports_files with appropriate visibility in which case filegroup is not required.
+    test_data_path = "//codelab/src/test/codelab/testrunner/resources",
+    test_suite = "basictest/testsuite.yaml",
+    test_targets = [make_test_targets(
+        runtime = test_runtime.JAVA,
+        test_srcs = [":basic_user_test"],
+    )],
+)
+
+cel_test(
+    name = "example_0_test_with_raw_expression",
+    cel_expr = "foo(a) || bar(a) == true",
+    config = "basictest/config.yaml",
+    filegroup = "//codelab:testrunner_codelab_resources",
+    is_raw_expr = True,
+    test_data_path = "//codelab/src/test/codelab/testrunner/resources",
+    test_suite = "basictest/testsuite.yaml",
+    test_targets = [make_test_targets(
+        runtime = test_runtime.JAVA,
+        test_srcs = [":basic_user_test"],
+    )],
+)
+
+cel_test(
+    name = "example_0_test_with_policy",
+    cel_expr = "basictest/policy.yaml",
+    config = "basictest/config.yaml",
+    filegroup = "//codelab:testrunner_codelab_resources",
+    test_data_path = "//codelab/src/test/codelab/testrunner/resources",
+    test_suite = "basictest/testsuite.yaml",
+    test_targets = [make_test_targets(
+        runtime = test_runtime.JAVA,
+        test_srcs = [":basic_user_test"],
+    )],
+)
+
+cel_test(
+    name = "example_1_test",
+    cel_expr = "foo(a) || bar(a) == true",
+    config = "basictest/config.yaml",
+    filegroup = "//codelab:testrunner_codelab_resources",
+    is_raw_expr = True,
+    test_data_path = "//codelab/src/test/codelab/testrunner/resources",
+    test_suite = "unknownoutputtest/testsuite.yaml",
+    test_targets = [make_test_targets(
+        runtime = test_runtime.JAVA,
+        test_srcs = [":basic_user_test"],
+    )],
+)
+
+cel_test(
+    name = "example_2_test",
+    cel_expr = "basictest/policy.yaml",
+    config = "basictest/config.yaml",
+    filegroup = "//codelab:testrunner_codelab_resources",
+    test_data_path = "//codelab/src/test/codelab/testrunner/resources",
+    test_suite = "erroroutputtest/testsuite.yaml",
+    test_targets = [make_test_targets(
+        runtime = test_runtime.JAVA,
+        test_srcs = [":error_output_user_test"],
+    )],
+)
+
+cel_test(
+    name = "example_4_test",
+    cel_expr = "basictest/expression.cel",
+    config = "basictest/config.yaml",
+    filegroup = "//codelab:testrunner_codelab_resources",
+    test_data_path = "//codelab/src/test/codelab/testrunner/resources",
+    test_targets = [make_test_targets(
+        runtime = test_runtime.JAVA,
+        test_srcs = [":basic_user_test"],
+        deps = [":custom_test_suite"],
+    )],
+)
+
+cel_test(
+    name = "example_5_test",
+    cel_expr = "foo(a) || bar(a) == true",
+    config = "basictest/config.yaml",
+    filegroup = "//codelab:testrunner_codelab_resources",
+    is_raw_expr = True,
+    test_data_path = "//codelab/src/test/codelab/testrunner/resources",
+    test_suite = "customvariablebindingtest/testsuite.yaml",
+    test_targets = [make_test_targets(
+        runtime = test_runtime.JAVA,
+        test_srcs = [":custom_variable_binding_user_test"],
+    )],
+)
+
+cel_test(
+    name = "example_6_test",
+    cel_expr = "contextprototest/policy.yaml",
+    config = "contextprototest/config.yaml",
+    filegroup = "//codelab:testrunner_codelab_resources",
+    test_data_path = "//codelab/src/test/codelab/testrunner/resources",
+    test_suite = "contextprototest/testsuite.yaml",
+    test_targets = [make_test_targets(
+        runtime = test_runtime.JAVA,
+        test_srcs = [":context_proto_user_test"],
+    )],
+)
+
+cel_test(
+    name = "example_7_test",
+    cel_expr = "foo(a) || bar(a) == true",
+    config = "basictest/config.yaml",
+    filegroup = "//codelab:testrunner_codelab_resources",
+    is_raw_expr = True,
+    test_data_path = "//codelab/src/test/codelab/testrunner/resources",
+    test_suite = "basictest/testsuite.yaml",
+    test_targets = [make_test_targets(
+        runtime = test_runtime.JAVA,
+        test_srcs = [":late_function_binding_user_test"],
+    )],
+)
