@@ -13,6 +13,11 @@ Source: string(-1)
 bindings: {}
 result:   -1
 
+Source: string(true)
+=====>
+bindings: {}
+result:   true
+
 Source: string(b'abc\303\203')
 =====>
 bindings: {}

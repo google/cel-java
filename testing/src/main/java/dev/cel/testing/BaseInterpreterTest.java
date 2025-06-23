@@ -1657,6 +1657,9 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "string(-1)"; // int converts to '-1'
     runTest();
 
+    source = "string(true)"; // bool converts to 'true'
+    runTest();
+
     // Byte literals in Google SQL only take the leading byte of an escape character.
     // This means that to translate a byte literal to a UTF-8 encoded string, all bytes must be
     // encoded in the literal as they would be laid out in memory for UTF-8, hence the extra octal
