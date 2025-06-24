@@ -1,176 +1,10 @@
 load("@rules_java//java:defs.bzl", "java_library")
 load("//:cel_android_rules.bzl", "cel_android_local_test")
 load("//:testing.bzl", "junit4_test_suites")
-load("//compiler/tools:compile_cel.bzl", "compile_cel")
 
 package(
     default_applicable_licenses = ["//:license"],
     default_testonly = True,
-)
-
-compile_cel(
-    name = "compiled_hello_world",
-    expression = "'hello world'",
-)
-
-compile_cel(
-    name = "compiled_one_plus_two",
-    expression = "1 + 2",
-)
-
-compile_cel(
-    name = "compiled_list_literal",
-    expression = "['a', 1, 2u, 3.5]",
-)
-
-compile_cel(
-    name = "compiled_comprehension_exists",
-    expression = "[1,2,3].exists(x, x == 3)",
-)
-
-compile_cel(
-    name = "compiled_primitive_variables",
-    environment = "//testing/environment:primitive_variables",
-    expression = "bool_var && bytes_var == b'abc' && double_var == 1.0 && int_var == 42 && uint_var == 42u && str_var == 'foo'",
-)
-
-compile_cel(
-    name = "compiled_custom_functions",
-    environment = "//testing/environment:custom_functions",
-    expression = "''.isEmpty() && [].isEmpty()",
-)
-
-compile_cel(
-    name = "compiled_proto2_select_primitives_all_ored",
-    environment = "//testing/environment:proto2_message_variables",
-    expression = "proto2.single_int32 == 1 || proto2.single_int64 == 2 || proto2.single_uint32 == 3u || proto2.single_uint64 == 4u ||" +
-                 "proto2.single_sint32 == 5 || proto2.single_sint64 == 6 || proto2.single_fixed32 == 7u || proto2.single_fixed64 == 8u ||" +
-                 "proto2.single_sfixed32 == 9 || proto2.single_sfixed64 == 10 || proto2.single_float == 1.5 || proto2.single_double == 2.5 ||" +
-                 "proto2.single_bool || proto2.single_string == 'hello world' || proto2.single_bytes == b\'abc\'",
-    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto"],
-)
-
-compile_cel(
-    name = "compiled_proto2_select_primitives",
-    environment = "//testing/environment:proto2_message_variables",
-    expression = "proto2.single_int32 == 1 && proto2.single_int64 == 2 && proto2.single_uint32 == 3u && proto2.single_uint64 == 4u &&" +
-                 "proto2.single_sint32 == 5 && proto2.single_sint64 == 6 && proto2.single_fixed32 == 7u && proto2.single_fixed64 == 8u &&" +
-                 "proto2.single_sfixed32 == 9 && proto2.single_sfixed64 == 10 && proto2.single_float == 1.5 && proto2.single_double == 2.5 &&" +
-                 "proto2.single_bool && proto2.single_string == 'hello world' && proto2.single_bytes == b\'abc\'",
-    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto"],
-)
-
-compile_cel(
-    name = "compiled_proto2_select_wrappers",
-    environment = "//testing/environment:proto2_message_variables",
-    expression = "proto2.single_int32_wrapper == 1 && proto2.single_int64_wrapper == 2 && proto2.single_float_wrapper == 1.5 &&" +
-                 "proto2.single_double_wrapper == 2.5 && proto2.single_uint32_wrapper == 3u && proto2.single_uint64_wrapper == 4u &&" +
-                 "proto2.single_string_wrapper == 'hello world' && proto2.single_bool_wrapper && proto2.single_bytes_wrapper == b\'abc\'",
-    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto"],
-)
-
-compile_cel(
-    name = "compiled_proto3_select_primitives_all_ored",
-    environment = "//testing/environment:proto3_message_variables",
-    expression = "proto3.single_int32 == 1 || proto3.single_int64 == 2 || proto3.single_uint32 == 3u || proto3.single_uint64 == 4u ||" +
-                 "proto3.single_sint32 == 5 || proto3.single_sint64 == 6 || proto3.single_fixed32 == 7u || proto3.single_fixed64 == 8u ||" +
-                 "proto3.single_sfixed32 == 9 || proto3.single_sfixed64 == 10 || proto3.single_float == 1.5 || proto3.single_double == 2.5 ||" +
-                 "proto3.single_bool || proto3.single_string == 'hello world' || proto3.single_bytes == b\'abc\'",
-    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto"],
-)
-
-compile_cel(
-    name = "compiled_proto3_select_primitives",
-    environment = "//testing/environment:proto3_message_variables",
-    expression = "proto3.single_int32 == 1 && proto3.single_int64 == 2 && proto3.single_uint32 == 3u && proto3.single_uint64 == 4u &&" +
-                 "proto3.single_sint32 == 5 && proto3.single_sint64 == 6 && proto3.single_fixed32 == 7u && proto3.single_fixed64 == 8u &&" +
-                 "proto3.single_sfixed32 == 9 && proto3.single_sfixed64 == 10 && proto3.single_float == 1.5 && proto3.single_double == 2.5 &&" +
-                 "proto3.single_bool && proto3.single_string == 'hello world' && proto3.single_bytes == b\'abc\'",
-    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto"],
-)
-
-compile_cel(
-    name = "compiled_proto3_select_wrappers",
-    environment = "//testing/environment:proto3_message_variables",
-    expression = "proto3.single_int32_wrapper == 1 && proto3.single_int64_wrapper == 2 && proto3.single_float_wrapper == 1.5 &&" +
-                 "proto3.single_double_wrapper == 2.5 && proto3.single_uint32_wrapper == 3u && proto3.single_uint64_wrapper == 4u &&" +
-                 "proto3.single_string_wrapper == 'hello world' && proto3.single_bool_wrapper && proto3.single_bytes_wrapper == b\'abc\'",
-    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto"],
-)
-
-compile_cel(
-    name = "compiled_proto2_deep_traversal",
-    environment = "//testing/environment:proto2_message_variables",
-    expression = "proto2.oneof_type.payload.repeated_string",
-    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto"],
-)
-
-compile_cel(
-    name = "compiled_proto3_deep_traversal",
-    environment = "//testing/environment:proto3_message_variables",
-    expression = "proto3.oneof_type.payload.repeated_string",
-    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto"],
-)
-
-compile_cel(
-    name = "compiled_proto2_select_repeated_fields",
-    environment = "//testing/environment:proto2_message_variables",
-    expression = "[proto2.repeated_int32, proto2.repeated_int64, proto2.repeated_uint32, proto2.repeated_uint64, proto2.repeated_sint32, proto2.repeated_sint64, " +
-                 "proto2.repeated_fixed32, proto2.repeated_fixed64, proto2.repeated_sfixed32, proto2.repeated_sfixed64, proto2.repeated_float, proto2.repeated_double, " +
-                 "proto2.repeated_bool, proto2.repeated_string, proto2.repeated_bytes]",
-    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto"],
-)
-
-compile_cel(
-    name = "compiled_proto3_select_repeated_fields",
-    environment = "//testing/environment:proto3_message_variables",
-    expression = "[proto3.repeated_int32, proto3.repeated_int64, proto3.repeated_uint32, proto3.repeated_uint64, proto3.repeated_sint32, proto3.repeated_sint64, " +
-                 "proto3.repeated_fixed32, proto3.repeated_fixed64, proto3.repeated_sfixed32, proto3.repeated_sfixed64, proto3.repeated_float, proto3.repeated_double, " +
-                 "proto3.repeated_bool, proto3.repeated_string, proto3.repeated_bytes]",
-    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto"],
-)
-
-compile_cel(
-    name = "compiled_proto2_select_map_fields",
-    environment = "//testing/environment:proto2_message_variables",
-    expression = "[proto2.map_bool_bool, proto2.map_bool_string, proto2.map_bool_bytes, proto2.map_bool_int32, proto2.map_bool_int64, " +
-                 "proto2.map_bool_uint32, proto2.map_bool_uint64, proto2.map_bool_float, proto2.map_bool_double, proto2.map_bool_enum, " +
-                 "proto2.map_bool_duration, proto2.map_bool_timestamp]",
-    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto"],
-)
-
-compile_cel(
-    name = "compiled_proto3_select_map_fields",
-    environment = "//testing/environment:proto3_message_variables",
-    expression = "[proto3.map_bool_bool, proto3.map_bool_string, proto3.map_bool_bytes, proto3.map_bool_int32, proto3.map_bool_int64, " +
-                 "proto3.map_bool_uint32, proto3.map_bool_uint64, proto3.map_bool_float, proto3.map_bool_double, proto3.map_bool_enum, " +
-                 "proto3.map_bool_duration, proto3.map_bool_timestamp]",
-    proto_srcs = ["@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto"],
-)
-
-filegroup(
-    name = "compiled_exprs",
-    # keep sorted
-    srcs = [
-        ":compiled_comprehension_exists",
-        ":compiled_custom_functions",
-        ":compiled_hello_world",
-        ":compiled_list_literal",
-        ":compiled_one_plus_two",
-        ":compiled_primitive_variables",
-        ":compiled_proto2_deep_traversal",
-        ":compiled_proto2_select_map_fields",
-        ":compiled_proto2_select_primitives",
-        ":compiled_proto2_select_primitives_all_ored",
-        ":compiled_proto2_select_repeated_fields",
-        ":compiled_proto2_select_wrappers",
-        ":compiled_proto3_deep_traversal",
-        ":compiled_proto3_select_map_fields",
-        ":compiled_proto3_select_primitives",
-        ":compiled_proto3_select_primitives_all_ored",
-        ":compiled_proto3_select_repeated_fields",
-        ":compiled_proto3_select_wrappers",
-    ],
 )
 
 ANDROID_TESTS = [
@@ -189,7 +23,6 @@ java_library(
             "InterpreterTest.java",
         ] + ANDROID_TESTS,
     ),
-    resources = [":compiled_exprs"],
     deps = [
         "//:auto_value",
         "//:java_truth",
@@ -296,13 +129,11 @@ java_library(
 cel_android_local_test(
     name = "android_tests",
     srcs = ANDROID_TESTS,
-    resources = [":compiled_exprs"],
     test_class = "dev.cel.runtime.CelLiteRuntimeAndroidTest",
     deps = [
         "//:java_truth",
         "//common:cel_ast_android",
         "//common:options",
-        "//common:proto_ast_android",
         "//common/internal:proto_time_utils_android",
         "//common/values:cel_value_provider_android",
         "//common/values:proto_message_lite_value_provider_android",
@@ -320,6 +151,7 @@ cel_android_local_test(
         "//runtime/standard:int_android",
         "//testing/protos:test_all_types_cel_java_proto2_lite",
         "//testing/protos:test_all_types_cel_java_proto3_lite",
+        "//testing/src/main/java/dev/cel/testing/compiled:compiled_expr_utils_android",
         "@cel_spec//proto/cel/expr:checked_java_proto_lite",
         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto_lite",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto_lite",
