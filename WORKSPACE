@@ -43,6 +43,22 @@ load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
 
+### rules_shell setup (sh_test)
+
+http_archive(
+    name = "rules_shell",
+    sha256 = "b15cc2e698a3c553d773ff4af35eb4b3ce2983c319163707dddd9e70faaa062d",
+    strip_prefix = "rules_shell-0.5.0",
+    url = "https://github.com/bazelbuild/rules_shell/releases/download/v0.5.0/rules_shell-v0.5.0.tar.gz",
+)
+
+load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
+
+rules_shell_dependencies()
+rules_shell_toolchains()
+
+### end of rules_shell setup
+
 ### Protobuf Setup
 
 http_archive(
@@ -127,6 +143,7 @@ load("//:maven_utils.bzl", "maven_artifact_compile_only", "maven_artifact_test_o
 ### end of rules_jvm_external setup
 
 ANTLR4_VERSION = "4.13.2"
+GUAVA_VERSION = "33.4.8"
 
 maven_install(
     name = "maven",
@@ -134,18 +151,17 @@ maven_install(
     artifacts = [
         "com.google.auto.value:auto-value:1.11.0",
         "com.google.auto.value:auto-value-annotations:1.11.0",
-        "com.google.guava:guava:33.4.0-jre",
-        "com.google.guava:guava-testlib:33.4.0-jre",
+        "com.google.guava:guava:" + GUAVA_VERSION + "-jre",
+        "com.google.guava:guava-testlib:" + GUAVA_VERSION + "-jre",
         "com.google.protobuf:protobuf-java:4.31.0",
         "com.google.protobuf:protobuf-java-util:4.31.0",
         "com.google.re2j:re2j:1.8",
-        "info.picocli:picocli:4.7.6",
+        "info.picocli:picocli:4.7.7",
         "org.antlr:antlr4-runtime:" + ANTLR4_VERSION,
-        "info.picocli:picocli:4.7.6",
-        "org.freemarker:freemarker:2.3.33",
+        "org.freemarker:freemarker:2.3.34",
         "org.jspecify:jspecify:1.0.0",
         "org.threeten:threeten-extra:1.8.0",
-        "org.yaml:snakeyaml:2.3",
+        "org.yaml:snakeyaml:2.4",
         maven_artifact_test_only("org.mockito", "mockito-core", "4.11.0"),
         maven_artifact_test_only("io.github.classgraph", "classgraph", "4.8.179"),
         maven_artifact_test_only("com.google.testparameterinjector", "test-parameter-injector", "1.18"),
@@ -154,7 +170,7 @@ maven_install(
         maven_artifact_test_only("com.google.truth.extensions", "truth-proto-extension", "1.4.4"),
         maven_artifact_test_only("com.google.truth.extensions", "truth-liteproto-extension", "1.4.4"),
         maven_artifact_compile_only("com.google.code.findbugs", "annotations", "3.0.1"),
-        maven_artifact_compile_only("com.google.errorprone", "error_prone_annotations", "2.36.0"),
+        maven_artifact_compile_only("com.google.errorprone", "error_prone_annotations", "2.38.0"),
     ],
     repositories = [
         "https://maven.google.com",
@@ -166,7 +182,7 @@ maven_install(
     name = "maven_android",
     # keep sorted
     artifacts = [
-        "com.google.guava:guava:33.4.0-android",
+        "com.google.guava:guava:" + GUAVA_VERSION + "-android",
         "com.google.protobuf:protobuf-javalite:4.31.0",
     ],
     repositories = [
@@ -209,10 +225,10 @@ register_toolchains(
 # as of 12/08/2022
 http_archive(
     name = "com_google_googleapis",
-    sha256 = "8503282213779a3c230251218c924f385f457a053b4f82ff95d068f71815e558",
-    strip_prefix = "googleapis-d73a41615b101c34c58b3534c2cc7ee1d89cccb0",
+    sha256 = "cd5e8b816612cb6659fca62137ad0206747c4605dc055efcb361e7d3b4e9cedd",
+    strip_prefix = "googleapis-d2835e84647d7477511f7ae48e36d4cfe7b04a10",
     urls = [
-        "https://github.com/googleapis/googleapis/archive/d73a41615b101c34c58b3534c2cc7ee1d89cccb0.tar.gz",
+        "https://github.com/googleapis/googleapis/archive/d2835e84647d7477511f7ae48e36d4cfe7b04a10.tar.gz",
     ],
 )
 
@@ -261,16 +277,6 @@ http_archive(
         "https://github.com/google/cel-spec/archive/" +
         "v" + CEL_SPEC_VERSION +
         ".tar.gz",
-    ],
-)
-
-# required by cel_spec
-http_archive(
-    name = "io_bazel_rules_go",
-    sha256 = "19ef30b21eae581177e0028f6f4b1f54c66467017be33d211ab6fc81da01ea4d",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.38.0/rules_go-v0.38.0.zip",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.38.0/rules_go-v0.38.0.zip",
     ],
 )
 
