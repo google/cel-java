@@ -14,8 +14,6 @@
 
 package dev.cel.runtime;
 
-import com.google.auto.value.AutoValue;
-import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -23,7 +21,6 @@ import com.google.protobuf.Message;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * The CelRuntime creates executable {@code Program} instances from {@code CelAbstractSyntaxTree}
@@ -39,112 +36,69 @@ public interface CelRuntime {
   CelRuntimeBuilder toRuntimeBuilder();
 
   /** Creates an evaluable {@code Program} instance which is thread-safe and immutable. */
-  @AutoValue
   @Immutable
-  abstract class Program implements CelLiteRuntime.Program {
-
-    @Override
-    public Object eval() throws CelEvaluationException {
-      return evalInternal(Activation.EMPTY);
-    }
-
-    @Override
-    public Object eval(Map<String, ?> mapValue) throws CelEvaluationException {
-      return evalInternal(Activation.copyOf(mapValue));
-    }
+  interface Program extends CelLiteRuntime.Program {
 
     /** Evaluate the expression using {@code message} fields as the source of input variables. */
-    public Object eval(Message message) throws CelEvaluationException {
-      return evalInternal(ProtoMessageActivationFactory.fromProto(message, getOptions()));
-    }
+    Object eval(Message message) throws CelEvaluationException;
 
     /** Evaluate a compiled program with a custom variable {@code resolver}. */
-    public Object eval(CelVariableResolver resolver) throws CelEvaluationException {
-      return evalInternal((name) -> resolver.find(name).orElse(null));
-    }
+    Object eval(CelVariableResolver resolver) throws CelEvaluationException;
 
     /**
      * Evaluate a compiled program with a custom variable {@code resolver} and late-bound functions
      * {@code lateBoundFunctionResolver}.
      */
-    public Object eval(CelVariableResolver resolver, CelFunctionResolver lateBoundFunctionResolver)
-        throws CelEvaluationException {
-      return evalInternal(
-          (name) -> resolver.find(name).orElse(null),
-          lateBoundFunctionResolver,
-          CelEvaluationListener.noOpListener());
-    }
-
-    @Override
-    public Object eval(Map<String, ?> mapValue, CelFunctionResolver lateBoundFunctionResolver)
-        throws CelEvaluationException {
-      return evalInternal(
-          Activation.copyOf(mapValue),
-          lateBoundFunctionResolver,
-          CelEvaluationListener.noOpListener());
-    }
+    Object eval(CelVariableResolver resolver, CelFunctionResolver lateBoundFunctionResolver)
+        throws CelEvaluationException;
 
     /**
      * Trace evaluates a compiled program without any variables and invokes the listener as
      * evaluation progresses through the AST.
      */
-    public Object trace(CelEvaluationListener listener) throws CelEvaluationException {
-      return evalInternal(Activation.EMPTY, listener);
-    }
+    Object trace(CelEvaluationListener listener) throws CelEvaluationException;
 
     /**
      * Trace evaluates a compiled program using a {@code mapValue} as the source of input variables.
      * The listener is invoked as evaluation progresses through the AST.
      */
-    public Object trace(Map<String, ?> mapValue, CelEvaluationListener listener)
-        throws CelEvaluationException {
-      return evalInternal(Activation.copyOf(mapValue), listener);
-    }
+    Object trace(Map<String, ?> mapValue, CelEvaluationListener listener)
+        throws CelEvaluationException;
 
     /**
      * Trace evaluates a compiled program using {@code message} fields as the source of input
      * variables. The listener is invoked as evaluation progresses through the AST.
      */
-    public Object trace(Message message, CelEvaluationListener listener)
-        throws CelEvaluationException {
-      return evalInternal(ProtoMessageActivationFactory.fromProto(message, getOptions()), listener);
-    }
+    Object trace(Message message, CelEvaluationListener listener) throws CelEvaluationException;
 
     /**
      * Trace evaluates a compiled program using a custom variable {@code resolver}. The listener is
      * invoked as evaluation progresses through the AST.
      */
-    public Object trace(CelVariableResolver resolver, CelEvaluationListener listener)
-        throws CelEvaluationException {
-      return evalInternal((name) -> resolver.find(name).orElse(null), listener);
-    }
+    Object trace(CelVariableResolver resolver, CelEvaluationListener listener)
+        throws CelEvaluationException;
 
     /**
      * Trace evaluates a compiled program using a custom variable {@code resolver} and late-bound
      * functions {@code lateBoundFunctionResolver}. The listener is invoked as evaluation progresses
      * through the AST.
      */
-    public Object trace(
+    Object trace(
         CelVariableResolver resolver,
         CelFunctionResolver lateBoundFunctionResolver,
         CelEvaluationListener listener)
-        throws CelEvaluationException {
-      return evalInternal(
-          (name) -> resolver.find(name).orElse(null), lateBoundFunctionResolver, listener);
-    }
+        throws CelEvaluationException;
 
     /**
      * Trace evaluates a compiled program using a {@code mapValue} as the source of input variables
      * and late-bound functions {@code lateBoundFunctionResolver}. The listener is invoked as
      * evaluation progresses through the AST.
      */
-    public Object trace(
+    Object trace(
         Map<String, ?> mapValue,
         CelFunctionResolver lateBoundFunctionResolver,
         CelEvaluationListener listener)
-        throws CelEvaluationException {
-      return evalInternal(Activation.copyOf(mapValue), lateBoundFunctionResolver, listener);
-    }
+        throws CelEvaluationException;
 
     /**
      * Advance evaluation based on the current unknown context.
@@ -155,70 +109,6 @@ public interface CelRuntime {
      * <p>If no unknowns are declared in the context or {@link CelOptions#enableUnknownTracking()
      * UnknownTracking} is disabled, this is equivalent to eval.
      */
-    public Object advanceEvaluation(UnknownContext context) throws CelEvaluationException {
-      return evalInternal(context, Optional.empty(), CelEvaluationListener.noOpListener());
-    }
-
-    private Object evalInternal(GlobalResolver resolver) throws CelEvaluationException {
-      return evalInternal(
-          UnknownContext.create(resolver), Optional.empty(), CelEvaluationListener.noOpListener());
-    }
-
-    private Object evalInternal(GlobalResolver resolver, CelEvaluationListener listener)
-        throws CelEvaluationException {
-      return evalInternal(UnknownContext.create(resolver), Optional.empty(), listener);
-    }
-
-    private Object evalInternal(
-        GlobalResolver resolver,
-        CelFunctionResolver lateBoundFunctionResolver,
-        CelEvaluationListener listener)
-        throws CelEvaluationException {
-      return evalInternal(
-          UnknownContext.create(resolver), Optional.of(lateBoundFunctionResolver), listener);
-    }
-
-    /**
-     * Evaluate an expr node with an UnknownContext (an activation annotated with which attributes
-     * are unknown).
-     */
-    private Object evalInternal(
-        UnknownContext context,
-        Optional<CelFunctionResolver> lateBoundFunctionResolver,
-        CelEvaluationListener listener)
-        throws CelEvaluationException {
-      Interpretable impl = getInterpretable();
-      if (getOptions().enableUnknownTracking()) {
-        Preconditions.checkState(
-            impl instanceof UnknownTrackingInterpretable,
-            "Environment misconfigured. Requested unknown tracking without a compatible"
-                + " implementation.");
-
-        UnknownTrackingInterpretable interpreter = (UnknownTrackingInterpretable) impl;
-        return interpreter.evalTrackingUnknowns(
-            RuntimeUnknownResolver.builder()
-                .setResolver(context.variableResolver())
-                .setAttributeResolver(context.createAttributeResolver())
-                .build(),
-            lateBoundFunctionResolver,
-            listener);
-      } else {
-        if (lateBoundFunctionResolver.isPresent()) {
-          return impl.eval(context.variableResolver(), lateBoundFunctionResolver.get(), listener);
-        }
-        return impl.eval(context.variableResolver(), listener);
-      }
-    }
-
-    /** Get the underlying {@link Interpretable} for the {@code Program}. */
-    abstract Interpretable getInterpretable();
-
-    /** Get the {@code CelOptions} configured for this program. */
-    abstract CelOptions getOptions();
-
-    /** Instantiate a new {@code Program} from the input {@code interpretable}. */
-    static Program from(Interpretable interpretable, CelOptions options) {
-      return new AutoValue_CelRuntime_Program(interpretable, options);
-    }
+    Object advanceEvaluation(UnknownContext context) throws CelEvaluationException;
   }
 }
