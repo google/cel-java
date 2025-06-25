@@ -2,6 +2,7 @@ common --enable_bzlmod
 common --enable_workspace
 build --java_runtime_version=remotejdk_11
 build --java_language_version=11
+build --host_cxxopt='-std=c++17'
 
 # Hide Java 8 deprecation warnings.
 common --javacopt=-Xlint:-options
