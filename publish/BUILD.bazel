@@ -84,9 +84,13 @@ EXTENSION_TARGETS = [
     "//extensions/src/main/java/dev/cel/extensions:optional_library",
 ]
 
-ALL_TARGETS = [
+BUNDLE_TARGETS = [
     "//bundle/src/main/java/dev/cel/bundle:cel",
-] + RUNTIME_TARGETS + COMPILER_TARGETS + EXTENSION_TARGETS + V1ALPHA1_AST_TARGETS + CANONICAL_AST_TARGETS + OPTIMIZER_TARGETS + VALIDATOR_TARGETS + POLICY_COMPILER_TARGETS
+    "//bundle/src/main/java/dev/cel/bundle:environment",
+    "//bundle/src/main/java/dev/cel/bundle:environment_yaml_parser",
+]
+
+ALL_TARGETS = BUNDLE_TARGETS + RUNTIME_TARGETS + COMPILER_TARGETS + EXTENSION_TARGETS + V1ALPHA1_AST_TARGETS + CANONICAL_AST_TARGETS + OPTIMIZER_TARGETS + VALIDATOR_TARGETS + POLICY_COMPILER_TARGETS
 
 # Excluded from the JAR as their source of truth is elsewhere
 EXCLUDED_TARGETS = [
