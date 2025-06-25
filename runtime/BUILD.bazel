@@ -65,6 +65,12 @@ java_library(
     exports = ["//runtime/src/main/java/dev/cel/runtime:late_function_binding"],
 )
 
+java_library(
+    name = "function_resolver",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:function_resolver"],
+)
+
 cel_android_library(
     name = "late_function_binding_android",
     exports = ["//runtime/src/main/java/dev/cel/runtime:late_function_binding_android"],
