@@ -55,6 +55,9 @@ public final class StringFunction extends CelStandardFunction {
     DOUBLE_TO_STRING(
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from("double_to_string", Double.class, Object::toString)),
+    BOOL_TO_STRING(
+        (celOptions, runtimeEquality) ->
+            CelFunctionBinding.from("bool_to_string", Boolean.class, Object::toString)),
     BYTES_TO_STRING(
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from(

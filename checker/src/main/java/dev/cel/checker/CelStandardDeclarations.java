@@ -159,6 +159,7 @@ public final class CelStandardDeclarations {
         Overload.Conversions.INT64_TO_STRING,
         Overload.Conversions.UINT64_TO_STRING,
         Overload.Conversions.DOUBLE_TO_STRING,
+        Overload.Conversions.BOOL_TO_STRING,
         Overload.Conversions.BYTES_TO_STRING,
         Overload.Conversions.TIMESTAMP_TO_STRING,
         Overload.Conversions.DURATION_TO_STRING),
@@ -679,6 +680,9 @@ public final class CelStandardDeclarations {
         DOUBLE_TO_STRING(
             CelOverloadDecl.newGlobalOverload(
                 "double_to_string", "type conversion", SimpleType.STRING, SimpleType.DOUBLE)),
+        BOOL_TO_STRING(
+            CelOverloadDecl.newGlobalOverload(
+                "bool_to_string", "type conversion", SimpleType.STRING, SimpleType.BOOL)),
         BYTES_TO_STRING(
             CelOverloadDecl.newGlobalOverload(
                 "bytes_to_string", "type conversion", SimpleType.STRING, SimpleType.BYTES)),

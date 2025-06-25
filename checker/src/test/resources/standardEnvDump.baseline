@@ -256,6 +256,7 @@ declare string {
   function int64_to_string (int) -> string
   function uint64_to_string (uint) -> string
   function double_to_string (double) -> string
+  function bool_to_string (bool) -> string
   function bytes_to_string (bytes) -> string
   function timestamp_to_string (google.protobuf.Timestamp) -> string
   function duration_to_string (google.protobuf.Duration) -> string
