@@ -17,14 +17,15 @@ module(
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
-bazel_dep(name = "rules_jvm_external", version = "6.4")
-bazel_dep(name = "protobuf", version = "29.0-rc1", repo_name = "com_google_protobuf")
-bazel_dep(name = "googleapis", version = "0.0.0-20240819-fe8ba054a", repo_name = "com_google_googleapis")
+bazel_dep(name = "rules_jvm_external", version = "6.6")
+bazel_dep(name = "protobuf", version = "31.0", repo_name = "com_google_protobuf")
+bazel_dep(name = "googleapis", version = "0.0.0-20241220-5e258e33.bcr.1", repo_name = "com_google_googleapis")
 bazel_dep(name = "rules_pkg", version = "0.10.1")
 bazel_dep(name = "rules_license", version = "1.0.0")
-bazel_dep(name = "rules_proto", version = "6.0.2")
-bazel_dep(name = "grpc-java", version = "1.66.0")
-bazel_dep(name = "rules_java", version = "7.12.1")
+bazel_dep(name = "rules_proto", version = "7.1.0")
+# bazel_dep(name = "grpc-java", version = "1.66.0")
+bazel_dep(name = "rules_java", version = "8.9.0")
+bazel_dep(name = "rules_android", version = "0.6.4")
 
 switched_rules = use_extension("@com_google_googleapis//:extensions.bzl", "switched_rules")
 switched_rules.use_languages(java = True)
@@ -32,27 +33,31 @@ use_repo(switched_rules, "com_google_googleapis_imports")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 
+GUAVA_VERSION = "33.4.8"
+
 # run 'bazel run @unpinned_maven//:pin' after updating versions below to generate a new lock file.
 maven.install(
+    name = "maven",
     # keep sorted
     artifacts = [
         "com.google.auto.value:auto-value:1.11.0",
         "com.google.auto.value:auto-value-annotations:1.11.0",
         "com.google.code.findbugs:annotations:3.0.1",
-        "com.google.errorprone:error_prone_annotations:2.33.0",
-        "com.google.guava:guava:33.3.1-jre",
-        "com.google.guava:guava-testlib:33.3.1-jre",
-        "com.google.protobuf:protobuf-java:4.29.0-RC1",
-        "com.google.protobuf:protobuf-java-util:4.29.0-RC1",
-        "com.google.re2j:re2j:1.7",
+        "com.google.errorprone:error_prone_annotations:2.38.0",
+        "com.google.guava:guava:" + GUAVA_VERSION + "-jre",
+        "com.google.guava:guava-testlib:" + GUAVA_VERSION + "-jre",
+        "com.google.protobuf:protobuf-java:4.31.0",
+        "com.google.protobuf:protobuf-java-util:4.31.0",
+        "com.google.re2j:re2j:1.8",
         "com.google.testparameterinjector:test-parameter-injector:1.18",
         "com.google.truth.extensions:truth-java8-extension:1.4.4",
         "com.google.truth.extensions:truth-proto-extension:1.4.4",
         "com.google.truth:truth:1.4.4",
-        "org.antlr:antlr4-runtime:4.11.1",
+        "info.picocli:picocli:4.7.7",
+        "org.antlr:antlr4-runtime:4.13.2",
         "org.jspecify:jspecify:1.0.0",
         "org.threeten:threeten-extra:1.8.0",
-        "org.yaml:snakeyaml:2.2",
+        "org.yaml:snakeyaml:2.4",
     ],
     fail_if_repin_required = True,
     lock_file = "//:maven_install.json",
@@ -61,7 +66,23 @@ maven.install(
         "https://repo1.maven.org/maven2",
     ],
 )
-use_repo(maven, "maven", "unpinned_maven")
+
+maven.install(
+    name = "maven_android",
+    # keep sorted
+    artifacts = [
+        "com.google.guava:guava:" + GUAVA_VERSION + "-android",
+        "com.google.protobuf:protobuf-javalite:4.31.0",
+    ],
+    repositories = [
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
+    fail_if_repin_required = True,
+    lock_file = "//:maven_android_install.json",
+)
+
+use_repo(maven, "maven", "maven_android", "unpinned_maven")
 
 non_module_dependencies = use_extension("//:repositories.bzl", "non_module_dependencies")
 use_repo(non_module_dependencies, "antlr4_jar")
