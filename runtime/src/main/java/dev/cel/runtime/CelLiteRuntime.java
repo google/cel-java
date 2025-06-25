@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.annotations.Beta;
 import java.util.Map;
 
 /**
@@ -27,6 +28,7 @@ import java.util.Map;
  * the protobuf, making it suitable for use in Android.
  */
 @ThreadSafe
+@Beta
 public interface CelLiteRuntime {
 
   Program createProgram(CelAbstractSyntaxTree ast) throws CelEvaluationException;

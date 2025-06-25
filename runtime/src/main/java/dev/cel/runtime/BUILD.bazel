@@ -649,14 +649,8 @@ cel_android_library(
     deps = [
         ":function_binding_android",
         ":runtime_equality_android",
-        ":runtime_helpers_android",
-        "//common:error_codes",
         "//common:options",
-        "//common:runtime_exception",
         "//common/annotations",
-        "//common/internal:comparison_functions_android",
-        "//common/internal:proto_time_utils_android",
-        "//common/internal:safe_string_formatter",
         "//runtime/standard:add_android",
         "//runtime/standard:bool_android",
         "//runtime/standard:bytes_android",
@@ -832,6 +826,7 @@ java_library(
         "//:auto_value",
         "//common:cel_ast",
         "//common:options",
+        "//common/annotations",
         "//common/values:cel_value_provider",
         "//runtime/standard:standard_function",
         "@maven//:com_google_code_findbugs_annotations",
@@ -913,6 +908,7 @@ java_library(
     deps = [
         ":lite_runtime",
         ":lite_runtime_impl",
+        "//common/annotations",
     ],
 )
 
@@ -926,6 +922,7 @@ cel_android_library(
     deps = [
         ":lite_runtime_android",
         ":lite_runtime_impl_android",
+        "//common/annotations",
     ],
 )
 
@@ -1086,10 +1083,10 @@ cel_android_library(
         ":evaluation_exception",
         ":function_binding_android",
         ":function_resolver",
-        ":standard_functions_android",
         "//:auto_value",
         "//common:cel_ast_android",
         "//common:options",
+        "//common/annotations",
         "//common/values:cel_value_provider_android",
         "//runtime/standard:standard_function_android",
         "@maven//:com_google_code_findbugs_annotations",

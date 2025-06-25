@@ -25,7 +25,7 @@
 # 2. You will need to enter the key's password. The prompt appears in GUI, not in terminal. The publish operation will eventually timeout if the password is not entered.
 
 
-ALL_TARGETS=("//publish:cel.publish" "//publish:cel_compiler.publish" "//publish:cel_runtime.publish" "//publish:cel_v1alpha1.publish" "//publish:cel_protobuf.publish")
+ALL_TARGETS=("//publish:cel.publish" "//publish:cel_compiler.publish" "//publish:cel_runtime.publish" "//publish:cel_v1alpha1.publish" "//publish:cel_protobuf.publish" "//publish:cel_runtime_android.publish")
 JDK8_FLAGS="--java_language_version=8 --java_runtime_version=8"
 
 function publish_maven_remote() {

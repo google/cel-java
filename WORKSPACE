@@ -222,15 +222,16 @@ register_toolchains(
 
 ### googleapis setup
 
-# as of 12/08/2022
+# as of 06/06/2025
 http_archive(
     name = "com_google_googleapis",
-    sha256 = "cd5e8b816612cb6659fca62137ad0206747c4605dc055efcb361e7d3b4e9cedd",
-    strip_prefix = "googleapis-d2835e84647d7477511f7ae48e36d4cfe7b04a10",
+    sha256 = "228c134e606a10d9103ff2b22622989bbf13cc2a54ff626ff9ef6c1c7713e3b8",
+    strip_prefix = "googleapis-1804a603281707a1f0e6fff27851cae115ac3c8b",
     urls = [
-        "https://github.com/googleapis/googleapis/archive/d2835e84647d7477511f7ae48e36d4cfe7b04a10.tar.gz",
+        "https://github.com/googleapis/googleapis/archive/1804a603281707a1f0e6fff27851cae115ac3c8b.tar.gz",
     ],
 )
+
 
 load("@com_google_googleapis//:repository_rules.bzl", "switched_rules_by_language")
 

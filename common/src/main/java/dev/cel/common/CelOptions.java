@@ -17,6 +17,7 @@ package dev.cel.common;
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.annotations.Beta;
 
 /**
  * Options to configure how the CEL parser, type-checker, and evaluator behave.
@@ -434,6 +435,7 @@ public abstract class CelOptions {
      *
      * <p>Warning: This option is experimental.
      */
+    @Beta
     public abstract Builder enableCelValue(boolean value);
 
     /**
