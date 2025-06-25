@@ -29,7 +29,6 @@ cel_android_library(
 
 java_library(
     name = "proto_v1alpha1_ast",
-    visibility = ["//:internal"],
     exports = ["//common/src/main/java/dev/cel/common:proto_v1alpha1_ast"],
 )
 
