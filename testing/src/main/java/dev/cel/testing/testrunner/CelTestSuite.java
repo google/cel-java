@@ -47,6 +47,8 @@ public abstract class CelTestSuite {
 
     public abstract Builder setSections(Set<CelTestSection> section);
 
+    public abstract Builder setSections(CelTestSection... sections);
+
     public abstract Builder setSource(Source source);
 
     @CheckReturnValue
@@ -79,6 +81,8 @@ public abstract class CelTestSuite {
       public abstract Builder setName(String name);
 
       public abstract Builder setTests(Set<CelTestCase> tests);
+
+      public abstract Builder setTests(CelTestCase... tests);
 
       public abstract Builder setDescription(String description);
 

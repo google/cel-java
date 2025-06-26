@@ -11,9 +11,9 @@ package(
     ],
 )
 
-# Since the user test class is triggered by the cel_test_runner rule, we should not add it to the
+# Since the user test class is triggered by the cel_test rule, we should not add it to the
 # junit4_test_suite.
-# This is just a sample test class for the cel_test_runner rule.
+# This is just a sample test class for the cel_test rule.
 java_library(
     name = "user_test",
     srcs = ["UserTest.java"],
@@ -26,7 +26,7 @@ java_library(
     ],
 )
 
-# This is just a sample test class for the cel_test_runner rule.
+# This is just a sample test class for the cel_test rule.
 java_library(
     name = "env_config_user_test",
     srcs = ["EnvConfigUserTest.java"],
