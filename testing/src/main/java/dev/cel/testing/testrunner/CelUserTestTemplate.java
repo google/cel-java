@@ -36,6 +36,38 @@ public abstract class CelUserTestTemplate {
 
   @Test
   public void test() throws Exception {
-    TestRunnerLibrary.runTest(testCase, celTestContext);
+    TestRunnerLibrary.runTest(testCase, updateCelTestContext(celTestContext));
+  }
+
+  /**
+   * Updates the CEL test context based on the system properties.
+   *
+   * <p>This method is used to update the CEL test context based on the system properties. It checks
+   * if the runner library is triggered via blaze macro or via JUnit and assigns values accordingly.
+   *
+   * @param celTestContext The CEL test context to update.
+   * @return The updated CEL test context.
+   */
+  private CelTestContext updateCelTestContext(CelTestContext celTestContext) {
+    String celExpr = System.getProperty("cel_expr");
+    String configPath = System.getProperty("config_path");
+    String fileDescriptorSetPath = System.getProperty("file_descriptor_set_path");
+    String isRawExpr = System.getProperty("is_raw_expr");
+
+    CelTestContext.Builder celTestContextBuilder = celTestContext.toBuilder();
+    if (celExpr != null) {
+      if (isRawExpr.equals("True")) {
+        celTestContextBuilder.setCelExpression(CelExpressionSource.fromRawExpr(celExpr));
+      } else {
+        celTestContextBuilder.setCelExpression(CelExpressionSource.fromSource(celExpr));
+      }
+    }
+    if (configPath != null) {
+      celTestContextBuilder.setConfigFile(configPath);
+    }
+    if (fileDescriptorSetPath != null) {
+      celTestContextBuilder.setFileDescriptorSetPath(fileDescriptorSetPath);
+    }
+    return celTestContextBuilder.build();
   }
 }

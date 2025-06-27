@@ -53,8 +53,8 @@ final class CelTestSuiteTextProtoParser {
     TypeRegistry typeRegistry = TypeRegistry.getEmptyTypeRegistry();
     ExtensionRegistry extensionRegistry = ExtensionRegistry.getEmptyRegistry();
     if (fileDescriptorSetPath != null) {
-      extensionRegistry = RegistryUtils.getExtensionRegistry();
-      typeRegistry = RegistryUtils.getTypeRegistry();
+      extensionRegistry = RegistryUtils.getExtensionRegistry(fileDescriptorSetPath);
+      typeRegistry = RegistryUtils.getTypeRegistry(fileDescriptorSetPath);
     }
     TextFormat.Parser parser = TextFormat.Parser.newBuilder().setTypeRegistry(typeRegistry).build();
     TestSuite.Builder builder = TestSuite.newBuilder();
