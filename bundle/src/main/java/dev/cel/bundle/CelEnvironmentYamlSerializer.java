@@ -15,6 +15,9 @@
 package dev.cel.bundle;
 
 import com.google.common.collect.ImmutableMap;
+import dev.cel.bundle.CelEnvironment.LibrarySubset;
+import java.util.List;
+import java.util.Set;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.nodes.Node;
@@ -45,6 +48,7 @@ public final class CelEnvironmentYamlSerializer extends Representer {
     this.multiRepresenters.put(CelEnvironment.TypeDecl.class, new RepresentTypeDecl());
     this.multiRepresenters.put(
         CelEnvironment.ExtensionConfig.class, new RepresentExtensionConfig());
+    this.multiRepresenters.put(CelEnvironment.LibrarySubset.class, new RepresetLibrarySubset());
   }
 
   public static String toYaml(CelEnvironment environment) {
@@ -73,6 +77,9 @@ public final class CelEnvironmentYamlSerializer extends Representer {
       }
       if (!environment.functions().isEmpty()) {
         configMap.put("functions", environment.functions().asList());
+      }
+      if (environment.standardLibrarySubset().isPresent()) {
+        configMap.put("stdlib", environment.standardLibrarySubset().get());
       }
       return represent(configMap.buildOrThrow());
     }
@@ -141,6 +148,37 @@ public final class CelEnvironmentYamlSerializer extends Representer {
         configMap.put("is_type_param", type.isTypeParam());
       }
       return represent(configMap.buildOrThrow());
+    }
+  }
+
+  private final class RepresetLibrarySubset implements Represent {
+    @Override
+    public Node representData(Object data) {
+      LibrarySubset librarySubset = (LibrarySubset) data;
+      ImmutableMap.Builder<String, Object> configMap = new ImmutableMap.Builder<>();
+      if (librarySubset.disabled()) {
+        configMap.put("disabled", true);
+      }
+      if (librarySubset.macrosDisabled()) {
+        configMap.put("disable_macros", true);
+      }
+      if (!librarySubset.includedMacros().isEmpty()) {
+        configMap.put("include_macros", toListOfNames(librarySubset.includedMacros()));
+      }
+      if (!librarySubset.excludedMacros().isEmpty()) {
+        configMap.put("exclude_macros", toListOfNames(librarySubset.excludedMacros()));
+      }
+      if (!librarySubset.includedFunctions().isEmpty()) {
+        configMap.put("include_functions", toListOfNames(librarySubset.includedFunctions()));
+      }
+      if (!librarySubset.excludedFunctions().isEmpty()) {
+        configMap.put("exclude_functions", toListOfNames(librarySubset.excludedFunctions()));
+      }
+      return represent(configMap.buildOrThrow());
+    }
+
+    private List<ImmutableMap<String, String>> toListOfNames(Set<String> names) {
+      return names.stream().sorted().map(name -> ImmutableMap.of("name", name)).toList();
     }
   }
 }

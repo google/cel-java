@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.bundle.CelEnvironment.ExtensionConfig;
 import dev.cel.bundle.CelEnvironment.FunctionDecl;
+import dev.cel.bundle.CelEnvironment.LibrarySubset;
 import dev.cel.bundle.CelEnvironment.OverloadDecl;
 import dev.cel.bundle.CelEnvironment.TypeDecl;
 import dev.cel.bundle.CelEnvironment.VariableDecl;
@@ -38,6 +39,7 @@ import dev.cel.common.formats.ParserContext;
 import dev.cel.common.formats.YamlHelper.YamlNodeType;
 import dev.cel.common.formats.YamlParserContextImpl;
 import dev.cel.common.internal.CelCodePointArray;
+import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.nodes.MappingNode;
@@ -337,6 +339,76 @@ public final class CelEnvironmentYamlParser {
     return builder.build();
   }
 
+  private static LibrarySubset parseLibrarySubset(
+      ParserContext<Node> ctx, Node node, boolean disabled) {
+    LibrarySubset.Builder builder = LibrarySubset.newBuilder().setDisabled(disabled);
+    MappingNode subsetMap = (MappingNode) node;
+    for (NodeTuple nodeTuple : subsetMap.getValue()) {
+      Node keyNode = nodeTuple.getKeyNode();
+      long keyId = ctx.collectMetadata(keyNode);
+      Node valueNode = nodeTuple.getValueNode();
+      String keyName = ((ScalarNode) keyNode).getValue();
+      switch (keyName) {
+        case "disabled":
+          builder.setDisabled(newBoolean(ctx, valueNode));
+          break;
+        case "disable_macros":
+          builder.setMacrosDisabled(newBoolean(ctx, valueNode));
+          break;
+        case "include_macros":
+          builder.setIncludedMacros(parseNameSet(ctx, keyName, valueNode));
+          break;
+        case "exclude_macros":
+          builder.setExcludedMacros(parseNameSet(ctx, keyName, valueNode));
+          break;
+        case "include_functions":
+          builder.setIncludedFunctions(parseNameSet(ctx, keyName, valueNode));
+          break;
+        case "exclude_functions":
+          builder.setExcludedFunctions(parseNameSet(ctx, keyName, valueNode));
+          break;
+        default:
+          ctx.reportError(keyId, String.format("Unsupported library subset tag: %s", keyName));
+          break;
+      }
+    }
+    return builder.build();
+  }
+
+  private static ImmutableSet<String> parseNameSet(
+      ParserContext<Node> ctx, String listKey, Node node) {
+    long valueId = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, valueId, node, YamlNodeType.LIST)) {
+      return ImmutableSet.of(ERROR);
+    }
+
+    ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+    SequenceNode nameListNode = (SequenceNode) node;
+    for (Node elementNode : nameListNode.getValue()) {
+      long elementId = ctx.collectMetadata(elementNode);
+      if (!assertYamlType(ctx, elementId, elementNode, YamlNodeType.MAP)) {
+        return ImmutableSet.of(ERROR);
+      }
+
+      for (NodeTuple nodeTuple : ((MappingNode) elementNode).getValue()) {
+        Node keyNode = nodeTuple.getKeyNode();
+        long keyId = ctx.collectMetadata(keyNode);
+        Node valueNode = nodeTuple.getValueNode();
+        String keyName = ((ScalarNode) keyNode).getValue();
+        switch (keyName) {
+          case "name":
+            builder.add(newString(ctx, valueNode));
+            break;
+          default:
+            ctx.reportError(
+                keyId, String.format("Unsupported %s element tag: %s", listKey, keyName));
+            break;
+        }
+      }
+    }
+    return builder.build();
+  }
+
   private static @Nullable Integer tryParse(String str) {
     try {
       return Integer.parseInt(str);
@@ -476,6 +548,10 @@ public final class CelEnvironmentYamlParser {
             break;
           case "extensions":
             builder.addExtensions(parseExtensions(ctx, valueNode));
+            break;
+          case "stdlib":
+            builder.setStandardLibrarySubset(
+                Optional.of(parseLibrarySubset(ctx, valueNode, /* disabled= */ false)));
             break;
           default:
             ctx.reportError(id, "Unknown config tag: " + fieldName);

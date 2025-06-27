@@ -17,6 +17,7 @@ package dev.cel.bundle;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
@@ -25,6 +26,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
+import dev.cel.checker.CelStandardDeclarations;
+import dev.cel.checker.CelStandardDeclarations.StandardFunction;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
@@ -41,6 +44,7 @@ import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
+import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelRuntimeBuilder;
 import java.util.Arrays;
 import java.util.Optional;
@@ -97,6 +101,9 @@ public abstract class CelEnvironment {
   /** New function declarations to add in the compilation environment. */
   public abstract ImmutableSet<FunctionDecl> functions();
 
+  /** Standard library subset (which macros, functions to include/exclude) */
+  public abstract Optional<LibrarySubset> standardLibrarySubset();
+
   /** Builder for {@link CelEnvironment}. */
   @AutoValue.Builder
   public abstract static class Builder {
@@ -141,6 +148,8 @@ public abstract class CelEnvironment {
 
     public abstract Builder setFunctions(ImmutableSet<FunctionDecl> functions);
 
+    public abstract Builder setStandardLibrarySubset(Optional<LibrarySubset> stdLibrarySubset);
+
     @CheckReturnValue
     public abstract CelEnvironment build();
   }
@@ -180,6 +189,8 @@ public abstract class CelEnvironment {
 
       addAllCompilerExtensions(compilerBuilder, celOptions);
 
+      applyStandardLibrarySubset(compilerBuilder);
+
       return compilerBuilder.build();
     } catch (RuntimeException e) {
       throw new CelEnvironmentException(e.getMessage(), e);
@@ -216,6 +227,75 @@ public abstract class CelEnvironment {
       CanonicalCelExtension extension = getExtensionOrThrow(extensionConfig.name());
       extension.addRuntimeExtension(celRuntimeBuilder, celOptions);
     }
+  }
+
+  private void applyStandardLibrarySubset(CelCompilerBuilder compilerBuilder) {
+    if (!standardLibrarySubset().isPresent()) {
+      return;
+    }
+
+    LibrarySubset librarySubset = standardLibrarySubset().get();
+    if (librarySubset.disabled()) {
+      compilerBuilder.setStandardEnvironmentEnabled(false);
+      return;
+    }
+
+    compilerBuilder.setStandardEnvironmentEnabled(true);
+
+    if (librarySubset.macrosDisabled()) {
+      compilerBuilder.setStandardMacros(ImmutableList.of());
+    } else if (!librarySubset.includedMacros().isEmpty()) {
+      compilerBuilder.setStandardMacros(
+          librarySubset.includedMacros().stream()
+              .map(name -> getStandardMacroOrThrow(name))
+              .toList());
+    } else if (!librarySubset.excludedMacros().isEmpty()) {
+      ImmutableSet<CelStandardMacro> set =
+          librarySubset.excludedMacros().stream()
+              .map(name -> getStandardMacroOrThrow(name))
+              .collect(toImmutableSet());
+      compilerBuilder.setStandardMacros(
+          CelStandardMacro.STANDARD_MACROS.stream().filter(macro -> !set.contains(macro)).toList());
+    }
+
+    if (!librarySubset.includedFunctions().isEmpty()) {
+      compilerBuilder.setStandardEnvironmentEnabled(false);
+      compilerBuilder.setStandardDeclarations(
+          CelStandardDeclarations.newBuilder()
+              .includeFunctions(
+                  librarySubset.includedFunctions().stream()
+                      .map(name -> getStandardFunctionOrThrow(name))
+                      .toList())
+              .build());
+    } else if (!librarySubset.excludedFunctions().isEmpty()) {
+      compilerBuilder.setStandardEnvironmentEnabled(false);
+      compilerBuilder.setStandardDeclarations(
+          CelStandardDeclarations.newBuilder()
+              .excludeFunctions(
+                  librarySubset.excludedFunctions().stream()
+                      .map(name -> getStandardFunctionOrThrow(name))
+                      .toList())
+              .build());
+
+    }
+  }
+
+  private static CelStandardMacro getStandardMacroOrThrow(String macroName) {
+    for (CelStandardMacro macro : CelStandardMacro.STANDARD_MACROS) {
+      if (macro.getFunction().equals(macroName)) {
+        return macro;
+      }
+    }
+    throw new IllegalArgumentException("unrecognized standard macro `" + macroName + "'");
+  }
+
+  private static StandardFunction getStandardFunctionOrThrow(String functionName) {
+    for (StandardFunction function : StandardFunction.values()) {
+      if (function.functionName().equals(functionName)) {
+        return function;
+      }
+    }
+    throw new IllegalArgumentException("unrecognized standard function `" + functionName + "'");
   }
 
   private static CanonicalCelExtension getExtensionOrThrow(String extensionName) {
@@ -622,6 +702,78 @@ public abstract class CelEnvironment {
         RuntimeExtensionApplier runtimeExtensionApplier) {
       this.compilerExtensionApplier = compilerExtensionApplier;
       this.runtimeExtensionApplier = runtimeExtensionApplier;
+    }
+  }
+
+  /**
+   * LibrarySubset indicates a subset of the macros and function supported by a subsettable
+   * library.
+   */
+  @AutoValue
+  public abstract static class LibrarySubset {
+
+    /**
+     * Disabled indicates whether the library has been disabled, typically only used for
+     * default-enabled libraries like stdlib.
+     */
+    public abstract boolean disabled();
+
+    /** DisableMacros disables macros for the given library. */
+    public abstract boolean macrosDisabled();
+
+    /** IncludeMacros specifies a set of macro function names to include in the subset. */
+    public abstract ImmutableSet<String> includedMacros();
+
+    /**
+     * ExcludeMacros specifies a set of macro function names to exclude from the subset.
+     *
+     * <p>Note: if IncludedMacros is non-empty, then ExcludedMacros is ignored.
+     */
+    public abstract ImmutableSet<String> excludedMacros();
+
+    /**
+     * IncludeFunctions specifies a set of functions to include in the subset.
+     *
+     * <p>Note: the overloads specified in the subset need only specify their ID.
+     * <p>Note: if IncludedFunctions is non-empty, then ExcludedFunctions is ignored.
+     */
+    public abstract ImmutableSet<String> includedFunctions();
+
+    /**
+     * ExcludeFunctions specifies the set of functions to exclude from the subset.
+     *
+     * <p>Note: the overloads specified in the subset need only specify their ID.
+     */
+    public abstract ImmutableSet<String> excludedFunctions();
+
+    public static Builder newBuilder() {
+      return new AutoValue_CelEnvironment_LibrarySubset.Builder()
+          .setDisabled(true)
+          .setMacrosDisabled(false)
+          .setIncludedMacros(ImmutableSet.of())
+          .setExcludedMacros(ImmutableSet.of())
+          .setIncludedFunctions(ImmutableSet.of())
+          .setExcludedFunctions(ImmutableSet.of());
+    }
+
+    /** Builder for {@link LibrarySubset}. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract Builder setDisabled(boolean disabled);
+
+      public abstract Builder setMacrosDisabled(boolean disabled);
+
+      public abstract Builder setIncludedMacros(ImmutableSet<String> includedMacros);
+
+      public abstract Builder setExcludedMacros(ImmutableSet<String> excludedMacros);
+
+      public abstract Builder setIncludedFunctions(ImmutableSet<String> includedFunctions);
+
+      public abstract Builder setExcludedFunctions(ImmutableSet<String> excludedFunctions);
+
+      @CheckReturnValue
+      public abstract LibrarySubset build();
     }
   }
 }
