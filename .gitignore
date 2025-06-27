@@ -6,8 +6,6 @@ bazel-cel-java
 bazel-out
 bazel-testlogs
 
-MODULE.bazel*
-
 # IntelliJ IDEA
 .idea
 *.iml
@@ -32,3 +30,4 @@ target
 mvn-artifacts
 
 *.swp
+*.lock
