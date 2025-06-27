@@ -20,8 +20,15 @@ import com.google.common.collect.ImmutableSet;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.bundle.CelEnvironment.CanonicalCelExtension;
 import dev.cel.bundle.CelEnvironment.ExtensionConfig;
+import dev.cel.bundle.CelEnvironment.LibrarySubset;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelValidationResult;
+import dev.cel.compiler.CelCompiler;
+import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.parser.CelStandardMacro;
+import dev.cel.parser.Operator;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -67,5 +74,126 @@ public class CelEnvironmentTest {
     assertThat(extensionConfigs.size()).isEqualTo(CelEnvironment.CEL_EXTENSION_CONFIG_MAP.size());
     assertThat(extensionConfigs.size()).isEqualTo(CanonicalCelExtension.values().length);
     assertThat(result).isTrue();
+  }
+
+  @Test
+  public void stdlibSubset_disabled() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setStandardLibrarySubset(
+                Optional.of(LibrarySubset.newBuilder().setDisabled(true).build()))
+            .build();
+
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelCompiler extendedCompiler = environment.extend(compiler, CelOptions.DEFAULT);
+    CelValidationResult result = extendedCompiler.compile("1 != 2");
+    assertThat(result.getErrorString()).contains("undeclared reference to '_!=_'");
+  }
+
+  @Test
+  public void stdlibSubset_macrosDisabled() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setStandardLibrarySubset(
+                Optional.of(
+                    LibrarySubset.newBuilder().setDisabled(false).setMacrosDisabled(true).build()))
+            .build();
+
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelCompiler extendedCompiler = environment.extend(compiler, CelOptions.DEFAULT);
+    CelValidationResult result =
+        extendedCompiler.compile("['hello', 'world'].exists(v, v == 'hello')");
+    assertThat(result.getErrorString()).contains("undeclared reference to 'exists'");
+  }
+
+  @Test
+  public void stdlibSubset_macrosIncluded() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setStandardLibrarySubset(
+                Optional.of(
+                    LibrarySubset.newBuilder()
+                        .setDisabled(false)
+                        .setIncludedMacros(ImmutableSet.of(CelStandardMacro.EXISTS.getFunction()))
+                        .build()))
+            .build();
+
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelCompiler extendedCompiler = environment.extend(compiler, CelOptions.DEFAULT);
+    CelValidationResult result =
+        extendedCompiler.compile("['hello', 'world'].exists(v, v == 'hello')");
+    assertThat(result.hasError()).isFalse();
+
+    result = extendedCompiler.compile("['hello', 'world'].exists_one(v, v == 'hello')");
+    assertThat(result.getErrorString()).contains("undeclared reference to 'exists_one'");
+  }
+
+  @Test
+  public void stdlibSubset_macrosExcluded() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setStandardLibrarySubset(
+                Optional.of(
+                    LibrarySubset.newBuilder()
+                        .setDisabled(false)
+                        .setExcludedMacros(
+                            ImmutableSet.of(CelStandardMacro.EXISTS_ONE.getFunction()))
+                        .build()))
+            .build();
+
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelCompiler extendedCompiler = environment.extend(compiler, CelOptions.DEFAULT);
+    CelValidationResult result =
+        extendedCompiler.compile("['hello', 'world'].exists(v, v == 'hello')");
+    assertThat(result.hasError()).isFalse();
+
+    result = extendedCompiler.compile("['hello', 'world'].exists_one(v, v == 'hello')");
+    assertThat(result.getErrorString()).contains("undeclared reference to 'exists_one'");
+  }
+
+  @Test
+  public void stdlibSubset_functionsIncluded() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setStandardLibrarySubset(
+                Optional.of(
+                    LibrarySubset.newBuilder()
+                        .setDisabled(false)
+                        .setIncludedFunctions(
+                            ImmutableSet.of(
+                                Operator.EQUALS.getFunction(),
+                                Operator.NOT_EQUALS.getFunction(),
+                                Operator.LOGICAL_AND.getFunction()))
+                        .build()))
+            .build();
+
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelCompiler extendedCompiler = environment.extend(compiler, CelOptions.DEFAULT);
+    CelValidationResult result = extendedCompiler.compile("1 == 1 && 1 != 2");
+    assertThat(result.hasError()).isFalse();
+
+    result = extendedCompiler.compile("1 == 1 && 1 != 1 + 1");
+    assertThat(result.getErrorString()).contains("undeclared reference to '_+_'");
+  }
+
+  @Test
+  public void stdlibSubset_functionsExcluded() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setStandardLibrarySubset(
+                Optional.of(
+                    LibrarySubset.newBuilder()
+                        .setDisabled(false)
+                        .setExcludedFunctions(ImmutableSet.of(Operator.ADD.getFunction()))
+                        .build()))
+            .build();
+
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelCompiler extendedCompiler = environment.extend(compiler, CelOptions.DEFAULT);
+    CelValidationResult result = extendedCompiler.compile("1 == 1 && 1 != 2");
+    assertThat(result.hasError()).isFalse();
+
+    result = extendedCompiler.compile("1 == 1 && 1 != 1 + 1");
+    assertThat(result.getErrorString()).contains("undeclared reference to '_+_'");
   }
 }

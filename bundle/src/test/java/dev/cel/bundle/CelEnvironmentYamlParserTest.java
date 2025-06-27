@@ -27,6 +27,7 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.bundle.CelEnvironment.ExtensionConfig;
 import dev.cel.bundle.CelEnvironment.FunctionDecl;
+import dev.cel.bundle.CelEnvironment.LibrarySubset;
 import dev.cel.bundle.CelEnvironment.OverloadDecl;
 import dev.cel.bundle.CelEnvironment.TypeDecl;
 import dev.cel.bundle.CelEnvironment.VariableDecl;
@@ -706,6 +707,23 @@ public final class CelEnvironmentYamlParserTest {
                                     .build())
                             .setReturnType(TypeDecl.create("bool"))
                             .build())))
+            .build()),
+
+    LIBRARY_SUBSET_ENV(
+        "environment/library_subset_env.yaml",
+        CelEnvironment.newBuilder()
+            .setName("stdlib-subset-env")
+            .setContainer("google.expr")
+            .setStandardLibrarySubset(
+                Optional.of(
+                    LibrarySubset.newBuilder()
+                        .setDisabled(true)
+                        .setMacrosDisabled(true)
+                        .setIncludedMacros(ImmutableSet.of("has"))
+                        .setExcludedMacros(ImmutableSet.of("exists", "exists_one"))
+                        .setIncludedFunctions(ImmutableSet.of("_==_", "_!=_"))
+                        .setExcludedFunctions(ImmutableSet.of("_*_"))
+                        .build()))
             .build()),
     ;
 

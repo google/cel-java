@@ -61,3 +61,16 @@ functions:
     - type_name: int
     return:
       type_name: int
+stdlib:
+  disabled: true
+  disable_macros: true
+  include_macros:
+  - name: has
+  exclude_macros:
+  - name: exists
+  - name: exists_one
+  include_functions:
+  - name: _!=_
+  - name: _==_
+  exclude_functions:
+  - name: _*_

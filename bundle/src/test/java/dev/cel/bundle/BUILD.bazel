@@ -12,6 +12,7 @@ java_library(
     resources = [
         "//testing/environment:dump_env",
         "//testing/environment:extended_env",
+        "//testing/environment:library_subset_env",
     ],
     deps = [
         "//:java_truth",
@@ -42,6 +43,7 @@ java_library(
         "//compiler:compiler_builder",
         "//parser",
         "//parser:macro",
+        "//parser:operator",
         "//parser:unparser",
         "//runtime",
         "//runtime:evaluation_exception_builder",

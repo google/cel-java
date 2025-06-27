@@ -23,11 +23,13 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import dev.cel.bundle.CelEnvironment.ExtensionConfig;
 import dev.cel.bundle.CelEnvironment.FunctionDecl;
+import dev.cel.bundle.CelEnvironment.LibrarySubset;
 import dev.cel.bundle.CelEnvironment.OverloadDecl;
 import dev.cel.bundle.CelEnvironment.TypeDecl;
 import dev.cel.bundle.CelEnvironment.VariableDecl;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -106,6 +108,14 @@ public final class CelEnvironmentYamlSerializerTest {
                                 .setArguments(ImmutableList.of(TypeDecl.create("int")))
                                 .setReturnType(TypeDecl.create("int"))
                                 .build()))))
+            .setStandardLibrarySubset(Optional.of(LibrarySubset.newBuilder()
+                    .setDisabled(true)
+                    .setMacrosDisabled(true)
+                    .setIncludedMacros(ImmutableSet.of("has"))
+                    .setExcludedMacros(ImmutableSet.of("exists", "exists_one"))
+                    .setIncludedFunctions(ImmutableSet.of("_==_", "_!=_"))
+                    .setExcludedFunctions(ImmutableSet.of("_*_"))
+                .build()))
             .build();
 
     String yamlOutput = CelEnvironmentYamlSerializer.toYaml(environment);
