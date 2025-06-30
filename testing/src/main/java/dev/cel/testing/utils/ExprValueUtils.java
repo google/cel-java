@@ -55,6 +55,22 @@ public final class ExprValueUtils {
   public static final ExtensionRegistry DEFAULT_EXTENSION_REGISTRY = newDefaultExtensionRegistry();
 
   /**
+   * Converts a {@link Value} to a Java native object using the given file descriptor set to parse
+   * `Any` messages.
+   *
+   * @param value The {@link Value} to convert.
+   * @param fileDescriptorSetPath The path to the file descriptor set.
+   * @return The converted Java object.
+   * @throws IOException If there's an error during conversion.
+   */
+  public static Object fromValue(Value value, String fileDescriptorSetPath) throws IOException {
+    if (value.getKindCase().equals(Value.KindCase.OBJECT_VALUE)) {
+      return parseAny(value.getObjectValue(), fileDescriptorSetPath);
+    }
+    return toNativeObject(value);
+  }
+
+  /**
    * Converts a {@link Value} to a Java native object.
    *
    * @param value The {@link Value} to convert.
@@ -62,6 +78,18 @@ public final class ExprValueUtils {
    * @throws IOException If there's an error during conversion.
    */
   public static Object fromValue(Value value) throws IOException {
+    if (value.getKindCase().equals(Value.KindCase.OBJECT_VALUE)) {
+      Descriptor descriptor =
+          DEFAULT_TYPE_REGISTRY.getDescriptorForTypeUrl(value.getObjectValue().getTypeUrl());
+      Message prototype = getDefaultInstance(descriptor);
+      return prototype
+          .getParserForType()
+          .parseFrom(value.getObjectValue().getValue(), DEFAULT_EXTENSION_REGISTRY);
+    }
+    return toNativeObject(value);
+  }
+
+  private static Object toNativeObject(Value value) throws IOException {
     switch (value.getKindCase()) {
       case NULL_VALUE:
         return value.getNullValue();
@@ -79,29 +107,6 @@ public final class ExprValueUtils {
         return value.getBytesValue();
       case ENUM_VALUE:
         return value.getEnumValue();
-      case OBJECT_VALUE:
-        {
-          Any object = value.getObjectValue();
-
-          // If the file_descriptor_set_path is set, use the provided file descriptor set created at
-          // runtime after deserializing the file_descriptor_set file.
-          // Because of the above reason, DefaultInstanceMessageFactory cannot be used since it
-          // would always result in a descriptor reference mismatch. Instead, we use
-          // DefaultMessageFactory to create a DynamicMessage and parse it with `<Any>.getValue()`.
-          //
-          // TODO: Remove DynamicMessage parsing once default instance generation is
-          // fixed.
-          String fileDescriptorSetPath = System.getProperty("file_descriptor_set_path");
-          if (fileDescriptorSetPath != null) {
-            return parseAny(object);
-          }
-          Descriptor descriptor =
-              DEFAULT_TYPE_REGISTRY.getDescriptorForTypeUrl(object.getTypeUrl());
-          Message prototype = getDefaultInstance(descriptor);
-          return prototype
-              .getParserForType()
-              .parseFrom(object.getValue(), DEFAULT_EXTENSION_REGISTRY);
-        }
       case MAP_VALUE:
         {
           MapValue map = value.getMapValue();
@@ -262,9 +267,9 @@ public final class ExprValueUtils {
         String.format("Unexpected result type: %s", object.getClass()));
   }
 
-  private static Message parseAny(Any value) throws IOException {
-    TypeRegistry typeRegistry = RegistryUtils.getTypeRegistry();
-    ExtensionRegistry extensionRegistry = RegistryUtils.getExtensionRegistry();
+  private static Message parseAny(Any value, String fileDescriptorSetPath) throws IOException {
+    TypeRegistry typeRegistry = RegistryUtils.getTypeRegistry(fileDescriptorSetPath);
+    ExtensionRegistry extensionRegistry = RegistryUtils.getExtensionRegistry(fileDescriptorSetPath);
     Descriptor descriptor = typeRegistry.getDescriptorForTypeUrl(value.getTypeUrl());
     return unpackAny(value, descriptor, extensionRegistry);
   }

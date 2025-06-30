@@ -17,14 +17,13 @@ package dev.cel.testing.testrunner;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.protobuf.Any;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.util.TestUtil;
 import dev.cel.bundle.CelFactory;
 import dev.cel.checker.ProtoTypeMask;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase;
-import dev.cel.testing.testrunner.TestRunnerLibrary.CelExprFileSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,16 +42,52 @@ public class TestRunnerLibraryTest {
         CelTestCase.newBuilder()
             .setName("simple_output_test_case")
             .setDescription("simple_output_test_case_description")
-            .setInput(CelTestSuite.CelTestSection.CelTestCase.Input.ofBindings(ImmutableMap.of()))
             .setOutput(CelTestSuite.CelTestSection.CelTestCase.Output.ofResultValue(false))
             .build();
-    CelExprFileSource celExprFileSource =
-        CelExprFileSource.fromFile(
-            TestUtil.getSrcDir()
-                + "/google3/third_party/java/cel/testing/src/test/java/dev/cel/testing/testrunner/resources/empty_policy.yaml");
 
     TestRunnerLibrary.evaluateTestCase(
-        simpleOutputTestCase, CelTestContext.newBuilder().build(), celExprFileSource);
+        simpleOutputTestCase,
+        CelTestContext.newBuilder()
+            .setCelExpression(
+                CelExpressionSource.fromSource(
+                    TestUtil.getSrcDir()
+                        + "/google3/third_party/java/cel/testing/src/test/java/dev/cel/testing/testrunner/resources/empty_policy.yaml"))
+            .build());
+  }
+
+  @Test
+  public void triggerRunTest_evaluatePolicy_simpleBooleanOutput() throws Exception {
+    CelTestCase simpleOutputTestCase =
+        CelTestCase.newBuilder()
+            .setName("simple_output_test_case")
+            .setDescription("simple_output_test_case_description")
+            .setOutput(CelTestSuite.CelTestSection.CelTestCase.Output.ofResultValue(false))
+            .build();
+
+    TestRunnerLibrary.runTest(
+        simpleOutputTestCase,
+        CelTestContext.newBuilder()
+            .setCelExpression(
+                CelExpressionSource.fromSource(
+                    TestUtil.getSrcDir()
+                        + "/google3/third_party/java/cel/testing/src/test/java/dev/cel/testing/testrunner/resources/empty_policy.yaml"))
+            .build());
+  }
+
+  @Test
+  public void triggerRunTest_evaluateRawExpr_simpleBooleanOutput() throws Exception {
+    CelTestCase simpleOutputTestCase =
+        CelTestCase.newBuilder()
+            .setName("simple_output_test_case")
+            .setDescription("simple_output_test_case_description")
+            .setOutput(CelTestSuite.CelTestSection.CelTestCase.Output.ofResultValue(true))
+            .build();
+
+    TestRunnerLibrary.runTest(
+        simpleOutputTestCase,
+        CelTestContext.newBuilder()
+            .setCelExpression(CelExpressionSource.fromRawExpr("1 > 0"))
+            .build());
   }
 
   @Test
@@ -61,20 +96,21 @@ public class TestRunnerLibraryTest {
         CelTestCase.newBuilder()
             .setName("output_mismatch_test_case")
             .setDescription("output_mismatch_test_case_description")
-            .setInput(CelTestSuite.CelTestSection.CelTestCase.Input.ofBindings(ImmutableMap.of()))
             .setOutput(CelTestSuite.CelTestSection.CelTestCase.Output.ofResultValue(true))
             .build();
-    CelExprFileSource celExprFileSource =
-        CelExprFileSource.fromFile(
-            TestUtil.getSrcDir()
-                + "/google3/third_party/java/cel/testing/src/test/java/dev/cel/testing/testrunner/resources/empty_policy.yaml");
 
     AssertionError thrown =
         assertThrows(
             AssertionError.class,
             () ->
                 TestRunnerLibrary.evaluateTestCase(
-                    simpleOutputTestCase, CelTestContext.newBuilder().build(), celExprFileSource));
+                    simpleOutputTestCase,
+                    CelTestContext.newBuilder()
+                        .setCelExpression(
+                            CelExpressionSource.fromSource(
+                                TestUtil.getSrcDir()
+                                    + "/google3/third_party/java/cel/testing/src/test/java/dev/cel/testing/testrunner/resources/empty_policy.yaml"))
+                        .build()));
 
     assertThat(thrown).hasMessageThat().contains("modified: value.bool_value: true -> false");
   }
@@ -88,10 +124,6 @@ public class TestRunnerLibraryTest {
             .setInput(CelTestSuite.CelTestSection.CelTestCase.Input.ofContextExpr("1 > 2"))
             .setOutput(CelTestSuite.CelTestSection.CelTestCase.Output.ofResultValue(false))
             .build();
-    CelExprFileSource celExprFileSource =
-        CelExprFileSource.fromFile(
-            TestUtil.getSrcDir()
-                + "/google3/third_party/java/cel/testing/src/test/java/dev/cel/testing/testrunner/resources/empty_policy.yaml");
 
     IllegalArgumentException thrown =
         assertThrows(
@@ -100,6 +132,10 @@ public class TestRunnerLibraryTest {
                 TestRunnerLibrary.evaluateTestCase(
                     simpleOutputTestCase,
                     CelTestContext.newBuilder()
+                        .setCelExpression(
+                            CelExpressionSource.fromSource(
+                                TestUtil.getSrcDir()
+                                    + "/google3/third_party/java/cel/testing/src/test/java/dev/cel/testing/testrunner/resources/empty_policy.yaml"))
                         .setCel(
                             CelFactory.standardCelBuilder()
                                 .addFileTypes(TestAllTypes.getDescriptor().getFile())
@@ -108,8 +144,7 @@ public class TestRunnerLibraryTest {
                                             TestAllTypes.getDescriptor().getFullName())
                                         .withFieldsAsVariableDeclarations())
                                 .build())
-                        .build(),
-                    celExprFileSource));
+                        .build()));
 
     assertThat(thrown)
         .hasMessageThat()
@@ -122,13 +157,8 @@ public class TestRunnerLibraryTest {
         CelTestCase.newBuilder()
             .setName("evaluation_error_test_case")
             .setDescription("evaluation_error_test_case_description")
-            .setInput(CelTestSuite.CelTestSection.CelTestCase.Input.ofNoInput())
             .setOutput(CelTestSuite.CelTestSection.CelTestCase.Output.ofResultValue(false))
             .build();
-    CelExprFileSource celExprFileSource =
-        CelExprFileSource.fromFile(
-            TestUtil.getSrcDir()
-                + "/google3/third_party/java/cel/testing/src/test/java/dev/cel/testing/testrunner/resources/eval_error_policy.yaml");
 
     AssertionError thrown =
         assertThrows(
@@ -137,9 +167,12 @@ public class TestRunnerLibraryTest {
                 TestRunnerLibrary.evaluateTestCase(
                     simpleOutputTestCase,
                     CelTestContext.newBuilder()
+                        .setCelExpression(
+                            CelExpressionSource.fromSource(
+                                TestUtil.getSrcDir()
+                                    + "/google3/third_party/java/cel/testing/src/test/java/dev/cel/testing/testrunner/resources/eval_error_policy.yaml"))
                         .setCel(CelFactory.standardCelBuilder().build())
-                        .build(),
-                    celExprFileSource));
+                        .build()));
 
     assertThat(thrown)
         .hasMessageThat()
@@ -159,7 +192,6 @@ public class TestRunnerLibraryTest {
         CelTestCase.newBuilder()
             .setName("output_mismatch_test_case")
             .setDescription("output_mismatch_test_case_description")
-            .setInput(CelTestSuite.CelTestSection.CelTestCase.Input.ofNoInput())
             .setOutput(CelTestSuite.CelTestSection.CelTestCase.Output.ofResultValue(true))
             .build();
 
@@ -170,6 +202,10 @@ public class TestRunnerLibraryTest {
                 TestRunnerLibrary.runTest(
                     simpleOutputTestCase,
                     CelTestContext.newBuilder()
+                        .setCelExpression(
+                            CelExpressionSource.fromSource(
+                                TestUtil.getSrcDir()
+                                    + "/google3/third_party/java/cel/testing/src/test/java/dev/cel/testing/testrunner/output.textproto"))
                         .setCel(CelFactory.standardCelBuilder().build())
                         .build()));
 
@@ -178,13 +214,10 @@ public class TestRunnerLibraryTest {
 
   @Test
   public void runTest_illegalFileType_failure() throws Exception {
-    System.setProperty("cel_expr", "output.txt");
-
     CelTestCase simpleOutputTestCase =
         CelTestCase.newBuilder()
             .setName("illegal_file_type_test_case")
             .setDescription("illegal_file_type_test_case_description")
-            .setInput(CelTestSuite.CelTestSection.CelTestCase.Input.ofNoInput())
             .setOutput(CelTestSuite.CelTestSection.CelTestCase.Output.ofNoOutput())
             .build();
 
@@ -193,8 +226,38 @@ public class TestRunnerLibraryTest {
             IllegalArgumentException.class,
             () ->
                 TestRunnerLibrary.runTest(
-                    simpleOutputTestCase, CelTestContext.newBuilder().build()));
+                    simpleOutputTestCase,
+                    CelTestContext.newBuilder()
+                        .setCelExpression(CelExpressionSource.fromSource("output.txt"))
+                        .build()));
 
-    assertThat(thrown).hasMessageThat().contains("Unsupported expression type: output.txt");
+    assertThat(thrown).hasMessageThat().contains("Unsupported expression file type: output.txt");
+  }
+
+  @Test
+  public void runTest_missingProtoDescriptors_failure() throws Exception {
+    CelTestCase simpleOutputTestCase =
+        CelTestCase.newBuilder()
+            .setName("missing_file_descriptor_set_path_test_case")
+            .setDescription("missing_file_descriptor_set_path_test_case_description")
+            .setInput(
+                CelTestSuite.CelTestSection.CelTestCase.Input.ofContextMessage(
+                    Any.pack(TestAllTypes.getDefaultInstance())))
+            .setOutput(CelTestSuite.CelTestSection.CelTestCase.Output.ofNoOutput())
+            .build();
+
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                TestRunnerLibrary.runTest(
+                    simpleOutputTestCase,
+                    CelTestContext.newBuilder()
+                        .setCelExpression(CelExpressionSource.fromRawExpr("true"))
+                        .build()));
+
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Proto descriptors are required for unpacking Any messages.");
   }
 }

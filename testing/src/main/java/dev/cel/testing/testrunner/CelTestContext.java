@@ -79,6 +79,26 @@ public abstract class CelTestContext {
    */
   public abstract ResultMatcher resultMatcher();
 
+  /**
+   * The CEL expression to be tested. Could be a expression string or a policy/cel file path. This
+   * should only be used when invoking the runner library directly.
+   */
+  public abstract Optional<CelExpressionSource> celExpression();
+
+  /**
+   * The config file for the CEL test.
+   *
+   * <p>The config file is used to provide a custom environment for the CEL test.
+   */
+  public abstract Optional<String> configFile();
+
+  /**
+   * The file descriptor set path for the CEL test.
+   *
+   * <p>The file descriptor set path is used to provide proto descriptors for the CEL test.
+   */
+  public abstract Optional<String> fileDescriptorSetPath();
+
   /** Returns a builder for {@link CelTestContext} with the current instance's values. */
   public abstract Builder toBuilder();
 
@@ -106,6 +126,12 @@ public abstract class CelTestContext {
     public abstract Builder setVariableBindings(Map<String, Object> variableBindings);
 
     public abstract Builder setResultMatcher(ResultMatcher resultMatcher);
+
+    public abstract Builder setCelExpression(CelExpressionSource celExpression);
+
+    public abstract Builder setConfigFile(String configFile);
+
+    public abstract Builder setFileDescriptorSetPath(String fileDescriptorSetPath);
 
     public abstract CelTestContext build();
   }

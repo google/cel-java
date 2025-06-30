@@ -37,10 +37,10 @@ public final class ProtoDescriptorUtils {
    *
    * @return The {@link CelDescriptors} object containing all the descriptors.
    */
-  public static CelDescriptors getAllDescriptorsFromJvm() throws IOException {
+  public static CelDescriptors getAllDescriptorsFromJvm(String fileDescriptorSetPath)
+      throws IOException {
     ImmutableList<Descriptor> compileTimeLoadedDescriptors = loadDescriptors();
-    FileDescriptorSet fileDescriptorSet =
-        getFileDescriptorSet(System.getProperty("file_descriptor_set_path"));
+    FileDescriptorSet fileDescriptorSet = getFileDescriptorSet(fileDescriptorSetPath);
     ImmutableSet<String> runtimeFileDescriptorNames =
         CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fileDescriptorSet).stream()
             .map(FileDescriptor::getFullName)

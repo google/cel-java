@@ -27,17 +27,18 @@ import java.util.NoSuchElementException;
 public final class RegistryUtils {
 
   /** Returns the {@link TypeRegistry} for the given file descriptor set. */
-  public static TypeRegistry getTypeRegistry() throws IOException {
+  public static TypeRegistry getTypeRegistry(String fileDescriptorSetPath) throws IOException {
     return TypeRegistry.newBuilder()
-        .add(getAllDescriptorsFromJvm().messageTypeDescriptors())
+        .add(getAllDescriptorsFromJvm(fileDescriptorSetPath).messageTypeDescriptors())
         .build();
   }
 
   /** Returns the {@link ExtensionRegistry} for the given file descriptor set. */
-  public static ExtensionRegistry getExtensionRegistry() throws IOException {
+  public static ExtensionRegistry getExtensionRegistry(String fileDescriptorSetPath)
+      throws IOException {
     ExtensionRegistry extensionRegistry = ExtensionRegistry.newInstance();
 
-    getAllDescriptorsFromJvm()
+    getAllDescriptorsFromJvm(fileDescriptorSetPath)
         .extensionDescriptors()
         .forEach(
             (descriptorName, descriptor) -> {

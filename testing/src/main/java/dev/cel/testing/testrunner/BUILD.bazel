@@ -42,6 +42,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":cel_expression_source",
         ":cel_test_context",
         ":cel_test_suite",
         ":test_runner_library",
@@ -55,11 +56,11 @@ java_library(
     tags = [
     ],
     deps = [
+        ":cel_expression_source",
         ":cel_test_context",
         ":cel_test_suite",
         ":registry_utils",
         ":result_matcher",
-        "//:auto_value",
         "//bundle:cel",
         "//bundle:environment",
         "//bundle:environment_yaml_parser",
@@ -129,6 +130,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":cel_expression_source",
         ":default_result_matcher",
         ":result_matcher",
         "//:auto_value",
@@ -204,6 +206,16 @@ java_library(
     name = "annotations",
     srcs = ["Annotations.java"],
     tags = [
+    ],
+)
+
+java_library(
+    name = "cel_expression_source",
+    srcs = ["CelExpressionSource.java"],
+    tags = [
+    ],
+    deps = [
+        "//:auto_value",
     ],
 )
 
