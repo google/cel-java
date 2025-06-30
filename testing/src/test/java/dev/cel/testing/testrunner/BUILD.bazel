@@ -76,6 +76,25 @@ java_library(
     ],
 )
 
+java_test(
+    name = "library_test",
+    srcs = ["TestRunnerLibraryTest.java"],
+    data = ["//testing/src/test/resources/policy:policy_yaml_files"],
+    test_class = "dev.cel.testing.testrunner.TestRunnerLibraryTest",
+    deps = [
+        "//:java_truth",
+        "//bundle:cel",
+        "//runtime",
+        "//runtime:function_binding",
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_test_suite",
+        "//testing/testrunner:test_runner_library",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
 # java_test(
 #     name = "junit_xml_reporter_test",
 #     srcs = ["JUnitXmlReporterTest.java"],
@@ -142,6 +161,15 @@ cel_java_test(
     test_data_path = "//testing/src/test/resources/policy",
     test_src = ":late_function_binding_user_test",
     test_suite = "late_function_binding/tests.yaml",
+)
+
+cel_java_test(
+    name = "late_function_binding_test_runner_textproto_sample",
+    cel_expr = "late_function_binding/policy.yaml",
+    config = "late_function_binding/config.yaml",
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":late_function_binding_user_test",
+    test_suite = "late_function_binding/tests.textproto",
 )
 
 # cel_java_test(
@@ -286,15 +314,6 @@ cel_java_test(
 #         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
 #     ],
 # )
-
-cel_java_test(
-    name = "late_function_binding_test_runner_textproto_sample",
-    cel_expr = "late_function_binding/policy.yaml",
-    config = "late_function_binding/config.yaml",
-    test_data_path = "//testing/src/test/resources/policy",
-    test_src = ":late_function_binding_user_test",
-    test_suite = "late_function_binding/tests.textproto",
-)
 
 # cel_java_test(
 #     name = "context_message_user_test_runner_textproto_sample",
