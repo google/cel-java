@@ -18,16 +18,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.runtime.standard.CelStandardFunction;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
@@ -37,7 +41,7 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
   private final ImmutableList<CelFunctionBinding> customFunctionBindings;
   private final ImmutableSet<CelStandardFunction> celStandardFunctions;
   private final CelValueProvider celValueProvider;
-  private final boolean enablePlanner;
+  private final @Nullable ProgramPlanner planner;
 
   // This does not affect the evaluation behavior in any manner.
   // CEL-Internal-4
@@ -46,8 +50,8 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
   @Override
   public Program createProgram(CelAbstractSyntaxTree ast) {
     checkState(ast.isChecked(), "programs must be created from checked expressions");
-    if (enablePlanner) {
-      return ProgramPlanner.plan(ast);
+    if (planner != null) {
+      return planner.plan(ast);
     } else {
       return LiteProgramImpl.create(interpreter.createInterpretable(ast));
     }
@@ -243,6 +247,19 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     this.celStandardFunctions = celStandardFunctions;
     this.runtimeLibraries = runtimeLibraries;
     this.celValueProvider = celValueProvider;
-    this.enablePlanner = enablePlanner;
+    if (enablePlanner) {
+      this.planner = new ProgramPlanner(new CelTypeProvider() {
+        @Override
+        public ImmutableCollection<CelType> types() {
+          return null;
+        }
+        @Override
+        public Optional<CelType> findType(String typeName) {
+          return Optional.empty();
+        }
+      });
+    } else {
+      this.planner = null;
+    }
   }
 }

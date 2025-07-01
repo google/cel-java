@@ -10,8 +10,7 @@ import dev.cel.common.values.CelValue;
  */
 @Immutable
 @Internal
-public interface CelValueInterpretable extends Interpretable{
+public interface CelValueInterpretable {
 
-  @Override
   CelValue eval(GlobalResolver resolver) throws CelEvaluationException;
 }

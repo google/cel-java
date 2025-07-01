@@ -6,18 +6,23 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelReference;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
+import dev.cel.common.values.TypeValue;
+import java.util.NoSuchElementException;
 
 @Immutable
 final class ProgramPlanner {
   private static final CelValueConverter DEFAULT_VALUE_CONVERTER = new CelValueConverter();
+  private final CelTypeProvider typeProvider;
 
-  private static CelValueInterpretable plan(CelExpr celExpr,
+  private CelValueInterpretable plan(CelExpr celExpr,
       ImmutableMap<Long, CelReference> referenceMap) {
     switch (celExpr.getKind()) {
       case CONSTANT:
-        return fromConstExpr(celExpr.constant());
+        return fromCelConstant(celExpr.constant());
       case IDENT:
         return planIdent(celExpr, referenceMap);
       case SELECT:
@@ -39,25 +44,32 @@ final class ProgramPlanner {
     throw new IllegalArgumentException("foo");
   }
 
-  private static CelValueInterpretable planIdent(CelExpr celExpr,
+  private CelValueInterpretable planIdent(CelExpr celExpr,
       ImmutableMap<Long, CelReference> referenceMap) {
     CelReference ref = referenceMap.get(celExpr.id());
     if (ref != null) {
       if (ref.value().isPresent()) {
-        return fromConstExpr(ref.value().get());
+        return fromCelConstant(ref.value().get());
       }
+
+      CelType type = typeProvider.findType(ref.name()).orElseThrow(() -> new NoSuchElementException("Reference to undefined type: " + ref.name()));
+      return new EvalConstant(TypeValue.create(type));
     }
 
     return null;
   }
 
-  static CelLiteRuntime.Program plan(CelAbstractSyntaxTree ast) {
+  private static EvalConstant fromCelConstant(CelConstant celConstant) {
+    CelValue celValue = DEFAULT_VALUE_CONVERTER.fromJavaObjectToCelValue(celConstant.objectValue());
+    return new EvalConstant(celValue);
+  }
+
+  CelLiteRuntime.Program plan(CelAbstractSyntaxTree ast) {
     CelValueInterpretable plannedInterpretable = plan(ast.getExpr(), ast.getReferenceMap());
     return CelValueProgram.create(plannedInterpretable);
   }
 
-  private static EvalConstant fromConstExpr(CelConstant celConstant) {
-    CelValue celValue = DEFAULT_VALUE_CONVERTER.fromJavaObjectToCelValue(celConstant.objectValue());
-    return new EvalConstant(celValue);
+  ProgramPlanner(CelTypeProvider typeProvider) {
+    this.typeProvider = typeProvider;
   }
 }
