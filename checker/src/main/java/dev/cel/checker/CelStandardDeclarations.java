@@ -68,7 +68,7 @@ public final class CelStandardDeclarations {
   private final ImmutableSet<CelIdentDecl> celIdentDecls;
 
   /** Enumeration of Standard Functions. */
-  enum StandardFunction {
+  public enum StandardFunction {
     // Internal (rewritten by macro)
     IN(Operator.IN, Overload.InternalOperator.IN_LIST, Overload.InternalOperator.IN_MAP),
     NOT_STRICTLY_FALSE(Operator.NOT_STRICTLY_FALSE, Overload.InternalOperator.NOT_STRICTLY_FALSE),
@@ -1477,7 +1477,7 @@ public final class CelStandardDeclarations {
       return newCelFunctionDecl(functionName, ImmutableSet.copyOf(overloads));
     }
 
-    CelFunctionDecl functionDecl() {
+    public CelFunctionDecl functionDecl() {
       return celFunctionDecl;
     }
 
@@ -1646,7 +1646,7 @@ public final class CelStandardDeclarations {
       }
     }
 
-    CelStandardDeclarations build() {
+    public CelStandardDeclarations build() {
       boolean hasIncludeFunctions = !this.includeFunctions.isEmpty();
       boolean hasExcludeFunctions = !this.excludeFunctions.isEmpty();
       boolean hasFilterFunction = this.functionFilter != null;

@@ -29,6 +29,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.bundle.CelEnvironment.ExtensionConfig;
 import dev.cel.bundle.CelEnvironment.FunctionDecl;
+import dev.cel.bundle.CelEnvironment.LibrarySubset;
+import dev.cel.bundle.CelEnvironment.LibrarySubset.FunctionSelector;
+import dev.cel.bundle.CelEnvironment.LibrarySubset.OverloadSelector;
 import dev.cel.bundle.CelEnvironment.OverloadDecl;
 import dev.cel.bundle.CelEnvironment.TypeDecl;
 import dev.cel.bundle.CelEnvironment.VariableDecl;
@@ -59,6 +62,8 @@ public final class CelEnvironmentYamlParser {
   private static final FunctionDecl ERROR_FUNCTION_DECL =
       FunctionDecl.create(ERROR, ImmutableSet.of());
   private static final ExtensionConfig ERROR_EXTENSION_DECL = ExtensionConfig.of(ERROR);
+  private static final FunctionSelector ERROR_FUNCTION_SELECTOR =
+      FunctionSelector.create(ERROR, ImmutableSet.of());
 
   /** Generates a new instance of {@code CelEnvironmentYamlParser}. */
   public static CelEnvironmentYamlParser newInstance() {
@@ -337,6 +342,155 @@ public final class CelEnvironmentYamlParser {
     return builder.build();
   }
 
+  private static LibrarySubset parseLibrarySubset(ParserContext<Node> ctx, Node node) {
+    LibrarySubset.Builder builder = LibrarySubset.newBuilder().setDisabled(false);
+    MappingNode subsetMap = (MappingNode) node;
+    for (NodeTuple nodeTuple : subsetMap.getValue()) {
+      Node keyNode = nodeTuple.getKeyNode();
+      long keyId = ctx.collectMetadata(keyNode);
+      Node valueNode = nodeTuple.getValueNode();
+      String keyName = ((ScalarNode) keyNode).getValue();
+      switch (keyName) {
+        case "disabled":
+          builder.setDisabled(newBoolean(ctx, valueNode));
+          break;
+        case "disable_macros":
+          builder.setMacrosDisabled(newBoolean(ctx, valueNode));
+          break;
+        case "include_macros":
+          builder.setIncludedMacros(parseMacroNameSet(ctx, valueNode));
+          break;
+        case "exclude_macros":
+          builder.setExcludedMacros(parseMacroNameSet(ctx, valueNode));
+          break;
+        case "include_functions":
+          builder.setIncludedFunctions(parseFunctionSelectors(ctx, valueNode));
+          break;
+        case "exclude_functions":
+          builder.setExcludedFunctions(parseFunctionSelectors(ctx, valueNode));
+          break;
+        default:
+          ctx.reportError(keyId, String.format("Unsupported library subset tag: %s", keyName));
+          break;
+      }
+    }
+    return builder.build();
+  }
+
+  private static ImmutableSet<String> parseMacroNameSet(ParserContext<Node> ctx, Node node) {
+    long valueId = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, valueId, node, YamlNodeType.LIST)) {
+      return ImmutableSet.of(ERROR);
+    }
+
+    ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+    SequenceNode nameListNode = (SequenceNode) node;
+    for (Node elementNode : nameListNode.getValue()) {
+      long elementId = ctx.collectMetadata(elementNode);
+      if (!assertYamlType(ctx, elementId, elementNode, YamlNodeType.STRING)) {
+        return ImmutableSet.of(ERROR);
+      }
+
+      builder.add(((ScalarNode) elementNode).getValue());
+    }
+    return builder.build();
+  }
+
+  private static ImmutableSet<FunctionSelector> parseFunctionSelectors(
+      ParserContext<Node> ctx, Node node) {
+    long valueId = ctx.collectMetadata(node);
+    ImmutableSet.Builder<FunctionSelector> functionSetBuilder = ImmutableSet.builder();
+    if (!assertYamlType(ctx, valueId, node, YamlNodeType.LIST)) {
+      return functionSetBuilder.build();
+    }
+
+    SequenceNode functionListNode = (SequenceNode) node;
+    for (Node elementNode : functionListNode.getValue()) {
+      functionSetBuilder.add(parseFunctionSelector(ctx, elementNode));
+    }
+
+    return functionSetBuilder.build();
+  }
+
+  private static FunctionSelector parseFunctionSelector(ParserContext<Node> ctx, Node node) {
+    FunctionSelector.Builder builder = FunctionSelector.newBuilder();
+    long functionId = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, functionId, node, YamlNodeType.MAP)) {
+      return ERROR_FUNCTION_SELECTOR;
+    }
+
+    MappingNode functionMap = (MappingNode) node;
+    for (NodeTuple nodeTuple : functionMap.getValue()) {
+      Node keyNode = nodeTuple.getKeyNode();
+      long keyId = ctx.collectMetadata(keyNode);
+      Node valueNode = nodeTuple.getValueNode();
+      String keyName = ((ScalarNode) keyNode).getValue();
+      switch (keyName) {
+        case "name":
+          builder.setName(newString(ctx, valueNode));
+          break;
+        case "overloads":
+          builder.setOverloads(parseFunctionOverloadsSelector(ctx, valueNode));
+          break;
+        default:
+          ctx.reportError(keyId, String.format("Unsupported function selector tag: %s", keyName));
+          break;
+      }
+    }
+
+    if (!assertRequiredFields(ctx, functionId, builder.getMissingRequiredFieldNames())) {
+      return ERROR_FUNCTION_SELECTOR;
+    }
+
+    return builder.build();
+  }
+
+  private static ImmutableSet<OverloadSelector> parseFunctionOverloadsSelector(
+      ParserContext<Node> ctx, Node node) {
+    long listId = ctx.collectMetadata(node);
+    ImmutableSet.Builder<OverloadSelector> overloadSetBuilder = ImmutableSet.builder();
+    if (!assertYamlType(ctx, listId, node, YamlNodeType.LIST)) {
+      return overloadSetBuilder.build();
+    }
+
+    SequenceNode overloadListNode = (SequenceNode) node;
+    for (Node overloadMapNode : overloadListNode.getValue()) {
+      long overloadMapId = ctx.collectMetadata(overloadMapNode);
+      if (!assertYamlType(ctx, overloadMapId, overloadMapNode, YamlNodeType.MAP)) {
+        continue;
+      }
+
+      MappingNode mapNode = (MappingNode) overloadMapNode;
+      OverloadSelector.Builder overloadDeclBuilder = OverloadSelector.newBuilder();
+      for (NodeTuple nodeTuple : mapNode.getValue()) {
+        Node keyNode = nodeTuple.getKeyNode();
+        long keyId = ctx.collectMetadata(keyNode);
+        if (!assertYamlType(ctx, keyId, keyNode, YamlNodeType.STRING, YamlNodeType.TEXT)) {
+          continue;
+        }
+
+        Node valueNode = nodeTuple.getValueNode();
+        String fieldName = ((ScalarNode) keyNode).getValue();
+        switch (fieldName) {
+          case "id":
+            overloadDeclBuilder.setId(newString(ctx, valueNode));
+            break;
+          default:
+            ctx.reportError(
+                keyId, String.format("Unsupported overload selector tag: %s", fieldName));
+            break;
+        }
+      }
+
+      if (assertRequiredFields(
+          ctx, overloadMapId, overloadDeclBuilder.getMissingRequiredFieldNames())) {
+        overloadSetBuilder.add(overloadDeclBuilder.build());
+      }
+    }
+
+    return overloadSetBuilder.build();
+  }
+
   private static @Nullable Integer tryParse(String str) {
     try {
       return Integer.parseInt(str);
@@ -476,6 +630,9 @@ public final class CelEnvironmentYamlParser {
             break;
           case "extensions":
             builder.addExtensions(parseExtensions(ctx, valueNode));
+            break;
+          case "stdlib":
+            builder.setStandardLibrarySubset(parseLibrarySubset(ctx, valueNode));
             break;
           default:
             ctx.reportError(id, "Unknown config tag: " + fieldName);

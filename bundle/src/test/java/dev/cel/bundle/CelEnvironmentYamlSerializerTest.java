@@ -23,6 +23,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import dev.cel.bundle.CelEnvironment.ExtensionConfig;
 import dev.cel.bundle.CelEnvironment.FunctionDecl;
+import dev.cel.bundle.CelEnvironment.LibrarySubset;
+import dev.cel.bundle.CelEnvironment.LibrarySubset.FunctionSelector;
 import dev.cel.bundle.CelEnvironment.OverloadDecl;
 import dev.cel.bundle.CelEnvironment.TypeDecl;
 import dev.cel.bundle.CelEnvironment.VariableDecl;
@@ -106,12 +108,25 @@ public final class CelEnvironmentYamlSerializerTest {
                                 .setArguments(ImmutableList.of(TypeDecl.create("int")))
                                 .setReturnType(TypeDecl.create("int"))
                                 .build()))))
+            .setStandardLibrarySubset(
+                LibrarySubset.newBuilder()
+                    .setDisabled(true)
+                    .setMacrosDisabled(true)
+                    .setIncludedMacros(ImmutableSet.of("has", "exists"))
+                    .setIncludedFunctions(
+                        ImmutableSet.of(
+                            FunctionSelector.create("_!=_", ImmutableSet.of()),
+                            FunctionSelector.create(
+                                "_+_", ImmutableSet.of("add_bytes", "add_list"))))
+                    .build())
             .build();
 
     String yamlOutput = CelEnvironmentYamlSerializer.toYaml(environment);
     try {
       String yamlFileContent = readFile("environment/dump_env.yaml");
-      assertThat(yamlFileContent).endsWith(yamlOutput);
+      // Strip the license at the beginning of the file
+      String expectedOutput = yamlFileContent.replaceAll("#.*\\n", "").replaceAll("^\\n", "");
+      assertThat(yamlOutput).isEqualTo(expectedOutput);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -120,5 +135,40 @@ public final class CelEnvironmentYamlSerializerTest {
   private static String readFile(String path) throws IOException {
     URL url = Resources.getResource(Ascii.toLowerCase(path));
     return Resources.toString(url, UTF_8);
+  }
+
+  @Test
+  public void standardLibrary_excludeMacrosAndFunctions() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setName("dump_env")
+            .setStandardLibrarySubset(
+                LibrarySubset.newBuilder()
+                    .setDisabled(false)
+                    .setExcludedMacros(ImmutableSet.of("has", "exists"))
+                    .setExcludedFunctions(
+                        ImmutableSet.of(
+                            FunctionSelector.create("_!=_", ImmutableSet.of()),
+                            FunctionSelector.create(
+                                "_+_", ImmutableSet.of("add_bytes", "add_list"))))
+                    .build())
+            .build();
+
+    String yamlOutput = CelEnvironmentYamlSerializer.toYaml(environment);
+
+    String expectedYaml =
+        "name: dump_env\n"
+            + "stdlib:\n"
+            + "  exclude_macros:\n"
+            + "  - exists\n"
+            + "  - has\n"
+            + "  exclude_functions:\n"
+            + "  - name: _!=_\n"
+            + "  - name: _+_\n"
+            + "    overloads:\n"
+            + "    - id: add_bytes\n"
+            + "    - id: add_list\n";
+
+    assertThat(yamlOutput).isEqualTo(expectedYaml);
   }
 }

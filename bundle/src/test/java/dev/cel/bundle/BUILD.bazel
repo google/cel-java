@@ -12,6 +12,7 @@ java_library(
     resources = [
         "//testing/environment:dump_env",
         "//testing/environment:extended_env",
+        "//testing/environment:library_subset_env",
     ],
     deps = [
         "//:java_truth",

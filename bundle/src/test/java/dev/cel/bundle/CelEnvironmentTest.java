@@ -15,13 +15,20 @@
 package dev.cel.bundle;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.bundle.CelEnvironment.CanonicalCelExtension;
 import dev.cel.bundle.CelEnvironment.ExtensionConfig;
+import dev.cel.bundle.CelEnvironment.LibrarySubset;
+import dev.cel.bundle.CelEnvironment.LibrarySubset.FunctionSelector;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelValidationResult;
+import dev.cel.compiler.CelCompiler;
+import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.parser.CelStandardMacro;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -67,5 +74,203 @@ public class CelEnvironmentTest {
     assertThat(extensionConfigs.size()).isEqualTo(CelEnvironment.CEL_EXTENSION_CONFIG_MAP.size());
     assertThat(extensionConfigs.size()).isEqualTo(CanonicalCelExtension.values().length);
     assertThat(result).isTrue();
+  }
+
+  @Test
+  public void stdlibSubset_bothIncludeExcludeSet_throws() {
+    assertThat(
+            assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                    CelEnvironment.newBuilder()
+                        .setStandardLibrarySubset(
+                            LibrarySubset.newBuilder()
+                                .setDisabled(false)
+                                .setIncludedMacros(ImmutableSet.of("foo"))
+                                .setExcludedMacros(ImmutableSet.of("bar"))
+                                .build())
+                        .build()))
+        .hasMessageThat()
+        .contains("cannot both include and exclude macros");
+
+    assertThat(
+            assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                    CelEnvironment.newBuilder()
+                        .setStandardLibrarySubset(
+                            LibrarySubset.newBuilder()
+                                .setDisabled(false)
+                                .setIncludedFunctions(
+                                    ImmutableSet.of(
+                                        FunctionSelector.create("foo", ImmutableSet.of())))
+                                .setExcludedFunctions(
+                                    ImmutableSet.of(
+                                        FunctionSelector.create("bar", ImmutableSet.of())))
+                                .build())
+                        .build()))
+        .hasMessageThat()
+        .contains("cannot both include and exclude functions");
+  }
+
+  @Test
+  public void stdlibSubset_disabled() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setStandardLibrarySubset(LibrarySubset.newBuilder().setDisabled(true).build())
+            .build();
+
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelCompiler extendedCompiler = environment.extend(compiler, CelOptions.DEFAULT);
+    CelValidationResult result = extendedCompiler.compile("1 != 2");
+    assertThat(result.getErrorString()).contains("undeclared reference to '_!=_'");
+  }
+
+  @Test
+  public void stdlibSubset_macrosDisabled() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setStandardLibrarySubset(
+                LibrarySubset.newBuilder().setDisabled(false).setMacrosDisabled(true).build())
+            .build();
+
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelCompiler extendedCompiler = environment.extend(compiler, CelOptions.DEFAULT);
+    CelValidationResult result =
+        extendedCompiler.compile("['hello', 'world'].exists(v, v == 'hello')");
+    assertThat(result.getErrorString()).contains("undeclared reference to 'exists'");
+  }
+
+  @Test
+  public void stdlibSubset_macrosIncluded() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setStandardLibrarySubset(
+                LibrarySubset.newBuilder()
+                    .setDisabled(false)
+                    .setIncludedMacros(ImmutableSet.of(CelStandardMacro.EXISTS.getFunction()))
+                    .build())
+            .build();
+
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelCompiler extendedCompiler = environment.extend(compiler, CelOptions.DEFAULT);
+    CelValidationResult result =
+        extendedCompiler.compile("['hello', 'world'].exists(v, v == 'hello')");
+    assertThat(result.hasError()).isFalse();
+
+    result = extendedCompiler.compile("['hello', 'world'].exists_one(v, v == 'hello')");
+    assertThat(result.getErrorString()).contains("undeclared reference to 'exists_one'");
+  }
+
+  @Test
+  public void stdlibSubset_macrosExcluded() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setStandardLibrarySubset(
+                LibrarySubset.newBuilder()
+                    .setDisabled(false)
+                    .setExcludedMacros(ImmutableSet.of(CelStandardMacro.EXISTS_ONE.getFunction()))
+                    .build())
+            .build();
+
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelCompiler extendedCompiler = environment.extend(compiler, CelOptions.DEFAULT);
+    CelValidationResult result =
+        extendedCompiler.compile("['hello', 'world'].exists(v, v == 'hello')");
+    assertThat(result.hasError()).isFalse();
+
+    result = extendedCompiler.compile("['hello', 'world'].exists_one(v, v == 'hello')");
+    assertThat(result.getErrorString()).contains("undeclared reference to 'exists_one'");
+  }
+
+  @Test
+  public void stdlibSubset_functionsIncluded() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setStandardLibrarySubset(
+                LibrarySubset.newBuilder()
+                    .setDisabled(false)
+                    .setIncludedFunctions(
+                         ImmutableSet.of(
+                             FunctionSelector.create("_==_", ImmutableSet.of()),
+                             FunctionSelector.create("_!=_", ImmutableSet.of()),
+                             FunctionSelector.create("_&&_", ImmutableSet.of())))
+                    .build())
+            .build();
+
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelCompiler extendedCompiler = environment.extend(compiler, CelOptions.DEFAULT);
+    CelValidationResult result = extendedCompiler.compile("1 == 1 && 1 != 2");
+    assertThat(result.hasError()).isFalse();
+
+    result = extendedCompiler.compile("1 == 1 && 1 != 1 + 1");
+    assertThat(result.getErrorString()).contains("undeclared reference to '_+_'");
+  }
+
+  @Test
+  public void stdlibSubset_functionOverloadIncluded() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setStandardLibrarySubset(
+                LibrarySubset.newBuilder()
+                    .setDisabled(false)
+                    .setIncludedFunctions(
+                        ImmutableSet.of(
+                            FunctionSelector.create("_+_", ImmutableSet.of("add_int64"))))
+                    .build())
+            .build();
+
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelCompiler extendedCompiler = environment.extend(compiler, CelOptions.DEFAULT);
+    CelValidationResult result = extendedCompiler.compile("1 + 2");
+    assertThat(result.hasError()).isFalse();
+
+    result = extendedCompiler.compile("1.0 + 2.0");
+    assertThat(result.getErrorString())
+        .contains("found no matching overload for '_+_' applied to '(double, double)'");
+  }
+
+  @Test
+  public void stdlibSubset_functionsExcluded() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setStandardLibrarySubset(
+                LibrarySubset.newBuilder()
+                    .setDisabled(false)
+                    .setExcludedFunctions(
+                        ImmutableSet.of(
+                            FunctionSelector.create("_+_", ImmutableSet.of())))
+                    .build())
+            .build();
+
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelCompiler extendedCompiler = environment.extend(compiler, CelOptions.DEFAULT);
+    CelValidationResult result = extendedCompiler.compile("1 == 1 && 1 != 2");
+    assertThat(result.hasError()).isFalse();
+
+    result = extendedCompiler.compile("1 == 1 && 1 != 1 + 1");
+    assertThat(result.getErrorString()).contains("undeclared reference to '_+_'");
+  }
+
+  @Test
+  public void stdlibSubset_functionOverloadExcluded() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setStandardLibrarySubset(
+                LibrarySubset.newBuilder()
+                    .setDisabled(false)
+                    .setExcludedFunctions(
+                        ImmutableSet.of(
+                            FunctionSelector.create("_+_", ImmutableSet.of("add_int64"))))
+                    .build())
+            .build();
+
+    CelCompiler compiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelCompiler extendedCompiler = environment.extend(compiler, CelOptions.DEFAULT);
+    CelValidationResult result = extendedCompiler.compile("1 == 1 && 1 != 2");
+    assertThat(result.hasError()).isFalse();
+
+    result = extendedCompiler.compile("1 == 1 && 1 != 1 + 1");
+    assertThat(result.getErrorString()).contains("found no matching overload for '_+_'");
   }
 }

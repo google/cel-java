@@ -17,6 +17,7 @@ package dev.cel.bundle;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
@@ -25,6 +26,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
+import dev.cel.bundle.CelEnvironment.LibrarySubset.FunctionSelector;
+import dev.cel.checker.CelStandardDeclarations;
+import dev.cel.checker.CelStandardDeclarations.StandardFunction;
+import dev.cel.checker.CelStandardDeclarations.StandardOverload;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
@@ -41,6 +46,7 @@ import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
+import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelRuntimeBuilder;
 import java.util.Arrays;
 import java.util.Optional;
@@ -97,6 +103,9 @@ public abstract class CelEnvironment {
   /** New function declarations to add in the compilation environment. */
   public abstract ImmutableSet<FunctionDecl> functions();
 
+  /** Standard library subset (which macros, functions to include/exclude) */
+  public abstract Optional<LibrarySubset> standardLibrarySubset();
+
   /** Builder for {@link CelEnvironment}. */
   @AutoValue.Builder
   public abstract static class Builder {
@@ -141,8 +150,28 @@ public abstract class CelEnvironment {
 
     public abstract Builder setFunctions(ImmutableSet<FunctionDecl> functions);
 
+    public abstract Builder setStandardLibrarySubset(LibrarySubset stdLibrarySubset);
+
+    abstract CelEnvironment autoBuild();
+
     @CheckReturnValue
-    public abstract CelEnvironment build();
+    public final CelEnvironment build() {
+      CelEnvironment env = autoBuild();
+      LibrarySubset librarySubset = env.standardLibrarySubset().orElse(null);
+      if (librarySubset != null) {
+        if (!librarySubset.includedMacros().isEmpty()
+            && !librarySubset.excludedMacros().isEmpty()) {
+          throw new IllegalArgumentException(
+              "Invalid subset: cannot both include and exclude macros");
+        }
+        if (!librarySubset.includedFunctions().isEmpty()
+            && !librarySubset.excludedFunctions().isEmpty()) {
+          throw new IllegalArgumentException(
+              "Invalid subset: cannot both include and exclude functions");
+        }
+      }
+      return env;
+    }
   }
 
   /** Creates a new builder to construct a {@link CelEnvironment} instance. */
@@ -180,6 +209,8 @@ public abstract class CelEnvironment {
 
       addAllCompilerExtensions(compilerBuilder, celOptions);
 
+      applyStandardLibrarySubset(compilerBuilder);
+
       return compilerBuilder.build();
     } catch (RuntimeException e) {
       throw new CelEnvironmentException(e.getMessage(), e);
@@ -216,6 +247,67 @@ public abstract class CelEnvironment {
       CanonicalCelExtension extension = getExtensionOrThrow(extensionConfig.name());
       extension.addRuntimeExtension(celRuntimeBuilder, celOptions);
     }
+  }
+
+  private void applyStandardLibrarySubset(CelCompilerBuilder compilerBuilder) {
+    if (!standardLibrarySubset().isPresent()) {
+      return;
+    }
+
+    LibrarySubset librarySubset = standardLibrarySubset().get();
+    if (librarySubset.disabled()) {
+      compilerBuilder.setStandardEnvironmentEnabled(false);
+      return;
+    }
+
+    if (librarySubset.macrosDisabled()) {
+      compilerBuilder.setStandardMacros(ImmutableList.of());
+    } else if (!librarySubset.includedMacros().isEmpty()) {
+      compilerBuilder.setStandardMacros(
+          librarySubset.includedMacros().stream()
+              .map(CelEnvironment::getStandardMacroOrThrow)
+              .collect(toImmutableSet()));
+    } else if (!librarySubset.excludedMacros().isEmpty()) {
+      ImmutableSet<CelStandardMacro> set =
+          librarySubset.excludedMacros().stream()
+              .map(CelEnvironment::getStandardMacroOrThrow)
+              .collect(toImmutableSet());
+      compilerBuilder.setStandardMacros(
+          CelStandardMacro.STANDARD_MACROS.stream()
+              .filter(macro -> !set.contains(macro))
+              .collect(toImmutableSet()));
+    }
+
+    if (!librarySubset.includedFunctions().isEmpty()) {
+      ImmutableSet<FunctionSelector> includedFunctions = librarySubset.includedFunctions();
+      compilerBuilder
+          .setStandardEnvironmentEnabled(false)
+          .setStandardDeclarations(
+              CelStandardDeclarations.newBuilder()
+                  .filterFunctions(
+                      (function, overload) ->
+                          FunctionSelector.matchesAny(function, overload, includedFunctions))
+                  .build());
+    } else if (!librarySubset.excludedFunctions().isEmpty()) {
+      ImmutableSet<FunctionSelector> excludedFunctions = librarySubset.excludedFunctions();
+      compilerBuilder
+          .setStandardEnvironmentEnabled(false)
+          .setStandardDeclarations(
+              CelStandardDeclarations.newBuilder()
+                  .filterFunctions(
+                      (function, overload) ->
+                          !FunctionSelector.matchesAny(function, overload, excludedFunctions))
+                  .build());
+    }
+  }
+
+  private static CelStandardMacro getStandardMacroOrThrow(String macroName) {
+    for (CelStandardMacro macro : CelStandardMacro.STANDARD_MACROS) {
+      if (macro.getFunction().equals(macroName)) {
+        return macro;
+      }
+    }
+    throw new IllegalArgumentException("unrecognized standard macro `" + macroName + "'");
   }
 
   private static CanonicalCelExtension getExtensionOrThrow(String extensionName) {
@@ -622,6 +714,181 @@ public abstract class CelEnvironment {
         RuntimeExtensionApplier runtimeExtensionApplier) {
       this.compilerExtensionApplier = compilerExtensionApplier;
       this.runtimeExtensionApplier = runtimeExtensionApplier;
+    }
+  }
+
+  /**
+   * LibrarySubset indicates a subset of the macros and function supported by a subsettable
+   * library.
+   */
+  @AutoValue
+  public abstract static class LibrarySubset {
+
+    /**
+     * Disabled indicates whether the library has been disabled, typically only used for
+     * default-enabled libraries like stdlib.
+     */
+    public abstract boolean disabled();
+
+    /** DisableMacros disables macros for the given library. */
+    public abstract boolean macrosDisabled();
+
+    /** IncludeMacros specifies a set of macro function names to include in the subset. */
+    public abstract ImmutableSet<String> includedMacros();
+
+    /**
+     * ExcludeMacros specifies a set of macro function names to exclude from the subset.
+     *
+     * <p>Note: if IncludedMacros is non-empty, then ExcludedMacros is ignored.
+     */
+    public abstract ImmutableSet<String> excludedMacros();
+
+    /**
+     * IncludeFunctions specifies a set of functions to include in the subset.
+     *
+     * <p>Note: the overloads specified in the subset need only specify their ID.
+     * <p>Note: if IncludedFunctions is non-empty, then ExcludedFunctions is ignored.
+     */
+    public abstract ImmutableSet<FunctionSelector> includedFunctions();
+
+    /**
+     * ExcludeFunctions specifies the set of functions to exclude from the subset.
+     *
+     * <p>Note: the overloads specified in the subset need only specify their ID.
+     */
+    public abstract ImmutableSet<FunctionSelector> excludedFunctions();
+
+    public static Builder newBuilder() {
+      return new AutoValue_CelEnvironment_LibrarySubset.Builder()
+          .setMacrosDisabled(false)
+          .setIncludedMacros(ImmutableSet.of())
+          .setExcludedMacros(ImmutableSet.of())
+          .setIncludedFunctions(ImmutableSet.of())
+          .setExcludedFunctions(ImmutableSet.of());
+    }
+
+    /** Builder for {@link LibrarySubset}. */
+    @AutoValue.Builder
+    public abstract static class Builder {
+
+      public abstract Builder setDisabled(boolean disabled);
+
+      public abstract Builder setMacrosDisabled(boolean disabled);
+
+      public abstract Builder setIncludedMacros(ImmutableSet<String> includedMacros);
+
+      public abstract Builder setExcludedMacros(ImmutableSet<String> excludedMacros);
+
+      public abstract Builder setIncludedFunctions(
+          ImmutableSet<FunctionSelector> includedFunctions);
+
+      public abstract Builder setExcludedFunctions(
+          ImmutableSet<FunctionSelector> excludedFunctions);
+
+      @CheckReturnValue
+      public abstract LibrarySubset build();
+    }
+
+    /**
+     * Represents a function selector, which can be used to configure included/excluded library
+     * functions.
+     */
+    @AutoValue
+    public abstract static class FunctionSelector {
+
+      public abstract String name();
+
+      public abstract ImmutableSet<OverloadSelector> overloads();
+
+      /** Builder for {@link FunctionSelector}. */
+      @AutoValue.Builder
+      public abstract static class Builder implements RequiredFieldsChecker {
+
+        public abstract Optional<String> name();
+
+        public abstract Builder setName(String name);
+
+        public abstract Builder setOverloads(ImmutableSet<OverloadSelector> overloads);
+
+        @Override
+        public ImmutableList<RequiredField> requiredFields() {
+          return ImmutableList.of(RequiredField.of("name", this::name));
+        }
+
+        /** Builds a new instance of {@link FunctionSelector}. */
+        public abstract FunctionSelector build();
+      }
+
+      /** Creates a new builder to construct a {@link FunctionSelector} instance. */
+      public static FunctionSelector.Builder newBuilder() {
+        return new AutoValue_CelEnvironment_LibrarySubset_FunctionSelector.Builder()
+            .setOverloads(ImmutableSet.of());
+      }
+
+      public static FunctionSelector create(String name, ImmutableSet<String> overloads) {
+        return newBuilder()
+            .setName(name)
+            .setOverloads(
+                overloads.stream()
+                    .map(id -> OverloadSelector.newBuilder().setId(id).build())
+                    .collect(toImmutableSet()))
+            .build();
+      }
+
+      private static boolean matchesAny(
+          StandardFunction function,
+          StandardOverload overload,
+          ImmutableSet<FunctionSelector> selectors) {
+        String functionName = function.functionDecl().name();
+        for (FunctionSelector functionSelector : selectors) {
+          if (!functionSelector.name().equals(functionName)) {
+            continue;
+          }
+
+          if (functionSelector.overloads().isEmpty()) {
+            return true;
+          }
+
+          String overloadId = overload.celOverloadDecl().overloadId();
+          for (OverloadSelector overloadSelector : functionSelector.overloads()) {
+            if (overloadSelector.id().equals(overloadId)) {
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+    }
+
+    /** Represents an overload selector on a function selector. */
+    @AutoValue
+    public abstract static class OverloadSelector {
+
+      /** An overload ID. Required. Follows the same format as {@link OverloadDecl#id()} */
+      public abstract String id();
+
+      /** Builder for {@link OverloadSelector}. */
+      @AutoValue.Builder
+      public abstract static class Builder implements RequiredFieldsChecker {
+
+        public abstract Optional<String> id();
+
+        public abstract Builder setId(String overloadId);
+
+        @Override
+        public ImmutableList<RequiredField> requiredFields() {
+          return ImmutableList.of(RequiredField.of("id", this::id));
+        }
+
+        /** Builds a new instance of {@link OverloadSelector}. */
+        @CheckReturnValue
+        public abstract OverloadSelector build();
+      }
+
+      /** Creates a new builder to construct a {@link OverloadSelector} instance. */
+      public static OverloadSelector.Builder newBuilder() {
+        return new AutoValue_CelEnvironment_LibrarySubset_OverloadSelector.Builder();
+      }
     }
   }
 }

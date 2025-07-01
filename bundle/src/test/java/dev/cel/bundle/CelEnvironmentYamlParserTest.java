@@ -27,6 +27,8 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.bundle.CelEnvironment.ExtensionConfig;
 import dev.cel.bundle.CelEnvironment.FunctionDecl;
+import dev.cel.bundle.CelEnvironment.LibrarySubset;
+import dev.cel.bundle.CelEnvironment.LibrarySubset.FunctionSelector;
 import dev.cel.bundle.CelEnvironment.OverloadDecl;
 import dev.cel.bundle.CelEnvironment.TypeDecl;
 import dev.cel.bundle.CelEnvironment.VariableDecl;
@@ -585,6 +587,42 @@ public final class CelEnvironmentYamlParserTest {
         "ERROR: <input>:2:3: Missing required attribute(s): name\n"
             + " | - version: 0\n"
             + " | ..^"),
+    ILLEGAL_LIBRARY_SUBSET_TAG(
+        "name: 'test_suite_name'\n"
+            + "stdlib:\n"
+            + "  unknown_tag: 'test_value'\n",
+        "ERROR: <input>:3:3: Unsupported library subset tag: unknown_tag\n"
+            + " |   unknown_tag: 'test_value'\n"
+            + " | ..^"),
+    ILLEGAL_LIBRARY_SUBSET_FUNCTION_SELECTOR_TAG(
+        "name: 'test_suite_name'\n"
+            + "stdlib:\n"
+            + "  include_functions:\n"
+            + "    - name: 'test_function'\n"
+            + "      unknown_tag: 'test_value'\n",
+        "ERROR: <input>:5:7: Unsupported function selector tag: unknown_tag\n"
+            + " |       unknown_tag: 'test_value'\n"
+            + " | ......^"),
+    MISSING_LIBRARY_SUBSET_FUNCTION_SELECTOR_NAME(
+        "name: 'test_suite_name'\n"
+            + "stdlib:\n"
+            + "  include_functions:\n"
+            + "    - overloads:\n"
+            + "      - id: add_bytes\n",
+        "ERROR: <input>:4:7: Missing required attribute(s): name\n"
+            + " |     - overloads:\n"
+            + " | ......^"),
+    ILLEGAL_LIBRARY_SUBSET_OVERLOAD_SELECTOR_TAG(
+        "name: 'test_suite_name'\n"
+            + "stdlib:\n"
+            + "  include_functions:\n"
+            + "    - name: _+_\n"
+            + "      overloads:\n"
+            + "        - id: test_overload\n"
+            + "          unknown_tag: 'test_value'\n",
+        "ERROR: <input>:7:11: Unsupported overload selector tag: unknown_tag\n"
+            + " |           unknown_tag: 'test_value'\n"
+            + " | ..........^"),
     ;
 
     private final String yamlConfig;
@@ -706,6 +744,30 @@ public final class CelEnvironmentYamlParserTest {
                                     .build())
                             .setReturnType(TypeDecl.create("bool"))
                             .build())))
+            .build()),
+
+    LIBRARY_SUBSET_ENV(
+        "environment/subset_env.yaml",
+        CelEnvironment.newBuilder()
+            .setName("subset-env")
+            .setStandardLibrarySubset(
+                LibrarySubset.newBuilder()
+                    .setDisabled(false)
+                    .setExcludedMacros(ImmutableSet.of("map", "filter"))
+                    .setExcludedFunctions(
+                        ImmutableSet.of(
+                            FunctionSelector.create(
+                                "_+_", ImmutableSet.of("add_bytes", "add_list", "add_string")),
+                            FunctionSelector.create("matches", ImmutableSet.of()),
+                            FunctionSelector.create(
+                                "timestamp", ImmutableSet.of("string_to_timestamp")),
+                            FunctionSelector.create(
+                                "duration", ImmutableSet.of("string_to_duration"))))
+                    .build())
+            .setVariables(
+                VariableDecl.create("x", TypeDecl.create("int")),
+                VariableDecl.create("y", TypeDecl.create("double")),
+                VariableDecl.create("z", TypeDecl.create("uint")))
             .build()),
     ;
 

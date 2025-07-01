@@ -30,6 +30,11 @@ alias(
 )
 
 alias(
+    name = "library_subset_env",
+    actual = "//testing/src/test/resources/environment:library_subset_env",
+)
+
+alias(
     name = "proto2_message_variables",
     actual = "//testing/src/test/resources/environment:proto2_message_variables",
 )

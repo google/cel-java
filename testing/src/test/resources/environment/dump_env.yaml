@@ -61,3 +61,15 @@ functions:
     - type_name: int
     return:
       type_name: int
+stdlib:
+  disabled: true
+  disable_macros: true
+  include_macros:
+  - exists
+  - has
+  include_functions:
+  - name: _!=_
+  - name: _+_
+    overloads:
+    - id: add_bytes
+    - id: add_list
