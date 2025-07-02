@@ -16,6 +16,7 @@ package dev.cel.runtime;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Unknown set representation.
@@ -65,14 +66,8 @@ public abstract class CelUnknownSet {
 
   public static CelUnknownSet union(CelUnknownSet lhs, CelUnknownSet rhs) {
     return create(
-        ImmutableSet.<CelAttribute>builder()
-            .addAll(lhs.attributes())
-            .addAll(rhs.attributes())
-            .build(),
-        ImmutableSet.<Long>builder()
-            .addAll(lhs.unknownExprIds())
-            .addAll(rhs.unknownExprIds())
-            .build());
+        Sets.union(lhs.attributes(), rhs.attributes()).immutableCopy(),
+        Sets.union(lhs.unknownExprIds(), rhs.unknownExprIds()).immutableCopy());
   }
 
   public CelUnknownSet merge(CelUnknownSet rhs) {
