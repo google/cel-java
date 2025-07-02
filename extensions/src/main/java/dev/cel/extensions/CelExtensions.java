@@ -103,13 +103,22 @@ public final class CelExtensions {
    *
    * <p>This will include all functions denoted in {@link CelMathExtensions.Function}, including any
    * future additions. To expose only a subset of these, use {@link #math(CelOptions,
-   * CelMathExtensions.Function...)} instead.
+   * CelMathExtensions.Function...)} or {@link #math(CelOptions,int)} instead.
    *
    * @param celOptions CelOptions to configure CelMathExtension with. This should be the same
    *     options object used to configure the compilation/runtime environments.
    */
   public static CelMathExtensions math(CelOptions celOptions) {
-    return new CelMathExtensions(celOptions);
+    return new CelMathExtensions(celOptions, Integer.MAX_VALUE);
+  }
+
+  /**
+   * Returns the specified version of the 'math' extension.
+   *
+   * <p>Refer to README.md for functions available in each version.
+   */
+  public static CelMathExtensions math(CelOptions celOptions, int version) {
+    return new CelMathExtensions(celOptions, version);
   }
 
   /**
