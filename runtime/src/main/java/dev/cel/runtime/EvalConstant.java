@@ -15,7 +15,11 @@ final class EvalConstant implements CelValueInterpretable {
     return constant;
   }
 
-  EvalConstant(CelValue constant) {
+  static EvalConstant create(CelValue constant) {
+    return new EvalConstant(constant);
+  }
+
+  private EvalConstant(CelValue constant) {
     this.constant = constant;
   }
 }

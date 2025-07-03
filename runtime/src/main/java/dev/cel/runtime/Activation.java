@@ -58,6 +58,7 @@ public abstract class Activation implements GlobalResolver {
       @Override
       public @Nullable Object resolve(String theName) {
         if (theName.equals(name)) {
+          // TODO: Decouple
           return RuntimeHelpers.maybeAdaptPrimitive(value);
         }
         return null;
@@ -65,6 +66,7 @@ public abstract class Activation implements GlobalResolver {
 
       @Override
       public String toString() {
+        // TODO: Remove.
         if (value instanceof ByteString) {
           ByteString bs = (ByteString) value;
           StringBuilder val = new StringBuilder();

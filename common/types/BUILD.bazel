@@ -51,6 +51,11 @@ java_library(
 )
 
 java_library(
+    name = "default_type_provider",
+    exports = ["//common/src/main/java/dev/cel/common/types:default_type_provider"],
+)
+
+java_library(
     name = "cel_v1alpha1_types",
     visibility = ["//:internal"],
     exports = ["//common/src/main/java/dev/cel/common/types:cel_v1alpha1_types"],

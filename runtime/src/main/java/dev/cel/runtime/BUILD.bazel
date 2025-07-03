@@ -1212,7 +1212,13 @@ java_library(
     name = "eval_attribute",
     srcs = ["EvalAttribute.java"],
     deps = [
+        ":cel_value_interpretable",
+        ":evaluation_exception",
+        ":interpretable",
+        "//common/values",
+        "//common/values:cel_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
     ],
 )
 
@@ -1256,6 +1262,7 @@ java_library(
         ":activation",
         ":cel_value_interpretable",
         ":cel_value_program",
+        ":eval_attribute",
         ":eval_const",
         ":evaluation_exception",
         ":function_resolver",

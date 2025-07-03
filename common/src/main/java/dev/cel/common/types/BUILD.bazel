@@ -183,6 +183,18 @@ java_library(
     ],
 )
 
+java_library(
+    name = "default_type_provider",
+    srcs = [
+        "DefaultTypeProvider.java",
+    ],
+    deps = [
+        ":type_providers",
+        ":types",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
 cel_android_library(
     name = "cel_types_android",
     srcs = ["CelTypes.java"],

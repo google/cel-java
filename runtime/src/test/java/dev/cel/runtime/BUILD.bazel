@@ -48,6 +48,7 @@ java_library(
         "//common/internal:well_known_proto",
         "//common/types",
         "//common/types:cel_v1alpha1_types",
+        "//common/types:default_type_provider",
         "//common/types:message_type_provider",
         "//common/types:type_providers",
         "//common/values",
