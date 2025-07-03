@@ -1,9 +1,11 @@
-package dev.cel.runtime;
+package dev.cel.runtime.planner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
+import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.GlobalResolver;
 
 @Immutable
 final class EvalAttribute implements CelValueInterpretable {

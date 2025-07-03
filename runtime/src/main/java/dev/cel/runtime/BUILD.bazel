@@ -903,7 +903,6 @@ java_library(
         ":interpreter",
         ":lite_program_impl",
         ":lite_runtime",
-        ":program_planner",
         ":runtime_equality",
         ":runtime_helpers",
         ":type_resolver",
@@ -912,6 +911,7 @@ java_library(
         "//common:options",
         "//common/types:type_providers",
         "//common/values:cel_value_provider",
+        "//runtime/planner:program_planner",
         "//runtime/standard:standard_function",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -1193,88 +1193,4 @@ cel_android_library(
         ":unknown_attributes_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ]
-)
-
-java_library(
-    name = "eval_const",
-    srcs = ["EvalConstant.java"],
-    deps = [
-        ":cel_value_interpretable",
-        ":evaluation_exception",
-        ":interpretable",
-        "//common/values",
-        "//common/values:cel_value",
-        "@maven//:com_google_errorprone_error_prone_annotations",
-    ],
-)
-
-java_library(
-    name = "eval_attribute",
-    srcs = ["EvalAttribute.java"],
-    deps = [
-        ":cel_value_interpretable",
-        ":evaluation_exception",
-        ":interpretable",
-        "//common/values",
-        "//common/values:cel_value",
-        "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_guava_guava",
-    ],
-)
-
-java_library(
-    name = "cel_value_interpretable",
-    srcs = ["CelValueInterpretable.java"],
-    deps = [
-        ":evaluation_exception",
-        ":interpretable",
-        "//common/annotations",
-        "//common/values:cel_value",
-        "@maven//:com_google_errorprone_error_prone_annotations",
-    ],
-)
-
-java_library(
-    name = "cel_value_program",
-    srcs = ["CelValueProgram.java"],
-    tags = [
-    ],
-    deps = [
-        ":activation",
-        ":cel_value_interpretable",
-        ":evaluation_exception",
-        ":evaluation_listener",
-        ":function_resolver",
-        ":interpretable",
-        ":interpreter",
-        ":lite_runtime",
-        "//:auto_value",
-        "//common/values",
-        "//common/values:cel_value",
-        "@maven//:com_google_errorprone_error_prone_annotations",
-    ],
-)
-
-java_library(
-    name = "program_planner",
-    srcs = ["ProgramPlanner.java"],
-    deps = [
-        ":activation",
-        ":cel_value_interpretable",
-        ":cel_value_program",
-        ":eval_attribute",
-        ":eval_const",
-        ":evaluation_exception",
-        ":function_resolver",
-        ":interpretable",
-        ":lite_program_impl",
-        ":lite_runtime",
-        "//common:cel_ast",
-        "//common/ast",
-        "//common/types:type_providers",
-        "//common/values",
-        "//common/values:cel_value",
-        "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_guava_guava",
-    ],
 )

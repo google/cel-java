@@ -1,8 +1,9 @@
-package dev.cel.runtime;
+package dev.cel.runtime.planner;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelReference;
@@ -12,10 +13,12 @@ import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.TypeValue;
+import dev.cel.runtime.CelLiteRuntime.Program;
 import java.util.NoSuchElementException;
 
 @Immutable
-final class ProgramPlanner {
+@Internal
+public final class ProgramPlanner {
   private final CelTypeProvider typeProvider;
   private final CelValueConverter celValueConverter;
 
@@ -80,12 +83,19 @@ final class ProgramPlanner {
     return EvalConstant.create(celValue);
   }
 
-  CelLiteRuntime.Program plan(CelAbstractSyntaxTree ast) {
+  public Program plan(CelAbstractSyntaxTree ast) {
     CelValueInterpretable plannedInterpretable = plan(ast.getExpr(), ast.getTypeMap(), ast.getReferenceMap());
     return CelValueProgram.create(plannedInterpretable, celValueConverter);
   }
 
-  ProgramPlanner(
+  public static ProgramPlanner newPlanner(
+      CelTypeProvider typeProvider,
+      CelValueConverter celValueConverter
+  ) {
+    return new ProgramPlanner(typeProvider, celValueConverter);
+  }
+
+  private ProgramPlanner(
       CelTypeProvider typeProvider,
       CelValueConverter celValueConverter
   ) {

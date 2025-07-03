@@ -23,6 +23,7 @@ import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto2.TestAllTypes;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.runtime.CelLiteRuntime.Program;
+import dev.cel.runtime.planner.ProgramPlanner;
 import java.nio.charset.StandardCharsets;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,7 +36,7 @@ public final class ProgramPlannerTest {
           .addLibraries(CelOptionalLibrary.INSTANCE)
           .addMessageTypes(TestAllTypes.getDescriptor())
           .build();
-  private static ProgramPlanner PLANNER = new ProgramPlanner(
+  private static final ProgramPlanner PLANNER = ProgramPlanner.newPlanner(
       DefaultTypeProvider.create(),
       new CelValueConverter()
   );

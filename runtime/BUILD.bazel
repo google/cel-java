@@ -220,8 +220,3 @@ cel_android_library(
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:lite_runtime_impl_android"],
 )
-
-java_library(
-    name = "program_planner",
-    exports = ["//runtime/src/main/java/dev/cel/runtime:program_planner"],
-)

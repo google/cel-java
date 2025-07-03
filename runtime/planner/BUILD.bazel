@@ -1,0 +1,11 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "program_planner",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/planner:program_planner"],
+)
