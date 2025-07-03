@@ -21,6 +21,7 @@ import java.util.NoSuchElementException;
 public final class ProgramPlanner {
   private final CelTypeProvider typeProvider;
   private final CelValueConverter celValueConverter;
+  private final AttributeFactory attributeFactory;
 
   private CelValueInterpretable plan(CelExpr celExpr,
       ImmutableMap<Long, CelType> typeMap,
@@ -58,7 +59,11 @@ public final class ProgramPlanner {
       return planCheckedIdent(celExpr.id(), ref, typeMap);
     }
 
-    return EvalAttribute.newMaybeAttribute(celExpr.id(), celValueConverter, "", celExpr.ident().name());
+    return EvalAttribute.create(
+        celExpr.id(),
+        celValueConverter,
+        attributeFactory.newMaybeAttribute(celExpr.ident().name())
+    );
   }
 
   private CelValueInterpretable planCheckedIdent(
@@ -75,7 +80,7 @@ public final class ProgramPlanner {
       return EvalConstant.create(TypeValue.create(identType));
     }
 
-    return EvalAttribute.newAbsoluteAttribute(id, celValueConverter, identRef.name());
+    return EvalAttribute.create(id, celValueConverter, attributeFactory.newAbsoluteAttribute(identRef.name()));
   }
 
   private EvalConstant fromCelConstant(CelConstant celConstant) {
@@ -101,5 +106,6 @@ public final class ProgramPlanner {
   ) {
     this.typeProvider = typeProvider;
     this.celValueConverter = celValueConverter;
+    this.attributeFactory = AttributeFactory.newAttributeFactory("", celValueConverter, typeProvider);
   }
 }

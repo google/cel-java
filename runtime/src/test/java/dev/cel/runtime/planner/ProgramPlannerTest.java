@@ -1,4 +1,4 @@
-package dev.cel.runtime;
+package dev.cel.runtime.planner;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -23,7 +23,8 @@ import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto2.TestAllTypes;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.runtime.CelLiteRuntime.Program;
-import dev.cel.runtime.planner.ProgramPlanner;
+import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntimeFactory;
 import java.nio.charset.StandardCharsets;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -98,7 +99,6 @@ public final class ProgramPlannerTest {
     assertThat(result).isEqualTo(1);
   }
 
-
   @SuppressWarnings("ImmutableEnumChecker") // Test only
   private enum TypeLiteralTestCase {
     BOOL("bool", SimpleType.BOOL),
@@ -134,7 +134,6 @@ public final class ProgramPlannerTest {
 
     assertThat(result).isEqualTo(testCase.type);
   }
-
 
   @Test
   public void smokeTest() throws Exception {

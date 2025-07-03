@@ -11,6 +11,7 @@ java_library(
     name = "program_planner",
     srcs = ["ProgramPlanner.java"],
     deps = [
+        ":attribute_factory",
         ":cel_value_interpretable",
         ":cel_value_program",
         ":eval_attribute",
@@ -78,9 +79,33 @@ java_library(
 )
 
 java_library(
+    name = "attribute",
+    srcs = ["Attribute.java"],
+    deps = [
+        "//common/types:type_providers",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "attribute_factory",
+    srcs = ["AttributeFactory.java"],
+    deps = [
+        ":attribute",
+        "//common/types:type_providers",
+        "//common/values",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "eval_attribute",
     srcs = ["EvalAttribute.java"],
     deps = [
+        ":attribute",
         ":cel_value_interpretable",
         "//common/values",
         "//common/values:cel_value",
