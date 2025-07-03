@@ -3,7 +3,6 @@ package dev.cel.runtime.planner;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
-import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
 
 @Immutable
@@ -14,7 +13,7 @@ final class EvalAttribute implements CelValueInterpretable {
   private final Attribute attr;
 
   @Override
-  public CelValue eval(GlobalResolver resolver) throws CelEvaluationException {
+  public CelValue eval(GlobalResolver resolver) {
     Object obj = attr.resolve(resolver);
     return celValueConverter.fromJavaObjectToCelValue(obj);
   }

@@ -13,7 +13,7 @@ final class EvalConstant implements CelValueInterpretable {
 
 
   @Override
-  public CelValue eval(GlobalResolver resolver) throws CelEvaluationException {
+  public CelValue eval(GlobalResolver resolver) {
     return constant;
   }
 

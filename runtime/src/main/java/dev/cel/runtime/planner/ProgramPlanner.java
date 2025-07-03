@@ -88,6 +88,10 @@ public final class ProgramPlanner {
     return EvalConstant.create(celValue);
   }
 
+  private EvalCall planCall(CelExpr celExpr) {
+    return EvalCall.create();
+  }
+
   public Program plan(CelAbstractSyntaxTree ast) {
     CelValueInterpretable plannedInterpretable = plan(ast.getExpr(), ast.getTypeMap(), ast.getReferenceMap());
     return CelValueProgram.create(plannedInterpretable, celValueConverter);
