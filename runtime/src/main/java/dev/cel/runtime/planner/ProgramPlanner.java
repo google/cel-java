@@ -1,11 +1,12 @@
 package dev.cel.runtime.planner;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.errorprone.annotations.Immutable;
+import com.google.errorprone.annotations.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
+import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelType;
@@ -14,13 +15,17 @@ import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.TypeValue;
 import dev.cel.runtime.CelLiteRuntime.Program;
+import dev.cel.runtime.CelResolvedOverload;
+import dev.cel.runtime.Dispatcher;
+
 import java.util.NoSuchElementException;
 
-@Immutable
+@ThreadSafe
 @Internal
 public final class ProgramPlanner {
   private final CelTypeProvider typeProvider;
   private final CelValueConverter celValueConverter;
+  private final Dispatcher dispatcher;
   private final AttributeFactory attributeFactory;
 
   private CelValueInterpretable plan(CelExpr celExpr,
@@ -34,7 +39,7 @@ public final class ProgramPlanner {
       case SELECT:
         break;
       case CALL:
-        break;
+        return planCall(celExpr, referenceMap);
       case LIST:
         break;
       case STRUCT:
@@ -88,8 +93,22 @@ public final class ProgramPlanner {
     return EvalConstant.create(celValue);
   }
 
-  private EvalCall planCall(CelExpr celExpr) {
+  private EvalCall planCall(CelExpr celExpr, ImmutableMap<Long, CelReference> referenceMap) {
+    CelCall call = celExpr.call();
+    if (call.target().isPresent()) {
+
+    }
+
+    CelReference reference = referenceMap.get(celExpr.id());
+    if (reference != null) {
+
+    }
+
     return EvalCall.create();
+  }
+
+  private CelResolvedOverload resolveFunction() {
+    return null;
   }
 
   public Program plan(CelAbstractSyntaxTree ast) {
@@ -99,17 +118,20 @@ public final class ProgramPlanner {
 
   public static ProgramPlanner newPlanner(
       CelTypeProvider typeProvider,
-      CelValueConverter celValueConverter
+      CelValueConverter celValueConverter,
+      Dispatcher dispatcher
   ) {
-    return new ProgramPlanner(typeProvider, celValueConverter);
+    return new ProgramPlanner(typeProvider, celValueConverter, dispatcher);
   }
 
   private ProgramPlanner(
       CelTypeProvider typeProvider,
-      CelValueConverter celValueConverter
+      CelValueConverter celValueConverter,
+      Dispatcher dispatcher
   ) {
     this.typeProvider = typeProvider;
     this.celValueConverter = celValueConverter;
-    this.attributeFactory = AttributeFactory.newAttributeFactory("", celValueConverter, typeProvider);
+      this.dispatcher = dispatcher;
+      this.attributeFactory = AttributeFactory.newAttributeFactory("", celValueConverter, typeProvider);
   }
 }

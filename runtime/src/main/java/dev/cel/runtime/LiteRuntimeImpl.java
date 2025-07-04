@@ -258,7 +258,7 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
         public Optional<CelType> findType(String typeName) {
           return Optional.empty();
         }
-      }, null);
+      }, null, null);
     } else {
       this.planner = null;
     }

@@ -7,6 +7,8 @@ import com.google.common.primitives.UnsignedLong;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.DefaultTypeProvider;
@@ -26,6 +28,9 @@ import dev.cel.runtime.CelLiteRuntime.Program;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
 import java.nio.charset.StandardCharsets;
+
+import dev.cel.runtime.DefaultDispatcher;
+import dev.cel.runtime.Dispatcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -34,13 +39,21 @@ public final class ProgramPlannerTest {
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
           .addVar("int_var", SimpleType.INT)
+          .addFunctionDeclarations(CelFunctionDecl.newFunctionDeclaration(
+                "zero", CelOverloadDecl.newGlobalOverload("zero", SimpleType.INT)
+          ))
           .addLibraries(CelOptionalLibrary.INSTANCE)
           .addMessageTypes(TestAllTypes.getDescriptor())
           .build();
   private static final ProgramPlanner PLANNER = ProgramPlanner.newPlanner(
       DefaultTypeProvider.create(),
-      new CelValueConverter()
+      new CelValueConverter(),
+      newDispatcher()
   );
+
+  private static Dispatcher newDispatcher() {
+    return DefaultDispatcher.create();
+  }
 
   @TestParameter boolean isParseOnly;
 
@@ -134,6 +147,18 @@ public final class ProgramPlannerTest {
 
     assertThat(result).isEqualTo(testCase.type);
   }
+
+
+  @Test
+  public void planCall_zeroArgs() throws Exception {
+    CelAbstractSyntaxTree ast = compile("zero()");
+    Program program = PLANNER.plan(ast);
+
+    Long result = (Long) program.eval();
+
+    assertThat(result).isEqualTo(0L);
+  }
+
 
   @Test
   public void smokeTest() throws Exception {

@@ -22,6 +22,8 @@ import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
 import dev.cel.common.CelErrorCode;
+import dev.cel.common.annotations.Internal;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +36,8 @@ import java.util.Optional;
  * <p>Should be final, do not mock; mocking {@link Dispatcher} instead.
  */
 @ThreadSafe
-final class DefaultDispatcher implements Dispatcher, Registrar {
+@Internal
+public final class DefaultDispatcher implements Dispatcher, Registrar {
   public static DefaultDispatcher create() {
     return new DefaultDispatcher();
   }

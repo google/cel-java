@@ -16,6 +16,8 @@ package dev.cel.runtime;
 
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.MessageLite;
+import dev.cel.common.annotations.Internal;
+
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +26,8 @@ import java.util.Map;
  * and a function definition.
  */
 @Immutable
-interface ResolvedOverload {
+@Internal
+public interface ResolvedOverload {
 
   /** The overload id of the function. */
   String getOverloadId();
