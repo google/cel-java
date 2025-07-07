@@ -63,7 +63,7 @@ java_library(
         "//parser:unparser",
         "//runtime",
         "//runtime:activation",
-        "//runtime:dispatcher",
+        "//runtime:legacy_dispatcher",
         "//runtime:evaluation_exception_builder",
         "//runtime:evaluation_listener",
         "//runtime:function_binding",

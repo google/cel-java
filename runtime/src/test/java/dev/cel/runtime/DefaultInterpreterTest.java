@@ -73,7 +73,7 @@ public class DefaultInterpreterTest {
           }
         };
     CelAbstractSyntaxTree ast = celCompiler.compile("[1].all(x, [2].all(y, error()))").getAst();
-    DefaultDispatcher dispatcher = DefaultDispatcher.create();
+    LegacyDispatcher dispatcher = LegacyDispatcher.create();
     dispatcher.add("error", long.class, (args) -> new IllegalArgumentException("Always throws"));
     DefaultInterpreter defaultInterpreter =
         new DefaultInterpreter(new TypeResolver(), emptyProvider, dispatcher, CelOptions.DEFAULT);

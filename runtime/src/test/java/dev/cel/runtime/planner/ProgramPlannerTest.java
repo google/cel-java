@@ -2,6 +2,7 @@ package dev.cel.runtime.planner;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
 import com.google.testing.junit.testparameterinjector.TestParameter;
@@ -30,29 +31,31 @@ import dev.cel.runtime.CelRuntimeFactory;
 import java.nio.charset.StandardCharsets;
 
 import dev.cel.runtime.DefaultDispatcher;
-import dev.cel.runtime.Dispatcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public final class ProgramPlannerTest {
   private static final CelCompiler CEL_COMPILER =
-      CelCompilerFactory.standardCelCompilerBuilder()
-          .addVar("int_var", SimpleType.INT)
-          .addFunctionDeclarations(CelFunctionDecl.newFunctionDeclaration(
-                "zero", CelOverloadDecl.newGlobalOverload("zero", SimpleType.INT)
-          ))
-          .addLibraries(CelOptionalLibrary.INSTANCE)
-          .addMessageTypes(TestAllTypes.getDescriptor())
-          .build();
+          CelCompilerFactory.standardCelCompilerBuilder()
+              .addVar("int_var", SimpleType.INT)
+              .addVar("map_var", MapType.create(SimpleType.STRING, SimpleType.DYN))
+              .addFunctionDeclarations(CelFunctionDecl.newFunctionDeclaration(
+                      "zero", CelOverloadDecl.newGlobalOverload("zero", SimpleType.INT)
+              ))
+              .addLibraries(CelOptionalLibrary.INSTANCE)
+              .addMessageTypes(TestAllTypes.getDescriptor())
+              .build();
   private static final ProgramPlanner PLANNER = ProgramPlanner.newPlanner(
-      DefaultTypeProvider.create(),
-      new CelValueConverter(),
-      newDispatcher()
+          DefaultTypeProvider.create(),
+          new CelValueConverter(),
+          newDispatcher()
   );
 
-  private static Dispatcher newDispatcher() {
-    return DefaultDispatcher.create();
+  private static DefaultDispatcher newDispatcher() {
+    return DefaultDispatcher.newBuilder()
+            .add("zero", ImmutableList.of(), args -> 0L)
+            .build();
   }
 
   @TestParameter boolean isParseOnly;
@@ -148,7 +151,6 @@ public final class ProgramPlannerTest {
     assertThat(result).isEqualTo(testCase.type);
   }
 
-
   @Test
   public void planCall_zeroArgs() throws Exception {
     CelAbstractSyntaxTree ast = compile("zero()");
@@ -159,13 +161,24 @@ public final class ProgramPlannerTest {
     assertThat(result).isEqualTo(0L);
   }
 
+  @Test
+  public void planCall_mapIndex() throws Exception {
+    CelAbstractSyntaxTree ast = compile("map_var['key'][1]");
+    Program program = PLANNER.plan(ast);
+    ImmutableMap<Object, Object> mapVarPayload = ImmutableMap.of("key", ImmutableList.of(1L, 2L));
+
+    Long result = (Long) program.eval(ImmutableMap.of("map_var", mapVarPayload));
+
+    assertThat(result).isEqualTo(1L);
+  }
 
   @Test
   public void smokeTest() throws Exception {
-    CelAbstractSyntaxTree ast = compile("google.protobuf.Duration");
+    CelAbstractSyntaxTree ast = compile("map_var['key'][1]");
+    ImmutableMap<Object, Object> mapVarPayload = ImmutableMap.of("key", ImmutableList.of(1L, 2L));
     CelRuntime.Program program = CelRuntimeFactory.standardCelRuntimeBuilder().build().createProgram(ast);
 
-    TypeType result = (TypeType) program.eval();
+    Long result = (Long) program.eval(ImmutableMap.of("map_var", mapVarPayload));
 
     assertThat(result).isEqualTo(TypeType.create(SimpleType.UINT));
   }

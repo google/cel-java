@@ -52,7 +52,7 @@ public interface ResolvedOverload {
       if (arg == null) {
         // null can be assigned to messages, maps, and to objects.
         if (paramType != Object.class
-            && !MessageLite.class.isAssignableFrom(paramType)
+            && !MessageLite.class.isAssignableFrom(paramType) // TODO: Move to impl.
             && !Map.class.isAssignableFrom(paramType)) {
           return false;
         }

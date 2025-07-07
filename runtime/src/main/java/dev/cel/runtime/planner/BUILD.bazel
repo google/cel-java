@@ -15,8 +15,9 @@ java_library(
         ":cel_value_interpretable",
         ":cel_value_program",
         ":eval_attribute",
-        ":eval_call",
         ":eval_const",
+        ":eval_zero_arity",
+        "//:auto_value",
         "//common:cel_ast",
         "//common/annotations",
         "//common/ast",
@@ -24,8 +25,9 @@ java_library(
         "//common/values",
         "//common/values:cel_value",
         "//runtime:activation",
-        "//runtime:dispatcher",
+        "//runtime:default_dispatcher",
         "//runtime:evaluation_exception",
+        "//runtime:function_overload_impl",
         "//runtime:function_resolver",
         "//runtime:interpretable",
         "//runtime:late_function_binding",
@@ -120,12 +122,14 @@ java_library(
 )
 
 java_library(
-    name = "eval_call",
-    srcs = ["EvalCall.java"],
+    name = "eval_zero_arity",
+    srcs = ["EvalZeroArity.java"],
     deps = [
         ":cel_value_interpretable",
+        "//common/values",
         "//common/values:cel_value",
         "//runtime:evaluation_exception",
+        "//runtime:function_overload_impl",
         "//runtime:interpretable",
     ],
 )

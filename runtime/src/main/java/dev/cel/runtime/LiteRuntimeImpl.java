@@ -192,7 +192,7 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
 
       functionBindingsBuilder.putAll(customFunctionBindings);
 
-      DefaultDispatcher dispatcher = DefaultDispatcher.create();
+      LegacyDispatcher dispatcher = LegacyDispatcher.create();
       functionBindingsBuilder
           .buildOrThrow()
           .forEach(

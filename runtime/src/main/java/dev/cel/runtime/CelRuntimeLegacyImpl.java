@@ -287,7 +287,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
       functionBindingsBuilder.putAll(customFunctionBindings);
 
-      DefaultDispatcher dispatcher = DefaultDispatcher.create();
+      LegacyDispatcher dispatcher = LegacyDispatcher.create();
       functionBindingsBuilder
           .buildOrThrow()
           .forEach(
