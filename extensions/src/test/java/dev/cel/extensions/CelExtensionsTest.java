@@ -162,6 +162,7 @@ public class CelExtensionsTest {
             "math.bitNot",
             "math.bitShiftLeft",
             "math.bitShiftRight",
+            "math.sqrt",
             "charAt",
             "indexOf",
             "join",

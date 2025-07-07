@@ -25,6 +25,7 @@ import dev.cel.bundle.CelEnvironment.LibrarySubset;
 import dev.cel.bundle.CelEnvironment.LibrarySubset.FunctionSelector;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelValidationException;
 import dev.cel.common.CelValidationResult;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
@@ -52,14 +53,14 @@ public class CelEnvironmentTest {
   public void extend_allExtensions() throws Exception {
     ImmutableSet<ExtensionConfig> extensionConfigs =
         ImmutableSet.of(
-            ExtensionConfig.of("bindings"),
-            ExtensionConfig.of("encoders"),
-            ExtensionConfig.of("lists"),
-            ExtensionConfig.of("math"),
-            ExtensionConfig.of("optional"),
-            ExtensionConfig.of("protos"),
-            ExtensionConfig.of("sets"),
-            ExtensionConfig.of("strings"));
+            ExtensionConfig.latest("bindings"),
+            ExtensionConfig.latest("encoders"),
+            ExtensionConfig.latest("lists"),
+            ExtensionConfig.latest("math"),
+            ExtensionConfig.latest("optional"),
+            ExtensionConfig.latest("protos"),
+            ExtensionConfig.latest("sets"),
+            ExtensionConfig.latest("strings"));
     CelEnvironment environment =
         CelEnvironment.newBuilder().addExtensions(extensionConfigs).build();
 
@@ -74,6 +75,54 @@ public class CelEnvironmentTest {
     assertThat(extensionConfigs.size()).isEqualTo(CelEnvironment.CEL_EXTENSION_CONFIG_MAP.size());
     assertThat(extensionConfigs.size()).isEqualTo(CanonicalCelExtension.values().length);
     assertThat(result).isTrue();
+  }
+
+  @Test
+  public void extensionVersion_specific() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder().addExtensions(ExtensionConfig.of("math", 1)).build();
+
+    Cel cel = environment.extend(CelFactory.standardCelBuilder().build(), CelOptions.DEFAULT);
+    CelAbstractSyntaxTree ast1 = cel.compile("math.abs(-4)").getAst();
+    assertThat(cel.createProgram(ast1).eval()).isEqualTo(4);
+
+    // Version 1 of the 'math' extension does not include sqrt
+    assertThat(
+            assertThrows(
+                CelValidationException.class,
+                () -> {
+                  cel.compile("math.sqrt(4)").getAst();
+                }))
+        .hasMessageThat()
+        .contains("undeclared reference to 'sqrt'");
+  }
+
+  @Test
+  public void extensionVersion_latest() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .addExtensions(ExtensionConfig.latest("math"))
+            .build();
+
+    Cel cel = environment.extend(CelFactory.standardCelBuilder().build(), CelOptions.DEFAULT);
+    CelAbstractSyntaxTree ast = cel.compile("math.sqrt(4)").getAst();
+    double result = (double) cel.createProgram(ast).eval();
+    assertThat(result).isEqualTo(2.0);
+  }
+
+  @Test
+  public void extensionVersion_unsupportedVersion_throws() {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder().addExtensions(ExtensionConfig.of("math", -5)).build();
+
+    assertThat(
+            assertThrows(
+                CelEnvironmentException.class,
+                () -> {
+                  environment.extend(CelFactory.standardCelBuilder().build(), CelOptions.DEFAULT);
+                }))
+        .hasMessageThat()
+        .contains("Unsupported 'math' extension version -5");
   }
 
   @Test

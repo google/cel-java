@@ -674,6 +674,7 @@ public class CelMathExtensionsTest {
   @TestParameters("{expr: 'math.isNaN(-1.0/0.0)', expectedResult: false}")
   @TestParameters("{expr: 'math.isNaN(math.round(0.0/0.0))', expectedResult: true}")
   @TestParameters("{expr: 'math.isNaN(math.sign(0.0/0.0))', expectedResult: true}")
+  @TestParameters("{expr: 'math.isNaN(math.sqrt(-4))', expectedResult: true}")
   public void isNaN_success(String expr, boolean expectedResult) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
 
@@ -1163,5 +1164,20 @@ public class CelMathExtensionsTest {
     assertThat(e).hasMessageThat().contains("evaluation error");
     assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
     assertThat(e).hasCauseThat().hasMessageThat().contains("math.bitShiftRight() negative offset");
+  }
+
+  @Test
+  @TestParameters("{expr: 'math.sqrt(49.0)', expectedResult: 7.0}")
+  @TestParameters("{expr: 'math.sqrt(82)', expectedResult: 9.055385138137417}")
+  @TestParameters("{expr: 'math.sqrt(25u)', expectedResult: 5.0}")
+  @TestParameters("{expr: 'math.sqrt(0.0/0.0)', expectedResult: NaN}")
+  @TestParameters("{expr: 'math.sqrt(1.0/0.0)', expectedResult: Infinity}")
+  @TestParameters("{expr: 'math.sqrt(-1)', expectedResult: NaN}")
+  public void sqrt_success(String expr, double expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = CEL_UNSIGNED_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_UNSIGNED_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(expectedResult);
   }
 }

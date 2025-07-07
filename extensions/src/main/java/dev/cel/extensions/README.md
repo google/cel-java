@@ -334,6 +334,23 @@ Examples:
     math.isFinite(0.0/0.0)  // returns false
     math.isFinite(1.2)      // returns true
 
+### Math.sqrt
+
+Introduced at version: 2
+
+Returns the square root of the numeric type provided as input. If the value is
+NaN, the output is NaN. If the input is negative, the output is NaN.
+
+    math.sqrt(<double>) -> <double>
+    math.sqrt(<int>) -> <double>
+    math.sqrt(<uint>) -> <double>
+
+Examples:
+
+    math.sqrt(81.0)  // returns 9.0
+    math.sqrt(4)     // returns 2.0
+    math.sqrt(-4)    // returns NaN
+
 ## Protos
 
 Extended macros and functions for proto manipulation.

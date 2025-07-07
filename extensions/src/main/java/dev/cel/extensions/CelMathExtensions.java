@@ -89,6 +89,8 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
   private static final String MATH_BIT_LEFT_SHIFT_FUNCTION = "math.bitShiftLeft";
   private static final String MATH_BIT_RIGHT_SHIFT_FUNCTION = "math.bitShiftRight";
 
+  private static final String MATH_SQRT_FUNCTION = "math.sqrt";
+
   private static final int MAX_BIT_SHIFT = 63;
 
   /**
@@ -614,7 +616,80 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
                 "math_bitShiftRight_uint_int",
                 UnsignedLong.class,
                 Long.class,
-                CelMathExtensions::uintBitShiftRight)));
+                CelMathExtensions::uintBitShiftRight))),
+    SQRT(
+        CelFunctionDecl.newFunctionDeclaration(
+            MATH_SQRT_FUNCTION,
+            CelOverloadDecl.newGlobalOverload(
+                "math_sqrt_double",
+                "Computes square root of the double value.",
+                SimpleType.DOUBLE,
+                SimpleType.DOUBLE),
+            CelOverloadDecl.newGlobalOverload(
+                "math_sqrt_int",
+                "Computes square root of the int value.",
+                SimpleType.DOUBLE,
+                SimpleType.INT),
+            CelOverloadDecl.newGlobalOverload(
+                "math_sqrt_uint",
+                "Computes square root of the unsigned value.",
+                SimpleType.DOUBLE,
+                SimpleType.UINT)),
+        ImmutableSet.of(
+            CelFunctionBinding.from(
+                "math_sqrt_double", Double.class, CelMathExtensions::sqrtDouble),
+            CelFunctionBinding.from(
+                "math_sqrt_int", Long.class, CelMathExtensions::sqrtInt),
+            CelFunctionBinding.from(
+                "math_sqrt_uint", UnsignedLong.class, CelMathExtensions::sqrtUint)));
+
+    private static final ImmutableSet<Function> VERSION_0 = ImmutableSet.of(
+        MIN,
+        MAX);
+
+    private static final ImmutableSet<Function> VERSION_1 =
+        ImmutableSet.<Function>builder()
+            .addAll(VERSION_0)
+            .add(
+                CEIL,
+                FLOOR,
+                ROUND,
+                TRUNC,
+                ISINF,
+                ISNAN,
+                ISFINITE,
+                ABS,
+                SIGN,
+                BITAND,
+                BITOR,
+                BITXOR,
+                BITNOT,
+                BITSHIFTLEFT,
+                BITSHIFTRIGHT)
+            .build();
+
+    private static final ImmutableSet<Function> VERSION_2 =
+        ImmutableSet.<Function>builder()
+            .addAll(VERSION_1)
+            .add(SQRT)
+            .build();
+
+    private static final ImmutableSet<Function> VERSION_LATEST = VERSION_2;
+
+    private static ImmutableSet<Function> byVersion(int version) {
+      switch (version) {
+        case 0:
+          return Function.VERSION_0;
+        case 1:
+          return Function.VERSION_1;
+        case 2:
+          return Function.VERSION_2;
+        case Integer.MAX_VALUE:
+          return Function.VERSION_LATEST;
+        default:
+          throw new IllegalArgumentException("Unsupported 'math' extension version " + version);
+      }
+    }
 
     private final CelFunctionDecl functionDecl;
     private final ImmutableSet<CelFunctionBinding> functionBindings;
@@ -644,8 +719,8 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
   private final boolean enableUnsignedLongs;
   private final ImmutableSet<Function> functions;
 
-  CelMathExtensions(CelOptions celOptions) {
-    this(celOptions, ImmutableSet.copyOf(Function.values()));
+  CelMathExtensions(CelOptions celOptions, int version) {
+    this(celOptions, Function.byVersion(version));
   }
 
   CelMathExtensions(CelOptions celOptions, Set<Function> functions) {
@@ -878,6 +953,18 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
       return UnsignedLong.ZERO;
     }
     return UnsignedLong.fromLongBits(value.longValue() >>> shiftAmount);
+  }
+
+  private static Double sqrtDouble(double x) {
+    return Math.sqrt(x);
+  }
+
+  private static Double sqrtInt(Long x) {
+    return sqrtDouble(x.doubleValue());
+  }
+
+  private static Double sqrtUint(UnsignedLong x) {
+    return sqrtDouble(x.doubleValue());
   }
 
   private static Comparable minList(List<Comparable> list) {

@@ -44,10 +44,12 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
+import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelRuntimeBuilder;
+import dev.cel.runtime.CelRuntimeLibrary;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -237,7 +239,11 @@ public abstract class CelEnvironment {
     // TODO: Add capability to accept user defined exceptions
     for (ExtensionConfig extensionConfig : extensions()) {
       CanonicalCelExtension extension = getExtensionOrThrow(extensionConfig.name());
-      extension.addCompilerExtension(celCompilerBuilder, celOptions);
+      if (extension.compilerExtensionProvider() != null) {
+        CelCompilerLibrary celCompilerLibrary = extension.compilerExtensionProvider()
+            .getCelCompilerLibrary(celOptions, extensionConfig.version());
+        celCompilerBuilder.addLibraries(celCompilerLibrary);
+      }
     }
   }
 
@@ -245,7 +251,11 @@ public abstract class CelEnvironment {
     // TODO: Add capability to accept user defined exceptions
     for (ExtensionConfig extensionConfig : extensions()) {
       CanonicalCelExtension extension = getExtensionOrThrow(extensionConfig.name());
-      extension.addRuntimeExtension(celRuntimeBuilder, celOptions);
+      if (extension.runtimeExtensionProvider() != null) {
+        CelRuntimeLibrary celRuntimeLibrary = extension.runtimeExtensionProvider()
+            .getCelRuntimeLibrary(celOptions, extensionConfig.version());
+        celRuntimeBuilder.addLibraries(celRuntimeLibrary);
+      }
     }
   }
 
@@ -656,64 +666,68 @@ public abstract class CelEnvironment {
     public static ExtensionConfig of(String name, int version) {
       return newBuilder().setName(name).setVersion(version).build();
     }
+
+    /** Create a new extension config with the specified name and the latest version. */
+    public static ExtensionConfig latest(String name) {
+      return of(name, Integer.MAX_VALUE);
+    }
   }
 
   @VisibleForTesting
   enum CanonicalCelExtension {
-    BINDINGS((compilerBuilder, options) -> compilerBuilder.addLibraries(CelExtensions.bindings())),
-    PROTOS((compilerBuilder, options) -> compilerBuilder.addLibraries(CelExtensions.protos())),
+    BINDINGS((options, version) -> CelExtensions.bindings()),
+    PROTOS((options, version) -> CelExtensions.protos()),
     ENCODERS(
-        (compilerBuilder, options) -> compilerBuilder.addLibraries(CelExtensions.encoders()),
-        (runtimeBuilder, options) -> runtimeBuilder.addLibraries(CelExtensions.encoders())),
+        (options, version) -> CelExtensions.encoders(),
+        (options, version) -> CelExtensions.encoders()),
     MATH(
-        (compilerBuilder, options) -> compilerBuilder.addLibraries(CelExtensions.math(options)),
-        (runtimeBuilder, options) -> runtimeBuilder.addLibraries(CelExtensions.math(options))),
+        (options, version) -> CelExtensions.math(options, version),
+        (options, version) -> CelExtensions.math(options, version)),
     OPTIONAL(
-        (compilerBuilder, options) -> compilerBuilder.addLibraries(CelOptionalLibrary.INSTANCE),
-        (runtimeBuilder, options) -> runtimeBuilder.addLibraries(CelOptionalLibrary.INSTANCE)),
+        (options, version) -> CelOptionalLibrary.INSTANCE,
+        (options, version) -> CelOptionalLibrary.INSTANCE),
     STRINGS(
-        (compilerBuilder, options) -> compilerBuilder.addLibraries(CelExtensions.strings()),
-        (runtimeBuilder, options) -> runtimeBuilder.addLibraries(CelExtensions.strings())),
+        (options, version) -> CelExtensions.strings(),
+        (options, version) -> CelExtensions.strings()),
     SETS(
-        (compilerBuilder, options) -> compilerBuilder.addLibraries(CelExtensions.sets(options)),
-        (runtimeBuilder, options) -> runtimeBuilder.addLibraries(CelExtensions.sets(options))),
+        (options, version) -> CelExtensions.sets(options),
+        (options, version) -> CelExtensions.sets(options)),
     LISTS(
-        (compilerBuilder, options) -> compilerBuilder.addLibraries(CelExtensions.lists()),
-        (runtimeBuilder, options) -> runtimeBuilder.addLibraries(CelExtensions.lists()));
+        (options, version) -> CelExtensions.lists(),
+        (options, version) -> CelExtensions.lists());
 
     @SuppressWarnings("ImmutableEnumChecker")
-    private final CompilerExtensionApplier compilerExtensionApplier;
+    private final CompilerExtensionProvider compilerExtensionProvider;
 
     @SuppressWarnings("ImmutableEnumChecker")
-    private final RuntimeExtensionApplier runtimeExtensionApplier;
+    private final RuntimeExtensionProvider runtimeExtensionProvider;
 
-    interface CompilerExtensionApplier {
-      void apply(CelCompilerBuilder compilerBuilder, CelOptions options);
+    interface CompilerExtensionProvider {
+      CelCompilerLibrary getCelCompilerLibrary(CelOptions options, int version);
     }
 
-    interface RuntimeExtensionApplier {
-      void apply(CelRuntimeBuilder runtimeBuilder, CelOptions options);
+    interface RuntimeExtensionProvider {
+      CelRuntimeLibrary getCelRuntimeLibrary(CelOptions options, int version);
     }
 
-    void addCompilerExtension(CelCompilerBuilder compilerBuilder, CelOptions options) {
-      compilerExtensionApplier.apply(compilerBuilder, options);
+    CompilerExtensionProvider compilerExtensionProvider() {
+      return compilerExtensionProvider;
     }
 
-    void addRuntimeExtension(CelRuntimeBuilder runtimeBuilder, CelOptions options) {
-      runtimeExtensionApplier.apply(runtimeBuilder, options);
+    RuntimeExtensionProvider runtimeExtensionProvider() {
+      return runtimeExtensionProvider;
     }
 
-    CanonicalCelExtension(CompilerExtensionApplier compilerExtensionApplier) {
-      this(
-          compilerExtensionApplier,
-          (runtimeBuilder, options) -> {}); // no-op. Not all extensions augment the runtime.
+    CanonicalCelExtension(CompilerExtensionProvider compilerExtensionProvider) {
+      this.compilerExtensionProvider = compilerExtensionProvider;
+      this.runtimeExtensionProvider = null; // Not all extensions augment the runtime.
     }
 
     CanonicalCelExtension(
-        CompilerExtensionApplier compilerExtensionApplier,
-        RuntimeExtensionApplier runtimeExtensionApplier) {
-      this.compilerExtensionApplier = compilerExtensionApplier;
-      this.runtimeExtensionApplier = runtimeExtensionApplier;
+        CompilerExtensionProvider compilerExtensionProvider,
+        RuntimeExtensionProvider runtimeExtensionProvider) {
+      this.compilerExtensionProvider = compilerExtensionProvider;
+      this.runtimeExtensionProvider = runtimeExtensionProvider;
     }
   }
 
