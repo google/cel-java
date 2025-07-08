@@ -12,9 +12,11 @@ import com.google.common.collect.Iterables;
 import com.google.common.primitives.UnsignedLong;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.internal.DefaultLiteDescriptorPool;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.DefaultTypeProvider;
 import dev.cel.common.types.ListType;
@@ -25,6 +27,7 @@ import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelByteString;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.NullValue;
+import dev.cel.common.values.ProtoLiteCelValueConverter;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto2.TestAllTypes;
@@ -40,7 +43,6 @@ import dev.cel.runtime.standard.IndexOperator;
 import java.nio.charset.StandardCharsets;
 
 import dev.cel.runtime.DefaultDispatcher;
-import java.util.Collection;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -69,7 +71,8 @@ public final class ProgramPlannerTest {
 
   private static final ProgramPlanner PLANNER = ProgramPlanner.newPlanner(
           DefaultTypeProvider.create(),
-          new CelValueConverter(),
+          // new CelValueConverter(),
+          ProtoLiteCelValueConverter.newInstance(DefaultLiteDescriptorPool.newInstance()),
           newDispatcher()
   );
 
@@ -284,6 +287,22 @@ public final class ProgramPlannerTest {
     Long result = (Long) program.eval(ImmutableMap.of("map_var", mapVarPayload));
 
     assertThat(result).isEqualTo(2L);
+  }
+
+  @Test
+  @TestParameters("{expression: 'true || true', expectedResult: true}")
+  @TestParameters("{expression: 'true || false', expectedResult: true}")
+  @TestParameters("{expression: 'false || true', expectedResult: true}")
+  @TestParameters("{expression: 'false || false', expectedResult: false}")
+  @TestParameters("{expression: 'true || (1 / 0 > 2)', expectedResult: true}")
+  @TestParameters("{expression: '(1 / 0 > 2) || true', expectedResult: true}")
+  public void planCall_logicalOr_shortCircuit(String expression, boolean expectedResult) throws Exception {
+    CelAbstractSyntaxTree ast = compile(expression);
+    Program program = PLANNER.plan(ast);
+
+    boolean result = (boolean) program.eval();
+
+    assertThat(result).isEqualTo(expectedResult);
   }
 
   private CelAbstractSyntaxTree compile(String expression) throws CelValidationException {

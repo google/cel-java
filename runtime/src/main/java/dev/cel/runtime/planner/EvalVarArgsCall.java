@@ -6,7 +6,8 @@ import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.GlobalResolver;
-final class EvalVarArgsCall implements CelValueInterpretable{
+
+final class EvalVarArgsCall implements CelValueInterpretable {
 
   private final CelFunctionBinding resolvedOverload;
   private final CelValueConverter celValueConverter;

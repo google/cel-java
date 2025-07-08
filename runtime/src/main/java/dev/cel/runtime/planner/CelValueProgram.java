@@ -33,7 +33,7 @@ abstract class CelValueProgram implements Program {
   @Override
   public Object eval(Map<String, ?> mapValue, CelFunctionResolver lateBoundFunctionResolver)
       throws CelEvaluationException {
-    return null;
+    throw new UnsupportedOperationException("Late bound functions not supported yet");
   }
 
   static Program create(
