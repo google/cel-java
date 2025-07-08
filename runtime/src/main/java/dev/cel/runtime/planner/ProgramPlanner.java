@@ -101,6 +101,12 @@ public final class ProgramPlanner {
     ResolvedFunction resolvedFunction = resolveFunction(expr, ctx.referenceMap());
     int argCount = expr.call().args().size();
     ImmutableList.Builder<CelValueInterpretable> evaluatedArgBuilder = ImmutableList.builder();
+
+    if (resolvedFunction.target().isPresent()) {
+      argCount++;
+      evaluatedArgBuilder.add(plan(resolvedFunction.target().get(), ctx));
+    }
+
     for (CelExpr argExpr : expr.call().args()) {
       evaluatedArgBuilder.add(plan(argExpr, ctx));
     }
@@ -124,10 +130,8 @@ public final class ProgramPlanner {
       case 1:
         return EvalUnary.create(resolvedOverload, celValueConverter, evaluatedArgs.get(0));
       default:
-        break;
+        return EvalVarArgsCall.create(resolvedOverload, celValueConverter, evaluatedArgs);
     }
-
-    throw new UnsupportedOperationException("Unimplemented");
   }
 
   /**
@@ -153,17 +157,22 @@ public final class ProgramPlanner {
     }
 
     // Parse-only from this point on
+    CelFunctionBinding resolvedOverload = dispatcher.findOverload(functionName)
+        .orElseThrow(() -> new NoSuchElementException(String.format("Function %s not found", call.function())));
+
     if (!target.isPresent()) {
       // TODO: Handle containers.
-      CelFunctionBinding resolvedOverload = dispatcher.findOverload(functionName)
-          .orElseThrow(() -> new NoSuchElementException(String.format("Function %s not found", call.function())));
 
       return ResolvedFunction.newBuilder()
           .setFunctionName(functionName)
           .build();
+    } else {
+      // TODO: Handle qualifications
+      return ResolvedFunction.newBuilder()
+          .setFunctionName(functionName)
+          .setTarget(target.get())
+          .build();
     }
-
-    throw new UnsupportedOperationException("Unimplemented");
   }
 
   @AutoValue

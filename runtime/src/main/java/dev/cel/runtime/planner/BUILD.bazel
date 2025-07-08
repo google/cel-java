@@ -17,6 +17,7 @@ java_library(
         ":eval_attribute",
         ":eval_const",
         ":eval_unary",
+        ":eval_var_args_call",
         ":eval_zero_arity",
         "//:auto_value",
         "//common:cel_ast",
@@ -146,5 +147,19 @@ java_library(
         "//runtime:evaluation_exception",
         "//runtime:function_binding",
         "//runtime:interpretable",
+    ],
+)
+
+java_library(
+    name = "eval_var_args_call",
+    srcs = ["EvalVarArgsCall.java"],
+    deps = [
+        ":cel_value_interpretable",
+        "//common/values",
+        "//common/values:cel_value",
+        "//runtime:evaluation_exception",
+        "//runtime:function_binding",
+        "//runtime:interpretable",
+        "@maven//:com_google_guava_guava",
     ],
 )

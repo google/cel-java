@@ -28,8 +28,6 @@ import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelFunctionOverload;
 import dev.cel.runtime.CelLiteRuntime.Program;
-import dev.cel.runtime.CelRuntime;
-import dev.cel.runtime.CelRuntimeFactory;
 import java.nio.charset.StandardCharsets;
 
 import dev.cel.runtime.DefaultDispatcher;
@@ -47,6 +45,10 @@ public final class ProgramPlannerTest {
                   newFunctionDeclaration("neg",
                       newGlobalOverload("neg_int", SimpleType.INT, SimpleType.INT),
                       newGlobalOverload("neg_double", SimpleType.DOUBLE, SimpleType.DOUBLE)
+                  ),
+                  newFunctionDeclaration("concat",
+                      newGlobalOverload("concat_bytes_bytes", SimpleType.BYTES, SimpleType.BYTES, SimpleType.BYTES),
+                      newMemberOverload("bytes_concat_bytes", SimpleType.BYTES, SimpleType.BYTES, SimpleType.BYTES)
                   )
               )
               .addLibraries(CelOptionalLibrary.INSTANCE)
@@ -67,6 +69,9 @@ public final class ProgramPlannerTest {
         CelFunctionBinding.from("neg_int", Long.class, arg -> -arg),
         CelFunctionBinding.from("neg_double", Double.class, arg -> -arg)
     );
+    addBindings(builder, "concat",
+        CelFunctionBinding.from("concat_bytes_bytes", CelByteString.class, CelByteString.class, ProgramPlannerTest::concatenateByteArrays),
+        CelFunctionBinding.from("bytes_concat_bytes", CelByteString.class, CelByteString.class,ProgramPlannerTest::concatenateByteArrays));
 
     return builder.build();
   }
@@ -228,6 +233,27 @@ public final class ProgramPlannerTest {
   }
 
   @Test
+  public void planCall_twoArgs_global() throws Exception {
+    CelAbstractSyntaxTree ast = compile("concat(b'abc', b'def')");
+    Program program = PLANNER.plan(ast);
+
+    CelByteString result = (CelByteString) program.eval();
+
+    assertThat(result).isEqualTo(CelByteString.of("abcdef".getBytes(StandardCharsets.UTF_8)));
+  }
+
+  @Test
+  public void planCall_twoArgs_receiver() throws Exception {
+    CelAbstractSyntaxTree ast = compile("b'abc'.concat(b'def')");
+    Program program = PLANNER.plan(ast);
+
+    CelByteString result = (CelByteString) program.eval();
+
+    assertThat(result).isEqualTo(CelByteString.of("abcdef".getBytes(StandardCharsets.UTF_8)));
+  }
+
+
+  @Test
   public void planCall_mapIndex() throws Exception {
     CelAbstractSyntaxTree ast = compile("map_var['key'][1]");
     Program program = PLANNER.plan(ast);
@@ -238,17 +264,6 @@ public final class ProgramPlannerTest {
     assertThat(result).isEqualTo(1L);
   }
 
-  @Test
-  public void smokeTest() throws Exception {
-    CelAbstractSyntaxTree ast = compile("map_var['key'][1]");
-    ImmutableMap<Object, Object> mapVarPayload = ImmutableMap.of("key", ImmutableList.of(1L, 2L));
-    CelRuntime.Program program = CelRuntimeFactory.standardCelRuntimeBuilder().build().createProgram(ast);
-
-    Long result = (Long) program.eval(ImmutableMap.of("map_var", mapVarPayload));
-
-    assertThat(result).isEqualTo(TypeType.create(SimpleType.UINT));
-  }
-
   private CelAbstractSyntaxTree compile(String expression) throws CelValidationException {
     CelAbstractSyntaxTree ast = CEL_COMPILER.parse(expression).getAst();
     if (isParseOnly) {
@@ -256,5 +271,22 @@ public final class ProgramPlannerTest {
     }
 
     return CEL_COMPILER.check(ast).getAst();
+  }
+
+  private static byte[] concatenateByteArrays(CelByteString bytes1, CelByteString bytes2) {
+    byte[] array1 = bytes1.toByteArray();
+    byte[] array2 = bytes2.toByteArray();
+    // Handle null or empty arrays gracefully
+    if (array1 == null || array1.length == 0) {
+      return array2;
+    }
+    if (array2 == null || array2.length == 0) {
+      return array1;
+    }
+
+    byte[] combined = new byte[array1.length + array2.length];
+    System.arraycopy(array1, 0, combined, 0, array1.length);
+    System.arraycopy(array2, 0, combined, array1.length, array2.length);
+    return combined;
   }
 }
