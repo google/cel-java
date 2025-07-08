@@ -1,6 +1,7 @@
 package dev.cel.runtime.planner;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.ThreadSafe;
@@ -16,9 +17,9 @@ import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.TypeValue;
+import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelLiteRuntime.Program;
 import dev.cel.runtime.DefaultDispatcher;
-import dev.cel.runtime.ResolvedOverload;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -31,18 +32,19 @@ public final class ProgramPlanner {
   private final DefaultDispatcher dispatcher;
   private final AttributeFactory attributeFactory;
 
-  private CelValueInterpretable plan(CelExpr celExpr,
-      ImmutableMap<Long, CelType> typeMap,
-      ImmutableMap<Long, CelReference> referenceMap) {
+  private CelValueInterpretable plan(
+      CelExpr celExpr,
+      PlannerContext ctx
+      ) {
     switch (celExpr.getKind()) {
       case CONSTANT:
         return fromCelConstant(celExpr.constant());
       case IDENT:
-        return planIdent(celExpr, typeMap, referenceMap);
+        return planIdent(celExpr, ctx);
       case SELECT:
         break;
       case CALL:
-        return planCall(celExpr, referenceMap);
+        return planCall(celExpr, ctx);
       case LIST:
         break;
       case STRUCT:
@@ -60,11 +62,10 @@ public final class ProgramPlanner {
 
   private CelValueInterpretable planIdent(
       CelExpr celExpr,
-      ImmutableMap<Long, CelType> typeMap,
-      ImmutableMap<Long, CelReference> referenceMap) {
-    CelReference ref = referenceMap.get(celExpr.id());
+      PlannerContext ctx) {
+    CelReference ref = ctx.referenceMap().get(celExpr.id());
     if (ref != null) {
-      return planCheckedIdent(celExpr.id(), ref, typeMap);
+      return planCheckedIdent(celExpr.id(), ref, ctx.typeMap());
     }
 
     return EvalAttribute.create(
@@ -96,14 +97,18 @@ public final class ProgramPlanner {
     return EvalConstant.create(celValue);
   }
 
-  private EvalZeroArity planCall(CelExpr expr, ImmutableMap<Long, CelReference> referenceMap) {
-    ResolvedFunction resolvedFunction = resolveFunction(expr, referenceMap);
-    // TODO: Handle args
+  private CelValueInterpretable planCall(CelExpr expr, PlannerContext ctx) {
+    ResolvedFunction resolvedFunction = resolveFunction(expr, ctx.referenceMap());
     int argCount = expr.call().args().size();
+    ImmutableList.Builder<CelValueInterpretable> evaluatedArgBuilder = ImmutableList.builder();
+    for (CelExpr argExpr : expr.call().args()) {
+      evaluatedArgBuilder.add(plan(argExpr, ctx));
+    }
+    ImmutableList<CelValueInterpretable> evaluatedArgs = evaluatedArgBuilder.build();
 
     // TODO: Handle specialized calls (logical operators, index, conditionals, equals etc)
 
-    ResolvedOverload resolvedOverload = null;
+    CelFunctionBinding resolvedOverload = null;
 
     if (resolvedFunction.overloadId().isPresent()) {
       resolvedOverload = dispatcher.findOverload(resolvedFunction.overloadId().get()).orElse(null);
@@ -116,6 +121,8 @@ public final class ProgramPlanner {
     switch (argCount) {
       case 0:
         return EvalZeroArity.create(resolvedOverload, celValueConverter);
+      case 1:
+        return EvalUnary.create(resolvedOverload, celValueConverter, evaluatedArgs.get(0));
       default:
         break;
     }
@@ -128,18 +135,32 @@ public final class ProgramPlanner {
    */
   private ResolvedFunction resolveFunction(CelExpr expr, ImmutableMap<Long, CelReference> referenceMap) {
     CelCall call = expr.call();
+    Optional<CelExpr> target = call.target();
+    String functionName = call.function();
 
     CelReference reference = referenceMap.get(expr.id());
     if (reference != null) {
+      // Checked expression
       if (reference.overloadIds().size() == 1) {
         ResolvedFunction.Builder builder = ResolvedFunction.newBuilder()
-                .setFunctionName(call.function())
+                .setFunctionName(functionName)
                 .setOverloadId(reference.overloadIds().get(0));
 
-        call.target().ifPresent(builder::setTarget);
+        target.ifPresent(builder::setTarget);
 
         return builder.build();
       }
+    }
+
+    // Parse-only from this point on
+    if (!target.isPresent()) {
+      // TODO: Handle containers.
+      CelFunctionBinding resolvedOverload = dispatcher.findOverload(functionName)
+          .orElseThrow(() -> new NoSuchElementException(String.format("Function %s not found", call.function())));
+
+      return ResolvedFunction.newBuilder()
+          .setFunctionName(functionName)
+          .build();
     }
 
     throw new UnsupportedOperationException("Unimplemented");
@@ -169,8 +190,19 @@ public final class ProgramPlanner {
     }
   }
 
+  @AutoValue
+  static abstract class PlannerContext {
+
+    abstract ImmutableMap<Long, CelReference> referenceMap();
+    abstract ImmutableMap<Long, CelType> typeMap();
+
+    private static PlannerContext create(CelAbstractSyntaxTree ast) {
+      return new AutoValue_ProgramPlanner_PlannerContext(ast.getReferenceMap(), ast.getTypeMap());
+    }
+  }
+
   public Program plan(CelAbstractSyntaxTree ast) {
-    CelValueInterpretable plannedInterpretable = plan(ast.getExpr(), ast.getTypeMap(), ast.getReferenceMap());
+    CelValueInterpretable plannedInterpretable = plan(ast.getExpr(), PlannerContext.create(ast));
     return CelValueProgram.create(plannedInterpretable, celValueConverter);
   }
 

@@ -130,7 +130,8 @@ java_library(
     ],
     deps = [
         ":base",
-        ":function_overload_impl",
+        ":function_binding",
+        ":function_overload",
         "//:auto_value",
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",

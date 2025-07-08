@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
+import java.util.List;
 
 /**
  * Binding consisting of an overload id, a Java-native argument signature, and an overload
@@ -67,5 +68,24 @@ public interface CelFunctionBinding {
   static CelFunctionBinding from(
       String overloadId, Iterable<Class<?>> argTypes, CelFunctionOverload impl) {
     return new FunctionBindingImpl(overloadId, ImmutableList.copyOf(argTypes), impl);
+  }
+
+  default boolean canHandle(Object[] arguments) {
+    ImmutableList<Class<?>> parameterTypes = getArgTypes();
+    if (parameterTypes.size() != arguments.length) {
+      return false;
+    }
+    for (int i = 0; i < parameterTypes.size(); i++) {
+      Class<?> paramType = parameterTypes.get(i);
+      Object arg = arguments[i];
+      if (arg == null) {
+        // Reject nulls. CEL-Java in general is not designed to handle nullability of objects.
+        return false;
+      }
+      if (!paramType.isAssignableFrom(arg.getClass())) {
+        return false;
+      }
+    }
+    return true;
   }
 }

@@ -3,12 +3,12 @@ package dev.cel.runtime.planner;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.GlobalResolver;
-import dev.cel.runtime.ResolvedOverload;
 
 final class EvalZeroArity implements CelValueInterpretable {
 
-  private final ResolvedOverload resolvedOverload;
+  private final CelFunctionBinding resolvedOverload;
   private final CelValueConverter celValueConverter;
 
   @Override
@@ -17,11 +17,11 @@ final class EvalZeroArity implements CelValueInterpretable {
     return celValueConverter.fromJavaObjectToCelValue(result);
   }
 
-  static EvalZeroArity create(ResolvedOverload resolvedOverload, CelValueConverter celValueConverter) {
+  static EvalZeroArity create(CelFunctionBinding resolvedOverload, CelValueConverter celValueConverter) {
     return new EvalZeroArity(resolvedOverload, celValueConverter);
   }
 
-  private EvalZeroArity(ResolvedOverload resolvedOverload, CelValueConverter celValueConverter) {
+  private EvalZeroArity(CelFunctionBinding resolvedOverload, CelValueConverter celValueConverter) {
     this.resolvedOverload = resolvedOverload;
     this.celValueConverter = celValueConverter;
   }

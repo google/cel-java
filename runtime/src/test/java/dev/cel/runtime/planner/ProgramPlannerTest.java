@@ -1,6 +1,8 @@
 package dev.cel.runtime.planner;
 
 import static com.google.common.truth.Truth.assertThat;
+import static dev.cel.common.CelFunctionDecl.*;
+import static dev.cel.common.CelOverloadDecl.*;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -8,8 +10,6 @@ import com.google.common.primitives.UnsignedLong;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
-import dev.cel.common.CelFunctionDecl;
-import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.DefaultTypeProvider;
@@ -25,6 +25,8 @@ import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto2.TestAllTypes;
 import dev.cel.extensions.CelOptionalLibrary;
+import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.runtime.CelFunctionOverload;
 import dev.cel.runtime.CelLiteRuntime.Program;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
@@ -40,12 +42,17 @@ public final class ProgramPlannerTest {
           CelCompilerFactory.standardCelCompilerBuilder()
               .addVar("int_var", SimpleType.INT)
               .addVar("map_var", MapType.create(SimpleType.STRING, SimpleType.DYN))
-              .addFunctionDeclarations(CelFunctionDecl.newFunctionDeclaration(
-                      "zero", CelOverloadDecl.newGlobalOverload("zero", SimpleType.INT)
-              ))
+              .addFunctionDeclarations(
+                  newFunctionDeclaration("zero", newGlobalOverload("zero_overload", SimpleType.INT)),
+                  newFunctionDeclaration("neg",
+                      newGlobalOverload("neg_int", SimpleType.INT, SimpleType.INT),
+                      newGlobalOverload("neg_double", SimpleType.DOUBLE, SimpleType.DOUBLE)
+                  )
+              )
               .addLibraries(CelOptionalLibrary.INSTANCE)
               .addMessageTypes(TestAllTypes.getDescriptor())
               .build();
+
   private static final ProgramPlanner PLANNER = ProgramPlanner.newPlanner(
           DefaultTypeProvider.create(),
           new CelValueConverter(),
@@ -53,9 +60,48 @@ public final class ProgramPlannerTest {
   );
 
   private static DefaultDispatcher newDispatcher() {
-    return DefaultDispatcher.newBuilder()
-            .add("zero", ImmutableList.of(), args -> 0L)
-            .build();
+    DefaultDispatcher.Builder builder = DefaultDispatcher.newBuilder();
+
+    addBindings(builder, "zero", CelFunctionBinding.from("zero_overload", ImmutableList.of(), args -> 0L));
+    addBindings(builder, "neg",
+        CelFunctionBinding.from("neg_int", Long.class, arg -> -arg),
+        CelFunctionBinding.from("neg_double", Double.class, arg -> -arg)
+    );
+
+    return builder.build();
+  }
+
+  private static void addBindings(DefaultDispatcher.Builder builder, String functionName, CelFunctionBinding... functionBindings) {
+    addBindings(builder, functionName, ImmutableList.copyOf(functionBindings));
+  }
+
+  private static void addBindings(DefaultDispatcher.Builder builder, String functionName, ImmutableList<CelFunctionBinding> overloadBindings) {
+    if (overloadBindings.isEmpty()) {
+      throw new IllegalArgumentException("Invalid bindings");
+    }
+    // TODO: Runtime top-level APIs currently does not allow grouping overloads with the function name. This capability will have to be added.
+    if (overloadBindings.size() == 1) {
+      CelFunctionBinding singleBinding = overloadBindings.get(0);
+      builder.addOverload(
+          CelFunctionBinding.from(
+              functionName, singleBinding.getArgTypes(), singleBinding.getDefinition())
+      );
+    } else {
+      overloadBindings.forEach(builder::addOverload);
+
+      // Setup dynamic dispatch
+      CelFunctionOverload dynamicDispatchDef = args -> {
+        for (CelFunctionBinding overload : overloadBindings) {
+          if (overload.canHandle(args)) {
+            return overload.getDefinition().apply(args);
+          }
+        }
+
+        throw new IllegalArgumentException("Overload not found: " + functionName);
+      };
+
+      builder.addFunction(functionName, dynamicDispatchDef);
+    }
   }
 
   @TestParameter boolean isParseOnly;
@@ -159,6 +205,26 @@ public final class ProgramPlannerTest {
     Long result = (Long) program.eval();
 
     assertThat(result).isEqualTo(0L);
+  }
+
+  @Test
+  public void planCall_oneArg_int() throws Exception {
+    CelAbstractSyntaxTree ast = compile("neg(1)");
+    Program program = PLANNER.plan(ast);
+
+    Long result = (Long) program.eval();
+
+    assertThat(result).isEqualTo(-1L);
+  }
+
+  @Test
+  public void planCall_oneArg_double() throws Exception {
+    CelAbstractSyntaxTree ast = compile("neg(2.5)");
+    Program program = PLANNER.plan(ast);
+
+    Double result = (Double) program.eval();
+
+    assertThat(result).isEqualTo(-2.5d);
   }
 
   @Test

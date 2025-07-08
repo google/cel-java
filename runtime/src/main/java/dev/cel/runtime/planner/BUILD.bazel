@@ -16,6 +16,7 @@ java_library(
         ":cel_value_program",
         ":eval_attribute",
         ":eval_const",
+        ":eval_unary",
         ":eval_zero_arity",
         "//:auto_value",
         "//common:cel_ast",
@@ -27,6 +28,7 @@ java_library(
         "//runtime:activation",
         "//runtime:default_dispatcher",
         "//runtime:evaluation_exception",
+        "//runtime:function_binding",
         "//runtime:function_overload_impl",
         "//runtime:function_resolver",
         "//runtime:interpretable",
@@ -129,7 +131,20 @@ java_library(
         "//common/values",
         "//common/values:cel_value",
         "//runtime:evaluation_exception",
-        "//runtime:function_overload_impl",
+        "//runtime:function_binding",
+        "//runtime:interpretable",
+    ],
+)
+
+java_library(
+    name = "eval_unary",
+    srcs = ["EvalUnary.java"],
+    deps = [
+        ":cel_value_interpretable",
+        "//common/values",
+        "//common/values:cel_value",
+        "//runtime:evaluation_exception",
+        "//runtime:function_binding",
         "//runtime:interpretable",
     ],
 )
