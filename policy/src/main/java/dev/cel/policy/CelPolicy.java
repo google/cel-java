@@ -234,6 +234,8 @@ public abstract class CelPolicy {
 
     public abstract Optional<ValueString> description();
 
+    public abstract Optional<ValueString> displayName();
+
     /** Builder for {@link Variable}. */
     @AutoValue.Builder
     public abstract static class Builder implements RequiredFieldsChecker {
@@ -244,11 +246,15 @@ public abstract class CelPolicy {
 
       abstract Optional<ValueString> description();
 
+      abstract Optional<ValueString> displayName();
+
       public abstract Builder setName(ValueString name);
 
       public abstract Builder setExpression(ValueString expression);
 
       public abstract Builder setDescription(ValueString description);
+
+      public abstract Builder setDisplayName(ValueString displayName);
 
       @Override
       public ImmutableList<RequiredField> requiredFields() {
