@@ -112,7 +112,7 @@ public final class ProgramPlanner {
     }
     ImmutableList<CelValueInterpretable> evaluatedArgs = evaluatedArgBuilder.build();
 
-    // TODO: Handle specialized calls (logical operators, index, conditionals, equals etc)
+    // TODO: Handle specialized calls (logical operators, conditionals, equals etc)
 
     CelFunctionBinding resolvedOverload = null;
 
@@ -129,6 +129,7 @@ public final class ProgramPlanner {
         return EvalZeroArity.create(resolvedOverload, celValueConverter);
       case 1:
         return EvalUnary.create(resolvedOverload, celValueConverter, evaluatedArgs.get(0));
+        // TODO: Handle binary
       default:
         return EvalVarArgsCall.create(resolvedOverload, celValueConverter, evaluatedArgs);
     }
@@ -157,7 +158,7 @@ public final class ProgramPlanner {
     }
 
     // Parse-only from this point on
-    CelFunctionBinding resolvedOverload = dispatcher.findOverload(functionName)
+    dispatcher.findOverload(functionName)
         .orElseThrow(() -> new NoSuchElementException(String.format("Function %s not found", call.function())));
 
     if (!target.isPresent()) {

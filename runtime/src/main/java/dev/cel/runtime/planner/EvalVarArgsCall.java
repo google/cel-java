@@ -16,7 +16,8 @@ final class EvalVarArgsCall implements CelValueInterpretable{
   public CelValue eval(GlobalResolver resolver) throws CelEvaluationException {
     ImmutableList.Builder<Object> argValBuilder = ImmutableList.builder();
     for (CelValueInterpretable arg : args) {
-      argValBuilder.add(arg.eval(resolver).value());
+      Object evalValue = celValueConverter.fromCelValueToJavaObject(arg.eval(resolver));
+      argValBuilder.add(evalValue);
     }
     ImmutableList<Object> argVals = argValBuilder.build();
 
