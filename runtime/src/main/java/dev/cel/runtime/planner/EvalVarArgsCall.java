@@ -26,8 +26,8 @@ final class EvalVarArgsCall implements CelValueInterpretable {
     return celValueConverter.fromJavaObjectToCelValue(result);
   }
 
-  static EvalVarArgsCall create(CelFunctionBinding resolvedOverload, CelValueConverter celValueConverter, ImmutableList<CelValueInterpretable> s) {
-    return new EvalVarArgsCall(resolvedOverload, celValueConverter, s);
+  static EvalVarArgsCall create(CelFunctionBinding resolvedOverload, CelValueConverter celValueConverter, ImmutableList<CelValueInterpretable> args) {
+    return new EvalVarArgsCall(resolvedOverload, celValueConverter, args);
   }
 
   private EvalVarArgsCall(CelFunctionBinding resolvedOverload, CelValueConverter celValueConverter, ImmutableList<CelValueInterpretable> args) {

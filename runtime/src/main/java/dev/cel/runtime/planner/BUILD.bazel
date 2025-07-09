@@ -14,8 +14,10 @@ java_library(
         ":attribute_factory",
         ":cel_value_interpretable",
         ":cel_value_program",
+        ":eval_and",
         ":eval_attribute",
         ":eval_const",
+        ":eval_or",
         ":eval_unary",
         ":eval_var_args_call",
         ":eval_zero_arity",
@@ -60,10 +62,12 @@ java_library(
     deps = [
         ":cel_value_interpretable",
         "//:auto_value",
+        "//common:runtime_exception",
         "//common/values",
         "//common/values:cel_value",
         "//runtime:activation",
         "//runtime:evaluation_exception",
+        "//runtime:evaluation_exception_builder",
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
         "//runtime:interpretable",
@@ -153,6 +157,50 @@ java_library(
 java_library(
     name = "eval_var_args_call",
     srcs = ["EvalVarArgsCall.java"],
+    deps = [
+        ":cel_value_interpretable",
+        "//common/values",
+        "//common/values:cel_value",
+        "//runtime:evaluation_exception",
+        "//runtime:function_binding",
+        "//runtime:interpretable",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_or",
+    srcs = ["EvalOr.java"],
+    deps = [
+        ":cel_value_interpretable",
+        ":eval_helpers",
+        "//common/values",
+        "//common/values:cel_value",
+        "//runtime:evaluation_exception",
+        "//runtime:function_binding",
+        "//runtime:interpretable",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_and",
+    srcs = ["EvalAnd.java"],
+    deps = [
+        ":cel_value_interpretable",
+        ":eval_helpers",
+        "//common/values",
+        "//common/values:cel_value",
+        "//runtime:evaluation_exception",
+        "//runtime:function_binding",
+        "//runtime:interpretable",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_helpers",
+    srcs = ["EvalHelpers.java"],
     deps = [
         ":cel_value_interpretable",
         "//common/values",

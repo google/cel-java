@@ -113,6 +113,14 @@ public final class ProgramPlanner {
     ImmutableList<CelValueInterpretable> evaluatedArgs = evaluatedArgBuilder.build();
 
     // TODO: Handle specialized calls (logical operators, conditionals, equals etc)
+    String functionName = resolvedFunction.functionName();
+    switch (functionName) {
+      // TODO: Move Operator.java out to common package and use that instead.
+      case "_||_":
+        return EvalOr.create(evaluatedArgs);
+      case "_&&_":
+        return EvalAnd.create(evaluatedArgs);
+    }
 
     CelFunctionBinding resolvedOverload = null;
 
@@ -121,7 +129,7 @@ public final class ProgramPlanner {
     }
 
     if (resolvedOverload == null) {
-      resolvedOverload = dispatcher.findOverload(resolvedFunction.functionName()).orElseThrow(() -> new NoSuchElementException("TODO: Overload not found"));
+      resolvedOverload = dispatcher.findOverload(functionName).orElseThrow(() -> new NoSuchElementException("TODO: Overload not found"));
     }
 
     switch (argCount) {
@@ -158,8 +166,8 @@ public final class ProgramPlanner {
     }
 
     // Parse-only from this point on
-    dispatcher.findOverload(functionName)
-        .orElseThrow(() -> new NoSuchElementException(String.format("Function %s not found", call.function())));
+//    dispatcher.findOverload(functionName)
+//        .orElseThrow(() -> new NoSuchElementException(String.format("Function %s not found", call.function())));
 
     if (!target.isPresent()) {
       // TODO: Handle containers.
