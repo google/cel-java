@@ -115,6 +115,12 @@ final class CelPolicyYamlParser implements CelPolicyParser {
           case "name":
             policyBuilder.setName(ctx.newValueString(valueNode));
             break;
+          case "description":
+            policyBuilder.setDescription(ctx.newValueString(valueNode));
+            break;
+          case "display_name":
+            policyBuilder.setDisplayName(ctx.newValueString(valueNode));
+            break;
           case "rule":
             policyBuilder.setRule(parseRule(ctx, policyBuilder, valueNode));
             break;
