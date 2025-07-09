@@ -173,6 +173,7 @@ final class DefaultInterpreter implements Interpreter {
         throws CelEvaluationException {
       ExecutionFrame frame = newExecutionFrame(resolver, functionResolver, listener);
       IntermediateResult internalResult = evalInternal(frame, ast.getExpr());
+
       return internalResult.value();
     }
 
@@ -896,6 +897,32 @@ final class DefaultInterpreter implements Interpreter {
       }
     }
 
+    @SuppressWarnings("unchecked") // All type-erased elements are object compatible
+    private IntermediateResult maybeAdaptToListView(IntermediateResult accuValue) {
+      // ListView uses a mutable reference internally. Macros such as `filter` uses conditionals
+      // under the hood. In situations where short circuiting is disabled, we don't want to evaluate
+      // both LHS and RHS, as evaluating LHS can mutate the accu value, which also affects RHS.
+      if (!(accuValue.value() instanceof List) || !celOptions.enableShortCircuiting()) {
+        return accuValue;
+      }
+
+      ConcatenatedListView<Object> lv =
+          new ConcatenatedListView<>((List<Object>) accuValue.value());
+      return IntermediateResult.create(lv);
+    }
+
+    @SuppressWarnings("unchecked") // All type-erased elements are object compatible
+    private IntermediateResult maybeAdaptViewToList(IntermediateResult accuValue) {
+      if ((accuValue.value() instanceof ConcatenatedListView)) {
+        // Materialize view back into a list to facilitate O(1) lookups.
+        List<Object> copiedList = new ArrayList<>((List<Object>) accuValue.value());
+
+        accuValue = IntermediateResult.create(copiedList);
+      }
+
+      return accuValue;
+    }
+
     @SuppressWarnings("unchecked")
     private IntermediateResult evalComprehension(
         ExecutionFrame frame, CelExpr unusedExpr, CelComprehension compre)
@@ -924,6 +951,9 @@ final class DefaultInterpreter implements Interpreter {
         accuValue = IntermediateResult.create(new LazyExpression(compre.accuInit()));
       } else {
         accuValue = evalNonstrictly(frame, compre.accuInit());
+        // This ensures macros such as filter/map that uses "add_list" functions under the hood
+        // remain linear in time complexity
+        accuValue = maybeAdaptToListView(accuValue);
       }
       int i = 0;
       for (Object elem : iterRange) {
@@ -949,6 +979,8 @@ final class DefaultInterpreter implements Interpreter {
         accuValue = evalNonstrictly(frame, compre.loopStep());
         frame.popScope();
       }
+
+      accuValue = maybeAdaptViewToList(accuValue);
 
       frame.pushScope(Collections.singletonMap(accuVar, accuValue));
       IntermediateResult result;
