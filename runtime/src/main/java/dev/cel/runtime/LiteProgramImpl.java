@@ -37,7 +37,8 @@ abstract class LiteProgramImpl implements CelLiteRuntime.Program {
   @Override
   public Object eval(Map<String, ?> mapValue, CelFunctionResolver lateBoundFunctionResolver)
       throws CelEvaluationException {
-    return interpretable().eval(Activation.copyOf(mapValue), lateBoundFunctionResolver);
+    throw new UnsupportedOperationException("foo");
+    // return interpretable().eval(Activation.copyOf(mapValue), lateBoundFunctionResolver);
   }
 
   static CelLiteRuntime.Program plan(Interpretable interpretable) {

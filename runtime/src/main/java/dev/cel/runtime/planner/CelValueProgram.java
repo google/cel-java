@@ -40,24 +40,30 @@ abstract class CelValueProgram implements Program {
   }
 
   private static CelValue evalOrThrow(CelValueInterpretable interpretable, GlobalResolver resolver) throws CelEvaluationException {
-    CelValue evalResult = interpretable.eval(resolver);
-    if (evalResult instanceof ErrorValue) {
-      ErrorValue errorValue = (ErrorValue) evalResult;
-      Exception e = errorValue.value();
-
-
-      CelEvaluationExceptionBuilder builder;
-      if (e instanceof CelRuntimeException) {
-        builder = CelEvaluationExceptionBuilder
-                .newBuilder((CelRuntimeException) e);
-      } else {
-        builder = CelEvaluationExceptionBuilder.newBuilder(e.getMessage()).setCause(e);
+    try {
+      CelValue evalResult = interpretable.eval(resolver);
+      if (evalResult instanceof ErrorValue) {
+        ErrorValue errorValue = (ErrorValue) evalResult;
+        Exception e = errorValue.value();
+        throw newCelEvaluationException(e);
       }
 
-      throw builder.build();
+      return evalResult;
+    } catch (RuntimeException e) {
+      throw newCelEvaluationException(e);
+    }
+  }
+
+  private static CelEvaluationException newCelEvaluationException(Exception e) {
+    CelEvaluationExceptionBuilder builder;
+    if (e instanceof CelRuntimeException) {
+      builder = CelEvaluationExceptionBuilder
+              .newBuilder((CelRuntimeException) e);
+    } else {
+      builder = CelEvaluationExceptionBuilder.newBuilder(e.getMessage()).setCause(e);
     }
 
-    return evalResult;
+    return builder.build();
   }
 
   static Program create(

@@ -249,9 +249,9 @@ public final class ProgramPlannerTest {
     CelAbstractSyntaxTree ast = compile("error()");
     Program program = PLANNER.plan(ast);
 
-    Long result = (Long) program.eval();
-
-    assertThat(result).isEqualTo(0L);
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
+    assertThat(e).hasMessageThat().contains("evaluation error: Intentional error");
+    assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
