@@ -54,6 +54,7 @@ java_library(
     srcs = ["TestRunnerLibrary.java"],
     tags = [
     ],
+    runtime_deps = ["@maven//:com_google_protobuf_protobuf_java"],
     deps = [
         ":cel_test_context",
         ":cel_test_suite",

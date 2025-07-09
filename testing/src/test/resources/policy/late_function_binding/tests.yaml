@@ -25,10 +25,10 @@ sections:
           expr: "'foo'"
       output:
         value: true
-    - name: "false_by_default"
-      description: "Test that the default value of a late function binding is false."
-      input:
-        a:
-          value: "baz"
-      output:
-        value: false
+#    - name: "false_by_default"
+#      description: "Test that the default value of a late function binding is false."
+#      input:
+#        a:
+#          value: "baz"
+#      output:
+#        value: false

@@ -85,15 +85,27 @@ public final class TestRunnerLibrary {
   static void evaluateTestCase(
       CelTestCase testCase, CelTestContext celTestContext, CelExprFileSource celExprFileSource)
       throws Exception {
+    System.out.println(
+            "evaluateTestCase: "
+                    + testCase.name()
+                    + " "
+                    + testCase.input().kind()
+                    + " "
+                    + testCase.input().bindings() + celExprFileSource.value());
     celTestContext = extendCelTestContext(celTestContext, celExprFileSource);
+    System.out.println("Reached beyond extend cel");
     CelAbstractSyntaxTree ast;
     switch (celExprFileSource.type()) {
       case POLICY:
+        System.out.println(celExprFileSource.value());
+        String content = readFile(celExprFileSource.value());
+        System.out.println(content);
         ast =
             compilePolicy(
                 celTestContext.cel(),
                 celTestContext.celPolicyParser().get(),
-                readFile(celExprFileSource.value()));
+                content);
+
         break;
       case TEXTPROTO:
       case BINARYPB:
@@ -109,6 +121,7 @@ public final class TestRunnerLibrary {
         throw new IllegalArgumentException(
             "Unsupported expression type: " + celExprFileSource.type());
     }
+
     evaluate(ast, testCase, celTestContext);
   }
 
@@ -133,15 +146,28 @@ public final class TestRunnerLibrary {
 
   private static CelTestContext extendCelTestContext(
       CelTestContext celTestContext, CelExprFileSource celExprFileSource) throws Exception {
+    System.out.println("Reached insdie extencontext");
     CelOptions celOptions = celTestContext.celOptions();
-    CelTestContext.Builder celTestContextBuilder =
-        celTestContext.toBuilder().setCel(extendCel(celTestContext.cel(), celOptions));
-    if (celExprFileSource.type().equals(ExpressionFileType.POLICY)) {
-      celTestContextBuilder.setCelPolicyParser(
-          celTestContext
-              .celPolicyParser()
-              .orElse(CelPolicyParserFactory.newYamlParserBuilder().build()));
+    Cel celTest = celTestContext.cel();
+    try {
+      celTest = extendCel(celTestContext.cel(), celOptions);
+
+    } catch (Exception e) {
+      System.out.println("Printing error " +  e);
     }
+    System.out.println("Reached after extend cel");
+    CelTestContext.Builder celTestContextBuilder =
+            celTestContext.toBuilder().setCel(celTest);
+
+    System.out.println("Extended cel.");
+    if (celExprFileSource.type().equals(ExpressionFileType.POLICY)) {
+      System.out.println("Inside policy check inside extend.");
+      celTestContextBuilder.setCelPolicyParser(
+              celTestContext
+                      .celPolicyParser()
+                      .orElse(CelPolicyParserFactory.newYamlParserBuilder().build()));
+    }
+    System.out.println("Reached end of extendCelTestContxt.");
 
     return celTestContextBuilder.build();
   }
@@ -155,6 +181,7 @@ public final class TestRunnerLibrary {
     // regarding proto messages that need to be added to the cel object.
     String fileDescriptorSetPath = System.getProperty("file_descriptor_set_path");
     if (fileDescriptorSetPath != null) {
+      System.out.println("Fds");
       extendedCel =
           cel.toCelBuilder()
               .addMessageTypes(
@@ -167,17 +194,33 @@ public final class TestRunnerLibrary {
 
     // Extend the cel object with the config file if provided.
     String configPath = System.getProperty("config_path");
+    System.out.println(configPath);
     if (configPath != null) {
       String configContent = readFile(configPath);
+      System.out.println(configContent);
       environment = CelEnvironmentYamlParser.newInstance().parse(configContent);
     }
 
+    System.out.println("Reached end of extend CEl" + " " + environment.toString());
+
     // Policy compiler requires optional support. Add the optional library by default to the
     // environment.
-    return environment.toBuilder()
-        .addExtensions(ExtensionConfig.of("optional"))
-        .build()
-        .extend(extendedCel, celOptions);
+    try {
+      System.out.println("line 208");
+      Cel newEnv = environment.toBuilder()
+              .addExtensions(ExtensionConfig.of("optional"))
+              .build()
+              .extend(extendedCel, celOptions);
+      System.out.println("Printing cel env " + newEnv);
+      return newEnv;
+    } catch (Exception e) {
+      System.out.println("line 216");
+      System.out.println("e " + e);
+    }
+    System.out.println("line 219");
+    return cel;
+//    System.out.println("Printing cel env " + newEnv);
+//    return newEnv;
   }
 
   /**
@@ -227,6 +270,7 @@ public final class TestRunnerLibrary {
   }
 
   private static String readFile(String path) throws IOException {
+    System.out.println("Reached here eval");
     return asCharSource(new File(path), UTF_8).read();
   }
 
@@ -240,6 +284,7 @@ public final class TestRunnerLibrary {
   private static void evaluate(
       CelAbstractSyntaxTree ast, CelTestCase testCase, CelTestContext celTestContext)
       throws Exception {
+
     Cel cel = celTestContext.cel();
     Program program = cel.createProgram(ast);
     ExprValue exprValue = null;

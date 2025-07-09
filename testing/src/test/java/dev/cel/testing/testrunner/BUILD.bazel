@@ -79,7 +79,7 @@ java_library(
 java_test(
     name = "library_test",
     srcs = ["TestRunnerLibraryTest.java"],
-    data = ["//testing/src/test/resources/policy:policy_yaml_files"],
+    data = ["//testing:policy_test_resources"],
     test_class = "dev.cel.testing.testrunner.TestRunnerLibraryTest",
     deps = [
         "//:java_truth",
@@ -93,6 +93,55 @@ java_test(
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",
     ],
+)
+
+cel_java_test(
+    name = "late_function_binding_test_runner_sample",
+    cel_expr = "late_function_binding/policy.yaml",
+    config = "late_function_binding/config.yaml",
+    proto_deps = [
+        #        Adding these proto deps results in some weird memory stack error.
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
+    ],
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":late_function_binding_user_test",
+    test_suite = "late_function_binding/tests.yaml",
+)
+
+cel_java_test(
+    name = "late_function_binding_test_runner_textproto_sample",
+    cel_expr = "late_function_binding/policy.yaml",
+    config = "late_function_binding/config.yaml",
+    proto_deps = [
+        #        Adding these proto deps results in some weird memory stack error.
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
+    ],
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":late_function_binding_user_test",
+    test_suite = "late_function_binding/tests.textproto",
+    #        deps = [
+    #            "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+    #            "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+    #        ],
+)
+
+cel_java_test(
+    name = "additional_config_test_runner_sample",
+    cel_expr = "nested_rule/policy.yaml",
+    config = "nested_rule/config.yaml",
+    proto_deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
+    ],
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":env_config_user_test",
+    test_suite = "nested_rule/testrunner_tests.textproto",
+    #    deps = [
+    #        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+    #        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+    #    ],
 )
 
 # java_test(
@@ -155,38 +204,20 @@ java_test(
 # )
 
 cel_java_test(
-    name = "late_function_binding_test_runner_sample",
-    cel_expr = "late_function_binding/policy.yaml",
-    config = "late_function_binding/config.yaml",
+    name = "test_runner_sample_yaml",
+    cel_expr = "nested_rule/policy.yaml",
+    proto_deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
+    ],
     test_data_path = "//testing/src/test/resources/policy",
-    test_src = ":late_function_binding_user_test",
-    test_suite = "late_function_binding/tests.yaml",
+    test_src = ":user_test",
+    test_suite = "nested_rule/testrunner_tests.yaml",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+    ],
 )
-
-cel_java_test(
-    name = "late_function_binding_test_runner_textproto_sample",
-    cel_expr = "late_function_binding/policy.yaml",
-    config = "late_function_binding/config.yaml",
-    test_data_path = "//testing/src/test/resources/policy",
-    test_src = ":late_function_binding_user_test",
-    test_suite = "late_function_binding/tests.textproto",
-)
-
-# cel_java_test(
-#     name = "test_runner_sample_yaml",
-#     cel_expr = "nested_rule/policy.yaml",
-#     proto_deps = [
-#         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
-#         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
-#     ],
-#     test_data_path = "//testing/src/test/resources/policy",
-#     test_src = ":user_test",
-#     test_suite = "nested_rule/testrunner_tests.yaml",
-#     deps = [
-#         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
-#         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
-#     ],
-# )
 
 # cel_java_test(
 #     name = "unknown_set_yaml",
@@ -200,35 +231,35 @@ cel_java_test(
 #     test_suite = "nested_rule/testrunner_unknown_output_tests.yaml",
 # )
 
-# cel_java_test(
-#     name = "custom_variable_binding_test_runner_sample",
-#     cel_expr = "custom_variable_bindings/policy.yaml",
-#     config = "custom_variable_bindings/config.yaml",
-#     proto_deps = [
-#         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
-#         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
-#     ],
-#     test_data_path = "//testing/src/test/resources/policy",
-#     test_src = ":custom_variable_binding_user_test",
-#     test_suite = "custom_variable_bindings/tests.yaml",
-#     deps = [
-#         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
-#         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
-#     ],
-# )
+#cel_java_test(
+#    name = "custom_variable_binding_test_runner_sample",
+#    cel_expr = "custom_variable_bindings/policy.yaml",
+#    config = "custom_variable_bindings/config.yaml",
+#    proto_deps = [
+#        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
+#        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
+#    ],
+#    test_data_path = "//testing/src/test/resources/policy",
+#    test_src = ":custom_variable_binding_user_test",
+#    test_suite = "custom_variable_bindings/tests.yaml",
+#    deps = [
+#        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+#        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+#    ],
+#)
 
-# cel_java_test(
-#     name = "test_runner_yaml_sample_with_eval_error",
-#     cel_expr = "nested_rule/eval_error_policy.yaml",
-#     config = "nested_rule/eval_error_config.yaml",
-#     proto_deps = [
-#         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
-#         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
-#     ],
-#     test_data_path = "//testing/src/test/resources/policy",
-#     test_src = ":env_config_user_test",
-#     test_suite = "nested_rule/eval_error_tests.yaml",
-# )
+cel_java_test(
+    name = "test_runner_yaml_sample_with_eval_error",
+    cel_expr = "nested_rule/eval_error_policy.yaml",
+    config = "nested_rule/eval_error_config.yaml",
+    proto_deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
+    ],
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":env_config_user_test",
+    test_suite = "nested_rule/eval_error_tests.yaml",
+)
 
 # cel_java_test(
 #     name = "context_pb_user_test_runner_sample",
@@ -241,23 +272,6 @@ cel_java_test(
 #     test_data_path = "//testing/src/test/resources/policy",
 #     test_src = ":context_pb_user_test",
 #     test_suite = "context_pb/tests.yaml",
-#     deps = [
-#         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
-#         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
-#     ],
-# )
-
-# cel_java_test(
-#     name = "additional_config_test_runner_sample",
-#     cel_expr = "nested_rule/policy.yaml",
-#     config = "nested_rule/config.yaml",
-#     proto_deps = [
-#         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
-#         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
-#     ],
-#     test_data_path = "//testing/src/test/resources/policy",
-#     test_src = ":env_config_user_test",
-#     test_suite = "nested_rule/testrunner_tests.textproto",
 #     deps = [
 #         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
 #         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
@@ -392,3 +406,20 @@ cel_java_test(
 #     test_src = ":user_test",
 #     test_suite = "simple_test_case/tests.textproto",
 # )
+
+cel_java_test(
+    name = "extension_as_input_test",
+    cel_expr = "2 + 2 == 4",
+    is_raw_expr = True,
+    proto_deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_proto",
+    ],
+    test_data_path = "//testing/src/test/resources/policy",
+    test_src = ":user_test",
+    test_suite = "protoextension_value_as_input/tests.textproto",
+    deps = [
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+    ],
+)

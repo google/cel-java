@@ -52,11 +52,11 @@ public class TestRunnerLibraryTest {
 
     System.setProperty(
             "config_path",
-            "testng/src/test/resources/policy/late_function_binding/config.yaml");
+            "testing/src/test/resources/policy/late_function_binding/config.yaml");
 
     CelExprFileSource celExprFileSource =
             CelExprFileSource.fromFile(
-                    "test/resources/policy/late_function_binding/policy.yaml");
+                    "testing/src/test/resources/policy/late_function_binding/policy.yaml");
 
     TestRunnerLibrary.evaluateTestCase(
             simpleOutputTestCase,

@@ -14,18 +14,19 @@
 
 package dev.cel.testing.testrunner;
 
-import static com.google.common.collect.MoreCollectors.onlyElement;
-import static dev.cel.testing.utils.ClassLoaderUtils.loadClassesWithMethodAnnotation;
-import static dev.cel.testing.utils.ClassLoaderUtils.loadSubclasses;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.time.ZoneId.systemDefault;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import dev.cel.testing.testrunner.Annotations.TestSuiteSupplier;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase;
 import io.github.classgraph.ClassInfoList;
+import org.junit.runner.*;
+import org.junit.runner.manipulation.Filter;
+import org.junit.runners.model.TestClass;
+import org.junit.runners.parameterized.BlockJUnit4ClassRunnerWithParametersFactory;
+import org.junit.runners.parameterized.ParametersRunnerFactory;
+import org.junit.runners.parameterized.TestWithParameters;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -33,16 +34,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Arrays;
-import org.junit.runner.Description;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Request;
-import org.junit.runner.Result;
-import org.junit.runner.Runner;
-import org.junit.runner.manipulation.Filter;
-import org.junit.runners.model.TestClass;
-import org.junit.runners.parameterized.BlockJUnit4ClassRunnerWithParametersFactory;
-import org.junit.runners.parameterized.ParametersRunnerFactory;
-import org.junit.runners.parameterized.TestWithParameters;
+
+import static com.google.common.collect.MoreCollectors.onlyElement;
+import static dev.cel.testing.utils.ClassLoaderUtils.loadClassesWithMethodAnnotation;
+import static dev.cel.testing.utils.ClassLoaderUtils.loadSubclasses;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.time.ZoneId.systemDefault;
 
 /** Test executor for running tests using custom runner. */
 public final class TestExecutor {
@@ -229,6 +226,10 @@ public final class TestExecutor {
           allTestsPassed = false;
           testResult.setStatus(JUnitXmlReporter.TestResult.FAILURE);
           testResult.setThrowable(result.getFailures().get(0).getException());
+          System.out.println("Size: " + result.getFailures().size());
+          System.out.println("ExecutorError: " + result.getFailures().get(0).getException());
+          System.out.println("ExecutorErrorStackTrace: " + result.getFailures().get(0).getTrace());
+          System.out.println("ExecutorErrorCause: " + result.getFailures().get(0).getException().getCause());
           testReporter.onTestFailure(testResult);
         }
       }

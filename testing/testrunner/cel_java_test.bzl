@@ -14,11 +14,11 @@
 
 """Rules for triggering the java impl of the CEL test runner."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
 load("@rules_java//java:java_binary.bzl", "java_binary")
 load("@rules_proto//proto:defs.bzl", "proto_descriptor_set")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
-load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@com_google_protobuf//bazel:java_proto_library.bzl", "java_proto_library")
 
 def cel_java_test(
         name,
@@ -111,6 +111,7 @@ def cel_java_test(
         main_class = "dev.cel.testing.testrunner.TestRunnerBinary",
         runtime_deps = [
             test_src,
+            "@maven//:com_google_protobuf_protobuf_java",
         ],
         deps = [
             "//testing/testrunner:test_executor",
