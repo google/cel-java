@@ -272,6 +272,7 @@ java_library(
     exports = [":base"],
     deps = [
         ":base",
+        ":concatenated_list_view",
         ":dispatcher",
         ":evaluation_exception",
         ":evaluation_exception_builder",
@@ -306,6 +307,7 @@ cel_android_library(
     visibility = ["//visibility:private"],
     deps = [
         ":base_android",
+        ":concatenated_list_view",
         ":dispatcher_android",
         ":evaluation_exception",
         ":evaluation_exception_builder",
@@ -398,6 +400,7 @@ cel_android_library(
     tags = [
     ],
     deps = [
+        ":concatenated_list_view",
         "//common:error_codes",
         "//common:options",
         "//common:runtime_exception",
@@ -419,6 +422,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":concatenated_list_view",
         "//common:error_codes",
         "//common:options",
         "//common:runtime_exception",
@@ -1093,4 +1097,11 @@ cel_android_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
     ],
+)
+
+java_library(
+    name = "concatenated_list_view",
+    srcs = ["ConcatenatedListView.java"],
+    # used_by_android
+    visibility = ["//visibility:private"],
 )
