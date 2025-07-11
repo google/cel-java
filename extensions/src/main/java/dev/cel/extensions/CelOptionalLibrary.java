@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.ByteString;
@@ -55,6 +56,7 @@ import java.util.Optional;
 
 /** Internal implementation of CEL optional values. */
 public final class CelOptionalLibrary implements CelCompilerLibrary, CelInternalRuntimeLibrary {
+  // TODO migrate from this constant to the CelExtensions.optional()
   public static final CelOptionalLibrary INSTANCE = new CelOptionalLibrary();
 
   /** Enumerations of function names used for supporting optionals. */
@@ -66,7 +68,10 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelInternal
     OPTIONAL_UNWRAP("optional.unwrap"),
     OPTIONAL_OF_NON_ZERO_VALUE("optional.ofNonZeroValue"),
     OR("or"),
-    OR_VALUE("orValue");
+    OR_VALUE("orValue"),
+    FIRST("first"),
+    LAST("last");
+
     private final String functionName;
 
     public String getFunction() {
@@ -80,6 +85,16 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelInternal
 
   private static final String UNUSED_ITER_VAR = "#unused";
 
+  private final int version;
+
+  CelOptionalLibrary() {
+    this(Integer.MAX_VALUE);
+  }
+
+  CelOptionalLibrary(int version) {
+    this.version = version;
+  }
+
   @Override
   public void setParserOptions(CelParserBuilder parserBuilder) {
     if (!parserBuilder.getOptions().enableOptionalSyntax()) {
@@ -90,8 +105,10 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelInternal
     }
     parserBuilder.addMacros(
         CelMacro.newReceiverMacro("optMap", 2, CelOptionalLibrary::expandOptMap));
-    parserBuilder.addMacros(
-        CelMacro.newReceiverMacro("optFlatMap", 2, CelOptionalLibrary::expandOptFlatMap));
+    if (version >= 1) {
+      parserBuilder.addMacros(
+          CelMacro.newReceiverMacro("optFlatMap", 2, CelOptionalLibrary::expandOptFlatMap));
+    }
   }
 
   @Override
@@ -172,6 +189,23 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelInternal
                 optionalTypeV,
                 OptionalType.create(mapTypeKv),
                 paramTypeK)));
+    if (version >= 2) {
+      checkerBuilder.addFunctionDeclarations(
+          CelFunctionDecl.newFunctionDeclaration(
+              Function.FIRST.functionName,
+              CelOverloadDecl.newMemberOverload(
+                  "optional_list_first",
+                  "Return the first value in a list if present, otherwise optional.none()",
+                  optionalTypeV,
+                  listTypeV)),
+          CelFunctionDecl.newFunctionDeclaration(
+              Function.LAST.functionName,
+              CelOverloadDecl.newMemberOverload(
+                  "optional_list_last",
+                  "Return the last value in a list if present, otherwise optional.none()",
+                  optionalTypeV,
+                  listTypeV)));
+    }
   }
 
   @Override
@@ -241,6 +275,14 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelInternal
             Optional.class,
             Long.class,
             CelOptionalLibrary::indexOptionalList));
+
+    if (version >= 2) {
+      runtimeBuilder.addFunctionBindings(
+          CelFunctionBinding.from(
+              "optional_list_first", Collection.class, CelOptionalLibrary::listOptionalFirst),
+          CelFunctionBinding.from(
+              "optional_list_last", Collection.class, CelOptionalLibrary::listOptionalLast));
+    }
   }
 
   private static ImmutableList<Object> elideOptionalCollection(Collection<Optional<Object>> list) {
@@ -372,5 +414,18 @@ public final class CelOptionalLibrary implements CelCompilerLibrary, CelInternal
     return Optional.of(list.get(castIndex));
   }
 
-  private CelOptionalLibrary() {}
+  @SuppressWarnings("rawtypes")
+  private static Object listOptionalFirst(Collection<Object> list) {
+    if (list.isEmpty()) {
+      return Optional.empty();
+    }
+    if (list instanceof List) {
+      return Optional.ofNullable(((List) list).get(0));
+    }
+    return Optional.ofNullable(Iterables.getFirst(list, null));
+  }
+
+  private static Object listOptionalLast(Collection<Object> list) {
+    return Optional.ofNullable(Iterables.getLast(list, null));
+  }
 }
