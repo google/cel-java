@@ -27,6 +27,7 @@ java_library(
         ":sets_function",
         ":strings",
         "//common:options",
+        "//extensions:optional_library",
         "@maven//:com_google_guava_guava",
     ],
 )
