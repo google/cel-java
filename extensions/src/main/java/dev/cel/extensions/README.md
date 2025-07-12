@@ -666,7 +666,21 @@ sets.intersects([[1], [2, 3]], [[1, 2], [2, 3.0]]) // true
 Extended functions for list manipulation. As a general note, all indices are
 zero-based.
 
+### Slice
+
+Returns a new sub-list using the indexes provided. The `from` index is
+inclusive, the `to` index is exclusive.
+
+    <list>.slice(<int>, <int>) -> <list>
+
+Examples:
+
+    [1,2,3,4].slice(1, 3) // return [2, 3]
+    [1,2,3,4].slice(2, 4) // return [3, 4]
+
 ### Flatten
+
+Introduced at version: 1
 
 Flattens a list by one level, or to the specified level. Providing a negative level will error.
 
@@ -708,6 +722,8 @@ type-checker to handle type-reductions, or union types.
 
 ### Range
 
+Introduced at version: 2
+
 Given integer size n returns a list of integers from 0 to n-1. If size <= 0
 then return empty list.
 
@@ -721,6 +737,69 @@ Examples:
 lists.range(5) -> [0, 1, 2, 3, 4]
 lists.range(0) -> []
 ```
+
+### Distinct
+
+Introduced at version: 2
+
+Returns the distinct elements of a list.
+
+    <list(T)>.distinct() -> <list(T)>
+
+Examples:
+
+    [1, 2, 2, 3, 3, 3].distinct() // return [1, 2, 3]
+    ["b", "b", "c", "a", "c"].distinct() // return ["b", "c", "a"]
+    [1, "b", 2, "b"].distinct() // return [1, "b", 2]
+    [1, 1.0, 2, 2u].distinct() // return [1, 2]
+
+### Reverse
+
+Introduced in version 2
+
+Returns the elements of a list in reverse order.
+
+    <list(T)>.reverse() -> <list(T)>
+
+Examples:
+
+    [5, 3, 1, 2].reverse() // return [2, 1, 3, 5]
+
+### Sort
+
+Introduced in version 2
+
+Sorts a list with comparable elements. If the element type is not comparable
+or the element types are not the same, the function will produce an error.
+
+    <list(T)>.sort() -> <list(T)>
+    // T in {int, uint, double, bool, duration, timestamp, string, bytes}
+
+Examples:
+
+    [3, 2, 1].sort() // return [1, 2, 3]
+    ["b", "c", "a"].sort() // return ["a", "b", "c"]
+    [1, "b"].sort() // error
+    [[1, 2, 3]].sort() // error
+
+### SortBy
+
+Introduced in version 2
+
+Sorts a list by a key value, i.e., the order is determined by the result of
+an expression applied to each element of the list.
+
+    <list(T)>.sortBy(<bindingName>, <keyExpr>) -> <list(T)>
+    keyExpr returns a value in {int, uint, double, bool, duration, timestamp, string, bytes}
+
+Examples:
+
+    [
+      Player { name: "foo", score: 0 },
+      Player { name: "bar", score: -10 },
+      Player { name: "baz", score: 1000 },
+    ].sortBy(e, e.score).map(e, e.name)
+    == ["bar", "foo", "baz"]
 
 ## Regex
 

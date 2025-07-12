@@ -20,7 +20,9 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
+import dev.cel.expr.conformance.test.SimpleTest;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import org.junit.Test;
@@ -33,7 +35,68 @@ public class CelListsExtensionsTest {
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .addCompilerLibraries(CelExtensions.lists())
           .addRuntimeLibraries(CelExtensions.lists())
+          .setContainer("cel.expr.conformance.test")
+          .addMessageTypes(SimpleTest.getDescriptor())
           .build();
+
+  private static final Cel CEL_WITH_HETEROGENOUS_NUMERIC_COMPARISONS =
+      CelFactory.standardCelBuilder()
+          .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
+          .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+          .addCompilerLibraries(CelExtensions.lists())
+          .addRuntimeLibraries(CelExtensions.lists())
+          .setContainer("cel.expr.conformance.test")
+          .addMessageTypes(SimpleTest.getDescriptor())
+          .build();
+
+  @Test
+  public void functionList_byVersion() {
+    assertThat(CelExtensions.getFunctionNames(CelExtensions.lists(0))).containsExactly("slice");
+    assertThat(CelExtensions.getFunctionNames(CelExtensions.lists(1)))
+        .containsExactly("slice", "flatten");
+    assertThat(CelExtensions.getFunctionNames(CelExtensions.lists(2)))
+        .containsExactly(
+            "slice",
+            "flatten",
+            "lists.range",
+            "distinct",
+            "reverse",
+            "sort",
+            "lists.@sortByAssociatedKeys");
+  }
+
+  @Test
+  @TestParameters("{expression: '[1,2,3,4].slice(0, 4) == [1,2,3,4]'}")
+  @TestParameters("{expression: '[1,2,3,4].slice(0, 0) == []'}")
+  @TestParameters("{expression: '[1,2,3,4].slice(1, 1) == []'}")
+  @TestParameters("{expression: '[1,2,3,4].slice(4, 4) == []'}")
+  @TestParameters("{expression: '[1,2,3,4].slice(1, 3) == [2, 3]'}")
+  public void slice_success(String expression) throws Exception {
+    boolean result = (boolean) CEL.createProgram(CEL.compile(expression).getAst()).eval();
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  @TestParameters(
+      "{expression: '[1,2,3,4].slice(3, 0)', "
+          + "expectedError: 'Start index must be less than or equal to end index'}")
+  @TestParameters("{expression: '[1,2,3,4].slice(0, 10)', expectedError: 'List is length 4'}")
+  @TestParameters(
+      "{expression: '[1,2,3,4].slice(-5, 10)', "
+          + "expectedError: 'Negative indexes not supported'}")
+  @TestParameters(
+      "{expression: '[1,2,3,4].slice(-5, -3)', "
+          + "expectedError: 'Negative indexes not supported'}")
+  public void slice_throws(String expression, String expectedError) throws Exception {
+    assertThat(
+        assertThrows(
+            CelEvaluationException.class,
+            () -> CEL.createProgram(CEL.compile(expression).getAst()).eval()))
+        .hasCauseThat()
+        .hasMessageThat()
+        .contains(expectedError);
+  }
 
   @Test
   @TestParameters("{expression: '[].flatten() == []'}")
@@ -98,5 +161,136 @@ public class CelListsExtensionsTest {
     boolean result = (boolean) CEL.createProgram(CEL.compile(expression).getAst()).eval();
 
     assertThat(result).isTrue();
+  }
+
+  @Test
+  @TestParameters("{expression: '[].distinct()', expected: '[]'}")
+  @TestParameters("{expression: '[].distinct()', expected: '[]'}")
+  @TestParameters("{expression: '[1].distinct()', expected: '[1]'}")
+  @TestParameters(
+      "{expression: '[-2, 5, -2, 1, 1, 5, -2, 1].distinct()', expected: '[-2, 5, 1]'}")
+  @TestParameters(
+      "{expression: '[-2, 5, -2, 1, 1, 5, -2, 1, 5, -2, -2, 1].distinct()', "
+          + "expected: '[-2, 5, 1]'}")
+  @TestParameters(
+      "{expression: '[\"c\", \"a\", \"a\", \"b\", \"a\", \"b\", \"c\", \"c\"].distinct()',"
+          + " expected: '[\"c\", \"a\", \"b\"]'}")
+  @TestParameters(
+      "{expression: '[1, 2.0, \"c\", 3, \"c\", 1].distinct()', "
+          + "expected: '[1, 2.0, \"c\", 3]'}")
+  @TestParameters("{expression: '[1, 1.0, 2, 2u].distinct()', expected: '[1, 2]'}")
+  @TestParameters("{expression: '[[1], [1], [2]].distinct()', expected: '[[1], [2]]'}")
+  @TestParameters(
+      "{expression: '[SimpleTest{name: \"a\"}, SimpleTest{name: \"b\"}, SimpleTest{name: \"a\"}]"
+          + ".distinct()', "
+          + "expected: '[SimpleTest{name: \"a\"}, SimpleTest{name: \"b\"}]'}")
+  public void distinct_success(String expression, String expected) throws Exception {
+    Object result = CEL.createProgram(CEL.compile(expression).getAst()).eval();
+    Object expectedResult = CEL.createProgram(CEL.compile(expected).getAst()).eval();
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expression: '[5,1,2,3].reverse()', expected: '[3,2,1,5]'}")
+  @TestParameters("{expression: '[].reverse()', expected: '[]'}")
+  @TestParameters("{expression: '[1].reverse()', expected: '[1]'}")
+  @TestParameters(
+      "{expression: '[\"are\", \"you\", \"as\", \"bored\", \"as\", \"I\", \"am\"].reverse()', "
+          + "expected: '[\"am\", \"I\", \"as\", \"bored\", \"as\", \"you\", \"are\"]'}")
+  @TestParameters(
+      "{expression: '[false, true, true].reverse().reverse()', expected: '[false, true, true]'}")
+  public void reverse_success(String expression, String expected) throws Exception {
+    Object result = CEL.createProgram(CEL.compile(expression).getAst()).eval();
+    Object expectedResult = CEL.createProgram(CEL.compile(expected).getAst()).eval();
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expression: '[].sort()', expected: '[]'}")
+  @TestParameters("{expression: '[1].sort()', expected: '[1]'}")
+  @TestParameters("{expression: '[4, 3, 2, 1].sort()', expected: '[1, 2, 3, 4]'}")
+  @TestParameters(
+      "{expression: '[\"d\", \"a\", \"b\", \"c\"].sort()', "
+          + "expected: '[\"a\", \"b\", \"c\", \"d\"]'}")
+  public void sort_success(String expression, String expected) throws Exception {
+    Object result = CEL.createProgram(CEL.compile(expression).getAst()).eval();
+    Object expectedResult = CEL.createProgram(CEL.compile(expected).getAst()).eval();
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expression: '[3.0, 2, 1u].sort()', expected: '[1u, 2, 3.0]'}")
+  @TestParameters("{expression: '[4, 3, 2, 1].sort()', expected: '[1, 2, 3, 4]'}")
+  public void sort_success_heterogeneousNumbers(String expression, String expected)
+      throws Exception {
+    Object result = CEL_WITH_HETEROGENOUS_NUMERIC_COMPARISONS.createProgram(
+        CEL_WITH_HETEROGENOUS_NUMERIC_COMPARISONS.compile(expression).getAst()).eval();
+    Object expectedResult = CEL.createProgram(CEL.compile(expected).getAst()).eval();
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters(
+      "{expression: '[\"d\", 3, 2, \"c\"].sort()', "
+          + "expectedError: 'List elements must have the same type'}")
+  @TestParameters(
+      "{expression: '[3.0, 2, 1u].sort()', "
+          + "expectedError: 'List elements must have the same type'}")
+  @TestParameters(
+      "{expression: '[SimpleTest{name: \"a\"}, SimpleTest{name: \"b\"}].sort()', "
+          + "expectedError: 'List elements must be comparable'}")
+  public void sort_throws(String expression, String expectedError) throws Exception {
+    assertThat(
+        assertThrows(
+            CelEvaluationException.class,
+            () -> CEL.createProgram(CEL.compile(expression).getAst()).eval()))
+        .hasCauseThat()
+        .hasMessageThat()
+        .contains(expectedError);
+  }
+
+  @Test
+  @TestParameters("{expression: '[].sortBy(e, e)', expected: '[]'}")
+  @TestParameters("{expression: '[\"a\"].sortBy(e, e)', expected: '[\"a\"]'}")
+  @TestParameters(
+      "{expression: '[-3, 1, -5, -2, 4].sortBy(e, -(e * e))', "
+          + "expected: '[-5, 4, -3, -2, 1]'}")
+  @TestParameters(
+      "{expression: '[-3, 1, -5, -2, 4].map(e, e * 2).sortBy(e, -(e * e)) ', "
+          + "expected: '[-10, 8, -6, -4, 2]'}")
+  @TestParameters(
+      "{expression: 'lists.range(3).sortBy(e, -e) ', "
+          + "expected: '[2, 1, 0]'}")
+  @TestParameters(
+      "{expression: '[\"a\", \"c\", \"b\", \"first\"].sortBy(e, e == \"first\" ? \"\" : e)', "
+          + "expected: '[\"first\", \"a\", \"b\", \"c\"]'}")
+  @TestParameters(
+      "{expression: '[SimpleTest{name: \"baz\"},"
+          + " SimpleTest{name: \"foo\"},"
+          + " SimpleTest{name: \"bar\"}].sortBy(e, e.name)', "
+          + "expected: '[SimpleTest{name: \"bar\"},"
+          + " SimpleTest{name: \"baz\"},"
+          + " SimpleTest{name: \"foo\"}]'}")
+  public void sortBy_success(String expression, String expected) throws Exception {
+    Object result = CEL.createProgram(CEL.compile(expression).getAst()).eval();
+    Object expectedResult = CEL.createProgram(CEL.compile(expected).getAst()).eval();
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters(
+      "{expression: '[[1, 2], [\"a\", \"b\"]].sortBy(e, e[0])', "
+          + "expectedError: 'List elements must have the same type'}")
+  @TestParameters(
+      "{expression: '[SimpleTest{name: \"a\"}, SimpleTest{name: \"b\"}].sortBy(e, e)', "
+          + "expectedError: 'List elements must be comparable'}")
+  public void sortBy_throws(String expression, String expectedError) throws Exception {
+    assertThat(
+        assertThrows(
+            CelEvaluationException.class,
+            () -> CEL.createProgram(CEL.compile(expression).getAst()).eval()))
+        .hasCauseThat()
+        .hasMessageThat()
+        .contains(expectedError);
   }
 }
