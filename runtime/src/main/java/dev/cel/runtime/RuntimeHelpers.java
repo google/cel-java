@@ -91,7 +91,12 @@ public class RuntimeHelpers {
 
   /** Concatenates two lists into a new list. */
   public static <E> List<E> concat(List<E> first, List<E> second) {
-    // TODO: return a view instead of an actual copy.
+    if (first instanceof ConcatenatedListView) {
+      // Comprehensions use a more efficient list view for performing O(1) concatenation
+      first.addAll(second);
+      return first;
+    }
+
     List<E> result = new ArrayList<>(first.size() + second.size());
     result.addAll(first);
     result.addAll(second);
