@@ -20,6 +20,7 @@ import static org.junit.Assert.assertThrows;
 import com.google.api.expr.v1alpha1.Constant;
 import com.google.api.expr.v1alpha1.Expr;
 import com.google.api.expr.v1alpha1.Type.PrimitiveType;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
@@ -41,6 +42,8 @@ import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.types.CelV1AlphaTypes;
+import dev.cel.common.types.ListType;
+import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.compiler.CelCompiler;
@@ -48,6 +51,7 @@ import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparserFactory;
+import dev.cel.runtime.CelAttribute.Qualifier;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -684,5 +688,50 @@ public class CelRuntimeTest {
     assertThat(e)
         .hasMessageThat()
         .contains("No matching overload for function 'size'. Overload candidates: size_string");
+  }
+
+  @Test
+  @TestParameters("{size: 10000}")
+  @TestParameters("{size: 20000}")
+  @TestParameters("{size: 40000}")
+  @TestParameters("{size: 80000}")
+  @TestParameters("{size: 160000}")
+  public void benchmark_lotsOfUnknownMerges(int size) throws Exception {
+    CelOptions celOptions = CelOptions.current().enableUnknownTracking(true).build();
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addVar("list", ListType.create(SimpleType.INT))
+            .addVar("unk", MapType.create(SimpleType.INT, SimpleType.INT))
+            .setOptions(celOptions)
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS).build();
+    CelRuntime celRuntime =
+        CelRuntimeFactory.standardCelRuntimeBuilder()
+            .setOptions(celOptions)
+            .build();
+    CelAbstractSyntaxTree ast = celCompiler.compile("list.map(y, unk[y])").getAst();
+
+    ImmutableList.Builder<Long> listBuilder = ImmutableList.builder();
+    for (long i = 1; i <= size; i++) {
+      listBuilder.add(i);
+    }
+    ImmutableList<Long> list = listBuilder.build();
+    CelRuntime.Program program = celRuntime.createProgram(ast);
+    UnknownContext ctx = UnknownContext.create(name -> {
+      if (name.equals("list")) {
+        return Optional.of(list);
+      }
+      return Optional.empty();
+    }, ImmutableList.of(
+        CelAttributePattern.fromQualifiedIdentifier("unk")
+            .qualify(Qualifier.ofWildCard())));
+
+    // warmup cache
+    CelUnknownSet result = (CelUnknownSet) program.advanceEvaluation(ctx);
+    Stopwatch sw = Stopwatch.createStarted();
+    result = (CelUnknownSet) program.advanceEvaluation(ctx);
+    sw.stop();
+    System.err.println("Elapsed: " + sw);
+
+    assertThat(result.attributes()).hasSize(size);
   }
 }

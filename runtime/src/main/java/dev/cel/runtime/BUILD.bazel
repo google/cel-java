@@ -271,6 +271,7 @@ java_library(
     ],
     exports = [":base"],
     deps = [
+        ":accumulated_unknowns",
         ":base",
         ":concatenated_list_view",
         ":dispatcher",
@@ -306,6 +307,7 @@ cel_android_library(
     srcs = INTERPRETER_SOURCES,
     visibility = ["//visibility:private"],
     deps = [
+        ":accumulated_unknowns_android",
         ":base_android",
         ":concatenated_list_view",
         ":dispatcher_android",
@@ -1034,6 +1036,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":accumulated_unknowns",
         ":evaluation_exception",
         ":unknown_attributes",
         "//common/annotations",
@@ -1047,6 +1050,7 @@ cel_android_library(
     srcs = ["InterpreterUtil.java"],
     visibility = ["//visibility:private"],
     deps = [
+        ":accumulated_unknowns_android",
         ":evaluation_exception",
         ":unknown_attributes_android",
         "//common/annotations",
@@ -1104,4 +1108,18 @@ java_library(
     srcs = ["ConcatenatedListView.java"],
     # used_by_android
     visibility = ["//visibility:private"],
+)
+
+java_library(
+    name = "accumulated_unknowns",
+    srcs = ["AccumulatedUnknowns.java"],
+    visibility = ["//visibility:private"],
+    deps = [":unknown_attributes"],
+)
+
+cel_android_library(
+    name = "accumulated_unknowns_android",
+    srcs = ["AccumulatedUnknowns.java"],
+    visibility = ["//visibility:private"],
+    deps = [":unknown_attributes_android"],
 )

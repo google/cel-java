@@ -48,7 +48,7 @@ public final class InterpreterUtil {
   }
 
   /**
-   * Check if raw object is ExprValue object and has UnknownSet
+   * Check if raw object is {@link CelUnknownSet}.
    *
    * @param obj Object to check.
    * @return boolean value if object is unknown.
@@ -57,15 +57,19 @@ public final class InterpreterUtil {
     return obj instanceof CelUnknownSet;
   }
 
-  static CelUnknownSet combineUnknownExprValue(Object... objs) {
+  static boolean isAccumulatedUnknowns(Object obj) {
+    return obj instanceof AccumulatedUnknowns;
+  }
+
+  static AccumulatedUnknowns combineUnknownExprValue(Object... objs) {
     Set<Long> ids = new LinkedHashSet<>();
     for (Object object : objs) {
-      if (isUnknown(object)) {
-        ids.addAll(((CelUnknownSet) object).unknownExprIds());
+      if (isAccumulatedUnknowns(object)) {
+        ids.addAll(((AccumulatedUnknowns) object).exprIds());
       }
     }
 
-    return CelUnknownSet.create(ids);
+    return AccumulatedUnknowns.create(ids);
   }
 
   /**
@@ -79,17 +83,17 @@ public final class InterpreterUtil {
   public static Object shortcircuitUnknownOrThrowable(Object left, Object right)
       throws CelEvaluationException {
     // unknown <op> unknown ==> unknown combined
-    if (InterpreterUtil.isUnknown(left) && InterpreterUtil.isUnknown(right)) {
+    if (InterpreterUtil.isAccumulatedUnknowns(left) && InterpreterUtil.isAccumulatedUnknowns(right)) {
       return InterpreterUtil.combineUnknownExprValue(left, right);
     }
     // unknown <op> <error> ==> unknown
     // unknown <op> t|f ==> unknown
-    if (InterpreterUtil.isUnknown(left)) {
+    if (InterpreterUtil.isAccumulatedUnknowns(left)) {
       return left;
     }
     // <error> <op> unknown ==> unknown
     // t|f <op> unknown ==> unknown
-    if (InterpreterUtil.isUnknown(right)) {
+    if (InterpreterUtil.isAccumulatedUnknowns(right)) {
       return right;
     }
     // Throw left or right side exception for now, should combine them into ErrorSet.
@@ -106,12 +110,12 @@ public final class InterpreterUtil {
 
   public static Object valueOrUnknown(@Nullable Object valueOrThrowable, Long id) {
     // Handle the unknown value case.
-    if (isUnknown(valueOrThrowable)) {
-      return CelUnknownSet.create(id);
+    if (isAccumulatedUnknowns(valueOrThrowable)) {
+      return AccumulatedUnknowns.create(id);
     }
     // Handle the null value case.
     if (valueOrThrowable == null) {
-      return CelUnknownSet.create(id);
+      return AccumulatedUnknowns.create(id);
     }
     return valueOrThrowable;
   }

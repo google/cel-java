@@ -33,9 +33,4 @@ public interface CelEvaluationListener {
    * @param evaluatedResult Evaluated result.
    */
   void callback(CelExpr expr, Object evaluatedResult);
-
-  /** Construct a listener that does nothing. */
-  static CelEvaluationListener noOpListener() {
-    return (arg1, arg2) -> {};
-  }
 }
