@@ -51,19 +51,13 @@ abstract class ProgramImpl implements CelRuntime.Program {
   @Override
   public Object eval(CelVariableResolver resolver, CelFunctionResolver lateBoundFunctionResolver)
       throws CelEvaluationException {
-    return evalInternal(
-        (name) -> resolver.find(name).orElse(null),
-        lateBoundFunctionResolver,
-        CelEvaluationListener.noOpListener());
+    return evalInternal((name) -> resolver.find(name).orElse(null), lateBoundFunctionResolver);
   }
 
   @Override
   public Object eval(Map<String, ?> mapValue, CelFunctionResolver lateBoundFunctionResolver)
       throws CelEvaluationException {
-    return evalInternal(
-        Activation.copyOf(mapValue),
-        lateBoundFunctionResolver,
-        CelEvaluationListener.noOpListener());
+    return evalInternal(Activation.copyOf(mapValue), lateBoundFunctionResolver);
   }
 
   @Override
@@ -110,17 +104,22 @@ abstract class ProgramImpl implements CelRuntime.Program {
 
   @Override
   public Object advanceEvaluation(UnknownContext context) throws CelEvaluationException {
-    return evalInternal(context, Optional.empty(), CelEvaluationListener.noOpListener());
+    return evalInternal(context, Optional.empty(), Optional.empty());
   }
 
   private Object evalInternal(GlobalResolver resolver) throws CelEvaluationException {
-    return evalInternal(
-        UnknownContext.create(resolver), Optional.empty(), CelEvaluationListener.noOpListener());
+    return evalInternal(UnknownContext.create(resolver), Optional.empty(), Optional.empty());
   }
 
   private Object evalInternal(GlobalResolver resolver, CelEvaluationListener listener)
       throws CelEvaluationException {
-    return evalInternal(UnknownContext.create(resolver), Optional.empty(), listener);
+    return evalInternal(UnknownContext.create(resolver), Optional.empty(), Optional.of(listener));
+  }
+
+  private Object evalInternal(GlobalResolver resolver, CelFunctionResolver functionResolver)
+      throws CelEvaluationException {
+    return evalInternal(
+        UnknownContext.create(resolver), Optional.of(functionResolver), Optional.empty());
   }
 
   private Object evalInternal(
@@ -129,7 +128,9 @@ abstract class ProgramImpl implements CelRuntime.Program {
       CelEvaluationListener listener)
       throws CelEvaluationException {
     return evalInternal(
-        UnknownContext.create(resolver), Optional.of(lateBoundFunctionResolver), listener);
+        UnknownContext.create(resolver),
+        Optional.of(lateBoundFunctionResolver),
+        Optional.of(listener));
   }
 
   /**
@@ -139,7 +140,7 @@ abstract class ProgramImpl implements CelRuntime.Program {
   private Object evalInternal(
       UnknownContext context,
       Optional<CelFunctionResolver> lateBoundFunctionResolver,
-      CelEvaluationListener listener)
+      Optional<CelEvaluationListener> listener)
       throws CelEvaluationException {
     Interpretable impl = getInterpretable();
     if (getOptions().enableUnknownTracking()) {
@@ -157,10 +158,16 @@ abstract class ProgramImpl implements CelRuntime.Program {
           lateBoundFunctionResolver,
           listener);
     } else {
-      if (lateBoundFunctionResolver.isPresent()) {
-        return impl.eval(context.variableResolver(), lateBoundFunctionResolver.get(), listener);
+      if (lateBoundFunctionResolver.isPresent() && listener.isPresent()) {
+        return impl.eval(
+            context.variableResolver(), lateBoundFunctionResolver.get(), listener.get());
+      } else if (lateBoundFunctionResolver.isPresent()) {
+        return impl.eval(context.variableResolver(), lateBoundFunctionResolver.get());
+      } else if (listener.isPresent()) {
+        return impl.eval(context.variableResolver(), listener.get());
       }
-      return impl.eval(context.variableResolver(), listener);
+
+      return impl.eval(context.variableResolver());
     }
   }
 

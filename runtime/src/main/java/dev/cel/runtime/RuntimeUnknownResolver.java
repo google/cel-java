@@ -91,8 +91,9 @@ public class RuntimeUnknownResolver {
    * Return a single element unknown set if the attribute is partially unknown based on the defined
    * patterns.
    */
-  Optional<CelUnknownSet> maybePartialUnknown(CelAttribute attribute) {
-    return attributeResolver.maybePartialUnknown(attribute);
+  Optional<AccumulatedUnknowns> maybePartialUnknown(CelAttribute attribute) {
+    CelUnknownSet unknownSet = attributeResolver.maybePartialUnknown(attribute).orElse(null);
+    return Optional.ofNullable(unknownSet).map(InterpreterUtil::adaptToAccumulatedUnknowns);
   }
 
   /** Resolve a simple name to a value. */
@@ -102,7 +103,7 @@ public class RuntimeUnknownResolver {
     if (attributeTrackingEnabled) {
       attr = CelAttribute.fromQualifiedIdentifier(name);
 
-      Optional<Object> result = attributeResolver.resolve(attr);
+      Optional<Object> result = resolveAttribute(attr);
       if (result.isPresent()) {
         return DefaultInterpreter.IntermediateResult.create(attr, result.get());
       }
@@ -123,7 +124,8 @@ public class RuntimeUnknownResolver {
    * resolved values behind field accesses and index operations.
    */
   Optional<Object> resolveAttribute(CelAttribute attr) {
-    return attributeResolver.resolve(attr);
+    Object resolved = attributeResolver.resolve(attr).orElse(null);
+    return Optional.ofNullable(resolved).map(InterpreterUtil::maybeAdaptToAccumulatedUnknowns);
   }
 
   ScopedResolver withScope(Map<String, DefaultInterpreter.IntermediateResult> vars) {

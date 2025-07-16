@@ -32,7 +32,7 @@ class CallArgumentChecker {
   private final ArrayList<Long> exprIds;
   private final RuntimeUnknownResolver resolver;
   private final boolean acceptPartial;
-  private Optional<CelUnknownSet> unknowns;
+  private Optional<AccumulatedUnknowns> unknowns;
 
   private CallArgumentChecker(RuntimeUnknownResolver resolver, boolean acceptPartial) {
     this.exprIds = new ArrayList<>();
@@ -61,29 +61,30 @@ class CallArgumentChecker {
     return new CallArgumentChecker(resolver, true);
   }
 
-  private static Optional<CelUnknownSet> mergeOptionalUnknowns(
-      Optional<CelUnknownSet> lhs, Optional<CelUnknownSet> rhs) {
+  private static Optional<AccumulatedUnknowns> mergeOptionalUnknowns(
+      Optional<AccumulatedUnknowns> lhs, Optional<AccumulatedUnknowns> rhs) {
     return lhs.isPresent() ? rhs.isPresent() ? Optional.of(lhs.get().merge(rhs.get())) : lhs : rhs;
   }
 
   /** Determine if the call argument is unknown and accumulate if so. */
   void checkArg(DefaultInterpreter.IntermediateResult arg) {
     // Handle attribute tracked unknowns.
-    Optional<CelUnknownSet> argUnknowns = maybeUnknownFromArg(arg);
+    Optional<AccumulatedUnknowns> argUnknowns = maybeUnknownFromArg(arg);
     unknowns = mergeOptionalUnknowns(unknowns, argUnknowns);
 
     // support for ExprValue unknowns.
-    if (InterpreterUtil.isUnknown(arg.value())) {
-      CelUnknownSet unknownSet = (CelUnknownSet) arg.value();
-      exprIds.addAll(unknownSet.unknownExprIds());
+    if (InterpreterUtil.isAccumulatedUnknowns(arg.value())) {
+      AccumulatedUnknowns unknownSet = (AccumulatedUnknowns) arg.value();
+      exprIds.addAll(unknownSet.exprIds());
     }
   }
 
-  private Optional<CelUnknownSet> maybeUnknownFromArg(DefaultInterpreter.IntermediateResult arg) {
-    if (arg.value() instanceof CelUnknownSet) {
-      CelUnknownSet celUnknownSet = (CelUnknownSet) arg.value();
+  private Optional<AccumulatedUnknowns> maybeUnknownFromArg(
+      DefaultInterpreter.IntermediateResult arg) {
+    if (arg.value() instanceof AccumulatedUnknowns) {
+      AccumulatedUnknowns celUnknownSet = (AccumulatedUnknowns) arg.value();
       if (!celUnknownSet.attributes().isEmpty()) {
-        return Optional.of((CelUnknownSet) arg.value());
+        return Optional.of((AccumulatedUnknowns) arg.value());
       }
     }
     if (!acceptPartial) {
@@ -99,7 +100,7 @@ class CallArgumentChecker {
     }
 
     if (!exprIds.isEmpty()) {
-      return Optional.of(CelUnknownSet.create(exprIds));
+      return Optional.of(AccumulatedUnknowns.create(exprIds));
     }
 
     return Optional.empty();
