@@ -16,8 +16,6 @@ package dev.cel.runtime;
 
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.annotations.Internal;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -48,7 +46,7 @@ public final class InterpreterUtil {
   }
 
   /**
-   * Check if raw object is ExprValue object and has UnknownSet
+   * Check if raw object is {@link CelUnknownSet}.
    *
    * @param obj Object to check.
    * @return boolean value if object is unknown.
@@ -57,41 +55,28 @@ public final class InterpreterUtil {
     return obj instanceof CelUnknownSet;
   }
 
-  static CelUnknownSet combineUnknownExprValue(Object... objs) {
-    Set<Long> ids = new LinkedHashSet<>();
-    for (Object object : objs) {
-      if (isUnknown(object)) {
-        ids.addAll(((CelUnknownSet) object).unknownExprIds());
-      }
+  static boolean isAccumulatedUnknowns(Object obj) {
+    return obj instanceof AccumulatedUnknowns;
+  }
+
+  /** If the argument is {@link CelUnknownSet}, adapts it into {@link AccumulatedUnknowns} */
+  static Object maybeAdaptToAccumulatedUnknowns(Object val) {
+    if (!(val instanceof CelUnknownSet)) {
+      return val;
     }
 
-    return CelUnknownSet.create(ids);
+    return adaptToAccumulatedUnknowns((CelUnknownSet) val);
+  }
+
+  static AccumulatedUnknowns adaptToAccumulatedUnknowns(CelUnknownSet unknowns) {
+    return AccumulatedUnknowns.create(unknowns.unknownExprIds(), unknowns.attributes());
   }
 
   /**
-   * Short circuit unknown or error arguments to logical operators.
-   *
-   * <p>Given two arguments, one of which must be throwable (error) or unknown, returns the result
-   * from the && or || operators for these arguments, assuming that the result cannot be determined
-   * from any boolean arguments alone. This allows us to consolidate the error/unknown handling for
-   * both of these operators.
+   * Enforces strictness on both lhs/rhs arguments from logical operators (i.e: intentionally throws
+   * an appropriate exception when {@link Throwable} is encountered as part of evaluated result.
    */
-  public static Object shortcircuitUnknownOrThrowable(Object left, Object right)
-      throws CelEvaluationException {
-    // unknown <op> unknown ==> unknown combined
-    if (InterpreterUtil.isUnknown(left) && InterpreterUtil.isUnknown(right)) {
-      return InterpreterUtil.combineUnknownExprValue(left, right);
-    }
-    // unknown <op> <error> ==> unknown
-    // unknown <op> t|f ==> unknown
-    if (InterpreterUtil.isUnknown(left)) {
-      return left;
-    }
-    // <error> <op> unknown ==> unknown
-    // t|f <op> unknown ==> unknown
-    if (InterpreterUtil.isUnknown(right)) {
-      return right;
-    }
+  public static Object enforceStrictness(Object left, Object right) throws CelEvaluationException {
     // Throw left or right side exception for now, should combine them into ErrorSet.
     // <error> <op> <error> ==> <error>
     if (left instanceof Throwable) {
@@ -106,12 +91,12 @@ public final class InterpreterUtil {
 
   public static Object valueOrUnknown(@Nullable Object valueOrThrowable, Long id) {
     // Handle the unknown value case.
-    if (isUnknown(valueOrThrowable)) {
-      return CelUnknownSet.create(id);
+    if (isAccumulatedUnknowns(valueOrThrowable)) {
+      return AccumulatedUnknowns.create(id);
     }
     // Handle the null value case.
     if (valueOrThrowable == null) {
-      return CelUnknownSet.create(id);
+      return AccumulatedUnknowns.create(id);
     }
     return valueOrThrowable;
   }
