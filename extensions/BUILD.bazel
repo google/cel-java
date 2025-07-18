@@ -12,6 +12,11 @@ java_library(
 )
 
 java_library(
+    name = "extension_library",
+    exports = ["//extensions/src/main/java/dev/cel/extensions:extension_library"],
+)
+
+java_library(
     name = "lite_extensions",
     visibility = ["//:internal"],
     exports = ["//extensions/src/main/java/dev/cel/extensions:lite_extensions"],
