@@ -56,7 +56,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "SingleTestParameter"})
 public class CelOptionalLibraryTest {
 
   @SuppressWarnings("ImmutableEnumChecker") // Test only
@@ -93,13 +93,17 @@ public class CelOptionalLibraryTest {
   }
 
   private static CelBuilder newCelBuilder() {
+    return newCelBuilder(Integer.MAX_VALUE);
+  }
+
+  private static CelBuilder newCelBuilder(int version) {
     return CelFactory.standardCelBuilder()
         .setOptions(CelOptions.current().enableTimestampEpoch(true).build())
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .setContainer("cel.expr.conformance.proto3")
         .addMessageTypes(TestAllTypes.getDescriptor())
-        .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
-        .addCompilerLibraries(CelOptionalLibrary.INSTANCE);
+        .addRuntimeLibraries(CelExtensions.optional(version))
+        .addCompilerLibraries(CelExtensions.optional(version));
   }
 
   @Test
@@ -1495,5 +1499,41 @@ public class CelOptionalLibraryTest {
     CelAbstractSyntaxTree ast = cel.compile("type(optional.none()) == optional_type").getAst();
 
     assertThat(cel.createProgram(ast).eval()).isEqualTo(true);
+  }
+
+  @Test
+  @TestParameters("{expression: '[].first().hasValue() == false'}")
+  @TestParameters("{expression: '[\"a\",\"b\",\"c\"].first().value() == \"a\"'}")
+  public void listFirst_success(String expression) throws Exception {
+    Cel cel = newCelBuilder().build();
+    boolean result = (boolean) cel.createProgram(cel.compile(expression).getAst()).eval();
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  @TestParameters("{expression: '[].last().hasValue() == false'}")
+  @TestParameters("{expression: '[1, 2, 3].last().value() == 3'}")
+  public void listLast_success(String expression) throws Exception {
+    Cel cel = newCelBuilder().build();
+    boolean result = (boolean) cel.createProgram(cel.compile(expression).getAst()).eval();
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  @TestParameters("{expression: '[1].first()', expectedError: 'undeclared reference to ''first'''}")
+  @TestParameters("{expression: '[2].last()', expectedError: 'undeclared reference to ''last'''}")
+  public void listFirstAndLast_throws_earlyVersion(String expression, String expectedError)
+      throws Exception {
+    // Configure Cel with an earlier version of the 'optional' library, which did not support
+    // 'first' and 'last'
+    Cel cel = newCelBuilder(1).build();
+    assertThat(
+            assertThrows(
+                CelValidationException.class,
+                () -> {
+                  cel.createProgram(cel.compile(expression).getAst()).eval();
+                }))
+        .hasMessageThat()
+        .contains(expectedError);
   }
 }
