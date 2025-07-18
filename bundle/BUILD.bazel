@@ -24,3 +24,8 @@ java_library(
     name = "environment_yaml_parser",
     exports = ["//bundle/src/main/java/dev/cel/bundle:environment_yaml_parser"],
 )
+
+java_library(
+    name = "environment_exporter",
+    exports = ["//bundle/src/main/java/dev/cel/bundle:environment_exporter"],
+)
