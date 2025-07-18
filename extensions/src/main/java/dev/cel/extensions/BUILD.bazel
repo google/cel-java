@@ -27,6 +27,9 @@ java_library(
         ":sets_function",
         ":strings",
         "//common:options",
+        "//common/internal:env_visitor",
+        "//compiler",
+        "//compiler:compiler_builder",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -237,10 +240,17 @@ java_library(
     deps = [
         "//checker:checker_builder",
         "//common:compiler_common",
+        "//common:options",
+        "//common/ast",
+        "//common/internal:comparison_functions",
         "//common/types",
         "//compiler:compiler_builder",
+        "//parser:macro",
+        "//parser:operator",
+        "//parser:parser_builder",
         "//runtime",
         "//runtime:function_binding",
+        "//runtime:runtime_equality",
         "@maven//:com_google_guava_guava",
     ],
 )

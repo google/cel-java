@@ -20,6 +20,10 @@ import static java.util.Arrays.stream;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import dev.cel.common.CelOptions;
+import dev.cel.common.internal.EnvVisitable;
+import dev.cel.compiler.CelCompiler;
+import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.extensions.CelListsExtensions.Function;
 import java.util.Set;
 
@@ -35,7 +39,6 @@ public final class CelExtensions {
   private static final CelProtoExtensions PROTO_EXTENSIONS = new CelProtoExtensions();
   private static final CelBindingsExtensions BINDINGS_EXTENSIONS = new CelBindingsExtensions();
   private static final CelEncoderExtensions ENCODER_EXTENSIONS = new CelEncoderExtensions();
-  private static final CelListsExtensions LISTS_EXTENSIONS_ALL = new CelListsExtensions();
   private static final CelRegexExtensions REGEX_EXTENSIONS = new CelRegexExtensions();
 
   /**
@@ -230,7 +233,16 @@ public final class CelExtensions {
    * CelListsExtensions.Function}.
    */
   public static CelListsExtensions lists() {
-    return LISTS_EXTENSIONS_ALL;
+    return new CelListsExtensions(Integer.MAX_VALUE);
+  }
+
+  /**
+   * Extended functions for List manipulation.
+   *
+   * <p>Refer to README.md for functions available in each version.
+   */
+  public static CelListsExtensions lists(int version) {
+    return new CelListsExtensions(version);
   }
 
   /**
@@ -291,6 +303,17 @@ public final class CelExtensions {
             stream(CelRegexExtensions.Function.values())
                 .map(CelRegexExtensions.Function::getFunction))
         .collect(toImmutableSet());
+  }
+
+  public static ImmutableSet<String> getFunctionNames(CelCompilerLibrary library) {
+    ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setStandardEnvironmentEnabled(false)
+            .addLibraries(library)
+            .build();
+    ((EnvVisitable) compiler).accept((name, decls) -> builder.add(name));
+    return builder.build();
   }
 
   private CelExtensions() {}
