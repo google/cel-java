@@ -59,7 +59,7 @@ public abstract class CelUnknownSet {
     return create(ImmutableSet.of(), ImmutableSet.copyOf(unknownExprIds));
   }
 
-  private static CelUnknownSet create(
+  static CelUnknownSet create(
       ImmutableSet<CelAttribute> attributes, ImmutableSet<Long> unknownExprIds) {
     return new AutoValue_CelUnknownSet(attributes, unknownExprIds);
   }

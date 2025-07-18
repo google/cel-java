@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -137,20 +138,24 @@ final class DefaultInterpreter implements Interpreter {
     @Override
     public Object eval(GlobalResolver resolver) throws CelEvaluationException {
       // Result is already unwrapped from IntermediateResult.
-      return eval(resolver, CelEvaluationListener.noOpListener());
+      return evalTrackingUnknowns(
+          RuntimeUnknownResolver.fromResolver(resolver), Optional.empty(), Optional.empty());
     }
 
     @Override
     public Object eval(GlobalResolver resolver, CelEvaluationListener listener)
         throws CelEvaluationException {
       return evalTrackingUnknowns(
-          RuntimeUnknownResolver.fromResolver(resolver), Optional.empty(), listener);
+          RuntimeUnknownResolver.fromResolver(resolver), Optional.empty(), Optional.of(listener));
     }
 
     @Override
     public Object eval(GlobalResolver resolver, FunctionResolver lateBoundFunctionResolver)
         throws CelEvaluationException {
-      return eval(resolver, lateBoundFunctionResolver, CelEvaluationListener.noOpListener());
+      return evalTrackingUnknowns(
+          RuntimeUnknownResolver.fromResolver(resolver),
+          Optional.of(lateBoundFunctionResolver),
+          Optional.empty());
     }
 
     @Override
@@ -162,19 +167,32 @@ final class DefaultInterpreter implements Interpreter {
       return evalTrackingUnknowns(
           RuntimeUnknownResolver.fromResolver(resolver),
           Optional.of(lateBoundFunctionResolver),
-          listener);
+          Optional.of(listener));
     }
 
     @Override
     public Object evalTrackingUnknowns(
         RuntimeUnknownResolver resolver,
         Optional<? extends FunctionResolver> functionResolver,
-        CelEvaluationListener listener)
+        Optional<CelEvaluationListener> listener)
         throws CelEvaluationException {
       ExecutionFrame frame = newExecutionFrame(resolver, functionResolver, listener);
       IntermediateResult internalResult = evalInternal(frame, ast.getExpr());
 
-      return internalResult.value();
+      Object underlyingValue = internalResult.value();
+
+      return maybeAdaptToCelUnknownSet(underlyingValue);
+    }
+
+    private static Object maybeAdaptToCelUnknownSet(Object val) {
+      if (!(val instanceof AccumulatedUnknowns)) {
+        return val;
+      }
+
+      AccumulatedUnknowns unknowns = (AccumulatedUnknowns) val;
+
+      return CelUnknownSet.create(
+          ImmutableSet.copyOf(unknowns.attributes()), ImmutableSet.copyOf(unknowns.exprIds()));
     }
 
     /**
@@ -196,15 +214,13 @@ final class DefaultInterpreter implements Interpreter {
     @VisibleForTesting
     ExecutionFrame newTestExecutionFrame(GlobalResolver resolver) {
       return newExecutionFrame(
-          RuntimeUnknownResolver.fromResolver(resolver),
-          Optional.empty(),
-          CelEvaluationListener.noOpListener());
+          RuntimeUnknownResolver.fromResolver(resolver), Optional.empty(), Optional.empty());
     }
 
     private ExecutionFrame newExecutionFrame(
         RuntimeUnknownResolver resolver,
         Optional<? extends FunctionResolver> functionResolver,
-        CelEvaluationListener listener) {
+        Optional<CelEvaluationListener> listener) {
       int comprehensionMaxIterations =
           celOptions.enableComprehension() ? celOptions.comprehensionMaxIterations() : 0;
       return new ExecutionFrame(listener, resolver, functionResolver, comprehensionMaxIterations);
@@ -244,7 +260,11 @@ final class DefaultInterpreter implements Interpreter {
             throw new IllegalStateException(
                 "unexpected expression kind: " + expr.exprKind().getKind());
         }
-        frame.getEvaluationListener().callback(expr, result.value());
+
+        frame
+            .getEvaluationListener()
+            .ifPresent(
+                listener -> listener.callback(expr, maybeAdaptToCelUnknownSet(result.value())));
         return result;
       } catch (CelRuntimeException e) {
         throw CelEvaluationExceptionBuilder.newBuilder(e).setMetadata(metadata, expr.id()).build();
@@ -257,7 +277,7 @@ final class DefaultInterpreter implements Interpreter {
     }
 
     private static boolean isUnknownValue(Object value) {
-      return value instanceof CelUnknownSet || InterpreterUtil.isUnknown(value);
+      return InterpreterUtil.isAccumulatedUnknowns(value);
     }
 
     private static boolean isUnknownOrError(Object value) {
@@ -452,6 +472,8 @@ final class DefaultInterpreter implements Interpreter {
           findOverloadOrThrow(frame, expr, callExpr.function(), overloadIds, argArray);
       try {
         Object dispatchResult = overload.getDefinition().apply(argArray);
+        // CustomFunctions themselves can return a CelUnknownSet directly.
+        dispatchResult = InterpreterUtil.maybeAdaptToAccumulatedUnknowns(dispatchResult);
         if (celOptions.unwrapWellKnownTypesOnFunctionDispatch()) {
           CelType checkedType = getCheckedTypeOrThrow(expr);
           dispatchResult = typeProvider.adapt(checkedType.name(), dispatchResult);
@@ -552,18 +574,20 @@ final class DefaultInterpreter implements Interpreter {
         throws CelEvaluationException {
       // TODO: migrate clients to a common type that reports both expr-id unknowns
       // and attribute sets.
-      if (lhs.value() instanceof CelUnknownSet && rhs.value() instanceof CelUnknownSet) {
+      Object lhsVal = lhs.value();
+      Object rhsVal = rhs.value();
+      if (lhsVal instanceof AccumulatedUnknowns && rhsVal instanceof AccumulatedUnknowns) {
         return IntermediateResult.create(
-            ((CelUnknownSet) lhs.value()).merge((CelUnknownSet) rhs.value()));
-      } else if (lhs.value() instanceof CelUnknownSet) {
+            ((AccumulatedUnknowns) lhsVal).merge((AccumulatedUnknowns) rhsVal));
+      } else if (lhsVal instanceof AccumulatedUnknowns) {
         return lhs;
-      } else if (rhs.value() instanceof CelUnknownSet) {
+      } else if (rhsVal instanceof AccumulatedUnknowns) {
         return rhs;
       }
 
       // Otherwise fallback to normal impl
       return IntermediateResult.create(
-          InterpreterUtil.shortcircuitUnknownOrThrowable(lhs.value(), rhs.value()));
+          InterpreterUtil.shortcircuitUnknownOrThrowable(lhsVal, rhsVal));
     }
 
     private enum ShortCircuitableOperators {
@@ -1050,7 +1074,7 @@ final class DefaultInterpreter implements Interpreter {
 
   /** This class tracks the state meaningful to a single evaluation pass. */
   static class ExecutionFrame {
-    private final CelEvaluationListener evaluationListener;
+    private final Optional<CelEvaluationListener> evaluationListener;
     private final int maxIterations;
     private final ArrayDeque<RuntimeUnknownResolver> resolvers;
     private final Optional<? extends FunctionResolver> lateBoundFunctionResolver;
@@ -1059,7 +1083,7 @@ final class DefaultInterpreter implements Interpreter {
     @VisibleForTesting int scopeLevel;
 
     private ExecutionFrame(
-        CelEvaluationListener evaluationListener,
+        Optional<CelEvaluationListener> evaluationListener,
         RuntimeUnknownResolver resolver,
         Optional<? extends FunctionResolver> lateBoundFunctionResolver,
         int maxIterations) {
@@ -1071,7 +1095,7 @@ final class DefaultInterpreter implements Interpreter {
       this.maxIterations = maxIterations;
     }
 
-    private CelEvaluationListener getEvaluationListener() {
+    private Optional<CelEvaluationListener> getEvaluationListener() {
       return evaluationListener;
     }
 
