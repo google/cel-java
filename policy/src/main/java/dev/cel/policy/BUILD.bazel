@@ -167,7 +167,9 @@ java_library(
     ],
     deps = [
         ":policy",
+        "//:auto_value",
         "//common/formats:parser_context",
+        "//policy:source",
     ],
 )
 

@@ -94,11 +94,17 @@ final class CelPolicyYamlParser implements CelPolicyParser {
     }
 
     @Override
-    public CelPolicy parsePolicy(PolicyParserContext<Node> ctx, Node node) {
-      CelPolicy.Builder policyBuilder = CelPolicy.newBuilder();
+    public NewPolicyMetadata newPolicy(Node node) {
       long id = ctx.collectMetadata(node);
-      if (!assertYamlType(ctx, id, node, YamlNodeType.MAP)) {
-        return policyBuilder.setPolicySource(policySource).build();
+      return NewPolicyMetadata.create(policySource, id);
+    }
+
+    @Override
+    public CelPolicy parsePolicy(PolicyParserContext<Node> ctx, Node node) {
+      NewPolicyMetadata newPolicyMetadata = newPolicy(node);
+      CelPolicy.Builder policyBuilder = newPolicyMetadata.policyBuilder();
+      if (!assertYamlType(ctx, newPolicyMetadata.id(), node, YamlNodeType.MAP)) {
+        return policyBuilder.build();
       }
 
       MappingNode rootNode = (MappingNode) node;

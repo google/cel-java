@@ -14,6 +14,7 @@
 
 package dev.cel.policy;
 
+import com.google.auto.value.AutoValue;
 import dev.cel.common.formats.ParserContext;
 import dev.cel.policy.CelPolicy.Match;
 import dev.cel.policy.CelPolicy.Rule;
@@ -24,6 +25,25 @@ import dev.cel.policy.CelPolicy.Variable;
  * for {@link CelPolicy}.
  */
 public interface PolicyParserContext<T> extends ParserContext<T> {
+
+  /**
+   * Wrapper for a new instance of {@link CelPolicy.Builder} and the associated node ID. The
+   * CelPolicy builder also has a policy source set by the parser.
+   */
+  @AutoValue
+  abstract class NewPolicyMetadata {
+    public abstract CelPolicy.Builder policyBuilder();
+
+    public abstract long id();
+
+    static NewPolicyMetadata create(CelPolicySource source, long id) {
+      return new AutoValue_PolicyParserContext_NewPolicyMetadata(
+          CelPolicy.newBuilder().setPolicySource(source), id);
+    }
+  }
+
+  NewPolicyMetadata newPolicy(T node);
+
   CelPolicy parsePolicy(PolicyParserContext<T> ctx, T node);
 
   Rule parseRule(PolicyParserContext<T> ctx, CelPolicy.Builder policyBuilder, T node);
