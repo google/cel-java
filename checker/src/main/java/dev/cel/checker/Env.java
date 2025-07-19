@@ -215,7 +215,6 @@ public class Env {
       CelOptions celOptions) {
     Env env = Env.unconfigured(errors, typeProvider, celOptions);
     // Isolate the standard declarations into their own scope for forward compatibility.
-    CelStandardDeclarations.deprecatedFunctions().forEach(env::add);
     celStandardDeclaration.functionDecls().forEach(env::add);
     celStandardDeclaration.identifierDecls().forEach(env::add);
 
