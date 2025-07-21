@@ -16,8 +16,6 @@ package dev.cel.runtime;
 
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.annotations.Internal;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -74,42 +72,11 @@ public final class InterpreterUtil {
     return AccumulatedUnknowns.create(unknowns.unknownExprIds(), unknowns.attributes());
   }
 
-  static AccumulatedUnknowns combineUnknownExprValue(Object... objs) {
-    Set<Long> ids = new LinkedHashSet<>();
-    for (Object object : objs) {
-      if (isAccumulatedUnknowns(object)) {
-        ids.addAll(((AccumulatedUnknowns) object).exprIds());
-      }
-    }
-
-    return AccumulatedUnknowns.create(ids);
-  }
-
   /**
-   * Short circuit unknown or error arguments to logical operators.
-   *
-   * <p>Given two arguments, one of which must be throwable (error) or unknown, returns the result
-   * from the && or || operators for these arguments, assuming that the result cannot be determined
-   * from any boolean arguments alone. This allows us to consolidate the error/unknown handling for
-   * both of these operators.
+   * Enforces strictness on both lhs/rhs arguments from logical operators (i.e: intentionally throws
+   * an appropriate exception when {@link Throwable} is encountered as part of evaluated result.
    */
-  public static Object shortcircuitUnknownOrThrowable(Object left, Object right)
-      throws CelEvaluationException {
-    // unknown <op> unknown ==> unknown combined
-    if (InterpreterUtil.isAccumulatedUnknowns(left)
-        && InterpreterUtil.isAccumulatedUnknowns(right)) {
-      return InterpreterUtil.combineUnknownExprValue(left, right);
-    }
-    // unknown <op> <error> ==> unknown
-    // unknown <op> t|f ==> unknown
-    if (InterpreterUtil.isAccumulatedUnknowns(left)) {
-      return left;
-    }
-    // <error> <op> unknown ==> unknown
-    // t|f <op> unknown ==> unknown
-    if (InterpreterUtil.isAccumulatedUnknowns(right)) {
-      return right;
-    }
+  public static Object enforceStrictness(Object left, Object right) throws CelEvaluationException {
     // Throw left or right side exception for now, should combine them into ErrorSet.
     // <error> <op> <error> ==> <error>
     if (left instanceof Throwable) {

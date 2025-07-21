@@ -585,9 +585,8 @@ final class DefaultInterpreter implements Interpreter {
         return rhs;
       }
 
-      // Otherwise fallback to normal impl
-      return IntermediateResult.create(
-          InterpreterUtil.shortcircuitUnknownOrThrowable(lhsVal, rhsVal));
+      // Otherwise, enforce strictness on both args
+      return IntermediateResult.create(InterpreterUtil.enforceStrictness(lhsVal, rhsVal));
     }
 
     private enum ShortCircuitableOperators {
