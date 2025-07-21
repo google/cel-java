@@ -48,27 +48,33 @@ public final class CelStandardDeclarations {
   private static final TypeParamType TYPE_PARAM_B = TypeParamType.create("B");
   private static final MapType MAP_OF_AB = MapType.create(TYPE_PARAM_A, TYPE_PARAM_B);
 
-  private static final ImmutableSet<CelFunctionDecl> DEPRECATED_STANDARD_FUNCTIONS =
-      ImmutableSet.of(
-          CelFunctionDecl.newFunctionDeclaration(
-              Operator.OLD_NOT_STRICTLY_FALSE.getFunction(),
-              CelOverloadDecl.newGlobalOverload(
-                  "not_strictly_false",
-                  "false if argument is false, true otherwise (including errors and unknowns)",
-                  SimpleType.BOOL,
-                  SimpleType.BOOL)),
-          CelFunctionDecl.newFunctionDeclaration(
-              Operator.OLD_IN.getFunction(),
-              CelOverloadDecl.newGlobalOverload(
-                  "in_list", "list membership", SimpleType.BOOL, TYPE_PARAM_A, LIST_OF_A),
-              CelOverloadDecl.newGlobalOverload(
-                  "in_map", "map key membership", SimpleType.BOOL, TYPE_PARAM_A, MAP_OF_AB)));
-
   private final ImmutableSet<CelFunctionDecl> celFunctionDecls;
   private final ImmutableSet<CelIdentDecl> celIdentDecls;
 
   /** Enumeration of Standard Functions. */
   public enum StandardFunction {
+    // Deprecated - use {@link #IN}
+    OLD_IN(
+        true,
+        Operator.OLD_IN.getFunction(),
+        () ->
+            CelOverloadDecl.newGlobalOverload(
+                "in_list", "list membership", SimpleType.BOOL, TYPE_PARAM_A, LIST_OF_A),
+        () ->
+            CelOverloadDecl.newGlobalOverload(
+                "in_map", "map key membership", SimpleType.BOOL, TYPE_PARAM_A, MAP_OF_AB)),
+
+    // Deprecated - use {@link #NOT_STRICTLY_FALSE}
+    OLD_NOT_STRICTLY_FALSE(
+        true,
+        Operator.OLD_NOT_STRICTLY_FALSE.getFunction(),
+        () ->
+            CelOverloadDecl.newGlobalOverload(
+                "not_strictly_false",
+                "false if argument is false, true otherwise (including errors and unknowns)",
+                SimpleType.BOOL,
+                SimpleType.BOOL)),
+
     // Internal (rewritten by macro)
     IN(Operator.IN, Overload.InternalOperator.IN_LIST, Overload.InternalOperator.IN_MAP),
     NOT_STRICTLY_FALSE(Operator.NOT_STRICTLY_FALSE, Overload.InternalOperator.NOT_STRICTLY_FALSE),
@@ -298,6 +304,7 @@ public final class CelStandardDeclarations {
     private final String functionName;
     private final CelFunctionDecl celFunctionDecl;
     private final ImmutableSet<StandardOverload> standardOverloads;
+    private final boolean isDeprecated;
 
     /** Container class for CEL standard function overloads. */
     public static final class Overload {
@@ -1485,11 +1492,20 @@ public final class CelStandardDeclarations {
       return functionName;
     }
 
+    boolean isDeprecated() {
+      return isDeprecated;
+    }
+
     StandardFunction(Operator operator, StandardOverload... overloads) {
-      this(operator.getFunction(), overloads);
+      this(false, operator.getFunction(), overloads);
     }
 
     StandardFunction(String functionName, StandardOverload... overloads) {
+      this(false, functionName, overloads);
+    }
+
+    StandardFunction(boolean isDeprecated, String functionName, StandardOverload... overloads) {
+      this.isDeprecated = isDeprecated;
       this.functionName = functionName;
       this.standardOverloads = ImmutableSet.copyOf(overloads);
       this.celFunctionDecl = newCelFunctionDecl(functionName, this.standardOverloads);
@@ -1549,16 +1565,10 @@ public final class CelStandardDeclarations {
 
   /** Set of all standard function names. */
   public static ImmutableSet<String> getAllFunctionNames() {
-    return stream(StandardFunction.values()).map(f -> f.functionName).collect(toImmutableSet());
-  }
-
-  /**
-   * Deprecated standard functions maintained for backward compatibility reasons.
-   *
-   * <p>Note: Keep this package-private.
-   */
-  static ImmutableSet<CelFunctionDecl> deprecatedFunctions() {
-    return DEPRECATED_STANDARD_FUNCTIONS;
+    return stream(StandardFunction.values())
+        .filter(f -> !f.isDeprecated)
+        .map(f -> f.functionName)
+        .collect(toImmutableSet());
   }
 
   /** Builder for constructing the set of standard function/identifiers. */
