@@ -12,6 +12,17 @@ package(
 )
 
 java_library(
+    name = "extension_library",
+    srcs = ["CelExtensionLibrary.java"],
+    tags = [
+    ],
+    deps = [
+        "//common:compiler_common",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "extensions",
     srcs = ["CelExtensions.java"],
     tags = [
@@ -101,6 +112,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":extension_library",
         "//checker:checker_builder",
         "//common:compiler_common",
         "//common:options",

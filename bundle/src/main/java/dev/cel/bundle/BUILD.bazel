@@ -112,6 +112,32 @@ java_library(
 )
 
 java_library(
+    name = "environment_exporter",
+    srcs = [
+        "CelEnvironmentExporter.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":environment",
+        "//:auto_value",
+        "//bundle:cel",
+        "//checker:standard_decl",
+        "//common:compiler_common",
+        "//common:options",
+        "//common/internal:env_visitor",
+        "//common/types:cel_proto_types",
+        "//common/types:cel_types",
+        "//common/types:type_providers",
+        "//extensions",
+        "//extensions:extension_library",
+        "@cel_spec//proto/cel/expr:checked_java_proto",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "required_fields_checker",
     srcs = [
         "RequiredFieldsChecker.java",

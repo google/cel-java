@@ -16,6 +16,7 @@ package dev.cel.extensions;
 
 import static com.google.common.collect.Comparators.max;
 import static com.google.common.collect.Comparators.min;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -55,7 +56,8 @@ import java.util.function.BiFunction;
  */
 @SuppressWarnings({"rawtypes", "unchecked"}) // Use of raw Comparables.
 @Immutable
-final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
+final class CelMathExtensions
+    implements CelCompilerLibrary, CelRuntimeLibrary, CelExtensionLibrary {
 
   private static final String MATH_NAMESPACE = "math";
 
@@ -718,14 +720,35 @@ final class CelMathExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
 
   private final boolean enableUnsignedLongs;
   private final ImmutableSet<Function> functions;
+  private final int version;
 
   CelMathExtensions(CelOptions celOptions, int version) {
-    this(celOptions, Function.byVersion(version));
+    this(celOptions, version, Function.byVersion(version));
   }
 
   CelMathExtensions(CelOptions celOptions, Set<Function> functions) {
+    this(celOptions, -1, functions);
+  }
+
+  private CelMathExtensions(CelOptions celOptions, int version, Set<Function> functions) {
     this.enableUnsignedLongs = celOptions.enableUnsignedLongs();
+    this.version = version;
     this.functions = ImmutableSet.copyOf(functions);
+  }
+
+  @Override
+  public String getName() {
+    return "math";
+  }
+
+  @Override
+  public int getVersion() {
+    return version;
+  }
+
+  @Override
+  public ImmutableSet<CelFunctionDecl> getFunctions() {
+    return functions.stream().map(f -> f.functionDecl).collect(toImmutableSet());
   }
 
   @Override
