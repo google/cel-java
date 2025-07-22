@@ -14,7 +14,6 @@
 
 package dev.cel.runtime;
 
-import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 // import com.google.testing.testsize.MediumTest;
 import dev.cel.testing.BaseInterpreterTest;
@@ -23,9 +22,4 @@ import org.junit.runner.RunWith;
 /** Tests for {@link Interpreter} and related functionality. */
 // @MediumTest
 @RunWith(TestParameterInjector.class)
-public class InterpreterTest extends BaseInterpreterTest {
-
-  public InterpreterTest(@TestParameter InterpreterTestOption testOption) {
-    super(testOption.celOptions, testOption.useNativeCelType);
-  }
-}
+public class InterpreterTest extends BaseInterpreterTest {}

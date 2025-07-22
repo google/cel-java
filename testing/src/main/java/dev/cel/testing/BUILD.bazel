@@ -6,14 +6,6 @@ package(
     default_visibility = ["//testing:__pkg__"],
 )
 
-TEST_DECL_SOURCES = [
-    "TestCelFunctionDeclWrapper.java",
-    "TestCelVariableDeclWrapper.java",
-    "TestDecl.java",
-    "TestProtoFunctionDeclWrapper.java",
-    "TestProtoVariableDeclWrapper.java",
-]
-
 java_library(
     name = "baseline_test_case",
     srcs = [
@@ -49,36 +41,20 @@ java_library(
 )
 
 java_library(
-    name = "test_decls",
-    srcs = TEST_DECL_SOURCES,
-    deps = [
-        "//common:compiler_common",
-        "//common/types:cel_proto_types",
-        "//common/types:type_providers",
-        "//compiler:compiler_builder",
-        "@cel_spec//proto/cel/expr:checked_java_proto",
-        "@maven//:com_google_guava_guava",
-    ],
-)
-
-java_library(
     name = "cel_baseline_test_case",
     srcs = ["CelBaselineTestCase.java"],
     deps = [
         ":baseline_test_case",
-        ":test_decls",
         "//:java_truth",
         "//common:cel_ast",
         "//common:compiler_common",
         "//common:options",
-        "//common/types:cel_proto_types",
         "//common/types:cel_types",
         "//common/types:message_type_provider",
         "//common/types:type_providers",
         "//compiler",
         "//compiler:compiler_builder",
         "//parser:macro",
-        "@cel_spec//proto/cel/expr:checked_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
     ],
@@ -104,7 +80,7 @@ java_library(
         "//common/internal:file_descriptor_converter",
         "//common/internal:proto_time_utils",
         "//common/resources/testdata/proto3:standalone_global_enum_java_proto",
-        "//common/types:cel_proto_types",
+        "//common/types",
         "//common/types:type_providers",
         "//extensions:optional_library",
         "//runtime",

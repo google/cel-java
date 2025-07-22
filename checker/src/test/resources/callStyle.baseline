@@ -1,9 +1,9 @@
 Source: size(x) == x.size()
-declare size {
-  function my_size list(A).() -> int
-}
 declare x {
   value list(int)
+}
+declare size {
+  function my_size list(A).() -> int
 }
 =====>
 _==_(

@@ -22,11 +22,6 @@ java_library(
 )
 
 java_library(
-    name = "test_decls",
-    exports = ["//testing/src/main/java/dev/cel/testing:test_decls"],
-)
-
-java_library(
     name = "cel_baseline_test_case",
     exports = ["//testing/src/main/java/dev/cel/testing:cel_baseline_test_case"],
 )

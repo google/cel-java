@@ -14,21 +14,20 @@
 
 package dev.cel.testing;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static dev.cel.common.CelFunctionDecl.newFunctionDeclaration;
 
-import dev.cel.expr.Decl;
-import dev.cel.expr.Decl.FunctionDecl.Overload;
-import dev.cel.expr.Type;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelValidationException;
-import dev.cel.common.types.CelProtoTypes;
+import dev.cel.common.CelVarDecl;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypes;
@@ -45,8 +44,8 @@ import java.util.List;
  * to ensure consistent behavior on future test runs.
  */
 public abstract class CelBaselineTestCase extends BaselineTestCase {
-  private final boolean declareWithCelTypes;
-  private final List<TestDecl> decls = new ArrayList<>();
+  private final List<CelVarDecl> varDecls = new ArrayList<>();
+  private final List<CelFunctionDecl> functionDecls = new ArrayList<>();
 
   protected String source;
   protected String container = "";
@@ -63,16 +62,7 @@ public abstract class CelBaselineTestCase extends BaselineTestCase {
           .comprehensionMaxIterations(1_000)
           .build();
 
-  /**
-   * @param declareWithCelTypes If true, variables, functions and their overloads are declared
-   *     internally using java native types {@link CelType}. This will also make the declarations to
-   *     be loaded via their type equivalent APIs to the compiler. (Example: {@link
-   *     CelCompilerBuilder#addFunctionDeclarations} vs. {@link CelCompilerBuilder#addDeclarations}
-   *     ). Setting false will declare these using protobuf types {@link Type} instead.
-   */
-  protected CelBaselineTestCase(boolean declareWithCelTypes) {
-    this.declareWithCelTypes = declareWithCelTypes;
-  }
+  protected CelBaselineTestCase() {}
 
   protected CelAbstractSyntaxTree prepareTest(List<FileDescriptor> descriptors) {
     return prepareTest(new ProtoMessageTypeProvider(ImmutableSet.copyOf(descriptors)));
@@ -107,31 +97,6 @@ public abstract class CelBaselineTestCase extends BaselineTestCase {
 
   private void validateTestSetup() {
     assertWithMessage("The source field must be non-null").that(source).isNotNull();
-    if (declareWithCelTypes) {
-      assertWithMessage(
-              "Test is incorrectly setup. Declarations must be done with CEL native types with"
-                  + " declareWithCelTypes enabled")
-          .that(
-              decls.stream()
-                  .filter(
-                      d ->
-                          d instanceof TestProtoFunctionDeclWrapper
-                              || d instanceof TestProtoVariableDeclWrapper)
-                  .count())
-          .isEqualTo(0);
-    } else {
-      assertWithMessage(
-              "Test is incorrectly setup. Declarations must be done with proto types with"
-                  + " declareWithCelTypes disabled.")
-          .that(
-              decls.stream()
-                  .filter(
-                      d ->
-                          d instanceof TestCelFunctionDeclWrapper
-                              || d instanceof TestCelVariableDeclWrapper)
-                  .count())
-          .isEqualTo(0);
-    }
   }
 
   protected void prepareCompiler(CelTypeProvider typeProvider) {
@@ -149,9 +114,8 @@ public abstract class CelBaselineTestCase extends BaselineTestCase {
       celCompilerBuilder.setResultType(expectedType);
     }
 
-    // Add the function declarations appropriate to the type we're working with (Either CelType or
-    // Protobuf Type)
-    decls.forEach(d -> d.loadDeclsToCompiler(celCompilerBuilder));
+    varDecls.forEach(celCompilerBuilder::addVarDeclarations);
+    functionDecls.forEach(celCompilerBuilder::addFunctionDeclarations);
 
     celCompiler = celCompilerBuilder.build();
   }
@@ -161,17 +125,14 @@ public abstract class CelBaselineTestCase extends BaselineTestCase {
    *
    * @param name Variable name
    */
-  protected void declareVariable(String name, Type type) {
-    TestDecl varDecl =
-        this.declareWithCelTypes
-            ? new TestCelVariableDeclWrapper(name, type)
-            : new TestProtoVariableDeclWrapper(name, type);
-    decls.add(varDecl);
+  protected void declareVariable(String name, CelType type) {
+    varDecls.add(CelVarDecl.newVarDeclaration(name, type));
   }
 
   /** Clears all function and variable declarations. */
   protected void clearAllDeclarations() {
-    decls.clear();
+    functionDecls.clear();
+    varDecls.clear();
   }
 
   /** Returns the test source description. */
@@ -182,54 +143,40 @@ public abstract class CelBaselineTestCase extends BaselineTestCase {
   protected void printTestSetup() {
     // Print the source.
     testOutput().printf("Source: %s%n", source);
-    for (TestDecl testDecl : decls) {
-      testOutput().println(formatDecl(testDecl.getDecl()));
+    for (CelVarDecl varDecl : varDecls) {
+      testOutput().println(formatVarDecl(varDecl));
     }
+    for (CelFunctionDecl functionDecl : functionDecls) {
+      testOutput().println(formatFunctionDecl(functionDecl));
+    }
+
     testOutput().println("=====>");
   }
 
-  protected String formatDecl(Decl decl) {
+  protected String formatFunctionDecl(CelFunctionDecl decl) {
     StringBuilder declStr = new StringBuilder();
-    declStr.append(String.format("declare %s {%n", decl.getName()));
-    formatDeclImpl(decl, declStr);
-    declStr.append("}");
-    return declStr.toString();
-  }
-
-  protected String formatDecl(String name, List<Decl> declarations) {
-    StringBuilder declStr = new StringBuilder();
-    declStr.append(String.format("declare %s {%n", name));
-    for (Decl decl : declarations) {
-      formatDeclImpl(decl, declStr);
+    declStr.append(String.format("declare %s {%n", decl.name()));
+    for (CelOverloadDecl overload : decl.overloads()) {
+      declStr.append(
+          String.format(
+              "  function %s %s%n",
+              overload.overloadId(),
+              CelTypes.formatFunction(
+                  overload.resultType(),
+                  ImmutableList.copyOf(overload.parameterTypes()),
+                  overload.isInstanceFunction(),
+                  /* typeParamToDyn= */ false)));
     }
     declStr.append("}");
     return declStr.toString();
   }
 
-  private void formatDeclImpl(Decl decl, StringBuilder declStr) {
-    switch (decl.getDeclKindCase()) {
-      case IDENT:
-        declStr.append(
-            String.format("  value %s%n", CelProtoTypes.format(decl.getIdent().getType())));
-        break;
-      case FUNCTION:
-        for (Overload overload : decl.getFunction().getOverloadsList()) {
-          declStr.append(
-              String.format(
-                  "  function %s %s%n",
-                  overload.getOverloadId(),
-                  CelTypes.formatFunction(
-                      CelProtoTypes.typeToCelType(overload.getResultType()),
-                      overload.getParamsList().stream()
-                          .map(CelProtoTypes::typeToCelType)
-                          .collect(toImmutableList()),
-                      overload.getIsInstanceFunction(),
-                      /* typeParamToDyn= */ false)));
-        }
-        break;
-      default:
-        break;
-    }
+  protected String formatVarDecl(CelVarDecl decl) {
+    StringBuilder declStr = new StringBuilder();
+    declStr.append(String.format("declare %s {%n", decl.name()));
+    declStr.append(String.format("  value %s%n", CelTypes.format(decl.type())));
+    declStr.append("}");
+    return declStr.toString();
   }
 
   /**
@@ -240,48 +187,34 @@ public abstract class CelBaselineTestCase extends BaselineTestCase {
    *     is set, the protobuf overloads are internally converted into java native versions {@link
    *     CelOverloadDecl}.
    */
-  protected void declareFunction(String functionName, Overload... overloads) {
-    TestDecl functionDecl =
-        this.declareWithCelTypes
-            ? new TestCelFunctionDeclWrapper(functionName, overloads)
-            : new TestProtoFunctionDeclWrapper(functionName, overloads);
-    this.decls.add(functionDecl);
+  protected void declareFunction(String functionName, CelOverloadDecl... overloads) {
+    this.functionDecls.add(newFunctionDeclaration(functionName, overloads));
   }
 
-  protected void declareGlobalFunction(String name, List<Type> paramTypes, Type resultType) {
+  protected void declareGlobalFunction(String name, List<CelType> paramTypes, CelType resultType) {
     declareFunction(name, globalOverload(name, paramTypes, resultType));
   }
 
-  protected void declareMemberFunction(String name, List<Type> paramTypes, Type resultType) {
+  protected void declareMemberFunction(String name, List<CelType> paramTypes, CelType resultType) {
     declareFunction(name, memberOverload(name, paramTypes, resultType));
   }
 
-  protected Overload memberOverload(String overloadId, List<Type> paramTypes, Type resultType) {
-    return overload(overloadId, paramTypes, resultType).setIsInstanceFunction(true).build();
+  protected CelOverloadDecl memberOverload(
+      String overloadId, List<CelType> paramTypes, CelType resultType) {
+    return overloadBuilder(overloadId, paramTypes, resultType).setIsInstanceFunction(true).build();
   }
 
-  protected Overload memberOverload(
-      String overloadId, List<Type> paramTypes, List<String> typeParams, Type resultType) {
-    return overload(overloadId, paramTypes, resultType)
-        .addAllTypeParams(typeParams)
-        .setIsInstanceFunction(true)
-        .build();
+  protected CelOverloadDecl globalOverload(
+      String overloadId, List<CelType> paramTypes, CelType resultType) {
+    return overloadBuilder(overloadId, paramTypes, resultType).setIsInstanceFunction(false).build();
   }
 
-  protected Overload globalOverload(String overloadId, List<Type> paramTypes, Type resultType) {
-    return overload(overloadId, paramTypes, resultType).build();
-  }
-
-  protected Overload globalOverload(
-      String overloadId, List<Type> paramTypes, List<String> typeParams, Type resultType) {
-    return overload(overloadId, paramTypes, resultType).addAllTypeParams(typeParams).build();
-  }
-
-  private Overload.Builder overload(String overloadId, List<Type> paramTypes, Type resultType) {
-    return Overload.newBuilder()
+  private CelOverloadDecl.Builder overloadBuilder(
+      String overloadId, List<CelType> paramTypes, CelType resultType) {
+    return CelOverloadDecl.newBuilder()
         .setOverloadId(overloadId)
         .setResultType(resultType)
-        .addAllParams(paramTypes);
+        .addParameterTypes(paramTypes);
   }
 
   protected void printTestValidationError(CelValidationException error) {

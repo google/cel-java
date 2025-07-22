@@ -1,9 +1,9 @@
 Source: size(x) == 1u
-declare size {
-  function my_size (list(TEST)) -> uint
-}
 declare x {
   value list(int)
+}
+declare size {
+  function my_size (list(TEST)) -> uint
 }
 =====>
 _==_(
@@ -12,4 +12,3 @@ _==_(
   )~uint^my_size,
   1u~uint
 )~bool^equals
-

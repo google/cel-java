@@ -10,28 +10,28 @@ bindings: {}
 result:   true
 
 Source: f_force(f_delay(1 + four)) == 5
+declare four {
+  value int
+}
 declare f_delay {
   function f_delay (int) -> dyn
 }
 declare f_force {
   function f_force (dyn) -> int
-}
-declare four {
-  value int
 }
 =====>
 bindings: {four=4}
 result:   true
 
 Source: [1, 2, 3].map(i, f_delay(i + four)).map(d, f_force(d)) == [5, 6, 7]
+declare four {
+  value int
+}
 declare f_delay {
   function f_delay (int) -> dyn
 }
 declare f_force {
   function f_force (dyn) -> int
-}
-declare four {
-  value int
 }
 =====>
 bindings: {four=4}

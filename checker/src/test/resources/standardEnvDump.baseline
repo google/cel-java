@@ -143,11 +143,15 @@ declare _||_ {
 }
 declare bool {
   value type(bool)
+}
+declare bool {
   function bool_to_bool (bool) -> bool
   function string_to_bool (string) -> bool
 }
 declare bytes {
   value type(bytes)
+}
+declare bytes {
   function bytes_to_bytes (bytes) -> bytes
   function string_to_bytes (string) -> bytes
 }
@@ -156,6 +160,8 @@ declare contains {
 }
 declare double {
   value type(double)
+}
+declare double {
   function double_to_double (double) -> double
   function int64_to_double (int) -> double
   function uint64_to_double (uint) -> double
@@ -167,6 +173,8 @@ declare duration {
 }
 declare dyn {
   value type(dyn)
+}
+declare dyn {
   function to_dyn (A) -> dyn
 }
 declare endsWith {
@@ -218,6 +226,8 @@ declare getSeconds {
 }
 declare int {
   value type(int)
+}
+declare int {
   function int64_to_int64 (int) -> int
   function uint64_to_int64 (uint) -> int
   function double_to_int64 (double) -> int
@@ -252,6 +262,8 @@ declare startsWith {
 }
 declare string {
   value type(string)
+}
+declare string {
   function string_to_string (string) -> string
   function int64_to_string (int) -> string
   function uint64_to_string (uint) -> string
@@ -268,10 +280,14 @@ declare timestamp {
 }
 declare type {
   value type(dyn)
+}
+declare type {
   function type (A) -> type(A)
 }
 declare uint {
   value type(uint)
+}
+declare uint {
   function uint64_to_uint64 (uint) -> uint
   function int64_to_uint64 (int) -> uint
   function double_to_uint64 (double) -> uint

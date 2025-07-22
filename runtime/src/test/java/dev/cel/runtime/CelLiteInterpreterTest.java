@@ -14,7 +14,6 @@
 
 package dev.cel.runtime;
 
-import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.expr.conformance.proto3.TestAllTypesCelDescriptor;
@@ -28,16 +27,14 @@ import org.junit.runner.RunWith;
  */
 @RunWith(TestParameterInjector.class)
 public class CelLiteInterpreterTest extends BaseInterpreterTest {
-  public CelLiteInterpreterTest(@TestParameter InterpreterTestOption testOption) {
+  public CelLiteInterpreterTest() {
     super(
-        testOption.celOptions.toBuilder().enableCelValue(true).build(),
-        testOption.useNativeCelType,
         CelRuntimeFactory.standardCelRuntimeBuilder()
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
                     TestAllTypesCelDescriptor.getDescriptor()))
             .addLibraries(CelOptionalLibrary.INSTANCE)
-            .setOptions(testOption.celOptions.toBuilder().enableCelValue(true).build())
+            .setOptions(newBaseCelOptions().toBuilder().enableCelValue(true).build())
             .build());
   }
 
