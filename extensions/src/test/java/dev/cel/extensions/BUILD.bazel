@@ -12,6 +12,7 @@ java_library(
         "//bundle:cel",
         "//common:cel_ast",
         "//common:compiler_common",
+        "//common:container",
         "//common:options",
         "//common/internal:proto_time_utils",
         "//common/types",

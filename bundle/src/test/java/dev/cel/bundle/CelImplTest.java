@@ -60,6 +60,7 @@ import dev.cel.checker.DescriptorTypeProvider;
 import dev.cel.checker.ProtoTypeMask;
 import dev.cel.checker.TypeProvider;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelOptions;
@@ -191,7 +192,7 @@ public final class CelImplTest {
             IllegalArgumentException.class,
             () ->
                 standardCelBuilderWithMacros()
-                    .setContainer("google.rpc.context.AttributeContext")
+                    .setContainer(CelContainer.ofName("google.rpc.context.AttributeContext"))
                     .addFileTypes(
                         FileDescriptorSet.newBuilder()
                             .addFile(AttributeContext.getDescriptor().getFile().toProto())
@@ -255,7 +256,7 @@ public final class CelImplTest {
         new ProtoMessageTypeProvider(ImmutableList.of(AttributeContext.getDescriptor()));
     Cel cel =
         standardCelBuilderWithMacros()
-            .setContainer("google")
+            .setContainer(CelContainer.ofName("google"))
             .setTypeProvider(celTypeProvider)
             .addMessageTypes(com.google.type.Expr.getDescriptor())
             .addProtoTypeMasks(
@@ -276,7 +277,7 @@ public final class CelImplTest {
                 AttributeContext.getDescriptor(), com.google.type.Expr.getDescriptor()));
     Cel cel =
         standardCelBuilderWithMacros()
-            .setContainer("google")
+            .setContainer(CelContainer.ofName("google"))
             .setTypeProvider(celTypeProvider)
             .addVar("condition", StructTypeReference.create("google.type.Expr"))
             .setResultType(SimpleType.BOOL)
@@ -417,7 +418,7 @@ public final class CelImplTest {
     int threadCount = 10;
     Cel cel =
         standardCelBuilderWithMacros()
-            .setContainer("google.rpc.context.AttributeContext")
+            .setContainer(CelContainer.ofName("google.rpc.context.AttributeContext"))
             .addFileTypes(
                 Any.getDescriptor().getFile(),
                 Duration.getDescriptor().getFile(),
@@ -596,7 +597,7 @@ public final class CelImplTest {
     Cel cel =
         standardCelBuilderWithMacros()
             .addMessageTypes(AttributeContext.getDescriptor())
-            .setContainer("google.rpc.context.AttributeContext")
+            .setContainer(CelContainer.ofName("google.rpc.context.AttributeContext"))
             .addProtoTypeMasks(
                 ProtoTypeMask.ofAllFieldsHidden("google.rpc.context.AttributeContext"))
             .build();
@@ -610,7 +611,7 @@ public final class CelImplTest {
     Cel cel =
         standardCelBuilderWithMacros()
             .addMessageTypes(AttributeContext.getDescriptor())
-            .setContainer("google.rpc.context.AttributeContext")
+            .setContainer(CelContainer.ofName("google.rpc.context.AttributeContext"))
             .addProtoTypeMasks(
                 ProtoTypeMask.ofAllFieldsHidden("google.rpc.context.AttributeContext"))
             .build();
@@ -627,7 +628,7 @@ public final class CelImplTest {
     Cel cel =
         standardCelBuilderWithMacros()
             .addMessageTypes(AttributeContext.getDescriptor())
-            .setContainer("google.rpc.context.AttributeContext")
+            .setContainer(CelContainer.ofName("google.rpc.context.AttributeContext"))
             .addProtoTypeMasks(
                 ProtoTypeMask.ofAllFieldsHidden("google.rpc.context.AttributeContext"))
             .addVar("attr_ctx", StructTypeReference.create("google.rpc.context.AttributeContext"))
@@ -793,7 +794,7 @@ public final class CelImplTest {
   public void program_messageConstruction() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
-            .setContainer("google.type")
+            .setContainer(CelContainer.ofName("google.type"))
             .addMessageTypes(com.google.type.Expr.getDescriptor())
             .setResultType(StructTypeReference.create("google.type.Expr"))
             .setStandardEnvironmentEnabled(false)
@@ -810,7 +811,7 @@ public final class CelImplTest {
         standardCelBuilderWithMacros()
             .addMessageTypes(Timestamp.getDescriptor())
             .addMessageTypes(ImmutableList.of(Timestamp.getDescriptor()))
-            .setContainer("google")
+            .setContainer(CelContainer.ofName("google"))
             .setResultType(SimpleType.TIMESTAMP)
             .build();
     CelRuntime.Program program =
@@ -823,7 +824,7 @@ public final class CelImplTest {
     Cel cel =
         standardCelBuilderWithMacros()
             .addMessageTypes(Timestamp.getDescriptor())
-            .setContainer("google")
+            .setContainer(CelContainer.ofName("google"))
             .setResultType(SimpleType.TIMESTAMP)
             .build();
     CelRuntime.Program program =
@@ -845,7 +846,7 @@ public final class CelImplTest {
             // defined in checked.proto. Because the `Expr` type is referenced within a message
             // field of the CheckedExpr, it is available for use.
             .setOptions(CelOptions.current().resolveTypeDependencies(false).build())
-            .setContainer(packageName)
+            .setContainer(CelContainer.ofName(packageName))
             .setResultType(StructTypeReference.create(packageName + ".Expr"))
             .build();
     CelRuntime.Program program = cel.createProgram(cel.compile("Expr{}").getAst());
@@ -862,7 +863,7 @@ public final class CelImplTest {
             // defined in checked.proto. Because the `ParsedExpr` type is not referenced, it is not
             // available for use within CEL when deep type resolution is disabled.
             .setOptions(CelOptions.current().resolveTypeDependencies(false).build())
-            .setContainer(packageName)
+            .setContainer(CelContainer.ofName(packageName))
             .setResultType(StructTypeReference.create(packageName + ".ParsedExpr"))
             .build();
     CelValidationException e =
@@ -881,7 +882,7 @@ public final class CelImplTest {
             // defined in checked.proto. Because deep type dependency resolution is enabled, the
             // `ParsedExpr` may be used within CEL.
             .setOptions(CelOptions.current().resolveTypeDependencies(true).build())
-            .setContainer(packageName)
+            .setContainer(CelContainer.ofName(packageName))
             .setResultType(StructTypeReference.create(packageName + ".ParsedExpr"))
             .build();
     CelRuntime.Program program = cel.createProgram(cel.compile("ParsedExpr{}").getAst());
@@ -895,7 +896,7 @@ public final class CelImplTest {
         CelCompilerFactory.standardCelCompilerBuilder()
             .addFileTypes(ParsedExpr.getDescriptor().getFile())
             .setResultType(StructTypeReference.create(packageName + ".ParsedExpr"))
-            .setContainer(packageName)
+            .setContainer(CelContainer.ofName(packageName))
             .build();
 
     CelAbstractSyntaxTree ast = celCompiler.compile("ParsedExpr{}").getAst();
@@ -921,7 +922,7 @@ public final class CelImplTest {
             .addFileTypes(CheckedExpr.getDescriptor().getFile())
             .setOptions(CelOptions.current().resolveTypeDependencies(true).build())
             .setResultType(StructTypeReference.create(packageName + ".ParsedExpr"))
-            .setContainer(packageName)
+            .setContainer(CelContainer.ofName(packageName))
             .build();
 
     // 'ParsedExpr' is defined in syntax.proto but the descriptor provided is from 'checked.proto'.
@@ -952,7 +953,7 @@ public final class CelImplTest {
         standardCelBuilderWithMacros()
             .setTypeProvider(
                 new DescriptorTypeProvider(ImmutableList.of(Timestamp.getDescriptor())))
-            .setContainer("google")
+            .setContainer(CelContainer.ofName("google"))
             .setResultType(SimpleType.TIMESTAMP)
             .build();
     CelRuntime.Program program =
@@ -994,7 +995,8 @@ public final class CelImplTest {
             .addFileTypes(StandaloneGlobalEnum.getDescriptor().getFile())
             .setOptions(
                 CelOptions.current().resolveTypeDependencies(resolveTypeDependencies).build())
-            .setContainer("dev.cel.testing.testdata.proto3.StandaloneGlobalEnum")
+            .setContainer(
+                CelContainer.ofName("dev.cel.testing.testdata.proto3.StandaloneGlobalEnum"))
             .setResultType(SimpleType.BOOL)
             .build();
 
@@ -1018,7 +1020,7 @@ public final class CelImplTest {
                 CelOptions.current().resolveTypeDependencies(resolveTypeDependencies).build())
             .addMessageTypes(Struct.getDescriptor())
             .setResultType(StructTypeReference.create("google.protobuf.NullValue"))
-            .setContainer("google.protobuf")
+            .setContainer(CelContainer.ofName("google.protobuf"))
             .build();
 
     // `Value` is defined in `Struct` proto and NullValue is an enum within this `Value` struct.
@@ -1036,7 +1038,7 @@ public final class CelImplTest {
             .setOptions(CelOptions.current().resolveTypeDependencies(true).build())
             .addMessageTypes(Proto2ExtensionScopedMessage.getDescriptor())
             .setResultType(StructTypeReference.create("google.protobuf.NullValue"))
-            .setContainer("google.protobuf")
+            .setContainer(CelContainer.ofName("google.protobuf"))
             .build();
 
     // 'Value' is a struct defined as a dependency of messages_proto2.proto and 'NullValue' is an
@@ -1069,7 +1071,7 @@ public final class CelImplTest {
             .setOptions(CelOptions.current().resolveTypeDependencies(false).build())
             .addMessageTypes(Proto2ExtensionScopedMessage.getDescriptor())
             .setResultType(StructTypeReference.create("google.protobuf.NullValue"))
-            .setContainer("google.protobuf")
+            .setContainer(CelContainer.ofName("google.protobuf"))
             .build();
 
     // 'Value' is a struct defined as a dependency of messages_proto2.proto and 'NullValue' is an
@@ -1102,7 +1104,7 @@ public final class CelImplTest {
         FileDescriptor.buildFrom(enumFileDescriptorProto, new FileDescriptor[] {});
     Cel cel =
         standardCelBuilderWithMacros()
-            .setContainer("dev.cel.testing.testdata")
+            .setContainer(CelContainer.ofName("dev.cel.testing.testdata"))
             .addFileTypes(enumFileDescriptor)
             .addFileTypes(StandaloneGlobalEnum.getDescriptor().getFile())
             .build();
@@ -1340,7 +1342,7 @@ public final class CelImplTest {
             .setOptions(CelOptions.current().enableUnknownTracking(true).build())
             .addVar("com.google.a", SimpleType.BOOL)
             .addVar("com.google.b", SimpleType.BOOL)
-            .setContainer("com.google")
+            .setContainer(CelContainer.ofName("com.google"))
             .addFunctionBindings()
             .setResultType(SimpleType.BOOL)
             .build();
@@ -1369,7 +1371,7 @@ public final class CelImplTest {
             .setOptions(CelOptions.current().enableUnknownTracking(true).build())
             .addVar("com.google.a", SimpleType.BOOL)
             .addVar("com.google.b", SimpleType.BOOL)
-            .setContainer("com.google")
+            .setContainer(CelContainer.ofName("com.google"))
             .addFunctionBindings()
             .setResultType(SimpleType.BOOL)
             .build();
@@ -1448,7 +1450,7 @@ public final class CelImplTest {
                                     .setResultType(
                                         Type.newBuilder().setPrimitive(PrimitiveType.BOOL))))
                     .build())
-            .setContainer("")
+            .setContainer(CelContainer.ofName(""))
             .addFunctionBindings()
             .setResultType(SimpleType.BOOL)
             .build();
@@ -1491,7 +1493,7 @@ public final class CelImplTest {
                                     .setResultType(
                                         Type.newBuilder().setPrimitive(PrimitiveType.BOOL))))
                     .build())
-            .setContainer("")
+            .setContainer(CelContainer.ofName(""))
             .addFunctionBindings()
             .setResultType(SimpleType.BOOL)
             .build();
@@ -1518,7 +1520,7 @@ public final class CelImplTest {
         standardCelBuilderWithMacros()
             .setOptions(CelOptions.current().enableUnknownTracking(true).build())
             .addVar("unk", MapType.create(SimpleType.STRING, SimpleType.BOOL))
-            .setContainer("")
+            .setContainer(CelContainer.ofName(""))
             .addFunctionBindings()
             .setResultType(SimpleType.BOOL)
             .build();
@@ -1544,7 +1546,7 @@ public final class CelImplTest {
         standardCelBuilderWithMacros()
             .setOptions(CelOptions.current().enableUnknownTracking(true).build())
             .addVar("unk", MapType.create(SimpleType.STRING, SimpleType.BOOL))
-            .setContainer("")
+            .setContainer(CelContainer.ofName(""))
             .addFunctionBindings()
             .setResultType(SimpleType.BOOL)
             .build();
@@ -1573,7 +1575,7 @@ public final class CelImplTest {
         standardCelBuilderWithMacros()
             .setOptions(CelOptions.current().enableUnknownTracking(true).build())
             .addVar("unk", ListType.create(SimpleType.BOOL))
-            .setContainer("")
+            .setContainer(CelContainer.ofName(""))
             .addFunctionBindings()
             .setResultType(SimpleType.BOOL)
             .build();
@@ -1602,7 +1604,7 @@ public final class CelImplTest {
         standardCelBuilderWithMacros()
             .setOptions(CelOptions.current().enableUnknownTracking(true).build())
             .addVar("unk", ListType.create(SimpleType.BOOL))
-            .setContainer("")
+            .setContainer(CelContainer.ofName(""))
             .addFunctionBindings()
             .setResultType(SimpleType.BOOL)
             .build();
@@ -1624,7 +1626,7 @@ public final class CelImplTest {
         standardCelBuilderWithMacros()
             .setOptions(CelOptions.current().enableUnknownTracking(true).build())
             .addVar("unk", MapType.create(SimpleType.STRING, SimpleType.BOOL))
-            .setContainer("")
+            .setContainer(CelContainer.ofName(""))
             .addFunctionBindings()
             .setResultType(SimpleType.BOOL)
             .build();
@@ -1661,7 +1663,7 @@ public final class CelImplTest {
         standardCelBuilderWithMacros()
             .setOptions(CelOptions.current().enableUnknownTracking(true).build())
             .addVar("testList", ListType.create(SimpleType.BOOL))
-            .setContainer("")
+            .setContainer(CelContainer.ofName(""))
             .addFunctionBindings()
             .setResultType(SimpleType.BOOL)
             .build();
@@ -1694,7 +1696,7 @@ public final class CelImplTest {
         standardCelBuilderWithMacros()
             .setOptions(CelOptions.current().enableUnknownTracking(true).build())
             .addVar("testMap", MapType.create(SimpleType.STRING, SimpleType.BOOL))
-            .setContainer("")
+            .setContainer(CelContainer.ofName(""))
             .addFunctionBindings()
             .setResultType(SimpleType.BOOL)
             .build();
@@ -1744,7 +1746,7 @@ public final class CelImplTest {
             .addVarDeclarations(
                 CelVarDecl.newVarDeclaration("unk", SimpleType.BOOL),
                 CelVarDecl.newVarDeclaration("err", SimpleType.BOOL))
-            .setContainer("com.google")
+            .setContainer(CelContainer.ofName("com.google"))
             .addFunctionBindings()
             .setResultType(SimpleType.BOOL)
             .build();
@@ -1769,7 +1771,7 @@ public final class CelImplTest {
                 ImmutableList.of(
                     CelVarDecl.newVarDeclaration("partialList1", ListType.create(SimpleType.INT)),
                     CelVarDecl.newVarDeclaration("partialList2", ListType.create(SimpleType.INT))))
-            .setContainer("com.google")
+            .setContainer(CelContainer.ofName("com.google"))
             .addFunctionBindings()
             .build();
     CelRuntime.Program program =
@@ -1800,7 +1802,7 @@ public final class CelImplTest {
             .setOptions(CelOptions.current().enableUnknownTracking(true).build())
             .addVar("partialList1", ListType.create(SimpleType.INT))
             .addVar("partialList2", ListType.create(SimpleType.INT))
-            .setContainer("com.google")
+            .setContainer(CelContainer.ofName("com.google"))
             .addFunctionBindings()
             .build();
     CelRuntime.Program program =
@@ -1836,7 +1838,7 @@ public final class CelImplTest {
                 StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes"))
             .setResultType(
                 StructTypeReference.create("cel.expr.conformance.proto3.NestedTestAllTypes"))
-            .setContainer("cel.expr.conformance.proto3")
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
             .addFunctionBindings()
             .build();
     Program program =

@@ -21,6 +21,7 @@ import dev.cel.expr.Constant;
 import dev.cel.expr.Expr;
 import com.google.auto.value.AutoValue;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
@@ -163,7 +164,7 @@ public class CelProtoExprVisitorTest {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
-            .setContainer(TestAllTypes.getDescriptor().getFullName())
+            .setContainer(CelContainer.ofName(TestAllTypes.getDescriptor().getFullName()))
             .build();
     CelAbstractSyntaxTree ast = celCompiler.compile("TestAllTypes{}.single_int64").getAst();
 
@@ -215,7 +216,7 @@ public class CelProtoExprVisitorTest {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
-            .setContainer(TestAllTypes.getDescriptor().getFullName())
+            .setContainer(CelContainer.ofName(TestAllTypes.getDescriptor().getFullName()))
             .build();
     CelAbstractSyntaxTree ast = celCompiler.compile("TestAllTypes{}").getAst();
 

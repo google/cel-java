@@ -73,8 +73,8 @@ public class CelCheckerLegacyImplTest {
     assertThat(newCheckerBuilder.getFunctionDecls().build()).hasSize(1);
     assertThat(newCheckerBuilder.getIdentDecls().build()).hasSize(1);
     assertThat(newCheckerBuilder.getProtoTypeMasks().build()).hasSize(1);
-    assertThat(newCheckerBuilder.getMessageTypes().build()).hasSize(1);
-    assertThat(newCheckerBuilder.getFileTypes().build()).hasSize(1);
+    assertThat(newCheckerBuilder.getFileTypes().build())
+        .hasSize(1); // MessageTypes and FileTypes deduped into the same file descriptor
     assertThat(newCheckerBuilder.getCheckerLibraries().build()).hasSize(1);
   }
 

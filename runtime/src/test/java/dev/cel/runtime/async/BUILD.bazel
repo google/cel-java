@@ -13,6 +13,7 @@ java_library(
         #         "//java/com/google/testing/testsize:annotations",
         "//bundle:cel",
         "//common:cel_ast",
+        "//common:container",
         "//common:options",
         "//common/testing",
         "//common/types",

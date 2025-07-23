@@ -26,6 +26,7 @@ import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelBuilder;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.types.OptionalType;
@@ -319,7 +320,7 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
   private static CelBuilder newCelBuilder() {
     return CelFactory.standardCelBuilder()
         .addMessageTypes(TestAllTypes.getDescriptor())
-        .setContainer("cel.expr.conformance.proto3")
+        .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .setOptions(
             CelOptions.current().enableTimestampEpoch(true).populateMacroCalls(true).build())

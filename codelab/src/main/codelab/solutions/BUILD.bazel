@@ -14,6 +14,7 @@ java_library(
         "//bundle:cel",
         "//common:cel_ast",
         "//common:compiler_common",
+        "//common:container",
         "//common:proto_json_adapter",
         "//common/ast",
         "//common/navigation",

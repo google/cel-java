@@ -24,6 +24,7 @@ import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import dev.cel.checker.ProtoTypeMask;
 import dev.cel.checker.TypeProvider;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelVarDecl;
@@ -81,11 +82,18 @@ public interface CelBuilder {
   CelBuilder addMacros(Iterable<CelMacro> macros);
 
   /**
-   * Set the {@code container} name to use as the namespace for resolving CEL expression variables
-   * and functions.
+   * @deprecated Use {@link #setContainer(CelContainer)} instead.
    */
   @CanIgnoreReturnValue
+  @Deprecated
   CelBuilder setContainer(String container);
+
+  /**
+   * Set the {@link CelContainer} to use as the namespace for resolving CEL expression variables and
+   * functions.
+   */
+  @CanIgnoreReturnValue
+  CelBuilder setContainer(CelContainer container);
 
   /** Add a variable declaration with a given {@code name} and {@link Type}. */
   @CanIgnoreReturnValue

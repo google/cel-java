@@ -14,15 +14,14 @@
 
 package dev.cel.checker;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static dev.cel.common.types.CelProtoTypes.format;
 
 import dev.cel.expr.CheckedExpr;
-import dev.cel.expr.Constant;
 import dev.cel.expr.Decl;
 import dev.cel.expr.Expr.CreateStruct.EntryOrBuilder;
 import dev.cel.expr.ExprOrBuilder;
-import dev.cel.expr.ParsedExpr;
 import dev.cel.expr.Reference;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -31,10 +30,13 @@ import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 // import com.google.testing.testsize.MediumTest;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelMutableAst;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.CelVarDecl;
+import dev.cel.common.ast.CelConstant;
 import dev.cel.common.internal.EnvVisitable;
 import dev.cel.common.internal.EnvVisitor;
 import dev.cel.common.internal.Errors;
@@ -66,10 +68,6 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 public class ExprCheckerTest extends CelBaselineTestCase {
 
-  public ExprCheckerTest() {
-    super();
-  }
-
   /** Helper to run a test for configured instance variables. */
   private void runTest() throws Exception {
     CelAbstractSyntaxTree ast =
@@ -89,10 +87,11 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   }
 
   @SuppressWarnings("CheckReturnValue")
-  private void runErroneousTest(ParsedExpr parsedExpr) {
+  private void runErroneousTest(CelAbstractSyntaxTree parsedAst) {
+    checkArgument(!parsedAst.isChecked());
     Errors errors = new Errors("<input>", source);
     Env env = Env.unconfigured(errors, TEST_OPTIONS);
-    ExprChecker.typecheck(env, container, parsedExpr, Optional.absent());
+    ExprChecker.typecheck(env, container, parsedAst, Optional.absent());
     testOutput().println(errors.getAllErrorsAsString());
     testOutput().println();
   }
@@ -191,7 +190,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   @Test
   public void referenceTypeRelative() throws Exception {
     source = "proto3.TestAllTypes";
-    container = "cel.expr.conformance.TestAllTypes";
+    container = CelContainer.ofName("cel.expr.conformance.TestAllTypes");
     runTest();
   }
 
@@ -206,7 +205,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     declareVariable(
         "container.x", StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes"));
     source = "x";
-    container = "container";
+    container = CelContainer.ofName("container");
     runTest();
   }
 
@@ -383,7 +382,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     source = "x.single_nested_message != null";
     runTest();
 
-    container = "cel.expr.conformance.proto3.TestAllTypesProto";
+    container = CelContainer.ofName("cel.expr.conformance.proto3.TestAllTypesProto");
     source = "null == TestAllTypes{} || TestAllTypes{} == null";
     runTest();
   }
@@ -540,7 +539,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     source = "[1, 2].map(x, x * ns.func('test'))";
     runTest();
 
-    container = "ns";
+    container = CelContainer.ofName("ns");
     source = "func('hello')";
     runTest();
 
@@ -550,12 +549,12 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void namespacedVariables() throws Exception {
-    container = "ns";
+    container = CelContainer.ofName("ns");
     declareVariable("ns.x", SimpleType.INT);
     source = "x";
     runTest();
 
-    container = "cel.expr.conformance.proto3";
+    container = CelContainer.ofName("cel.expr.conformance.proto3");
     CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
     declareVariable("cel.expr.conformance.proto3.msgVar", messageType);
     source = "msgVar.single_int32";
@@ -623,21 +622,21 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void aggregateMessage() throws Exception {
-    container = "cel.expr.conformance.proto3";
+    container = CelContainer.ofName("cel.expr.conformance.proto3");
     source = "TestAllTypes{single_int32: 1, single_int64: 2}";
     runTest();
   }
 
   @Test
   public void aggregateMessageFieldUndefinedError() throws Exception {
-    container = "cel.expr.conformance.proto3";
+    container = CelContainer.ofName("cel.expr.conformance.proto3");
     source = "TestAllTypes{single_int32: 1, undefined: 2}";
     runTest();
   }
 
   @Test
   public void aggregateMessageFieldTypeError() throws Exception {
-    container = "cel.expr.conformance.proto3";
+    container = CelContainer.ofName("cel.expr.conformance.proto3");
     source = "TestAllTypes{single_int32: 1u}";
     runTest();
   }
@@ -721,7 +720,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void enumValues() throws Exception {
-    container = "cel.expr.conformance.proto3";
+    container = CelContainer.ofName("cel.expr.conformance.proto3");
     source = "TestAllTypes.NestedEnum.BAR != 99";
     runTest();
   }
@@ -729,7 +728,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   @Test
   public void nestedEnums() throws Exception {
     declareVariable("x", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
-    container = TestAllTypes.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(TestAllTypes.getDescriptor().getFile().getPackage());
     source = "x.single_nested_enum == TestAllTypes.NestedEnum.BAR";
     runTest();
 
@@ -744,7 +743,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void globalEnumValues() throws Exception {
-    container = "cel.expr.conformance.proto3";
+    container = CelContainer.ofName("cel.expr.conformance.proto3");
     source = "GlobalEnum.GAZ == 2";
     runTest();
   }
@@ -754,7 +753,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
   @Test
   public void globalStandaloneEnumValues() throws Exception {
-    container = "dev.cel.testing.testdata.proto3";
+    container = CelContainer.ofName("dev.cel.testing.testdata.proto3");
     source = "StandaloneGlobalEnum.SGAZ == 2";
 
     FileDescriptorSet.Builder descriptorBuilder = FileDescriptorSet.newBuilder();
@@ -950,11 +949,11 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     source = "{?'key': {'a': 'b'}.?value}.key";
     runTest();
 
-    container = "cel.expr.conformance.proto3";
+    container = CelContainer.ofName("cel.expr.conformance.proto3");
     source = "TestAllTypes{?single_int32: {}.?i}";
     runTest();
 
-    container = "";
+    container = CelContainer.ofName("");
     declareVariable("a", OptionalType.create(SimpleType.STRING));
     declareVariable("b", OptionalType.create(SimpleType.STRING));
     source = "[?a, ?b, 'world']";
@@ -975,22 +974,26 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     source = "[?'value']";
     runTest();
 
-    container = "cel.expr.conformance.proto3";
+    container = CelContainer.ofName("cel.expr.conformance.proto3");
     source = "TestAllTypes{?single_int32: 1}";
     runTest();
 
     source = "a.?b";
     declareVariable("a", MapType.create(SimpleType.STRING, SimpleType.STRING));
     prepareCompiler(new ProtoMessageTypeProvider());
-    ParsedExpr parsedExpr =
-        CelProtoAbstractSyntaxTree.fromCelAst(celCompiler.parse(source).getAst()).toParsedExpr();
-    ParsedExpr.Builder parsedExprBuilder = parsedExpr.toBuilder();
-    parsedExprBuilder
-        .getExprBuilder()
-        .getCallExprBuilder()
-        .getArgsBuilder(1)
-        .setConstExpr(Constant.newBuilder().setBoolValue(true).build()); // Const must be a string
-    runErroneousTest(parsedExprBuilder.build());
+    CelAbstractSyntaxTree parsedAst = celCompiler.parse(source).getAst();
+    CelMutableAst mutableAst = CelMutableAst.fromCelAst(parsedAst);
+    mutableAst.expr().call().args().get(1).setConstant(CelConstant.ofValue(true));
+    // ParsedExpr parsedExpr =
+    //     CelProtoAbstractSyntaxTree.fromCelAst(celCompiler.parse(source).getAst()).toParsedExpr();
+    // ParsedExpr.Builder parsedExprBuilder = parsedExpr.toBuilder();
+    // parsedExprBuilder
+    //     .getExprBuilder()
+    //     .getCallExprBuilder()
+    //     .getArgsBuilder(1)
+    //     .setConstExpr(Constant.newBuilder().setBoolValue(true).build()); // Const must be a
+    // string
+    runErroneousTest(mutableAst.toParsedAst());
   }
 
   private static class CheckedExprAdorner implements CelAdorner {

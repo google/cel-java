@@ -23,6 +23,7 @@ import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
@@ -58,7 +59,7 @@ public class ConstantFoldingOptimizerTest {
           .addFunctionBindings(
               CelFunctionBinding.from("get_true_overload", ImmutableList.of(), unused -> true))
           .addMessageTypes(TestAllTypes.getDescriptor())
-          .setContainer("cel.expr.conformance.proto3")
+          .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
           .addCompilerLibraries(
               CelExtensions.bindings(),
               CelOptionalLibrary.INSTANCE,

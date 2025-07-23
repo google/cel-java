@@ -18,6 +18,7 @@ java_library(
         "//:java_truth",
         "//checker:checker_builder",
         "//common:compiler_common",
+        "//common:container",
         "//common:options",
         "//common/types:cel_proto_types",
         "//compiler",

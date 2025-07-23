@@ -327,3 +327,15 @@ cel_android_library(
         "@maven_android//:com_google_guava_guava",
     ],
 )
+
+java_library(
+    name = "container",
+    srcs = ["CelContainer.java"],
+    tags = [
+    ],
+    deps = [
+        "//:auto_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
