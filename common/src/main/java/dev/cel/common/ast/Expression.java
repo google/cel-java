@@ -245,6 +245,9 @@ public interface Expression {
     /** The name of the iteration variable. */
     String iterVar();
 
+    /** The name of the second iteration variable. */
+    String iterVar2();
+
     /** The range over which var iterates. */
     E iterRange();
 
