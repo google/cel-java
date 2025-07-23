@@ -1,0 +1,390 @@
+// Copyright 2025 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package dev.cel.bundle;
+
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static java.util.Arrays.stream;
+
+import dev.cel.expr.Decl;
+import dev.cel.expr.Decl.FunctionDecl;
+import dev.cel.expr.Decl.FunctionDecl.Overload;
+import com.google.auto.value.AutoValue;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ListMultimap;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import dev.cel.bundle.CelEnvironment.ExtensionConfig;
+import dev.cel.bundle.CelEnvironment.LibrarySubset;
+import dev.cel.bundle.CelEnvironment.LibrarySubset.FunctionSelector;
+import dev.cel.bundle.CelEnvironment.OverloadDecl;
+import dev.cel.checker.CelStandardDeclarations.StandardFunction;
+import dev.cel.checker.CelStandardDeclarations.StandardIdentifier;
+import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOptions;
+import dev.cel.common.CelOverloadDecl;
+import dev.cel.common.CelVarDecl;
+import dev.cel.common.internal.EnvVisitable;
+import dev.cel.common.types.CelProtoTypes;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypes;
+import dev.cel.extensions.CelExtensionLibrary;
+import dev.cel.extensions.CelExtensions;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * {@code CelEnvironmentExporter} can be used to export the configuration of a {@link Cel} instance
+ * as a {@link CelEnvironment} object.
+ *
+ * <p>This exporter captures details such as:
+ *
+ * <ul>
+ *   <li>Standard library subset: Functions and their overloads that are either included or
+ *       excluded.
+ *   <li>Extension libraries: Names and versions of the extension libraries in use.
+ *   <li>Custom declarations: Functions and variables not part of standard or extension libraries.
+ * </ul>
+ *
+ * <p>The exporter provides options to control the behavior of the export process, such as the
+ * maximum number of excluded standard functions and overloads before switching to an inclusion
+ * strategy.
+ */
+@AutoValue
+public abstract class CelEnvironmentExporter {
+
+  /**
+   * Maximum number of excluded standard functions before switching to a format that enumerates all
+   * included functions. The default is 5.
+   *
+   * <p>This setting is primarily for stylistic preferences and the intended use of the resulting
+   * YAML file.
+   *
+   * <p>For example, if you want almost all of the standard library with only a few exceptions
+   * (e.g., to ban a specific function), you would favor an exclusion-based approach by setting an
+   * appropriate threshold.
+   *
+   * <p>If you want full control over what is available to the CEL runtime, where no function is
+   * included unless fully vetted, you would favor an inclusion-based approach by setting the
+   * threshold to 0. This may result in a more verbose YAML file.
+   */
+  abstract int maxExcludedStandardFunctions();
+
+  /**
+   * Maximum number of excluded standard function overloads before switching to a exhaustive
+   * enumeration of included overloads. The default is 15.
+   */
+  abstract int maxExcludedStandardFunctionOverloads();
+
+  abstract ImmutableSet<CelExtensionLibrary> extensionLibraries();
+
+  /** Builder for {@link CelEnvironmentExporter}. */
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    public abstract Builder setMaxExcludedStandardFunctions(int count);
+
+    public abstract Builder setMaxExcludedStandardFunctionOverloads(int count);
+
+    abstract ImmutableSet.Builder<CelExtensionLibrary> extensionLibrariesBuilder();
+
+    @CanIgnoreReturnValue
+    public Builder addStandardExtensions(CelOptions options) {
+      addExtensionLibraries(
+          CelExtensions.math(options, 0),
+          CelExtensions.math(options, 1),
+          CelExtensions.math(options, 2));
+      return this;
+    }
+
+    @CanIgnoreReturnValue
+    public Builder addExtensionLibraries(CelExtensionLibrary... libraries) {
+      extensionLibrariesBuilder().add(libraries);
+      return this;
+    }
+
+    abstract CelEnvironmentExporter autoBuild();
+
+    public CelEnvironmentExporter build() {
+      return autoBuild();
+    }
+  }
+
+  /** Creates a new builder to construct a {@link CelEnvironmentExporter} instance. */
+  public static CelEnvironmentExporter.Builder newBuilder() {
+    return new AutoValue_CelEnvironmentExporter.Builder()
+        .setMaxExcludedStandardFunctions(5)
+        .setMaxExcludedStandardFunctionOverloads(15);
+  }
+
+  /**
+   * Exports a {@link CelEnvironment} that describes the configuration of the given {@link Cel}
+   * instance.
+   *
+   * <p>The exported environment includes:
+   *
+   * <ul>
+   *   <li>Standard library subset: functions and their overloads that are either included or
+   *       excluded from the standard library.
+   *   <li>Extension libraries: names and versions of the extension libraries that are used.
+   *   <li>Custom declarations: functions and variables that are not part of the standard library or
+   *       any of the extension libraries.
+   * </ul>
+   */
+  public CelEnvironment export(Cel cel) {
+    // Inventory is a full set of declarations and macros that are found in the configuration of
+    // the supplied CEL instance.
+    //
+    // Once we have the inventory, we attempt to identify sources of these declarations as
+    // standard library and extensions. The identified subsets will be removed from the inventory.
+    //
+    // Whatever is left will be included in the Environment as custom declarations.
+
+    Set<Object> inventory = new HashSet<>();
+    collectInventory(inventory, cel);
+
+    CelEnvironment.Builder envBuilder = CelEnvironment.newBuilder();
+    addExtensionConfigsAndRemoveFromInventory(envBuilder, inventory);
+    addStandardLibrarySubsetAndRemoveFromInventory(envBuilder, inventory);
+    addCustomDecls(envBuilder, inventory);
+    return envBuilder.build();
+  }
+
+  /**
+   * Collects all function overloads, variable declarations and macros from the given {@link Cel}
+   * instance and stores them in a map.
+   */
+  private void collectInventory(Set<Object> inventory, Cel cel) {
+    ((EnvVisitable) cel)
+        .accept(
+            (name, decls) -> {
+              for (Decl decl : decls) {
+                if (decl.hasFunction()) {
+                  FunctionDecl function = decl.getFunction();
+                  for (Overload overload : function.getOverloadsList()) {
+                    inventory.add(
+                        NamedOverload.create(
+                            decl.getName(), CelOverloadDecl.overloadToCelOverload(overload)));
+                  }
+                } else if (decl.hasIdent()) {
+                  inventory.add(
+                      CelVarDecl.newVarDeclaration(
+                          decl.getName(), CelProtoTypes.typeToCelType(decl.getIdent().getType())));
+                }
+              }
+            });
+  }
+
+  /**
+   * Iterates through the available extension libraries, checks if they are included in the
+   * inventory, and adds them to the environment builder. Only the highest version of a library is
+   * added to the builder. If the extension is identified, all corresponding items are removed from
+   * the inventory.
+   */
+  private void addExtensionConfigsAndRemoveFromInventory(
+      CelEnvironment.Builder envBuilder, Set<Object> inventory) {
+    ImmutableList<CelExtensionLibrary> libraries =
+        ImmutableList.sortedCopyOf(
+            Comparator.comparing(CelExtensionLibrary::getName)
+                .thenComparing(CelExtensionLibrary::getVersion)
+                .reversed(),
+            extensionLibraries());
+
+    Set<String> includedExtensions = new HashSet<>();
+    for (CelExtensionLibrary library : libraries) {
+      if (includedExtensions.contains(library.getName())) {
+        // We only need to infer the highest version library, so we can skip lower versions
+        continue;
+      }
+
+      if (checkIfExtensionIsIncludedAndRemoveFromInventory(inventory, library)) {
+        envBuilder.addExtensions(ExtensionConfig.of(library.getName(), library.getVersion()));
+        includedExtensions.add(library.getName());
+      }
+    }
+  }
+
+  private boolean checkIfExtensionIsIncludedAndRemoveFromInventory(
+      Set<Object> inventory, CelExtensionLibrary library) {
+    ImmutableSet<CelFunctionDecl> functions = library.getFunctions();
+    ArrayList<Object> itemList = new ArrayList<>(functions.size());
+    for (CelFunctionDecl function : functions) {
+      for (CelOverloadDecl overload : function.overloads()) {
+        NamedOverload item = NamedOverload.create(function.name(), overload);
+        if (!inventory.contains(item)) {
+          return false;
+        }
+        itemList.add(item);
+      }
+    }
+
+    // TODO - Add checks for variables and macros.
+
+    inventory.removeAll(itemList);
+    return true;
+  }
+
+  private void addStandardLibrarySubsetAndRemoveFromInventory(
+      CelEnvironment.Builder envBuilder, Set<Object> inventory) {
+    // Claim standard identifiers for the standard library
+    for (StandardIdentifier value : StandardIdentifier.values()) {
+      inventory.remove(
+          CelVarDecl.newVarDeclaration(value.identDecl().name(), value.identDecl().type()));
+    }
+
+    Set<String> excludedFunctions = new HashSet<>();
+    Set<String> includedFunctions = new HashSet<>();
+    ListMultimap<String, String> excludedOverloads = ArrayListMultimap.create();
+    ListMultimap<String, String> includedOverloads = ArrayListMultimap.create();
+
+    stream(StandardFunction.values())
+        .map(StandardFunction::functionDecl)
+        .forEach(
+            decl -> {
+              String functionName = decl.name();
+              boolean anyOverloadIncluded = false;
+              boolean allOverloadsIncluded = true;
+              for (CelOverloadDecl overload : decl.overloads()) {
+                NamedOverload item = NamedOverload.create(functionName, overload);
+                if (inventory.remove(item)) {
+                  anyOverloadIncluded = true;
+                  includedOverloads.put(functionName, overload.overloadId());
+                } else {
+                  allOverloadsIncluded = false;
+                  excludedOverloads.put(functionName, overload.overloadId());
+                }
+              }
+              if (!anyOverloadIncluded) {
+                excludedFunctions.add(functionName);
+              }
+              if (allOverloadsIncluded) {
+                includedFunctions.add(functionName);
+              }
+            });
+
+    LibrarySubset.Builder subsetBuilder = LibrarySubset.newBuilder().setDisabled(false);
+    if (excludedFunctions.size() <= maxExcludedStandardFunctions()
+        && excludedOverloads.size() <= maxExcludedStandardFunctionOverloads()) {
+      subsetBuilder.setExcludedFunctions(
+          buildFunctionSelectors(excludedFunctions, excludedOverloads));
+    } else {
+      subsetBuilder.setIncludedFunctions(
+          buildFunctionSelectors(includedFunctions, includedOverloads));
+    }
+
+    // TODO - Add support for including/excluding macros.
+
+    envBuilder.setStandardLibrarySubset(subsetBuilder.build());
+  }
+
+  private ImmutableSet<FunctionSelector> buildFunctionSelectors(
+      Set<String> functions, ListMultimap<String, String> functionToOverloadsMap) {
+    ImmutableSet.Builder<FunctionSelector> functionSelectors = ImmutableSet.builder();
+    for (String excludedFunction : functions) {
+      functionSelectors.add(FunctionSelector.create(excludedFunction, ImmutableSet.of()));
+    }
+
+    for (String functionName : functionToOverloadsMap.keySet()) {
+      if (functions.contains(functionName)) {
+        continue;
+      }
+      functionSelectors.add(
+          FunctionSelector.create(
+              functionName, ImmutableSet.copyOf(functionToOverloadsMap.get(functionName))));
+    }
+    return functionSelectors.build();
+  }
+
+  private void addCustomDecls(CelEnvironment.Builder envBuilder, Set<Object> inventory) {
+    // Group "orphaned" function overloads and vars by their names
+    ListMultimap<String, CelOverloadDecl> extraOverloads = ArrayListMultimap.create();
+    Map<String, CelType> extraVars = new HashMap<>();
+    for (Object item : inventory) {
+      if (item instanceof NamedOverload) {
+        extraOverloads.put(
+            ((NamedOverload) item).functionName(), ((NamedOverload) item).overload());
+      } else if (item instanceof CelVarDecl) {
+        extraVars.put(((CelVarDecl) item).name(), ((CelVarDecl) item).type());
+      }
+    }
+
+    if (!extraOverloads.isEmpty()) {
+      ImmutableSet.Builder<CelEnvironment.FunctionDecl> functionDeclBuilder =
+          ImmutableSet.builder();
+      for (String functionName : extraOverloads.keySet()) {
+        functionDeclBuilder.add(
+            CelEnvironment.FunctionDecl.create(
+                functionName,
+                extraOverloads.get(functionName).stream()
+                    .map(this::toCelEnvOverloadDecl)
+                    .collect(toImmutableSet())));
+      }
+      envBuilder.setFunctions(functionDeclBuilder.build());
+    }
+
+    if (!extraVars.isEmpty()) {
+      ImmutableSet.Builder<CelEnvironment.VariableDecl> varDeclBuilder = ImmutableSet.builder();
+      for (String ident : extraVars.keySet()) {
+        varDeclBuilder.add(
+            CelEnvironment.VariableDecl.create(ident, toCelEnvTypeDecl(extraVars.get(ident))));
+      }
+      envBuilder.setVariables(varDeclBuilder.build());
+    }
+  }
+
+  private CelEnvironment.OverloadDecl toCelEnvOverloadDecl(CelOverloadDecl overload) {
+    OverloadDecl.Builder builder =
+        OverloadDecl.newBuilder()
+            .setId(overload.overloadId())
+            .setReturnType(toCelEnvTypeDecl(overload.resultType()));
+
+    if (overload.isInstanceFunction()) {
+      builder
+          .setTarget(toCelEnvTypeDecl(overload.parameterTypes().get(0)))
+          .setArguments(
+              overload.parameterTypes().stream()
+                  .skip(1)
+                  .map(this::toCelEnvTypeDecl)
+                  .collect(toImmutableList()));
+    } else {
+      builder.setArguments(
+          overload.parameterTypes().stream()
+              .map(this::toCelEnvTypeDecl)
+              .collect(toImmutableList()));
+    }
+    return builder.build();
+  }
+
+  private CelEnvironment.TypeDecl toCelEnvTypeDecl(CelType type) {
+    return CelEnvironment.TypeDecl.create(CelTypes.format(type));
+  }
+
+  /** Wrapper for CelOverloadDecl, associating it with the corresponding function name. */
+  @AutoValue
+  abstract static class NamedOverload {
+    abstract String functionName();
+
+    abstract CelOverloadDecl overload();
+
+    static NamedOverload create(String functionName, CelOverloadDecl overload) {
+      return new AutoValue_CelEnvironmentExporter_NamedOverload(functionName, overload);
+    }
+  }
+}

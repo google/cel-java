@@ -1548,7 +1548,7 @@ public final class CelStandardDeclarations {
 
     private final CelIdentDecl identDecl;
 
-    CelIdentDecl identDecl() {
+    public CelIdentDecl identDecl() {
       return identDecl;
     }
 
