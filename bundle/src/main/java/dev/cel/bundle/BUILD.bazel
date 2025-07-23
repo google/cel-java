@@ -28,6 +28,7 @@ java_library(
         "//common:cel_ast",
         "//common:cel_source",
         "//common:compiler_common",
+        "//common:container",
         "//common:options",
         "//common/internal:env_visitor",
         "//common/internal:file_descriptor_converter",

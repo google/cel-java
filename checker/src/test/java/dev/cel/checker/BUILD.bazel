@@ -25,6 +25,8 @@ java_library(
         "//common:cel_ast",
         "//common:cel_source",
         "//common:compiler_common",
+        "//common:container",
+        "//common:mutable_ast",
         "//common:options",
         "//common:proto_ast",
         "//common:source_location",

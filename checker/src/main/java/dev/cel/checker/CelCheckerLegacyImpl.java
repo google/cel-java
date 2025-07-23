@@ -31,6 +31,7 @@ import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelIssue;
@@ -67,7 +68,7 @@ import java.util.TreeSet;
 public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
 
   private final CelOptions celOptions;
-  private final String container;
+  private final CelContainer container;
   private final ImmutableSet<CelIdentDecl> identDeclarations;
   private final ImmutableSet<CelFunctionDecl> functionDeclarations;
   private final Optional<CelType> expectedResultType;
@@ -80,9 +81,12 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
 
   private final CelStandardDeclarations overriddenStandardDeclarations;
 
-  // Builder is mutable by design. APIs must make defensive copies in and out of this class.
+  // This does not affect the type-checking behavior in any manner.
   @SuppressWarnings("Immutable")
-  private final Builder checkerBuilder;
+  private final ImmutableSet<CelCheckerLibrary> checkerLibraries;
+
+  private final ImmutableSet<FileDescriptor> fileDescriptors;
+  private final ImmutableSet<ProtoTypeMask> protoTypeMasks;
 
   @Override
   public CelValidationResult check(CelAbstractSyntaxTree ast) {
@@ -108,7 +112,23 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
 
   @Override
   public CelCheckerBuilder toCheckerBuilder() {
-    return new Builder(checkerBuilder);
+    CelCheckerBuilder builder =
+        new Builder()
+            .addIdentDeclarations(identDeclarations)
+            .setOptions(celOptions)
+            .setTypeProvider(celTypeProvider)
+            .setContainer(container)
+            .setStandardEnvironmentEnabled(standardEnvironmentEnabled)
+            .addFunctionDeclarations(functionDeclarations)
+            .addLibraries(checkerLibraries)
+            .addFileTypes(fileDescriptors)
+            .addProtoTypeMasks(protoTypeMasks);
+
+    if (expectedResultType.isPresent()) {
+      builder.setResultType(expectedResultType.get());
+    }
+
+    return builder;
   }
 
   @Override
@@ -163,8 +183,8 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     private final ImmutableSet.Builder<Descriptor> messageTypes;
     private final ImmutableSet.Builder<FileDescriptor> fileTypes;
     private final ImmutableSet.Builder<CelCheckerLibrary> celCheckerLibraries;
+    private CelContainer container;
     private CelOptions celOptions;
-    private String container;
     private CelType expectedResultType;
     private TypeProvider customTypeProvider;
     private CelTypeProvider celTypeProvider;
@@ -179,6 +199,12 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
 
     @Override
     public CelCheckerBuilder setContainer(String container) {
+      checkNotNull(container);
+      return setContainer(CelContainer.ofName(container));
+    }
+
+    @Override
+    public CelCheckerBuilder setContainer(CelContainer container) {
       checkNotNull(container);
       this.container = container;
       return this;
@@ -348,6 +374,12 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
       return this;
     }
 
+    @CanIgnoreReturnValue
+    Builder addIdentDeclarations(ImmutableSet<CelIdentDecl> identDeclarations) {
+      this.identDeclarations.addAll(identDeclarations);
+      return this;
+    }
+
     // The following getters exist for asserting immutability for collections held by this builder,
     // and shouldn't be exposed to the public.
     @VisibleForTesting
@@ -388,8 +420,10 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
             "setStandardEnvironmentEnabled must be set to false to override standard"
                 + " declarations.");
       }
+
       // Add libraries, such as extensions
-      celCheckerLibraries.build().forEach(celLibrary -> celLibrary.setCheckerOptions(this));
+      ImmutableSet<CelCheckerLibrary> checkerLibraries = celCheckerLibraries.build();
+      checkerLibraries.forEach(celLibrary -> celLibrary.setCheckerOptions(this));
 
       // Configure the type provider.
       ImmutableSet<FileDescriptor> fileTypeSet = fileTypes.build();
@@ -447,7 +481,9 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
           messageTypeProvider,
           standardEnvironmentEnabled,
           standardDeclarations,
-          this);
+          checkerLibraries,
+          fileTypeSet,
+          protoTypeMaskSet);
     }
 
     private Builder() {
@@ -458,37 +494,13 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
       this.messageTypes = ImmutableSet.builder();
       this.protoTypeMasks = ImmutableSet.builder();
       this.celCheckerLibraries = ImmutableSet.builder();
-      this.container = "";
-    }
-
-    private Builder(Builder builder) {
-      // The following properties are either immutable or simple primitives, thus can be assigned
-      // directly.
-      this.celOptions = builder.celOptions;
-      this.celTypeProvider = builder.celTypeProvider;
-      this.container = builder.container;
-      this.customTypeProvider = builder.customTypeProvider;
-      this.expectedResultType = builder.expectedResultType;
-      this.standardEnvironmentEnabled = builder.standardEnvironmentEnabled;
-      // The following needs to be deep copied as they are collection builders
-      this.functionDeclarations = deepCopy(builder.functionDeclarations);
-      this.identDeclarations = deepCopy(builder.identDeclarations);
-      this.fileTypes = deepCopy(builder.fileTypes);
-      this.messageTypes = deepCopy(builder.messageTypes);
-      this.protoTypeMasks = deepCopy(builder.protoTypeMasks);
-      this.celCheckerLibraries = deepCopy(builder.celCheckerLibraries);
-    }
-
-    private static <T> ImmutableSet.Builder<T> deepCopy(ImmutableSet.Builder<T> builderToCopy) {
-      ImmutableSet.Builder<T> newBuilder = ImmutableSet.builder();
-      newBuilder.addAll(builderToCopy.build());
-      return newBuilder;
+      this.container = CelContainer.ofName("");
     }
   }
 
   private CelCheckerLegacyImpl(
       CelOptions celOptions,
-      String container,
+      CelContainer container,
       ImmutableSet<CelIdentDecl> identDeclarations,
       ImmutableSet<CelFunctionDecl> functionDeclarations,
       Optional<CelType> expectedResultType,
@@ -496,7 +508,9 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
       CelTypeProvider celTypeProvider,
       boolean standardEnvironmentEnabled,
       CelStandardDeclarations overriddenStandardDeclarations,
-      Builder checkerBuilder) {
+      ImmutableSet<CelCheckerLibrary> checkerLibraries,
+      ImmutableSet<FileDescriptor> fileDescriptors,
+      ImmutableSet<ProtoTypeMask> protoTypeMasks) {
     this.celOptions = celOptions;
     this.container = container;
     this.identDeclarations = identDeclarations;
@@ -506,7 +520,9 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     this.celTypeProvider = celTypeProvider;
     this.standardEnvironmentEnabled = standardEnvironmentEnabled;
     this.overriddenStandardDeclarations = overriddenStandardDeclarations;
-    this.checkerBuilder = new Builder(checkerBuilder);
+    this.checkerLibraries = checkerLibraries;
+    this.fileDescriptors = fileDescriptors;
+    this.protoTypeMasks = protoTypeMasks;
   }
 
   private static ImmutableList<CelIssue> errorsToIssues(Errors errors) {
