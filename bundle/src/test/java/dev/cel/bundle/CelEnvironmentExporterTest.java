@@ -58,7 +58,7 @@ public class CelEnvironmentExporterTest {
             .build();
 
     CelEnvironment celEnvironment =
-        CelEnvironmentExporter.newBuilder().addStandardExtensions(CEL_OPTIONS).build().export(cel);
+        CelEnvironmentExporter.newBuilder().addStandardExtensions().build().export(cel);
 
     assertThat(celEnvironment.extensions())
         .containsExactly(ExtensionConfig.newBuilder().setName("math").setVersion(2).build());
@@ -72,7 +72,7 @@ public class CelEnvironmentExporterTest {
             .build();
 
     CelEnvironment celEnvironment =
-        CelEnvironmentExporter.newBuilder().addStandardExtensions(CEL_OPTIONS).build().export(cel);
+        CelEnvironmentExporter.newBuilder().addStandardExtensions().build().export(cel);
 
     assertThat(celEnvironment.extensions())
         .containsExactly(ExtensionConfig.newBuilder().setName("math").setVersion(1).build());
@@ -109,6 +109,7 @@ public class CelEnvironmentExporterTest {
                         FunctionSelector.create("matches", ImmutableSet.of()),
                         FunctionSelector.create(
                             "timestamp", ImmutableSet.of("string_to_timestamp"))))
+                .setExcludedMacros(ImmutableSet.of("map", "filter"))
                 .build());
   }
 
@@ -151,6 +152,8 @@ public class CelEnvironmentExporterTest {
             .collect(toCollection(HashSet::new));
     assertThat(additionOverloads).containsNoneOf("add_bytes", "add_list", "add_string");
 
+    assertThat(actual.includedMacros()).containsNoneOf("map", "filter");
+
     // Random-check a few standard overloads
     assertThat(additionOverloads).containsAtLeast("add_int64", "add_uint64", "add_double");
 
@@ -159,6 +162,7 @@ public class CelEnvironmentExporterTest {
         .contains(FunctionSelector.create("-_", ImmutableSet.of()));
     assertThat(actual.includedFunctions())
         .contains(FunctionSelector.create("getDayOfYear", ImmutableSet.of()));
+    assertThat(actual.includedMacros()).containsAtLeast("all", "exists", "exists_one", "has");
   }
 
   @Test
@@ -181,7 +185,7 @@ public class CelEnvironmentExporterTest {
             .build();
 
     CelEnvironmentExporter exporter =
-        CelEnvironmentExporter.newBuilder().addStandardExtensions(CEL_OPTIONS).build();
+        CelEnvironmentExporter.newBuilder().addStandardExtensions().build();
     CelEnvironment celEnvironment = exporter.export(cel);
 
     assertThat(celEnvironment.functions())
@@ -220,7 +224,7 @@ public class CelEnvironmentExporterTest {
             .build();
 
     CelEnvironmentExporter exporter =
-        CelEnvironmentExporter.newBuilder().addStandardExtensions(CEL_OPTIONS).build();
+        CelEnvironmentExporter.newBuilder().addStandardExtensions().build();
     CelEnvironment celEnvironment = exporter.export(cel);
 
     assertThat(celEnvironment.variables())
@@ -235,3 +239,4 @@ public class CelEnvironmentExporterTest {
         .containsNoneOf("double", "null_type");
   }
 }
+

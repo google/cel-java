@@ -16,6 +16,7 @@ package dev.cel.common.internal;
 
 import dev.cel.expr.Decl;
 import dev.cel.common.annotations.Internal;
+import dev.cel.parser.CelMacro;
 import java.util.List;
 
 /**
@@ -23,7 +24,6 @@ import java.util.List;
  *
  * <p>CEL Library Internals. Do Not Use.
  */
-@FunctionalInterface
 @Internal
 public interface EnvVisitor {
 
@@ -32,4 +32,7 @@ public interface EnvVisitor {
    * with that name.
    */
   void visitDecl(String name, List<Decl> decls);
+
+  /** Visit the CEL macro. */
+  void visitMacro(CelMacro macro);
 }

@@ -752,10 +752,15 @@ final class CelMathExtensions
   }
 
   @Override
-  public void setParserOptions(CelParserBuilder parserBuilder) {
-    parserBuilder.addMacros(
+  public ImmutableSet<CelMacro> getMacros() {
+    return ImmutableSet.of(
         CelMacro.newReceiverVarArgMacro("greatest", CelMathExtensions::expandGreatestMacro),
         CelMacro.newReceiverVarArgMacro("least", CelMathExtensions::expandLeastMacro));
+  }
+
+  @Override
+  public void setParserOptions(CelParserBuilder parserBuilder) {
+    parserBuilder.addMacros(getMacros());
   }
 
   @Override

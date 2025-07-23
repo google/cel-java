@@ -36,6 +36,7 @@ import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.internal.EnvVisitable;
+import dev.cel.common.internal.EnvVisitor;
 import dev.cel.common.internal.Errors;
 import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
@@ -50,11 +51,13 @@ import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.common.types.TypeType;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.parser.CelMacro;
 import dev.cel.testing.CelAdorner;
 import dev.cel.testing.CelBaselineTestCase;
 import dev.cel.testing.CelDebug;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.util.Arrays;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -106,26 +109,33 @@ public class ExprCheckerTest extends CelBaselineTestCase {
 
     ((EnvVisitable) celCompiler)
         .accept(
-            (name, decls) -> {
-              // TODO: Remove proto to native type adaptation after changing interface
-              for (Decl decl : decls) {
-                if (decl.hasFunction()) {
-                  CelFunctionDecl celFunctionDecl =
-                      CelFunctionDecl.newFunctionDeclaration(
-                          decl.getName(),
-                          decl.getFunction().getOverloadsList().stream()
-                              .map(CelOverloadDecl::overloadToCelOverload)
-                              .collect(toImmutableList()));
-                  testOutput().println(formatFunctionDecl(celFunctionDecl));
-                } else if (decl.hasIdent()) {
-                  CelVarDecl celVarDecl =
-                      CelVarDecl.newVarDeclaration(
-                          decl.getName(), CelProtoTypes.typeToCelType(decl.getIdent().getType()));
-                  testOutput().println(formatVarDecl(celVarDecl));
-                } else {
-                  throw new IllegalArgumentException("Invalid declaration: " + decl);
+            new EnvVisitor() {
+              @Override
+              public void visitDecl(String name, List<Decl> decls) {
+                // TODO: Remove proto to native type adaptation after changing
+                // interface
+                for (Decl decl : decls) {
+                  if (decl.hasFunction()) {
+                    CelFunctionDecl celFunctionDecl =
+                        CelFunctionDecl.newFunctionDeclaration(
+                            decl.getName(),
+                            decl.getFunction().getOverloadsList().stream()
+                                .map(CelOverloadDecl::overloadToCelOverload)
+                                .collect(toImmutableList()));
+                    testOutput().println(formatFunctionDecl(celFunctionDecl));
+                  } else if (decl.hasIdent()) {
+                    CelVarDecl celVarDecl =
+                        CelVarDecl.newVarDeclaration(
+                            decl.getName(), CelProtoTypes.typeToCelType(decl.getIdent().getType()));
+                    testOutput().println(formatVarDecl(celVarDecl));
+                  } else {
+                    throw new IllegalArgumentException("Invalid declaration: " + decl);
+                  }
                 }
               }
+
+              @Override
+              public void visitMacro(CelMacro macro) {}
             });
   }
 

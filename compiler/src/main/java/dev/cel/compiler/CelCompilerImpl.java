@@ -85,6 +85,9 @@ public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
     if (checker instanceof EnvVisitable) {
       ((EnvVisitable) checker).accept(envVisitor);
     }
+    if (parser instanceof EnvVisitable) {
+      ((EnvVisitable) parser).accept(envVisitor);
+    }
   }
 
   @Override

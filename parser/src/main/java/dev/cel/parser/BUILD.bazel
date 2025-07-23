@@ -66,6 +66,7 @@ java_library(
         "//common/annotations",
         "//common/ast",
         "//common/internal",
+        "//common/internal:env_visitor",
         "//parser:cel_g4_visitors",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",

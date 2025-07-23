@@ -20,12 +20,15 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelSource;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.internal.EnvVisitable;
+import dev.cel.common.internal.EnvVisitor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -41,7 +44,7 @@ import java.util.Optional;
  */
 @Immutable
 @Internal
-public final class CelParserImpl implements CelParser {
+public final class CelParserImpl implements CelParser, EnvVisitable {
 
   // Common feature flags to be used with all calls.
 
@@ -135,6 +138,7 @@ public final class CelParserImpl implements CelParser {
       return this;
     }
 
+    @CanIgnoreReturnValue
     @Override
     public Builder setOptions(CelOptions options) {
       this.options = checkNotNull(options);
@@ -202,5 +206,10 @@ public final class CelParserImpl implements CelParser {
     this.macros = macros;
     this.options = options;
     this.parserBuilder = new Builder(parserBuilder);
+  }
+
+  @Override
+  public void accept(EnvVisitor visitor) {
+    macros.forEach((name, macro) -> visitor.visitMacro(macro));
   }
 }

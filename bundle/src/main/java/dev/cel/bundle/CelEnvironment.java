@@ -275,12 +275,12 @@ public abstract class CelEnvironment {
     } else if (!librarySubset.includedMacros().isEmpty()) {
       compilerBuilder.setStandardMacros(
           librarySubset.includedMacros().stream()
-              .map(CelEnvironment::getStandardMacroOrThrow)
+              .flatMap(name -> getStandardMacrosOrThrow(name).stream())
               .collect(toImmutableSet()));
     } else if (!librarySubset.excludedMacros().isEmpty()) {
       ImmutableSet<CelStandardMacro> set =
           librarySubset.excludedMacros().stream()
-              .map(CelEnvironment::getStandardMacroOrThrow)
+              .flatMap(name -> getStandardMacrosOrThrow(name).stream())
               .collect(toImmutableSet());
       compilerBuilder.setStandardMacros(
           CelStandardMacro.STANDARD_MACROS.stream()
@@ -311,13 +311,18 @@ public abstract class CelEnvironment {
     }
   }
 
-  private static CelStandardMacro getStandardMacroOrThrow(String macroName) {
+  private static ImmutableSet<CelStandardMacro> getStandardMacrosOrThrow(String macroName) {
+    ImmutableSet.Builder<CelStandardMacro> builder = ImmutableSet.builder();
     for (CelStandardMacro macro : CelStandardMacro.STANDARD_MACROS) {
       if (macro.getFunction().equals(macroName)) {
-        return macro;
+        builder.add(macro);
       }
     }
-    throw new IllegalArgumentException("unrecognized standard macro `" + macroName + "'");
+    ImmutableSet<CelStandardMacro> macros = builder.build();
+    if (macros.isEmpty()) {
+      throw new IllegalArgumentException("unrecognized standard macro `" + macroName + "'");
+    }
+    return macros;
   }
 
   private static CanonicalCelExtension getExtensionOrThrow(String extensionName) {

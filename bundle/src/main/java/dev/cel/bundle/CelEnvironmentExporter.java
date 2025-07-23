@@ -38,15 +38,19 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.internal.EnvVisitable;
+import dev.cel.common.internal.EnvVisitor;
 import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypes;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.extensions.CelExtensions;
+import dev.cel.parser.CelMacro;
+import dev.cel.parser.CelStandardMacro;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -71,14 +75,14 @@ import java.util.Set;
 public abstract class CelEnvironmentExporter {
 
   /**
-   * Maximum number of excluded standard functions before switching to a format that enumerates all
-   * included functions. The default is 5.
+   * Maximum number of excluded standard functions and macros before switching to a format that
+   * enumerates all included functions and macros. The default is 5.
    *
    * <p>This setting is primarily for stylistic preferences and the intended use of the resulting
    * YAML file.
    *
-   * <p>For example, if you want almost all of the standard library with only a few exceptions
-   * (e.g., to ban a specific function), you would favor an exclusion-based approach by setting an
+   * <p>For example, if you want almost all the standard library with only a few exceptions (e.g.,
+   * to ban a specific function), you would favor an exclusion-based approach by setting an
    * appropriate threshold.
    *
    * <p>If you want full control over what is available to the CEL runtime, where no function is
@@ -106,11 +110,11 @@ public abstract class CelEnvironmentExporter {
     abstract ImmutableSet.Builder<CelExtensionLibrary> extensionLibrariesBuilder();
 
     @CanIgnoreReturnValue
-    public Builder addStandardExtensions(CelOptions options) {
+    public Builder addStandardExtensions() {
       addExtensionLibraries(
-          CelExtensions.math(options, 0),
-          CelExtensions.math(options, 1),
-          CelExtensions.math(options, 2));
+          CelExtensions.math(CelOptions.current().build(), 0),
+          CelExtensions.math(CelOptions.current().build(), 1),
+          CelExtensions.math(CelOptions.current().build(), 2));
       return this;
     }
 
@@ -174,20 +178,29 @@ public abstract class CelEnvironmentExporter {
   private void collectInventory(Set<Object> inventory, Cel cel) {
     ((EnvVisitable) cel)
         .accept(
-            (name, decls) -> {
-              for (Decl decl : decls) {
-                if (decl.hasFunction()) {
-                  FunctionDecl function = decl.getFunction();
-                  for (Overload overload : function.getOverloadsList()) {
+            new EnvVisitor() {
+              @Override
+              public void visitDecl(String name, List<Decl> decls) {
+                for (Decl decl : decls) {
+                  if (decl.hasFunction()) {
+                    FunctionDecl function = decl.getFunction();
+                    for (Overload overload : function.getOverloadsList()) {
+                      inventory.add(
+                          NamedOverload.create(
+                              decl.getName(), CelOverloadDecl.overloadToCelOverload(overload)));
+                    }
+                  } else if (decl.hasIdent()) {
                     inventory.add(
-                        NamedOverload.create(
-                            decl.getName(), CelOverloadDecl.overloadToCelOverload(overload)));
+                        CelVarDecl.newVarDeclaration(
+                            decl.getName(),
+                            CelProtoTypes.typeToCelType(decl.getIdent().getType())));
                   }
-                } else if (decl.hasIdent()) {
-                  inventory.add(
-                      CelVarDecl.newVarDeclaration(
-                          decl.getName(), CelProtoTypes.typeToCelType(decl.getIdent().getType())));
                 }
+              }
+
+              @Override
+              public void visitMacro(CelMacro macro) {
+                inventory.add(macro);
               }
             });
   }
@@ -224,20 +237,28 @@ public abstract class CelEnvironmentExporter {
   private boolean checkIfExtensionIsIncludedAndRemoveFromInventory(
       Set<Object> inventory, CelExtensionLibrary library) {
     ImmutableSet<CelFunctionDecl> functions = library.getFunctions();
-    ArrayList<Object> itemList = new ArrayList<>(functions.size());
+    ArrayList<Object> includedItems = new ArrayList<>(functions.size());
     for (CelFunctionDecl function : functions) {
       for (CelOverloadDecl overload : function.overloads()) {
         NamedOverload item = NamedOverload.create(function.name(), overload);
         if (!inventory.contains(item)) {
           return false;
         }
-        itemList.add(item);
+        includedItems.add(item);
       }
     }
 
-    // TODO - Add checks for variables and macros.
+    ImmutableSet<CelMacro> macros = library.getMacros();
+    for (CelMacro macro : macros) {
+      if (!inventory.contains(macro)) {
+        return false;
+      }
+      includedItems.add(macro);
+    }
 
-    inventory.removeAll(itemList);
+    // TODO - Add checks for variables.
+
+    inventory.removeAll(includedItems);
     return true;
   }
 
@@ -279,17 +300,30 @@ public abstract class CelEnvironmentExporter {
               }
             });
 
-    LibrarySubset.Builder subsetBuilder = LibrarySubset.newBuilder().setDisabled(false);
-    if (excludedFunctions.size() <= maxExcludedStandardFunctions()
-        && excludedOverloads.size() <= maxExcludedStandardFunctionOverloads()) {
-      subsetBuilder.setExcludedFunctions(
-          buildFunctionSelectors(excludedFunctions, excludedOverloads));
-    } else {
-      subsetBuilder.setIncludedFunctions(
-          buildFunctionSelectors(includedFunctions, includedOverloads));
-    }
+    Set<String> excludedMacros = new HashSet<>();
+    Set<String> includedMacros = new HashSet<>();
+    stream(CelStandardMacro.values())
+        .map(celStandardMacro -> celStandardMacro.getDefinition())
+        .forEach(
+            macro -> {
+              if (inventory.remove(macro)) {
+                includedMacros.add(macro.getFunction());
+              } else {
+                excludedMacros.add(macro.getFunction());
+              }
+            });
 
-    // TODO - Add support for including/excluding macros.
+    LibrarySubset.Builder subsetBuilder = LibrarySubset.newBuilder().setDisabled(false);
+    if (excludedFunctions.size() + excludedMacros.size() <= maxExcludedStandardFunctions()
+        && excludedOverloads.size() <= maxExcludedStandardFunctionOverloads()) {
+      subsetBuilder
+          .setExcludedFunctions(buildFunctionSelectors(excludedFunctions, excludedOverloads))
+          .setExcludedMacros(ImmutableSet.copyOf(excludedMacros));
+    } else {
+      subsetBuilder
+          .setIncludedFunctions(buildFunctionSelectors(includedFunctions, includedOverloads))
+          .setIncludedMacros(ImmutableSet.copyOf(includedMacros));
+    }
 
     envBuilder.setStandardLibrarySubset(subsetBuilder.build());
   }
@@ -388,3 +422,4 @@ public abstract class CelEnvironmentExporter {
     }
   }
 }
+

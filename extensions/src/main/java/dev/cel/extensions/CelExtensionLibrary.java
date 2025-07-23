@@ -16,6 +16,7 @@ package dev.cel.extensions;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelFunctionDecl;
+import dev.cel.parser.CelMacro;
 
 /**
  * Interface for defining CEL extension libraries.
@@ -34,5 +35,8 @@ public interface CelExtensionLibrary {
   /** Returns the set of function declarations defined by this extension library. */
   ImmutableSet<CelFunctionDecl> getFunctions();
 
-  // TODO - Add methods for variables and macros.
+  /** Returns the set of macros defined by this extension library. */
+  ImmutableSet<CelMacro> getMacros();
+
+  // TODO - Add a method for variables.
 }
