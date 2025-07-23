@@ -30,6 +30,7 @@ import dev.cel.bundle.CelEnvironment.LibrarySubset.FunctionSelector;
 import dev.cel.checker.CelStandardDeclarations;
 import dev.cel.checker.CelStandardDeclarations.StandardFunction;
 import dev.cel.checker.CelStandardDeclarations.StandardOverload;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
@@ -195,7 +196,7 @@ public abstract class CelEnvironment {
           celCompiler
               .toCompilerBuilder()
               .setTypeProvider(celTypeProvider)
-              .setContainer(container())
+              .setContainer(CelContainer.ofName(container()))
               .addVarDeclarations(
                   variables().stream()
                       .map(v -> v.toCelVarDecl(celTypeProvider))
@@ -206,7 +207,7 @@ public abstract class CelEnvironment {
                       .collect(toImmutableList()));
 
       if (!container().isEmpty()) {
-        compilerBuilder.setContainer(container());
+        compilerBuilder.setContainer(CelContainer.ofName(container()));
       }
 
       addAllCompilerExtensions(compilerBuilder, celOptions);
@@ -240,8 +241,10 @@ public abstract class CelEnvironment {
     for (ExtensionConfig extensionConfig : extensions()) {
       CanonicalCelExtension extension = getExtensionOrThrow(extensionConfig.name());
       if (extension.compilerExtensionProvider() != null) {
-        CelCompilerLibrary celCompilerLibrary = extension.compilerExtensionProvider()
-            .getCelCompilerLibrary(celOptions, extensionConfig.version());
+        CelCompilerLibrary celCompilerLibrary =
+            extension
+                .compilerExtensionProvider()
+                .getCelCompilerLibrary(celOptions, extensionConfig.version());
         celCompilerBuilder.addLibraries(celCompilerLibrary);
       }
     }
@@ -252,8 +255,10 @@ public abstract class CelEnvironment {
     for (ExtensionConfig extensionConfig : extensions()) {
       CanonicalCelExtension extension = getExtensionOrThrow(extensionConfig.name());
       if (extension.runtimeExtensionProvider() != null) {
-        CelRuntimeLibrary celRuntimeLibrary = extension.runtimeExtensionProvider()
-            .getCelRuntimeLibrary(celOptions, extensionConfig.version());
+        CelRuntimeLibrary celRuntimeLibrary =
+            extension
+                .runtimeExtensionProvider()
+                .getCelRuntimeLibrary(celOptions, extensionConfig.version());
         celRuntimeBuilder.addLibraries(celRuntimeLibrary);
       }
     }
@@ -697,9 +702,7 @@ public abstract class CelEnvironment {
     SETS(
         (options, version) -> CelExtensions.sets(options),
         (options, version) -> CelExtensions.sets(options)),
-    LISTS(
-        (options, version) -> CelExtensions.lists(),
-        (options, version) -> CelExtensions.lists());
+    LISTS((options, version) -> CelExtensions.lists(), (options, version) -> CelExtensions.lists());
 
     @SuppressWarnings("ImmutableEnumChecker")
     private final CompilerExtensionProvider compilerExtensionProvider;
@@ -737,8 +740,7 @@ public abstract class CelEnvironment {
   }
 
   /**
-   * LibrarySubset indicates a subset of the macros and function supported by a subsettable
-   * library.
+   * LibrarySubset indicates a subset of the macros and function supported by a subsettable library.
    */
   @AutoValue
   public abstract static class LibrarySubset {
@@ -766,6 +768,7 @@ public abstract class CelEnvironment {
      * IncludeFunctions specifies a set of functions to include in the subset.
      *
      * <p>Note: the overloads specified in the subset need only specify their ID.
+     *
      * <p>Note: if IncludedFunctions is non-empty, then ExcludedFunctions is ignored.
      */
     public abstract ImmutableSet<FunctionSelector> includedFunctions();

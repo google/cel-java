@@ -18,6 +18,11 @@ java_library(
 )
 
 java_library(
+    name = "container",
+    exports = ["//common/src/main/java/dev/cel/common:container"],
+)
+
+java_library(
     name = "proto_ast",
     exports = ["//common/src/main/java/dev/cel/common:proto_ast"],
 )

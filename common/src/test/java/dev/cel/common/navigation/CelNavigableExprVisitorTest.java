@@ -26,6 +26,7 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
@@ -580,7 +581,7 @@ public class CelNavigableExprVisitorTest {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
-            .setContainer("cel.expr.conformance.proto3")
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
             .build();
     CelAbstractSyntaxTree ast = compiler.compile("TestAllTypes{single_int64: 1}").getAst();
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
@@ -603,7 +604,7 @@ public class CelNavigableExprVisitorTest {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
-            .setContainer("cel.expr.conformance.proto3")
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
             .build();
     CelAbstractSyntaxTree ast = compiler.compile("TestAllTypes{single_int64: 1}").getAst();
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
@@ -631,7 +632,7 @@ public class CelNavigableExprVisitorTest {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
-            .setContainer("cel.expr.conformance.proto3")
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
             .build();
     CelAbstractSyntaxTree ast = compiler.compile("TestAllTypes{single_int64: 1}").getAst();
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
@@ -651,7 +652,7 @@ public class CelNavigableExprVisitorTest {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
-            .setContainer("cel.expr.conformance.proto3")
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
             .build();
     CelAbstractSyntaxTree ast = compiler.compile("TestAllTypes{single_int64: 1}").getAst();
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
@@ -672,7 +673,7 @@ public class CelNavigableExprVisitorTest {
     CelCompiler compiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
-            .setContainer("cel.expr.conformance.proto3")
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
             .build();
     CelAbstractSyntaxTree ast = compiler.compile("TestAllTypes{single_int64: 1}").getAst();
     CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);

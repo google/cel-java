@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
@@ -174,7 +175,7 @@ public class CelExprFormatterTest {
   public void struct() throws Exception {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
-            .setContainer("cel.expr.conformance.proto3")
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
             .addMessageTypes(TestAllTypes.getDescriptor())
             .addLibraries(CelOptionalLibrary.INSTANCE)
             .build();
@@ -224,7 +225,7 @@ public class CelExprFormatterTest {
   public void map() throws Exception {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
-            .setContainer("cel.expr.conformance.proto3")
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
             .addMessageTypes(TestAllTypes.getDescriptor())
             .addLibraries(CelOptionalLibrary.INSTANCE)
             .build();

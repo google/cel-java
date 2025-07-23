@@ -56,6 +56,7 @@ import com.google.protobuf.UnredactedDebugFormatForTest;
 import com.google.protobuf.Value;
 import com.google.protobuf.util.JsonFormat;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.internal.DefaultDescriptorPool;
@@ -337,7 +338,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void arithmTimestamp() {
-    container = Type.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(Type.getDescriptor().getFile().getPackage());
     declareVariable("ts1", SimpleType.TIMESTAMP);
     declareVariable("ts2", SimpleType.TIMESTAMP);
     declareVariable("d1", SimpleType.DURATION);
@@ -364,7 +365,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void arithmDuration() {
-    container = Type.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(Type.getDescriptor().getFile().getPackage());
     declareVariable("d1", SimpleType.DURATION);
     declareVariable("d2", SimpleType.DURATION);
     declareVariable("d3", SimpleType.DURATION);
@@ -521,14 +522,14 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     runTest(ImmutableMap.of("single_nested_message", nestedMessage.getSingleNestedMessage()));
 
     source = "TestAllTypes{single_int64: 1, single_sfixed64: 2, single_int32: 2}.single_int32 == 2";
-    container = TestAllTypes.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(TestAllTypes.getDescriptor().getFile().getPackage());
     runTest();
   }
 
   @Test
   public void messages_error() {
     source = "TestAllTypes{single_int32_wrapper: 12345678900}";
-    container = TestAllTypes.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(TestAllTypes.getDescriptor().getFile().getPackage());
     runTest();
 
     source = "TestAllTypes{}.map_string_string.a";
@@ -549,6 +550,16 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void optional_errors() {
     source = "optional.unwrap([dyn(1)])";
+    runTest();
+  }
+
+  @Test
+  public void containers() {
+    container =
+        CelContainer.newBuilder()
+            .addAlias("test_alias", TestAllTypes.getDescriptor().getFile().getPackage())
+            .build();
+    source = "test_alias.TestAllTypes{} == cel.expr.conformance.proto3.TestAllTypes{}";
     runTest();
   }
 
@@ -585,7 +596,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     Duration d1010 = Duration.newBuilder().setSeconds(10).setNanos(10).build();
     Duration d1009 = Duration.newBuilder().setSeconds(10).setNanos(9).build();
     Duration d0910 = Duration.newBuilder().setSeconds(9).setNanos(10).build();
-    container = Type.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(Type.getDescriptor().getFile().getPackage());
 
     source = "d1 < d2";
     runTest(extend(ImmutableMap.of("d1", d1010), ImmutableMap.of("d2", d1009)));
@@ -623,7 +634,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     Timestamp ts1010 = Timestamp.newBuilder().setSeconds(10).setNanos(10).build();
     Timestamp ts1009 = Timestamp.newBuilder().setSeconds(10).setNanos(9).build();
     Timestamp ts0910 = Timestamp.newBuilder().setSeconds(9).setNanos(10).build();
-    container = Type.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(Type.getDescriptor().getFile().getPackage());
 
     source = "t1 < t2";
     runTest(extend(ImmutableMap.of("t1", ts1010), ImmutableMap.of("t2", ts1009)));
@@ -661,7 +672,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
       skipBaselineVerification();
       return;
     }
-    container = TestAllTypes.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(TestAllTypes.getDescriptor().getFile().getPackage());
     declareVariable("any", SimpleType.ANY);
     declareVariable("d", SimpleType.DURATION);
     declareVariable(
@@ -709,7 +720,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   public void nestedEnums() {
     TestAllTypes nestedEnum = TestAllTypes.newBuilder().setSingleNestedEnum(NestedEnum.BAR).build();
     declareVariable("x", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
-    container = TestAllTypes.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(TestAllTypes.getDescriptor().getFile().getPackage());
     source = "x.single_nested_enum == TestAllTypes.NestedEnum.BAR";
     runTest(ImmutableMap.of("x", nestedEnum));
 
@@ -733,7 +744,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   public void lists() throws Exception {
     declareVariable("x", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
     declareVariable("y", SimpleType.INT);
-    container = TestAllTypes.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(TestAllTypes.getDescriptor().getFile().getPackage());
     source = "([1, 2, 3] + x.repeated_int32)[3] == 4";
     runTest(ImmutableMap.of("x", TestAllTypes.newBuilder().addRepeatedInt32(4).build()));
 
@@ -773,7 +784,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void maps() throws Exception {
     declareVariable("x", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
-    container = TestAllTypes.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(TestAllTypes.getDescriptor().getFile().getPackage());
     source = "{1: 2, 3: 4}[3] == 4";
     runTest();
 
@@ -904,7 +915,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "[1, 2].map(x, x * ns.func('test'))";
     runTest();
 
-    container = "ns";
+    container = CelContainer.ofName("ns");
     // Call with the container set as the function's namespace
     source = "ns.func('hello')";
     runTest();
@@ -918,12 +929,12 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void namespacedVariables() {
-    container = "ns";
+    container = CelContainer.ofName("ns");
     declareVariable("ns.x", SimpleType.INT);
     source = "x";
     runTest(ImmutableMap.of("ns.x", 2));
 
-    container = "dev.cel.testing.testdata.proto3";
+    container = CelContainer.ofName("dev.cel.testing.testdata.proto3");
     CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
     declareVariable("dev.cel.testing.testdata.proto3.msgVar", messageType);
     source = "msgVar.single_int32";
@@ -940,7 +951,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
         Duration.newBuilder().setSeconds(25 * 3600 + 59 * 60 + 1).setNanos(11000000).build();
     Duration d2 =
         Duration.newBuilder().setSeconds(-(25 * 3600 + 59 * 60 + 1)).setNanos(-11000000).build();
-    container = Type.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(Type.getDescriptor().getFile().getPackage());
 
     source = "d1.getHours()";
     runTest(ImmutableMap.of("d1", d1));
@@ -972,7 +983,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void timestampFunctions() {
     declareVariable("ts1", SimpleType.TIMESTAMP);
-    container = Type.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(Type.getDescriptor().getFile().getPackage());
     Timestamp ts1 = Timestamp.newBuilder().setSeconds(1).setNanos(11000000).build();
     Timestamp ts2 = ProtoTimeUtils.fromSecondsToTimestamp(-1);
 
@@ -1101,7 +1112,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void unknownField() {
-    container = TestAllTypes.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(TestAllTypes.getDescriptor().getFile().getPackage());
     declareVariable("x", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
 
     // Unknown field is accessed.
@@ -1133,7 +1144,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void unknownResultSet() {
-    container = TestAllTypes.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(TestAllTypes.getDescriptor().getFile().getPackage());
     declareVariable("x", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
     TestAllTypes message =
         TestAllTypes.newBuilder()
@@ -1335,7 +1346,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void timeConversions() {
-    container = Type.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(Type.getDescriptor().getFile().getPackage());
     declareVariable("t1", SimpleType.TIMESTAMP);
 
     source = "timestamp(\"1972-01-01T10:00:20.021-05:00\")";
@@ -1368,7 +1379,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void sizeTests() {
-    container = Type.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(Type.getDescriptor().getFile().getPackage());
     declareVariable("str", SimpleType.STRING);
     declareVariable("b", SimpleType.BYTES);
 
@@ -1735,7 +1746,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void jsonValueTypes() {
-    container = TestAllTypes.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(TestAllTypes.getDescriptor().getFile().getPackage());
     declareVariable("x", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
 
     // JSON bool selection.
@@ -1852,7 +1863,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void typeComparisons() {
-    container = TestAllTypes.getDescriptor().getFile().getPackage();
+    container = CelContainer.ofName(TestAllTypes.getDescriptor().getFile().getPackage());
 
     // Test numeric types.
     source =
@@ -2120,7 +2131,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void dynamicMessage_dynamicDescriptor() throws Exception {
-    container = "dev.cel.testing.testdata.serialized.proto3";
+    container = CelContainer.ofName("dev.cel.testing.testdata.serialized.proto3");
 
     source = "TestAllTypes {}";
     assertThat(runTest()).isInstanceOf(DynamicMessage.class);

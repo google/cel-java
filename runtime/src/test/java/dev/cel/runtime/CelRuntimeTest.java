@@ -34,6 +34,7 @@ import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoV1Alpha1AbstractSyntaxTree;
 import dev.cel.common.CelSource;
@@ -279,7 +280,7 @@ public class CelRuntimeTest {
     Cel cel =
         CelFactory.standardCelBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
-            .setContainer("cel.expr.conformance.proto3")
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
             .build();
     CelAbstractSyntaxTree ast = cel.compile("TestAllTypes{single_int64: 3}.single_int64").getAst();
 
@@ -298,7 +299,7 @@ public class CelRuntimeTest {
     Cel cel =
         CelFactory.standardCelBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
-            .setContainer("cel.expr.conformance.proto3")
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
             .build();
     CelAbstractSyntaxTree ast = cel.compile("TestAllTypes{}").getAst();
 

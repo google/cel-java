@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
@@ -47,7 +48,7 @@ public final class CelSetsExtensionsTest {
       CelCompilerFactory.standardCelCompilerBuilder()
           .addMessageTypes(TestAllTypes.getDescriptor())
           .setOptions(CEL_OPTIONS)
-          .setContainer("cel.expr.conformance.proto3")
+          .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
           .addLibraries(CelExtensions.sets(CEL_OPTIONS))
           .addVar("list", ListType.create(SimpleType.INT))
           .addVar("subList", ListType.create(SimpleType.INT))

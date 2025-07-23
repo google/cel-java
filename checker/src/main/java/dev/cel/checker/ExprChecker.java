@@ -22,11 +22,11 @@ import dev.cel.expr.Type;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
@@ -62,8 +62,7 @@ import org.jspecify.annotations.Nullable;
 public final class ExprChecker {
 
   /**
-   * Checks the parsed expression within the given environment and returns a checked expression.
-   * Conditions for type checking and the result are described in checked.proto.
+   * Deprecated type-check API.
    *
    * @deprecated Do not use. CEL-Java users should leverage the Fluent APIs instead. See {@code
    *     CelCompilerFactory}.
@@ -75,10 +74,7 @@ public final class ExprChecker {
   }
 
   /**
-   * Type-checks the parsed expression within the given environment and returns a checked
-   * expression. If an expected result type was given, then it verifies that that type matches the
-   * actual result type. Conditions for type checking and the constructed {@code CheckedExpr} are
-   * described in checked.proto.
+   * Deprecated type-check API.
    *
    * @deprecated Do not use. CEL-Java users should leverage the Fluent APIs instead. See {@code
    *     CelCompilerFactory}.
@@ -93,7 +89,10 @@ public final class ExprChecker {
             : Optional.absent();
     CelAbstractSyntaxTree ast =
         typecheck(
-            env, inContainer, CelProtoAbstractSyntaxTree.fromParsedExpr(parsedExpr).getAst(), type);
+            env,
+            CelContainer.ofName(inContainer),
+            CelProtoAbstractSyntaxTree.fromParsedExpr(parsedExpr).getAst(),
+            type);
 
     if (ast.isChecked()) {
       return CelProtoAbstractSyntaxTree.fromCelAst(ast).toCheckedExpr();
@@ -117,14 +116,14 @@ public final class ExprChecker {
   @Internal
   public static CelAbstractSyntaxTree typecheck(
       Env env,
-      String inContainer,
+      CelContainer container,
       CelAbstractSyntaxTree ast,
       Optional<CelType> expectedResultType) {
     env.resetTypeAndRefMaps();
     final ExprChecker checker =
         new ExprChecker(
             env,
-            inContainer,
+            container,
             ast.getSource().getPositionsMap(),
             new InferenceContext(),
             env.enableCompileTimeOverloadResolution(),
@@ -144,7 +143,7 @@ public final class ExprChecker {
 
   private final Env env;
   private final TypeProvider typeProvider;
-  private final String inContainer;
+  private final CelContainer container;
   private final Map<Long, Integer> positionMap;
   private final InferenceContext inferenceContext;
   private final boolean compileTimeOverloadResolution;
@@ -153,17 +152,17 @@ public final class ExprChecker {
 
   private ExprChecker(
       Env env,
-      String inContainer,
+      CelContainer container,
       Map<Long, Integer> positionMap,
       InferenceContext inferenceContext,
       boolean compileTimeOverloadResolution,
       boolean homogeneousLiterals,
       boolean namespacedDeclarations) {
-    this.env = Preconditions.checkNotNull(env);
+    this.env = checkNotNull(env);
     this.typeProvider = env.getTypeProvider();
-    this.positionMap = Preconditions.checkNotNull(positionMap);
-    this.inContainer = Preconditions.checkNotNull(inContainer);
-    this.inferenceContext = Preconditions.checkNotNull(inferenceContext);
+    this.positionMap = checkNotNull(positionMap);
+    this.container = checkNotNull(container);
+    this.inferenceContext = checkNotNull(inferenceContext);
     this.compileTimeOverloadResolution = compileTimeOverloadResolution;
     this.homogeneousLiterals = homogeneousLiterals;
     this.namespacedDeclarations = namespacedDeclarations;
@@ -232,7 +231,7 @@ public final class ExprChecker {
 
   @CheckReturnValue
   private CelExpr visit(CelExpr expr, CelExpr.CelIdent ident) {
-    CelIdentDecl decl = env.lookupIdent(expr.id(), getPosition(expr), inContainer, ident.name());
+    CelIdentDecl decl = env.lookupIdent(expr.id(), getPosition(expr), container, ident.name());
     checkNotNull(decl);
     if (decl.equals(Env.ERROR_IDENT_DECL)) {
       // error reported
@@ -254,7 +253,7 @@ public final class ExprChecker {
     // Before traversing down the tree, try to interpret as qualified name.
     String qname = asQualifiedName(expr);
     if (qname != null) {
-      CelIdentDecl decl = env.tryLookupCelIdent(inContainer, qname);
+      CelIdentDecl decl = env.tryLookupCelIdent(container, qname);
       if (decl != null) {
         if (select.testOnly()) {
           env.reportError(expr.id(), getPosition(expr), "expression does not select a field");
@@ -308,7 +307,7 @@ public final class ExprChecker {
 
     if (!call.target().isPresent()) {
       // Regular static call with simple name.
-      CelFunctionDecl decl = env.lookupFunction(expr.id(), position, inContainer, call.function());
+      CelFunctionDecl decl = env.lookupFunction(expr.id(), position, container, call.function());
       resolution = resolveOverload(expr.id(), position, decl, null, call.args());
 
       if (!decl.name().equals(call.function())) {
@@ -321,7 +320,7 @@ public final class ExprChecker {
       // Check whether the target is actually a qualified name for a static function.
       String qualifiedName = asQualifiedName(call.target().get());
       CelFunctionDecl decl =
-          env.tryLookupCelFunction(inContainer, qualifiedName + "." + call.function());
+          env.tryLookupCelFunction(container, qualifiedName + "." + call.function());
       if (decl != null) {
         resolution = resolveOverload(expr.id(), position, decl, null, call.args());
 
@@ -344,7 +343,7 @@ public final class ExprChecker {
             resolveOverload(
                 expr.id(),
                 position,
-                env.lookupFunction(expr.id(), getPosition(expr), inContainer, call.function()),
+                env.lookupFunction(expr.id(), getPosition(expr), container, call.function()),
                 target,
                 call.args());
       }
@@ -361,7 +360,7 @@ public final class ExprChecker {
     // Determine the type of the message.
     CelType messageType = SimpleType.ERROR;
     CelIdentDecl decl =
-        env.lookupIdent(expr.id(), getPosition(expr), inContainer, struct.messageName());
+        env.lookupIdent(expr.id(), getPosition(expr), container, struct.messageName());
     env.setRef(expr, CelReference.newBuilder().setName(decl.name()).build());
     CelType type = decl.type();
     if (type.kind() != CelKind.ERROR) {
