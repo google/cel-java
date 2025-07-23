@@ -35,7 +35,6 @@ public final class CelExtensions {
   private static final CelProtoExtensions PROTO_EXTENSIONS = new CelProtoExtensions();
   private static final CelBindingsExtensions BINDINGS_EXTENSIONS = new CelBindingsExtensions();
   private static final CelEncoderExtensions ENCODER_EXTENSIONS = new CelEncoderExtensions();
-  private static final CelListsExtensions LISTS_EXTENSIONS_ALL = new CelListsExtensions();
   private static final CelRegexExtensions REGEX_EXTENSIONS = new CelRegexExtensions();
 
   /**
@@ -230,7 +229,16 @@ public final class CelExtensions {
    * CelListsExtensions.Function}.
    */
   public static CelListsExtensions lists() {
-    return LISTS_EXTENSIONS_ALL;
+    return new CelListsExtensions(Integer.MAX_VALUE);
+  }
+
+  /**
+   * Extended functions for List manipulation.
+   *
+   * <p>Refer to README.md for functions available in each version.
+   */
+  public static CelListsExtensions lists(int version) {
+    return new CelListsExtensions(version);
   }
 
   /**

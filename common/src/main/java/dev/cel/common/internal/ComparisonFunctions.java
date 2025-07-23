@@ -15,6 +15,7 @@
 package dev.cel.common.internal;
 
 import com.google.common.primitives.UnsignedLong;
+import com.google.common.primitives.UnsignedLongs;
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.common.annotations.Internal;
 
@@ -112,6 +113,48 @@ public final class ComparisonFunctions {
       }
     }
     return false;
+  }
+
+
+  /**
+   * Compare two numeric values of any type (double, int, uint).
+   */
+  public static int numericCompare(Number x, Number y) {
+    if (x instanceof Double) {
+      if (y instanceof Double) {
+        return ((Double) x).compareTo((Double) y);
+      }
+      if (y instanceof Long) {
+        return compareDoubleInt((Double) x, (Long) y);
+      }
+      if (y instanceof UnsignedLong) {
+        return compareDoubleUint((Double) x, (UnsignedLong) y);
+      }
+    }
+    if (x instanceof Long) {
+      if (y instanceof Long) {
+        return Long.compare((Long) x, (Long) y);
+      }
+      if (y instanceof Double) {
+        return compareIntDouble((Long) x, (Double) y);
+      }
+      if (y instanceof UnsignedLong) {
+        return compareIntUint((Long) x, (UnsignedLong) y);
+      }
+    }
+    if (x instanceof UnsignedLong) {
+      if (y instanceof UnsignedLong) {
+        return UnsignedLongs.compare(x.longValue(), y.longValue());
+      }
+      if (y instanceof Double) {
+        return compareUintDouble((UnsignedLong) x, (Double) y);
+      }
+      if (y instanceof Long) {
+        return compareUintInt((UnsignedLong) x, (Long) y);
+      }
+    }
+    throw new UnsupportedOperationException(
+        "Unsupported argument types: " + x.getClass() + ", " + y.getClass());
   }
 
   private ComparisonFunctions() {}

@@ -110,11 +110,14 @@ public abstract class CelEnvironmentExporter {
     abstract ImmutableSet.Builder<CelExtensionLibrary> extensionLibrariesBuilder();
 
     @CanIgnoreReturnValue
-    public Builder addStandardExtensions() {
+    public Builder addStandardExtensions(CelOptions options) {
       addExtensionLibraries(
-          CelExtensions.math(CelOptions.current().build(), 0),
-          CelExtensions.math(CelOptions.current().build(), 1),
-          CelExtensions.math(CelOptions.current().build(), 2));
+          CelExtensions.math(options, 0),
+          CelExtensions.math(options, 1),
+          CelExtensions.math(options, 2),
+          CelExtensions.lists(0),
+          CelExtensions.lists(1),
+          CelExtensions.lists(2));
       return this;
     }
 

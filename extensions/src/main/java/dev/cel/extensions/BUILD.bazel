@@ -250,10 +250,18 @@ java_library(
     deps = [
         "//checker:checker_builder",
         "//common:compiler_common",
+        "//common:options",
+        "//common/ast",
+        "//common/internal:comparison_functions",
         "//common/types",
         "//compiler:compiler_builder",
+        "//extensions:extension_library",
+        "//parser:macro",
+        "//parser:operator",
+        "//parser:parser_builder",
         "//runtime",
         "//runtime:function_binding",
+        "//runtime:runtime_equality",
         "@maven//:com_google_guava_guava",
     ],
 )

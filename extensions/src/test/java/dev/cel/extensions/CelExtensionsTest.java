@@ -178,8 +178,13 @@ public class CelExtensionsTest {
             "sets.intersects",
             "base64.decode",
             "base64.encode",
+            "slice",
             "flatten",
             "lists.range",
+            "distinct",
+            "reverse",
+            "sort",
+            "lists.@sortByAssociatedKeys",
             "regex.replace",
             "regex.extract",
             "regex.extractAll");

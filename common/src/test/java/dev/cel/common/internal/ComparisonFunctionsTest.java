@@ -64,4 +64,33 @@ public final class ComparisonFunctionsTest {
     assertThat(ComparisonFunctions.compareUintInt(ux, 1)).isEqualTo(1);
     assertThat(ComparisonFunctions.compareIntUint(1, ux)).isEqualTo(-1);
   }
+
+  @Test
+  @TestParameters("{x: 1, y: 1, expect: 0}")
+  @TestParameters("{x: 1, y: 2, expect: -1}")
+  @TestParameters("{x: 2, y: -1, expect: 1}")
+  public void numericCompareDoubleInt(double x, long y, int expect) {
+    assertThat(ComparisonFunctions.numericCompare(x, y)).isEqualTo(expect);
+    assertThat(ComparisonFunctions.numericCompare(y, x)).isEqualTo(-1 * expect);
+  }
+
+  @Test
+  @TestParameters("{x: 1, y: 1, expect: 0}")
+  @TestParameters("{x: 1, y: 2, expect: -1}")
+  @TestParameters("{x: 2, y: 1, expect: 1}")
+  public void numericCompareDoubleUint(double x, long y, int expect) {
+    UnsignedLong uy = UnsignedLong.valueOf(y);
+    assertThat(ComparisonFunctions.numericCompare(x, uy)).isEqualTo(expect);
+    assertThat(ComparisonFunctions.numericCompare(uy, x)).isEqualTo(-1 * expect);
+  }
+
+  @Test
+  @TestParameters("{x: 1, y: 1, expect: 0}")
+  @TestParameters("{x: 1, y: 2, expect: -1}")
+  @TestParameters("{x: 2, y: -1, expect: 1}")
+  public void numericCompareUintInt(long x, long y, int expect) {
+    UnsignedLong ux = UnsignedLong.valueOf(x);
+    assertThat(ComparisonFunctions.numericCompare(ux, y)).isEqualTo(expect);
+    assertThat(ComparisonFunctions.numericCompare(y, ux)).isEqualTo(-1 * expect);
+  }
 }

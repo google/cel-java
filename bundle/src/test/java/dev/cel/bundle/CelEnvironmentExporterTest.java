@@ -58,7 +58,7 @@ public class CelEnvironmentExporterTest {
             .build();
 
     CelEnvironment celEnvironment =
-        CelEnvironmentExporter.newBuilder().addStandardExtensions().build().export(cel);
+        CelEnvironmentExporter.newBuilder().addStandardExtensions(CEL_OPTIONS).build().export(cel);
 
     assertThat(celEnvironment.extensions())
         .containsExactly(ExtensionConfig.newBuilder().setName("math").setVersion(2).build());
@@ -72,7 +72,7 @@ public class CelEnvironmentExporterTest {
             .build();
 
     CelEnvironment celEnvironment =
-        CelEnvironmentExporter.newBuilder().addStandardExtensions().build().export(cel);
+        CelEnvironmentExporter.newBuilder().addStandardExtensions(CEL_OPTIONS).build().export(cel);
 
     assertThat(celEnvironment.extensions())
         .containsExactly(ExtensionConfig.newBuilder().setName("math").setVersion(1).build());
@@ -185,7 +185,7 @@ public class CelEnvironmentExporterTest {
             .build();
 
     CelEnvironmentExporter exporter =
-        CelEnvironmentExporter.newBuilder().addStandardExtensions().build();
+        CelEnvironmentExporter.newBuilder().addStandardExtensions(CEL_OPTIONS).build();
     CelEnvironment celEnvironment = exporter.export(cel);
 
     assertThat(celEnvironment.functions())
@@ -224,7 +224,7 @@ public class CelEnvironmentExporterTest {
             .build();
 
     CelEnvironmentExporter exporter =
-        CelEnvironmentExporter.newBuilder().addStandardExtensions().build();
+        CelEnvironmentExporter.newBuilder().addStandardExtensions(CEL_OPTIONS).build();
     CelEnvironment celEnvironment = exporter.export(cel);
 
     assertThat(celEnvironment.variables())
