@@ -29,6 +29,7 @@ import dev.cel.checker.CelStandardDeclarations;
 import dev.cel.checker.ProtoTypeMask;
 import dev.cel.checker.TypeProvider;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelSource;
@@ -159,6 +160,12 @@ public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
 
     @Override
     public CelCompilerBuilder setContainer(String container) {
+      checkerBuilder.setContainer(container);
+      return this;
+    }
+
+    @Override
+    public CelCompilerBuilder setContainer(CelContainer container) {
       checkerBuilder.setContainer(container);
       return this;
     }

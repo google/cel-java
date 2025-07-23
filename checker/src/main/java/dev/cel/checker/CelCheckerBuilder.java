@@ -21,6 +21,7 @@ import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelVarDecl;
@@ -35,11 +36,18 @@ public interface CelCheckerBuilder {
   CelCheckerBuilder setOptions(CelOptions options);
 
   /**
-   * Set the {@code container} name to use as the namespace for resolving CEL expression variables
-   * and functions.
+   * @deprecated Use {@link #setContainer(CelContainer)} instead.
    */
   @CanIgnoreReturnValue
+  @Deprecated
   CelCheckerBuilder setContainer(String container);
+
+  /**
+   * Set the {@link CelContainer} to use as the namespace for resolving CEL expression variables and
+   * functions.
+   */
+  @CanIgnoreReturnValue
+  CelCheckerBuilder setContainer(CelContainer container);
 
   /** Add variable and function {@code declarations} to the CEL environment. */
   @CanIgnoreReturnValue
