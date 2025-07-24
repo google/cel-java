@@ -1,0 +1,4 @@
+Source: test_alias.TestAllTypes{} == cel.expr.conformance.proto3.TestAllTypes{}
+=====>
+bindings: {}
+result:   true

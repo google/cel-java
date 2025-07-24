@@ -30,6 +30,7 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import dev.cel.checker.CelStandardDeclarations.StandardFunction.Overload.Comparison;
 import dev.cel.checker.CelStandardDeclarations.StandardFunction.Overload.Conversions;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
@@ -65,7 +66,11 @@ import org.jspecify.annotations.Nullable;
 @Internal
 public class Env {
 
-  /** The top-most scope in the environment, for use with {@link #getDeclGroup(int)}. */
+  /**
+   * The top-most scope in the environment, for use with {@link #getDeclGroup(int)}.
+   *
+   * <p>Note: Used by legacy type-checker users (mirrored sources) *
+   */
   public static final int ROOT_SCOPE = 0;
 
   /** An ident declaration to represent an error. */
@@ -394,11 +399,13 @@ public class Env {
   }
 
   /**
+   * Note: Used by legacy type-checker users (mirrored sources)
+   *
    * @deprecated Use {@link #tryLookupCelFunction} instead.
    */
   @Deprecated
   public @Nullable Decl tryLookupFunction(String container, String name) {
-    CelFunctionDecl decl = tryLookupCelFunction(container, name);
+    CelFunctionDecl decl = tryLookupCelFunction(CelContainer.ofName(container), name);
     if (decl == null) {
       return null;
     }
@@ -416,8 +423,8 @@ public class Env {
    *
    * <p>Returns {@code null} if the function cannot be found.
    */
-  public @Nullable CelFunctionDecl tryLookupCelFunction(String container, String name) {
-    for (String cand : qualifiedTypeNameCandidates(container, name)) {
+  public @Nullable CelFunctionDecl tryLookupCelFunction(CelContainer container, String name) {
+    for (String cand : container.resolveCandidateNames(name)) {
       // First determine whether we know this name already.
       CelFunctionDecl decl = findFunctionDecl(cand);
       if (decl != null) {
@@ -431,7 +438,7 @@ public class Env {
    * @deprecated Use {@link #tryLookupCelIdent} instead.
    */
   @Deprecated
-  public @Nullable Decl tryLookupIdent(String container, String name) {
+  public @Nullable Decl tryLookupIdent(CelContainer container, String name) {
     CelIdentDecl decl = tryLookupCelIdent(container, name);
     if (decl == null) {
       return null;
@@ -450,8 +457,8 @@ public class Env {
    *
    * <p>Returns {@code null} if the function cannot be found.
    */
-  public @Nullable CelIdentDecl tryLookupCelIdent(String container, String name) {
-    for (String cand : qualifiedTypeNameCandidates(container, name)) {
+  public @Nullable CelIdentDecl tryLookupCelIdent(CelContainer container, String name) {
+    for (String cand : container.resolveCandidateNames(name)) {
       // First determine whether we know this name already.
       CelIdentDecl decl = findIdentDecl(cand);
       if (decl != null) {
@@ -489,11 +496,15 @@ public class Env {
    * Lookup a name like {@link #tryLookupCelIdent}, but report an error if the name is not found and
    * return the {@link #ERROR_IDENT_DECL}.
    */
-  public CelIdentDecl lookupIdent(long exprId, int position, String inContainer, String name) {
-    CelIdentDecl result = tryLookupCelIdent(inContainer, name);
+  public CelIdentDecl lookupIdent(long exprId, int position, CelContainer container, String name) {
+    CelIdentDecl result = tryLookupCelIdent(container, name);
     if (result == null) {
       reportError(
-          exprId, position, "undeclared reference to '%s' (in container '%s')", name, inContainer);
+          exprId,
+          position,
+          "undeclared reference to '%s' (in container '%s')",
+          name,
+          container.name());
       return ERROR_IDENT_DECL;
     }
     return result;
@@ -504,18 +515,22 @@ public class Env {
    * and return the {@link #ERROR_FUNCTION_DECL}.
    */
   public CelFunctionDecl lookupFunction(
-      long exprId, int position, String inContainer, String name) {
-    CelFunctionDecl result = tryLookupCelFunction(inContainer, name);
+      long exprId, int position, CelContainer container, String name) {
+    CelFunctionDecl result = tryLookupCelFunction(container, name);
     if (result == null) {
       reportError(
-          exprId, position, "undeclared reference to '%s' (in container '%s')", name, inContainer);
+          exprId,
+          position,
+          "undeclared reference to '%s' (in container '%s')",
+          name,
+          container.name());
       return ERROR_FUNCTION_DECL;
     }
     return result;
   }
 
   /**
-   * Note: Used by codegen
+   * Note: Used by legacy type-checker users (mirrored sources)
    *
    * @deprecated Use {@link #reportError(long, int, String, Object...) instead.}
    */
@@ -539,18 +554,6 @@ public class Env {
 
   boolean enableNamespacedDeclarations() {
     return celOptions.enableNamespacedDeclarations();
-  }
-
-  boolean enableHeterogeneousNumericComparisons() {
-    return celOptions.enableHeterogeneousNumericComparisons();
-  }
-
-  boolean enableTimestampEpoch() {
-    return celOptions.enableTimestampEpoch();
-  }
-
-  boolean enableUnsignedLongs() {
-    return celOptions.enableUnsignedLongs();
   }
 
   /** Add an identifier {@code decl} to the environment. */
@@ -688,30 +691,6 @@ public class Env {
         .setName(name)
         .addOverloads(overloadSignatureMap.values())
         .build();
-  }
-
-  /**
-   * Returns the candidates for name resolution of a name within a container(e.g. package, message,
-   * enum, service elements) context following PB (== C++) conventions. Iterates those names which
-   * shadow other names first; recognizes and removes a leading '.' for overriding shadowing. Given
-   * a container name {@code a.b.c.M.N} and a type name {@code R.s}, this will deliver in order
-   * {@code a.b.c.M.N.R.s, a.b.c.M.R.s, a.b.c.R.s, a.b.R.s, a.R.s, R.s}.
-   */
-  private static ImmutableList<String> qualifiedTypeNameCandidates(
-      String container, String typeName) {
-    // This function is a copy of //j/c/g/api/tools/model/SymbolTable#nameCandidates.
-    if (typeName.startsWith(".")) {
-      return ImmutableList.of(typeName.substring(1));
-    }
-    if (container.isEmpty()) {
-      return ImmutableList.of(typeName);
-    } else {
-      int i = container.lastIndexOf('.');
-      return ImmutableList.<String>builder()
-          .add(container + "." + typeName)
-          .addAll(qualifiedTypeNameCandidates(i >= 0 ? container.substring(0, i) : "", typeName))
-          .build();
-    }
   }
 
   /**

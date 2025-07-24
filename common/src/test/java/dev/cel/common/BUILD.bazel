@@ -15,6 +15,7 @@ java_library(
         "//common:cel_descriptors",
         "//common:cel_source",
         "//common:compiler_common",
+        "//common:container",
         "//common:options",
         "//common:proto_ast",
         "//common:proto_json_adapter",

@@ -23,6 +23,7 @@ import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
@@ -48,7 +49,7 @@ public abstract class CelBaselineTestCase extends BaselineTestCase {
   private final List<CelFunctionDecl> functionDecls = new ArrayList<>();
 
   protected String source;
-  protected String container = "";
+  protected CelContainer container = CelContainer.ofName("");
   protected CelType expectedType;
   protected CelCompiler celCompiler;
 
