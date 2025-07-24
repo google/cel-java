@@ -20,7 +20,6 @@ import static java.util.Arrays.stream;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import dev.cel.common.CelOptions;
-import dev.cel.extensions.CelListsExtensions.Function;
 import java.util.Set;
 
 /**
@@ -108,7 +107,7 @@ public final class CelExtensions {
    *     options object used to configure the compilation/runtime environments.
    */
   public static CelMathExtensions math(CelOptions celOptions) {
-    return new CelMathExtensions(celOptions, Integer.MAX_VALUE);
+    return CelMathExtensions.library(celOptions).latest();
   }
 
   /**
@@ -117,7 +116,7 @@ public final class CelExtensions {
    * <p>Refer to README.md for functions available in each version.
    */
   public static CelMathExtensions math(CelOptions celOptions, int version) {
-    return new CelMathExtensions(celOptions, version);
+    return CelMathExtensions.library(celOptions).version(version);
   }
 
   /**
@@ -229,7 +228,7 @@ public final class CelExtensions {
    * CelListsExtensions.Function}.
    */
   public static CelListsExtensions lists() {
-    return new CelListsExtensions(Integer.MAX_VALUE);
+    return CelListsExtensions.library().latest();
   }
 
   /**
@@ -238,7 +237,7 @@ public final class CelExtensions {
    * <p>Refer to README.md for functions available in each version.
    */
   public static CelListsExtensions lists(int version) {
-    return new CelListsExtensions(version);
+    return CelListsExtensions.library().version(version);
   }
 
   /**
@@ -259,8 +258,8 @@ public final class CelExtensions {
    * <p>Refer to README.md for available functions.
    *
    * <p>This will include all functions denoted in {@link CelListsExtensions.Function}, including
-   * any future additions. To expose only a subset of functions, use {@link #lists(Function...)}
-   * instead.
+   * any future additions. To expose only a subset of functions, use {@link
+   * #lists(CelListsExtensions.Function...)} instead.
    */
   public static CelListsExtensions lists(Set<CelListsExtensions.Function> functions) {
     return new CelListsExtensions(functions);
@@ -299,6 +298,19 @@ public final class CelExtensions {
             stream(CelRegexExtensions.Function.values())
                 .map(CelRegexExtensions.Function::getFunction))
         .collect(toImmutableSet());
+  }
+
+  public static CelExtensionLibrary<? extends CelExtensionLibrary.FeatureSet> getExtensionLibrary(
+      String name, CelOptions options) {
+    switch (name) {
+      case "math":
+        return CelMathExtensions.library(options);
+      case "lists":
+        return CelListsExtensions.library();
+      // TODO: add support for remaining standard extensions
+      default:
+        throw new IllegalArgumentException("Unknown standard extension '" + name + "'");
+    }
   }
 
   private CelExtensions() {}

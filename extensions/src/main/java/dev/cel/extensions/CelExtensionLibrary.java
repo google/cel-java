@@ -17,6 +17,7 @@ package dev.cel.extensions;
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.parser.CelMacro;
+import java.util.Comparator;
 
 /**
  * Interface for defining CEL extension libraries.
@@ -24,19 +25,43 @@ import dev.cel.parser.CelMacro;
  * <p>An extension library is a collection of CEL functions, variables, and macros that can be added
  * to a CEL environment to provide additional functionality.
  */
-public interface CelExtensionLibrary {
+public interface CelExtensionLibrary<T extends CelExtensionLibrary.FeatureSet> {
 
   /** Returns the name of the extension library. */
-  String getName();
+  String name();
 
-  /** Returns the extension library version or -1 if unspecified. */
-  int getVersion();
+  ImmutableSet<T> versions();
 
-  /** Returns the set of function declarations defined by this extension library. */
-  ImmutableSet<CelFunctionDecl> getFunctions();
+  default T latest() {
+    return versions().stream().max(Comparator.comparing(FeatureSet::version)).get();
+  }
 
-  /** Returns the set of macros defined by this extension library. */
-  ImmutableSet<CelMacro> getMacros();
+  default T version(int version) {
+    if (version == Integer.MAX_VALUE) {
+      return latest();
+    }
 
-  // TODO - Add a method for variables.
+    for (T v : versions()) {
+      if (v.version() == version) {
+        return v;
+      }
+    }
+    throw new IllegalArgumentException("Unsupported '" + name() + "' extension version " + version);
+  }
+
+  /**
+   * Interface for defining a version of a CEL extension library.
+   */
+  interface FeatureSet {
+    /** Returns the extension library version or -1 if unspecified. */
+    int version();
+
+    /** Returns the set of function declarations defined by this extension library. */
+    ImmutableSet<CelFunctionDecl> functions();
+
+    /** Returns the set of macros defined by this extension library. */
+    ImmutableSet<CelMacro> macros();
+
+    // TODO - Add a method for variables.
+  }
 }

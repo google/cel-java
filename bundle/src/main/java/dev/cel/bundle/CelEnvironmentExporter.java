@@ -23,7 +23,6 @@ import dev.cel.expr.Decl.FunctionDecl;
 import dev.cel.expr.Decl.FunctionDecl.Overload;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -97,7 +96,8 @@ public abstract class CelEnvironmentExporter {
    */
   abstract int maxExcludedStandardFunctionOverloads();
 
-  abstract ImmutableSet<CelExtensionLibrary> extensionLibraries();
+  abstract ImmutableSet<CelExtensionLibrary<? extends CelExtensionLibrary.FeatureSet>>
+      extensionLibraries();
 
   /** Builder for {@link CelEnvironmentExporter}. */
   @AutoValue.Builder
@@ -107,22 +107,21 @@ public abstract class CelEnvironmentExporter {
 
     public abstract Builder setMaxExcludedStandardFunctionOverloads(int count);
 
-    abstract ImmutableSet.Builder<CelExtensionLibrary> extensionLibrariesBuilder();
+    abstract ImmutableSet.Builder<CelExtensionLibrary<? extends CelExtensionLibrary.FeatureSet>>
+        extensionLibrariesBuilder();
 
     @CanIgnoreReturnValue
     public Builder addStandardExtensions(CelOptions options) {
       addExtensionLibraries(
-          CelExtensions.math(options, 0),
-          CelExtensions.math(options, 1),
-          CelExtensions.math(options, 2),
-          CelExtensions.lists(0),
-          CelExtensions.lists(1),
-          CelExtensions.lists(2));
+          CelExtensions.getExtensionLibrary("math", options),
+          CelExtensions.getExtensionLibrary("lists", options));
+      // TODO: add support for remaining standard extensions
       return this;
     }
 
     @CanIgnoreReturnValue
-    public Builder addExtensionLibraries(CelExtensionLibrary... libraries) {
+    public Builder addExtensionLibraries(
+        CelExtensionLibrary<? extends CelExtensionLibrary.FeatureSet>... libraries) {
       extensionLibrariesBuilder().add(libraries);
       return this;
     }
@@ -216,52 +215,59 @@ public abstract class CelEnvironmentExporter {
    */
   private void addExtensionConfigsAndRemoveFromInventory(
       CelEnvironment.Builder envBuilder, Set<Object> inventory) {
-    ImmutableList<CelExtensionLibrary> libraries =
-        ImmutableList.sortedCopyOf(
-            Comparator.comparing(CelExtensionLibrary::getName)
-                .thenComparing(CelExtensionLibrary::getVersion)
-                .reversed(),
-            extensionLibraries());
+    ArrayList<NamedFeatureSet> featureSets = new ArrayList<>();
+
+    for (CelExtensionLibrary<? extends CelExtensionLibrary.FeatureSet> extensionLibrary :
+        extensionLibraries()) {
+      for (CelExtensionLibrary.FeatureSet featureSet : extensionLibrary.versions()) {
+        featureSets.add(NamedFeatureSet.create(extensionLibrary.name(), featureSet));
+      }
+    }
+
+    featureSets.sort(
+        Comparator.comparing(NamedFeatureSet::name)
+            .thenComparing(nfs -> nfs.featureSet().version())
+            .reversed());
 
     Set<String> includedExtensions = new HashSet<>();
-    for (CelExtensionLibrary library : libraries) {
-      if (includedExtensions.contains(library.getName())) {
+    for (NamedFeatureSet lib : featureSets) {
+      if (includedExtensions.contains(lib.name())) {
         // We only need to infer the highest version library, so we can skip lower versions
         continue;
       }
 
-      if (checkIfExtensionIsIncludedAndRemoveFromInventory(inventory, library)) {
-        envBuilder.addExtensions(ExtensionConfig.of(library.getName(), library.getVersion()));
-        includedExtensions.add(library.getName());
+      if (checkIfExtensionIsIncludedAndRemoveFromInventory(inventory, lib.featureSet())) {
+        envBuilder.addExtensions(ExtensionConfig.of(lib.name(), lib.featureSet().version()));
+        includedExtensions.add(lib.name());
       }
     }
   }
 
   private boolean checkIfExtensionIsIncludedAndRemoveFromInventory(
-      Set<Object> inventory, CelExtensionLibrary library) {
-    ImmutableSet<CelFunctionDecl> functions = library.getFunctions();
-    ArrayList<Object> includedItems = new ArrayList<>(functions.size());
+      Set<Object> inventory, CelExtensionLibrary.FeatureSet featureSet) {
+    ImmutableSet<CelFunctionDecl> functions = featureSet.functions();
+    ArrayList<Object> includedFeatures = new ArrayList<>(functions.size());
     for (CelFunctionDecl function : functions) {
       for (CelOverloadDecl overload : function.overloads()) {
-        NamedOverload item = NamedOverload.create(function.name(), overload);
-        if (!inventory.contains(item)) {
+        NamedOverload feature = NamedOverload.create(function.name(), overload);
+        if (!inventory.contains(feature)) {
           return false;
         }
-        includedItems.add(item);
+        includedFeatures.add(feature);
       }
     }
 
-    ImmutableSet<CelMacro> macros = library.getMacros();
+    ImmutableSet<CelMacro> macros = featureSet.macros();
     for (CelMacro macro : macros) {
       if (!inventory.contains(macro)) {
         return false;
       }
-      includedItems.add(macro);
+      includedFeatures.add(macro);
     }
 
     // TODO - Add checks for variables.
 
-    inventory.removeAll(includedItems);
+    inventory.removeAll(includedFeatures);
     return true;
   }
 
@@ -424,5 +430,18 @@ public abstract class CelEnvironmentExporter {
       return new AutoValue_CelEnvironmentExporter_NamedOverload(functionName, overload);
     }
   }
-}
 
+  /**
+   * Wrapper for CelExtensionLibrary.FeatureSet, associating it with the corresponding library name.
+   */
+  @AutoValue
+  abstract static class NamedFeatureSet {
+    abstract String name();
+
+    abstract CelExtensionLibrary.FeatureSet featureSet();
+
+    static NamedFeatureSet create(String name, CelExtensionLibrary.FeatureSet featureSet) {
+      return new AutoValue_CelEnvironmentExporter_NamedFeatureSet(name, featureSet);
+    }
+  }
+}

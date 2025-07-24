@@ -51,20 +51,19 @@ import java.util.Set;
 
 /** Internal implementation of CEL lists extensions. */
 final class CelListsExtensions
-    implements CelCompilerLibrary, CelInternalRuntimeLibrary, CelExtensionLibrary {
-
-  private static final TypeParamType LIST_PARAM_TYPE = TypeParamType.create("T");
+    implements CelCompilerLibrary, CelInternalRuntimeLibrary, CelExtensionLibrary.FeatureSet {
 
   @SuppressWarnings({"unchecked"}) // Unchecked: Type-checker guarantees casting safety.
   public enum Function {
+    // Note! Creating dependencies on the outer class may cause circular initialization issues.
     SLICE(
         CelFunctionDecl.newFunctionDeclaration(
             "slice",
             CelOverloadDecl.newMemberOverload(
                 "list_slice",
                 "Returns a new sub-list using the indices provided",
-                ListType.create(LIST_PARAM_TYPE),
-                ListType.create(LIST_PARAM_TYPE),
+                ListType.create(TypeParamType.create("T")),
+                ListType.create(TypeParamType.create("T")),
                 SimpleType.INT,
                 SimpleType.INT)),
         CelFunctionBinding.from(
@@ -82,8 +81,8 @@ final class CelListsExtensions
             CelOverloadDecl.newMemberOverload(
                 "list_flatten",
                 "Flattens a list by a single level",
-                ListType.create(LIST_PARAM_TYPE),
-                ListType.create(ListType.create(LIST_PARAM_TYPE))),
+                ListType.create(TypeParamType.create("T")),
+                ListType.create(ListType.create(TypeParamType.create("T")))),
             CelOverloadDecl.newMemberOverload(
                 "list_flatten_list_int",
                 "Flattens a list to the specified level. A negative depth value flattens the list"
@@ -109,16 +108,16 @@ final class CelListsExtensions
             CelOverloadDecl.newMemberOverload(
                 "list_distinct",
                 "Returns the distinct elements of a list",
-                ListType.create(LIST_PARAM_TYPE),
-                ListType.create(LIST_PARAM_TYPE)))),
+                ListType.create(TypeParamType.create("T")),
+                ListType.create(TypeParamType.create("T"))))),
     REVERSE(
         CelFunctionDecl.newFunctionDeclaration(
             "reverse",
             CelOverloadDecl.newMemberOverload(
                 "list_reverse",
                 "Returns the elements of a list in reverse order",
-                ListType.create(LIST_PARAM_TYPE),
-                ListType.create(LIST_PARAM_TYPE))),
+                ListType.create(TypeParamType.create("T")),
+                ListType.create(TypeParamType.create("T")))),
         CelFunctionBinding.from(
             "list_reverse",
             Collection.class,
@@ -129,48 +128,17 @@ final class CelListsExtensions
               CelOverloadDecl.newMemberOverload(
                   "list_sort",
                   "Sorts a list with comparable elements.",
-                  ListType.create(LIST_PARAM_TYPE),
-                  ListType.create(LIST_PARAM_TYPE)))),
+                  ListType.create(TypeParamType.create("T")),
+                  ListType.create(TypeParamType.create("T"))))),
       SORT_BY(
           CelFunctionDecl.newFunctionDeclaration(
               "lists.@sortByAssociatedKeys",
               CelOverloadDecl.newGlobalOverload(
                   "list_sortByAssociatedKeys",
                   "Sorts a list by a key value. Used by the 'sortBy' macro",
-                  ListType.create(LIST_PARAM_TYPE),
-                  ListType.create(LIST_PARAM_TYPE))))
+                  ListType.create(TypeParamType.create("T")),
+                  ListType.create(TypeParamType.create("T")))))
     ;
-
-    private static final ImmutableSet<Function> VERSION_0 = ImmutableSet.of(SLICE);
-
-    private static final ImmutableSet<Function> VERSION_1 =
-        ImmutableSet.<Function>builder().addAll(VERSION_0).add(FLATTEN).build();
-
-    private static final ImmutableSet<Function> VERSION_2 =
-        ImmutableSet.<Function>builder().addAll(VERSION_1).add(
-                RANGE,
-                DISTINCT,
-                REVERSE,
-                SORT,
-                SORT_BY)
-            .build();
-
-    private static final ImmutableSet<Function> VERSION_LATEST = VERSION_2;
-
-    private static ImmutableSet<Function> byVersion(int version) {
-      switch (version) {
-        case 0:
-          return Function.VERSION_0;
-        case 1:
-          return Function.VERSION_1;
-        case 2:
-          return Function.VERSION_2;
-        case Integer.MAX_VALUE:
-          return Function.VERSION_LATEST;
-        default:
-          throw new IllegalArgumentException("Unsupported 'lists' extension version " + version);
-      }
-    }
 
     private final CelFunctionDecl functionDecl;
     private final ImmutableSet<CelFunctionBinding> functionBindings;
@@ -185,36 +153,69 @@ final class CelListsExtensions
     }
   }
 
+  private static final CelExtensionLibrary<CelListsExtensions> LIBRARY =
+      new CelExtensionLibrary<CelListsExtensions>() {
+        private final CelListsExtensions version0 =
+            new CelListsExtensions(0, ImmutableSet.of(Function.SLICE));
+        private final CelListsExtensions version1 =
+            new CelListsExtensions(
+                1,
+                ImmutableSet.<Function>builder()
+                    .addAll(version0.functions)
+                    .add(Function.FLATTEN)
+                    .build());
+        private final CelListsExtensions version2 =
+            new CelListsExtensions(
+                2,
+                ImmutableSet.<Function>builder()
+                    .addAll(version1.functions)
+                    .add(
+                        Function.RANGE,
+                        Function.DISTINCT,
+                        Function.REVERSE,
+                        Function.SORT,
+                        Function.SORT_BY)
+                    .build());
+
+        @Override
+        public String name() {
+          return "lists";
+        }
+
+        @Override
+        public ImmutableSet<CelListsExtensions> versions() {
+          return ImmutableSet.of(version0, version1, version2);
+        }
+      };
+
+  static CelExtensionLibrary<CelListsExtensions> library() {
+    return LIBRARY;
+  }
+
   private final int version;
   private final ImmutableSet<Function> functions;
 
-  CelListsExtensions(int version) {
-    this.version = version;
-    this.functions = Function.byVersion(version);
+  CelListsExtensions(Set<Function> functions) {
+    this(-1, functions);
   }
 
-  CelListsExtensions(Set<Function> functions) {
-    this.version = -1;
+  private CelListsExtensions(int version, Set<Function> functions) {
+    this.version = version;
     this.functions = ImmutableSet.copyOf(functions);
   }
 
   @Override
-  public String getName() {
-    return "lists";
-  }
-
-  @Override
-  public int getVersion() {
+  public int version() {
     return version;
   }
 
   @Override
-  public ImmutableSet<CelFunctionDecl> getFunctions() {
+  public ImmutableSet<CelFunctionDecl> functions() {
     return functions.stream().map(f -> f.functionDecl).collect(toImmutableSet());
   }
 
   @Override
-  public ImmutableSet<CelMacro> getMacros() {
+  public ImmutableSet<CelMacro> macros() {
     if (version >= 2) {
       return ImmutableSet.of(
           CelMacro.newReceiverMacro("sortBy", 2, CelListsExtensions::sortByMacro));
@@ -224,7 +225,7 @@ final class CelListsExtensions
 
   @Override
   public void setParserOptions(CelParserBuilder parserBuilder) {
-    parserBuilder.addMacros(getMacros());
+    parserBuilder.addMacros(macros());
   }
 
   @Override

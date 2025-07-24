@@ -57,7 +57,7 @@ import java.util.function.BiFunction;
 @SuppressWarnings({"rawtypes", "unchecked"}) // Use of raw Comparables.
 @Immutable
 final class CelMathExtensions
-    implements CelCompilerLibrary, CelRuntimeLibrary, CelExtensionLibrary {
+    implements CelCompilerLibrary, CelRuntimeLibrary, CelExtensionLibrary.FeatureSet {
 
   private static final String MATH_NAMESPACE = "math";
 
@@ -645,54 +645,6 @@ final class CelMathExtensions
             CelFunctionBinding.from(
                 "math_sqrt_uint", UnsignedLong.class, CelMathExtensions::sqrtUint)));
 
-    private static final ImmutableSet<Function> VERSION_0 = ImmutableSet.of(
-        MIN,
-        MAX);
-
-    private static final ImmutableSet<Function> VERSION_1 =
-        ImmutableSet.<Function>builder()
-            .addAll(VERSION_0)
-            .add(
-                CEIL,
-                FLOOR,
-                ROUND,
-                TRUNC,
-                ISINF,
-                ISNAN,
-                ISFINITE,
-                ABS,
-                SIGN,
-                BITAND,
-                BITOR,
-                BITXOR,
-                BITNOT,
-                BITSHIFTLEFT,
-                BITSHIFTRIGHT)
-            .build();
-
-    private static final ImmutableSet<Function> VERSION_2 =
-        ImmutableSet.<Function>builder()
-            .addAll(VERSION_1)
-            .add(SQRT)
-            .build();
-
-    private static final ImmutableSet<Function> VERSION_LATEST = VERSION_2;
-
-    private static ImmutableSet<Function> byVersion(int version) {
-      switch (version) {
-        case 0:
-          return Function.VERSION_0;
-        case 1:
-          return Function.VERSION_1;
-        case 2:
-          return Function.VERSION_2;
-        case Integer.MAX_VALUE:
-          return Function.VERSION_LATEST;
-        default:
-          throw new IllegalArgumentException("Unsupported 'math' extension version " + version);
-      }
-    }
-
     private final CelFunctionDecl functionDecl;
     private final ImmutableSet<CelFunctionBinding> functionBindings;
     private final ImmutableSet<CelFunctionBinding> functionBindingsULongSigned;
@@ -718,41 +670,96 @@ final class CelMathExtensions
     }
   }
 
+  private static final class Library implements CelExtensionLibrary<CelMathExtensions> {
+    private final CelMathExtensions version0;
+    private final CelMathExtensions version1;
+    private final CelMathExtensions version2;
+
+    Library(boolean enableUnsignedLongs) {
+      version0 =
+          new CelMathExtensions(
+              0, ImmutableSet.of(Function.MIN, Function.MAX), enableUnsignedLongs);
+
+      version1 =
+          new CelMathExtensions(
+              1,
+              ImmutableSet.<Function>builder()
+                  .addAll(version0.functions)
+                  .add(
+                      Function.CEIL,
+                      Function.FLOOR,
+                      Function.ROUND,
+                      Function.TRUNC,
+                      Function.ISINF,
+                      Function.ISNAN,
+                      Function.ISFINITE,
+                      Function.ABS,
+                      Function.SIGN,
+                      Function.BITAND,
+                      Function.BITOR,
+                      Function.BITXOR,
+                      Function.BITNOT,
+                      Function.BITSHIFTLEFT,
+                      Function.BITSHIFTRIGHT)
+                  .build(),
+              enableUnsignedLongs);
+
+      version2 =
+          new CelMathExtensions(
+              2,
+              ImmutableSet.<Function>builder()
+                  .addAll(version1.functions)
+                  .add(Function.SQRT)
+                  .build(),
+              enableUnsignedLongs);
+    }
+
+    @Override
+    public String name() {
+      return "math";
+    }
+
+    @Override
+    public ImmutableSet<CelMathExtensions> versions() {
+      return ImmutableSet.of(version0, version1, version2);
+    }
+  }
+
+  private static final Library LIBRARY_UNSIGNED_LONGS_ENABLED = new Library(true);
+  private static final Library LIBRARY_UNSIGNED_LONGS_DISABLED = new Library(false);
+
+  static CelExtensionLibrary<CelMathExtensions> library(CelOptions celOptions) {
+    return celOptions.enableUnsignedLongs()
+        ? LIBRARY_UNSIGNED_LONGS_ENABLED
+        : LIBRARY_UNSIGNED_LONGS_DISABLED;
+  }
+
   private final boolean enableUnsignedLongs;
   private final ImmutableSet<Function> functions;
   private final int version;
 
-  CelMathExtensions(CelOptions celOptions, int version) {
-    this(celOptions, version, Function.byVersion(version));
-  }
-
   CelMathExtensions(CelOptions celOptions, Set<Function> functions) {
-    this(celOptions, -1, functions);
+    this(-1, functions, celOptions.enableUnsignedLongs());
   }
 
-  private CelMathExtensions(CelOptions celOptions, int version, Set<Function> functions) {
-    this.enableUnsignedLongs = celOptions.enableUnsignedLongs();
+  private CelMathExtensions(int version, Set<Function> functions, boolean enableUnsignedLongs) {
+    this.enableUnsignedLongs = enableUnsignedLongs;
     this.version = version;
     this.functions = ImmutableSet.copyOf(functions);
   }
 
   @Override
-  public String getName() {
-    return "math";
-  }
-
-  @Override
-  public int getVersion() {
+  public int version() {
     return version;
   }
 
   @Override
-  public ImmutableSet<CelFunctionDecl> getFunctions() {
+  public ImmutableSet<CelFunctionDecl> functions() {
     return functions.stream().map(f -> f.functionDecl).collect(toImmutableSet());
   }
 
   @Override
-  public ImmutableSet<CelMacro> getMacros() {
+  public ImmutableSet<CelMacro> macros() {
     return ImmutableSet.of(
         CelMacro.newReceiverVarArgMacro("greatest", CelMathExtensions::expandGreatestMacro),
         CelMacro.newReceiverVarArgMacro("least", CelMathExtensions::expandLeastMacro));
@@ -760,7 +767,7 @@ final class CelMathExtensions
 
   @Override
   public void setParserOptions(CelParserBuilder parserBuilder) {
-    parserBuilder.addMacros(getMacros());
+    parserBuilder.addMacros(macros());
   }
 
   @Override

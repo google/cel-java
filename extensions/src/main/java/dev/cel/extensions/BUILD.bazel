@@ -39,6 +39,7 @@ java_library(
         ":sets_function",
         ":strings",
         "//common:options",
+        "//extensions:extension_library",
         "@maven//:com_google_guava_guava",
     ],
 )

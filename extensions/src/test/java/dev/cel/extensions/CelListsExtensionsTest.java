@@ -56,11 +56,11 @@ public class CelListsExtensionsTest {
 
   @Test
   public void functionList_byVersion() {
-    assertThat(CelExtensions.lists(0).getFunctions().stream().map(f -> f.name()))
+    assertThat(CelExtensions.lists(0).functions().stream().map(f -> f.name()))
         .containsExactly("slice");
-    assertThat(CelExtensions.lists(1).getFunctions().stream().map(f -> f.name()))
+    assertThat(CelExtensions.lists(1).functions().stream().map(f -> f.name()))
         .containsExactly("slice", "flatten");
-    assertThat(CelExtensions.lists(2).getFunctions().stream().map(f -> f.name()))
+    assertThat(CelExtensions.lists(2).functions().stream().map(f -> f.name()))
         .containsExactly(
             "slice",
             "flatten",
@@ -73,9 +73,9 @@ public class CelListsExtensionsTest {
 
   @Test
   public void macroList_byVersion() {
-    assertThat(CelExtensions.lists(0).getMacros().stream().map(f -> f.getFunction())).isEmpty();
-    assertThat(CelExtensions.lists(1).getMacros().stream().map(f -> f.getFunction())).isEmpty();
-    assertThat(CelExtensions.lists(2).getMacros().stream().map(f -> f.getFunction()))
+    assertThat(CelExtensions.lists(0).macros().stream().map(f -> f.getFunction())).isEmpty();
+    assertThat(CelExtensions.lists(1).macros().stream().map(f -> f.getFunction())).isEmpty();
+    assertThat(CelExtensions.lists(2).macros().stream().map(f -> f.getFunction()))
         .containsExactly("sortBy");
   }
 
