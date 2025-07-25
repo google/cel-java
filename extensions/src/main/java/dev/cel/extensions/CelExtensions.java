@@ -303,10 +303,22 @@ public final class CelExtensions {
   public static CelExtensionLibrary<? extends CelExtensionLibrary.FeatureSet> getExtensionLibrary(
       String name, CelOptions options) {
     switch (name) {
-      case "math":
-        return CelMathExtensions.library(options);
+      case "bindings":
+        return CelBindingsExtensions.library();
+      case "encoders":
+        return CelEncoderExtensions.library();
       case "lists":
         return CelListsExtensions.library();
+      case "math":
+        return CelMathExtensions.library(options);
+      case "protos":
+        return CelProtoExtensions.library();
+      case "regex":
+        return CelRegexExtensions.library();
+      case "sets":
+        return CelSetsExtensions.library(options);
+      case "strings":
+        return CelStringExtensions.library();
       // TODO: add support for remaining standard extensions
       default:
         throw new IllegalArgumentException("Unknown standard extension '" + name + "'");
