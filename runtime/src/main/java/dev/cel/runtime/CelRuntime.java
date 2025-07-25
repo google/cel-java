@@ -37,7 +37,20 @@ public interface CelRuntime {
 
   /** Creates an evaluable {@code Program} instance which is thread-safe and immutable. */
   @Immutable
-  interface Program extends CelLiteRuntime.Program {
+  interface Program {
+
+    /** Evaluate the expression without any variables. */
+    Object eval() throws CelEvaluationException;
+
+    /** Evaluate the expression using a {@code mapValue} as the source of input variables. */
+    Object eval(Map<String, ?> mapValue) throws CelEvaluationException;
+
+    /**
+     * Evaluate a compiled program with {@code mapValue} and late-bound functions {@code
+     * lateBoundFunctionResolver}.
+     */
+    Object eval(Map<String, ?> mapValue, CelFunctionResolver lateBoundFunctionResolver)
+        throws CelEvaluationException;
 
     /** Evaluate the expression using {@code message} fields as the source of input variables. */
     Object eval(Message message) throws CelEvaluationException;

@@ -19,6 +19,7 @@ java_library(
         # keep sorted
         exclude = [
             "CelLiteInterpreterTest.java",
+            "CelLiteRuntimeTest.java",
             "CelValueInterpreterTest.java",
             "InterpreterTest.java",
         ] + ANDROID_TESTS,
@@ -48,7 +49,6 @@ java_library(
         "//common/types:cel_v1alpha1_types",
         "//common/types:message_type_provider",
         "//common/values:cel_value_provider",
-        "//common/values:proto_message_lite_value_provider",
         "//compiler",
         "//compiler:compiler_builder",
         "//extensions:optional_library",
@@ -65,8 +65,6 @@ java_library(
         "//runtime:interpreter",
         "//runtime:interpreter_util",
         "//runtime:late_function_binding",
-        "//runtime:lite_runtime",
-        "//runtime:lite_runtime_factory",
         "//runtime:proto_message_activation_factory",
         "//runtime:proto_message_runtime_equality",
         "//runtime:proto_message_runtime_helpers",
@@ -89,12 +87,10 @@ java_library(
         "@com_google_googleapis//google/rpc/context:attribute_context_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven//:com_google_protobuf_protobuf_java_util",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:com_google_truth_extensions_truth_proto_extension",
         "@maven//:junit_junit",
         "@maven//:org_jspecify_jspecify",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -162,6 +158,46 @@ cel_android_local_test(
 )
 
 java_library(
+    name = "cel_lite_runtime_test",
+    testonly = 1,
+    srcs = [
+        "CelLiteRuntimeTest.java",
+    ],
+    deps = [
+        "//:java_truth",
+        "//common:cel_ast",
+        "//common:compiler_common",
+        "//common/internal:proto_time_utils",
+        "//common/types",
+        "//common/values:proto_message_lite_value_provider",
+        "//compiler",
+        "//compiler:compiler_builder",
+        "//parser:macro",
+        "//runtime",
+        "//runtime:function_binding",
+        "//runtime:lite_runtime",
+        "//runtime:lite_runtime_factory",
+        "//runtime:standard_functions",
+        "//testing/protos:message_with_enum_cel_java_proto",
+        "//testing/protos:message_with_enum_java_proto",
+        "//testing/protos:multi_file_cel_java_proto",
+        "//testing/protos:multi_file_java_proto",
+        "//testing/protos:single_file_java_proto",
+        "//testing/protos:test_all_types_cel_java_proto2",
+        "//testing/protos:test_all_types_cel_java_proto3",
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_protobuf_protobuf_java_util",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:com_google_truth_extensions_truth_proto_extension",
+        "@maven//:junit_junit",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
+    ],
+)
+
+java_library(
     name = "cel_lite_interpreter_test",
     testonly = 1,
     srcs = [
@@ -188,6 +224,7 @@ junit4_test_suites(
     src_dir = "src/test/java",
     deps = [
         ":cel_lite_interpreter_test",
+        ":cel_lite_runtime_test",
         ":cel_value_interpreter_test",
         ":interpreter_test",
         ":tests",

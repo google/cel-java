@@ -156,9 +156,9 @@ java_library(
         ":interpretable",
         ":runtime_helpers",
         "//common/annotations",
+        "//third_party/java/protobuf",
         "@maven//:com_google_guava_guava",
         "@maven//:org_jspecify_jspecify",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -199,10 +199,10 @@ java_library(
     deps = [
         "//common/types",
         "//common/types:type_providers",
+        "//third_party/java/protobuf",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -352,9 +352,9 @@ java_library(
         "//common:runtime_exception",
         "//common/annotations",
         "//common/internal:comparison_functions",
+        "//third_party/java/protobuf",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -430,12 +430,12 @@ java_library(
         "//common:runtime_exception",
         "//common/annotations",
         "//common/internal:converter",
+        "//third_party/java/protobuf",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_re2j_re2j",
         "@maven//:org_threeten_threeten_extra",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -793,7 +793,6 @@ java_library(
         ":function_resolver",
         ":interpretable",
         ":interpreter",
-        ":lite_runtime",
         ":proto_message_activation_factory",
         ":proto_message_runtime_equality",
         ":runtime_equality",
@@ -999,9 +998,9 @@ java_library(
         "//common/values:cel_value",
         "//common/values:cel_value_provider",
         "//common/values:combined_cel_value_provider",
+        "//third_party/java/protobuf",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
