@@ -14,6 +14,8 @@
 
 package dev.cel.extensions;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.ByteString;
@@ -22,6 +24,7 @@ import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompilerLibrary;
+import dev.cel.parser.CelMacro;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
@@ -31,7 +34,9 @@ import java.util.Base64.Encoder;
 
 /** Internal implementation of Encoder Extensions. */
 @Immutable
-public class CelEncoderExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
+public class CelEncoderExtensions
+    implements CelCompilerLibrary, CelRuntimeLibrary, CelExtensionLibrary.FeatureSet {
+
   private static final Encoder BASE64_ENCODER = Base64.getEncoder();
 
   private static final Decoder BASE64_DECODER = Base64.getDecoder();
@@ -72,6 +77,40 @@ public class CelEncoderExtensions implements CelCompilerLibrary, CelRuntimeLibra
       this.functionDecl = functionDecl;
       this.functionBindings = functionBindings;
     }
+  }
+
+  private static final CelExtensionLibrary<CelEncoderExtensions> LIBRARY =
+      new CelExtensionLibrary<CelEncoderExtensions>() {
+        private final CelEncoderExtensions version0 = new CelEncoderExtensions();
+
+        @Override
+        public String name() {
+          return "encoders";
+        }
+
+        @Override
+        public ImmutableSet<CelEncoderExtensions> versions() {
+          return ImmutableSet.of(version0);
+        }
+      };
+
+  static CelExtensionLibrary<CelEncoderExtensions> library() {
+    return LIBRARY;
+  }
+
+  @Override
+  public int version() {
+    return 0;
+  }
+
+  @Override
+  public ImmutableSet<CelFunctionDecl> functions() {
+    return functions.stream().map(f -> f.functionDecl).collect(toImmutableSet());
+  }
+
+  @Override
+  public ImmutableSet<CelMacro> macros() {
+    return ImmutableSet.of();
   }
 
   @Override
