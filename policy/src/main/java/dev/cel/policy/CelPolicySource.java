@@ -65,6 +65,10 @@ public abstract class CelPolicySource implements Source {
 
   public abstract Builder toBuilder();
 
+  public static Builder newBuilder(String content) {
+    return newBuilder(CelCodePointArray.fromString(content));
+  }
+
   public static Builder newBuilder(CelCodePointArray celCodePointArray) {
     return new AutoValue_CelPolicySource.Builder()
         .setDescription("")
