@@ -113,8 +113,12 @@ public abstract class CelEnvironmentExporter {
     @CanIgnoreReturnValue
     public Builder addStandardExtensions(CelOptions options) {
       addExtensionLibraries(
+          CelExtensions.getExtensionLibrary("bindings", options),
+          CelExtensions.getExtensionLibrary("encoders", options),
+          CelExtensions.getExtensionLibrary("lists", options),
           CelExtensions.getExtensionLibrary("math", options),
-          CelExtensions.getExtensionLibrary("lists", options));
+          CelExtensions.getExtensionLibrary("protos", options),
+          CelExtensions.getExtensionLibrary("regex", options));
       // TODO: add support for remaining standard extensions
       return this;
     }
