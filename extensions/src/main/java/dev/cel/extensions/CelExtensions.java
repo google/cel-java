@@ -303,6 +303,10 @@ public final class CelExtensions {
   public static CelExtensionLibrary<? extends CelExtensionLibrary.FeatureSet> getExtensionLibrary(
       String name, CelOptions options) {
     switch (name) {
+      case "bindings":
+        return CelBindingsExtensions.library();
+      case "encoders":
+        return CelEncoderExtensions.library();
       case "math":
         return CelMathExtensions.library(options);
       case "lists":
