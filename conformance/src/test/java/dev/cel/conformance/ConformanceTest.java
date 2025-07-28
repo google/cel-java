@@ -30,6 +30,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import dev.cel.checker.CelChecker;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.types.CelProtoTypes;
@@ -100,7 +101,7 @@ public final class ConformanceTest extends Statement {
     }
     return CelCompilerFactory.standardCelCheckerBuilder()
         .setOptions(OPTIONS)
-        .setContainer(test.getContainer())
+        .setContainer(CelContainer.ofName(test.getContainer()))
         .addDeclarations(decls.build())
         .addFileTypes(dev.cel.expr.conformance.proto2.TestAllTypesExtensions.getDescriptor())
         .addLibraries(

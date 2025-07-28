@@ -41,6 +41,7 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.internal.ProtoTimeUtils;
@@ -78,7 +79,7 @@ public class CelLiteRuntimeTest {
           .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
           .addVar("content", SimpleType.DYN)
           .addMessageTypes(TestAllTypes.getDescriptor())
-          .setContainer("cel.expr.conformance.proto3")
+          .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
           .build();
 
   private static final CelLiteRuntime CEL_RUNTIME =

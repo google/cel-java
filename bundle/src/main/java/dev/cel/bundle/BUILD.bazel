@@ -64,6 +64,7 @@ java_library(
         "//bundle:cel",
         "//checker:standard_decl",
         "//common:compiler_common",
+        "//common:container",
         "//common:options",
         "//common:source",
         "//common/types",

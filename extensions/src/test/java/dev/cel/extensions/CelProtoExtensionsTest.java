@@ -28,6 +28,7 @@ import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelValidationException;
@@ -55,7 +56,7 @@ public final class CelProtoExtensionsTest {
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .addFileTypes(TestAllTypesExtensions.getDescriptor())
           .addVar("msg", StructTypeReference.create("cel.expr.conformance.proto2.TestAllTypes"))
-          .setContainer("cel.expr.conformance.proto2")
+          .setContainer(CelContainer.ofName("cel.expr.conformance.proto2"))
           .build();
 
   private static final CelRuntime CEL_RUNTIME =

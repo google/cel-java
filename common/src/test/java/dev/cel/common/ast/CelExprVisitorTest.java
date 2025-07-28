@@ -20,6 +20,7 @@ import static org.junit.Assert.assertThrows;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelComprehension;
@@ -195,7 +196,7 @@ public class CelExprVisitorTest {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
             .addMessageTypes(TestAllTypes.getDescriptor())
-            .setContainer(TestAllTypes.getDescriptor().getFullName())
+            .setContainer(CelContainer.ofName(TestAllTypes.getDescriptor().getFullName()))
             .build();
     CelAbstractSyntaxTree ast = celCompiler.compile("TestAllTypes{}.single_int64").getAst();
 
@@ -246,9 +247,8 @@ public class CelExprVisitorTest {
   public void visitStruct_fieldkey() throws Exception {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
-            
             .addMessageTypes(TestAllTypes.getDescriptor())
-            .setContainer(TestAllTypes.getDescriptor().getFullName())
+            .setContainer(CelContainer.ofName(TestAllTypes.getDescriptor().getFullName()))
             .build();
     CelAbstractSyntaxTree ast = celCompiler.compile("TestAllTypes{single_int64: 1}").getAst();
 

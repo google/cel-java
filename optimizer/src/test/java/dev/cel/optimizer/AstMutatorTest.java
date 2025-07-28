@@ -24,6 +24,7 @@ import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelMutableAst;
 import dev.cel.common.CelOptions;
@@ -64,7 +65,7 @@ public class AstMutatorTest {
           .addMessageTypes(TestAllTypes.getDescriptor())
           .addCompilerLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())
           .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
-          .setContainer("cel.expr.conformance.proto3")
+          .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
           .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
           .addVar("x", SimpleType.INT)
           .build();

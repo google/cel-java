@@ -30,6 +30,7 @@ import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelBuilder;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
@@ -96,7 +97,7 @@ public class CelOptionalLibraryTest {
     return CelFactory.standardCelBuilder()
         .setOptions(CelOptions.current().enableTimestampEpoch(true).build())
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-        .setContainer("cel.expr.conformance.proto3")
+        .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
         .addMessageTypes(TestAllTypes.getDescriptor())
         .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
         .addCompilerLibraries(CelOptionalLibrary.INSTANCE);

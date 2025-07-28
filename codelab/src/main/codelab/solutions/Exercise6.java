@@ -16,6 +16,7 @@ package codelab.solutions;
 
 import com.google.rpc.context.AttributeContext.Request;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
@@ -44,7 +45,7 @@ final class Exercise6 {
   CelAbstractSyntaxTree compile(String expression) {
     CelCompiler celCompiler =
         CelCompilerFactory.standardCelCompilerBuilder()
-            .setContainer("google.rpc.context.AttributeContext")
+            .setContainer(CelContainer.ofName("google.rpc.context.AttributeContext"))
             .addVar("jwt", SimpleType.DYN)
             .addVar("now", SimpleType.TIMESTAMP)
             .addMessageTypes(Request.getDescriptor())

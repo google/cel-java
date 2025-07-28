@@ -23,6 +23,7 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
 import dev.cel.common.types.OpaqueType;
 import dev.cel.common.types.OptionalType;
@@ -48,7 +49,7 @@ public class DescriptorTypeResolverTest {
           .addCompilerLibraries(CelOptionalLibrary.INSTANCE)
           .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
           .addMessageTypes(TestAllTypes.getDescriptor())
-          .setContainer(TestAllTypes.getDescriptor().getFullName())
+          .setContainer(CelContainer.ofName(TestAllTypes.getDescriptor().getFullName()))
           .build();
 
   @SuppressWarnings("ImmutableEnumChecker") // Test only
