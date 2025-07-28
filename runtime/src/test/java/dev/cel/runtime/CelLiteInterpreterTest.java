@@ -32,6 +32,7 @@ public class CelLiteInterpreterTest extends BaseInterpreterTest {
         CelRuntimeFactory.standardCelRuntimeBuilder()
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
+                    dev.cel.expr.conformance.proto2.TestAllTypesCelDescriptor.getDescriptor(),
                     TestAllTypesCelDescriptor.getDescriptor()))
             .addLibraries(CelOptionalLibrary.INSTANCE)
             .setOptions(newBaseCelOptions().toBuilder().enableCelValue(true).build())

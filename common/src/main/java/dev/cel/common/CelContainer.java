@@ -15,12 +15,14 @@
 package dev.cel.common;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Optional;
 
 /** CelContainer holds a reference to an optional qualified container name and set of aliases. */
@@ -38,20 +40,125 @@ public abstract class CelContainer {
 
     private final LinkedHashMap<String, String> aliases = new LinkedHashMap<>();
 
+    abstract String name();
+
     /** Sets the fully-qualified name of the container. */
     public abstract Builder setName(String name);
 
     abstract Builder setAliases(ImmutableMap<String, String> aliases);
 
-    /** Alias associates a fully-qualified name with a user-defined alias. */
+    /** See {@link #addAbbreviations(ImmutableSet)} for documentation. */
     @CanIgnoreReturnValue
-    public Builder addAlias(String alias, String qualifiedName) {
-      validateAliasOrThrow("alias", qualifiedName, alias);
-      aliases.put(alias, qualifiedName);
+    public Builder addAbbreviations(String... qualifiedNames) {
+      Preconditions.checkNotNull(qualifiedNames);
+      return addAbbreviations(ImmutableSet.copyOf(qualifiedNames));
+    }
+
+    /**
+     * Configures a set of simple names as abbreviations for fully-qualified names.
+     *
+     * <p>An abbreviation is a simple name that expands to a fully-qualified name. Abbreviations can
+     * be useful when working with variables, functions, and especially types from multiple
+     * namespaces:
+     *
+     * <pre>{@code
+     * // CEL object construction
+     * qual.pkg.version.ObjTypeName{
+     *   field: alt.container.ver.FieldTypeName{value: ...}
+     * }
+     * }</pre>
+     *
+     * <p>Only one the qualified names above may be used as the CEL container, so at least one of
+     * these references must be a long qualified name within an otherwise short CEL program. Using
+     * the following abbreviations, the program becomes much simpler:
+     *
+     * <pre>{@code
+     * // CEL Java option
+     * CelContainer.newBuilder().addAbbreviations("qual.pkg.version.ObjTypeName", "alt.container.ver.FieldTypeName").build()
+     * }
+     * {@code
+     * // Simplified Object construction
+     * ObjTypeName{field: FieldTypeName{value: ...}}
+     * }</pre>
+     *
+     * <p>There are a few rules for the qualified names and the simple abbreviations generated from
+     * them:
+     *
+     * <ul>
+     *   <li>Qualified names must be dot-delimited, e.g. `package.subpkg.name`.
+     *   <li>The last element in the qualified name is the abbreviation.
+     *   <li>Abbreviations must not collide with each other.
+     *   <li>The abbreviation must not collide with unqualified names in use.
+     * </ul>
+     *
+     * <p>Abbreviations are distinct from container-based references in the following important
+     * ways:
+     *
+     * <ul>
+     *   <li>Abbreviations must expand to a fully-qualified name.
+     *   <li>Expanded abbreviations do not participate in namespace resolution.
+     *   <li>Abbreviation expansion is done instead of the container search for a matching
+     *       identifier.
+     *   <li>Containers follow C++ namespace resolution rules with searches from the most qualified
+     *       name to the least qualified name.
+     *   <li>Container references within the CEL program may be relative, and are resolved to fully
+     *       qualified names at either type-check time or program plan time, whichever comes first.
+     * </ul>
+     *
+     * <p>If there is ever a case where an identifier could be in both the container and as an
+     * abbreviation, the abbreviation wins as this will ensure that the meaning of a program is
+     * preserved between compilations even as the container evolves.
+     */
+    @CanIgnoreReturnValue
+    public Builder addAbbreviations(ImmutableSet<String> qualifiedNames) {
+      for (String qualifiedName : qualifiedNames) {
+        qualifiedName = qualifiedName.trim();
+        for (int i = 0; i < qualifiedName.length(); i++) {
+          if (!isIdentifierChar(qualifiedName.charAt(i))) {
+            throw new IllegalArgumentException(
+                String.format(
+                    "invalid qualified name: %s, wanted name of the form 'qualified.name'",
+                    qualifiedName));
+          }
+        }
+
+        int index = qualifiedName.lastIndexOf(".");
+        if (index <= 0 || index >= qualifiedName.length() - 1) {
+          throw new IllegalArgumentException(
+              String.format(
+                  "invalid qualified name: %s, wanted name of the form 'qualified.name'",
+                  qualifiedName));
+        }
+
+        String alias = qualifiedName.substring(index + 1);
+        aliasAs(AliasKind.ABBREVIATION, qualifiedName, alias);
+      }
+
       return this;
     }
 
-    private void validateAliasOrThrow(String kind, String qualifiedName, String alias) {
+    /**
+     * Alias associates a fully-qualified name with a user-defined alias.
+     *
+     * <p>In general, {@link #addAbbreviations} is preferred to aliasing since the names generated
+     * from the Abbrevs option are more easily traced back to source code. Aliasing is useful for
+     * propagating alias configuration from one container instance to another, and may also be
+     * useful for remapping poorly chosen protobuf message / package names.
+     *
+     * <p>Note: all the rules that apply to abbreviations also apply to aliasing.
+     */
+    @CanIgnoreReturnValue
+    public Builder addAlias(String alias, String qualifiedName) {
+      aliasAs(AliasKind.ALIAS, qualifiedName, alias);
+      return this;
+    }
+
+    private void aliasAs(AliasKind kind, String qualifiedName, String alias) {
+      validateAliasOrThrow(kind, qualifiedName, alias);
+      aliases.put(alias, qualifiedName);
+    }
+
+    private void validateAliasOrThrow(AliasKind kind, String qualifiedName, String alias) {
       if (alias.isEmpty() || alias.contains(".")) {
         throw new IllegalArgumentException(
             String.format(
@@ -75,6 +182,14 @@ public abstract class CelContainer {
             String.format(
                 "%s collides with existing reference: name=%s, %s=%s, existing=%s",
                 kind, qualifiedName, kind, alias, aliasRef));
+      }
+
+      String containerName = name();
+      if (containerName.startsWith(alias + ".") || containerName.equals(alias)) {
+        throw new IllegalArgumentException(
+            String.format(
+                "%s collides with container name: name=%s, %s=%s, container=%s",
+                kind, qualifiedName, kind, alias, containerName));
       }
     }
 
@@ -135,6 +250,14 @@ public abstract class CelContainer {
     return candidates.add(typeName).build();
   }
 
+  public static Builder newBuilder() {
+    return new AutoValue_CelContainer.Builder().setName("");
+  }
+
+  public static CelContainer ofName(String containerName) {
+    return newBuilder().setName(containerName).build();
+  }
+
   private Optional<String> findAlias(String name) {
     // If an alias exists for the name, ensure it is searched last.
     String simple = name;
@@ -152,11 +275,22 @@ public abstract class CelContainer {
     return Optional.of(alias + qualifier);
   }
 
-  public static Builder newBuilder() {
-    return new AutoValue_CelContainer.Builder().setName("");
+  private static boolean isIdentifierChar(int r) {
+    if (r > 127) {
+      // Not ASCII
+      return false;
+    }
+
+    return r == '.' || r == '_' || Character.isLetter(r) || Character.isDigit(r);
   }
 
-  public static CelContainer ofName(String containerName) {
-    return newBuilder().setName(containerName).build();
+  private enum AliasKind {
+    ALIAS,
+    ABBREVIATION;
+
+    @Override
+    public String toString() {
+      return this.name().toLowerCase(Locale.getDefault());
+    }
   }
 }

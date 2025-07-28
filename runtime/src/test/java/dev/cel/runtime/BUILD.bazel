@@ -173,6 +173,7 @@ java_library(
         "//extensions:optional_library",
         "//runtime",
         "//testing:base_interpreter_test",
+        "//testing/protos:test_all_types_cel_java_proto2",
         "//testing/protos:test_all_types_cel_java_proto3",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",

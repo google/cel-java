@@ -984,15 +984,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     CelAbstractSyntaxTree parsedAst = celCompiler.parse(source).getAst();
     CelMutableAst mutableAst = CelMutableAst.fromCelAst(parsedAst);
     mutableAst.expr().call().args().get(1).setConstant(CelConstant.ofValue(true));
-    // ParsedExpr parsedExpr =
-    //     CelProtoAbstractSyntaxTree.fromCelAst(celCompiler.parse(source).getAst()).toParsedExpr();
-    // ParsedExpr.Builder parsedExprBuilder = parsedExpr.toBuilder();
-    // parsedExprBuilder
-    //     .getExprBuilder()
-    //     .getCallExprBuilder()
-    //     .getArgsBuilder(1)
-    //     .setConstExpr(Constant.newBuilder().setBoolValue(true).build()); // Const must be a
-    // string
+
     runErroneousTest(mutableAst.toParsedAst());
   }
 

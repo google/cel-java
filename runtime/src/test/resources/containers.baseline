@@ -2,3 +2,18 @@ Source: test_alias.TestAllTypes{} == cel.expr.conformance.proto3.TestAllTypes{}
 =====>
 bindings: {}
 result:   true
+
+Source: proto2.TestAllTypes{} == cel.expr.conformance.proto2.TestAllTypes{}
+=====>
+bindings: {}
+result:   true
+
+Source: proto3.TestAllTypes{} == cel.expr.conformance.proto3.TestAllTypes{}
+=====>
+bindings: {}
+result:   true
+
+Source: SGAR
+=====>
+bindings: {}
+result:   1

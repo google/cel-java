@@ -66,7 +66,30 @@ public class CelContainerTest {
   }
 
   @Test
-  public void containerBuilder_aliasCollides_throws() {
+  @TestParameters("{typeName: R, resolved: my.alias.R}")
+  @TestParameters("{typeName: R.S.T, resolved: my.alias.R.S.T}")
+  public void resolveCandidateName_withMatchingAbbreviation_resolvesSingleCandidate(
+      String typeName, String resolved) {
+    CelContainer container =
+        CelContainer.newBuilder().setName("a.b.c").addAbbreviations("my.alias.R").build();
+
+    ImmutableSet<String> resolvedNames = container.resolveCandidateNames(typeName);
+
+    assertThat(resolvedNames).containsExactly(resolved);
+  }
+
+  @Test
+  public void resolveCandidateName_withUnmatchedAbbreviation_resolvesMultipleCandidates() {
+    CelContainer container =
+        CelContainer.newBuilder().setName("a.b.c").addAbbreviations("my.alias.R").build();
+
+    ImmutableSet<String> resolvedNames = container.resolveCandidateNames("S");
+
+    assertThat(resolvedNames).containsExactly("a.b.c.S", "a.b.S", "a.S", "S").inOrder();
+  }
+
+  @Test
+  public void containerBuilder_duplicateAliases_throws() {
     IllegalArgumentException e =
         assertThrows(
             IllegalArgumentException.class,
@@ -74,6 +97,17 @@ public class CelContainerTest {
     assertThat(e)
         .hasMessageThat()
         .contains("alias collides with existing reference: name=b.c, alias=foo, existing=a.b");
+  }
+
+  @Test
+  public void containerBuilder_aliasCollidesWithContainer_throws() {
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> CelContainer.newBuilder().setName("foo").addAlias("foo", "a.b"));
+    assertThat(e)
+        .hasMessageThat()
+        .contains("alias collides with container name: name=a.b, alias=foo, container=foo");
   }
 
   @Test
@@ -105,5 +139,63 @@ public class CelContainerTest {
       this.qualifiedName = qualifiedName;
       this.errorMessage = errorMessage;
     }
+  }
+
+  @Test
+  public void containerBuilder_addAbbreviationsError_throws(
+      @TestParameter AbbreviationErrorTestCase testCase) {
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> CelContainer.newBuilder().addAbbreviations(testCase.qualifiedNames));
+    assertThat(e).hasMessageThat().contains(testCase.errorMessage);
+  }
+
+  private enum AbbreviationErrorTestCase {
+    ABBREVIATION_COLLISION(
+        ImmutableSet.of("my.alias.R", "yer.other.R"),
+        "abbreviation collides with existing reference: name=yer.other.R, abbreviation=R,"
+            + " existing=my.alias.R"),
+    INVALID_DOT_PREFIX(
+        ".bad", "invalid qualified name: .bad, wanted name of the form 'qualified.name'"),
+    INVALID_DOT_SUFFIX(
+        "bad.alias.",
+        "invalid qualified name: bad.alias., wanted name of the form 'qualified.name'"),
+    NO_QUALIFIER(
+        "  bad_alias1  ",
+        "invalid qualified name: bad_alias1, wanted name of the form 'qualified.name'"),
+    INVALID_IDENTIFIER(
+        "  bad.alias!",
+        "invalid qualified name: bad.alias!, wanted name of the form 'qualified.name'"),
+    ;
+
+    private final ImmutableSet<String> qualifiedNames;
+    private final String errorMessage;
+
+    AbbreviationErrorTestCase(String qualifiedNames, String errorMessage) {
+      this(ImmutableSet.of(qualifiedNames), errorMessage);
+    }
+
+    AbbreviationErrorTestCase(ImmutableSet<String> qualifiedNames, String errorMessage) {
+      this.qualifiedNames = qualifiedNames;
+      this.errorMessage = errorMessage;
+    }
+  }
+
+  @Test
+  public void containerBuilder_addAbbreviationsCollidesWithContainer_throws() {
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                CelContainer.newBuilder()
+                    .setName("a.b.c.M.N")
+                    .addAbbreviations("my.alias.a", "yer.other.b"));
+
+    assertThat(e)
+        .hasMessageThat()
+        .contains(
+            "abbreviation collides with container name: name=my.alias.a, abbreviation=a,"
+                + " container=a.b.c.M.N");
   }
 }

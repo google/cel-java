@@ -100,6 +100,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   protected static final ImmutableList<FileDescriptor> TEST_FILE_DESCRIPTORS =
       ImmutableList.of(
+          dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor().getFile(),
           TestAllTypes.getDescriptor().getFile(),
           StandaloneGlobalEnum.getDescriptor().getFile(),
           TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR.getFile());
@@ -557,9 +558,20 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   public void containers() {
     container =
         CelContainer.newBuilder()
+            .setName("dev.cel.testing.testdata.proto3.StandaloneGlobalEnum")
             .addAlias("test_alias", TestAllTypes.getDescriptor().getFile().getPackage())
+            .addAbbreviations("cel.expr.conformance.proto2", "cel.expr.conformance.proto3")
             .build();
     source = "test_alias.TestAllTypes{} == cel.expr.conformance.proto3.TestAllTypes{}";
+    runTest();
+
+    source = "proto2.TestAllTypes{} == cel.expr.conformance.proto2.TestAllTypes{}";
+    runTest();
+
+    source = "proto3.TestAllTypes{} == cel.expr.conformance.proto3.TestAllTypes{}";
+    runTest();
+
+    source = "SGAR"; // From StandaloneGLobaLEnum
     runTest();
   }
 
