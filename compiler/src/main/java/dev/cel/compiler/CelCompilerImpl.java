@@ -159,12 +159,6 @@ public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
     }
 
     @Override
-    public CelCompilerBuilder setContainer(String container) {
-      checkerBuilder.setContainer(container);
-      return this;
-    }
-
-    @Override
     public CelCompilerBuilder setContainer(CelContainer container) {
       checkerBuilder.setContainer(container);
       return this;

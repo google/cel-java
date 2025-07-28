@@ -36,13 +36,6 @@ public interface CelCheckerBuilder {
   CelCheckerBuilder setOptions(CelOptions options);
 
   /**
-   * @deprecated Use {@link #setContainer(CelContainer)} instead.
-   */
-  @CanIgnoreReturnValue
-  @Deprecated
-  CelCheckerBuilder setContainer(String container);
-
-  /**
    * Set the {@link CelContainer} to use as the namespace for resolving CEL expression variables and
    * functions.
    */

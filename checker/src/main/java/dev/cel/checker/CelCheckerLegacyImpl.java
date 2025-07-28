@@ -198,12 +198,6 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     }
 
     @Override
-    public CelCheckerBuilder setContainer(String container) {
-      checkNotNull(container);
-      return setContainer(CelContainer.ofName(container));
-    }
-
-    @Override
     public CelCheckerBuilder setContainer(CelContainer container) {
       checkNotNull(container);
       this.container = container;
