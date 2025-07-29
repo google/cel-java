@@ -41,6 +41,7 @@ java_library(
         "//common/types:type_providers",
         "//compiler",
         "//compiler:compiler_builder",
+        "//extensions",
         "//parser:macro",
         "//parser:operator",
         "//testing:adorner",

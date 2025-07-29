@@ -133,6 +133,7 @@ public abstract class CelMacroExprFactory extends CelExprFactory {
         builder.setComprehension(
             CelExpr.CelComprehension.newBuilder()
                 .setIterVar(expr.comprehension().iterVar())
+                .setIterVar2(expr.comprehension().iterVar2())
                 .setIterRange(copy(expr.comprehension().iterRange()))
                 .setAccuVar(expr.comprehension().accuVar())
                 .setAccuInit(copy(expr.comprehension().accuInit()))

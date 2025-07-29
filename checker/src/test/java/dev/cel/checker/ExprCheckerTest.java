@@ -35,6 +35,7 @@ import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelMutableAst;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
+import dev.cel.common.CelValidationResult;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.internal.EnvVisitable;
@@ -52,7 +53,10 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.common.types.TypeType;
+import dev.cel.compiler.CelCompiler;
+import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.extensions.CelExtensions;
 import dev.cel.parser.CelMacro;
 import dev.cel.testing.CelAdorner;
 import dev.cel.testing.CelBaselineTestCase;
@@ -790,6 +794,47 @@ public class ExprCheckerTest extends CelBaselineTestCase {
             + "&& x.repeated_int64.exists(e, e < 0) "
             + "&& x.repeated_int64.exists_one(e, e == 0)";
     runTest();
+  }
+
+  @Test
+  public void twoVarCompreQuantifiers() throws Exception {
+    CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
+    source = "x.map_string_string.all(i, v, i < v) " + "&& x.repeated_int64.all(i, v, i < v)";
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .addLibraries(CelExtensions.comprehensions())
+            .addVar("x", messageType)
+            .build();
+
+    CelAbstractSyntaxTree ast = compiler.check(compiler.parse(source).getAst()).getAst();
+
+    if (ast != null) {
+      testOutput()
+          .println(
+              CelDebug.toAdornedDebugString(
+                  CelProtoAbstractSyntaxTree.fromCelAst(ast).getExpr(),
+                  new CheckedExprAdorner(
+                      CelProtoAbstractSyntaxTree.fromCelAst(ast).toCheckedExpr())));
+    }
+    testOutput().println();
+  }
+
+  @Test
+  public void twoVarCompreQuantifiers_invalidArgument_reportsError() throws Exception {
+    CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
+    source =
+        "x.map_string_string.all(i + 1, v, i < v) " + "&& x.repeated_int64.all(i, v + 1, i < v)";
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .addLibraries(CelExtensions.comprehensions())
+            .addVar("x", messageType)
+            .build();
+
+    CelValidationResult parseResult = compiler.parse(source);
+    testOutput().println(parseResult.getErrorString());
+    testOutput().println();
   }
 
   @Test

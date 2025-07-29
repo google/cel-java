@@ -1,0 +1,48 @@
+_&&_(
+  __comprehension__(
+    // Variable
+    i,
+    // Target
+    x~cel.expr.conformance.proto3.TestAllTypes^x.map_string_string~map(string, string),
+    // Accumulator
+    @result,
+    // Init
+    true~bool,
+    // LoopCondition
+    @not_strictly_false(
+      @result~bool^@result
+    )~bool^not_strictly_false,
+    // LoopStep
+    _&&_(
+      @result~bool^@result,
+      _<_(
+        i~string^i,
+        v~string^v
+      )~bool^less_string
+    )~bool^logical_and,
+    // Result
+    @result~bool^@result)~bool,
+  __comprehension__(
+    // Variable
+    i,
+    // Target
+    x~cel.expr.conformance.proto3.TestAllTypes^x.repeated_int64~list(int),
+    // Accumulator
+    @result,
+    // Init
+    true~bool,
+    // LoopCondition
+    @not_strictly_false(
+      @result~bool^@result
+    )~bool^not_strictly_false,
+    // LoopStep
+    _&&_(
+      @result~bool^@result,
+      _<_(
+        i~int^i,
+        v~int^v
+      )~bool^less_int64
+    )~bool^logical_and,
+    // Result
+    @result~bool^@result)~bool
+)~bool^logical_and
