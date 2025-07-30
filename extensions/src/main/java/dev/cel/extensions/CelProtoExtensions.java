@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelIssue;
 import dev.cel.common.ast.CelExpr;
@@ -30,16 +31,45 @@ import java.util.Optional;
 
 /** Internal implementation of CEL proto extensions. */
 @Immutable
-final class CelProtoExtensions implements CelCompilerLibrary {
+final class CelProtoExtensions implements CelCompilerLibrary, CelExtensionLibrary.FeatureSet {
 
   private static final String PROTO_NAMESPACE = "proto";
   private static final CelExpr ERROR = CelExpr.newBuilder().setConstant(Constants.ERROR).build();
 
+  private static final CelExtensionLibrary<CelProtoExtensions> LIBRARY =
+      new CelExtensionLibrary<CelProtoExtensions>() {
+        private final CelProtoExtensions version0 = new CelProtoExtensions();
+
+        @Override
+        public String name() {
+          return "protos";
+        }
+
+        @Override
+        public ImmutableSet<CelProtoExtensions> versions() {
+          return ImmutableSet.of(version0);
+        }
+      };
+
+  static CelExtensionLibrary<CelProtoExtensions> library() {
+    return LIBRARY;
+  }
+
   @Override
-  public void setParserOptions(CelParserBuilder parserBuilder) {
-    parserBuilder.addMacros(
+  public int version() {
+    return 0;
+  }
+
+  @Override
+  public ImmutableSet<CelMacro> macros() {
+    return ImmutableSet.of(
         CelMacro.newReceiverMacro("hasExt", 2, CelProtoExtensions::expandHasProtoExt),
         CelMacro.newReceiverMacro("getExt", 2, CelProtoExtensions::expandGetProtoExt));
+  }
+
+  @Override
+  public void setParserOptions(CelParserBuilder parserBuilder) {
+    parserBuilder.addMacros(macros());
   }
 
   private static Optional<CelExpr> expandHasProtoExt(

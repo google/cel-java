@@ -30,6 +30,7 @@ import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.types.SimpleType;
@@ -40,6 +41,7 @@ import dev.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage;
 import dev.cel.expr.conformance.proto2.TestAllTypes;
 import dev.cel.expr.conformance.proto2.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
+import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime;
@@ -84,6 +86,17 @@ public final class CelProtoExtensionsTest {
               TestAllTypes.newBuilder().setSingleString("test").build())
           .setExtension(Proto2ExtensionScopedMessage.int64Ext, 1L)
           .build();
+
+  @Test
+  public void library() {
+    CelExtensionLibrary<?> library =
+        CelExtensions.getExtensionLibrary("protos", CelOptions.DEFAULT);
+    assertThat(library.name()).isEqualTo("protos");
+    assertThat(library.latest().version()).isEqualTo(0);
+    assertThat(library.version(0).functions()).isEmpty();
+    assertThat(library.version(0).macros().stream().map(CelMacro::getFunction))
+        .containsExactly("hasExt", "getExt");
+  }
 
   @Test
   @TestParameters("{expr: 'proto.hasExt(msg, cel.expr.conformance.proto2.int32_ext)'}")

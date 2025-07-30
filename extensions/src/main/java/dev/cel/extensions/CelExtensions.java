@@ -307,10 +307,12 @@ public final class CelExtensions {
         return CelBindingsExtensions.library();
       case "encoders":
         return CelEncoderExtensions.library();
-      case "math":
-        return CelMathExtensions.library(options);
       case "lists":
         return CelListsExtensions.library();
+      case "math":
+        return CelMathExtensions.library(options);
+      case "protos":
+        return CelProtoExtensions.library();
       // TODO: add support for remaining standard extensions
       default:
         throw new IllegalArgumentException("Unknown standard extension '" + name + "'");
