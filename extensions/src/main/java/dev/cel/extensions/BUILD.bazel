@@ -154,6 +154,7 @@ java_library(
         "//common:compiler_common",
         "//common/types",
         "//compiler:compiler_builder",
+        "//extensions:extension_library",
         "//runtime",
         "//runtime:function_binding",
         "@maven//:com_google_errorprone_error_prone_annotations",

@@ -57,10 +57,14 @@ public interface CelExtensionLibrary<T extends CelExtensionLibrary.FeatureSet> {
     int version();
 
     /** Returns the set of function declarations defined by this extension library. */
-    ImmutableSet<CelFunctionDecl> functions();
+    default ImmutableSet<CelFunctionDecl> functions() {
+      return ImmutableSet.of();
+    }
 
     /** Returns the set of macros defined by this extension library. */
-    ImmutableSet<CelMacro> macros();
+    default ImmutableSet<CelMacro> macros() {
+      return ImmutableSet.of();
+    }
 
     // TODO - Add a method for variables.
   }

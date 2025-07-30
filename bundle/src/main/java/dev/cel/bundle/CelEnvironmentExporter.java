@@ -114,6 +114,7 @@ public abstract class CelEnvironmentExporter {
     public Builder addStandardExtensions(CelOptions options) {
       addExtensionLibraries(
           CelExtensions.getExtensionLibrary("bindings", options),
+          CelExtensions.getExtensionLibrary("encoders", options),
           CelExtensions.getExtensionLibrary("math", options),
           CelExtensions.getExtensionLibrary("lists", options));
       // TODO: add support for remaining standard extensions

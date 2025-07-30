@@ -305,6 +305,8 @@ public final class CelExtensions {
     switch (name) {
       case "bindings":
         return CelBindingsExtensions.library();
+      case "encoders":
+        return CelEncoderExtensions.library();
       case "math":
         return CelMathExtensions.library(options);
       case "lists":

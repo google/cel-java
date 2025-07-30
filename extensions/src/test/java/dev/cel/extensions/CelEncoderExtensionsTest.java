@@ -22,6 +22,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.ByteString;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompiler;
@@ -42,6 +44,17 @@ public class CelEncoderExtensionsTest {
           .build();
   private static final CelRuntime CEL_RUNTIME =
       CelRuntimeFactory.standardCelRuntimeBuilder().addLibraries(CelExtensions.encoders()).build();
+
+  @Test
+  public void library() {
+    CelExtensionLibrary<?> library =
+        CelExtensions.getExtensionLibrary("encoders", CelOptions.DEFAULT);
+    assertThat(library.name()).isEqualTo("encoders");
+    assertThat(library.latest().version()).isEqualTo(0);
+    assertThat(library.version(0).functions().stream().map(CelFunctionDecl::name))
+        .containsExactly("base64.decode", "base64.encode");
+    assertThat(library.version(0).macros()).isEmpty();
+  }
 
   @Test
   public void encode_success() throws Exception {
