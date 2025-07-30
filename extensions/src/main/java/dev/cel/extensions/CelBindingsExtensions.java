@@ -18,7 +18,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelIssue;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.compiler.CelCompilerLibrary;
@@ -29,15 +31,47 @@ import java.util.Optional;
 
 /** Internal implementation of the CEL local binding extensions. */
 @Immutable
-final class CelBindingsExtensions implements CelCompilerLibrary {
-
+final class CelBindingsExtensions implements CelCompilerLibrary, CelExtensionLibrary.FeatureSet {
   private static final String CEL_NAMESPACE = "cel";
   private static final String UNUSED_ITER_VAR = "#unused";
 
+  private static final CelExtensionLibrary<CelBindingsExtensions> LIBRARY =
+      new CelExtensionLibrary<CelBindingsExtensions>() {
+        private final CelBindingsExtensions version0 = new CelBindingsExtensions();
+
+        @Override
+        public String name() {
+          return "bindings";
+        }
+
+        @Override
+        public ImmutableSet<CelBindingsExtensions> versions() {
+          return ImmutableSet.of(version0);
+        }
+      };
+
+  static CelExtensionLibrary<CelBindingsExtensions> library() {
+    return LIBRARY;
+  }
+
+  @Override
+  public int version() {
+    return 0;
+  }
+
+  @Override
+  public ImmutableSet<CelFunctionDecl> functions() {
+    return ImmutableSet.of();
+  }
+
+  @Override
+  public ImmutableSet<CelMacro> macros() {
+    return ImmutableSet.of(CelMacro.newReceiverMacro("bind", 3, CelBindingsExtensions::expandBind));
+  }
+
   @Override
   public void setParserOptions(CelParserBuilder parserBuilder) {
-    parserBuilder.addMacros(
-        CelMacro.newReceiverMacro("bind", 3, CelBindingsExtensions::expandBind));
+    parserBuilder.addMacros(macros());
   }
 
   /**

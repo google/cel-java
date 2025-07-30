@@ -138,6 +138,7 @@ java_library(
         "//common:compiler_common",
         "//common/ast",
         "//compiler:compiler_builder",
+        "//extensions:extension_library",
         "//parser:macro",
         "//parser:parser_builder",
         "@maven//:com_google_errorprone_error_prone_annotations",

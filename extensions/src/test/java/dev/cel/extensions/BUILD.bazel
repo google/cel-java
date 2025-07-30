@@ -20,6 +20,7 @@ java_library(
         "//compiler",
         "//compiler:compiler_builder",
         "//extensions",
+        "//extensions:extension_library",
         "//extensions:lite_extensions",
         "//extensions:math",
         "//extensions:optional_library",

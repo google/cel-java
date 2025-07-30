@@ -24,6 +24,7 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.types.SimpleType;
@@ -31,6 +32,7 @@ import dev.cel.common.types.StructTypeReference;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime;
@@ -53,6 +55,17 @@ public final class CelBindingsExtensionsTest {
       CelRuntimeFactory.standardCelRuntimeBuilder()
           .addLibraries(CelOptionalLibrary.INSTANCE)
           .build();
+
+  @Test
+  public void library() {
+    CelExtensionLibrary<?> library =
+        CelExtensions.getExtensionLibrary("bindings", CelOptions.DEFAULT);
+    assertThat(library.name()).isEqualTo("bindings");
+    assertThat(library.latest().version()).isEqualTo(0);
+    assertThat(library.version(0).functions()).isEmpty();
+    assertThat(library.version(0).macros().stream().map(CelMacro::getFunction))
+        .containsExactly("bind");
+  }
 
   private enum BindingTestCase {
     BOOL_LITERAL("cel.bind(t, true, t)"),
