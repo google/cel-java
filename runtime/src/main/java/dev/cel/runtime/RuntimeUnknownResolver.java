@@ -150,7 +150,7 @@ public class RuntimeUnknownResolver {
     DefaultInterpreter.IntermediateResult resolveSimpleName(String name, Long exprId) {
       DefaultInterpreter.IntermediateResult result = lazyEvalResultCache.get(name);
       if (result != null) {
-        return result;
+        return copyIfMutable(result);
       }
       result = shadowedVars.get(name);
       if (result != null) {
@@ -161,7 +161,27 @@ public class RuntimeUnknownResolver {
 
     @Override
     void cacheLazilyEvaluatedResult(String name, DefaultInterpreter.IntermediateResult result) {
-      lazyEvalResultCache.put(name, result);
+      lazyEvalResultCache.put(name, copyIfMutable(result));
+    }
+
+    /**
+     * Perform a defensive copy of the intermediate result if it is mutable.
+     *
+     * <p>Some internal types are mutable to optimize performance, but this can cause issues when
+     * the result can be reused in multiple subexpressions due to caching.
+     *
+     * <p>Note: this is necessary on both the cache put and get path since the interpreter may use
+     * the same instance that was cached as a return value.
+     */
+    private static DefaultInterpreter.IntermediateResult copyIfMutable(
+        DefaultInterpreter.IntermediateResult result) {
+      if (result.value() instanceof AccumulatedUnknowns) {
+        AccumulatedUnknowns unknowns = (AccumulatedUnknowns) result.value();
+        return DefaultInterpreter.IntermediateResult.create(
+            result.attribute(),
+            AccumulatedUnknowns.create(unknowns.exprIds(), unknowns.attributes()));
+      }
+      return result;
     }
   }
 

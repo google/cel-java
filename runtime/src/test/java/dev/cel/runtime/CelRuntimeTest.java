@@ -42,11 +42,13 @@ import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.types.CelV1AlphaTypes;
+import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.extensions.CelExtensions;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparserFactory;
 import java.util.List;
@@ -115,6 +117,50 @@ public class CelRuntimeTest {
     String evaluatedResult = (String) program.eval();
 
     assertThat(evaluatedResult).isEqualTo("Hello world!");
+  }
+
+  @Test
+  // Lazy evaluation result cache doesn't allow references to mutate the cached instance.
+  @TestParameters(
+      "{expression: 'cel.bind(x, unknown_attr, (unknown_attr > 0) || [0, 1, 2, 3, 4, 5, 6, 7, 8, 9,"
+          + " 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].exists(i, x + x > 0))'}")
+  @TestParameters(
+      "{expression: 'cel.bind(x, unknown_attr, x + x + x + x + x + x + x + x + x + x + x + x + x +"
+          + " x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x)'}")
+  // A new unknown is created per 'x' reference.
+  @TestParameters(
+      "{expression: '(my_list.exists(x, (x + x + x + x + x + x + x + x + x + x + x + x + x + x + x"
+          + " + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x + x) > 100) &&"
+          + " false) || unknown_attr > 0'}")
+  public void advanceEvaluation_withUnknownTracking_noSelfReferenceInMerge(String expression)
+      throws Exception {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .addCompilerLibraries(CelExtensions.bindings())
+            .setContainer(CelContainer.ofName("cel.expr.conformance.test"))
+            .addVar("unknown_attr", SimpleType.INT)
+            .addVar("my_list", ListType.create(SimpleType.INT))
+            .setOptions(CelOptions.current().enableUnknownTracking(true).build())
+            .build();
+
+    CelUnknownSet result =
+        (CelUnknownSet)
+            cel.createProgram(cel.compile(expression).getAst())
+                .advanceEvaluation(
+                    UnknownContext.create(
+                        (String name) -> {
+                          if (name.equals("my_list")) {
+                            return Optional.of(ImmutableList.of(1));
+                          }
+                          return Optional.empty();
+                        },
+                        ImmutableList.of(
+                            CelAttributePattern.create("unknown_attr"),
+                            CelAttributePattern.create("my_list")
+                                .qualify(CelAttribute.Qualifier.ofInt(0)))));
+
+    assertThat(result.attributes()).containsExactly(CelAttribute.create("unknown_attr"));
   }
 
   @Test

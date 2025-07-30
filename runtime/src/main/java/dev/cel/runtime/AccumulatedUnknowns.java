@@ -26,7 +26,7 @@ import java.util.List;
  * an immutable CelUnknownSet.
  */
 final class AccumulatedUnknowns {
-
+  private static final int MAX_UNKNOWN_ATTRIBUTE_SIZE = 500_000;
   private final List<Long> exprIds;
   private final List<CelAttribute> attributes;
 
@@ -40,6 +40,7 @@ final class AccumulatedUnknowns {
 
   @CanIgnoreReturnValue
   AccumulatedUnknowns merge(AccumulatedUnknowns arg) {
+    enforceMaxAttributeSize(this.attributes, arg.attributes);
     this.exprIds.addAll(arg.exprIds);
     this.attributes.addAll(arg.attributes);
     return this;
@@ -55,6 +56,15 @@ final class AccumulatedUnknowns {
 
   static AccumulatedUnknowns create(Collection<Long> exprIds, Collection<CelAttribute> attributes) {
     return new AccumulatedUnknowns(new ArrayList<>(exprIds), new ArrayList<>(attributes));
+  }
+
+  private static void enforceMaxAttributeSize(
+      List<CelAttribute> lhsAttributes, List<CelAttribute> rhsAttributes) {
+    int totalSize = lhsAttributes.size() + rhsAttributes.size();
+    if (totalSize > MAX_UNKNOWN_ATTRIBUTE_SIZE) {
+      throw new IllegalArgumentException(
+          "Exceeded maximum allowed unknown attributes: " + totalSize);
+    }
   }
 
   private AccumulatedUnknowns(List<Long> exprIds, List<CelAttribute> attributes) {
