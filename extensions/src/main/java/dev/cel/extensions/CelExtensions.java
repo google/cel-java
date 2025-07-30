@@ -313,6 +313,8 @@ public final class CelExtensions {
         return CelMathExtensions.library(options);
       case "protos":
         return CelProtoExtensions.library();
+      case "regex":
+        return CelRegexExtensions.library();
       // TODO: add support for remaining standard extensions
       default:
         throw new IllegalArgumentException("Unknown standard extension '" + name + "'");

@@ -14,6 +14,8 @@
 
 package dev.cel.extensions;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
@@ -35,7 +37,8 @@ import java.util.Set;
 
 /** Internal implementation of CEL regex extensions. */
 @Immutable
-final class CelRegexExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
+final class CelRegexExtensions
+    implements CelCompilerLibrary, CelRuntimeLibrary, CelExtensionLibrary.FeatureSet {
 
   private static final String REGEX_REPLACE_FUNCTION = "regex.replace";
   private static final String REGEX_EXTRACT_FUNCTION = "regex.extract";
@@ -124,6 +127,25 @@ final class CelRegexExtensions implements CelCompilerLibrary, CelRuntimeLibrary 
     }
   }
 
+  private static final CelExtensionLibrary<CelRegexExtensions> LIBRARY =
+      new CelExtensionLibrary<CelRegexExtensions>() {
+        private final CelRegexExtensions version0 = new CelRegexExtensions();
+
+        @Override
+        public String name() {
+          return "regex";
+        }
+
+        @Override
+        public ImmutableSet<CelRegexExtensions> versions() {
+          return ImmutableSet.of(version0);
+        }
+      };
+
+  static CelExtensionLibrary<CelRegexExtensions> library() {
+    return LIBRARY;
+  }
+
   private final ImmutableSet<Function> functions;
 
   CelRegexExtensions() {
@@ -132,6 +154,16 @@ final class CelRegexExtensions implements CelCompilerLibrary, CelRuntimeLibrary 
 
   CelRegexExtensions(Set<Function> functions) {
     this.functions = ImmutableSet.copyOf(functions);
+  }
+
+  @Override
+  public int version() {
+    return 0;
+  }
+
+  @Override
+  public ImmutableSet<CelFunctionDecl> functions() {
+    return functions.stream().map(f -> f.functionDecl).collect(toImmutableSet());
   }
 
   @Override

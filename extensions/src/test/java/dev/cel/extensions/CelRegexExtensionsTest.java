@@ -21,6 +21,8 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOptions;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.runtime.CelEvaluationException;
@@ -37,6 +39,17 @@ public final class CelRegexExtensionsTest {
       CelCompilerFactory.standardCelCompilerBuilder().addLibraries(CelExtensions.regex()).build();
   private static final CelRuntime RUNTIME =
       CelRuntimeFactory.standardCelRuntimeBuilder().addLibraries(CelExtensions.regex()).build();
+
+  @Test
+  public void library() {
+    CelExtensionLibrary<?> library =
+        CelExtensions.getExtensionLibrary("regex", CelOptions.DEFAULT);
+    assertThat(library.name()).isEqualTo("regex");
+    assertThat(library.latest().version()).isEqualTo(0);
+    assertThat(library.version(0).functions().stream().map(CelFunctionDecl::name))
+        .containsExactly("regex.replace", "regex.extract", "regex.extractAll");
+    assertThat(library.version(0).macros()).isEmpty();
+  }
 
   @Test
   @TestParameters("{target: 'abc', regex: '^', replaceStr: 'start_', res: 'start_abc'}")
