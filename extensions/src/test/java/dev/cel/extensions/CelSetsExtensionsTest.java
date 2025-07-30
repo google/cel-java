@@ -73,6 +73,17 @@ public final class CelSetsExtensionsTest {
           .build();
 
   @Test
+  public void library() {
+    CelExtensionLibrary<?> library =
+        CelExtensions.getExtensionLibrary("sets", CelOptions.DEFAULT);
+    assertThat(library.name()).isEqualTo("sets");
+    assertThat(library.latest().version()).isEqualTo(0);
+    assertThat(library.version(0).functions().stream().map(CelFunctionDecl::name))
+        .containsExactly("sets.contains", "sets.equivalent", "sets.intersects");
+    assertThat(library.version(0).macros()).isEmpty();
+  }
+
+  @Test
   public void contains_integerListWithSameValue_succeeds() throws Exception {
     ImmutableList<Integer> list = ImmutableList.of(1, 2, 3, 4);
     ImmutableList<Integer> subList = ImmutableList.of(1, 2, 3, 4);

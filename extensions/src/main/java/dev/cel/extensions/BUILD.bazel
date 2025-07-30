@@ -203,6 +203,7 @@ java_library(
         "//common/internal:dynamic_proto",
         "//common/types",
         "//compiler:compiler_builder",
+        "//extensions:extension_library",
         "//runtime",
         "//runtime:proto_message_runtime_equality",
         "@maven//:com_google_errorprone_error_prone_annotations",

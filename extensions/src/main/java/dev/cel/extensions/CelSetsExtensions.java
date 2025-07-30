@@ -41,7 +41,8 @@ import java.util.Set;
  * rewrite the AST into a map to achieve a O(1) lookup.
  */
 @Immutable
-final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
+final class CelSetsExtensions
+    implements CelCompilerLibrary, CelRuntimeLibrary, CelExtensionLibrary.FeatureSet {
 
   private static final String SET_CONTAINS_OVERLOAD_DOC =
       "Returns whether the first list argument contains all elements in the second list"
@@ -90,6 +91,28 @@ final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
                   ListType.create(TypeParamType.create("T")),
                   ListType.create(TypeParamType.create("T")))));
 
+  private static final class Library implements CelExtensionLibrary<CelSetsExtensions> {
+    private final CelSetsExtensions version0;
+
+    Library(CelOptions celOptions) {
+      version0 = new CelSetsExtensions(celOptions);
+    }
+
+    @Override
+    public String name() {
+      return "sets";
+    }
+
+    @Override
+    public ImmutableSet<CelSetsExtensions> versions() {
+      return ImmutableSet.of(version0);
+    }
+  }
+
+  static CelExtensionLibrary<CelSetsExtensions> library(CelOptions options) {
+    return new Library(options);
+  }
+
   private final ImmutableSet<SetsFunction> functions;
   private final SetsExtensionsRuntimeImpl setsExtensionsRuntime;
 
@@ -103,6 +126,16 @@ final class CelSetsExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
         ProtoMessageRuntimeEquality.create(
             DynamicProto.create(DefaultMessageFactory.INSTANCE), celOptions);
     this.setsExtensionsRuntime = new SetsExtensionsRuntimeImpl(runtimeEquality, functions);
+  }
+
+  @Override
+  public int version() {
+    return 0;
+  }
+
+  @Override
+  public ImmutableSet<CelFunctionDecl> functions() {
+    return ImmutableSet.copyOf(FUNCTION_DECL_MAP.values());
   }
 
   @Override

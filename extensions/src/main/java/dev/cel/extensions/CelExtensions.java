@@ -315,6 +315,8 @@ public final class CelExtensions {
         return CelProtoExtensions.library();
       case "regex":
         return CelRegexExtensions.library();
+      case "sets":
+        return CelSetsExtensions.library(options);
       // TODO: add support for remaining standard extensions
       default:
         throw new IllegalArgumentException("Unknown standard extension '" + name + "'");
