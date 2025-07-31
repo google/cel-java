@@ -43,6 +43,7 @@ import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection.PolicyT
 import dev.cel.policy.PolicyTestHelper.TestYamlPolicy;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelLateFunctionBindings;
+import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
@@ -290,6 +291,7 @@ public final class CelPolicyCompilerImplTest {
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .addCompilerLibraries(CelOptionalLibrary.INSTANCE)
         .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
+        .addFileTypes(StandaloneGlobalEnum.getDescriptor().getFile())
         .addMessageTypes(TestAllTypes.getDescriptor())
         .setOptions(CEL_OPTIONS)
         .addFunctionBindings(

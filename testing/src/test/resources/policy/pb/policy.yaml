@@ -13,8 +13,24 @@
 # limitations under the License.
 
 name: "pb"
+
+imports:
+- name: cel.expr.conformance.proto3.TestAllTypes
+- name: cel.expr.conformance.proto3.TestAllTypes.NestedEnum
+  # Note: Following enum is CEL-Java only.
+- name: |
+    dev.cel.testing.testdata.proto3.StandaloneGlobalEnum
+
 rule:
   match:
-  - condition: spec.single_int32 > 10
+  - condition: >
+      spec.single_int32 > TestAllTypes{single_int64: 10}.single_int64
     output: |
       "invalid spec, got single_int32=" + string(spec.single_int32) + ", wanted <= 10"
+#       TODO: replace when string.format is available
+#      "invalid spec, got single_int32=%d, wanted <= 10".format([spec.single_int32])
+  - condition: >
+      spec.standalone_enum == NestedEnum.BAR ||
+      StandaloneGlobalEnum.SGAR == StandaloneGlobalEnum.SGOO
+    output: |
+      "invalid spec, neither nested nor imported enums may refer to BAR"

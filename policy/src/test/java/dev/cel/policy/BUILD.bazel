@@ -19,6 +19,7 @@ java_library(
         "//common:options",
         "//common/formats:value_string",
         "//common/internal",
+        "//common/resources/testdata/proto3:standalone_global_enum_java_proto",
         "//compiler",
         "//extensions:optional_library",
         "//parser:macro",

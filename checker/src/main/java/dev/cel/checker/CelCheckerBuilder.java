@@ -49,6 +49,9 @@ public interface CelCheckerBuilder {
   @CanIgnoreReturnValue
   CelCheckerBuilder setContainer(CelContainer container);
 
+  /** Retrieves the currently configured {@link CelContainer} in the builder. */
+  CelContainer container();
+
   /** Add variable and function {@code declarations} to the CEL environment. */
   @CanIgnoreReturnValue
   CelCheckerBuilder addDeclarations(Decl... declarations);

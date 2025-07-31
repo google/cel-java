@@ -211,6 +211,11 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     }
 
     @Override
+    public CelContainer container() {
+      return this.container;
+    }
+
+    @Override
     public CelCheckerBuilder addDeclarations(Decl... declarations) {
       checkNotNull(declarations);
       return addDeclarations(Arrays.asList(declarations));

@@ -206,6 +206,7 @@ java_library(
         "//common:cel_ast",
         "//common:cel_source",
         "//common:compiler_common",
+        "//common:container",
         "//common:source_location",
         "//common/ast",
         "//common/formats:value_string",

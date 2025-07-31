@@ -1,24 +1,30 @@
-ERROR: compile_errors/policy.yaml:19:19: undeclared reference to 'spec' (in container '')
+ERROR: compile_errors/policy.yaml:19:5: Error configuring import: invalid qualified name: punc.Import!, wanted name of the form 'qualified.name'
+ |     punc.Import!
+ | ....^
+ERROR: compile_errors/policy.yaml:20:10: Error configuring import: invalid qualified name: bad import, wanted name of the form 'qualified.name'
+ | - name: "bad import"
+ | .........^
+ERROR: compile_errors/policy.yaml:24:19: undeclared reference to 'spec' (in container '')
  |       expression: spec.labels
  | ..................^
-ERROR: compile_errors/policy.yaml:21:50: mismatched input 'resource' expecting {'==', '!=', 'in', '<', '<=', '>=', '>', '&&', '||', '[', ')', '.', '-', '?', '+', '*', '/', '%%'}
+ERROR: compile_errors/policy.yaml:26:50: mismatched input 'resource' expecting {'==', '!=', 'in', '<', '<=', '>=', '>', '&&', '||', '[', ')', '.', '-', '?', '+', '*', '/', '%%'}
  |       expression: variables.want.filter(l, !(lin resource.labels))
  | .................................................^
-ERROR: compile_errors/policy.yaml:21:66: extraneous input ')' expecting <EOF>
+ERROR: compile_errors/policy.yaml:26:66: extraneous input ')' expecting <EOF>
  |       expression: variables.want.filter(l, !(lin resource.labels))
  | .................................................................^
-ERROR: compile_errors/policy.yaml:23:27: mismatched input '2' expecting {'}', ','}
+ERROR: compile_errors/policy.yaml:28:27: mismatched input '2' expecting {'}', ','}
  |       expression: "{1:305 2:569}"
  | ..........................^
-ERROR: compile_errors/policy.yaml:31:75: extraneous input ']' expecting ')'
+ERROR: compile_errors/policy.yaml:36:75: extraneous input ']' expecting ')'
  |         "missing one or more required labels: %s".format(variables.missing])
  | ..........................................................................^
-ERROR: compile_errors/policy.yaml:34:67: undeclared reference to 'format' (in container '')
+ERROR: compile_errors/policy.yaml:39:67: undeclared reference to 'format' (in container '')
  |         "invalid values provided on one or more labels: %s".format([variables.invalid])
  | ..................................................................^
-ERROR: compile_errors/policy.yaml:35:19: condition must produce a boolean output.
+ERROR: compile_errors/policy.yaml:40:19: condition must produce a boolean output.
  |     - condition: '1'
  | ..................^
-ERROR: compile_errors/policy.yaml:38:24: found no matching overload for '_==_' applied to '(bool, string)' (candidates: (%A0, %A0))
+ERROR: compile_errors/policy.yaml:43:24: found no matching overload for '_==_' applied to '(bool, string)' (candidates: (%A0, %A0))
  |     - condition: false == "0"
  | .......................^

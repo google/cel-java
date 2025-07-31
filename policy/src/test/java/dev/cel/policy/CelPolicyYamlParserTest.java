@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.formats.ValueString;
+import dev.cel.policy.CelPolicy.Import;
 import dev.cel.policy.PolicyTestHelper.K8sTagHandler;
 import dev.cel.policy.PolicyTestHelper.TestYamlPolicy;
 import org.junit.Test;
@@ -127,6 +128,24 @@ public final class CelPolicyYamlParserTest {
     assertThat(policy.rule().matches()).hasSize(1);
     assertThat(Iterables.getOnlyElement(policy.rule().matches()).explanation())
         .hasValue(ValueString.of(11, "'custom explanation'"));
+  }
+
+  @Test
+  public void parseYamlPolicy_withImports() throws Exception {
+    String policySource =
+        "name: 'policy_with_imports'\n"
+            + "imports:\n"
+            + "- name: foo\n"
+            + "- name: >\n"
+            + "    bar";
+
+    CelPolicy policy = POLICY_PARSER.parse(policySource);
+
+    assertThat(policy.imports())
+        .containsExactly(
+            Import.create(8L, ValueString.of(9L, "foo")),
+            Import.create(12L, ValueString.of(13L, "    bar")))
+        .inOrder();
   }
 
   @Test
@@ -318,7 +337,32 @@ public final class CelPolicyYamlParserTest {
             + " [tag:yaml.org,2002:str !txt]\n"
             + " |   description: 1\n"
             + " | ...............^"),
-    ;
+    ILLEGAL_YAML_TYPE_IMPORT_EXPECTED_LIST(
+        "imports: foo",
+        "ERROR: <input>:1:10: Got yaml node type tag:yaml.org,2002:str, wanted type(s)"
+            + " [tag:yaml.org,2002:seq]\n"
+            + " | imports: foo\n"
+            + " | .........^"),
+    ILLEGAL_YAML_TYPE_IMPORT_ELEMENT_EXPECTED_MAP(
+        "imports:\n" //
+            + "- foo",
+        "ERROR: <input>:2:3: Got yaml node type tag:yaml.org,2002:str, wanted type(s)"
+            + " [tag:yaml.org,2002:map]\n"
+            + " | - foo\n"
+            + " | ..^"),
+    ILLEGAL_YAML_TYPE_IMPORT_ELEMENT_MAP_INVALID_KEY(
+        "imports:\n" //
+            + "- 1: 2",
+        "ERROR: <input>:2:3: Got yaml node type tag:yaml.org,2002:int, wanted type(s)"
+            + " [tag:yaml.org,2002:str !txt]\n"
+            + " | - 1: 2\n"
+            + " | ..^"),
+    ILLEGAL_YAML_TYPE_IMPORT_ELEMENT_MAP_INVALID_VALUE_NAME(
+        "imports:\n" //
+            + "- foo: bar",
+        "ERROR: <input>:2:3: Invalid import key: foo, expected 'name'\n"
+            + " | - foo: bar\n"
+            + " | ..^");
 
     private final String yamlPolicy;
     private final String expectedErrorMessage;

@@ -106,8 +106,13 @@ final class PolicyTestHelper {
     PB(
         "pb",
         true,
-        "(spec.single_int32 > 10) ? optional.of(\"invalid spec, got single_int32=\" +"
-            + " string(spec.single_int32) + \", wanted <= 10\") : optional.none()"),
+        "(spec.single_int32 > TestAllTypes{single_int64: 10}.single_int64) ? optional.of(\"invalid"
+            + " spec, got single_int32=\" + string(spec.single_int32) + \", wanted <= 10\") :"
+            + " ((spec.standalone_enum == cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAR"
+            + " || dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGAR =="
+            + " dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGOO) ? optional.of(\"invalid"
+            + " spec, neither nested nor imported enums may refer to BAR\") :"
+            + " optional.none())"),
     LIMITS(
         "limits",
         true,

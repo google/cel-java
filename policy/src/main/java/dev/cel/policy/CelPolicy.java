@@ -46,6 +46,8 @@ public abstract class CelPolicy {
 
   public abstract ImmutableMap<String, Object> metadata();
 
+  public abstract ImmutableList<Import> imports();
+
   /** Creates a new builder to construct a {@link CelPolicy} instance. */
   public static Builder newBuilder() {
     return new AutoValue_CelPolicy.Builder()
@@ -73,6 +75,16 @@ public abstract class CelPolicy {
     abstract ImmutableMap.Builder<String, Object> metadataBuilder();
 
     public abstract Builder setMetadata(ImmutableMap<String, Object> value);
+
+    abstract ImmutableList.Builder<Import> importsBuilder();
+
+    abstract Builder setImports(ImmutableList<Import> value);
+
+    @CanIgnoreReturnValue
+    public Builder addImport(Import value) {
+      importsBuilder().add(value);
+      return this;
+    }
 
     @CanIgnoreReturnValue
     public Builder putMetadata(String key, Object value) {
@@ -276,6 +288,18 @@ public abstract class CelPolicy {
     /** Creates a new builder to construct a {@link Variable} instance. */
     public static Builder newBuilder() {
       return new AutoValue_CelPolicy_Variable.Builder();
+    }
+  }
+
+  /** Import represents an imported type name which is aliased within CEL expressions. */
+  @AutoValue
+  public abstract static class Import {
+    public abstract long id();
+
+    public abstract ValueString name();
+
+    public static Import create(long id, ValueString name) {
+      return new AutoValue_CelPolicy_Import(id, name);
     }
   }
 }

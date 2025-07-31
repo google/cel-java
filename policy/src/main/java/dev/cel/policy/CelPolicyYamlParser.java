@@ -27,6 +27,7 @@ import dev.cel.common.formats.YamlHelper;
 import dev.cel.common.formats.YamlHelper.YamlNodeType;
 import dev.cel.common.formats.YamlParserContextImpl;
 import dev.cel.common.internal.CelCodePointArray;
+import dev.cel.policy.CelPolicy.Import;
 import dev.cel.policy.CelPolicy.Match;
 import dev.cel.policy.CelPolicy.Match.Result;
 import dev.cel.policy.CelPolicy.Variable;
@@ -118,6 +119,9 @@ final class CelPolicyYamlParser implements CelPolicyParser {
         Node valueNode = nodeTuple.getValueNode();
         String fieldName = ((ScalarNode) keyNode).getValue();
         switch (fieldName) {
+          case "imports":
+            parseImports(policyBuilder, ctx, valueNode);
+            break;
           case "name":
             policyBuilder.setName(ctx.newValueString(valueNode));
             break;
@@ -139,6 +143,51 @@ final class CelPolicyYamlParser implements CelPolicyParser {
       return policyBuilder
           .setPolicySource(policySource.toBuilder().setPositionsMap(ctx.getIdToOffsetMap()).build())
           .build();
+    }
+
+    private void parseImports(
+        CelPolicy.Builder policyBuilder, PolicyParserContext<Node> ctx, Node node) {
+      long id = ctx.collectMetadata(node);
+      if (!assertYamlType(ctx, id, node, YamlNodeType.LIST)) {
+        return;
+      }
+
+      SequenceNode importListNode = (SequenceNode) node;
+      for (Node importNode : importListNode.getValue()) {
+        parseImport(policyBuilder, ctx, importNode);
+      }
+    }
+
+    private void parseImport(
+        CelPolicy.Builder policyBuilder, PolicyParserContext<Node> ctx, Node node) {
+      long importId = ctx.collectMetadata(node);
+      if (!assertYamlType(ctx, importId, node, YamlNodeType.MAP)) {
+        return;
+      }
+
+      MappingNode mappingNode = (MappingNode) node;
+      for (NodeTuple nodeTuple : mappingNode.getValue()) {
+        Node key = nodeTuple.getKeyNode();
+        long keyId = ctx.collectMetadata(key);
+        if (!assertYamlType(ctx, keyId, key, YamlNodeType.STRING, YamlNodeType.TEXT)) {
+          continue;
+        }
+
+        String fieldName = ((ScalarNode) key).getValue();
+        if (!fieldName.equals("name")) {
+          ctx.reportError(
+              keyId, String.format("Invalid import key: %s, expected 'name'", fieldName));
+          continue;
+        }
+
+        Node value = nodeTuple.getValueNode();
+        long valueId = ctx.collectMetadata(value);
+        if (!assertYamlType(ctx, valueId, value, YamlNodeType.STRING, YamlNodeType.TEXT)) {
+          continue;
+        }
+
+        policyBuilder.addImport(Import.create(valueId, ctx.newValueString(value)));
+      }
     }
 
     @Override

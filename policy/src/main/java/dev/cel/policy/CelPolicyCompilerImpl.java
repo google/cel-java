@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelSource;
 import dev.cel.common.CelSourceLocation;
@@ -39,6 +40,7 @@ import dev.cel.policy.CelCompiledRule.CelCompiledMatch;
 import dev.cel.policy.CelCompiledRule.CelCompiledMatch.Result;
 import dev.cel.policy.CelCompiledRule.CelCompiledMatch.Result.Kind;
 import dev.cel.policy.CelCompiledRule.CelCompiledVariable;
+import dev.cel.policy.CelPolicy.Import;
 import dev.cel.policy.CelPolicy.Match;
 import dev.cel.policy.CelPolicy.Variable;
 import dev.cel.policy.RuleComposer.RuleCompositionException;
@@ -63,7 +65,28 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
   @Override
   public CelCompiledRule compileRule(CelPolicy policy) throws CelPolicyValidationException {
     CompilerContext compilerContext = new CompilerContext(policy.policySource());
-    CelCompiledRule compiledRule = compileRuleImpl(policy.rule(), cel, compilerContext);
+
+    Cel extendedCel = this.cel;
+
+    if (!policy.imports().isEmpty()) {
+      CelContainer.Builder containerBuilder =
+          extendedCel.toCheckerBuilder().container().toBuilder();
+
+      for (Import imp : policy.imports()) {
+        try {
+          containerBuilder.addAbbreviations(imp.name().value());
+        } catch (IllegalArgumentException e) {
+          compilerContext.addIssue(
+              imp.id(),
+              CelIssue.formatError(
+                  1, 0, String.format("Error configuring import: %s", e.getMessage())));
+        }
+      }
+
+      extendedCel = extendedCel.toCelBuilder().setContainer(containerBuilder.build()).build();
+    }
+
+    CelCompiledRule compiledRule = compileRuleImpl(policy.rule(), extendedCel, compilerContext);
     if (compilerContext.hasError()) {
       throw new CelPolicyValidationException(compilerContext.getIssueString());
     }

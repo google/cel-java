@@ -108,6 +108,8 @@ public abstract class CelContainer {
      * <p>If there is ever a case where an identifier could be in both the container and as an
      * abbreviation, the abbreviation wins as this will ensure that the meaning of a program is
      * preserved between compilations even as the container evolves.
+     *
+     * @throws IllegalArgumentException If qualifiedName is invalid per above specification.
      */
     @CanIgnoreReturnValue
     public Builder addAbbreviations(ImmutableSet<String> qualifiedNames) {
@@ -249,6 +251,8 @@ public abstract class CelContainer {
 
     return candidates.add(typeName).build();
   }
+
+  public abstract Builder toBuilder();
 
   public static Builder newBuilder() {
     return new AutoValue_CelContainer.Builder().setName("");
