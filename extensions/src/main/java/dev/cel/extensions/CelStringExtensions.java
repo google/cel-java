@@ -14,6 +14,7 @@
 
 package dev.cel.extensions;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
@@ -42,7 +43,8 @@ import java.util.Set;
 
 /** Internal implementation of CEL string extensions. */
 @Immutable
-public final class CelStringExtensions implements CelCompilerLibrary, CelRuntimeLibrary {
+public final class CelStringExtensions
+    implements CelCompilerLibrary, CelRuntimeLibrary, CelExtensionLibrary.FeatureSet {
 
   /** Denotes the string extension function */
   @SuppressWarnings({"unchecked"}) // Unchecked: Type-checker guarantees casting safety.
@@ -248,6 +250,35 @@ public final class CelStringExtensions implements CelCompilerLibrary, CelRuntime
 
   CelStringExtensions(Set<Function> functions) {
     this.functions = ImmutableSet.copyOf(functions);
+  }
+
+  private static final CelExtensionLibrary<CelStringExtensions> LIBRARY =
+      new CelExtensionLibrary<CelStringExtensions>() {
+        private final CelStringExtensions version0 = new CelStringExtensions();
+
+        @Override
+        public String name() {
+          return "strings";
+        }
+
+        @Override
+        public ImmutableSet<CelStringExtensions> versions() {
+          return ImmutableSet.of(version0);
+        }
+      };
+
+  static CelExtensionLibrary<CelStringExtensions> library() {
+    return LIBRARY;
+  }
+
+  @Override
+  public int version() {
+    return 0;
+  }
+
+  @Override
+  public ImmutableSet<CelFunctionDecl> functions() {
+    return functions.stream().map(f -> f.functionDecl).collect(toImmutableSet());
   }
 
   @Override

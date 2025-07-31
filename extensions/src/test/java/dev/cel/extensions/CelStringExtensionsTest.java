@@ -23,6 +23,8 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompiler;
@@ -53,6 +55,27 @@ public final class CelStringExtensionsTest {
 
   private static final CelRuntime RUNTIME =
       CelRuntimeFactory.standardCelRuntimeBuilder().addLibraries(CelExtensions.strings()).build();
+
+  @Test
+  public void library() {
+    CelExtensionLibrary<?> library =
+        CelExtensions.getExtensionLibrary("strings", CelOptions.DEFAULT);
+    assertThat(library.name()).isEqualTo("strings");
+    assertThat(library.latest().version()).isEqualTo(0);
+    assertThat(library.version(0).functions().stream().map(CelFunctionDecl::name))
+        .containsExactly(
+            "charAt",
+            "indexOf",
+            "join",
+            "lastIndexOf",
+            "lowerAscii",
+            "replace",
+            "split",
+            "substring",
+            "trim",
+            "upperAscii");
+    assertThat(library.version(0).macros()).isEmpty();
+  }
 
   @Test
   @TestParameters("{string: 'abcd', beginIndex: 0, expectedResult: 'abcd'}")

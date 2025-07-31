@@ -85,6 +85,7 @@ java_library(
         "//common/internal",
         "//common/types",
         "//compiler:compiler_builder",
+        "//extensions:extension_library",
         "//runtime",
         "//runtime:evaluation_exception_builder",
         "//runtime:function_binding",

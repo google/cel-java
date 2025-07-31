@@ -119,7 +119,8 @@ public abstract class CelEnvironmentExporter {
           CelExtensions.getExtensionLibrary("math", options),
           CelExtensions.getExtensionLibrary("protos", options),
           CelExtensions.getExtensionLibrary("regex", options),
-          CelExtensions.getExtensionLibrary("sets", options));
+          CelExtensions.getExtensionLibrary("sets", options),
+          CelExtensions.getExtensionLibrary("strings", options));
       // TODO: add support for remaining standard extensions
       return this;
     }
