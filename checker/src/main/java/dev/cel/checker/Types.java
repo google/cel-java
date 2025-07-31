@@ -83,7 +83,7 @@ public final class Types {
   public static final Type DURATION = create(WellKnownType.DURATION);
 
   /** Map of well-known proto messages and their CEL {@code Type} equivalents. */
-  static final ImmutableMap<String, Type> WELL_KNOWN_TYPE_MAP =
+  public static final ImmutableMap<String, Type> WELL_KNOWN_TYPE_MAP =
       ImmutableMap.<String, Type>builder()
           .put(DOUBLE_WRAPPER_MESSAGE, Types.createWrapper(Types.DOUBLE))
           .put(FLOAT_WRAPPER_MESSAGE, Types.createWrapper(Types.DOUBLE))
@@ -103,7 +103,7 @@ public final class Types {
           .buildOrThrow();
 
   /** Map of primitive proto types and their CEL {@code Type} equivalents. */
-  static final ImmutableMap<FieldDescriptorProto.Type, Type> PRIMITIVE_TYPE_MAP =
+  public static final ImmutableMap<FieldDescriptorProto.Type, Type> PRIMITIVE_TYPE_MAP =
       ImmutableMap.<FieldDescriptorProto.Type, Type>builder()
           .put(FieldDescriptorProto.Type.TYPE_DOUBLE, Types.DOUBLE)
           .put(FieldDescriptorProto.Type.TYPE_FLOAT, Types.DOUBLE)

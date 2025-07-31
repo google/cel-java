@@ -39,7 +39,6 @@ java_library(
 
 java_library(
     name = "checker_legacy_environment",
-    visibility = ["//:internal"],
     exports = ["//checker/src/main/java/dev/cel/checker:checker_legacy_environment"],
 )
 
