@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
@@ -903,6 +902,9 @@ public abstract class CelExpr implements Expression {
     public abstract String iterVar();
 
     @Override
+    public abstract String iterVar2();
+
+    @Override
     public abstract CelExpr iterRange();
 
     @Override
@@ -937,6 +939,8 @@ public abstract class CelExpr implements Expression {
 
       public abstract Builder setIterVar(String value);
 
+      public abstract Builder setIterVar2(String value);
+
       public abstract Builder setIterRange(CelExpr value);
 
       public abstract Builder setAccuVar(String value);
@@ -958,6 +962,7 @@ public abstract class CelExpr implements Expression {
     public static Builder newBuilder() {
       return new AutoValue_CelExpr_CelComprehension.Builder()
           .setIterVar("")
+          .setIterVar2("")
           .setIterRange(CelExpr.newBuilder().build())
           .setAccuVar("")
           .setAccuInit(CelExpr.newBuilder().build())
@@ -1073,12 +1078,36 @@ public abstract class CelExpr implements Expression {
       CelExpr loopCondition,
       CelExpr loopStep,
       CelExpr result) {
+    return ofComprehension(
+        id,
+        iterVar,
+        /* iterVar2= */ "",
+        iterRange,
+        accuVar,
+        accuInit,
+        loopCondition,
+        loopStep,
+        result);
+  }
+
+  @SuppressWarnings("TooManyParameters")
+  public static CelExpr ofComprehension(
+      long id,
+      String iterVar,
+      String iterVar2,
+      CelExpr iterRange,
+      String accuVar,
+      CelExpr accuInit,
+      CelExpr loopCondition,
+      CelExpr loopStep,
+      CelExpr result) {
     return newBuilder()
         .setId(id)
         .setExprKind(
             AutoOneOf_CelExpr_ExprKind.comprehension(
                 CelComprehension.newBuilder()
                     .setIterVar(iterVar)
+                    .setIterVar2(iterVar2)
                     .setIterRange(iterRange)
                     .setAccuVar(accuVar)
                     .setAccuInit(accuInit)

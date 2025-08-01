@@ -416,7 +416,6 @@ public class CelMutableExprConverterTest {
             CelExpr.ofIdent(7L, "__result__"));
 
     CelMutableExpr mutableExpr = CelMutableExprConverter.fromCelExpr(celExpr);
-
     assertThat(mutableExpr)
         .isEqualTo(
             CelMutableExpr.ofComprehension(

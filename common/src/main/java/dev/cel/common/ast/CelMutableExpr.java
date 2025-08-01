@@ -779,6 +779,8 @@ public final class CelMutableExpr implements Expression {
 
     private String iterVar;
 
+    private String iterVar2;
+
     private CelMutableExpr iterRange;
 
     private String accuVar;
@@ -796,8 +798,17 @@ public final class CelMutableExpr implements Expression {
       return iterVar;
     }
 
+    @Override
+    public String iterVar2() {
+      return iterVar2;
+    }
+
     public void setIterVar(String iterVar) {
       this.iterVar = checkNotNull(iterVar);
+    }
+
+    public void setIterVar2(String iterVar2) {
+      this.iterVar2 = checkNotNull(iterVar2);
     }
 
     @Override
@@ -862,6 +873,7 @@ public final class CelMutableExpr implements Expression {
       if (obj instanceof CelMutableComprehension) {
         CelMutableComprehension that = (CelMutableComprehension) obj;
         return this.iterVar.equals(that.iterVar())
+            && this.iterVar2.equals(that.iterVar2())
             && this.accuVar.equals(that.accuVar())
             && this.iterRange.equals(that.iterRange())
             && this.accuInit.equals(that.accuInit())
@@ -877,6 +889,8 @@ public final class CelMutableExpr implements Expression {
       int h = 1;
       h *= 1000003;
       h ^= iterVar.hashCode();
+      h *= 1000003;
+      h ^= iterVar2.hashCode();
       h *= 1000003;
       h ^= iterRange.hashCode();
       h *= 1000003;
@@ -895,6 +909,7 @@ public final class CelMutableExpr implements Expression {
     private CelMutableComprehension deepCopy() {
       return create(
           iterVar,
+          iterVar2,
           newInstance(iterRange),
           accuVar,
           newInstance(accuInit),
@@ -911,12 +926,33 @@ public final class CelMutableExpr implements Expression {
         CelMutableExpr loopCondition,
         CelMutableExpr loopStep,
         CelMutableExpr result) {
+      return create(
+          iterVar,
+          /* iterVar2= */ "",
+          iterRange,
+          accuVar,
+          accuInit,
+          loopCondition,
+          loopStep,
+          result);
+    }
+
+    public static CelMutableComprehension create(
+        String iterVar,
+        String iterVar2,
+        CelMutableExpr iterRange,
+        String accuVar,
+        CelMutableExpr accuInit,
+        CelMutableExpr loopCondition,
+        CelMutableExpr loopStep,
+        CelMutableExpr result) {
       return new CelMutableComprehension(
-          iterVar, iterRange, accuVar, accuInit, loopCondition, loopStep, result);
+          iterVar, iterVar2, iterRange, accuVar, accuInit, loopCondition, loopStep, result);
     }
 
     private CelMutableComprehension(
         String iterVar,
+        String iterVar2,
         CelMutableExpr iterRange,
         String accuVar,
         CelMutableExpr accuInit,
@@ -924,6 +960,7 @@ public final class CelMutableExpr implements Expression {
         CelMutableExpr loopStep,
         CelMutableExpr result) {
       this.iterVar = checkNotNull(iterVar);
+      this.iterVar2 = checkNotNull(iterVar2);
       this.iterRange = checkNotNull(iterRange);
       this.accuVar = checkNotNull(accuVar);
       this.accuInit = checkNotNull(accuInit);
