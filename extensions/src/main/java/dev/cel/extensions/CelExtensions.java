@@ -37,6 +37,24 @@ public final class CelExtensions {
   private static final CelRegexExtensions REGEX_EXTENSIONS = new CelRegexExtensions();
 
   /**
+   * Implementation of optional values.
+   *
+   * <p>Refer to README.md for available functions.
+   */
+  public static CelOptionalLibrary optional() {
+    return CelOptionalLibrary.library().latest();
+  }
+
+  /**
+   * Implementation of optional values.
+   *
+   * <p>Refer to README.md for available functions for each supported version.
+   */
+  public static CelOptionalLibrary optional(int version) {
+    return CelOptionalLibrary.library().version(version);
+  }
+
+  /**
    * Extended functions for string manipulation.
    *
    * <p>Refer to README.md for available functions.
@@ -311,6 +329,8 @@ public final class CelExtensions {
         return CelListsExtensions.library();
       case "math":
         return CelMathExtensions.library(options);
+      case "optional":
+        return CelOptionalLibrary.library();
       case "protos":
         return CelProtoExtensions.library();
       case "regex":

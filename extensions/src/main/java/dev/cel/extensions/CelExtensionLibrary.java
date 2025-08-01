@@ -16,6 +16,7 @@ package dev.cel.extensions;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelVarDecl;
 import dev.cel.parser.CelMacro;
 import java.util.Comparator;
 
@@ -66,6 +67,9 @@ public interface CelExtensionLibrary<T extends CelExtensionLibrary.FeatureSet> {
       return ImmutableSet.of();
     }
 
-    // TODO - Add a method for variables.
+    /** Returns the set of variables defined by this extension library. */
+    default ImmutableSet<CelVarDecl> variables() {
+      return ImmutableSet.of();
+    }
   }
 }

@@ -801,6 +801,36 @@ Examples:
     ].sortBy(e, e.score).map(e, e.name)
     == ["bar", "foo", "baz"]
 
+### Last
+
+Introduced in the 'optional' extension version 2
+
+Returns an optional with the last value from the list or `optional.None` if the
+list is empty.
+
+    <list(T)>.last() -> <Optional(T)>
+
+Examples:
+
+    [1, 2, 3].last().value() == 3
+    [].last().orValue('test') == 'test'
+
+This is syntactic sugar for list[list.size()-1].
+
+### First
+
+Introduced in the 'optional' extension version 2
+
+Returns an optional with the first value from the list or `optional.None` if the
+list is empty.
+
+    <list(T)>.first() -> <Optional(T)>
+
+Examples:
+
+     [1, 2, 3].first().value() == 1
+     [].first().orValue('test') == 'test'
+
 ## Regex
 
 Regex introduces support for regular expressions in CEL.

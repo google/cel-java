@@ -47,7 +47,6 @@ import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.extensions.CelExtensions;
-import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
@@ -694,8 +693,8 @@ public abstract class CelEnvironment {
         (options, version) -> CelExtensions.math(options, version),
         (options, version) -> CelExtensions.math(options, version)),
     OPTIONAL(
-        (options, version) -> CelOptionalLibrary.INSTANCE,
-        (options, version) -> CelOptionalLibrary.INSTANCE),
+        (options, version) -> CelExtensions.optional(version),
+        (options, version) -> CelExtensions.optional(version)),
     STRINGS(
         (options, version) -> CelExtensions.strings(),
         (options, version) -> CelExtensions.strings()),

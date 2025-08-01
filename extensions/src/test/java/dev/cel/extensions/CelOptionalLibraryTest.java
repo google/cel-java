@@ -35,6 +35,7 @@ import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.CelVarDecl;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.ListType;
@@ -45,6 +46,7 @@ import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeType;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
+import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
@@ -57,7 +59,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "SingleTestParameter"})
 public class CelOptionalLibraryTest {
 
   @SuppressWarnings("ImmutableEnumChecker") // Test only
@@ -94,13 +96,84 @@ public class CelOptionalLibraryTest {
   }
 
   private static CelBuilder newCelBuilder() {
+    return newCelBuilder(Integer.MAX_VALUE);
+  }
+
+  private static CelBuilder newCelBuilder(int version) {
     return CelFactory.standardCelBuilder()
         .setOptions(CelOptions.current().enableTimestampEpoch(true).build())
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
         .addMessageTypes(TestAllTypes.getDescriptor())
-        .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
-        .addCompilerLibraries(CelOptionalLibrary.INSTANCE);
+        .addRuntimeLibraries(CelExtensions.optional(version))
+        .addCompilerLibraries(CelExtensions.optional(version));
+  }
+
+  @Test
+  public void library() {
+    CelExtensionLibrary<?> library =
+        CelExtensions.getExtensionLibrary("optional", CelOptions.DEFAULT);
+    assertThat(library.name()).isEqualTo("optional");
+    assertThat(library.latest().version()).isEqualTo(2);
+
+    // Version 0
+    assertThat(library.version(0).functions().stream().map(CelFunctionDecl::name))
+        .containsExactly(
+            "optional.of",
+            "optional.ofNonZeroValue",
+            "optional.none",
+            "value",
+            "hasValue",
+            "optional.unwrap",
+            "or",
+            "orValue",
+            "_?._",
+            "_[?_]",
+            "_[_]");
+    assertThat(library.version(0).macros().stream().map(CelMacro::getFunction))
+        .containsExactly("optMap");
+    assertThat(library.version(0).variables().stream().map(CelVarDecl::name))
+        .containsExactly("optional_type");
+
+    // Version 1
+    assertThat(library.version(1).functions().stream().map(CelFunctionDecl::name))
+        .containsExactly(
+            "optional.of",
+            "optional.ofNonZeroValue",
+            "optional.none",
+            "value",
+            "hasValue",
+            "optional.unwrap",
+            "or",
+            "orValue",
+            "_?._",
+            "_[?_]",
+            "_[_]");
+    assertThat(library.version(1).macros().stream().map(CelMacro::getFunction))
+        .containsExactly("optMap", "optFlatMap");
+    assertThat(library.version(1).variables().stream().map(CelVarDecl::name))
+        .containsExactly("optional_type");
+
+    // Version 2
+    assertThat(library.version(2).functions().stream().map(CelFunctionDecl::name))
+        .containsExactly(
+            "optional.of",
+            "optional.ofNonZeroValue",
+            "optional.none",
+            "value",
+            "hasValue",
+            "optional.unwrap",
+            "or",
+            "orValue",
+            "_?._",
+            "_[?_]",
+            "_[_]",
+            "first",
+            "last");
+    assertThat(library.version(2).macros().stream().map(CelMacro::getFunction))
+        .containsExactly("optMap", "optFlatMap");
+    assertThat(library.version(2).variables().stream().map(CelVarDecl::name))
+        .containsExactly("optional_type");
   }
 
   @Test
@@ -1496,5 +1569,41 @@ public class CelOptionalLibraryTest {
     CelAbstractSyntaxTree ast = cel.compile("type(optional.none()) == optional_type").getAst();
 
     assertThat(cel.createProgram(ast).eval()).isEqualTo(true);
+  }
+
+  @Test
+  @TestParameters("{expression: '[].first().hasValue() == false'}")
+  @TestParameters("{expression: '[\"a\",\"b\",\"c\"].first().value() == \"a\"'}")
+  public void listFirst_success(String expression) throws Exception {
+    Cel cel = newCelBuilder().build();
+    boolean result = (boolean) cel.createProgram(cel.compile(expression).getAst()).eval();
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  @TestParameters("{expression: '[].last().hasValue() == false'}")
+  @TestParameters("{expression: '[1, 2, 3].last().value() == 3'}")
+  public void listLast_success(String expression) throws Exception {
+    Cel cel = newCelBuilder().build();
+    boolean result = (boolean) cel.createProgram(cel.compile(expression).getAst()).eval();
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  @TestParameters("{expression: '[1].first()', expectedError: 'undeclared reference to ''first'''}")
+  @TestParameters("{expression: '[2].last()', expectedError: 'undeclared reference to ''last'''}")
+  public void listFirstAndLast_throws_earlyVersion(String expression, String expectedError)
+      throws Exception {
+    // Configure Cel with an earlier version of the 'optional' library, which did not support
+    // 'first' and 'last'
+    Cel cel = newCelBuilder(1).build();
+    assertThat(
+            assertThrows(
+                CelValidationException.class,
+                () -> {
+                  cel.createProgram(cel.compile(expression).getAst()).eval();
+                }))
+        .hasMessageThat()
+        .contains(expectedError);
   }
 }
