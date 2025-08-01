@@ -82,13 +82,6 @@ public interface CelBuilder {
   CelBuilder addMacros(Iterable<CelMacro> macros);
 
   /**
-   * @deprecated Use {@link #setContainer(CelContainer)} instead.
-   */
-  @CanIgnoreReturnValue
-  @Deprecated
-  CelBuilder setContainer(String container);
-
-  /**
    * Set the {@link CelContainer} to use as the namespace for resolving CEL expression variables and
    * functions.
    */

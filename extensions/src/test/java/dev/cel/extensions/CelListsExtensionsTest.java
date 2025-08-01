@@ -23,6 +23,7 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.types.SimpleType;
@@ -39,18 +40,18 @@ public class CelListsExtensionsTest {
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .addCompilerLibraries(CelExtensions.lists())
           .addRuntimeLibraries(CelExtensions.lists())
-          .setContainer("cel.expr.conformance.test")
+          .setContainer(CelContainer.ofName("cel.expr.conformance.test"))
           .addMessageTypes(SimpleTest.getDescriptor())
           .addVar("non_list", SimpleType.DYN)
           .build();
 
-  private static final Cel CEL_WITH_HETEROGENOUS_NUMERIC_COMPARISONS =
+  private static final Cel CEL_WITH_HETEROGENEOUS_NUMERIC_COMPARISONS =
       CelFactory.standardCelBuilder()
           .setOptions(CelOptions.current().enableHeterogeneousNumericComparisons(true).build())
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .addCompilerLibraries(CelExtensions.lists())
           .addRuntimeLibraries(CelExtensions.lists())
-          .setContainer("cel.expr.conformance.test")
+          .setContainer(CelContainer.ofName("cel.expr.conformance.test"))
           .addMessageTypes(SimpleTest.getDescriptor())
           .build();
 
@@ -87,8 +88,9 @@ public class CelListsExtensionsTest {
   @TestParameters("{expression: '[1,2,3,4].slice(1, 3)', expected: '[2, 3]'}")
   @TestParameters("{expression: 'non_list.slice(1, 3)', expected: '[2, 3]'}")
   public void slice_success(String expression, String expected) throws Exception {
-    Object result = CEL.createProgram(CEL.compile(expression).getAst()).eval(
-        ImmutableMap.of("non_list", ImmutableSortedSet.of(4L, 1L, 3L, 2L)));
+    Object result =
+        CEL.createProgram(CEL.compile(expression).getAst())
+            .eval(ImmutableMap.of("non_list", ImmutableSortedSet.of(4L, 1L, 3L, 2L)));
 
     assertThat(result).isEqualTo(expectedResult(expected));
   }
@@ -106,9 +108,9 @@ public class CelListsExtensionsTest {
           + "expectedError: 'Negative indexes not supported'}")
   public void slice_throws(String expression, String expectedError) throws Exception {
     assertThat(
-        assertThrows(
-            CelEvaluationException.class,
-            () -> CEL.createProgram(CEL.compile(expression).getAst()).eval()))
+            assertThrows(
+                CelEvaluationException.class,
+                () -> CEL.createProgram(CEL.compile(expression).getAst()).eval()))
         .hasCauseThat()
         .hasMessageThat()
         .contains(expectedError);
@@ -183,8 +185,7 @@ public class CelListsExtensionsTest {
   @TestParameters("{expression: '[].distinct()', expected: '[]'}")
   @TestParameters("{expression: '[].distinct()', expected: '[]'}")
   @TestParameters("{expression: '[1].distinct()', expected: '[1]'}")
-  @TestParameters(
-      "{expression: '[-2, 5, -2, 1, 1, 5, -2, 1].distinct()', expected: '[-2, 5, 1]'}")
+  @TestParameters("{expression: '[-2, 5, -2, 1, 1, 5, -2, 1].distinct()', expected: '[-2, 5, 1]'}")
   @TestParameters(
       "{expression: '[-2, 5, -2, 1, 1, 5, -2, 1, 5, -2, -2, 1].distinct()', "
           + "expected: '[-2, 5, 1]'}")
@@ -202,8 +203,11 @@ public class CelListsExtensionsTest {
           + "expected: '[SimpleTest{name: \"a\"}, SimpleTest{name: \"b\"}]'}")
   @TestParameters("{expression: 'non_list.distinct()', expected: '[1, 2, 3, 4]'}")
   public void distinct_success(String expression, String expected) throws Exception {
-    Object result = CEL.createProgram(CEL.compile(expression).getAst()).eval(
-        ImmutableMap.of("non_list", ImmutableSortedMultiset.of(1L, 2L, 3L, 4L, 4L, 1L, 3L, 2L)));
+    Object result =
+        CEL.createProgram(CEL.compile(expression).getAst())
+            .eval(
+                ImmutableMap.of(
+                    "non_list", ImmutableSortedMultiset.of(1L, 2L, 3L, 4L, 4L, 1L, 3L, 2L)));
 
     assertThat(result).isEqualTo(expectedResult(expected));
   }
@@ -219,8 +223,9 @@ public class CelListsExtensionsTest {
       "{expression: '[false, true, true].reverse().reverse()', expected: '[false, true, true]'}")
   @TestParameters("{expression: 'non_list.reverse()', expected: '[4, 3, 2, 1]'}")
   public void reverse_success(String expression, String expected) throws Exception {
-    Object result = CEL.createProgram(CEL.compile(expression).getAst()).eval(
-        ImmutableMap.of("non_list", ImmutableSortedSet.of(4L, 1L, 3L, 2L)));
+    Object result =
+        CEL.createProgram(CEL.compile(expression).getAst())
+            .eval(ImmutableMap.of("non_list", ImmutableSortedSet.of(4L, 1L, 3L, 2L)));
 
     assertThat(result).isEqualTo(expectedResult(expected));
   }
@@ -243,8 +248,10 @@ public class CelListsExtensionsTest {
   @TestParameters("{expression: '[4, 3, 2, 1].sort()', expected: '[1, 2, 3, 4]'}")
   public void sort_success_heterogeneousNumbers(String expression, String expected)
       throws Exception {
-    Object result = CEL_WITH_HETEROGENOUS_NUMERIC_COMPARISONS.createProgram(
-        CEL_WITH_HETEROGENOUS_NUMERIC_COMPARISONS.compile(expression).getAst()).eval();
+    Object result =
+        CEL_WITH_HETEROGENEOUS_NUMERIC_COMPARISONS
+            .createProgram(CEL_WITH_HETEROGENEOUS_NUMERIC_COMPARISONS.compile(expression).getAst())
+            .eval();
 
     assertThat(result).isEqualTo(expectedResult(expected));
   }
@@ -261,9 +268,9 @@ public class CelListsExtensionsTest {
           + "expectedError: 'List elements must be comparable'}")
   public void sort_throws(String expression, String expectedError) throws Exception {
     assertThat(
-        assertThrows(
-            CelEvaluationException.class,
-            () -> CEL.createProgram(CEL.compile(expression).getAst()).eval()))
+            assertThrows(
+                CelEvaluationException.class,
+                () -> CEL.createProgram(CEL.compile(expression).getAst()).eval()))
         .hasCauseThat()
         .hasMessageThat()
         .contains(expectedError);
@@ -273,14 +280,11 @@ public class CelListsExtensionsTest {
   @TestParameters("{expression: '[].sortBy(e, e)', expected: '[]'}")
   @TestParameters("{expression: '[\"a\"].sortBy(e, e)', expected: '[\"a\"]'}")
   @TestParameters(
-      "{expression: '[-3, 1, -5, -2, 4].sortBy(e, -(e * e))', "
-          + "expected: '[-5, 4, -3, -2, 1]'}")
+      "{expression: '[-3, 1, -5, -2, 4].sortBy(e, -(e * e))', " + "expected: '[-5, 4, -3, -2, 1]'}")
   @TestParameters(
       "{expression: '[-3, 1, -5, -2, 4].map(e, e * 2).sortBy(e, -(e * e)) ', "
           + "expected: '[-10, 8, -6, -4, 2]'}")
-  @TestParameters(
-      "{expression: 'lists.range(3).sortBy(e, -e) ', "
-          + "expected: '[2, 1, 0]'}")
+  @TestParameters("{expression: 'lists.range(3).sortBy(e, -e) ', " + "expected: '[2, 1, 0]'}")
   @TestParameters(
       "{expression: '[\"a\", \"c\", \"b\", \"first\"].sortBy(e, e == \"first\" ? \"\" : e)', "
           + "expected: '[\"first\", \"a\", \"b\", \"c\"]'}")
@@ -307,9 +311,9 @@ public class CelListsExtensionsTest {
   public void sortBy_throws_validationException(String expression, String expectedError)
       throws Exception {
     assertThat(
-        assertThrows(
-            CelValidationException.class,
-            () -> CEL.createProgram(CEL.compile(expression).getAst()).eval()))
+            assertThrows(
+                CelValidationException.class,
+                () -> CEL.createProgram(CEL.compile(expression).getAst()).eval()))
         .hasMessageThat()
         .contains(expectedError);
   }
@@ -324,9 +328,9 @@ public class CelListsExtensionsTest {
   public void sortBy_throws_evaluationException(String expression, String expectedError)
       throws Exception {
     assertThat(
-        assertThrows(
-            CelEvaluationException.class,
-            () -> CEL.createProgram(CEL.compile(expression).getAst()).eval()))
+            assertThrows(
+                CelEvaluationException.class,
+                () -> CEL.createProgram(CEL.compile(expression).getAst()).eval()))
         .hasCauseThat()
         .hasMessageThat()
         .contains(expectedError);
