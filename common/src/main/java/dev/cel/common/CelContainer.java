@@ -252,7 +252,13 @@ public abstract class CelContainer {
     return candidates.add(typeName).build();
   }
 
-  public abstract Builder toBuilder();
+  abstract Builder autoToBuilder();
+
+  public Builder toBuilder() {
+    Builder builder = autoToBuilder();
+    builder.aliases.putAll(aliases());
+    return builder;
+  }
 
   public static Builder newBuilder() {
     return new AutoValue_CelContainer.Builder().setName("");

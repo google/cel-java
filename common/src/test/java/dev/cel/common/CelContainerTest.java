@@ -198,4 +198,15 @@ public class CelContainerTest {
             "abbreviation collides with container name: name=my.alias.a, abbreviation=a,"
                 + " container=a.b.c.M.N");
   }
+
+  @Test
+  public void container_toBuilderRoundTrip_retainsExistingProperties() {
+    CelContainer container =
+        CelContainer.newBuilder().setName("hello").addAlias("foo", "x.y").build();
+
+    container = container.toBuilder().addAlias("bar", "a.b").build();
+
+    assertThat(container.name()).isEqualTo("hello");
+    assertThat(container.aliases()).containsExactly("foo", "x.y", "bar", "a.b").inOrder();
+  }
 }
