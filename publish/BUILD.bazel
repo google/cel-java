@@ -104,6 +104,9 @@ JAVA_DOC_OPTIONS = [
 
 pom_file(
     name = "cel_pom",
+    excluded_artifacts = [
+        "com.google.protobuf:protobuf-javalite",
+    ],
     substitutions = {
         "CEL_VERSION": CEL_VERSION,
         "CEL_ARTIFACT_ID": "cel",
@@ -146,6 +149,9 @@ java_export(
 
 pom_file(
     name = "cel_runtime_pom",
+    excluded_artifacts = [
+        "com.google.protobuf:protobuf-javalite",
+    ],
     substitutions = {
         "CEL_VERSION": CEL_VERSION,
         "CEL_ARTIFACT_ID": "runtime",
