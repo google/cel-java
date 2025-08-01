@@ -89,6 +89,9 @@ public interface CelCompilerBuilder {
   @CanIgnoreReturnValue
   CelCompilerBuilder setContainer(CelContainer container);
 
+  /** Retrieves the currently configured {@link CelContainer} in the builder. */
+  CelContainer container();
+
   /** Add a variable declaration with a given {@code name} and proto based {@link Type}. */
   @CanIgnoreReturnValue
   CelCompilerBuilder addVar(String name, Type type);

@@ -23,7 +23,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.common.formats.ValueString;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -76,13 +80,23 @@ public abstract class CelPolicy {
 
     public abstract Builder setMetadata(ImmutableMap<String, Object> value);
 
-    abstract ImmutableList.Builder<Import> importsBuilder();
+    private final ArrayList<Import> importList = new ArrayList<>();
 
     abstract Builder setImports(ImmutableList<Import> value);
 
+    public List<Import> imports() {
+      return Collections.unmodifiableList(importList);
+    }
+
     @CanIgnoreReturnValue
     public Builder addImport(Import value) {
-      importsBuilder().add(value);
+      importList.add(value);
+      return this;
+    }
+
+    @CanIgnoreReturnValue
+    public Builder addImports(Collection<Import> values) {
+      importList.addAll(values);
       return this;
     }
 
@@ -98,7 +112,12 @@ public abstract class CelPolicy {
       return this;
     }
 
-    public abstract CelPolicy build();
+    abstract CelPolicy autoBuild();
+
+    public CelPolicy build() {
+      setImports(ImmutableList.copyOf(importList));
+      return autoBuild();
+    }
   }
 
   /**

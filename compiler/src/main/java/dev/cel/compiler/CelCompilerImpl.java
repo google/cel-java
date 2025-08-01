@@ -171,6 +171,11 @@ public final class CelCompilerImpl implements CelCompiler, EnvVisitable {
     }
 
     @Override
+    public CelContainer container() {
+      return checkerBuilder.container();
+    }
+
+    @Override
     public CelCompilerBuilder addVar(String name, Type type) {
       return addVar(name, CelProtoTypes.typeToCelType(type));
     }

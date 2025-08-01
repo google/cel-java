@@ -88,6 +88,9 @@ public interface CelBuilder {
   @Deprecated
   CelBuilder setContainer(String container);
 
+  /** Retrieves the currently configured {@link CelContainer} in the builder. */
+  CelContainer container();
+
   /**
    * Set the {@link CelContainer} to use as the namespace for resolving CEL expression variables and
    * functions.

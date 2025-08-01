@@ -196,6 +196,11 @@ final class CelImpl implements Cel, EnvVisitable {
     }
 
     @Override
+    public CelContainer container() {
+      return compilerBuilder.container();
+    }
+
+    @Override
     public CelBuilder setContainer(CelContainer container) {
       compilerBuilder.setContainer(container);
       return this;
