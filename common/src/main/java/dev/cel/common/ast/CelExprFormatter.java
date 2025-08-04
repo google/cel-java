@@ -242,6 +242,9 @@ final class CelExprFormatter {
   private void appendComprehension(CelExpr.CelComprehension celComprehension) {
     indent();
     appendWithNewline("iter_var: " + celComprehension.iterVar());
+    if (!celComprehension.iterVar2().isEmpty()) {
+      appendWithNewline("iter_var2: " + celComprehension.iterVar2());
+    }
     // Iter range
     appendWithNewline("iter_range: {");
     indent();

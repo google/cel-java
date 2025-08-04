@@ -620,6 +620,7 @@ public class CelMutableExprTest {
         .isEqualTo(
             CelMutableComprehension.create(
                 "iterVar",
+                "",
                 CelMutableExpr.ofList(
                     CelMutableList.create(CelMutableExpr.ofConstant(CelConstant.ofValue(true)))),
                 "accuVar",
@@ -826,6 +827,33 @@ public class CelMutableExprTest {
                     CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
                     CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
                     CelMutableExpr.ofIdent("__result__"))))
+        .addEqualityGroup(
+            CelMutableExpr.ofComprehension(
+                12L,
+                CelMutableComprehension.create(
+                    "iterVar",
+                    "iterVar2",
+                    CelMutableExpr.ofList(
+                        CelMutableList.create(
+                            CelMutableExpr.ofConstant(CelConstant.ofValue(true)))),
+                    "accuVar",
+                    CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                    CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                    CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                    CelMutableExpr.ofIdent("__result__"))),
+            CelMutableExpr.ofComprehension(
+                12L,
+                CelMutableComprehension.create(
+                    "iterVar",
+                    "iterVar2",
+                    CelMutableExpr.ofList(
+                        CelMutableList.create(
+                            CelMutableExpr.ofConstant(CelConstant.ofValue(true)))),
+                    "accuVar",
+                    CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                    CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                    CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                    CelMutableExpr.ofIdent("__result__"))))
         .testEquals();
   }
 
@@ -951,7 +979,21 @@ public class CelMutableExprTest {
                 CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
                 CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
                 CelMutableExpr.ofIdent("__result__"))),
-        -1006359408);
+        -707426392),
+    COMPREHENSIONV2(
+        CelMutableExpr.ofComprehension(
+            10L,
+            CelMutableComprehension.create(
+                "iterVar",
+                "iterVar2",
+                CelMutableExpr.ofList(
+                    CelMutableList.create(CelMutableExpr.ofConstant(CelConstant.ofValue(true)))),
+                "accuVar",
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofIdent("__result__"))),
+        1063550879);
 
     private final CelMutableExpr mutableExpr;
     private final int expectedHashCode;

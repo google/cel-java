@@ -84,6 +84,7 @@ public final class CelExprV1Alpha1Converter {
         return expr.setComprehensionExpr(
                 Comprehension.newBuilder()
                     .setIterVar(celComprehension.iterVar())
+                    .setIterVar2(celComprehension.iterVar2())
                     .setIterRange(fromCelExpr(celComprehension.iterRange()))
                     .setAccuVar(celComprehension.accuVar())
                     .setAccuInit(fromCelExpr(celComprehension.accuInit()))
@@ -132,6 +133,7 @@ public final class CelExprV1Alpha1Converter {
         return CelExpr.ofComprehension(
             expr.getId(),
             comprehensionExpr.getIterVar(),
+            comprehensionExpr.getIterVar2(),
             fromExpr(comprehensionExpr.getIterRange()),
             comprehensionExpr.getAccuVar(),
             fromExpr(comprehensionExpr.getAccuInit()),

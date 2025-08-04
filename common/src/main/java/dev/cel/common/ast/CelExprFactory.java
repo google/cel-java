@@ -169,306 +169,33 @@ public class CelExprFactory {
         .build();
   }
 
-  /** Fold creates a fold comprehension instruction. */
+  /** Fold creates a fold for two variable comprehension instruction. */
   public final CelExpr fold(
       String iterVar,
-      CelExpr.Builder iterRange,
-      String accuVar,
-      CelExpr accuInit,
-      CelExpr condition,
-      CelExpr step,
-      CelExpr result) {
-    return fold(iterVar, iterRange.build(), accuVar, accuInit, condition, step, result);
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr iterRange,
-      String accuVar,
-      CelExpr.Builder accuInit,
-      CelExpr condition,
-      CelExpr step,
-      CelExpr result) {
-    return fold(iterVar, iterRange, accuVar, accuInit.build(), condition, step, result);
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr iterRange,
-      String accuVar,
-      CelExpr accuInit,
-      CelExpr.Builder condition,
-      CelExpr step,
-      CelExpr result) {
-    return fold(iterVar, iterRange, accuVar, accuInit, condition.build(), step, result);
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr iterRange,
-      String accuVar,
-      CelExpr accuInit,
-      CelExpr condition,
-      CelExpr.Builder step,
-      CelExpr result) {
-    return fold(iterVar, iterRange, accuVar, accuInit, condition, step.build(), result);
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
+      String iterVar2,
       CelExpr iterRange,
       String accuVar,
       CelExpr accuInit,
       CelExpr condition,
       CelExpr step,
-      CelExpr.Builder result) {
-    return fold(iterVar, iterRange, accuVar, accuInit, condition, step, result.build());
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr.Builder iterRange,
-      String accuVar,
-      CelExpr.Builder accuInit,
-      CelExpr condition,
-      CelExpr step,
       CelExpr result) {
-    return fold(iterVar, iterRange.build(), accuVar, accuInit.build(), condition, step, result);
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr.Builder iterRange,
-      String accuVar,
-      CelExpr accuInit,
-      CelExpr.Builder condition,
-      CelExpr step,
-      CelExpr result) {
-    return fold(iterVar, iterRange.build(), accuVar, accuInit, condition.build(), step, result);
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr.Builder iterRange,
-      String accuVar,
-      CelExpr accuInit,
-      CelExpr condition,
-      CelExpr.Builder step,
-      CelExpr result) {
-    return fold(iterVar, iterRange.build(), accuVar, accuInit, condition, step.build(), result);
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr.Builder iterRange,
-      String accuVar,
-      CelExpr accuInit,
-      CelExpr condition,
-      CelExpr step,
-      CelExpr.Builder result) {
-    return fold(iterVar, iterRange.build(), accuVar, accuInit, condition, step, result.build());
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr iterRange,
-      String accuVar,
-      CelExpr.Builder accuInit,
-      CelExpr.Builder condition,
-      CelExpr step,
-      CelExpr result) {
-    return fold(iterVar, iterRange, accuVar, accuInit.build(), condition.build(), step, result);
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr iterRange,
-      String accuVar,
-      CelExpr.Builder accuInit,
-      CelExpr condition,
-      CelExpr.Builder step,
-      CelExpr result) {
-    return fold(iterVar, iterRange, accuVar, accuInit.build(), condition, step.build(), result);
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr iterRange,
-      String accuVar,
-      CelExpr.Builder accuInit,
-      CelExpr condition,
-      CelExpr step,
-      CelExpr.Builder result) {
-    return fold(iterVar, iterRange, accuVar, accuInit.build(), condition, step, result.build());
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr iterRange,
-      String accuVar,
-      CelExpr accuInit,
-      CelExpr.Builder condition,
-      CelExpr.Builder step,
-      CelExpr result) {
-    return fold(iterVar, iterRange, accuVar, accuInit, condition.build(), step.build(), result);
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr iterRange,
-      String accuVar,
-      CelExpr accuInit,
-      CelExpr.Builder condition,
-      CelExpr step,
-      CelExpr.Builder result) {
-    return fold(iterVar, iterRange, accuVar, accuInit, condition.build(), step, result.build());
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr iterRange,
-      String accuVar,
-      CelExpr accuInit,
-      CelExpr condition,
-      CelExpr.Builder step,
-      CelExpr.Builder result) {
-    return fold(iterVar, iterRange, accuVar, accuInit, condition, step.build(), result.build());
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr.Builder iterRange,
-      String accuVar,
-      CelExpr accuInit,
-      CelExpr.Builder condition,
-      CelExpr.Builder step,
-      CelExpr result) {
-    return fold(
-        iterVar, iterRange.build(), accuVar, accuInit, condition.build(), step.build(), result);
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr.Builder iterRange,
-      String accuVar,
-      CelExpr accuInit,
-      CelExpr.Builder condition,
-      CelExpr step,
-      CelExpr.Builder result) {
-    return fold(
-        iterVar, iterRange.build(), accuVar, accuInit, condition.build(), step, result.build());
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr.Builder iterRange,
-      String accuVar,
-      CelExpr.Builder accuInit,
-      CelExpr.Builder condition,
-      CelExpr.Builder step,
-      CelExpr result) {
-    return fold(
-        iterVar,
-        iterRange.build(),
-        accuVar,
-        accuInit.build(),
-        condition.build(),
-        step.build(),
-        result);
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr.Builder iterRange,
-      String accuVar,
-      CelExpr.Builder accuInit,
-      CelExpr condition,
-      CelExpr step,
-      CelExpr.Builder result) {
-    return fold(
-        iterVar, iterRange.build(), accuVar, accuInit.build(), condition, step, result.build());
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr.Builder iterRange,
-      String accuVar,
-      CelExpr.Builder accuInit,
-      CelExpr condition,
-      CelExpr.Builder step,
-      CelExpr result) {
-    return fold(
-        iterVar, iterRange.build(), accuVar, accuInit.build(), condition, step.build(), result);
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr.Builder iterRange,
-      String accuVar,
-      CelExpr.Builder accuInit,
-      CelExpr.Builder condition,
-      CelExpr step,
-      CelExpr result) {
-    return fold(
-        iterVar, iterRange.build(), accuVar, accuInit.build(), condition.build(), step, result);
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr.Builder iterRange,
-      String accuVar,
-      CelExpr accuInit,
-      CelExpr.Builder condition,
-      CelExpr.Builder step,
-      CelExpr.Builder result) {
-    return fold(
-        iterVar,
-        iterRange.build(),
-        accuVar,
-        accuInit,
-        condition.build(),
-        step.build(),
-        result.build());
-  }
-
-  /** Fold creates a fold comprehension instruction. */
-  public final CelExpr fold(
-      String iterVar,
-      CelExpr.Builder iterRange,
-      String accuVar,
-      CelExpr.Builder accuInit,
-      CelExpr.Builder condition,
-      CelExpr.Builder step,
-      CelExpr.Builder result) {
-    return fold(
-        iterVar,
-        iterRange.build(),
-        accuVar,
-        accuInit.build(),
-        condition.build(),
-        step.build(),
-        result.build());
+    checkArgument(!isNullOrEmpty(iterVar));
+    checkArgument(!isNullOrEmpty(iterVar2));
+    checkArgument(!isNullOrEmpty(accuVar));
+    return CelExpr.newBuilder()
+        .setId(nextExprId())
+        .setComprehension(
+            CelExpr.CelComprehension.newBuilder()
+                .setIterVar(iterVar)
+                .setIterVar2(iterVar2)
+                .setIterRange(iterRange)
+                .setAccuVar(accuVar)
+                .setAccuInit(accuInit)
+                .setLoopCondition(condition)
+                .setLoopStep(step)
+                .setResult(result)
+                .build())
+        .build();
   }
 
   /** Creates an identifier {@link CelExpr} for the given name. */

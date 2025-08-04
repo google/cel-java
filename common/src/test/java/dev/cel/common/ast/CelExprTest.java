@@ -352,6 +352,25 @@ public class CelExprTest {
   }
 
   @Test
+  public void celExprBuilder_setComprehensionV2() {
+    CelComprehension celComprehension =
+        CelComprehension.newBuilder()
+            .setIterVar("iterVar")
+            .setIterVar2("iterVar2")
+            .setIterRange(CelExpr.newBuilder().build())
+            .setAccuVar("accuVar")
+            .setAccuInit(CelExpr.newBuilder().build())
+            .setLoopCondition(CelExpr.newBuilder().build())
+            .setLoopStep(CelExpr.newBuilder().build())
+            .setResult(CelExpr.newBuilder().build())
+            .build();
+    CelExpr celExpr = CelExpr.newBuilder().setComprehension(celComprehension).build();
+
+    assertThat(celExpr.comprehension()).isEqualTo(celComprehension);
+    assertThat(celExpr.toBuilder().comprehension()).isEqualTo(celComprehension);
+  }
+
+  @Test
   public void getUnderlyingExpression_unmatchedKind_throws(
       @TestParameter BuilderExprKindTestCase testCase) {
     if (!testCase.expectedExprKind.equals(Kind.NOT_SET)) {

@@ -81,6 +81,7 @@ public final class CelMutableExprConverter {
         CelMutableComprehension mutableComprehension =
             CelMutableComprehension.create(
                 celComprehension.iterVar(),
+                celComprehension.iterVar2(),
                 fromCelExpr(celComprehension.iterRange()),
                 celComprehension.accuVar(),
                 fromCelExpr(celComprehension.accuInit()),
