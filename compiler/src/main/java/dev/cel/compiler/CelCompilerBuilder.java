@@ -76,13 +76,6 @@ public interface CelCompilerBuilder {
   CelCompilerBuilder setOptions(CelOptions options);
 
   /**
-   * @deprecated Use {@link #setContainer(CelContainer)} instead.
-   */
-  @CanIgnoreReturnValue
-  @Deprecated
-  CelCompilerBuilder setContainer(String container);
-
-  /**
    * Set the {@link CelContainer} to use as the namespace for resolving CEL expression variables and
    * functions.
    */
