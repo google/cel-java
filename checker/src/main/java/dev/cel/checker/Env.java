@@ -66,11 +66,7 @@ import org.jspecify.annotations.Nullable;
 @Internal
 public class Env {
 
-  /**
-   * The top-most scope in the environment, for use with {@link #getDeclGroup(int)}.
-   *
-   * <p>Note: Used by legacy type-checker users (mirrored sources) *
-   */
+  /** The top-most scope in the environment, for use with {@link #getDeclGroup(int)}. */
   public static final int ROOT_SCOPE = 0;
 
   /** An ident declaration to represent an error. */
@@ -399,7 +395,7 @@ public class Env {
   }
 
   /**
-   * Note: Used by legacy type-checker users (mirrored sources)
+   * Note: Used by legacy type-checker users
    *
    * @deprecated Use {@link #tryLookupCelFunction} instead.
    */
@@ -530,7 +526,7 @@ public class Env {
   }
 
   /**
-   * Note: Used by legacy type-checker users (mirrored sources)
+   * Note: Used by legacy type-checker users
    *
    * @deprecated Use {@link #reportError(long, int, String, Object...) instead.}
    */
