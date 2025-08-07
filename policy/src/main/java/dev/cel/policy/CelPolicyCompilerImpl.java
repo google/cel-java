@@ -158,13 +158,17 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
 
   private CelCompiledRule compileRuleImpl(
       CelPolicy.Rule rule, Cel ruleCel, CompilerContext compilerContext) {
+    // A local CEL environment used to compile a single rule. This temporary environment
+    // is used to declare policy variables iteratively in a given policy, ensuring proper scoping
+    // across a single / nested rule.
+    Cel localCel = ruleCel;
     ImmutableList.Builder<CelCompiledVariable> variableBuilder = ImmutableList.builder();
     for (Variable variable : rule.variables()) {
       ValueString expression = variable.expression();
       CelAbstractSyntaxTree varAst;
       CelType outputType = SimpleType.DYN;
       try {
-        varAst = ruleCel.compile(expression.value()).getAst();
+        varAst = localCel.compile(expression.value()).getAst();
         outputType = varAst.getResultType();
       } catch (CelValidationException e) {
         compilerContext.addIssue(expression.id(), e.getErrors());
@@ -174,7 +178,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
       String variableName = variable.name().value();
       CelVarDecl newVariable =
           CelVarDecl.newVarDeclaration(variablesPrefix + variableName, outputType);
-      ruleCel = ruleCel.toCelBuilder().addVarDeclarations(newVariable).build();
+      localCel = localCel.toCelBuilder().addVarDeclarations(newVariable).build();
       variableBuilder.add(CelCompiledVariable.create(variableName, varAst, newVariable));
     }
 
@@ -182,7 +186,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
     for (Match match : rule.matches()) {
       CelAbstractSyntaxTree conditionAst;
       try {
-        conditionAst = ruleCel.compile(match.condition().value()).getAst();
+        conditionAst = localCel.compile(match.condition().value()).getAst();
         if (!conditionAst.getResultType().equals(SimpleType.BOOL)) {
           compilerContext.addIssue(
               match.condition().id(),
@@ -199,7 +203,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
           CelAbstractSyntaxTree outputAst;
           ValueString output = match.result().output();
           try {
-            outputAst = ruleCel.compile(output.value()).getAst();
+            outputAst = localCel.compile(output.value()).getAst();
           } catch (CelValidationException e) {
             compilerContext.addIssue(output.id(), e.getErrors());
             continue;
@@ -209,7 +213,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
           break;
         case RULE:
           CelCompiledRule nestedRule =
-              compileRuleImpl(match.result().rule(), ruleCel, compilerContext);
+              compileRuleImpl(match.result().rule(), localCel, compilerContext);
           matchResult = Result.ofRule(nestedRule);
           break;
         default:
@@ -221,7 +225,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
 
     CelCompiledRule compiledRule =
         CelCompiledRule.create(
-            rule.id(), rule.ruleId(), variableBuilder.build(), matchBuilder.build(), cel);
+            rule.id(), rule.ruleId(), variableBuilder.build(), matchBuilder.build(), ruleCel);
 
     // Validate that all branches in the policy are reachable
     checkUnreachableCode(compiledRule, compilerContext);

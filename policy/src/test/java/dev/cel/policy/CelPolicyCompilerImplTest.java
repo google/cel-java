@@ -31,6 +31,8 @@ import dev.cel.bundle.CelEnvironmentYamlParser;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.types.OptionalType;
+import dev.cel.common.types.SimpleType;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.parser.CelStandardMacro;
@@ -43,6 +45,7 @@ import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection.PolicyT
 import dev.cel.policy.PolicyTestHelper.TestYamlPolicy;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelLateFunctionBindings;
+import dev.cel.testing.testdata.SingleFileProto.SingleFile;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.io.IOException;
 import java.util.Map;
@@ -74,6 +77,28 @@ public final class CelPolicyCompilerImplTest {
         CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
 
     assertThat(CelUnparserFactory.newUnparser().unparse(ast)).isEqualTo(yamlPolicy.getUnparsed());
+  }
+
+  @Test
+  public void compileYamlPolicy_withImportsOnNestedRules() throws Exception {
+    String policySource =
+        "imports:\n"
+            + "  - name: cel.expr.conformance.proto3.TestAllTypes\n"
+            + "  - name: dev.cel.testing.testdata.SingleFile\n"
+            + "rule:\n"
+            + "  match:\n"
+            + "  - rule:\n"
+            + "      id: 'nested rule with imports'\n"
+            + "      match:\n"
+            + "        - condition: 'TestAllTypes{}.single_string == SingleFile{}.name'\n"
+            + "          output: 'true'\n";
+    Cel cel = newCel();
+    CelPolicy policy = POLICY_PARSER.parse(policySource);
+
+    CelAbstractSyntaxTree ast =
+        CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
+
+    assertThat(ast.getResultType()).isEqualTo(OptionalType.create(SimpleType.BOOL));
   }
 
   @Test
@@ -292,7 +317,7 @@ public final class CelPolicyCompilerImplTest {
         .addCompilerLibraries(CelOptionalLibrary.INSTANCE)
         .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
         .addFileTypes(StandaloneGlobalEnum.getDescriptor().getFile())
-        .addMessageTypes(TestAllTypes.getDescriptor())
+        .addMessageTypes(TestAllTypes.getDescriptor(), SingleFile.getDescriptor())
         .setOptions(CEL_OPTIONS)
         .addFunctionBindings(
             CelFunctionBinding.from(

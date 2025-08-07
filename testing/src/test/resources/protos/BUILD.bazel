@@ -20,6 +20,8 @@ proto_library(
 
 java_proto_library(
     name = "single_file_java_proto",
+    tags = [
+    ],
     deps = [":single_file_proto"],
 )
 
