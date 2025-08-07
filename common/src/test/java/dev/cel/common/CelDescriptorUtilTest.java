@@ -21,21 +21,30 @@ import static org.junit.Assert.assertThrows;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Any;
+import com.google.protobuf.BoolValue;
+import com.google.protobuf.BytesValue;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.FileDescriptor;
+import com.google.protobuf.DoubleValue;
 import com.google.protobuf.Duration;
+import com.google.protobuf.Empty;
+import com.google.protobuf.FieldMask;
+import com.google.protobuf.FloatValue;
+import com.google.protobuf.Int32Value;
+import com.google.protobuf.Int64Value;
 import com.google.protobuf.ListValue;
 import com.google.protobuf.NullValue;
+import com.google.protobuf.StringValue;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Timestamp;
+import com.google.protobuf.UInt32Value;
+import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
-import com.google.rpc.context.AttributeContext;
-import com.google.rpc.context.AttributeContext.Api;
-import com.google.rpc.context.AttributeContext.Auth;
-import com.google.rpc.context.AttributeContext.Peer;
-import com.google.rpc.context.AttributeContext.Request;
-import com.google.rpc.context.AttributeContext.Resource;
-import com.google.rpc.context.AttributeContext.Response;
+import com.google.protobuf.WrappersProto;
+import dev.cel.expr.conformance.proto3.GlobalEnum;
+import dev.cel.expr.conformance.proto3.NestedTestAllTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -47,74 +56,95 @@ public final class CelDescriptorUtilTest {
   public void getAllDescriptorsFromFileDescriptor() {
     CelDescriptors celDescriptors =
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-            ImmutableList.of(AttributeContext.getDescriptor().getFile()));
+            ImmutableList.of(TestAllTypes.getDescriptor().getFile()));
 
     assertThat(celDescriptors.messageTypeDescriptors())
         .containsExactly(
             Any.getDescriptor(),
+            BoolValue.getDescriptor(),
+            BytesValue.getDescriptor(),
+            DoubleValue.getDescriptor(),
             Duration.getDescriptor(),
-            Struct.getDescriptor(),
-            Value.getDescriptor(),
+            Empty.getDescriptor(),
+            FieldMask.getDescriptor(),
+            FloatValue.getDescriptor(),
+            Int32Value.getDescriptor(),
+            Int64Value.getDescriptor(),
             ListValue.getDescriptor(),
+            NestedTestAllTypes.getDescriptor(),
+            StringValue.getDescriptor(),
+            Struct.getDescriptor(),
+            TestAllTypes.NestedMessage.getDescriptor(),
+            TestAllTypes.getDescriptor(),
             Timestamp.getDescriptor(),
-            AttributeContext.getDescriptor(),
-            Peer.getDescriptor(),
-            Api.getDescriptor(),
-            Auth.getDescriptor(),
-            Request.getDescriptor(),
-            Response.getDescriptor(),
-            Resource.getDescriptor());
-    assertThat(celDescriptors.enumDescriptors()).containsExactly(NullValue.getDescriptor());
+            UInt32Value.getDescriptor(),
+            UInt64Value.getDescriptor(),
+            Value.getDescriptor());
+    assertThat(celDescriptors.enumDescriptors())
+        .containsExactly(
+            NullValue.getDescriptor(), GlobalEnum.getDescriptor(), NestedEnum.getDescriptor());
     assertThat(celDescriptors.fileDescriptors())
         .containsExactly(
-            AttributeContext.getDescriptor().getFile(),
-            // The following fileDescriptors are defined as imports of AttributeContext proto
+            TestAllTypes.getDescriptor().getFile(),
+            // The following fileDescriptors are defined as imports of TestAllTypes proto
             Any.getDescriptor().getFile(),
-            Timestamp.getDescriptor().getFile(),
+            Duration.getDescriptor().getFile(),
+            Empty.getDescriptor().getFile(),
+            FieldMask.getDescriptor().getFile(),
             Struct.getDescriptor().getFile(),
-            Duration.getDescriptor().getFile());
+            Timestamp.getDescriptor().getFile(),
+            WrappersProto.getDescriptor().getFile());
   }
 
   @Test
   public void getFileDescriptorsForDescriptors() {
     ImmutableSet<FileDescriptor> fileDescriptors =
         CelDescriptorUtil.getFileDescriptorsForDescriptors(
-            ImmutableList.of(AttributeContext.getDescriptor()));
+            ImmutableList.of(TestAllTypes.getDescriptor()));
     assertThat(fileDescriptors)
         .containsExactly(
+            TestAllTypes.getDescriptor().getFile(),
             Any.getDescriptor().getFile(),
             Duration.getDescriptor().getFile(),
+            Empty.getDescriptor().getFile(),
+            FieldMask.getDescriptor().getFile(),
             Struct.getDescriptor().getFile(),
             Timestamp.getDescriptor().getFile(),
-            AttributeContext.getDescriptor().getFile());
+            WrappersProto.getDescriptor().getFile());
   }
 
   @Test
   public void getFileDescriptorsForDescriptors_duplicateDescriptors() {
     ImmutableSet<FileDescriptor> fileDescriptors =
         CelDescriptorUtil.getFileDescriptorsForDescriptors(
-            ImmutableList.of(AttributeContext.getDescriptor(), AttributeContext.getDescriptor()));
+            ImmutableList.of(TestAllTypes.getDescriptor(), TestAllTypes.getDescriptor()));
     assertThat(fileDescriptors)
         .containsExactly(
+            TestAllTypes.getDescriptor().getFile(),
             Any.getDescriptor().getFile(),
             Duration.getDescriptor().getFile(),
+            Empty.getDescriptor().getFile(),
+            FieldMask.getDescriptor().getFile(),
             Struct.getDescriptor().getFile(),
             Timestamp.getDescriptor().getFile(),
-            AttributeContext.getDescriptor().getFile());
+            WrappersProto.getDescriptor().getFile());
   }
 
   @Test
   public void getFileDescriptorsForDescriptors_duplicateAncestorDescriptors() {
     ImmutableSet<FileDescriptor> fileDescriptors =
         CelDescriptorUtil.getFileDescriptorsForDescriptors(
-            ImmutableList.of(AttributeContext.getDescriptor(), Any.getDescriptor()));
+            ImmutableList.of(TestAllTypes.getDescriptor(), Any.getDescriptor()));
     assertThat(fileDescriptors)
         .containsExactly(
+            TestAllTypes.getDescriptor().getFile(),
             Any.getDescriptor().getFile(),
             Duration.getDescriptor().getFile(),
+            Empty.getDescriptor().getFile(),
+            FieldMask.getDescriptor().getFile(),
             Struct.getDescriptor().getFile(),
             Timestamp.getDescriptor().getFile(),
-            AttributeContext.getDescriptor().getFile());
+            WrappersProto.getDescriptor().getFile());
   }
 
   @Test
@@ -122,20 +152,26 @@ public final class CelDescriptorUtilTest {
     FileDescriptorSet fds =
         FileDescriptorSet.newBuilder()
             .addFile(Any.getDescriptor().getFile().toProto())
+            .addFile(Empty.getDescriptor().getFile().toProto())
+            .addFile(FieldMask.getDescriptor().getFile().toProto())
+            .addFile(WrappersProto.getDescriptor().getFile().toProto())
             .addFile(Duration.getDescriptor().getFile().toProto())
             .addFile(Struct.getDescriptor().getFile().toProto())
             .addFile(Timestamp.getDescriptor().getFile().toProto())
-            .addFile(AttributeContext.getDescriptor().getFile().toProto())
+            .addFile(TestAllTypes.getDescriptor().getFile().toProto())
             .build();
     ImmutableSet<FileDescriptor> fileDescriptors =
         CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds);
     assertThat(fileDescriptors.stream().map(FileDescriptor::getName).collect(toImmutableSet()))
         .containsExactly(
+            TestAllTypes.getDescriptor().getFile().getName(),
             Any.getDescriptor().getFile().getName(),
             Duration.getDescriptor().getFile().getName(),
+            Empty.getDescriptor().getFile().getName(),
+            FieldMask.getDescriptor().getFile().getName(),
             Struct.getDescriptor().getFile().getName(),
             Timestamp.getDescriptor().getFile().getName(),
-            AttributeContext.getDescriptor().getFile().getName());
+            WrappersProto.getDescriptor().getFile().getName());
   }
 
   @Test
@@ -145,7 +181,7 @@ public final class CelDescriptorUtilTest {
             .addFile(Duration.getDescriptor().getFile().toProto())
             .addFile(Struct.getDescriptor().getFile().toProto())
             .addFile(Timestamp.getDescriptor().getFile().toProto())
-            .addFile(AttributeContext.getDescriptor().getFile().toProto())
+            .addFile(TestAllTypes.getDescriptor().getFile().toProto())
             .build();
     IllegalArgumentException e =
         assertThrows(
