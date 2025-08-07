@@ -47,7 +47,6 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_antlr_antlr4_runtime",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -132,15 +131,18 @@ DYNAMIC_PROTO_SOURCES = [
 
 java_library(
     name = "default_instance_message_factory",
-    srcs = ["DefaultInstanceMessageFactory.java"],
+    srcs = [
+        "DefaultInstanceMessageFactory.java",
+        "DefaultInstanceMessageLiteFactory.java",
+    ],
     tags = [
     ],
     deps = [
-        ":default_instance_message_lite_factory",
         ":proto_java_qualified_names",
+        ":reflection_util",
         "//common/annotations",
+        "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -175,7 +177,6 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -193,7 +194,6 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -210,7 +210,6 @@ java_library(
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_jspecify_jspecify",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 

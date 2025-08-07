@@ -15,21 +15,31 @@
 
 # Script ran as part of Github CEL-Java CI to verify that the runtime jar does not contain unwanted dependencies.
 
-UNWANTED_DEPS=(
-  '@cel_spec' # Do not include generated CEL protos in the jar
-  'protobuf_java_util' # Does not support protolite
-)
+function checkUnwantedDeps {
+  target="$1"
+  unwanted_dep="$2"
 
-runtime_deps="$(bazel query 'deps(//publish:cel_runtime)' --nohost_deps --noimplicit_deps --output graph)"
+  query="bazel query 'deps(${target})' --notool_deps --noimplicit_deps --output graph"
+  deps=$(eval $query)
 
-for unwanted_dep in "${UNWANTED_DEPS[@]}"; do
-  if echo "$runtime_deps" | grep "$unwanted_dep" > /dev/null; then
-    echo -e "Runtime contains unwanted dependency: $unwanted_dep!\n"
-    echo "cel_spec dependency graph (including '$unwanted_dep'):"
-    echo "$(echo "$runtime_deps" | grep "$unwanted_dep")"
+  if echo "$deps" | grep "$unwanted_dep" > /dev/null; then
+    echo -e "$target contains unwanted dependency: $unwanted_dep!\n"
+    echo "$(echo "$deps" | grep "$unwanted_dep")"
     exit 1
   fi
-done
+}
 
+# Do not include generated CEL protos in the jar
+checkUnwantedDeps '//publish:cel_runtime' '@cel_spec'
+
+# cel_runtime does not support protolite
+checkUnwantedDeps '//publish:cel_runtime' 'protobuf_java_util'
+checkUnwantedDeps '//publish:cel' 'protobuf_java_util'
+
+# cel_runtime shouldn't depend on the protobuf_lite runtime
+checkUnwantedDeps '//publish:cel_runtime' '@maven_android//:com_google_protobuf_protobuf_javalite'
+checkUnwantedDeps '//publish:cel' '@maven_android//:com_google_protobuf_protobuf_javalite'
+
+# cel_runtime_android shouldn't depend on the full protobuf runtime
+checkUnwantedDeps '//publish:cel_runtime_android' '@maven//:com_google_protobuf_protobuf_java'
 exit 0
-

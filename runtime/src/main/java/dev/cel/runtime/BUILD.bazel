@@ -52,6 +52,13 @@ FUNCTION_BINDING_SOURCES = [
 ]
 
 # keep sorted
+FUNCTION_OVERLOAD_IMPL_SOURCES = [
+    "FunctionOverload.java",
+    "FunctionResolver.java",
+    "ResolvedOverload.java",
+]
+
+# keep sorted
 INTERPRABLE_SOURCES = [
     "GlobalResolver.java",
     "Interpretable.java",
@@ -137,7 +144,7 @@ cel_android_library(
         ":base_android",
         ":evaluation_exception",
         ":evaluation_exception_builder",
-        ":function_overload_impl",
+        ":function_overload_impl_android",
         "//:auto_value",
         "//common:error_codes",
         "//common/annotations",
@@ -157,8 +164,8 @@ java_library(
         ":runtime_helpers",
         "//common/annotations",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_jspecify_jspecify",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -202,7 +209,6 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -254,7 +260,7 @@ cel_android_library(
     srcs = BASE_SOURCES,
     visibility = ["//visibility:private"],
     deps = [
-        ":function_overload_impl",
+        ":function_overload_impl_android",
         ":metadata",
         "//common:cel_ast_android",
         "//common/annotations",
@@ -314,7 +320,7 @@ cel_android_library(
         ":evaluation_exception",
         ":evaluation_exception_builder",
         ":evaluation_listener_android",
-        ":function_overload_impl",
+        ":function_overload_impl_android",
         ":interpretable_android",
         ":interpreter_util_android",
         ":metadata",
@@ -354,7 +360,7 @@ java_library(
         "//common/internal:comparison_functions",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -435,7 +441,6 @@ java_library(
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_re2j_re2j",
         "@maven//:org_threeten_threeten_extra",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -501,9 +506,9 @@ cel_android_library(
         ":dispatcher_android",
         ":evaluation_exception",
         ":function_binding_android",
-        ":function_overload",
-        ":function_overload_impl",
-        ":function_resolver",
+        ":function_overload_android",
+        ":function_overload_impl_android",
+        ":function_resolver_android",
         "//:auto_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
@@ -585,7 +590,7 @@ cel_android_library(
     deps = [
         ":evaluation_exception",
         ":evaluation_listener_android",
-        ":function_overload_impl",
+        ":function_overload_impl_android",
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:org_jspecify_jspecify",
@@ -723,7 +728,7 @@ cel_android_library(
     tags = [
     ],
     deps = [
-        ":function_overload",
+        ":function_overload_android",
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
@@ -733,11 +738,20 @@ cel_android_library(
 java_library(
     name = "function_resolver",
     srcs = ["CelFunctionResolver.java"],
-    # used_by_android
     tags = [
     ],
     deps = [
         ":function_overload_impl",
+        "@maven//:com_google_code_findbugs_annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+cel_android_library(
+    name = "function_resolver_android",
+    srcs = ["CelFunctionResolver.java"],
+    deps = [
+        ":function_overload_impl_android",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
@@ -748,7 +762,6 @@ java_library(
     srcs = [
         "CelFunctionOverload.java",
     ],
-    # used_by_android
     tags = [
     ],
     deps = [
@@ -757,16 +770,34 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "function_overload_android",
+    srcs = [
+        "CelFunctionOverload.java",
+    ],
+    deps = [
+        ":function_overload_impl_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
 java_library(
     name = "function_overload_impl",
-    srcs = [
-        "FunctionOverload.java",
-        "FunctionResolver.java",
-        "ResolvedOverload.java",
-    ],
-    # used_by_android
+    srcs = FUNCTION_OVERLOAD_IMPL_SOURCES,
     tags = [
     ],
+    deps = [
+        ":evaluation_exception",
+        "//common/annotations",
+        "@maven//:com_google_code_findbugs_annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+cel_android_library(
+    name = "function_overload_impl_android",
+    srcs = FUNCTION_OVERLOAD_IMPL_SOURCES,
     deps = [
         ":evaluation_exception",
         "//common/annotations",
@@ -812,6 +843,7 @@ java_library(
         "//common/types:cel_types",
         "//common/values:cel_value_provider",
         "//common/values:proto_message_value_provider",
+        "//runtime/standard:standard_function",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -881,7 +913,7 @@ cel_android_library(
         ":dispatcher_android",
         ":evaluation_exception",
         ":function_binding_android",
-        ":function_resolver",
+        ":function_resolver_android",
         ":interpretable_android",
         ":interpreter_android",
         ":lite_runtime_android",
@@ -1001,7 +1033,7 @@ java_library(
         "//common/values:combined_cel_value_provider",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -1086,7 +1118,7 @@ cel_android_library(
     deps = [
         ":evaluation_exception",
         ":function_binding_android",
-        ":function_resolver",
+        ":function_resolver_android",
         "//:auto_value",
         "//common:cel_ast_android",
         "//common:options",

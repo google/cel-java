@@ -56,7 +56,6 @@ java_library(
         "//runtime:runtime_helpers",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -168,7 +167,7 @@ java_library(
         "//runtime:runtime_equality",
         "//runtime/standard:standard_function",
         "@maven//:com_google_guava_guava",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -744,7 +743,6 @@ java_library(
         "//runtime/standard:standard_function",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -783,7 +781,6 @@ java_library(
         "//runtime/standard:standard_function",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -924,7 +921,6 @@ java_library(
         "//runtime/standard:standard_function",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -963,7 +959,6 @@ java_library(
         "//runtime/standard:standard_function",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -1238,7 +1233,7 @@ java_library(
         "//runtime:runtime_equality",
         "//runtime/standard:standard_function",
         "@maven//:com_google_guava_guava",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -1304,7 +1299,6 @@ java_library(
         "//runtime/standard:standard_function",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 

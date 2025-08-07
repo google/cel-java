@@ -52,7 +52,6 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -114,7 +113,7 @@ java_library(
         ":ast",
         "//common/annotations",
         "@maven//:com_google_guava_guava",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 

@@ -78,7 +78,6 @@ cel_android_library(
 
 java_library(
     name = "function_overload_impl",
-    # used_by_android
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:function_overload_impl"],
 )
