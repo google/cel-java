@@ -25,6 +25,7 @@ bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_proto", version = "7.1.0")
 bazel_dep(name = "rules_java", version = "8.12.0")
 bazel_dep(name = "rules_android", version = "0.6.4")
+bazel_dep(name = "rules_shell", version = "0.5.1")
 bazel_dep(name = "googleapis-java", version = "1.0.0")
 bazel_dep(name = "cel-spec", version = "0.24.0", repo_name = "cel_spec")
 
