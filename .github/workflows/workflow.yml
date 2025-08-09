@@ -41,14 +41,39 @@ jobs:
         # Exclude codelab exercises as they are intentionally made to fail
         # Exclude maven conformance tests. They are only executed when there's changes to version.
         run: bazelisk test ... --deleted_packages=//codelab/src/test/codelab --test_output=errors --test_tag_filters=-conformance_maven --build_tag_filters=-conformance_maven
+
+      # -- Start of Maven Conformance Tests (Ran only when there's version changes) --
       - name: Get changed file
         id: changed_file
         uses: tj-actions/changed-files@v44
         with:
           files: publish/cel_version.bzl
+      - name: Verify Version Consistency
+        if: steps.changed_file.outputs.any_changed == 'true'
+        run: |
+          CEL_VERSION=$(grep 'CEL_VERSION =' publish/cel_version.bzl | cut -d '"' -f 2)
+
+          MODULE_VERSION=$(grep 'dev.cel:cel' MODULE.bazel | cut -d '"' -f 2 | cut -d ':' -f 3)
+
+          if [ -z "$CEL_VERSION" ] || [ -z "$MODULE_VERSION" ]; then
+            echo "❌ Error: Could not extract one or both version strings."
+            exit 1
+          fi
+
+          echo "Version in publish/cel_version.bzl: ${CEL_VERSION}"
+          echo "Version in MODULE.bazel: ${MODULE_VERSION}"
+
+          if [ "$CEL_VERSION" != "$MODULE_VERSION" ]; then
+            echo "❌ Error: Version mismatch between files!"
+            exit 1
+          fi
+
+          echo "✅ Versions match."
       - name: Run Conformance Maven Test on Version Change
         if: steps.changed_file.outputs.any_changed == 'true'
         run: bazelisk test //conformance/src/test/java/dev/cel/conformance:conformance_maven --test_output=errors
+      # -- End of Maven Conformance Tests --
+
       - name: Unwanted Dependencies
         run: .github/workflows/unwanted_deps.sh
       - run: echo "🍏 This job's status is ${{ job.status }}."
