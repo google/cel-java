@@ -95,6 +95,7 @@ def conformance_test(name, data, mode = Mode.TEST, skip_tests = []):
             data = data,
             size = "small",
             test_class = "dev.cel.conformance.ConformanceTests",
+            tags = ["conformance_maven"],
             runtime_deps = ["//conformance/src/test/java/dev/cel/conformance:run_maven_jar"],
         )
     else:

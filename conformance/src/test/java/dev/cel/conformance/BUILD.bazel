@@ -44,6 +44,7 @@ java_library(
     name = "run_maven_jar",
     testonly = True,
     srcs = glob(["*.java"]),
+    tags = ["conformance_maven"],
     deps = [
         "//:java_truth",
         "//testing:expr_value_utils",
