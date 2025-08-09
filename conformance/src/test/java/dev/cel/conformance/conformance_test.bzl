@@ -43,8 +43,17 @@ def _conformance_test_args(data, skip_tests):
     args.append("-Ddev.cel.conformance.ConformanceTests.tests={}".format(",".join(["$(location " + test + ")" for test in data])))
     return args
 
-def conformance_test(name, data, dashboard, skip_tests = []):
-    if dashboard:
+Mode = struct(
+    # Standard test execution against HEAD
+    TEST = "test",
+    # Executes conformance test against published jar in maven central
+    MAVEN_TEST = "maven_test",
+    # Dashboard mode
+    DASHBOARD = "dashboard",
+)
+
+def conformance_test(name, data, mode = Mode.TEST, skip_tests = []):
+    if mode == Mode.DASHBOARD:
         java_test(
             name = "_" + name,
             jvm_flags = _conformance_test_args(data, skip_tests),
@@ -57,6 +66,7 @@ def conformance_test(name, data, dashboard, skip_tests = []):
                 "notap",
             ],
         )
+
         native.sh_test(
             name = name,
             size = "small",
@@ -69,7 +79,8 @@ def conformance_test(name, data, dashboard, skip_tests = []):
                 "notap",
             ],
         )
-    else:
+    elif mode == Mode.TEST:
+        # In standard test mode, just create the java_test.
         java_test(
             name = name,
             jvm_flags = _conformance_test_args(data, skip_tests),
@@ -78,3 +89,5 @@ def conformance_test(name, data, dashboard, skip_tests = []):
             test_class = "dev.cel.conformance.ConformanceTests",
             runtime_deps = ["//conformance/src/test/java/dev/cel/conformance:run"],
         )
+    else:
+        fail("Unknown mode specified: %s." % mode)
