@@ -40,6 +40,25 @@ java_library(
     ],
 )
 
+java_library(
+    name = "run_maven_jar",
+    testonly = True,
+    srcs = glob(["*.java"]),
+    deps = [
+        "//:java_truth",
+        "//testing:expr_value_utils",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/test:simple_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_truth_extensions_truth_proto_extension",
+        "@maven//:junit_junit",
+        "@maven_conformance//:dev_cel_cel",
+    ],
+)
+
 _ALL_TESTS = [
     "@cel_spec//tests/simple:testdata/basic.textproto",
     "@cel_spec//tests/simple:testdata/bindings_ext.textproto",
