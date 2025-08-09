@@ -1,5 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
-load("//conformance/src/test/java/dev/cel/conformance:conformance_test.bzl", "conformance_test")
+load("//conformance/src/test/java/dev/cel/conformance:conformance_test.bzl", "conformance_test", "Mode")
 
 package(default_applicable_licenses = [
     "//:license",
@@ -150,13 +150,20 @@ _TESTS_TO_SKIP = [
 
 conformance_test(
     name = "conformance",
-    dashboard = False,
+    data = _ALL_TESTS,
+    skip_tests = _TESTS_TO_SKIP,
+)
+
+conformance_test(
+    name = "conformance_maven",
+    mode = Mode.MAVEN_TEST,
     data = _ALL_TESTS,
     skip_tests = _TESTS_TO_SKIP,
 )
 
 conformance_test(
     name = "conformance_dashboard",
-    dashboard = True,
+    mode = Mode.DASHBOARD,
     data = _ALL_TESTS,
 )
+

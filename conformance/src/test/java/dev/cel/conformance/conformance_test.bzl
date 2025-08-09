@@ -80,7 +80,6 @@ def conformance_test(name, data, mode = Mode.TEST, skip_tests = []):
             ],
         )
     elif mode == Mode.TEST:
-        # In standard test mode, just create the java_test.
         java_test(
             name = name,
             jvm_flags = _conformance_test_args(data, skip_tests),
@@ -88,6 +87,15 @@ def conformance_test(name, data, mode = Mode.TEST, skip_tests = []):
             size = "small",
             test_class = "dev.cel.conformance.ConformanceTests",
             runtime_deps = ["//conformance/src/test/java/dev/cel/conformance:run"],
+        )
+    elif mode == Mode.MAVEN_TEST:
+        java_test(
+            name = name,
+            jvm_flags = _conformance_test_args(data, skip_tests),
+            data = data,
+            size = "small",
+            test_class = "dev.cel.conformance.ConformanceTests",
+            runtime_deps = ["//conformance/src/test/java/dev/cel/conformance:run_maven_jar"],
         )
     else:
         fail("Unknown mode specified: %s." % mode)
