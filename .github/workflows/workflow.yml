@@ -39,7 +39,16 @@ jobs:
         run: bazel build ... --java_language_version=8 --java_runtime_version=8
       - name: Bazel Test
         # Exclude codelab exercises as they are intentionally made to fail
-        run: bazelisk test ... --deleted_packages=//codelab/src/test/codelab --test_output=errors
+        # Exclude maven conformance tests. They are only executed when there's changes to version.
+        run: bazelisk test ... --deleted_packages=//codelab/src/test/codelab --test_output=errors -- -//conformance/src/test/java/dev/cel/conformance:conformance_maven
+      - name: Get changed file
+        id: changed_file
+        uses: tj-actions/changed-files@v44
+        with:
+          files: publish/cel_version.bzl
+      - name: Run Conformance Maven Test on Version Change
+        if: steps.changed_file.outputs.any_changed == 'true'
+        run: bazelisk test //conformance/src/test/java/dev/cel/conformance:conformance_maven --test_output=errors
       - name: Unwanted Dependencies
         run: .github/workflows/unwanted_deps.sh
       - run: echo "🍏 This job's status is ${{ job.status }}."
