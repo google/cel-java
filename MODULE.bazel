@@ -93,7 +93,6 @@ maven.install(
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
-        "https://central.sonatype.com/repository/maven-snapshots/",
     ],
 )
 maven.install(
