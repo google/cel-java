@@ -1,5 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
-load("//conformance/src/test/java/dev/cel/conformance:conformance_test.bzl", "conformance_test")
+load("//conformance/src/test/java/dev/cel/conformance:conformance_test.bzl", "MODE", "conformance_test")
 
 package(default_applicable_licenses = [
     "//:license",
@@ -28,6 +28,27 @@ java_library(
         "//parser:parser_builder",
         "//parser:parser_factory",
         "//runtime",
+        "//testing:expr_value_utils",
+        "@cel_spec//proto/cel/expr:expr_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+        "@cel_spec//proto/cel/expr/conformance/test:simple_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_truth_extensions_truth_proto_extension",
+        "@maven//:junit_junit",
+    ],
+)
+
+MAVEN_JAR_DEPS = ["@maven_conformance//:dev_cel_cel"]
+
+java_library(
+    name = "run_maven_jar",
+    testonly = True,
+    srcs = glob(["*.java"]),
+    tags = ["conformance_maven"],
+    deps = MAVEN_JAR_DEPS + [
+        "//:java_truth",
         "//testing:expr_value_utils",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
@@ -131,13 +152,19 @@ _TESTS_TO_SKIP = [
 
 conformance_test(
     name = "conformance",
-    dashboard = False,
     data = _ALL_TESTS,
     skip_tests = _TESTS_TO_SKIP,
 )
 
 conformance_test(
-    name = "conformance_dashboard",
-    dashboard = True,
+    name = "conformance_maven",
     data = _ALL_TESTS,
+    mode = MODE.MAVEN_TEST,
+    skip_tests = _TESTS_TO_SKIP,
+)
+
+conformance_test(
+    name = "conformance_dashboard",
+    data = _ALL_TESTS,
+    mode = MODE.DASHBOARD,
 )

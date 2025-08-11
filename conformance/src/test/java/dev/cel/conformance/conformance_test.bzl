@@ -43,8 +43,29 @@ def _conformance_test_args(data, skip_tests):
     args.append("-Ddev.cel.conformance.ConformanceTests.tests={}".format(",".join(["$(location " + test + ")" for test in data])))
     return args
 
-def conformance_test(name, data, dashboard, skip_tests = []):
-    if dashboard:
+MODE = struct(
+    # Standard test execution against HEAD
+    TEST = "test",
+    # Executes conformance test against published jar in maven central
+    MAVEN_TEST = "maven_test",
+    # Dashboard mode
+    DASHBOARD = "dashboard",
+)
+
+def conformance_test(name, data, mode = MODE.TEST, skip_tests = []):
+    """Executes conformance tests
+
+    Args:
+       name: unique label for the java_test
+       data: A list of test data files
+       mode: An enum that determines the test configuration.
+           - `MODE.TEST` (default): Runs the conformance tests
+           - `MODE.DASHBOARD`: Runs the conformance tests for displaying on dashboard.
+           - `MODE.MAVEN_TEST`: Runs the conformance tests against published JAR in maven central.
+       skip_tests: A list of strings, where each string is the name of a test file to
+                   exclude from the run.
+    """
+    if mode == MODE.DASHBOARD:
         java_test(
             name = "_" + name,
             jvm_flags = _conformance_test_args(data, skip_tests),
@@ -57,6 +78,7 @@ def conformance_test(name, data, dashboard, skip_tests = []):
                 "notap",
             ],
         )
+
         native.sh_test(
             name = name,
             size = "small",
@@ -69,7 +91,7 @@ def conformance_test(name, data, dashboard, skip_tests = []):
                 "notap",
             ],
         )
-    else:
+    elif mode == MODE.TEST:
         java_test(
             name = name,
             jvm_flags = _conformance_test_args(data, skip_tests),
@@ -78,3 +100,15 @@ def conformance_test(name, data, dashboard, skip_tests = []):
             test_class = "dev.cel.conformance.ConformanceTests",
             runtime_deps = ["//conformance/src/test/java/dev/cel/conformance:run"],
         )
+    elif mode == MODE.MAVEN_TEST:
+        java_test(
+            name = name,
+            jvm_flags = _conformance_test_args(data, skip_tests),
+            data = data,
+            size = "small",
+            test_class = "dev.cel.conformance.ConformanceTests",
+            tags = ["conformance_maven"],
+            runtime_deps = ["//conformance/src/test/java/dev/cel/conformance:run_maven_jar"],
+        )
+    else:
+        fail("Unknown mode specified: %s." % mode)

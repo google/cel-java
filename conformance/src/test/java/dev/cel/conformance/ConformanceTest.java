@@ -61,20 +61,6 @@ public final class ConformanceTest extends Statement {
           .enableQuotedIdentifierSyntax(true)
           .build();
 
-  private static final CelParser PARSER_WITH_MACROS =
-      CelParserFactory.standardCelParserBuilder()
-          .setOptions(OPTIONS)
-          .addLibraries(
-              CelExtensions.bindings(),
-              CelExtensions.encoders(),
-              CelExtensions.math(OPTIONS),
-              CelExtensions.protos(),
-              CelExtensions.sets(OPTIONS),
-              CelExtensions.strings(),
-              CelOptionalLibrary.INSTANCE)
-          .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-          .build();
-
   private static final CelParser PARSER_WITHOUT_MACROS =
       CelParserFactory.standardCelParserBuilder()
           .setOptions(OPTIONS)
@@ -86,11 +72,15 @@ public final class ConformanceTest extends Statement {
               CelExtensions.sets(OPTIONS),
               CelExtensions.strings(),
               CelOptionalLibrary.INSTANCE)
-          .setStandardMacros()
           .build();
 
   private static CelParser getParser(SimpleTest test) {
-    return test.getDisableMacros() ? PARSER_WITHOUT_MACROS : PARSER_WITH_MACROS;
+    return test.getDisableMacros()
+        ? PARSER_WITHOUT_MACROS
+        : PARSER_WITHOUT_MACROS
+            .toParserBuilder()
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .build();
   }
 
   private static CelChecker getChecker(SimpleTest test) throws Exception {

@@ -18,15 +18,16 @@ module(
 
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "rules_jvm_external", version = "6.7")
-bazel_dep(name = "protobuf", version = "29.3", repo_name = "com_google_protobuf") # see https://github.com/bazelbuild/rules_android/issues/373
+bazel_dep(name = "protobuf", version = "29.3", repo_name = "com_google_protobuf")  # see https://github.com/bazelbuild/rules_android/issues/373
 bazel_dep(name = "googleapis", version = "0.0.0-20241220-5e258e33.bcr.1", repo_name = "com_google_googleapis")
 bazel_dep(name = "rules_pkg", version = "1.0.1")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_proto", version = "7.1.0")
 bazel_dep(name = "rules_java", version = "8.12.0")
 bazel_dep(name = "rules_android", version = "0.6.4")
+bazel_dep(name = "rules_shell", version = "0.5.1")
 bazel_dep(name = "googleapis-java", version = "1.0.0")
-bazel_dep(name = "cel-spec", repo_name = "cel_spec", version = "0.24.0")
+bazel_dep(name = "cel-spec", version = "0.24.0", repo_name = "cel_spec")
 
 switched_rules = use_extension("@com_google_googleapis//:extensions.bzl", "switched_rules")
 switched_rules.use_languages(java = True)
@@ -35,14 +36,15 @@ use_repo(switched_rules, "com_google_googleapis_imports")
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 
 GUAVA_VERSION = "33.4.8"
+
 TRUTH_VERSION = "1.4.4"
 
 # Compile only artifacts
 [
     maven.artifact(
-        neverlink = True,
         artifact = artifact,
         group = group,
+        neverlink = True,
         version = version,
     )
     for group, artifact, version in [coord.split(":") for coord in [
@@ -68,7 +70,6 @@ TRUTH_VERSION = "1.4.4"
         "com.google.truth.extensions:truth-proto-extension:" + TRUTH_VERSION,
         "com.google.truth.extensions:truth-liteproto-extension:" + TRUTH_VERSION,
         "com.google.truth:truth:" + TRUTH_VERSION,
-
     ]]
 ]
 
@@ -94,7 +95,6 @@ maven.install(
         "https://repo1.maven.org/maven2",
     ],
 )
-
 maven.install(
     name = "maven_android",
     # keep sorted
@@ -108,7 +108,18 @@ maven.install(
     ],
 )
 
-use_repo(maven, "maven", "maven_android")
+# Conformance test only
+
+maven.install(
+    name = "maven_conformance",
+    artifacts = ["dev.cel:cel:0.11.0-SNAPSHOT"],
+    repositories = [
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+        "https://central.sonatype.com/repository/maven-snapshots/",
+    ],
+)
+use_repo(maven, "maven", "maven_android", "maven_conformance")
 
 non_module_dependencies = use_extension("//:repositories.bzl", "non_module_dependencies")
 use_repo(non_module_dependencies, "antlr4_jar")
