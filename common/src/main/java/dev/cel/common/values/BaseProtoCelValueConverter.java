@@ -65,10 +65,6 @@ public abstract class BaseProtoCelValueConverter extends CelValueConverter {
       return ProtoTimeUtils.toProtoTimestamp(((TimestampValue) celValue).value());
     } else if (celValue instanceof DurationValue) {
       return ProtoTimeUtils.toProtoDuration(((DurationValue) celValue).value());
-    } else if (celValue instanceof BytesValue) {
-      return ByteString.copyFrom(((BytesValue) celValue).value().toByteArray());
-    } else if (celValue.equals(NullValue.NULL_VALUE)) {
-      return com.google.protobuf.NullValue.NULL_VALUE;
     }
 
     return super.fromCelValueToJavaObject(celValue);

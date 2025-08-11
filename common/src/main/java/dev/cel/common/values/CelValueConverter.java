@@ -112,6 +112,8 @@ abstract class CelValueConverter {
       return DoubleValue.create(Double.valueOf((Float) value));
     } else if (value instanceof UnsignedLong) {
       return UintValue.create((UnsignedLong) value);
+    } else if (value instanceof CelByteString) {
+      return BytesValue.create((CelByteString) value);
     }
 
     // Fall back to an Opaque value, as a custom class was supplied in the runtime. The legacy

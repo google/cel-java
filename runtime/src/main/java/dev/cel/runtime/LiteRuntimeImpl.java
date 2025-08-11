@@ -201,7 +201,11 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     }
 
     private Builder() {
-      this.celOptions = CelOptions.current().enableCelValue(true).build();
+      this.celOptions =
+          CelOptions.current()
+              .enableCelValue(true)
+              .evaluateCanonicalTypesToNativeValues(true)
+              .build();
       this.celValueProvider = (structType, fields) -> Optional.empty();
       this.customFunctionBindings = new HashMap<>();
       this.standardFunctionBuilder = ImmutableSet.builder();

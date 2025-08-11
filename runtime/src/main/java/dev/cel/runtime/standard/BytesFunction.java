@@ -15,8 +15,8 @@
 package dev.cel.runtime.standard;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.protobuf.ByteString;
 import dev.cel.common.CelOptions;
+import dev.cel.common.values.CelByteString;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import java.util.Arrays;
@@ -41,10 +41,10 @@ public final class BytesFunction extends CelStandardFunction {
   public enum BytesOverload implements CelStandardOverload {
     BYTES_TO_BYTES(
         (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from("bytes_to_bytes", ByteString.class, (ByteString x) -> x)),
+            CelFunctionBinding.from("bytes_to_bytes", CelByteString.class, (CelByteString x) -> x)),
     STRING_TO_BYTES(
         (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from("string_to_bytes", String.class, ByteString::copyFromUtf8)),
+            CelFunctionBinding.from("string_to_bytes", String.class, CelByteString::copyFromUtf8)),
     ;
 
     private final FunctionBindingCreator bindingCreator;

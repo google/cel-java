@@ -18,8 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.UnsignedLong;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.NullValue;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.ast.CelExpr.CelCall;
@@ -31,6 +29,8 @@ import dev.cel.common.ast.CelMutableExpr.CelMutableList;
 import dev.cel.common.ast.CelMutableExpr.CelMutableMap;
 import dev.cel.common.ast.CelMutableExpr.CelMutableSelect;
 import dev.cel.common.ast.CelMutableExpr.CelMutableStruct;
+import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.NullValue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -60,8 +60,8 @@ public class CelMutableExprConverterTest {
         CelMutableExpr.ofConstant(1, CelConstant.ofValue("Test")),
         CelExpr.ofConstant(1, CelConstant.ofValue("Test"))),
     BYTES(
-        CelMutableExpr.ofConstant(1, CelConstant.ofValue(ByteString.copyFromUtf8("TEST"))),
-        CelExpr.ofConstant(1, CelConstant.ofValue(ByteString.copyFromUtf8("TEST"))));
+        CelMutableExpr.ofConstant(1, CelConstant.ofValue(CelByteString.copyFromUtf8("TEST"))),
+        CelExpr.ofConstant(1, CelConstant.ofValue(CelByteString.copyFromUtf8("TEST"))));
 
     final CelMutableExpr mutableExpr;
     final CelExpr celExpr;

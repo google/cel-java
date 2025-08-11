@@ -22,6 +22,7 @@ import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
@@ -30,10 +31,11 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MapEntry;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageOrBuilder;
-import com.google.protobuf.NullValue;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.NullValue;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -192,6 +194,7 @@ public final class ProtoAdapter {
       }
       return Optional.of(AdaptingTypes.adaptingList((List<?>) fieldValue, bidiConverter));
     }
+
     return Optional.of(
         fieldToValueConverter(fieldDescriptor).forwardConverter().convert(fieldValue));
   }
@@ -230,6 +233,7 @@ public final class ProtoAdapter {
           AdaptingTypes.adaptingList(
               (List<?>) fieldValue, fieldToValueConverter(fieldDescriptor).reverse()));
     }
+
     return Optional.of(
         fieldToValueConverter(fieldDescriptor).backwardConverter().convert(fieldValue));
   }
@@ -255,6 +259,10 @@ public final class ProtoAdapter {
         return BidiConverter.IDENTITY;
       case FLOAT:
         return DOUBLE_CONVERTER;
+      case BYTES:
+        return BidiConverter.<ByteString, CelByteString>of(
+            value -> CelByteString.of(value.toByteArray()),
+            proto -> ByteString.copyFrom(proto.toByteArray()));
       case ENUM:
         return BidiConverter.<Object, Long>of(
             value -> (long) ((EnumValueDescriptor) value).getNumber(),

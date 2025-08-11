@@ -15,6 +15,8 @@
 package dev.cel.common.ast;
 
 import com.google.common.collect.ImmutableSet;
+import dev.cel.common.values.CelByteString;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 /** Provides string formatting support for {@link CelExpr}. */
@@ -104,8 +106,12 @@ final class CelExprFormatter {
         appendWithoutIndent("\"" + celConstant.stringValue() + "\"");
         break;
       case BYTES_VALUE:
+        CelByteString byteString = celConstant.bytesValue();
         appendWithoutIndent(
-            String.format(Locale.getDefault(), "b\"%s\"", celConstant.bytesValue().toStringUtf8()));
+            String.format(
+                Locale.getDefault(),
+                "b\"%s\"",
+                new String(byteString.toByteArray(), StandardCharsets.UTF_8)));
         break;
       default:
         append("Unknown kind: " + celConstant.getKind());

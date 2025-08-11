@@ -15,16 +15,17 @@
 package dev.cel.common.ast;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.primitives.UnsignedLong;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.Duration;
-import com.google.protobuf.NullValue;
 import com.google.protobuf.Timestamp;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.ast.CelConstant.Kind;
+import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.NullValue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -42,8 +43,8 @@ public class CelConstantTest {
         .isEqualTo(CelConstant.ofValue(UnsignedLong.valueOf(2)));
     assertThat(CelConstant.ofValue(2.1)).isEqualTo(CelConstant.ofValue(2.1));
     assertThat(CelConstant.ofValue("Hello world!")).isEqualTo(CelConstant.ofValue("Hello world!"));
-    assertThat(CelConstant.ofValue(ByteString.copyFromUtf8("Test")))
-        .isEqualTo(CelConstant.ofValue(ByteString.copyFromUtf8("Test")));
+    assertThat(CelConstant.ofValue(CelByteString.of("Test".getBytes(UTF_8))))
+        .isEqualTo(CelConstant.ofValue(CelByteString.of("Test".getBytes(UTF_8))));
     assertThat(CelConstant.ofValue(Duration.newBuilder().setSeconds(100L).build()))
         .isEqualTo(CelConstant.ofValue(Duration.newBuilder().setSeconds(100L).build()));
     assertThat(CelConstant.ofValue(Timestamp.newBuilder().setSeconds(100L).build()))
@@ -52,8 +53,6 @@ public class CelConstantTest {
 
   @Test
   public void equality_valueEqualityUnsatisfied_fails() {
-    assertThat(CelConstant.ofValue(NullValue.NULL_VALUE))
-        .isNotEqualTo(CelConstant.ofValue(NullValue.UNRECOGNIZED));
     assertThat(CelConstant.ofValue(true)).isNotEqualTo(CelConstant.ofValue(false));
     assertThat(CelConstant.ofValue(false)).isNotEqualTo(CelConstant.ofValue(true));
     assertThat(CelConstant.ofValue(3)).isNotEqualTo(CelConstant.ofValue(2));
@@ -63,8 +62,8 @@ public class CelConstantTest {
     assertThat(CelConstant.ofValue(3)).isNotEqualTo(CelConstant.ofValue(3.0));
     assertThat(CelConstant.ofValue(3.1)).isNotEqualTo(CelConstant.ofValue(2.1));
     assertThat(CelConstant.ofValue("world!")).isNotEqualTo(CelConstant.ofValue("Hello world!"));
-    assertThat(CelConstant.ofValue(ByteString.copyFromUtf8("T")))
-        .isNotEqualTo(CelConstant.ofValue(ByteString.copyFromUtf8("Test")));
+    assertThat(CelConstant.ofValue(CelByteString.of("T".getBytes(UTF_8))))
+        .isNotEqualTo(CelConstant.ofValue(CelByteString.of("Test".getBytes(UTF_8))));
     assertThat(CelConstant.ofValue(Duration.newBuilder().setSeconds(100L).build()))
         .isNotEqualTo(CelConstant.ofValue(Duration.newBuilder().setSeconds(50).build()));
     assertThat(CelConstant.ofValue(Timestamp.newBuilder().setSeconds(100L).build()))
@@ -117,9 +116,9 @@ public class CelConstantTest {
 
   @Test
   public void constructBytesValue() {
-    CelConstant constant = CelConstant.ofValue(ByteString.copyFromUtf8("Test"));
+    CelConstant constant = CelConstant.ofValue(CelByteString.of("Test".getBytes(UTF_8)));
 
-    assertThat(constant.bytesValue()).isEqualTo(ByteString.copyFromUtf8("Test"));
+    assertThat(constant.bytesValue()).isEqualTo(CelByteString.of("Test".getBytes(UTF_8)));
   }
 
   @Test
@@ -152,7 +151,7 @@ public class CelConstantTest {
     UINT64(CelConstant.ofValue(UnsignedLong.valueOf(2))),
     DOUBLE(CelConstant.ofValue(2.1)),
     STRING(CelConstant.ofValue("Hello world!")),
-    BYTES(CelConstant.ofValue(ByteString.copyFromUtf8("Test"))),
+    BYTES(CelConstant.ofValue(CelByteString.of("Test".getBytes(UTF_8)))),
     DURATION(CelConstant.ofValue(Duration.newBuilder().setSeconds(100L).build())),
     TIMESTAMP(CelConstant.ofValue(Timestamp.newBuilder().setSeconds(100L).build()));
 
@@ -207,8 +206,8 @@ public class CelConstantTest {
         .isEqualTo(CelConstant.ofValue(UnsignedLong.valueOf(3L)));
     assertThat(CelConstant.ofObjectValue(3.0d)).isEqualTo(CelConstant.ofValue(3.0d));
     assertThat(CelConstant.ofObjectValue("test")).isEqualTo(CelConstant.ofValue("test"));
-    assertThat(CelConstant.ofObjectValue(ByteString.copyFromUtf8("hello")))
-        .isEqualTo(CelConstant.ofValue(ByteString.copyFromUtf8("hello")));
+    assertThat(CelConstant.ofObjectValue(CelByteString.of("hello".getBytes(UTF_8))))
+        .isEqualTo(CelConstant.ofValue(CelByteString.of("hello".getBytes(UTF_8))));
   }
 
   @Test

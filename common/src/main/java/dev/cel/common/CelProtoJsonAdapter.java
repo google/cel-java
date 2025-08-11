@@ -18,7 +18,6 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.Duration;
 import com.google.protobuf.Empty;
 import com.google.protobuf.FieldMask;
@@ -28,6 +27,7 @@ import com.google.protobuf.Struct;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.Value;
 import dev.cel.common.internal.ProtoTimeUtils;
+import dev.cel.common.values.CelByteString;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -71,7 +71,7 @@ public final class CelProtoJsonAdapter {
   @SuppressWarnings("unchecked")
   public static Value adaptValueToJsonValue(Object value) {
     Value.Builder json = Value.newBuilder();
-    if (value == null || value instanceof NullValue) {
+    if (value == null || value instanceof dev.cel.common.values.NullValue) {
       return json.setNullValue(NullValue.NULL_VALUE).build();
     }
     if (value instanceof Boolean) {
@@ -93,9 +93,9 @@ public final class CelProtoJsonAdapter {
     if (value instanceof Float || value instanceof Double) {
       return json.setNumberValue(((Number) value).doubleValue()).build();
     }
-    if (value instanceof ByteString) {
+    if (value instanceof CelByteString) {
       return json.setStringValue(
-              Base64.getEncoder().encodeToString(((ByteString) value).toByteArray()))
+              Base64.getEncoder().encodeToString(((CelByteString) value).toByteArray()))
           .build();
     }
     if (value instanceof String) {

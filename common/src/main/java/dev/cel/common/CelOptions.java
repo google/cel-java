@@ -109,6 +109,8 @@ public abstract class CelOptions {
 
   public abstract int comprehensionMaxIterations();
 
+  public abstract boolean evaluateCanonicalTypesToNativeValues();
+
   public abstract boolean unwrapWellKnownTypesOnFunctionDispatch();
 
   public abstract ProtoUnsetFieldOptions fromProtoUnsetFieldOption();
@@ -150,6 +152,7 @@ public abstract class CelOptions {
         .enableNamespacedDeclarations(true)
         // Evaluation options
         .disableCelStandardEquality(true)
+        .evaluateCanonicalTypesToNativeValues(false)
         .enableShortCircuiting(true)
         .enableRegexPartialMatch(false)
         .enableUnsignedComparisonAndArithmeticIsUnsigned(false)
@@ -449,6 +452,19 @@ public abstract class CelOptions {
      * <p>Note: comprehension limits are not supported within the async CEL interpreter.
      */
     public abstract Builder comprehensionMaxIterations(int value);
+
+    /**
+     * If set, canonical CEL types such as bytes and CEL null will return their native value
+     * equivalents instead of protobuf based values. Specifically:
+     *
+     * <ul>
+     *   <li>Bytes: {@code dev.cel.common.values.CelByteString} instead of {@code
+     *       com.google.protobuf.ByteString}.
+     *   <li>CEL null: {@code dev.cel.common.values.NullValue} instead of {@code
+     *       com.google.protobuf.NullValue}.
+     * </ul>
+     */
+    public abstract Builder evaluateCanonicalTypesToNativeValues(boolean value);
 
     /**
      * If disabled, CEL runtime will no longer adapt the function dispatch results for protobuf's

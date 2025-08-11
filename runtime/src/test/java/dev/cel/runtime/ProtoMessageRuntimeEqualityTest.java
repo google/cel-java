@@ -49,6 +49,7 @@ import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoTimeUtils;
+import dev.cel.common.values.CelByteString;
 import java.util.Arrays;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
@@ -276,14 +277,14 @@ public final class ProtoMessageRuntimeEqualityTest {
           // Bytes tests.
           {ByteString.copyFromUtf8("h¢"), ByteString.copyFromUtf8("h¢"), Result.alwaysTrue()},
           {ByteString.copyFromUtf8("hello"), ByteString.EMPTY, Result.alwaysFalse()},
-          {BytesValue.of(ByteString.EMPTY), ByteString.EMPTY, Result.alwaysTrue()},
+          {BytesValue.of(ByteString.EMPTY), CelByteString.EMPTY, Result.alwaysTrue()},
           {
             BytesValue.of(ByteString.copyFromUtf8("h¢")),
-            ByteString.copyFromUtf8("h¢"),
+            CelByteString.copyFromUtf8("h¢"),
             Result.alwaysTrue()
           },
-          {Any.pack(BytesValue.of(ByteString.EMPTY)), ByteString.EMPTY, Result.alwaysTrue()},
-          {"h¢", ByteString.copyFromUtf8("h¢"), Result.alwaysFalse()},
+          {Any.pack(BytesValue.of(ByteString.EMPTY)), CelByteString.EMPTY, Result.alwaysTrue()},
+          {"h¢", CelByteString.copyFromUtf8("h¢"), Result.alwaysFalse()},
 
           // Double tests.
           {1.0, 1.0, Result.alwaysTrue()},

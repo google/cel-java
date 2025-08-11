@@ -3,7 +3,7 @@ load("//:cel_android_rules.bzl", "cel_android_library")
 
 package(
     default_applicable_licenses = ["//:license"],
-    default_visibility = ["//:internal"],  # TODO: Expose to public when ready
+    default_visibility = ["//visibility:public"],
 )
 
 java_library(

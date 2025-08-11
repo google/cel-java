@@ -32,7 +32,6 @@ import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.ByteString.ByteIterator;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
@@ -70,6 +69,7 @@ import dev.cel.common.types.OpaqueType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeParamType;
+import dev.cel.common.values.CelByteString;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
@@ -110,6 +110,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
           .enableTimestampEpoch(true)
           .enableHeterogeneousNumericComparisons(true)
           .enableOptionalSyntax(true)
+          .evaluateCanonicalTypesToNativeValues(true)
           .comprehensionMaxIterations(1_000)
           .build();
   private CelRuntime celRuntime;
@@ -208,10 +209,10 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
                 ? program.eval(((Map<String, ?>) input))
                 : program.eval((CelVariableResolver) input);
       }
-      if (result instanceof ByteString) {
+      if (result instanceof CelByteString) {
         // Note: this call may fail for printing byte sequences that are not valid UTF-8, but works
         // pretty well for test purposes.
-        result = ((ByteString) result).toStringUtf8();
+        result = ((CelByteString) result).toStringUtf8();
       }
       println("result:   " + UnredactedDebugFormatForTest.unredactedToString(result));
     } catch (CelEvaluationException e) {
@@ -1396,7 +1397,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     declareVariable("b", SimpleType.BYTES);
 
     source = "size(b) == 5 && b.size() == 5";
-    runTest(ImmutableMap.of("b", ByteString.copyFromUtf8("happy")));
+    runTest(ImmutableMap.of("b", CelByteString.copyFromUtf8("happy")));
 
     source = "size(str) == 5 && str.size() == 5";
     runTest(ImmutableMap.of("str", "happy"));
@@ -2320,8 +2321,8 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
         sb.append(entry.getKey());
         sb.append("=");
         Object value = entry.getValue();
-        if (value instanceof ByteString) {
-          sb.append(getHumanReadableString((ByteString) value));
+        if (value instanceof CelByteString) {
+          sb.append(getHumanReadableString((CelByteString) value));
         } else {
           sb.append(UnredactedDebugFormatForTest.unredactedToString(entry.getValue()));
         }
@@ -2333,14 +2334,15 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     }
   }
 
-  private static String getHumanReadableString(ByteString byteString) {
+  private static String getHumanReadableString(CelByteString byteString) {
     // Very unfortunate we have to do this at all
     StringBuilder sb = new StringBuilder();
     sb.append("[");
-    for (ByteIterator i = byteString.iterator(); i.hasNext(); ) {
-      byte b = i.nextByte();
+    byte[] bytes = byteString.toByteArray();
+    for (int i = 0; i < bytes.length; i++) {
+      byte b = bytes[i];
       sb.append(b);
-      if (i.hasNext()) {
+      if (i < bytes.length - 1) {
         sb.append(", ");
       }
     }

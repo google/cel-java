@@ -19,11 +19,11 @@ import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.ListValue;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.common.values.CelByteString;
 import java.util.Arrays;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +41,7 @@ public class CelProtoJsonAdapterTest {
         .isEqualTo(Value.newBuilder().setNumberValue(1).build());
     assertThat(CelProtoJsonAdapter.adaptValueToJsonValue(Long.MAX_VALUE))
         .isEqualTo(Value.newBuilder().setStringValue(Long.toString(Long.MAX_VALUE)).build());
-    assertThat(CelProtoJsonAdapter.adaptValueToJsonValue(ByteString.copyFromUtf8("foo")))
+    assertThat(CelProtoJsonAdapter.adaptValueToJsonValue(CelByteString.copyFromUtf8("foo")))
         .isEqualTo(Value.newBuilder().setStringValue("Zm9v").build());
   }
 

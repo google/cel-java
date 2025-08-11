@@ -18,11 +18,11 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
-import com.google.protobuf.ByteString;
 import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.values.CelByteString;
 import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeBuilder;
@@ -52,7 +52,7 @@ public class CelEncoderExtensions
             CelFunctionBinding.from(
                 "base64_decode_string",
                 String.class,
-                str -> ByteString.copyFrom(BASE64_DECODER.decode(str))))),
+                str -> CelByteString.of(BASE64_DECODER.decode(str))))),
     ENCODE(
         CelFunctionDecl.newFunctionDeclaration(
             "base64.encode",
@@ -61,7 +61,7 @@ public class CelEncoderExtensions
         ImmutableSet.of(
             CelFunctionBinding.from(
                 "base64_encode_bytes",
-                ByteString.class,
+                CelByteString.class,
                 bytes -> BASE64_ENCODER.encodeToString(bytes.toByteArray())))),
     ;
 
