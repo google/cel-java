@@ -35,6 +35,8 @@ public final class CelExtensions {
   private static final CelBindingsExtensions BINDINGS_EXTENSIONS = new CelBindingsExtensions();
   private static final CelEncoderExtensions ENCODER_EXTENSIONS = new CelEncoderExtensions();
   private static final CelRegexExtensions REGEX_EXTENSIONS = new CelRegexExtensions();
+  private static final CelComprehensionsExtensions COMPREHENSIONS_EXTENSIONS =
+      new CelComprehensionsExtensions();
 
   /**
    * Implementation of optional values.
@@ -293,6 +295,18 @@ public final class CelExtensions {
    */
   public static CelRegexExtensions regex() {
     return REGEX_EXTENSIONS;
+  }
+
+  /**
+   * Extended functions for Regular Expressions.
+   *
+   * <p>Refer to README.md for available functions.
+   *
+   * <p>This will include all functions denoted in {@link CelRegexExtensions.Function}, including
+   * any future additions.
+   */
+  public static CelComprehensionsExtensions comprehensions() {
+    return COMPREHENSIONS_EXTENSIONS;
   }
 
   /**
