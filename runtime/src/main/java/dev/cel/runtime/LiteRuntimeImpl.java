@@ -54,7 +54,7 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     if (planner != null) {
       return planner.plan(ast);
     } else {
-      return LiteProgramImpl.create(interpreter.createInterpretable(ast));
+      return LiteProgramImpl.plan(interpreter.createInterpretable(ast));
     }
   }
 
