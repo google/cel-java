@@ -28,9 +28,11 @@ import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelByteString;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.NullValue;
+import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
-import dev.cel.expr.conformance.proto2.TestAllTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypesCelDescriptor;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.parser.Operator;
 import dev.cel.runtime.CelEvaluationException;
@@ -74,9 +76,12 @@ public final class ProgramPlannerTest {
               .build();
 
   private static final ProgramPlanner PLANNER = ProgramPlanner.newPlanner(
-          DefaultTypeProvider.create(),
-           new CelValueConverter(),
-          newDispatcher()
+      DefaultTypeProvider.create(),
+      ProtoMessageLiteValueProvider.newInstance(
+          TestAllTypesCelDescriptor.getDescriptor()
+      ),
+      new CelValueConverter(),
+      newDispatcher()
   );
 
   /**
@@ -196,6 +201,26 @@ public final class ProgramPlannerTest {
     Object result = program.eval(ImmutableMap.of("int_var", 1L));
 
     assertThat(result).isEqualTo(1);
+  }
+
+  @Test
+  public void planCreateObject() throws Exception {
+    CelAbstractSyntaxTree ast = compile("cel.expr.conformance.proto3.TestAllTypes{}");
+    Program program = PLANNER.plan(ast);
+
+    Object result = program.eval();
+
+    assertThat(result).isEqualTo(TestAllTypes.getDefaultInstance());
+  }
+
+  @Test
+  public void planCreateObject_withFields() throws Exception {
+    CelAbstractSyntaxTree ast = compile("cel.expr.conformance.proto3.TestAllTypes{single_string: 'foo'}");
+    Program program = PLANNER.plan(ast);
+
+    Object result = program.eval();
+
+    assertThat(result).isEqualTo(TestAllTypes.newBuilder().setSingleString("foo").build());
   }
 
   @SuppressWarnings("ImmutableEnumChecker") // Test only

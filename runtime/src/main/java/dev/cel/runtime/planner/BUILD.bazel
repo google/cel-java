@@ -17,6 +17,7 @@ java_library(
         ":eval_and",
         ":eval_attribute",
         ":eval_const",
+        ":eval_create_object",
         ":eval_or",
         ":eval_unary",
         ":eval_var_args_call",
@@ -28,6 +29,7 @@ java_library(
         "//common/types:type_providers",
         "//common/values",
         "//common/values:cel_value",
+        "//common/values:cel_value_provider",
         "//runtime:activation",
         "//runtime:default_dispatcher",
         "//runtime:evaluation_exception",
@@ -199,12 +201,29 @@ java_library(
 )
 
 java_library(
+    name = "eval_create_object",
+    srcs = ["EvalCreateObject.java"],
+    deps = [
+        ":attribute",
+        ":cel_value_interpretable",
+        "//common/values",
+        "//common/values:cel_value",
+        "//common/values:cel_value_provider",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "eval_helpers",
     srcs = ["EvalHelpers.java"],
     deps = [
         ":cel_value_interpretable",
         "//common/values",
         "//common/values:cel_value",
+        "//common/values:cel_value_provider",
         "//runtime:evaluation_exception",
         "//runtime:function_binding",
         "//runtime:interpretable",

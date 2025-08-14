@@ -10,17 +10,20 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
+import dev.cel.common.ast.CelExpr.CelStruct;
 import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
+import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.TypeValue;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelLiteRuntime.Program;
 import dev.cel.runtime.DefaultDispatcher;
 
+import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -28,6 +31,7 @@ import java.util.Optional;
 @Internal
 public final class ProgramPlanner {
   private final CelTypeProvider typeProvider;
+  private final CelValueProvider valueProvider;
   private final CelValueConverter celValueConverter;
   private final DefaultDispatcher dispatcher;
   private final AttributeFactory attributeFactory;
@@ -48,7 +52,7 @@ public final class ProgramPlanner {
       case LIST:
         break;
       case STRUCT:
-        break;
+        return planCreateObject(celExpr, ctx);
       case MAP:
         break;
       case COMPREHENSION:
@@ -143,6 +147,15 @@ public final class ProgramPlanner {
     }
   }
 
+  private CelValueInterpretable planCreateObject(CelExpr celExpr, PlannerContext ctx) {
+    CelStruct struct = celExpr.struct();
+    // TODO: maybe do this via type provider?
+    valueProvider.newValue(struct.messageName(), new HashMap<>())
+        .orElseThrow(() -> new IllegalArgumentException("Undefined type name: " + struct.messageName()));
+
+    return EvalCreateObject.create(valueProvider, struct.messageName());
+  }
+
   /**
    * resolveFunction determines the call target, function name, and overload name (when unambiguous) from the given call expr.
    */
@@ -226,18 +239,21 @@ public final class ProgramPlanner {
 
   public static ProgramPlanner newPlanner(
       CelTypeProvider typeProvider,
+      CelValueProvider valueProvider,
       CelValueConverter celValueConverter,
       DefaultDispatcher dispatcher
   ) {
-    return new ProgramPlanner(typeProvider, celValueConverter, dispatcher);
+    return new ProgramPlanner(typeProvider, valueProvider, celValueConverter, dispatcher);
   }
 
   private ProgramPlanner(
       CelTypeProvider typeProvider,
+      CelValueProvider valueProvider,
       CelValueConverter celValueConverter,
       DefaultDispatcher dispatcher
   ) {
     this.typeProvider = typeProvider;
+    this.valueProvider = valueProvider;
     this.celValueConverter = celValueConverter;
     this.dispatcher = dispatcher;
     this.attributeFactory = AttributeFactory.newAttributeFactory("", celValueConverter, typeProvider);

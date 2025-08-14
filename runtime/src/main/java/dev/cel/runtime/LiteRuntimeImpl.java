@@ -249,6 +249,7 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     this.runtimeLibraries = runtimeLibraries;
     this.celValueProvider = celValueProvider;
     if (enablePlanner) {
+      // TODO
       this.planner = ProgramPlanner.newPlanner(new CelTypeProvider() {
         @Override
         public ImmutableCollection<CelType> types() {
@@ -258,7 +259,7 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
         public Optional<CelType> findType(String typeName) {
           return Optional.empty();
         }
-      }, null, null);
+      }, null, null, null);
     } else {
       this.planner = null;
     }
