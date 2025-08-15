@@ -23,10 +23,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedLong;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.Duration;
 import com.google.protobuf.Message;
-import com.google.protobuf.NullValue;
 import com.google.protobuf.Timestamp;
 import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.CelFunctionDecl;
@@ -41,6 +39,8 @@ import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.common.types.TypeType;
+import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.NullValue;
 import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelMacroExprFactory;
@@ -237,7 +237,9 @@ public final class CelOptionalLibrary
   private final ImmutableSet<CelVarDecl> variables;
 
   CelOptionalLibrary(
-      int version, ImmutableSet<CelFunctionDecl> functions, ImmutableSet<CelMacro> macros,
+      int version,
+      ImmutableSet<CelFunctionDecl> functions,
+      ImmutableSet<CelMacro> macros,
       ImmutableSet<CelVarDecl> variables) {
     this.version = version;
     this.functions = functions;
@@ -381,8 +383,8 @@ public final class CelOptionalLibrary
       return ((Collection<?>) val).isEmpty();
     } else if (val instanceof Map<?, ?>) {
       return ((Map<?, ?>) val).isEmpty();
-    } else if (val instanceof ByteString) {
-      return ((ByteString) val).size() == 0;
+    } else if (val instanceof CelByteString) {
+      return ((CelByteString) val).isEmpty();
     } else if (val instanceof Duration) {
       return val.equals(((Duration) val).getDefaultInstanceForType());
     } else if (val instanceof Timestamp) {

@@ -18,8 +18,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 import com.google.common.primitives.UnsignedLong;
-import com.google.protobuf.ByteString;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.values.CelByteString;
 import java.util.Arrays;
 
 /** Factory for generating expression nodes. */
@@ -42,23 +42,18 @@ public class CelExprFactory {
   }
 
   /** Creates a new constant {@link CelExpr} for a bytes value. */
-  public final CelExpr newBytesLiteral(ByteString value) {
-    return newConstant(CelConstant.ofValue(value));
+  public final CelExpr newBytesLiteral(String value) {
+    return newBytesLiteral(CelByteString.copyFromUtf8(value));
   }
 
   /** Creates a new constant {@link CelExpr} for a bytes value. */
   public final CelExpr newBytesLiteral(byte[] value) {
-    return newBytesLiteral(value, 0, value.length);
+    return newBytesLiteral(CelByteString.of(value));
   }
 
   /** Creates a new constant {@link CelExpr} for a bytes value. */
-  public final CelExpr newBytesLiteral(byte[] value, int offset, int size) {
-    return newBytesLiteral(ByteString.copyFrom(value, offset, size));
-  }
-
-  /** Creates a new constant {@link CelExpr} for a bytes value. */
-  public final CelExpr newBytesLiteral(String value) {
-    return newBytesLiteral(ByteString.copyFromUtf8(value));
+  public final CelExpr newBytesLiteral(CelByteString value) {
+    return newConstant(CelConstant.ofValue(value));
   }
 
   /** Creates a new constant {@link CelExpr} for a double value. */

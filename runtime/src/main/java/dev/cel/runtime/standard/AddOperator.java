@@ -18,12 +18,12 @@ import static dev.cel.runtime.standard.ArithmeticHelpers.getArithmeticErrorCode;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.internal.ProtoTimeUtils;
+import dev.cel.common.values.CelByteString;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
@@ -92,7 +92,7 @@ public final class AddOperator extends CelStandardFunction {
     ADD_BYTES(
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from(
-                "add_bytes", ByteString.class, ByteString.class, ByteString::concat)),
+                "add_bytes", CelByteString.class, CelByteString.class, CelByteString::concat)),
     ADD_DOUBLE(
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from("add_double", Double.class, Double.class, Double::sum)),

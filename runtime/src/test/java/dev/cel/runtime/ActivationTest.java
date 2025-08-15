@@ -17,8 +17,8 @@ package dev.cel.runtime;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.primitives.UnsignedLong;
-import com.google.protobuf.NullValue;
 import dev.cel.common.CelOptions;
+import dev.cel.common.values.NullValue;
 import dev.cel.expr.conformance.proto3.NestedTestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;

@@ -16,12 +16,12 @@ package dev.cel.runtime.standard;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
 import dev.cel.common.CelOptions;
 import dev.cel.common.internal.ComparisonFunctions;
 import dev.cel.common.internal.ProtoTimeUtils;
+import dev.cel.common.values.CelByteString;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
@@ -73,10 +73,10 @@ public final class LessOperator extends CelStandardFunction {
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from(
                 "less_bytes",
-                ByteString.class,
-                ByteString.class,
-                (ByteString x, ByteString y) ->
-                    ByteString.unsignedLexicographicalComparator().compare(x, y) < 0)),
+                CelByteString.class,
+                CelByteString.class,
+                (CelByteString x, CelByteString y) ->
+                    CelByteString.unsignedLexicographicalComparator().compare(x, y) < 0)),
     LESS_DOUBLE(
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from(

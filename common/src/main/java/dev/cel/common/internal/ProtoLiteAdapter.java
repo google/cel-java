@@ -46,6 +46,7 @@ import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelProtoJsonAdapter;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.values.CelByteString;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -76,7 +77,8 @@ public final class ProtoLiteAdapter {
       case BOOL_VALUE:
         return BoolValue.of((Boolean) value);
       case BYTES_VALUE:
-        return BytesValue.of((ByteString) value);
+        CelByteString byteString = (CelByteString) value;
+        return BytesValue.of(ByteString.copyFrom(byteString.toByteArray()));
       case DOUBLE_VALUE:
         return adaptValueToDouble(value);
       case FLOAT_VALUE:
@@ -112,7 +114,8 @@ public final class ProtoLiteAdapter {
       return packAnyMessage((MessageLite) value, typeName);
     }
 
-    if (value instanceof NullValue) {
+    // if (value instanceof NullValue) {
+    if (value instanceof dev.cel.common.values.NullValue) {
       return packAnyMessage(
           Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build(), WellKnownProto.JSON_VALUE);
     }
@@ -121,7 +124,7 @@ public final class ProtoLiteAdapter {
 
     if (value instanceof Boolean) {
       wellKnownProto = WellKnownProto.BOOL_VALUE;
-    } else if (value instanceof ByteString) {
+    } else if (value instanceof CelByteString) {
       wellKnownProto = WellKnownProto.BYTES_VALUE;
     } else if (value instanceof String) {
       wellKnownProto = WellKnownProto.STRING_VALUE;
@@ -159,7 +162,8 @@ public final class ProtoLiteAdapter {
       case BOOL_VALUE:
         return ((BoolValue) proto).getValue();
       case BYTES_VALUE:
-        return ((BytesValue) proto).getValue();
+        ByteString byteString = ((BytesValue) proto).getValue();
+        return CelByteString.of(byteString.toByteArray());
       case DOUBLE_VALUE:
         return ((DoubleValue) proto).getValue();
       case FLOAT_VALUE:
@@ -191,7 +195,8 @@ public final class ProtoLiteAdapter {
       case BOOL_VALUE:
         return value.getBoolValue();
       case NULL_VALUE:
-        return value.getNullValue();
+      case KIND_NOT_SET:
+        return dev.cel.common.values.NullValue.NULL_VALUE;
       case NUMBER_VALUE:
         return value.getNumberValue();
       case STRING_VALUE:
@@ -200,8 +205,6 @@ public final class ProtoLiteAdapter {
         return adaptJsonListToValue(value.getListValue());
       case STRUCT_VALUE:
         return adaptJsonStructToValue(value.getStructValue());
-      case KIND_NOT_SET:
-        return NullValue.NULL_VALUE;
     }
     throw new IllegalArgumentException("unexpected value kind: " + value.getKindCase());
   }

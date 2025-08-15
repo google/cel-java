@@ -41,6 +41,8 @@ java_library(
         "//common/types:cel_proto_types",
         "//common/types:message_type_provider",
         "//common/types:type_providers",
+        "//common/values",
+        "//common/values:cel_byte_string",
         "//compiler",
         "//compiler:compiler_builder",
         "//extensions",
@@ -64,7 +66,6 @@ java_library(
         "@maven//:com_google_truth_extensions_truth_proto_extension",
         "@maven//:junit_junit",
         "@maven//:org_jspecify_jspecify",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 

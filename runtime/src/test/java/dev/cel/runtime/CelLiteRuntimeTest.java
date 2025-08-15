@@ -30,7 +30,6 @@ import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
 import com.google.protobuf.ListValue;
-import com.google.protobuf.NullValue;
 import com.google.protobuf.StringValue;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Timestamp;
@@ -47,6 +46,8 @@ import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
+import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.NullValue;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
@@ -550,7 +551,7 @@ public class CelLiteRuntimeTest {
     DOUBLE("msg.single_double", 0.0d),
     BOOL("msg.single_bool", false),
     STRING("msg.single_string", ""),
-    BYTES("msg.single_bytes", ByteString.EMPTY),
+    BYTES("msg.single_bytes", CelByteString.EMPTY),
     ENUM("msg.standalone_enum", 0L),
     NESTED_MESSAGE("msg.single_nested_message", NestedMessage.getDefaultInstance()),
     OPTIONAL_BOOL("msg.optional_bool", false),

@@ -124,7 +124,8 @@ public final class DescriptorMessageProviderTest {
         (dev.cel.expr.conformance.proto3.TestAllTypes)
             provider.createMessage(
                 dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor().getFullName(),
-                ImmutableMap.of("single_int64_wrapper", NullValue.NULL_VALUE));
+                ImmutableMap.of(
+                    "single_int64_wrapper", dev.cel.common.values.NullValue.NULL_VALUE));
     assertThat(message).isEqualToDefaultInstance();
   }
 
@@ -135,7 +136,7 @@ public final class DescriptorMessageProviderTest {
         () ->
             provider.createMessage(
                 dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor().getFullName(),
-                ImmutableMap.of("bad_field", NullValue.NULL_VALUE)));
+                ImmutableMap.of("bad_field", dev.cel.common.values.NullValue.NULL_VALUE)));
   }
 
   @Test

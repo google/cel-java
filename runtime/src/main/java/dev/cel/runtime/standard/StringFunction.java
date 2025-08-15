@@ -17,13 +17,13 @@ package dev.cel.runtime.standard;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
 import com.google.common.primitives.UnsignedLongs;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.internal.ProtoTimeUtils;
+import dev.cel.common.values.CelByteString;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import java.util.Arrays;
@@ -62,7 +62,7 @@ public final class StringFunction extends CelStandardFunction {
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from(
                 "bytes_to_string",
-                ByteString.class,
+                CelByteString.class,
                 (byteStr) -> {
                   if (!byteStr.isValidUtf8()) {
                     throw new CelRuntimeException(

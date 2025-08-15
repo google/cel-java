@@ -15,7 +15,13 @@
 package dev.cel.common.values;
 
 import com.google.errorprone.annotations.Immutable;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Comparator;
 
 /** CelByteString is an immutable sequence of a byte array. */
 @Immutable
@@ -38,6 +44,32 @@ public final class CelByteString {
     return new CelByteString(buffer);
   }
 
+  public static CelByteString copyFromUtf8(String utf8String) {
+    return new CelByteString(utf8String.getBytes(StandardCharsets.UTF_8));
+  }
+
+  public static Comparator<CelByteString> unsignedLexicographicalComparator() {
+    return UNSIGNED_LEXICOGRAPHICAL_COMPARATOR;
+  }
+
+  public String toStringUtf8() {
+    return new String(data, StandardCharsets.UTF_8);
+  }
+
+  /** Checks if the byte array is a valid utf-8 encoded text. */
+  public boolean isValidUtf8() {
+    CharsetDecoder charsetDecoder = StandardCharsets.UTF_8.newDecoder();
+    charsetDecoder.onMalformedInput(CodingErrorAction.REPORT);
+    charsetDecoder.onUnmappableCharacter(CodingErrorAction.REPORT);
+
+    try {
+      charsetDecoder.decode(ByteBuffer.wrap(data));
+    } catch (CharacterCodingException unused) {
+      return false;
+    }
+    return true;
+  }
+
   public int size() {
     return data.length;
   }
@@ -53,6 +85,14 @@ public final class CelByteString {
     }
 
     return Arrays.copyOf(data, size);
+  }
+
+  public CelByteString concat(CelByteString other) {
+    byte[] result = new byte[data.length + other.data.length];
+    System.arraycopy(data, 0, result, 0, data.length);
+    System.arraycopy(other.data, 0, result, data.length, other.data.length);
+
+    return CelByteString.of(result);
   }
 
   private CelByteString(byte[] buffer) {
@@ -91,4 +131,29 @@ public final class CelByteString {
 
     return hash;
   }
+
+  @Override
+  public String toString() {
+    return toStringUtf8();
+  }
+
+  private static final Comparator<CelByteString> UNSIGNED_LEXICOGRAPHICAL_COMPARATOR =
+      (former, latter) -> {
+        // Once we're on Java 9+, we can replace this whole thing with Arrays.compareUnsigned
+        byte[] formerBytes = former.toByteArray();
+        byte[] latterBytes = latter.toByteArray();
+        int minLength = Math.min(formerBytes.length, latterBytes.length);
+
+        for (int i = 0; i < minLength; i++) {
+          int formerUnsigned = Byte.toUnsignedInt(formerBytes[i]);
+          int latterUnsigned = Byte.toUnsignedInt(latterBytes[i]);
+          int result = Integer.compare(formerUnsigned, latterUnsigned);
+
+          if (result != 0) {
+            return result;
+          }
+        }
+
+        return Integer.compare(formerBytes.length, latterBytes.length);
+      };
 }

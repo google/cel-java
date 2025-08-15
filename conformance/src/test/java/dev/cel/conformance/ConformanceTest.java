@@ -54,11 +54,26 @@ public final class ConformanceTest extends Statement {
 
   private static final CelOptions OPTIONS =
       CelOptions.current()
+          .evaluateCanonicalTypesToNativeValues(true)
           .enableTimestampEpoch(true)
           .enableHeterogeneousNumericComparisons(true)
           .enableProtoDifferencerEquality(true)
           .enableOptionalSyntax(true)
           .enableQuotedIdentifierSyntax(true)
+          .build();
+
+  private static final CelParser PARSER_WITH_MACROS =
+      CelParserFactory.standardCelParserBuilder()
+          .setOptions(OPTIONS)
+          .addLibraries(
+              CelExtensions.bindings(),
+              CelExtensions.encoders(),
+              CelExtensions.math(OPTIONS),
+              CelExtensions.protos(),
+              CelExtensions.sets(OPTIONS),
+              CelExtensions.strings(),
+              CelOptionalLibrary.INSTANCE)
+          .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .build();
 
   private static final CelParser PARSER_WITHOUT_MACROS =
@@ -72,15 +87,11 @@ public final class ConformanceTest extends Statement {
               CelExtensions.sets(OPTIONS),
               CelExtensions.strings(),
               CelOptionalLibrary.INSTANCE)
+          .setStandardMacros()
           .build();
 
   private static CelParser getParser(SimpleTest test) {
-    return test.getDisableMacros()
-        ? PARSER_WITHOUT_MACROS
-        : PARSER_WITHOUT_MACROS
-            .toParserBuilder()
-            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-            .build();
+    return test.getDisableMacros() ? PARSER_WITHOUT_MACROS : PARSER_WITH_MACROS;
   }
 
   private static CelChecker getChecker(SimpleTest test) throws Exception {

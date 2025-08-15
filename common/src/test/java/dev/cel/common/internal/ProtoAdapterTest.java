@@ -40,6 +40,7 @@ import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
 import com.google.type.Expr;
 import dev.cel.common.CelOptions;
+import dev.cel.common.values.CelByteString;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -70,17 +71,17 @@ public final class ProtoAdapterTest {
       return Arrays.asList(
           new Object[][] {
             {
-              NullValue.NULL_VALUE,
+              dev.cel.common.values.NullValue.NULL_VALUE,
               Any.pack(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()),
             },
             {true, BoolValue.of(true)},
             {true, Any.pack(BoolValue.of(true))},
             {true, Value.newBuilder().setBoolValue(true).build()},
             {
-              ByteString.copyFromUtf8("hello"), BytesValue.of(ByteString.copyFromUtf8("hello")),
+              CelByteString.copyFromUtf8("hello"), BytesValue.of(ByteString.copyFromUtf8("hello")),
             },
             {
-              ByteString.copyFromUtf8("hello"),
+              CelByteString.copyFromUtf8("hello"),
               Any.pack(BytesValue.of(ByteString.copyFromUtf8("hello"))),
             },
             {1.5D, DoubleValue.of(1.5D)},
@@ -116,7 +117,9 @@ public final class ProtoAdapterTest {
                       .build()),
             },
             {
-              ImmutableMap.of("list_value", ImmutableList.of(false, NullValue.NULL_VALUE)),
+              ImmutableMap.of(
+                  "list_value",
+                  ImmutableList.of(false, dev.cel.common.values.NullValue.NULL_VALUE)),
               Struct.newBuilder()
                   .putFields(
                       "list_value",
@@ -223,7 +226,7 @@ public final class ProtoAdapterTest {
           .isEqualTo(Value.newBuilder().setStringValue(Long.toString(Long.MAX_VALUE)).build());
       assertThat(
               protoAdapter.adaptValueToProto(
-                  ByteString.copyFromUtf8("foo"), Value.getDescriptor().getFullName()))
+                  CelByteString.copyFromUtf8("foo"), Value.getDescriptor().getFullName()))
           .isEqualTo(Value.newBuilder().setStringValue("Zm9v").build());
     }
 

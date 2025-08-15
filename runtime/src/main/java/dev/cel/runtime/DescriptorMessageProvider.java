@@ -15,6 +15,7 @@
 package dev.cel.runtime;
 
 import com.google.errorprone.annotations.Immutable;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
@@ -28,6 +29,7 @@ import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoAdapter;
 import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.types.CelTypes;
+import dev.cel.common.values.CelByteString;
 import java.util.Map;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
@@ -142,6 +144,9 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
   public Object adapt(String messageName, Object message) {
     if (message instanceof Message) {
       return protoAdapter.adaptProtoToValue((Message) message);
+    }
+    if (message instanceof ByteString) {
+      return CelByteString.of(((ByteString) message).toByteArray());
     }
 
     return message;

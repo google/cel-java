@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
+import com.google.protobuf.ByteString;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
@@ -42,6 +43,8 @@ import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.TypeType;
+import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.NullValue;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -181,7 +184,43 @@ final class DefaultInterpreter implements Interpreter {
 
       Object underlyingValue = internalResult.value();
 
-      return maybeAdaptToCelUnknownSet(underlyingValue);
+      return maybeAdaptToCelUnknownSet(maybeAdaptToProtobufValue(underlyingValue));
+    }
+
+    private Object maybeAdaptToProtobufValue(Object val) {
+      if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+        return val;
+      }
+
+      if (val instanceof NullValue) {
+        return com.google.protobuf.NullValue.NULL_VALUE;
+      }
+      if (val instanceof CelByteString) {
+        return ByteString.copyFrom(((CelByteString) val).toByteArray());
+      }
+
+      if (val instanceof Collection) {
+        Collection<?> originalCollection = (Collection<?>) val;
+        List<Object> newList = new ArrayList<>(originalCollection.size());
+        for (Object element : originalCollection) {
+          newList.add(maybeAdaptToProtobufValue(element));
+        }
+
+        return newList;
+      }
+
+      if (val instanceof Map) {
+        Map<?, ?> originalMap = (Map<?, ?>) val;
+        Map<Object, Object> newMap = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> entry : originalMap.entrySet()) {
+          Object adaptedKey = maybeAdaptToProtobufValue(entry.getKey());
+          Object adaptedValue = maybeAdaptToProtobufValue(entry.getValue());
+          newMap.put(adaptedKey, adaptedValue);
+        }
+        return newMap;
+      }
+
+      return val;
     }
 
     private static Object maybeAdaptToCelUnknownSet(Object val) {
