@@ -17,7 +17,6 @@ package dev.cel.parser;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.primitives.UnsignedLong;
-import com.google.protobuf.ByteString;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelSourceLocation;
 import dev.cel.common.ast.CelConstant;
@@ -26,6 +25,7 @@ import dev.cel.common.ast.CelExpr.CelMap;
 import dev.cel.common.ast.CelExpr.CelStruct.Entry;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.internal.Constants;
+import dev.cel.common.values.CelByteString;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -103,7 +103,7 @@ public final class CelMacroExprFactoryTest {
     assertThat(expr.id()).isEqualTo(1L);
     assertThat(expr.exprKind().getKind()).isEqualTo(Kind.CONSTANT);
     assertThat(expr.constant().getKind()).isEqualTo(CelConstant.Kind.BYTES_VALUE);
-    assertThat(expr.constant().bytesValue()).isEqualTo(ByteString.copyFromUtf8("foo"));
+    assertThat(expr.constant().bytesValue()).isEqualTo(CelByteString.copyFromUtf8("foo"));
   }
 
   @Test

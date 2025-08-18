@@ -22,6 +22,7 @@ import com.google.protobuf.Timestamp;
 import dev.cel.common.CelOptions;
 import dev.cel.common.internal.ComparisonFunctions;
 import dev.cel.common.internal.ProtoTimeUtils;
+import dev.cel.common.values.CelByteString;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
@@ -55,13 +56,23 @@ public final class GreaterEqualsOperator extends CelStandardFunction {
                 Boolean.class,
                 (Boolean x, Boolean y) -> x || !y)),
     GREATER_EQUALS_BYTES(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "greater_equals_bytes",
+                CelByteString.class,
+                CelByteString.class,
+                (CelByteString x, CelByteString y) ->
+                    CelByteString.unsignedLexicographicalComparator().compare(x, y) >= 0);
+          } else {
+            return CelFunctionBinding.from(
                 "greater_equals_bytes",
                 ByteString.class,
                 ByteString.class,
                 (ByteString x, ByteString y) ->
-                    ByteString.unsignedLexicographicalComparator().compare(x, y) >= 0)),
+                    ByteString.unsignedLexicographicalComparator().compare(x, y) >= 0);
+          }
+        }),
     GREATER_EQUALS_DOUBLE(
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from(

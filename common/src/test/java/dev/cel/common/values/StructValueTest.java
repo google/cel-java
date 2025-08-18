@@ -187,7 +187,7 @@ public final class StructValueTest {
             .setValueProvider(
                 CombinedCelValueProvider.combine(
                     ProtoMessageValueProvider.newInstance(
-                        DynamicProto.create(typeName -> Optional.empty())),
+                        CelOptions.DEFAULT, DynamicProto.create(typeName -> Optional.empty())),
                     CUSTOM_STRUCT_VALUE_PROVIDER))
             .build();
     CelAbstractSyntaxTree ast = cel.compile("custom_struct{data: 5}.data").getAst();
@@ -207,6 +207,7 @@ public final class StructValueTest {
             .setValueProvider(
                 CombinedCelValueProvider.combine(
                     ProtoMessageValueProvider.newInstance(
+                        CelOptions.DEFAULT,
                         // Note: this is unideal. Future iterations should make DynamicProto
                         // completely an internal concern, and not expose it at all.
                         DynamicProto.create(

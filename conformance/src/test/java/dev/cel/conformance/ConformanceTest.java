@@ -54,6 +54,7 @@ public final class ConformanceTest extends Statement {
 
   private static final CelOptions OPTIONS =
       CelOptions.current()
+          .evaluateCanonicalTypesToNativeValues(true)
           .enableTimestampEpoch(true)
           .enableHeterogeneousNumericComparisons(true)
           .enableProtoDifferencerEquality(true)
@@ -61,26 +62,36 @@ public final class ConformanceTest extends Statement {
           .enableQuotedIdentifierSyntax(true)
           .build();
 
-  private static final CelParser PARSER_WITHOUT_MACROS =
+  private static final CelParser PARSER_WITH_MACROS =
       CelParserFactory.standardCelParserBuilder()
           .setOptions(OPTIONS)
           .addLibraries(
               CelExtensions.bindings(),
-              CelExtensions.encoders(),
+              CelExtensions.encoders(OPTIONS),
               CelExtensions.math(OPTIONS),
               CelExtensions.protos(),
               CelExtensions.sets(OPTIONS),
               CelExtensions.strings(),
               CelOptionalLibrary.INSTANCE)
+          .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+          .build();
+
+  private static final CelParser PARSER_WITHOUT_MACROS =
+      CelParserFactory.standardCelParserBuilder()
+          .setOptions(OPTIONS)
+          .addLibraries(
+              CelExtensions.bindings(),
+              CelExtensions.encoders(OPTIONS),
+              CelExtensions.math(OPTIONS),
+              CelExtensions.protos(),
+              CelExtensions.sets(OPTIONS),
+              CelExtensions.strings(),
+              CelOptionalLibrary.INSTANCE)
+          .setStandardMacros()
           .build();
 
   private static CelParser getParser(SimpleTest test) {
-    return test.getDisableMacros()
-        ? PARSER_WITHOUT_MACROS
-        : PARSER_WITHOUT_MACROS
-            .toParserBuilder()
-            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-            .build();
+    return test.getDisableMacros() ? PARSER_WITHOUT_MACROS : PARSER_WITH_MACROS;
   }
 
   private static CelChecker getChecker(SimpleTest test) throws Exception {
@@ -96,7 +107,7 @@ public final class ConformanceTest extends Statement {
         .addFileTypes(dev.cel.expr.conformance.proto2.TestAllTypesExtensions.getDescriptor())
         .addLibraries(
             CelExtensions.bindings(),
-            CelExtensions.encoders(),
+            CelExtensions.encoders(OPTIONS),
             CelExtensions.math(OPTIONS),
             CelExtensions.sets(OPTIONS),
             CelExtensions.strings(),
@@ -110,7 +121,7 @@ public final class ConformanceTest extends Statement {
       CelRuntimeFactory.standardCelRuntimeBuilder()
           .setOptions(OPTIONS)
           .addLibraries(
-              CelExtensions.encoders(),
+              CelExtensions.encoders(OPTIONS),
               CelExtensions.math(OPTIONS),
               CelExtensions.sets(OPTIONS),
               CelExtensions.strings(),

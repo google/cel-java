@@ -39,6 +39,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
+import dev.cel.common.values.CelByteString;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -340,7 +341,7 @@ public final class ProtoMessageRuntimeHelpersTest {
   public void adaptProtoToValue_wrapperValues() throws Exception {
     assertThat(RUNTIME_HELPER.adaptProtoToValue(BoolValue.of(true))).isEqualTo(true);
     assertThat(RUNTIME_HELPER.adaptProtoToValue(BytesValue.of(ByteString.EMPTY)))
-        .isEqualTo(ByteString.EMPTY);
+        .isEqualTo(CelByteString.EMPTY);
     assertThat(RUNTIME_HELPER.adaptProtoToValue(DoubleValue.of(1.5d))).isEqualTo(1.5d);
     assertThat(RUNTIME_HELPER.adaptProtoToValue(FloatValue.of(1.5f))).isEqualTo(1.5d);
     assertThat(RUNTIME_HELPER.adaptProtoToValue(Int32Value.of(12))).isEqualTo(12L);
@@ -372,7 +373,7 @@ public final class ProtoMessageRuntimeHelpersTest {
         .isEqualTo(ImmutableList.of(1.2d));
 
     Map<String, Object> mp = new HashMap<>();
-    mp.put("list_value", ImmutableList.of(false, NullValue.NULL_VALUE));
+    mp.put("list_value", ImmutableList.of(false, dev.cel.common.values.NullValue.NULL_VALUE));
     assertThat(
             RUNTIME_HELPER.adaptProtoToValue(
                 Struct.newBuilder()
@@ -404,7 +405,7 @@ public final class ProtoMessageRuntimeHelpersTest {
                     .build())
             .build();
     Any anyJsonValue = Any.pack(jsonValue);
-    mp.put("list_value", ImmutableList.of(false, NullValue.NULL_VALUE));
+    mp.put("list_value", ImmutableList.of(false, dev.cel.common.values.NullValue.NULL_VALUE));
     assertThat(RUNTIME_HELPER.adaptProtoToValue(anyJsonValue)).isEqualTo(mp);
   }
 

@@ -17,6 +17,8 @@ java_library(
         "//common/internal:proto_time_utils",
         "//common/types",
         "//common/types:type_providers",
+        "//common/values",
+        "//common/values:cel_byte_string",
         "//compiler",
         "//compiler:compiler_builder",
         "//extensions",
@@ -40,7 +42,6 @@ java_library(
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 

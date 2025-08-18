@@ -18,11 +18,11 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.primitives.UnsignedLong;
-import com.google.protobuf.ByteString;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelConstant.Kind;
+import dev.cel.common.values.CelByteString;
 import java.text.ParseException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -336,7 +336,7 @@ public final class ConstantsTest {
   private static void testBytes(String actual, String expected) throws Exception {
     CelConstant constant = Constants.parseBytes(actual);
     assertThat(constant.getKind()).isEqualTo(Kind.BYTES_VALUE);
-    assertThat(constant.bytesValue()).isEqualTo(ByteString.copyFromUtf8(expected));
+    assertThat(constant.bytesValue()).isEqualTo(CelByteString.copyFromUtf8(expected));
   }
 
   private static void testQuotedBytes(String actual, String expected) throws Exception {
@@ -380,7 +380,7 @@ public final class ConstantsTest {
   private static void testRawBytes(String actual, String expected) throws Exception {
     CelConstant constant = Constants.parseBytes(actual);
     assertThat(constant.getKind()).isEqualTo(Kind.BYTES_VALUE);
-    assertThat(constant.bytesValue()).isEqualTo(ByteString.copyFromUtf8(expected));
+    assertThat(constant.bytesValue()).isEqualTo(CelByteString.copyFromUtf8(expected));
   }
 
   private static void testRawQuotedBytes(String actual, String expected) throws Exception {

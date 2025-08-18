@@ -30,6 +30,9 @@ import com.google.api.expr.v1alpha1.Reference;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
+import com.google.protobuf.ByteString;
+import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.NullValue;
 import java.util.Map;
 import java.util.Optional;
 
@@ -179,7 +182,7 @@ public final class CelExprV1Alpha1Converter {
       case CONSTANTKIND_NOT_SET:
         return CelConstant.ofNotSet();
       case NULL_VALUE:
-        return CelConstant.ofValue(constExpr.getNullValue());
+        return CelConstant.ofValue(NullValue.NULL_VALUE);
       case BOOL_VALUE:
         return CelConstant.ofValue(constExpr.getBoolValue());
       case INT64_VALUE:
@@ -191,7 +194,8 @@ public final class CelExprV1Alpha1Converter {
       case STRING_VALUE:
         return CelConstant.ofValue(constExpr.getStringValue());
       case BYTES_VALUE:
-        return CelConstant.ofValue(constExpr.getBytesValue());
+        ByteString bytesValue = constExpr.getBytesValue();
+        return CelConstant.ofValue(CelByteString.of(bytesValue.toByteArray()));
       case DURATION_VALUE:
         return CelConstant.ofValue(constExpr.getDurationValue());
       case TIMESTAMP_VALUE:
@@ -250,7 +254,7 @@ public final class CelExprV1Alpha1Converter {
       case NOT_SET:
         return Constant.getDefaultInstance();
       case NULL_VALUE:
-        return Constant.newBuilder().setNullValue(celConstant.nullValue()).build();
+        return Constant.newBuilder().setNullValue(com.google.protobuf.NullValue.NULL_VALUE).build();
       case BOOLEAN_VALUE:
         return Constant.newBuilder().setBoolValue(celConstant.booleanValue()).build();
       case INT64_VALUE:
@@ -262,7 +266,10 @@ public final class CelExprV1Alpha1Converter {
       case STRING_VALUE:
         return Constant.newBuilder().setStringValue(celConstant.stringValue()).build();
       case BYTES_VALUE:
-        return Constant.newBuilder().setBytesValue(celConstant.bytesValue()).build();
+        CelByteString celByteString = celConstant.bytesValue();
+        return Constant.newBuilder()
+            .setBytesValue(ByteString.copyFrom(celByteString.toByteArray()))
+            .build();
       case DURATION_VALUE:
         return Constant.newBuilder().setDurationValue(celConstant.durationValue()).build();
       case TIMESTAMP_VALUE:

@@ -48,7 +48,6 @@ import com.google.protobuf.Duration;
 import com.google.protobuf.Empty;
 import com.google.protobuf.FieldMask;
 import com.google.protobuf.Message;
-import com.google.protobuf.NullValue;
 import com.google.protobuf.Struct;
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.Timestamp;
@@ -86,6 +85,8 @@ import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.ProtoMessageTypeProvider;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
+import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.NullValue;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.compiler.CelCompilerImpl;
@@ -108,6 +109,7 @@ import dev.cel.runtime.CelVariableResolver;
 import dev.cel.runtime.UnknownContext;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -1019,7 +1021,10 @@ public final class CelImplTest {
     Cel cel =
         standardCelBuilderWithMacros()
             .setOptions(
-                CelOptions.current().resolveTypeDependencies(resolveTypeDependencies).build())
+                CelOptions.current()
+                    .evaluateCanonicalTypesToNativeValues(true)
+                    .resolveTypeDependencies(resolveTypeDependencies)
+                    .build())
             .addMessageTypes(Struct.getDescriptor())
             .setResultType(StructTypeReference.create("google.protobuf.NullValue"))
             .setContainer(CelContainer.ofName("google.protobuf"))
@@ -1037,7 +1042,11 @@ public final class CelImplTest {
   public void program_enumTypeTransitiveResolution() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
-            .setOptions(CelOptions.current().resolveTypeDependencies(true).build())
+            .setOptions(
+                CelOptions.current()
+                    .evaluateCanonicalTypesToNativeValues(true)
+                    .resolveTypeDependencies(true)
+                    .build())
             .addMessageTypes(Proto2ExtensionScopedMessage.getDescriptor())
             .setResultType(StructTypeReference.create("google.protobuf.NullValue"))
             .setContainer(CelContainer.ofName("google.protobuf"))
@@ -1626,7 +1635,11 @@ public final class CelImplTest {
   public void programAdvanceEvaluation_unsupportedIndexIgnored() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
-            .setOptions(CelOptions.current().enableUnknownTracking(true).build())
+            .setOptions(
+                CelOptions.current()
+                    .evaluateCanonicalTypesToNativeValues(true)
+                    .enableUnknownTracking(true)
+                    .build())
             .addVar("unk", MapType.create(SimpleType.STRING, SimpleType.BOOL))
             .setContainer(CelContainer.ofName(""))
             .addFunctionBindings()
@@ -1654,7 +1667,7 @@ public final class CelImplTest {
                 UnknownContext.create(
                     fromMap(
                         ImmutableMap.of(
-                            "unk", ImmutableMap.of(ByteString.copyFromUtf8("a"), false))),
+                            "unk", ImmutableMap.of(CelByteString.copyFromUtf8("a"), false))),
                     ImmutableList.of())))
         .isEqualTo(false);
   }
@@ -2075,6 +2088,23 @@ public final class CelImplTest {
             "evaluation error at <input>:13: Regex pattern exceeds allowed program size. Allowed:"
                 + " 6, Provided: 7");
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.INVALID_ARGUMENT);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked") // test only
+  public void program_evaluateCanonicalTypesToNativeTypesDisabled_producesProtoValues()
+      throws Exception {
+    Cel cel =
+        standardCelBuilderWithMacros()
+            .setOptions(CelOptions.current().evaluateCanonicalTypesToNativeValues(false).build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("[null, {b'abc': null}]").getAst();
+    Map<ByteString, Object> expectedNestedMap = new LinkedHashMap<>();
+    expectedNestedMap.put(ByteString.copyFromUtf8("abc"), com.google.protobuf.NullValue.NULL_VALUE);
+
+    List<Object> result = (List<Object>) cel.createProgram(ast).eval();
+
+    assertThat(result).containsExactly(com.google.protobuf.NullValue.NULL_VALUE, expectedNestedMap);
   }
 
   @Test

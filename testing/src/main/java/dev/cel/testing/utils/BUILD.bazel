@@ -19,6 +19,8 @@ java_library(
         "//common/internal:default_instance_message_factory",
         "//common/types",
         "//common/types:type_providers",
+        "//common/values",
+        "//common/values:cel_byte_string",
         "//runtime:unknown_attributes",
         "//testing/testrunner:registry_utils",
         "@cel_spec//proto/cel/expr:expr_java_proto",

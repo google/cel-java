@@ -22,13 +22,13 @@ import com.google.common.primitives.UnsignedLongs;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Duration;
 import com.google.protobuf.MessageLiteOrBuilder;
-import com.google.protobuf.NullValue;
 import com.google.re2j.Pattern;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.Converter;
+import dev.cel.common.values.NullValue;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -332,7 +332,7 @@ public class RuntimeHelpers {
 
   /** Adapts a plain old Java object into a CEL value. */
   public Object adaptValue(Object value) {
-    if (value == null) {
+    if (value == null || value.equals(com.google.protobuf.NullValue.NULL_VALUE)) {
       return NullValue.NULL_VALUE;
     }
     if (value instanceof Number) {

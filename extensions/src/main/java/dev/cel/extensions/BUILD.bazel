@@ -155,7 +155,9 @@ java_library(
     deps = [
         "//checker:checker_builder",
         "//common:compiler_common",
+        "//common:options",
         "//common/types",
+        "//common/values:cel_byte_string",
         "//compiler:compiler_builder",
         "//extensions:extension_library",
         "//runtime",
@@ -177,6 +179,8 @@ java_library(
         "//common:options",
         "//common/ast",
         "//common/types",
+        "//common/values",
+        "//common/values:cel_byte_string",
         "//compiler:compiler_builder",
         "//extensions:extension_library",
         "//parser:macro",

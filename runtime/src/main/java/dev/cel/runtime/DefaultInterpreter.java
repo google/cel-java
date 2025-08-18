@@ -25,6 +25,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.NullValue;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
@@ -42,6 +44,7 @@ import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.TypeType;
+import dev.cel.common.values.CelByteString;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -288,7 +291,9 @@ final class DefaultInterpreter implements Interpreter {
         ExecutionFrame unusedFrame, CelExpr unusedExpr, CelConstant constExpr) {
       switch (constExpr.getKind()) {
         case NULL_VALUE:
-          return constExpr.nullValue();
+          return celOptions.evaluateCanonicalTypesToNativeValues()
+              ? constExpr.nullValue()
+              : NullValue.NULL_VALUE;
         case BOOLEAN_VALUE:
           return constExpr.booleanValue();
         case INT64_VALUE:
@@ -304,7 +309,12 @@ final class DefaultInterpreter implements Interpreter {
         case STRING_VALUE:
           return constExpr.stringValue();
         case BYTES_VALUE:
-          return constExpr.bytesValue();
+          CelByteString celByteString = constExpr.bytesValue();
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return celByteString;
+          }
+
+          return ByteString.copyFrom(celByteString.toByteArray());
         default:
           throw new IllegalStateException("unsupported constant case: " + constExpr.getKind());
       }

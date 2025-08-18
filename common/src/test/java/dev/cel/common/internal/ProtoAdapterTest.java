@@ -40,6 +40,7 @@ import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
 import com.google.type.Expr;
 import dev.cel.common.CelOptions;
+import dev.cel.common.values.CelByteString;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -70,17 +71,17 @@ public final class ProtoAdapterTest {
       return Arrays.asList(
           new Object[][] {
             {
-              NullValue.NULL_VALUE,
+              dev.cel.common.values.NullValue.NULL_VALUE,
               Any.pack(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()),
             },
             {true, BoolValue.of(true)},
             {true, Any.pack(BoolValue.of(true))},
             {true, Value.newBuilder().setBoolValue(true).build()},
             {
-              ByteString.copyFromUtf8("hello"), BytesValue.of(ByteString.copyFromUtf8("hello")),
+              CelByteString.copyFromUtf8("hello"), BytesValue.of(ByteString.copyFromUtf8("hello")),
             },
             {
-              ByteString.copyFromUtf8("hello"),
+              CelByteString.copyFromUtf8("hello"),
               Any.pack(BytesValue.of(ByteString.copyFromUtf8("hello"))),
             },
             {1.5D, DoubleValue.of(1.5D)},
@@ -116,7 +117,9 @@ public final class ProtoAdapterTest {
                       .build()),
             },
             {
-              ImmutableMap.of("list_value", ImmutableList.of(false, NullValue.NULL_VALUE)),
+              ImmutableMap.of(
+                  "list_value",
+                  ImmutableList.of(false, dev.cel.common.values.NullValue.NULL_VALUE)),
               Struct.newBuilder()
                   .putFields(
                       "list_value",
@@ -149,8 +152,7 @@ public final class ProtoAdapterTest {
     @Test
     public void adaptValueToProto_bidirectionalConversion() {
       DynamicProto dynamicProto = DynamicProto.create(DefaultMessageFactory.INSTANCE);
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(dynamicProto, CelOptions.DEFAULT.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(dynamicProto, CelOptions.DEFAULT);
       assertThat(protoAdapter.adaptValueToProto(value, proto.getDescriptorForType().getFullName()))
           .isEqualTo(proto);
       assertThat(protoAdapter.adaptProtoToValue(proto)).isEqualTo(value);
@@ -169,7 +171,7 @@ public final class ProtoAdapterTest {
                       typeName.equals(Expr.getDescriptor().getFullName())
                           ? Optional.of(Expr.newBuilder())
                           : Optional.empty()),
-              CelOptions.DEFAULT.enableUnsignedLongs());
+              CelOptions.DEFAULT);
       assertThat(protoAdapter.adaptValueToProto(expr, Any.getDescriptor().getFullName()))
           .isEqualTo(Any.pack(expr));
       assertThat(protoAdapter.adaptProtoToValue(Any.pack(expr))).isEqualTo(expr);
@@ -180,8 +182,7 @@ public final class ProtoAdapterTest {
   public static class AsymmetricConversionTest {
     @Test
     public void adaptValueToProto_asymmetricFloatConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT);
       assertThat(protoAdapter.adaptValueToProto(1.5F, Any.getDescriptor().getFullName()))
           .isEqualTo(Any.pack(FloatValue.of(1.5F)));
       assertThat(protoAdapter.adaptProtoToValue(Any.pack(FloatValue.of(1.5F)))).isEqualTo(1.5D);
@@ -189,8 +190,7 @@ public final class ProtoAdapterTest {
 
     @Test
     public void adaptValueToProto_asymmetricDoubleFloatConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT);
       assertThat(protoAdapter.adaptValueToProto(1.5D, FloatValue.getDescriptor().getFullName()))
           .isEqualTo(FloatValue.of(1.5F));
       assertThat(protoAdapter.adaptProtoToValue(FloatValue.of(1.5F))).isEqualTo(1.5D);
@@ -198,16 +198,14 @@ public final class ProtoAdapterTest {
 
     @Test
     public void adaptValueToProto_asymmetricFloatDoubleConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT);
       assertThat(protoAdapter.adaptValueToProto(1.5F, DoubleValue.getDescriptor().getFullName()))
           .isEqualTo(DoubleValue.of(1.5D));
     }
 
     @Test
     public void adaptValueToProto_asymmetricJsonConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT);
       assertThat(
               protoAdapter.adaptValueToProto(
                   UnsignedLong.valueOf(1L), Value.getDescriptor().getFullName()))
@@ -223,14 +221,13 @@ public final class ProtoAdapterTest {
           .isEqualTo(Value.newBuilder().setStringValue(Long.toString(Long.MAX_VALUE)).build());
       assertThat(
               protoAdapter.adaptValueToProto(
-                  ByteString.copyFromUtf8("foo"), Value.getDescriptor().getFullName()))
+                  CelByteString.copyFromUtf8("foo"), Value.getDescriptor().getFullName()))
           .isEqualTo(Value.newBuilder().setStringValue("Zm9v").build());
     }
 
     @Test
     public void adaptValueToProto_unsupportedJsonConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT);
 
       assertThrows(
           ClassCastException.class,
@@ -241,8 +238,7 @@ public final class ProtoAdapterTest {
 
     @Test
     public void adaptValueToProto_unsupportedJsonListConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT);
 
       assertThrows(
           ClassCastException.class,
@@ -253,8 +249,7 @@ public final class ProtoAdapterTest {
 
     @Test
     public void adaptValueToProto_unsupportedConversion() {
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT.enableUnsignedLongs());
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT);
 
       assertThrows(
           IllegalStateException.class,

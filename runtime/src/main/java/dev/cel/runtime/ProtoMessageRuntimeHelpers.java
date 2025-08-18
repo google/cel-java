@@ -35,8 +35,7 @@ public final class ProtoMessageRuntimeHelpers extends RuntimeHelpers {
   @Internal
   public static ProtoMessageRuntimeHelpers create(
       DynamicProto dynamicProto, CelOptions celOptions) {
-    return new ProtoMessageRuntimeHelpers(
-        new ProtoAdapter(dynamicProto, celOptions.enableUnsignedLongs()));
+    return new ProtoMessageRuntimeHelpers(new ProtoAdapter(dynamicProto, celOptions));
   }
 
   /**

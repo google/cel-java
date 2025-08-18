@@ -18,6 +18,7 @@ import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
+import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoAdapter;
@@ -82,14 +83,15 @@ public class ProtoMessageValueProvider extends BaseProtoMessageValueProvider {
                         fieldName, descriptor.getFullName())));
   }
 
-  public static ProtoMessageValueProvider newInstance(DynamicProto dynamicProto) {
-    return new ProtoMessageValueProvider(dynamicProto);
+  public static ProtoMessageValueProvider newInstance(
+      CelOptions celOptions, DynamicProto dynamicProto) {
+    return new ProtoMessageValueProvider(celOptions, dynamicProto);
   }
 
-  private ProtoMessageValueProvider(DynamicProto dynamicProto) {
+  private ProtoMessageValueProvider(CelOptions celOptions, DynamicProto dynamicProto) {
     this.protoMessageFactory = dynamicProto.getProtoMessageFactory();
     this.protoCelValueConverter =
         ProtoCelValueConverter.newInstance(protoMessageFactory.getDescriptorPool(), dynamicProto);
-    this.protoAdapter = new ProtoAdapter(dynamicProto, true);
+    this.protoAdapter = new ProtoAdapter(dynamicProto, celOptions);
   }
 }

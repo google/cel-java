@@ -37,6 +37,7 @@ import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeType;
+import dev.cel.common.values.CelByteString;
 import dev.cel.runtime.CelUnknownSet;
 import dev.cel.testing.testrunner.RegistryUtils;
 import java.io.IOException;
@@ -92,7 +93,7 @@ public final class ExprValueUtils {
   private static Object toNativeObject(Value value) throws IOException {
     switch (value.getKindCase()) {
       case NULL_VALUE:
-        return value.getNullValue();
+        return dev.cel.common.values.NullValue.NULL_VALUE;
       case BOOL_VALUE:
         return value.getBoolValue();
       case INT64_VALUE:
@@ -104,7 +105,8 @@ public final class ExprValueUtils {
       case STRING_VALUE:
         return value.getStringValue();
       case BYTES_VALUE:
-        return value.getBytesValue();
+        ByteString byteString = value.getBytesValue();
+        return CelByteString.of(byteString.toByteArray());
       case ENUM_VALUE:
         return value.getEnumValue();
       case MAP_VALUE:
@@ -170,8 +172,8 @@ public final class ExprValueUtils {
     if (!(object instanceof Optional) && type instanceof OptionalType) {
       return toValue(object, type.parameters().get(0));
     }
-    if (object == null) {
-      object = NullValue.NULL_VALUE;
+    if (object == null || object.equals(NullValue.NULL_VALUE)) {
+      object = dev.cel.common.values.NullValue.NULL_VALUE;
     }
     if (object instanceof dev.cel.expr.Value) {
       object =
@@ -181,8 +183,8 @@ public final class ExprValueUtils {
     if (object instanceof Value) {
       return (Value) object;
     }
-    if (object instanceof NullValue) {
-      return Value.newBuilder().setNullValue((NullValue) object).build();
+    if (object instanceof dev.cel.common.values.NullValue) {
+      return Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build();
     }
     if (object instanceof Boolean) {
       return Value.newBuilder().setBoolValue((Boolean) object).build();
@@ -224,8 +226,10 @@ public final class ExprValueUtils {
           throw new IllegalArgumentException(String.format("Unexpected result type: %s", type));
       }
     }
-    if (object instanceof ByteString) {
-      return Value.newBuilder().setBytesValue((ByteString) object).build();
+    if (object instanceof CelByteString) {
+      return Value.newBuilder()
+          .setBytesValue(ByteString.copyFrom(((CelByteString) object).toByteArray()))
+          .build();
     }
     if (object instanceof List) {
       CelType elemType = type instanceof ListType ? ((ListType) type).elemType() : SimpleType.DYN;
@@ -280,7 +284,7 @@ public final class ExprValueUtils {
     return defaultInstance.getParserForType().parseFrom(value.getValue(), extensionRegistry);
   }
 
-  private static Message getDefaultInstance(Descriptor descriptor) throws IOException {
+  private static Message getDefaultInstance(Descriptor descriptor) {
     return DefaultInstanceMessageFactory.getInstance()
         .getPrototype(descriptor)
         .orElseThrow(

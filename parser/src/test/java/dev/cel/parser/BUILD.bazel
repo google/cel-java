@@ -21,6 +21,7 @@ java_library(
         "//common:source_location",
         "//common/ast",
         "//common/internal",
+        "//common/values:cel_byte_string",
         "//extensions:optional_library",
         "//parser",
         "//parser:macro",
@@ -37,7 +38,6 @@ java_library(
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 

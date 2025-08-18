@@ -139,8 +139,8 @@ java_library(
         "//common:cel_source",
         "//common/ast",
         "//common/ast:cel_expr_visitor",
+        "//common/values:cel_byte_string",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_re2j_re2j",
     ],
 )

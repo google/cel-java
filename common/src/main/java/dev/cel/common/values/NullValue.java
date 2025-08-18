@@ -43,5 +43,10 @@ public final class NullValue extends CelValue {
     return true;
   }
 
+  @Override
+  public String toString() {
+    return "NULL_VALUE";
+  }
+
   private NullValue() {}
 }

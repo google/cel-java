@@ -24,6 +24,7 @@ import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.internal.ProtoTimeUtils;
+import dev.cel.common.values.CelByteString;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import java.util.Arrays;
@@ -59,8 +60,22 @@ public final class StringFunction extends CelStandardFunction {
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from("bool_to_string", Boolean.class, Object::toString)),
     BYTES_TO_STRING(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "bytes_to_string",
+                CelByteString.class,
+                (byteStr) -> {
+                  if (!byteStr.isValidUtf8()) {
+                    throw new CelRuntimeException(
+                        new IllegalArgumentException(
+                            "invalid UTF-8 in bytes, cannot convert to string"),
+                        CelErrorCode.BAD_FORMAT);
+                  }
+                  return byteStr.toStringUtf8();
+                });
+          } else {
+            return CelFunctionBinding.from(
                 "bytes_to_string",
                 ByteString.class,
                 (byteStr) -> {
@@ -71,7 +86,9 @@ public final class StringFunction extends CelStandardFunction {
                         CelErrorCode.BAD_FORMAT);
                   }
                   return byteStr.toStringUtf8();
-                })),
+                });
+          }
+        }),
     TIMESTAMP_TO_STRING(
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from(

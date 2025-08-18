@@ -22,6 +22,7 @@ import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
@@ -30,10 +31,12 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MapEntry;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageOrBuilder;
-import com.google.protobuf.NullValue;
 import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.NullValue;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -117,13 +120,13 @@ public final class ProtoAdapter {
       BidiConverter.of(Number::doubleValue, Number::floatValue);
 
   private final ProtoLiteAdapter protoLiteAdapter;
+  private final CelOptions celOptions;
   private final DynamicProto dynamicProto;
-  private final boolean enableUnsignedLongs;
 
-  public ProtoAdapter(DynamicProto dynamicProto, boolean enableUnsignedLongs) {
+  public ProtoAdapter(DynamicProto dynamicProto, CelOptions celOptions) {
     this.dynamicProto = checkNotNull(dynamicProto);
-    this.enableUnsignedLongs = enableUnsignedLongs;
-    this.protoLiteAdapter = new ProtoLiteAdapter(enableUnsignedLongs);
+    this.protoLiteAdapter = new ProtoLiteAdapter(celOptions.enableUnsignedLongs());
+    this.celOptions = celOptions;
   }
 
   /**
@@ -192,6 +195,7 @@ public final class ProtoAdapter {
       }
       return Optional.of(AdaptingTypes.adaptingList((List<?>) fieldValue, bidiConverter));
     }
+
     return Optional.of(
         fieldToValueConverter(fieldDescriptor).forwardConverter().convert(fieldValue));
   }
@@ -230,6 +234,7 @@ public final class ProtoAdapter {
           AdaptingTypes.adaptingList(
               (List<?>) fieldValue, fieldToValueConverter(fieldDescriptor).reverse()));
     }
+
     return Optional.of(
         fieldToValueConverter(fieldDescriptor).backwardConverter().convert(fieldValue));
   }
@@ -243,18 +248,25 @@ public final class ProtoAdapter {
         return INT_CONVERTER;
       case FIXED32:
       case UINT32:
-        if (enableUnsignedLongs) {
+        if (celOptions.enableUnsignedLongs()) {
           return UNSIGNED_UINT32_CONVERTER;
         }
         return SIGNED_UINT32_CONVERTER;
       case FIXED64:
       case UINT64:
-        if (enableUnsignedLongs) {
+        if (celOptions.enableUnsignedLongs()) {
           return UNSIGNED_UINT64_CONVERTER;
         }
         return BidiConverter.IDENTITY;
       case FLOAT:
         return DOUBLE_CONVERTER;
+      case BYTES:
+        if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+          return BidiConverter.<Object, Object>of(
+              ProtoAdapter::adaptProtoByteStringToValue, ProtoAdapter::adaptCelByteStringToProto);
+        }
+
+        return BidiConverter.IDENTITY;
       case ENUM:
         return BidiConverter.<Object, Long>of(
             value -> (long) ((EnumValueDescriptor) value).getNumber(),
@@ -269,6 +281,22 @@ public final class ProtoAdapter {
       default:
         return BidiConverter.IDENTITY;
     }
+  }
+
+  private static CelByteString adaptProtoByteStringToValue(Object proto) {
+    if (proto instanceof CelByteString) {
+      return (CelByteString) proto;
+    }
+
+    return CelByteString.of(((ByteString) proto).toByteArray());
+  }
+
+  private static ByteString adaptCelByteStringToProto(Object value) {
+    if (value instanceof ByteString) {
+      return (ByteString) value;
+    }
+
+    return ByteString.copyFrom(((CelByteString) value).toByteArray());
   }
 
   /**

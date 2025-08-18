@@ -17,6 +17,7 @@ package dev.cel.runtime.standard;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.ByteString;
 import dev.cel.common.CelOptions;
+import dev.cel.common.values.CelByteString;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import java.util.Arrays;
@@ -43,13 +44,25 @@ public final class SizeFunction extends CelStandardFunction {
   @SuppressWarnings("rawtypes")
   public enum SizeOverload implements CelStandardOverload {
     SIZE_BYTES(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
-                "size_bytes", ByteString.class, (ByteString bytes) -> (long) bytes.size())),
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "size_bytes", CelByteString.class, (CelByteString bytes) -> (long) bytes.size());
+          } else {
+            return CelFunctionBinding.from(
+                "size_bytes", ByteString.class, (ByteString bytes) -> (long) bytes.size());
+          }
+        }),
     BYTES_SIZE(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
-                "bytes_size", ByteString.class, (ByteString bytes) -> (long) bytes.size())),
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "bytes_size", CelByteString.class, (CelByteString bytes) -> (long) bytes.size());
+          } else {
+            return CelFunctionBinding.from(
+                "bytes_size", ByteString.class, (ByteString bytes) -> (long) bytes.size());
+          }
+        }),
     SIZE_LIST(
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from("size_list", List.class, (List list1) -> (long) list1.size())),

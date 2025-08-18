@@ -19,13 +19,13 @@ import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.protobuf.ByteString;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.values.CelByteString;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.runtime.CelEvaluationException;
@@ -36,14 +36,19 @@ import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public class CelEncoderExtensionsTest {
+  private static final CelOptions CEL_OPTIONS =
+      CelOptions.current().evaluateCanonicalTypesToNativeValues(true).build();
 
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
           .addVar("stringVar", SimpleType.STRING)
-          .addLibraries(CelExtensions.encoders())
+          .addLibraries(CelExtensions.encoders(CEL_OPTIONS))
           .build();
   private static final CelRuntime CEL_RUNTIME =
-      CelRuntimeFactory.standardCelRuntimeBuilder().addLibraries(CelExtensions.encoders()).build();
+      CelRuntimeFactory.standardCelRuntimeBuilder()
+          .setOptions(CEL_OPTIONS)
+          .addLibraries(CelExtensions.encoders(CEL_OPTIONS))
+          .build();
 
   @Test
   public void library() {
@@ -69,27 +74,27 @@ public class CelEncoderExtensionsTest {
 
   @Test
   public void decode_success() throws Exception {
-    ByteString decodedBytes =
-        (ByteString)
+    CelByteString decodedBytes =
+        (CelByteString)
             CEL_RUNTIME
                 .createProgram(CEL_COMPILER.compile("base64.decode('aGVsbG8=')").getAst())
                 .eval();
 
     assertThat(decodedBytes.size()).isEqualTo(5);
-    assertThat(decodedBytes.toString(ISO_8859_1)).isEqualTo("hello");
+    assertThat(new String(decodedBytes.toByteArray(), ISO_8859_1)).isEqualTo("hello");
   }
 
   @Test
   public void decode_withoutPadding_success() throws Exception {
-    ByteString decodedBytes =
-        (ByteString)
+    CelByteString decodedBytes =
+        (CelByteString)
             CEL_RUNTIME
                 // RFC2045 6.8, padding can be ignored.
                 .createProgram(CEL_COMPILER.compile("base64.decode('aGVsbG8')").getAst())
                 .eval();
 
     assertThat(decodedBytes.size()).isEqualTo(5);
-    assertThat(decodedBytes.toString(ISO_8859_1)).isEqualTo("hello");
+    assertThat(new String(decodedBytes.toByteArray(), ISO_8859_1)).isEqualTo("hello");
   }
 
   @Test
@@ -99,13 +104,13 @@ public class CelEncoderExtensionsTest {
             CEL_RUNTIME
                 .createProgram(CEL_COMPILER.compile("base64.encode(b'Hello World!')").getAst())
                 .eval();
-    ByteString decodedBytes =
-        (ByteString)
+    CelByteString decodedBytes =
+        (CelByteString)
             CEL_RUNTIME
                 .createProgram(CEL_COMPILER.compile("base64.decode(stringVar)").getAst())
                 .eval(ImmutableMap.of("stringVar", encodedString));
 
-    assertThat(decodedBytes.toString(ISO_8859_1)).isEqualTo("Hello World!");
+    assertThat(new String(decodedBytes.toByteArray(), ISO_8859_1)).isEqualTo("Hello World!");
   }
 
   @Test
@@ -141,4 +146,3 @@ public class CelEncoderExtensionsTest {
     assertThat(e).hasCauseThat().hasMessageThat().contains("Illegal base64 character");
   }
 }
-

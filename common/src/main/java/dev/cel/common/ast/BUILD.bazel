@@ -49,6 +49,8 @@ java_library(
     deps = [
         "//:auto_value",
         "//common/annotations",
+        "//common/values",
+        "//common/values:cel_byte_string",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -62,9 +64,12 @@ java_library(
     ],
     deps = [
         ":ast",
+        "//common/values",
+        "//common/values:cel_byte_string",
         "@cel_spec//proto/cel/expr:checked_java_proto",
         "@cel_spec//proto/cel/expr:syntax_java_proto",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -75,9 +80,12 @@ cel_android_library(
     ],
     deps = [
         ":ast_android",
+        "//common/values:cel_byte_string",
+        "//common/values:values_android",
         "@cel_spec//proto/cel/expr:checked_java_proto_lite",
         "@cel_spec//proto/cel/expr:syntax_java_proto_lite",
         "@maven_android//:com_google_guava_guava",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -88,8 +96,11 @@ java_library(
     ],
     deps = [
         ":ast",
+        "//common/values",
+        "//common/values:cel_byte_string",
         "@com_google_googleapis//google/api/expr/v1alpha1:expr_java_proto",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -112,8 +123,8 @@ java_library(
     deps = [
         ":ast",
         "//common/annotations",
+        "//common/values:cel_byte_string",
         "@maven//:com_google_guava_guava",
-        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
@@ -136,6 +147,8 @@ cel_android_library(
     deps = [
         "//:auto_value",
         "//common/annotations",
+        "//common/values:cel_byte_string",
+        "//common/values:values_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
         "@maven_android//:com_google_protobuf_protobuf_javalite",

@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelDescriptorUtil;
+import dev.cel.common.CelOptions;
 import dev.cel.common.internal.CelDescriptorPool;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
@@ -46,13 +47,12 @@ public class ProtoMessageValueProviderTest {
                   TestAllTypes.getDescriptor().getFile(), TestAllTypesExtensions.getDescriptor())));
   private static final ProtoMessageFactory MESSAGE_FACTORY =
       DefaultMessageFactory.create(DESCRIPTOR_POOL);
-
   private static final DynamicProto DYNAMIC_PROTO = DynamicProto.create(MESSAGE_FACTORY);
 
   @Test
   public void newValue_createEmptyProtoMessage() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
+        ProtoMessageValueProvider.newInstance(CelOptions.DEFAULT, DYNAMIC_PROTO);
 
     ProtoMessageValue protoMessageValue =
         (ProtoMessageValue)
@@ -66,7 +66,7 @@ public class ProtoMessageValueProviderTest {
   @Test
   public void newValue_createProtoMessage_fieldsPopulated() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
+        ProtoMessageValueProvider.newInstance(CelOptions.DEFAULT, DYNAMIC_PROTO);
 
     ProtoMessageValue protoMessageValue =
         (ProtoMessageValue)
@@ -118,7 +118,7 @@ public class ProtoMessageValueProviderTest {
   @Test
   public void newValue_createProtoMessage_unsignedLongFieldsPopulated() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
+        ProtoMessageValueProvider.newInstance(CelOptions.DEFAULT, DYNAMIC_PROTO);
 
     ProtoMessageValue protoMessageValue =
         (ProtoMessageValue)
@@ -139,7 +139,7 @@ public class ProtoMessageValueProviderTest {
   @Test
   public void newValue_createProtoMessage_wrappersPopulated() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
+        ProtoMessageValueProvider.newInstance(CelOptions.DEFAULT, DYNAMIC_PROTO);
 
     ProtoMessageValue protoMessageValue =
         (ProtoMessageValue)
@@ -185,7 +185,7 @@ public class ProtoMessageValueProviderTest {
   @Test
   public void newValue_createProtoMessage_extensionFieldsPopulated() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
+        ProtoMessageValueProvider.newInstance(CelOptions.DEFAULT, DYNAMIC_PROTO);
 
     ProtoMessageValue protoMessageValue =
         (ProtoMessageValue)
@@ -206,7 +206,7 @@ public class ProtoMessageValueProviderTest {
   @Test
   public void newValue_invalidMessageName_returnsEmpty() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
+        ProtoMessageValueProvider.newInstance(CelOptions.DEFAULT, DYNAMIC_PROTO);
 
     assertThat(protoMessageValueProvider.newValue("bogus", ImmutableMap.of())).isEmpty();
   }
@@ -214,7 +214,7 @@ public class ProtoMessageValueProviderTest {
   @Test
   public void newValue_invalidField_throws() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
+        ProtoMessageValueProvider.newInstance(CelOptions.DEFAULT, DYNAMIC_PROTO);
 
     IllegalArgumentException e =
         assertThrows(
@@ -234,7 +234,7 @@ public class ProtoMessageValueProviderTest {
   public void newValue_onCombinedProvider() {
     CelValueProvider celValueProvider = (structType, fields) -> Optional.empty();
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(DYNAMIC_PROTO);
+        ProtoMessageValueProvider.newInstance(CelOptions.DEFAULT, DYNAMIC_PROTO);
     CelValueProvider combinedProvider =
         CombinedCelValueProvider.combine(celValueProvider, protoMessageValueProvider);
 

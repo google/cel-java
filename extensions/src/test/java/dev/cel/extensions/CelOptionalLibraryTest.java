@@ -20,9 +20,7 @@ import static org.junit.Assert.assertThrows;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.DoubleValue;
-import com.google.protobuf.NullValue;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
@@ -44,6 +42,8 @@ import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeType;
+import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.NullValue;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.parser.CelMacro;
@@ -69,7 +69,7 @@ public class CelOptionalLibraryTest {
     DOUBLE("5.2", "0.0", SimpleType.DOUBLE, 5.2d),
     UINT("5u", "0u", SimpleType.UINT, UnsignedLong.valueOf(5)),
     BOOL("true", "false", SimpleType.BOOL, true),
-    BYTES("b'abc'", "b''", SimpleType.BYTES, ByteString.copyFromUtf8("abc")),
+    BYTES("b'abc'", "b''", SimpleType.BYTES, CelByteString.copyFromUtf8("abc")),
     DURATION(
         "duration('180s')",
         "duration('0s')",
@@ -101,7 +101,11 @@ public class CelOptionalLibraryTest {
 
   private static CelBuilder newCelBuilder(int version) {
     return CelFactory.standardCelBuilder()
-        .setOptions(CelOptions.current().enableTimestampEpoch(true).build())
+        .setOptions(
+            CelOptions.current()
+                .evaluateCanonicalTypesToNativeValues(true)
+                .enableTimestampEpoch(true)
+                .build())
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
         .addMessageTypes(TestAllTypes.getDescriptor())

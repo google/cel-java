@@ -16,7 +16,6 @@ package dev.cel.common.values;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.protobuf.ByteString;
 import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
 import dev.cel.common.internal.DefaultDescriptorPool;
@@ -56,21 +55,25 @@ public class ProtoCelValueConverterTest {
   }
 
   @Test
-  public void fromCelValueToJavaObject_returnsBytesValue() {
-    ByteString byteString =
-        (ByteString)
+  public void fromCelValueToJavaObject_returnsCelBytesValue() {
+    CelByteString byteString =
+        (CelByteString)
             PROTO_CEL_VALUE_CONVERTER.fromCelValueToJavaObject(
                 BytesValue.create(CelByteString.of(new byte[] {0x1, 0x5, 0xc})));
 
-    assertThat(byteString).isEqualTo(ByteString.copyFrom(new byte[] {0x1, 0x5, 0xc}));
+    // Note: No conversion is attempted. CelByteString is the native Java type equivalent for CEL's
+    // bytes.
+    assertThat(byteString).isEqualTo(CelByteString.of(new byte[] {0x1, 0x5, 0xc}));
   }
 
   @Test
-  public void fromCelValueToJavaObject_returnsProtobufNullValue() {
-    com.google.protobuf.NullValue nullValue =
-        (com.google.protobuf.NullValue)
-            PROTO_CEL_VALUE_CONVERTER.fromCelValueToJavaObject(NullValue.NULL_VALUE);
+  public void fromCelValueToJavaObject_returnsCelNullValue() {
+    NullValue nullValue =
+        (NullValue) PROTO_CEL_VALUE_CONVERTER.fromCelValueToJavaObject(NullValue.NULL_VALUE);
 
-    assertThat(nullValue).isEqualTo(com.google.protobuf.NullValue.NULL_VALUE);
+    // Note: No conversion is attempted. We're using dev.cel.common.values.NullValue.NULL_VALUE as
+    // the
+    // sentinel type for CEL's `null`.
+    assertThat(nullValue).isEqualTo(NullValue.NULL_VALUE);
   }
 }

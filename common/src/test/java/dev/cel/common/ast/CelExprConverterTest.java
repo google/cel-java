@@ -33,6 +33,7 @@ import com.google.protobuf.NullValue;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
+import dev.cel.common.values.CelByteString;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,7 +50,7 @@ public class CelExprConverterTest {
             .setId(1)
             .setConstExpr(Constant.newBuilder().setNullValue(NullValue.NULL_VALUE).build())
             .build(),
-        CelExpr.ofConstant(1, CelConstant.ofValue(NullValue.NULL_VALUE))),
+        CelExpr.ofConstant(1, CelConstant.ofValue(dev.cel.common.values.NullValue.NULL_VALUE))),
     BOOLEAN(
         Expr.newBuilder()
             .setId(1)
@@ -86,7 +87,7 @@ public class CelExprConverterTest {
             .setConstExpr(
                 Constant.newBuilder().setBytesValue(ByteString.copyFromUtf8("TEST")).build())
             .build(),
-        CelExpr.ofConstant(1, CelConstant.ofValue(ByteString.copyFromUtf8("TEST"))));
+        CelExpr.ofConstant(1, CelConstant.ofValue(CelByteString.copyFromUtf8("TEST"))));
 
     final Expr protoExpr;
     final CelExpr celExpr;

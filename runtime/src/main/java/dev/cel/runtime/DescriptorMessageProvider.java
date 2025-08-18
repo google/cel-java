@@ -15,6 +15,7 @@
 package dev.cel.runtime;
 
 import com.google.errorprone.annotations.Immutable;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
@@ -28,6 +29,7 @@ import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoAdapter;
 import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.types.CelTypes;
+import dev.cel.common.values.CelByteString;
 import java.util.Map;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
@@ -45,6 +47,7 @@ import org.jspecify.annotations.Nullable;
 @Internal
 public final class DescriptorMessageProvider implements RuntimeTypeProvider {
   private final ProtoMessageFactory protoMessageFactory;
+  private final CelOptions celOptions;
 
   @SuppressWarnings("Immutable")
   private final ProtoAdapter protoAdapter;
@@ -65,9 +68,8 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
    */
   public DescriptorMessageProvider(ProtoMessageFactory protoMessageFactory, CelOptions celOptions) {
     this.protoMessageFactory = protoMessageFactory;
-    this.protoAdapter =
-        new ProtoAdapter(
-            DynamicProto.create(protoMessageFactory), celOptions.enableUnsignedLongs());
+    this.celOptions = celOptions;
+    this.protoAdapter = new ProtoAdapter(DynamicProto.create(protoMessageFactory), celOptions);
   }
 
   @Override
@@ -142,6 +144,10 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
   public Object adapt(String messageName, Object message) {
     if (message instanceof Message) {
       return protoAdapter.adaptProtoToValue((Message) message);
+    }
+
+    if (celOptions.evaluateCanonicalTypesToNativeValues() && message instanceof ByteString) {
+      return CelByteString.of(((ByteString) message).toByteArray());
     }
 
     return message;

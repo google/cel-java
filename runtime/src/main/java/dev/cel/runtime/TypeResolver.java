@@ -34,6 +34,7 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeType;
+import dev.cel.common.values.CelByteString;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -68,12 +69,16 @@ class TypeResolver {
           .put(ArrayList.class, TypeType.create(ListType.create(SimpleType.DYN)))
           .put(HashMap.class, TypeType.create(MapType.create(SimpleType.DYN, SimpleType.DYN)))
           .put(Optional.class, TypeType.create(OptionalType.create(SimpleType.DYN)))
+          .put(CelByteString.class, TypeType.create(SimpleType.BYTES))
           .buildOrThrow();
 
   private static final ImmutableMap<Class<?>, TypeType> EXTENDABLE_TYPES =
       ImmutableMap.<Class<?>, TypeType>builder()
+          .put(
+              ByteString.class,
+              TypeType.create(
+                  SimpleType.BYTES)) // TODO: Remove once clients have been migrated
           .put(Collection.class, TypeType.create(ListType.create(SimpleType.DYN)))
-          .put(ByteString.class, TypeType.create(SimpleType.BYTES))
           .put(Map.class, TypeType.create(MapType.create(SimpleType.DYN, SimpleType.DYN)))
           .buildOrThrow();
 

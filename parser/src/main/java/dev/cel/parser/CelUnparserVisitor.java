@@ -14,7 +14,6 @@
 package dev.cel.parser;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.protobuf.ByteString;
 import com.google.re2j.Pattern;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelSource;
@@ -29,6 +28,7 @@ import dev.cel.common.ast.CelExpr.CelSelect;
 import dev.cel.common.ast.CelExpr.CelStruct;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelExprVisitor;
+import dev.cel.common.values.CelByteString;
 import java.util.HashSet;
 import java.util.Optional;
 
@@ -360,7 +360,7 @@ public class CelUnparserVisitor extends CelExprVisitor {
 
   // bytesToOctets converts byte sequences to a string using a three digit octal encoded value
   // per byte.
-  private String bytesToOctets(ByteString bytes) {
+  private String bytesToOctets(CelByteString bytes) {
     StringBuilder sb = new StringBuilder();
     for (byte b : bytes.toByteArray()) {
       sb.append(String.format("\\%03o", b));

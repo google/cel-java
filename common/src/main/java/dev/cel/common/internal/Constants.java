@@ -19,9 +19,10 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.NullValue;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
+import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.NullValue;
 import java.text.ParseException;
 import java.util.PrimitiveIterator;
 
@@ -154,7 +155,7 @@ public final class Constants {
     text = text.substring(0, text.length() - quote.length());
     DecodeBuffer<ByteString> buffer = new DecodeByteStringBuffer(text.length());
     decodeString(offset, text, buffer, isRawLiteral, true);
-    return CelConstant.ofValue(buffer.toDecodedValue());
+    return CelConstant.ofValue(CelByteString.of(buffer.toDecodedValue().toByteArray()));
   }
 
   public static CelConstant parseString(String text) throws ParseException {

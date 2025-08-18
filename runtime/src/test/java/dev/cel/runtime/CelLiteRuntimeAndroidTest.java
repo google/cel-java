@@ -38,6 +38,7 @@ import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.internal.ProtoTimeUtils;
+import dev.cel.common.values.CelByteString;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.expr.conformance.proto3.NestedTestAllTypes;
@@ -245,7 +246,7 @@ public class CelLiteRuntimeAndroidTest {
                     "bool_var",
                     true,
                     "bytes_var",
-                    ByteString.copyFromUtf8("abc"),
+                    CelByteString.copyFromUtf8("abc"),
                     "double_var",
                     1.0,
                     "int_var",
@@ -603,7 +604,8 @@ public class CelLiteRuntimeAndroidTest {
             ImmutableList.of(23.3d, 24.4d),
             ImmutableList.of(true, false),
             ImmutableList.of("alpha", "beta"),
-            ImmutableList.of(ByteString.copyFromUtf8("gamma"), ByteString.copyFromUtf8("delta")))
+            ImmutableList.of(
+                CelByteString.copyFromUtf8("gamma"), CelByteString.copyFromUtf8("delta")))
         .inOrder();
   }
 
@@ -695,7 +697,7 @@ public class CelLiteRuntimeAndroidTest {
             ImmutableMap.of(true, false, false, true),
             ImmutableMap.of(true, "foo", false, "bar"),
             ImmutableMap.of(
-                true, ByteString.copyFromUtf8("baz"), false, ByteString.copyFromUtf8("qux")),
+                true, CelByteString.copyFromUtf8("baz"), false, CelByteString.copyFromUtf8("qux")),
             ImmutableMap.of(true, 1L, false, 2L),
             ImmutableMap.of(true, 3L, false, 4L),
             ImmutableMap.of(true, UnsignedLong.valueOf(5), false, UnsignedLong.valueOf(6)),

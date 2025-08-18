@@ -21,8 +21,10 @@ import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.ByteString;
 import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.values.CelByteString;
 import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeBuilder;
@@ -41,6 +43,7 @@ public class CelEncoderExtensions
   private static final Decoder BASE64_DECODER = Base64.getDecoder();
 
   private final ImmutableSet<Function> functions;
+  private final CelOptions celOptions;
 
   enum Function {
     DECODE(
@@ -48,53 +51,67 @@ public class CelEncoderExtensions
             "base64.decode",
             CelOverloadDecl.newGlobalOverload(
                 "base64_decode_string", SimpleType.BYTES, SimpleType.STRING)),
-        ImmutableSet.of(
-            CelFunctionBinding.from(
-                "base64_decode_string",
-                String.class,
-                str -> ByteString.copyFrom(BASE64_DECODER.decode(str))))),
+        CelFunctionBinding.from(
+            "base64_decode_string",
+            String.class,
+            str -> CelByteString.of(BASE64_DECODER.decode(str))),
+        CelFunctionBinding.from(
+            "base64_decode_string",
+            String.class,
+            str -> ByteString.copyFrom(BASE64_DECODER.decode(str)))),
     ENCODE(
         CelFunctionDecl.newFunctionDeclaration(
             "base64.encode",
             CelOverloadDecl.newGlobalOverload(
                 "base64_encode_bytes", SimpleType.STRING, SimpleType.BYTES)),
-        ImmutableSet.of(
-            CelFunctionBinding.from(
-                "base64_encode_bytes",
-                ByteString.class,
-                bytes -> BASE64_ENCODER.encodeToString(bytes.toByteArray())))),
+        CelFunctionBinding.from(
+            "base64_encode_bytes",
+            CelByteString.class,
+            bytes -> BASE64_ENCODER.encodeToString(bytes.toByteArray())),
+        CelFunctionBinding.from(
+            "base64_encode_bytes",
+            ByteString.class,
+            bytes -> BASE64_ENCODER.encodeToString(bytes.toByteArray()))),
     ;
 
     private final CelFunctionDecl functionDecl;
-    private final ImmutableSet<CelFunctionBinding> functionBindings;
+    private final CelFunctionBinding nativeBytesFunctionBinding;
+    private final CelFunctionBinding protoBytesFunctionBinding;
 
     String getFunction() {
       return functionDecl.name();
     }
 
-    Function(CelFunctionDecl functionDecl, ImmutableSet<CelFunctionBinding> functionBindings) {
+    Function(
+        CelFunctionDecl functionDecl,
+        CelFunctionBinding nativeBytesFunctionBinding,
+        CelFunctionBinding protoBytesFunctionBinding) {
       this.functionDecl = functionDecl;
-      this.functionBindings = functionBindings;
+      this.nativeBytesFunctionBinding = nativeBytesFunctionBinding;
+      this.protoBytesFunctionBinding = protoBytesFunctionBinding;
     }
   }
 
-  private static final CelExtensionLibrary<CelEncoderExtensions> LIBRARY =
-      new CelExtensionLibrary<CelEncoderExtensions>() {
-        private final CelEncoderExtensions version0 = new CelEncoderExtensions();
+  private static final class Library implements CelExtensionLibrary<CelEncoderExtensions> {
+    private final CelEncoderExtensions version0;
 
-        @Override
-        public String name() {
-          return "encoders";
-        }
+    @Override
+    public String name() {
+      return "encoders";
+    }
 
-        @Override
-        public ImmutableSet<CelEncoderExtensions> versions() {
-          return ImmutableSet.of(version0);
-        }
-      };
+    @Override
+    public ImmutableSet<CelEncoderExtensions> versions() {
+      return ImmutableSet.of(version0);
+    }
 
-  static CelExtensionLibrary<CelEncoderExtensions> library() {
-    return LIBRARY;
+    private Library(CelOptions celOptions) {
+      this.version0 = new CelEncoderExtensions(celOptions);
+    }
+  }
+
+  static CelExtensionLibrary<CelEncoderExtensions> library(CelOptions celOptions) {
+    return new Library(celOptions);
   }
 
   @Override
@@ -115,10 +132,18 @@ public class CelEncoderExtensions
   @SuppressWarnings("Immutable") // Instances of java.util.Base64 are immutable
   @Override
   public void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder) {
-    functions.forEach(function -> runtimeBuilder.addFunctionBindings(function.functionBindings));
+    functions.forEach(
+        function -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            runtimeBuilder.addFunctionBindings(function.nativeBytesFunctionBinding);
+          } else {
+            runtimeBuilder.addFunctionBindings(function.protoBytesFunctionBinding);
+          }
+        });
   }
 
-  public CelEncoderExtensions() {
+  CelEncoderExtensions(CelOptions celOptions) {
+    this.celOptions = celOptions;
     this.functions = ImmutableSet.copyOf(Function.values());
   }
 }

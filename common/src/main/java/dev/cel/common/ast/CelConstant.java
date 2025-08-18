@@ -19,11 +19,13 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
+import com.google.errorprone.annotations.InlineMe;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Duration;
-import com.google.protobuf.NullValue;
 import com.google.protobuf.Timestamp;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.NullValue;
 
 /**
  * Represents a primitive literal.
@@ -42,7 +44,7 @@ public abstract class CelConstant {
           UnsignedLong.class,
           Double.class,
           String.class,
-          ByteString.class);
+          CelByteString.class);
 
   /** Represents the type of the Constant */
   public enum Kind {
@@ -92,7 +94,7 @@ public abstract class CelConstant {
 
   public abstract String stringValue();
 
-  public abstract ByteString bytesValue();
+  public abstract CelByteString bytesValue();
 
   /**
    * @deprecated Do not use. Timestamp is no longer built-in CEL type.
@@ -134,8 +136,44 @@ public abstract class CelConstant {
     return AutoOneOf_CelConstant.stringValue(value);
   }
 
-  public static CelConstant ofValue(ByteString value) {
+  public static CelConstant ofValue(CelByteString value) {
     return AutoOneOf_CelConstant.bytesValue(value);
+  }
+
+  /**
+   * @deprecated Use native type equivalent {@link #ofValue(NullValue)} instead.
+   */
+  @InlineMe(
+      replacement = "CelConstant.ofValue(NullValue.NULL_VALUE)",
+      imports = {"dev.cel.common.ast.CelConstant", "dev.cel.common.values.NullValue"})
+  @Deprecated
+  public static CelConstant ofValue(com.google.protobuf.NullValue unused) {
+    return ofValue(NullValue.NULL_VALUE);
+  }
+
+  /**
+   * @deprecated Use native type equivalent {@link #ofValue(CelByteString)} instead.
+   */
+  @Deprecated
+  public static CelConstant ofValue(ByteString value) {
+    CelByteString celByteString = CelByteString.of(value.toByteArray());
+    return ofValue(celByteString);
+  }
+
+  /**
+   * @deprecated Do not use. Duration is no longer built-in CEL type.
+   */
+  @Deprecated
+  public static CelConstant ofValue(Duration value) {
+    return AutoOneOf_CelConstant.durationValue(value);
+  }
+
+  /**
+   * @deprecated Do not use. Timestamp is no longer built-in CEL type.
+   */
+  @Deprecated
+  public static CelConstant ofValue(Timestamp value) {
+    return AutoOneOf_CelConstant.timestampValue(value);
   }
 
   /** Checks whether the provided Java object is a valid CelConstant value. */
@@ -163,26 +201,10 @@ public abstract class CelConstant {
       return ofValue((double) value);
     } else if (value instanceof String) {
       return ofValue((String) value);
-    } else if (value instanceof ByteString) {
-      return ofValue((ByteString) value);
+    } else if (value instanceof CelByteString) {
+      return ofValue((CelByteString) value);
     }
 
     throw new IllegalArgumentException("Value is not a CelConstant: " + value);
-  }
-
-  /**
-   * @deprecated Do not use. Duration is no longer built-in CEL type.
-   */
-  @Deprecated
-  public static CelConstant ofValue(Duration value) {
-    return AutoOneOf_CelConstant.durationValue(value);
-  }
-
-  /**
-   * @deprecated Do not use. Timestamp is no longer built-in CEL type.
-   */
-  @Deprecated
-  public static CelConstant ofValue(Timestamp value) {
-    return AutoOneOf_CelConstant.timestampValue(value);
   }
 }

@@ -41,8 +41,7 @@ final class ProtoMessageActivationFactory {
     Map<FieldDescriptor, Object> msgFieldValues = message.getAllFields();
 
     ProtoAdapter protoAdapter =
-        new ProtoAdapter(
-            DynamicProto.create(DefaultMessageFactory.INSTANCE), celOptions.enableUnsignedLongs());
+        new ProtoAdapter(DynamicProto.create(DefaultMessageFactory.INSTANCE), celOptions);
 
     boolean skipUnsetFields =
         celOptions.fromProtoUnsetFieldOption().equals(CelOptions.ProtoUnsetFieldOptions.SKIP);

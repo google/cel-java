@@ -26,6 +26,7 @@ java_library(
         "//common/types",
         "//common/types:cel_proto_types",
         "//common/types:cel_v1alpha1_types",
+        "//common/values:cel_byte_string",
         "//compiler",
         "//compiler:compiler_builder",
         "//parser:macro",
@@ -40,7 +41,6 @@ java_library(
         "@maven//:com_google_truth_extensions_truth_proto_extension",
         "@maven//:junit_junit",
         "@maven//:org_antlr_antlr4_runtime",
-        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 

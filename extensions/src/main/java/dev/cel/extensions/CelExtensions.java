@@ -33,7 +33,6 @@ public final class CelExtensions {
   private static final CelStringExtensions STRING_EXTENSIONS_ALL = new CelStringExtensions();
   private static final CelProtoExtensions PROTO_EXTENSIONS = new CelProtoExtensions();
   private static final CelBindingsExtensions BINDINGS_EXTENSIONS = new CelBindingsExtensions();
-  private static final CelEncoderExtensions ENCODER_EXTENSIONS = new CelEncoderExtensions();
   private static final CelRegexExtensions REGEX_EXTENSIONS = new CelRegexExtensions();
 
   /**
@@ -193,13 +192,24 @@ public final class CelExtensions {
   }
 
   /**
+   * @deprecated Use {@link #encoders(CelOptions) instead.}
+   */
+  @Deprecated
+  public static CelEncoderExtensions encoders() {
+    return new CelEncoderExtensions(CelOptions.DEFAULT);
+  }
+
+  /**
    * Extended functions for string, byte and object encodings.
    *
    * <p>This adds {@code base64.encode} and {@code base64.decode} functions. See README.md for their
    * documentation.
+   *
+   * @param celOptions This should be the same {@link CelOptions} object used to configure
+   *     compilation/runtime environments.
    */
-  public static CelEncoderExtensions encoders() {
-    return ENCODER_EXTENSIONS;
+  public static CelEncoderExtensions encoders(CelOptions celOptions) {
+    return new CelEncoderExtensions(celOptions);
   }
 
   /**
@@ -324,7 +334,7 @@ public final class CelExtensions {
       case "bindings":
         return CelBindingsExtensions.library();
       case "encoders":
-        return CelEncoderExtensions.library();
+        return CelEncoderExtensions.library(options);
       case "lists":
         return CelListsExtensions.library();
       case "math":

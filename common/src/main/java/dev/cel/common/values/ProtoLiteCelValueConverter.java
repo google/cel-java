@@ -25,7 +25,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.MessageLite;
@@ -198,10 +197,10 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
       case STRING:
         return "";
       case BYTE_STRING:
-        return ByteString.EMPTY;
+        return CelByteString.EMPTY;
       case MESSAGE:
         if (WellKnownProto.isWrapperType(fieldDescriptor.getFieldProtoTypeName())) {
-          return com.google.protobuf.NullValue.NULL_VALUE;
+          return NullValue.NULL_VALUE;
         }
 
         return getDefaultMessageBuilder(fieldDescriptor.getFieldProtoTypeName()).build();

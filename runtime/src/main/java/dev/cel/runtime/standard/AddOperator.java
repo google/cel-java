@@ -24,6 +24,7 @@ import com.google.protobuf.Timestamp;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.internal.ProtoTimeUtils;
+import dev.cel.common.values.CelByteString;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
@@ -90,9 +91,15 @@ public final class AddOperator extends CelStandardFunction {
           }
         }),
     ADD_BYTES(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
-                "add_bytes", ByteString.class, ByteString.class, ByteString::concat)),
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "add_bytes", CelByteString.class, CelByteString.class, CelByteString::concat);
+          } else {
+            return CelFunctionBinding.from(
+                "add_bytes", ByteString.class, ByteString.class, ByteString::concat);
+          }
+        }),
     ADD_DOUBLE(
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from("add_double", Double.class, Double.class, Double::sum)),
