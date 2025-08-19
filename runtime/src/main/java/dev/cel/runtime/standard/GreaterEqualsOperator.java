@@ -26,6 +26,7 @@ import dev.cel.common.values.CelByteString;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
+import java.time.Instant;
 import java.util.Arrays;
 
 /** Standard function for the greater equals (>=) operator. */
@@ -81,12 +82,21 @@ public final class GreaterEqualsOperator extends CelStandardFunction {
                 Double.class,
                 (Double x, Double y) -> x >= y)),
     GREATER_EQUALS_DURATION(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "greater_equals_duration",
+                java.time.Duration.class,
+                java.time.Duration.class,
+                (java.time.Duration d1, java.time.Duration d2) -> d1.compareTo(d2) >= 0);
+          } else {
+            return CelFunctionBinding.from(
                 "greater_equals_duration",
                 Duration.class,
                 Duration.class,
-                (Duration x, Duration y) -> ProtoTimeUtils.compare(x, y) >= 0)),
+                (Duration d1, Duration d2) -> ProtoTimeUtils.compare(d1, d2) >= 0);
+          }
+        }),
     GREATER_EQUALS_INT64(
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from(
@@ -99,12 +109,21 @@ public final class GreaterEqualsOperator extends CelStandardFunction {
                 String.class,
                 (String x, String y) -> x.compareTo(y) >= 0)),
     GREATER_EQUALS_TIMESTAMP(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "greater_equals_timestamp",
+                Instant.class,
+                Instant.class,
+                (Instant i1, Instant i2) -> i1.compareTo(i2) >= 0);
+          } else {
+            return CelFunctionBinding.from(
                 "greater_equals_timestamp",
                 Timestamp.class,
                 Timestamp.class,
-                (Timestamp x, Timestamp y) -> ProtoTimeUtils.compare(x, y) >= 0)),
+                (Timestamp t1, Timestamp t2) -> ProtoTimeUtils.compare(t1, t2) >= 0);
+          }
+        }),
     GREATER_EQUALS_UINT64(
         (celOptions, runtimeEquality) -> {
           if (celOptions.enableUnsignedLongs()) {

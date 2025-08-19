@@ -9,13 +9,7 @@ declare d1 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {ts2=seconds: 10
-nanos: 10
-} +> {ts1=seconds: 25
-nanos: 35
-} +> {d1=seconds: 15
-nanos: 25
-}
+bindings: {ts2=1970-01-01T00:00:10.000000010Z} +> {ts1=1970-01-01T00:00:25.000000035Z} +> {d1=PT15.000000025S}
 result:   true
 
 Source: ts1 - d1 == ts2
@@ -29,13 +23,7 @@ declare d1 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {ts2=seconds: 10
-nanos: 10
-} +> {ts1=seconds: 25
-nanos: 35
-} +> {d1=seconds: 15
-nanos: 25
-}
+bindings: {ts2=1970-01-01T00:00:10.000000010Z} +> {ts1=1970-01-01T00:00:25.000000035Z} +> {d1=PT15.000000025S}
 result:   true
 
 Source: ts2 + d1 == ts1
@@ -49,13 +37,7 @@ declare d1 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {ts2=seconds: 10
-nanos: 10
-} +> {ts1=seconds: 25
-nanos: 35
-} +> {d1=seconds: 15
-nanos: 25
-}
+bindings: {ts2=1970-01-01T00:00:10.000000010Z} +> {ts1=1970-01-01T00:00:25.000000035Z} +> {d1=PT15.000000025S}
 result:   true
 
 Source: d1 + ts2 == ts1
@@ -69,11 +51,5 @@ declare d1 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {ts2=seconds: 10
-nanos: 10
-} +> {ts1=seconds: 25
-nanos: 35
-} +> {d1=seconds: 15
-nanos: 25
-}
+bindings: {ts2=1970-01-01T00:00:10.000000010Z} +> {ts1=1970-01-01T00:00:25.000000035Z} +> {d1=PT15.000000025S}
 result:   true

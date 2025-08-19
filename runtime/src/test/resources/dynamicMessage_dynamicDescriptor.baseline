@@ -103,8 +103,7 @@ declare dur {
 bindings: {dur=type_url: "type.googleapis.com/google.protobuf.Duration"
 value: "\bd"
 }
-result:   seconds: 100
-
+result:   PT1M40S
 
 Source: TestAllTypes { single_any: any_packed_test_msg }.single_any
 declare any_packed_test_msg {

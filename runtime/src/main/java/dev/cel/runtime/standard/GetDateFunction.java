@@ -14,14 +14,15 @@
 
 package dev.cel.runtime.standard;
 
-import static dev.cel.runtime.standard.DateTimeHelpers.UTC;
-import static dev.cel.runtime.standard.DateTimeHelpers.newLocalDateTime;
+import static dev.cel.common.internal.DateTimeHelpers.UTC;
+import static dev.cel.common.internal.DateTimeHelpers.newLocalDateTime;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Timestamp;
 import dev.cel.common.CelOptions;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
+import java.time.Instant;
 import java.util.Arrays;
 
 /** Standard function for {@code getDate}. */
@@ -43,18 +44,35 @@ public final class GetDateFunction extends CelStandardFunction {
   /** Overloads for the standard function. */
   public enum GetDateOverload implements CelStandardOverload {
     TIMESTAMP_TO_DAY_OF_MONTH_1_BASED(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "timestamp_to_day_of_month_1_based",
+                Instant.class,
+                (Instant ts) -> (long) newLocalDateTime(ts, UTC).getDayOfMonth());
+          } else {
+            return CelFunctionBinding.from(
                 "timestamp_to_day_of_month_1_based",
                 Timestamp.class,
-                (Timestamp ts) -> (long) newLocalDateTime(ts, UTC).getDayOfMonth())),
+                (Timestamp ts) -> (long) newLocalDateTime(ts, UTC).getDayOfMonth());
+          }
+        }),
     TIMESTAMP_TO_DAY_OF_MONTH_1_BASED_WITH_TZ(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "timestamp_to_day_of_month_1_based_with_tz",
+                Instant.class,
+                String.class,
+                (Instant ts, String tz) -> (long) newLocalDateTime(ts, tz).getDayOfMonth());
+          } else {
+            return CelFunctionBinding.from(
                 "timestamp_to_day_of_month_1_based_with_tz",
                 Timestamp.class,
                 String.class,
-                (Timestamp ts, String tz) -> (long) newLocalDateTime(ts, tz).getDayOfMonth())),
+                (Timestamp ts, String tz) -> (long) newLocalDateTime(ts, tz).getDayOfMonth());
+          }
+        }),
     ;
 
     private final FunctionBindingCreator bindingCreator;

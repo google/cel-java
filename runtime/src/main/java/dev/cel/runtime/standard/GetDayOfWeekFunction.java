@@ -14,8 +14,8 @@
 
 package dev.cel.runtime.standard;
 
-import static dev.cel.runtime.standard.DateTimeHelpers.UTC;
-import static dev.cel.runtime.standard.DateTimeHelpers.newLocalDateTime;
+import static dev.cel.common.internal.DateTimeHelpers.UTC;
+import static dev.cel.common.internal.DateTimeHelpers.newLocalDateTime;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Timestamp;
@@ -23,6 +23,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.util.Arrays;
 
 /** Standard function for {@code getDayOfWeek}. */
@@ -46,18 +47,41 @@ public final class GetDayOfWeekFunction extends CelStandardFunction {
   /** Overloads for the standard function. */
   public enum GetDayOfWeekOverload implements CelStandardOverload {
     TIMESTAMP_TO_DAY_OF_WEEK(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "timestamp_to_day_of_week",
+                Instant.class,
+                (Instant ts) -> {
+                  // CEL treats Sunday as day 0, but Java.time treats it as day 7.
+                  DayOfWeek dayOfWeek = newLocalDateTime(ts, UTC).getDayOfWeek();
+                  return (long) dayOfWeek.getValue() % 7;
+                });
+          } else {
+            return CelFunctionBinding.from(
                 "timestamp_to_day_of_week",
                 Timestamp.class,
                 (Timestamp ts) -> {
                   // CEL treats Sunday as day 0, but Java.time treats it as day 7.
                   DayOfWeek dayOfWeek = newLocalDateTime(ts, UTC).getDayOfWeek();
                   return (long) dayOfWeek.getValue() % 7;
-                })),
+                });
+          }
+        }),
     TIMESTAMP_TO_DAY_OF_WEEK_WITH_TZ(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "timestamp_to_day_of_week_with_tz",
+                Instant.class,
+                String.class,
+                (Instant ts, String tz) -> {
+                  // CEL treats Sunday as day 0, but Java.time treats it as day 7.
+                  DayOfWeek dayOfWeek = newLocalDateTime(ts, tz).getDayOfWeek();
+                  return (long) dayOfWeek.getValue() % 7;
+                });
+          } else {
+            return CelFunctionBinding.from(
                 "timestamp_to_day_of_week_with_tz",
                 Timestamp.class,
                 String.class,
@@ -65,7 +89,9 @@ public final class GetDayOfWeekFunction extends CelStandardFunction {
                   // CEL treats Sunday as day 0, but Java.time treats it as day 7.
                   DayOfWeek dayOfWeek = newLocalDateTime(ts, tz).getDayOfWeek();
                   return (long) dayOfWeek.getValue() % 7;
-                }));
+                });
+          }
+        });
     private final FunctionBindingCreator bindingCreator;
 
     @Override
