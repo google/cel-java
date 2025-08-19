@@ -34,6 +34,8 @@ public final class CelExtensions {
   private static final CelProtoExtensions PROTO_EXTENSIONS = new CelProtoExtensions();
   private static final CelBindingsExtensions BINDINGS_EXTENSIONS = new CelBindingsExtensions();
   private static final CelRegexExtensions REGEX_EXTENSIONS = new CelRegexExtensions();
+  private static final CelComprehensionsExtensions COMPREHENSIONS_EXTENSIONS =
+      new CelComprehensionsExtensions();
 
   /**
    * Implementation of optional values.
@@ -303,6 +305,20 @@ public final class CelExtensions {
    */
   public static CelRegexExtensions regex() {
     return REGEX_EXTENSIONS;
+  }
+
+  /**
+   * Extended functions for Two Variable Comprehensions Expressions.
+   *
+   * <p>Refer to README.md for available functions.
+   *
+   * <p>This will include all functions denoted in {@link CelComprehensionsExtensions.Function},
+   * including any future additions.
+   */
+  // TODO: Remove visibility restrictions and make this public once the feature is
+  // ready.
+  private static CelComprehensionsExtensions comprehensions() {
+    return COMPREHENSIONS_EXTENSIONS;
   }
 
   /**

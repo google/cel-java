@@ -793,6 +793,26 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   }
 
   @Test
+  public void twoVarComprehensions() throws Exception {
+    CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
+    declareVariable("x", messageType);
+    source =
+        "x.map_string_string.all(i, v, i < v) "
+            + "&& x.repeated_int64.all(i, v, i < v) "
+            + "&& [1, 2, 3, 4].all(i, v, i < 5 && v > 0) "
+            + "&& {'a': 1, 'b': 2}.all(k, v, k.startsWith('a') && v == 1)";
+    runTest();
+  }
+
+  @Test
+  public void twoVarComprehensionsErrors() throws Exception {
+    CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
+    declareVariable("x", messageType);
+    source = "x.map_string_string.all(i + 1, v, i < v) && x.repeated_int64.all(i, v + 1, i < v)";
+    runTest();
+  }
+
+  @Test
   public void quantifiersErrors() throws Exception {
     CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
     declareVariable("x", messageType);

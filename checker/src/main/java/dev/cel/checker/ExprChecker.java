@@ -22,6 +22,7 @@ import dev.cel.expr.Type;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.errorprone.annotations.CheckReturnValue;
@@ -510,13 +511,21 @@ public final class ExprChecker {
     CelType accuType = env.getType(visitedInit);
     CelType rangeType = inferenceContext.specialize(env.getType(visitedRange));
     CelType varType;
+    CelType varType2 = null;
     switch (rangeType.kind()) {
       case LIST:
         varType = ((ListType) rangeType).elemType();
+        if (!Strings.isNullOrEmpty(compre.iterVar2())) {
+          varType2 = varType;
+          varType = SimpleType.INT;
+        }
         break;
       case MAP:
         // Ranges over the keys.
         varType = ((MapType) rangeType).keyType();
+        if (!Strings.isNullOrEmpty(compre.iterVar2())) {
+          varType2 = ((MapType) rangeType).valueType();
+        }
         break;
       case DYN:
       case ERROR:
@@ -547,6 +556,9 @@ public final class ExprChecker {
     // Declare iteration variable on inner scope.
     env.enterScope();
     env.add(CelIdentDecl.newIdentDeclaration(compre.iterVar(), varType));
+    if (!Strings.isNullOrEmpty(compre.iterVar2())) {
+      env.add(CelIdentDecl.newIdentDeclaration(compre.iterVar2(), varType2));
+    }
     CelExpr condition = visit(compre.loopCondition());
     assertType(condition, SimpleType.BOOL);
     CelExpr visitedStep = visit(compre.loopStep());

@@ -1,0 +1,126 @@
+Source: x.map_string_string.all(i, v, i < v) && x.repeated_int64.all(i, v, i < v) && [1, 2, 3, 4].all(i, v, i < 5 && v > 0) && {'a': 1, 'b': 2}.all(k, v, k.startsWith('a') && v == 1)
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+_&&_(
+  _&&_(
+    __comprehension__(
+      // Variable
+      i,
+      v,
+      // Target
+      x~cel.expr.conformance.proto3.TestAllTypes^x.map_string_string~map(string, string),
+      // Accumulator
+      @result,
+      // Init
+      true~bool,
+      // LoopCondition
+      @not_strictly_false(
+        @result~bool^@result
+      )~bool^not_strictly_false,
+      // LoopStep
+      _&&_(
+        @result~bool^@result,
+        _<_(
+          i~string^i,
+          v~string^v
+        )~bool^less_string
+      )~bool^logical_and,
+      // Result
+      @result~bool^@result)~bool,
+    __comprehension__(
+      // Variable
+      i,
+      v,
+      // Target
+      x~cel.expr.conformance.proto3.TestAllTypes^x.repeated_int64~list(int),
+      // Accumulator
+      @result,
+      // Init
+      true~bool,
+      // LoopCondition
+      @not_strictly_false(
+        @result~bool^@result
+      )~bool^not_strictly_false,
+      // LoopStep
+      _&&_(
+        @result~bool^@result,
+        _<_(
+          i~int^i,
+          v~int^v
+        )~bool^less_int64
+      )~bool^logical_and,
+      // Result
+      @result~bool^@result)~bool
+  )~bool^logical_and,
+  _&&_(
+    __comprehension__(
+      // Variable
+      i,
+      v,
+      // Target
+      [
+        1~int,
+        2~int,
+        3~int,
+        4~int
+      ]~list(int),
+      // Accumulator
+      @result,
+      // Init
+      true~bool,
+      // LoopCondition
+      @not_strictly_false(
+        @result~bool^@result
+      )~bool^not_strictly_false,
+      // LoopStep
+      _&&_(
+        @result~bool^@result,
+        _&&_(
+          _<_(
+            i~int^i,
+            5~int
+          )~bool^less_int64,
+          _>_(
+            v~int^v,
+            0~int
+          )~bool^greater_int64
+        )~bool^logical_and
+      )~bool^logical_and,
+      // Result
+      @result~bool^@result)~bool,
+    __comprehension__(
+      // Variable
+      k,
+      v,
+      // Target
+      {
+        "a"~string:1~int,
+        "b"~string:2~int
+      }~map(string, int),
+      // Accumulator
+      @result,
+      // Init
+      true~bool,
+      // LoopCondition
+      @not_strictly_false(
+        @result~bool^@result
+      )~bool^not_strictly_false,
+      // LoopStep
+      _&&_(
+        @result~bool^@result,
+        _&&_(
+          k~string^k.startsWith(
+            "a"~string
+          )~bool^starts_with_string,
+          _==_(
+            v~int^v,
+            1~int
+          )~bool^equals
+        )~bool^logical_and
+      )~bool^logical_and,
+      // Result
+      @result~bool^@result)~bool
+  )~bool^logical_and
+)~bool^logical_and

@@ -1,0 +1,11 @@
+Source: x.map_string_string.all(i + 1, v, i < v) && x.repeated_int64.all(i, v + 1, i < v)
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+ERROR: test_location:1:27: The argument must be a simple name
+ | x.map_string_string.all(i + 1, v, i < v) && x.repeated_int64.all(i, v + 1, i < v)
+ | ..........................^
+ERROR: test_location:1:71: The argument must be a simple name
+ | x.map_string_string.all(i + 1, v, i < v) && x.repeated_int64.all(i, v + 1, i < v)
+ | ......................................................................^

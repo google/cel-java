@@ -55,6 +55,7 @@ java_library(
         "//common/types:type_providers",
         "//compiler",
         "//compiler:compiler_builder",
+        "//extensions:comprehensions",
         "//parser:macro",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",

@@ -138,7 +138,7 @@ public class CelExprFactory {
         .build();
   }
 
-  /** Fold creates a fold comprehension instruction. */
+  /** Fold creates a fold for one variable comprehension instruction. */
   public final CelExpr fold(
       String iterVar,
       CelExpr iterRange,

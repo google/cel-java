@@ -51,3 +51,8 @@ java_library(
     name = "sets_function",
     exports = ["//extensions/src/main/java/dev/cel/extensions:sets_function"],
 )
+
+java_library(
+    name = "comprehensions",
+    exports = ["//extensions/src/main/java/dev/cel/extensions:comprehensions"],
+)

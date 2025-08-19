@@ -214,6 +214,11 @@ public final class CelDebug {
     append("// Variable");
     appendLine();
     append(comprehensionExpr.getIterVar());
+    if (!comprehensionExpr.getIterVar2().isEmpty()) {
+      append(',');
+      appendLine();
+      append(comprehensionExpr.getIterVar2());
+    }
     append(',');
     appendLine();
     append("// Target");
