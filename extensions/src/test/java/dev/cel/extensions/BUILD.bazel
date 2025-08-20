@@ -30,6 +30,7 @@ java_library(
         "//extensions:sets_function",
         "//extensions:strings",
         "//parser:macro",
+        "//parser:unparser",
         "//runtime",
         "//runtime:function_binding",
         "//runtime:interpreter_util",

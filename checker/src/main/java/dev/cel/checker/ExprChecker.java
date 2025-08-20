@@ -530,6 +530,7 @@ public final class ExprChecker {
       case DYN:
       case ERROR:
         varType = SimpleType.DYN;
+        varType2 = SimpleType.DYN;
         break;
       case TYPE_PARAM:
         // Mark the range as DYN to avoid its free variable being associated with the wrong type
@@ -538,6 +539,7 @@ public final class ExprChecker {
         inferenceContext.isAssignable(SimpleType.DYN, rangeType);
         // Mark the variable type as DYN.
         varType = SimpleType.DYN;
+        varType2 = SimpleType.DYN;
         break;
       default:
         env.reportError(
@@ -547,6 +549,7 @@ public final class ExprChecker {
                 + "(must be list, map, or dynamic)",
             CelTypes.format(rangeType));
         varType = SimpleType.DYN;
+        varType2 = SimpleType.DYN;
         break;
     }
 
