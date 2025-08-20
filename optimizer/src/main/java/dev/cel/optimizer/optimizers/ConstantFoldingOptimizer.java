@@ -202,7 +202,9 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       CelNavigableMutableExpr parent = identNode.parent().orElse(null);
       while (parent != null) {
         if (parent.getKind().equals(Kind.COMPREHENSION)) {
-          if (parent.expr().comprehension().accuVar().equals(identNode.expr().ident().name())) {
+          String identName = identNode.expr().ident().name();
+          if (parent.expr().comprehension().accuVar().equals(identName) ||
+              parent.expr().comprehension().iterVar().equals(identName)) {
             // Prevent folding a subexpression if it contains a variable declared by a
             // comprehension. The subexpression cannot be compiled without the full context of the
             // surrounding comprehension.

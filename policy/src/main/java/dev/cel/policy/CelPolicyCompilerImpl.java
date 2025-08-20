@@ -36,6 +36,9 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.optimizer.CelOptimizer;
 import dev.cel.optimizer.CelOptimizerFactory;
+import dev.cel.optimizer.optimizers.ConstantFoldingOptimizer;
+import dev.cel.optimizer.optimizers.SubexpressionOptimizer;
+import dev.cel.optimizer.optimizers.SubexpressionOptimizer.SubexpressionOptimizerOptions;
 import dev.cel.policy.CelCompiledRule.CelCompiledMatch;
 import dev.cel.policy.CelCompiledRule.CelCompiledMatch.Result;
 import dev.cel.policy.CelCompiledRule.CelCompiledMatch.Result.Kind;
@@ -101,7 +104,13 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
     CelOptimizer optimizer =
         CelOptimizerFactory.standardCelOptimizerBuilder(cel)
             .addAstOptimizers(
-                RuleComposer.newInstance(compiledRule, variablesPrefix, iterationLimit))
+                RuleComposer.newInstance(compiledRule, variablesPrefix, iterationLimit),
+                ConstantFoldingOptimizer.getInstance(),
+                SubexpressionOptimizer.newInstance(SubexpressionOptimizerOptions.newBuilder()
+                        .populateMacroCalls(true)
+                        .enableCelBlock(true)
+                    .build())
+            )
             .build();
 
     CelAbstractSyntaxTree ast;

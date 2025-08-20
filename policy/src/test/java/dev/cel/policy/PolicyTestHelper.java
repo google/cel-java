@@ -41,88 +41,36 @@ final class PolicyTestHelper {
     NESTED_RULE(
         "nested_rule",
         true,
-        "cel.bind(variables.permitted_regions, [\"us\", \"uk\", \"es\"],"
-            + " cel.bind(variables.banned_regions, {\"us\": false, \"ru\": false, \"ir\": false},"
-            + " (resource.origin in variables.banned_regions && "
-            + "!(resource.origin in variables.permitted_regions)) "
-            + "? optional.of({\"banned\": true}) : optional.none()).or("
-            + "optional.of((resource.origin in variables.permitted_regions)"
-            + " ? {\"banned\": false} : {\"banned\": true})))"),
+        "cel.@block([resource.origin, @index0 in [\"us\", \"uk\", \"es\"], {\"banned\": true}], ((@index0 in {\"us\": false, \"ru\": false, \"ir\": false} && !@index1) ? optional.of(@index2) : optional.none()).or(optional.of(@index1 ? {\"banned\": false} : @index2)))"),
     NESTED_RULE2(
         "nested_rule2",
         false,
-        "cel.bind(variables.permitted_regions, [\"us\", \"uk\", \"es\"],"
-            + " resource.?user.orValue(\"\").startsWith(\"bad\") ?"
-            + " cel.bind(variables.banned_regions, {\"us\": false, \"ru\": false, \"ir\": false},"
-            + " (resource.origin in variables.banned_regions && !(resource.origin in"
-            + " variables.permitted_regions)) ? {\"banned\": \"restricted_region\"} : {\"banned\":"
-            + " \"bad_actor\"}) : (!(resource.origin in variables.permitted_regions) ? {\"banned\":"
-            + " \"unconfigured_region\"} : {}))"),
+    "cel.@block([resource.origin, !(@index0 in [\"us\", \"uk\", \"es\"])], resource.?user.orValue(\"\").startsWith(\"bad\") ? ((@index0 in {\"us\": false, \"ru\": false, \"ir\": false} && @index1) ? {\"banned\": \"restricted_region\"} : {\"banned\": \"bad_actor\"}) : (@index1 ? {\"banned\": \"unconfigured_region\"} : {}))"),
     NESTED_RULE3(
         "nested_rule3",
         true,
-        "cel.bind(variables.permitted_regions, [\"us\", \"uk\", \"es\"],"
-            + " resource.?user.orValue(\"\").startsWith(\"bad\") ?"
-            + " optional.of(cel.bind(variables.banned_regions, {\"us\": false, \"ru\": false,"
-            + " \"ir\": false}, (resource.origin in variables.banned_regions && !(resource.origin"
-            + " in variables.permitted_regions)) ? {\"banned\": \"restricted_region\"} :"
-            + " {\"banned\": \"bad_actor\"})) : (!(resource.origin in variables.permitted_regions)"
-            + " ? optional.of({\"banned\": \"unconfigured_region\"}) : optional.none()))"),
+    "cel.@block([resource.origin, !(@index0 in [\"us\", \"uk\", \"es\"])], resource.?user.orValue(\"\").startsWith(\"bad\") ? optional.of((@index0 in {\"us\": false, \"ru\": false, \"ir\": false} && @index1) ? {\"banned\": \"restricted_region\"} : {\"banned\": \"bad_actor\"}) : (@index1 ? optional.of({\"banned\": \"unconfigured_region\"}) : optional.none()))"),
     REQUIRED_LABELS(
         "required_labels",
         true,
-        ""
-            + "cel.bind(variables.want, spec.labels, cel.bind(variables.missing, "
-            + "variables.want.filter(l, !(l in resource.labels)), cel.bind(variables.invalid, "
-            + "resource.labels.filter(l, l in variables.want && variables.want[l] != "
-            + "resource.labels[l]), (variables.missing.size() > 0) ? "
-            + "optional.of(\"missing one or more required labels: [\"\" + "
-            + "variables.missing.join(\",\") + \"\"]\") : ((variables.invalid.size() > 0) ? "
-            + "optional.of(\"invalid values provided on one or more labels: [\"\" + "
-            + "variables.invalid.join(\",\") + \"\"]\") : optional.none()))))"),
+        "cel.@block([spec.labels.filter(@it:0:0, !(@it:0:0 in resource.labels)), spec.labels, resource.labels, @index2.filter(@it:0:0, @it:0:0 in @index1 && @index1[@it:0:0] != @index2[@it:0:0])], (@index0.size() > 0) ? optional.of(\"missing one or more required labels: [\"\" + @index0.join(\",\") + \"\"]\") : ((@index3.size() > 0) ? optional.of(\"invalid values provided on one or more labels: [\"\" + @index3.join(\",\") + \"\"]\") : optional.none()))"),
     RESTRICTED_DESTINATIONS(
         "restricted_destinations",
         false,
-        "cel.bind(variables.matches_origin_ip, locationCode(origin.ip) == spec.origin,"
-            + " cel.bind(variables.has_nationality, has(request.auth.claims.nationality),"
-            + " cel.bind(variables.matches_nationality, variables.has_nationality &&"
-            + " request.auth.claims.nationality == spec.origin, cel.bind(variables.matches_dest_ip,"
-            + " locationCode(destination.ip) in spec.restricted_destinations,"
-            + " cel.bind(variables.matches_dest_label, resource.labels.location in"
-            + " spec.restricted_destinations, cel.bind(variables.matches_dest,"
-            + " variables.matches_dest_ip || variables.matches_dest_label,"
-            + " (variables.matches_nationality && variables.matches_dest) ? true :"
-            + " ((!variables.has_nationality && variables.matches_origin_ip &&"
-            + " variables.matches_dest) ? true : false)))))))"),
+    "cel.@block([request.auth.claims, has(@index0.nationality), resource.labels.location in spec.restricted_destinations], (@index1 && @index0.nationality == spec.origin && (locationCode(destination.ip) in spec.restricted_destinations || @index2)) ? true : ((!@index1 && locationCode(origin.ip) == spec.origin && (locationCode(destination.ip) in spec.restricted_destinations || @index2)) ? true : false))"),
     K8S(
         "k8s",
         true,
-        "cel.bind(variables.env, resource.labels.?environment.orValue(\"prod\"),"
-            + " cel.bind(variables.break_glass, resource.labels.?break_glass.orValue(\"false\") =="
-            + " \"true\", !(variables.break_glass || resource.containers.all(c,"
-            + " c.startsWith(variables.env + \".\"))) ? optional.of(\"only \" + variables.env + \""
-            + " containers are allowed in namespace \" + resource.namespace) :"
-            + " optional.none()))"),
+    "cel.@block([resource.labels.?environment.orValue(\"prod\")], !(resource.labels.?break_glass.orValue(\"false\") == \"true\" || resource.containers.all(@it:0:0, @it:0:0.startsWith(@index0 + \".\"))) ? optional.of(\"only \" + @index0 + \" containers are allowed in namespace \" + resource.namespace) : optional.none())"),
     PB(
         "pb",
         true,
-        "(spec.single_int32 > TestAllTypes{single_int64: 10}.single_int64) ? optional.of(\"invalid"
-            + " spec, got single_int32=\" + string(spec.single_int32) + \", wanted <= 10\") :"
-            + " ((spec.standalone_enum == cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAR"
-            + " || dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGAR =="
-            + " dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGOO) ? optional.of(\"invalid"
-            + " spec, neither nested nor imported enums may refer to BAR\") :"
-            + " optional.none())"),
+    "cel.@block([spec.single_int32], (@index0 > 10) ? optional.of(\"invalid spec, got single_int32=\" + string(@index0) + \", wanted <= 10\") : ((spec.standalone_enum == cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAR || dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGAR == dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGOO) ? optional.of(\"invalid spec, neither nested nor imported enums may refer to BAR\") : optional.none()))"),
     LIMITS(
         "limits",
         true,
-        "cel.bind(variables.greeting, \"hello\", cel.bind(variables.farewell, \"goodbye\","
-            + " cel.bind(variables.person, \"me\", cel.bind(variables.message_fmt, \"%s, %s\","
-            + " (now.getHours() >= 20) ? cel.bind(variables.message, variables.farewell + \", \" +"
-            + " variables.person, (now.getHours() < 21) ? optional.of(variables.message + \"!\") :"
-            + " ((now.getHours() < 22) ? optional.of(variables.message + \"!!\") : ((now.getHours()"
-            + " < 24) ? optional.of(variables.message + \"!!!\") : optional.none()))) :"
-            + " optional.of(variables.greeting + \", \" + variables.person)))))");
+    "cel.@block([now.getHours()], (@index0 >= 20) ? ((@index0 < 21) ? optional.of(\"goodbye, me!\") : ((@index0 < 22) ? optional.of(\"goodbye, me!!\") : ((@index0 < 24) ? optional.of(\"goodbye, me!!!\") : optional.none()))) : optional.of(\"hello, me\"))")
+    ;
 
     private final String name;
     private final boolean producesOptionalResult;
