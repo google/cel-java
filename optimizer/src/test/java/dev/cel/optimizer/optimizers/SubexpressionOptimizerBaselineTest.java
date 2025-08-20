@@ -188,45 +188,6 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
   }
 
   @Test
-  public void populateMacroCallsDisabled_macroMapUnpopulated(@TestParameter CseTestCase testCase)
-      throws Exception {
-    skipBaselineVerification();
-    Cel cel = newCelBuilder().build();
-    CelOptimizer celOptimizerWithBinds =
-        newCseOptimizer(
-            cel,
-            SubexpressionOptimizerOptions.newBuilder()
-                .populateMacroCalls(false)
-                .enableCelBlock(false)
-                .build());
-    CelOptimizer celOptimizerWithBlocks =
-        newCseOptimizer(
-            cel,
-            SubexpressionOptimizerOptions.newBuilder()
-                .populateMacroCalls(false)
-                .enableCelBlock(true)
-                .build());
-    CelOptimizer celOptimizerWithFlattenedBlocks =
-        newCseOptimizer(
-            cel,
-            SubexpressionOptimizerOptions.newBuilder()
-                .populateMacroCalls(false)
-                .enableCelBlock(true)
-                .subexpressionMaxRecursionDepth(1)
-                .build());
-    CelAbstractSyntaxTree originalAst = cel.compile(testCase.source).getAst();
-
-    CelAbstractSyntaxTree astOptimizedWithBinds = celOptimizerWithBinds.optimize(originalAst);
-    CelAbstractSyntaxTree astOptimizedWithBlocks = celOptimizerWithBlocks.optimize(originalAst);
-    CelAbstractSyntaxTree astOptimizedWithFlattenedBlocks =
-        celOptimizerWithFlattenedBlocks.optimize(originalAst);
-
-    assertThat(astOptimizedWithBinds.getSource().getMacroCalls()).isEmpty();
-    assertThat(astOptimizedWithBlocks.getSource().getMacroCalls()).isEmpty();
-    assertThat(astOptimizedWithFlattenedBlocks.getSource().getMacroCalls()).isEmpty();
-  }
-
-  @Test
   public void large_expressions_bind_cascaded() throws Exception {
     CelOptimizer celOptimizer =
         newCseOptimizer(

@@ -160,7 +160,8 @@ public class SubexpressionOptimizerTest {
     NESTED_FUNCTION("int(timestamp(int(timestamp(1000000000))))"),
     // This cannot be optimized. Extracting the common subexpression would presence test
     // the bound identifier (e.g: has(@r0)), which is not valid.
-    UNOPTIMIZABLE_TERNARY("has(msg.single_any) ? msg.single_any : 10");
+    UNOPTIMIZABLE_TERNARY("has(msg.single_any) ? msg.single_any : 10"),
+    MACRO("[1, 2, 3].exists(x, x > 0)");
 
     private final String source;
 

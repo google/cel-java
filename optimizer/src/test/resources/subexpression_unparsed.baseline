@@ -338,17 +338,17 @@ Test case: NESTED_MACROS_2
 Source: [1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]
 =====>
 Result: true
-[CASCADED_BINDS]: [1, 2].map(@it:1, [1, 2, 3].filter(@it:0, @it:0 == @it:1)) == [[1], [2]]
-[BLOCK_COMMON_SUBEXPR_ONLY]: [1, 2].map(@it:0:0, [1, 2, 3].filter(@it:1:0, @it:1:0 == @it:0:0)) == [[1], [2]]
+[CASCADED_BINDS]: [1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]
+[BLOCK_COMMON_SUBEXPR_ONLY]: [1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]
 [BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2], [1, 2, 3], [1], [2], [@index2, @index3]], @index0.map(@it:0:0, @index1.filter(@it:1:0, @it:1:0 == @it:0:0)) == @index4)
 [BLOCK_RECURSION_DEPTH_2]: cel.@block([[[1], [2]], [1, 2], [1, 2, 3]], @index1.map(@it:0:0, @index2.filter(@it:1:0, @it:1:0 == @it:0:0)) == @index0)
 [BLOCK_RECURSION_DEPTH_3]: cel.@block([[[1], [2]], [1, 2], [1, 2, 3]], @index1.map(@it:0:0, @index2.filter(@it:1:0, @it:1:0 == @it:0:0)) == @index0)
 [BLOCK_RECURSION_DEPTH_4]: cel.@block([[1, 2, 3].filter(@it:1:0, @it:1:0 == @it:0:0)], [1, 2].map(@it:0:0, @index0) == [[1], [2]])
 [BLOCK_RECURSION_DEPTH_5]: cel.@block([[1, 2, 3].filter(@it:1:0, @it:1:0 == @it:0:0)], [1, 2].map(@it:0:0, @index0) == [[1], [2]])
 [BLOCK_RECURSION_DEPTH_6]: cel.@block([[1, 2, 3].filter(@it:1:0, @it:1:0 == @it:0:0)], [1, 2].map(@it:0:0, @index0) == [[1], [2]])
-[BLOCK_RECURSION_DEPTH_7]: [1, 2].map(@it:0:0, [1, 2, 3].filter(@it:1:0, @it:1:0 == @it:0:0)) == [[1], [2]]
-[BLOCK_RECURSION_DEPTH_8]: [1, 2].map(@it:0:0, [1, 2, 3].filter(@it:1:0, @it:1:0 == @it:0:0)) == [[1], [2]]
-[BLOCK_RECURSION_DEPTH_9]: [1, 2].map(@it:0:0, [1, 2, 3].filter(@it:1:0, @it:1:0 == @it:0:0)) == [[1], [2]]
+[BLOCK_RECURSION_DEPTH_7]: [1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]
+[BLOCK_RECURSION_DEPTH_8]: [1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]
+[BLOCK_RECURSION_DEPTH_9]: [1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]
 
 Test case: ADJACENT_NESTED_MACROS
 Source: [1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [1,2,3].map(j, [1, 2, 3].map(j, j + 1))
@@ -434,17 +434,17 @@ Test case: MACRO_SHADOWED_VARIABLE_2
 Source: ["foo", "bar"].map(x, [x + x, x + x]).map(x, [x + x, x + x])
 =====>
 Result: [[[foofoo, foofoo, foofoo, foofoo], [foofoo, foofoo, foofoo, foofoo]], [[barbar, barbar, barbar, barbar], [barbar, barbar, barbar, barbar]]]
-[CASCADED_BINDS]: ["foo", "bar"].map(@it:0, [@it:0 + @it:0, @it:0 + @it:0]).map(@it:1, [@it:1 + @it:1, @it:1 + @it:1])
-[BLOCK_COMMON_SUBEXPR_ONLY]: ["foo", "bar"].map(@it:1:0, [@it:1:0 + @it:1:0, @it:1:0 + @it:1:0]).map(@it:0:0, [@it:0:0 + @it:0:0, @it:0:0 + @it:0:0])
+[CASCADED_BINDS]: ["foo", "bar"].map(x, [x + x, x + x]).map(x, [x + x, x + x])
+[BLOCK_COMMON_SUBEXPR_ONLY]: ["foo", "bar"].map(x, [x + x, x + x]).map(x, [x + x, x + x])
 [BLOCK_RECURSION_DEPTH_1]: cel.@block([["foo", "bar"]], @index0.map(@it:1:0, [@it:1:0 + @it:1:0, @it:1:0 + @it:1:0]).map(@it:0:0, [@it:0:0 + @it:0:0, @it:0:0 + @it:0:0]))
 [BLOCK_RECURSION_DEPTH_2]: cel.@block([["foo", "bar"]], @index0.map(@it:1:0, [@it:1:0 + @it:1:0, @it:1:0 + @it:1:0]).map(@it:0:0, [@it:0:0 + @it:0:0, @it:0:0 + @it:0:0]))
 [BLOCK_RECURSION_DEPTH_3]: cel.@block([["foo", "bar"]], @index0.map(@it:1:0, [@it:1:0 + @it:1:0, @it:1:0 + @it:1:0]).map(@it:0:0, [@it:0:0 + @it:0:0, @it:0:0 + @it:0:0]))
 [BLOCK_RECURSION_DEPTH_4]: cel.@block([["foo", "bar"]], @index0.map(@it:1:0, [@it:1:0 + @it:1:0, @it:1:0 + @it:1:0]).map(@it:0:0, [@it:0:0 + @it:0:0, @it:0:0 + @it:0:0]))
 [BLOCK_RECURSION_DEPTH_5]: cel.@block([["foo", "bar"].map(@it:1:0, [@it:1:0 + @it:1:0, @it:1:0 + @it:1:0])], @index0.map(@it:0:0, [@it:0:0 + @it:0:0, @it:0:0 + @it:0:0]))
-[BLOCK_RECURSION_DEPTH_6]: ["foo", "bar"].map(@it:1:0, [@it:1:0 + @it:1:0, @it:1:0 + @it:1:0]).map(@it:0:0, [@it:0:0 + @it:0:0, @it:0:0 + @it:0:0])
-[BLOCK_RECURSION_DEPTH_7]: ["foo", "bar"].map(@it:1:0, [@it:1:0 + @it:1:0, @it:1:0 + @it:1:0]).map(@it:0:0, [@it:0:0 + @it:0:0, @it:0:0 + @it:0:0])
-[BLOCK_RECURSION_DEPTH_8]: ["foo", "bar"].map(@it:1:0, [@it:1:0 + @it:1:0, @it:1:0 + @it:1:0]).map(@it:0:0, [@it:0:0 + @it:0:0, @it:0:0 + @it:0:0])
-[BLOCK_RECURSION_DEPTH_9]: ["foo", "bar"].map(@it:1:0, [@it:1:0 + @it:1:0, @it:1:0 + @it:1:0]).map(@it:0:0, [@it:0:0 + @it:0:0, @it:0:0 + @it:0:0])
+[BLOCK_RECURSION_DEPTH_6]: ["foo", "bar"].map(x, [x + x, x + x]).map(x, [x + x, x + x])
+[BLOCK_RECURSION_DEPTH_7]: ["foo", "bar"].map(x, [x + x, x + x]).map(x, [x + x, x + x])
+[BLOCK_RECURSION_DEPTH_8]: ["foo", "bar"].map(x, [x + x, x + x]).map(x, [x + x, x + x])
+[BLOCK_RECURSION_DEPTH_9]: ["foo", "bar"].map(x, [x + x, x + x]).map(x, [x + x, x + x])
 
 Test case: PRESENCE_TEST
 Source: has({'a': true}.a) && {'a':true}['a']

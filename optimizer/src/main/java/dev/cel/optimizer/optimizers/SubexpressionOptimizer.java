@@ -184,7 +184,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     if (iterCount == 0) {
       // No modification has been made.
-      return OptimizationResult.create(astToModify.toParsedAst());
+      return OptimizationResult.create(ast);
     }
 
     ImmutableList.Builder<CelVarDecl> newVarDecls = ImmutableList.builder();
@@ -395,7 +395,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
     if (iterCount == 0) {
       // No modification has been made.
-      return OptimizationResult.create(astToModify.toParsedAst());
+      return OptimizationResult.create(ast);
     }
 
     astToModify = astMutator.renumberIdsConsecutively(astToModify);
