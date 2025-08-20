@@ -9,13 +9,7 @@ declare d3 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d3=seconds: 25
-nanos: 45
-} +> {d2=seconds: 10
-nanos: 20
-} +> {d1=seconds: 15
-nanos: 25
-}
+bindings: {d3=PT25.000000045S} +> {d2=PT10.00000002S} +> {d1=PT15.000000025S}
 result:   true
 
 Source: d3 - d1 == d2
@@ -29,11 +23,5 @@ declare d3 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d3=seconds: 25
-nanos: 45
-} +> {d2=seconds: 10
-nanos: 20
-} +> {d1=seconds: 15
-nanos: 25
-}
+bindings: {d3=PT25.000000045S} +> {d2=PT10.00000002S} +> {d1=PT15.000000025S}
 result:   true

@@ -14,8 +14,8 @@
 
 package dev.cel.runtime.standard;
 
-import static dev.cel.runtime.standard.DateTimeHelpers.UTC;
-import static dev.cel.runtime.standard.DateTimeHelpers.newLocalDateTime;
+import static dev.cel.common.internal.DateTimeHelpers.UTC;
+import static dev.cel.common.internal.DateTimeHelpers.newLocalDateTime;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Duration;
@@ -24,6 +24,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
+import java.time.Instant;
 import java.util.Arrays;
 
 /** Standard function for {@code getMinutes}. */
@@ -46,22 +47,45 @@ public final class GetMinutesFunction extends CelStandardFunction {
   /** Overloads for the standard function. */
   public enum GetMinutesOverload implements CelStandardOverload {
     TIMESTAMP_TO_MINUTES(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "timestamp_to_minutes",
+                Instant.class,
+                (Instant ts) -> (long) newLocalDateTime(ts, UTC).getMinute());
+          } else {
+            return CelFunctionBinding.from(
                 "timestamp_to_minutes",
                 Timestamp.class,
-                (Timestamp ts) -> (long) newLocalDateTime(ts, UTC).getMinute())),
+                (Timestamp ts) -> (long) newLocalDateTime(ts, UTC).getMinute());
+          }
+        }),
     TIMESTAMP_TO_MINUTES_WITH_TZ(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "timestamp_to_minutes_with_tz",
+                Instant.class,
+                String.class,
+                (Instant ts, String tz) -> (long) newLocalDateTime(ts, tz).getMinute());
+          } else {
+            return CelFunctionBinding.from(
                 "timestamp_to_minutes_with_tz",
                 Timestamp.class,
                 String.class,
-                (Timestamp ts, String tz) -> (long) newLocalDateTime(ts, tz).getMinute())),
+                (Timestamp ts, String tz) -> (long) newLocalDateTime(ts, tz).getMinute());
+          }
+        }),
     DURATION_TO_MINUTES(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
-                "duration_to_minutes", Duration.class, ProtoTimeUtils::toMinutes)),
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "duration_to_minutes", java.time.Duration.class, java.time.Duration::toMinutes);
+          } else {
+            return CelFunctionBinding.from(
+                "duration_to_minutes", Duration.class, ProtoTimeUtils::toMinutes);
+          }
+        }),
     ;
 
     private final FunctionBindingCreator bindingCreator;

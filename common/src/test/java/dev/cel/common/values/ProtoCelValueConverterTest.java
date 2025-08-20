@@ -16,12 +16,10 @@ package dev.cel.common.values;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.protobuf.Duration;
-import com.google.protobuf.Timestamp;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
-import dev.cel.common.internal.ProtoTimeUtils;
+import java.time.Duration;
 import java.time.Instant;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,13 +33,13 @@ public class ProtoCelValueConverterTest {
           DefaultDescriptorPool.INSTANCE, DynamicProto.create(DefaultMessageFactory.INSTANCE));
 
   @Test
-  public void fromCelValueToJavaObject_returnsTimestampValue() {
-    Timestamp timestamp =
-        (Timestamp)
+  public void fromCelValueToJavaObject_returnsInstantValue() {
+    Instant timestamp =
+        (Instant)
             PROTO_CEL_VALUE_CONVERTER.fromCelValueToJavaObject(
                 TimestampValue.create(Instant.ofEpochSecond(50)));
 
-    assertThat(timestamp).isEqualTo(ProtoTimeUtils.fromSecondsToTimestamp(50));
+    assertThat(timestamp).isEqualTo(Instant.ofEpochSecond(50));
   }
 
   @Test
@@ -49,9 +47,9 @@ public class ProtoCelValueConverterTest {
     Duration duration =
         (Duration)
             PROTO_CEL_VALUE_CONVERTER.fromCelValueToJavaObject(
-                DurationValue.create(java.time.Duration.ofSeconds(10)));
+                DurationValue.create(Duration.ofSeconds(10)));
 
-    assertThat(duration).isEqualTo(ProtoTimeUtils.fromSecondsToDuration(10));
+    assertThat(duration).isEqualTo(Duration.ofSeconds(10));
   }
 
   @Test

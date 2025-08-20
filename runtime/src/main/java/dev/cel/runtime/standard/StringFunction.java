@@ -23,10 +23,12 @@ import com.google.protobuf.Timestamp;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
+import dev.cel.common.internal.DateTimeHelpers;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.values.CelByteString;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
+import java.time.Instant;
 import java.util.Arrays;
 
 /** Standard function for {@code string} conversion function. */
@@ -90,13 +92,24 @@ public final class StringFunction extends CelStandardFunction {
           }
         }),
     TIMESTAMP_TO_STRING(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
-                "timestamp_to_string", Timestamp.class, ProtoTimeUtils::toString)),
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from("timestamp_to_string", Instant.class, Instant::toString);
+          } else {
+            return CelFunctionBinding.from(
+                "timestamp_to_string", Timestamp.class, ProtoTimeUtils::toString);
+          }
+        }),
     DURATION_TO_STRING(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
-                "duration_to_string", Duration.class, ProtoTimeUtils::toString)),
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "duration_to_string", java.time.Duration.class, DateTimeHelpers::toString);
+          } else {
+            return CelFunctionBinding.from(
+                "duration_to_string", Duration.class, ProtoTimeUtils::toString);
+          }
+        }),
     UINT64_TO_STRING(
         (celOptions, runtimeEquality) -> {
           if (celOptions.enableUnsignedLongs()) {

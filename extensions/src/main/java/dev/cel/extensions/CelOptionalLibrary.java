@@ -50,6 +50,7 @@ import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelInternalRuntimeLibrary;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.RuntimeEquality;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -394,6 +395,10 @@ public final class CelOptionalLibrary
     } else if (val instanceof NullValue) {
       // A null value always represents an absent value
       return true;
+    } else if (val instanceof Instant) {
+      return val.equals(Instant.EPOCH);
+    } else if (val instanceof java.time.Duration) {
+      return val.equals(java.time.Duration.ZERO);
     }
 
     // Unknown. Assume that it is non-zero.

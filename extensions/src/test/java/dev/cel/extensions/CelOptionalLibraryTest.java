@@ -34,7 +34,6 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelVarDecl;
-import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
@@ -52,6 +51,8 @@ import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.InterpreterUtil;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -70,16 +71,12 @@ public class CelOptionalLibraryTest {
     UINT("5u", "0u", SimpleType.UINT, UnsignedLong.valueOf(5)),
     BOOL("true", "false", SimpleType.BOOL, true),
     BYTES("b'abc'", "b''", SimpleType.BYTES, CelByteString.copyFromUtf8("abc")),
-    DURATION(
-        "duration('180s')",
-        "duration('0s')",
-        SimpleType.DURATION,
-        ProtoTimeUtils.fromSecondsToDuration(180)),
+    DURATION("duration('180s')", "duration('0s')", SimpleType.DURATION, Duration.ofMinutes(3)),
     TIMESTAMP(
         "timestamp(1685552643)",
         "timestamp(0)",
         SimpleType.TIMESTAMP,
-        ProtoTimeUtils.fromSecondsToTimestamp(1685552643));
+        Instant.ofEpochSecond(1685552643));
 
     private final String sourceWithNonZeroValue;
     private final String sourceWithZeroValue;
