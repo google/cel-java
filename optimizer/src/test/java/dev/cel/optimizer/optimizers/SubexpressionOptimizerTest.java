@@ -37,8 +37,6 @@ import dev.cel.common.CelSource.Extension.Component;
 import dev.cel.common.CelSource.Extension.Version;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelVarDecl;
-import dev.cel.common.ast.CelConstant;
-import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.navigation.CelNavigableMutableAst;
 import dev.cel.common.navigation.CelNavigableMutableExpr;
@@ -54,11 +52,9 @@ import dev.cel.optimizer.optimizers.SubexpressionOptimizer.SubexpressionOptimize
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparser;
 import dev.cel.parser.CelUnparserFactory;
-import dev.cel.parser.Operator;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -131,7 +127,7 @@ public class SubexpressionOptimizerTest {
         CelOptimizerFactory.standardCelOptimizerBuilder(cel)
             .addAstOptimizers(
                 SubexpressionOptimizer.newInstance(
-                    SubexpressionOptimizerOptions.newBuilder().enableCelBlock(true).build()))
+                    SubexpressionOptimizerOptions.newBuilder().build()))
             .build();
     CelAbstractSyntaxTree ast = CEL.compile("size('a') + size('a') == 2").getAst();
 
@@ -175,11 +171,7 @@ public class SubexpressionOptimizerTest {
     CelAbstractSyntaxTree ast = CEL.compile(testCase.source).getAst();
 
     CelAbstractSyntaxTree optimizedAst =
-        newCseOptimizer(
-                SubexpressionOptimizerOptions.newBuilder()
-                    .populateMacroCalls(true)
-                    .enableCelBlock(false)
-                    .build())
+        newCseOptimizer(SubexpressionOptimizerOptions.newBuilder().populateMacroCalls(true).build())
             .optimize(ast);
 
     assertThat(ast.getExpr()).isEqualTo(optimizedAst.getExpr());
@@ -191,11 +183,7 @@ public class SubexpressionOptimizerTest {
     CelAbstractSyntaxTree ast = CEL.compile(testCase.source).getAst();
 
     CelAbstractSyntaxTree optimizedAst =
-        newCseOptimizer(
-                SubexpressionOptimizerOptions.newBuilder()
-                    .populateMacroCalls(true)
-                    .enableCelBlock(true)
-                    .build())
+        newCseOptimizer(SubexpressionOptimizerOptions.newBuilder().populateMacroCalls(true).build())
             .optimize(ast);
 
     assertThat(ast.getExpr()).isEqualTo(optimizedAst.getExpr());
@@ -208,10 +196,7 @@ public class SubexpressionOptimizerTest {
         CEL.compile("['foo'].map(x, [x+x]) + ['foo'].map(x, [x+x, x+x])").getAst();
     CelOptimizer celOptimizer =
         newCseOptimizer(
-            SubexpressionOptimizerOptions.newBuilder()
-                .populateMacroCalls(true)
-                .enableCelBlock(true)
-                .build());
+            SubexpressionOptimizerOptions.newBuilder().populateMacroCalls(true).build());
 
     CelAbstractSyntaxTree optimizedAst = celOptimizer.optimize(ast);
 
@@ -219,6 +204,24 @@ public class SubexpressionOptimizerTest {
         .isEqualTo(
             "cel.@block([[\"foo\"]], @index0.map(@it:0:0, [@it:0:0 + @it:0:0]) +"
                 + " @index0.map(@it:0:0, [@it:0:0 + @it:0:0, @it:0:0 + @it:0:0]))");
+  }
+
+  @Test
+  public void cse_applyConstFoldingBefore() throws Exception {
+    CelAbstractSyntaxTree ast =
+        CEL.compile("size([1+1+1]) + size([1+1+1]) + size([1,1+1+1]) + size([1,1+1+1]) + x")
+            .getAst();
+    CelOptimizer optimizer =
+        CelOptimizerFactory.standardCelOptimizerBuilder(CEL)
+            .addAstOptimizers(
+                ConstantFoldingOptimizer.getInstance(),
+                SubexpressionOptimizer.newInstance(
+                    SubexpressionOptimizerOptions.newBuilder().build()))
+            .build();
+
+    CelAbstractSyntaxTree optimizedAst = optimizer.optimize(ast);
+
+    assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo("6 + x");
   }
 
   @Test
@@ -236,43 +239,29 @@ public class SubexpressionOptimizerTest {
 
     CelAbstractSyntaxTree optimizedAst = optimizer.optimize(ast);
 
-    assertThat(optimizedAst.getExpr())
-        .isEqualTo(
-            CelExpr.ofCall(
-                1L,
-                Optional.empty(),
-                Operator.ADD.getFunction(),
-                ImmutableList.of(
-                    CelExpr.ofConstant(2L, CelConstant.ofValue(6L)), CelExpr.ofIdent(3L, "x"))));
-    assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo("6 + x");
+    assertThat(CEL_UNPARSER.unparse(optimizedAst))
+        .isEqualTo("cel.@block([1, 2], @index0 + @index0 + @index1 + @index1 + x)");
   }
 
   @Test
-  @TestParameters("{enableCelBlock: false, unparsed: 'cel.bind(@r0, size(x), @r0 + @r0)'}")
-  @TestParameters("{enableCelBlock: true, unparsed: 'cel.@block([size(x)], @index0 + @index0)'}")
-  public void cse_applyConstFoldingAfter_nothingToFold(boolean enableCelBlock, String unparsed)
-      throws Exception {
+  public void cse_applyConstFoldingAfter_nothingToFold() throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile("size(x) + size(x)").getAst();
     CelOptimizer optimizer =
         CelOptimizerFactory.standardCelOptimizerBuilder(CEL)
             .addAstOptimizers(
                 SubexpressionOptimizer.newInstance(
-                    SubexpressionOptimizerOptions.newBuilder()
-                        .populateMacroCalls(true)
-                        .enableCelBlock(enableCelBlock)
-                        .build()),
+                    SubexpressionOptimizerOptions.newBuilder().populateMacroCalls(true).build()),
                 ConstantFoldingOptimizer.getInstance())
             .build();
 
     CelAbstractSyntaxTree optimizedAst = optimizer.optimize(ast);
 
-    assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo(unparsed);
+    assertThat(CEL_UNPARSER.unparse(optimizedAst))
+        .isEqualTo("cel.@block([size(x)], @index0 + @index0)");
   }
 
   @Test
-  @TestParameters("{enableCelBlock: false}")
-  @TestParameters("{enableCelBlock: true}")
-  public void iterationLimitReached_throws(boolean enableCelBlock) throws Exception {
+  public void iterationLimitReached_throws() throws Exception {
     StringBuilder largeExprBuilder = new StringBuilder();
     int iterationLimit = 100;
     for (int i = 0; i < iterationLimit; i++) {
@@ -290,7 +279,6 @@ public class SubexpressionOptimizerTest {
                 newCseOptimizer(
                         SubexpressionOptimizerOptions.newBuilder()
                             .iterationLimit(iterationLimit)
-                            .enableCelBlock(enableCelBlock)
                             .build())
                     .optimize(ast));
     assertThat(e).hasMessageThat().isEqualTo("Optimization failure: Max iteration count reached.");
@@ -303,10 +291,7 @@ public class SubexpressionOptimizerTest {
         CelOptimizerFactory.standardCelOptimizerBuilder(CEL)
             .addAstOptimizers(
                 SubexpressionOptimizer.newInstance(
-                    SubexpressionOptimizerOptions.newBuilder()
-                        .populateMacroCalls(true)
-                        .enableCelBlock(true)
-                        .build()),
+                    SubexpressionOptimizerOptions.newBuilder().populateMacroCalls(true).build()),
                 ConstantFoldingOptimizer.getInstance())
             .build();
 
