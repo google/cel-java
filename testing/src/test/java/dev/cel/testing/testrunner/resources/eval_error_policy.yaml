@@ -15,6 +15,6 @@
 name: "evaluation_error_policy"
 rule:
   match:
-  - condition: "1/0 == 0"
+  - condition: "x/0 == 0"
     output: "false"
   - output: "true"

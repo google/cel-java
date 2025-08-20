@@ -57,10 +57,8 @@ import dev.cel.optimizer.CelAstOptimizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -121,8 +119,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
 
   @Override
   public OptimizationResult optimize(CelAbstractSyntaxTree ast, Cel cel) {
-    OptimizationResult result =
-        cseOptions.enableCelBlock() ? optimizeUsingCelBlock(ast, cel) : optimizeUsingCelBind(ast);
+    OptimizationResult result = optimizeUsingCelBlock(ast, cel);
 
     verifyOptimizedAstCorrectness(result.optimizedAst());
 
@@ -330,123 +327,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     return varDeclBuilder.build();
   }
 
-  private OptimizationResult optimizeUsingCelBind(CelAbstractSyntaxTree ast) {
-    CelMutableAst astToModify = CelMutableAst.fromCelAst(ast);
-    if (!cseOptions.populateMacroCalls()) {
-      astToModify.source().clearMacroCalls();
-    }
-
-    astToModify =
-        astMutator
-            .mangleComprehensionIdentifierNames(
-                astToModify,
-                MANGLED_COMPREHENSION_ITER_VAR_PREFIX,
-                MANGLED_COMPREHENSION_ACCU_VAR_PREFIX,
-                /* incrementSerially= */ true)
-            .mutableAst();
-    CelMutableSource sourceToModify = astToModify.source();
-
-    int bindIdentifierIndex = 0;
-    int iterCount;
-    for (iterCount = 0; iterCount < cseOptions.iterationLimit(); iterCount++) {
-      CelNavigableMutableAst navAst = CelNavigableMutableAst.fromAst(astToModify);
-      List<CelMutableExpr> cseCandidates = getCseCandidates(navAst);
-      if (cseCandidates.isEmpty()) {
-        break;
-      }
-
-      String bindIdentifier = BIND_IDENTIFIER_PREFIX + bindIdentifierIndex;
-      bindIdentifierIndex++;
-
-      // Replace all CSE candidates with new bind identifier
-      for (CelMutableExpr cseCandidate : cseCandidates) {
-        iterCount++;
-
-        astToModify =
-            astMutator.replaceSubtree(
-                astToModify, CelMutableExpr.ofIdent(bindIdentifier), cseCandidate.id());
-      }
-
-      // Find LCA to insert the new cel.bind macro into.
-      CelNavigableMutableExpr lca = getLca(navAst, bindIdentifier);
-
-      // Insert the new bind call
-      CelMutableExpr subexpressionToBind = cseCandidates.get(0);
-      // Re-add the macro source for bind identifiers that might have been lost from previous
-      // iteration of CSE
-      astToModify.source().addAllMacroCalls(sourceToModify.getMacroCalls());
-      astToModify =
-          astMutator.replaceSubtreeWithNewBindMacro(
-              astToModify,
-              bindIdentifier,
-              subexpressionToBind,
-              lca.expr(),
-              lca.id(),
-              cseOptions.populateMacroCalls());
-
-      // Retain the existing macro calls in case if the bind identifiers are replacing a subtree
-      // that contains a comprehension.
-      sourceToModify = astToModify.source();
-    }
-
-    if (iterCount >= cseOptions.iterationLimit()) {
-      throw new IllegalStateException("Max iteration count reached.");
-    }
-
-    if (iterCount == 0) {
-      // No modification has been made.
-      return OptimizationResult.create(ast);
-    }
-
-    astToModify = astMutator.renumberIdsConsecutively(astToModify);
-
-    return OptimizationResult.create(astToModify.toParsedAst());
-  }
-
-  private static CelNavigableMutableExpr getLca(
-      CelNavigableMutableAst navAst, String boundIdentifier) {
-    CelNavigableMutableExpr root = navAst.getRoot();
-    ImmutableList<CelNavigableMutableExpr> allNodesWithIdentifier =
-        root.allNodes()
-            .filter(
-                node ->
-                    node.getKind().equals(Kind.IDENT)
-                        && node.expr().ident().name().equals(boundIdentifier))
-            .collect(toImmutableList());
-
-    if (allNodesWithIdentifier.size() < 2) {
-      throw new IllegalStateException("Expected at least 2 bound identifiers to be present.");
-    }
-
-    CelNavigableMutableExpr lca = root;
-    long lcaAncestorCount = 0;
-    HashMap<Long, Long> ancestors = new HashMap<>();
-    for (CelNavigableMutableExpr navigableExpr : allNodesWithIdentifier) {
-      Optional<CelNavigableMutableExpr> maybeParent = Optional.of(navigableExpr);
-      while (maybeParent.isPresent()) {
-        CelNavigableMutableExpr parent = maybeParent.get();
-        if (!ancestors.containsKey(parent.id())) {
-          ancestors.put(parent.id(), 1L);
-          continue;
-        }
-
-        long ancestorCount = ancestors.get(parent.id());
-        if (lcaAncestorCount < ancestorCount
-            || (lcaAncestorCount == ancestorCount && lca.depth() < parent.depth())) {
-          lca = parent;
-          lcaAncestorCount = ancestorCount;
-        }
-
-        ancestors.put(parent.id(), ancestorCount + 1);
-        maybeParent = parent.parent();
-      }
-    }
-
-    return lca;
-  }
-
   private List<CelMutableExpr> getCseCandidates(CelNavigableMutableAst navAst) {
-    if (cseOptions.enableCelBlock() && cseOptions.subexpressionMaxRecursionDepth() > 0) {
+    if (cseOptions.subexpressionMaxRecursionDepth() > 0) {
       return getCseCandidatesWithRecursionDepth(
           navAst, cseOptions.subexpressionMaxRecursionDepth());
     } else {
@@ -689,11 +571,9 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       public abstract Builder populateMacroCalls(boolean value);
 
       /**
-       * Rewrites the optimized AST using cel.@block call instead of cascaded cel.bind macros, aimed
-       * to produce a more compact AST. {@link CelSource.Extension} field will be populated in the
-       * AST to inform that special runtime support is required to evaluate the optimized
-       * expression.
+       * @deprecated This option is a no-op. cel.@block is always enabled.
        */
+      @Deprecated
       public abstract Builder enableCelBlock(boolean value);
 
       /**
@@ -708,9 +588,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
        * <p>Note that expressions containing no common subexpressions may become a candidate for
        * extraction to satisfy the max depth requirement.
        *
-       * <p>This is a no-op if {@link #enableCelBlock} is set to false, the configured value is less
-       * than 1, or no subexpression needs to be extracted because the entire expression is already
-       * under the designated limit.
+       * <p>This is a no-op if the configured value is less than 1, or no subexpression needs to be
+       * extracted because the entire expression is already under the designated limit.
        *
        * <p>Examples:
        *
@@ -756,8 +635,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     public static Builder newBuilder() {
       return new AutoValue_SubexpressionOptimizer_SubexpressionOptimizerOptions.Builder()
           .iterationLimit(500)
+          .enableCelBlock(true)
           .populateMacroCalls(false)
-          .enableCelBlock(false)
           .subexpressionMaxRecursionDepth(0);
     }
 
