@@ -17,11 +17,13 @@ package dev.cel.testing.testrunner;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.util.TestUtil;
 import dev.cel.bundle.CelFactory;
 import dev.cel.checker.ProtoTypeMask;
+import dev.cel.common.types.SimpleType;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase;
 import org.junit.Before;
@@ -167,11 +169,12 @@ public class TestRunnerLibraryTest {
                 TestRunnerLibrary.evaluateTestCase(
                     simpleOutputTestCase,
                     CelTestContext.newBuilder()
+                        .setVariableBindings(ImmutableMap.of("x", 1L))
                         .setCelExpression(
                             CelExpressionSource.fromSource(
                                 TestUtil.getSrcDir()
                                     + "/google3/third_party/java/cel/testing/src/test/java/dev/cel/testing/testrunner/resources/eval_error_policy.yaml"))
-                        .setCel(CelFactory.standardCelBuilder().build())
+                        .setCel(CelFactory.standardCelBuilder().addVar("x", SimpleType.INT).build())
                         .build()));
 
     assertThat(thrown)
