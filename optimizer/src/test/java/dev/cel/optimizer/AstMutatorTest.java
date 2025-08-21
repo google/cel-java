@@ -582,6 +582,34 @@ public class AstMutatorTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked") // Test only
+  public void replaceSubtree_replaceExtraneousListCreatedByThreeArgMacro_unparseSuccess()
+      throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("[1].map(x, true, 1)").getAst();
+    CelMutableAst mutableAst = CelMutableAst.fromCelAst(ast);
+    CelMutableAst mutableAst2 = CelMutableAst.fromCelAst(ast);
+
+    // These two mutation are equivalent.
+    CelAbstractSyntaxTree mutatedAstWithList =
+        AST_MUTATOR
+            .replaceSubtree(
+                mutableAst,
+                CelMutableExpr.ofList(
+                    CelMutableList.create(CelMutableExpr.ofConstant(CelConstant.ofValue(2L)))),
+                10L)
+            .toParsedAst();
+    CelAbstractSyntaxTree mutatedAstWithConstant =
+        AST_MUTATOR
+            .replaceSubtree(mutableAst2, CelMutableExpr.ofConstant(CelConstant.ofValue(2L)), 6L)
+            .toParsedAst();
+
+    assertThat(CEL_UNPARSER.unparse(mutatedAstWithList)).isEqualTo("[1].map(x, true, 2)");
+    assertThat(CEL_UNPARSER.unparse(mutatedAstWithConstant)).isEqualTo("[1].map(x, true, 2)");
+    assertThat((List<Long>) CEL.createProgram(CEL.check(mutatedAstWithList).getAst()).eval())
+        .containsExactly(2L);
+  }
+
+  @Test
   public void globalCallExpr_replaceRoot() throws Exception {
     // Tree shape (brackets are expr IDs):
     //           + [4]

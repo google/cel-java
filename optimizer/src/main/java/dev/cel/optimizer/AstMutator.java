@@ -910,21 +910,32 @@ public final class AstMutator {
 
     CelMutableExpr loopStepExpr = comprehension.loopStep();
     List<CelMutableExpr> loopStepArgs = loopStepExpr.call().args();
-    if (loopStepArgs.size() != 2) {
+    if (loopStepArgs.size() != 2 && loopStepArgs.size() != 3) {
       throw new IllegalArgumentException(
           String.format(
-              "Expected exactly 2 arguments but got %d instead on expr id: %d",
+              "Expected exactly 2 or 3 arguments but got %d instead on expr id: %d",
               loopStepArgs.size(), loopStepExpr.id()));
     }
 
     CelMutableCall existingMacroCall = newMacroCallExpr.call();
     CelMutableCall newMacroCall =
         existingMacroCall.target().isPresent()
-            ? CelMutableCall.create(existingMacroCall.target().get(), existingMacroCall.function())
+            ? CelMutableCall.create(existingMacroCall.target().get(),
+            existingMacroCall.function())
             : CelMutableCall.create(existingMacroCall.function());
     newMacroCall.addArgs(
         existingMacroCall.args().get(0)); // iter_var is first argument of the call by convention
-    newMacroCall.addArgs(loopStepArgs.get(1).list().elements());
+
+    CelMutableList extraneousList = null;
+    if (loopStepArgs.size() == 2) {
+      extraneousList = loopStepArgs.get(1).list();
+    } else {
+      newMacroCall.addArgs(loopStepArgs.get(0));
+      // For map(x,y,z), z is wrapped in a _+_(@result, [z])
+      extraneousList = loopStepArgs.get(1).call().args().get(1).list();
+    }
+
+    newMacroCall.addArgs(extraneousList.elements());
 
     newMacroCallExpr.setCall(newMacroCall);
   }
