@@ -1,0 +1,11 @@
+Source: x.repeated_int64.exists(i, i, i < v)
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+ERROR: test_location:1:1: overlapping declaration name 'i' (type 'int' cannot be distinguished from 'int')
+ | x.repeated_int64.exists(i, i, i < v)
+ | ^
+ERROR: test_location:1:35: undeclared reference to 'v' (in container '')
+ | x.repeated_int64.exists(i, i, i < v)
+ | ..................................^

@@ -1,0 +1,143 @@
+Source: [1, 2, 3].transformList(i, v, i > 0 && v < 3, (i * v) + v) == [4] && [1, 2, 3].transformList(i, v, i % 2 == 0, (i * v) + v) == [1,9] && [1, 2, 3].transformList(i, v, (i * v) + v) == [1,4,9]
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+_&&_(
+  _&&_(
+    _==_(
+      __comprehension__(
+        // Variable
+        i,
+        v,
+        // Target
+        [
+          1~int,
+          2~int,
+          3~int
+        ]~list(int),
+        // Accumulator
+        @result,
+        // Init
+        []~list(int),
+        // LoopCondition
+        true~bool,
+        // LoopStep
+        _?_:_(
+          _&&_(
+            _>_(
+              i~int^i,
+              0~int
+            )~bool^greater_int64,
+            _<_(
+              v~int^v,
+              3~int
+            )~bool^less_int64
+          )~bool^logical_and,
+          _+_(
+            @result~list(int)^@result,
+            [
+              _+_(
+                _*_(
+                  i~int^i,
+                  v~int^v
+                )~int^multiply_int64,
+                v~int^v
+              )~int^add_int64
+            ]~list(int)
+          )~list(int)^add_list,
+          @result~list(int)^@result
+        )~list(int)^conditional,
+        // Result
+        @result~list(int)^@result)~list(int),
+      [
+        4~int
+      ]~list(int)
+    )~bool^equals,
+    _==_(
+      __comprehension__(
+        // Variable
+        i,
+        v,
+        // Target
+        [
+          1~int,
+          2~int,
+          3~int
+        ]~list(int),
+        // Accumulator
+        @result,
+        // Init
+        []~list(int),
+        // LoopCondition
+        true~bool,
+        // LoopStep
+        _?_:_(
+          _==_(
+            _%_(
+              i~int^i,
+              2~int
+            )~int^modulo_int64,
+            0~int
+          )~bool^equals,
+          _+_(
+            @result~list(int)^@result,
+            [
+              _+_(
+                _*_(
+                  i~int^i,
+                  v~int^v
+                )~int^multiply_int64,
+                v~int^v
+              )~int^add_int64
+            ]~list(int)
+          )~list(int)^add_list,
+          @result~list(int)^@result
+        )~list(int)^conditional,
+        // Result
+        @result~list(int)^@result)~list(int),
+      [
+        1~int,
+        9~int
+      ]~list(int)
+    )~bool^equals
+  )~bool^logical_and,
+  _==_(
+    __comprehension__(
+      // Variable
+      i,
+      v,
+      // Target
+      [
+        1~int,
+        2~int,
+        3~int
+      ]~list(int),
+      // Accumulator
+      @result,
+      // Init
+      []~list(int),
+      // LoopCondition
+      true~bool,
+      // LoopStep
+      _+_(
+        @result~list(int)^@result,
+        [
+          _+_(
+            _*_(
+              i~int^i,
+              v~int^v
+            )~int^multiply_int64,
+            v~int^v
+          )~int^add_int64
+        ]~list(int)
+      )~list(int)^add_list,
+      // Result
+      @result~list(int)^@result)~list(int),
+    [
+      1~int,
+      4~int,
+      9~int
+    ]~list(int)
+  )~bool^equals
+)~bool^logical_and

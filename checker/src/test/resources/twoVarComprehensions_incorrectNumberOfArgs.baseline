@@ -1,0 +1,38 @@
+Source: [1, 2, 3, 4].exists_one(i, v, i < v, v)&& x.map_string_string.transformList(i, i < v) && [1, 2, 3].transformList(i, v, i > 0 && x < 3, (i * v) + v) == [4]
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+ERROR: test_location:1:24: undeclared reference to 'exists_one' (in container '')
+ | [1, 2, 3, 4].exists_one(i, v, i < v, v)&& x.map_string_string.transformList(i, i < v) && [1, 2, 3].transformList(i, v, i > 0 && x < 3, (i * v) + v) == [4]
+ | .......................^
+ERROR: test_location:1:25: undeclared reference to 'i' (in container '')
+ | [1, 2, 3, 4].exists_one(i, v, i < v, v)&& x.map_string_string.transformList(i, i < v) && [1, 2, 3].transformList(i, v, i > 0 && x < 3, (i * v) + v) == [4]
+ | ........................^
+ERROR: test_location:1:28: undeclared reference to 'v' (in container '')
+ | [1, 2, 3, 4].exists_one(i, v, i < v, v)&& x.map_string_string.transformList(i, i < v) && [1, 2, 3].transformList(i, v, i > 0 && x < 3, (i * v) + v) == [4]
+ | ...........................^
+ERROR: test_location:1:31: undeclared reference to 'i' (in container '')
+ | [1, 2, 3, 4].exists_one(i, v, i < v, v)&& x.map_string_string.transformList(i, i < v) && [1, 2, 3].transformList(i, v, i > 0 && x < 3, (i * v) + v) == [4]
+ | ..............................^
+ERROR: test_location:1:35: undeclared reference to 'v' (in container '')
+ | [1, 2, 3, 4].exists_one(i, v, i < v, v)&& x.map_string_string.transformList(i, i < v) && [1, 2, 3].transformList(i, v, i > 0 && x < 3, (i * v) + v) == [4]
+ | ..................................^
+ERROR: test_location:1:38: undeclared reference to 'v' (in container '')
+ | [1, 2, 3, 4].exists_one(i, v, i < v, v)&& x.map_string_string.transformList(i, i < v) && [1, 2, 3].transformList(i, v, i > 0 && x < 3, (i * v) + v) == [4]
+ | .....................................^
+ERROR: test_location:1:76: undeclared reference to 'transformList' (in container '')
+ | [1, 2, 3, 4].exists_one(i, v, i < v, v)&& x.map_string_string.transformList(i, i < v) && [1, 2, 3].transformList(i, v, i > 0 && x < 3, (i * v) + v) == [4]
+ | ...........................................................................^
+ERROR: test_location:1:77: undeclared reference to 'i' (in container '')
+ | [1, 2, 3, 4].exists_one(i, v, i < v, v)&& x.map_string_string.transformList(i, i < v) && [1, 2, 3].transformList(i, v, i > 0 && x < 3, (i * v) + v) == [4]
+ | ............................................................................^
+ERROR: test_location:1:80: undeclared reference to 'i' (in container '')
+ | [1, 2, 3, 4].exists_one(i, v, i < v, v)&& x.map_string_string.transformList(i, i < v) && [1, 2, 3].transformList(i, v, i > 0 && x < 3, (i * v) + v) == [4]
+ | ...............................................................................^
+ERROR: test_location:1:84: undeclared reference to 'v' (in container '')
+ | [1, 2, 3, 4].exists_one(i, v, i < v, v)&& x.map_string_string.transformList(i, i < v) && [1, 2, 3].transformList(i, v, i > 0 && x < 3, (i * v) + v) == [4]
+ | ...................................................................................^
+ERROR: test_location:1:131: found no matching overload for '_<_' applied to '(cel.expr.conformance.proto3.TestAllTypes, int)' (candidates: (bool, bool),(int, int),(uint, uint),(double, double),(string, string),(bytes, bytes),(google.protobuf.Timestamp, google.protobuf.Timestamp),(google.protobuf.Duration, google.protobuf.Duration),(int, uint),(uint, int),(int, double),(double, int),(uint, double),(double, uint))
+ | [1, 2, 3, 4].exists_one(i, v, i < v, v)&& x.map_string_string.transformList(i, i < v) && [1, 2, 3].transformList(i, v, i > 0 && x < 3, (i * v) + v) == [4]
+ | ..................................................................................................................................^

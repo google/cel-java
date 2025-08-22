@@ -793,7 +793,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   }
 
   @Test
-  public void twoVarComprehensions() throws Exception {
+  public void twoVarComprehensions_allMacro() throws Exception {
     CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
     declareVariable("x", messageType);
     source =
@@ -805,10 +805,65 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   }
 
   @Test
-  public void twoVarComprehensionsErrors() throws Exception {
+  public void twoVarComprehensions_existsMacro() throws Exception {
+    CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
+    declareVariable("x", messageType);
+    source =
+        "x.map_string_string.exists(i, v, i < v) "
+            + "&& x.repeated_int64.exists(i, v, i < v) "
+            + "&& [1, 2, 3, 4].exists(i, v, i < 5 && v > 0) "
+            + "&& {'a': 1, 'b': 2}.exists(k, v, k.startsWith('a') && v == 1)";
+    runTest();
+  }
+
+  @Test
+  public void twoVarComprehensions_existsOneMacro() throws Exception {
+    CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
+    declareVariable("x", messageType);
+    source =
+        "x.map_string_string.exists_one(i, v, i < v) "
+            + "&& x.repeated_int64.exists_one(i, v, i < v) "
+            + "&& [1, 2, 3, 4].exists_one(i, v, i < 5 && v > 0) "
+            + "&& {'a': 1, 'b': 2}.exists_one(k, v, k.startsWith('a') && v == 1)";
+    runTest();
+  }
+
+  @Test
+  public void twoVarComprehensions_transformListMacro() throws Exception {
+    CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
+    declareVariable("x", messageType);
+    source =
+        "[1, 2, 3].transformList(i, v, i > 0 && v < 3, (i * v) + v) == [4] "
+            + "&& [1, 2, 3].transformList(i, v, i % 2 == 0, (i * v) + v) == [1,9] "
+            + "&& [1, 2, 3].transformList(i, v, (i * v) + v) == [1,4,9]";
+    runTest();
+  }
+
+  @Test
+  public void twoVarComprehensions_incorrectIterVars() throws Exception {
     CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
     declareVariable("x", messageType);
     source = "x.map_string_string.all(i + 1, v, i < v) && x.repeated_int64.all(i, v + 1, i < v)";
+    runTest();
+  }
+
+  @Test
+  public void twoVarComprehensions_duplicateIterVars() throws Exception {
+    CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
+    declareVariable("x", messageType);
+    source =
+        "x.repeated_int64.exists(i, i, i < v)";
+    runTest();
+  }
+  
+  @Test
+  public void twoVarComprehensions_incorrectNumberOfArgs() throws Exception {
+    CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
+    declareVariable("x", messageType);
+    source =
+            "[1, 2, 3, 4].exists_one(i, v, i < v, v)"
+            + "&& x.map_string_string.transformList(i, i < v) "
+            + "&& [1, 2, 3].transformList(i, v, i > 0 && x < 3, (i * v) + v) == [4]";
     runTest();
   }
 
