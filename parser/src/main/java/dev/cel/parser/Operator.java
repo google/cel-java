@@ -103,22 +103,34 @@ public enum Operator {
   private static final ImmutableMap<String, Operator> REVERSE_OPERATORS =
       ImmutableMap.<String, Operator>builder()
           .put(ADD.getFunction(), ADD)
+          .put(ALL.getFunction(), ALL)
+          .put(CONDITIONAL.getFunction(), CONDITIONAL)
           .put(DIVIDE.getFunction(), DIVIDE)
           .put(EQUALS.getFunction(), EQUALS)
+          .put(EXISTS.getFunction(), EXISTS)
+          .put(EXISTS_ONE.getFunction(), EXISTS_ONE)
+          .put(FILTER.getFunction(), FILTER)
           .put(GREATER.getFunction(), GREATER)
           .put(GREATER_EQUALS.getFunction(), GREATER_EQUALS)
+          .put(HAS.getFunction(), HAS)
           .put(IN.getFunction(), IN)
+          .put(INDEX.getFunction(), INDEX)
           .put(LESS.getFunction(), LESS)
           .put(LESS_EQUALS.getFunction(), LESS_EQUALS)
           .put(LOGICAL_AND.getFunction(), LOGICAL_AND)
           .put(LOGICAL_NOT.getFunction(), LOGICAL_NOT)
           .put(LOGICAL_OR.getFunction(), LOGICAL_OR)
+          .put(MAP.getFunction(), MAP)
           .put(MODULO.getFunction(), MODULO)
           .put(MULTIPLY.getFunction(), MULTIPLY)
           .put(NEGATE.getFunction(), NEGATE)
           .put(NOT_EQUALS.getFunction(), NOT_EQUALS)
-          .put(SUBTRACT.getFunction(), SUBTRACT)
+          .put(NOT_STRICTLY_FALSE.getFunction(), NOT_STRICTLY_FALSE)
           .put(OLD_IN.getFunction(), OLD_IN)
+          .put(OLD_NOT_STRICTLY_FALSE.getFunction(), OLD_NOT_STRICTLY_FALSE)
+          .put(OPTIONAL_INDEX.getFunction(), OPTIONAL_INDEX)
+          .put(OPTIONAL_SELECT.getFunction(), OPTIONAL_SELECT)
+          .put(SUBTRACT.getFunction(), SUBTRACT)
           .buildOrThrow();
 
   // precedence of the operator, where the higher value means higher.
@@ -169,7 +181,7 @@ public enum Operator {
           .buildOrThrow();
 
   /** Lookup an operator by its mangled name, as used within the AST. */
-  static Optional<Operator> findReverse(String op) {
+  public static Optional<Operator> findReverse(String op) {
     return Optional.ofNullable(REVERSE_OPERATORS.get(op));
   }
 

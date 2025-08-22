@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.ast.CelExpr;
@@ -48,6 +49,11 @@ public final class OperatorTest {
   @Test
   public void findReverse_returnsCorrectOperator() {
     assertThat(Operator.findReverse("_+_")).hasValue(Operator.ADD);
+  }
+
+  @Test
+  public void findReverse_allOperators(@TestParameter Operator operator) {
+    assertThat(Operator.findReverse(operator.getFunction())).hasValue(operator);
   }
 
   @Test
