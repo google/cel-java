@@ -315,9 +315,7 @@ public final class CelExtensions {
    * <p>This will include all functions denoted in {@link CelComprehensionsExtensions.Function},
    * including any future additions.
    */
-  // TODO: Remove visibility restrictions and make this public once the feature is
-  // ready.
-  private static CelComprehensionsExtensions comprehensions() {
+  public static CelComprehensionsExtensions comprehensions() {
     return COMPREHENSIONS_EXTENSIONS;
   }
 

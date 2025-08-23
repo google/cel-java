@@ -20,6 +20,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -996,12 +997,30 @@ final class DefaultInterpreter implements Interpreter {
         if (iterRange instanceof List) {
           iterAttr = iterRangeRaw.attribute().qualify(CelAttribute.Qualifier.ofInt(i));
         }
-        i++;
 
         Map<String, IntermediateResult> loopVars = new HashMap<>();
-        loopVars.put(
-            iterVar, IntermediateResult.create(iterAttr, RuntimeHelpers.maybeAdaptPrimitive(elem)));
+        if (!Strings.isNullOrEmpty(compre.iterVar2())) {
+          String iterVar2 = compre.iterVar2();
+          if (iterRangeRaw.value() instanceof List) {
+            loopVars.put(iterVar, IntermediateResult.create((long) i));
+            loopVars.put(
+                iterVar2,
+                IntermediateResult.create(iterAttr, RuntimeHelpers.maybeAdaptPrimitive(elem)));
+          } else if (iterRangeRaw.value() instanceof Map) {
+            Object key = elem;
+            Object value = ((Map<?, ?>) iterRangeRaw.value()).get(key);
+            loopVars.put(
+                iterVar, IntermediateResult.create(RuntimeHelpers.maybeAdaptPrimitive(key)));
+            loopVars.put(
+                iterVar2, IntermediateResult.create(RuntimeHelpers.maybeAdaptPrimitive(value)));
+          }
+        } else {
+          loopVars.put(
+              iterVar,
+              IntermediateResult.create(iterAttr, RuntimeHelpers.maybeAdaptPrimitive(elem)));
+        }
         loopVars.put(accuVar, accuValue);
+        i++;
 
         frame.pushScope(Collections.unmodifiableMap(loopVars));
         IntermediateResult evalObject = evalBooleanStrict(frame, compre.loopCondition());
