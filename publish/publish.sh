@@ -25,7 +25,8 @@
 # 2. You will need to enter the key's password. The prompt appears in GUI, not in terminal. The publish operation will eventually timeout if the password is not entered.
 
 
-ALL_TARGETS=("//publish:cel.publish" "//publish:cel_compiler.publish" "//publish:cel_runtime.publish" "//publish:cel_v1alpha1.publish" "//publish:cel_protobuf.publish" "//publish:cel_runtime_android.publish")
+ALL_TARGETS=("//publish:cel_runtime.publish")
+# ALL_TARGETS=("//publish:cel.publish" "//publish:cel_compiler.publish" "//publish:cel_runtime.publish" "//publish:cel_v1alpha1.publish" "//publish:cel_protobuf.publish" "//publish:cel_runtime_android.publish")
 JDK8_FLAGS="--java_language_version=8 --java_runtime_version=8"
 
 function publish_maven_remote() {
@@ -58,7 +59,7 @@ if [ "$flag" == "--snapshot" ] || [ "$flag" == "-s" ]; then
     exit 1;
   fi
   echo "Publishing a SNAPSHOT version: $version to remote Maven repository"
-  publish_maven_remote "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+  publish_maven_remote "https://central.sonatype.com/repository/maven-snapshots/"
 elif [ "$flag" == "--release" ] || [ "$flag" == "-r" ]; then
   if [[ $version == *"-SNAPSHOT"* ]]; then
    echo "Unable to publish. Please remove -SNAPSHOT suffix from CEL Version"
@@ -69,7 +70,7 @@ elif [ "$flag" == "--release" ] || [ "$flag" == "-r" ]; then
      read -p "Proceed (Y/N)? " yn
      case $yn in
          [Yy]* )
-           publish_maven_remote "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+           publish_maven_remote "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
            break;;
          [Nn]* ) exit;;
          * ) echo "Please answer yes or no.";;
