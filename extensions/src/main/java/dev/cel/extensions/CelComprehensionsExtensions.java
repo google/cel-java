@@ -59,13 +59,13 @@ public final class CelComprehensionsExtensions implements CelCompilerLibrary {
     checkNotNull(exprFactory);
     checkNotNull(target);
     checkArgument(arguments.size() == 3);
-    CelExpr arg0 = checkNotNull(arguments.get(0));
+    CelExpr arg0 = validatedIterationVariable(exprFactory, arguments.get(0));
     if (arg0.exprKind().getKind() != CelExpr.ExprKind.Kind.IDENT) {
-      return Optional.of(reportArgumentError(exprFactory, arg0));
+      return Optional.of(arg0);
     }
-    CelExpr arg1 = checkNotNull(arguments.get(1));
+    CelExpr arg1 = validatedIterationVariable(exprFactory, arguments.get(1));
     if (arg1.exprKind().getKind() != CelExpr.ExprKind.Kind.IDENT) {
-      return Optional.of(reportArgumentError(exprFactory, arg1));
+      return Optional.of(arg1);
     }
     CelExpr arg2 = checkNotNull(arguments.get(2));
     CelExpr accuInit = exprFactory.newBoolLiteral(true);
@@ -96,13 +96,13 @@ public final class CelComprehensionsExtensions implements CelCompilerLibrary {
     checkNotNull(exprFactory);
     checkNotNull(target);
     checkArgument(arguments.size() == 3);
-    CelExpr arg0 = checkNotNull(arguments.get(0));
+    CelExpr arg0 = validatedIterationVariable(exprFactory, arguments.get(0));
     if (arg0.exprKind().getKind() != CelExpr.ExprKind.Kind.IDENT) {
-      return Optional.of(reportArgumentError(exprFactory, arg0));
+      return Optional.of(arg0);
     }
-    CelExpr arg1 = checkNotNull(arguments.get(1));
+    CelExpr arg1 = validatedIterationVariable(exprFactory, arguments.get(1));
     if (arg1.exprKind().getKind() != CelExpr.ExprKind.Kind.IDENT) {
-      return Optional.of(reportArgumentError(exprFactory, arg1));
+      return Optional.of(arg1);
     }
     CelExpr arg2 = checkNotNull(arguments.get(2));
     CelExpr accuInit = exprFactory.newBoolLiteral(false);
@@ -135,13 +135,13 @@ public final class CelComprehensionsExtensions implements CelCompilerLibrary {
     checkNotNull(exprFactory);
     checkNotNull(target);
     checkArgument(arguments.size() == 3);
-    CelExpr arg0 = checkNotNull(arguments.get(0));
+    CelExpr arg0 = validatedIterationVariable(exprFactory, arguments.get(0));
     if (arg0.exprKind().getKind() != CelExpr.ExprKind.Kind.IDENT) {
-      return Optional.of(reportArgumentError(exprFactory, arg0));
+      return Optional.of(arg0);
     }
-    CelExpr arg1 = checkNotNull(arguments.get(1));
+    CelExpr arg1 = validatedIterationVariable(exprFactory, arguments.get(1));
     if (arg1.exprKind().getKind() != CelExpr.ExprKind.Kind.IDENT) {
-      return Optional.of(reportArgumentError(exprFactory, arg1));
+      return Optional.of(arg1);
     }
     CelExpr arg2 = checkNotNull(arguments.get(2));
     CelExpr accuInit = exprFactory.newIntLiteral(0);
@@ -177,13 +177,13 @@ public final class CelComprehensionsExtensions implements CelCompilerLibrary {
     checkNotNull(exprFactory);
     checkNotNull(target);
     checkArgument(arguments.size() == 3 || arguments.size() == 4);
-    CelExpr arg0 = checkNotNull(arguments.get(0));
+    CelExpr arg0 = validatedIterationVariable(exprFactory, arguments.get(0));
     if (arg0.exprKind().getKind() != CelExpr.ExprKind.Kind.IDENT) {
-      return Optional.of(reportArgumentError(exprFactory, arg0));
+      return Optional.of(arg0);
     }
-    CelExpr arg1 = checkNotNull(arguments.get(1));
+    CelExpr arg1 = validatedIterationVariable(exprFactory, arguments.get(1));
     if (arg1.exprKind().getKind() != CelExpr.ExprKind.Kind.IDENT) {
-      return Optional.of(reportArgumentError(exprFactory, arg1));
+      return Optional.of(arg1);
     }
     CelExpr transform;
     CelExpr filter = null;
@@ -220,9 +220,32 @@ public final class CelComprehensionsExtensions implements CelCompilerLibrary {
             exprFactory.newIdentifier(exprFactory.getAccumulatorVarName())));
   }
 
+  private static CelExpr validatedIterationVariable(
+      CelMacroExprFactory exprFactory, CelExpr argument) {
+
+    CelExpr arg = checkNotNull(argument);
+    if (arg.exprKind().getKind() != CelExpr.ExprKind.Kind.IDENT) {
+      return reportArgumentError(exprFactory, arg);
+    } else if (arg.exprKind().ident().name().equals("__result__")) {
+      return reportAccumulatorOverwriteError(exprFactory, arg);
+    } else {
+      return arg;
+    }
+  }
+
   private static CelExpr reportArgumentError(CelMacroExprFactory exprFactory, CelExpr argument) {
     return exprFactory.reportError(
         CelIssue.formatError(
             exprFactory.getSourceLocation(argument), "The argument must be a simple name"));
+  }
+
+  private static CelExpr reportAccumulatorOverwriteError(
+      CelMacroExprFactory exprFactory, CelExpr argument) {
+    return exprFactory.reportError(
+        CelIssue.formatError(
+            exprFactory.getSourceLocation(argument),
+            String.format(
+                "The iteration variable %s overwrites accumulator variable",
+                argument.ident().name())));
   }
 }
