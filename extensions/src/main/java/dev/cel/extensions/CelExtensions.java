@@ -363,6 +363,8 @@ public final class CelExtensions {
         return CelSetsExtensions.library(options);
       case "strings":
         return CelStringExtensions.library();
+      case "comprehensions":
+        return CelComprehensionsExtensions.library();
       // TODO: add support for remaining standard extensions
       default:
         throw new IllegalArgumentException("Unknown standard extension '" + name + "'");
