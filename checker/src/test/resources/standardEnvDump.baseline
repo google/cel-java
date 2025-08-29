@@ -4,6 +4,10 @@ Source: 'redundant expression so the env is constructed and can be printed'
 
 
 Standard environment:
+declare cel.@mapInsert {
+  function cel_@mapInsert_map_map (map(K, V), map(K, V)) -> map(K, V)
+  function cel_@mapInsert_map_key_value (map(K, V), K, V) -> map(K, V)
+}
 declare !_ {
   function logical_not (bool) -> bool
 }

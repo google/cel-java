@@ -36,7 +36,7 @@ import dev.cel.common.types.ProtoMessageTypeProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerFactory;
-import dev.cel.extensions.CelComprehensionsExtensions;
+import dev.cel.extensions.CelExtensions;
 import dev.cel.parser.CelStandardMacro;
 import java.util.ArrayList;
 import java.util.List;
@@ -109,7 +109,7 @@ public abstract class CelBaselineTestCase extends BaselineTestCase {
         CelCompilerFactory.standardCelCompilerBuilder()
             .setOptions(TEST_OPTIONS)
             .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-            .addLibraries(new CelComprehensionsExtensions())
+            .addLibraries(CelExtensions.comprehensions())
             .setContainer(container)
             .setTypeProvider(typeProvider);
 

@@ -21,12 +21,14 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparser;
 import dev.cel.parser.CelUnparserFactory;
@@ -52,15 +54,30 @@ public class CelComprehensionsExtensionsTest {
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .addLibraries(CelExtensions.comprehensions())
           .addLibraries(CelExtensions.lists())
+          .addLibraries(CelExtensions.strings())
           .addLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())
           .build();
   private static final CelRuntime CEL_RUNTIME =
       CelRuntimeFactory.standardCelRuntimeBuilder()
           .addLibraries(CelOptionalLibrary.INSTANCE)
           .addLibraries(CelExtensions.lists())
+          .addLibraries(CelExtensions.strings())
+          .addLibraries(CelExtensions.comprehensions())
           .build();
 
   private static final CelUnparser UNPARSER = CelUnparserFactory.newUnparser();
+
+  @Test
+  public void library() {
+    CelExtensionLibrary<?> library =
+        CelExtensions.getExtensionLibrary("comprehensions", CelOptions.DEFAULT);
+    assertThat(library.name()).isEqualTo("comprehensions");
+    assertThat(library.latest().version()).isEqualTo(0);
+    assertThat(library.version(0).functions().stream().map(CelFunctionDecl::name)).isEmpty();
+    assertThat(library.version(0).macros().stream().map(CelMacro::getFunction))
+        .containsAtLeast(
+            "all", "exists", "exists_one", "transformList", "transformMap", "transformMapEntry");
+  }
 
   @Test
   public void allMacro_twoVarComprehension_success(
@@ -171,6 +188,77 @@ public class CelComprehensionsExtensionsTest {
   }
 
   @Test
+  public void transformMapMacro_twoVarComprehension_success(
+      @TestParameter({
+            // list.transformMap()
+            "['Hello', 'world'].transformMap(i, v, [v.lowerAscii()]) == {0: ['hello'], 1:"
+                + " ['world']}",
+            "['world', 'Hello'].transformMap(i, v, [v.lowerAscii()]).transformList(k, v,"
+                + " v).flatten().sort() == ['hello', 'world']",
+            "[1, 2, 3].transformMap(indexVar, valueVar, (indexVar * valueVar) + valueVar) == {0:"
+                + " 1, 1: 4, 2: 9}",
+            "[1, 2, 3].transformMap(indexVar, valueVar, indexVar % 2 == 0, (indexVar * valueVar)"
+                + " + valueVar) == {0: 1, 2: 9}",
+            // map.transformMap()
+            "{'greeting': 'hello'}.transformMap(k, v, v + '!') == {'greeting': 'hello!'}",
+            "dyn({'greeting': 'hello'}).transformMap(k, v, v + '!') == {'greeting': 'hello!'}",
+            "{'hello': 'world', 'goodbye': 'cruel world'}.transformMap(k, v, v.startsWith('world'),"
+                + " v + '!') == {'hello': 'world!'}",
+            "{}.transformMap(k, v, v + '!') == {}"
+          })
+          String expr)
+      throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(true);
+  }
+
+  @Test
+  public void transformMapEntryMacro_twoVarComprehension_success(
+      @TestParameter({
+            // list.transformMapEntry()
+            "'key1:value1 key2:value2 key3:value3'.split(' ').transformMapEntry(i, v,"
+                + " cel.bind(entry, v.split(':'),entry.size() == 2 ? {entry[0]: entry[1]} : {})) =="
+                + " {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}",
+            "'key1:value1:extra key2:value2 key3'.split(' ').transformMapEntry(i, v,"
+                + " cel.bind(entry, v.split(':'), {?entry[0]: entry[?1]})) == {'key1': 'value1',"
+                + " 'key2': 'value2'}",
+            // map.transformMapEntry()
+            "{'hello': 'world', 'greetings': 'tacocat'}.transformMapEntry(k, v, {}) == {}",
+            "{'a': 1, 'b': 2}.transformMapEntry(k, v, {k + '_new': v * 2}) == {'a_new': 2,"
+                + " 'b_new': 4}",
+            "{'a': 1, 'b': 2, 'c': 3}.transformMapEntry(k, v, v % 2 == 1, {k: v * 10}) == {'a': 10,"
+                + " 'c': 30}",
+            "{'a': 1, 'b': 2}.transformMapEntry(k, v, k == 'a', {k + '_filtered': v}) =="
+                + " {'a_filtered': 1}",
+          })
+          String expr)
+      throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
+
+    Object result = CEL_RUNTIME.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(true);
+  }
+
+  @Test
+  public void comprehension_onTypeParam_success() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setOptions(CEL_OPTIONS)
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .addLibraries(CelExtensions.comprehensions())
+            .addVar("items", TypeParamType.create("T"))
+            .build();
+
+    CelAbstractSyntaxTree ast = celCompiler.compile("items.all(i, v, v > 0)").getAst();
+
+    assertThat(ast.getResultType()).isEqualTo(SimpleType.BOOL);
+  }
+
+  @Test
   public void unparseAST_twoVarComprehension(
       @TestParameter({
             "cel.bind(listA, [1, 2, 3, 4], cel.bind(listB, [1, 2, 3, 4, 5], listA.all(i, v,"
@@ -212,6 +300,21 @@ public class CelComprehensionsExtensionsTest {
           + " overwrites accumulator variable'}")
   @TestParameters(
       "{expr: 'no_such_var.all(i, v, v > 0)', err: \"undeclared reference to 'no_such_var'\"}")
+  @TestParameters(
+      "{expr: '{}.transformMap(i.j, k, i.j + k)', err: 'argument must be a simple name'}")
+  @TestParameters(
+      "{expr: '{}.transformMap(i, k.j, i + k.j)', err: 'argument must be a simple name'}")
+  @TestParameters(
+      "{expr: '{}.transformMapEntry(j, i.k, {j: i.k})', err: 'argument must be a simple name'}")
+  @TestParameters(
+      "{expr: '{}.transformMapEntry(i.j, k, {k: i.j})', err: 'argument must be a simple name'}")
+  @TestParameters(
+      "{expr: '{}.transformMapEntry(j, k, \"bad filter\", {k: j})', err: 'no matching overload'}")
+  @TestParameters(
+      "{expr: '[1, 2].transformList(i, v, v % 2 == 0 ? [v] : v)', err: 'no matching overload'}")
+  @TestParameters(
+      "{expr: \"{'hello': 'world', 'greetings': 'tacocat'}.transformMapEntry(k, v, []) == {}\","
+          + " err: 'no matching overload'}")
   public void twoVarComprehension_compilerErrors(String expr, String err) throws Exception {
     CelValidationException e =
         assertThrows(CelValidationException.class, () -> CEL_COMPILER.compile(expr).getAst());
@@ -220,22 +323,31 @@ public class CelComprehensionsExtensionsTest {
   }
 
   @Test
-  public void comprehension_onTypeParam_success() throws Exception {
-    CelCompiler celCompiler =
-        CelCompilerFactory.standardCelCompilerBuilder()
-            .setOptions(CEL_OPTIONS)
-            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-            .addLibraries(CelExtensions.comprehensions())
-            .addVar("items", TypeParamType.create("T"))
-            .build();
+  @TestParameters(
+      "{expr: \"['a:1', 'b:2', 'a:3'].transformMapEntry(i, v, cel.bind(p, v.split(':'), {p[0]:"
+          + " p[1]})) == {'a': '3', 'b': '2'}\", err: \"insert failed: key 'a' already exists\"}")
+  @TestParameters(
+      "{expr: '[1, 1].transformMapEntry(i, v, {v: i})', err: \"insert failed: key '1' already"
+          + " exists\"}")
+  @TestParameters(
+      "{expr: \"{'a': 65, 'b': 65u}.transformMapEntry(i, v, {v: i})\", err:  \"insert failed: key"
+          + " '65' already exists\"}")
+  @TestParameters(
+      "{expr: \"{'a': 2, 'b': 2.0}.transformMapEntry(i, v, {v: i})\", err:  \"insert failed: key"
+          + " '2.0' already exists\"}")
+  public void twoVarComprehension_keyCollision_runtimeError(String expr, String err)
+      throws Exception {
+    CelAbstractSyntaxTree ast = CEL_COMPILER.compile(expr).getAst();
 
-    CelAbstractSyntaxTree ast = celCompiler.compile("items.all(i, v, v > 0)").getAst();
+    CelEvaluationException e =
+        assertThrows(CelEvaluationException.class, () -> CEL_RUNTIME.createProgram(ast).eval());
 
-    assertThat(ast.getResultType()).isEqualTo(SimpleType.BOOL);
+    assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
+    assertThat(e).hasCauseThat().hasMessageThat().contains(err);
   }
 
   @Test
-  public void twoVarComprehension_arithematicRuntimeError() throws Exception {
+  public void twoVarComprehension_arithematicException_runtimeError() throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile("[0].all(i, k, i/k < k)").getAst();
 
     CelEvaluationException e =
@@ -246,7 +358,7 @@ public class CelComprehensionsExtensionsTest {
   }
 
   @Test
-  public void twoVarComprehension_outOfBoundsRuntimeError() throws Exception {
+  public void twoVarComprehension_outOfBounds_runtimeError() throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile("[1, 2].exists(i, v, [0][v] > 0)").getAst();
 
     CelEvaluationException e =
