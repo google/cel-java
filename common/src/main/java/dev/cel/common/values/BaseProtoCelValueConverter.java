@@ -53,23 +53,6 @@ public abstract class BaseProtoCelValueConverter extends CelValueConverter {
 
   public abstract CelValue fromProtoMessageToCelValue(MessageLite msg);
 
-  /**
-   * Adapts a {@link CelValue} to a native Java object. The CelValue is adapted into protobuf object
-   * when an equivalent exists.
-   */
-  @Override
-  public Object fromCelValueToJavaObject(CelValue celValue) {
-    Preconditions.checkNotNull(celValue);
-
-    if (celValue instanceof TimestampValue) {
-      return ProtoTimeUtils.toProtoTimestamp(((TimestampValue) celValue).value());
-    } else if (celValue instanceof DurationValue) {
-      return ProtoTimeUtils.toProtoDuration(((DurationValue) celValue).value());
-    }
-
-    return super.fromCelValueToJavaObject(celValue);
-  }
-
   /** {@inheritDoc} Protobuf semantics take precedence for conversion. */
   @Override
   public CelValue fromJavaObjectToCelValue(Object value) {

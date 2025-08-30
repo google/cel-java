@@ -6,11 +6,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 9
-} +> {d1=seconds: 10
-nanos: 10
-}
+bindings: {d2=PT10.000000009S} +> {d1=PT10.00000001S}
 result:   false
 
 Source: d1 < d2
@@ -21,11 +17,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 9
-nanos: 10
-} +> {d1=seconds: 10
-nanos: 10
-}
+bindings: {d2=PT9.00000001S} +> {d1=PT10.00000001S}
 result:   false
 
 Source: d1 < d2
@@ -36,11 +28,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 10
-} +> {d1=seconds: 10
-nanos: 10
-}
+bindings: {d2=PT10.00000001S} +> {d1=PT10.00000001S}
 result:   false
 
 Source: d1 < d2
@@ -51,11 +39,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 10
-} +> {d1=seconds: 10
-nanos: 9
-}
+bindings: {d2=PT10.00000001S} +> {d1=PT10.000000009S}
 result:   true
 
 Source: d1 < d2
@@ -66,11 +50,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 10
-} +> {d1=seconds: 9
-nanos: 10
-}
+bindings: {d2=PT10.00000001S} +> {d1=PT9.00000001S}
 result:   true
 
 Source: d1 <= d2
@@ -81,11 +61,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 9
-} +> {d1=seconds: 10
-nanos: 10
-}
+bindings: {d2=PT10.000000009S} +> {d1=PT10.00000001S}
 result:   false
 
 Source: d1 <= d2
@@ -96,11 +72,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 9
-nanos: 10
-} +> {d1=seconds: 10
-nanos: 10
-}
+bindings: {d2=PT9.00000001S} +> {d1=PT10.00000001S}
 result:   false
 
 Source: d1 <= d2
@@ -111,11 +83,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 10
-} +> {d1=seconds: 10
-nanos: 10
-}
+bindings: {d2=PT10.00000001S} +> {d1=PT10.00000001S}
 result:   true
 
 Source: d1 <= d2
@@ -126,11 +94,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 10
-} +> {d1=seconds: 10
-nanos: 9
-}
+bindings: {d2=PT10.00000001S} +> {d1=PT10.000000009S}
 result:   true
 
 Source: d1 <= d2
@@ -141,11 +105,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 10
-} +> {d1=seconds: 9
-nanos: 10
-}
+bindings: {d2=PT10.00000001S} +> {d1=PT9.00000001S}
 result:   true
 
 Source: d1 > d2
@@ -156,11 +116,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 9
-} +> {d1=seconds: 10
-nanos: 10
-}
+bindings: {d2=PT10.000000009S} +> {d1=PT10.00000001S}
 result:   true
 
 Source: d1 > d2
@@ -171,11 +127,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 9
-nanos: 10
-} +> {d1=seconds: 10
-nanos: 10
-}
+bindings: {d2=PT9.00000001S} +> {d1=PT10.00000001S}
 result:   true
 
 Source: d1 > d2
@@ -186,11 +138,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 10
-} +> {d1=seconds: 10
-nanos: 10
-}
+bindings: {d2=PT10.00000001S} +> {d1=PT10.00000001S}
 result:   false
 
 Source: d1 > d2
@@ -201,11 +149,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 10
-} +> {d1=seconds: 10
-nanos: 9
-}
+bindings: {d2=PT10.00000001S} +> {d1=PT10.000000009S}
 result:   false
 
 Source: d1 > d2
@@ -216,11 +160,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 10
-} +> {d1=seconds: 9
-nanos: 10
-}
+bindings: {d2=PT10.00000001S} +> {d1=PT9.00000001S}
 result:   false
 
 Source: d1 >= d2
@@ -231,11 +171,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 9
-} +> {d1=seconds: 10
-nanos: 10
-}
+bindings: {d2=PT10.000000009S} +> {d1=PT10.00000001S}
 result:   true
 
 Source: d1 >= d2
@@ -246,11 +182,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 9
-nanos: 10
-} +> {d1=seconds: 10
-nanos: 10
-}
+bindings: {d2=PT9.00000001S} +> {d1=PT10.00000001S}
 result:   true
 
 Source: d1 >= d2
@@ -261,11 +193,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 10
-} +> {d1=seconds: 10
-nanos: 10
-}
+bindings: {d2=PT10.00000001S} +> {d1=PT10.00000001S}
 result:   true
 
 Source: d1 >= d2
@@ -276,11 +204,7 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 10
-} +> {d1=seconds: 10
-nanos: 9
-}
+bindings: {d2=PT10.00000001S} +> {d1=PT10.000000009S}
 result:   false
 
 Source: d1 >= d2
@@ -291,9 +215,5 @@ declare d2 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d2=seconds: 10
-nanos: 10
-} +> {d1=seconds: 9
-nanos: 10
-}
+bindings: {d2=PT10.00000001S} +> {d1=PT9.00000001S}
 result:   false

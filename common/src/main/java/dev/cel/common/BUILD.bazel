@@ -205,6 +205,7 @@ java_library(
     tags = [
     ],
     deps = [
+        "//common/internal:date_time_helpers",
         "//common/internal:proto_time_utils",
         "//common/values",
         "//common/values:cel_byte_string",

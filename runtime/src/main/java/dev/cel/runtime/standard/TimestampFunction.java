@@ -19,10 +19,13 @@ import com.google.protobuf.Timestamp;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
+import dev.cel.common.internal.DateTimeHelpers;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import java.text.ParseException;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 
 /** Standard function for {@code timestamp} conversion function. */
@@ -42,6 +45,7 @@ public final class TimestampFunction extends CelStandardFunction {
   }
 
   /** Overloads for the standard function. */
+  @SuppressWarnings("AndroidJdkLibsChecker") // DateTimeParseException added in 26
   public enum TimestampOverload implements CelStandardOverload {
     STRING_TO_TIMESTAMP(
         (celOptions, runtimeEquality) ->
@@ -49,19 +53,41 @@ public final class TimestampFunction extends CelStandardFunction {
                 "string_to_timestamp",
                 String.class,
                 (String ts) -> {
-                  try {
-                    return ProtoTimeUtils.parse(ts);
-                  } catch (ParseException e) {
-                    throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
+                  if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+                    try {
+                      return DateTimeHelpers.parse(ts);
+                    } catch (DateTimeParseException e) {
+                      throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
+                    }
+
+                  } else {
+                    try {
+                      return ProtoTimeUtils.parse(ts);
+                    } catch (ParseException e) {
+                      throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
+                    }
                   }
                 })),
     TIMESTAMP_TO_TIMESTAMP(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from("timestamp_to_timestamp", Timestamp.class, (Timestamp x) -> x)),
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "timestamp_to_timestamp", Instant.class, (Instant x) -> x);
+          } else {
+            return CelFunctionBinding.from(
+                "timestamp_to_timestamp", Timestamp.class, (Timestamp x) -> x);
+          }
+        }),
     INT64_TO_TIMESTAMP(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
-                "int64_to_timestamp", Long.class, ProtoTimeUtils::fromSecondsToTimestamp)),
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "int64_to_timestamp", Long.class, Instant::ofEpochSecond);
+          } else {
+            return CelFunctionBinding.from(
+                "int64_to_timestamp", Long.class, ProtoTimeUtils::fromSecondsToTimestamp);
+          }
+        }),
     ;
 
     private final FunctionBindingCreator bindingCreator;

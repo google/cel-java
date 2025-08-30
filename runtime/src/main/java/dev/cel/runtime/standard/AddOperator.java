@@ -23,11 +23,13 @@ import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
+import dev.cel.common.internal.DateTimeHelpers;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.values.CelByteString;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
@@ -104,24 +106,51 @@ public final class AddOperator extends CelStandardFunction {
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from("add_double", Double.class, Double.class, Double::sum)),
     ADD_DURATION_DURATION(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
-                "add_duration_duration", Duration.class, Duration.class, ProtoTimeUtils::add)),
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "add_duration_duration",
+                java.time.Duration.class,
+                java.time.Duration.class,
+                DateTimeHelpers::add);
+          } else {
+            return CelFunctionBinding.from(
+                "add_duration_duration", Duration.class, Duration.class, ProtoTimeUtils::add);
+          }
+        }),
     ADD_TIMESTAMP_DURATION(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
-                "add_timestamp_duration", Timestamp.class, Duration.class, ProtoTimeUtils::add)),
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "add_timestamp_duration",
+                Instant.class,
+                java.time.Duration.class,
+                DateTimeHelpers::add);
+          } else {
+            return CelFunctionBinding.from(
+                "add_timestamp_duration", Timestamp.class, Duration.class, ProtoTimeUtils::add);
+          }
+        }),
     ADD_STRING(
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from(
                 "add_string", String.class, String.class, (String x, String y) -> x + y)),
     ADD_DURATION_TIMESTAMP(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "add_duration_timestamp",
+                java.time.Duration.class,
+                Instant.class,
+                (java.time.Duration d, Instant i) -> DateTimeHelpers.add(i, d));
+          } else {
+            return CelFunctionBinding.from(
                 "add_duration_timestamp",
                 Duration.class,
                 Timestamp.class,
-                (Duration x, Timestamp y) -> ProtoTimeUtils.add(y, x))),
+                (Duration d, Timestamp t) -> ProtoTimeUtils.add(t, d));
+          }
+        }),
     @SuppressWarnings({"unchecked"})
     ADD_LIST(
         (celOptions, runtimeEquality) ->

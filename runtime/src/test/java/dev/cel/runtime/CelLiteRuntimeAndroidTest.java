@@ -51,6 +51,8 @@ import dev.cel.runtime.CelLiteRuntime.Program;
 import dev.cel.runtime.standard.EqualsOperator;
 import dev.cel.runtime.standard.IntFunction;
 import dev.cel.runtime.standard.IntFunction.IntOverload;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
@@ -705,16 +707,8 @@ public class CelLiteRuntimeAndroidTest {
             ImmutableMap.of(true, 9.1d, false, 10.2d),
             ImmutableMap.of(true, 11.3d, false, 12.4d),
             ImmutableMap.of(true, 1L, false, 2L), // Note: Enums are converted into integers
-            ImmutableMap.of(
-                true,
-                ProtoTimeUtils.fromSecondsToDuration(15),
-                false,
-                ProtoTimeUtils.fromSecondsToDuration(16)),
-            ImmutableMap.of(
-                true,
-                ProtoTimeUtils.fromSecondsToTimestamp(17),
-                false,
-                ProtoTimeUtils.fromSecondsToTimestamp(18)))
+            ImmutableMap.of(true, Duration.ofSeconds(15), false, Duration.ofSeconds(16)),
+            ImmutableMap.of(true, Instant.ofEpochSecond(17), false, Instant.ofEpochSecond(18)))
         .inOrder();
   }
 
