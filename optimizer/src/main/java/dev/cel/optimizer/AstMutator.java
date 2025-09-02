@@ -28,7 +28,6 @@ import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelMutableAst;
 import dev.cel.common.CelMutableSource;
-import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelExprIdGeneratorFactory;
 import dev.cel.common.ast.CelExprIdGeneratorFactory.ExprIdGenerator;
@@ -161,75 +160,6 @@ public final class AstMutator {
     CelMutableExpr newCallExpr = CelMutableExpr.ofCall(++maxId, newCall);
 
     return CelMutableAst.of(newCallExpr, combinedSource);
-  }
-
-  /**
-   * Generates a new bind macro using the provided initialization and result expression, then
-   * replaces the subtree using the new bind expr at the designated expr ID.
-   *
-   * <p>The bind call takes the format of: {@code cel.bind(varInit, varName, resultExpr)}
-   *
-   * @param ast Original AST to mutate.
-   * @param varName New variable name for the bind macro call.
-   * @param varInit Initialization expression to bind to the local variable.
-   * @param resultExpr Result expression
-   * @param exprIdToReplace Expression ID of the subtree that is getting replaced.
-   * @param populateMacroSource If true, populates the cel.bind macro source in the AST.
-   */
-  public CelMutableAst replaceSubtreeWithNewBindMacro(
-      CelMutableAst ast,
-      String varName,
-      CelMutableAst varInit,
-      CelMutableExpr resultExpr,
-      long exprIdToReplace,
-      boolean populateMacroSource) {
-    // Stabilize incoming varInit AST to avoid collision with the main AST
-    long maxId = getMaxId(ast);
-    varInit = stabilizeAst(varInit, maxId);
-    StableIdGenerator stableIdGenerator = CelExprIdGeneratorFactory.newStableIdGenerator(maxId);
-    CelMutableExpr newBindMacroExpr =
-        newBindMacroExpr(
-            varName, varInit.expr(), CelMutableExpr.newInstance(resultExpr), stableIdGenerator);
-    CelMutableSource celSource = CelMutableSource.newInstance();
-    if (populateMacroSource) {
-      CelMutableExpr newBindMacroSourceExpr =
-          newBindMacroSourceExpr(newBindMacroExpr, varName, stableIdGenerator);
-      // In situations where the existing AST already contains a macro call (ex: nested cel.binds),
-      // its macro source must be normalized to make it consistent with the newly generated bind
-      // macro.
-      celSource = combine(ast.source(), varInit.source());
-      celSource =
-          normalizeMacroSource(
-              celSource,
-              -1, // Do not replace any of the subexpr in the macro map.
-              newBindMacroSourceExpr,
-              stableIdGenerator::renumberId);
-      celSource.addMacroCalls(newBindMacroExpr.id(), newBindMacroSourceExpr);
-    }
-
-    CelMutableAst newBindAst = CelMutableAst.of(newBindMacroExpr, celSource);
-
-    return replaceSubtree(ast, newBindAst, exprIdToReplace);
-  }
-
-  /**
-   * See {@link #replaceSubtreeWithNewBindMacro(CelMutableAst, String, CelMutableAst,
-   * CelMutableExpr, long, boolean)}.
-   */
-  public CelMutableAst replaceSubtreeWithNewBindMacro(
-      CelMutableAst ast,
-      String varName,
-      CelMutableExpr varInit,
-      CelMutableExpr resultExpr,
-      long exprIdToReplace,
-      boolean populateMacroSource) {
-    return replaceSubtreeWithNewBindMacro(
-        ast,
-        varName,
-        CelMutableAst.of(varInit, CelMutableSource.newInstance()),
-        resultExpr,
-        exprIdToReplace,
-        populateMacroSource);
   }
 
   /** Renumbers all the expr IDs in the given AST in a consecutive manner starting from 1. */
@@ -688,46 +618,6 @@ public final class AstMutator {
     return newSource;
   }
 
-  private CelMutableExpr newBindMacroExpr(
-      String varName,
-      CelMutableExpr varInit,
-      CelMutableExpr resultExpr,
-      StableIdGenerator stableIdGenerator) {
-    // Renumber incoming expression IDs in the init and result expression to avoid collision with
-    // the main AST. Existing IDs are memoized for a macro source sanitization pass at the end
-    // (e.g: inserting a bind macro to an existing macro expr)
-    varInit = renumberExprIds(stableIdGenerator::nextExprId, varInit);
-    resultExpr = renumberExprIds(stableIdGenerator::nextExprId, resultExpr);
-
-    long iterRangeId = stableIdGenerator.nextExprId();
-    long loopConditionId = stableIdGenerator.nextExprId();
-    long loopStepId = stableIdGenerator.nextExprId();
-    long comprehensionId = stableIdGenerator.nextExprId();
-
-    return CelMutableExpr.ofComprehension(
-        comprehensionId,
-        CelMutableComprehension.create(
-            "#unused",
-            CelMutableExpr.ofList(iterRangeId, CelMutableList.create()),
-            varName,
-            varInit,
-            CelMutableExpr.ofConstant(loopConditionId, CelConstant.ofValue(false)),
-            CelMutableExpr.ofIdent(loopStepId, varName),
-            resultExpr));
-  }
-
-  private CelMutableExpr newBindMacroSourceExpr(
-      CelMutableExpr bindMacroExpr, String varName, StableIdGenerator stableIdGenerator) {
-    return CelMutableExpr.ofCall(
-        0, // Required sentinel value for macro call
-        CelMutableCall.create(
-            CelMutableExpr.ofIdent(stableIdGenerator.nextExprId(), "cel"),
-            "bind",
-            CelMutableExpr.ofIdent(stableIdGenerator.nextExprId(), varName),
-            bindMacroExpr.comprehension().accuInit(),
-            bindMacroExpr.comprehension().result()));
-  }
-
   private static CelMutableSource combine(
       CelMutableSource celSource1, CelMutableSource celSource2) {
     return CelMutableSource.newInstance()
@@ -920,8 +810,7 @@ public final class AstMutator {
     CelMutableCall existingMacroCall = newMacroCallExpr.call();
     CelMutableCall newMacroCall =
         existingMacroCall.target().isPresent()
-            ? CelMutableCall.create(existingMacroCall.target().get(),
-            existingMacroCall.function())
+            ? CelMutableCall.create(existingMacroCall.target().get(), existingMacroCall.function())
             : CelMutableCall.create(existingMacroCall.function());
     newMacroCall.addArgs(
         existingMacroCall.args().get(0)); // iter_var is first argument of the call by convention
