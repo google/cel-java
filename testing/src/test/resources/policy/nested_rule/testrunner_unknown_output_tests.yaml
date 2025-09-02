@@ -22,5 +22,4 @@ sections:
       description: "Tests that the ir origin is restricted."
       output:
         unknown:
-          - 28
-          - 33
+          - 4

@@ -180,7 +180,7 @@ public enum Operator {
           .put(MODULO.getFunction(), "%")
           .buildOrThrow();
 
-  /** Lookup an operator by its mangled name, as used within the AST. */
+  /** Lookup an operator by its mangled name (ex: _&&_), as used within the AST. */
   public static Optional<Operator> findReverse(String op) {
     return Optional.ofNullable(REVERSE_OPERATORS.get(op));
   }

@@ -36,6 +36,9 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.optimizer.CelOptimizer;
 import dev.cel.optimizer.CelOptimizerFactory;
+import dev.cel.optimizer.optimizers.ConstantFoldingOptimizer;
+import dev.cel.optimizer.optimizers.SubexpressionOptimizer;
+import dev.cel.optimizer.optimizers.SubexpressionOptimizer.SubexpressionOptimizerOptions;
 import dev.cel.policy.CelCompiledRule.CelCompiledMatch;
 import dev.cel.policy.CelCompiledRule.CelCompiledMatch.Result;
 import dev.cel.policy.CelCompiledRule.CelCompiledMatch.Result.Kind;
@@ -98,7 +101,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
   public CelAbstractSyntaxTree compose(CelPolicy policy, CelCompiledRule compiledRule)
       throws CelPolicyValidationException {
     Cel cel = compiledRule.cel();
-    CelOptimizer optimizer =
+    CelOptimizer composingOptimizer =
         CelOptimizerFactory.standardCelOptimizerBuilder(cel)
             .addAstOptimizers(
                 RuleComposer.newInstance(compiledRule, variablesPrefix, iterationLimit))
@@ -110,7 +113,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
       // This is a minimal expression used as a basis of stitching together all the rules into a
       // single graph.
       ast = cel.compile("true").getAst();
-      ast = optimizer.optimize(ast);
+      ast = composingOptimizer.optimize(ast);
     } catch (CelValidationException | CelOptimizationException e) {
       if (e.getCause() instanceof RuleCompositionException) {
         RuleCompositionException re = (RuleCompositionException) e.getCause();
@@ -134,6 +137,28 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
 
       // Something has gone seriously wrong.
       throw new CelPolicyValidationException("Unexpected error while composing rules.", e);
+    }
+
+    CelOptimizer astOptimizer =
+        CelOptimizerFactory.standardCelOptimizerBuilder(cel)
+            .addAstOptimizers(
+                ConstantFoldingOptimizer.getInstance(),
+                SubexpressionOptimizer.newInstance(
+                    SubexpressionOptimizerOptions.newBuilder()
+                        // "record" is used for recording subexpression results via
+                        // BlueprintLateFunctionBinding. Safely eliminable, since repeated
+                        // invocation does not change the intermediate results.
+                        .addEliminableFunctions("record")
+                        .populateMacroCalls(true)
+                        .enableCelBlock(true)
+                        .build()))
+            .build();
+    try {
+      // Optimize the composed graph using const fold and CSE
+      ast = astOptimizer.optimize(ast);
+    } catch (CelOptimizationException e) {
+      throw new CelPolicyValidationException(
+          "Failed to optimize the composed policy. Reason: " + e.getMessage(), e);
     }
 
     assertAstDepthIsSafe(ast, cel);

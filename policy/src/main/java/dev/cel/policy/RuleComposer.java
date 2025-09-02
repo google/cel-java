@@ -19,12 +19,16 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.toCollection;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelMutableAst;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.formats.ValueString;
+import dev.cel.common.navigation.CelNavigableMutableAst;
+import dev.cel.common.navigation.CelNavigableMutableExpr;
 import dev.cel.extensions.CelOptionalLibrary.Function;
 import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.CelAstOptimizer;
@@ -151,21 +155,35 @@ final class RuleComposer implements CelAstOptimizer {
       }
     }
 
-    CelMutableAst result = matchAst;
-    for (CelCompiledVariable variable : Lists.reverse(compiledRule.variables())) {
-      result =
-          astMutator.replaceSubtreeWithNewBindMacro(
-              result,
-              variablePrefix + variable.name(),
-              CelMutableAst.fromCelAst(variable.ast()),
-              result.expr(),
-              result.expr().id(),
-              true);
-    }
+    CelMutableAst result = inlineCompiledVariables(matchAst, compiledRule.variables());
 
     result = astMutator.renumberIdsConsecutively(result);
 
     return RuleOptimizationResult.create(result, isOptionalResult);
+  }
+
+  private CelMutableAst inlineCompiledVariables(
+      CelMutableAst ast, List<CelCompiledVariable> compiledVariables) {
+    CelMutableAst mutatedAst = ast;
+    for (CelCompiledVariable compiledVariable : Lists.reverse(compiledVariables)) {
+      String variableName = variablePrefix + compiledVariable.name();
+      ImmutableList<CelNavigableMutableExpr> exprsToReplace =
+          CelNavigableMutableAst.fromAst(mutatedAst)
+              .getRoot()
+              .allNodes()
+              .filter(
+                  node ->
+                      node.expr().getKind().equals(Kind.IDENT)
+                          && node.expr().ident().name().equals(variableName))
+              .collect(toImmutableList());
+
+      for (CelNavigableMutableExpr expr : exprsToReplace) {
+        CelMutableAst variableAst = CelMutableAst.fromCelAst(compiledVariable.ast());
+        mutatedAst = astMutator.replaceSubtree(mutatedAst, variableAst, expr.id());
+      }
+    }
+
+    return mutatedAst;
   }
 
   static RuleComposer newInstance(
