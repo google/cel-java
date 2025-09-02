@@ -73,7 +73,6 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
   private static final SubexpressionOptimizerOptions OPTIMIZER_COMMON_OPTIONS =
       SubexpressionOptimizerOptions.newBuilder()
           .populateMacroCalls(true)
-          .enableCelBlock(true)
           .addEliminableFunctions("pure_custom_func")
           .build();
 
@@ -188,27 +187,10 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
   }
 
   @Test
-  public void large_expressions_bind_cascaded() throws Exception {
-    CelOptimizer celOptimizer =
-        newCseOptimizer(
-            CEL,
-            SubexpressionOptimizerOptions.newBuilder()
-                .populateMacroCalls(true)
-                .enableCelBlock(false)
-                .build());
-
-    runLargeTestCases(celOptimizer);
-  }
-
-  @Test
   public void large_expressions_block_common_subexpr() throws Exception {
     CelOptimizer celOptimizer =
         newCseOptimizer(
-            CEL,
-            SubexpressionOptimizerOptions.newBuilder()
-                .populateMacroCalls(true)
-                .enableCelBlock(true)
-                .build());
+            CEL, SubexpressionOptimizerOptions.newBuilder().populateMacroCalls(true).build());
 
     runLargeTestCases(celOptimizer);
   }
@@ -220,7 +202,6 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
             CEL,
             SubexpressionOptimizerOptions.newBuilder()
                 .populateMacroCalls(true)
-                .enableCelBlock(true)
                 .subexpressionMaxRecursionDepth(1)
                 .build());
 
@@ -234,7 +215,6 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
             CEL,
             SubexpressionOptimizerOptions.newBuilder()
                 .populateMacroCalls(true)
-                .enableCelBlock(true)
                 .subexpressionMaxRecursionDepth(2)
                 .build());
 
@@ -248,7 +228,6 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
             CEL,
             SubexpressionOptimizerOptions.newBuilder()
                 .populateMacroCalls(true)
-                .enableCelBlock(true)
                 .subexpressionMaxRecursionDepth(3)
                 .build());
 
@@ -312,7 +291,6 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
 
   @SuppressWarnings("Immutable") // Test only
   private enum CseTestOptimizer {
-    CASCADED_BINDS(OPTIMIZER_COMMON_OPTIONS.toBuilder().enableCelBlock(false).build()),
     BLOCK_COMMON_SUBEXPR_ONLY(OPTIMIZER_COMMON_OPTIONS),
     BLOCK_RECURSION_DEPTH_1(
         OPTIMIZER_COMMON_OPTIONS.toBuilder().subexpressionMaxRecursionDepth(1).build()),
