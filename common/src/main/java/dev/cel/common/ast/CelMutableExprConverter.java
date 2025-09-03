@@ -173,6 +173,7 @@ public final class CelMutableExprConverter {
         return CelExpr.ofComprehension(
             id,
             mutableComprehension.iterVar(),
+            mutableComprehension.iterVar2(),
             fromMutableExpr(mutableComprehension.iterRange()),
             mutableComprehension.accuVar(),
             fromMutableExpr(mutableComprehension.accuInit()),

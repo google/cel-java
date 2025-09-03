@@ -432,4 +432,83 @@ public class CelMutableExprConverterTest {
                     CelMutableExpr.ofConstant(6L, CelConstant.ofValue(true)),
                     CelMutableExpr.ofIdent(7L, "__result__"))));
   }
+
+  @Test
+  public void convertMutableComprehension_withTwoIterVars_toCelComprehension() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofComprehension(
+            1L,
+            CelMutableComprehension.create(
+                "iterVar",
+                "iterVar2",
+                CelMutableExpr.ofList(
+                    2L,
+                    CelMutableList.create(
+                        CelMutableExpr.ofConstant(3L, CelConstant.ofValue(true)))),
+                "accuVar",
+                CelMutableExpr.ofConstant(4L, CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(5L, CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(6L, CelConstant.ofValue(true)),
+                CelMutableExpr.ofIdent(7L, "__result__")));
+
+    CelExpr celExpr = CelMutableExprConverter.fromMutableExpr(mutableExpr);
+
+    assertThat(celExpr)
+        .isEqualTo(
+            CelExpr.ofComprehension(
+                1L,
+                "iterVar",
+                "iterVar2",
+                CelExpr.newBuilder()
+                    .setId(2L)
+                    .setList(
+                        CelList.newBuilder()
+                            .addElements(CelExpr.ofConstant(3L, CelConstant.ofValue(true)))
+                            .build())
+                    .build(),
+                "accuVar",
+                CelExpr.ofConstant(4L, CelConstant.ofValue(true)),
+                CelExpr.ofConstant(5L, CelConstant.ofValue(true)),
+                CelExpr.ofConstant(6L, CelConstant.ofValue(true)),
+                CelExpr.ofIdent(7L, "__result__")));
+  }
+
+  @Test
+  public void convertCelComprehension_withTwoIterVars_toMutableComprehension() {
+    CelExpr celExpr =
+        CelExpr.ofComprehension(
+            1L,
+            "iterVar",
+            "iterVar2",
+            CelExpr.newBuilder()
+                .setId(2L)
+                .setList(
+                    CelList.newBuilder()
+                        .addElements(CelExpr.ofConstant(3L, CelConstant.ofValue(true)))
+                        .build())
+                .build(),
+            "accuVar",
+            CelExpr.ofConstant(4L, CelConstant.ofValue(true)),
+            CelExpr.ofConstant(5L, CelConstant.ofValue(true)),
+            CelExpr.ofConstant(6L, CelConstant.ofValue(true)),
+            CelExpr.ofIdent(7L, "__result__"));
+
+    CelMutableExpr mutableExpr = CelMutableExprConverter.fromCelExpr(celExpr);
+    assertThat(mutableExpr)
+        .isEqualTo(
+            CelMutableExpr.ofComprehension(
+                1L,
+                CelMutableComprehension.create(
+                    "iterVar",
+                    "iterVar2",
+                    CelMutableExpr.ofList(
+                        2L,
+                        CelMutableList.create(
+                            CelMutableExpr.ofConstant(3L, CelConstant.ofValue(true)))),
+                    "accuVar",
+                    CelMutableExpr.ofConstant(4L, CelConstant.ofValue(true)),
+                    CelMutableExpr.ofConstant(5L, CelConstant.ofValue(true)),
+                    CelMutableExpr.ofConstant(6L, CelConstant.ofValue(true)),
+                    CelMutableExpr.ofIdent(7L, "__result__"))));
+  }
 }
