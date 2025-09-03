@@ -16,12 +16,19 @@ package dev.cel.checker;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.ImmutableList;
+import dev.cel.checker.CelStandardDeclarations.StandardFunction;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelVarDecl;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -49,7 +56,45 @@ public class CelCheckerLegacyImplTest {
     CelCheckerLegacyImpl.Builder newCheckerBuilder =
         (CelCheckerLegacyImpl.Builder) celChecker.toCheckerBuilder();
 
-    assertThat(newCheckerBuilder.getCheckerLibraries().build()).isEmpty();
+    assertThat(newCheckerBuilder.checkerLibraries().build()).isEmpty();
+  }
+
+  @Test
+  public void toCheckerBuilder_singularFields_copied() {
+    CelStandardDeclarations subsetDecls =
+        CelStandardDeclarations.newBuilder().includeFunctions(StandardFunction.BOOL).build();
+    CelOptions celOptions = CelOptions.current().enableTimestampEpoch(true).build();
+    CelContainer celContainer = CelContainer.ofName("foo");
+    CelType expectedResultType = SimpleType.BOOL;
+    CelTypeProvider customTypeProvider =
+        new CelTypeProvider() {
+          @Override
+          public ImmutableList<CelType> types() {
+            return ImmutableList.of();
+          }
+
+          @Override
+          public Optional<CelType> findType(String typeName) {
+            return Optional.empty();
+          }
+        };
+    CelCheckerBuilder celCheckerBuilder =
+        CelCompilerFactory.standardCelCheckerBuilder()
+            .setOptions(celOptions)
+            .setContainer(celContainer)
+            .setResultType(expectedResultType)
+            .setTypeProvider(customTypeProvider)
+            .setStandardEnvironmentEnabled(false)
+            .setStandardDeclarations(subsetDecls);
+    CelCheckerLegacyImpl celChecker = (CelCheckerLegacyImpl) celCheckerBuilder.build();
+
+    CelCheckerLegacyImpl.Builder newCheckerBuilder =
+        (CelCheckerLegacyImpl.Builder) celChecker.toCheckerBuilder();
+
+    assertThat(newCheckerBuilder.standardDeclarations()).isEqualTo(subsetDecls);
+    assertThat(newCheckerBuilder.options()).isEqualTo(celOptions);
+    assertThat(newCheckerBuilder.container()).isEqualTo(celContainer);
+    assertThat(newCheckerBuilder.celTypeProvider()).isEqualTo(customTypeProvider);
   }
 
   @Test
@@ -70,12 +115,12 @@ public class CelCheckerLegacyImplTest {
     CelCheckerLegacyImpl.Builder newCheckerBuilder =
         (CelCheckerLegacyImpl.Builder) celChecker.toCheckerBuilder();
 
-    assertThat(newCheckerBuilder.getFunctionDecls().build()).hasSize(1);
-    assertThat(newCheckerBuilder.getIdentDecls().build()).hasSize(1);
-    assertThat(newCheckerBuilder.getProtoTypeMasks().build()).hasSize(1);
-    assertThat(newCheckerBuilder.getFileTypes().build())
+    assertThat(newCheckerBuilder.functionDecls().build()).hasSize(1);
+    assertThat(newCheckerBuilder.identDecls().build()).hasSize(1);
+    assertThat(newCheckerBuilder.protoTypeMasks().build()).hasSize(1);
+    assertThat(newCheckerBuilder.fileTypes().build())
         .hasSize(1); // MessageTypes and FileTypes deduped into the same file descriptor
-    assertThat(newCheckerBuilder.getCheckerLibraries().build()).hasSize(1);
+    assertThat(newCheckerBuilder.checkerLibraries().build()).hasSize(1);
   }
 
   @Test
@@ -96,11 +141,11 @@ public class CelCheckerLegacyImplTest {
         ProtoTypeMask.ofAllFields("cel.expr.conformance.proto3.TestAllTypes"));
     celCheckerBuilder.addLibraries(new CelCheckerLibrary() {});
 
-    assertThat(newCheckerBuilder.getFunctionDecls().build()).isEmpty();
-    assertThat(newCheckerBuilder.getIdentDecls().build()).isEmpty();
-    assertThat(newCheckerBuilder.getProtoTypeMasks().build()).isEmpty();
-    assertThat(newCheckerBuilder.getMessageTypes().build()).isEmpty();
-    assertThat(newCheckerBuilder.getFileTypes().build()).isEmpty();
-    assertThat(newCheckerBuilder.getCheckerLibraries().build()).isEmpty();
+    assertThat(newCheckerBuilder.functionDecls().build()).isEmpty();
+    assertThat(newCheckerBuilder.identDecls().build()).isEmpty();
+    assertThat(newCheckerBuilder.protoTypeMasks().build()).isEmpty();
+    assertThat(newCheckerBuilder.messageTypes().build()).isEmpty();
+    assertThat(newCheckerBuilder.fileTypes().build()).isEmpty();
+    assertThat(newCheckerBuilder.checkerLibraries().build()).isEmpty();
   }
 }

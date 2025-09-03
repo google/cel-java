@@ -55,6 +55,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@code CelChecker} implementation which uses the original CEL-Java APIs to provide a simple,
@@ -126,6 +127,10 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
 
     if (expectedResultType.isPresent()) {
       builder.setResultType(expectedResultType.get());
+    }
+
+    if (overriddenStandardDeclarations != null) {
+      builder.setStandardDeclarations(overriddenStandardDeclarations);
     }
 
     return builder;
@@ -379,36 +384,51 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
       return this;
     }
 
-    // The following getters exist for asserting immutability for collections held by this builder,
-    // and shouldn't be exposed to the public.
+    // The following getters marked @VisibleForTesting exist for testing toCheckerBuilder copies
+    // over all properties. Do not expose these to public
     @VisibleForTesting
-    ImmutableSet.Builder<CelFunctionDecl> getFunctionDecls() {
+    ImmutableSet.Builder<CelFunctionDecl> functionDecls() {
       return this.functionDeclarations;
     }
 
     @VisibleForTesting
-    ImmutableSet.Builder<CelIdentDecl> getIdentDecls() {
+    ImmutableSet.Builder<CelIdentDecl> identDecls() {
       return this.identDeclarations;
     }
 
     @VisibleForTesting
-    ImmutableSet.Builder<ProtoTypeMask> getProtoTypeMasks() {
+    ImmutableSet.Builder<ProtoTypeMask> protoTypeMasks() {
       return this.protoTypeMasks;
     }
 
     @VisibleForTesting
-    ImmutableSet.Builder<Descriptor> getMessageTypes() {
+    ImmutableSet.Builder<Descriptor> messageTypes() {
       return this.messageTypes;
     }
 
     @VisibleForTesting
-    ImmutableSet.Builder<FileDescriptor> getFileTypes() {
+    ImmutableSet.Builder<FileDescriptor> fileTypes() {
       return this.fileTypes;
     }
 
     @VisibleForTesting
-    ImmutableSet.Builder<CelCheckerLibrary> getCheckerLibraries() {
+    ImmutableSet.Builder<CelCheckerLibrary> checkerLibraries() {
       return this.celCheckerLibraries;
+    }
+
+    @VisibleForTesting
+    CelStandardDeclarations standardDeclarations() {
+      return this.standardDeclarations;
+    }
+
+    @VisibleForTesting
+    CelOptions options() {
+      return this.celOptions;
+    }
+
+    @VisibleForTesting
+    CelTypeProvider celTypeProvider() {
+      return this.celTypeProvider;
     }
 
     @Override
@@ -506,7 +526,7 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
       TypeProvider typeProvider,
       CelTypeProvider celTypeProvider,
       boolean standardEnvironmentEnabled,
-      CelStandardDeclarations overriddenStandardDeclarations,
+      @Nullable CelStandardDeclarations overriddenStandardDeclarations,
       ImmutableSet<CelCheckerLibrary> checkerLibraries,
       ImmutableSet<FileDescriptor> fileDescriptors,
       ImmutableSet<ProtoTypeMask> protoTypeMasks) {
