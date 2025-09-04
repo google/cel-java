@@ -24,28 +24,59 @@
 # 1. You must create a pgp certificate and upload it to keyserver.ubuntu.com. See https://blog.sonatype.com/2010/01/how-to-generate-pgp-signatures-with-maven/
 # 2. You will need to enter the key's password. The prompt appears in GUI, not in terminal. The publish operation will eventually timeout if the password is not entered.
 
+# Note, to run script: Bazel and jq are required
 
 ALL_TARGETS=("//publish:cel.publish" "//publish:cel_compiler.publish" "//publish:cel_runtime.publish" "//publish:cel_v1alpha1.publish" "//publish:cel_protobuf.publish" "//publish:cel_runtime_android.publish")
 JDK8_FLAGS="--java_language_version=8 --java_runtime_version=8"
 
 function publish_maven_remote() {
   maven_repo_url=$1
-   # Credentials should be read from maven config (settings.xml) once it
-   # is supported by bazelbuild:
-   # https://github.com/bazelbuild/rules_jvm_external/issues/679
-   read -p "maven_user: " maven_user
-   read -s -p "maven_password: " maven_password
-   for PUBLISH_TARGET in "${ALL_TARGETS[@]}"
-   do
-        bazel run --stamp \
-          --define "maven_repo=$maven_repo_url" \
-          --define gpg_sign=true \
-          --define "maven_user=$maven_user" \
-          --define "maven_password=$maven_password" \
-          $PUBLISH_TARGET \
-          $JDK8_FLAGS
-   done
+  # Credentials should be read from maven config (settings.xml) once it
+  # is supported by bazelbuild:
+  # https://github.com/bazelbuild/rules_jvm_external/issues/679
+  read -p "maven_user: " maven_user
+  read -s -p "maven_password: " maven_password
 
+  # Upload artifacts to staging repository
+  for PUBLISH_TARGET in "${ALL_TARGETS[@]}"
+  do
+       bazel run --stamp \
+         --define "maven_repo=$maven_repo_url" \
+         --define gpg_sign=true \
+         --define "maven_user=$maven_user" \
+         --define "maven_password=$maven_password" \
+         $PUBLISH_TARGET \
+         $JDK8_FLAGS
+  done
+
+  # Begin creating a staging deployment in central maven
+  auth_token=$(printf "%s:%s" "$maven_user" "$maven_password" | base64)
+  repository_key=$(curl -s -X GET \
+    -H "Authorization:Bearer $auth_token" \
+    "https://ossrh-staging-api.central.sonatype.com/manual/search/repositories?ip=any&profile_id=dev.cel" | \
+    jq -r '.repositories[] | select(.state=="open") | .key' | head -n 1)
+  echo ""
+  if [[ -n "$repository_key" ]]; then
+    echo "Open repository key:"
+    echo "$repository_key"
+
+    echo "Creating deployment..."
+    post_response=$(curl -s -w "\n%{http_code}" -X POST \
+      -H "Authorization: Bearer $auth_token" \
+      "https://ossrh-staging-api.central.sonatype.com/manual/upload/repository/$repository_key")
+
+    http_code=$(tail -n1 <<< "$post_response")
+    response_body=$(sed '$ d' <<< "$post_response")
+
+    echo "----------------------------------------"
+    echo "Deployment API Response (HTTP Status: $http_code):"
+    echo "$response_body"
+    echo "----------------------------------------"
+    echo ""
+    echo "Proceed to https://central.sonatype.com/publishing/deployments to finalize publishing."
+  else
+    echo "No open repository was found. Likely an indication that artifacts were not uploaded."
+  fi
 }
 
 version=$(<cel_version.bzl)
@@ -58,7 +89,7 @@ if [ "$flag" == "--snapshot" ] || [ "$flag" == "-s" ]; then
     exit 1;
   fi
   echo "Publishing a SNAPSHOT version: $version to remote Maven repository"
-  publish_maven_remote "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+  publish_maven_remote "https://central.sonatype.com/repository/maven-snapshots/"
 elif [ "$flag" == "--release" ] || [ "$flag" == "-r" ]; then
   if [[ $version == *"-SNAPSHOT"* ]]; then
    echo "Unable to publish. Please remove -SNAPSHOT suffix from CEL Version"
@@ -69,7 +100,7 @@ elif [ "$flag" == "--release" ] || [ "$flag" == "-r" ]; then
      read -p "Proceed (Y/N)? " yn
      case $yn in
          [Yy]* )
-           publish_maven_remote "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+           publish_maven_remote "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
            break;;
          [Nn]* ) exit;;
          * ) echo "Please answer yes or no.";;

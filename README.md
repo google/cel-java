@@ -55,14 +55,14 @@ CEL-Java is available in Maven Central Repository. [Download the JARs here][8] o
 <dependency>
   <groupId>dev.cel</groupId>
   <artifactId>cel</artifactId>
-  <version>0.10.1</version>
+  <version>0.11.0</version>
 </dependency>
 ```
 
 **Gradle**
 
 ```gradle
-implementation 'dev.cel:cel:0.10.1'
+implementation 'dev.cel:cel:0.11.0'
 ```
 
 Then run this example:

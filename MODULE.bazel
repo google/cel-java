@@ -39,6 +39,8 @@ GUAVA_VERSION = "33.4.8"
 
 TRUTH_VERSION = "1.4.4"
 
+PROTOBUF_JAVA_VERSION = "4.32.0"
+
 # Compile only artifacts
 [
     maven.artifact(
@@ -49,7 +51,7 @@ TRUTH_VERSION = "1.4.4"
     )
     for group, artifact, version in [coord.split(":") for coord in [
         "com.google.code.findbugs:annotations:3.0.1",
-        "com.google.errorprone:error_prone_annotations:2.38.0",
+        "com.google.errorprone:error_prone_annotations:2.41.0",
     ]]
 ]
 
@@ -80,15 +82,15 @@ maven.install(
         "com.google.auto.value:auto-value:1.11.0",
         "com.google.auto.value:auto-value-annotations:1.11.0",
         "com.google.guava:guava:" + GUAVA_VERSION + "-jre",
-        "com.google.protobuf:protobuf-java:4.31.0",
-        "com.google.protobuf:protobuf-java-util:4.31.0",
+        "com.google.protobuf:protobuf-java:" + PROTOBUF_JAVA_VERSION,
+        "com.google.protobuf:protobuf-java-util:" + PROTOBUF_JAVA_VERSION,
         "com.google.re2j:re2j:1.8",
         "info.picocli:picocli:4.7.7",
         "org.antlr:antlr4-runtime:4.13.2",
         "org.freemarker:freemarker:2.3.34",
         "org.jspecify:jspecify:1.0.0",
         "org.threeten:threeten-extra:1.8.0",
-        "org.yaml:snakeyaml:2.4",
+        "org.yaml:snakeyaml:2.5",
     ],
     repositories = [
         "https://maven.google.com",
@@ -100,7 +102,7 @@ maven.install(
     # keep sorted
     artifacts = [
         "com.google.guava:guava:" + GUAVA_VERSION + "-android",
-        "com.google.protobuf:protobuf-javalite:4.31.0",
+        "com.google.protobuf:protobuf-javalite:" + PROTOBUF_JAVA_VERSION,
     ],
     repositories = [
         "https://maven.google.com",
@@ -112,7 +114,7 @@ maven.install(
 
 maven.install(
     name = "maven_conformance",
-    artifacts = ["dev.cel:cel:0.11.0-SNAPSHOT"],
+    artifacts = ["dev.cel:cel:0.11.0"],
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
