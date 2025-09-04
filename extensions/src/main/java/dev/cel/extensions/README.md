@@ -912,7 +912,8 @@ regex.extractAll('id:123, id:456', 'assa') == []
 
 regex.extractAll('testuser@testdomain', '(.*)@([^.]*)') \\ Runtime Error multiple capture group
 ```
-## TwoVarComprehensions
+
+## Comprehensions
 
 TwoVarComprehensions introduces support for two-variable comprehensions.
 
