@@ -298,6 +298,36 @@ Result: false
 [BLOCK_RECURSION_DEPTH_8]: cel.@block([[1].exists(@it:0:0, @it:0:0 > 0)], @index0 && @index0 && [1].exists(@it:0:0, @it:0:0 > 1) && [2].exists(@it:0:0, @it:0:0 > 1))
 [BLOCK_RECURSION_DEPTH_9]: cel.@block([[1].exists(@it:0:0, @it:0:0 > 0)], @index0 && @index0 && [1].exists(@it:0:0, @it:0:0 > 1) && [2].exists(@it:0:0, @it:0:0 > 1))
 
+Test case: MULTIPLE_MACROS_COMP_V2_1
+Source: size([[1].exists(i,x,i > 0 && x >= 0)]) + size([[1].exists(j, y, j > 0 && y >= 0)]) + size([[2].exists(k,z,k > 1 && z >= 0)]) + size([[2].exists(l, w, l > 1 && w >= 0)])  == 4
+=====>
+Result: true
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([[1].exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 >= 0), size([@index0]), [2].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 >= 0), size([@index2])], @index1 + @index1 + @index3 + @index3 == 4)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[1], [2]], size([@index0.exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 >= 0)]) + size([@index0.exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 >= 0)]) + size([@index1.exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 >= 0)]) + size([@index1.exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 >= 0)]) == 4)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[1], [2]], size([@index0.exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 >= 0)]) + size([@index0.exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 >= 0)]) + size([@index1.exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 >= 0)]) + size([@index1.exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 >= 0)]) == 4)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[1], [2]], size([@index0.exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 >= 0)]) + size([@index0.exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 >= 0)]) + size([@index1.exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 >= 0)]) + size([@index1.exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 >= 0)]) == 4)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[1].exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 >= 0), [2].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 >= 0), size([@index0]), size([@index1])], @index2 + @index2 + @index3 + @index3 == 4)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[1].exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 >= 0), [2].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 >= 0), size([@index0]), size([@index1])], @index2 + @index2 + @index3 + @index3 == 4)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[1].exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 >= 0), [2].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 >= 0), size([@index0]), size([@index1])], @index2 + @index2 + @index3 + @index3 == 4)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[1].exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 >= 0), [2].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 >= 0), size([@index0]), size([@index1])], @index2 + @index2 + @index3 + @index3 == 4)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[1].exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 >= 0), [2].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 >= 0), size([@index0]), size([@index1])], @index2 + @index2 + @index3 + @index3 == 4)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[1].exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 >= 0), [2].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 >= 0), size([@index0]), size([@index1])], @index2 + @index2 + @index3 + @index3 == 4)
+
+Test case: MULTIPLE_MACROS_COMP_V2_2
+Source: [1].exists(i, x, i > 0 && x > 0) && [1].exists(j, y, j > 0 && y > 0) && [1].exists(k, z, k > 1 && z > 0) && [2].exists(l, w, l > 1 && w > 0)
+=====>
+Result: false
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([[1].exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 > 0)], @index0 && @index0 && [1].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0) && [2].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0))
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[1], [2]], @index0.exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 > 0) && @index0.exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 > 0) && @index0.exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0) && @index1.exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0))
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[1], [2]], @index0.exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 > 0) && @index0.exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 > 0) && @index0.exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0) && @index1.exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0))
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[1], [2]], @index0.exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 > 0) && @index0.exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 > 0) && @index0.exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0) && @index1.exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0))
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[1].exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 > 0)], @index0 && @index0 && [1].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0) && [2].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0))
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[1].exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 > 0)], @index0 && @index0 && [1].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0) && [2].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0))
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[1].exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 > 0)], @index0 && @index0 && [1].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0) && [2].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0))
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[1].exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 > 0)], @index0 && @index0 && [1].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0) && [2].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0))
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[1].exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 > 0)], @index0 && @index0 && [1].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0) && [2].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0))
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[1].exists(@it:0:0, @it2:0:0, @it:0:0 > 0 && @it2:0:0 > 0)], @index0 && @index0 && [1].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0) && [2].exists(@it:0:0, @it2:0:0, @it:0:0 > 1 && @it2:0:0 > 0))
+
 Test case: NESTED_MACROS
 Source: [1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [[2, 3, 4], [2, 3, 4], [2, 3, 4]]
 =====>
@@ -328,6 +358,36 @@ Result: true
 [BLOCK_RECURSION_DEPTH_8]: [1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]
 [BLOCK_RECURSION_DEPTH_9]: [1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]
 
+Test case: NESTED_MACROS_COMP_V2_1
+Source: [1,2,3].transformList(i, v, [1, 2, 3].transformList(i, v, i + v + 1)) == [[2, 4, 6], [2, 4, 6], [2, 4, 6]]
+=====>
+Result: true
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([[1, 2, 3], [2, 4, 6]], @index0.transformList(@it:0:0, @it2:0:0, @index0.transformList(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)) == [@index1, @index1, @index1])
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2, 3], [2, 4, 6], [@index1, @index1, @index1]], @index0.transformList(@it:0:0, @it2:0:0, @index0.transformList(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)) == @index2)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[1, 2, 3], [2, 4, 6], [@index1, @index1, @index1]], @index0.transformList(@it:0:0, @it2:0:0, @index0.transformList(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)) == @index2)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[1, 2, 3], [2, 4, 6], [@index1, @index1, @index1]], @index0.transformList(@it:0:0, @it2:0:0, @index0.transformList(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)) == @index2)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[1, 2, 3], [2, 4, 6], [@index1, @index1, @index1]], @index0.transformList(@it:0:0, @it2:0:0, @index0.transformList(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)) == @index2)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[1, 2, 3], [2, 4, 6], @index0.transformList(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)], @index0.transformList(@it:0:0, @it2:0:0, @index2) == [@index1, @index1, @index1])
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[1, 2, 3], [2, 4, 6], @index0.transformList(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)], @index0.transformList(@it:0:0, @it2:0:0, @index2) == [@index1, @index1, @index1])
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[1, 2, 3], [2, 4, 6], @index0.transformList(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)], @index0.transformList(@it:0:0, @it2:0:0, @index2) == [@index1, @index1, @index1])
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[1, 2, 3], [2, 4, 6]], @index0.transformList(@it:0:0, @it2:0:0, @index0.transformList(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)) == [@index1, @index1, @index1])
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[1, 2, 3], [2, 4, 6]], @index0.transformList(@it:0:0, @it2:0:0, @index0.transformList(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)) == [@index1, @index1, @index1])
+
+Test case: NESTED_MACROS_COMP_V2_2
+Source: [1, 2].transformList(i, y, [1, 2, 3].filter(x, x == y && i < y)) == [[1], [2]]
+=====>
+Result: true
+[BLOCK_COMMON_SUBEXPR_ONLY]: [1, 2].transformList(i, y, [1, 2, 3].filter(x, x == y && i < y)) == [[1], [2]]
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2], [1, 2, 3], [1], [2], [@index2, @index3]], @index0.transformList(@it:0:0, @it2:0:0, @index1.filter(@it:1:0, @it:1:0 == @it2:0:0 && @it:0:0 < @it2:0:0)) == @index4)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[[1], [2]], [1, 2], [1, 2, 3]], @index1.transformList(@it:0:0, @it2:0:0, @index2.filter(@it:1:0, @it:1:0 == @it2:0:0 && @it:0:0 < @it2:0:0)) == @index0)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[[1], [2]], [1, 2], [1, 2, 3]], @index1.transformList(@it:0:0, @it2:0:0, @index2.filter(@it:1:0, @it:1:0 == @it2:0:0 && @it:0:0 < @it2:0:0)) == @index0)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[1, 2, 3].filter(@it:1:0, @it:1:0 == @it2:0:0 && @it:0:0 < @it2:0:0)], [1, 2].transformList(@it:0:0, @it2:0:0, @index0) == [[1], [2]])
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[1, 2, 3].filter(@it:1:0, @it:1:0 == @it2:0:0 && @it:0:0 < @it2:0:0)], [1, 2].transformList(@it:0:0, @it2:0:0, @index0) == [[1], [2]])
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[1, 2, 3].filter(@it:1:0, @it:1:0 == @it2:0:0 && @it:0:0 < @it2:0:0)], [1, 2].transformList(@it:0:0, @it2:0:0, @index0) == [[1], [2]])
+[BLOCK_RECURSION_DEPTH_7]: [1, 2].transformList(i, y, [1, 2, 3].filter(x, x == y && i < y)) == [[1], [2]]
+[BLOCK_RECURSION_DEPTH_8]: [1, 2].transformList(i, y, [1, 2, 3].filter(x, x == y && i < y)) == [[1], [2]]
+[BLOCK_RECURSION_DEPTH_9]: [1, 2].transformList(i, y, [1, 2, 3].filter(x, x == y && i < y)) == [[1], [2]]
+
 Test case: ADJACENT_NESTED_MACROS
 Source: [1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [1,2,3].map(j, [1, 2, 3].map(j, j + 1))
 =====>
@@ -342,6 +402,21 @@ Result: true
 [BLOCK_RECURSION_DEPTH_7]: cel.@block([[1, 2, 3].map(@it:0:0, [1, 2, 3].map(@it:1:0, @it:1:0 + 1))], @index0 == @index0)
 [BLOCK_RECURSION_DEPTH_8]: cel.@block([[1, 2, 3].map(@it:0:0, [1, 2, 3].map(@it:1:0, @it:1:0 + 1))], @index0 == @index0)
 [BLOCK_RECURSION_DEPTH_9]: cel.@block([[1, 2, 3].map(@it:0:0, [1, 2, 3].map(@it:1:0, @it:1:0 + 1))], @index0 == @index0)
+
+Test case: ADJACENT_NESTED_MACROS_COMP_V2
+Source: [1,2,3].transformMap(i, x, [1, 2, 3].transformMap(i, x, i + x + 1)) == [1,2,3].transformMap(j, y, [1, 2, 3].transformMap(j, y,  j + y + 1))
+=====>
+Result: true
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([[1, 2, 3], @index0.transformMap(@it:0:0, @it2:0:0, @index0.transformMap(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1))], @index1 == @index1)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2, 3]], @index0.transformMap(@it:0:0, @it2:0:0, @index0.transformMap(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)) == @index0.transformMap(@it:0:0, @it2:0:0, @index0.transformMap(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)))
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[1, 2, 3]], @index0.transformMap(@it:0:0, @it2:0:0, @index0.transformMap(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)) == @index0.transformMap(@it:0:0, @it2:0:0, @index0.transformMap(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)))
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[1, 2, 3]], @index0.transformMap(@it:0:0, @it2:0:0, @index0.transformMap(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)) == @index0.transformMap(@it:0:0, @it2:0:0, @index0.transformMap(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1)))
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[1, 2, 3].transformMap(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1), [1, 2, 3].transformMap(@it:0:0, @it2:0:0, @index0)], @index1 == @index1)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[1, 2, 3].transformMap(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1), [1, 2, 3].transformMap(@it:0:0, @it2:0:0, @index0)], @index1 == @index1)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[1, 2, 3].transformMap(@it:0:0, @it2:0:0, [1, 2, 3].transformMap(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1))], @index0 == @index0)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[1, 2, 3].transformMap(@it:0:0, @it2:0:0, [1, 2, 3].transformMap(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1))], @index0 == @index0)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[1, 2, 3].transformMap(@it:0:0, @it2:0:0, [1, 2, 3].transformMap(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1))], @index0 == @index0)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[1, 2, 3].transformMap(@it:0:0, @it2:0:0, [1, 2, 3].transformMap(@it:1:0, @it2:1:0, @it:1:0 + @it2:1:0 + 1))], @index0 == @index0)
 
 Test case: INCLUSION_LIST
 Source: 1 in [1,2,3] && 2 in [1,2,3] && 3 in [3, [1,2,3]] && 1 in [1,2,3]
@@ -388,6 +463,21 @@ Result: true
 [BLOCK_RECURSION_DEPTH_8]: cel.@block([[[3, 4], [3, 4]], [1, 2]], @index1.map(@it:0:0, @index1.map(@it:1:0, [3, 4])) == [@index0, @index0])
 [BLOCK_RECURSION_DEPTH_9]: cel.@block([[[3, 4], [3, 4]], [1, 2]], @index1.map(@it:0:0, @index1.map(@it:1:0, [3, 4])) == [@index0, @index0])
 
+Test case: MACRO_ITER_VAR2_NOT_REFERENCED
+Source: [1,2].transformList(i, v, [1, 2].transformList(i, v, [3,4])) == [[[3, 4], [3, 4]], [[3, 4], [3, 4]]]
+=====>
+Result: true
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([[1, 2], [3, 4], [@index1, @index1]], @index0.transformList(@it:0:0, @it2:0:0, @index0.transformList(@it:1:0, @it2:1:0, @index1)) == [@index2, @index2])
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2], [3, 4], [@index1, @index1], [@index1], [@index2, @index2]], @index0.transformList(@it:0:0, @it2:0:0, @index0.transformList(@it:1:0, @it2:1:0, @index1)) == @index4)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([[[3, 4], [3, 4]], [1, 2], [[3, 4]], @index1.transformList(@it:1:0, @it2:1:0, [3, 4]), [@index3]], @index1.transformList(@it:0:0, @it2:0:0, @index3) == [@index0, @index0])
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([[[3, 4], [3, 4]], [1, 2], [[3, 4]], @index1.transformList(@it:1:0, @it2:1:0, [3, 4])], @index1.transformList(@it:0:0, @it2:0:0, @index3) == [@index0, @index0])
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[[3, 4], [3, 4]], [1, 2], @index1.transformList(@it:1:0, @it2:1:0, [3, 4])], @index1.transformList(@it:0:0, @it2:0:0, @index2) == [@index0, @index0])
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[[3, 4], [3, 4]], [1, 2], @index1.transformList(@it:1:0, @it2:1:0, [3, 4])], @index1.transformList(@it:0:0, @it2:0:0, @index2) == [@index0, @index0])
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[[3, 4], [3, 4]], [1, 2], @index1.transformList(@it:1:0, @it2:1:0, [3, 4])], @index1.transformList(@it:0:0, @it2:0:0, @index2) == [@index0, @index0])
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([[[3, 4], [3, 4]], [1, 2]], @index1.transformList(@it:0:0, @it2:0:0, @index1.transformList(@it:1:0, @it2:1:0, [3, 4])) == [@index0, @index0])
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([[[3, 4], [3, 4]], [1, 2]], @index1.transformList(@it:0:0, @it2:0:0, @index1.transformList(@it:1:0, @it2:1:0, [3, 4])) == [@index0, @index0])
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([[[3, 4], [3, 4]], [1, 2]], @index1.transformList(@it:0:0, @it2:0:0, @index1.transformList(@it:1:0, @it2:1:0, [3, 4])) == [@index0, @index0])
+
 Test case: MACRO_SHADOWED_VARIABLE
 Source: [x - 1 > 3 ? x - 1 : 5].exists(x, x - 1 > 3) || x - 1 > 3
 =====>
@@ -417,6 +507,36 @@ Result: [[[foofoo, foofoo, foofoo, foofoo], [foofoo, foofoo, foofoo, foofoo]], [
 [BLOCK_RECURSION_DEPTH_7]: ["foo", "bar"].map(x, [x + x, x + x]).map(x, [x + x, x + x])
 [BLOCK_RECURSION_DEPTH_8]: ["foo", "bar"].map(x, [x + x, x + x]).map(x, [x + x, x + x])
 [BLOCK_RECURSION_DEPTH_9]: ["foo", "bar"].map(x, [x + x, x + x]).map(x, [x + x, x + x])
+
+Test case: MACRO_SHADOWED_VARIABLE_COMP_V2_1
+Source: [x - y - 1 > 3 ? x - y - 1 : 5].exists(x, y, x - y - 1 > 3) || x - y - 1 > 3
+=====>
+Result: CelUnknownSet{attributes=[], unknownExprIds=[6]}
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([x - y - 1, @index0 > 3], [@index1 ? @index0 : 5].exists(@it:0:0, @it2:0:0, @it:0:0 - @it2:0:0 - 1 > 3) || @index1)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([x - y, @index0 - 1, @index1 > 3, @index2 ? @index1 : 5, [@index3]], @index4.exists(@it:0:0, @it2:0:0, @it:0:0 - @it2:0:0 - 1 > 3) || @index2)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([x - y - 1, @index0 > 3, [@index1 ? @index0 : 5]], @index2.exists(@it:0:0, @it2:0:0, @it:0:0 - @it2:0:0 - 1 > 3) || @index1)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([x - y - 1 > 3, @index0 ? (x - y - 1) : 5, [@index1]], @index2.exists(@it:0:0, @it2:0:0, @it:0:0 - @it2:0:0 - 1 > 3) || @index0)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([x - y - 1 > 3, [@index0 ? (x - y - 1) : 5]], @index1.exists(@it:0:0, @it2:0:0, @it:0:0 - @it2:0:0 - 1 > 3) || @index0)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([x - y - 1 > 3], [@index0 ? (x - y - 1) : 5].exists(@it:0:0, @it2:0:0, @it:0:0 - @it2:0:0 - 1 > 3) || @index0)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([x - y - 1 > 3], [@index0 ? (x - y - 1) : 5].exists(@it:0:0, @it2:0:0, @it:0:0 - @it2:0:0 - 1 > 3) || @index0)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([x - y - 1 > 3], [@index0 ? (x - y - 1) : 5].exists(@it:0:0, @it2:0:0, @it:0:0 - @it2:0:0 - 1 > 3) || @index0)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([x - y - 1 > 3], [@index0 ? (x - y - 1) : 5].exists(@it:0:0, @it2:0:0, @it:0:0 - @it2:0:0 - 1 > 3) || @index0)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([x - y - 1 > 3], [@index0 ? (x - y - 1) : 5].exists(@it:0:0, @it2:0:0, @it:0:0 - @it2:0:0 - 1 > 3) || @index0)
+
+Test case: MACRO_SHADOWED_VARIABLE_COMP_V2_2
+Source: ["foo", "bar"].transformMap(x, y, [x + x, y + y]).transformMap(x, y, [x + x, y + y])
+=====>
+Result: {0=[0, [0, foofoo, 0, foofoo]], 1=[2, [2, barbar, 2, barbar]]}
+[BLOCK_COMMON_SUBEXPR_ONLY]: ["foo", "bar"].transformMap(x, y, [x + x, y + y]).transformMap(x, y, [x + x, y + y])
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([["foo", "bar"]], @index0.transformMap(@it:1:0, @it2:1:0, [@it:1:0 + @it:1:0, @it2:1:0 + @it2:1:0]).transformMap(@it:0:0, @it2:0:0, [@it:0:0 + @it:0:0, @it2:0:0 + @it2:0:0]))
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([["foo", "bar"]], @index0.transformMap(@it:1:0, @it2:1:0, [@it:1:0 + @it:1:0, @it2:1:0 + @it2:1:0]).transformMap(@it:0:0, @it2:0:0, [@it:0:0 + @it:0:0, @it2:0:0 + @it2:0:0]))
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([["foo", "bar"]], @index0.transformMap(@it:1:0, @it2:1:0, [@it:1:0 + @it:1:0, @it2:1:0 + @it2:1:0]).transformMap(@it:0:0, @it2:0:0, [@it:0:0 + @it:0:0, @it2:0:0 + @it2:0:0]))
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([["foo", "bar"].transformMap(@it:1:0, @it2:1:0, [@it:1:0 + @it:1:0, @it2:1:0 + @it2:1:0])], @index0.transformMap(@it:0:0, @it2:0:0, [@it:0:0 + @it:0:0, @it2:0:0 + @it2:0:0]))
+[BLOCK_RECURSION_DEPTH_5]: ["foo", "bar"].transformMap(x, y, [x + x, y + y]).transformMap(x, y, [x + x, y + y])
+[BLOCK_RECURSION_DEPTH_6]: ["foo", "bar"].transformMap(x, y, [x + x, y + y]).transformMap(x, y, [x + x, y + y])
+[BLOCK_RECURSION_DEPTH_7]: ["foo", "bar"].transformMap(x, y, [x + x, y + y]).transformMap(x, y, [x + x, y + y])
+[BLOCK_RECURSION_DEPTH_8]: ["foo", "bar"].transformMap(x, y, [x + x, y + y]).transformMap(x, y, [x + x, y + y])
+[BLOCK_RECURSION_DEPTH_9]: ["foo", "bar"].transformMap(x, y, [x + x, y + y]).transformMap(x, y, [x + x, y + y])
 
 Test case: PRESENCE_TEST
 Source: has({'a': true}.a) && {'a':true}['a']
