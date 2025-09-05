@@ -187,6 +187,7 @@ public class CelExtensionsTest {
             "lists.@sortByAssociatedKeys",
             "regex.replace",
             "regex.extract",
-            "regex.extractAll");
+            "regex.extractAll",
+            "cel.@mapInsert");
   }
 }
