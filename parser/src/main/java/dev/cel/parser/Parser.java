@@ -435,13 +435,10 @@ final class Parser extends CELBaseVisitor<CelExpr> {
   @Override
   public CelExpr visitSelect(SelectContext context) {
     checkNotNull(context);
-    if (context.member() == null) {
+    if (context.member() == null || context.id == null || context.op == null) {
       return exprFactory.ensureErrorsExist(context);
     }
     CelExpr member = visit(context.member());
-    if (context.id == null) {
-      return exprFactory.newExprBuilder(context).build();
-    }
     String id = normalizeEscapedIdent(context.id);
 
     if (context.opt != null && context.opt.getText().equals("?")) {
