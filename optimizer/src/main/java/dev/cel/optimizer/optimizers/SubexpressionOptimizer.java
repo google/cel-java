@@ -136,8 +136,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         astMutator.mangleComprehensionIdentifierNames(
             astToModify,
             MANGLED_COMPREHENSION_ITER_VAR_PREFIX,
-            MANGLED_COMPREHENSION_ACCU_VAR_PREFIX,
-            /* incrementSerially= */ false);
+            MANGLED_COMPREHENSION_ACCU_VAR_PREFIX);
     astToModify = mangledComprehensionAst.mutableAst();
     CelMutableSource sourceToModify = astToModify.source();
 

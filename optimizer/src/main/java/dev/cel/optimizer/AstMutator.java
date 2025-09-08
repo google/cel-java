@@ -203,14 +203,9 @@ public final class AstMutator {
    * @param newIterVarPrefix Prefix to use for new iteration variable identifier name. For example,
    *     providing @c will produce @c0:0, @c0:1, @c1:0, @c2:0... as new names.
    * @param newAccuVarPrefix Prefix to use for new accumulation variable identifier name.
-   * @param incrementSerially If true, indices for the mangled variables are incremented serially
-   *     per occurrence regardless of their nesting level or its types.
    */
   public MangledComprehensionAst mangleComprehensionIdentifierNames(
-      CelMutableAst ast,
-      String newIterVarPrefix,
-      String newAccuVarPrefix,
-      boolean incrementSerially) {
+      CelMutableAst ast, String newIterVarPrefix, String newAccuVarPrefix) {
     CelNavigableMutableAst navigableMutableAst = CelNavigableMutableAst.fromAst(ast);
     Predicate<CelNavigableMutableExpr> comprehensionIdentifierPredicate = x -> true;
     comprehensionIdentifierPredicate =
@@ -301,29 +296,13 @@ public final class AstMutator {
       MangledComprehensionType comprehensionEntryType = comprehensionEntry.getValue();
 
       CelMutableExpr comprehensionExpr = comprehensionNode.expr();
-      MangledComprehensionName mangledComprehensionName;
-      if (incrementSerially) {
-        // In case of applying CSE via cascaded cel.binds, not only is mangling based on level/types
-        // meaningless (because all comprehensions are nested anyways, thus all indices would be
-        // uinque),
-        // it can lead to an erroneous result due to extracting a common subexpr with accu_var at
-        // the wrong scope.
-        // Example: "[1].exists(k, k > 1) && [2].exists(l, l > 1). The loop step for both branches
-        // are identical, but shouldn't be extracted.
-        String mangledIterVarName = newIterVarPrefix + ":" + iterCount;
-        String mangledResultName = newAccuVarPrefix + ":" + iterCount;
-        mangledComprehensionName =
-            MangledComprehensionName.of(mangledIterVarName, mangledResultName);
-        mangledIdentNamesToType.put(mangledComprehensionName, comprehensionEntry.getValue());
-      } else {
-        mangledComprehensionName =
-            getMangledComprehensionName(
-                newIterVarPrefix,
-                newAccuVarPrefix,
-                comprehensionNode,
-                comprehensionLevelToType,
-                comprehensionEntryType);
-      }
+      MangledComprehensionName mangledComprehensionName =
+          getMangledComprehensionName(
+              newIterVarPrefix,
+              newAccuVarPrefix,
+              comprehensionNode,
+              comprehensionLevelToType,
+              comprehensionEntryType);
       mangledIdentNamesToType.put(mangledComprehensionName, comprehensionEntryType);
 
       String iterVar = comprehensionExpr.comprehension().iterVar();
