@@ -213,6 +213,10 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters(
       "{source: '[1, 2, 3].map(i, [1, 2, 3].map(j, i * j).filter(k, k % 2 == x))', "
           + "expected: '[1, 2, 3].map(i, [1, 2, 3].map(j, i * j).filter(k, k % 2 == x))'}")
+  @TestParameters("{source: '[1, 2, 3, 4].all(i, v, i < v)', expected: 'true'}")
+  @TestParameters(
+      "{source: '[1 + 1, 2 + 2, 3 + 3].all(i, v, i < 5 && v < x)', "
+          + "expected: '[2, 4, 6].all(i, v, i < 5 && v < x)'}")
   @TestParameters(
       "{source: '[{}, {\"a\": 1}, {\"b\": 2}].filter(m, has(m.a))', expected: '[{\"a\": 1}]'}")
   @TestParameters(
@@ -241,8 +245,9 @@ public class ConstantFoldingOptimizerTest {
             .addMessageTypes(TestAllTypes.getDescriptor())
             .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
             .setOptions(CelOptions.current().populateMacroCalls(true).build())
-            .addCompilerLibraries(CelExtensions.bindings(), CelOptionalLibrary.INSTANCE)
-            .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
+            .addCompilerLibraries(
+                CelExtensions.bindings(), CelExtensions.optional(), CelExtensions.comprehensions())
+            .addRuntimeLibraries(CelExtensions.optional(), CelExtensions.comprehensions())
             .build();
     CelOptimizer celOptimizer =
         CelOptimizerFactory.standardCelOptimizerBuilder(cel)

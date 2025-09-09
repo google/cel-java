@@ -60,8 +60,9 @@ public class AstMutatorTest {
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .setOptions(CelOptions.current().populateMacroCalls(true).build())
           .addMessageTypes(TestAllTypes.getDescriptor())
-          .addCompilerLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())
-          .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
+          .addCompilerLibraries(
+              CelOptionalLibrary.INSTANCE, CelExtensions.bindings(), CelExtensions.comprehensions())
+          .addRuntimeLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.comprehensions())
           .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
           .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
           .addVar("x", SimpleType.INT)
@@ -666,7 +667,7 @@ public class AstMutatorTest {
 
     CelAbstractSyntaxTree mangledAst =
         AST_MUTATOR
-            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@it", "@ac")
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@it", "@it2", "@ac")
             .mutableAst()
             .toParsedAst();
 
@@ -725,6 +726,72 @@ public class AstMutatorTest {
   }
 
   @Test
+  public void mangleComprehensionVariable_withTwoIterVars_singleMacro() throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("[false].exists(i, v, v)").getAst();
+
+    CelAbstractSyntaxTree mangledAst =
+        AST_MUTATOR
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@it", "@it2", "@ac")
+            .mutableAst()
+            .toParsedAst();
+
+    assertThat(mangledAst.getExpr().toString())
+        .isEqualTo(
+            "COMPREHENSION [14] {\n"
+                + "  iter_var: @it:0:0\n"
+                + "  iter_var2: @it2:0:0\n"
+                + "  iter_range: {\n"
+                + "    LIST [1] {\n"
+                + "      elements: {\n"
+                + "        CONSTANT [2] { value: false }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  accu_var: @ac:0:0\n"
+                + "  accu_init: {\n"
+                + "    CONSTANT [7] { value: false }\n"
+                + "  }\n"
+                + "  loop_condition: {\n"
+                + "    CALL [10] {\n"
+                + "      function: @not_strictly_false\n"
+                + "      args: {\n"
+                + "        CALL [9] {\n"
+                + "          function: !_\n"
+                + "          args: {\n"
+                + "            IDENT [8] {\n"
+                + "              name: @ac:0:0\n"
+                + "            }\n"
+                + "          }\n"
+                + "        }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  loop_step: {\n"
+                + "    CALL [12] {\n"
+                + "      function: _||_\n"
+                + "      args: {\n"
+                + "        IDENT [11] {\n"
+                + "          name: @ac:0:0\n"
+                + "        }\n"
+                + "        IDENT [6] {\n"
+                + "          name: @it2:0:0\n"
+                + "        }\n"
+                + "      }\n"
+                + "    }\n"
+                + "  }\n"
+                + "  result: {\n"
+                + "    IDENT [13] {\n"
+                + "      name: @ac:0:0\n"
+                + "    }\n"
+                + "  }\n"
+                + "}");
+    assertThat(CEL_UNPARSER.unparse(mangledAst))
+        .isEqualTo("[false].exists(@it:0:0, @it2:0:0, @it2:0:0)");
+    assertThat(CEL.createProgram(CEL.check(mangledAst).getAst()).eval()).isEqualTo(false);
+    assertConsistentMacroCalls(ast);
+  }
+
+  @Test
   public void mangleComprehensionVariable_adjacentMacros_sameIterVarTypes() throws Exception {
     CelAbstractSyntaxTree ast =
         CEL.compile(
@@ -734,7 +801,7 @@ public class AstMutatorTest {
 
     CelAbstractSyntaxTree mangledAst =
         AST_MUTATOR
-            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@it", "@ac")
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@it", "@it2", "@ac")
             .mutableAst()
             .toParsedAst();
 
@@ -742,6 +809,31 @@ public class AstMutatorTest {
         .isEqualTo(
             "[1, 2, 3].map(@it:0:0, [1, 2, 3].map(@it:1:0, @it:1:0 + 1)) == "
                 + "[1, 2, 3].map(@it:0:0, [1, 2, 3].map(@it:1:0, @it:1:0 + 1))");
+    assertThat(CEL.createProgram(CEL.check(mangledAst).getAst()).eval()).isEqualTo(true);
+    assertConsistentMacroCalls(ast);
+  }
+
+  @Test
+  public void mangleComprehensionVariable_withTwoIterVars_adjacentMacros_sameIterVarTypes()
+      throws Exception {
+    CelAbstractSyntaxTree ast =
+        CEL.compile(
+                // LHS & RHS are same expressions, just different var names
+                "[1, 2].transformMap(i, v, [1,2].transformMap(i, v, i)) == "
+                    + "[1, 2].transformMap(x, y, [1,2].transformMap(x, y, x))")
+            .getAst();
+
+    CelAbstractSyntaxTree mangledAst =
+        AST_MUTATOR
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@it", "@it2", "@ac")
+            .mutableAst()
+            .toParsedAst();
+
+    assertThat(CEL_UNPARSER.unparse(mangledAst))
+        .isEqualTo(
+            "[1, 2].transformMap(@it:0:0, @it2:0:0, [1, 2].transformMap(@it:1:0, @it2:1:0,"
+                + " @it:1:0)) == [1, 2].transformMap(@it:0:0, @it2:0:0, [1,"
+                + " 2].transformMap(@it:1:0, @it2:1:0, @it:1:0))");
     assertThat(CEL.createProgram(CEL.check(mangledAst).getAst()).eval()).isEqualTo(true);
     assertConsistentMacroCalls(ast);
   }
@@ -756,7 +848,7 @@ public class AstMutatorTest {
 
     CelAbstractSyntaxTree mangledAst =
         AST_MUTATOR
-            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@it", "@ac")
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@it", "@it2", "@ac")
             .mutableAst()
             .toParsedAst();
 
@@ -780,7 +872,7 @@ public class AstMutatorTest {
 
     CelAbstractSyntaxTree mangledAst =
         AST_MUTATOR
-            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@it", "@ac")
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@it", "@it2", "@ac")
             .mutableAst()
             .toParsedAst();
 
@@ -793,7 +885,7 @@ public class AstMutatorTest {
 
     CelAbstractSyntaxTree mangledAst =
         AST_MUTATOR
-            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@it", "@ac")
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@it", "@it2", "@ac")
             .mutableAst()
             .toParsedAst();
 
@@ -913,7 +1005,7 @@ public class AstMutatorTest {
 
     CelAbstractSyntaxTree mangledAst =
         AST_MUTATOR
-            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@it", "@ac")
+            .mangleComprehensionIdentifierNames(CelMutableAst.fromCelAst(ast), "@it", "@it2", "@ac")
             .mutableAst()
             .toParsedAst();
 

@@ -1647,6 +1647,448 @@ CALL [1] {
     }
   }
 }
+Test case: MULTIPLE_MACROS_COMP_V2_1
+Source: size([[1].exists(i,x,i > 0 && x >= 0)]) + size([[1].exists(j, y, j > 0 && y >= 0)]) + size([[2].exists(k,z,k > 1 && z >= 0)]) + size([[2].exists(l, w, l > 1 && w >= 0)])  == 4
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    LIST [2] {
+      elements: {
+        COMPREHENSION [3] {
+          iter_var: @it:0:0
+          iter_var2: @it2:0:0
+          iter_range: {
+            LIST [4] {
+              elements: {
+                CONSTANT [5] { value: 1 }
+              }
+            }
+          }
+          accu_var: @ac:0:0
+          accu_init: {
+            CONSTANT [6] { value: false }
+          }
+          loop_condition: {
+            CALL [7] {
+              function: @not_strictly_false
+              args: {
+                CALL [8] {
+                  function: !_
+                  args: {
+                    IDENT [9] {
+                      name: @ac:0:0
+                    }
+                  }
+                }
+              }
+            }
+          }
+          loop_step: {
+            CALL [10] {
+              function: _||_
+              args: {
+                IDENT [11] {
+                  name: @ac:0:0
+                }
+                CALL [12] {
+                  function: _&&_
+                  args: {
+                    CALL [13] {
+                      function: _>_
+                      args: {
+                        IDENT [14] {
+                          name: @it:0:0
+                        }
+                        CONSTANT [15] { value: 0 }
+                      }
+                    }
+                    CALL [16] {
+                      function: _>=_
+                      args: {
+                        IDENT [17] {
+                          name: @it2:0:0
+                        }
+                        CONSTANT [18] { value: 0 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [19] {
+              name: @ac:0:0
+            }
+          }
+        }
+        CALL [20] {
+          function: size
+          args: {
+            LIST [21] {
+              elements: {
+                IDENT [22] {
+                  name: @index0
+                }
+              }
+            }
+          }
+        }
+        COMPREHENSION [23] {
+          iter_var: @it:0:0
+          iter_var2: @it2:0:0
+          iter_range: {
+            LIST [24] {
+              elements: {
+                CONSTANT [25] { value: 2 }
+              }
+            }
+          }
+          accu_var: @ac:0:0
+          accu_init: {
+            CONSTANT [26] { value: false }
+          }
+          loop_condition: {
+            CALL [27] {
+              function: @not_strictly_false
+              args: {
+                CALL [28] {
+                  function: !_
+                  args: {
+                    IDENT [29] {
+                      name: @ac:0:0
+                    }
+                  }
+                }
+              }
+            }
+          }
+          loop_step: {
+            CALL [30] {
+              function: _||_
+              args: {
+                IDENT [31] {
+                  name: @ac:0:0
+                }
+                CALL [32] {
+                  function: _&&_
+                  args: {
+                    CALL [33] {
+                      function: _>_
+                      args: {
+                        IDENT [34] {
+                          name: @it:0:0
+                        }
+                        CONSTANT [35] { value: 1 }
+                      }
+                    }
+                    CALL [36] {
+                      function: _>=_
+                      args: {
+                        IDENT [37] {
+                          name: @it2:0:0
+                        }
+                        CONSTANT [38] { value: 0 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [39] {
+              name: @ac:0:0
+            }
+          }
+        }
+        CALL [40] {
+          function: size
+          args: {
+            LIST [41] {
+              elements: {
+                IDENT [42] {
+                  name: @index2
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    CALL [43] {
+      function: _==_
+      args: {
+        CALL [44] {
+          function: _+_
+          args: {
+            CALL [45] {
+              function: _+_
+              args: {
+                CALL [46] {
+                  function: _+_
+                  args: {
+                    IDENT [47] {
+                      name: @index1
+                    }
+                    IDENT [48] {
+                      name: @index1
+                    }
+                  }
+                }
+                IDENT [49] {
+                  name: @index3
+                }
+              }
+            }
+            IDENT [50] {
+              name: @index3
+            }
+          }
+        }
+        CONSTANT [51] { value: 4 }
+      }
+    }
+  }
+}
+Test case: MULTIPLE_MACROS_COMP_V2_2
+Source: [1].exists(i, x, i > 0 && x > 0) && [1].exists(j, y, j > 0 && y > 0) && [1].exists(k, z, k > 1 && z > 0) && [2].exists(l, w, l > 1 && w > 0)
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    LIST [2] {
+      elements: {
+        COMPREHENSION [3] {
+          iter_var: @it:0:0
+          iter_var2: @it2:0:0
+          iter_range: {
+            LIST [4] {
+              elements: {
+                CONSTANT [5] { value: 1 }
+              }
+            }
+          }
+          accu_var: @ac:0:0
+          accu_init: {
+            CONSTANT [6] { value: false }
+          }
+          loop_condition: {
+            CALL [7] {
+              function: @not_strictly_false
+              args: {
+                CALL [8] {
+                  function: !_
+                  args: {
+                    IDENT [9] {
+                      name: @ac:0:0
+                    }
+                  }
+                }
+              }
+            }
+          }
+          loop_step: {
+            CALL [10] {
+              function: _||_
+              args: {
+                IDENT [11] {
+                  name: @ac:0:0
+                }
+                CALL [12] {
+                  function: _&&_
+                  args: {
+                    CALL [13] {
+                      function: _>_
+                      args: {
+                        IDENT [14] {
+                          name: @it:0:0
+                        }
+                        CONSTANT [15] { value: 0 }
+                      }
+                    }
+                    CALL [16] {
+                      function: _>_
+                      args: {
+                        IDENT [17] {
+                          name: @it2:0:0
+                        }
+                        CONSTANT [18] { value: 0 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [19] {
+              name: @ac:0:0
+            }
+          }
+        }
+      }
+    }
+    CALL [20] {
+      function: _&&_
+      args: {
+        CALL [21] {
+          function: _&&_
+          args: {
+            IDENT [22] {
+              name: @index0
+            }
+            IDENT [23] {
+              name: @index0
+            }
+          }
+        }
+        CALL [24] {
+          function: _&&_
+          args: {
+            COMPREHENSION [25] {
+              iter_var: @it:0:0
+              iter_var2: @it2:0:0
+              iter_range: {
+                LIST [26] {
+                  elements: {
+                    CONSTANT [27] { value: 1 }
+                  }
+                }
+              }
+              accu_var: @ac:0:0
+              accu_init: {
+                CONSTANT [28] { value: false }
+              }
+              loop_condition: {
+                CALL [29] {
+                  function: @not_strictly_false
+                  args: {
+                    CALL [30] {
+                      function: !_
+                      args: {
+                        IDENT [31] {
+                          name: @ac:0:0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              loop_step: {
+                CALL [32] {
+                  function: _||_
+                  args: {
+                    IDENT [33] {
+                      name: @ac:0:0
+                    }
+                    CALL [34] {
+                      function: _&&_
+                      args: {
+                        CALL [35] {
+                          function: _>_
+                          args: {
+                            IDENT [36] {
+                              name: @it:0:0
+                            }
+                            CONSTANT [37] { value: 1 }
+                          }
+                        }
+                        CALL [38] {
+                          function: _>_
+                          args: {
+                            IDENT [39] {
+                              name: @it2:0:0
+                            }
+                            CONSTANT [40] { value: 0 }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              result: {
+                IDENT [41] {
+                  name: @ac:0:0
+                }
+              }
+            }
+            COMPREHENSION [42] {
+              iter_var: @it:0:0
+              iter_var2: @it2:0:0
+              iter_range: {
+                LIST [43] {
+                  elements: {
+                    CONSTANT [44] { value: 2 }
+                  }
+                }
+              }
+              accu_var: @ac:0:0
+              accu_init: {
+                CONSTANT [45] { value: false }
+              }
+              loop_condition: {
+                CALL [46] {
+                  function: @not_strictly_false
+                  args: {
+                    CALL [47] {
+                      function: !_
+                      args: {
+                        IDENT [48] {
+                          name: @ac:0:0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              loop_step: {
+                CALL [49] {
+                  function: _||_
+                  args: {
+                    IDENT [50] {
+                      name: @ac:0:0
+                    }
+                    CALL [51] {
+                      function: _&&_
+                      args: {
+                        CALL [52] {
+                          function: _>_
+                          args: {
+                            IDENT [53] {
+                              name: @it:0:0
+                            }
+                            CONSTANT [54] { value: 1 }
+                          }
+                        }
+                        CALL [55] {
+                          function: _>_
+                          args: {
+                            IDENT [56] {
+                              name: @it2:0:0
+                            }
+                            CONSTANT [57] { value: 0 }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              result: {
+                IDENT [58] {
+                  name: @ac:0:0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
 Test case: NESTED_MACROS
 Source: [1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [[2, 3, 4], [2, 3, 4], [2, 3, 4]]
 =====>
@@ -1899,6 +2341,285 @@ CALL [31] {
     }
   }
 }
+Test case: NESTED_MACROS_COMP_V2_1
+Source: [1,2,3].transformList(i, v, [1, 2, 3].transformList(i, v, i + v + 1)) == [[2, 4, 6], [2, 4, 6], [2, 4, 6]]
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    LIST [2] {
+      elements: {
+        LIST [3] {
+          elements: {
+            CONSTANT [4] { value: 1 }
+            CONSTANT [5] { value: 2 }
+            CONSTANT [6] { value: 3 }
+          }
+        }
+        LIST [7] {
+          elements: {
+            CONSTANT [8] { value: 2 }
+            CONSTANT [9] { value: 4 }
+            CONSTANT [10] { value: 6 }
+          }
+        }
+      }
+    }
+    CALL [11] {
+      function: _==_
+      args: {
+        COMPREHENSION [12] {
+          iter_var: @it:0:0
+          iter_var2: @it2:0:0
+          iter_range: {
+            IDENT [13] {
+              name: @index0
+            }
+          }
+          accu_var: @ac:0:0
+          accu_init: {
+            LIST [14] {
+              elements: {
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [15] { value: true }
+          }
+          loop_step: {
+            CALL [16] {
+              function: _+_
+              args: {
+                IDENT [17] {
+                  name: @ac:0:0
+                }
+                LIST [18] {
+                  elements: {
+                    COMPREHENSION [19] {
+                      iter_var: @it:1:0
+                      iter_var2: @it2:1:0
+                      iter_range: {
+                        IDENT [20] {
+                          name: @index0
+                        }
+                      }
+                      accu_var: @ac:1:0
+                      accu_init: {
+                        LIST [21] {
+                          elements: {
+                          }
+                        }
+                      }
+                      loop_condition: {
+                        CONSTANT [22] { value: true }
+                      }
+                      loop_step: {
+                        CALL [23] {
+                          function: _+_
+                          args: {
+                            IDENT [24] {
+                              name: @ac:1:0
+                            }
+                            LIST [25] {
+                              elements: {
+                                CALL [26] {
+                                  function: _+_
+                                  args: {
+                                    CALL [27] {
+                                      function: _+_
+                                      args: {
+                                        IDENT [28] {
+                                          name: @it:1:0
+                                        }
+                                        IDENT [29] {
+                                          name: @it2:1:0
+                                        }
+                                      }
+                                    }
+                                    CONSTANT [30] { value: 1 }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                      result: {
+                        IDENT [31] {
+                          name: @ac:1:0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [32] {
+              name: @ac:0:0
+            }
+          }
+        }
+        LIST [33] {
+          elements: {
+            IDENT [34] {
+              name: @index1
+            }
+            IDENT [35] {
+              name: @index1
+            }
+            IDENT [36] {
+              name: @index1
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Test case: NESTED_MACROS_COMP_V2_2
+Source: [1, 2].transformList(i, y, [1, 2, 3].filter(x, x == y && i < y)) == [[1], [2]]
+=====>
+CALL [36] {
+  function: _==_
+  args: {
+    COMPREHENSION [35] {
+      iter_var: i
+      iter_var2: y
+      iter_range: {
+        LIST [1] {
+          elements: {
+            CONSTANT [2] { value: 1 }
+            CONSTANT [3] { value: 2 }
+          }
+        }
+      }
+      accu_var: @result
+      accu_init: {
+        LIST [29] {
+          elements: {
+          }
+        }
+      }
+      loop_condition: {
+        CONSTANT [30] { value: true }
+      }
+      loop_step: {
+        CALL [33] {
+          function: _+_
+          args: {
+            IDENT [31] {
+              name: @result
+            }
+            LIST [32] {
+              elements: {
+                COMPREHENSION [28] {
+                  iter_var: x
+                  iter_range: {
+                    LIST [7] {
+                      elements: {
+                        CONSTANT [8] { value: 1 }
+                        CONSTANT [9] { value: 2 }
+                        CONSTANT [10] { value: 3 }
+                      }
+                    }
+                  }
+                  accu_var: @result
+                  accu_init: {
+                    LIST [20] {
+                      elements: {
+                      }
+                    }
+                  }
+                  loop_condition: {
+                    CONSTANT [21] { value: true }
+                  }
+                  loop_step: {
+                    CALL [26] {
+                      function: _?_:_
+                      args: {
+                        CALL [16] {
+                          function: _&&_
+                          args: {
+                            CALL [14] {
+                              function: _==_
+                              args: {
+                                IDENT [13] {
+                                  name: x
+                                }
+                                IDENT [15] {
+                                  name: y
+                                }
+                              }
+                            }
+                            CALL [18] {
+                              function: _<_
+                              args: {
+                                IDENT [17] {
+                                  name: i
+                                }
+                                IDENT [19] {
+                                  name: y
+                                }
+                              }
+                            }
+                          }
+                        }
+                        CALL [24] {
+                          function: _+_
+                          args: {
+                            IDENT [22] {
+                              name: @result
+                            }
+                            LIST [23] {
+                              elements: {
+                                IDENT [12] {
+                                  name: x
+                                }
+                              }
+                            }
+                          }
+                        }
+                        IDENT [25] {
+                          name: @result
+                        }
+                      }
+                    }
+                  }
+                  result: {
+                    IDENT [27] {
+                      name: @result
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      result: {
+        IDENT [34] {
+          name: @result
+        }
+      }
+    }
+    LIST [37] {
+      elements: {
+        LIST [38] {
+          elements: {
+            CONSTANT [39] { value: 1 }
+          }
+        }
+        LIST [40] {
+          elements: {
+            CONSTANT [41] { value: 2 }
+          }
+        }
+      }
+    }
+  }
+}
 Test case: ADJACENT_NESTED_MACROS
 Source: [1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [1,2,3].map(j, [1, 2, 3].map(j, j + 1))
 =====>
@@ -2006,6 +2727,125 @@ CALL [1] {
           name: @index1
         }
         IDENT [28] {
+          name: @index1
+        }
+      }
+    }
+  }
+}
+Test case: ADJACENT_NESTED_MACROS_COMP_V2
+Source: [1,2,3].transformMap(i, x, [1, 2, 3].transformMap(i, x, i + x + 1)) == [1,2,3].transformMap(j, y, [1, 2, 3].transformMap(j, y,  j + y + 1))
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    LIST [2] {
+      elements: {
+        LIST [3] {
+          elements: {
+            CONSTANT [4] { value: 1 }
+            CONSTANT [5] { value: 2 }
+            CONSTANT [6] { value: 3 }
+          }
+        }
+        COMPREHENSION [7] {
+          iter_var: @it:0:0
+          iter_var2: @it2:0:0
+          iter_range: {
+            IDENT [8] {
+              name: @index0
+            }
+          }
+          accu_var: @ac:0:0
+          accu_init: {
+            MAP [9] {
+
+            }
+          }
+          loop_condition: {
+            CONSTANT [10] { value: true }
+          }
+          loop_step: {
+            CALL [11] {
+              function: cel.@mapInsert
+              args: {
+                IDENT [12] {
+                  name: @ac:0:0
+                }
+                IDENT [13] {
+                  name: @it:0:0
+                }
+                COMPREHENSION [14] {
+                  iter_var: @it:1:0
+                  iter_var2: @it2:1:0
+                  iter_range: {
+                    IDENT [15] {
+                      name: @index0
+                    }
+                  }
+                  accu_var: @ac:1:0
+                  accu_init: {
+                    MAP [16] {
+
+                    }
+                  }
+                  loop_condition: {
+                    CONSTANT [17] { value: true }
+                  }
+                  loop_step: {
+                    CALL [18] {
+                      function: cel.@mapInsert
+                      args: {
+                        IDENT [19] {
+                          name: @ac:1:0
+                        }
+                        IDENT [20] {
+                          name: @it:1:0
+                        }
+                        CALL [21] {
+                          function: _+_
+                          args: {
+                            CALL [22] {
+                              function: _+_
+                              args: {
+                                IDENT [23] {
+                                  name: @it:1:0
+                                }
+                                IDENT [24] {
+                                  name: @it2:1:0
+                                }
+                              }
+                            }
+                            CONSTANT [25] { value: 1 }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  result: {
+                    IDENT [26] {
+                      name: @ac:1:0
+                    }
+                  }
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [27] {
+              name: @ac:0:0
+            }
+          }
+        }
+      }
+    }
+    CALL [28] {
+      function: _==_
+      args: {
+        IDENT [29] {
+          name: @index1
+        }
+        IDENT [30] {
           name: @index1
         }
       }
@@ -2205,6 +3045,134 @@ CALL [1] {
                   elements: {
                     COMPREHENSION [20] {
                       iter_var: @it:1:0
+                      iter_range: {
+                        IDENT [21] {
+                          name: @index0
+                        }
+                      }
+                      accu_var: @ac:1:0
+                      accu_init: {
+                        LIST [22] {
+                          elements: {
+                          }
+                        }
+                      }
+                      loop_condition: {
+                        CONSTANT [23] { value: true }
+                      }
+                      loop_step: {
+                        CALL [24] {
+                          function: _+_
+                          args: {
+                            IDENT [25] {
+                              name: @ac:1:0
+                            }
+                            LIST [26] {
+                              elements: {
+                                IDENT [27] {
+                                  name: @index1
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                      result: {
+                        IDENT [28] {
+                          name: @ac:1:0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [29] {
+              name: @ac:0:0
+            }
+          }
+        }
+        LIST [30] {
+          elements: {
+            IDENT [31] {
+              name: @index2
+            }
+            IDENT [32] {
+              name: @index2
+            }
+          }
+        }
+      }
+    }
+  }
+}
+Test case: MACRO_ITER_VAR2_NOT_REFERENCED
+Source: [1,2].transformList(i, v, [1, 2].transformList(i, v, [3,4])) == [[[3, 4], [3, 4]], [[3, 4], [3, 4]]]
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    LIST [2] {
+      elements: {
+        LIST [3] {
+          elements: {
+            CONSTANT [4] { value: 1 }
+            CONSTANT [5] { value: 2 }
+          }
+        }
+        LIST [6] {
+          elements: {
+            CONSTANT [7] { value: 3 }
+            CONSTANT [8] { value: 4 }
+          }
+        }
+        LIST [9] {
+          elements: {
+            IDENT [10] {
+              name: @index1
+            }
+            IDENT [11] {
+              name: @index1
+            }
+          }
+        }
+      }
+    }
+    CALL [12] {
+      function: _==_
+      args: {
+        COMPREHENSION [13] {
+          iter_var: @it:0:0
+          iter_var2: @it2:0:0
+          iter_range: {
+            IDENT [14] {
+              name: @index0
+            }
+          }
+          accu_var: @ac:0:0
+          accu_init: {
+            LIST [15] {
+              elements: {
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [16] { value: true }
+          }
+          loop_step: {
+            CALL [17] {
+              function: _+_
+              args: {
+                IDENT [18] {
+                  name: @ac:0:0
+                }
+                LIST [19] {
+                  elements: {
+                    COMPREHENSION [20] {
+                      iter_var: @it:1:0
+                      iter_var2: @it2:1:0
                       iter_range: {
                         IDENT [21] {
                           name: @index0
@@ -2491,6 +3459,258 @@ COMPREHENSION [35] {
                       name: x
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  result: {
+    IDENT [34] {
+      name: @result
+    }
+  }
+}
+Test case: MACRO_SHADOWED_VARIABLE_COMP_V2_1
+Source: [x - y - 1 > 3 ? x - y - 1 : 5].exists(x, y, x - y - 1 > 3) || x - y - 1 > 3
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    LIST [2] {
+      elements: {
+        CALL [3] {
+          function: _-_
+          args: {
+            CALL [4] {
+              function: _-_
+              args: {
+                IDENT [5] {
+                  name: x
+                }
+                IDENT [6] {
+                  name: y
+                }
+              }
+            }
+            CONSTANT [7] { value: 1 }
+          }
+        }
+        CALL [8] {
+          function: _>_
+          args: {
+            IDENT [9] {
+              name: @index0
+            }
+            CONSTANT [10] { value: 3 }
+          }
+        }
+      }
+    }
+    CALL [11] {
+      function: _||_
+      args: {
+        COMPREHENSION [12] {
+          iter_var: @it:0:0
+          iter_var2: @it2:0:0
+          iter_range: {
+            LIST [13] {
+              elements: {
+                CALL [14] {
+                  function: _?_:_
+                  args: {
+                    IDENT [15] {
+                      name: @index1
+                    }
+                    IDENT [16] {
+                      name: @index0
+                    }
+                    CONSTANT [17] { value: 5 }
+                  }
+                }
+              }
+            }
+          }
+          accu_var: @ac:0:0
+          accu_init: {
+            CONSTANT [18] { value: false }
+          }
+          loop_condition: {
+            CALL [19] {
+              function: @not_strictly_false
+              args: {
+                CALL [20] {
+                  function: !_
+                  args: {
+                    IDENT [21] {
+                      name: @ac:0:0
+                    }
+                  }
+                }
+              }
+            }
+          }
+          loop_step: {
+            CALL [22] {
+              function: _||_
+              args: {
+                IDENT [23] {
+                  name: @ac:0:0
+                }
+                CALL [24] {
+                  function: _>_
+                  args: {
+                    CALL [25] {
+                      function: _-_
+                      args: {
+                        CALL [26] {
+                          function: _-_
+                          args: {
+                            IDENT [27] {
+                              name: @it:0:0
+                            }
+                            IDENT [28] {
+                              name: @it2:0:0
+                            }
+                          }
+                        }
+                        CONSTANT [29] { value: 1 }
+                      }
+                    }
+                    CONSTANT [30] { value: 3 }
+                  }
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [31] {
+              name: @ac:0:0
+            }
+          }
+        }
+        IDENT [32] {
+          name: @index1
+        }
+      }
+    }
+  }
+}
+Test case: MACRO_SHADOWED_VARIABLE_COMP_V2_2
+Source: ["foo", "bar"].transformMap(x, y, [x + x, y + y]).transformMap(x, y, [x + x, y + y])
+=====>
+COMPREHENSION [35] {
+  iter_var: x
+  iter_var2: y
+  iter_range: {
+    COMPREHENSION [19] {
+      iter_var: x
+      iter_var2: y
+      iter_range: {
+        LIST [1] {
+          elements: {
+            CONSTANT [2] { value: "foo" }
+            CONSTANT [3] { value: "bar" }
+          }
+        }
+      }
+      accu_var: @result
+      accu_init: {
+        MAP [14] {
+
+        }
+      }
+      loop_condition: {
+        CONSTANT [15] { value: true }
+      }
+      loop_step: {
+        CALL [17] {
+          function: cel.@mapInsert
+          args: {
+            IDENT [16] {
+              name: @result
+            }
+            IDENT [5] {
+              name: x
+            }
+            LIST [7] {
+              elements: {
+                CALL [9] {
+                  function: _+_
+                  args: {
+                    IDENT [8] {
+                      name: x
+                    }
+                    IDENT [10] {
+                      name: x
+                    }
+                  }
+                }
+                CALL [12] {
+                  function: _+_
+                  args: {
+                    IDENT [11] {
+                      name: y
+                    }
+                    IDENT [13] {
+                      name: y
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      result: {
+        IDENT [18] {
+          name: @result
+        }
+      }
+    }
+  }
+  accu_var: @result
+  accu_init: {
+    MAP [30] {
+
+    }
+  }
+  loop_condition: {
+    CONSTANT [31] { value: true }
+  }
+  loop_step: {
+    CALL [33] {
+      function: cel.@mapInsert
+      args: {
+        IDENT [32] {
+          name: @result
+        }
+        IDENT [21] {
+          name: x
+        }
+        LIST [23] {
+          elements: {
+            CALL [25] {
+              function: _+_
+              args: {
+                IDENT [24] {
+                  name: x
+                }
+                IDENT [26] {
+                  name: x
+                }
+              }
+            }
+            CALL [28] {
+              function: _+_
+              args: {
+                IDENT [27] {
+                  name: y
+                }
+                IDENT [29] {
+                  name: y
                 }
               }
             }

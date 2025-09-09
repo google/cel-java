@@ -338,7 +338,9 @@ public final class CelExtensions {
             stream(CelListsExtensions.Function.values())
                 .map(CelListsExtensions.Function::getFunction),
             stream(CelRegexExtensions.Function.values())
-                .map(CelRegexExtensions.Function::getFunction))
+                .map(CelRegexExtensions.Function::getFunction),
+            stream(CelComprehensionsExtensions.Function.values())
+                .map(CelComprehensionsExtensions.Function::getFunction))
         .collect(toImmutableSet());
   }
 

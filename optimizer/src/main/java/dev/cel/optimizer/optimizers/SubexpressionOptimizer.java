@@ -91,6 +91,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
       new SubexpressionOptimizer(SubexpressionOptimizerOptions.newBuilder().build());
   private static final String BIND_IDENTIFIER_PREFIX = "@r";
   private static final String MANGLED_COMPREHENSION_ITER_VAR_PREFIX = "@it";
+  private static final String MANGLED_COMPREHENSION_ITER_VAR2_PREFIX = "@it2";
   private static final String MANGLED_COMPREHENSION_ACCU_VAR_PREFIX = "@ac";
   private static final String CEL_BLOCK_FUNCTION = "cel.@block";
   private static final String BLOCK_INDEX_PREFIX = "@index";
@@ -136,6 +137,7 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         astMutator.mangleComprehensionIdentifierNames(
             astToModify,
             MANGLED_COMPREHENSION_ITER_VAR_PREFIX,
+            MANGLED_COMPREHENSION_ITER_VAR2_PREFIX,
             MANGLED_COMPREHENSION_ACCU_VAR_PREFIX);
     astToModify = mangledComprehensionAst.mutableAst();
     CelMutableSource sourceToModify = astToModify.source();
@@ -196,6 +198,12 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
                       iterVarType ->
                           newVarDecls.add(
                               CelVarDecl.newVarDeclaration(name.iterVarName(), iterVarType)));
+              type.iterVar2Type()
+                  .ifPresent(
+                      iterVar2Type ->
+                          newVarDecls.add(
+                              CelVarDecl.newVarDeclaration(name.iterVar2Name(), iterVar2Type)));
+
               newVarDecls.add(CelVarDecl.newVarDeclaration(name.resultName(), type.resultType()));
             });
 
@@ -445,16 +453,16 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         navExpr
             .allNodes()
             .filter(
-                node ->
-                    node.getKind().equals(Kind.IDENT)
-                        && (node.expr()
-                                .ident()
-                                .name()
-                                .startsWith(MANGLED_COMPREHENSION_ITER_VAR_PREFIX)
-                            || node.expr()
-                                .ident()
-                                .name()
-                                .startsWith(MANGLED_COMPREHENSION_ACCU_VAR_PREFIX)))
+                node -> {
+                  if (!node.getKind().equals(Kind.IDENT)) {
+                    return false;
+                  }
+
+                  String identName = node.expr().ident().name();
+                  return identName.startsWith(MANGLED_COMPREHENSION_ITER_VAR_PREFIX)
+                      || identName.startsWith(MANGLED_COMPREHENSION_ITER_VAR2_PREFIX)
+                      || identName.startsWith(MANGLED_COMPREHENSION_ACCU_VAR_PREFIX);
+                })
             .collect(toImmutableList());
 
     if (comprehensionIdents.isEmpty()) {

@@ -60,7 +60,7 @@ public final class AstMutator {
   private final long iterationLimit;
 
   /**
-   * Returns a new instance of a AST mutator with the iteration limit set.
+   * Returns a new instance of an AST mutator with the iteration limit set.
    *
    * <p>Mutation is performed by walking the existing AST until the expression node to replace is
    * found, then the new subtree is walked to complete the mutation. Visiting of each node
@@ -205,15 +205,20 @@ public final class AstMutator {
    * @param newAccuVarPrefix Prefix to use for new accumulation variable identifier name.
    */
   public MangledComprehensionAst mangleComprehensionIdentifierNames(
-      CelMutableAst ast, String newIterVarPrefix, String newAccuVarPrefix) {
+      CelMutableAst ast,
+      String newIterVarPrefix,
+      String newIterVar2Prefix,
+      String newAccuVarPrefix) {
     CelNavigableMutableAst navigableMutableAst = CelNavigableMutableAst.fromAst(ast);
     Predicate<CelNavigableMutableExpr> comprehensionIdentifierPredicate = x -> true;
     comprehensionIdentifierPredicate =
         comprehensionIdentifierPredicate
             .and(node -> node.getKind().equals(Kind.COMPREHENSION))
-            .and(node -> !node.expr().comprehension().iterVar().startsWith(newIterVarPrefix))
-            .and(node -> !node.expr().comprehension().accuVar().startsWith(newAccuVarPrefix));
-
+            .and(node -> !node.expr().comprehension().iterVar().startsWith(newIterVarPrefix + ":"))
+            .and(node -> !node.expr().comprehension().accuVar().startsWith(newAccuVarPrefix + ":"))
+            .and(
+                node ->
+                    !node.expr().comprehension().iterVar2().startsWith(newIterVar2Prefix + ":"));
     LinkedHashMap<CelNavigableMutableExpr, MangledComprehensionType> comprehensionsToMangle =
         navigableMutableAst
             .getRoot()
@@ -226,13 +231,17 @@ public final class AstMutator {
                   // Ensure the iter_var or the comprehension result is actually referenced in the
                   // loop_step. If it's not, we can skip mangling.
                   String iterVar = node.expr().comprehension().iterVar();
+                  String iterVar2 = node.expr().comprehension().iterVar2();
                   String result = node.expr().comprehension().result().ident().name();
                   return CelNavigableMutableExpr.fromExpr(node.expr().comprehension().loopStep())
                       .allNodes()
                       .filter(subNode -> subNode.getKind().equals(Kind.IDENT))
                       .map(subNode -> subNode.expr().ident())
                       .anyMatch(
-                          ident -> ident.name().contains(iterVar) || ident.name().contains(result));
+                          ident ->
+                              ident.name().contains(iterVar)
+                                  || ident.name().contains(iterVar2)
+                                  || ident.name().contains(result));
                 })
             .collect(
                 Collectors.toMap(
@@ -240,6 +249,7 @@ public final class AstMutator {
                     v -> {
                       CelMutableComprehension comprehension = v.expr().comprehension();
                       String iterVar = comprehension.iterVar();
+                      String iterVar2 = comprehension.iterVar2();
                       // Identifiers to mangle could be the iteration variable, comprehension
                       // result or both, but at least one has to exist.
                       // As an example, [1,2].map(i, 3) would result in optional.empty for iteration
@@ -253,6 +263,16 @@ public final class AstMutator {
                                           && loopStepNode.expr().ident().name().equals(iterVar))
                               .map(CelNavigableMutableExpr::id)
                               .findAny();
+                      Optional<Long> iterVar2Id =
+                          CelNavigableMutableExpr.fromExpr(comprehension.loopStep())
+                              .allNodes()
+                              .filter(
+                                  loopStepNode ->
+                                      !iterVar2.isEmpty()
+                                          && loopStepNode.getKind().equals(Kind.IDENT)
+                                          && loopStepNode.expr().ident().name().equals(iterVar2))
+                              .map(CelNavigableMutableExpr::id)
+                              .findAny();
                       Optional<CelType> iterVarType =
                           iterVarId.map(
                               id ->
@@ -264,6 +284,17 @@ public final class AstMutator {
                                                   "Checked type not present for iteration"
                                                       + " variable: "
                                                       + iterVarId)));
+                      Optional<CelType> iterVar2Type =
+                          iterVar2Id.map(
+                              id ->
+                                  navigableMutableAst
+                                      .getType(id)
+                                      .orElseThrow(
+                                          () ->
+                                              new NoSuchElementException(
+                                                  "Checked type not present for iteration"
+                                                      + " variable: "
+                                                      + iterVar2Id)));
                       CelType resultType =
                           navigableMutableAst
                               .getType(comprehension.result().id())
@@ -273,7 +304,7 @@ public final class AstMutator {
                                           "Result type was not present for the comprehension ID: "
                                               + comprehension.result().id()));
 
-                      return MangledComprehensionType.of(iterVarType, resultType);
+                      return MangledComprehensionType.of(iterVarType, iterVar2Type, resultType);
                     },
                     (x, y) -> {
                       throw new IllegalStateException(
@@ -299,6 +330,7 @@ public final class AstMutator {
       MangledComprehensionName mangledComprehensionName =
           getMangledComprehensionName(
               newIterVarPrefix,
+              newIterVar2Prefix,
               newAccuVarPrefix,
               comprehensionNode,
               comprehensionLevelToType,
@@ -306,12 +338,14 @@ public final class AstMutator {
       mangledIdentNamesToType.put(mangledComprehensionName, comprehensionEntryType);
 
       String iterVar = comprehensionExpr.comprehension().iterVar();
+      String iterVar2 = comprehensionExpr.comprehension().iterVar2();
       String accuVar = comprehensionExpr.comprehension().accuVar();
       mutatedComprehensionExpr =
           mangleIdentsInComprehensionExpr(
               mutatedComprehensionExpr,
               comprehensionExpr,
               iterVar,
+              iterVar2,
               accuVar,
               mangledComprehensionName);
       // Repeat the mangling process for the macro source.
@@ -320,6 +354,7 @@ public final class AstMutator {
               newSource,
               mutatedComprehensionExpr,
               iterVar,
+              iterVar2,
               mangledComprehensionName,
               comprehensionExpr.id());
       iterCount++;
@@ -339,6 +374,7 @@ public final class AstMutator {
 
   private static MangledComprehensionName getMangledComprehensionName(
       String newIterVarPrefix,
+      String newIterVar2Prefix,
       String newResultPrefix,
       CelNavigableMutableExpr comprehensionNode,
       Table<Integer, MangledComprehensionType, MangledComprehensionName> comprehensionLevelToType,
@@ -356,7 +392,11 @@ public final class AstMutator {
           newIterVarPrefix + ":" + comprehensionNestingLevel + ":" + uniqueTypeIdx;
       String mangledResultName =
           newResultPrefix + ":" + comprehensionNestingLevel + ":" + uniqueTypeIdx;
-      mangledComprehensionName = MangledComprehensionName.of(mangledIterVarName, mangledResultName);
+      String mangledIterVar2Name =
+          newIterVar2Prefix + ":" + comprehensionNestingLevel + ":" + uniqueTypeIdx;
+
+      mangledComprehensionName =
+          MangledComprehensionName.of(mangledIterVarName, mangledIterVar2Name, mangledResultName);
       comprehensionLevelToType.put(
           comprehensionNestingLevel, comprehensionEntryType, mangledComprehensionName);
     }
@@ -509,6 +549,7 @@ public final class AstMutator {
       CelMutableExpr root,
       CelMutableExpr comprehensionExpr,
       String originalIterVar,
+      String originalIterVar2,
       String originalAccuVar,
       MangledComprehensionName mangledComprehensionName) {
     CelMutableComprehension comprehension = comprehensionExpr.comprehension();
@@ -517,9 +558,16 @@ public final class AstMutator {
     replaceIdentName(comprehensionExpr, originalAccuVar, mangledComprehensionName.resultName());
 
     comprehension.setIterVar(mangledComprehensionName.iterVarName());
+
     // Most standard macros set accu_var as __result__, but not all (ex: cel.bind).
     if (comprehension.accuVar().equals(originalAccuVar)) {
       comprehension.setAccuVar(mangledComprehensionName.resultName());
+    }
+
+    if (!originalIterVar2.isEmpty()) {
+      comprehension.setIterVar2(mangledComprehensionName.iterVar2Name());
+      replaceIdentName(
+          comprehension.loopStep(), originalIterVar2, mangledComprehensionName.iterVar2Name());
     }
 
     return mutateExpr(NO_OP_ID_GENERATOR, root, comprehensionExpr, comprehensionExpr.id());
@@ -560,6 +608,7 @@ public final class AstMutator {
       CelMutableSource sourceBuilder,
       CelMutableExpr mutatedComprehensionExpr,
       String originalIterVar,
+      String originalIterVar2,
       MangledComprehensionName mangledComprehensionName,
       long originalComprehensionId) {
     if (!sourceBuilder.getMacroCalls().containsKey(originalComprehensionId)) {
@@ -583,13 +632,24 @@ public final class AstMutator {
     // macro call expression.
     CelMutableExpr identToMangle = macroExpr.call().args().get(0);
     if (identToMangle.ident().name().equals(originalIterVar)) {
-      // if (identToMangle.identOrDefault().name().equals(originalIterVar)) {
       macroExpr =
           mutateExpr(
               NO_OP_ID_GENERATOR,
               macroExpr,
               CelMutableExpr.ofIdent(mangledComprehensionName.iterVarName()),
               identToMangle.id());
+    }
+    if (!originalIterVar2.isEmpty()) {
+      // Similarly by convention, iter_var2 is always the second argument of the macro call.
+      identToMangle = macroExpr.call().args().get(1);
+      if (identToMangle.ident().name().equals(originalIterVar2)) {
+        macroExpr =
+            mutateExpr(
+                NO_OP_ID_GENERATOR,
+                macroExpr,
+                CelMutableExpr.ofIdent(mangledComprehensionName.iterVar2Name()),
+                identToMangle.id());
+      }
     }
 
     newSource.addMacroCalls(originalComprehensionId, macroExpr);
@@ -794,7 +854,7 @@ public final class AstMutator {
     newMacroCall.addArgs(
         existingMacroCall.args().get(0)); // iter_var is first argument of the call by convention
 
-    CelMutableList extraneousList = null;
+    CelMutableList extraneousList;
     if (loopStepArgs.size() == 2) {
       extraneousList = loopStepArgs.get(1).list();
     } else {
@@ -874,14 +934,22 @@ public final class AstMutator {
   @AutoValue
   public abstract static class MangledComprehensionType {
 
-    /** Type of iter_var */
+    /**
+     * Type of iter_var. Empty if iter_var is not referenced in the expression anywhere (ex: "i" in
+     * "[1].exists(i, true)"
+     */
     public abstract Optional<CelType> iterVarType();
+
+    /** Type of iter_var2. */
+    public abstract Optional<CelType> iterVar2Type();
 
     /** Type of comprehension result */
     public abstract CelType resultType();
 
-    private static MangledComprehensionType of(Optional<CelType> iterVarType, CelType resultType) {
-      return new AutoValue_AstMutator_MangledComprehensionType(iterVarType, resultType);
+    private static MangledComprehensionType of(
+        Optional<CelType> iterVarType, Optional<CelType> iterVarType2, CelType resultType) {
+      return new AutoValue_AstMutator_MangledComprehensionType(
+          iterVarType, iterVarType2, resultType);
     }
   }
 
@@ -895,11 +963,16 @@ public final class AstMutator {
     /** Mangled name for iter_var */
     public abstract String iterVarName();
 
+    /** Mangled name for iter_var2 */
+    public abstract String iterVar2Name();
+
     /** Mangled name for comprehension result */
     public abstract String resultName();
 
-    private static MangledComprehensionName of(String iterVarName, String resultName) {
-      return new AutoValue_AstMutator_MangledComprehensionName(iterVarName, resultName);
+    private static MangledComprehensionName of(
+        String iterVarName, String iterVar2Name, String resultName) {
+      return new AutoValue_AstMutator_MangledComprehensionName(
+          iterVarName, iterVar2Name, resultName);
     }
   }
 }

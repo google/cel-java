@@ -35,7 +35,6 @@ import dev.cel.common.types.StructTypeReference;
 import dev.cel.expr.conformance.proto3.NestedTestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.extensions.CelExtensions;
-import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.optimizer.CelOptimizer;
 import dev.cel.optimizer.CelOptimizerFactory;
 import dev.cel.optimizer.optimizers.SubexpressionOptimizer.SubexpressionOptimizerOptions;
@@ -97,15 +96,13 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
       throws Exception {
     skipBaselineVerification();
     CelAbstractSyntaxTree ast = CEL.compile(cseTestCase.source).getAst();
-    Object expectedEvalResult =
-        CEL.createProgram(ast)
-            .eval(ImmutableMap.of("msg", TEST_ALL_TYPES_INPUT, "x", 5L, "opt_x", Optional.of(5L)));
+    ImmutableMap<String, Object> inputMap =
+        ImmutableMap.of("msg", TEST_ALL_TYPES_INPUT, "x", 5L, "y", 6L, "opt_x", Optional.of(5L));
+    Object expectedEvalResult = CEL.createProgram(ast).eval(inputMap);
 
     CelAbstractSyntaxTree optimizedAst = cseTestOptimizer.cseOptimizer.optimize(ast);
 
-    Object optimizedEvalResult =
-        CEL.createProgram(optimizedAst)
-            .eval(ImmutableMap.of("msg", TEST_ALL_TYPES_INPUT, "x", 5L, "opt_x", Optional.of(5L)));
+    Object optimizedEvalResult = CEL.createProgram(optimizedAst).eval(inputMap);
     assertThat(optimizedEvalResult).isEqualTo(expectedEvalResult);
   }
 
@@ -119,7 +116,13 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
       boolean resultPrinted = false;
       for (CseTestOptimizer cseTestOptimizer : CseTestOptimizer.values()) {
         String optimizerName = cseTestOptimizer.name();
-        CelAbstractSyntaxTree optimizedAst = cseTestOptimizer.cseOptimizer.optimize(ast);
+        CelAbstractSyntaxTree optimizedAst;
+        try {
+          optimizedAst = cseTestOptimizer.cseOptimizer.optimize(ast);
+        } catch (Exception e) {
+          testOutput().printf("[%s]: Optimization Error: %s", optimizerName, e);
+          continue;
+        }
         if (!resultPrinted) {
           Object optimizedEvalResult =
               CEL.createProgram(optimizedAst)
@@ -264,8 +267,9 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .setOptions(
             CelOptions.current().enableTimestampEpoch(true).populateMacroCalls(true).build())
-        .addCompilerLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.bindings())
-        .addRuntimeLibraries(CelOptionalLibrary.INSTANCE)
+        .addCompilerLibraries(
+            CelExtensions.optional(), CelExtensions.bindings(), CelExtensions.comprehensions())
+        .addRuntimeLibraries(CelExtensions.optional(), CelExtensions.comprehensions())
         .addFunctionDeclarations(
             CelFunctionDecl.newFunctionDeclaration(
                 "pure_custom_func",
@@ -279,6 +283,7 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
             CelFunctionBinding.from("non_pure_custom_func_overload", Long.class, val -> val),
             CelFunctionBinding.from("pure_custom_func_overload", Long.class, val -> val))
         .addVar("x", SimpleType.DYN)
+        .addVar("y", SimpleType.DYN)
         .addVar("opt_x", OptionalType.create(SimpleType.DYN))
         .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
   }
@@ -399,16 +404,40 @@ public class SubexpressionOptimizerBaselineTest extends BaselineTestCase {
     MULTIPLE_MACROS_3(
         "[1].exists(i, i > 0) && [1].exists(j, j > 0) && [1].exists(k, k > 1) && [2].exists(l, l >"
             + " 1)"),
+    MULTIPLE_MACROS_COMP_V2_1(
+        // Note that all of these have different iteration variables, but they are still logically
+        // the same.
+        "size([[1].exists(i,x,i > 0 && x >= 0)]) + size([[1].exists(j, y, j > 0 && y >= 0)]) + "
+            + "size([[2].exists(k,z,k > 1 && z >= 0)]) + size([[2].exists(l, w, l > 1 && w >= 0)]) "
+            + " == 4"),
+    MULTIPLE_MACROS_COMP_V2_2(
+        "[1].exists(i, x, i > 0 && x > 0) && [1].exists(j, y, j > 0 && y > 0) && "
+            + "[1].exists(k, z, k > 1 && z > 0) && [2].exists(l, w, l > 1 && w > 0)"),
     NESTED_MACROS("[1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [[2, 3, 4], [2, 3, 4], [2, 3, 4]]"),
     NESTED_MACROS_2("[1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]"),
+    NESTED_MACROS_COMP_V2_1(
+        "[1,2,3].transformList(i, v, [1, 2, 3].transformList(i, v, i + v + 1)) == "
+            + "[[2, 4, 6], [2, 4, 6], [2, 4, 6]]"),
+    NESTED_MACROS_COMP_V2_2(
+        "[1, 2].transformList(i, y, [1, 2, 3].filter(x, x == y && i < y)) == [[1], [2]]"),
     ADJACENT_NESTED_MACROS(
         "[1,2,3].map(i, [1, 2, 3].map(i, i + 1)) == [1,2,3].map(j, [1, 2, 3].map(j, j + 1))"),
+    ADJACENT_NESTED_MACROS_COMP_V2(
+        "[1,2,3].transformMap(i, x, [1, 2, 3].transformMap(i, x, i + x + 1)) =="
+            + " [1,2,3].transformMap(j, y, [1, 2, 3].transformMap(j, y,  j + y + 1))"),
     INCLUSION_LIST("1 in [1,2,3] && 2 in [1,2,3] && 3 in [3, [1,2,3]] && 1 in [1,2,3]"),
     INCLUSION_MAP("2 in {'a': 1, 2: {true: false}, 3: {true: false}}"),
     MACRO_ITER_VAR_NOT_REFERENCED(
         "[1,2].map(i, [1, 2].map(i, [3,4])) == [[[3, 4], [3, 4]], [[3, 4], [3, 4]]]"),
+    MACRO_ITER_VAR2_NOT_REFERENCED(
+        "[1,2].transformList(i, v, [1, 2].transformList(i, v, [3,4])) == "
+            + "[[[3, 4], [3, 4]], [[3, 4], [3, 4]]]"),
     MACRO_SHADOWED_VARIABLE("[x - 1 > 3 ? x - 1 : 5].exists(x, x - 1 > 3) || x - 1 > 3"),
     MACRO_SHADOWED_VARIABLE_2("[\"foo\", \"bar\"].map(x, [x + x, x + x]).map(x, [x + x, x + x])"),
+    MACRO_SHADOWED_VARIABLE_COMP_V2_1(
+        "[x - y - 1 > 3 ? x - y - 1 : 5].exists(x, y, x - y - 1 > 3) || x - y - 1 > 3"),
+    MACRO_SHADOWED_VARIABLE_COMP_V2_2(
+        "[\"foo\", \"bar\"].transformMap(x, y, [x + x, y + y]).transformMap(x, y, [x + x, y + y])"),
     PRESENCE_TEST("has({'a': true}.a) && {'a':true}['a']"),
     PRESENCE_TEST_2("has({'a': true}.a) && has({'a': true}.a)"),
     PRESENCE_TEST_WITH_TERNARY(
