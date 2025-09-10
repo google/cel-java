@@ -114,7 +114,7 @@ maven.install(
 
 maven.install(
     name = "maven_conformance",
-    artifacts = ["dev.cel:cel:0.11.0"],
+    artifacts = ["dev.cel:cel:0.11.1-demo"],
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
