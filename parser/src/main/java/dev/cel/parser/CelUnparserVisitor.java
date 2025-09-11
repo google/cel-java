@@ -66,6 +66,11 @@ public class CelUnparserVisitor extends CelExprVisitor {
     return stringBuilder.toString();
   }
 
+  public String unparse(CelExpr expr) {
+    visit(expr);
+    return stringBuilder.toString();
+  }
+
   private static String maybeQuoteField(String field) {
     if (RESTRICTED_FIELD_NAMES.contains(field)
         || !IDENTIFIER_SEGMENT_PATTERN.matcher(field).matches()) {
