@@ -108,7 +108,7 @@ public final class ConformanceTestRunner extends ParentRunner<ConformanceTest> {
   @Override
   protected Description describeChild(ConformanceTest child) {
     return Description.createTestDescription(
-        ConformanceTest.class, child.getName(), ConformanceTest.class.getAnnotations());
+        ConformanceTests.class, child.getName(), ConformanceTest.class.getAnnotations());
   }
 
   @Override
