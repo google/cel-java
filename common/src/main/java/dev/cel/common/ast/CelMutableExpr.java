@@ -1034,6 +1034,10 @@ public final class CelMutableExpr implements Expression {
     return new CelMutableExpr(id, mutableMap);
   }
 
+  public static CelMutableExpr ofComprehension(CelMutableComprehension mutableComprehension) {
+    return ofComprehension(0, mutableComprehension);
+  }
+
   public static CelMutableExpr ofComprehension(
       long id, CelMutableComprehension mutableComprehension) {
     return new CelMutableExpr(id, mutableComprehension);

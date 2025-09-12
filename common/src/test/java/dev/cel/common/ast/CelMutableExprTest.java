@@ -601,6 +601,35 @@ public class CelMutableExprTest {
   }
 
   @Test
+  public void ofComprehension() {
+    CelMutableExpr mutableExpr =
+        CelMutableExpr.ofComprehension(
+            CelMutableComprehension.create(
+                "iterVar",
+                CelMutableExpr.ofList(
+                    CelMutableList.create(CelMutableExpr.ofConstant(CelConstant.ofValue(true)))),
+                "accuVar",
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofIdent("__result__")));
+
+    assertThat(mutableExpr.id()).isEqualTo(0L);
+    assertThat(mutableExpr.comprehension())
+        .isEqualTo(
+            CelMutableComprehension.create(
+                "iterVar",
+                "",
+                CelMutableExpr.ofList(
+                    CelMutableList.create(CelMutableExpr.ofConstant(CelConstant.ofValue(true)))),
+                "accuVar",
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofConstant(CelConstant.ofValue(true)),
+                CelMutableExpr.ofIdent("__result__")));
+  }
+
+  @Test
   public void ofComprehension_withId() {
     CelMutableExpr mutableExpr =
         CelMutableExpr.ofComprehension(
