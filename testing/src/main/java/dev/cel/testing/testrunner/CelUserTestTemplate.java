@@ -15,6 +15,7 @@
 package dev.cel.testing.testrunner;
 
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection.CelTestCase;
+import org.jspecify.annotations.Nullable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -27,7 +28,12 @@ import org.junit.runners.Parameterized.Parameter;
 @RunWith(Parameterized.class)
 public abstract class CelUserTestTemplate {
 
-  @Parameter public CelTestCase testCase;
+  @Parameter(0)
+  public CelTestCase testCase;
+
+  @Parameter(1)
+  public @Nullable CelCoverageIndex celCoverageIndex;
+
   private final CelTestContext celTestContext;
 
   public CelUserTestTemplate(CelTestContext celTestContext) {
@@ -36,7 +42,11 @@ public abstract class CelUserTestTemplate {
 
   @Test
   public void test() throws Exception {
-    TestRunnerLibrary.runTest(testCase, updateCelTestContext(celTestContext));
+    if (celCoverageIndex != null) {
+      TestRunnerLibrary.runTest(testCase, updateCelTestContext(celTestContext), celCoverageIndex);
+    } else {
+      TestRunnerLibrary.runTest(testCase, updateCelTestContext(celTestContext));
+    }
   }
 
   /**
