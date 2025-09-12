@@ -263,4 +263,22 @@ public class TestRunnerLibraryTest {
         .hasMessageThat()
         .contains("Proto descriptors are required for unpacking Any messages.");
   }
+
+  @Test
+  public void triggerRunTest_evaluateRawExpr_withCoverage() throws Exception {
+    CelCoverageIndex celCoverageIndex = new CelCoverageIndex();
+    CelTestCase simpleOutputTestCase =
+        CelTestCase.newBuilder()
+            .setName("simple_output_test_case")
+            .setDescription("simple_output_test_case_description")
+            .setOutput(CelTestSuite.CelTestSection.CelTestCase.Output.ofResultValue(true))
+            .build();
+
+    TestRunnerLibrary.runTest(
+        simpleOutputTestCase,
+        CelTestContext.newBuilder()
+            .setCelExpression(CelExpressionSource.fromRawExpr("1 > 0"))
+            .build(),
+        celCoverageIndex);
+  }
 }
