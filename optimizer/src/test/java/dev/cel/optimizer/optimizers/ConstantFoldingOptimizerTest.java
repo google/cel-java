@@ -348,6 +348,20 @@ public class ConstantFoldingOptimizerTest {
   }
 
   @Test
+  public void constantFold_withExpectedResultTypeSet_success() throws Exception {
+    Cel cel = CelFactory.standardCelBuilder().setResultType(SimpleType.STRING).build();
+    CelOptimizer optimizer =
+        CelOptimizerFactory.standardCelOptimizerBuilder(cel)
+            .addAstOptimizers(ConstantFoldingOptimizer.getInstance())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("string(!true)").getAst();
+
+    CelAbstractSyntaxTree optimizedAst = optimizer.optimize(ast);
+
+    assertThat(CEL_UNPARSER.unparse(optimizedAst)).isEqualTo("\"false\"");
+  }
+
+  @Test
   public void constantFold_withMacroCallPopulated_comprehensionsAreReplacedWithNotSet()
       throws Exception {
     Cel cel =

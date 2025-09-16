@@ -38,6 +38,7 @@ import dev.cel.common.ast.CelMutableExpr.CelMutableStruct;
 import dev.cel.common.ast.CelMutableExprConverter;
 import dev.cel.common.navigation.CelNavigableMutableAst;
 import dev.cel.common.navigation.CelNavigableMutableExpr;
+import dev.cel.common.types.SimpleType;
 import dev.cel.extensions.CelOptionalLibrary.Function;
 import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.CelAstOptimizer;
@@ -88,6 +89,9 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   @Override
   public OptimizationResult optimize(CelAbstractSyntaxTree ast, Cel cel)
       throws CelOptimizationException {
+    // Override the environment's expected type to generally allow all subtrees to be folded.
+    Cel optimizerEnv = cel.toCelBuilder().setResultType(SimpleType.DYN).build();
+
     CelMutableAst mutableAst = CelMutableAst.fromCelAst(ast);
     int iterCount = 0;
     boolean continueFolding = true;
@@ -112,7 +116,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
         mutatedResult = maybePruneBranches(mutableAst, foldableExpr.expr());
         if (!mutatedResult.isPresent()) {
           // Evaluate the call then fold
-          mutatedResult = maybeFold(cel, mutableAst, foldableExpr);
+          mutatedResult = maybeFold(optimizerEnv, mutableAst, foldableExpr);
         }
 
         if (!mutatedResult.isPresent()) {
