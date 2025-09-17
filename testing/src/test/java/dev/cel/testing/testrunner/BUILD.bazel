@@ -82,9 +82,27 @@ java_test(
     test_class = "dev.cel.testing.testrunner.JUnitXmlReporterTest",
     deps = [
         "//:java_truth",
+        "//testing/testrunner:cel_coverage_index",
         "//testing/testrunner:junit_xml_reporter",
         "@maven//:junit_junit",
         "@maven//:org_mockito_mockito_core",
+    ],
+)
+
+java_test(
+    name = "cel_coverage_index_test",
+    srcs = ["CelCoverageIndexTest.java"],
+    test_class = "dev.cel.testing.testrunner.CelCoverageIndexTest",
+    deps = [
+        "//:java_truth",
+        "//bundle:cel",
+        "//common:cel_ast",
+        "//common/types",
+        "//runtime",
+        "//runtime:evaluation_listener",
+        "//testing/testrunner:cel_coverage_index",
+        "@maven//:com_google_guava_guava",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -354,4 +372,34 @@ cel_java_test(
     test_data_path = "//testing/src/test/resources/expressions",
     test_src = ":user_test",
     test_suite = "simple_test_case/tests.textproto",
+)
+
+java_library(
+    name = "coverage_test",
+    srcs = ["CoverageTest.java"],
+    deps = [
+        "//bundle:cel",
+        "//common/types",
+        "//testing/testrunner:cel_test_context",
+        "//testing/testrunner:cel_user_test_template",
+        "@maven//:junit_junit",
+    ],
+)
+
+cel_java_test(
+    name = "cel_coverage_test",
+    cel_expr = "coverage_test_case/simple_expression.cel",
+    enable_coverage = True,
+    test_data_path = "//testing/src/test/resources/expressions",
+    test_src = ":coverage_test",
+    test_suite = "coverage_test_case/tests.textproto",
+)
+
+cel_java_test(
+    name = "cel_partial_coverage_test",
+    cel_expr = "coverage_test_case/simple_expression.cel",
+    enable_coverage = True,
+    test_data_path = "//testing/src/test/resources/expressions",
+    test_src = ":coverage_test",
+    test_suite = "coverage_test_case/partial_coverage_tests.textproto",
 )

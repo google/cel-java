@@ -15,6 +15,7 @@ java_library(
     ],
     deps = [
         ":annotations",
+        ":cel_coverage_index",
         ":cel_test_suite",
         ":cel_test_suite_exception",
         ":cel_test_suite_text_proto_parser",
@@ -33,7 +34,11 @@ java_library(
     srcs = ["JUnitXmlReporter.java"],
     tags = [
     ],
-    deps = ["@maven//:com_google_guava_guava"],
+    deps = [
+        ":cel_coverage_index",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
+    ],
 )
 
 java_library(
@@ -42,11 +47,32 @@ java_library(
     tags = [
     ],
     deps = [
+        ":cel_coverage_index",
         ":cel_expression_source",
         ":cel_test_context",
         ":cel_test_suite",
         ":test_runner_library",
         "@maven//:junit_junit",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "cel_coverage_index",
+    srcs = ["CelCoverageIndex.java"],
+    tags = [
+    ],
+    deps = [
+        "//:auto_value",
+        "//common:cel_ast",
+        "//common/ast",
+        "//common/navigation",
+        "//common/types:type_providers",
+        "//parser:unparser_visitor",
+        "//runtime:evaluation_listener",
+        "@maven//:com_google_code_findbugs_annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
     ],
 )
 
@@ -56,6 +82,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":cel_coverage_index",
         ":cel_expression_source",
         ":cel_test_context",
         ":cel_test_suite",
@@ -80,6 +107,7 @@ java_library(
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_jspecify_jspecify",
     ],
 )
 

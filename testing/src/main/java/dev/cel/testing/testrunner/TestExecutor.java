@@ -20,7 +20,6 @@ import static dev.cel.testing.utils.ClassLoaderUtils.loadSubclasses;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.ZoneId.systemDefault;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import dev.cel.testing.testrunner.Annotations.TestSuiteSupplier;
 import dev.cel.testing.testrunner.CelTestSuite.CelTestSection;
@@ -32,6 +31,7 @@ import java.lang.reflect.Method;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
@@ -187,15 +187,21 @@ public final class TestExecutor {
     testReporter.onStart(testContext);
 
     boolean allTestsPassed = true;
+    CelCoverageIndex celCoverageIndex = null;
+    // If coverage is enabled, the celCoverageIndex parameter will be added in the test class.
+    // This will be used to run the test case multiple times with different inputs and collect
+    // the coverage data.
+    String isCoverageEnabled = System.getProperty("is_coverage_enabled");
+    if (isCoverageEnabled != null && Boolean.parseBoolean(isCoverageEnabled)) {
+      celCoverageIndex = new CelCoverageIndex();
+    }
 
     for (CelTestSection testSection : testSuite.sections()) {
       for (CelTestCase testCase : testSection.tests()) {
         String testName = testSection.name() + "." + testCase.name();
-
-        Object[] parameter = new Object[] {testCase};
+        ArrayList<Object> parameter = new ArrayList<>(Arrays.asList(testCase, celCoverageIndex));
         TestWithParameters test =
-            new TestWithParameters(
-                testName, new TestClass(testClass), ImmutableList.copyOf(parameter));
+            new TestWithParameters(testName, new TestClass(testClass), parameter);
 
         TestResult testResult = new TestResult(testName, testClass.getName());
         testReporter.onTestStart(testResult);
@@ -235,7 +241,12 @@ public final class TestExecutor {
     }
 
     testContext.done();
-    testReporter.onFinish();
+    if (celCoverageIndex != null) {
+      CelCoverageIndex.CoverageReport report = celCoverageIndex.generateCoverageReport();
+      testReporter.onFinish(report);
+    } else {
+      testReporter.onFinish();
+    }
     if (!allTestsPassed) {
       throw new RuntimeException(testReporter.getNumFailed() + " tests failed");
     }

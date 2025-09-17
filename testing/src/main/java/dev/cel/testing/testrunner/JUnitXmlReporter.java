@@ -31,6 +31,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
@@ -70,9 +71,13 @@ final class JUnitXmlReporter {
     testContext = context;
   }
 
-  /** Called after all tests are run */
   void onFinish() {
-    generateReport();
+    generateReport(/* coverageReport= */ null);
+  }
+
+  /** Called after all tests are run */
+  void onFinish(CelCoverageIndex.@Nullable CoverageReport coverageReport) {
+    generateReport(coverageReport);
   }
 
   /** Returns the number of failed tests */
@@ -84,7 +89,7 @@ final class JUnitXmlReporter {
    * Generates junit equivalent xml report that sponge/fusion can understand. Called after all tests
    * are run
    */
-  void generateReport() {
+  void generateReport(CelCoverageIndex.@Nullable CoverageReport coverageReport) {
     try {
       DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
       DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
@@ -123,6 +128,7 @@ final class JUnitXmlReporter {
           prevSuite = currentSuite;
           currentSuite = doc.createElement(XmlConstants.TESTSUITE);
           rootElement.appendChild(currentSuite);
+          addCoverageAttributes(currentSuite, coverageReport);
           currentSuite.setAttribute(XmlConstants.ATTR_NAME, tr.getTestClassName());
           if (prevSuite != null) {
             prevSuite.setAttribute(XmlConstants.ATTR_TESTS, "" + testsInSuite);
@@ -186,6 +192,50 @@ final class JUnitXmlReporter {
     }
   }
 
+  private void addCoverageAttributes(
+      Element currentSuite, CelCoverageIndex.@Nullable CoverageReport coverageReport) {
+    if (coverageReport == null) {
+      return;
+    }
+    if (coverageReport.nodes() == 0) {
+      currentSuite.setAttribute(XmlConstants.ATTR_CEL_COVERAGE, "No coverage stats found");
+    } else {
+      // CEL expression
+      currentSuite.setAttribute(XmlConstants.ATTR_CEL_EXPR, coverageReport.celExpression());
+      // Node coverage
+      double nodeCoverage =
+          (double) coverageReport.coveredNodes() / (double) coverageReport.nodes() * 100.0;
+      String nodeCoverageString =
+          String.format(
+              "%.2f%% (%d out of %d nodes covered)",
+              nodeCoverage, coverageReport.coveredNodes(), coverageReport.nodes());
+      currentSuite.setAttribute(XmlConstants.ATTR_AST_NODE_COVERAGE, nodeCoverageString);
+      if (!coverageReport.unencounteredNodes().isEmpty()) {
+        currentSuite.setAttribute(
+            XmlConstants.ATTR_INTERESTING_UNENCOUNTERED_NODES,
+            String.join("\n", coverageReport.unencounteredNodes()));
+      }
+      // Branch coverage
+      double branchCoverage = 0.0;
+      if (coverageReport.branches() > 0) {
+        branchCoverage =
+            (double) coverageReport.coveredBooleanOutcomes()
+                / (double) coverageReport.branches()
+                * 100.0;
+      }
+      String branchCoverageString =
+          String.format(
+              "%.2f%% (%d out of %d branch outcomes covered)",
+              branchCoverage, coverageReport.coveredBooleanOutcomes(), coverageReport.branches());
+      currentSuite.setAttribute(XmlConstants.ATTR_AST_BRANCH_COVERAGE, branchCoverageString);
+      if (!coverageReport.unencounteredBranches().isEmpty()) {
+        currentSuite.setAttribute(
+            XmlConstants.ATTR_INTERESTING_UNENCOUNTERED_BRANCH_PATHS,
+            String.join("\n", coverageReport.unencounteredBranches()));
+      }
+    }
+  }
+
   /** Description of a test suite execution. */
   static interface TestContext {
     String getSuiteName();
@@ -226,5 +276,13 @@ final class JUnitXmlReporter {
     static final String ATTR_TYPE = "type";
     static final String ATTR_MESSAGE = "message";
     static final String ATTR_CLASSNAME = "classname";
+    // Coverage attributes.
+    static final String ATTR_CEL_EXPR = "Cel_Expr";
+    static final String ATTR_CEL_COVERAGE = "Cel_Coverage";
+    static final String ATTR_AST_NODE_COVERAGE = "Ast_Node_Coverage";
+    static final String ATTR_INTERESTING_UNENCOUNTERED_NODES = "Interesting_Unencountered_Nodes";
+    static final String ATTR_AST_BRANCH_COVERAGE = "Ast_Branch_Coverage";
+    static final String ATTR_INTERESTING_UNENCOUNTERED_BRANCH_PATHS =
+        "Interesting_Unencountered_Branch_Paths";
   }
 }

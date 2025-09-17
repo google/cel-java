@@ -58,6 +58,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.logging.Logger;
+import org.jspecify.annotations.Nullable;
 
 /** Runner library for creating the environment and running the assertions. */
 public final class TestRunnerLibrary {
@@ -80,8 +81,39 @@ public final class TestRunnerLibrary {
     }
   }
 
+  /**
+   * Run the assertions for a given raw/checked expression test case with coverage enabled.
+   *
+   * <p>This method is used for generating coverage data. It will be used to run the test case
+   * multiple times with different inputs and collect the coverage data.
+   *
+   * @param testCase The test case to run.
+   * @param celTestContext The test context containing the {@link Cel} bundle and other
+   *     configurations.
+   * @param celCoverageIndex The coverage index to use for the test case.
+   */
+  public static void runTest(
+      CelTestCase testCase,
+      CelTestContext celTestContext,
+      @Nullable CelCoverageIndex celCoverageIndex)
+      throws Exception {
+    if (celTestContext.celExpression().isPresent()) {
+      evaluateTestCase(testCase, celTestContext, celCoverageIndex);
+    } else {
+      throw new IllegalArgumentException("No cel expression provided.");
+    }
+  }
+
   @VisibleForTesting
   static void evaluateTestCase(CelTestCase testCase, CelTestContext celTestContext)
+      throws Exception {
+    evaluateTestCase(testCase, celTestContext, /* celCoverageIndex= */ null);
+  }
+
+  static void evaluateTestCase(
+      CelTestCase testCase,
+      CelTestContext celTestContext,
+      @Nullable CelCoverageIndex celCoverageIndex)
       throws Exception {
     celTestContext = extendCelTestContext(celTestContext);
     CelAbstractSyntaxTree ast;
@@ -108,7 +140,10 @@ public final class TestRunnerLibrary {
         throw new IllegalArgumentException(
             "Unsupported expression type: " + celExpressionSource.type());
     }
-    evaluate(ast, testCase, celTestContext);
+    if (celCoverageIndex != null) {
+      celCoverageIndex.init(ast);
+    }
+    evaluate(ast, testCase, celTestContext, celCoverageIndex);
   }
 
   private static CelAbstractSyntaxTree readAstFromCheckedExpression(
@@ -198,7 +233,10 @@ public final class TestRunnerLibrary {
   }
 
   private static void evaluate(
-      CelAbstractSyntaxTree ast, CelTestCase testCase, CelTestContext celTestContext)
+      CelAbstractSyntaxTree ast,
+      CelTestCase testCase,
+      CelTestContext celTestContext,
+      @Nullable CelCoverageIndex celCoverageIndex)
       throws Exception {
     Cel cel = celTestContext.cel();
     Program program = cel.createProgram(ast);
@@ -206,7 +244,7 @@ public final class TestRunnerLibrary {
     CelEvaluationException error = null;
     Object evaluationResult = null;
     try {
-      evaluationResult = getEvaluationResult(testCase, celTestContext, program);
+      evaluationResult = getEvaluationResult(testCase, celTestContext, program, celCoverageIndex);
       exprValue = toExprValue(evaluationResult, ast.getResultType());
     } catch (CelEvaluationException e) {
       String errorMessage =
@@ -245,7 +283,10 @@ public final class TestRunnerLibrary {
   }
 
   private static Object getEvaluationResult(
-      CelTestCase testCase, CelTestContext celTestContext, Program program)
+      CelTestCase testCase,
+      CelTestContext celTestContext,
+      Program program,
+      @Nullable CelCoverageIndex celCoverageIndex)
       throws CelEvaluationException, IOException, CelValidationException {
     if (celTestContext.celLateFunctionBindings().isPresent()) {
       return program.eval(
@@ -253,11 +294,16 @@ public final class TestRunnerLibrary {
     }
     switch (testCase.input().kind()) {
       case CONTEXT_MESSAGE:
-        return program.eval(unpackAny(testCase.input().contextMessage(), celTestContext));
+        return getEvaluationResultWithMessage(
+            unpackAny(testCase.input().contextMessage(), celTestContext),
+            program,
+            celCoverageIndex);
       case CONTEXT_EXPR:
-        return program.eval(getEvaluatedContextExpr(testCase, celTestContext));
+        return getEvaluationResultWithMessage(
+            getEvaluatedContextExpr(testCase, celTestContext), program, celCoverageIndex);
       case BINDINGS:
-        return program.eval(getBindings(testCase, celTestContext));
+        return getEvaluationResultWithBindings(
+            getBindings(testCase, celTestContext), program, celCoverageIndex);
       case NO_INPUT:
         ImmutableMap.Builder<String, Object> newBindings = ImmutableMap.builder();
         for (Map.Entry<String, Object> entry : celTestContext.variableBindings().entrySet()) {
@@ -267,9 +313,28 @@ public final class TestRunnerLibrary {
             newBindings.put(entry);
           }
         }
-        return program.eval(newBindings.buildOrThrow());
+        return getEvaluationResultWithBindings(
+            newBindings.buildOrThrow(), program, celCoverageIndex);
     }
     throw new IllegalArgumentException("Unexpected input type: " + testCase.input().kind());
+  }
+
+  private static Object getEvaluationResultWithBindings(
+      Map<String, Object> bindings, Program program, @Nullable CelCoverageIndex celCoverageIndex)
+      throws CelEvaluationException {
+    if (celCoverageIndex != null) {
+      return program.trace(bindings, celCoverageIndex.newEvaluationListener());
+    }
+    return program.eval(bindings);
+  }
+
+  private static Object getEvaluationResultWithMessage(
+      Message message, Program program, @Nullable CelCoverageIndex celCoverageIndex)
+      throws CelEvaluationException {
+    if (celCoverageIndex != null) {
+      return program.trace(message, celCoverageIndex.newEvaluationListener());
+    }
+    return program.eval(message);
   }
 
   private static Message unpackAny(Any any, CelTestContext celTestContext) throws IOException {

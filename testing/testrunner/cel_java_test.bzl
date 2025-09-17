@@ -30,6 +30,7 @@ def cel_java_test(
         config = "",
         deps = [],
         proto_deps = [],
+        enable_coverage = False,
         test_data_path = "",
         data = []):
     """trigger the java impl of the CEL test runner.
@@ -56,6 +57,8 @@ def cel_java_test(
         deps: list of dependencies for the java_binary rule.
         data: list of data dependencies for the java_binary rule.
         proto_deps: str label of the proto dependencies for the test. Note: This only supports proto_library rules.
+        enable_coverage: bool whether to enable coverage for the test. This is needed only if the
+          test runner is being used for gathering coverage data.
         test_data_path: absolute path of the directory containing the test files. This is needed only
           if the test files are not located in the same directory as the BUILD file. This
           would be of the form "//foo/bar".
@@ -101,6 +104,7 @@ def cel_java_test(
         deps = deps + [":" + name + "_proto_descriptor_set_java_proto"]
 
     jvm_flags.append("-Dis_raw_expr=%s" % is_raw_expr)
+    jvm_flags.append("-Dis_coverage_enabled=%s" % enable_coverage)
 
     java_binary(
         name = name + "_test_runner_binary",

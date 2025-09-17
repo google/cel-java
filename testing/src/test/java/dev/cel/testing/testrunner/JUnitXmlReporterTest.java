@@ -123,4 +123,91 @@ public class JUnitXmlReporterTest {
     assertThat(concatenatedFileContent).contains("failures=\"1\"");
     assertThat(concatenatedFileContent).contains("failure message=\"Test Exception\"");
   }
+
+  @Test
+  public void testGenerateReport_coverageReport_noCoverage() throws IOException {
+    String outputFileName = "test-report-with-coverage.xml";
+    File subFolder = tempFolder.newFolder("subFolder");
+    File outputFile = new File(subFolder.getAbsolutePath(), outputFileName);
+    JUnitXmlReporter reporter = new JUnitXmlReporter(outputFile.getAbsolutePath());
+    long startTime = 100L;
+    long test1EndTime = startTime + 400;
+    long endTime = startTime + 900;
+
+    CelCoverageIndex.CoverageReport coverageReport =
+        CelCoverageIndex.CoverageReport.builder().build();
+
+    when(context.getSuiteName()).thenReturn(SUITE_NAME);
+    when(context.getStartTime()).thenReturn(startTime);
+    when(context.getEndTime()).thenReturn(endTime);
+    reporter.onStart(context);
+
+    when(result1.getTestClassName()).thenReturn(TEST_CLASS_NAME);
+    when(result1.getName()).thenReturn(TEST_METHOD_NAME);
+    when(result1.getStartMillis()).thenReturn(startTime);
+    when(result1.getEndMillis()).thenReturn(test1EndTime);
+    when(result1.getStatus()).thenReturn(JUnitXmlReporter.TestResult.SUCCESS);
+    reporter.onTestSuccess(result1);
+
+    reporter.onFinish(coverageReport);
+    assertThat(outputFile.exists()).isTrue();
+    String concatenatedFileContent = String.join("\n", Files.readAllLines(outputFile.toPath()));
+
+    assertThat(concatenatedFileContent).contains("No coverage stats found");
+
+    outputFile.delete();
+  }
+
+  @Test
+  public void testGenerateReport_coverageReport_withCoverage() throws IOException {
+    String outputFileName = "test-report-with-coverage.xml";
+    File subFolder = tempFolder.newFolder("subFolder");
+    File outputFile = new File(subFolder.getAbsolutePath(), outputFileName);
+    JUnitXmlReporter reporter = new JUnitXmlReporter(outputFile.getAbsolutePath());
+    long startTime = 100L;
+    long test1EndTime = startTime + 400;
+    long endTime = startTime + 900;
+
+    CelCoverageIndex.CoverageReport coverageReport =
+        CelCoverageIndex.CoverageReport.builder()
+            .setNodes(10L)
+            .setCoveredNodes(10L)
+            .setBranches(10L)
+            .setCoveredBooleanOutcomes(5L)
+            .addUnencounteredNodes("Node 1")
+            .addUnencounteredNodes("Node 2")
+            .addUnencounteredBranches("Branch 1")
+            .addUnencounteredBranches("Branch 2")
+            .build();
+
+    when(context.getSuiteName()).thenReturn(SUITE_NAME);
+    when(context.getStartTime()).thenReturn(startTime);
+    when(context.getEndTime()).thenReturn(endTime);
+    reporter.onStart(context);
+
+    when(result1.getTestClassName()).thenReturn(TEST_CLASS_NAME);
+    when(result1.getName()).thenReturn(TEST_METHOD_NAME);
+    when(result1.getStartMillis()).thenReturn(startTime);
+    when(result1.getEndMillis()).thenReturn(test1EndTime);
+    when(result1.getStatus()).thenReturn(JUnitXmlReporter.TestResult.SUCCESS);
+    reporter.onTestSuccess(result1);
+
+    reporter.onFinish(coverageReport);
+    assertThat(outputFile.exists()).isTrue();
+    String concatenatedFileContent = String.join("\n", Files.readAllLines(outputFile.toPath()));
+
+    assertThat(concatenatedFileContent)
+        .contains(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><testsuite errors=\"0\" failures=\"0\""
+                + " name=\"TestSuiteName\" tests=\"1\" time=\"0.9\"><testsuite"
+                + " Ast_Branch_Coverage=\"50.00% (5 out of 10 branch outcomes covered)\""
+                + " Ast_Node_Coverage=\"100.00% (10 out of 10 nodes covered)\" Cel_Expr=\"\""
+                + " Interesting_Unencountered_Branch_Paths=\"Branch 1&#10;Branch 2\""
+                + " Interesting_Unencountered_Nodes=\"Node 1&#10;Node 2\" errors=\"0\""
+                + " failures=\"0\" name=\"TestClass1\" tests=\"1\" time=\"0.4\"><testcase"
+                + " classname=\"TestClass1\" name=\"testMethod1\""
+                + " time=\"0.4\"/></testsuite></testsuite>");
+
+    outputFile.delete();
+  }
 }

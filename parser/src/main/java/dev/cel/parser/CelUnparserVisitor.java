@@ -66,6 +66,17 @@ public class CelUnparserVisitor extends CelExprVisitor {
     return stringBuilder.toString();
   }
 
+  /**
+   * Unparses a specific {@link CelExpr} node within the AST.
+   *
+   * <p>This method exists to allow unparsing of an arbitrary node within the stored AST in this
+   * visitor.
+   */
+  public String unparse(CelExpr expr) {
+    visit(expr);
+    return stringBuilder.toString();
+  }
+
   private static String maybeQuoteField(String field) {
     if (RESTRICTED_FIELD_NAMES.contains(field)
         || !IDENTIFIER_SEGMENT_PATTERN.matcher(field).matches()) {
