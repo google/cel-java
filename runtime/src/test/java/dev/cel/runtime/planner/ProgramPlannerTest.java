@@ -52,6 +52,7 @@ import dev.cel.runtime.standard.IndexOperator;
 import java.nio.charset.StandardCharsets;
 
 import dev.cel.runtime.DefaultDispatcher;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -211,7 +212,7 @@ public final class ProgramPlannerTest {
   }
 
   @Test
-  public void planCreateObject() throws Exception {
+  public void planCreateStruct() throws Exception {
     CelAbstractSyntaxTree ast = compile("cel.expr.conformance.proto3.TestAllTypes{}");
     Program program = PLANNER.plan(ast);
 
@@ -221,13 +222,27 @@ public final class ProgramPlannerTest {
   }
 
   @Test
-  public void planCreateObject_withFields() throws Exception {
-    CelAbstractSyntaxTree ast = compile("cel.expr.conformance.proto3.TestAllTypes{single_string: 'foo'}");
+  public void planCreateStruct_withFields() throws Exception {
+    CelAbstractSyntaxTree ast = compile("cel.expr.conformance.proto3.TestAllTypes{"
+        + "single_string: 'foo',"
+        + "single_bool: true"
+        + "}");
     Program program = PLANNER.plan(ast);
 
     Object result = program.eval();
 
-    assertThat(result).isEqualTo(TestAllTypes.newBuilder().setSingleString("foo").build());
+    assertThat(result).isEqualTo(TestAllTypes.newBuilder().setSingleString("foo").setSingleBool(true).build());
+  }
+
+  @Test
+  public void planCreateMap() throws Exception {
+    CelAbstractSyntaxTree ast = compile("{'foo': 1, true: 'bar'}");
+
+    Program program = PLANNER.plan(ast);
+
+    Map<Object, Object> result = (Map<Object, Object>) program.eval();
+
+    assertThat(result).containsExactly("foo", 1L, true, "bar").inOrder();
   }
 
   @SuppressWarnings("ImmutableEnumChecker") // Test only

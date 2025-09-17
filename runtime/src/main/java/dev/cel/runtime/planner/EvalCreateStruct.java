@@ -8,7 +8,6 @@ import dev.cel.runtime.GlobalResolver;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 @Immutable
 final class EvalCreateStruct implements CelValueInterpretable {
@@ -16,16 +15,20 @@ final class EvalCreateStruct implements CelValueInterpretable {
   private final CelValueProvider valueProvider;
   private final String typeName;
 
-  // Regular hashmap used for performance. Planner must not mutate the map post-construction.
+
   @SuppressWarnings("Immutable")
-  private final Map<String, CelValueInterpretable> fields;
+  private final String[] keys;
+
+  @SuppressWarnings("Immutable")
+  private final CelValueInterpretable[] values;
+
 
   @Override
   public CelValue eval(GlobalResolver resolver) throws CelEvaluationException {
     Map<String, Object> fieldValues = new HashMap<>();
-    for (Entry<String, CelValueInterpretable> entry : fields.entrySet()) {
-      Object value = entry.getValue().eval(resolver).value();
-      fieldValues.put(entry.getKey(), value);
+    for (int i = 0; i < keys.length; i++) {
+      Object value = values[i].eval(resolver).value();
+      fieldValues.put(keys[i], value);
     }
 
     return valueProvider.newValue(typeName, Collections.unmodifiableMap(fieldValues))
@@ -35,18 +38,21 @@ final class EvalCreateStruct implements CelValueInterpretable {
   static EvalCreateStruct create(
       CelValueProvider valueProvider,
       String typeName,
-      Map<String, CelValueInterpretable> fields
+      String[] keys,
+      CelValueInterpretable[] values
   ) {
-    return new EvalCreateStruct(valueProvider, typeName, fields);
+    return new EvalCreateStruct(valueProvider, typeName, keys, values);
   }
 
   private EvalCreateStruct(
       CelValueProvider valueProvider,
       String typeName,
-      Map<String, CelValueInterpretable> fields
+      String[] keys,
+      CelValueInterpretable[] values
   ) {
     this.valueProvider = valueProvider;
     this.typeName = typeName;
-    this.fields = fields;
+    this.keys = keys;
+    this.values = values;
   }
 }

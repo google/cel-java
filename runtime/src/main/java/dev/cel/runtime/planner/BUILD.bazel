@@ -17,6 +17,7 @@ java_library(
         ":eval_and",
         ":eval_attribute",
         ":eval_const",
+        ":eval_create_map",
         ":eval_create_struct",
         ":eval_or",
         ":eval_unary",
@@ -203,6 +204,22 @@ java_library(
 java_library(
     name = "eval_create_struct",
     srcs = ["EvalCreateStruct.java"],
+    deps = [
+        ":attribute",
+        ":cel_value_interpretable",
+        "//common/values",
+        "//common/values:cel_value",
+        "//common/values:cel_value_provider",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_create_map",
+    srcs = ["EvalCreateMap.java"],
     deps = [
         ":attribute",
         ":cel_value_interpretable",

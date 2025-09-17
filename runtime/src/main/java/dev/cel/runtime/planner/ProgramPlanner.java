@@ -10,6 +10,7 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
+import dev.cel.common.ast.CelExpr.CelMap;
 import dev.cel.common.ast.CelExpr.CelStruct;
 import dev.cel.common.ast.CelExpr.CelStruct.Entry;
 import dev.cel.common.ast.CelReference;
@@ -24,8 +25,8 @@ import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelLiteRuntime.Program;
 import dev.cel.runtime.DefaultDispatcher;
 
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -54,16 +55,16 @@ public final class ProgramPlanner {
       case LIST:
         break;
       case STRUCT:
-        return planCreateObject(celExpr, ctx);
+        return planCreateStruct(celExpr, ctx);
       case MAP:
-        break;
+        return planCreateMap(celExpr, ctx);
       case COMPREHENSION:
         break;
       case NOT_SET:
         throw new UnsupportedOperationException("Unsupported kind: " + celExpr.getKind());
     }
 
-    throw new IllegalArgumentException("foo");
+    throw new IllegalArgumentException("Not yet implemented");
   }
 
   private CelValueInterpretable planIdent(
@@ -149,20 +150,39 @@ public final class ProgramPlanner {
     }
   }
 
-  private CelValueInterpretable planCreateObject(CelExpr celExpr, PlannerContext ctx) {
+  private CelValueInterpretable planCreateStruct(CelExpr celExpr, PlannerContext ctx) {
     CelStruct struct = celExpr.struct();
-    // TODO: maybe do this via type provider?
+    // TODO: maybe perform the check via type provider?
     valueProvider.newValue(struct.messageName(), new HashMap<>())
         .orElseThrow(() -> new IllegalArgumentException("Undefined type name: " + struct.messageName()));
 
-    HashMap<String, CelValueInterpretable> fieldMap = new HashMap<>();
-    for (Entry entry : struct.entries()) {
-      CelValueInterpretable value = plan(entry.value(), ctx);
-      fieldMap.put(entry.fieldKey(), value);
+    List<Entry> entries = struct.entries();
+    String[] keys = new String[entries.size()];
+    CelValueInterpretable[] values = new CelValueInterpretable[entries.size()];
+
+    for (int i = 0; i < entries.size(); i++) {
+      Entry entry = entries.get(i);
+      keys[i] = entry.fieldKey();
+      values[i] = plan(entry.value(), ctx);
     }
 
-    return EvalCreateStruct.create(valueProvider, struct.messageName(),
-        Collections.unmodifiableMap(fieldMap));
+    return EvalCreateStruct.create(valueProvider, struct.messageName(), keys, values);
+  }
+
+  private CelValueInterpretable planCreateMap(CelExpr celExpr, PlannerContext ctx) {
+    CelMap map = celExpr.map();
+
+    List<CelMap.Entry> entries = map.entries();
+    CelValueInterpretable[] keys = new CelValueInterpretable[entries.size()];
+    CelValueInterpretable[] values = new CelValueInterpretable[entries.size()];
+
+    for (int i = 0; i < entries.size(); i++) {
+      CelMap.Entry entry = entries.get(i);
+      keys[i] = plan(entry.key(), ctx);
+      values[i] = plan(entry.value(), ctx);
+    }
+
+    return EvalCreateMap.create(keys, values);
   }
 
   /**
