@@ -10,6 +10,7 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
+import dev.cel.common.ast.CelExpr.CelList;
 import dev.cel.common.ast.CelExpr.CelMap;
 import dev.cel.common.ast.CelExpr.CelStruct;
 import dev.cel.common.ast.CelExpr.CelStruct.Entry;
@@ -53,7 +54,7 @@ public final class ProgramPlanner {
       case CALL:
         return planCall(celExpr, ctx);
       case LIST:
-        break;
+        return planCreateList(celExpr, ctx);
       case STRUCT:
         return planCreateStruct(celExpr, ctx);
       case MAP:
@@ -167,6 +168,19 @@ public final class ProgramPlanner {
     }
 
     return EvalCreateStruct.create(valueProvider, struct.messageName(), keys, values);
+  }
+
+  private CelValueInterpretable planCreateList(CelExpr celExpr, PlannerContext ctx) {
+    CelList list = celExpr.list();
+
+    List<CelExpr> elements = list.elements();
+    CelValueInterpretable[] values = new CelValueInterpretable[elements.size()];
+
+    for (int i = 0; i < elements.size(); i++) {
+      values[i] = plan(elements.get(i), ctx);
+    }
+
+    return EvalCreateList.create(values);
   }
 
   private CelValueInterpretable planCreateMap(CelExpr celExpr, PlannerContext ctx) {

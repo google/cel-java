@@ -52,6 +52,7 @@ import dev.cel.runtime.standard.IndexOperator;
 import java.nio.charset.StandardCharsets;
 
 import dev.cel.runtime.DefaultDispatcher;
+import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -232,6 +233,17 @@ public final class ProgramPlannerTest {
     Object result = program.eval();
 
     assertThat(result).isEqualTo(TestAllTypes.newBuilder().setSingleString("foo").setSingleBool(true).build());
+  }
+
+  @Test
+  public void planCreateList() throws Exception {
+    CelAbstractSyntaxTree ast = compile("[1, 'foo', true]");
+
+    Program program = PLANNER.plan(ast);
+
+    List<Object> result = (List<Object>) program.eval();
+
+    assertThat(result).containsExactly(1L, "foo", true).inOrder();
   }
 
   @Test
