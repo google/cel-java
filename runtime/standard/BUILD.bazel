@@ -405,3 +405,13 @@ cel_android_library(
     name = "uint_android",
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:uint_android"],
 )
+
+java_library(
+    name = "not_strictly_false",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:not_strictly_false"],
+)
+
+cel_android_library(
+    name = "not_strictly_false_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:not_strictly_false_android"],
+)

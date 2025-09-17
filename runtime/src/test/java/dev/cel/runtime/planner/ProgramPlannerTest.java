@@ -29,6 +29,7 @@ import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelByteString;
 import dev.cel.common.values.CelValueConverter;
@@ -37,7 +38,9 @@ import dev.cel.common.values.ProtoMessageValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
+import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.Operator;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
@@ -47,8 +50,13 @@ import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
 import dev.cel.runtime.standard.CelStandardFunction;
 import dev.cel.runtime.standard.DivideOperator;
+import dev.cel.runtime.standard.EqualsOperator;
+import dev.cel.runtime.standard.GreaterEqualsOperator;
 import dev.cel.runtime.standard.GreaterOperator;
+import dev.cel.runtime.standard.LessOperator;
 import dev.cel.runtime.standard.IndexOperator;
+import dev.cel.runtime.standard.LogicalNotOperator;
+import dev.cel.runtime.standard.NotStrictlyFalseFunction;
 import java.nio.charset.StandardCharsets;
 
 import dev.cel.runtime.DefaultDispatcher;
@@ -63,8 +71,10 @@ public final class ProgramPlannerTest {
   private static final RuntimeEquality RUNTIME_EQUALITY = RuntimeEquality.create(RuntimeHelpers.create(), CEL_OPTIONS);
   private static final CelCompiler CEL_COMPILER =
           CelCompilerFactory.standardCelCompilerBuilder()
+              .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
               .addVar("int_var", SimpleType.INT)
               .addVar("map_var", MapType.create(SimpleType.STRING, SimpleType.DYN))
+              .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
               .addFunctionDeclarations(
                   newFunctionDeclaration("zero", newGlobalOverload("zero_overload", SimpleType.INT)),
                   newFunctionDeclaration("error", newGlobalOverload("error_overload", SimpleType.INT)),
@@ -77,7 +87,7 @@ public final class ProgramPlannerTest {
                       newMemberOverload("bytes_concat_bytes", SimpleType.BYTES, SimpleType.BYTES, SimpleType.BYTES)
                   )
               )
-              .addLibraries(CelOptionalLibrary.INSTANCE)
+              .addLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.comprehensions())
               .addMessageTypes(TestAllTypes.getDescriptor())
               .build();
 
@@ -101,8 +111,15 @@ public final class ProgramPlannerTest {
 
     // Subsetted StdLib
     addBindings(builder, Operator.INDEX.getFunction(), fromStandardFunction(IndexOperator.create()));
+    addBindings(builder, Operator.LOGICAL_NOT.getFunction(), fromStandardFunction(LogicalNotOperator.create()));
     addBindings(builder, Operator.GREATER.getFunction(), fromStandardFunction(GreaterOperator.create()));
+    addBindings(builder, Operator.GREATER_EQUALS.getFunction(), fromStandardFunction(
+        GreaterEqualsOperator.create()));
+    addBindings(builder, Operator.LESS.getFunction(), fromStandardFunction(LessOperator.create()));
     addBindings(builder, Operator.DIVIDE.getFunction(), fromStandardFunction(DivideOperator.create()));
+    addBindings(builder, Operator.EQUALS.getFunction(), fromStandardFunction(EqualsOperator.create()));
+    addBindings(builder, Operator.NOT_STRICTLY_FALSE.getFunction(), fromStandardFunction(
+        NotStrictlyFalseFunction.create()));
 
     // Custom functions
     addBindings(builder, "zero", CelFunctionBinding.from("zero_overload", ImmutableList.of(), args -> 0L));
@@ -402,7 +419,7 @@ public final class ProgramPlannerTest {
   @TestParameters("{expression: 'false && false', expectedResult: false}")
   @TestParameters("{expression: 'false && (1 / 0 > 2)', expectedResult: false}")
   @TestParameters("{expression: '(1 / 0 > 2) && false', expectedResult: false}")
-  public void evaluate_logicalAndShortCircuits_success(String expression, boolean expectedResult) throws Exception {
+  public void planCall_logicalAnd_shortCircuit(String expression, boolean expectedResult) throws Exception {
     CelAbstractSyntaxTree ast = compile(expression);
     Program program = PLANNER.plan(ast);
 
@@ -426,6 +443,31 @@ public final class ProgramPlannerTest {
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.DIVIDE_BY_ZERO);
   }
 
+  @Test
+  public void planSelect() throws Exception {
+    CelAbstractSyntaxTree ast = compile("msg.single_string");
+    Program program = PLANNER.plan(ast);
+
+    String result = (String) program.eval(
+        ImmutableMap.of("msg", TestAllTypes.newBuilder().setSingleString("foo").build())
+    );
+
+    assertThat(result).isEqualTo("foo");
+  }
+
+  @Test
+  @TestParameters("{expression: '[1,2,3].exists(x, x > 0) == true'}")
+  @TestParameters("{expression: '[1,2,3].exists(x, x < 0) == false'}")
+  @TestParameters("{expression: '[1,2,3].exists(i, v, i >= 0 && v > 0) == true'}")
+  @TestParameters("{expression: '[1,2,3].exists(i, v, i < 0 || v < 0) == false'}")
+  public void planComprehension(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = compile(expression);
+    Program program = PLANNER.plan(ast);
+
+    boolean result = (boolean) program.eval();
+
+    assertThat(result).isTrue();
+  }
 
   private CelAbstractSyntaxTree compile(String expression) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.parse(expression).getAst();

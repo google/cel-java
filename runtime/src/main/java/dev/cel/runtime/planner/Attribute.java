@@ -5,6 +5,7 @@ import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.runtime.GlobalResolver;
+import java.util.stream.Collectors;
 
 @Immutable
 interface Attribute {
@@ -22,7 +23,9 @@ interface Attribute {
         }
       }
 
-      throw new IllegalArgumentException("no such attribute(s): %s");
+      throw new IllegalArgumentException(String.format("no such attribute(s): %s", attributes.stream()
+          .map(Attribute::toString)
+          .collect(Collectors.joining(","))));
     }
 
     MaybeAttribute(ImmutableList<Attribute> attributes) {
@@ -49,7 +52,7 @@ interface Attribute {
         }
       }
 
-      throw new IllegalArgumentException("no such attribute(s): %s");
+      throw new IllegalArgumentException(String.format("no such attribute(s): %s", String.join(",", namespacedNames)));
     }
 
     NamespacedAttribute(

@@ -10,6 +10,7 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
+import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.CelList;
 import dev.cel.common.ast.CelExpr.CelMap;
 import dev.cel.common.ast.CelExpr.CelStruct;
@@ -60,7 +61,7 @@ public final class ProgramPlanner {
       case MAP:
         return planCreateMap(celExpr, ctx);
       case COMPREHENSION:
-        break;
+        return planComprehension(celExpr, ctx);
       case NOT_SET:
         throw new UnsupportedOperationException("Unsupported kind: " + celExpr.getKind());
     }
@@ -137,7 +138,7 @@ public final class ProgramPlanner {
     }
 
     if (resolvedOverload == null) {
-      resolvedOverload = dispatcher.findOverload(functionName).orElseThrow(() -> new NoSuchElementException("TODO: Overload not found"));
+      resolvedOverload = dispatcher.findOverload(functionName).orElseThrow(() -> new NoSuchElementException("Overload not found: " + functionName));
     }
 
     switch (argCount) {
@@ -197,6 +198,27 @@ public final class ProgramPlanner {
     }
 
     return EvalCreateMap.create(keys, values);
+  }
+
+  private CelValueInterpretable planComprehension(CelExpr expr, PlannerContext ctx) {
+    CelComprehension comprehension = expr.comprehension();
+
+    CelValueInterpretable accuInit = plan(comprehension.accuInit(), ctx);
+    CelValueInterpretable iterRange = plan(comprehension.iterRange(), ctx);
+    CelValueInterpretable loopCondition = plan(comprehension.loopCondition(), ctx);
+    CelValueInterpretable loopStep = plan(comprehension.loopStep(), ctx);
+    CelValueInterpretable result = plan(comprehension.result(), ctx);
+
+    return EvalFold.create(
+        comprehension.accuVar(),
+        accuInit,
+        comprehension.iterVar(),
+        comprehension.iterVar2(),
+        iterRange,
+        loopCondition,
+        loopStep,
+        result
+    );
   }
 
   /**
