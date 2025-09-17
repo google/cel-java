@@ -207,8 +207,7 @@ public abstract class CelConstant {
 
     throw new IllegalArgumentException("Value is not a CelConstant: " + value);
   }
-   * TODO
-   */
+
   public Object objectValue() {
     switch (getKind()) {
       case NULL_VALUE:
@@ -229,6 +228,4 @@ public abstract class CelConstant {
         throw new IllegalStateException("Unsupported kind: " + getKind());
     }
   }
-
-  /**
 }

@@ -16,8 +16,13 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
+import dev.cel.common.internal.CelDescriptorPool;
+import dev.cel.common.internal.DefaultDescriptorPool;
+import dev.cel.common.internal.DefaultMessageFactory;
+import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.DefaultTypeProvider;
 import dev.cel.common.types.ListType;
@@ -28,11 +33,10 @@ import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelByteString;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.NullValue;
-import dev.cel.common.values.ProtoMessageLiteValueProvider;
+import dev.cel.common.values.ProtoMessageValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
-import dev.cel.expr.conformance.proto3.TestAllTypesCelDescriptor;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.parser.Operator;
 import dev.cel.runtime.CelEvaluationException;
@@ -75,10 +79,13 @@ public final class ProgramPlannerTest {
               .addMessageTypes(TestAllTypes.getDescriptor())
               .build();
 
+  private static final CelDescriptorPool DESCRIPTOR_POOL =
+      DefaultDescriptorPool.create(CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(TestAllTypes.getDescriptor().getFile()));
   private static final ProgramPlanner PLANNER = ProgramPlanner.newPlanner(
       DefaultTypeProvider.create(),
-      ProtoMessageLiteValueProvider.newInstance(
-          TestAllTypesCelDescriptor.getDescriptor()
+      ProtoMessageValueProvider.newInstance(
+          CEL_OPTIONS,
+          DynamicProto.create(DefaultMessageFactory.create(DESCRIPTOR_POOL))
       ),
       new CelValueConverter(),
       newDispatcher()

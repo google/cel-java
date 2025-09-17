@@ -11,6 +11,7 @@ import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelStruct;
+import dev.cel.common.ast.CelExpr.CelStruct.Entry;
 import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelType;
@@ -23,6 +24,7 @@ import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelLiteRuntime.Program;
 import dev.cel.runtime.DefaultDispatcher;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -153,7 +155,14 @@ public final class ProgramPlanner {
     valueProvider.newValue(struct.messageName(), new HashMap<>())
         .orElseThrow(() -> new IllegalArgumentException("Undefined type name: " + struct.messageName()));
 
-    return EvalCreateObject.create(valueProvider, struct.messageName());
+    HashMap<String, CelValueInterpretable> fieldMap = new HashMap<>();
+    for (Entry entry : struct.entries()) {
+      CelValueInterpretable value = plan(entry.value(), ctx);
+      fieldMap.put(entry.fieldKey(), value);
+    }
+
+    return EvalCreateStruct.create(valueProvider, struct.messageName(),
+        Collections.unmodifiableMap(fieldMap));
   }
 
   /**

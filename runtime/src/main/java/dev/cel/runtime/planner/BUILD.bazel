@@ -17,7 +17,7 @@ java_library(
         ":eval_and",
         ":eval_attribute",
         ":eval_const",
-        ":eval_create_object",
+        ":eval_create_struct",
         ":eval_or",
         ":eval_unary",
         ":eval_var_args_call",
@@ -201,8 +201,8 @@ java_library(
 )
 
 java_library(
-    name = "eval_create_object",
-    srcs = ["EvalCreateObject.java"],
+    name = "eval_create_struct",
+    srcs = ["EvalCreateStruct.java"],
     deps = [
         ":attribute",
         ":cel_value_interpretable",
