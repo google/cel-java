@@ -233,6 +233,8 @@ final class JUnitXmlReporter {
             XmlConstants.ATTR_INTERESTING_UNENCOUNTERED_BRANCH_PATHS,
             String.join("\n", coverageReport.unencounteredBranches()));
       }
+      currentSuite.setAttribute(
+          XmlConstants.ATTR_CEL_TEST_COVERAGE_GRAPH_URL, coverageReport.graphUrl());
     }
   }
 
@@ -284,5 +286,6 @@ final class JUnitXmlReporter {
     static final String ATTR_AST_BRANCH_COVERAGE = "Ast_Branch_Coverage";
     static final String ATTR_INTERESTING_UNENCOUNTERED_BRANCH_PATHS =
         "Interesting_Unencountered_Branch_Paths";
+    static final String ATTR_CEL_TEST_COVERAGE_GRAPH_URL = "Cel_Test_Coverage_Graph_URL";
   }
 }

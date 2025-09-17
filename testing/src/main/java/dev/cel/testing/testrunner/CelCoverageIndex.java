@@ -14,6 +14,7 @@
 package dev.cel.testing.testrunner;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
@@ -27,6 +28,8 @@ import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.types.CelKind;
 import dev.cel.parser.CelUnparserVisitor;
 import dev.cel.runtime.CelEvaluationListener;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,6 +45,13 @@ import java.util.logging.Logger;
 final class CelCoverageIndex {
 
   private static final Logger logger = Logger.getLogger(CelCoverageIndex.class.getName());
+
+  private static final String DIGRAPH_HEADER = "digraph {\n";
+  private static final String UNCOVERED_NODE_STYLE = "color=\"indianred2\", style=filled";
+  private static final String PARTIALLY_COVERED_NODE_STYLE = "color=\"lightyellow\","
+      + "style=filled";
+  private static final String COMPLETELY_COVERED_NODE_STYLE = "color=\"lightgreen\","
+  + "style=filled";
 
   private CelAbstractSyntaxTree ast;
   private final ConcurrentHashMap<Long, NodeCoverageStats> nodeCoverageStatsMap =
@@ -68,24 +78,6 @@ final class CelCoverageIndex {
     return new EvaluationListener(nodeCoverageStatsMap);
   }
 
-  /** Returns the coverage report for the CEL test suite. */
-  public CoverageReport generateCoverageReport() {
-    CoverageReport.Builder reportBuilder =
-        CoverageReport.builder().setCelExpression(new CelUnparserVisitor(ast).unparse());
-    traverseAndCalculateCoverage(
-        CelNavigableAst.fromAst(ast).getRoot(), nodeCoverageStatsMap, true, "", reportBuilder);
-    CoverageReport report = reportBuilder.build();
-    logger.info("CEL Expression: " + report.celExpression());
-    logger.info("Nodes: " + report.nodes());
-    logger.info("Covered Nodes: " + report.coveredNodes());
-    logger.info("Branches: " + report.branches());
-    logger.info("Covered Boolean Outcomes: " + report.coveredBooleanOutcomes());
-    logger.info("Unencountered Nodes: \n" + String.join("\n", report.unencounteredNodes()));
-    logger.info("Unencountered Branches: \n" + String.join("\n",
-    report.unencounteredBranches()));
-    return report;
-  }
-
   /** A class for managing the coverage report for a CEL test suite. */
   @AutoValue
   public abstract static class CoverageReport {
@@ -103,12 +95,19 @@ final class CelCoverageIndex {
 
     public abstract ImmutableList<String> unencounteredBranches();
 
+    public abstract String dotGraph();
+
+    // Currently only supported inside google3.
+    public abstract String graphUrl();
+
     public static Builder builder() {
       return new AutoValue_CelCoverageIndex_CoverageReport.Builder()
           .setNodes(0L)
           .setCoveredNodes(0L)
           .setBranches(0L)
           .setCelExpression("")
+          .setDotGraph("")
+          .setGraphUrl("")
           .setCoveredBooleanOutcomes(0L);
     }
 
@@ -133,6 +132,10 @@ final class CelCoverageIndex {
 
       public abstract Builder setCoveredBooleanOutcomes(long value);
 
+      public abstract Builder setDotGraph(String value);
+
+      public abstract Builder setGraphUrl(String value);
+
       public abstract ImmutableList.Builder<String> unencounteredNodesBuilder();
 
       public abstract ImmutableList.Builder<String> unencounteredBranchesBuilder();
@@ -151,6 +154,33 @@ final class CelCoverageIndex {
 
       public abstract CoverageReport build();
     }
+  }
+
+  /** Returns the coverage report for the CEL test suite. */
+  public CoverageReport generateCoverageReport() {
+    CoverageReport.Builder reportBuilder =
+        CoverageReport.builder().setCelExpression(new CelUnparserVisitor(ast).unparse());
+    StringBuilder dotGraphBuilder = new StringBuilder(DIGRAPH_HEADER);
+    traverseAndCalculateCoverage(
+        CelNavigableAst.fromAst(ast).getRoot(),
+        nodeCoverageStatsMap,
+        true,
+        "",
+        reportBuilder,
+        dotGraphBuilder);
+    dotGraphBuilder.append("}");
+    String dotGraph = dotGraphBuilder.toString();
+    CoverageReport report = reportBuilder.setDotGraph(dotGraph).build();
+    logger.info("CEL Expression: " + report.celExpression());
+    logger.info("Nodes: " + report.nodes());
+    logger.info("Covered Nodes: " + report.coveredNodes());
+    logger.info("Branches: " + report.branches());
+    logger.info("Covered Boolean Outcomes: " + report.coveredBooleanOutcomes());
+    logger.info("Unencountered Nodes: \n" + String.join("\n", report.unencounteredNodes()));
+    logger.info("Unencountered Branches: \n" + String.join("\n",
+    report.unencounteredBranches()));
+    logger.info("Dot Graph: " + report.dotGraph());
+    return report;
   }
 
   /** A class for managing the coverage stats for a CEL node. */
@@ -172,19 +202,32 @@ final class CelCoverageIndex {
       Map<Long, NodeCoverageStats> statsMap,
       boolean logUnencountered,
       String precedingTabs,
-      CoverageReport.Builder reportBuilder) {
+      CoverageReport.Builder reportBuilder,
+      StringBuilder dotGraphBuilder) {
     long nodeId = node.id();
     NodeCoverageStats stats = statsMap.getOrDefault(nodeId, new NodeCoverageStats());
     reportBuilder.setNodes(reportBuilder.nodes() + 1);
 
     boolean isInterestingBooleanNode = isInterestingBooleanNode(node, stats);
 
-    // Only unparse if the node is interesting (boolean node) and we need to log
-    // unencountered nodes.
-    String exprText = "";
-    if (isInterestingBooleanNode && logUnencountered) {
-      exprText = new CelUnparserVisitor(ast).unparse(node.expr());
+    String exprText = new CelUnparserVisitor(ast).unparse(node.expr());
+    String nodeCoverageStyle = UNCOVERED_NODE_STYLE;
+    if (stats.covered.get()) {
+      if (isInterestingBooleanNode) {
+        if (stats.hasTrueBranch.get() && stats.hasFalseBranch.get()) {
+          nodeCoverageStyle = COMPLETELY_COVERED_NODE_STYLE;
+        } else {
+          nodeCoverageStyle = PARTIALLY_COVERED_NODE_STYLE;
+        }
+      } else {
+        nodeCoverageStyle = COMPLETELY_COVERED_NODE_STYLE;
+      }
     }
+    String escapedExprText = escapeSpecialCharacters(exprText);
+    dotGraphBuilder.append(
+        String.format(
+            "%d [shape=record, %s, label=\"{<1> exprID: %d | <2> %s} | <3> %s\"];\n",
+            nodeId, nodeCoverageStyle, nodeId, kindToString(node), escapedExprText));
 
     // Update coverage for the current node and determine if we should continue logging
     // unencountered.
@@ -199,7 +242,9 @@ final class CelCoverageIndex {
     }
 
     for (CelNavigableExpr child : node.children().collect(toImmutableList())) {
-      traverseAndCalculateCoverage(child, statsMap, logUnencountered, precedingTabs, reportBuilder);
+      dotGraphBuilder.append(String.format("%d -> %d;\n", nodeId, child.id()));
+      traverseAndCalculateCoverage(
+          child, statsMap, logUnencountered, precedingTabs, reportBuilder, dotGraphBuilder);
     }
   }
 
@@ -292,5 +337,59 @@ final class CelCoverageIndex {
         }
       }
     }
+  }
+
+  private String kindToString(CelNavigableExpr node) {
+    if (node.parent().isPresent()
+        && node.parent().get().expr().getKind().equals(ExprKind.Kind.COMPREHENSION)) {
+      CelExpr.CelComprehension comp = node.parent().get().expr().comprehension();
+      if (node.id() == comp.iterRange().id()) {
+        return "IterRange";
+      }
+      if (node.id() == comp.accuInit().id()) {
+        return "AccuInit";
+      }
+      if (node.id() == comp.loopCondition().id()) {
+        return "LoopCondition";
+      }
+      if (node.id() == comp.loopStep().id()) {
+        return "LoopStep";
+      }
+      if (node.id() == comp.result().id()) {
+        return "Result";
+      }
+    }
+
+    switch (node.getKind()) {
+      case CALL:
+        return "Call Node";
+      case COMPREHENSION:
+        return "Comprehension Node";
+      case IDENT:
+        return "Ident Node";
+      case LIST:
+        return "List Node";
+      case CONSTANT:
+        return "Literal Node";
+      case MAP:
+        return "Map Node";
+      case SELECT:
+        return "Select Node";
+      case STRUCT:
+        return "Struct Node";
+      default:
+        return "Unspecified Node";
+    }
+  }
+
+  private String escapeSpecialCharacters(String exprText) {
+    return exprText
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("||", " \\| \\| ")
+        .replace("<", "\\<")
+        .replace(">", "\\>")
+        .replace("{", "\\{")
+        .replace("}", "\\}");
   }
 }

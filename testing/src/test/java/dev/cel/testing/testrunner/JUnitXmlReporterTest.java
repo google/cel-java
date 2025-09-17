@@ -178,6 +178,7 @@ public class JUnitXmlReporterTest {
             .addUnencounteredNodes("Node 2")
             .addUnencounteredBranches("Branch 1")
             .addUnencounteredBranches("Branch 2")
+            .setGraphUrl("http://graphviz/url")
             .build();
 
     when(context.getSuiteName()).thenReturn(SUITE_NAME);
@@ -202,6 +203,7 @@ public class JUnitXmlReporterTest {
                 + " name=\"TestSuiteName\" tests=\"1\" time=\"0.9\"><testsuite"
                 + " Ast_Branch_Coverage=\"50.00% (5 out of 10 branch outcomes covered)\""
                 + " Ast_Node_Coverage=\"100.00% (10 out of 10 nodes covered)\" Cel_Expr=\"\""
+                + " Cel_Test_Coverage_Graph_URL=\"http://graphviz/url\""
                 + " Interesting_Unencountered_Branch_Paths=\"Branch 1&#10;Branch 2\""
                 + " Interesting_Unencountered_Nodes=\"Node 1&#10;Node 2\" errors=\"0\""
                 + " failures=\"0\" name=\"TestClass1\" tests=\"1\" time=\"0.4\"><testcase"
