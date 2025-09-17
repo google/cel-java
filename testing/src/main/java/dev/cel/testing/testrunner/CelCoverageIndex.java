@@ -18,6 +18,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -28,6 +29,8 @@ import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.types.CelKind;
 import dev.cel.parser.CelUnparserVisitor;
 import dev.cel.runtime.CelEvaluationListener;
+import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Map;
@@ -170,6 +173,7 @@ final class CelCoverageIndex {
         dotGraphBuilder);
     dotGraphBuilder.append("}");
     String dotGraph = dotGraphBuilder.toString();
+
     CoverageReport report = reportBuilder.setDotGraph(dotGraph).build();
     logger.info("CEL Expression: " + report.celExpression());
     logger.info("Nodes: " + report.nodes());
@@ -180,6 +184,8 @@ final class CelCoverageIndex {
     logger.info("Unencountered Branches: \n" + String.join("\n",
     report.unencounteredBranches()));
     logger.info("Dot Graph: " + report.dotGraph());
+
+    writeDotGraphToArtifact(dotGraph);
     return report;
   }
 
@@ -391,5 +397,22 @@ final class CelCoverageIndex {
         .replace(">", "\\>")
         .replace("{", "\\{")
         .replace("}", "\\}");
+  }
+
+  private void writeDotGraphToArtifact(String dotGraph) {
+    String testOutputsDir = System.getenv("TEST_UNDECLARED_OUTPUTS_DIR");
+    if (testOutputsDir == null) {
+      // Only for non-bazel/blaze users, we write to a subdirectory under the cwd.
+      testOutputsDir = "cel_artifacts";
+    }
+    File outputDir = new File(testOutputsDir, "cel_test_coverage");
+    if (!outputDir.exists()) {
+      outputDir.mkdirs();
+    }
+    try {
+      Files.asCharSink(new File(outputDir, "coverage_graph.txt"), UTF_8).write(dotGraph);
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
   }
 }

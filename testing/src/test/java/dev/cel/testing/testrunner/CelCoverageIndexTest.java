@@ -14,8 +14,10 @@
 package dev.cel.testing.testrunner;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -27,6 +29,7 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationListener;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.testing.testrunner.CelCoverageIndex.CoverageReport;
+import java.io.File;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -124,5 +127,33 @@ public final class CelCoverageIndexTest {
     assertThat(report.dotGraph())
         .contains("label=\"{<1> exprID: 16 | <2> LoopStep} | <3> @result && i % 2 != 0\"");
     assertThat(report.dotGraph()).contains("label=\"{<1> exprID: 17 | <2> Result} | <3> @result\"");
+  }
+
+  @Test
+  public void getCoverageReport_fullCoverage_writesToUndeclaredOutputs() throws Exception {
+    // Setup for a more complex graph to write.
+    cel = CelFactory.standardCelBuilder().build();
+    CelCompiler compiler =
+        cel.toCompilerBuilder()
+            .setOptions(CelOptions.newBuilder().populateMacroCalls(true).build())
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .addLibraries(CelExtensions.comprehensions())
+            .build();
+    ast = compiler.compile("[1, 2, 3].all(i, i % 2 != 0)").getAst();
+    program = cel.createProgram(ast);
+    CelCoverageIndex coverageIndex = new CelCoverageIndex();
+    coverageIndex.init(ast);
+    CelEvaluationListener listener = coverageIndex.newEvaluationListener();
+    program.trace(ImmutableMap.of(), listener);
+
+    CoverageReport report = coverageIndex.generateCoverageReport();
+
+    String undeclaredOutputsDir = System.getenv("TEST_UNDECLARED_OUTPUTS_DIR");
+    assertThat(undeclaredOutputsDir).isNotNull();
+
+    File outputFile = new File(undeclaredOutputsDir, "cel_test_coverage/coverage_graph.txt");
+
+    String fileContent = Files.asCharSource(outputFile, UTF_8).read();
+    assertThat(fileContent).isEqualTo(report.dotGraph());
   }
 }
