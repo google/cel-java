@@ -77,7 +77,6 @@ import dev.cel.common.CelValidationResult;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelList;
-import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.testing.RepeatedTestProvider;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelProtoMessageTypes;
@@ -114,6 +113,7 @@ import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.CelVariableResolver;
 import dev.cel.runtime.UnknownContext;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -817,6 +817,7 @@ public final class CelImplTest {
   public void program_duplicateTypeDescriptor() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
+            .setOptions(CelOptions.current().evaluateCanonicalTypesToNativeValues(true).build())
             .addMessageTypes(Timestamp.getDescriptor())
             .addMessageTypes(ImmutableList.of(Timestamp.getDescriptor()))
             .setContainer(CelContainer.ofName("google"))
@@ -824,20 +825,22 @@ public final class CelImplTest {
             .build();
     CelRuntime.Program program =
         cel.createProgram(cel.compile("protobuf.Timestamp{seconds: 12}").getAst());
-    assertThat(program.eval()).isEqualTo(ProtoTimeUtils.fromSecondsToTimestamp(12));
+
+    assertThat(program.eval()).isEqualTo(Instant.ofEpochSecond(12));
   }
 
   @Test
   public void program_hermeticDescriptors_wellKnownProtobuf() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
+            .setOptions(CelOptions.current().evaluateCanonicalTypesToNativeValues(true).build())
             .addMessageTypes(Timestamp.getDescriptor())
             .setContainer(CelContainer.ofName("google"))
             .setResultType(SimpleType.TIMESTAMP)
             .build();
     CelRuntime.Program program =
         cel.createProgram(cel.compile("protobuf.Timestamp{seconds: 12}").getAst());
-    assertThat(program.eval()).isEqualTo(ProtoTimeUtils.fromSecondsToTimestamp(12));
+    assertThat(program.eval()).isEqualTo(Instant.ofEpochSecond(12));
   }
 
   @Test
@@ -959,6 +962,7 @@ public final class CelImplTest {
   public void program_typeProvider() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
+            .setOptions(CelOptions.current().evaluateCanonicalTypesToNativeValues(true).build())
             .setTypeProvider(
                 new DescriptorTypeProvider(ImmutableList.of(Timestamp.getDescriptor())))
             .setContainer(CelContainer.ofName("google"))
@@ -966,7 +970,7 @@ public final class CelImplTest {
             .build();
     CelRuntime.Program program =
         cel.createProgram(cel.compile("protobuf.Timestamp{seconds: 12}").getAst());
-    assertThat(program.eval()).isEqualTo(ProtoTimeUtils.fromSecondsToTimestamp(12));
+    assertThat(program.eval()).isEqualTo(Instant.ofEpochSecond(12));
   }
 
   @Test

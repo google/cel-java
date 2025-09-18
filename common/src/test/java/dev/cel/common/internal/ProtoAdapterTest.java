@@ -41,6 +41,7 @@ import com.google.protobuf.Value;
 import com.google.type.Expr;
 import dev.cel.common.CelOptions;
 import dev.cel.common.values.CelByteString;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -88,11 +89,10 @@ public final class ProtoAdapterTest {
             {1.5D, Any.pack(DoubleValue.of(1.5D))},
             {1.5D, Value.newBuilder().setNumberValue(1.5D).build()},
             {
-              Duration.newBuilder().setSeconds(123).build(),
-              Duration.newBuilder().setSeconds(123).build(),
+              java.time.Duration.ofSeconds(123), Duration.newBuilder().setSeconds(123).build(),
             },
             {
-              Duration.newBuilder().setSeconds(123).build(),
+              java.time.Duration.ofSeconds(123),
               Any.pack(Duration.newBuilder().setSeconds(123).build()),
             },
             {1L, Int64Value.of(1L)},
@@ -132,12 +132,10 @@ public final class ProtoAdapterTest {
                   .build(),
             },
             {
-              Timestamp.newBuilder().setSeconds(123).build(),
-              Timestamp.newBuilder().setSeconds(123).build(),
+              Instant.ofEpochSecond(123), Timestamp.newBuilder().setSeconds(123).build(),
             },
             {
-              Timestamp.newBuilder().setSeconds(123).build(),
-              Any.pack(Timestamp.newBuilder().setSeconds(123).build()),
+              Instant.ofEpochSecond(123), Any.pack(Timestamp.newBuilder().setSeconds(123).build()),
             },
             {UnsignedLong.valueOf(1L), UInt64Value.of(1L)},
             {UnsignedLong.valueOf(1L), Any.pack(UInt64Value.of(1L))},
@@ -152,7 +150,10 @@ public final class ProtoAdapterTest {
     @Test
     public void adaptValueToProto_bidirectionalConversion() {
       DynamicProto dynamicProto = DynamicProto.create(DefaultMessageFactory.INSTANCE);
-      ProtoAdapter protoAdapter = new ProtoAdapter(dynamicProto, CelOptions.DEFAULT);
+      ProtoAdapter protoAdapter =
+          new ProtoAdapter(
+              dynamicProto,
+              CelOptions.current().evaluateCanonicalTypesToNativeValues(true).build());
       assertThat(protoAdapter.adaptValueToProto(value, proto.getDescriptorForType().getFullName()))
           .isEqualTo(proto);
       assertThat(protoAdapter.adaptProtoToValue(proto)).isEqualTo(value);

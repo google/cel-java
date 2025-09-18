@@ -43,8 +43,8 @@ public final class Exercise8Test {
     assertThat(validationResult.hasError()).isTrue();
     assertThat(validationResult.getErrorString())
         .isEqualTo(
-            "ERROR: <input>:1:11: timestamp validation failed. Reason: evaluation error: Failed to"
-                + " parse timestamp: invalid timestamp \"bad\"\n"
+            "ERROR: <input>:1:11: timestamp validation failed. Reason: evaluation error: Text 'bad'"
+                + " could not be parsed at index 0\n"
                 + " | timestamp('bad')\n"
                 + " | ..........^");
   }
