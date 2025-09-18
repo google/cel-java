@@ -20,7 +20,6 @@ import static dev.cel.common.CelOverloadDecl.newGlobalOverload;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.protobuf.Timestamp;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
@@ -36,6 +35,7 @@ import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.validator.CelValidator;
 import dev.cel.validator.CelValidatorFactory;
 import java.text.ParseException;
+import java.time.Instant;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -63,7 +63,7 @@ public class TimestampLiteralValidatorTest {
 
     assertThat(result.hasError()).isFalse();
     assertThat(result.getAllIssues()).isEmpty();
-    assertThat(CEL.createProgram(ast).eval()).isInstanceOf(Timestamp.class);
+    assertThat(CEL.createProgram(ast).eval()).isInstanceOf(Instant.class);
   }
 
   @Test
@@ -100,8 +100,7 @@ public class TimestampLiteralValidatorTest {
             () -> CEL.createProgram(ast).eval(ImmutableMap.of("str_var", "bad")));
     assertThat(e)
         .hasMessageThat()
-        .contains(
-            "evaluation error at <input>:9: Failed to parse timestamp: invalid timestamp \"bad\"");
+        .contains("evaluation error at <input>:9: Text 'bad' could not be parsed at index 0");
   }
 
   @Test
@@ -153,8 +152,8 @@ public class TimestampLiteralValidatorTest {
     assertThat(result.getAllIssues().get(0).getSeverity()).isEqualTo(Severity.ERROR);
     assertThat(result.getAllIssues().get(0).toDisplayString(ast.getSource()))
         .isEqualTo(
-            "ERROR: <input>:1:11: timestamp validation failed. Reason: evaluation error: Failed to"
-                + " parse timestamp: invalid timestamp \"bad\"\n"
+            "ERROR: <input>:1:11: timestamp validation failed. Reason: evaluation error: Text 'bad'"
+                + " could not be parsed at index 0\n"
                 + " | timestamp('bad')\n"
                 + " | ..........^");
   }
@@ -185,7 +184,7 @@ public class TimestampLiteralValidatorTest {
     assertThat(result.getAllIssues().get(0).toDisplayString(ast.getSource()))
         .isEqualTo(
             "ERROR: <input>:1:11: timestamp validation failed. Reason: Expected"
-                + " com.google.protobuf.Timestamp type but got java.lang.Integer instead\n"
+                + " java.time.Instant type but got java.lang.Integer instead\n"
                 + " | timestamp(0)\n"
                 + " | ..........^");
   }
