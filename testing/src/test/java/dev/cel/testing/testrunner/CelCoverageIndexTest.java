@@ -14,8 +14,10 @@
 package dev.cel.testing.testrunner;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -27,7 +29,7 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationListener;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.testing.testrunner.CelCoverageIndex.CoverageReport;
-import org.junit.Before;
+import java.io.File;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -35,23 +37,15 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public final class CelCoverageIndexTest {
 
-  private Cel cel;
-  private CelAbstractSyntaxTree ast;
-  private CelRuntime.Program program;
-
-  @Before
-  public void setUp() throws Exception {
-    cel =
+  @Test
+  public void getCoverageReport_fullCoverage() throws Exception {
+    Cel cel =
         CelFactory.standardCelBuilder()
             .addVar("x", SimpleType.INT)
             .addVar("y", SimpleType.INT)
             .build();
-    ast = cel.compile("x > 1 && y > 1").getAst();
-    program = cel.createProgram(ast);
-  }
-
-  @Test
-  public void getCoverageReport_fullCoverage() throws Exception {
+    CelAbstractSyntaxTree ast = cel.compile("x > 1 && y > 1").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
     CelCoverageIndex coverageIndex = new CelCoverageIndex();
     coverageIndex.init(ast);
     CelEvaluationListener listener = coverageIndex.newEvaluationListener();
@@ -74,6 +68,13 @@ public final class CelCoverageIndexTest {
 
   @Test
   public void getCoverageReport_partialCoverage_shortCircuit() throws Exception {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .addVar("x", SimpleType.INT)
+            .addVar("y", SimpleType.INT)
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("x > 1 && y > 1").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
     CelCoverageIndex coverageIndex = new CelCoverageIndex();
     coverageIndex.init(ast);
     CelEvaluationListener listener = coverageIndex.newEvaluationListener();
@@ -97,15 +98,15 @@ public final class CelCoverageIndexTest {
 
   @Test
   public void getCoverageReport_comprehension_generatesDotGraph() throws Exception {
-    cel = CelFactory.standardCelBuilder().build();
+    Cel cel = CelFactory.standardCelBuilder().build();
     CelCompiler compiler =
         cel.toCompilerBuilder()
             .setOptions(CelOptions.newBuilder().populateMacroCalls(true).build())
             .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
             .addLibraries(CelExtensions.comprehensions())
             .build();
-    ast = compiler.compile("[1, 2, 3].all(i, i % 2 != 0)").getAst();
-    program = cel.createProgram(ast);
+    CelAbstractSyntaxTree ast = compiler.compile("[1, 2, 3].all(i, i % 2 != 0)").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
     CelCoverageIndex coverageIndex = new CelCoverageIndex();
     coverageIndex.init(ast);
     CelEvaluationListener listener = coverageIndex.newEvaluationListener();
@@ -124,5 +125,33 @@ public final class CelCoverageIndexTest {
     assertThat(report.dotGraph())
         .contains("label=\"{<1> exprID: 16 | <2> LoopStep} | <3> @result && i % 2 != 0\"");
     assertThat(report.dotGraph()).contains("label=\"{<1> exprID: 17 | <2> Result} | <3> @result\"");
+  }
+
+  @Test
+  public void getCoverageReport_fullCoverage_writesToUndeclaredOutputs() throws Exception {
+    // Setup for a more complex graph to write.
+    Cel cel = CelFactory.standardCelBuilder().build();
+    CelCompiler compiler =
+        cel.toCompilerBuilder()
+            .setOptions(CelOptions.newBuilder().populateMacroCalls(true).build())
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .addLibraries(CelExtensions.comprehensions())
+            .build();
+    CelAbstractSyntaxTree ast = compiler.compile("[1, 2, 3].all(i, i % 2 != 0)").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
+    CelCoverageIndex coverageIndex = new CelCoverageIndex();
+    coverageIndex.init(ast);
+    CelEvaluationListener listener = coverageIndex.newEvaluationListener();
+    program.trace(ImmutableMap.of(), listener);
+
+    CoverageReport report = coverageIndex.generateCoverageReport();
+
+    String undeclaredOutputsDir = System.getenv("TEST_UNDECLARED_OUTPUTS_DIR");
+    assertThat(undeclaredOutputsDir).isNotNull();
+
+    File outputFile = new File(undeclaredOutputsDir, "cel_test_coverage/coverage_graph.txt");
+
+    String fileContent = Files.asCharSource(outputFile, UTF_8).read();
+    assertThat(fileContent).isEqualTo(report.dotGraph());
   }
 }
