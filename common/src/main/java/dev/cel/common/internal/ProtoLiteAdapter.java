@@ -43,10 +43,12 @@ import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
 import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoJsonAdapter;
 import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.values.CelByteString;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -63,7 +65,7 @@ import java.util.Map.Entry;
 @Immutable
 public final class ProtoLiteAdapter {
 
-  private final boolean enableUnsignedLongs;
+  private final CelOptions celOptions;
 
   @SuppressWarnings("unchecked")
   public MessageLite adaptValueToWellKnownProto(Object value, WellKnownProto wellKnownProto) {
@@ -94,9 +96,9 @@ public final class ProtoLiteAdapter {
       case UINT64_VALUE:
         return adaptValueToUint64(value);
       case DURATION:
-        return (Duration) value;
+        return adaptValueToProtoDuration(value);
       case TIMESTAMP:
-        return (Timestamp) value;
+        return adaptValueToProtoTimestamp(value);
       case EMPTY:
       case FIELD_MASK:
         // These two WKTs are typically used in context of JSON conversions, in which they are
@@ -114,7 +116,6 @@ public final class ProtoLiteAdapter {
       return packAnyMessage((MessageLite) value, typeName);
     }
 
-    // if (value instanceof NullValue) {
     if (value instanceof dev.cel.common.values.NullValue) {
       return packAnyMessage(
           Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build(), WellKnownProto.JSON_VALUE);
@@ -140,6 +141,10 @@ public final class ProtoLiteAdapter {
       wellKnownProto = WellKnownProto.JSON_LIST_VALUE;
     } else if (value instanceof Map) {
       wellKnownProto = WellKnownProto.JSON_STRUCT_VALUE;
+    } else if (value instanceof Instant) {
+      wellKnownProto = WellKnownProto.TIMESTAMP;
+    } else if (value instanceof java.time.Duration) {
+      wellKnownProto = WellKnownProto.DURATION;
     } else {
       throw new IllegalArgumentException("Unsupported value conversion to any: " + value);
     }
@@ -175,16 +180,26 @@ public final class ProtoLiteAdapter {
       case STRING_VALUE:
         return ((StringValue) proto).getValue();
       case UINT32_VALUE:
-        if (enableUnsignedLongs) {
+        if (celOptions.enableUnsignedLongs()) {
           return UnsignedLong.fromLongBits(
               Integer.toUnsignedLong(((UInt32Value) proto).getValue()));
         }
         return (long) ((UInt32Value) proto).getValue();
       case UINT64_VALUE:
-        if (enableUnsignedLongs) {
+        if (celOptions.enableUnsignedLongs()) {
           return UnsignedLong.fromLongBits(((UInt64Value) proto).getValue());
         }
         return ((UInt64Value) proto).getValue();
+      case TIMESTAMP:
+        if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+          return ProtoTimeUtils.toJavaInstant((Timestamp) proto);
+        }
+        return proto;
+      case DURATION:
+        if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+          return ProtoTimeUtils.toJavaDuration((Duration) proto);
+        }
+        return proto;
       default:
         return proto;
     }
@@ -324,7 +339,23 @@ public final class ProtoLiteAdapter {
         .build();
   }
 
-  public ProtoLiteAdapter(boolean enableUnsignedLongs) {
-    this.enableUnsignedLongs = enableUnsignedLongs;
+  private Timestamp adaptValueToProtoTimestamp(Object value) {
+    if (!celOptions.evaluateCanonicalTypesToNativeValues()) {
+      return (Timestamp) value;
+    }
+
+    return ProtoTimeUtils.toProtoTimestamp((Instant) value);
+  }
+
+  private Duration adaptValueToProtoDuration(Object value) {
+    if (!celOptions.evaluateCanonicalTypesToNativeValues()) {
+      return (Duration) value;
+    }
+
+    return ProtoTimeUtils.toProtoDuration((java.time.Duration) value);
+  }
+
+  public ProtoLiteAdapter(CelOptions celOptions) {
+    this.celOptions = celOptions;
   }
 }

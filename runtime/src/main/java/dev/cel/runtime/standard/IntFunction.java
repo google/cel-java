@@ -24,6 +24,7 @@ import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
+import java.time.Instant;
 import java.util.Arrays;
 
 /** Standard function for {@code int} conversion function. */
@@ -104,9 +105,15 @@ public final class IntFunction extends CelStandardFunction {
                   }
                 })),
     TIMESTAMP_TO_INT64(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
-                "timestamp_to_int64", Timestamp.class, ProtoTimeUtils::toSeconds)),
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "timestamp_to_int64", Instant.class, Instant::getEpochSecond);
+          } else {
+            return CelFunctionBinding.from(
+                "timestamp_to_int64", Timestamp.class, ProtoTimeUtils::toSeconds);
+          }
+        }),
     ;
 
     private final FunctionBindingCreator bindingCreator;

@@ -31,6 +31,7 @@ import com.google.protobuf.TypeRegistry;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
 import dev.cel.common.internal.DefaultInstanceMessageFactory;
+import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
@@ -41,6 +42,8 @@ import dev.cel.common.values.CelByteString;
 import dev.cel.runtime.CelUnknownSet;
 import dev.cel.testing.testrunner.RegistryUtils;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -252,6 +255,19 @@ public final class ExprValueUtils {
       }
       return Value.newBuilder().setMapValue(builder.build()).build();
     }
+
+    if (object instanceof Instant) {
+      return Value.newBuilder()
+          .setObjectValue(Any.pack(ProtoTimeUtils.toProtoTimestamp((Instant) object)))
+          .build();
+    }
+
+    if (object instanceof Duration) {
+      return Value.newBuilder()
+          .setObjectValue(Any.pack(ProtoTimeUtils.toProtoDuration((Duration) object)))
+          .build();
+    }
+
     if (object instanceof Message) {
       return Value.newBuilder().setObjectValue(Any.pack((Message) object)).build();
     }

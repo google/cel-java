@@ -3,9 +3,7 @@ declare d1 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d1=seconds: 93541
-nanos: 11000000
-}
+bindings: {d1=PT25H59M1.011S}
 result:   25
 
 Source: d1.getHours()
@@ -13,9 +11,7 @@ declare d1 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d1=seconds: -93541
-nanos: -11000000
-}
+bindings: {d1=PT-25H-59M-1.011S}
 result:   -25
 
 Source: d1.getMinutes()
@@ -23,9 +19,7 @@ declare d1 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d1=seconds: 93541
-nanos: 11000000
-}
+bindings: {d1=PT25H59M1.011S}
 result:   1559
 
 Source: d1.getMinutes()
@@ -33,9 +27,7 @@ declare d1 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d1=seconds: -93541
-nanos: -11000000
-}
+bindings: {d1=PT-25H-59M-1.011S}
 result:   -1559
 
 Source: d1.getSeconds()
@@ -43,9 +35,7 @@ declare d1 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d1=seconds: 93541
-nanos: 11000000
-}
+bindings: {d1=PT25H59M1.011S}
 result:   93541
 
 Source: d1.getSeconds()
@@ -53,9 +43,7 @@ declare d1 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d1=seconds: -93541
-nanos: -11000000
-}
+bindings: {d1=PT-25H-59M-1.011S}
 result:   -93541
 
 Source: d1.getMilliseconds()
@@ -63,9 +51,7 @@ declare d1 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d1=seconds: 93541
-nanos: 11000000
-}
+bindings: {d1=PT25H59M1.011S}
 result:   11
 
 Source: d1.getMilliseconds()
@@ -73,9 +59,7 @@ declare d1 {
   value google.protobuf.Duration
 }
 =====>
-bindings: {d1=seconds: -93541
-nanos: -11000000
-}
+bindings: {d1=PT-25H-59M-1.011S}
 result:   -11
 
 Source: d1.getHours() < val
@@ -86,9 +70,7 @@ declare val {
   value int
 }
 =====>
-bindings: {val=30} +> {d1=seconds: 93541
-nanos: 11000000
-}
+bindings: {val=30} +> {d1=PT25H59M1.011S}
 result:   true
 
 Source: d1.getMinutes() > val
@@ -99,9 +81,7 @@ declare val {
   value int
 }
 =====>
-bindings: {val=30} +> {d1=seconds: 93541
-nanos: 11000000
-}
+bindings: {val=30} +> {d1=PT25H59M1.011S}
 result:   true
 
 Source: d1.getSeconds() > val
@@ -112,9 +92,7 @@ declare val {
   value int
 }
 =====>
-bindings: {val=30} +> {d1=seconds: 93541
-nanos: 11000000
-}
+bindings: {val=30} +> {d1=PT25H59M1.011S}
 result:   true
 
 Source: d1.getMilliseconds() < val
@@ -125,7 +103,5 @@ declare val {
   value int
 }
 =====>
-bindings: {val=30} +> {d1=seconds: 93541
-nanos: 11000000
-}
+bindings: {val=30} +> {d1=PT25H59M1.011S}
 result:   true

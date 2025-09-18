@@ -137,3 +137,13 @@ cel_android_library(
     name = "proto_time_utils_android",
     exports = ["//common/src/main/java/dev/cel/common/internal:proto_time_utils_android"],
 )
+
+java_library(
+    name = "date_time_helpers",
+    exports = ["//common/src/main/java/dev/cel/common/internal:date_time_helpers"],
+)
+
+cel_android_library(
+    name = "date_time_helpers_android",
+    exports = ["//common/src/main/java/dev/cel/common/internal:date_time_helpers_android"],
+)

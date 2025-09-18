@@ -6,11 +6,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 9
-} +> {t1=seconds: 10
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:10.000000009Z} +> {t1=1970-01-01T00:00:10.000000010Z}
 result:   false
 
 Source: t1 < t2
@@ -21,11 +17,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 9
-nanos: 10
-} +> {t1=seconds: 10
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:09.000000010Z} +> {t1=1970-01-01T00:00:10.000000010Z}
 result:   false
 
 Source: t1 < t2
@@ -36,11 +28,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 10
-} +> {t1=seconds: 10
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:10.000000010Z} +> {t1=1970-01-01T00:00:10.000000010Z}
 result:   false
 
 Source: t1 < t2
@@ -51,11 +39,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 10
-} +> {t1=seconds: 10
-nanos: 9
-}
+bindings: {t2=1970-01-01T00:00:10.000000010Z} +> {t1=1970-01-01T00:00:10.000000009Z}
 result:   true
 
 Source: t1 < t2
@@ -66,11 +50,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 10
-} +> {t1=seconds: 9
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:10.000000010Z} +> {t1=1970-01-01T00:00:09.000000010Z}
 result:   true
 
 Source: t1 <= t2
@@ -81,11 +61,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 9
-} +> {t1=seconds: 10
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:10.000000009Z} +> {t1=1970-01-01T00:00:10.000000010Z}
 result:   false
 
 Source: t1 <= t2
@@ -96,11 +72,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 9
-nanos: 10
-} +> {t1=seconds: 10
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:09.000000010Z} +> {t1=1970-01-01T00:00:10.000000010Z}
 result:   false
 
 Source: t1 <= t2
@@ -111,11 +83,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 10
-} +> {t1=seconds: 10
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:10.000000010Z} +> {t1=1970-01-01T00:00:10.000000010Z}
 result:   true
 
 Source: t1 <= t2
@@ -126,11 +94,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 10
-} +> {t1=seconds: 10
-nanos: 9
-}
+bindings: {t2=1970-01-01T00:00:10.000000010Z} +> {t1=1970-01-01T00:00:10.000000009Z}
 result:   true
 
 Source: t1 <= t2
@@ -141,11 +105,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 10
-} +> {t1=seconds: 9
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:10.000000010Z} +> {t1=1970-01-01T00:00:09.000000010Z}
 result:   true
 
 Source: t1 > t2
@@ -156,11 +116,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 9
-} +> {t1=seconds: 10
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:10.000000009Z} +> {t1=1970-01-01T00:00:10.000000010Z}
 result:   true
 
 Source: t1 > t2
@@ -171,11 +127,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 9
-nanos: 10
-} +> {t1=seconds: 10
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:09.000000010Z} +> {t1=1970-01-01T00:00:10.000000010Z}
 result:   true
 
 Source: t1 > t2
@@ -186,11 +138,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 10
-} +> {t1=seconds: 10
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:10.000000010Z} +> {t1=1970-01-01T00:00:10.000000010Z}
 result:   false
 
 Source: t1 > t2
@@ -201,11 +149,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 10
-} +> {t1=seconds: 10
-nanos: 9
-}
+bindings: {t2=1970-01-01T00:00:10.000000010Z} +> {t1=1970-01-01T00:00:10.000000009Z}
 result:   false
 
 Source: t1 > t2
@@ -216,11 +160,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 10
-} +> {t1=seconds: 9
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:10.000000010Z} +> {t1=1970-01-01T00:00:09.000000010Z}
 result:   false
 
 Source: t1 >= t2
@@ -231,11 +171,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 9
-} +> {t1=seconds: 10
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:10.000000009Z} +> {t1=1970-01-01T00:00:10.000000010Z}
 result:   true
 
 Source: t1 >= t2
@@ -246,11 +182,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 9
-nanos: 10
-} +> {t1=seconds: 10
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:09.000000010Z} +> {t1=1970-01-01T00:00:10.000000010Z}
 result:   true
 
 Source: t1 >= t2
@@ -261,11 +193,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 10
-} +> {t1=seconds: 10
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:10.000000010Z} +> {t1=1970-01-01T00:00:10.000000010Z}
 result:   true
 
 Source: t1 >= t2
@@ -276,11 +204,7 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 10
-} +> {t1=seconds: 10
-nanos: 9
-}
+bindings: {t2=1970-01-01T00:00:10.000000010Z} +> {t1=1970-01-01T00:00:10.000000009Z}
 result:   false
 
 Source: t1 >= t2
@@ -291,9 +215,5 @@ declare t2 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t2=seconds: 10
-nanos: 10
-} +> {t1=seconds: 9
-nanos: 10
-}
+bindings: {t2=1970-01-01T00:00:10.000000010Z} +> {t1=1970-01-01T00:00:09.000000010Z}
 result:   false

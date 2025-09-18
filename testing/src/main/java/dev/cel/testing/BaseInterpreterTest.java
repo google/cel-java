@@ -37,7 +37,6 @@ import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.DoubleValue;
-import com.google.protobuf.Duration;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
@@ -83,6 +82,8 @@ import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.CelVariableResolver;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -344,9 +345,9 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     declareVariable("ts1", SimpleType.TIMESTAMP);
     declareVariable("ts2", SimpleType.TIMESTAMP);
     declareVariable("d1", SimpleType.DURATION);
-    Duration d1 = Duration.newBuilder().setSeconds(15).setNanos(25).build();
-    Timestamp ts1 = Timestamp.newBuilder().setSeconds(25).setNanos(35).build();
-    Timestamp ts2 = Timestamp.newBuilder().setSeconds(10).setNanos(10).build();
+    Duration d1 = Duration.ofSeconds(15, 25);
+    Instant ts1 = Instant.ofEpochSecond(25, 35);
+    Instant ts2 = Instant.ofEpochSecond(10, 10);
     CelVariableResolver resolver =
         extend(
             extend(ImmutableMap.of("d1", d1), ImmutableMap.of("ts1", ts1)),
@@ -371,9 +372,9 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     declareVariable("d1", SimpleType.DURATION);
     declareVariable("d2", SimpleType.DURATION);
     declareVariable("d3", SimpleType.DURATION);
-    Duration d1 = Duration.newBuilder().setSeconds(15).setNanos(25).build();
-    Duration d2 = Duration.newBuilder().setSeconds(10).setNanos(20).build();
-    Duration d3 = Duration.newBuilder().setSeconds(25).setNanos(45).build();
+    java.time.Duration d1 = java.time.Duration.ofSeconds(15, 25);
+    java.time.Duration d2 = java.time.Duration.ofSeconds(10, 20);
+    java.time.Duration d3 = java.time.Duration.ofSeconds(25, 45);
 
     CelVariableResolver resolver =
         extend(
@@ -606,9 +607,9 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   public void duration() throws Exception {
     declareVariable("d1", SimpleType.DURATION);
     declareVariable("d2", SimpleType.DURATION);
-    Duration d1010 = Duration.newBuilder().setSeconds(10).setNanos(10).build();
-    Duration d1009 = Duration.newBuilder().setSeconds(10).setNanos(9).build();
-    Duration d0910 = Duration.newBuilder().setSeconds(9).setNanos(10).build();
+    java.time.Duration d1010 = java.time.Duration.ofSeconds(10, 10);
+    java.time.Duration d1009 = java.time.Duration.ofSeconds(10, 9);
+    java.time.Duration d0910 = java.time.Duration.ofSeconds(9, 10);
     container = CelContainer.ofName(Type.getDescriptor().getFile().getPackage());
 
     source = "d1 < d2";
@@ -644,9 +645,9 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   public void timestamp() throws Exception {
     declareVariable("t1", SimpleType.TIMESTAMP);
     declareVariable("t2", SimpleType.TIMESTAMP);
-    Timestamp ts1010 = Timestamp.newBuilder().setSeconds(10).setNanos(10).build();
-    Timestamp ts1009 = Timestamp.newBuilder().setSeconds(10).setNanos(9).build();
-    Timestamp ts0910 = Timestamp.newBuilder().setSeconds(9).setNanos(10).build();
+    Instant ts1010 = Instant.ofEpochSecond(10, 10);
+    Instant ts1009 = Instant.ofEpochSecond(10, 9);
+    Instant ts0910 = Instant.ofEpochSecond(9, 10);
     container = CelContainer.ofName(Type.getDescriptor().getFile().getPackage());
 
     source = "t1 < t2";
@@ -691,7 +692,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     declareVariable(
         "message", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
     declareVariable("list", ListType.create(SimpleType.DYN));
-    Duration duration = ProtoTimeUtils.fromSecondsToDuration(100);
+    com.google.protobuf.Duration duration = ProtoTimeUtils.fromSecondsToDuration(100);
     Any any = Any.pack(duration);
     TestAllTypes message = TestAllTypes.newBuilder().setSingleAny(any).build();
 
@@ -960,10 +961,11 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void durationFunctions() {
     declareVariable("d1", SimpleType.DURATION);
-    Duration d1 =
-        Duration.newBuilder().setSeconds(25 * 3600 + 59 * 60 + 1).setNanos(11000000).build();
-    Duration d2 =
-        Duration.newBuilder().setSeconds(-(25 * 3600 + 59 * 60 + 1)).setNanos(-11000000).build();
+    long totalSeconds = 25 * 3600 + 59 * 60 + 1;
+    long nanos = 11000000;
+    Duration d1 = Duration.ofSeconds(totalSeconds, nanos);
+    Duration d2 = Duration.ofSeconds(-totalSeconds, -nanos);
+
     container = CelContainer.ofName(Type.getDescriptor().getFile().getPackage());
 
     source = "d1.getHours()";
@@ -997,8 +999,8 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   public void timestampFunctions() {
     declareVariable("ts1", SimpleType.TIMESTAMP);
     container = CelContainer.ofName(Type.getDescriptor().getFile().getPackage());
-    Timestamp ts1 = Timestamp.newBuilder().setSeconds(1).setNanos(11000000).build();
-    Timestamp ts2 = ProtoTimeUtils.fromSecondsToTimestamp(-1);
+    Instant ts1 = Instant.ofEpochSecond(1, 11000000);
+    Instant ts2 = Instant.ofEpochSecond(-1, 0);
 
     source = "ts1.getFullYear(\"America/Los_Angeles\")";
     runTest(ImmutableMap.of("ts1", ts1));
@@ -1050,7 +1052,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "ts1.getDate(\"9:30\")";
     runTest(ImmutableMap.of("ts1", ts1));
 
-    Timestamp tsSunday = ProtoTimeUtils.fromSecondsToTimestamp(3 * 24 * 3600);
+    Instant tsSunday = Instant.ofEpochSecond(3 * 24 * 3600);
     source = "ts1.getDayOfWeek(\"America/Los_Angeles\")";
     runTest(ImmutableMap.of("ts1", tsSunday));
     source = "ts1.getDayOfWeek()";
@@ -1372,7 +1374,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     runTest();
 
     source = "int(t1) == 100";
-    runTest(ImmutableMap.of("t1", ProtoTimeUtils.fromSecondsToTimestamp(100)));
+    runTest(ImmutableMap.of("t1", Instant.ofEpochSecond(100)));
 
     source = "duration(\"1h2m3.4s\")";
     runTest();
@@ -1927,6 +1929,15 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     // Test whether null resolves to null_type.
     source = "type(null) == null_type";
     runTest();
+
+    // Test runtime resolution of types
+    source =
+        "type(duration) == google.protobuf.Duration && "
+            + "type(timestamp) == google.protobuf.Timestamp";
+    // Intentionally declare as dyns
+    declareVariable("duration", SimpleType.DYN);
+    declareVariable("timestamp", SimpleType.DYN);
+    runTest(ImmutableMap.of("duration", java.time.Duration.ZERO, "timestamp", Instant.EPOCH));
   }
 
   @Test
@@ -2075,7 +2086,8 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
             .setSingleStringWrapper(StringValue.of("hello"))
             .setSingleUint32Wrapper(UInt32Value.of(12))
             .setSingleUint64Wrapper(UInt64Value.of(34))
-            .setSingleDuration(Duration.newBuilder().setSeconds(10).setNanos(20))
+            .setSingleDuration(
+                com.google.protobuf.Duration.newBuilder().setSeconds(10).setNanos(20))
             .setSingleTimestamp(Timestamp.newBuilder().setSeconds(100).setNanos(200))
             .setSingleValue(Value.newBuilder().setStringValue("a"))
             .setSingleStruct(
@@ -2127,10 +2139,10 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
         .isInstanceOf(BASE_CEL_OPTIONS.enableUnsignedLongs() ? UnsignedLong.class : Long.class);
 
     source = "msg.single_duration";
-    assertThat(runTest(input)).isInstanceOf(Duration.class);
+    assertThat(runTest(input)).isInstanceOf(java.time.Duration.class);
 
     source = "msg.single_timestamp";
-    assertThat(runTest(input)).isInstanceOf(Timestamp.class);
+    assertThat(runTest(input)).isInstanceOf(Instant.class);
 
     source = "msg.single_value";
     assertThat(runTest(input)).isInstanceOf(String.class);

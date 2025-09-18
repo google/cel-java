@@ -22,10 +22,12 @@ import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelRuntimeException;
+import dev.cel.common.internal.DateTimeHelpers;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
+import java.time.Instant;
 import java.util.Arrays;
 
 /** Standard function for the subtraction (-) operator. */
@@ -60,19 +62,37 @@ public final class SubtractOperator extends CelStandardFunction {
                   }
                 })),
     SUBTRACT_TIMESTAMP_TIMESTAMP(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "subtract_timestamp_timestamp",
+                Instant.class,
+                Instant.class,
+                (Instant i1, Instant i2) -> java.time.Duration.between(i2, i1));
+          } else {
+            return CelFunctionBinding.from(
                 "subtract_timestamp_timestamp",
                 Timestamp.class,
                 Timestamp.class,
-                (Timestamp x, Timestamp y) -> ProtoTimeUtils.between(y, x))),
+                (Timestamp t1, Timestamp t2) -> ProtoTimeUtils.between(t2, t1));
+          }
+        }),
     SUBTRACT_TIMESTAMP_DURATION(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "subtract_timestamp_duration",
+                Instant.class,
+                java.time.Duration.class,
+                DateTimeHelpers::subtract);
+          } else {
+            return CelFunctionBinding.from(
                 "subtract_timestamp_duration",
                 Timestamp.class,
                 Duration.class,
-                ProtoTimeUtils::subtract)),
+                ProtoTimeUtils::subtract);
+          }
+        }),
     SUBTRACT_UINT64(
         (celOptions, runtimeEquality) -> {
           if (celOptions.enableUnsignedLongs()) {
@@ -106,12 +126,21 @@ public final class SubtractOperator extends CelStandardFunction {
             CelFunctionBinding.from(
                 "subtract_double", Double.class, Double.class, (Double x, Double y) -> x - y)),
     SUBTRACT_DURATION_DURATION(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "subtract_duration_duration",
+                java.time.Duration.class,
+                java.time.Duration.class,
+                DateTimeHelpers::subtract);
+          } else {
+            return CelFunctionBinding.from(
                 "subtract_duration_duration",
                 Duration.class,
                 Duration.class,
-                ProtoTimeUtils::subtract)),
+                ProtoTimeUtils::subtract);
+          }
+        }),
     ;
 
     private final FunctionBindingCreator bindingCreator;

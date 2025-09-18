@@ -4,9 +4,7 @@ declare t1 {
 }
 =====>
 bindings: {}
-result:   seconds: 63126020
-nanos: 21000000
-
+result:   1972-01-01T15:00:20.021Z
 
 Source: timestamp(123)
 declare t1 {
@@ -14,8 +12,7 @@ declare t1 {
 }
 =====>
 bindings: {}
-result:   seconds: 123
-
+result:   1970-01-01T00:02:03Z
 
 Source: duration("15.11s")
 declare t1 {
@@ -23,17 +20,14 @@ declare t1 {
 }
 =====>
 bindings: {}
-result:   seconds: 15
-nanos: 110000000
-
+result:   PT15.11S
 
 Source: int(t1) == 100
 declare t1 {
   value google.protobuf.Timestamp
 }
 =====>
-bindings: {t1=seconds: 100
-}
+bindings: {t1=1970-01-01T00:01:40Z}
 result:   true
 
 Source: duration("1h2m3.4s")
@@ -42,9 +36,7 @@ declare t1 {
 }
 =====>
 bindings: {}
-result:   seconds: 3723
-nanos: 400000000
-
+result:   PT1H2M3.4S
 
 Source: duration(duration('15.0s'))
 declare t1 {
@@ -52,8 +44,7 @@ declare t1 {
 }
 =====>
 bindings: {}
-result:   seconds: 15
-
+result:   PT15S
 
 Source: timestamp(timestamp(123))
 declare t1 {
@@ -61,4 +52,4 @@ declare t1 {
 }
 =====>
 bindings: {}
-result:   seconds: 123
+result:   1970-01-01T00:02:03Z

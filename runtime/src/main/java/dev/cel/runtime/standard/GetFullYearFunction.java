@@ -14,14 +14,15 @@
 
 package dev.cel.runtime.standard;
 
-import static dev.cel.runtime.standard.DateTimeHelpers.UTC;
-import static dev.cel.runtime.standard.DateTimeHelpers.newLocalDateTime;
+import static dev.cel.common.internal.DateTimeHelpers.UTC;
+import static dev.cel.common.internal.DateTimeHelpers.newLocalDateTime;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Timestamp;
 import dev.cel.common.CelOptions;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
+import java.time.Instant;
 import java.util.Arrays;
 
 /** Standard function for {@code getFullYear}. */
@@ -44,18 +45,35 @@ public final class GetFullYearFunction extends CelStandardFunction {
   /** Overloads for the standard function. */
   public enum GetFullYearOverload implements CelStandardOverload {
     TIMESTAMP_TO_YEAR(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "timestamp_to_year",
+                Instant.class,
+                (Instant ts) -> (long) newLocalDateTime(ts, UTC).getYear());
+          } else {
+            return CelFunctionBinding.from(
                 "timestamp_to_year",
                 Timestamp.class,
-                (Timestamp ts) -> (long) newLocalDateTime(ts, UTC).getYear())),
+                (Timestamp ts) -> (long) newLocalDateTime(ts, UTC).getYear());
+          }
+        }),
     TIMESTAMP_TO_YEAR_WITH_TZ(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from(
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "timestamp_to_year_with_tz",
+                Instant.class,
+                String.class,
+                (Instant ts, String tz) -> (long) newLocalDateTime(ts, tz).getYear());
+          } else {
+            return CelFunctionBinding.from(
                 "timestamp_to_year_with_tz",
                 Timestamp.class,
                 String.class,
-                (Timestamp ts, String tz) -> (long) newLocalDateTime(ts, tz).getYear())),
+                (Timestamp ts, String tz) -> (long) newLocalDateTime(ts, tz).getYear());
+          }
+        }),
     ;
 
     private final FunctionBindingCreator bindingCreator;

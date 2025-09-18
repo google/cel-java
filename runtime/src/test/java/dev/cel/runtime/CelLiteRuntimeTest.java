@@ -25,14 +25,12 @@ import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.DoubleValue;
-import com.google.protobuf.Duration;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
 import com.google.protobuf.ListValue;
 import com.google.protobuf.StringValue;
 import com.google.protobuf.Struct;
-import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.util.Values;
@@ -63,6 +61,8 @@ import dev.cel.testing.testdata.MultiFileCelDescriptor;
 import dev.cel.testing.testdata.SimpleEnum;
 import dev.cel.testing.testdata.SingleFileCelDescriptor;
 import dev.cel.testing.testdata.SingleFileProto.SingleFile;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -301,7 +301,7 @@ public class CelLiteRuntimeTest {
 
     Duration result = (Duration) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
-    assertThat(result).isEqualTo(ProtoTimeUtils.fromSecondsToDuration(600));
+    assertThat(result).isEqualTo(Duration.ofMinutes(10));
   }
 
   @Test
@@ -313,9 +313,9 @@ public class CelLiteRuntimeTest {
             .setSingleTimestamp(ProtoTimeUtils.fromSecondsToTimestamp(50))
             .build();
 
-    Timestamp result = (Timestamp) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
+    Instant result = (Instant) CEL_RUNTIME.createProgram(ast).eval(ImmutableMap.of("msg", msg));
 
-    assertThat(result).isEqualTo(ProtoTimeUtils.fromSecondsToTimestamp(50));
+    assertThat(result).isEqualTo(Instant.ofEpochSecond(50));
   }
 
   @Test

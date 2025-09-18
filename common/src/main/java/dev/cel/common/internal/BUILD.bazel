@@ -195,9 +195,11 @@ java_library(
     deps = [
         ":well_known_proto",
         "//common:error_codes",
+        "//common:options",
         "//common:proto_json_adapter",
         "//common:runtime_exception",
         "//common/annotations",
+        "//common/internal:proto_time_utils",
         "//common/values",
         "//common/values:cel_byte_string",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -425,6 +427,34 @@ cel_android_library(
     deps = [
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
+    ],
+)
+
+java_library(
+    name = "date_time_helpers",
+    srcs = ["DateTimeHelpers.java"],
+    tags = [
+    ],
+    deps = [
+        "//common:error_codes",
+        "//common:runtime_exception",
+        "//common/annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+cel_android_library(
+    name = "date_time_helpers_android",
+    srcs = ["DateTimeHelpers.java"],
+    tags = [
+    ],
+    deps = [
+        "//common:error_codes",
+        "//common:runtime_exception",
+        "//common/annotations",
         "@maven_android//:com_google_guava_guava",
         "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],

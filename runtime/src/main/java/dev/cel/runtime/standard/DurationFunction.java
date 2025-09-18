@@ -43,18 +43,33 @@ public final class DurationFunction extends CelStandardFunction {
   /** Overloads for the standard function. */
   public enum DurationOverload implements CelStandardOverload {
     DURATION_TO_DURATION(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from("duration_to_duration", Duration.class, (Duration x) -> x)),
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "duration_to_duration", java.time.Duration.class, (java.time.Duration d) -> d);
+          } else {
+            return CelFunctionBinding.from(
+                "duration_to_duration", Duration.class, (Duration d) -> d);
+          }
+        }),
     STRING_TO_DURATION(
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from(
                 "string_to_duration",
                 String.class,
                 (String d) -> {
-                  try {
-                    return RuntimeHelpers.createDurationFromString(d);
-                  } catch (IllegalArgumentException e) {
-                    throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
+                  if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+                    try {
+                      return RuntimeHelpers.createJavaDurationFromString(d);
+                    } catch (IllegalArgumentException e) {
+                      throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
+                    }
+                  } else {
+                    try {
+                      return RuntimeHelpers.createDurationFromString(d);
+                    } catch (IllegalArgumentException e) {
+                      throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
+                    }
                   }
                 })),
     ;

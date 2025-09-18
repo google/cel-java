@@ -125,7 +125,7 @@ public final class ProtoAdapter {
 
   public ProtoAdapter(DynamicProto dynamicProto, CelOptions celOptions) {
     this.dynamicProto = checkNotNull(dynamicProto);
-    this.protoLiteAdapter = new ProtoLiteAdapter(celOptions.enableUnsignedLongs());
+    this.protoLiteAdapter = new ProtoLiteAdapter(celOptions);
     this.celOptions = celOptions;
   }
 

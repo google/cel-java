@@ -26,8 +26,10 @@ import com.google.protobuf.NullValue;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.Value;
+import dev.cel.common.internal.DateTimeHelpers;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.values.CelByteString;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -116,6 +118,14 @@ public final class CelProtoJsonAdapter {
     }
     if (value instanceof Duration) {
       String duration = ProtoTimeUtils.toString((Duration) value);
+      return json.setStringValue(duration).build();
+    }
+    if (value instanceof Instant) {
+      // Instant's toString follows RFC 3339
+      return json.setStringValue(value.toString()).build();
+    }
+    if (value instanceof java.time.Duration) {
+      String duration = DateTimeHelpers.toString((java.time.Duration) value);
       return json.setStringValue(duration).build();
     }
     if (value instanceof FieldMask) {

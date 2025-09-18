@@ -35,6 +35,7 @@ import dev.cel.common.types.StructType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelByteString;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -64,8 +65,17 @@ class TypeResolver {
           .put(UnsignedLong.class, TypeType.create(SimpleType.UINT))
           .put(String.class, TypeType.create(SimpleType.STRING))
           .put(NullValue.class, TypeType.create(SimpleType.NULL_TYPE))
-          .put(Duration.class, TypeType.create(SimpleType.DURATION))
-          .put(Timestamp.class, TypeType.create(SimpleType.TIMESTAMP))
+          .put(java.time.Duration.class, TypeType.create(SimpleType.DURATION))
+          .put(Instant.class, TypeType.create(SimpleType.TIMESTAMP))
+          .put(
+              Duration.class,
+              TypeType.create(
+                  SimpleType.DURATION)) // TODO: Remove once clients have been migrated
+          .put(
+              Timestamp.class,
+              TypeType.create(
+                  SimpleType
+                      .TIMESTAMP)) // TODO: Remove once clients have been migrated
           .put(ArrayList.class, TypeType.create(ListType.create(SimpleType.DYN)))
           .put(HashMap.class, TypeType.create(MapType.create(SimpleType.DYN, SimpleType.DYN)))
           .put(Optional.class, TypeType.create(OptionalType.create(SimpleType.DYN)))

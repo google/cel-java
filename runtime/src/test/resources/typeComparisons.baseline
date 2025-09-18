@@ -42,3 +42,14 @@ Source: type(null) == null_type
 =====>
 bindings: {}
 result:   true
+
+Source: type(duration) == google.protobuf.Duration && type(timestamp) == google.protobuf.Timestamp
+declare duration {
+  value dyn
+}
+declare timestamp {
+  value dyn
+}
+=====>
+bindings: {duration=PT0S, timestamp=1970-01-01T00:00:00Z}
+result:   true
