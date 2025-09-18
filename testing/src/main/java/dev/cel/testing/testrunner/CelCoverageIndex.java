@@ -61,15 +61,19 @@ final class CelCoverageIndex {
       new ConcurrentHashMap<>();
 
   public void init(CelAbstractSyntaxTree ast) {
-    this.ast = ast;
-    CelNavigableExpr.fromExpr(ast.getExpr())
-        .allNodes()
-        .forEach(
-            celNavigableExpr -> {
-              NodeCoverageStats nodeCoverageStats = new NodeCoverageStats();
-              nodeCoverageStats.isBooleanNode.set(isNodeTypeBoolean(celNavigableExpr.expr()));
-              nodeCoverageStatsMap.put(celNavigableExpr.id(), nodeCoverageStats);
-            });
+    // If the AST and node coverage stats map are already initialized, then we don't need to
+    // re-initialize them.
+    if (this.ast == null && nodeCoverageStatsMap.isEmpty()) {
+      this.ast = ast;
+      CelNavigableExpr.fromExpr(ast.getExpr())
+          .allNodes()
+          .forEach(
+              celNavigableExpr -> {
+                NodeCoverageStats nodeCoverageStats = new NodeCoverageStats();
+                nodeCoverageStats.isBooleanNode.set(isNodeTypeBoolean(celNavigableExpr.expr()));
+                nodeCoverageStatsMap.put(celNavigableExpr.id(), nodeCoverageStats);
+              });
+    }
   }
 
   /**

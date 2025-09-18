@@ -154,4 +154,28 @@ public final class CelCoverageIndexTest {
     String fileContent = Files.asCharSource(outputFile, UTF_8).read();
     assertThat(fileContent).isEqualTo(report.dotGraph());
   }
+
+  @Test
+  public void getCoverageReport_fullCoverage_multipleEvaluations() throws Exception {
+    Cel cel = CelFactory.standardCelBuilder().addVar("x", SimpleType.INT).build();
+    CelAbstractSyntaxTree ast = cel.compile("x > 1").getAst();
+    CelRuntime.Program program = cel.createProgram(ast);
+    CelCoverageIndex coverageIndex = new CelCoverageIndex();
+    coverageIndex.init(ast);
+    CelEvaluationListener listener = coverageIndex.newEvaluationListener();
+
+    program.trace(ImmutableMap.of("x", 2L), listener);
+    coverageIndex.init(ast); // Re-initialize the coverage index.
+    program.trace(ImmutableMap.of("x", 0L), listener);
+
+    CoverageReport report = coverageIndex.generateCoverageReport();
+    assertThat(report.nodes()).isGreaterThan(0);
+    assertThat(report.coveredNodes()).isEqualTo(report.nodes());
+    assertThat(report.branches()).isEqualTo(2);
+    // Despite re-initializing the coverage index now, the report should still
+    // be fully covered. Else, only the second evaluation would've been covered.
+    assertThat(report.coveredBooleanOutcomes()).isEqualTo(2);
+    assertThat(report.unencounteredNodes()).isEmpty();
+    assertThat(report.unencounteredBranches()).isEmpty();
+  }
 }
