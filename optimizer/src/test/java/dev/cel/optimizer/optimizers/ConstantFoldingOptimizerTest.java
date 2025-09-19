@@ -189,6 +189,14 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters("{source: 'sets.contains([1], [1])', expected: 'true'}")
   @TestParameters(
       "{source: 'cel.bind(r0, [1, 2, 3], cel.bind(r1, 1 in r0, r1))', expected: 'true'}")
+  @TestParameters("{source: 'x == true', expected: 'x'}")
+  @TestParameters("{source: 'true == x', expected: 'x'}")
+  @TestParameters("{source: 'x == false', expected: 'false'}")
+  @TestParameters("{source: 'false == x', expected: 'false'}")
+  @TestParameters("{source: 'true == false', expected: 'false'}")
+  @TestParameters("{source: 'true == true', expected: 'true'}")
+  @TestParameters("{source: 'false == true', expected: 'false'}")
+  @TestParameters("{source: 'false == false', expected: 'true'}")
   // TODO: Support folding lists with mixed types. This requires mutable lists.
   // @TestParameters("{source: 'dyn([1]) + [1.0]'}")
   public void constantFold_success(String source, String expected) throws Exception {
