@@ -306,6 +306,9 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
   @Test
   public void arithmDouble() {
+    source = "0.0 == -0.0";
+    runTest();
+
     source = "1.9 < 2.0 && 1.1 <= 1.1 && 2.0 > 1.9 && 1.1 >= 1.1 && 1.1 == 1.1 && 2.0 != 1.9";
     runTest();
 

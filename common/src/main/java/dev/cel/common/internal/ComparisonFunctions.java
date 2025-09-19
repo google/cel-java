@@ -81,7 +81,8 @@ public final class ComparisonFunctions {
   public static boolean numericEquals(Number x, Number y) {
     if (x instanceof Double) {
       if (y instanceof Double) {
-        return !(Double.isNaN((Double) x) || Double.isNaN((Double) y)) && x.equals(y);
+        return !(Double.isNaN((Double) x) || Double.isNaN((Double) y))
+            && x.doubleValue() == y.doubleValue();
       }
       if (y instanceof Long) {
         return compareDoubleInt((Double) x, (Long) y) == 0;
@@ -115,10 +116,7 @@ public final class ComparisonFunctions {
     return false;
   }
 
-
-  /**
-   * Compare two numeric values of any type (double, int, uint).
-   */
+  /** Compare two numeric values of any type (double, int, uint). */
   public static int numericCompare(Number x, Number y) {
     if (x instanceof Double) {
       if (y instanceof Double) {
