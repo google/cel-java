@@ -3,7 +3,9 @@ package dev.cel.runtime.planner;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.IntValue;
+import dev.cel.common.values.ListValue;
 import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.ConcatenatedListView;
 import dev.cel.runtime.GlobalResolver;
 import java.util.Collection;
 import java.util.Iterator;
@@ -35,9 +37,9 @@ final class EvalFold implements CelValueInterpretable {
 
     folder.accuVal = accuInit.eval(folder);
 
-    // TODO: Implement scoping
     long index = 0;
     for (Iterator<CelValue> iterator = foldRange.iterator(); iterator.hasNext(); ) {
+      // TODO: Implement condition
       if (iterVar2.isEmpty()) {
         folder.iterVarVal = iterator.next();
       } else {
@@ -48,10 +50,7 @@ final class EvalFold implements CelValueInterpretable {
       index++;
     }
 
-    CelValue resultValue = result.eval(folder);
-    // CelValue resultValue = resolveName("@result", resolver);
-
-    return resultValue;
+    return result.eval(folder);
   }
 
   private static class Folder implements GlobalResolver {

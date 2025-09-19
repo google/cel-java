@@ -77,6 +77,7 @@ java_library(
         "//runtime:unknown_attributes",
         "//runtime:unknown_options",
         "//runtime/planner:program_planner",
+        "//runtime/standard:add",
         "//runtime/standard:divide",
         "//runtime/standard:equals",
         "//runtime/standard:greater",
