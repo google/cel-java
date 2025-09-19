@@ -167,6 +167,16 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
               && cond.constant().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE);
         }
 
+        if (functionName.equals(Operator.EQUALS.getFunction())
+            || functionName.equals(Operator.NOT_EQUALS.getFunction())) {
+          if (mutableCall.args().stream()
+                  .anyMatch(node -> isExprConstantOfKind(node, CelConstant.Kind.BOOLEAN_VALUE))
+              || mutableCall.args().stream()
+                  .allMatch(node -> node.getKind().equals(Kind.CONSTANT))) {
+            return true;
+          }
+        }
+
         if (functionName.equals(Operator.IN.getFunction())) {
           return canFoldInOperator(navigableExpr);
         }
@@ -393,6 +403,38 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
           }
         }
       }
+    } else if (function.equals(Operator.EQUALS.getFunction())
+        || function.equals(Operator.NOT_EQUALS.getFunction())) {
+      CelMutableExpr lhs = call.args().get(0);
+      CelMutableExpr rhs = call.args().get(1);
+      boolean lhsIsBoolean = isExprConstantOfKind(lhs, CelConstant.Kind.BOOLEAN_VALUE);
+      boolean rhsIsBoolean = isExprConstantOfKind(rhs, CelConstant.Kind.BOOLEAN_VALUE);
+      boolean invertCondition = function.equals(Operator.NOT_EQUALS.getFunction());
+      Optional<CelMutableExpr> replacementExpr = Optional.empty();
+
+      if (lhs.getKind().equals(Kind.CONSTANT) && rhs.getKind().equals(Kind.CONSTANT)) {
+        // If both args are const, don't prune any branches and let maybeFold method evaluate this
+        // subExpr
+        return Optional.empty();
+      } else if (lhsIsBoolean) {
+        boolean cond = invertCondition != lhs.constant().booleanValue();
+        replacementExpr =
+            Optional.of(
+                cond
+                    ? rhs
+                    : CelMutableExpr.ofCall(
+                        CelMutableCall.create(Operator.LOGICAL_NOT.getFunction(), rhs)));
+      } else if (rhsIsBoolean) {
+        boolean cond = invertCondition != rhs.constant().booleanValue();
+        replacementExpr =
+            Optional.of(
+                cond
+                    ? lhs
+                    : CelMutableExpr.ofCall(
+                        CelMutableCall.create(Operator.LOGICAL_NOT.getFunction(), lhs)));
+      }
+
+      return replacementExpr.map(node -> astMutator.replaceSubtree(mutableAst, node, expr.id()));
     }
 
     return Optional.empty();
@@ -661,6 +703,10 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
     }
 
     ConstantFoldingOptions() {}
+  }
+
+  private static boolean isExprConstantOfKind(CelMutableExpr expr, CelConstant.Kind constantKind) {
+    return expr.getKind().equals(Kind.CONSTANT) && expr.constant().getKind().equals(constantKind);
   }
 
   private ConstantFoldingOptimizer(ConstantFoldingOptions constantFoldingOptions) {

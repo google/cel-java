@@ -66,13 +66,13 @@ public class ConstantFoldingOptimizerTest {
               CelExtensions.math(CelOptions.DEFAULT),
               CelExtensions.strings(),
               CelExtensions.sets(CelOptions.DEFAULT),
-              CelExtensions.encoders())
+              CelExtensions.encoders(CelOptions.DEFAULT))
           .addRuntimeLibraries(
               CelOptionalLibrary.INSTANCE,
               CelExtensions.math(CelOptions.DEFAULT),
               CelExtensions.strings(),
               CelExtensions.sets(CelOptions.DEFAULT),
-              CelExtensions.encoders())
+              CelExtensions.encoders(CelOptions.DEFAULT))
           .build();
 
   private static final CelOptimizer CEL_OPTIMIZER =
@@ -189,6 +189,28 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters("{source: 'sets.contains([1], [1])', expected: 'true'}")
   @TestParameters(
       "{source: 'cel.bind(r0, [1, 2, 3], cel.bind(r1, 1 in r0, r1))', expected: 'true'}")
+  @TestParameters("{source: 'x == true', expected: 'x'}")
+  @TestParameters("{source: 'true == x', expected: 'x'}")
+  @TestParameters("{source: 'x == false', expected: '!x'}")
+  @TestParameters("{source: 'false == x', expected: '!x'}")
+  @TestParameters("{source: 'true == false', expected: 'false'}")
+  @TestParameters("{source: 'true == true', expected: 'true'}")
+  @TestParameters("{source: 'false == true', expected: 'false'}")
+  @TestParameters("{source: 'false == false', expected: 'true'}")
+  @TestParameters("{source: '10 == 42', expected: 'false'}")
+  @TestParameters("{source: '42 == 42', expected: 'true'}")
+  @TestParameters("{source: 'x != true', expected: '!x'}")
+  @TestParameters("{source: 'true != x', expected: '!x'}")
+  @TestParameters("{source: 'x != false', expected: 'x'}")
+  @TestParameters("{source: 'false != x', expected: 'x'}")
+  @TestParameters("{source: 'true != false', expected: 'true'}")
+  @TestParameters("{source: 'true != true', expected: 'false'}")
+  @TestParameters("{source: 'false != true', expected: 'true'}")
+  @TestParameters("{source: 'false != false', expected: 'false'}")
+  @TestParameters("{source: '10 != 42', expected: 'true'}")
+  @TestParameters("{source: '42 != 42', expected: 'false'}")
+  @TestParameters("{source: '[\"foo\",\"bar\"] == [\"foo\",\"bar\"]', expected: 'true'}")
+  @TestParameters("{source: '[\"bar\",\"foo\"] == [\"foo\",\"bar\"]', expected: 'false'}")
   // TODO: Support folding lists with mixed types. This requires mutable lists.
   // @TestParameters("{source: 'dyn([1]) + [1.0]'}")
   public void constantFold_success(String source, String expected) throws Exception {
@@ -324,6 +346,8 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters("{source: 'TestAllTypes{single_int32: x, repeated_int32: [1, 2, 3]}'}")
   @TestParameters("{source: 'get_true() == get_true()'}")
   @TestParameters("{source: 'get_true() == true'}")
+  @TestParameters("{source: 'x == x'}")
+  @TestParameters("{source: 'x == 42'}")
   public void constantFold_noOp(String source) throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile(source).getAst();
 
