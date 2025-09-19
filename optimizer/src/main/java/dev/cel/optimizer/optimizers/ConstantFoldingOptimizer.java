@@ -167,6 +167,10 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
               && cond.constant().getKind().equals(CelConstant.Kind.BOOLEAN_VALUE);
         }
 
+        if (functionName.equals(Operator.EQUALS.getFunction())) {
+          return mutableCall.args().stream().anyMatch(x -> isExprConstantOfKind(x, CelConstant.Kind.BOOLEAN_VALUE));
+        }
+
         if (functionName.equals(Operator.IN.getFunction())) {
           return canFoldInOperator(navigableExpr);
         }
@@ -393,6 +397,27 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
           }
         }
       }
+    } else if (function.equals(Operator.EQUALS.getFunction())) {
+      CelMutableExpr lhs = call.args().get(0);
+      CelMutableExpr rhs = call.args().get(1);
+      boolean lhsIsBoolean = isExprConstantOfKind(lhs, CelConstant.Kind.BOOLEAN_VALUE);
+      boolean rhsIsBoolean = isExprConstantOfKind(rhs, CelConstant.Kind.BOOLEAN_VALUE);
+      Optional<CelMutableExpr> branchToRetain = Optional.empty();
+
+      if (lhsIsBoolean && rhsIsBoolean) {
+        boolean result = lhs.constant().booleanValue() == rhs.constant().booleanValue();
+        branchToRetain = Optional.of(CelMutableExpr.ofConstant(CelConstant.ofValue(result)));
+      } else if (lhsIsBoolean) {
+        branchToRetain = Optional.of(lhs.constant().booleanValue() ? rhs : lhs);
+      } else if (rhsIsBoolean) {
+        branchToRetain = Optional.of(rhs.constant().booleanValue() ? lhs : rhs);
+      }
+
+      return branchToRetain.map(node ->
+          astMutator.replaceSubtree(
+              mutableAst,
+              node,
+              expr.id()));
     }
 
     return Optional.empty();
@@ -661,6 +686,10 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
     }
 
     ConstantFoldingOptions() {}
+  }
+
+  private static boolean isExprConstantOfKind(CelMutableExpr expr, CelConstant.Kind constantKind) {
+    return expr.getKind().equals(Kind.CONSTANT) && expr.constant().getKind().equals(constantKind);
   }
 
   private ConstantFoldingOptimizer(ConstantFoldingOptions constantFoldingOptions) {
