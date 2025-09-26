@@ -19,6 +19,7 @@ java_library(
         ":default_optimizer_constants",
         "//:auto_value",
         "//bundle:cel",
+        "//checker:standard_decl",
         "//common:cel_ast",
         "//common:cel_source",
         "//common:compiler_common",
@@ -35,6 +36,7 @@ java_library(
         "//runtime",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+        "@maven//:org_threeten_threeten_extra",
     ],
 )
 

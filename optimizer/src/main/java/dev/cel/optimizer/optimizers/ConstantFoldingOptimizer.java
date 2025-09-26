@@ -16,6 +16,8 @@ package dev.cel.optimizer.optimizers;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.MoreCollectors.onlyElement;
+import static dev.cel.checker.CelStandardDeclarations.StandardFunction.DURATION;
+import static dev.cel.checker.CelStandardDeclarations.StandardFunction.TIMESTAMP;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
@@ -45,6 +47,9 @@ import dev.cel.optimizer.CelAstOptimizer;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.parser.Operator;
 import dev.cel.runtime.CelEvaluationException;
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -142,6 +147,14 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
           return false;
         }
 
+        // Timestamps/durations in CEL are calls, but they are effectively treated as literals.
+        // Expressions like timestamp(123) cannot be folded directly, but arithmetics involving timestamps
+        // can be folded.
+        // Ex: timestamp(123) - timestamp(100) = duration("23s")
+        if (isExprTimestampOrDuration(navigableExpr)) {
+          return false;
+        }
+
         CelMutableCall mutableCall = navigableExpr.expr().call();
         String functionName = mutableCall.function();
 
@@ -197,14 +210,19 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
   private boolean containsFoldableFunctionOnly(CelNavigableMutableExpr navigableExpr) {
     return navigableExpr
         .allNodes()
+        .filter(node -> node.getKind().equals(Kind.CALL))
+        .map(node -> node.expr().call())
         .allMatch(
-            node -> {
-              if (node.getKind().equals(Kind.CALL)) {
-                return foldableFunctions.contains(node.expr().call().function());
-              }
+            call -> foldableFunctions.contains(call.function()));
+  }
 
-              return true;
-            });
+  private static boolean isExprTimestampOrDuration(CelNavigableMutableExpr navigableExpr) {
+    if (!navigableExpr.getKind().equals(Kind.CALL)) {
+      return true;
+    }
+
+    CelMutableCall call = navigableExpr.expr().call();
+    return call.function().equals(TIMESTAMP.functionName()) || call.function().equals(DURATION.functionName());
   }
 
   private static boolean canFoldInOperator(CelNavigableMutableExpr navigableExpr) {
@@ -318,10 +336,30 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
       }
 
       return Optional.of(CelMutableExpr.ofMap(CelMutableMap.create(mapEntries)));
+    } else if (result instanceof Duration) {
+      String durationStrArg = formatDurationArgument((Duration) result);
+      CelMutableCall durationCall = CelMutableCall.create(DURATION.functionName(), CelMutableExpr.ofConstant(CelConstant.ofValue(durationStrArg)));
+      return Optional.of(CelMutableExpr.ofCall(durationCall));
+    } else if (result instanceof Instant) {
+      String timestampStrArg = ((Instant) result).toString();
+      CelMutableCall timestampCall = CelMutableCall.create(TIMESTAMP.functionName(), CelMutableExpr.ofConstant(CelConstant.ofValue(timestampStrArg)));
+      return Optional.of(CelMutableExpr.ofCall(timestampCall));
     }
 
     // Evaluated result cannot be folded (e.g: unknowns)
     return Optional.empty();
+  }
+
+  private static String formatDurationArgument(Duration duration) {
+    if (duration.isZero()) {
+      return "0";
+    }
+
+    BigDecimal seconds = BigDecimal.valueOf(duration.getSeconds());
+    BigDecimal nanos = BigDecimal.valueOf(duration.getNano(), 9);
+    BigDecimal totalSeconds = seconds.add(nanos);
+
+    return totalSeconds.stripTrailingZeros().toPlainString() + "s";
   }
 
   private Optional<CelMutableAst> maybeRewriteOptional(
@@ -351,6 +389,8 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
 
     return Optional.empty();
   }
+
+
 
   /** Inspects the non-strict calls to determine whether a branch can be removed. */
   private Optional<CelMutableAst> maybePruneBranches(

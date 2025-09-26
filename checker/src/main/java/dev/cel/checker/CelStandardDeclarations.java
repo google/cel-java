@@ -1488,7 +1488,7 @@ public final class CelStandardDeclarations {
       return celFunctionDecl;
     }
 
-    String functionName() {
+    public String functionName() {
       return functionName;
     }
 
