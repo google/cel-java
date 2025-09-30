@@ -398,8 +398,9 @@ final class CelCoverageIndex {
     }
   }
 
-  private String escapeSpecialCharacters(String exprText) {
+  private static String escapeSpecialCharacters(String exprText) {
     return exprText
+        .replace("\\\"", "\"")
         .replace("\"", "\\\"")
         .replace("\n", "\\n")
         .replace("||", " \\| \\| ")
