@@ -104,6 +104,7 @@ java_library(
         "//runtime",
         "//testing:expr_value_utils",
         "//testing/testrunner:proto_descriptor_utils",
+        "//third_party/bazel/src/java_tools/junitrunner/java/com/google/testing/junit/runner/util",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
