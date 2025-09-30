@@ -80,7 +80,7 @@ public abstract class ProtoTypeMask {
    *
    * <ul>
    *   <li>All descendent fields after the last element in the field mask path are visible.
-   *   <li>The asterisk '*' can be used as an explicit indicator that all descedent fields are
+   *   <li>The asterisk '*' can be used as an explicit indicator that all descendent fields are
    *       visible to CEL.
    *   <li>Repeated fields are not supported.
    * </ul>
