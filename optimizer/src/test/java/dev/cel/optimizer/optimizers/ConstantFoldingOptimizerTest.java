@@ -46,6 +46,11 @@ import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public class ConstantFoldingOptimizerTest {
+  private static final CelOptions CEL_OPTIONS =
+      CelOptions.current()
+          .enableTimestampEpoch(true)
+          .evaluateCanonicalTypesToNativeValues(true)
+          .build();
   private static final Cel CEL =
       CelFactory.standardCelBuilder()
           .addVar("x", SimpleType.DYN)
@@ -60,19 +65,20 @@ public class ConstantFoldingOptimizerTest {
               CelFunctionBinding.from("get_true_overload", ImmutableList.of(), unused -> true))
           .addMessageTypes(TestAllTypes.getDescriptor())
           .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
+          .setOptions(CEL_OPTIONS)
           .addCompilerLibraries(
               CelExtensions.bindings(),
               CelOptionalLibrary.INSTANCE,
-              CelExtensions.math(CelOptions.DEFAULT),
+              CelExtensions.math(CEL_OPTIONS),
               CelExtensions.strings(),
-              CelExtensions.sets(CelOptions.DEFAULT),
-              CelExtensions.encoders(CelOptions.DEFAULT))
+              CelExtensions.sets(CEL_OPTIONS),
+              CelExtensions.encoders(CEL_OPTIONS))
           .addRuntimeLibraries(
               CelOptionalLibrary.INSTANCE,
-              CelExtensions.math(CelOptions.DEFAULT),
+              CelExtensions.math(CEL_OPTIONS),
               CelExtensions.strings(),
-              CelExtensions.sets(CelOptions.DEFAULT),
-              CelExtensions.encoders(CelOptions.DEFAULT))
+              CelExtensions.sets(CEL_OPTIONS),
+              CelExtensions.encoders(CEL_OPTIONS))
           .build();
 
   private static final CelOptimizer CEL_OPTIMIZER =
@@ -211,6 +217,15 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters("{source: '42 != 42', expected: 'false'}")
   @TestParameters("{source: '[\"foo\",\"bar\"] == [\"foo\",\"bar\"]', expected: 'true'}")
   @TestParameters("{source: '[\"bar\",\"foo\"] == [\"foo\",\"bar\"]', expected: 'false'}")
+  @TestParameters("{source: 'duration(\"1h\") - duration(\"60m\")', expected: 'duration(\"0s\")'}")
+  @TestParameters(
+      "{source: 'duration(\"2h23m42s12ms42us92ns\") + duration(\"129481231298125ns\")', expected:"
+          + " 'duration(\"138103.243340217s\")'}")
+  @TestParameters(
+      "{source: 'timestamp(900000) - timestamp(100)', expected: 'duration(\"899900s\")'}")
+  @TestParameters(
+      "{source: 'timestamp(\"2000-01-01T00:02:03.2123Z\") + duration(\"25h2m32s42ms53us29ns\")',"
+          + " expected: 'timestamp(\"2000-01-02T01:04:35.254353029Z\")'}")
   // TODO: Support folding lists with mixed types. This requires mutable lists.
   // @TestParameters("{source: 'dyn([1]) + [1.0]'}")
   public void constantFold_success(String source, String expected) throws Exception {
@@ -348,6 +363,8 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters("{source: 'get_true() == true'}")
   @TestParameters("{source: 'x == x'}")
   @TestParameters("{source: 'x == 42'}")
+  @TestParameters("{source: 'timestamp(100)'}")
+  @TestParameters("{source: 'duration(\"1h\")'}")
   public void constantFold_noOp(String source) throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile(source).getAst();
 
