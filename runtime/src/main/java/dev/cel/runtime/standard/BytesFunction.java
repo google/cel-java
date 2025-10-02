@@ -50,8 +50,15 @@ public final class BytesFunction extends CelStandardFunction {
           }
         }),
     STRING_TO_BYTES(
-        (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from("string_to_bytes", String.class, CelByteString::copyFromUtf8)),
+        (celOptions, runtimeEquality) -> {
+          if (celOptions.evaluateCanonicalTypesToNativeValues()) {
+            return CelFunctionBinding.from(
+                "string_to_bytes", String.class, CelByteString::copyFromUtf8);
+          } else {
+            return CelFunctionBinding.from(
+                "string_to_bytes", String.class, ByteString::copyFromUtf8);
+          }
+        }),
     ;
 
     private final FunctionBindingCreator bindingCreator;

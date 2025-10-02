@@ -2108,6 +2108,23 @@ public final class CelImplTest {
   }
 
   @Test
+  public void program_evaluateCanonicalTypesToNativeTypesDisabled_producesBytesProto()
+      throws Exception {
+    Cel cel =
+        standardCelBuilderWithMacros()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
+            .setOptions(CelOptions.current().evaluateCanonicalTypesToNativeValues(false).build())
+            .build();
+    CelAbstractSyntaxTree ast =
+        cel.compile("TestAllTypes{single_bytes: bytes('abc')}.single_bytes").getAst();
+
+    ByteString result = (ByteString) cel.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(ByteString.copyFromUtf8("abc"));
+  }
+
+  @Test
   public void toBuilder_isImmutable() {
     CelBuilder celBuilder = CelFactory.standardCelBuilder();
     CelImpl celImpl = (CelImpl) celBuilder.build();
