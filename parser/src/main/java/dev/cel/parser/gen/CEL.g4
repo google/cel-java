@@ -45,9 +45,9 @@ calc
     ;
 
 unary
-    : member                                                        # MemberExpr
-    | (ops+='!')+ member                                            # LogicalNot
-    | (ops+='-')+ member                                            # Negate
+    : member
+    | op='!' unary
+    | op='-' unary
     ;
 
 member
