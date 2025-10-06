@@ -29,3 +29,8 @@ java_library(
     name = "ast_depth_limit_validator",
     exports = ["//validator/src/main/java/dev/cel/validator/validators:ast_depth_limit_validator"],
 )
+
+java_library(
+    name = "comprehension_nesting_limit_validator",
+    exports = ["//validator/src/main/java/dev/cel/validator/validators:comprehension_nesting_limit_validator"],
+)
