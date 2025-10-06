@@ -31,6 +31,11 @@ import dev.cel.bundle.CelEnvironmentYamlParser;
 import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
+import dev.cel.common.ast.CelConstant;
+import dev.cel.common.ast.CelExpr.ExprKind;
+import dev.cel.common.navigation.CelNavigableAst;
+import dev.cel.common.navigation.CelNavigableExpr;
+import dev.cel.common.navigation.TraversalOrder;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
@@ -47,6 +52,8 @@ import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelLateFunctionBindings;
 import dev.cel.testing.testdata.SingleFileProto.SingleFile;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
+import dev.cel.validator.CelAstValidator;
+import dev.cel.validator.CelAstValidator.IssuesFactory;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
@@ -263,6 +270,105 @@ public final class CelPolicyCompilerImplTest {
 
     // Result is Optional<Optional<Object>>
     assertThat(evalResult).hasValue(Optional.of(true));
+  }
+
+  static final class NoFooLiteralsValidator implements CelAstValidator {
+    private static boolean isFooLiteral(CelNavigableExpr node) {
+      return node.getKind().equals(ExprKind.Kind.CONSTANT)
+          && node.expr().constant().getKind().equals(CelConstant.Kind.STRING_VALUE)
+          && node.expr().constant().stringValue().equals("foo");
+    }
+
+    @Override
+    public void validate(CelNavigableAst navigableAst, Cel cel, IssuesFactory issuesFactory) {
+      navigableAst
+          .getRoot()
+          .descendants(TraversalOrder.POST_ORDER)
+          .filter(NoFooLiteralsValidator::isFooLiteral)
+          .forEach(node -> issuesFactory.addError(node.id(), "'foo' is a forbidden literal"));
+    }
+  }
+
+  @Test
+  public void evaluateYamlPolicy_validatorReportsErrors() throws Exception {
+    Cel cel = newCel();
+    String policySource =
+        "name: nested_rule_with_forbidden_literal\n"
+            + "rule:\n"
+            + "  variables:\n"
+            + "    - name: 'foo'\n"
+            + "      expression: \"(true) ? 'bar' : 'foo'\"\n"
+            + "  match:\n"
+            + "    - condition: |\n"
+            + "        variables.foo in ['foo', 'bar', 'foo']\n"
+            + "      output: >\n"
+            + "        'foo' == variables.foo\n";
+    CelPolicy policy = POLICY_PARSER.parse(policySource);
+    CelPolicyValidationException e =
+        assertThrows(
+            CelPolicyValidationException.class,
+            () ->
+                CelPolicyCompilerFactory.newPolicyCompiler(cel)
+                    .addValidators(new NoFooLiteralsValidator())
+                    .build()
+                    .compile(policy));
+
+    assertThat(e)
+        .hasMessageThat()
+        .contains(
+            "ERROR: <input>:5:37: 'foo' is a forbidden literal\n"
+                + " |       expression: \"(true) ? 'bar' : 'foo'\"\n"
+                + " | ....................................^");
+    assertThat(e)
+        .hasMessageThat()
+        .contains(
+            "ERROR: <input>:8:27: 'foo' is a forbidden literal\n"
+                + " |         variables.foo in ['foo', 'bar', 'foo']\n"
+                + " | ..........................^");
+    assertThat(e)
+        .hasMessageThat()
+        .contains(
+            "ERROR: <input>:8:41: 'foo' is a forbidden literal\n"
+                + " |         variables.foo in ['foo', 'bar', 'foo']\n"
+                + " | ........................................^");
+  }
+
+  // If the condition fails to validate, then the compiler doesn't attempt to compile or validate
+  // the output, so second test case for coverage.
+  @Test
+  public void evaluateYamlPolicy_validatorReportsOutput() throws Exception {
+    Cel cel = newCel();
+    String policySource =
+        "name: nested_rule_with_forbidden_literal\n"
+            + "rule:\n"
+            + "  variables:\n"
+            + "    - name: 'foo'\n"
+            + "      expression: \"(true) ? 'bar' : 'foo'\"\n"
+            + "  match:\n"
+            + "    - output: >\n"
+            + "        'foo' == variables.foo\n";
+    CelPolicy policy = POLICY_PARSER.parse(policySource);
+    CelPolicyValidationException e =
+        assertThrows(
+            CelPolicyValidationException.class,
+            () ->
+                CelPolicyCompilerFactory.newPolicyCompiler(cel)
+                    .addValidators(new NoFooLiteralsValidator())
+                    .build()
+                    .compile(policy));
+
+    assertThat(e)
+        .hasMessageThat()
+        .contains(
+            "ERROR: <input>:5:37: 'foo' is a forbidden literal\n"
+                + " |       expression: \"(true) ? 'bar' : 'foo'\"\n"
+                + " | ....................................^");
+    assertThat(e)
+        .hasMessageThat()
+        .contains(
+            "ERROR: <input>:8:9: 'foo' is a forbidden literal\n"
+                + " |         'foo' == variables.foo\n"
+                + " | ........^");
   }
 
   @Test
