@@ -16,6 +16,7 @@ package dev.cel.policy;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
+import dev.cel.validator.CelAstValidator;
 
 /** Interface for building an instance of {@link CelPolicyCompiler} */
 public interface CelPolicyCompilerBuilder {
@@ -37,6 +38,24 @@ public interface CelPolicyCompilerBuilder {
    */
   @CanIgnoreReturnValue
   CelPolicyCompilerBuilder setAstDepthLimit(int iterationLimit);
+
+  /**
+   * Adds one or more {@link CelAstValidators} to the compiler. These apply per CEL expression in
+   * the policy.
+   */
+  @CanIgnoreReturnValue
+  CelPolicyCompilerBuilder addValidators(Iterable<? extends CelAstValidator> validators);
+
+  /**
+   * Adds one or more {@link CelAstValidators} to the compiler. These apply per CEL expression in
+   * the policy.
+   */
+  @CanIgnoreReturnValue
+  CelPolicyCompilerBuilder addValidators(CelAstValidator... validators);
+
+  /** Removes any custom validators from the compiler builder. */
+  @CanIgnoreReturnValue
+  CelPolicyCompilerBuilder clearValidators();
 
   @CheckReturnValue
   CelPolicyCompiler build();
