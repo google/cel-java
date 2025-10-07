@@ -28,6 +28,7 @@ import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import dev.cel.checker.CelCheckerBuilder;
+import dev.cel.checker.CelStandardDeclarations;
 import dev.cel.checker.ProtoTypeMask;
 import dev.cel.checker.TypeProvider;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -54,6 +55,7 @@ import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
+import dev.cel.runtime.CelStandardFunctions;
 import java.util.Arrays;
 import java.util.function.Function;
 
@@ -379,6 +381,20 @@ final class CelImpl implements Cel, EnvVisitable {
     public CelBuilder addRuntimeLibraries(Iterable<CelRuntimeLibrary> libraries) {
       checkNotNull(libraries);
       runtimeBuilder.addLibraries(libraries);
+      return this;
+    }
+
+    @Override
+    public CelBuilder setStandardDeclarations(CelStandardDeclarations standardDeclarations) {
+      checkNotNull(standardDeclarations);
+      compilerBuilder.setStandardDeclarations(standardDeclarations);
+      return this;
+    }
+
+    @Override
+    public CelBuilder setStandardFunctions(CelStandardFunctions standardFunctions) {
+      checkNotNull(standardFunctions);
+      runtimeBuilder.setStandardFunctions(standardFunctions);
       return this;
     }
 

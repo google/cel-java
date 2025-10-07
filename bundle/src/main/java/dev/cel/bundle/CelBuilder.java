@@ -22,6 +22,7 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
+import dev.cel.checker.CelStandardDeclarations;
 import dev.cel.checker.ProtoTypeMask;
 import dev.cel.checker.TypeProvider;
 import dev.cel.common.CelContainer;
@@ -36,6 +37,7 @@ import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeLibrary;
+import dev.cel.runtime.CelStandardFunctions;
 import java.util.function.Function;
 
 /** Interface for building an instance of Cel. */
@@ -84,7 +86,7 @@ public interface CelBuilder {
   /** Retrieves the currently configured {@link CelContainer} in the builder. */
   CelContainer container();
 
-  /*
+  /**
    * Set the {@link CelContainer} to use as the namespace for resolving CEL expression variables and
    * functions.
    */
@@ -298,6 +300,24 @@ public interface CelBuilder {
   /** Adds a collection of libraries for runtime. */
   @CanIgnoreReturnValue
   CelBuilder addRuntimeLibraries(Iterable<CelRuntimeLibrary> libraries);
+
+  /**
+   * Override the standard declarations for the type-checker. This can be used to subset the
+   * standard environment to only expose the desired declarations to the type-checker. {@link
+   * #setStandardEnvironmentEnabled(boolean)} must be set to false for this to take effect.
+   */
+  @CanIgnoreReturnValue
+  CelBuilder setStandardDeclarations(CelStandardDeclarations standardDeclarations);
+
+  /**
+   * Override the standard functions for the runtime. This can be used to subset the standard
+   * environment to only expose the desired function overloads to the runtime.
+   *
+   * <p>{@link #setStandardEnvironmentEnabled(boolean)} must be set to false for this to take
+   * effect.
+   */
+  @CanIgnoreReturnValue
+  CelBuilder setStandardFunctions(CelStandardFunctions standardFunctions);
 
   /**
    * Sets a proto ExtensionRegistry to assist with unpacking Any messages containing a proto2
