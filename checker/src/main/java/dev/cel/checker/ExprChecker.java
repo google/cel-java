@@ -362,6 +362,13 @@ public final class ExprChecker {
     CelType messageType = SimpleType.ERROR;
     CelIdentDecl decl =
         env.lookupIdent(expr.id(), getPosition(expr), container, struct.messageName());
+    if (!struct.messageName().equals(decl.name())) {
+      expr =
+          expr.toBuilder()
+              .setStruct(struct.toBuilder().setMessageName(decl.name()).build())
+              .build();
+    }
+
     env.setRef(expr, CelReference.newBuilder().setName(decl.name()).build());
     CelType type = decl.type();
     if (type.kind() != CelKind.ERROR) {

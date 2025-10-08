@@ -30,7 +30,7 @@ declare single_nested_enum {
 }
 =====>
 _==_(
-  TestAllTypes{
+  cel.expr.conformance.proto3.TestAllTypes{
     single_nested_enum:cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAR~int^cel.expr.conformance.proto3.TestAllTypes.NestedEnum.BAR
   }~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes.single_nested_enum~int,
   1~int

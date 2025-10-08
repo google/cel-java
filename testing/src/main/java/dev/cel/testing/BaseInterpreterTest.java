@@ -576,7 +576,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "proto3.TestAllTypes{} == cel.expr.conformance.proto3.TestAllTypes{}";
     runTest();
 
-    source = "SGAR"; // From StandaloneGLobaLEnum
+    source = "SGAR"; // From StandaloneGlobalEnum
     runTest();
   }
 

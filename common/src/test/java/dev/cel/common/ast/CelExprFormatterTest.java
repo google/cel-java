@@ -191,7 +191,7 @@ public class CelExprFormatterTest {
     assertThat(formattedExpr)
         .isEqualTo(
             "STRUCT [1] {\n"
-                + "  name: TestAllTypes\n"
+                + "  name: cel.expr.conformance.proto3.TestAllTypes\n"
                 + "  entries: {\n"
                 + "    ENTRY [2] {\n"
                 + "      field_key: single_int64\n"

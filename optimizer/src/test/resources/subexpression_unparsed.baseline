@@ -677,16 +677,16 @@ Test case: OPTIONAL_MESSAGE
 Source: TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}.single_int32 + TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}.single_int64 == 5
 =====>
 Result: true
-[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
-[BLOCK_RECURSION_DEPTH_1]: cel.@block([optional.ofNonZeroValue(1), optional.of(4), TestAllTypes{?single_int64: @index0, ?single_int32: @index1}, @index2.single_int32, @index2.single_int64, @index3 + @index4], @index5 == 5)
-[BLOCK_RECURSION_DEPTH_2]: cel.@block([TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}, @index0.single_int32 + @index0.single_int64], @index1 == 5)
-[BLOCK_RECURSION_DEPTH_3]: cel.@block([TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
-[BLOCK_RECURSION_DEPTH_4]: cel.@block([TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
-[BLOCK_RECURSION_DEPTH_5]: cel.@block([TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
-[BLOCK_RECURSION_DEPTH_6]: cel.@block([TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
-[BLOCK_RECURSION_DEPTH_7]: cel.@block([TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
-[BLOCK_RECURSION_DEPTH_8]: cel.@block([TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
-[BLOCK_RECURSION_DEPTH_9]: cel.@block([TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
+[BLOCK_COMMON_SUBEXPR_ONLY]: cel.@block([cel.expr.conformance.proto3.TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
+[BLOCK_RECURSION_DEPTH_1]: cel.@block([optional.ofNonZeroValue(1), optional.of(4), cel.expr.conformance.proto3.TestAllTypes{?single_int64: @index0, ?single_int32: @index1}, @index2.single_int32, @index2.single_int64, @index3 + @index4], @index5 == 5)
+[BLOCK_RECURSION_DEPTH_2]: cel.@block([cel.expr.conformance.proto3.TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}, @index0.single_int32 + @index0.single_int64], @index1 == 5)
+[BLOCK_RECURSION_DEPTH_3]: cel.@block([cel.expr.conformance.proto3.TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([cel.expr.conformance.proto3.TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([cel.expr.conformance.proto3.TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([cel.expr.conformance.proto3.TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
+[BLOCK_RECURSION_DEPTH_7]: cel.@block([cel.expr.conformance.proto3.TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
+[BLOCK_RECURSION_DEPTH_8]: cel.@block([cel.expr.conformance.proto3.TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
+[BLOCK_RECURSION_DEPTH_9]: cel.@block([cel.expr.conformance.proto3.TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32: optional.of(4)}], @index0.single_int32 + @index0.single_int64 == 5)
 
 Test case: CALL
 Source: ('h' + 'e' + 'l' + 'l' + 'o' + ' world').matches('h' + 'e' + 'l' + 'l' + 'o')

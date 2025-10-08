@@ -72,7 +72,7 @@ Source: {?'key': {'a': 'b'}.?value}.key
 
 Source: TestAllTypes{?single_int32: {}.?i}
 =====>
-TestAllTypes{
+cel.expr.conformance.proto3.TestAllTypes{
   ?single_int32:_?._(
     {}~map(dyn, int),
     "i"

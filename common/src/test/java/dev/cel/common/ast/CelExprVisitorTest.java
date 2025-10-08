@@ -206,14 +206,19 @@ public class CelExprVisitorTest {
     assertThat(visited)
         .isEqualTo(
             VisitedReference.newBuilder()
-                .setStruct(CelStruct.newBuilder().setMessageName("TestAllTypes").build())
+                .setStruct(
+                    CelStruct.newBuilder()
+                        .setMessageName("cel.expr.conformance.proto3.TestAllTypes")
+                        .build())
                 .setSelect(
                     CelSelect.newBuilder()
                         .setOperand(
                             CelExpr.newBuilder()
                                 .setId(1)
                                 .setStruct(
-                                    CelStruct.newBuilder().setMessageName("TestAllTypes").build())
+                                    CelStruct.newBuilder()
+                                        .setMessageName("cel.expr.conformance.proto3.TestAllTypes")
+                                        .build())
                                 .build())
                         .setField("single_int64")
                         .build())
@@ -268,7 +273,7 @@ public class CelExprVisitorTest {
                                 .setFieldKey("single_int64")
                                 .setValue(CelExpr.ofConstant(3, longConstant))
                                 .build())
-                        .setMessageName("TestAllTypes")
+                        .setMessageName("cel.expr.conformance.proto3.TestAllTypes")
                         .build())
                 .build());
   }

@@ -340,7 +340,8 @@ public class CelRuntimeTest {
     CelEvaluationListener listener =
         (expr, res) -> {
           assertThat(res).isEqualTo(TestAllTypes.getDefaultInstance());
-          assertThat(expr.struct().messageName()).isEqualTo("TestAllTypes");
+          assertThat(expr.struct().messageName())
+              .isEqualTo("cel.expr.conformance.proto3.TestAllTypes");
         };
     Cel cel =
         CelFactory.standardCelBuilder()

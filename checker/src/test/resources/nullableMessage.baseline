@@ -16,10 +16,10 @@ declare x {
 _||_(
   _==_(
     null~null,
-    TestAllTypes{}~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes
+    cel.expr.conformance.proto3.TestAllTypes{}~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes
   )~bool^equals,
   _==_(
-    TestAllTypes{}~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes,
+    cel.expr.conformance.proto3.TestAllTypes{}~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes,
     null~null
   )~bool^equals
 )~bool^logical_or

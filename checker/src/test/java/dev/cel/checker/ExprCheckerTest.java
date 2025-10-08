@@ -73,8 +73,9 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     CelAbstractSyntaxTree ast =
         prepareTest(
             Arrays.asList(
-                TestAllTypes.getDescriptor(),
-                dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor()));
+                StandaloneGlobalEnum.getDescriptor().getFile(),
+                TestAllTypes.getDescriptor().getFile(),
+                dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor().getFile()));
     if (ast != null) {
       testOutput()
           .println(
@@ -236,6 +237,45 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     source =
         "x.single_nested_message.bb == 43 && has(x.single_nested_message)  && has(x.single_int32)"
             + " && has(x.repeated_int32) && has(x.map_int64_nested_type)";
+    runTest();
+  }
+
+  @Test
+  public void containers() throws Exception {
+    container =
+        CelContainer.newBuilder()
+            .setName("dev.cel.testing.testdata.proto3.StandaloneGlobalEnum")
+            .addAlias("p3_alias", "cel.expr.conformance.proto3")
+            .addAlias("foo_bar_alias", "foo.bar")
+            .addAlias("foo_bar_baz_alias", "foo.bar.baz")
+            .addAbbreviations("cel.expr.conformance.proto2", "cel.expr.conformance.proto3")
+            .build();
+    source = "p3_alias.TestAllTypes{}";
+    runTest();
+
+    source = "proto2.TestAllTypes{}";
+    runTest();
+
+    source = "proto3.TestAllTypes{}";
+    runTest();
+
+    source = "SGAR"; // From StandaloneGlobalEnum
+    runTest();
+
+    declareVariable("foo.bar", SimpleType.STRING);
+    declareFunction(
+        "baz",
+        memberOverload(
+            "foo_bar_baz_overload", ImmutableList.of(SimpleType.STRING), SimpleType.DYN));
+    // Member call of "baz()" on "foo.bar" identifier
+    source = "foo_bar_alias.baz()";
+    runTest();
+
+    declareFunction(
+        "foo.bar.baz.qux",
+        globalOverload("foo_bar_baz_qux_overload", ImmutableList.of(), SimpleType.DYN));
+    // Global call of "foo.bar.baz.qux" as a fully qualified name
+    source = "foo_bar_baz_alias.qux()";
     runTest();
   }
 
@@ -851,17 +891,16 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   public void twoVarComprehensions_duplicateIterVars() throws Exception {
     CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
     declareVariable("x", messageType);
-    source =
-        "x.repeated_int64.exists(i, i, i < v)";
+    source = "x.repeated_int64.exists(i, i, i < v)";
     runTest();
   }
-  
+
   @Test
   public void twoVarComprehensions_incorrectNumberOfArgs() throws Exception {
     CelType messageType = StructTypeReference.create("cel.expr.conformance.proto3.TestAllTypes");
     declareVariable("x", messageType);
     source =
-            "[1, 2, 3, 4].exists_one(i, v, i < v, v)"
+        "[1, 2, 3, 4].exists_one(i, v, i < v, v)"
             + "&& x.map_string_string.transformList(i, i < v) "
             + "&& [1, 2, 3].transformList(i, v, i > 0 && x < 3, (i * v) + v) == [4]";
     runTest();

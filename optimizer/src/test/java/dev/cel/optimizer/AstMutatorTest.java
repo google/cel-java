@@ -584,7 +584,7 @@ public class AstMutatorTest {
     CelMutableAst result = AST_MUTATOR.replaceSubtree(mutableAst, newExpr, 3);
 
     assertThat(CEL_UNPARSER.unparse(result.toParsedAst()))
-        .isEqualTo("TestAllTypes{single_int64: 5}");
+        .isEqualTo("cel.expr.conformance.proto3.TestAllTypes{single_int64: 5}");
   }
 
   @Test

@@ -1,7 +1,6 @@
 Source: TestAllTypes{single_int32: 1, single_int64: 2}
 =====>
-TestAllTypes{
+cel.expr.conformance.proto3.TestAllTypes{
   single_int32:1~int,
   single_int64:2~int
 }~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes
-

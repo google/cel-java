@@ -595,7 +595,7 @@ public class CelNavigableExprVisitorTest {
             constExpr,
             CelExpr.ofStruct(
                 1,
-                "TestAllTypes",
+                "cel.expr.conformance.proto3.TestAllTypes",
                 ImmutableList.of(CelExpr.ofStructEntry(2, "single_int64", constExpr, false))));
   }
 
@@ -621,7 +621,7 @@ public class CelNavigableExprVisitorTest {
         .isEqualTo(
             CelExpr.ofStruct(
                 1,
-                "TestAllTypes",
+                "cel.expr.conformance.proto3.TestAllTypes",
                 ImmutableList.of(
                     CelExpr.ofStructEntry(
                         2, "single_int64", CelExpr.ofConstant(3, CelConstant.ofValue(1)), false))));

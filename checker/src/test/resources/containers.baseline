@@ -1,0 +1,38 @@
+Source: p3_alias.TestAllTypes{}
+=====>
+cel.expr.conformance.proto3.TestAllTypes{}~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes
+
+Source: proto2.TestAllTypes{}
+=====>
+cel.expr.conformance.proto2.TestAllTypes{}~cel.expr.conformance.proto2.TestAllTypes^cel.expr.conformance.proto2.TestAllTypes
+
+Source: proto3.TestAllTypes{}
+=====>
+cel.expr.conformance.proto3.TestAllTypes{}~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes
+
+Source: SGAR
+=====>
+dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGAR~int^dev.cel.testing.testdata.proto3.StandaloneGlobalEnum.SGAR
+
+Source: foo_bar_alias.baz()
+declare foo.bar {
+  value string
+}
+declare baz {
+  function foo_bar_baz_overload string.() -> dyn
+}
+=====>
+foo.bar~string^foo.bar.baz()~dyn^foo_bar_baz_overload
+
+Source: foo_bar_baz_alias.qux()
+declare foo.bar {
+  value string
+}
+declare baz {
+  function foo_bar_baz_overload string.() -> dyn
+}
+declare foo.bar.baz.qux {
+  function foo_bar_baz_qux_overload () -> dyn
+}
+=====>
+foo.bar.baz.qux()~dyn^foo_bar_baz_qux_overload

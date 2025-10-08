@@ -4296,7 +4296,7 @@ CALL [1] {
     LIST [2] {
       elements: {
         STRUCT [3] {
-          name: TestAllTypes
+          name: cel.expr.conformance.proto3.TestAllTypes
           entries: {
             ENTRY [4] {
               field_key: single_int64

@@ -159,18 +159,18 @@ public class ConstantFoldingOptimizerTest {
           + " optional.of(1), ?y: optional.none()}'}")
   @TestParameters(
       "{source: 'TestAllTypes{single_int64: 1 + 2 + 3 + x}', "
-          + " expected: 'TestAllTypes{single_int64: 6 + x}'}")
+          + " expected: 'cel.expr.conformance.proto3.TestAllTypes{single_int64: 6 + x}'}")
   @TestParameters(
       "{source: 'TestAllTypes{?single_int64: optional.ofNonZeroValue(1)}', "
-          + " expected: 'TestAllTypes{single_int64: 1}'}")
+          + " expected: 'cel.expr.conformance.proto3.TestAllTypes{single_int64: 1}'}")
   @TestParameters(
       "{source: 'TestAllTypes{?single_int64: optional.ofNonZeroValue(0)}', "
-          + " expected: 'TestAllTypes{}'}")
+          + " expected: 'cel.expr.conformance.proto3.TestAllTypes{}'}")
   @TestParameters(
       "{source: 'TestAllTypes{?single_int64: optional.ofNonZeroValue(1), ?single_int32:"
           + " optional.of(4), ?single_uint64: optional.ofNonZeroValue(x)}', expected:"
-          + " 'TestAllTypes{single_int64: 1, single_int32: 4, ?single_uint64:"
-          + " optional.ofNonZeroValue(x)}'}")
+          + " 'cel.expr.conformance.proto3.TestAllTypes{single_int64: 1, single_int32: 4,"
+          + " ?single_uint64: optional.ofNonZeroValue(x)}'}")
   @TestParameters("{source: '{\"hello\": \"world\"}.hello == x', expected: '\"world\" == x'}")
   @TestParameters("{source: '{\"hello\": \"world\"}[\"hello\"] == x', expected: '\"world\" == x'}")
   @TestParameters("{source: '{\"hello\": \"world\"}.?hello', expected: 'optional.of(\"world\")'}")
@@ -358,7 +358,9 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters("{source: 'optional.none()'}")
   @TestParameters("{source: '[optional.none()]'}")
   @TestParameters("{source: '[?x.?y]'}")
-  @TestParameters("{source: 'TestAllTypes{single_int32: x, repeated_int32: [1, 2, 3]}'}")
+  @TestParameters(
+      "{source: 'cel.expr.conformance.proto3.TestAllTypes{"
+          + "single_int32: x, repeated_int32: [1, 2, 3]}'}")
   @TestParameters("{source: 'get_true() == get_true()'}")
   @TestParameters("{source: 'get_true() == true'}")
   @TestParameters("{source: 'x == x'}")
