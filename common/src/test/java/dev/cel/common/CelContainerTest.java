@@ -121,10 +121,6 @@ public class CelContainerTest {
 
   private enum AliasingErrorTestCase {
     BAD_QUALIFIED_NAME(
-        "foo",
-        "invalid_qualified_name",
-        "alias must refer to a valid qualified name: invalid_qualified_name"),
-    BAD_QUALIFIED_NAME_2(
         "foo", ".bad.name", "qualified name must not begin with a leading '.': .bad.name"),
     BAD_ALIAS_NAME_1(
         "bad.alias", "b.c", "alias must be non-empty and simple (not qualified): alias=bad.alias"),

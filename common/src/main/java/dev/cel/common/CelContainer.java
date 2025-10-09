@@ -148,6 +148,19 @@ public abstract class CelContainer {
      * useful for remapping poorly chosen protobuf message / package names.
      *
      * <p>Note: all the rules that apply to abbreviations also apply to aliasing.
+     *
+     * <p>Note: It is also possible to alias a top-level package or a name that does not contain a
+     * period. When resolving an identifier, CEL checks for variables and functions before
+     * attempting to expand aliases for type resolution. Therefore, if an expression consists solely
+     * of an identifier that matches both an alias and a declared variable (e.g., {@code
+     * short_alias}), the variable will take precedence and the compilation will succeed. The alias
+     * expansion will only be used when the alias is a prefix to a longer name (e.g., {@code
+     * short_alias.TestRequest}) or if no variable with the same name exists, in which case using
+     * the alias as a standalone identifier will likely result in a compilation error.
+     *
+     * @param alias Simple name to be expanded. Must be a valid identifier.
+     * @param qualifiedName The fully qualified name to expand to. This may be a simple name (e.g. a
+     *     package name) but it must be a valid identifier.
      */
     @CanIgnoreReturnValue
     public Builder addAlias(String alias, String qualifiedName) {
@@ -170,12 +183,6 @@ public abstract class CelContainer {
       if (qualifiedName.charAt(0) == '.') {
         throw new IllegalArgumentException(
             String.format("qualified name must not begin with a leading '.': %s", qualifiedName));
-      }
-
-      int index = qualifiedName.lastIndexOf(".");
-      if (index <= 0 || index == qualifiedName.length() - 1) {
-        throw new IllegalArgumentException(
-            String.format("%s must refer to a valid qualified name: %s", kind, qualifiedName));
       }
 
       String aliasRef = aliases.get(alias);
