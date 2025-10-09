@@ -119,6 +119,10 @@ public final class DefaultDescriptorPool implements CelDescriptorPool {
         extensionRegistry);
   }
 
+  public static Descriptor getWellKnownProtoDescriptor(WellKnownProto wellKnownProto) {
+    return WELL_KNOWN_PROTO_TO_DESCRIPTORS.get(wellKnownProto);
+  }
+
   @Override
   public Optional<Descriptor> findDescriptor(String name) {
     return Optional.ofNullable(descriptorMap.get(name));

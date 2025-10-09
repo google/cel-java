@@ -100,6 +100,7 @@ java_library(
     ],
     deps = [
         ":runtime_type_provider",
+        "//common:cel_descriptor_util",
         "//common:cel_descriptors",
         "//common:error_codes",
         "//common:options",
@@ -842,6 +843,7 @@ java_library(
         ":unknown_attributes",
         "//:auto_value",
         "//common:cel_ast",
+        "//common:cel_descriptor_util",
         "//common:cel_descriptors",
         "//common:options",
         "//common/annotations",

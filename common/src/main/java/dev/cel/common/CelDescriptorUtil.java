@@ -166,10 +166,12 @@ public final class CelDescriptorUtil {
     if (visited.contains(messageName)) {
       return;
     }
+
     if (!descriptor.getOptions().getMapEntry()) {
       visited.add(messageName);
       celDescriptors.addMessageTypeDescriptors(descriptor);
     }
+
     if (CelTypes.getWellKnownCelType(messageName).isPresent()) {
       return;
     }
@@ -234,6 +236,7 @@ public final class CelDescriptorUtil {
     if (visited.contains(fd.getFullName())) {
       return;
     }
+
     visited.add(fd.getFullName());
     for (FileDescriptor dep : fd.getDependencies()) {
       copyToFileDescriptorSet(visited, dep, files);

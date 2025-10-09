@@ -16,7 +16,24 @@ package dev.cel.common.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.ImmutableList;
+import com.google.protobuf.Any;
+import com.google.protobuf.BoolValue;
+import com.google.protobuf.BytesValue;
+import com.google.protobuf.DoubleValue;
+import com.google.protobuf.Duration;
+import com.google.protobuf.Empty;
+import com.google.protobuf.FieldMask;
 import com.google.protobuf.FloatValue;
+import com.google.protobuf.Int32Value;
+import com.google.protobuf.Int64Value;
+import com.google.protobuf.ListValue;
+import com.google.protobuf.StringValue;
+import com.google.protobuf.Struct;
+import com.google.protobuf.Timestamp;
+import com.google.protobuf.UInt32Value;
+import com.google.protobuf.UInt64Value;
+import com.google.protobuf.Value;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import java.util.List;
@@ -62,5 +79,68 @@ public class WellKnownProtoTest {
   @Test
   public void getByClass_unknownClass_returnsEmpty() {
     assertThat(WellKnownProto.getByClass(List.class)).isEmpty();
+  }
+
+  @Test
+  public void getByPathName_singular() {
+    assertThat(WellKnownProto.getByPathName(Any.getDescriptor().getFile().getName()))
+        .containsExactly(WellKnownProto.ANY_VALUE);
+    assertThat(WellKnownProto.getByPathName(Duration.getDescriptor().getFile().getName()))
+        .containsExactly(WellKnownProto.DURATION);
+    assertThat(WellKnownProto.getByPathName(Timestamp.getDescriptor().getFile().getName()))
+        .containsExactly(WellKnownProto.TIMESTAMP);
+    assertThat(WellKnownProto.getByPathName(Empty.getDescriptor().getFile().getName()))
+        .containsExactly(WellKnownProto.EMPTY);
+    assertThat(WellKnownProto.getByPathName(FieldMask.getDescriptor().getFile().getName()))
+        .containsExactly(WellKnownProto.FIELD_MASK);
+  }
+
+  @Test
+  public void getByPathName_json() {
+    ImmutableList<WellKnownProto> expectedWellKnownProtos =
+        ImmutableList.of(
+            WellKnownProto.JSON_STRUCT_VALUE,
+            WellKnownProto.JSON_VALUE,
+            WellKnownProto.JSON_LIST_VALUE);
+    assertThat(WellKnownProto.getByPathName(Struct.getDescriptor().getFile().getName()))
+        .containsExactlyElementsIn(expectedWellKnownProtos);
+    assertThat(WellKnownProto.getByPathName(Value.getDescriptor().getFile().getName()))
+        .containsExactlyElementsIn(expectedWellKnownProtos);
+    assertThat(WellKnownProto.getByPathName(ListValue.getDescriptor().getFile().getName()))
+        .containsExactlyElementsIn(expectedWellKnownProtos);
+  }
+
+  @Test
+  public void getByPathName_wrappers() {
+    ImmutableList<WellKnownProto> expectedWellKnownProtos =
+        ImmutableList.of(
+            WellKnownProto.FLOAT_VALUE,
+            WellKnownProto.DOUBLE_VALUE,
+            WellKnownProto.INT32_VALUE,
+            WellKnownProto.INT64_VALUE,
+            WellKnownProto.UINT32_VALUE,
+            WellKnownProto.UINT64_VALUE,
+            WellKnownProto.BOOL_VALUE,
+            WellKnownProto.STRING_VALUE,
+            WellKnownProto.BYTES_VALUE);
+
+    assertThat(WellKnownProto.getByPathName(FloatValue.getDescriptor().getFile().getName()))
+        .containsExactlyElementsIn(expectedWellKnownProtos);
+    assertThat(WellKnownProto.getByPathName(DoubleValue.getDescriptor().getFile().getName()))
+        .containsExactlyElementsIn(expectedWellKnownProtos);
+    assertThat(WellKnownProto.getByPathName(Int32Value.getDescriptor().getFile().getName()))
+        .containsExactlyElementsIn(expectedWellKnownProtos);
+    assertThat(WellKnownProto.getByPathName(Int64Value.getDescriptor().getFile().getName()))
+        .containsExactlyElementsIn(expectedWellKnownProtos);
+    assertThat(WellKnownProto.getByPathName(UInt32Value.getDescriptor().getFile().getName()))
+        .containsExactlyElementsIn(expectedWellKnownProtos);
+    assertThat(WellKnownProto.getByPathName(UInt64Value.getDescriptor().getFile().getName()))
+        .containsExactlyElementsIn(expectedWellKnownProtos);
+    assertThat(WellKnownProto.getByPathName(BoolValue.getDescriptor().getFile().getName()))
+        .containsExactlyElementsIn(expectedWellKnownProtos);
+    assertThat(WellKnownProto.getByPathName(StringValue.getDescriptor().getFile().getName()))
+        .containsExactlyElementsIn(expectedWellKnownProtos);
+    assertThat(WellKnownProto.getByPathName(BytesValue.getDescriptor().getFile().getName()))
+        .containsExactlyElementsIn(expectedWellKnownProtos);
   }
 }

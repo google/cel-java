@@ -43,14 +43,18 @@ import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.Duration;
+import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Empty;
+import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.FieldMask;
 import com.google.protobuf.Message;
 import com.google.protobuf.Struct;
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.Timestamp;
+import com.google.protobuf.TypeRegistry;
 import com.google.protobuf.WrappersProto;
 import com.google.rpc.context.AttributeContext;
 import com.google.testing.junit.testparameterinjector.TestParameter;
@@ -62,6 +66,7 @@ import dev.cel.checker.ProtoTypeMask;
 import dev.cel.checker.TypeProvider;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
+import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelOptions;
@@ -91,6 +96,7 @@ import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.compiler.CelCompilerImpl;
 import dev.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage;
+import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.parser.CelParserImpl;
 import dev.cel.parser.CelStandardMacro;
@@ -196,13 +202,11 @@ public final class CelImplTest {
             IllegalArgumentException.class,
             () ->
                 standardCelBuilderWithMacros()
-                    .setContainer(CelContainer.ofName("google.rpc.context.AttributeContext"))
+                    .setContainer(CelContainer.ofName("cel.expr.conformance.proto2"))
                     .addFileTypes(
                         FileDescriptorSet.newBuilder()
-                            .addFile(AttributeContext.getDescriptor().getFile().toProto())
+                            .addFile(TestAllTypesExtensions.getDescriptor().getFile().toProto())
                             .build())
-                    .setProtoResultType(
-                        CelProtoTypes.createMessage("google.rpc.context.AttributeContext.Resource"))
                     .build());
     assertThat(e).hasMessageThat().contains("file descriptor set with unresolved proto file");
   }
@@ -2122,6 +2126,58 @@ public final class CelImplTest {
     ByteString result = (ByteString) cel.createProgram(ast).eval();
 
     assertThat(result).isEqualTo(ByteString.copyFromUtf8("abc"));
+  }
+
+  @Test
+  public void program_fdsContainsWktDependency_descriptorInstancesMatch() throws Exception {
+    // Force serialization of the descriptor to get a unique instance
+    FileDescriptorProto proto = TestAllTypes.getDescriptor().getFile().toProto();
+    FileDescriptorSet fds = FileDescriptorSet.newBuilder().addFile(proto).build();
+    ImmutableSet<FileDescriptor> fileDescriptors =
+        CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds);
+    ImmutableSet<Descriptor> descriptors =
+        CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileDescriptors)
+            .messageTypeDescriptors();
+    Descriptor testAllTypesDescriptor =
+        descriptors.stream()
+            .filter(x -> x.getFullName().equals(TestAllTypes.getDescriptor().getFullName()))
+            .findAny()
+            .get();
+
+    // Parse text proto using this fds
+    TypeRegistry typeRegistry = TypeRegistry.newBuilder().add(descriptors).build();
+    TestAllTypes.Builder testAllTypesBuilder = TestAllTypes.newBuilder();
+    TextFormat.Parser textFormatParser =
+        TextFormat.Parser.newBuilder().setTypeRegistry(typeRegistry).build();
+    String textProto =
+        "single_timestamp {\n" //
+            + "  seconds: 100\n" //
+            + "}";
+    textFormatParser.merge(textProto, testAllTypesBuilder);
+    TestAllTypes testAllTypesFromTextProto = testAllTypesBuilder.build();
+    DynamicMessage dynamicMessage =
+        DynamicMessage.parseFrom(
+            testAllTypesDescriptor,
+            testAllTypesFromTextProto.toByteArray(),
+            ExtensionRegistry.getEmptyRegistry());
+    // Setup CEL environment with the same descriptors obtained from FDS
+    Cel cel =
+        standardCelBuilderWithMacros()
+            .addMessageTypes(descriptors)
+            .setOptions(
+                CelOptions.current()
+                    .evaluateCanonicalTypesToNativeValues(true)
+                    .enableTimestampEpoch(true)
+                    .build())
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
+            .build();
+    CelAbstractSyntaxTree ast =
+        cel.compile("TestAllTypes{single_timestamp: timestamp(100)}").getAst();
+
+    DynamicMessage evalResult = (DynamicMessage) cel.createProgram(ast).eval();
+
+    // This should strictly equal regardless of where the descriptors came from for WKTs
+    assertThat(evalResult).isEqualTo(dynamicMessage);
   }
 
   @Test

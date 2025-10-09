@@ -15,6 +15,7 @@
 package dev.cel.common.internal;
 
 import com.google.common.base.VerifyException;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
@@ -76,7 +77,15 @@ public final class FileDescriptorSetConverter {
     // Read dependencies first, they are needed to create the logical descriptor from the proto.
     List<FileDescriptor> deps = new ArrayList<>();
     for (String dep : fileProto.getDependencyList()) {
-      deps.add(readDescriptor(dep, descriptorProtos, descriptors));
+      ImmutableCollection<WellKnownProto> wktProtos = WellKnownProto.getByPathName(dep);
+      if (wktProtos.isEmpty()) {
+        deps.add(readDescriptor(dep, descriptorProtos, descriptors));
+      } else {
+        // Ensure the generated message's descriptor is used as a dependency for WKTs to avoid
+        // issues with descriptor instance mismatch.
+        WellKnownProto wellKnownProto = wktProtos.iterator().next();
+        deps.add(DefaultDescriptorPool.getWellKnownProtoDescriptor(wellKnownProto).getFile());
+      }
     }
     // Create the file descriptor, cache, and return.
     try {

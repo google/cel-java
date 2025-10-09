@@ -16,7 +16,6 @@ package dev.cel.common;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -183,11 +182,16 @@ public final class CelDescriptorUtilTest {
             .addFile(Timestamp.getDescriptor().getFile().toProto())
             .addFile(TestAllTypes.getDescriptor().getFile().toProto())
             .build();
-    IllegalArgumentException e =
-        assertThrows(
-            IllegalArgumentException.class,
-            () -> CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds));
-    assertThat(e).hasMessageThat().contains("google/protobuf/any.proto");
+
+    ImmutableSet<FileDescriptor> fileDescriptors =
+        CelDescriptorUtil.getFileDescriptorsFromFileDescriptorSet(fds);
+
+    assertThat(fileDescriptors.stream().map(FileDescriptor::getName).collect(toImmutableSet()))
+        .containsExactly(
+            TestAllTypes.getDescriptor().getFile().getName(),
+            Duration.getDescriptor().getFile().getName(),
+            Struct.getDescriptor().getFile().getName(),
+            Timestamp.getDescriptor().getFile().getName());
   }
 
   @Test

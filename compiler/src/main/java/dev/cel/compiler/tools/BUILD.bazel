@@ -19,7 +19,7 @@ java_binary(
         "//bundle:environment_exception",
         "//bundle:environment_yaml_parser",
         "//common:cel_ast",
-        "//common:cel_descriptors",
+        "//common:cel_descriptor_util",
         "//common:options",
         "//common:proto_ast",
         "//compiler",

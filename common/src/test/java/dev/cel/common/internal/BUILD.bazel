@@ -13,6 +13,7 @@ java_library(
     deps = [
         "//:auto_value",
         "//:java_truth",
+        "//common:cel_descriptor_util",
         "//common:cel_descriptors",
         "//common:options",
         "//common/ast",

@@ -36,18 +36,31 @@ PROTO_V1ALPHA1_AST_SOURCE = [
 ]
 
 java_library(
-    name = "cel_descriptors",
+    name = "cel_descriptor_util",
     srcs = [
         "CelDescriptorUtil.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":cel_descriptors",
+        "//common/annotations",
+        "//common/internal:file_descriptor_converter",
+        "//common/types:cel_types",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "cel_descriptors",
+    srcs = [
         "CelDescriptors.java",
     ],
     tags = [
     ],
     deps = [
         "//:auto_value",
-        "//common/annotations",
-        "//common/internal:file_descriptor_converter",
-        "//common/types:cel_types",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",

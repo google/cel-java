@@ -106,5 +106,18 @@ java_library(
 
 java_library(
     name = "cel_descriptors",
+    visibility = ["//:internal"],
     exports = ["//common/src/main/java/dev/cel/common:cel_descriptors"],
+)
+
+java_library(
+    name = "cel_descriptor_util",
+    visibility = [
+        "//:internal",
+        # TODO: Remove references to the following clients
+        "//java/com/google/abuse/admin/notebook/compiler/checkedtypes:__pkg__",
+        "//java/com/google/paymentfraud/v2/util/featurereplay/common/risklogrecordio:__pkg__",
+        "//java/com/google/payments/consumer/growth/treatmentconfig/management/backend/service/config/utils:__pkg__",
+    ],
+    exports = ["//common/src/main/java/dev/cel/common:cel_descriptor_util"],
 )

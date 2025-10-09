@@ -25,6 +25,7 @@ java_library(
         "//checker:checker_legacy_environment",
         "//checker:proto_type_mask",
         "//common:cel_ast",
+        "//common:cel_descriptor_util",
         "//common:cel_source",
         "//common:compiler_common",
         "//common:container",
