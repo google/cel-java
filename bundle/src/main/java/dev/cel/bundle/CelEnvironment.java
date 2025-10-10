@@ -70,7 +70,8 @@ public abstract class CelEnvironment {
           "optional", CanonicalCelExtension.OPTIONAL,
           "protos", CanonicalCelExtension.PROTOS,
           "sets", CanonicalCelExtension.SETS,
-          "strings", CanonicalCelExtension.STRINGS);
+          "strings", CanonicalCelExtension.STRINGS,
+          "comprehensions", CanonicalCelExtension.COMPREHENSIONS);
 
   /** Environment source in textual format (ex: textproto, YAML). */
   public abstract Optional<Source> source();
@@ -687,8 +688,8 @@ public abstract class CelEnvironment {
     BINDINGS((options, version) -> CelExtensions.bindings()),
     PROTOS((options, version) -> CelExtensions.protos()),
     ENCODERS(
-        (options, version) -> CelExtensions.encoders(),
-        (options, version) -> CelExtensions.encoders()),
+        (options, version) -> CelExtensions.encoders(options),
+        (options, version) -> CelExtensions.encoders(options)),
     MATH(
         (options, version) -> CelExtensions.math(options, version),
         (options, version) -> CelExtensions.math(options, version)),
@@ -701,7 +702,10 @@ public abstract class CelEnvironment {
     SETS(
         (options, version) -> CelExtensions.sets(options),
         (options, version) -> CelExtensions.sets(options)),
-    LISTS((options, version) -> CelExtensions.lists(), (options, version) -> CelExtensions.lists());
+    LISTS((options, version) -> CelExtensions.lists(), (options, version) -> CelExtensions.lists()),
+    COMPREHENSIONS(
+        (options, version) -> CelExtensions.comprehensions(),
+        (options, version) -> CelExtensions.comprehensions());
 
     @SuppressWarnings("ImmutableEnumChecker")
     private final CompilerExtensionProvider compilerExtensionProvider;

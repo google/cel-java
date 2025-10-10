@@ -60,7 +60,8 @@ public class CelEnvironmentTest {
             ExtensionConfig.latest("optional"),
             ExtensionConfig.latest("protos"),
             ExtensionConfig.latest("sets"),
-            ExtensionConfig.latest("strings"));
+            ExtensionConfig.latest("strings"),
+            ExtensionConfig.latest("comprehensions"));
     CelEnvironment environment =
         CelEnvironment.newBuilder().addExtensions(extensionConfigs).build();
 
@@ -100,9 +101,7 @@ public class CelEnvironmentTest {
   @Test
   public void extensionVersion_latest() throws Exception {
     CelEnvironment environment =
-        CelEnvironment.newBuilder()
-            .addExtensions(ExtensionConfig.latest("math"))
-            .build();
+        CelEnvironment.newBuilder().addExtensions(ExtensionConfig.latest("math")).build();
 
     Cel cel = environment.extend(CelFactory.standardCelBuilder().build(), CelOptions.DEFAULT);
     CelAbstractSyntaxTree ast = cel.compile("math.sqrt(4)").getAst();
@@ -240,10 +239,10 @@ public class CelEnvironmentTest {
                 LibrarySubset.newBuilder()
                     .setDisabled(false)
                     .setIncludedFunctions(
-                         ImmutableSet.of(
-                             FunctionSelector.create("_==_", ImmutableSet.of()),
-                             FunctionSelector.create("_!=_", ImmutableSet.of()),
-                             FunctionSelector.create("_&&_", ImmutableSet.of())))
+                        ImmutableSet.of(
+                            FunctionSelector.create("_==_", ImmutableSet.of()),
+                            FunctionSelector.create("_!=_", ImmutableSet.of()),
+                            FunctionSelector.create("_&&_", ImmutableSet.of())))
                     .build())
             .build();
 
@@ -287,8 +286,7 @@ public class CelEnvironmentTest {
                 LibrarySubset.newBuilder()
                     .setDisabled(false)
                     .setExcludedFunctions(
-                        ImmutableSet.of(
-                            FunctionSelector.create("_+_", ImmutableSet.of())))
+                        ImmutableSet.of(FunctionSelector.create("_+_", ImmutableSet.of())))
                     .build())
             .build();
 
