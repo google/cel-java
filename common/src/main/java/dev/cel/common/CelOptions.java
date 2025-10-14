@@ -462,6 +462,8 @@ public abstract class CelOptions {
      *       com.google.protobuf.ByteString}.
      *   <li>CEL null: {@code dev.cel.common.values.NullValue} instead of {@code
      *       com.google.protobuf.NullValue}.
+     *   <li>Timestamp: {@code java.time.Instant} instead of {@code com.google.protobuf.Timestamp}.
+     *   <li>Duration: {@code java.time.Duration} instead of {@code com.google.protobuf.Duration}.
      * </ul>
      */
     public abstract Builder evaluateCanonicalTypesToNativeValues(boolean value);

@@ -28,7 +28,6 @@ import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoMessageFactory;
-import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.expr.conformance.proto2.TestAllTypes;
 import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
 import java.time.Duration;
@@ -66,7 +65,8 @@ public class ProtoMessageValueProviderTest {
   @Test
   public void newValue_createProtoMessage_fieldsPopulated() {
     ProtoMessageValueProvider protoMessageValueProvider =
-        ProtoMessageValueProvider.newInstance(CelOptions.DEFAULT, DYNAMIC_PROTO);
+        ProtoMessageValueProvider.newInstance(
+            CelOptions.current().evaluateCanonicalTypesToNativeValues(true).build(), DYNAMIC_PROTO);
 
     ProtoMessageValue protoMessageValue =
         (ProtoMessageValue)
@@ -89,9 +89,9 @@ public class ProtoMessageValueProviderTest {
                         "single_string",
                         "hello",
                         "single_timestamp",
-                        ProtoTimeUtils.fromSecondsToTimestamp(50),
+                        Instant.ofEpochSecond(50),
                         "single_duration",
-                        ProtoTimeUtils.fromSecondsToDuration(100)))
+                        Duration.ofSeconds(100)))
                 .get();
 
     assertThat(protoMessageValue.isZeroValue()).isFalse();
