@@ -184,6 +184,7 @@ public abstract class CelOptions {
         .enableUnsignedLongs(true)
         .enableRegexPartialMatch(true)
         .errorOnDuplicateMapKeys(true)
+        .evaluateCanonicalTypesToNativeValues(true)
         .errorOnIntWrap(true)
         .resolveTypeDependencies(true)
         .disableCelStandardEquality(false);
