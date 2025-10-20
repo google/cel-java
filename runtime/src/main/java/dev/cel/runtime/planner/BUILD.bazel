@@ -257,6 +257,7 @@ java_library(
     deps = [
         ":attribute",
         ":cel_value_interpretable",
+        "//common/internal:concatenated_list_view",
         "//common/values",
         "//common/values:cel_value",
         "//common/values:cel_value_provider",

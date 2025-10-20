@@ -303,7 +303,6 @@ java_library(
     deps = [
         ":accumulated_unknowns",
         ":base",
-        ":concatenated_list_view",
         ":evaluation_exception",
         ":evaluation_exception_builder",
         ":evaluation_listener",
@@ -323,6 +322,7 @@ java_library(
         "//common:runtime_exception",
         "//common/annotations",
         "//common/ast",
+        "//common/internal:concatenated_list_view",
         "//common/types",
         "//common/types:type_providers",
         "//common/values:cel_byte_string",
@@ -341,7 +341,6 @@ cel_android_library(
     deps = [
         ":accumulated_unknowns_android",
         ":base_android",
-        ":concatenated_list_view",
         ":evaluation_exception",
         ":evaluation_exception_builder",
         ":evaluation_listener_android",
@@ -361,6 +360,7 @@ cel_android_library(
         "//common:runtime_exception",
         "//common/annotations",
         "//common/ast:ast_android",
+        "//common/internal:concatenated_list_view",
         "//common/types:type_providers_android",
         "//common/types:types_android",
         "//common/values:cel_byte_string",
@@ -436,11 +436,11 @@ cel_android_library(
     tags = [
     ],
     deps = [
-        ":concatenated_list_view",
         "//common:error_codes",
         "//common:options",
         "//common:runtime_exception",
         "//common/annotations",
+        "//common/internal:concatenated_list_view",
         "//common/internal:converter",
         "//common/values:values_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -459,11 +459,11 @@ java_library(
     tags = [
     ],
     deps = [
-        ":concatenated_list_view",
         "//common:error_codes",
         "//common:options",
         "//common:runtime_exception",
         "//common/annotations",
+        "//common/internal:concatenated_list_view",
         "//common/internal:converter",
         "//common/values",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -1186,13 +1186,6 @@ cel_android_library(
 )
 
 java_library(
-    name = "concatenated_list_view",
-    srcs = ["ConcatenatedListView.java"],
-    # used_by_android
-    visibility = ["//visibility:private"],
-)
-
-java_library(
     name = "accumulated_unknowns",
     srcs = ["AccumulatedUnknowns.java"],
     visibility = ["//visibility:private"],
@@ -1209,5 +1202,5 @@ cel_android_library(
     deps = [
         ":unknown_attributes_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
-    ]
+    ],
 )

@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.runtime;
+package dev.cel.common.internal;
 
+import dev.cel.common.annotations.Internal;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,7 +29,8 @@ import java.util.NoSuchElementException;
  *
  * <p>This does not support any of the standard list operations from {@link java.util.List}.
  */
-final class ConcatenatedListView<E> extends AbstractList<E> {
+@Internal
+public final class ConcatenatedListView<E> extends AbstractList<E> {
   private final List<List<? extends E>> sourceLists;
   private int totalSize = 0;
 
@@ -36,7 +38,7 @@ final class ConcatenatedListView<E> extends AbstractList<E> {
     this.sourceLists = new ArrayList<>();
   }
 
-  ConcatenatedListView(Collection<? extends E> collection) {
+  public ConcatenatedListView(Collection<? extends E> collection) {
     this();
     addAll(collection);
   }

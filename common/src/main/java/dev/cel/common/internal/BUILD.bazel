@@ -461,3 +461,10 @@ cel_android_library(
         "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
+
+java_library(
+    name = "concatenated_list_view",
+    srcs = ["ConcatenatedListView.java"],
+    deps = ["//common/annotations"],
+    # used_by_android
+)

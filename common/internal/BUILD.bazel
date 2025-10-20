@@ -147,3 +147,8 @@ cel_android_library(
     name = "date_time_helpers_android",
     exports = ["//common/src/main/java/dev/cel/common/internal:date_time_helpers_android"],
 )
+
+java_library(
+    name = "concatenated_list_view",
+    exports = ["//common/src/main/java/dev/cel/common/internal:concatenated_list_view"],
+)

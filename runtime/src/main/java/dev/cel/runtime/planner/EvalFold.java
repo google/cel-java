@@ -5,7 +5,7 @@ import dev.cel.common.values.CelValue;
 import dev.cel.common.values.IntValue;
 import dev.cel.common.values.ListValue;
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.ConcatenatedListView;
+import dev.cel.common.internal.ConcatenatedListView;
 import dev.cel.runtime.GlobalResolver;
 import java.util.Collection;
 import java.util.Iterator;

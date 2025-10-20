@@ -937,14 +937,14 @@ final class DefaultInterpreter implements Interpreter {
         return accuValue;
       }
 
-      ConcatenatedListView<Object> lv =
-          new ConcatenatedListView<>((List<Object>) accuValue.value());
+      dev.cel.common.internal.ConcatenatedListView<Object> lv =
+          new dev.cel.common.internal.ConcatenatedListView<>((List<Object>) accuValue.value());
       return IntermediateResult.create(lv);
     }
 
     @SuppressWarnings("unchecked") // All type-erased elements are object compatible
     private IntermediateResult maybeAdaptViewToList(IntermediateResult accuValue) {
-      if ((accuValue.value() instanceof ConcatenatedListView)) {
+      if ((accuValue.value() instanceof dev.cel.common.internal.ConcatenatedListView)) {
         // Materialize view back into a list to facilitate O(1) lookups.
         List<Object> copiedList = new ArrayList<>((List<Object>) accuValue.value());
 
