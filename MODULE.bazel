@@ -35,11 +35,11 @@ use_repo(switched_rules, "com_google_googleapis_imports")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 
-GUAVA_VERSION = "33.4.8"
+GUAVA_VERSION = "33.5.0"
 
 TRUTH_VERSION = "1.4.4"
 
-PROTOBUF_JAVA_VERSION = "4.32.0"
+PROTOBUF_JAVA_VERSION = "4.33.0"
 
 # Compile only artifacts
 [
@@ -51,7 +51,7 @@ PROTOBUF_JAVA_VERSION = "4.32.0"
     )
     for group, artifact, version in [coord.split(":") for coord in [
         "com.google.code.findbugs:annotations:3.0.1",
-        "com.google.errorprone:error_prone_annotations:2.41.0",
+        "com.google.errorprone:error_prone_annotations:2.42.0",
     ]]
 ]
 
@@ -114,7 +114,7 @@ maven.install(
 
 maven.install(
     name = "maven_conformance",
-    artifacts = ["dev.cel:cel:0.11.0"],
+    artifacts = ["dev.cel:cel:0.11.1"],
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
