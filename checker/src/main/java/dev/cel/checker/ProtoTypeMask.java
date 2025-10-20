@@ -75,7 +75,7 @@ public abstract class ProtoTypeMask {
    * treated as variable identifiers bound to the protobuf field name and its associated field type.
    *
    * <p>A {@code FieldMask} contains one or more {@code paths} which contain identifier characters
-   * that have been dot delimited, e.g.resource.name, request.auth.claims. Here are a few things to
+   * that have been dot delimited, e.g. resource.name, request.auth.claims. Here are a few things to
    * keep in mind:
    *
    * <ul>
@@ -99,7 +99,7 @@ public abstract class ProtoTypeMask {
    * Construct a new {@code ProtoTypeMask} which exposes all fields in the given {@code typeName}
    * for use within CEL expressions.
    *
-   * <p>The {@code typeName} should be a fully-qualified path, e.g., {@code
+   * <p>The {@code typeName} should be a fully-qualified path, e.g. {@code
    * "google.rpc.context.AttributeContext"}.
    *
    * <p>All top-level fields in the given {@code typeName} should be treated as variable identifiers
@@ -113,7 +113,7 @@ public abstract class ProtoTypeMask {
    * Construct a new {@code ProtoTypeMask} which hides all fields in the given {@code typeName} for
    * use within CEL expressions.
    *
-   * <p>The {@code typeName} should be a fully-qualified path, e.g., {@code
+   * <p>The {@code typeName} should be a fully-qualified path, e.g. {@code
    * "google.rpc.context.AttributeContext"}.
    */
   public static ProtoTypeMask ofAllFieldsHidden(String fullyQualifiedTypeName) {
