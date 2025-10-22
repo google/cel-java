@@ -32,7 +32,7 @@ import dev.cel.validator.CelAstValidator;
  * call by evaluating it and ensuring that no errors are thrown (example: duration / timestamp
  * literals).
  */
-abstract class LiteralValidator implements CelAstValidator {
+public abstract class LiteralValidator implements CelAstValidator {
   private final String functionName;
   private final Class<?> expectedResultType;
 

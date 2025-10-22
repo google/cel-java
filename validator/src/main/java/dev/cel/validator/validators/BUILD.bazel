@@ -106,7 +106,8 @@ java_library(
     srcs = [
         "LiteralValidator.java",
     ],
-    visibility = ["//visibility:private"],
+    tags = [
+    ],
     deps = [
         "//bundle:cel",
         "//common:cel_ast",
