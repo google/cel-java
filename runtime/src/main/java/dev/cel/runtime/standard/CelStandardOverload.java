@@ -29,7 +29,6 @@ interface CelStandardOverload {
 
   CelFunctionBinding newFunctionBinding(CelOptions celOptions, RuntimeEquality runtimeEquality);
 
-  @SuppressWarnings("AndroidJdkLibsChecker") // FunctionalInterface added in 24
   @FunctionalInterface
   @Immutable
   interface FunctionBindingCreator {

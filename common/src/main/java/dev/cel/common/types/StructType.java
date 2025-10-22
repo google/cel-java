@@ -99,7 +99,6 @@ public class StructType extends CelType {
    */
   @Immutable
   @FunctionalInterface
-  @SuppressWarnings("AndroidJdkLibsChecker") // FunctionalInterface added in 24
   public interface FieldResolver {
     /** Find the {@code CelType} for the given {@code fieldName} if the field is defined. */
     Optional<CelType> findField(String fieldName);

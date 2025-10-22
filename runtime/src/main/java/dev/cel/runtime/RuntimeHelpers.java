@@ -56,14 +56,12 @@ public class RuntimeHelpers {
   // =========
 
   /** Convert a string to a Protobuf Duration. */
-  @SuppressWarnings("AndroidJdkLibsChecker") // DateTimeParseException added in 26
   public static Duration createDurationFromString(String d) {
     java.time.Duration dv = createJavaDurationFromString(d);
     return Duration.newBuilder().setSeconds(dv.getSeconds()).setNanos(dv.getNano()).build();
   }
 
   /** Convert a string to a native Java Duration. */
-  @SuppressWarnings("AndroidJdkLibsChecker") // DateTimeParseException added in 26
   public static java.time.Duration createJavaDurationFromString(String d) {
     try {
       java.time.Duration dv = AmountFormats.parseUnitBasedDuration(d);

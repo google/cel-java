@@ -23,7 +23,6 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>CEL Library Internals. Do Not Use.
  */
-@SuppressWarnings("AndroidJdkLibsChecker") // FunctionalInterface added in 24
 @FunctionalInterface
 @Internal
 public interface GlobalResolver {

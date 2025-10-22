@@ -32,7 +32,6 @@ import java.util.PrimitiveIterator;
  * <p>CEL Library Internals. Do Not Use.
  */
 @Internal
-@SuppressWarnings("AndroidJdkLibsChecker") // PrimitiveIterator added in 23
 public final class Constants {
 
   private static final String DOUBLE_QUOTE = "\"";

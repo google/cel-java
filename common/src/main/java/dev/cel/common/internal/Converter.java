@@ -21,7 +21,6 @@ import dev.cel.common.annotations.Internal;
  *
  * <p>CEL Library Internals. Do Not Use.
  */
-@SuppressWarnings("AndroidJdkLibsChecker") // FunctionalInterface added in 24
 @FunctionalInterface
 @Internal
 public interface Converter<A, B> {

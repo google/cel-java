@@ -45,7 +45,6 @@ public final class TimestampFunction extends CelStandardFunction {
   }
 
   /** Overloads for the standard function. */
-  @SuppressWarnings("AndroidJdkLibsChecker") // DateTimeParseException added in 26
   public enum TimestampOverload implements CelStandardOverload {
     STRING_TO_TIMESTAMP(
         (celOptions, runtimeEquality) ->

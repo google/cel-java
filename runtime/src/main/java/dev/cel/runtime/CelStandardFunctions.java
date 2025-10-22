@@ -846,7 +846,6 @@ public final class CelStandardFunctions {
      * Functional interface for filtering standard functions. Returning true in the callback will
      * include the function in the environment.
      */
-    @SuppressWarnings("AndroidJdkLibsChecker") // FunctionalInterface added in 24
     @FunctionalInterface
     public interface FunctionFilter {
       boolean include(StandardFunction standardFunction, StandardOverload standardOverload);
@@ -858,7 +857,6 @@ public final class CelStandardFunctions {
     return new Builder();
   }
 
-  @SuppressWarnings("AndroidJdkLibsChecker") // FunctionalInterface added in 24
   @FunctionalInterface
   @Immutable
   private interface FunctionBindingCreator {

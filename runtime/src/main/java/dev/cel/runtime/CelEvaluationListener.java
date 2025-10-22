@@ -21,7 +21,6 @@ import dev.cel.common.ast.CelExpr;
  * Functional interface for a callback method invoked by the runtime. Implementations must ensure
  * that its instances are unconditionally thread-safe.
  */
-@SuppressWarnings("AndroidJdkLibsChecker") // FunctionalInterface added in 24
 @FunctionalInterface
 @ThreadSafe
 public interface CelEvaluationListener {
