@@ -16,8 +16,6 @@ package dev.cel.runtime;
 
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.annotations.Internal;
-import java.util.List;
 
 /**
  * Binding consisting of an overload id, a Java-native argument signature, and an overload
@@ -37,7 +35,6 @@ import java.util.List;
  *
  * <p>Examples: string_startsWith_string, mathMax_list, lessThan_money_money
  */
-@Internal
 @Immutable
 public interface CelFunctionBinding {
   String getOverloadId();
