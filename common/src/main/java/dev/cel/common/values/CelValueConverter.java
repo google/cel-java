@@ -81,7 +81,6 @@ public class CelValueConverter {
       // TODO: CelConstant should hold this value instead of adapting it here
       return BytesValue.create(CelByteString.of(((ByteString) value).toByteArray()));
     } else if (value instanceof Iterable) {
-
       return toListValue((Iterable<Object>) value);
     } else if (value instanceof Map) {
       return toMapValue((Map<Object, Object>) value);

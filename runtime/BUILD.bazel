@@ -228,3 +228,13 @@ cel_android_library(
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:lite_runtime_impl_android"],
 )
+
+java_library(
+    name = "cel_value_function_binding",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:cel_value_function_binding"],
+)
+
+java_library(
+    name = "cel_value_function_overload",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:cel_value_function_overload"],
+)

@@ -4,25 +4,23 @@ import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.runtime.CelValueFunctionBinding;
 import dev.cel.runtime.GlobalResolver;
 
 final class EvalZeroArity implements CelValueInterpretable {
 
-  private final CelFunctionBinding resolvedOverload;
-  private final CelValueConverter celValueConverter;
+  private final CelValueFunctionBinding resolvedOverload;
 
   @Override
   public CelValue eval(GlobalResolver resolver) throws CelEvaluationException {
-    Object result = resolvedOverload.getDefinition().apply(new Object[0]);
-    return celValueConverter.fromJavaObjectToCelValue(result);
+    return resolvedOverload.definition().apply();
   }
 
-  static EvalZeroArity create(CelFunctionBinding resolvedOverload, CelValueConverter celValueConverter) {
-    return new EvalZeroArity(resolvedOverload, celValueConverter);
+  static EvalZeroArity create(CelValueFunctionBinding resolvedOverload) {
+    return new EvalZeroArity(resolvedOverload);
   }
 
-  private EvalZeroArity(CelFunctionBinding resolvedOverload, CelValueConverter celValueConverter) {
+  private EvalZeroArity(CelValueFunctionBinding resolvedOverload) {
     this.resolvedOverload = resolvedOverload;
-    this.celValueConverter = celValueConverter;
   }
 }

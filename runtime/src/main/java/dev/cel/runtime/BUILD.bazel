@@ -130,8 +130,8 @@ java_library(
     ],
     deps = [
         ":base",
-        ":function_binding",
-        ":function_overload",
+        ":cel_value_function_binding",
+        ":cel_value_function_overload",
         "//:auto_value",
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -1202,5 +1202,33 @@ cel_android_library(
     deps = [
         ":unknown_attributes_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "cel_value_function_binding",
+    srcs = ["CelValueFunctionBinding.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_value_function_overload",
+        "//common/values:cel_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "cel_value_function_overload",
+    srcs = [
+        "CelValueFunctionOverload.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":evaluation_exception",
+        "//common/values:cel_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
     ],
 )

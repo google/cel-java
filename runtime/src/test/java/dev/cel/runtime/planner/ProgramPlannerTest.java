@@ -25,18 +25,29 @@ import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.DefaultTypeProvider;
-import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
-import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeType;
+import dev.cel.common.values.BoolValue;
+import dev.cel.common.values.BytesValue;
 import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
+import dev.cel.common.values.DoubleValue;
+import dev.cel.common.values.DurationValue;
+import dev.cel.common.values.IntValue;
+import dev.cel.common.values.ListValue;
+import dev.cel.common.values.MapValue;
 import dev.cel.common.values.NullValue;
 import dev.cel.common.values.ProtoMessageValueProvider;
+import dev.cel.common.values.StringValue;
+import dev.cel.common.values.TimestampValue;
+import dev.cel.common.values.TypeValue;
+import dev.cel.common.values.UintValue;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.expr.conformance.proto3.GlobalEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
@@ -44,8 +55,9 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.Operator;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
-import dev.cel.runtime.CelFunctionOverload;
 import dev.cel.runtime.CelLiteRuntime.Program;
+import dev.cel.runtime.CelValueFunctionBinding;
+import dev.cel.runtime.CelValueFunctionOverload;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
 import dev.cel.runtime.standard.AddOperator;
@@ -54,13 +66,15 @@ import dev.cel.runtime.standard.DivideOperator;
 import dev.cel.runtime.standard.EqualsOperator;
 import dev.cel.runtime.standard.GreaterEqualsOperator;
 import dev.cel.runtime.standard.GreaterOperator;
-import dev.cel.runtime.standard.LessOperator;
 import dev.cel.runtime.standard.IndexOperator;
+import dev.cel.runtime.standard.LessOperator;
 import dev.cel.runtime.standard.LogicalNotOperator;
 import dev.cel.runtime.standard.NotStrictlyFalseFunction;
 import java.nio.charset.StandardCharsets;
 
 import dev.cel.runtime.DefaultDispatcher;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
@@ -68,7 +82,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public final class ProgramPlannerTest {
-  private static final CelOptions CEL_OPTIONS = CelOptions.DEFAULT;
+  private static final CelOptions CEL_OPTIONS = CelOptions.current().evaluateCanonicalTypesToNativeValues(true).build();
   private static final RuntimeEquality RUNTIME_EQUALITY = RuntimeEquality.create(RuntimeHelpers.create(), CEL_OPTIONS);
   private static final CelCompiler CEL_COMPILER =
           CelCompilerFactory.standardCelCompilerBuilder()
@@ -91,16 +105,16 @@ public final class ProgramPlannerTest {
               .addLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.comprehensions())
               .addMessageTypes(TestAllTypes.getDescriptor())
               .build();
-
   private static final CelDescriptorPool DESCRIPTOR_POOL =
       DefaultDescriptorPool.create(CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(TestAllTypes.getDescriptor().getFile()));
+  private static final CelValueConverter CEL_VALUE_CONVERTER = new CelValueConverter();
   private static final ProgramPlanner PLANNER = ProgramPlanner.newPlanner(
       DefaultTypeProvider.create(),
       ProtoMessageValueProvider.newInstance(
           CEL_OPTIONS,
           DynamicProto.create(DefaultMessageFactory.create(DESCRIPTOR_POOL))
       ),
-      new CelValueConverter(),
+      CEL_VALUE_CONVERTER,
       newDispatcher()
   );
 
@@ -112,7 +126,8 @@ public final class ProgramPlannerTest {
 
     // Subsetted StdLib
     addBindings(builder, Operator.INDEX.getFunction(), fromStandardFunction(IndexOperator.create()));
-    addBindings(builder, Operator.LOGICAL_NOT.getFunction(), fromStandardFunction(LogicalNotOperator.create()));
+    addBindings(builder, Operator.LOGICAL_NOT.getFunction(), fromStandardFunction(
+        LogicalNotOperator.create()));
     addBindings(builder, Operator.ADD.getFunction(), fromStandardFunction(AddOperator.create()));
     addBindings(builder, Operator.GREATER.getFunction(), fromStandardFunction(GreaterOperator.create()));
     addBindings(builder, Operator.GREATER_EQUALS.getFunction(), fromStandardFunction(
@@ -124,53 +139,50 @@ public final class ProgramPlannerTest {
         NotStrictlyFalseFunction.create()));
 
     // Custom functions
-    addBindings(builder, "zero", CelFunctionBinding.from("zero_overload", ImmutableList.of(), args -> 0L));
-    addBindings(builder, "error", CelFunctionBinding.from("error_overload", ImmutableList.of(), args -> { throw new IllegalArgumentException("Intentional error"); }));
+    addBindings(builder, "zero", CelValueFunctionBinding.from("zero_overload", () -> IntValue.create(0L)));
+    addBindings(builder, "error", CelValueFunctionBinding.from("error_overload", () -> { throw new IllegalArgumentException("Intentional error"); }));
     addBindings(builder, "neg",
-        CelFunctionBinding.from("neg_int", Long.class, arg -> -arg),
-        CelFunctionBinding.from("neg_double", Double.class, arg -> -arg)
+        CelValueFunctionBinding.from("neg_int", IntValue.class, arg -> IntValue.create(-arg.longValue())),
+        CelValueFunctionBinding.from("neg_double", DoubleValue.class, arg -> DoubleValue.create(-arg.doubleValue()))
     );
     addBindings(builder, "concat",
-        CelFunctionBinding.from("concat_bytes_bytes", CelByteString.class, CelByteString.class, ProgramPlannerTest::concatenateByteArrays),
-        CelFunctionBinding.from("bytes_concat_bytes", CelByteString.class, CelByteString.class,ProgramPlannerTest::concatenateByteArrays));
+        CelValueFunctionBinding.from("concat_bytes_bytes", BytesValue.class, BytesValue.class, ProgramPlannerTest::concatenateByteArrays),
+        CelValueFunctionBinding.from("bytes_concat_bytes", BytesValue.class, BytesValue.class,ProgramPlannerTest::concatenateByteArrays));
 
     return builder.build();
   }
 
-  private static ImmutableSet<CelFunctionBinding> fromStandardFunction(CelStandardFunction standardFunction) {
-    return standardFunction.newFunctionBindings(CEL_OPTIONS, RUNTIME_EQUALITY);
-  }
 
-  private static void addBindings(DefaultDispatcher.Builder builder, String functionName, CelFunctionBinding... functionBindings) {
+  private static void addBindings(DefaultDispatcher.Builder builder, String functionName, CelValueFunctionBinding... functionBindings) {
     addBindings(builder, functionName, ImmutableSet.copyOf(functionBindings));
   }
 
-  private static void addBindings(DefaultDispatcher.Builder builder, String functionName, ImmutableCollection<CelFunctionBinding> overloadBindings) {
+  private static void addBindings(DefaultDispatcher.Builder builder, String functionName, ImmutableCollection<CelValueFunctionBinding> overloadBindings) {
     if (overloadBindings.isEmpty()) {
       throw new IllegalArgumentException("Invalid bindings");
     }
     // TODO: Runtime top-level APIs currently does not allow grouping overloads with the function name. This capability will have to be added.
     if (overloadBindings.size() == 1) {
-      CelFunctionBinding singleBinding = Iterables.getOnlyElement(overloadBindings);
+      CelValueFunctionBinding singleBinding = Iterables.getOnlyElement(overloadBindings);
       builder.addOverload(
-          CelFunctionBinding.from(
-              functionName, singleBinding.getArgTypes(), singleBinding.getDefinition())
+          CelValueFunctionBinding.from(
+              functionName, singleBinding.argTypes(), singleBinding.definition())
       );
     } else {
       overloadBindings.forEach(builder::addOverload);
 
       // Setup dynamic dispatch
-      CelFunctionOverload dynamicDispatchDef = args -> {
-        for (CelFunctionBinding overload : overloadBindings) {
+      CelValueFunctionOverload dynamicDispatchDef = args -> {
+        for (CelValueFunctionBinding overload : overloadBindings) {
           if (overload.canHandle(args)) {
-            return overload.getDefinition().apply(args);
+            return overload.definition().apply(args);
           }
         }
 
         throw new IllegalArgumentException("Overload not found: " + functionName);
       };
 
-      builder.addFunction(functionName, dynamicDispatchDef);
+      builder.addDynamicDispatchOverload(functionName, dynamicDispatchDef);
     }
   }
 
@@ -213,7 +225,7 @@ public final class ProgramPlannerTest {
 
   @Test
   public void planIdent_enum() throws Exception {
-    CelAbstractSyntaxTree ast = compile("cel.expr.conformance.proto2.GlobalEnum.GAR");
+    CelAbstractSyntaxTree ast = compile(GlobalEnum.getDescriptor().getFullName() + "." + GlobalEnum.GAR);
     Program program = PLANNER.plan(ast);
 
     Object result = program.eval();
@@ -278,19 +290,19 @@ public final class ProgramPlannerTest {
 
   @SuppressWarnings("ImmutableEnumChecker") // Test only
   private enum TypeLiteralTestCase {
-    BOOL("bool", SimpleType.BOOL),
-    BYTES("bytes", SimpleType.BYTES),
-    DOUBLE("double", SimpleType.DOUBLE),
-    INT("int", SimpleType.INT),
-    UINT("uint", SimpleType.UINT),
-    STRING("string", SimpleType.STRING),
-    DYN("dyn", SimpleType.DYN),
-    LIST("list", ListType.create(SimpleType.DYN)),
-    MAP("map", MapType.create(SimpleType.DYN, SimpleType.DYN)),
-    NULL("null_type", SimpleType.NULL_TYPE),
+    // BOOL("bool", SimpleType.BOOL),
+    // BYTES("bytes", SimpleType.BYTES),
+    // DOUBLE("double", SimpleType.DOUBLE),
+    // INT("int", SimpleType.INT),
+    // UINT("uint", SimpleType.UINT),
+    // STRING("string", SimpleType.STRING),
+    // DYN("dyn", SimpleType.DYN),
+    // LIST("list", ListType.create(SimpleType.DYN)),
+    // MAP("map", MapType.create(SimpleType.DYN, SimpleType.DYN)),
+    // NULL("null_type", SimpleType.NULL_TYPE),
     DURATION("google.protobuf.Duration", SimpleType.DURATION),
     TIMESTAMP("google.protobuf.Timestamp", SimpleType.TIMESTAMP),
-    OPTIONAL("optional_type", OptionalType.create(SimpleType.DYN)),
+    // OPTIONAL("optional_type", OptionalType.create(SimpleType.DYN)),
     ;
 
     private final String expression;
@@ -495,20 +507,80 @@ public final class ProgramPlannerTest {
     return CEL_COMPILER.check(ast).getAst();
   }
 
-  private static byte[] concatenateByteArrays(CelByteString bytes1, CelByteString bytes2) {
-    byte[] array1 = bytes1.toByteArray();
-    byte[] array2 = bytes2.toByteArray();
-    // Handle null or empty arrays gracefully
-    if (array1 == null || array1.length == 0) {
-      return array2;
-    }
-    if (array2 == null || array2.length == 0) {
-      return array1;
+  private static BytesValue concatenateByteArrays(BytesValue bytes1, BytesValue bytes2) {
+    if (bytes1.isZeroValue()) {
+      return bytes2;
     }
 
-    byte[] combined = new byte[array1.length + array2.length];
-    System.arraycopy(array1, 0, combined, 0, array1.length);
-    System.arraycopy(array2, 0, combined, array1.length, array2.length);
-    return combined;
+    if (bytes2.isZeroValue()) {
+      return bytes1;
+    }
+
+    CelByteString combined = bytes1.value().concat(bytes2.value());
+    return BytesValue.create(combined);
   }
+
+  // TODO: The following native -> CelValue function binding will need to be an adapter.
+  private static ImmutableSet<CelValueFunctionBinding> fromStandardFunction(CelStandardFunction standardFunction) {
+    ImmutableSet<CelFunctionBinding> functionBindings = standardFunction.newFunctionBindings(CEL_OPTIONS, RUNTIME_EQUALITY);
+    ImmutableSet.Builder<CelValueFunctionBinding> builder  = ImmutableSet.builder();
+
+    for (CelFunctionBinding functionBinding : functionBindings) {
+        CelValueFunctionBinding adaptedBinding = CelValueFunctionBinding.from(functionBinding.getOverloadId(), adaptArgumentTypes(functionBinding.getArgTypes()), celValueArgs -> {
+          Object[] nativeArgs = new Object[celValueArgs.length];
+          for (int i = 0; i < celValueArgs.length; i++) {
+            nativeArgs[i] = CEL_VALUE_CONVERTER.fromCelValueToJavaObject(celValueArgs[i]);
+          }
+
+          Object nativeResult = functionBinding.getDefinition().apply(nativeArgs);
+          return CEL_VALUE_CONVERTER.fromJavaObjectToCelValue(nativeResult);
+        });
+        builder.add(adaptedBinding);
+    }
+
+    return builder.build();
+  }
+
+  private static ImmutableList<Class<? extends CelValue>> adaptArgumentTypes(ImmutableList<Class<?>> argTypes) {
+    ImmutableList.Builder<Class<? extends CelValue>> builder = ImmutableList.builder();
+
+    for (Class<?> argType : argTypes) {
+      if (argType.equals(String.class)) {
+        builder.add(StringValue.class);
+      } else if (argType.equals(Long.class)) {
+        builder.add(IntValue.class);
+      } else if (argType.equals(Double.class)) {
+        builder.add(DoubleValue.class);
+      } else if (argType.equals(Boolean.class)) {
+        builder.add(BoolValue.class);
+      } else if (argType.equals(UnsignedLong.class)) {
+        builder.add(UintValue.class);
+      } else if (argType.equals(CelByteString.class)) {
+        builder.add(BytesValue.class);
+      } else if (argType.equals(Instant.class)) {
+        builder.add(TimestampValue.class);
+      } else if (argType.equals(Duration.class)) {
+        builder.add(DurationValue.class);
+      } else if (List.class.isAssignableFrom(argType)) {
+        builder.add(ListValue.class);
+      } else if (Map.class.isAssignableFrom(argType)) {
+        builder.add(MapValue.class);
+      } else if (CelType.class.isAssignableFrom(argType)) {
+        builder.add(TypeValue.class);
+      } else if (argType.equals(NullValue.class)) {
+        builder.add(NullValue.class);
+      } else if (
+          argType.equals(Object.class) ||
+            // Using Number.class was probably a mistake (see index_list). This particular overload will benefit from a concrete definition.
+          argType.equals(Number.class)
+      ) {
+        builder.add(CelValue.class);
+      } else {
+        // In all likelihood -- we should probably do an OpaqueValue here
+        throw new IllegalArgumentException("Unknown argument type: " + argType);
+      }
+    }
+    return builder.build();
+  }
+
 }

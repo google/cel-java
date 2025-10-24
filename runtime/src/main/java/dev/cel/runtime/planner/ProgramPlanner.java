@@ -23,8 +23,8 @@ import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.TypeValue;
-import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelLiteRuntime.Program;
+import dev.cel.runtime.CelValueFunctionBinding;
 import dev.cel.runtime.DefaultDispatcher;
 
 import java.util.HashMap;
@@ -108,18 +108,24 @@ public final class ProgramPlanner {
 
   private CelValueInterpretable planCall(CelExpr expr, PlannerContext ctx) {
     ResolvedFunction resolvedFunction = resolveFunction(expr, ctx.referenceMap());
+    CelExpr target = resolvedFunction.target().orElse(null);
     int argCount = expr.call().args().size();
-    ImmutableList.Builder<CelValueInterpretable> evaluatedArgBuilder = ImmutableList.builder();
-
-    if (resolvedFunction.target().isPresent()) {
+    if (target != null) {
       argCount++;
-      evaluatedArgBuilder.add(plan(resolvedFunction.target().get(), ctx));
     }
 
-    for (CelExpr argExpr : expr.call().args()) {
-      evaluatedArgBuilder.add(plan(argExpr, ctx));
+    CelValueInterpretable[] evaluatedArgs = new CelValueInterpretable[argCount];
+
+    int offset = 0;
+    if (target != null) {
+      evaluatedArgs[0] = plan(target, ctx);
+      offset++;
     }
-    ImmutableList<CelValueInterpretable> evaluatedArgs = evaluatedArgBuilder.build();
+
+    ImmutableList<CelExpr> args = expr.call().args();
+    for (int argIndex = 0; argIndex < args.size(); argIndex++) {
+      evaluatedArgs[argIndex + offset] = plan(args.get(argIndex), ctx);
+    }
 
     // TODO: Handle specialized calls (logical operators, conditionals, equals etc)
     String functionName = resolvedFunction.functionName();
@@ -131,7 +137,7 @@ public final class ProgramPlanner {
         return EvalAnd.create(evaluatedArgs);
     }
 
-    CelFunctionBinding resolvedOverload = null;
+    CelValueFunctionBinding resolvedOverload = null;
 
     if (resolvedFunction.overloadId().isPresent()) {
       resolvedOverload = dispatcher.findOverload(resolvedFunction.overloadId().get()).orElse(null);
@@ -143,12 +149,12 @@ public final class ProgramPlanner {
 
     switch (argCount) {
       case 0:
-        return EvalZeroArity.create(resolvedOverload, celValueConverter);
+        return EvalZeroArity.create(resolvedOverload);
       case 1:
-        return EvalUnary.create(resolvedOverload, celValueConverter, evaluatedArgs.get(0));
+        return EvalUnary.create(resolvedOverload, evaluatedArgs[0]);
         // TODO: Handle binary
       default:
-        return EvalVarArgsCall.create(resolvedOverload, celValueConverter, evaluatedArgs);
+        return EvalVarArgsCall.create(resolvedOverload, evaluatedArgs);
     }
   }
 

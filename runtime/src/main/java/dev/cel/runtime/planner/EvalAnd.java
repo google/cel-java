@@ -3,7 +3,6 @@ package dev.cel.runtime.planner;
 import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import dev.cel.common.values.BoolValue;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.ErrorValue;
@@ -13,7 +12,8 @@ import dev.cel.runtime.GlobalResolver;
 
 final class EvalAnd implements CelValueInterpretable {
 
-    private final ImmutableList<CelValueInterpretable> args;
+    @SuppressWarnings("Immutable")
+    private final CelValueInterpretable[] args;
 
     @Override
     public CelValue eval(GlobalResolver resolver) throws CelEvaluationException {
@@ -37,12 +37,12 @@ final class EvalAnd implements CelValueInterpretable {
         return BoolValue.create(true);
     }
 
-    static EvalAnd create(ImmutableList<CelValueInterpretable> args) {
+    static EvalAnd create(CelValueInterpretable[] args) {
         return new EvalAnd(args);
     }
 
-    private EvalAnd(ImmutableList<CelValueInterpretable> args) {
-        Preconditions.checkArgument(args.size() == 2);
+    private EvalAnd(CelValueInterpretable[] args) {
+        Preconditions.checkArgument(args.length == 2);
         this.args = args;
     }
 }

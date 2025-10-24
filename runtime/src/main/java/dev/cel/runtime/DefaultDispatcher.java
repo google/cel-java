@@ -13,9 +13,9 @@ import java.util.Optional;
 @AutoValue
 public abstract class DefaultDispatcher {
 
-    abstract ImmutableMap<String, CelFunctionBinding> overloads();
+    abstract ImmutableMap<String, CelValueFunctionBinding> overloads();
 
-    public Optional<CelFunctionBinding> findOverload(String overloadId) {
+    public Optional<CelValueFunctionBinding> findOverload(String overloadId) {
         return Optional.ofNullable(overloads().get(overloadId));
     }
 
@@ -25,20 +25,20 @@ public abstract class DefaultDispatcher {
 
     @AutoValue.Builder
     public abstract static class Builder {
-        public abstract ImmutableMap.Builder<String, CelFunctionBinding> overloadsBuilder();
+        public abstract ImmutableMap.Builder<String, CelValueFunctionBinding> overloadsBuilder();
 
         @CanIgnoreReturnValue
-        public Builder addOverload(CelFunctionBinding functionBinding) {
+        public Builder addOverload(CelValueFunctionBinding functionBinding) {
             overloadsBuilder().put(
-                functionBinding.getOverloadId(),
+                functionBinding.overloadId(),
                 functionBinding);
             return this;
         }
 
         @CanIgnoreReturnValue
-        public Builder addFunction(String functionName, CelFunctionOverload definition) {
+        public Builder addDynamicDispatchOverload(String functionName, CelValueFunctionOverload definition) {
             overloadsBuilder().put(
-                functionName, CelFunctionBinding.from(functionName, ImmutableList.of(), definition)
+                functionName, CelValueFunctionBinding.from(functionName, ImmutableList.of(), definition)
             );
 
             return this;
