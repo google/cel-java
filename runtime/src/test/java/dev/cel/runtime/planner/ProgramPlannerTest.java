@@ -470,10 +470,10 @@ public final class ProgramPlannerTest {
   }
 
   @Test
-  // @TestParameters("{expression: '[1,2,3].exists(x, x > 0) == true'}")
-  // @TestParameters("{expression: '[1,2,3].exists(x, x < 0) == false'}")
-  // @TestParameters("{expression: '[1,2,3].exists(i, v, i >= 0 && v > 0) == true'}")
-  // @TestParameters("{expression: '[1,2,3].exists(i, v, i < 0 || v < 0) == false'}")
+  @TestParameters("{expression: '[1,2,3].exists(x, x > 0) == true'}")
+  @TestParameters("{expression: '[1,2,3].exists(x, x < 0) == false'}")
+  @TestParameters("{expression: '[1,2,3].exists(i, v, i >= 0 && v > 0) == true'}")
+  @TestParameters("{expression: '[1,2,3].exists(i, v, i < 0 || v < 0) == false'}")
   @TestParameters("{expression: '[1,2,3].map(x, x + 1) == [2,3,4]'}")
   public void planComprehension_lists(String expression) throws Exception {
     CelAbstractSyntaxTree ast = compile(expression);
@@ -484,19 +484,19 @@ public final class ProgramPlannerTest {
     assertThat(result).isTrue();
   }
 
-  // @Test
-  // @TestParameters("{expression: '[1,2,3].exists(x, x > 0) == true'}")
-  // @TestParameters("{expression: '[1,2,3].exists(x, x < 0) == false'}")
-  // @TestParameters("{expression: '[1,2,3].exists(i, v, i >= 0 && v > 0) == true'}")
-  // @TestParameters("{expression: '[1,2,3].exists(i, v, i < 0 || v < 0) == false'}")
-  // public void planComprehension_maps(String expression) throws Exception {
-  //   CelAbstractSyntaxTree ast = compile(expression);
-  //   Program program = PLANNER.plan(ast);
-  //
-  //   boolean result = (boolean) program.eval();
-  //
-  //   assertThat(result).isTrue();
-  // }
+  @Test
+  @TestParameters("{expression: '[1,2,3].exists(x, x > 0) == true'}")
+  @TestParameters("{expression: '[1,2,3].exists(x, x < 0) == false'}")
+  @TestParameters("{expression: '[1,2,3].exists(i, v, i >= 0 && v > 0) == true'}")
+  @TestParameters("{expression: '[1,2,3].exists(i, v, i < 0 || v < 0) == false'}")
+  public void planComprehension_maps(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = compile(expression);
+    Program program = PLANNER.plan(ast);
+
+    boolean result = (boolean) program.eval();
+
+    assertThat(result).isTrue();
+  }
 
   private CelAbstractSyntaxTree compile(String expression) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.parse(expression).getAst();
