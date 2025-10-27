@@ -25,7 +25,7 @@ import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.TypeValue;
 import dev.cel.runtime.CelLiteRuntime.Program;
 import dev.cel.runtime.CelValueFunctionBinding;
-import dev.cel.runtime.DefaultDispatcher;
+import dev.cel.runtime.CelValueDispatcher;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +38,7 @@ public final class ProgramPlanner {
   private final CelTypeProvider typeProvider;
   private final CelValueProvider valueProvider;
   private final CelValueConverter celValueConverter;
-  private final DefaultDispatcher dispatcher;
+  private final CelValueDispatcher dispatcher;
   private final AttributeFactory attributeFactory;
 
   private CelValueInterpretable plan(
@@ -312,7 +312,7 @@ public final class ProgramPlanner {
       CelTypeProvider typeProvider,
       CelValueProvider valueProvider,
       CelValueConverter celValueConverter,
-      DefaultDispatcher dispatcher
+      CelValueDispatcher dispatcher
   ) {
     return new ProgramPlanner(typeProvider, valueProvider, celValueConverter, dispatcher);
   }
@@ -321,7 +321,7 @@ public final class ProgramPlanner {
       CelTypeProvider typeProvider,
       CelValueProvider valueProvider,
       CelValueConverter celValueConverter,
-      DefaultDispatcher dispatcher
+      CelValueDispatcher dispatcher
   ) {
     this.typeProvider = typeProvider;
     this.valueProvider = valueProvider;

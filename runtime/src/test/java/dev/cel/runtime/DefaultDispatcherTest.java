@@ -25,9 +25,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Tests for {@link LegacyDispatcher}. */
+/** Tests for {@link DefaultDispatcher}. */
 @RunWith(JUnit4.class)
-public final class LegacyDispatcherTest {
+public final class DefaultDispatcherTest {
 
   private Map<String, CelResolvedOverload> overloads;
 
@@ -50,7 +50,7 @@ public final class LegacyDispatcherTest {
         Assert.assertThrows(
             CelEvaluationException.class,
             () ->
-                LegacyDispatcher.findOverload(
+                DefaultDispatcher.findOverload(
                     "overloads",
                     ImmutableList.of("overload_1", "overload_2"),
                     overloads,

@@ -35,7 +35,7 @@ public interface Dispatcher extends FunctionResolver {
   ImmutableCopy immutableCopy();
 
   /**
-   * An {@link Immutable} copy of a {@link Dispatcher}. Currently {@link LegacyDispatcher}
+   * An {@link Immutable} copy of a {@link Dispatcher}. Currently {@link DefaultDispatcher}
    * implementation implements both {@link Dispatcher} and {@link Registrar} and cannot be annotated
    * as {@link Immutable}.
    *

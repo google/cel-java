@@ -72,7 +72,7 @@ import dev.cel.runtime.standard.LogicalNotOperator;
 import dev.cel.runtime.standard.NotStrictlyFalseFunction;
 import java.nio.charset.StandardCharsets;
 
-import dev.cel.runtime.DefaultDispatcher;
+import dev.cel.runtime.CelValueDispatcher;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -121,8 +121,8 @@ public final class ProgramPlannerTest {
   /**
    * Configure dispatcher for testing purposes. This is done manually here, but this should be driven by the top-level runtime APIs in the future
    */
-  private static DefaultDispatcher newDispatcher() {
-    DefaultDispatcher.Builder builder = DefaultDispatcher.newBuilder();
+  private static CelValueDispatcher newDispatcher() {
+    CelValueDispatcher.Builder builder = CelValueDispatcher.newBuilder();
 
     // Subsetted StdLib
     addBindings(builder, Operator.INDEX.getFunction(), fromStandardFunction(IndexOperator.create()));
@@ -153,11 +153,11 @@ public final class ProgramPlannerTest {
   }
 
 
-  private static void addBindings(DefaultDispatcher.Builder builder, String functionName, CelValueFunctionBinding... functionBindings) {
+  private static void addBindings(CelValueDispatcher.Builder builder, String functionName, CelValueFunctionBinding... functionBindings) {
     addBindings(builder, functionName, ImmutableSet.copyOf(functionBindings));
   }
 
-  private static void addBindings(DefaultDispatcher.Builder builder, String functionName, ImmutableCollection<CelValueFunctionBinding> overloadBindings) {
+  private static void addBindings(CelValueDispatcher.Builder builder, String functionName, ImmutableCollection<CelValueFunctionBinding> overloadBindings) {
     if (overloadBindings.isEmpty()) {
       throw new IllegalArgumentException("Invalid bindings");
     }

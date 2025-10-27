@@ -38,7 +38,7 @@ public final class CelLateFunctionBindings implements CelFunctionResolver {
   @Override
   public Optional<ResolvedOverload> findOverload(
       String functionName, List<String> overloadIds, Object[] args) throws CelEvaluationException {
-    return LegacyDispatcher.findOverload(functionName, overloadIds, functions, args);
+    return DefaultDispatcher.findOverload(functionName, overloadIds, functions, args);
   }
 
   public static CelLateFunctionBindings from(CelFunctionBinding... functions) {

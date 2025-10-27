@@ -70,8 +70,8 @@ INTERPRABLE_SOURCES = [
 
 # keep sorted
 DISPATCHER_SOURCES = [
+    "DefaultDispatcher.java",
     "Dispatcher.java",
-    "LegacyDispatcher.java",
 ]
 
 java_library(
@@ -125,7 +125,7 @@ java_library(
 
 java_library(
     name = "default_dispatcher",
-    srcs = ["DefaultDispatcher.java"],
+    srcs = ["CelValueDispatcher.java"],
     tags = [
     ],
     deps = [
