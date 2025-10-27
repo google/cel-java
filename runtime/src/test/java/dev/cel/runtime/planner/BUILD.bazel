@@ -47,6 +47,7 @@ java_library(
         "//common/values:cel_value_provider",
         "//common/values:proto_message_lite_value",
         "//common/values:proto_message_lite_value_provider",
+        "//common/values:proto_message_value",
         "//common/values:proto_message_value_provider",
         "//compiler",
         "//compiler:compiler_builder",

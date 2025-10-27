@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
-import com.google.protobuf.ByteString;
 import dev.cel.common.annotations.Internal;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,7 +33,7 @@ import java.util.Optional;
 @SuppressWarnings("unchecked") // Unchecked cast of generics due to type-erasure (ex: MapValue).
 @Internal
 @Immutable
-public class CelValueConverter {
+public abstract class CelValueConverter {
 
   /** Adapts a {@link CelValue} to a plain old Java Object. */
   public Object fromCelValueToJavaObject(CelValue celValue) {
@@ -77,10 +76,7 @@ public class CelValueConverter {
       return (CelValue) value;
     }
 
-    if (value instanceof ByteString) {
-      // TODO: CelConstant should hold this value instead of adapting it here
-      return BytesValue.create(CelByteString.of(((ByteString) value).toByteArray()));
-    } else if (value instanceof Iterable) {
+    if (value instanceof Iterable) {
       return toListValue((Iterable<Object>) value);
     } else if (value instanceof Map) {
       return toMapValue((Map<Object, Object>) value);
@@ -91,9 +87,6 @@ public class CelValueConverter {
           .orElse(OptionalValue.EMPTY);
     } else if (value instanceof Exception) {
       return ErrorValue.create((Exception) value);
-    } else if (value instanceof com.google.protobuf.NullValue) {
-      // TODO: CelConstant should hold this value instead of adapting it here
-      return NullValue.NULL_VALUE;
     }
 
     return fromJavaPrimitiveToCelValue(value);
@@ -152,4 +145,6 @@ public class CelValueConverter {
 
     return ImmutableMapValue.create(mapBuilder.buildOrThrow());
   }
+
+  protected CelValueConverter() {}
 }

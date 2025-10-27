@@ -40,6 +40,7 @@ import dev.cel.common.values.IntValue;
 import dev.cel.common.values.ListValue;
 import dev.cel.common.values.MapValue;
 import dev.cel.common.values.NullValue;
+import dev.cel.common.values.ProtoCelValueConverter;
 import dev.cel.common.values.ProtoMessageValueProvider;
 import dev.cel.common.values.StringValue;
 import dev.cel.common.values.TimestampValue;
@@ -105,14 +106,17 @@ public final class ProgramPlannerTest {
               .addLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.comprehensions())
               .addMessageTypes(TestAllTypes.getDescriptor())
               .build();
+
+  // Note that the following deps are ordinarily built from top-level builder APIs
   private static final CelDescriptorPool DESCRIPTOR_POOL =
       DefaultDescriptorPool.create(CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(TestAllTypes.getDescriptor().getFile()));
-  private static final CelValueConverter CEL_VALUE_CONVERTER = new CelValueConverter();
+  private static final DynamicProto DYNAMIC_PROTO = DynamicProto.create(DefaultMessageFactory.create(DESCRIPTOR_POOL));
+  private static final CelValueConverter CEL_VALUE_CONVERTER = ProtoCelValueConverter.newInstance(DESCRIPTOR_POOL,
+      DYNAMIC_PROTO);
   private static final ProgramPlanner PLANNER = ProgramPlanner.newPlanner(
       DefaultTypeProvider.create(),
       ProtoMessageValueProvider.newInstance(
-          CEL_OPTIONS,
-          DynamicProto.create(DefaultMessageFactory.create(DESCRIPTOR_POOL))
+          CEL_OPTIONS, DYNAMIC_PROTO
       ),
       CEL_VALUE_CONVERTER,
       newDispatcher()
