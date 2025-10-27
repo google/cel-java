@@ -156,15 +156,15 @@ public final class AddOperator extends CelStandardFunction {
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from("add_list", List.class, List.class, RuntimeHelpers::concat));
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload bindingCreator;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return bindingCreator.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    AddOverload(FunctionBindingCreator bindingCreator) {
+    AddOverload(CelStandardOverload bindingCreator) {
       this.bindingCreator = bindingCreator;
     }
   }

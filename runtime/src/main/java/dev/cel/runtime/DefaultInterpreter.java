@@ -154,7 +154,7 @@ final class DefaultInterpreter implements Interpreter {
     }
 
     @Override
-    public Object eval(GlobalResolver resolver, FunctionResolver lateBoundFunctionResolver)
+    public Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver)
         throws CelEvaluationException {
       return evalTrackingUnknowns(
           RuntimeUnknownResolver.fromResolver(resolver),
@@ -165,7 +165,7 @@ final class DefaultInterpreter implements Interpreter {
     @Override
     public Object eval(
         GlobalResolver resolver,
-        FunctionResolver lateBoundFunctionResolver,
+        CelFunctionResolver lateBoundFunctionResolver,
         CelEvaluationListener listener)
         throws CelEvaluationException {
       return evalTrackingUnknowns(
@@ -177,7 +177,7 @@ final class DefaultInterpreter implements Interpreter {
     @Override
     public Object evalTrackingUnknowns(
         RuntimeUnknownResolver resolver,
-        Optional<? extends FunctionResolver> functionResolver,
+        Optional<? extends CelFunctionResolver> functionResolver,
         Optional<CelEvaluationListener> listener)
         throws CelEvaluationException {
       ExecutionFrame frame = newExecutionFrame(resolver, functionResolver, listener);
@@ -223,7 +223,7 @@ final class DefaultInterpreter implements Interpreter {
 
     private ExecutionFrame newExecutionFrame(
         RuntimeUnknownResolver resolver,
-        Optional<? extends FunctionResolver> functionResolver,
+        Optional<? extends CelFunctionResolver> functionResolver,
         Optional<CelEvaluationListener> listener) {
       int comprehensionMaxIterations =
           celOptions.enableComprehension() ? celOptions.comprehensionMaxIterations() : 0;
@@ -1105,7 +1105,7 @@ final class DefaultInterpreter implements Interpreter {
     private final Optional<CelEvaluationListener> evaluationListener;
     private final int maxIterations;
     private final ArrayDeque<RuntimeUnknownResolver> resolvers;
-    private final Optional<? extends FunctionResolver> lateBoundFunctionResolver;
+    private final Optional<? extends CelFunctionResolver> lateBoundFunctionResolver;
     private RuntimeUnknownResolver currentResolver;
     private int iterations;
     @VisibleForTesting int scopeLevel;
@@ -1113,7 +1113,7 @@ final class DefaultInterpreter implements Interpreter {
     private ExecutionFrame(
         Optional<CelEvaluationListener> evaluationListener,
         RuntimeUnknownResolver resolver,
-        Optional<? extends FunctionResolver> lateBoundFunctionResolver,
+        Optional<? extends CelFunctionResolver> lateBoundFunctionResolver,
         int maxIterations) {
       this.evaluationListener = evaluationListener;
       this.resolvers = new ArrayDeque<>();

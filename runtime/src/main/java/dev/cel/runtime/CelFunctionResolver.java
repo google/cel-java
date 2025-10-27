@@ -15,10 +15,26 @@
 package dev.cel.runtime;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Interface to a resolver for CEL functions based on the function name, overload ids, and
  * arguments.
  */
 @ThreadSafe
-public interface CelFunctionResolver extends FunctionResolver {}
+public interface CelFunctionResolver {
+
+  /**
+   * Finds a specific function overload to invoke based on given parameters.
+   *
+   * @param functionName the logical name of the function being invoked.
+   * @param overloadIds A list of function overload ids. The dispatcher selects the unique overload
+   *     from this list with matching arguments.
+   * @param args The arguments to pass to the function.
+   * @return an optional value of the resolved overload.
+   * @throws CelEvaluationException if the overload resolution is ambiguous,
+   */
+  Optional<ResolvedOverload> findOverload(
+      String functionName, List<String> overloadIds, Object[] args) throws CelEvaluationException;
+}

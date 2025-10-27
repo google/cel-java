@@ -15,34 +15,34 @@
 package dev.cel.runtime;
 
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.annotations.Internal;
 import java.util.List;
 
 /**
  * An object which registers the functions that a {@link Dispatcher} calls.
  *
- * <p>CEL Library Internals. Do Not Use.
+ * @deprecated Do not use. This interface exists solely for legacy async stack compatibility
+ *     reasons.
  */
-@Internal
+@Deprecated
 public interface Registrar {
 
   /** Interface describing the general signature of all CEL custom function implementations. */
   @Immutable
-  interface Function extends FunctionOverload {}
+  interface Function extends CelFunctionOverload {}
 
   /**
    * Helper interface for describing unary functions where the type-parameter is used to improve
    * compile-time correctness of function bindings.
    */
   @Immutable
-  interface UnaryFunction<T> extends FunctionOverload.Unary<T> {}
+  interface UnaryFunction<T> extends CelFunctionOverload.Unary<T> {}
 
   /**
    * Helper interface for describing binary functions where the type parameters are used to improve
    * compile-time correctness of function bindings.
    */
   @Immutable
-  interface BinaryFunction<T1, T2> extends FunctionOverload.Binary<T1, T2> {}
+  interface BinaryFunction<T1, T2> extends CelFunctionOverload.Binary<T1, T2> {}
 
   /** Adds a unary function to the dispatcher. */
   <T> void add(String overloadId, Class<T> argType, UnaryFunction<T> function);
