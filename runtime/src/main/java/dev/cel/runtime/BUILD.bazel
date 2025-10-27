@@ -116,6 +116,21 @@ java_library(
 )
 
 java_library(
+    name = "cel_value_dispatcher",
+    srcs = ["CelValueDispatcher.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_value_function_binding",
+        ":cel_value_function_overload",
+        "//:auto_value",
+        "//common/annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "dispatcher",
     srcs = DISPATCHER_SOURCES,
     tags = [
@@ -583,8 +598,8 @@ java_library(
     srcs = INTERPRABLE_SOURCES,
     deps = [
         ":evaluation_exception",
-        ":evaluation_listener",
         "//common/annotations",
+        "//runtime:evaluation_listener",
         "//runtime:function_resolver",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:org_jspecify_jspecify",
@@ -804,6 +819,7 @@ java_library(
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_protobuf_protobuf_java",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],
 )
 
@@ -837,6 +853,7 @@ java_library(
         ":function_resolver",
         ":interpretable",
         ":interpreter",
+        ":program",
         ":proto_message_activation_factory",
         ":proto_message_runtime_equality",
         ":runtime_equality",
@@ -873,6 +890,7 @@ java_library(
     deps = [
         ":evaluation_exception",
         ":function_binding",
+        ":program",
         "//:auto_value",
         "//common:cel_ast",
         "//common:options",
@@ -908,6 +926,7 @@ java_library(
         "//runtime:program",
         "//runtime/standard:standard_function",
         "@maven//:com_google_code_findbugs_annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -1191,6 +1210,34 @@ cel_android_library(
     deps = [
         ":unknown_attributes_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "cel_value_function_binding",
+    srcs = ["CelValueFunctionBinding.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_value_function_overload",
+        "//common/values:cel_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "cel_value_function_overload",
+    srcs = [
+        "CelValueFunctionOverload.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":evaluation_exception",
+        "//common/values:cel_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
     ],
 )
 

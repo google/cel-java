@@ -1,0 +1,260 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = [
+        "//runtime/planner:__pkg__",
+    ],
+)
+
+java_library(
+    name = "program_planner",
+    srcs = ["ProgramPlanner.java"],
+    tags = [
+    ],
+    deps = [
+        ":attribute_factory",
+        ":cel_value_interpretable",
+        ":cel_value_program",
+        ":eval_and",
+        ":eval_attribute",
+        ":eval_const",
+        ":eval_create_list",
+        ":eval_create_map",
+        ":eval_create_struct",
+        ":eval_fold",
+        ":eval_or",
+        ":eval_unary",
+        ":eval_var_args_call",
+        ":eval_zero_arity",
+        "//:auto_value",
+        "//common:cel_ast",
+        "//common:container",
+        "//common/annotations",
+        "//common/ast",
+        "//common/types",
+        "//common/types:type_providers",
+        "//common/values",
+        "//common/values:cel_value",
+        "//common/values:cel_value_provider",
+        "//runtime:cel_value_dispatcher",
+        "//runtime:cel_value_function_binding",
+        "//runtime:evaluation_exception",
+        "//runtime:evaluation_exception_builder",
+        "//runtime:program",
+        "@maven//:com_google_code_findbugs_annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "cel_value_interpretable",
+    srcs = ["CelValueInterpretable.java"],
+    deps = [
+        "//common/annotations",
+        "//common/values:cel_value",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "cel_value_program",
+    srcs = ["CelValueProgram.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel_value_interpretable",
+        "//:auto_value",
+        "//common:runtime_exception",
+        "//common/values",
+        "//common/values:cel_value",
+        "//runtime:activation",
+        "//runtime:evaluation_exception",
+        "//runtime:evaluation_exception_builder",
+        "//runtime:function_resolver",
+        "//runtime:interpretable",
+        "//runtime:program",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "eval_const",
+    srcs = ["EvalConstant.java"],
+    deps = [
+        ":cel_value_interpretable",
+        "//common/values:cel_value",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "attribute",
+    srcs = ["Attribute.java"],
+    deps = [
+        "//common/types",
+        "//common/types:type_providers",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "attribute_factory",
+    srcs = ["AttributeFactory.java"],
+    deps = [
+        ":attribute",
+        "//common:container",
+        "//common/types:type_providers",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_attribute",
+    srcs = ["EvalAttribute.java"],
+    deps = [
+        ":attribute",
+        ":cel_value_interpretable",
+        "//common/values",
+        "//common/values:cel_value",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_zero_arity",
+    srcs = ["EvalZeroArity.java"],
+    deps = [
+        ":cel_value_interpretable",
+        "//common/values:cel_value",
+        "//runtime:cel_value_function_binding",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable",
+    ],
+)
+
+java_library(
+    name = "eval_unary",
+    srcs = ["EvalUnary.java"],
+    deps = [
+        ":cel_value_interpretable",
+        "//common/values:cel_value",
+        "//runtime:cel_value_function_binding",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable",
+    ],
+)
+
+java_library(
+    name = "eval_var_args_call",
+    srcs = ["EvalVarArgsCall.java"],
+    deps = [
+        ":cel_value_interpretable",
+        "//common/values:cel_value",
+        "//runtime:cel_value_function_binding",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable",
+    ],
+)
+
+java_library(
+    name = "eval_or",
+    srcs = ["EvalOr.java"],
+    deps = [
+        ":cel_value_interpretable",
+        ":eval_helpers",
+        "//common/values",
+        "//common/values:cel_value",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_and",
+    srcs = ["EvalAnd.java"],
+    deps = [
+        ":cel_value_interpretable",
+        ":eval_helpers",
+        "//common/values",
+        "//common/values:cel_value",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_create_struct",
+    srcs = ["EvalCreateStruct.java"],
+    deps = [
+        ":cel_value_interpretable",
+        "//common/values:cel_value",
+        "//common/values:cel_value_provider",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_create_list",
+    srcs = ["EvalCreateList.java"],
+    deps = [
+        ":cel_value_interpretable",
+        "//common/values",
+        "//common/values:cel_value",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_create_map",
+    srcs = ["EvalCreateMap.java"],
+    deps = [
+        ":cel_value_interpretable",
+        "//common/values",
+        "//common/values:cel_value",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_fold",
+    srcs = ["EvalFold.java"],
+    deps = [
+        ":cel_value_interpretable",
+        "//common/values",
+        "//common/values:cel_value",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "eval_helpers",
+    srcs = ["EvalHelpers.java"],
+    deps = [
+        ":cel_value_interpretable",
+        "//common/values",
+        "//common/values:cel_value",
+        "//runtime:interpretable",
+    ],
+)

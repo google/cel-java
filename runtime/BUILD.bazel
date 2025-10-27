@@ -20,6 +20,14 @@ java_library(
 )
 
 java_library(
+    name = "cel_value_dispatcher",
+    visibility = ["//:internal"],
+    exports = [
+        "//runtime/src/main/java/dev/cel/runtime:cel_value_dispatcher",
+    ],
+)
+
+java_library(
     name = "dispatcher",
     visibility = ["//:internal"],
     exports = [
@@ -231,6 +239,16 @@ java_library(
     name = "resolved_overload_internal",
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:resolved_overload_internal"],
+)
+
+java_library(
+    name = "cel_value_function_binding",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:cel_value_function_binding"],
+)
+
+java_library(
+    name = "cel_value_function_overload",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:cel_value_function_overload"],
 )
 
 java_library(

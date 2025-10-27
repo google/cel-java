@@ -1,0 +1,78 @@
+load("@rules_java//java:defs.bzl", "java_library")
+load("//:testing.bzl", "junit4_test_suites")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_testonly = True,
+)
+
+java_library(
+    name = "tests",
+    testonly = 1,
+    srcs = glob(
+        ["*.java"],
+    ),
+    deps = [
+        "//:java_truth",
+        "//common:cel_ast",
+        "//common:cel_descriptor_util",
+        "//common:cel_source",
+        "//common:compiler_common",
+        "//common:error_codes",
+        "//common:operator",
+        "//common:options",
+        "//common:runtime_exception",
+        "//common/ast",
+        "//common/internal:cel_descriptor_pools",
+        "//common/internal:default_message_factory",
+        "//common/internal:dynamic_proto",
+        "//common/types",
+        "//common/types:default_type_provider",
+        "//common/types:message_type_provider",
+        "//common/types:type_providers",
+        "//common/values",
+        "//common/values:cel_byte_string",
+        "//common/values:cel_value",
+        "//common/values:proto_message_value",
+        "//common/values:proto_message_value_provider",
+        "//compiler",
+        "//compiler:compiler_builder",
+        "//extensions",
+        "//extensions:optional_library",
+        "//parser:macro",
+        "//runtime",
+        "//runtime:cel_value_dispatcher",
+        "//runtime:cel_value_function_binding",
+        "//runtime:cel_value_function_overload",
+        "//runtime:function_binding",
+        "//runtime:program",
+        "//runtime:runtime_equality",
+        "//runtime:runtime_helpers",
+        "//runtime/planner:program_planner",
+        "//runtime/standard:add",
+        "//runtime/standard:divide",
+        "//runtime/standard:equals",
+        "//runtime/standard:greater",
+        "//runtime/standard:greater_equals",
+        "//runtime/standard:index",
+        "//runtime/standard:less",
+        "//runtime/standard:logical_not",
+        "//runtime/standard:not_strictly_false",
+        "//runtime/standard:standard_function",
+        "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+junit4_test_suites(
+    name = "test_suites",
+    sizes = [
+        "small",
+    ],
+    src_dir = "src/test/java",
+    deps = [
+        ":tests",
+    ],
+)

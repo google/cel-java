@@ -207,4 +207,26 @@ public abstract class CelConstant {
 
     throw new IllegalArgumentException("Value is not a CelConstant: " + value);
   }
+
+  /** Gets the underlying value held by this constant. */
+  public Object objectValue() {
+    switch (getKind()) {
+      case NULL_VALUE:
+        return nullValue();
+      case BOOLEAN_VALUE:
+        return booleanValue();
+      case INT64_VALUE:
+        return int64Value();
+      case UINT64_VALUE:
+        return uint64Value();
+      case DOUBLE_VALUE:
+        return doubleValue();
+      case STRING_VALUE:
+        return stringValue();
+      case BYTES_VALUE:
+        return bytesValue();
+      default:
+        throw new IllegalStateException("Unsupported kind: " + getKind());
+    }
+  }
 }
