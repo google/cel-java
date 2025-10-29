@@ -1439,6 +1439,10 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     source = "![0, 2, four].all(x, four/x != 2 && four/(four-x) != 2)";
     runTest(ImmutableMap.of("four", 4L));
+
+    // Unknown argument
+    source = "[0, 1].exists(x, x > four || true)";
+    runTest();
   }
 
   @Test

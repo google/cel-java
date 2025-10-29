@@ -58,15 +58,15 @@ public final class NegateOperator extends CelStandardFunction {
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from("negate_double", Double.class, (Double x) -> -x));
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload bindingCreator;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return bindingCreator.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    NegateOverload(FunctionBindingCreator bindingCreator) {
+    NegateOverload(CelStandardOverload bindingCreator) {
       this.bindingCreator = bindingCreator;
     }
   }

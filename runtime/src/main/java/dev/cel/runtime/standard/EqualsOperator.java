@@ -44,15 +44,15 @@ public final class EqualsOperator extends CelStandardFunction {
                 "equals", Object.class, Object.class, runtimeEquality::objectEquals)),
     ;
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload bindingCreator;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return bindingCreator.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    EqualsOverload(FunctionBindingCreator bindingCreator) {
+    EqualsOverload(CelStandardOverload bindingCreator) {
       this.bindingCreator = bindingCreator;
     }
   }

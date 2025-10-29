@@ -20,7 +20,7 @@ import java.util.Map;
 
 @Immutable
 @AutoValue
-abstract class LiteProgramImpl implements CelLiteRuntime.Program {
+abstract class LiteProgramImpl implements Program {
 
   abstract Interpretable interpretable();
 
@@ -40,7 +40,7 @@ abstract class LiteProgramImpl implements CelLiteRuntime.Program {
     return interpretable().eval(Activation.copyOf(mapValue), lateBoundFunctionResolver);
   }
 
-  static CelLiteRuntime.Program plan(Interpretable interpretable) {
+  static Program plan(Interpretable interpretable) {
     return new AutoValue_LiteProgramImpl(interpretable);
   }
 }
