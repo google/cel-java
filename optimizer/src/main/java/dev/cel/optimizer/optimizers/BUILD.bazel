@@ -24,6 +24,7 @@ java_library(
         "//common:cel_source",
         "//common:compiler_common",
         "//common:mutable_ast",
+        "//common:operator",
         "//common/ast",
         "//common/ast:mutable_expr",
         "//common/internal:date_time_helpers",
@@ -33,7 +34,6 @@ java_library(
         "//optimizer:ast_optimizer",
         "//optimizer:mutable_ast",
         "//optimizer:optimization_exception",
-        "//parser:operator",
         "//runtime",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -79,9 +79,9 @@ java_library(
     visibility = ["//visibility:private"],
     deps = [
         "//checker:standard_decl",
+        "//common:operator",
         "//extensions",
         "//extensions:optional_library",
-        "//parser:operator",
         "@maven//:com_google_guava_guava",
     ],
 )

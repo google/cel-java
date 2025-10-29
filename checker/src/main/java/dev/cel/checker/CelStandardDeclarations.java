@@ -23,6 +23,7 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
+import dev.cel.common.Operator;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.ListType;
@@ -30,7 +31,6 @@ import dev.cel.common.types.MapType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.common.types.TypeType;
-import dev.cel.parser.Operator;
 
 /**
  * Standard declarations for CEL.

@@ -121,3 +121,8 @@ java_library(
     ],
     exports = ["//common/src/main/java/dev/cel/common:cel_descriptor_util"],
 )
+
+java_library(
+    name = "operator",
+    exports = ["//common/src/main/java/dev/cel/common:operator"],
+)

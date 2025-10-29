@@ -1,4 +1,4 @@
-// Copyright 2022 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.parser;
+package dev.cel.common;
 
 import com.google.common.collect.ImmutableMap;
 import dev.cel.common.ast.CelExpr;
@@ -23,10 +23,7 @@ import java.util.Optional;
  * Package-private enumeration of Common Expression Language operators.
  *
  * <p>Equivalent to https://pkg.go.dev/github.com/google/cel-go/common/operators.
- *
- * @deprecated Use {@code dev.cel.common.Operator} instead.
  */
-@Deprecated
 public enum Operator {
   CONDITIONAL("_?_:_"),
   LOGICAL_AND("_&&_", "&&"),

@@ -21,13 +21,13 @@ import com.google.common.collect.ImmutableList;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelValidationResult;
+import dev.cel.common.Operator;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.parser.CelParser;
 import dev.cel.parser.CelParserFactory;
-import dev.cel.parser.Operator;
 import java.util.ArrayDeque;
 
 /**

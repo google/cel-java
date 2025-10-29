@@ -27,6 +27,7 @@ import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
+import dev.cel.common.Operator;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.internal.ComparisonFunctions;
 import dev.cel.common.types.ListType;
@@ -36,7 +37,6 @@ import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelMacroExprFactory;
 import dev.cel.parser.CelParserBuilder;
-import dev.cel.parser.Operator;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelInternalRuntimeLibrary;
 import dev.cel.runtime.CelRuntimeBuilder;
@@ -118,27 +118,23 @@ final class CelListsExtensions
                 "Returns the elements of a list in reverse order",
                 ListType.create(TypeParamType.create("T")),
                 ListType.create(TypeParamType.create("T")))),
-        CelFunctionBinding.from(
-            "list_reverse",
-            Collection.class,
-            CelListsExtensions::reverse)),
-      SORT(
-          CelFunctionDecl.newFunctionDeclaration(
-              "sort",
-              CelOverloadDecl.newMemberOverload(
-                  "list_sort",
-                  "Sorts a list with comparable elements.",
-                  ListType.create(TypeParamType.create("T")),
-                  ListType.create(TypeParamType.create("T"))))),
-      SORT_BY(
-          CelFunctionDecl.newFunctionDeclaration(
-              "lists.@sortByAssociatedKeys",
-              CelOverloadDecl.newGlobalOverload(
-                  "list_sortByAssociatedKeys",
-                  "Sorts a list by a key value. Used by the 'sortBy' macro",
-                  ListType.create(TypeParamType.create("T")),
-                  ListType.create(TypeParamType.create("T")))))
-    ;
+        CelFunctionBinding.from("list_reverse", Collection.class, CelListsExtensions::reverse)),
+    SORT(
+        CelFunctionDecl.newFunctionDeclaration(
+            "sort",
+            CelOverloadDecl.newMemberOverload(
+                "list_sort",
+                "Sorts a list with comparable elements.",
+                ListType.create(TypeParamType.create("T")),
+                ListType.create(TypeParamType.create("T"))))),
+    SORT_BY(
+        CelFunctionDecl.newFunctionDeclaration(
+            "lists.@sortByAssociatedKeys",
+            CelOverloadDecl.newGlobalOverload(
+                "list_sortByAssociatedKeys",
+                "Sorts a list by a key value. Used by the 'sortBy' macro",
+                ListType.create(TypeParamType.create("T")),
+                ListType.create(TypeParamType.create("T")))));
 
     private final CelFunctionDecl functionDecl;
     private final ImmutableSet<CelFunctionBinding> functionBindings;
@@ -240,8 +236,8 @@ final class CelListsExtensions
 
   @SuppressWarnings("unchecked")
   @Override
-  public void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder, RuntimeEquality runtimeEquality,
-      CelOptions celOptions) {
+  public void setRuntimeOptions(
+      CelRuntimeBuilder runtimeBuilder, RuntimeEquality runtimeEquality, CelOptions celOptions) {
     for (Function function : functions) {
       runtimeBuilder.addFunctionBindings(function.functionBindings);
       for (CelOverloadDecl overload : function.functionDecl.overloads()) {
@@ -412,23 +408,23 @@ final class CelListsExtensions
     // Wrap the pair in another list in order to be able to use the `list+list` operator
     step = exprFactory.newList(step);
     // Append the key-value pair to the i
-    step = exprFactory.newGlobalCall(
+    step =
+        exprFactory.newGlobalCall(
             Operator.ADD.getFunction(),
             exprFactory.newIdentifier(exprFactory.getAccumulatorVarName()),
             step);
     // Create an intermediate list and populate it with key-value pairs
-    step = exprFactory.fold(
-        varName,
-        target,
-        exprFactory.getAccumulatorVarName(),
-        exprFactory.newList(),
-        exprFactory.newBoolLiteral(true),   // Include all elements
-        step,
-        exprFactory.newIdentifier(exprFactory.getAccumulatorVarName()));
+    step =
+        exprFactory.fold(
+            varName,
+            target,
+            exprFactory.getAccumulatorVarName(),
+            exprFactory.newList(),
+            exprFactory.newBoolLiteral(true), // Include all elements
+            step,
+            exprFactory.newIdentifier(exprFactory.getAccumulatorVarName()));
     // Finally, sort the list of key-value pairs and map it to a list of values
-    step = exprFactory.newGlobalCall(
-        Function.SORT_BY.getFunction(),
-        step);
+    step = exprFactory.newGlobalCall(Function.SORT_BY.getFunction(), step);
 
     return Optional.of(step);
   }

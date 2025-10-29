@@ -28,7 +28,6 @@ java_library(
         "//optimizer/optimizers:common_subexpression_elimination",
         "//optimizer/optimizers:constant_folding",
         "//parser:macro",
-        "//parser:operator",
         "//parser:unparser",
         "//runtime",
         "//runtime:function_binding",

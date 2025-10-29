@@ -20,10 +20,10 @@ import static java.util.Arrays.stream;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import dev.cel.checker.CelStandardDeclarations;
+import dev.cel.common.Operator;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.extensions.CelOptionalLibrary.Function;
-import dev.cel.parser.Operator;
 
 /**
  * Package-private class that holds constants that's generally applicable across canonical
