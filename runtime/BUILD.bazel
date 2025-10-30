@@ -77,12 +77,6 @@ cel_android_library(
 )
 
 java_library(
-    name = "function_overload_impl",
-    visibility = ["//:internal"],
-    exports = ["//runtime/src/main/java/dev/cel/runtime:function_overload_impl"],
-)
-
-java_library(
     name = "evaluation_exception_builder",
     exports = ["//runtime/src/main/java/dev/cel/runtime:evaluation_exception_builder"],
 )
@@ -219,4 +213,22 @@ cel_android_library(
     name = "lite_runtime_impl_android",
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:lite_runtime_impl_android"],
+)
+
+java_library(
+    name = "resolved_overload",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:resolved_overload"],
+)
+
+cel_android_library(
+    name = "resolved_overload_android",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:resolved_overload_android"],
+)
+
+java_library(
+    name = "resolved_overload_internal",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:resolved_overload_internal"],
 )

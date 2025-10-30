@@ -180,15 +180,15 @@ public final class LessEqualsOperator extends CelStandardFunction {
                 (Double x, UnsignedLong y) -> ComparisonFunctions.compareDoubleUint(x, y) <= 0)),
     ;
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload bindingCreator;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return bindingCreator.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    LessEqualsOverload(FunctionBindingCreator bindingCreator) {
+    LessEqualsOverload(CelStandardOverload bindingCreator) {
       this.bindingCreator = bindingCreator;
     }
   }
