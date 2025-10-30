@@ -13,10 +13,15 @@
 // limitations under the License.
 package dev.cel.parser;
 
+import static dev.cel.common.Operator.LOGICAL_AND;
+import static dev.cel.common.Operator.LOGICAL_OR;
+
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.re2j.Pattern;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelSource;
+import dev.cel.common.Operator;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
@@ -273,7 +278,7 @@ public class CelUnparserVisitor extends CelExprVisitor {
     // add parens if the current operator is lower precedence than the rhs expr
     // operator, or the same precedence and the operator is left recursive.
     boolean rhsParen = isComplexOperatorWithRespectTo(rhs, fun);
-    if (!rhsParen && Operator.isOperatorLeftRecursive(fun)) {
+    if (!rhsParen && isOperatorLeftRecursive(fun)) {
       rhsParen = isOperatorSamePrecedence(fun, rhs);
     }
 
@@ -366,7 +371,7 @@ public class CelUnparserVisitor extends CelExprVisitor {
       return false;
     }
     // Otherwise, return whether the given op has lower precedence than expr
-    return Operator.isOperatorLowerPrecedence(op, expr);
+    return isOperatorLowerPrecedence(op, expr);
   }
 
   // bytesToOctets converts byte sequences to a string using a three digit octal encoded value
@@ -377,5 +382,18 @@ public class CelUnparserVisitor extends CelExprVisitor {
       sb.append(String.format("\\%03o", b));
     }
     return sb.toString();
+  }
+
+  @VisibleForTesting
+  static boolean isOperatorLeftRecursive(String op) {
+    return !op.equals(LOGICAL_AND.getFunction()) && !op.equals(LOGICAL_OR.getFunction());
+  }
+
+  @VisibleForTesting
+  static boolean isOperatorLowerPrecedence(String op, CelExpr expr) {
+    if (!expr.exprKind().getKind().equals(CelExpr.ExprKind.Kind.CALL)) {
+      return false;
+    }
+    return Operator.lookupPrecedence(op) < Operator.lookupPrecedence(expr.call().function());
   }
 }

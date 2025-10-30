@@ -70,6 +70,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelSource;
 import dev.cel.common.CelSourceLocation;
 import dev.cel.common.CelValidationResult;
+import dev.cel.common.Operator;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.internal.CodePointStream;

@@ -12,18 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.parser;
+package dev.cel.common;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
-import dev.cel.common.ast.CelExpr;
-import dev.cel.common.ast.CelExpr.CelCall;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -149,71 +145,5 @@ public final class OperatorTest {
   })
   public void lookupBinaryOperator_empty(String operator) {
     assertEquals(Operator.lookupBinaryOperator(operator), Optional.empty());
-  }
-
-  @Test
-  @TestParameters({
-    "{operator1: '_[_]', operator2: '_&&_'}",
-    "{operator1: '_&&_', operator2: '_||_'}",
-    "{operator1: '_||_', operator2: '_?_:_'}",
-    "{operator1: '!_', operator2: '_*_'}",
-    "{operator1: '_==_', operator2: '_&&_'}",
-    "{operator1: '_!=_', operator2: '_?_:_'}",
-  })
-  public void operatorLowerPrecedence(String operator1, String operator2) {
-    CelExpr expr =
-        CelExpr.newBuilder().setCall(CelCall.newBuilder().setFunction(operator2).build()).build();
-
-    assertTrue(Operator.isOperatorLowerPrecedence(operator1, expr));
-  }
-
-  @Test
-  @TestParameters({
-    "{operator1: '_?_:_', operator2: '_&&_'}",
-    "{operator1: '_&&_', operator2: '_[_]'}",
-    "{operator1: '_||_', operator2: '!_'}",
-    "{operator1: '!_', operator2: '-_'}",
-    "{operator1: '_==_', operator2: '_!=_'}",
-    "{operator1: '_!=_', operator2: '_-_'}",
-  })
-  public void operatorNotLowerPrecedence(String operator1, String operator2) {
-    CelExpr expr =
-        CelExpr.newBuilder().setCall(CelCall.newBuilder().setFunction(operator2).build()).build();
-
-    assertFalse(Operator.isOperatorLowerPrecedence(operator1, expr));
-  }
-
-  @Test
-  @TestParameters({
-    "{operator: '_[_]'}",
-    "{operator: '!_'}",
-    "{operator: '_==_'}",
-    "{operator: '_?_:_'}",
-    "{operator: '_!=_'}",
-    "{operator: '_<_'}",
-    "{operator: '_<=_'}",
-    "{operator: '_>_'}",
-    "{operator: '_>=_'}",
-    "{operator: '_+_'}",
-    "{operator: '_-_'}",
-    "{operator: '_*_'}",
-    "{operator: '_/_'}",
-    "{operator: '_%_'}",
-    "{operator: '-_'}",
-    "{operator: 'has'}",
-    "{operator: '_[?_]'}",
-    "{operator: '@not_strictly_false'}",
-  })
-  public void operatorLeftRecursive(String operator) {
-    assertTrue(Operator.isOperatorLeftRecursive(operator));
-  }
-
-  @Test
-  @TestParameters({
-    "{operator: '_&&_'}",
-    "{operator: '_||_'}",
-  })
-  public void operatorNotLeftRecursive(String operator) {
-    assertFalse(Operator.isOperatorLeftRecursive(operator));
   }
 }

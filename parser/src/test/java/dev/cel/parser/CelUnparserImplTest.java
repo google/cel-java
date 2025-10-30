@@ -15,11 +15,16 @@
 package dev.cel.parser;
 
 import static com.google.common.truth.Truth.assertThat;
+import static dev.cel.parser.CelUnparserVisitor.isOperatorLeftRecursive;
+import static dev.cel.parser.CelUnparserVisitor.isOperatorLowerPrecedence;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameterValuesProvider;
+import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
@@ -300,5 +305,71 @@ public final class CelUnparserImplTest {
 
     assertThat(unparser.unparse(ast))
         .isEqualTo("[\"a\"].all(x, x.trim().lowerAscii().contains(\"b\"))");
+  }
+
+  @Test
+  @TestParameters({
+    "{operator: '_[_]'}",
+    "{operator: '!_'}",
+    "{operator: '_==_'}",
+    "{operator: '_?_:_'}",
+    "{operator: '_!=_'}",
+    "{operator: '_<_'}",
+    "{operator: '_<=_'}",
+    "{operator: '_>_'}",
+    "{operator: '_>=_'}",
+    "{operator: '_+_'}",
+    "{operator: '_-_'}",
+    "{operator: '_*_'}",
+    "{operator: '_/_'}",
+    "{operator: '_%_'}",
+    "{operator: '-_'}",
+    "{operator: 'has'}",
+    "{operator: '_[?_]'}",
+    "{operator: '@not_strictly_false'}",
+  })
+  public void operatorLeftRecursive(String operator) {
+    assertTrue(isOperatorLeftRecursive(operator));
+  }
+
+  @Test
+  @TestParameters({
+    "{operator: '_&&_'}",
+    "{operator: '_||_'}",
+  })
+  public void operatorNotLeftRecursive(String operator) {
+    assertFalse(isOperatorLeftRecursive(operator));
+  }
+
+  @Test
+  @TestParameters({
+    "{operator1: '_[_]', operator2: '_&&_'}",
+    "{operator1: '_&&_', operator2: '_||_'}",
+    "{operator1: '_||_', operator2: '_?_:_'}",
+    "{operator1: '!_', operator2: '_*_'}",
+    "{operator1: '_==_', operator2: '_&&_'}",
+    "{operator1: '_!=_', operator2: '_?_:_'}",
+  })
+  public void operatorLowerPrecedence(String operator1, String operator2) {
+    CelExpr expr =
+        CelExpr.newBuilder().setCall(CelCall.newBuilder().setFunction(operator2).build()).build();
+
+    assertTrue(isOperatorLowerPrecedence(operator1, expr));
+  }
+
+  @Test
+  @TestParameters({
+    "{operator1: '_?_:_', operator2: '_&&_'}",
+    "{operator1: '_&&_', operator2: '_[_]'}",
+    "{operator1: '_||_', operator2: '!_'}",
+    "{operator1: '!_', operator2: '-_'}",
+    "{operator1: '_==_', operator2: '_!=_'}",
+    "{operator1: '_!=_', operator2: '_-_'}",
+  })
+  public void operatorNotLowerPrecedence(String operator1, String operator2) {
+    CelExpr expr =
+        CelExpr.newBuilder().setCall(CelCall.newBuilder().setFunction(operator2).build()).build();
+
+    assertFalse(isOperatorLowerPrecedence(operator1, expr));
   }
 }

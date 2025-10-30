@@ -56,11 +56,11 @@ java_library(
     ],
     deps = [
         ":macro",
-        ":operator",
         ":parser_builder",
         "//common:cel_ast",
         "//common:cel_source",
         "//common:compiler_common",
+        "//common:operator",
         "//common:options",
         "//common:source_location",
         "//common/annotations",
@@ -94,24 +94,13 @@ java_library(
     tags = [
     ],
     deps = [
-        ":operator",
         "//:auto_value",
         "//common:compiler_common",
+        "//common:operator",
         "//common:source_location",
         "//common/ast",
         "//common/ast:expr_factory",
         "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_guava_guava",
-    ],
-)
-
-java_library(
-    name = "operator",
-    srcs = ["Operator.java"],
-    tags = [
-    ],
-    deps = [
-        "//common/ast",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -134,9 +123,9 @@ java_library(
     tags = [
     ],
     deps = [
-        ":operator",
         "//common:cel_ast",
         "//common:cel_source",
+        "//common:operator",
         "//common/ast",
         "//common/ast:cel_expr_visitor",
         "//common/values:cel_byte_string",

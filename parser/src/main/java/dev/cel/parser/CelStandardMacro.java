@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelIssue;
+import dev.cel.common.Operator;
 import dev.cel.common.ast.CelExpr;
 import java.util.Optional;
 

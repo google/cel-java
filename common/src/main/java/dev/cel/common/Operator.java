@@ -15,14 +15,14 @@
 package dev.cel.common;
 
 import com.google.common.collect.ImmutableMap;
-import dev.cel.common.ast.CelExpr;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
  * Package-private enumeration of Common Expression Language operators.
  *
- * <p>Equivalent to https://pkg.go.dev/github.com/google/cel-go/common/operators.
+ * <p>Equivalent to <a
+ * href="https://pkg.go.dev/github.com/google/cel-go/common/operators">operators<a>.
  */
 public enum Operator {
   CONDITIONAL("_?_:_"),
@@ -96,7 +96,7 @@ public enum Operator {
           .buildOrThrow();
 
   /** Lookup an operator by its unmangled name, as used with the source text of an expression. */
-  static Optional<Operator> find(String text) {
+  public static Optional<Operator> find(String text) {
     return Optional.ofNullable(OPERATORS.get(text));
   }
 
@@ -193,26 +193,23 @@ public enum Operator {
     return Optional.ofNullable(REVERSE_OPERATORS.get(op));
   }
 
-  static int lookupPrecedence(String op) {
+  /**
+   * Returns the precedence of the operator.
+   *
+   * @return Integer value describing precedence. Higher value means higher precedence. Returns 0 if
+   *     the operator is not found.
+   */
+  public static int lookupPrecedence(String op) {
     return PRECEDENCES.getOrDefault(op, 0);
   }
 
-  static Optional<String> lookupUnaryOperator(String op) {
+  /** Looks up the associated unary operator based on its function name (Ex: !_ -> !) */
+  public static Optional<String> lookupUnaryOperator(String op) {
     return Optional.ofNullable(UNARY_OPERATORS.get(op));
   }
 
-  static Optional<String> lookupBinaryOperator(String op) {
+  /** Looks up the associated binary operator based on its function name (Ex: _||_ -> ||) */
+  public static Optional<String> lookupBinaryOperator(String op) {
     return Optional.ofNullable(BINARY_OPERATORS.get(op));
-  }
-
-  static boolean isOperatorLowerPrecedence(String op, CelExpr expr) {
-    if (!expr.exprKind().getKind().equals(CelExpr.ExprKind.Kind.CALL)) {
-      return false;
-    }
-    return lookupPrecedence(op) < lookupPrecedence(expr.call().function());
-  }
-
-  static boolean isOperatorLeftRecursive(String op) {
-    return !op.equals(LOGICAL_AND.getFunction()) && !op.equals(LOGICAL_OR.getFunction());
   }
 }
