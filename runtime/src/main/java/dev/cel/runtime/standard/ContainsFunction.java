@@ -44,15 +44,15 @@ public final class ContainsFunction extends CelStandardFunction {
                 "contains_string", String.class, String.class, String::contains)),
     ;
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload bindingCreator;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return bindingCreator.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    ContainsOverload(FunctionBindingCreator bindingCreator) {
+    ContainsOverload(CelStandardOverload bindingCreator) {
       this.bindingCreator = bindingCreator;
     }
   }

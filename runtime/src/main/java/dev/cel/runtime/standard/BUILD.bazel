@@ -1422,7 +1422,8 @@ cel_android_library(
 java_library(
     name = "standard_overload",
     srcs = ["CelStandardOverload.java"],
-    visibility = ["//visibility:private"],
+    tags = [
+    ],
     deps = [
         "//common:options",
         "//runtime:function_binding",
@@ -1434,7 +1435,8 @@ java_library(
 cel_android_library(
     name = "standard_overload_android",
     srcs = ["CelStandardOverload.java"],
-    visibility = ["//visibility:private"],
+    tags = [
+    ],
     deps = [
         "//common:options",
         "//runtime:function_binding_android",

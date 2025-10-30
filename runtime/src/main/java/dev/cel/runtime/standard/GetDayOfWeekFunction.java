@@ -92,15 +92,15 @@ public final class GetDayOfWeekFunction extends CelStandardFunction {
                 });
           }
         });
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload bindingCreator;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return bindingCreator.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    GetDayOfWeekOverload(FunctionBindingCreator bindingCreator) {
+    GetDayOfWeekOverload(CelStandardOverload bindingCreator) {
       this.bindingCreator = bindingCreator;
     }
   }
