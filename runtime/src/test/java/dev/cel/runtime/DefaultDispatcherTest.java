@@ -37,11 +37,11 @@ public final class DefaultDispatcherTest {
     overloads.put(
         "overload_1",
         CelResolvedOverload.of(
-            "overload_1", new Class<?>[] {Long.class}, args -> (Long) args[0] + 1));
+            "overload_1", args -> (Long) args[0] + 1, /* isStrict= */ false, Long.class));
     overloads.put(
         "overload_2",
         CelResolvedOverload.of(
-            "overload_2", new Class<?>[] {Long.class}, args -> (Long) args[0] + 2));
+            "overload_2", args -> (Long) args[0] + 2, /* isStrict= */ false, Long.class));
   }
 
   @Test

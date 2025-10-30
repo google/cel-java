@@ -57,7 +57,8 @@ public final class CelLateFunctionBindings implements CelFunctionResolver {
   private static ResolvedOverload createResolvedOverload(CelFunctionBinding binding) {
     return CelResolvedOverload.of(
         binding.getOverloadId(),
-        binding.getArgTypes(),
-        (args) -> binding.getDefinition().apply(args));
+        (args) -> binding.getDefinition().apply(args),
+        binding.isStrict(),
+        binding.getArgTypes());
   }
 }

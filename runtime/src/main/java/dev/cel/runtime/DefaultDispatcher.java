@@ -14,9 +14,7 @@
 
 package dev.cel.runtime;
 
-import com.google.auto.value.AutoValue;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -34,7 +32,7 @@ import java.util.Optional;
  * <p>Should be final, do not mock; mocking {@link Dispatcher} instead.
  */
 @ThreadSafe
-final class DefaultDispatcher implements Dispatcher, Registrar {
+final class DefaultDispatcher implements Dispatcher {
   public static DefaultDispatcher create() {
     return new DefaultDispatcher();
   }
@@ -42,37 +40,9 @@ final class DefaultDispatcher implements Dispatcher, Registrar {
   @GuardedBy("this")
   private final Map<String, ResolvedOverload> overloads = new HashMap<>();
 
-  @Override
-  @SuppressWarnings("unchecked")
-  public synchronized <T> void add(
-      String overloadId, Class<T> argType, final Registrar.UnaryFunction<T> function) {
-    overloads.put(
-        overloadId,
-        ResolvedOverloadImpl.of(
-            overloadId, new Class<?>[] {argType}, args -> function.apply((T) args[0])));
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public synchronized <T1, T2> void add(
-      String overloadId,
-      Class<T1> argType1,
-      Class<T2> argType2,
-      final Registrar.BinaryFunction<T1, T2> function) {
-    overloads.put(
-        overloadId,
-        ResolvedOverloadImpl.of(
-            overloadId,
-            new Class<?>[] {argType1, argType2},
-            args -> function.apply((T1) args[0], (T2) args[1])));
-  }
-
-  @Override
   public synchronized void add(
-      String overloadId, List<Class<?>> argTypes, Registrar.Function function) {
-    overloads.put(
-        overloadId,
-        ResolvedOverloadImpl.of(overloadId, argTypes.toArray(new Class<?>[0]), function));
+      String overloadId, List<Class<?>> argTypes, boolean isStrict, CelFunctionOverload overload) {
+    overloads.put(overloadId, CelResolvedOverload.of(overloadId, overload, isStrict, argTypes));
   }
 
   @Override
@@ -144,31 +114,4 @@ final class DefaultDispatcher implements Dispatcher, Registrar {
   }
 
   private DefaultDispatcher() {}
-
-  @AutoValue
-  @Immutable
-  abstract static class ResolvedOverloadImpl implements ResolvedOverload {
-    /** The overload id of the function. */
-    @Override
-    public abstract String getOverloadId();
-
-    /** The types of the function parameters. */
-    @Override
-    public abstract ImmutableList<Class<?>> getParameterTypes();
-
-    /** The function definition. */
-    @Override
-    public abstract FunctionOverload getDefinition();
-
-    static ResolvedOverload of(
-        String overloadId, Class<?>[] parameterTypes, FunctionOverload definition) {
-      return of(overloadId, ImmutableList.copyOf(parameterTypes), definition);
-    }
-
-    static ResolvedOverload of(
-        String overloadId, ImmutableList<Class<?>> parameterTypes, FunctionOverload definition) {
-      return new AutoValue_DefaultDispatcher_ResolvedOverloadImpl(
-          overloadId, parameterTypes, definition);
-    }
-  }
 }

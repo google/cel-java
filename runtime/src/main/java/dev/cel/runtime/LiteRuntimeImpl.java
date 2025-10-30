@@ -182,7 +182,10 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
           .forEach(
               (String overloadId, CelFunctionBinding func) ->
                   dispatcher.add(
-                      overloadId, func.getArgTypes(), (args) -> func.getDefinition().apply(args)));
+                      overloadId,
+                      func.getArgTypes(),
+                      func.isStrict(),
+                      (args) -> func.getDefinition().apply(args)));
 
       Interpreter interpreter =
           new DefaultInterpreter(
