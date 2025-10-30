@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.common.collect.ImmutableList;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
@@ -28,6 +29,7 @@ import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.DefaultInterpreter.DefaultInterpretable;
 import dev.cel.runtime.DefaultInterpreter.ExecutionFrame;
+import dev.cel.runtime.standard.NotStrictlyFalseFunction.NotStrictlyFalseOverload;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,10 +75,24 @@ public class DefaultInterpreterTest {
           }
         };
     CelAbstractSyntaxTree ast = celCompiler.compile("[1].all(x, [2].all(y, error()))").getAst();
-    DefaultDispatcher dispatcher = DefaultDispatcher.create();
-    dispatcher.add("error", long.class, (args) -> new IllegalArgumentException("Always throws"));
+    DefaultDispatcher.Builder dispatcherBuilder = DefaultDispatcher.newBuilder();
+    dispatcherBuilder.addOverload(
+        "error",
+        ImmutableList.of(long.class),
+        /* isStrict= */ true,
+        (args) -> new IllegalArgumentException("Always throws"));
+    CelFunctionBinding notStrictlyFalseBinding =
+        NotStrictlyFalseOverload.NOT_STRICTLY_FALSE.newFunctionBinding(
+            CelOptions.DEFAULT,
+            RuntimeEquality.create(RuntimeHelpers.create(), CelOptions.DEFAULT));
+    dispatcherBuilder.addOverload(
+        notStrictlyFalseBinding.getOverloadId(),
+        notStrictlyFalseBinding.getArgTypes(),
+        notStrictlyFalseBinding.isStrict(),
+        notStrictlyFalseBinding.getDefinition());
     DefaultInterpreter defaultInterpreter =
-        new DefaultInterpreter(new TypeResolver(), emptyProvider, dispatcher, CelOptions.DEFAULT);
+        new DefaultInterpreter(
+            new TypeResolver(), emptyProvider, dispatcherBuilder.build(), CelOptions.DEFAULT);
     DefaultInterpretable interpretable =
         (DefaultInterpretable) defaultInterpreter.createInterpretable(ast);
 

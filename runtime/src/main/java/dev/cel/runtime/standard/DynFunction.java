@@ -43,15 +43,15 @@ public final class DynFunction extends CelStandardFunction {
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from("to_dyn", Object.class, (Object arg) -> arg));
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload bindingCreator;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return bindingCreator.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    DynOverload(FunctionBindingCreator bindingCreator) {
+    DynOverload(CelStandardOverload bindingCreator) {
       this.bindingCreator = bindingCreator;
     }
   }

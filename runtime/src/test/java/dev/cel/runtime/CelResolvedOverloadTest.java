@@ -16,7 +16,6 @@ package dev.cel.runtime;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.common.collect.ImmutableList;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,11 +28,12 @@ public final class CelResolvedOverloadTest {
   CelResolvedOverload getIncrementIntOverload() {
     return CelResolvedOverload.of(
         "increment_int",
-        ImmutableList.of(Long.class),
         (args) -> {
           Long arg = (Long) args[0];
           return arg + 1;
-        });
+        },
+        /* isStrict= */ true,
+        Long.class);
   }
 
   @Test
@@ -44,14 +44,15 @@ public final class CelResolvedOverloadTest {
   @Test
   public void canHandle_nullMessageType_returnsTrue() {
     CelResolvedOverload overload =
-        CelResolvedOverload.of("identity", ImmutableList.of(TestAllTypes.class), (args) -> args[0]);
+        CelResolvedOverload.of(
+            "identity", (args) -> args[0], /* isStrict= */ true, TestAllTypes.class);
     assertThat(overload.canHandle(new Object[] {null})).isTrue();
   }
 
   @Test
   public void canHandle_nullPrimitive_returnsFalse() {
     CelResolvedOverload overload =
-        CelResolvedOverload.of("identity", ImmutableList.of(Long.class), (args) -> args[0]);
+        CelResolvedOverload.of("identity", (args) -> args[0], /* isStrict= */ true, Long.class);
     assertThat(overload.canHandle(new Object[] {null})).isFalse();
   }
 
