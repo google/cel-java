@@ -75,16 +75,16 @@ public final class GetDateFunction extends CelStandardFunction {
         }),
     ;
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload standardOverload;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    GetDateOverload(FunctionBindingCreator bindingCreator) {
-      this.bindingCreator = bindingCreator;
+    GetDateOverload(CelStandardOverload standardOverload) {
+      this.standardOverload = standardOverload;
     }
   }
 

@@ -75,16 +75,16 @@ public final class GetMonthFunction extends CelStandardFunction {
         }),
     ;
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload standardOverload;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    GetMonthOverload(FunctionBindingCreator bindingCreator) {
-      this.bindingCreator = bindingCreator;
+    GetMonthOverload(CelStandardOverload standardOverload) {
+      this.standardOverload = standardOverload;
     }
   }
 

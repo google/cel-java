@@ -120,16 +120,16 @@ public final class StringFunction extends CelStandardFunction {
           }
         });
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload standardOverload;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    StringOverload(FunctionBindingCreator bindingCreator) {
-      this.bindingCreator = bindingCreator;
+    StringOverload(CelStandardOverload standardOverload) {
+      this.standardOverload = standardOverload;
     }
   }
 

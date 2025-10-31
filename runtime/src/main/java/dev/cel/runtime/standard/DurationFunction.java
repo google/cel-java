@@ -74,16 +74,16 @@ public final class DurationFunction extends CelStandardFunction {
                 })),
     ;
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload standardOverload;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    DurationOverload(FunctionBindingCreator bindingCreator) {
-      this.bindingCreator = bindingCreator;
+    DurationOverload(CelStandardOverload standardOverload) {
+      this.standardOverload = standardOverload;
     }
   }
 

@@ -43,16 +43,16 @@ public final class LogicalNotOperator extends CelStandardFunction {
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from("logical_not", Boolean.class, (Boolean x) -> !x));
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload standardOverload;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    LogicalNotOverload(FunctionBindingCreator bindingCreator) {
-      this.bindingCreator = bindingCreator;
+    LogicalNotOverload(CelStandardOverload standardOverload) {
+      this.standardOverload = standardOverload;
     }
   }
 

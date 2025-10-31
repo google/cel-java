@@ -176,16 +176,16 @@ public final class LessOperator extends CelStandardFunction {
         }),
     ;
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload standardOverload;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    LessOverload(FunctionBindingCreator bindingCreator) {
-      this.bindingCreator = bindingCreator;
+    LessOverload(CelStandardOverload standardOverload) {
+      this.standardOverload = standardOverload;
     }
   }
 

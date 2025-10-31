@@ -183,16 +183,16 @@ public final class GreaterEqualsOperator extends CelStandardFunction {
                 UnsignedLong.class,
                 (Double x, UnsignedLong y) -> ComparisonFunctions.compareDoubleUint(x, y) >= 0));
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload standardOverload;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    GreaterEqualsOverload(FunctionBindingCreator bindingCreator) {
-      this.bindingCreator = bindingCreator;
+    GreaterEqualsOverload(CelStandardOverload standardOverload) {
+      this.standardOverload = standardOverload;
     }
   }
 

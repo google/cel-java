@@ -333,181 +333,179 @@ public final class CelStandardFunctions {
 
       /** Overloads for internal functions that may have been rewritten by macros (ex: @in) */
       public enum InternalOperator implements CelStandardOverload {
-        IN_LIST(InOverload.IN_LIST::newFunctionBinding),
-        IN_MAP(InOverload.IN_MAP::newFunctionBinding);
+        IN_LIST(InOverload.IN_LIST),
+        IN_MAP(InOverload.IN_MAP);
 
-        private final FunctionBindingCreator bindingCreator;
+        private final CelStandardOverload standardOverload;
 
         @Override
         public CelFunctionBinding newFunctionBinding(
             CelOptions celOptions, RuntimeEquality runtimeEquality) {
-          return bindingCreator.create(celOptions, runtimeEquality);
+          return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
         }
 
-        InternalOperator(FunctionBindingCreator bindingCreator) {
-          this.bindingCreator = bindingCreator;
+        InternalOperator(CelStandardOverload standardOverload) {
+          this.standardOverload = standardOverload;
         }
       }
 
       /** Overloads for functions that test relations. */
       public enum Relation implements CelStandardOverload {
-        EQUALS(EqualsOverload.EQUALS::newFunctionBinding),
-        NOT_EQUALS(NotEqualsOverload.NOT_EQUALS::newFunctionBinding);
+        EQUALS(EqualsOverload.EQUALS),
+        NOT_EQUALS(NotEqualsOverload.NOT_EQUALS);
 
-        private final FunctionBindingCreator bindingCreator;
+        private final CelStandardOverload standardOverload;
 
         @Override
         public CelFunctionBinding newFunctionBinding(
             CelOptions celOptions, RuntimeEquality runtimeEquality) {
-          return bindingCreator.create(celOptions, runtimeEquality);
+          return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
         }
 
-        Relation(FunctionBindingCreator bindingCreator) {
-          this.bindingCreator = bindingCreator;
+        Relation(CelStandardOverload standardOverload) {
+          this.standardOverload = standardOverload;
         }
       }
 
       /** Overloads for performing arithmetic operations. */
       public enum Arithmetic implements CelStandardOverload {
-        ADD_INT64(AddOverload.ADD_INT64::newFunctionBinding),
-        ADD_UINT64(AddOverload.ADD_UINT64::newFunctionBinding),
-        ADD_BYTES(AddOverload.ADD_BYTES::newFunctionBinding),
-        ADD_DOUBLE(AddOverload.ADD_DOUBLE::newFunctionBinding),
-        ADD_DURATION_DURATION(AddOverload.ADD_DURATION_DURATION::newFunctionBinding),
-        ADD_TIMESTAMP_DURATION(AddOverload.ADD_TIMESTAMP_DURATION::newFunctionBinding),
-        ADD_STRING(AddOverload.ADD_STRING::newFunctionBinding),
-        ADD_DURATION_TIMESTAMP(AddOverload.ADD_DURATION_TIMESTAMP::newFunctionBinding),
-        ADD_LIST(AddOverload.ADD_LIST::newFunctionBinding),
+        ADD_INT64(AddOverload.ADD_INT64),
+        ADD_UINT64(AddOverload.ADD_UINT64),
+        ADD_BYTES(AddOverload.ADD_BYTES),
+        ADD_DOUBLE(AddOverload.ADD_DOUBLE),
+        ADD_DURATION_DURATION(AddOverload.ADD_DURATION_DURATION),
+        ADD_TIMESTAMP_DURATION(AddOverload.ADD_TIMESTAMP_DURATION),
+        ADD_STRING(AddOverload.ADD_STRING),
+        ADD_DURATION_TIMESTAMP(AddOverload.ADD_DURATION_TIMESTAMP),
+        ADD_LIST(AddOverload.ADD_LIST),
 
-        SUBTRACT_INT64(SubtractOverload.SUBTRACT_INT64::newFunctionBinding),
-        SUBTRACT_TIMESTAMP_TIMESTAMP(
-            SubtractOverload.SUBTRACT_TIMESTAMP_TIMESTAMP::newFunctionBinding),
-        SUBTRACT_TIMESTAMP_DURATION(
-            SubtractOverload.SUBTRACT_TIMESTAMP_DURATION::newFunctionBinding),
-        SUBTRACT_UINT64(SubtractOverload.SUBTRACT_UINT64::newFunctionBinding),
-        SUBTRACT_DOUBLE(SubtractOverload.SUBTRACT_DOUBLE::newFunctionBinding),
-        SUBTRACT_DURATION_DURATION(SubtractOverload.SUBTRACT_DURATION_DURATION::newFunctionBinding),
+        SUBTRACT_INT64(SubtractOverload.SUBTRACT_INT64),
+        SUBTRACT_TIMESTAMP_TIMESTAMP(SubtractOverload.SUBTRACT_TIMESTAMP_TIMESTAMP),
+        SUBTRACT_TIMESTAMP_DURATION(SubtractOverload.SUBTRACT_TIMESTAMP_DURATION),
+        SUBTRACT_UINT64(SubtractOverload.SUBTRACT_UINT64),
+        SUBTRACT_DOUBLE(SubtractOverload.SUBTRACT_DOUBLE),
+        SUBTRACT_DURATION_DURATION(SubtractOverload.SUBTRACT_DURATION_DURATION),
 
-        MULTIPLY_INT64(MultiplyOverload.MULTIPLY_INT64::newFunctionBinding),
-        MULTIPLY_DOUBLE(MultiplyOverload.MULTIPLY_DOUBLE::newFunctionBinding),
-        MULTIPLY_UINT64(MultiplyOverload.MULTIPLY_UINT64::newFunctionBinding),
+        MULTIPLY_INT64(MultiplyOverload.MULTIPLY_INT64),
+        MULTIPLY_DOUBLE(MultiplyOverload.MULTIPLY_DOUBLE),
+        MULTIPLY_UINT64(MultiplyOverload.MULTIPLY_UINT64),
 
-        DIVIDE_DOUBLE(DivideOverload.DIVIDE_DOUBLE::newFunctionBinding),
-        DIVIDE_INT64(DivideOverload.DIVIDE_INT64::newFunctionBinding),
-        DIVIDE_UINT64(DivideOverload.DIVIDE_UINT64::newFunctionBinding),
+        DIVIDE_DOUBLE(DivideOverload.DIVIDE_DOUBLE),
+        DIVIDE_INT64(DivideOverload.DIVIDE_INT64),
+        DIVIDE_UINT64(DivideOverload.DIVIDE_UINT64),
 
-        MODULO_INT64(ModuloOverload.MODULO_INT64::newFunctionBinding),
-        MODULO_UINT64(ModuloOverload.MODULO_UINT64::newFunctionBinding),
+        MODULO_INT64(ModuloOverload.MODULO_INT64),
+        MODULO_UINT64(ModuloOverload.MODULO_UINT64),
 
-        NEGATE_INT64(NegateOverload.NEGATE_INT64::newFunctionBinding),
-        NEGATE_DOUBLE(NegateOverload.NEGATE_DOUBLE::newFunctionBinding);
+        NEGATE_INT64(NegateOverload.NEGATE_INT64),
+        NEGATE_DOUBLE(NegateOverload.NEGATE_DOUBLE);
 
-        private final FunctionBindingCreator bindingCreator;
+        private final CelStandardOverload standardOverload;
 
         @Override
         public CelFunctionBinding newFunctionBinding(
             CelOptions celOptions, RuntimeEquality runtimeEquality) {
-          return bindingCreator.create(celOptions, runtimeEquality);
+          return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
         }
 
-        Arithmetic(FunctionBindingCreator bindingCreator) {
-          this.bindingCreator = bindingCreator;
+        Arithmetic(CelStandardOverload standardOverload) {
+          this.standardOverload = standardOverload;
         }
       }
 
       /** Overloads for indexing a list or a map. */
       public enum Index implements CelStandardOverload {
-        INDEX_LIST(IndexOverload.INDEX_LIST::newFunctionBinding),
-        INDEX_MAP(IndexOverload.INDEX_MAP::newFunctionBinding);
+        INDEX_LIST(IndexOverload.INDEX_LIST),
+        INDEX_MAP(IndexOverload.INDEX_MAP);
 
-        private final FunctionBindingCreator bindingCreator;
+        private final CelStandardOverload standardOverload;
 
         @Override
         public CelFunctionBinding newFunctionBinding(
             CelOptions celOptions, RuntimeEquality runtimeEquality) {
-          return bindingCreator.create(celOptions, runtimeEquality);
+          return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
         }
 
-        Index(FunctionBindingCreator bindingCreator) {
-          this.bindingCreator = bindingCreator;
+        Index(CelStandardOverload standardOverload) {
+          this.standardOverload = standardOverload;
         }
       }
 
       /** Overloads for retrieving the size of a literal or a collection. */
       public enum Size implements CelStandardOverload {
-        SIZE_BYTES(SizeOverload.SIZE_BYTES::newFunctionBinding),
-        BYTES_SIZE(SizeOverload.BYTES_SIZE::newFunctionBinding),
-        SIZE_LIST(SizeOverload.SIZE_LIST::newFunctionBinding),
-        LIST_SIZE(SizeOverload.LIST_SIZE::newFunctionBinding),
-        SIZE_STRING(SizeOverload.SIZE_STRING::newFunctionBinding),
-        STRING_SIZE(SizeOverload.STRING_SIZE::newFunctionBinding),
-        SIZE_MAP(SizeOverload.SIZE_MAP::newFunctionBinding),
-        MAP_SIZE(SizeOverload.MAP_SIZE::newFunctionBinding);
+        SIZE_BYTES(SizeOverload.SIZE_BYTES),
+        BYTES_SIZE(SizeOverload.BYTES_SIZE),
+        SIZE_LIST(SizeOverload.SIZE_LIST),
+        LIST_SIZE(SizeOverload.LIST_SIZE),
+        SIZE_STRING(SizeOverload.SIZE_STRING),
+        STRING_SIZE(SizeOverload.STRING_SIZE),
+        SIZE_MAP(SizeOverload.SIZE_MAP),
+        MAP_SIZE(SizeOverload.MAP_SIZE);
 
-        private final FunctionBindingCreator bindingCreator;
+        private final CelStandardOverload standardOverload;
 
         @Override
         public CelFunctionBinding newFunctionBinding(
             CelOptions celOptions, RuntimeEquality runtimeEquality) {
-          return bindingCreator.create(celOptions, runtimeEquality);
+          return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
         }
 
-        Size(FunctionBindingCreator bindingCreator) {
-          this.bindingCreator = bindingCreator;
+        Size(CelStandardOverload standardOverload) {
+          this.standardOverload = standardOverload;
         }
       }
 
       /** Overloads for performing type conversions. */
       public enum Conversions implements CelStandardOverload {
-        BOOL_TO_BOOL(BoolOverload.BOOL_TO_BOOL::newFunctionBinding),
-        STRING_TO_BOOL(BoolOverload.STRING_TO_BOOL::newFunctionBinding),
-        INT64_TO_INT64(IntOverload.INT64_TO_INT64::newFunctionBinding),
-        DOUBLE_TO_INT64(IntOverload.DOUBLE_TO_INT64::newFunctionBinding),
-        STRING_TO_INT64(IntOverload.STRING_TO_INT64::newFunctionBinding),
-        TIMESTAMP_TO_INT64(IntOverload.TIMESTAMP_TO_INT64::newFunctionBinding),
-        UINT64_TO_INT64(IntOverload.UINT64_TO_INT64::newFunctionBinding),
+        BOOL_TO_BOOL(BoolOverload.BOOL_TO_BOOL),
+        STRING_TO_BOOL(BoolOverload.STRING_TO_BOOL),
+        INT64_TO_INT64(IntOverload.INT64_TO_INT64),
+        DOUBLE_TO_INT64(IntOverload.DOUBLE_TO_INT64),
+        STRING_TO_INT64(IntOverload.STRING_TO_INT64),
+        TIMESTAMP_TO_INT64(IntOverload.TIMESTAMP_TO_INT64),
+        UINT64_TO_INT64(IntOverload.UINT64_TO_INT64),
 
-        UINT64_TO_UINT64(UintOverload.UINT64_TO_UINT64::newFunctionBinding),
-        INT64_TO_UINT64(UintOverload.INT64_TO_UINT64::newFunctionBinding),
-        DOUBLE_TO_UINT64(UintOverload.DOUBLE_TO_UINT64::newFunctionBinding),
-        STRING_TO_UINT64(UintOverload.STRING_TO_UINT64::newFunctionBinding),
+        UINT64_TO_UINT64(UintOverload.UINT64_TO_UINT64),
+        INT64_TO_UINT64(UintOverload.INT64_TO_UINT64),
+        DOUBLE_TO_UINT64(UintOverload.DOUBLE_TO_UINT64),
+        STRING_TO_UINT64(UintOverload.STRING_TO_UINT64),
 
-        DOUBLE_TO_DOUBLE(DoubleOverload.DOUBLE_TO_DOUBLE::newFunctionBinding),
-        INT64_TO_DOUBLE(DoubleOverload.INT64_TO_DOUBLE::newFunctionBinding),
-        STRING_TO_DOUBLE(DoubleOverload.STRING_TO_DOUBLE::newFunctionBinding),
-        UINT64_TO_DOUBLE(DoubleOverload.UINT64_TO_DOUBLE::newFunctionBinding),
+        DOUBLE_TO_DOUBLE(DoubleOverload.DOUBLE_TO_DOUBLE),
+        INT64_TO_DOUBLE(DoubleOverload.INT64_TO_DOUBLE),
+        STRING_TO_DOUBLE(DoubleOverload.STRING_TO_DOUBLE),
+        UINT64_TO_DOUBLE(DoubleOverload.UINT64_TO_DOUBLE),
 
-        STRING_TO_STRING(StringOverload.STRING_TO_STRING::newFunctionBinding),
-        INT64_TO_STRING(StringOverload.INT64_TO_STRING::newFunctionBinding),
-        DOUBLE_TO_STRING(StringOverload.DOUBLE_TO_STRING::newFunctionBinding),
-        BOOL_TO_STRING(StringOverload.BOOL_TO_STRING::newFunctionBinding),
-        BYTES_TO_STRING(StringOverload.BYTES_TO_STRING::newFunctionBinding),
-        TIMESTAMP_TO_STRING(StringOverload.TIMESTAMP_TO_STRING::newFunctionBinding),
-        DURATION_TO_STRING(StringOverload.DURATION_TO_STRING::newFunctionBinding),
-        UINT64_TO_STRING(StringOverload.UINT64_TO_STRING::newFunctionBinding),
+        STRING_TO_STRING(StringOverload.STRING_TO_STRING),
+        INT64_TO_STRING(StringOverload.INT64_TO_STRING),
+        DOUBLE_TO_STRING(StringOverload.DOUBLE_TO_STRING),
+        BOOL_TO_STRING(StringOverload.BOOL_TO_STRING),
+        BYTES_TO_STRING(StringOverload.BYTES_TO_STRING),
+        TIMESTAMP_TO_STRING(StringOverload.TIMESTAMP_TO_STRING),
+        DURATION_TO_STRING(StringOverload.DURATION_TO_STRING),
+        UINT64_TO_STRING(StringOverload.UINT64_TO_STRING),
 
-        BYTES_TO_BYTES(BytesOverload.BYTES_TO_BYTES::newFunctionBinding),
-        STRING_TO_BYTES(BytesOverload.STRING_TO_BYTES::newFunctionBinding),
+        BYTES_TO_BYTES(BytesOverload.BYTES_TO_BYTES),
+        STRING_TO_BYTES(BytesOverload.STRING_TO_BYTES),
 
-        DURATION_TO_DURATION(DurationOverload.DURATION_TO_DURATION::newFunctionBinding),
-        STRING_TO_DURATION(DurationOverload.STRING_TO_DURATION::newFunctionBinding),
+        DURATION_TO_DURATION(DurationOverload.DURATION_TO_DURATION),
+        STRING_TO_DURATION(DurationOverload.STRING_TO_DURATION),
 
-        STRING_TO_TIMESTAMP(TimestampOverload.STRING_TO_TIMESTAMP::newFunctionBinding),
-        TIMESTAMP_TO_TIMESTAMP(TimestampOverload.TIMESTAMP_TO_TIMESTAMP::newFunctionBinding),
-        INT64_TO_TIMESTAMP(TimestampOverload.INT64_TO_TIMESTAMP::newFunctionBinding),
+        STRING_TO_TIMESTAMP(TimestampOverload.STRING_TO_TIMESTAMP),
+        TIMESTAMP_TO_TIMESTAMP(TimestampOverload.TIMESTAMP_TO_TIMESTAMP),
+        INT64_TO_TIMESTAMP(TimestampOverload.INT64_TO_TIMESTAMP),
 
-        TO_DYN(DynOverload.TO_DYN::newFunctionBinding);
+        TO_DYN(DynOverload.TO_DYN);
 
-        private final FunctionBindingCreator bindingCreator;
+        private final CelStandardOverload standardOverload;
 
         @Override
         public CelFunctionBinding newFunctionBinding(
             CelOptions celOptions, RuntimeEquality runtimeEquality) {
-          return bindingCreator.create(celOptions, runtimeEquality);
+          return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
         }
 
-        Conversions(FunctionBindingCreator bindingCreator) {
-          this.bindingCreator = bindingCreator;
+        Conversions(CelStandardOverload standardOverload) {
+          this.standardOverload = standardOverload;
         }
       }
 
@@ -516,182 +514,155 @@ public final class CelStandardFunctions {
        * check.
        */
       public enum StringMatchers implements CelStandardOverload {
-        MATCHES(MatchesOverload.MATCHES::newFunctionBinding),
-        MATCHES_STRING(MatchesOverload.MATCHES_STRING::newFunctionBinding),
-        CONTAINS_STRING(ContainsOverload.CONTAINS_STRING::newFunctionBinding),
-        ENDS_WITH_STRING(EndsWithOverload.ENDS_WITH_STRING::newFunctionBinding),
-        STARTS_WITH_STRING(StartsWithOverload.STARTS_WITH_STRING::newFunctionBinding);
+        MATCHES(MatchesOverload.MATCHES),
+        MATCHES_STRING(MatchesOverload.MATCHES_STRING),
+        CONTAINS_STRING(ContainsOverload.CONTAINS_STRING),
+        ENDS_WITH_STRING(EndsWithOverload.ENDS_WITH_STRING),
+        STARTS_WITH_STRING(StartsWithOverload.STARTS_WITH_STRING);
 
-        private final FunctionBindingCreator bindingCreator;
+        private final CelStandardOverload standardOverload;
 
         @Override
         public CelFunctionBinding newFunctionBinding(
             CelOptions celOptions, RuntimeEquality runtimeEquality) {
-          return bindingCreator.create(celOptions, runtimeEquality);
+          return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
         }
 
-        StringMatchers(FunctionBindingCreator bindingCreator) {
-          this.bindingCreator = bindingCreator;
+        StringMatchers(CelStandardOverload standardOverload) {
+          this.standardOverload = standardOverload;
         }
       }
 
       /** Overloads for logical operators that return a bool as a result. */
       public enum BooleanOperator implements CelStandardOverload {
-        LOGICAL_NOT(LogicalNotOverload.LOGICAL_NOT::newFunctionBinding);
+        LOGICAL_NOT(LogicalNotOverload.LOGICAL_NOT);
 
-        private final FunctionBindingCreator bindingCreator;
+        private final CelStandardOverload standardOverload;
 
         @Override
         public CelFunctionBinding newFunctionBinding(
             CelOptions celOptions, RuntimeEquality runtimeEquality) {
-          return bindingCreator.create(celOptions, runtimeEquality);
+          return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
         }
 
-        BooleanOperator(FunctionBindingCreator bindingCreator) {
-          this.bindingCreator = bindingCreator;
+        BooleanOperator(CelStandardOverload standardOverload) {
+          this.standardOverload = standardOverload;
         }
       }
 
       /** Overloads for functions performing date/time operations. */
       public enum DateTime implements CelStandardOverload {
-        TIMESTAMP_TO_YEAR(GetFullYearOverload.TIMESTAMP_TO_YEAR::newFunctionBinding),
-        TIMESTAMP_TO_YEAR_WITH_TZ(
-            GetFullYearOverload.TIMESTAMP_TO_YEAR_WITH_TZ::newFunctionBinding),
-        TIMESTAMP_TO_MONTH(GetMonthOverload.TIMESTAMP_TO_MONTH::newFunctionBinding),
-        TIMESTAMP_TO_MONTH_WITH_TZ(GetMonthOverload.TIMESTAMP_TO_MONTH_WITH_TZ::newFunctionBinding),
-        TIMESTAMP_TO_DAY_OF_YEAR(GetDayOfYearOverload.TIMESTAMP_TO_DAY_OF_YEAR::newFunctionBinding),
-        TIMESTAMP_TO_DAY_OF_YEAR_WITH_TZ(
-            GetDayOfYearOverload.TIMESTAMP_TO_DAY_OF_YEAR_WITH_TZ::newFunctionBinding),
-        TIMESTAMP_TO_DAY_OF_MONTH(
-            GetDayOfMonthOverload.TIMESTAMP_TO_DAY_OF_MONTH::newFunctionBinding),
-        TIMESTAMP_TO_DAY_OF_MONTH_WITH_TZ(
-            GetDayOfMonthOverload.TIMESTAMP_TO_DAY_OF_MONTH_WITH_TZ::newFunctionBinding),
-        TIMESTAMP_TO_DAY_OF_MONTH_1_BASED(
-            GetDateOverload.TIMESTAMP_TO_DAY_OF_MONTH_1_BASED::newFunctionBinding),
+        TIMESTAMP_TO_YEAR(GetFullYearOverload.TIMESTAMP_TO_YEAR),
+        TIMESTAMP_TO_YEAR_WITH_TZ(GetFullYearOverload.TIMESTAMP_TO_YEAR_WITH_TZ),
+        TIMESTAMP_TO_MONTH(GetMonthOverload.TIMESTAMP_TO_MONTH),
+        TIMESTAMP_TO_MONTH_WITH_TZ(GetMonthOverload.TIMESTAMP_TO_MONTH_WITH_TZ),
+        TIMESTAMP_TO_DAY_OF_YEAR(GetDayOfYearOverload.TIMESTAMP_TO_DAY_OF_YEAR),
+        TIMESTAMP_TO_DAY_OF_YEAR_WITH_TZ(GetDayOfYearOverload.TIMESTAMP_TO_DAY_OF_YEAR_WITH_TZ),
+        TIMESTAMP_TO_DAY_OF_MONTH(GetDayOfMonthOverload.TIMESTAMP_TO_DAY_OF_MONTH),
+        TIMESTAMP_TO_DAY_OF_MONTH_WITH_TZ(GetDayOfMonthOverload.TIMESTAMP_TO_DAY_OF_MONTH_WITH_TZ),
+        TIMESTAMP_TO_DAY_OF_MONTH_1_BASED(GetDateOverload.TIMESTAMP_TO_DAY_OF_MONTH_1_BASED),
         TIMESTAMP_TO_DAY_OF_MONTH_1_BASED_WITH_TZ(
-            GetDateOverload.TIMESTAMP_TO_DAY_OF_MONTH_1_BASED_WITH_TZ::newFunctionBinding),
+            GetDateOverload.TIMESTAMP_TO_DAY_OF_MONTH_1_BASED_WITH_TZ),
 
-        TIMESTAMP_TO_DAY_OF_WEEK(GetDayOfWeekOverload.TIMESTAMP_TO_DAY_OF_WEEK::newFunctionBinding),
-        TIMESTAMP_TO_DAY_OF_WEEK_WITH_TZ(
-            GetDayOfWeekOverload.TIMESTAMP_TO_DAY_OF_WEEK_WITH_TZ::newFunctionBinding),
-        TIMESTAMP_TO_HOURS(GetHoursOverload.TIMESTAMP_TO_HOURS::newFunctionBinding),
-        TIMESTAMP_TO_HOURS_WITH_TZ(GetHoursOverload.TIMESTAMP_TO_HOURS_WITH_TZ::newFunctionBinding),
-        TIMESTAMP_TO_MINUTES(GetMinutesOverload.TIMESTAMP_TO_MINUTES::newFunctionBinding),
-        TIMESTAMP_TO_MINUTES_WITH_TZ(
-            GetMinutesOverload.TIMESTAMP_TO_MINUTES_WITH_TZ::newFunctionBinding),
-        TIMESTAMP_TO_SECONDS(GetSecondsOverload.TIMESTAMP_TO_SECONDS::newFunctionBinding),
-        TIMESTAMP_TO_SECONDS_WITH_TZ(
-            GetSecondsOverload.TIMESTAMP_TO_SECONDS_WITH_TZ::newFunctionBinding),
-        TIMESTAMP_TO_MILLISECONDS(
-            GetMillisecondsOverload.TIMESTAMP_TO_MILLISECONDS::newFunctionBinding),
+        TIMESTAMP_TO_DAY_OF_WEEK(GetDayOfWeekOverload.TIMESTAMP_TO_DAY_OF_WEEK),
+        TIMESTAMP_TO_DAY_OF_WEEK_WITH_TZ(GetDayOfWeekOverload.TIMESTAMP_TO_DAY_OF_WEEK_WITH_TZ),
+        TIMESTAMP_TO_HOURS(GetHoursOverload.TIMESTAMP_TO_HOURS),
+        TIMESTAMP_TO_HOURS_WITH_TZ(GetHoursOverload.TIMESTAMP_TO_HOURS_WITH_TZ),
+        TIMESTAMP_TO_MINUTES(GetMinutesOverload.TIMESTAMP_TO_MINUTES),
+        TIMESTAMP_TO_MINUTES_WITH_TZ(GetMinutesOverload.TIMESTAMP_TO_MINUTES_WITH_TZ),
+        TIMESTAMP_TO_SECONDS(GetSecondsOverload.TIMESTAMP_TO_SECONDS),
+        TIMESTAMP_TO_SECONDS_WITH_TZ(GetSecondsOverload.TIMESTAMP_TO_SECONDS_WITH_TZ),
+        TIMESTAMP_TO_MILLISECONDS(GetMillisecondsOverload.TIMESTAMP_TO_MILLISECONDS),
         TIMESTAMP_TO_MILLISECONDS_WITH_TZ(
-            GetMillisecondsOverload.TIMESTAMP_TO_MILLISECONDS_WITH_TZ::newFunctionBinding),
-        DURATION_TO_HOURS(GetHoursOverload.DURATION_TO_HOURS::newFunctionBinding),
-        DURATION_TO_MINUTES(GetMinutesOverload.DURATION_TO_MINUTES::newFunctionBinding),
-        DURATION_TO_SECONDS(GetSecondsOverload.DURATION_TO_SECONDS::newFunctionBinding),
-        DURATION_TO_MILLISECONDS(
-            GetMillisecondsOverload.DURATION_TO_MILLISECONDS::newFunctionBinding);
+            GetMillisecondsOverload.TIMESTAMP_TO_MILLISECONDS_WITH_TZ),
+        DURATION_TO_HOURS(GetHoursOverload.DURATION_TO_HOURS),
+        DURATION_TO_MINUTES(GetMinutesOverload.DURATION_TO_MINUTES),
+        DURATION_TO_SECONDS(GetSecondsOverload.DURATION_TO_SECONDS),
+        DURATION_TO_MILLISECONDS(GetMillisecondsOverload.DURATION_TO_MILLISECONDS);
 
-        private final FunctionBindingCreator bindingCreator;
+        private final CelStandardOverload standardOverload;
 
         @Override
         public CelFunctionBinding newFunctionBinding(
             CelOptions celOptions, RuntimeEquality runtimeEquality) {
-          return bindingCreator.create(celOptions, runtimeEquality);
+          return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
         }
 
-        DateTime(FunctionBindingCreator bindingCreator) {
-          this.bindingCreator = bindingCreator;
+        DateTime(CelStandardOverload standardOverload) {
+          this.standardOverload = standardOverload;
         }
       }
 
       /** Overloads for performing numeric comparisons. */
       public enum Comparison implements CelStandardOverload {
-        LESS_BOOL(LessOverload.LESS_BOOL::newFunctionBinding, false),
-        LESS_INT64(LessOverload.LESS_INT64::newFunctionBinding, false),
-        LESS_UINT64(LessOverload.LESS_UINT64::newFunctionBinding, false),
-        LESS_BYTES(LessOverload.LESS_BYTES::newFunctionBinding, false),
-        LESS_DOUBLE(LessOverload.LESS_DOUBLE::newFunctionBinding, false),
-        LESS_DOUBLE_UINT64(LessOverload.LESS_DOUBLE_UINT64::newFunctionBinding, true),
-        LESS_INT64_UINT64(LessOverload.LESS_INT64_UINT64::newFunctionBinding, true),
-        LESS_UINT64_INT64(LessOverload.LESS_UINT64_INT64::newFunctionBinding, true),
-        LESS_INT64_DOUBLE(LessOverload.LESS_INT64_DOUBLE::newFunctionBinding, true),
-        LESS_DOUBLE_INT64(LessOverload.LESS_DOUBLE_INT64::newFunctionBinding, true),
-        LESS_UINT64_DOUBLE(LessOverload.LESS_UINT64_DOUBLE::newFunctionBinding, true),
-        LESS_DURATION(LessOverload.LESS_DURATION::newFunctionBinding, false),
-        LESS_STRING(LessOverload.LESS_STRING::newFunctionBinding, false),
-        LESS_TIMESTAMP(LessOverload.LESS_TIMESTAMP::newFunctionBinding, false),
-        LESS_EQUALS_BOOL(LessEqualsOverload.LESS_EQUALS_BOOL::newFunctionBinding, false),
-        LESS_EQUALS_BYTES(LessEqualsOverload.LESS_EQUALS_BYTES::newFunctionBinding, false),
-        LESS_EQUALS_DOUBLE(LessEqualsOverload.LESS_EQUALS_DOUBLE::newFunctionBinding, false),
-        LESS_EQUALS_DURATION(LessEqualsOverload.LESS_EQUALS_DURATION::newFunctionBinding, false),
-        LESS_EQUALS_INT64(LessEqualsOverload.LESS_EQUALS_INT64::newFunctionBinding, false),
-        LESS_EQUALS_STRING(LessEqualsOverload.LESS_EQUALS_STRING::newFunctionBinding, false),
-        LESS_EQUALS_TIMESTAMP(LessEqualsOverload.LESS_EQUALS_TIMESTAMP::newFunctionBinding, false),
-        LESS_EQUALS_UINT64(LessEqualsOverload.LESS_EQUALS_UINT64::newFunctionBinding, false),
-        LESS_EQUALS_INT64_UINT64(
-            LessEqualsOverload.LESS_EQUALS_INT64_UINT64::newFunctionBinding, true),
-        LESS_EQUALS_UINT64_INT64(
-            LessEqualsOverload.LESS_EQUALS_UINT64_INT64::newFunctionBinding, true),
-        LESS_EQUALS_INT64_DOUBLE(
-            LessEqualsOverload.LESS_EQUALS_INT64_DOUBLE::newFunctionBinding, true),
-        LESS_EQUALS_DOUBLE_INT64(
-            LessEqualsOverload.LESS_EQUALS_DOUBLE_INT64::newFunctionBinding, true),
-        LESS_EQUALS_UINT64_DOUBLE(
-            LessEqualsOverload.LESS_EQUALS_UINT64_DOUBLE::newFunctionBinding, true),
-        LESS_EQUALS_DOUBLE_UINT64(
-            LessEqualsOverload.LESS_EQUALS_DOUBLE_UINT64::newFunctionBinding, true),
-        GREATER_BOOL(GreaterOverload.GREATER_BOOL::newFunctionBinding, false),
-        GREATER_BYTES(GreaterOverload.GREATER_BYTES::newFunctionBinding, false),
-        GREATER_DOUBLE(GreaterOverload.GREATER_DOUBLE::newFunctionBinding, false),
-        GREATER_DURATION(GreaterOverload.GREATER_DURATION::newFunctionBinding, false),
-        GREATER_INT64(GreaterOverload.GREATER_INT64::newFunctionBinding, false),
-        GREATER_STRING(GreaterOverload.GREATER_STRING::newFunctionBinding, false),
-        GREATER_TIMESTAMP(GreaterOverload.GREATER_TIMESTAMP::newFunctionBinding, false),
-        GREATER_UINT64(GreaterOverload.GREATER_UINT64::newFunctionBinding, false),
-        GREATER_INT64_UINT64(GreaterOverload.GREATER_INT64_UINT64::newFunctionBinding, true),
-        GREATER_UINT64_INT64(GreaterOverload.GREATER_UINT64_INT64::newFunctionBinding, true),
-        GREATER_INT64_DOUBLE(GreaterOverload.GREATER_INT64_DOUBLE::newFunctionBinding, true),
-        GREATER_DOUBLE_INT64(GreaterOverload.GREATER_DOUBLE_INT64::newFunctionBinding, true),
-        GREATER_UINT64_DOUBLE(GreaterOverload.GREATER_UINT64_DOUBLE::newFunctionBinding, true),
-        GREATER_DOUBLE_UINT64(GreaterOverload.GREATER_DOUBLE_UINT64::newFunctionBinding, true),
-        GREATER_EQUALS_BOOL(GreaterEqualsOverload.GREATER_EQUALS_BOOL::newFunctionBinding, false),
-        GREATER_EQUALS_BYTES(GreaterEqualsOverload.GREATER_EQUALS_BYTES::newFunctionBinding, false),
-        GREATER_EQUALS_DOUBLE(
-            GreaterEqualsOverload.GREATER_EQUALS_DOUBLE::newFunctionBinding, false),
-        GREATER_EQUALS_DURATION(
-            GreaterEqualsOverload.GREATER_EQUALS_DURATION::newFunctionBinding, false),
-        GREATER_EQUALS_INT64(GreaterEqualsOverload.GREATER_EQUALS_INT64::newFunctionBinding, false),
-        GREATER_EQUALS_STRING(
-            GreaterEqualsOverload.GREATER_EQUALS_STRING::newFunctionBinding, false),
-        GREATER_EQUALS_TIMESTAMP(
-            GreaterEqualsOverload.GREATER_EQUALS_TIMESTAMP::newFunctionBinding, false),
-        GREATER_EQUALS_UINT64(
-            GreaterEqualsOverload.GREATER_EQUALS_UINT64::newFunctionBinding, false),
-        GREATER_EQUALS_INT64_UINT64(
-            GreaterEqualsOverload.GREATER_EQUALS_INT64_UINT64::newFunctionBinding, true),
-        GREATER_EQUALS_UINT64_INT64(
-            GreaterEqualsOverload.GREATER_EQUALS_UINT64_INT64::newFunctionBinding, true),
-        GREATER_EQUALS_INT64_DOUBLE(
-            GreaterEqualsOverload.GREATER_EQUALS_INT64_DOUBLE::newFunctionBinding, true),
-        GREATER_EQUALS_DOUBLE_INT64(
-            GreaterEqualsOverload.GREATER_EQUALS_DOUBLE_INT64::newFunctionBinding, true),
-        GREATER_EQUALS_UINT64_DOUBLE(
-            GreaterEqualsOverload.GREATER_EQUALS_UINT64_DOUBLE::newFunctionBinding, true),
-        GREATER_EQUALS_DOUBLE_UINT64(
-            GreaterEqualsOverload.GREATER_EQUALS_DOUBLE_UINT64::newFunctionBinding, true);
+        LESS_BOOL(LessOverload.LESS_BOOL, false),
+        LESS_INT64(LessOverload.LESS_INT64, false),
+        LESS_UINT64(LessOverload.LESS_UINT64, false),
+        LESS_BYTES(LessOverload.LESS_BYTES, false),
+        LESS_DOUBLE(LessOverload.LESS_DOUBLE, false),
+        LESS_DOUBLE_UINT64(LessOverload.LESS_DOUBLE_UINT64, true),
+        LESS_INT64_UINT64(LessOverload.LESS_INT64_UINT64, true),
+        LESS_UINT64_INT64(LessOverload.LESS_UINT64_INT64, true),
+        LESS_INT64_DOUBLE(LessOverload.LESS_INT64_DOUBLE, true),
+        LESS_DOUBLE_INT64(LessOverload.LESS_DOUBLE_INT64, true),
+        LESS_UINT64_DOUBLE(LessOverload.LESS_UINT64_DOUBLE, true),
+        LESS_DURATION(LessOverload.LESS_DURATION, false),
+        LESS_STRING(LessOverload.LESS_STRING, false),
+        LESS_TIMESTAMP(LessOverload.LESS_TIMESTAMP, false),
+        LESS_EQUALS_BOOL(LessEqualsOverload.LESS_EQUALS_BOOL, false),
+        LESS_EQUALS_BYTES(LessEqualsOverload.LESS_EQUALS_BYTES, false),
+        LESS_EQUALS_DOUBLE(LessEqualsOverload.LESS_EQUALS_DOUBLE, false),
+        LESS_EQUALS_DURATION(LessEqualsOverload.LESS_EQUALS_DURATION, false),
+        LESS_EQUALS_INT64(LessEqualsOverload.LESS_EQUALS_INT64, false),
+        LESS_EQUALS_STRING(LessEqualsOverload.LESS_EQUALS_STRING, false),
+        LESS_EQUALS_TIMESTAMP(LessEqualsOverload.LESS_EQUALS_TIMESTAMP, false),
+        LESS_EQUALS_UINT64(LessEqualsOverload.LESS_EQUALS_UINT64, false),
+        LESS_EQUALS_INT64_UINT64(LessEqualsOverload.LESS_EQUALS_INT64_UINT64, true),
+        LESS_EQUALS_UINT64_INT64(LessEqualsOverload.LESS_EQUALS_UINT64_INT64, true),
+        LESS_EQUALS_INT64_DOUBLE(LessEqualsOverload.LESS_EQUALS_INT64_DOUBLE, true),
+        LESS_EQUALS_DOUBLE_INT64(LessEqualsOverload.LESS_EQUALS_DOUBLE_INT64, true),
+        LESS_EQUALS_UINT64_DOUBLE(LessEqualsOverload.LESS_EQUALS_UINT64_DOUBLE, true),
+        LESS_EQUALS_DOUBLE_UINT64(LessEqualsOverload.LESS_EQUALS_DOUBLE_UINT64, true),
+        GREATER_BOOL(GreaterOverload.GREATER_BOOL, false),
+        GREATER_BYTES(GreaterOverload.GREATER_BYTES, false),
+        GREATER_DOUBLE(GreaterOverload.GREATER_DOUBLE, false),
+        GREATER_DURATION(GreaterOverload.GREATER_DURATION, false),
+        GREATER_INT64(GreaterOverload.GREATER_INT64, false),
+        GREATER_STRING(GreaterOverload.GREATER_STRING, false),
+        GREATER_TIMESTAMP(GreaterOverload.GREATER_TIMESTAMP, false),
+        GREATER_UINT64(GreaterOverload.GREATER_UINT64, false),
+        GREATER_INT64_UINT64(GreaterOverload.GREATER_INT64_UINT64, true),
+        GREATER_UINT64_INT64(GreaterOverload.GREATER_UINT64_INT64, true),
+        GREATER_INT64_DOUBLE(GreaterOverload.GREATER_INT64_DOUBLE, true),
+        GREATER_DOUBLE_INT64(GreaterOverload.GREATER_DOUBLE_INT64, true),
+        GREATER_UINT64_DOUBLE(GreaterOverload.GREATER_UINT64_DOUBLE, true),
+        GREATER_DOUBLE_UINT64(GreaterOverload.GREATER_DOUBLE_UINT64, true),
+        GREATER_EQUALS_BOOL(GreaterEqualsOverload.GREATER_EQUALS_BOOL, false),
+        GREATER_EQUALS_BYTES(GreaterEqualsOverload.GREATER_EQUALS_BYTES, false),
+        GREATER_EQUALS_DOUBLE(GreaterEqualsOverload.GREATER_EQUALS_DOUBLE, false),
+        GREATER_EQUALS_DURATION(GreaterEqualsOverload.GREATER_EQUALS_DURATION, false),
+        GREATER_EQUALS_INT64(GreaterEqualsOverload.GREATER_EQUALS_INT64, false),
+        GREATER_EQUALS_STRING(GreaterEqualsOverload.GREATER_EQUALS_STRING, false),
+        GREATER_EQUALS_TIMESTAMP(GreaterEqualsOverload.GREATER_EQUALS_TIMESTAMP, false),
+        GREATER_EQUALS_UINT64(GreaterEqualsOverload.GREATER_EQUALS_UINT64, false),
+        GREATER_EQUALS_INT64_UINT64(GreaterEqualsOverload.GREATER_EQUALS_INT64_UINT64, true),
+        GREATER_EQUALS_UINT64_INT64(GreaterEqualsOverload.GREATER_EQUALS_UINT64_INT64, true),
+        GREATER_EQUALS_INT64_DOUBLE(GreaterEqualsOverload.GREATER_EQUALS_INT64_DOUBLE, true),
+        GREATER_EQUALS_DOUBLE_INT64(GreaterEqualsOverload.GREATER_EQUALS_DOUBLE_INT64, true),
+        GREATER_EQUALS_UINT64_DOUBLE(GreaterEqualsOverload.GREATER_EQUALS_UINT64_DOUBLE, true),
+        GREATER_EQUALS_DOUBLE_UINT64(GreaterEqualsOverload.GREATER_EQUALS_DOUBLE_UINT64, true);
 
-        private final FunctionBindingCreator bindingCreator;
+        private final CelStandardOverload standardOverload;
         private final boolean isHeterogeneousComparison;
 
         @Override
         public CelFunctionBinding newFunctionBinding(
             CelOptions celOptions, RuntimeEquality runtimeEquality) {
-          return bindingCreator.create(celOptions, runtimeEquality);
+          return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
         }
 
-        Comparison(FunctionBindingCreator bindingCreator, boolean isHeterogeneousComparison) {
-          this.bindingCreator = bindingCreator;
+        Comparison(CelStandardOverload standardOverload, boolean isHeterogeneousComparison) {
+          this.standardOverload = standardOverload;
           this.isHeterogeneousComparison = isHeterogeneousComparison;
         }
 

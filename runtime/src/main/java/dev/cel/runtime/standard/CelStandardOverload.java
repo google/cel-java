@@ -25,15 +25,9 @@ import dev.cel.runtime.RuntimeEquality;
  * overload.
  */
 @Immutable
+@FunctionalInterface
 public interface CelStandardOverload {
 
   /** Constructs a new {@link CelFunctionBinding} for this CEL standard overload. */
   CelFunctionBinding newFunctionBinding(CelOptions celOptions, RuntimeEquality runtimeEquality);
-
-  /** TODO: To be removed in the upcoming CL */
-  @FunctionalInterface
-  @Immutable
-  interface FunctionBindingCreator {
-    CelFunctionBinding create(CelOptions celOptions, RuntimeEquality runtimeEquality);
-  }
 }

@@ -56,16 +56,16 @@ public final class InOperator extends CelStandardFunction {
                 Map.class,
                 (Object key, Map map) -> runtimeEquality.inMap(map, key)));
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload standardOverload;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    InOverload(FunctionBindingCreator bindingCreator) {
-      this.bindingCreator = bindingCreator;
+    InOverload(CelStandardOverload standardOverload) {
+      this.standardOverload = standardOverload;
     }
   }
 

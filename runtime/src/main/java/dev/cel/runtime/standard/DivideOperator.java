@@ -76,16 +76,16 @@ public final class DivideOperator extends CelStandardFunction {
                 (Long x, Long y) -> RuntimeHelpers.uint64Divide(x, y, celOptions));
           }
         });
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload standardOverload;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    DivideOverload(FunctionBindingCreator bindingCreator) {
-      this.bindingCreator = bindingCreator;
+    DivideOverload(CelStandardOverload standardOverload) {
+      this.standardOverload = standardOverload;
     }
   }
 

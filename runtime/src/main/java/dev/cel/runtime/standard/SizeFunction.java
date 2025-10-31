@@ -84,16 +84,16 @@ public final class SizeFunction extends CelStandardFunction {
         (celOptions, runtimeEquality) ->
             CelFunctionBinding.from("map_size", Map.class, (Map map1) -> (long) map1.size()));
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload standardOverload;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    SizeOverload(FunctionBindingCreator bindingCreator) {
-      this.bindingCreator = bindingCreator;
+    SizeOverload(CelStandardOverload standardOverload) {
+      this.standardOverload = standardOverload;
     }
   }
 

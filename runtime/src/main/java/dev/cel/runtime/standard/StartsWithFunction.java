@@ -44,16 +44,16 @@ public final class StartsWithFunction extends CelStandardFunction {
             CelFunctionBinding.from(
                 "starts_with_string", String.class, String.class, String::startsWith));
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload standardOverload;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    StartsWithOverload(FunctionBindingCreator bindingCreator) {
-      this.bindingCreator = bindingCreator;
+    StartsWithOverload(CelStandardOverload standardOverload) {
+      this.standardOverload = standardOverload;
     }
   }
 

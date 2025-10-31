@@ -44,17 +44,17 @@ public final class EndsWithFunction extends CelStandardFunction {
                 "ends_with_string", String.class, String.class, String::endsWith)),
     ;
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload standardOverload;
     ;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return standardOverload.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    EndsWithOverload(FunctionBindingCreator bindingCreator) {
-      this.bindingCreator = bindingCreator;
+    EndsWithOverload(CelStandardOverload standardOverload) {
+      this.standardOverload = standardOverload;
     }
   }
 
