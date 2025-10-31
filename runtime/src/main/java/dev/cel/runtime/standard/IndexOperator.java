@@ -51,15 +51,15 @@ public final class IndexOperator extends CelStandardFunction {
             CelFunctionBinding.from(
                 "index_map", Map.class, Object.class, runtimeEquality::indexMap));
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload bindingCreator;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return bindingCreator.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    IndexOverload(FunctionBindingCreator bindingCreator) {
+    IndexOverload(CelStandardOverload bindingCreator) {
       this.bindingCreator = bindingCreator;
     }
   }

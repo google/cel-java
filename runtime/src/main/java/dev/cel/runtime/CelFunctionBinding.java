@@ -16,7 +16,6 @@ package dev.cel.runtime;
 
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.annotations.Internal;
 
 /**
  * Binding consisting of an overload id, a Java-native argument signature, and an overload
@@ -36,7 +35,7 @@ import dev.cel.common.annotations.Internal;
  *
  * <p>Examples: string_startsWith_string, mathMax_list, lessThan_money_money
  */
-@Internal
+
 @Immutable
 public interface CelFunctionBinding {
   String getOverloadId();
@@ -44,6 +43,8 @@ public interface CelFunctionBinding {
   ImmutableList<Class<?>> getArgTypes();
 
   CelFunctionOverload getDefinition();
+
+  boolean isStrict();
 
   /** Create a unary function binding from the {@code overloadId}, {@code arg}, and {@code impl}. */
   @SuppressWarnings("unchecked")
@@ -66,6 +67,7 @@ public interface CelFunctionBinding {
   /** Create a function binding from the {@code overloadId}, {@code argTypes}, and {@code impl}. */
   static CelFunctionBinding from(
       String overloadId, Iterable<Class<?>> argTypes, CelFunctionOverload impl) {
-    return new FunctionBindingImpl(overloadId, ImmutableList.copyOf(argTypes), impl);
+    return new FunctionBindingImpl(
+        overloadId, ImmutableList.copyOf(argTypes), impl, /* isStrict= */ true);
   }
 }

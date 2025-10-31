@@ -47,7 +47,6 @@ import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypesCelLiteDescriptor;
 import dev.cel.extensions.CelLiteExtensions;
 import dev.cel.extensions.SetsFunction;
-import dev.cel.runtime.CelLiteRuntime.Program;
 import dev.cel.runtime.standard.EqualsOperator;
 import dev.cel.runtime.standard.IntFunction;
 import dev.cel.runtime.standard.IntFunction.IntOverload;

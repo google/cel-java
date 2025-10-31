@@ -14,11 +14,9 @@
 
 package dev.cel.runtime;
 
-import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.annotations.Beta;
-import java.util.Map;
 
 /**
  * CelLiteRuntime creates executable {@link Program} instances from {@link CelAbstractSyntaxTree}
@@ -34,22 +32,4 @@ public interface CelLiteRuntime {
   Program createProgram(CelAbstractSyntaxTree ast) throws CelEvaluationException;
 
   CelLiteRuntimeBuilder toRuntimeBuilder();
-
-  /** Creates an evaluable {@code Program} instance which is thread-safe and immutable. */
-  @Immutable
-  interface Program {
-
-    /** Evaluate the expression without any variables. */
-    Object eval() throws CelEvaluationException;
-
-    /** Evaluate the expression using a {@code mapValue} as the source of input variables. */
-    Object eval(Map<String, ?> mapValue) throws CelEvaluationException;
-
-    /**
-     * Evaluate a compiled program with {@code mapValue} and late-bound functions {@code
-     * lateBoundFunctionResolver}.
-     */
-    Object eval(Map<String, ?> mapValue, CelFunctionResolver lateBoundFunctionResolver)
-        throws CelEvaluationException;
-  }
 }

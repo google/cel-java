@@ -25,7 +25,7 @@ import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Arithmetic;
-import dev.cel.runtime.CelStandardFunctions.StandardOverload;
+import dev.cel.runtime.standard.CelStandardOverload;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -90,7 +90,7 @@ public class CelStandardFunctionsTest {
 
     assertThat(celStandardFunctions.getOverloads())
         .containsExactlyElementsIn(
-            ImmutableSet.<StandardOverload>builder()
+            ImmutableSet.<CelStandardOverload>builder()
                 .addAll(CelStandardFunctions.StandardFunction.ADD.getOverloads())
                 .addAll(CelStandardFunctions.StandardFunction.SUBTRACT.getOverloads())
                 .build());
