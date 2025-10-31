@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
+import java.util.List;
 
 /**
  * Representation of a function overload which has been resolved to a specific set of argument types
@@ -24,7 +25,7 @@ import com.google.errorprone.annotations.Immutable;
  */
 @AutoValue
 @Immutable
-public abstract class CelResolvedOverload implements ResolvedOverload {
+abstract class CelResolvedOverload implements ResolvedOverload {
 
   /** The overload id of the function. */
   @Override
@@ -42,15 +43,16 @@ public abstract class CelResolvedOverload implements ResolvedOverload {
    * Creates a new resolved overload from the given overload id, parameter types, and definition.
    */
   public static CelResolvedOverload of(
-      String overloadId, Class<?>[] parameterTypes, CelFunctionOverload definition) {
-    return of(overloadId, ImmutableList.copyOf(parameterTypes), definition);
+      String overloadId, CelFunctionOverload definition, Class<?>... parameterTypes) {
+    return of(overloadId, definition, ImmutableList.copyOf(parameterTypes));
   }
 
   /**
    * Creates a new resolved overload from the given overload id, parameter types, and definition.
    */
   public static CelResolvedOverload of(
-      String overloadId, ImmutableList<Class<?>> parameterTypes, CelFunctionOverload definition) {
-    return new AutoValue_CelResolvedOverload(overloadId, parameterTypes, definition);
+      String overloadId, CelFunctionOverload definition, List<Class<?>> parameterTypes) {
+    return new AutoValue_CelResolvedOverload(
+        overloadId, ImmutableList.copyOf(parameterTypes), definition);
   }
 }

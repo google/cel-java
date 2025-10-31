@@ -14,9 +14,7 @@
 
 package dev.cel.runtime;
 
-import com.google.auto.value.AutoValue;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -48,8 +46,7 @@ final class DefaultDispatcher implements Dispatcher, Registrar {
       String overloadId, Class<T> argType, final Registrar.UnaryFunction<T> function) {
     overloads.put(
         overloadId,
-        ResolvedOverloadImpl.of(
-            overloadId, new Class<?>[] {argType}, args -> function.apply((T) args[0])));
+        CelResolvedOverload.of(overloadId, args -> function.apply((T) args[0]), argType));
   }
 
   @Override
@@ -61,18 +58,14 @@ final class DefaultDispatcher implements Dispatcher, Registrar {
       final Registrar.BinaryFunction<T1, T2> function) {
     overloads.put(
         overloadId,
-        ResolvedOverloadImpl.of(
-            overloadId,
-            new Class<?>[] {argType1, argType2},
-            args -> function.apply((T1) args[0], (T2) args[1])));
+        CelResolvedOverload.of(
+            overloadId, args -> function.apply((T1) args[0], (T2) args[1]), argType1, argType2));
   }
 
   @Override
   public synchronized void add(
       String overloadId, List<Class<?>> argTypes, Registrar.Function function) {
-    overloads.put(
-        overloadId,
-        ResolvedOverloadImpl.of(overloadId, argTypes.toArray(new Class<?>[0]), function));
+    overloads.put(overloadId, CelResolvedOverload.of(overloadId, function, argTypes));
   }
 
   @Override
@@ -144,31 +137,4 @@ final class DefaultDispatcher implements Dispatcher, Registrar {
   }
 
   private DefaultDispatcher() {}
-
-  @AutoValue
-  @Immutable
-  abstract static class ResolvedOverloadImpl implements ResolvedOverload {
-    /** The overload id of the function. */
-    @Override
-    public abstract String getOverloadId();
-
-    /** The types of the function parameters. */
-    @Override
-    public abstract ImmutableList<Class<?>> getParameterTypes();
-
-    /** The function definition. */
-    @Override
-    public abstract FunctionOverload getDefinition();
-
-    static ResolvedOverload of(
-        String overloadId, Class<?>[] parameterTypes, FunctionOverload definition) {
-      return of(overloadId, ImmutableList.copyOf(parameterTypes), definition);
-    }
-
-    static ResolvedOverload of(
-        String overloadId, ImmutableList<Class<?>> parameterTypes, FunctionOverload definition) {
-      return new AutoValue_DefaultDispatcher_ResolvedOverloadImpl(
-          overloadId, parameterTypes, definition);
-    }
-  }
 }

@@ -25,7 +25,7 @@ import dev.cel.common.annotations.Internal;
  */
 @ThreadSafe
 @Internal
-interface Dispatcher extends FunctionResolver {
+interface Dispatcher extends CelFunctionResolver {
 
   /**
    * Returns an {@link ImmutableCopy} from current instance.

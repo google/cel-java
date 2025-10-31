@@ -33,7 +33,7 @@ interface ResolvedOverload {
   List<Class<?>> getParameterTypes();
 
   /** The function definition. */
-  FunctionOverload getDefinition();
+  CelFunctionOverload getDefinition();
 
   /**
    * Returns true if the overload's expected argument types match the types of the given arguments.

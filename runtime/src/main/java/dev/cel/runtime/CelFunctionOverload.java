@@ -19,7 +19,10 @@ import com.google.errorprone.annotations.Immutable;
 /** Interface describing the general signature of all CEL custom function implementations. */
 @Immutable
 @FunctionalInterface
-public interface CelFunctionOverload extends FunctionOverload {
+public interface CelFunctionOverload {
+
+  /** Evaluate a set of arguments throwing a {@code CelException} on error. */
+  Object apply(Object[] args) throws CelEvaluationException;
 
   /**
    * Helper interface for describing unary functions where the type-parameter is used to improve
@@ -27,7 +30,9 @@ public interface CelFunctionOverload extends FunctionOverload {
    */
   @Immutable
   @FunctionalInterface
-  interface Unary<T> extends FunctionOverload.Unary<T> {}
+  interface Unary<T> {
+    Object apply(T arg) throws CelEvaluationException;
+  }
 
   /**
    * Helper interface for describing binary functions where the type parameters are used to improve
@@ -35,5 +40,7 @@ public interface CelFunctionOverload extends FunctionOverload {
    */
   @Immutable
   @FunctionalInterface
-  interface Binary<T1, T2> extends FunctionOverload.Binary<T1, T2> {}
+  interface Binary<T1, T2> {
+    Object apply(T1 arg1, T2 arg2) throws CelEvaluationException;
+  }
 }

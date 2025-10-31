@@ -35,7 +35,7 @@ public interface UnknownTrackingInterpretable {
    */
   Object evalTrackingUnknowns(
       RuntimeUnknownResolver resolver,
-      Optional<? extends FunctionResolver> lateBoundFunctionResolver,
+      Optional<? extends CelFunctionResolver> lateBoundFunctionResolver,
       Optional<CelEvaluationListener> listener)
       throws CelEvaluationException;
 }

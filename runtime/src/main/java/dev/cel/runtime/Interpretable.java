@@ -45,7 +45,7 @@ public interface Interpretable {
    * directly such as recording telemetry or evaluation state in a more granular fashion than a more
    * general evaluation listener might permit.
    */
-  Object eval(GlobalResolver resolver, FunctionResolver lateBoundFunctionResolver)
+  Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver)
       throws CelEvaluationException;
 
   /**
@@ -58,7 +58,7 @@ public interface Interpretable {
    */
   Object eval(
       GlobalResolver resolver,
-      FunctionResolver lateBoundFunctionResolver,
+      CelFunctionResolver lateBoundFunctionResolver,
       CelEvaluationListener listener)
       throws CelEvaluationException;
 }

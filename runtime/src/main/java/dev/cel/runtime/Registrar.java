@@ -28,21 +28,21 @@ public interface Registrar {
 
   /** Interface describing the general signature of all CEL custom function implementations. */
   @Immutable
-  interface Function extends FunctionOverload {}
+  interface Function extends CelFunctionOverload {}
 
   /**
    * Helper interface for describing unary functions where the type-parameter is used to improve
    * compile-time correctness of function bindings.
    */
   @Immutable
-  interface UnaryFunction<T> extends FunctionOverload.Unary<T> {}
+  interface UnaryFunction<T> extends CelFunctionOverload.Unary<T> {}
 
   /**
    * Helper interface for describing binary functions where the type parameters are used to improve
    * compile-time correctness of function bindings.
    */
   @Immutable
-  interface BinaryFunction<T1, T2> extends FunctionOverload.Binary<T1, T2> {}
+  interface BinaryFunction<T1, T2> extends CelFunctionOverload.Binary<T1, T2> {}
 
   /** Adds a unary function to the dispatcher. */
   <T> void add(String overloadId, Class<T> argType, UnaryFunction<T> function);

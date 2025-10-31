@@ -39,6 +39,7 @@ import dev.cel.runtime.standard.BoolFunction.BoolOverload;
 import dev.cel.runtime.standard.BytesFunction;
 import dev.cel.runtime.standard.BytesFunction.BytesOverload;
 import dev.cel.runtime.standard.CelStandardFunction;
+import dev.cel.runtime.standard.CelStandardOverload;
 import dev.cel.runtime.standard.ContainsFunction;
 import dev.cel.runtime.standard.ContainsFunction.ContainsOverload;
 import dev.cel.runtime.standard.DivideOperator;
@@ -116,7 +117,7 @@ import dev.cel.runtime.standard.UintFunction.UintOverload;
 @Immutable
 public final class CelStandardFunctions {
 
-  private final ImmutableSet<StandardOverload> standardOverloads;
+  private final ImmutableSet<CelStandardOverload> standardOverloads;
 
   public static final ImmutableSet<CelStandardFunction> ALL_STANDARD_FUNCTIONS =
       ImmutableSet.of(
@@ -163,8 +164,8 @@ public final class CelStandardFunctions {
   /**
    * Enumeration of Standard Function bindings.
    *
-   * <p>Note: The conditional, logical_or, logical_and, not_strictly_false, and type functions are
-   * currently special-cased, and does not appear in this enum.
+   * <p>Note: The conditional, logical_or, logical_and, and type functions are currently
+   * special-cased, and does not appear in this enum.
    */
   public enum StandardFunction {
     LOGICAL_NOT(BooleanOperator.LOGICAL_NOT),
@@ -331,7 +332,7 @@ public final class CelStandardFunctions {
     public static final class Overload {
 
       /** Overloads for internal functions that may have been rewritten by macros (ex: @in) */
-      public enum InternalOperator implements StandardOverload {
+      public enum InternalOperator implements CelStandardOverload {
         IN_LIST(InOverload.IN_LIST::newFunctionBinding),
         IN_MAP(InOverload.IN_MAP::newFunctionBinding);
 
@@ -349,7 +350,7 @@ public final class CelStandardFunctions {
       }
 
       /** Overloads for functions that test relations. */
-      public enum Relation implements StandardOverload {
+      public enum Relation implements CelStandardOverload {
         EQUALS(EqualsOverload.EQUALS::newFunctionBinding),
         NOT_EQUALS(NotEqualsOverload.NOT_EQUALS::newFunctionBinding);
 
@@ -367,7 +368,7 @@ public final class CelStandardFunctions {
       }
 
       /** Overloads for performing arithmetic operations. */
-      public enum Arithmetic implements StandardOverload {
+      public enum Arithmetic implements CelStandardOverload {
         ADD_INT64(AddOverload.ADD_INT64::newFunctionBinding),
         ADD_UINT64(AddOverload.ADD_UINT64::newFunctionBinding),
         ADD_BYTES(AddOverload.ADD_BYTES::newFunctionBinding),
@@ -415,7 +416,7 @@ public final class CelStandardFunctions {
       }
 
       /** Overloads for indexing a list or a map. */
-      public enum Index implements StandardOverload {
+      public enum Index implements CelStandardOverload {
         INDEX_LIST(IndexOverload.INDEX_LIST::newFunctionBinding),
         INDEX_MAP(IndexOverload.INDEX_MAP::newFunctionBinding);
 
@@ -433,7 +434,7 @@ public final class CelStandardFunctions {
       }
 
       /** Overloads for retrieving the size of a literal or a collection. */
-      public enum Size implements StandardOverload {
+      public enum Size implements CelStandardOverload {
         SIZE_BYTES(SizeOverload.SIZE_BYTES::newFunctionBinding),
         BYTES_SIZE(SizeOverload.BYTES_SIZE::newFunctionBinding),
         SIZE_LIST(SizeOverload.SIZE_LIST::newFunctionBinding),
@@ -457,7 +458,7 @@ public final class CelStandardFunctions {
       }
 
       /** Overloads for performing type conversions. */
-      public enum Conversions implements StandardOverload {
+      public enum Conversions implements CelStandardOverload {
         BOOL_TO_BOOL(BoolOverload.BOOL_TO_BOOL::newFunctionBinding),
         STRING_TO_BOOL(BoolOverload.STRING_TO_BOOL::newFunctionBinding),
         INT64_TO_INT64(IntOverload.INT64_TO_INT64::newFunctionBinding),
@@ -514,7 +515,7 @@ public final class CelStandardFunctions {
        * Overloads for functions performing string matching, such as regular expressions or contains
        * check.
        */
-      public enum StringMatchers implements StandardOverload {
+      public enum StringMatchers implements CelStandardOverload {
         MATCHES(MatchesOverload.MATCHES::newFunctionBinding),
         MATCHES_STRING(MatchesOverload.MATCHES_STRING::newFunctionBinding),
         CONTAINS_STRING(ContainsOverload.CONTAINS_STRING::newFunctionBinding),
@@ -535,7 +536,7 @@ public final class CelStandardFunctions {
       }
 
       /** Overloads for logical operators that return a bool as a result. */
-      public enum BooleanOperator implements StandardOverload {
+      public enum BooleanOperator implements CelStandardOverload {
         LOGICAL_NOT(LogicalNotOverload.LOGICAL_NOT::newFunctionBinding);
 
         private final FunctionBindingCreator bindingCreator;
@@ -552,7 +553,7 @@ public final class CelStandardFunctions {
       }
 
       /** Overloads for functions performing date/time operations. */
-      public enum DateTime implements StandardOverload {
+      public enum DateTime implements CelStandardOverload {
         TIMESTAMP_TO_YEAR(GetFullYearOverload.TIMESTAMP_TO_YEAR::newFunctionBinding),
         TIMESTAMP_TO_YEAR_WITH_TZ(
             GetFullYearOverload.TIMESTAMP_TO_YEAR_WITH_TZ::newFunctionBinding),
@@ -605,7 +606,7 @@ public final class CelStandardFunctions {
       }
 
       /** Overloads for performing numeric comparisons. */
-      public enum Comparison implements StandardOverload {
+      public enum Comparison implements CelStandardOverload {
         LESS_BOOL(LessOverload.LESS_BOOL::newFunctionBinding, false),
         LESS_INT64(LessOverload.LESS_INT64::newFunctionBinding, false),
         LESS_UINT64(LessOverload.LESS_UINT64::newFunctionBinding, false),
@@ -702,20 +703,20 @@ public final class CelStandardFunctions {
       private Overload() {}
     }
 
-    private final ImmutableSet<StandardOverload> standardOverloads;
+    private final ImmutableSet<CelStandardOverload> standardOverloads;
 
-    StandardFunction(StandardOverload... overloads) {
+    StandardFunction(CelStandardOverload... overloads) {
       this.standardOverloads = ImmutableSet.copyOf(overloads);
     }
 
     @VisibleForTesting
-    ImmutableSet<StandardOverload> getOverloads() {
+    ImmutableSet<CelStandardOverload> getOverloads() {
       return standardOverloads;
     }
   }
 
   @VisibleForTesting
-  ImmutableSet<StandardOverload> getOverloads() {
+  ImmutableSet<CelStandardOverload> getOverloads() {
     return standardOverloads;
   }
 
@@ -723,17 +724,11 @@ public final class CelStandardFunctions {
   public ImmutableSet<CelFunctionBinding> newFunctionBindings(
       RuntimeEquality runtimeEquality, CelOptions celOptions) {
     ImmutableSet.Builder<CelFunctionBinding> builder = ImmutableSet.builder();
-    for (StandardOverload overload : standardOverloads) {
+    for (CelStandardOverload overload : standardOverloads) {
       builder.add(overload.newFunctionBinding(celOptions, runtimeEquality));
     }
 
     return builder.build();
-  }
-
-  /** General interface for defining a standard function overload. */
-  @Immutable
-  public interface StandardOverload {
-    CelFunctionBinding newFunctionBinding(CelOptions celOptions, RuntimeEquality runtimeEquality);
   }
 
   /** Builder for constructing the set of standard function/identifiers. */
@@ -805,7 +800,7 @@ public final class CelStandardFunctions {
           "You may only populate one of the following builder methods: includeFunctions,"
               + " excludeFunctions or filterFunctions");
 
-      ImmutableSet.Builder<StandardOverload> standardOverloadBuilder = ImmutableSet.builder();
+      ImmutableSet.Builder<CelStandardOverload> standardOverloadBuilder = ImmutableSet.builder();
       for (StandardFunction standardFunction : StandardFunction.values()) {
         if (hasIncludeFunctions) {
           if (this.includeFunctions.contains(standardFunction)) {
@@ -820,15 +815,16 @@ public final class CelStandardFunctions {
           continue;
         }
         if (hasFilterFunction) {
-          ImmutableSet.Builder<StandardOverload> filteredOverloadsBuilder = ImmutableSet.builder();
-          for (StandardOverload standardOverload : standardFunction.standardOverloads) {
+          ImmutableSet.Builder<CelStandardOverload> filteredOverloadsBuilder =
+              ImmutableSet.builder();
+          for (CelStandardOverload standardOverload : standardFunction.standardOverloads) {
             boolean includeOverload = functionFilter.include(standardFunction, standardOverload);
             if (includeOverload) {
               standardOverloadBuilder.add(standardOverload);
             }
           }
 
-          ImmutableSet<StandardOverload> filteredOverloads = filteredOverloadsBuilder.build();
+          ImmutableSet<CelStandardOverload> filteredOverloads = filteredOverloadsBuilder.build();
           if (!filteredOverloads.isEmpty()) {
             standardOverloadBuilder.addAll(filteredOverloads);
           }
@@ -848,7 +844,7 @@ public final class CelStandardFunctions {
      */
     @FunctionalInterface
     public interface FunctionFilter {
-      boolean include(StandardFunction standardFunction, StandardOverload standardOverload);
+      boolean include(StandardFunction standardFunction, CelStandardOverload standardOverload);
     }
   }
 
@@ -857,13 +853,7 @@ public final class CelStandardFunctions {
     return new Builder();
   }
 
-  @FunctionalInterface
-  @Immutable
-  private interface FunctionBindingCreator {
-    CelFunctionBinding create(CelOptions celOptions, RuntimeEquality runtimeEquality);
-  }
-
-  private CelStandardFunctions(ImmutableSet<StandardOverload> standardOverloads) {
+  private CelStandardFunctions(ImmutableSet<CelStandardOverload> standardOverloads) {
     this.standardOverloads = standardOverloads;
   }
 }
