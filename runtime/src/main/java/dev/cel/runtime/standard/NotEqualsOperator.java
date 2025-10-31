@@ -46,15 +46,15 @@ public final class NotEqualsOperator extends CelStandardFunction {
                 Object.class,
                 (Object x, Object y) -> !runtimeEquality.objectEquals(x, y)));
 
-    private final FunctionBindingCreator bindingCreator;
+    private final CelStandardOverload bindingCreator;
 
     @Override
     public CelFunctionBinding newFunctionBinding(
         CelOptions celOptions, RuntimeEquality runtimeEquality) {
-      return bindingCreator.create(celOptions, runtimeEquality);
+      return bindingCreator.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    NotEqualsOverload(FunctionBindingCreator bindingCreator) {
+    NotEqualsOverload(CelStandardOverload bindingCreator) {
       this.bindingCreator = bindingCreator;
     }
   }

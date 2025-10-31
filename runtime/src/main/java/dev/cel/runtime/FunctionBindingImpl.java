@@ -26,6 +26,8 @@ final class FunctionBindingImpl implements CelFunctionBinding {
 
   private final CelFunctionOverload definition;
 
+  private final boolean isStrict;
+
   @Override
   public String getOverloadId() {
     return overloadId;
@@ -41,10 +43,19 @@ final class FunctionBindingImpl implements CelFunctionBinding {
     return definition;
   }
 
+  @Override
+  public boolean isStrict() {
+    return isStrict;
+  }
+
   FunctionBindingImpl(
-      String overloadId, ImmutableList<Class<?>> argTypes, CelFunctionOverload definition) {
+      String overloadId,
+      ImmutableList<Class<?>> argTypes,
+      CelFunctionOverload definition,
+      boolean isStrict) {
     this.overloadId = overloadId;
     this.argTypes = argTypes;
     this.definition = definition;
+    this.isStrict = isStrict;
   }
 }

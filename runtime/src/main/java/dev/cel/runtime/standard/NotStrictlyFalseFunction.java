@@ -17,31 +17,37 @@ package dev.cel.runtime.standard;
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelOptions;
 import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.runtime.InternalFunctionBinder;
 import dev.cel.runtime.RuntimeEquality;
-import java.util.Arrays;
 
-/** Standard function for the logical not (!=) operator. */
-public final class LogicalNotOperator extends CelStandardFunction {
-  private static final LogicalNotOperator ALL_OVERLOADS = create(LogicalNotOverload.values());
+/**
+ * Standard function for {@code @not_strictly_false}. This is an internal function used within
+ * comprehensions to coerce the result into true if an evaluation yields an error or an unknown set.
+ */
+public final class NotStrictlyFalseFunction extends CelStandardFunction {
+  private static final NotStrictlyFalseFunction ALL_OVERLOADS =
+      new NotStrictlyFalseFunction(ImmutableSet.copyOf(NotStrictlyFalseOverload.values()));
 
-  public static LogicalNotOperator create() {
+  public static NotStrictlyFalseFunction create() {
     return ALL_OVERLOADS;
   }
 
-  public static LogicalNotOperator create(LogicalNotOperator.LogicalNotOverload... overloads) {
-    return create(Arrays.asList(overloads));
-  }
-
-  public static LogicalNotOperator create(
-      Iterable<LogicalNotOperator.LogicalNotOverload> overloads) {
-    return new LogicalNotOperator(ImmutableSet.copyOf(overloads));
-  }
-
   /** Overloads for the standard function. */
-  public enum LogicalNotOverload implements CelStandardOverload {
-    LOGICAL_NOT(
+  public enum NotStrictlyFalseOverload implements CelStandardOverload {
+    NOT_STRICTLY_FALSE(
         (celOptions, runtimeEquality) ->
-            CelFunctionBinding.from("logical_not", Boolean.class, (Boolean x) -> !x));
+            InternalFunctionBinder.from(
+                "not_strictly_false",
+                Object.class,
+                (Object value) -> {
+                  if (value instanceof Boolean) {
+                    return value;
+                  }
+
+                  return true;
+                },
+                /* isStrict= */ false)),
+    ;
 
     private final CelStandardOverload bindingCreator;
 
@@ -51,12 +57,12 @@ public final class LogicalNotOperator extends CelStandardFunction {
       return bindingCreator.newFunctionBinding(celOptions, runtimeEquality);
     }
 
-    LogicalNotOverload(CelStandardOverload bindingCreator) {
+    NotStrictlyFalseOverload(CelStandardOverload bindingCreator) {
       this.bindingCreator = bindingCreator;
     }
   }
 
-  private LogicalNotOperator(ImmutableSet<CelStandardOverload> overloads) {
+  private NotStrictlyFalseFunction(ImmutableSet<CelStandardOverload> overloads) {
     super(overloads);
   }
 }
