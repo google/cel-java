@@ -32,7 +32,7 @@ import java.util.Optional;
  * <p>Should be final, do not mock; mocking {@link Dispatcher} instead.
  */
 @ThreadSafe
-final class DefaultDispatcher implements Dispatcher, Registrar {
+final class DefaultDispatcher implements Dispatcher {
   public static DefaultDispatcher create() {
     return new DefaultDispatcher();
   }
@@ -40,32 +40,9 @@ final class DefaultDispatcher implements Dispatcher, Registrar {
   @GuardedBy("this")
   private final Map<String, ResolvedOverload> overloads = new HashMap<>();
 
-  @Override
-  @SuppressWarnings("unchecked")
-  public synchronized <T> void add(
-      String overloadId, Class<T> argType, final Registrar.UnaryFunction<T> function) {
-    overloads.put(
-        overloadId,
-        CelResolvedOverload.of(overloadId, args -> function.apply((T) args[0]), argType));
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public synchronized <T1, T2> void add(
-      String overloadId,
-      Class<T1> argType1,
-      Class<T2> argType2,
-      final Registrar.BinaryFunction<T1, T2> function) {
-    overloads.put(
-        overloadId,
-        CelResolvedOverload.of(
-            overloadId, args -> function.apply((T1) args[0], (T2) args[1]), argType1, argType2));
-  }
-
-  @Override
   public synchronized void add(
-      String overloadId, List<Class<?>> argTypes, Registrar.Function function) {
-    overloads.put(overloadId, CelResolvedOverload.of(overloadId, function, argTypes));
+      String overloadId, List<Class<?>> argTypes, boolean isStrict, CelFunctionOverload overload) {
+    overloads.put(overloadId, CelResolvedOverload.of(overloadId, overload, isStrict, argTypes));
   }
 
   @Override

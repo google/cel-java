@@ -15,15 +15,15 @@
 package dev.cel.runtime;
 
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.annotations.Internal;
 import java.util.List;
 
 /**
  * An object which registers the functions that a {@link Dispatcher} calls.
  *
- * <p>CEL Library Internals. Do Not Use.
+ * @deprecated Do not use. This interface exists solely for legacy async stack compatibility
+ *     reasons.
  */
-@Internal
+@Deprecated
 public interface Registrar {
 
   /** Interface describing the general signature of all CEL custom function implementations. */

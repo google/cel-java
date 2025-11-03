@@ -35,6 +35,21 @@ abstract class CelResolvedOverload implements ResolvedOverload {
   @Override
   public abstract ImmutableList<Class<?>> getParameterTypes();
 
+  /* Denotes whether an overload is strict.
+   *
+   * <p>A strict function will not be invoked if any of its arguments are an error or unknown value.
+   * The runtime automatically propagates the error or unknown instead.
+   *
+   * <p>A non-strict function will be invoked even if its arguments contain errors or unknowns. The
+   * function's implementation is then responsible for handling these values. This is primarily used
+   * for short-circuiting logical operators (e.g., `||`, `&&`) and comprehension's
+   * internal @not_strictly_false function.
+   *
+   * <p>In a vast majority of cases, this should be set to true.
+   */
+  @Override
+  public abstract boolean isStrict();
+
   /** The function definition. */
   @Override
   public abstract CelFunctionOverload getDefinition();
@@ -43,16 +58,22 @@ abstract class CelResolvedOverload implements ResolvedOverload {
    * Creates a new resolved overload from the given overload id, parameter types, and definition.
    */
   public static CelResolvedOverload of(
-      String overloadId, CelFunctionOverload definition, Class<?>... parameterTypes) {
-    return of(overloadId, definition, ImmutableList.copyOf(parameterTypes));
+      String overloadId,
+      CelFunctionOverload definition,
+      boolean isStrict,
+      Class<?>... parameterTypes) {
+    return of(overloadId, definition, isStrict, ImmutableList.copyOf(parameterTypes));
   }
 
   /**
    * Creates a new resolved overload from the given overload id, parameter types, and definition.
    */
   public static CelResolvedOverload of(
-      String overloadId, CelFunctionOverload definition, List<Class<?>> parameterTypes) {
+      String overloadId,
+      CelFunctionOverload definition,
+      boolean isStrict,
+      List<Class<?>> parameterTypes) {
     return new AutoValue_CelResolvedOverload(
-        overloadId, ImmutableList.copyOf(parameterTypes), definition);
+        overloadId, ImmutableList.copyOf(parameterTypes), isStrict, definition);
   }
 }

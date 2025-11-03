@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.common.collect.ImmutableList;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
@@ -74,7 +75,11 @@ public class DefaultInterpreterTest {
         };
     CelAbstractSyntaxTree ast = celCompiler.compile("[1].all(x, [2].all(y, error()))").getAst();
     DefaultDispatcher dispatcher = DefaultDispatcher.create();
-    dispatcher.add("error", long.class, (args) -> new IllegalArgumentException("Always throws"));
+    dispatcher.add(
+        "error",
+        ImmutableList.of(long.class),
+        /* isStrict= */ true,
+        (args) -> new IllegalArgumentException("Always throws"));
     DefaultInterpreter defaultInterpreter =
         new DefaultInterpreter(new TypeResolver(), emptyProvider, dispatcher, CelOptions.DEFAULT);
     DefaultInterpretable interpretable =

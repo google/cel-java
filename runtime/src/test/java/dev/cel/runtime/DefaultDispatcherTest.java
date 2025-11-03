@@ -35,9 +35,13 @@ public final class DefaultDispatcherTest {
   public void setup() {
     overloads = new HashMap<>();
     overloads.put(
-        "overload_1", CelResolvedOverload.of("overload_1", args -> (Long) args[0] + 1, Long.class));
+        "overload_1",
+        CelResolvedOverload.of(
+            "overload_1", args -> (Long) args[0] + 1, /* isStrict= */ true, Long.class));
     overloads.put(
-        "overload_2", CelResolvedOverload.of("overload_2", args -> (Long) args[0] + 2, Long.class));
+        "overload_2",
+        CelResolvedOverload.of(
+            "overload_2", args -> (Long) args[0] + 2, /* isStrict= */ true, Long.class));
   }
 
   @Test

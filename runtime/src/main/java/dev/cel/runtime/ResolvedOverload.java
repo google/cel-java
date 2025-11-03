@@ -36,6 +36,21 @@ interface ResolvedOverload {
   CelFunctionOverload getDefinition();
 
   /**
+   * Denotes whether an overload is strict.
+   *
+   * <p>A strict function will not be invoked if any of its arguments are an error or unknown value.
+   * The runtime automatically propagates the error or unknown instead.
+   *
+   * <p>A non-strict function will be invoked even if its arguments contain errors or unknowns. The
+   * function's implementation is then responsible for handling these values. This is primarily used
+   * for short-circuiting logical operators (e.g., `||`, `&&`) and comprehension's
+   * internal @not_strictly_false function.
+   *
+   * <p>In a vast majority of cases, a function should be kept strict.
+   */
+  boolean isStrict();
+
+  /**
    * Returns true if the overload's expected argument types match the types of the given arguments.
    */
   default boolean canHandle(Object[] arguments) {

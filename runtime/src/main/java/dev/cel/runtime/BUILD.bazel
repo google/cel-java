@@ -118,9 +118,9 @@ java_library(
     tags = [
     ],
     deps = [
-        ":base",
         ":evaluation_exception",
         ":evaluation_exception_builder",
+        ":function_overload",
         ":resolved_overload",
         ":resolved_overload_internal",
         "//:auto_value",
@@ -138,9 +138,9 @@ cel_android_library(
     srcs = DISPATCHER_SOURCES,
     visibility = ["//visibility:private"],
     deps = [
-        ":base_android",
         ":evaluation_exception",
         ":evaluation_exception_builder",
+        ":function_overload_android",
         ":function_resolver_android",
         ":resolved_overload_android",
         ":resolved_overload_internal_android",
@@ -725,7 +725,6 @@ java_library(
     ],
     deps = [
         ":function_overload",
-        "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
@@ -738,7 +737,6 @@ cel_android_library(
     ],
     deps = [
         ":function_overload_android",
-        "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
     ],

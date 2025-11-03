@@ -32,6 +32,7 @@ public final class CelResolvedOverloadTest {
           Long arg = (Long) args[0];
           return arg + 1;
         },
+        /* isStrict= */ true,
         Long.class);
   }
 
@@ -43,14 +44,15 @@ public final class CelResolvedOverloadTest {
   @Test
   public void canHandle_nullMessageType_returnsTrue() {
     CelResolvedOverload overload =
-        CelResolvedOverload.of("identity", (args) -> args[0], TestAllTypes.class);
+        CelResolvedOverload.of(
+            "identity", (args) -> args[0], /* isStrict= */ true, TestAllTypes.class);
     assertThat(overload.canHandle(new Object[] {null})).isTrue();
   }
 
   @Test
   public void canHandle_nullPrimitive_returnsFalse() {
     CelResolvedOverload overload =
-        CelResolvedOverload.of("identity", (args) -> args[0], Long.class);
+        CelResolvedOverload.of("identity", (args) -> args[0], /* isStrict= */ true, Long.class);
     assertThat(overload.canHandle(new Object[] {null})).isFalse();
   }
 
