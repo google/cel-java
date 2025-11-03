@@ -287,12 +287,12 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
 
       functionBindingsBuilder.putAll(customFunctionBindings);
 
-      DefaultDispatcher dispatcher = DefaultDispatcher.create();
+      DefaultDispatcher.Builder dispatcherBuilder = DefaultDispatcher.newBuilder();
       functionBindingsBuilder
           .buildOrThrow()
           .forEach(
               (String overloadId, CelFunctionBinding func) ->
-                  dispatcher.add(
+                  dispatcherBuilder.addOverload(
                       overloadId, func.getArgTypes(), func.isStrict(), func.getDefinition()));
 
       RuntimeTypeProvider runtimeTypeProvider;
@@ -313,7 +313,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
           new DefaultInterpreter(
               DescriptorTypeResolver.create(),
               runtimeTypeProvider,
-              dispatcher.immutableCopy(),
+              dispatcherBuilder.build(),
               options);
 
       return new CelRuntimeLegacyImpl(

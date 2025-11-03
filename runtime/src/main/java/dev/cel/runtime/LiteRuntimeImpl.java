@@ -176,22 +176,19 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
 
       functionBindingsBuilder.putAll(customFunctionBindings);
 
-      DefaultDispatcher dispatcher = DefaultDispatcher.create();
+      DefaultDispatcher.Builder dispatcherBuilder = DefaultDispatcher.newBuilder();
       functionBindingsBuilder
           .buildOrThrow()
           .forEach(
               (String overloadId, CelFunctionBinding func) ->
-                  dispatcher.add(
-                      overloadId,
-                      func.getArgTypes(),
-                      func.isStrict(),
-                      (args) -> func.getDefinition().apply(args)));
+                  dispatcherBuilder.addOverload(
+                      overloadId, func.getArgTypes(), func.isStrict(), func.getDefinition()));
 
       Interpreter interpreter =
           new DefaultInterpreter(
               TypeResolver.create(),
               CelValueRuntimeTypeProvider.newInstance(celValueProvider),
-              dispatcher,
+              dispatcherBuilder.build(),
               celOptions);
 
       return new LiteRuntimeImpl(

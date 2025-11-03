@@ -64,7 +64,7 @@ final class DefaultInterpreter implements Interpreter {
 
   private final TypeResolver typeResolver;
   private final RuntimeTypeProvider typeProvider;
-  private final Dispatcher dispatcher;
+  private final DefaultDispatcher dispatcher;
   private final CelOptions celOptions;
 
   /**
@@ -102,7 +102,7 @@ final class DefaultInterpreter implements Interpreter {
   public DefaultInterpreter(
       TypeResolver typeResolver,
       RuntimeTypeProvider typeProvider,
-      Dispatcher dispatcher,
+      DefaultDispatcher dispatcher,
       CelOptions celOptions) {
     this.typeResolver = checkNotNull(typeResolver);
     this.typeProvider = checkNotNull(typeProvider);
@@ -120,7 +120,7 @@ final class DefaultInterpreter implements Interpreter {
   static final class DefaultInterpretable implements Interpretable, UnknownTrackingInterpretable {
     private final TypeResolver typeResolver;
     private final RuntimeTypeProvider typeProvider;
-    private final Dispatcher.ImmutableCopy dispatcher;
+    private final DefaultDispatcher dispatcher;
     private final Metadata metadata;
     private final CelAbstractSyntaxTree ast;
     private final CelOptions celOptions;
@@ -128,12 +128,12 @@ final class DefaultInterpreter implements Interpreter {
     DefaultInterpretable(
         TypeResolver typeResolver,
         RuntimeTypeProvider typeProvider,
-        Dispatcher dispatcher,
+        DefaultDispatcher dispatcher,
         CelAbstractSyntaxTree ast,
         CelOptions celOptions) {
       this.typeResolver = checkNotNull(typeResolver);
       this.typeProvider = checkNotNull(typeProvider);
-      this.dispatcher = checkNotNull(dispatcher).immutableCopy();
+      this.dispatcher = checkNotNull(dispatcher);
       this.ast = checkNotNull(ast);
       this.metadata = new DefaultMetadata(ast);
       this.celOptions = checkNotNull(celOptions);

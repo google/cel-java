@@ -60,7 +60,6 @@ INTERPRABLE_SOURCES = [
 # keep sorted
 DISPATCHER_SOURCES = [
     "DefaultDispatcher.java",
-    "Dispatcher.java",
 ]
 
 java_library(
@@ -125,7 +124,6 @@ java_library(
         ":resolved_overload_internal",
         "//:auto_value",
         "//common:error_codes",
-        "//common/annotations",
         "//runtime:function_resolver",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -146,7 +144,6 @@ cel_android_library(
         ":resolved_overload_internal_android",
         "//:auto_value",
         "//common:error_codes",
-        "//common/annotations",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",

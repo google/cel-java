@@ -14,41 +14,29 @@
 
 package dev.cel.runtime;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.auto.value.AutoBuilder;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
-import javax.annotation.concurrent.ThreadSafe;
-import com.google.errorprone.annotations.concurrent.GuardedBy;
 import dev.cel.common.CelErrorCode;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Default implementation of {@link Dispatcher}.
- *
- * <p>Should be final, do not mock; mocking {@link Dispatcher} instead.
- */
-@ThreadSafe
-final class DefaultDispatcher implements Dispatcher {
-  public static DefaultDispatcher create() {
-    return new DefaultDispatcher();
-  }
+/** Default implementation of dispatcher. */
+@Immutable
+final class DefaultDispatcher implements CelFunctionResolver {
 
-  @GuardedBy("this")
-  private final Map<String, ResolvedOverload> overloads = new HashMap<>();
-
-  public synchronized void add(
-      String overloadId, List<Class<?>> argTypes, boolean isStrict, CelFunctionOverload overload) {
-    overloads.put(overloadId, CelResolvedOverload.of(overloadId, overload, isStrict, argTypes));
-  }
+  private final ImmutableMap<String, ResolvedOverload> overloads;
 
   @Override
-  public synchronized Optional<ResolvedOverload> findOverload(
+  public Optional<ResolvedOverload> findOverload(
       String functionName, List<String> overloadIds, Object[] args) throws CelEvaluationException {
-    return DefaultDispatcher.findOverload(functionName, overloadIds, overloads, args);
+    return findOverload(functionName, overloadIds, overloads, args);
   }
 
   /** Finds the overload that matches the given function name, overload IDs, and arguments. */
@@ -87,31 +75,36 @@ final class DefaultDispatcher implements Dispatcher {
     return Optional.ofNullable(match);
   }
 
-  @Override
-  public synchronized Dispatcher.ImmutableCopy immutableCopy() {
-    return new ImmutableCopy(overloads);
+  static Builder newBuilder() {
+    return new AutoBuilder_DefaultDispatcher_Builder();
   }
 
-  @Immutable
-  private static final class ImmutableCopy implements Dispatcher.ImmutableCopy {
-    private final ImmutableMap<String, ResolvedOverload> overloads;
+  @AutoBuilder(ofClass = DefaultDispatcher.class)
+  abstract static class Builder {
 
-    private ImmutableCopy(Map<String, ResolvedOverload> overloads) {
-      this.overloads = ImmutableMap.copyOf(overloads);
-    }
+    abstract ImmutableMap<String, ResolvedOverload> overloads();
 
-    @Override
-    public Optional<ResolvedOverload> findOverload(
-        String functionName, List<String> overloadIds, Object[] args)
-        throws CelEvaluationException {
-      return DefaultDispatcher.findOverload(functionName, overloadIds, overloads, args);
-    }
+    abstract ImmutableMap.Builder<String, ResolvedOverload> overloadsBuilder();
 
-    @Override
-    public Dispatcher.ImmutableCopy immutableCopy() {
+    @CanIgnoreReturnValue
+    Builder addOverload(
+        String overloadId,
+        List<Class<?>> argTypes,
+        boolean isStrict,
+        CelFunctionOverload overload) {
+      checkNotNull(overloadId);
+      checkNotNull(argTypes);
+      checkNotNull(overload);
+
+      overloadsBuilder()
+          .put(overloadId, CelResolvedOverload.of(overloadId, overload, isStrict, argTypes));
       return this;
     }
+
+    abstract DefaultDispatcher build();
   }
 
-  private DefaultDispatcher() {}
+  DefaultDispatcher(ImmutableMap<String, ResolvedOverload> overloads) {
+    this.overloads = overloads;
+  }
 }
