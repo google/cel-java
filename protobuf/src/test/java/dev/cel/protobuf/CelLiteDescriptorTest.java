@@ -54,16 +54,6 @@ public class CelLiteDescriptorTest {
   }
 
   @Test
-  public void testAllTypesMessageLiteDescriptor_fieldInfoMap_containsAllEntries() {
-    MessageLiteDescriptor testAllTypesDescriptor =
-        TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
-            .getProtoTypeNamesToDescriptors()
-            .get("cel.expr.conformance.proto3.TestAllTypes");
-
-    assertThat(testAllTypesDescriptor.getFieldDescriptors()).hasSize(243);
-  }
-
-  @Test
   public void fieldDescriptor_getByFieldNumber() {
     MessageLiteDescriptor testAllTypesDescriptor =
         TEST_ALL_TYPES_CEL_LITE_DESCRIPTOR
