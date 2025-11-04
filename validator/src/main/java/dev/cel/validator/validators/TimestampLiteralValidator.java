@@ -14,12 +14,12 @@
 
 package dev.cel.validator.validators;
 
-import com.google.protobuf.Timestamp;
+import java.time.Instant;
 
 /** TimestampLiteralValidator ensures that timestamp literal arguments are valid. */
 public final class TimestampLiteralValidator extends LiteralValidator {
   public static final TimestampLiteralValidator INSTANCE =
-      new TimestampLiteralValidator("timestamp", Timestamp.class);
+      new TimestampLiteralValidator("timestamp", Instant.class);
 
   private TimestampLiteralValidator(String functionName, Class<?> expectedResultType) {
     super(functionName, expectedResultType);

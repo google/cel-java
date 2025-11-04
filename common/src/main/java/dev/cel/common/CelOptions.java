@@ -184,6 +184,7 @@ public abstract class CelOptions {
         .enableUnsignedLongs(true)
         .enableRegexPartialMatch(true)
         .errorOnDuplicateMapKeys(true)
+        .evaluateCanonicalTypesToNativeValues(true)
         .errorOnIntWrap(true)
         .resolveTypeDependencies(true)
         .disableCelStandardEquality(false);
@@ -465,7 +466,10 @@ public abstract class CelOptions {
      *   <li>Timestamp: {@code java.time.Instant} instead of {@code com.google.protobuf.Timestamp}.
      *   <li>Duration: {@code java.time.Duration} instead of {@code com.google.protobuf.Duration}.
      * </ul>
+     *
+     * @deprecated Do not use. This flag is enabled by default and will be removed in the future.
      */
+    @Deprecated
     public abstract Builder evaluateCanonicalTypesToNativeValues(boolean value);
 
     /**

@@ -20,7 +20,6 @@ import static dev.cel.common.CelOverloadDecl.newGlobalOverload;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.protobuf.Duration;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
@@ -35,6 +34,7 @@ import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.validator.CelValidator;
 import dev.cel.validator.CelValidatorFactory;
 import java.text.ParseException;
+import java.time.Duration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -174,7 +174,7 @@ public class DurationLiteralValidatorTest {
     assertThat(result.getAllIssues().get(0).toDisplayString(ast.getSource()))
         .isEqualTo(
             "ERROR: <input>:1:10: duration validation failed. Reason: Expected"
-                + " com.google.protobuf.Duration type but got java.lang.Integer instead\n"
+                + " java.time.Duration type but got java.lang.Integer instead\n"
                 + " | duration('1h')\n"
                 + " | .........^");
   }

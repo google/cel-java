@@ -14,7 +14,7 @@
 
 package dev.cel.validator.validators;
 
-import com.google.protobuf.Duration;
+import java.time.Duration;
 
 /** DurationLiteralValidator ensures that duration literal arguments are valid. */
 public final class DurationLiteralValidator extends LiteralValidator {
