@@ -34,13 +34,13 @@ final class DefaultDispatcher implements CelFunctionResolver {
   private final ImmutableMap<String, ResolvedOverload> overloads;
 
   @Override
-  public Optional<ResolvedOverload> findOverload(
+  public Optional<ResolvedOverload> findOverloadMatchingArgs(
       String functionName, List<String> overloadIds, Object[] args) throws CelEvaluationException {
-    return findOverload(functionName, overloadIds, overloads, args);
+    return findOverloadMatchingArgs(functionName, overloadIds, overloads, args);
   }
 
   /** Finds the overload that matches the given function name, overload IDs, and arguments. */
-  public static Optional<ResolvedOverload> findOverload(
+  static Optional<ResolvedOverload> findOverloadMatchingArgs(
       String functionName,
       List<String> overloadIds,
       Map<String, ? extends ResolvedOverload> overloads,
@@ -73,6 +73,32 @@ final class DefaultDispatcher implements CelFunctionResolver {
           .build();
     }
     return Optional.ofNullable(match);
+  }
+
+  /**
+   * Finds the single registered overload iff it's marked as a non-strict function.
+   *
+   * <p>The intent behind this function is to provide an at-parity behavior with existing
+   * DefaultInterpreter, where it historically special-cased locating a single overload for certain
+   * non-strict functions, such as not_strictly_false. This method should not be used outside of
+   * this specific context.
+   *
+   * @throws IllegalStateException if there are multiple overloads that are marked non-strict.
+   */
+  Optional<ResolvedOverload> findSingleNonStrictOverload(List<String> overloadIds) {
+    for (String overloadId : overloadIds) {
+      ResolvedOverload overload = overloads.get(overloadId);
+      if (overload != null && !overload.isStrict()) {
+        if (overloadIds.size() > 1) {
+          throw new IllegalStateException(
+              String.format(
+                  "%d overloads found for a non-strict function. Expected 1.", overloadIds.size()));
+        }
+        return Optional.of(overload);
+      }
+    }
+
+    return Optional.empty();
   }
 
   static Builder newBuilder() {

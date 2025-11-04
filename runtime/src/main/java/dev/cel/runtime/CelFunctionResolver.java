@@ -35,6 +35,6 @@ public interface CelFunctionResolver {
    * @return an optional value of the resolved overload.
    * @throws CelEvaluationException if the overload resolution is ambiguous,
    */
-  Optional<ResolvedOverload> findOverload(
+  Optional<ResolvedOverload> findOverloadMatchingArgs(
       String functionName, List<String> overloadIds, Object[] args) throws CelEvaluationException;
 }

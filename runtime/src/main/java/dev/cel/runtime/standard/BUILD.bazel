@@ -1420,6 +1420,38 @@ cel_android_library(
 )
 
 java_library(
+    name = "not_strictly_false",
+    srcs = ["NotStrictlyFalseFunction.java"],
+    tags = [
+    ],
+    deps = [
+        ":standard_overload",
+        "//common:options",
+        "//runtime:function_binding",
+        "//runtime:internal_function_binder",
+        "//runtime:runtime_equality",
+        "//runtime/standard:standard_function",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "not_strictly_false_android",
+    srcs = ["NotStrictlyFalseFunction.java"],
+    tags = [
+    ],
+    deps = [
+        ":standard_function_android",
+        ":standard_overload_android",
+        "//common:options",
+        "//runtime:function_binding_android",
+        "//runtime:internal_function_binder_android",
+        "//runtime:runtime_equality_android",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "standard_overload",
     srcs = ["CelStandardOverload.java"],
     tags = [

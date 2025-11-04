@@ -50,7 +50,7 @@ public final class DefaultDispatcherTest {
         Assert.assertThrows(
             CelEvaluationException.class,
             () ->
-                DefaultDispatcher.findOverload(
+                DefaultDispatcher.findOverloadMatchingArgs(
                     "overloads",
                     ImmutableList.of("overload_1", "overload_2"),
                     overloads,

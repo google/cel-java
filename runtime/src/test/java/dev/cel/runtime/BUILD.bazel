@@ -82,6 +82,7 @@ java_library(
         "//runtime:type_resolver",
         "//runtime:unknown_attributes",
         "//runtime:unknown_options",
+        "//runtime/standard:not_strictly_false",
         "//runtime/standard:standard_overload",
         "//testing/protos:message_with_enum_cel_java_proto",
         "//testing/protos:message_with_enum_java_proto",

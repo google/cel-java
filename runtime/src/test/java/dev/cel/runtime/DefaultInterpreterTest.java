@@ -29,6 +29,7 @@ import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.DefaultInterpreter.DefaultInterpretable;
 import dev.cel.runtime.DefaultInterpreter.ExecutionFrame;
+import dev.cel.runtime.standard.NotStrictlyFalseFunction.NotStrictlyFalseOverload;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -80,6 +81,15 @@ public class DefaultInterpreterTest {
         ImmutableList.of(long.class),
         /* isStrict= */ true,
         (args) -> new IllegalArgumentException("Always throws"));
+    CelFunctionBinding notStrictlyFalseBinding =
+        NotStrictlyFalseOverload.NOT_STRICTLY_FALSE.newFunctionBinding(
+            CelOptions.DEFAULT,
+            RuntimeEquality.create(RuntimeHelpers.create(), CelOptions.DEFAULT));
+    dispatcherBuilder.addOverload(
+        notStrictlyFalseBinding.getOverloadId(),
+        notStrictlyFalseBinding.getArgTypes(),
+        notStrictlyFalseBinding.isStrict(),
+        notStrictlyFalseBinding.getDefinition());
     DefaultInterpreter defaultInterpreter =
         new DefaultInterpreter(
             new TypeResolver(), emptyProvider, dispatcherBuilder.build(), CelOptions.DEFAULT);

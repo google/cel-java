@@ -70,6 +70,14 @@ interface ResolvedOverload {
         }
         continue;
       }
+
+      if (arg instanceof Exception || arg instanceof CelUnknownSet) {
+        if (!isStrict()) {
+          // Only non-strict functions can accept errors/unknowns as arguments to a function
+          return true;
+        }
+      }
+
       if (!paramType.isAssignableFrom(arg.getClass())) {
         return false;
       }

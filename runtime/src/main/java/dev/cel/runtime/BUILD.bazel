@@ -644,6 +644,7 @@ java_library(
         "//runtime/standard:multiply",
         "//runtime/standard:negate",
         "//runtime/standard:not_equals",
+        "//runtime/standard:not_strictly_false",
         "//runtime/standard:size",
         "//runtime/standard:standard_function",
         "//runtime/standard:standard_overload",
@@ -700,6 +701,7 @@ cel_android_library(
         "//runtime/standard:multiply_android",
         "//runtime/standard:negate_android",
         "//runtime/standard:not_equals_android",
+        "//runtime/standard:not_strictly_false_android",
         "//runtime/standard:size_android",
         "//runtime/standard:standard_function_android",
         "//runtime/standard:standard_overload_android",
@@ -794,6 +796,7 @@ java_library(
     ],
     deps = [
         ":function_overload",
+        ":unknown_attributes",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -806,6 +809,7 @@ cel_android_library(
     visibility = ["//visibility:private"],
     deps = [
         ":function_overload_android",
+        ":unknown_attributes_android",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_protobuf_protobuf_javalite",
@@ -1187,6 +1191,32 @@ cel_android_library(
         ":resolved_overload_internal_android",
         "//:auto_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "internal_function_binder",
+    srcs = ["InternalFunctionBinder.java"],
+    tags = [
+    ],
+    deps = [
+        ":function_overload",
+        "//common/annotations",
+        "//runtime:function_binding",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "internal_function_binder_andriod",
+    srcs = ["InternalFunctionBinder.java"],
+    tags = [
+    ],
+    deps = [
+        ":function_overload_android",
+        "//common/annotations",
+        "//runtime:function_binding_android",
         "@maven_android//:com_google_guava_guava",
     ],
 )

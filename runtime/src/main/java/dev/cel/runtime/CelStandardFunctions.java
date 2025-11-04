@@ -100,6 +100,8 @@ import dev.cel.runtime.standard.NegateOperator;
 import dev.cel.runtime.standard.NegateOperator.NegateOverload;
 import dev.cel.runtime.standard.NotEqualsOperator;
 import dev.cel.runtime.standard.NotEqualsOperator.NotEqualsOverload;
+import dev.cel.runtime.standard.NotStrictlyFalseFunction;
+import dev.cel.runtime.standard.NotStrictlyFalseFunction.NotStrictlyFalseOverload;
 import dev.cel.runtime.standard.SizeFunction;
 import dev.cel.runtime.standard.SizeFunction.SizeOverload;
 import dev.cel.runtime.standard.StartsWithFunction;
@@ -159,7 +161,8 @@ public final class CelStandardFunctions {
           StringFunction.create(),
           SubtractOperator.create(),
           TimestampFunction.create(),
-          UintFunction.create());
+          UintFunction.create(),
+          NotStrictlyFalseFunction.create());
 
   /**
    * Enumeration of Standard Function bindings.
@@ -170,6 +173,7 @@ public final class CelStandardFunctions {
   public enum StandardFunction {
     LOGICAL_NOT(BooleanOperator.LOGICAL_NOT),
     IN(InternalOperator.IN_LIST, InternalOperator.IN_MAP),
+    NOT_STRICTLY_FALSE(InternalOperator.NOT_STRICTLY_FALSE),
     EQUALS(Relation.EQUALS),
     NOT_EQUALS(Relation.NOT_EQUALS),
     BOOL(Conversions.BOOL_TO_BOOL, Conversions.STRING_TO_BOOL),
@@ -331,10 +335,14 @@ public final class CelStandardFunctions {
     /** Container class for CEL standard function overloads. */
     public static final class Overload {
 
-      /** Overloads for internal functions that may have been rewritten by macros (ex: @in) */
+      /**
+       * Overloads for internal functions that may have been rewritten by macros
+       * (ex: @in, @not_strictly_false)
+       */
       public enum InternalOperator implements CelStandardOverload {
         IN_LIST(InOverload.IN_LIST),
-        IN_MAP(InOverload.IN_MAP);
+        IN_MAP(InOverload.IN_MAP),
+        NOT_STRICTLY_FALSE(NotStrictlyFalseOverload.NOT_STRICTLY_FALSE);
 
         private final CelStandardOverload standardOverload;
 

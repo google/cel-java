@@ -232,3 +232,15 @@ java_library(
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:resolved_overload_internal"],
 )
+
+java_library(
+    name = "internal_function_binder",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:internal_function_binder"],
+)
+
+cel_android_library(
+    name = "internal_function_binder_android",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:internal_function_binder_andriod"],
+)

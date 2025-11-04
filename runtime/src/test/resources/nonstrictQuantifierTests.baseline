@@ -39,3 +39,11 @@ declare four {
 =====>
 bindings: {four=4}
 result:   true
+
+Source: [0, 1].exists(x, x > four || true)
+declare four {
+  value int
+}
+=====>
+bindings: {}
+result:   true

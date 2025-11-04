@@ -421,8 +421,6 @@ final class DefaultInterpreter implements Interpreter {
           return evalLogicalAnd(frame, callExpr);
         case "logical_or":
           return evalLogicalOr(frame, callExpr);
-        case "not_strictly_false":
-          return evalNotStrictlyFalse(frame, callExpr);
         case "type":
           return evalType(frame, callExpr);
         case "optional_or_optional":
@@ -441,8 +439,18 @@ final class DefaultInterpreter implements Interpreter {
           break;
       }
 
-      // Delegate handling of call to dispatcher.
+      boolean isNonStrictCall =
+          dispatcher.findSingleNonStrictOverload(reference.overloadIds()).isPresent();
+      return dispatchCall(frame, expr, callExpr, reference, isNonStrictCall);
+    }
 
+    private IntermediateResult dispatchCall(
+        ExecutionFrame frame,
+        CelExpr expr,
+        CelCall callExpr,
+        CelReference reference,
+        boolean isNonStrict)
+        throws CelEvaluationException {
       List<CelExpr> callArgs = new ArrayList<>();
       callExpr.target().ifPresent(callArgs::add);
 
@@ -450,9 +458,16 @@ final class DefaultInterpreter implements Interpreter {
       IntermediateResult[] argResults = new IntermediateResult[callArgs.size()];
 
       for (int i = 0; i < argResults.length; i++) {
-        // Default evaluation is strict so errors will propagate (via thrown Java exception) before
-        // unknowns.
-        argResults[i] = evalInternal(frame, callArgs.get(i));
+        IntermediateResult result;
+        try {
+          result = evalInternal(frame, callArgs.get(i));
+        } catch (Exception e) {
+          if (!isNonStrict) {
+            throw e;
+          }
+          result = IntermediateResult.create(e);
+        }
+        argResults[i] = result;
       }
 
       Optional<CelAttribute> indexAttr =
@@ -469,7 +484,7 @@ final class DefaultInterpreter implements Interpreter {
           indexAttr.isPresent()
               ? CallArgumentChecker.createAcceptingPartial(frame.getResolver())
               : CallArgumentChecker.create(frame.getResolver());
-      for (DefaultInterpreter.IntermediateResult element : argResults) {
+      for (IntermediateResult element : argResults) {
         argChecker.checkArg(element);
       }
       Optional<Object> unknowns = argChecker.maybeUnknowns();
@@ -511,7 +526,7 @@ final class DefaultInterpreter implements Interpreter {
         throws CelEvaluationException {
       try {
         Optional<ResolvedOverload> funcImpl =
-            dispatcher.findOverload(functionName, overloadIds, args);
+            dispatcher.findOverloadMatchingArgs(functionName, overloadIds, args);
         if (funcImpl.isPresent()) {
           return funcImpl.get();
         }
@@ -682,20 +697,6 @@ final class DefaultInterpreter implements Interpreter {
       }
 
       return mergeBooleanUnknowns(left, right);
-    }
-
-    // Returns true unless the expression evaluates to false, in which case it returns false.
-    // True is also returned if evaluation yields an error or an unknown set.
-    private IntermediateResult evalNotStrictlyFalse(ExecutionFrame frame, CelCall callExpr) {
-      try {
-        IntermediateResult value = evalBooleanStrict(frame, callExpr.args().get(0));
-        if (value.value() instanceof Boolean) {
-          return value;
-        }
-      } catch (Exception e) {
-        /*nothing to do*/
-      }
-      return IntermediateResult.create(true);
     }
 
     private IntermediateResult evalType(ExecutionFrame frame, CelCall callExpr)
@@ -1134,7 +1135,9 @@ final class DefaultInterpreter implements Interpreter {
     private Optional<ResolvedOverload> findOverload(
         String function, List<String> overloadIds, Object[] args) throws CelEvaluationException {
       if (lateBoundFunctionResolver.isPresent()) {
-        return lateBoundFunctionResolver.get().findOverload(function, overloadIds, args);
+        return lateBoundFunctionResolver
+            .get()
+            .findOverloadMatchingArgs(function, overloadIds, args);
       }
       return Optional.empty();
     }
