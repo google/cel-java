@@ -65,4 +65,35 @@ public final class CelResolvedOverloadTest {
   public void canHandle_nonMatchingArgCount_returnsFalse() {
     assertThat(getIncrementIntOverload().canHandle(new Object[] {1L, 2L})).isFalse();
   }
+
+  @Test
+  public void canHandle_nonStrictOverload_returnsTrue() {
+    CelResolvedOverload nonStrictOverload =
+        CelResolvedOverload.of(
+            "non_strict",
+            (args) -> {
+              return false;
+            },
+            /* isStrict= */ false,
+            Long.class,
+            Long.class);
+    assertThat(
+            nonStrictOverload.canHandle(
+                new Object[] {new RuntimeException(), CelUnknownSet.create()}))
+        .isTrue();
+  }
+
+  @Test
+  public void canHandle_nonStrictOverload_returnsFalse() {
+    CelResolvedOverload nonStrictOverload =
+        CelResolvedOverload.of(
+            "non_strict",
+            (args) -> {
+              return false;
+            },
+            /* isStrict= */ false,
+            Long.class,
+            Long.class);
+    assertThat(nonStrictOverload.canHandle(new Object[] {new RuntimeException(), "Foo"})).isFalse();
+  }
 }

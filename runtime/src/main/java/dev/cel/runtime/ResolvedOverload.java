@@ -72,9 +72,10 @@ interface ResolvedOverload {
       }
 
       if (arg instanceof Exception || arg instanceof CelUnknownSet) {
+        // Only non-strict functions can accept errors/unknowns as arguments to a function
         if (!isStrict()) {
-          // Only non-strict functions can accept errors/unknowns as arguments to a function
-          return true;
+          // Skip assignability check below, but continue to validate remaining args
+          continue;
         }
       }
 
