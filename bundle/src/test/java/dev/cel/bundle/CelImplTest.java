@@ -103,7 +103,6 @@ import dev.cel.runtime.CelAttribute;
 import dev.cel.runtime.CelAttribute.Qualifier;
 import dev.cel.runtime.CelAttributePattern;
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.CelEvaluationExceptionBuilder;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.Program;
@@ -742,13 +741,13 @@ public final class CelImplTest {
                     "throws",
                     ImmutableList.of(),
                     (args) -> {
-                      throw new CelEvaluationException("this method always throws");
+                      throw new RuntimeException("this method always throws");
                     }))
             .setResultType(SimpleType.BOOL)
             .build();
     CelRuntime.Program program = cel.createProgram(cel.compile("throws()").getAst());
     CelEvaluationException e = Assert.assertThrows(CelEvaluationException.class, program::eval);
-    assertThat(e).hasMessageThat().contains("this method always throws");
+    assertThat(e.getCause()).hasMessageThat().contains("this method always throws");
   }
 
   @Test
@@ -770,9 +769,7 @@ public final class CelImplTest {
                     "throws",
                     ImmutableList.of(),
                     (args) -> {
-                      throw CelEvaluationExceptionBuilder.newBuilder("this method always throws")
-                          .setCause(new RuntimeException("reason"))
-                          .build();
+                      throw new RuntimeException("this method always throws");
                     }))
             .setResultType(SimpleType.BOOL)
             .build();

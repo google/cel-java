@@ -22,7 +22,7 @@ import com.google.errorprone.annotations.Immutable;
 public interface CelFunctionOverload {
 
   /** Evaluate a set of arguments throwing a {@code CelException} on error. */
-  Object apply(Object[] args) throws CelEvaluationException;
+  Object apply(Object[] args);
 
   /**
    * Helper interface for describing unary functions where the type-parameter is used to improve
@@ -31,7 +31,7 @@ public interface CelFunctionOverload {
   @Immutable
   @FunctionalInterface
   interface Unary<T> {
-    Object apply(T arg) throws CelEvaluationException;
+    Object apply(T arg);
   }
 
   /**
@@ -41,6 +41,6 @@ public interface CelFunctionOverload {
   @Immutable
   @FunctionalInterface
   interface Binary<T1, T2> {
-    Object apply(T1 arg1, T2 arg2) throws CelEvaluationException;
+    Object apply(T1 arg1, T2 arg2);
   }
 }

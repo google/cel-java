@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.UnsignedLong;
 import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelRuntimeException;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import java.util.Optional;
 import org.junit.Assert;
@@ -83,8 +84,8 @@ public final class CelLateFunctionBindingsTest {
                 UnsignedLong.class,
                 (arg) -> {
                   if (arg.equals(UnsignedLong.MAX_VALUE)) {
-                    throw new CelEvaluationException(
-                        "numeric overflow", null, CelErrorCode.NUMERIC_OVERFLOW);
+                    throw new CelRuntimeException(
+                        new ArithmeticException("numeric overflow"), CelErrorCode.NUMERIC_OVERFLOW);
                   }
                   return arg.plus(UnsignedLong.ONE);
                 }));
@@ -94,9 +95,9 @@ public final class CelLateFunctionBindingsTest {
     assertThat(overload).isPresent();
     assertThat(overload.get().getOverloadId()).isEqualTo("increment_uint");
     assertThat(overload.get().getParameterTypes()).containsExactly(UnsignedLong.class);
-    CelEvaluationException e =
+    CelRuntimeException e =
         Assert.assertThrows(
-            CelEvaluationException.class,
+            CelRuntimeException.class,
             () -> overload.get().getDefinition().apply(new Object[] {UnsignedLong.MAX_VALUE}));
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.NUMERIC_OVERFLOW);
   }
