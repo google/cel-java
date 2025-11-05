@@ -37,7 +37,7 @@ public interface CelRuntime {
 
   /** Creates an evaluable {@code Program} instance which is thread-safe and immutable. */
   @Immutable
-  interface Program extends CelLiteRuntime.Program {
+  interface Program extends dev.cel.runtime.Program {
 
     /** Evaluate the expression using {@code message} fields as the source of input variables. */
     Object eval(Message message) throws CelEvaluationException;

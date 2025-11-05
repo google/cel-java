@@ -41,8 +41,12 @@ LITE_RUNTIME_SOURCES = [
 
 # keep sorted
 LITE_RUNTIME_IMPL_SOURCES = [
-    "LiteProgramImpl.java",
     "LiteRuntimeImpl.java",
+]
+
+# keep sorted
+LITE_PROGRAM_IMPL_SOURCES = [
+    "LiteProgramImpl.java",
 ]
 
 # keep sorted
@@ -833,7 +837,6 @@ java_library(
         ":function_resolver",
         ":interpretable",
         ":interpreter",
-        ":lite_runtime",
         ":proto_message_activation_factory",
         ":proto_message_runtime_equality",
         ":runtime_equality",
@@ -853,6 +856,7 @@ java_library(
         "//common/types:cel_types",
         "//common/values:cel_value_provider",
         "//common/values:proto_message_value_provider",
+        "//runtime:program",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -869,12 +873,12 @@ java_library(
     deps = [
         ":evaluation_exception",
         ":function_binding",
-        ":function_resolver",
         "//:auto_value",
         "//common:cel_ast",
         "//common:options",
         "//common/annotations",
         "//common/values:cel_value_provider",
+        "//runtime:program",
         "//runtime/standard:standard_function",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -888,14 +892,11 @@ java_library(
     tags = [
     ],
     deps = [
-        ":activation",
         ":cel_value_runtime_type_provider",
         ":dispatcher",
-        ":evaluation_exception",
         ":function_binding",
-        ":function_resolver",
-        ":interpretable",
         ":interpreter",
+        ":lite_program_impl",
         ":lite_runtime",
         ":runtime_equality",
         ":runtime_helpers",
@@ -904,10 +905,38 @@ java_library(
         "//common:cel_ast",
         "//common:options",
         "//common/values:cel_value_provider",
+        "//runtime:program",
         "//runtime/standard:standard_function",
         "@maven//:com_google_code_findbugs_annotations",
-        "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "lite_program_impl",
+    srcs = LITE_PROGRAM_IMPL_SOURCES,
+    deps = [
+        ":activation",
+        ":evaluation_exception",
+        ":function_resolver",
+        ":interpretable",
+        ":program",
+        "//:auto_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+cel_android_library(
+    name = "lite_program_impl_android",
+    srcs = LITE_PROGRAM_IMPL_SOURCES,
+    deps = [
+        ":activation_android",
+        ":evaluation_exception",
+        ":function_resolver_android",
+        ":interpretable_android",
+        ":program_android",
+        "//:auto_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
 
@@ -917,15 +946,13 @@ cel_android_library(
     tags = [
     ],
     deps = [
-        ":activation_android",
         ":cel_value_runtime_type_provider_android",
         ":dispatcher_android",
-        ":evaluation_exception",
         ":function_binding_android",
-        ":function_resolver_android",
-        ":interpretable_android",
         ":interpreter_android",
+        ":lite_program_impl_android",
         ":lite_runtime_android",
+        ":program_android",
         ":runtime_equality_android",
         ":runtime_helpers_android",
         ":type_resolver_android",
@@ -1127,7 +1154,7 @@ cel_android_library(
     deps = [
         ":evaluation_exception",
         ":function_binding_android",
-        ":function_resolver_android",
+        ":program_android",
         "//:auto_value",
         "//common:cel_ast_android",
         "//common:options",
@@ -1192,6 +1219,31 @@ cel_android_library(
         "//:auto_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "program",
+    srcs = ["Program.java"],
+    tags = [
+    ],
+    deps = [
+        ":evaluation_exception",
+        ":function_resolver",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+cel_android_library(
+    name = "program_android",
+    srcs = ["Program.java"],
+    tags = [
+    ],
+    deps = [
+        ":evaluation_exception",
+        ":function_resolver_android",
+        "//:auto_value",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
 

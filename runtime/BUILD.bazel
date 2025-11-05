@@ -244,3 +244,14 @@ cel_android_library(
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:internal_function_binder_andriod"],
 )
+
+java_library(
+    name = "program",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:program"],
+)
+
+cel_android_library(
+    name = "program_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:program_android"],
+)
