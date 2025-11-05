@@ -153,7 +153,7 @@ public final class ProtoAdapterTest {
       ProtoAdapter protoAdapter =
           new ProtoAdapter(
               dynamicProto,
-              CelOptions.current().evaluateCanonicalTypesToNativeValues(true).build());
+              CelOptions.current().build());
       assertThat(protoAdapter.adaptValueToProto(value, proto.getDescriptorForType().getFullName()))
           .isEqualTo(proto);
       assertThat(protoAdapter.adaptProtoToValue(proto)).isEqualTo(value);

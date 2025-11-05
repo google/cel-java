@@ -49,7 +49,6 @@ public class ConstantFoldingOptimizerTest {
   private static final CelOptions CEL_OPTIONS =
       CelOptions.current()
           .enableTimestampEpoch(true)
-          .evaluateCanonicalTypesToNativeValues(true)
           .build();
   private static final Cel CEL =
       CelFactory.standardCelBuilder()

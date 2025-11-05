@@ -37,7 +37,7 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 public class CelEncoderExtensionsTest {
   private static final CelOptions CEL_OPTIONS =
-      CelOptions.current().evaluateCanonicalTypesToNativeValues(true).build();
+      CelOptions.current().build();
 
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()

@@ -817,7 +817,6 @@ public final class CelImplTest {
   public void program_duplicateTypeDescriptor() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
-            .setOptions(CelOptions.current().evaluateCanonicalTypesToNativeValues(true).build())
             .addMessageTypes(Timestamp.getDescriptor())
             .addMessageTypes(ImmutableList.of(Timestamp.getDescriptor()))
             .setContainer(CelContainer.ofName("google"))
@@ -833,7 +832,6 @@ public final class CelImplTest {
   public void program_hermeticDescriptors_wellKnownProtobuf() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
-            .setOptions(CelOptions.current().evaluateCanonicalTypesToNativeValues(true).build())
             .addMessageTypes(Timestamp.getDescriptor())
             .setContainer(CelContainer.ofName("google"))
             .setResultType(SimpleType.TIMESTAMP)
@@ -962,7 +960,6 @@ public final class CelImplTest {
   public void program_typeProvider() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
-            .setOptions(CelOptions.current().evaluateCanonicalTypesToNativeValues(true).build())
             .setTypeProvider(
                 new DescriptorTypeProvider(ImmutableList.of(Timestamp.getDescriptor())))
             .setContainer(CelContainer.ofName("google"))
@@ -1029,10 +1026,7 @@ public final class CelImplTest {
     Cel cel =
         standardCelBuilderWithMacros()
             .setOptions(
-                CelOptions.current()
-                    .evaluateCanonicalTypesToNativeValues(true)
-                    .resolveTypeDependencies(resolveTypeDependencies)
-                    .build())
+                CelOptions.current().resolveTypeDependencies(resolveTypeDependencies).build())
             .addMessageTypes(Struct.getDescriptor())
             .setResultType(StructTypeReference.create("google.protobuf.NullValue"))
             .setContainer(CelContainer.ofName("google.protobuf"))
@@ -1050,11 +1044,7 @@ public final class CelImplTest {
   public void program_enumTypeTransitiveResolution() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
-            .setOptions(
-                CelOptions.current()
-                    .evaluateCanonicalTypesToNativeValues(true)
-                    .resolveTypeDependencies(true)
-                    .build())
+            .setOptions(CelOptions.current().resolveTypeDependencies(true).build())
             .addMessageTypes(Proto2ExtensionScopedMessage.getDescriptor())
             .setResultType(StructTypeReference.create("google.protobuf.NullValue"))
             .setContainer(CelContainer.ofName("google.protobuf"))
@@ -1643,11 +1633,7 @@ public final class CelImplTest {
   public void programAdvanceEvaluation_unsupportedIndexIgnored() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
-            .setOptions(
-                CelOptions.current()
-                    .evaluateCanonicalTypesToNativeValues(true)
-                    .enableUnknownTracking(true)
-                    .build())
+            .setOptions(CelOptions.current().enableUnknownTracking(true).build())
             .addVar("unk", MapType.create(SimpleType.STRING, SimpleType.BOOL))
             .setContainer(CelContainer.ofName(""))
             .addFunctionBindings()
@@ -2168,11 +2154,7 @@ public final class CelImplTest {
     Cel cel =
         standardCelBuilderWithMacros()
             .addMessageTypes(descriptors)
-            .setOptions(
-                CelOptions.current()
-                    .evaluateCanonicalTypesToNativeValues(true)
-                    .enableTimestampEpoch(true)
-                    .build())
+            .setOptions(CelOptions.current().enableTimestampEpoch(true).build())
             .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
             .build();
     CelAbstractSyntaxTree ast =

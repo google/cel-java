@@ -204,7 +204,6 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
       this.celOptions =
           CelOptions.current()
               .enableCelValue(true)
-              .evaluateCanonicalTypesToNativeValues(true)
               .build();
       this.celValueProvider = (structType, fields) -> Optional.empty();
       this.customFunctionBindings = new HashMap<>();

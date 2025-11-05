@@ -111,7 +111,6 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
           .enableTimestampEpoch(true)
           .enableHeterogeneousNumericComparisons(true)
           .enableOptionalSyntax(true)
-          .evaluateCanonicalTypesToNativeValues(true)
           .comprehensionMaxIterations(1_000)
           .build();
   private CelRuntime celRuntime;

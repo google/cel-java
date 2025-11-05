@@ -54,7 +54,6 @@ public final class ConformanceTest extends Statement {
 
   private static final CelOptions OPTIONS =
       CelOptions.current()
-          .evaluateCanonicalTypesToNativeValues(true)
           .enableTimestampEpoch(true)
           .enableHeterogeneousNumericComparisons(true)
           .enableProtoDifferencerEquality(true)

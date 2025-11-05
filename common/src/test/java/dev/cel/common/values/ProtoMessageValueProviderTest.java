@@ -66,7 +66,7 @@ public class ProtoMessageValueProviderTest {
   public void newValue_createProtoMessage_fieldsPopulated() {
     ProtoMessageValueProvider protoMessageValueProvider =
         ProtoMessageValueProvider.newInstance(
-            CelOptions.current().evaluateCanonicalTypesToNativeValues(true).build(), DYNAMIC_PROTO);
+            CelOptions.current().build(), DYNAMIC_PROTO);
 
     ProtoMessageValue protoMessageValue =
         (ProtoMessageValue)

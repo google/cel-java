@@ -100,7 +100,6 @@ public class CelOptionalLibraryTest {
     return CelFactory.standardCelBuilder()
         .setOptions(
             CelOptions.current()
-                .evaluateCanonicalTypesToNativeValues(true)
                 .enableTimestampEpoch(true)
                 .build())
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
