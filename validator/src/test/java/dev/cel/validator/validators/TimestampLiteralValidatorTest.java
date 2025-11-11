@@ -200,4 +200,23 @@ public class TimestampLiteralValidatorTest {
     assertThat(result.hasError()).isFalse();
     assertThat(result.getAllIssues()).isEmpty();
   }
+
+  @Test
+  public void env_withSetResultType_success() throws Exception {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .setOptions(CelOptions.current().enableTimestampEpoch(true).build())
+            .setResultType(SimpleType.BOOL)
+            .build();
+    CelValidator validator =
+        CelValidatorFactory.standardCelValidatorBuilder(cel)
+            .addAstValidators(TimestampLiteralValidator.INSTANCE)
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("timestamp(123) == timestamp(123)").getAst();
+
+    CelValidationResult result = validator.validate(ast);
+
+    assertThat(result.hasError()).isFalse();
+    assertThat(result.getAllIssues()).isEmpty();
+  }
 }

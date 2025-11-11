@@ -48,9 +48,11 @@ final class CelValidatorImpl implements CelValidator {
     ImmutableList.Builder<CelIssue> issueBuilder = ImmutableList.builder();
 
     for (CelAstValidator validator : astValidators) {
+      Cel celEnv = this.cel.toCelBuilder().setResultType(validator.expectedResultType()).build();
+
       CelNavigableAst navigableAst = CelNavigableAst.fromAst(ast);
       IssuesFactory issuesFactory = new IssuesFactory(navigableAst);
-      validator.validate(navigableAst, cel, issuesFactory);
+      validator.validate(navigableAst, celEnv, issuesFactory);
       issueBuilder.addAll(issuesFactory.getIssues());
     }
 

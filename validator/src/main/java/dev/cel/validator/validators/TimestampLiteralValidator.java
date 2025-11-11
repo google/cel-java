@@ -14,14 +14,17 @@
 
 package dev.cel.validator.validators;
 
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.SimpleType;
 import java.time.Instant;
 
 /** TimestampLiteralValidator ensures that timestamp literal arguments are valid. */
 public final class TimestampLiteralValidator extends LiteralValidator {
   public static final TimestampLiteralValidator INSTANCE =
-      new TimestampLiteralValidator("timestamp", Instant.class);
+      new TimestampLiteralValidator("timestamp", Instant.class, SimpleType.TIMESTAMP);
 
-  private TimestampLiteralValidator(String functionName, Class<?> expectedResultType) {
-    super(functionName, expectedResultType);
+  private TimestampLiteralValidator(
+      String functionName, Class<?> expectedJavaType, CelType expectedResultType) {
+    super(functionName, expectedJavaType, expectedResultType);
   }
 }

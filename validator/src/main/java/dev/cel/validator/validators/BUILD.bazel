@@ -17,7 +17,8 @@ java_library(
     ],
     deps = [
         ":literal_validator",
-        "@maven//:com_google_protobuf_protobuf_java",
+        "//common/types",
+        "//common/types:type_providers",
     ],
 )
 
@@ -30,7 +31,8 @@ java_library(
     ],
     deps = [
         ":literal_validator",
-        "@maven//:com_google_protobuf_protobuf_java",
+        "//common/types",
+        "//common/types:type_providers",
     ],
 )
 
@@ -116,6 +118,7 @@ java_library(
         "//common/ast",
         "//common/ast:expr_factory",
         "//common/navigation",
+        "//common/types:type_providers",
         "//runtime",
         "//validator:ast_validator",
         "@maven//:com_google_errorprone_error_prone_annotations",

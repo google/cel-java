@@ -14,14 +14,17 @@
 
 package dev.cel.validator.validators;
 
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.SimpleType;
 import java.time.Duration;
 
 /** DurationLiteralValidator ensures that duration literal arguments are valid. */
 public final class DurationLiteralValidator extends LiteralValidator {
   public static final DurationLiteralValidator INSTANCE =
-      new DurationLiteralValidator("duration", Duration.class);
+      new DurationLiteralValidator("duration", Duration.class, SimpleType.DURATION);
 
-  private DurationLiteralValidator(String functionName, Class<?> expectedResultType) {
-    super(functionName, expectedResultType);
+  private DurationLiteralValidator(
+      String functionName, Class<?> expectedJavaType, CelType expectedResultType) {
+    super(functionName, expectedJavaType, expectedResultType);
   }
 }

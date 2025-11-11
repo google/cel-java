@@ -24,6 +24,7 @@ import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelExprFactory;
 import dev.cel.common.navigation.CelNavigableAst;
 import dev.cel.common.navigation.CelNavigableExpr;
+import dev.cel.common.types.CelType;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.validator.CelAstValidator;
 
@@ -34,11 +35,19 @@ import dev.cel.validator.CelAstValidator;
  */
 public abstract class LiteralValidator implements CelAstValidator {
   private final String functionName;
-  private final Class<?> expectedResultType;
+  private final Class<?> expectedJavaType;
+  private final CelType expectedResultType;
 
-  protected LiteralValidator(String functionName, Class<?> expectedResultType) {
+  protected LiteralValidator(
+      String functionName, Class<?> expectedJavaType, CelType expectedResultType) {
     this.functionName = functionName;
+    this.expectedJavaType = expectedJavaType;
     this.expectedResultType = expectedResultType;
+  }
+
+  @Override
+  public CelType expectedResultType() {
+    return expectedResultType;
   }
 
   @Override
@@ -61,7 +70,7 @@ public abstract class LiteralValidator implements CelAstValidator {
               CelExpr callExpr =
                   exprFactory.newGlobalCall(functionName, exprFactory.newConstant(expr.constant()));
               try {
-                evaluateExpr(cel, callExpr, expectedResultType);
+                evaluateExpr(cel, callExpr, expectedJavaType);
               } catch (Exception e) {
                 issuesFactory.addError(
                     expr.id(),
@@ -72,18 +81,18 @@ public abstract class LiteralValidator implements CelAstValidator {
   }
 
   @CanIgnoreReturnValue
-  private static Object evaluateExpr(Cel cel, CelExpr expr, Class<?> expectedResultType)
+  private static Object evaluateExpr(Cel cel, CelExpr expr, Class<?> expectedJavaType)
       throws CelValidationException, CelEvaluationException {
     CelAbstractSyntaxTree ast =
         CelAbstractSyntaxTree.newParsedAst(expr, CelSource.newBuilder().build());
     ast = cel.check(ast).getAst();
     Object result = cel.createProgram(ast).eval();
 
-    if (!expectedResultType.isInstance(result)) {
+    if (!expectedJavaType.isInstance(result)) {
       throw new IllegalStateException(
           String.format(
               "Expected %s type but got %s instead",
-              expectedResultType.getName(), result.getClass().getName()));
+              expectedJavaType.getName(), result.getClass().getName()));
     }
     return result;
   }

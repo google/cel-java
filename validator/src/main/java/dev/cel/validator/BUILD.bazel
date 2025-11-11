@@ -72,6 +72,8 @@ java_library(
         "//common:compiler_common",
         "//common:source_location",
         "//common/navigation",
+        "//common/types",
+        "//common/types:type_providers",
         "@maven//:com_google_guava_guava",
     ],
 )

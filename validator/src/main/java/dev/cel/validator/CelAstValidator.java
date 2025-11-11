@@ -21,6 +21,8 @@ import dev.cel.common.CelIssue.Severity;
 import dev.cel.common.CelSource;
 import dev.cel.common.CelSourceLocation;
 import dev.cel.common.navigation.CelNavigableAst;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.SimpleType;
 import java.util.Optional;
 
 /** Public interface for performing a single, custom validation on an AST. */
@@ -28,8 +30,13 @@ public interface CelAstValidator {
 
   void validate(CelNavigableAst navigableAst, Cel cel, IssuesFactory issuesFactory);
 
+  /** Enforces a specific expected result type during validation, if set. */
+  default CelType expectedResultType() {
+    return SimpleType.DYN;
+  }
+
   /** Factory for populating issues while performing AST validation. */
-  public final class IssuesFactory {
+  final class IssuesFactory {
     private final ImmutableList.Builder<CelIssue> issuesBuilder;
     private final CelNavigableAst navigableAst;
 

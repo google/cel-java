@@ -38,16 +38,16 @@ public final class HomogeneousLiteralValidator implements CelAstValidator {
   private final ImmutableSet<String> exemptFunctions;
 
   /**
-   * Construct a new instance of {@link HomogeneousLiteralValidator}. This validator will not for
-   * functions in {@code exemptFunctions}.
+   * Construct a new instance of {@link HomogeneousLiteralValidator}. This validator will not run
+   * for functions in {@code exemptFunctions}.
    */
   public static HomogeneousLiteralValidator newInstance(Iterable<String> exemptFunctions) {
     return new HomogeneousLiteralValidator(exemptFunctions);
   }
 
   /**
-   * Construct a new instance of {@link HomogeneousLiteralValidator}. This validator will not for
-   * functions in {@code exemptFunctions}.
+   * Construct a new instance of {@link HomogeneousLiteralValidator}. This validator will not run
+   * for functions in {@code exemptFunctions}.
    */
   public static HomogeneousLiteralValidator newInstance(String... exemptFunctions) {
     return newInstance(Arrays.asList(exemptFunctions));
