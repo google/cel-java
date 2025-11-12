@@ -18,7 +18,8 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * An internal representation used for fast accumulation of unknown expr IDs and attributes. For
@@ -27,14 +28,14 @@ import java.util.List;
  */
 final class AccumulatedUnknowns {
   private static final int MAX_UNKNOWN_ATTRIBUTE_SIZE = 500_000;
-  private final List<Long> exprIds;
-  private final List<CelAttribute> attributes;
+  private final Set<Long> exprIds;
+  private final Set<CelAttribute> attributes;
 
-  List<Long> exprIds() {
+  Set<Long> exprIds() {
     return exprIds;
   }
 
-  List<CelAttribute> attributes() {
+  Set<CelAttribute> attributes() {
     return attributes;
   }
 
@@ -55,19 +56,20 @@ final class AccumulatedUnknowns {
   }
 
   static AccumulatedUnknowns create(Collection<Long> exprIds, Collection<CelAttribute> attributes) {
-    return new AccumulatedUnknowns(new ArrayList<>(exprIds), new ArrayList<>(attributes));
+    return new AccumulatedUnknowns(new HashSet<>(exprIds), new HashSet<>(attributes));
   }
 
   private static void enforceMaxAttributeSize(
-      List<CelAttribute> lhsAttributes, List<CelAttribute> rhsAttributes) {
-    int totalSize = lhsAttributes.size() + rhsAttributes.size();
-    if (totalSize > MAX_UNKNOWN_ATTRIBUTE_SIZE) {
+      Set<CelAttribute> lhsAttributes, Set<CelAttribute> rhsAttributes) {
+    if (lhsAttributes.size() + rhsAttributes.size() > MAX_UNKNOWN_ATTRIBUTE_SIZE) {
       throw new IllegalArgumentException(
-          "Exceeded maximum allowed unknown attributes: " + totalSize);
+          String.format(
+              "Exceeded maximum allowed unknown attributes when merging: %s, %s",
+              lhsAttributes.size(), rhsAttributes.size()));
     }
   }
 
-  private AccumulatedUnknowns(List<Long> exprIds, List<CelAttribute> attributes) {
+  private AccumulatedUnknowns(Set<Long> exprIds, Set<CelAttribute> attributes) {
     this.exprIds = exprIds;
     this.attributes = attributes;
   }
