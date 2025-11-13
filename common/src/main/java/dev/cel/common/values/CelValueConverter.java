@@ -41,7 +41,8 @@ abstract class CelValueConverter {
 
     if (celValue instanceof MapValue) {
       MapValue<CelValue, CelValue> mapValue = (MapValue<CelValue, CelValue>) celValue;
-      ImmutableMap.Builder<Object, Object> mapBuilder = ImmutableMap.builder();
+      ImmutableMap.Builder<Object, Object> mapBuilder =
+          ImmutableMap.builderWithExpectedSize(mapValue.size());
       for (Entry<CelValue, CelValue> entry : mapValue.value().entrySet()) {
         Object key = fromCelValueToJavaObject(entry.getKey());
         Object value = fromCelValueToJavaObject(entry.getValue());
@@ -51,7 +52,8 @@ abstract class CelValueConverter {
       return mapBuilder.buildOrThrow();
     } else if (celValue instanceof ListValue) {
       ListValue<CelValue> listValue = (ListValue<CelValue>) celValue;
-      ImmutableList.Builder<Object> listBuilder = ImmutableList.builder();
+      ImmutableList.Builder<Object> listBuilder =
+          ImmutableList.builderWithExpectedSize(listValue.size());
       for (CelValue element : listValue.value()) {
         listBuilder.add(fromCelValueToJavaObject(element));
       }
