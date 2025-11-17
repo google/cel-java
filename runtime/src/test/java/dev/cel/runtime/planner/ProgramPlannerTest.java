@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertThrows;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
@@ -88,7 +89,7 @@ public final class ProgramPlannerTest {
   }
 
   @Test
-  public void planIdent_enum() throws Exception {
+  public void plan_ident_enum() throws Exception {
     if (isParseOnly) {
       // TODO Skip for now, requires attribute qualification
       return;
@@ -103,13 +104,24 @@ public final class ProgramPlannerTest {
   }
 
   @Test
-  public void planIdent_variable() throws Exception {
+  public void plan_ident_variable() throws Exception {
     CelAbstractSyntaxTree ast = compile("int_var");
     Program program = PLANNER.plan(ast);
 
     Object result = program.eval(ImmutableMap.of("int_var", 1L));
 
     assertThat(result).isEqualTo(1);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked") // test only
+  public void plan_createList() throws Exception {
+    CelAbstractSyntaxTree ast = compile("[1, 'foo', true, [2, false]]");
+    Program program = PLANNER.plan(ast);
+
+    ImmutableList<Object> result = (ImmutableList<Object>) program.eval();
+
+    assertThat(result).containsExactly(1L, "foo", true, ImmutableList.of(2L, false)).inOrder();
   }
 
   @Test

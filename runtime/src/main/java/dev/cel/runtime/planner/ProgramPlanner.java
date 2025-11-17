@@ -15,6 +15,7 @@
 package dev.cel.runtime.planner;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -22,6 +23,7 @@ import dev.cel.common.CelContainer;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
+import dev.cel.common.ast.CelExpr.CelList;
 import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelType;
@@ -65,6 +67,8 @@ public final class ProgramPlanner {
         return planConstant(celExpr.constant());
       case IDENT:
         return planIdent(celExpr, ctx);
+      case LIST:
+        return planCreateList(celExpr, ctx);
       case NOT_SET:
         throw new UnsupportedOperationException("Unsupported kind: " + celExpr.getKind());
       default:
@@ -122,6 +126,19 @@ public final class ProgramPlanner {
     }
 
     return EvalAttribute.create(attributeFactory.newAbsoluteAttribute(identRef.name()));
+  }
+
+  private Interpretable planCreateList(CelExpr celExpr, PlannerContext ctx) {
+    CelList list = celExpr.list();
+
+    ImmutableList<CelExpr> elements = list.elements();
+    Interpretable[] values = new Interpretable[elements.size()];
+
+    for (int i = 0; i < elements.size(); i++) {
+      values[i] = plan(elements.get(i), ctx);
+    }
+
+    return EvalCreateList.create(values);
   }
 
   @AutoValue
