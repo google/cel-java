@@ -16,6 +16,7 @@ package dev.cel.runtime.planner;
 
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.runtime.Activation;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
@@ -35,7 +36,7 @@ abstract class PlannedProgram implements Program {
 
   @Override
   public Object eval(Map<String, ?> mapValue) throws CelEvaluationException {
-    throw new UnsupportedOperationException("Not yet implemented");
+    return interpretable().eval(Activation.copyOf(mapValue));
   }
 
   @Override

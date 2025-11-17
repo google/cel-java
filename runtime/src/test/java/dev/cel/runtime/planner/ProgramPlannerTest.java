@@ -18,16 +18,31 @@ import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertThrows;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelSource;
 import dev.cel.common.ast.CelExpr;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypeProvider;
+import dev.cel.common.types.CelTypeProvider.CombinedCelTypeProvider;
+import dev.cel.common.types.DefaultTypeProvider;
+import dev.cel.common.types.ListType;
+import dev.cel.common.types.MapType;
+import dev.cel.common.types.OptionalType;
+import dev.cel.common.types.ProtoMessageTypeProvider;
+import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelByteString;
 import dev.cel.common.values.NullValue;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.expr.conformance.proto3.GlobalEnum;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.extensions.CelExtensions;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.Program;
 import org.junit.Test;
@@ -35,9 +50,19 @@ import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public final class ProgramPlannerTest {
-  private static final ProgramPlanner PLANNER = ProgramPlanner.newPlanner();
+  // Note that the following deps will be built from top-level builder APIs
+  private static final CelTypeProvider TYPE_PROVIDER =
+      new CombinedCelTypeProvider(
+          DefaultTypeProvider.getInstance(),
+          new ProtoMessageTypeProvider(ImmutableSet.of(TestAllTypes.getDescriptor())));
+
+  private static final ProgramPlanner PLANNER = ProgramPlanner.newPlanner(TYPE_PROVIDER);
   private static final CelCompiler CEL_COMPILER =
-      CelCompilerFactory.standardCelCompilerBuilder().build();
+      CelCompilerFactory.standardCelCompilerBuilder()
+          .addVar("int_var", SimpleType.INT)
+          .addMessageTypes(TestAllTypes.getDescriptor())
+          .addLibraries(CelExtensions.optional())
+          .build();
 
   @TestParameter boolean isParseOnly;
 
@@ -60,6 +85,49 @@ public final class ProgramPlannerTest {
     Object result = program.eval();
 
     assertThat(result).isEqualTo(testCase.expected);
+  }
+
+  @Test
+  public void planIdent_enum() throws Exception {
+    if (isParseOnly) {
+      // TODO Skip for now, requires attribute qualification
+      return;
+    }
+    CelAbstractSyntaxTree ast =
+        compile(GlobalEnum.getDescriptor().getFullName() + "." + GlobalEnum.GAR);
+    Program program = PLANNER.plan(ast);
+
+    Object result = program.eval();
+
+    assertThat(result).isEqualTo(1);
+  }
+
+  @Test
+  public void planIdent_variable() throws Exception {
+    CelAbstractSyntaxTree ast = compile("int_var");
+    Program program = PLANNER.plan(ast);
+
+    Object result = program.eval(ImmutableMap.of("int_var", 1L));
+
+    assertThat(result).isEqualTo(1);
+  }
+
+  @Test
+  public void planIdent_typeLiteral(@TestParameter TypeLiteralTestCase testCase) throws Exception {
+    if (isParseOnly) {
+      if (testCase.equals(TypeLiteralTestCase.DURATION)
+          || testCase.equals(TypeLiteralTestCase.TIMESTAMP)
+          || testCase.equals(TypeLiteralTestCase.PROTO_MESSAGE_TYPE)) {
+        // TODO Skip for now, requires attribute qualification
+        return;
+      }
+    }
+    CelAbstractSyntaxTree ast = compile(testCase.expression);
+    Program program = PLANNER.plan(ast);
+
+    TypeType result = (TypeType) program.eval();
+
+    assertThat(result).isEqualTo(testCase.type);
   }
 
   private CelAbstractSyntaxTree compile(String expression) throws Exception {
@@ -87,6 +155,34 @@ public final class ProgramPlannerTest {
     ConstantTestCase(String expression, Object expected) {
       this.expression = expression;
       this.expected = expected;
+    }
+  }
+
+  @SuppressWarnings("ImmutableEnumChecker") // Test only
+  private enum TypeLiteralTestCase {
+    BOOL("bool", SimpleType.BOOL),
+    BYTES("bytes", SimpleType.BYTES),
+    DOUBLE("double", SimpleType.DOUBLE),
+    INT("int", SimpleType.INT),
+    UINT("uint", SimpleType.UINT),
+    STRING("string", SimpleType.STRING),
+    DYN("dyn", SimpleType.DYN),
+    LIST("list", ListType.create(SimpleType.DYN)),
+    MAP("map", MapType.create(SimpleType.DYN, SimpleType.DYN)),
+    NULL("null_type", SimpleType.NULL_TYPE),
+    DURATION("google.protobuf.Duration", SimpleType.DURATION),
+    TIMESTAMP("google.protobuf.Timestamp", SimpleType.TIMESTAMP),
+    OPTIONAL("optional_type", OptionalType.create(SimpleType.DYN)),
+    PROTO_MESSAGE_TYPE(
+        "cel.expr.conformance.proto3.TestAllTypes",
+        TYPE_PROVIDER.findType(TestAllTypes.getDescriptor().getFullName()).get());
+
+    private final String expression;
+    private final TypeType type;
+
+    TypeLiteralTestCase(String expression, CelType type) {
+      this.expression = expression;
+      this.type = TypeType.create(type);
     }
   }
 }

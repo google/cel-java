@@ -44,7 +44,7 @@ public abstract class SimpleType extends CelType {
   public static final CelType TIMESTAMP = create(CelKind.TIMESTAMP, "google.protobuf.Timestamp");
   public static final CelType UINT = create(CelKind.UINT, "uint");
 
-  private static final ImmutableMap<String, CelType> TYPE_MAP =
+  public static final ImmutableMap<String, CelType> TYPE_MAP =
       ImmutableMap.of(
           DYN.name(), DYN,
           BOOL.name(), BOOL,

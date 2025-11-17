@@ -110,6 +110,10 @@ final class EvalConstant implements Interpretable {
     return new EvalConstant(byteString);
   }
 
+  static EvalConstant create(Object value) {
+    return new EvalConstant(value);
+  }
+
   private EvalConstant(Object constant) {
     this.constant = constant;
   }

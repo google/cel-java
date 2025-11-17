@@ -18,15 +18,20 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelReference;
+import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypeProvider;
+import dev.cel.common.types.TypeType;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationExceptionBuilder;
 import dev.cel.runtime.Interpretable;
 import dev.cel.runtime.Program;
+import java.util.NoSuchElementException;
 
 /**
  * {@code ProgramPlanner} resolves functions, types, and identifiers at plan time given a
@@ -35,6 +40,9 @@ import dev.cel.runtime.Program;
 @ThreadSafe
 @Internal
 public final class ProgramPlanner {
+
+  private final CelTypeProvider typeProvider;
+  private final AttributeFactory attributeFactory;
 
   /**
    * Plans a {@link Program} from the provided parsed-only or type-checked {@link
@@ -51,10 +59,12 @@ public final class ProgramPlanner {
     return PlannedProgram.create(plannedInterpretable);
   }
 
-  private Interpretable plan(CelExpr celExpr, PlannerContext unused) {
+  private Interpretable plan(CelExpr celExpr, PlannerContext ctx) {
     switch (celExpr.getKind()) {
       case CONSTANT:
         return planConstant(celExpr.constant());
+      case IDENT:
+        return planIdent(celExpr, ctx);
       case NOT_SET:
         throw new UnsupportedOperationException("Unsupported kind: " + celExpr.getKind());
       default:
@@ -83,6 +93,37 @@ public final class ProgramPlanner {
     }
   }
 
+  private Interpretable planIdent(CelExpr celExpr, PlannerContext ctx) {
+    CelReference ref = ctx.referenceMap().get(celExpr.id());
+    if (ref != null) {
+      return planCheckedIdent(celExpr.id(), ref, ctx.typeMap());
+    }
+
+    return EvalAttribute.create(attributeFactory.newMaybeAttribute(celExpr.ident().name()));
+  }
+
+  private Interpretable planCheckedIdent(
+      long id, CelReference identRef, ImmutableMap<Long, CelType> typeMap) {
+    if (identRef.value().isPresent()) {
+      return planConstant(identRef.value().get());
+    }
+
+    CelType type = typeMap.get(id);
+    if (type.kind().equals(CelKind.TYPE)) {
+      TypeType identType =
+          typeProvider
+              .findType(identRef.name())
+              .map(TypeType::create)
+              .orElseThrow(
+                  () ->
+                      new NoSuchElementException(
+                          "Reference to an undefined type: " + identRef.name()));
+      return EvalConstant.create(identType);
+    }
+
+    return EvalAttribute.create(attributeFactory.newAbsoluteAttribute(identRef.name()));
+  }
+
   @AutoValue
   abstract static class PlannerContext {
 
@@ -95,9 +136,14 @@ public final class ProgramPlanner {
     }
   }
 
-  public static ProgramPlanner newPlanner() {
-    return new ProgramPlanner();
+  public static ProgramPlanner newPlanner(CelTypeProvider typeProvider) {
+    return new ProgramPlanner(typeProvider);
   }
 
-  private ProgramPlanner() {}
+  private ProgramPlanner(CelTypeProvider typeProvider) {
+    this.typeProvider = typeProvider;
+    // TODO: Container support
+    this.attributeFactory =
+        AttributeFactory.newAttributeFactory(CelContainer.newBuilder().build(), typeProvider);
+  }
 }

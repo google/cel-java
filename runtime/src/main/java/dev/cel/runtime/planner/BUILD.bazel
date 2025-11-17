@@ -13,12 +13,16 @@ java_library(
     tags = [
     ],
     deps = [
+        ":attribute",
+        ":eval_attribute",
         ":eval_const",
         ":planned_program",
         "//:auto_value",
         "//common:cel_ast",
+        "//common:container",
         "//common/annotations",
         "//common/ast",
+        "//common/types",
         "//common/types:type_providers",
         "//runtime:evaluation_exception",
         "//runtime:evaluation_exception_builder",
@@ -35,6 +39,7 @@ java_library(
     srcs = ["PlannedProgram.java"],
     deps = [
         "//:auto_value",
+        "//runtime:activation",
         "//runtime:evaluation_exception",
         "//runtime:function_resolver",
         "//runtime:interpretable",
@@ -49,6 +54,35 @@ java_library(
     deps = [
         "//common/values",
         "//common/values:cel_byte_string",
+        "//runtime:evaluation_listener",
+        "//runtime:function_resolver",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "attribute",
+    srcs = [
+        "Attribute.java",
+        "AttributeFactory.java",
+    ],
+    deps = [
+        "//common:container",
+        "//common/types",
+        "//common/types:type_providers",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_attribute",
+    srcs = ["EvalAttribute.java"],
+    deps = [
+        ":attribute",
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
         "//runtime:interpretable",
