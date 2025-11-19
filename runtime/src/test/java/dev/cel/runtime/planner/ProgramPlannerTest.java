@@ -125,6 +125,17 @@ public final class ProgramPlannerTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked") // test only
+  public void plan_createMap() throws Exception {
+    CelAbstractSyntaxTree ast = compile("{'foo': 1, true: 'bar'}");
+    Program program = PLANNER.plan(ast);
+
+    ImmutableMap<Object, Object> result = (ImmutableMap<Object, Object>) program.eval();
+
+    assertThat(result).containsExactly("foo", 1L, true, "bar").inOrder();
+  }
+
+  @Test
   public void planIdent_typeLiteral(@TestParameter TypeLiteralTestCase testCase) throws Exception {
     if (isParseOnly) {
       if (testCase.equals(TypeLiteralTestCase.DURATION)

@@ -24,6 +24,7 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelList;
+import dev.cel.common.ast.CelExpr.CelMap;
 import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelType;
@@ -69,6 +70,8 @@ public final class ProgramPlanner {
         return planIdent(celExpr, ctx);
       case LIST:
         return planCreateList(celExpr, ctx);
+      case MAP:
+        return planCreateMap(celExpr, ctx);
       case NOT_SET:
         throw new UnsupportedOperationException("Unsupported kind: " + celExpr.getKind());
       default:
@@ -139,6 +142,22 @@ public final class ProgramPlanner {
     }
 
     return EvalCreateList.create(values);
+  }
+
+  private Interpretable planCreateMap(CelExpr celExpr, PlannerContext ctx) {
+    CelMap map = celExpr.map();
+
+    ImmutableList<CelMap.Entry> entries = map.entries();
+    Interpretable[] keys = new Interpretable[entries.size()];
+    Interpretable[] values = new Interpretable[entries.size()];
+
+    for (int i = 0; i < entries.size(); i++) {
+      CelMap.Entry entry = entries.get(i);
+      keys[i] = plan(entry.key(), ctx);
+      values[i] = plan(entry.value(), ctx);
+    }
+
+    return EvalCreateMap.create(keys, values);
   }
 
   @AutoValue
