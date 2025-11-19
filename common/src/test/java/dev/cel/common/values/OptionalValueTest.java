@@ -34,7 +34,7 @@ public class OptionalValueTest {
 
   @Test
   public void emptyOptional() {
-    OptionalValue<CelValue> optionalValue = OptionalValue.EMPTY;
+    OptionalValue<Object, Object> optionalValue = OptionalValue.EMPTY;
 
     assertThat(optionalValue.isZeroValue()).isTrue();
     NoSuchElementException exception =
@@ -44,7 +44,7 @@ public class OptionalValueTest {
 
   @Test
   public void optionalValue_selectEmpty() {
-    CelValue optionalValue = OptionalValue.EMPTY.select(StringValue.create("bogus"));
+    OptionalValue<?, ?> optionalValue = OptionalValue.EMPTY.select("bogus");
 
     assertThat(optionalValue).isEqualTo(OptionalValue.EMPTY);
     assertThat(optionalValue.isZeroValue()).isTrue();
@@ -52,19 +52,18 @@ public class OptionalValueTest {
 
   @Test
   public void optionalValue_construct() {
-    OptionalValue<IntValue> optionalValue = OptionalValue.create(IntValue.create(1L));
+    OptionalValue<Long, Object> optionalValue = OptionalValue.create(1L);
 
-    assertThat(optionalValue.value()).isEqualTo(IntValue.create(1L));
+    assertThat(optionalValue.value()).isEqualTo(1L);
     assertThat(optionalValue.isZeroValue()).isFalse();
   }
 
   @Test
   public void optSelectField_map_success() {
-    IntValue one = IntValue.create(1L);
-    StringValue hello = StringValue.create("hello");
-    ImmutableMapValue<IntValue, StringValue> mapValue =
-        ImmutableMapValue.create(ImmutableMap.of(one, hello));
-    OptionalValue<ImmutableMapValue<IntValue, StringValue>> optionalValueContainingMap =
+    Long one = 1L;
+    String hello = "hello";
+    ImmutableMap<Long, String> mapValue = ImmutableMap.of(one, hello);
+    OptionalValue<ImmutableMap<Long, String>, Long> optionalValueContainingMap =
         OptionalValue.create(mapValue);
 
     assertThat(optionalValueContainingMap.select(one)).isEqualTo(OptionalValue.create(hello));
@@ -72,11 +71,10 @@ public class OptionalValueTest {
 
   @Test
   public void optSelectField_map_returnsEmpty() {
-    IntValue one = IntValue.create(1L);
-    StringValue hello = StringValue.create("hello");
-    ImmutableMapValue<IntValue, StringValue> mapValue =
-        ImmutableMapValue.create(ImmutableMap.of(one, hello));
-    OptionalValue<ImmutableMapValue<IntValue, StringValue>> optionalValueContainingMap =
+    Long one = 1L;
+    String hello = "hello";
+    ImmutableMap<Long, String> mapValue = ImmutableMap.of(one, hello);
+    OptionalValue<ImmutableMap<Long, String>, Object> optionalValueContainingMap =
         OptionalValue.create(mapValue);
 
     assertThat(optionalValueContainingMap.select(NullValue.NULL_VALUE))
@@ -86,36 +84,32 @@ public class OptionalValueTest {
   @Test
   public void optSelectField_struct_success() {
     CelCustomStruct celCustomStruct = new CelCustomStruct(5L);
-    OptionalValue<CelCustomStruct> optionalValueContainingStruct =
+    OptionalValue<CelCustomStruct, String> optionalValueContainingStruct =
         OptionalValue.create(celCustomStruct);
 
-    assertThat(optionalValueContainingStruct.select(StringValue.create("data")))
-        .isEqualTo(OptionalValue.create(IntValue.create(5L)));
+    assertThat(optionalValueContainingStruct.select("data")).isEqualTo(OptionalValue.create(5L));
   }
 
   @Test
   public void optSelectField_struct_returnsEmpty() {
     CelCustomStruct celCustomStruct = new CelCustomStruct(5L);
-    OptionalValue<CelCustomStruct> optionalValueContainingStruct =
+    OptionalValue<CelCustomStruct, String> optionalValueContainingStruct =
         OptionalValue.create(celCustomStruct);
 
-    assertThat(optionalValueContainingStruct.select(StringValue.create("bogus")))
-        .isEqualTo(OptionalValue.EMPTY);
+    assertThat(optionalValueContainingStruct.select("bogus")).isEqualTo(OptionalValue.EMPTY);
   }
 
   @Test
   @TestParameters("{key: 1, expectedResult: true}")
   @TestParameters("{key: 100, expectedResult: false}")
   public void findField_map_success(long key, boolean expectedResult) {
-    IntValue one = IntValue.create(1L);
-    StringValue hello = StringValue.create("hello");
-    ImmutableMapValue<IntValue, StringValue> mapValue =
-        ImmutableMapValue.create(ImmutableMap.of(one, hello));
-    OptionalValue<ImmutableMapValue<IntValue, StringValue>> optionalValueContainingMap =
+    Long one = 1L;
+    String hello = "hello";
+    ImmutableMap<Long, String> mapValue = ImmutableMap.of(one, hello);
+    OptionalValue<ImmutableMap<Long, String>, Long> optionalValueContainingMap =
         OptionalValue.create(mapValue);
 
-    assertThat(optionalValueContainingMap.find(IntValue.create(key)).isPresent())
-        .isEqualTo(expectedResult);
+    assertThat(optionalValueContainingMap.find(key).isPresent()).isEqualTo(expectedResult);
   }
 
   @Test
@@ -123,16 +117,15 @@ public class OptionalValueTest {
   @TestParameters("{field: 'bogus', expectedResult: false}")
   public void findField_struct_success(String field, boolean expectedResult) {
     CelCustomStruct celCustomStruct = new CelCustomStruct(5L);
-    OptionalValue<CelCustomStruct> optionalValueContainingStruct =
+    OptionalValue<CelCustomStruct, String> optionalValueContainingStruct =
         OptionalValue.create(celCustomStruct);
 
-    assertThat(optionalValueContainingStruct.find(StringValue.create(field)).isPresent())
-        .isEqualTo(expectedResult);
+    assertThat(optionalValueContainingStruct.find(field).isPresent()).isEqualTo(expectedResult);
   }
 
   @Test
   public void findField_onEmptyOptional() {
-    assertThat(OptionalValue.EMPTY.find(StringValue.create("bogus"))).isEmpty();
+    assertThat(OptionalValue.EMPTY.find("bogus")).isEmpty();
   }
 
   @Test
@@ -142,13 +135,13 @@ public class OptionalValueTest {
 
   @Test
   public void celTypeTest() {
-    OptionalValue<CelValue> value = OptionalValue.EMPTY;
+    OptionalValue<Object, Object> value = OptionalValue.EMPTY;
 
     assertThat(value.celType()).isEqualTo(OptionalType.create(SimpleType.DYN));
   }
 
   @SuppressWarnings("Immutable") // Test only
-  private static class CelCustomStruct extends StructValue<StringValue> {
+  private static class CelCustomStruct extends StructValue<String> {
     private final long data;
 
     @Override
@@ -167,14 +160,14 @@ public class OptionalValueTest {
     }
 
     @Override
-    public CelValue select(StringValue field) {
+    public Long select(String field) {
       return find(field).get();
     }
 
     @Override
-    public Optional<CelValue> find(StringValue field) {
-      if (field.value().equals("data")) {
-        return Optional.of(IntValue.create(value()));
+    public Optional<Long> find(String field) {
+      if (field.equals("data")) {
+        return Optional.of(value());
       }
 
       return Optional.empty();

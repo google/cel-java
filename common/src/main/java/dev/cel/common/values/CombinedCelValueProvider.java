@@ -38,9 +38,9 @@ public final class CombinedCelValueProvider implements CelValueProvider {
   }
 
   @Override
-  public Optional<CelValue> newValue(String structType, Map<String, Object> fields) {
+  public Optional<Object> newValue(String structType, Map<String, Object> fields) {
     for (CelValueProvider provider : celValueProviders) {
-      Optional<CelValue> newValue = provider.newValue(structType, fields);
+      Optional<Object> newValue = provider.newValue(structType, fields);
       if (newValue.isPresent()) {
         return newValue;
       }

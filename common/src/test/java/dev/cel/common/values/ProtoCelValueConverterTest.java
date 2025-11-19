@@ -19,8 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
-import java.time.Duration;
-import java.time.Instant;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -33,41 +31,8 @@ public class ProtoCelValueConverterTest {
           DefaultDescriptorPool.INSTANCE, DynamicProto.create(DefaultMessageFactory.INSTANCE));
 
   @Test
-  public void fromCelValueToJavaObject_returnsInstantValue() {
-    Instant timestamp =
-        (Instant)
-            PROTO_CEL_VALUE_CONVERTER.fromCelValueToJavaObject(
-                TimestampValue.create(Instant.ofEpochSecond(50)));
-
-    assertThat(timestamp).isEqualTo(Instant.ofEpochSecond(50));
-  }
-
-  @Test
-  public void fromCelValueToJavaObject_returnsDurationValue() {
-    Duration duration =
-        (Duration)
-            PROTO_CEL_VALUE_CONVERTER.fromCelValueToJavaObject(
-                DurationValue.create(Duration.ofSeconds(10)));
-
-    assertThat(duration).isEqualTo(Duration.ofSeconds(10));
-  }
-
-  @Test
-  public void fromCelValueToJavaObject_returnsCelBytesValue() {
-    CelByteString byteString =
-        (CelByteString)
-            PROTO_CEL_VALUE_CONVERTER.fromCelValueToJavaObject(
-                BytesValue.create(CelByteString.of(new byte[] {0x1, 0x5, 0xc})));
-
-    // Note: No conversion is attempted. CelByteString is the native Java type equivalent for CEL's
-    // bytes.
-    assertThat(byteString).isEqualTo(CelByteString.of(new byte[] {0x1, 0x5, 0xc}));
-  }
-
-  @Test
-  public void fromCelValueToJavaObject_returnsCelNullValue() {
-    NullValue nullValue =
-        (NullValue) PROTO_CEL_VALUE_CONVERTER.fromCelValueToJavaObject(NullValue.NULL_VALUE);
+  public void unwrap_nullValue() {
+    NullValue nullValue = (NullValue) PROTO_CEL_VALUE_CONVERTER.unwrap(NullValue.NULL_VALUE);
 
     // Note: No conversion is attempted. We're using dev.cel.common.values.NullValue.NULL_VALUE as
     // the

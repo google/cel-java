@@ -27,7 +27,6 @@ import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.CombinedCelValueProvider;
 import dev.cel.common.values.SelectableValue;
-import dev.cel.common.values.StringValue;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -39,13 +38,7 @@ final class CelValueRuntimeTypeProvider implements RuntimeTypeProvider {
   private final CelValueProvider valueProvider;
   private final BaseProtoCelValueConverter protoCelValueConverter;
   private static final BaseProtoCelValueConverter DEFAULT_CEL_VALUE_CONVERTER =
-      new BaseProtoCelValueConverter() {
-        @Override
-        public CelValue fromProtoMessageToCelValue(MessageLite msg) {
-          throw new UnsupportedOperationException(
-              "A value provider must be provided in the runtime to handle protobuf messages");
-        }
-      };
+      new BaseProtoCelValueConverter() {};
 
   static CelValueRuntimeTypeProvider newInstance(CelValueProvider valueProvider) {
     BaseProtoCelValueConverter converter = DEFAULT_CEL_VALUE_CONVERTER;
@@ -72,7 +65,7 @@ final class CelValueRuntimeTypeProvider implements RuntimeTypeProvider {
 
   @Override
   public Object createMessage(String messageName, Map<String, Object> values) {
-    return unwrapCelValue(
+    return maybeUnwrapCelValue(
         valueProvider
             .newValue(messageName, values)
             .orElseThrow(
@@ -83,32 +76,39 @@ final class CelValueRuntimeTypeProvider implements RuntimeTypeProvider {
 
   @Override
   public Object selectField(Object message, String fieldName) {
-    SelectableValue<CelValue> selectableValue = getSelectableValueOrThrow(message, fieldName);
+    if (message instanceof Map) {
+      Map<?, ?> map = (Map<?, ?>) message;
+      if (map.containsKey(fieldName)) {
+        return map.get(fieldName);
+      }
 
-    return unwrapCelValue(selectableValue.select(StringValue.create(fieldName)));
+      throw new CelRuntimeException(
+          new IllegalArgumentException(String.format("key '%s' is not present in map.", fieldName)),
+          CelErrorCode.ATTRIBUTE_NOT_FOUND);
+    }
+
+    SelectableValue<String> selectableValue = getSelectableValueOrThrow(message, fieldName);
+    Object value = selectableValue.select(fieldName);
+
+    return maybeUnwrapCelValue(value);
   }
 
   @Override
   public Object hasField(Object message, String fieldName) {
-    SelectableValue<CelValue> selectableValue = getSelectableValueOrThrow(message, fieldName);
+    SelectableValue<String> selectableValue = getSelectableValueOrThrow(message, fieldName);
 
-    return selectableValue.find(StringValue.create(fieldName)).isPresent();
+    return selectableValue.find(fieldName).isPresent();
   }
 
   @SuppressWarnings("unchecked")
-  private SelectableValue<CelValue> getSelectableValueOrThrow(Object obj, String fieldName) {
-    CelValue convertedCelValue;
-    if ((obj instanceof MessageLite)) {
-      convertedCelValue = protoCelValueConverter.fromProtoMessageToCelValue((MessageLite) obj);
-    } else {
-      convertedCelValue = protoCelValueConverter.fromJavaObjectToCelValue(obj);
-    }
+  private SelectableValue<String> getSelectableValueOrThrow(Object obj, String fieldName) {
+    Object convertedCelValue = protoCelValueConverter.toRuntimeValue(obj);
 
     if (!(convertedCelValue instanceof SelectableValue)) {
       throwInvalidFieldSelection(fieldName);
     }
 
-    return (SelectableValue<CelValue>) convertedCelValue;
+    return (SelectableValue<String>) convertedCelValue;
   }
 
   @Override
@@ -123,11 +123,10 @@ final class CelValueRuntimeTypeProvider implements RuntimeTypeProvider {
     }
 
     if (message instanceof MessageLite) {
-      return unwrapCelValue(
-          protoCelValueConverter.fromProtoMessageToCelValue((MessageLite) message));
-    } else {
-      return unwrapCelValue(protoCelValueConverter.fromJavaObjectToCelValue(message));
+      return maybeUnwrapCelValue(protoCelValueConverter.toRuntimeValue(message));
     }
+
+    return message;
   }
 
   /**
@@ -135,8 +134,11 @@ final class CelValueRuntimeTypeProvider implements RuntimeTypeProvider {
    *
    * <p>This will become unnecessary once we introduce a rewrite of a Cel runtime.
    */
-  private Object unwrapCelValue(CelValue object) {
-    return protoCelValueConverter.fromCelValueToJavaObject(object);
+  private Object maybeUnwrapCelValue(Object object) {
+    if (object instanceof CelValue) {
+      return protoCelValueConverter.unwrap((CelValue) object);
+    }
+    return object;
   }
 
   private static void throwInvalidFieldSelection(String fieldName) {

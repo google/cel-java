@@ -150,16 +150,38 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
     return descriptorPool.getDescriptorOrThrow(protoTypeName).newMessageBuilder();
   }
 
-  CelValue getDefaultCelValue(String protoTypeName, String fieldName) {
+  Object getDefaultCelValue(String protoTypeName, String fieldName) {
     MessageLiteDescriptor messageDescriptor = descriptorPool.getDescriptorOrThrow(protoTypeName);
     FieldLiteDescriptor fieldDescriptor = messageDescriptor.getByFieldNameOrThrow(fieldName);
 
     Object defaultValue = getDefaultValue(fieldDescriptor);
-    if (defaultValue instanceof MessageLite) {
-      return fromProtoMessageToCelValue((MessageLite) defaultValue);
+
+    return toRuntimeValue(defaultValue);
+  }
+
+  @Override
+  @SuppressWarnings("LiteProtoToString") // No alternative identifier to use. Debug only info is OK.
+  public Object toRuntimeValue(Object value) {
+    checkNotNull(value);
+    if (value instanceof MessageLite) {
+      MessageLite msg = (MessageLite) value;
+
+      MessageLiteDescriptor descriptor =
+          descriptorPool
+              .findDescriptor(msg)
+              .orElseThrow(
+                  () -> new NoSuchElementException("Could not find a descriptor for: " + msg));
+      WellKnownProto wellKnownProto =
+          WellKnownProto.getByTypeName(descriptor.getProtoTypeName()).orElse(null);
+
+      if (wellKnownProto == null) {
+        return ProtoMessageLiteValue.create(msg, descriptor.getProtoTypeName(), this);
+      }
+
+      return super.fromWellKnownProto(msg, wellKnownProto);
     }
 
-    return fromJavaObjectToCelValue(defaultValue);
+    return super.toRuntimeValue(value);
   }
 
   private Object getDefaultValue(FieldLiteDescriptor fieldDescriptor) {
@@ -352,26 +374,6 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
       default:
         throw new IllegalArgumentException("Unknown wire type: " + tagWireType);
     }
-  }
-
-  @Override
-  @SuppressWarnings("LiteProtoToString") // No alternative identifier to use. Debug only info is OK.
-  public CelValue fromProtoMessageToCelValue(MessageLite msg) {
-    checkNotNull(msg);
-
-    MessageLiteDescriptor descriptor =
-        descriptorPool
-            .findDescriptor(msg)
-            .orElseThrow(
-                () -> new NoSuchElementException("Could not find a descriptor for: " + msg));
-    WellKnownProto wellKnownProto =
-        WellKnownProto.getByTypeName(descriptor.getProtoTypeName()).orElse(null);
-
-    if (wellKnownProto == null) {
-      return ProtoMessageLiteValue.create(msg, descriptor.getProtoTypeName(), this);
-    }
-
-    return super.fromWellKnownProtoToCelValue(msg, wellKnownProto);
   }
 
   @AutoValue

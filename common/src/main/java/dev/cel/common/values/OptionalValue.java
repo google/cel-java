@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
@@ -30,12 +31,11 @@ import org.jspecify.annotations.Nullable;
  */
 @AutoValue
 @Immutable(containerOf = "E")
-public abstract class OptionalValue<E extends CelValue> extends CelValue
-    implements SelectableValue<CelValue> {
+public abstract class OptionalValue<E, T> extends CelValue implements SelectableValue<T> {
   private static final OptionalType OPTIONAL_TYPE = OptionalType.create(SimpleType.DYN);
 
   /** Sentinel value representing an empty optional ('optional.none()' in CEL) */
-  public static final OptionalValue<CelValue> EMPTY = empty();
+  public static final OptionalValue<Object, Object> EMPTY = empty();
 
   // There is only one scenario where the value is null and it's `optional.none`.
   abstract @Nullable E innerValue();
@@ -68,28 +68,40 @@ public abstract class OptionalValue<E extends CelValue> extends CelValue
    * </ol>
    */
   @Override
-  public CelValue select(CelValue field) {
+  public OptionalValue<?, ?> select(T field) {
     return find(field).orElse(EMPTY);
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public Optional<CelValue> find(CelValue field) {
+  public Optional<OptionalValue<?, ?>> find(T field) {
     if (isZeroValue()) {
       return Optional.empty();
     }
 
-    SelectableValue<CelValue> selectableValue = (SelectableValue<CelValue>) value();
-    Optional<CelValue> selectedField = selectableValue.find(field);
-    return selectedField.map(OptionalValue::create);
+    E value = value();
+    if (value instanceof Map) {
+      Map<?, ?> map = (Map<?, ?>) value;
+      Object selectedVal = map.get(field);
+      if (selectedVal == null) {
+        return Optional.empty();
+      }
+
+      return Optional.of(OptionalValue.create((E) selectedVal));
+    } else if (value instanceof SelectableValue) {
+      SelectableValue<T> selectableValue = (SelectableValue<T>) value;
+      return selectableValue.find(field).map(OptionalValue::create);
+    }
+
+    return Optional.empty();
   }
 
-  public static <E extends CelValue> OptionalValue<E> create(E value) {
+  public static <E, T> OptionalValue<E, T> create(E value) {
     Preconditions.checkNotNull(value);
     return new AutoValue_OptionalValue<>(value);
   }
 
-  private static OptionalValue<CelValue> empty() {
+  private static <E, T> OptionalValue<E, T> empty() {
     return new AutoValue_OptionalValue<>(null);
   }
 }

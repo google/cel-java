@@ -23,10 +23,8 @@ import java.util.Optional;
 public interface CelValueProvider {
 
   /**
-   * Constructs a new struct value.
-   *
-   * <p>Note that the return type is defined as CelValue rather than StructValue to account for
-   * special cases such as wrappers where its primitive is returned.
+   * Constructs a new struct value, or a primitive value in case the fully qualified struct name is
+   * a wrapper.
    */
-  Optional<CelValue> newValue(String structType, Map<String, Object> fields);
+  Optional<Object> newValue(String structType, Map<String, Object> fields);
 }

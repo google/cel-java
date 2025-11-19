@@ -20,18 +20,18 @@ import java.util.Optional;
  * SelectableValue is an interface for representing a value that supports field selection and
  * presence tests. Few examples are structs, protobuf messages, maps and optional values.
  */
-public interface SelectableValue<T extends CelValue> {
+public interface SelectableValue<T> {
 
   /**
    * Performs field selection. The behavior depends on the concrete implementation of the value
    * being selected. For structs and maps, this must throw an exception if the field does not exist.
    * For optional values, this will return an {@code optional.none()}.
    */
-  CelValue select(T field);
+  Object select(T field);
 
   /**
    * Finds the field. This will return an {@link Optional#empty()} if the field does not exist. This
    * can be used for presence testing.
    */
-  Optional<CelValue> find(T field);
+  Optional<? extends Object> find(T field);
 }

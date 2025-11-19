@@ -28,5 +28,4 @@ import com.google.errorprone.annotations.Immutable;
  * implementation should return an appropriate default value based on the struct's semantics.
  */
 @Immutable
-public abstract class StructValue<T extends CelValue> extends CelValue
-    implements SelectableValue<T> {}
+public abstract class StructValue<T> extends CelValue implements SelectableValue<T> {}

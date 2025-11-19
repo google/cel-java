@@ -15,6 +15,7 @@
 package dev.cel.common.values;
 
 import com.google.common.base.Preconditions;
+import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Any;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
@@ -23,7 +24,6 @@ import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MapEntry;
 import com.google.protobuf.Message;
-import com.google.protobuf.MessageLite;
 import com.google.protobuf.MessageLiteOrBuilder;
 import com.google.protobuf.MessageOrBuilder;
 import dev.cel.common.annotations.Internal;
@@ -57,31 +57,7 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
   }
 
   @Override
-  public CelValue fromProtoMessageToCelValue(MessageLite msg) {
-    return fromDescriptorMessageToCelValue((MessageOrBuilder) msg);
-  }
-
-  /** Adapts a Protobuf message into a {@link CelValue}. */
-  public CelValue fromDescriptorMessageToCelValue(MessageOrBuilder message) {
-    Preconditions.checkNotNull(message);
-
-    // Attempt to convert the proto from a dynamic message into a concrete message if possible.
-    if (message instanceof DynamicMessage) {
-      message = dynamicProto.maybeAdaptDynamicMessage((DynamicMessage) message);
-    }
-
-    WellKnownProto wellKnownProto =
-        WellKnownProto.getByTypeName(message.getDescriptorForType().getFullName()).orElse(null);
-    if (wellKnownProto == null) {
-      return ProtoMessageValue.create((Message) message, celDescriptorPool, this);
-    }
-
-    return fromWellKnownProtoToCelValue(message, wellKnownProto);
-  }
-
-  @Override
-  protected CelValue fromWellKnownProtoToCelValue(
-      MessageLiteOrBuilder msg, WellKnownProto wellKnownProto) {
+  protected Object fromWellKnownProto(MessageLiteOrBuilder msg, WellKnownProto wellKnownProto) {
     MessageOrBuilder message = (MessageOrBuilder) msg;
     switch (wellKnownProto) {
       case ANY_VALUE:
@@ -92,26 +68,41 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
           throw new IllegalStateException(
               "Unpacking failed for message: " + message.getDescriptorForType().getFullName(), e);
         }
-        return fromProtoMessageToCelValue(unpackedMessage);
+        return toRuntimeValue(unpackedMessage);
       default:
-        return super.fromWellKnownProtoToCelValue(message, wellKnownProto);
+        return super.fromWellKnownProto(message, wellKnownProto);
     }
   }
 
   @Override
-  public CelValue fromJavaObjectToCelValue(Object value) {
+  public Object toRuntimeValue(Object value) {
     if (value instanceof EnumValueDescriptor) {
       // (b/178627883) Strongly typed enum is not supported yet
-      return IntValue.create(((EnumValueDescriptor) value).getNumber());
+      return Long.valueOf(((EnumValueDescriptor) value).getNumber());
     }
 
-    return super.fromJavaObjectToCelValue(value);
+    if (value instanceof MessageOrBuilder) {
+      MessageOrBuilder message = (MessageOrBuilder) value;
+      // Attempt to convert the proto from a dynamic message into a concrete message if possible.
+      if (message instanceof DynamicMessage) {
+        message = dynamicProto.maybeAdaptDynamicMessage((DynamicMessage) message);
+      }
+
+      WellKnownProto wellKnownProto =
+          WellKnownProto.getByTypeName(message.getDescriptorForType().getFullName()).orElse(null);
+      if (wellKnownProto == null) {
+        return ProtoMessageValue.create((Message) message, celDescriptorPool, this);
+      }
+
+      return fromWellKnownProto(message, wellKnownProto);
+    }
+
+    return super.toRuntimeValue(value);
   }
 
-  /** Adapts the protobuf message field into {@link CelValue}. */
+  /** Adapts the protobuf message field. */
   @SuppressWarnings({"unchecked", "rawtypes"})
-  public CelValue fromProtoMessageFieldToCelValue(
-      Message message, FieldDescriptor fieldDescriptor) {
+  public Object fromProtoMessageFieldToCelValue(Message message, FieldDescriptor fieldDescriptor) {
     Preconditions.checkNotNull(message);
     Preconditions.checkNotNull(fieldDescriptor);
 
@@ -148,19 +139,19 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
 
             map.put(mapKey, mapValue);
           }
-          return fromJavaObjectToCelValue(map);
+          return toRuntimeValue(map);
         }
 
-        return fromDescriptorMessageToCelValue((MessageOrBuilder) result);
+        return toRuntimeValue(result);
       case UINT32:
-        return UintValue.create((int) result);
+        return UnsignedLong.valueOf((int) result);
       case UINT64:
-        return UintValue.create((long) result);
+        return UnsignedLong.fromLongBits((long) result);
       default:
         break;
     }
 
-    return fromJavaObjectToCelValue(result);
+    return toRuntimeValue(result);
   }
 
   private ProtoCelValueConverter(CelDescriptorPool celDescriptorPool, DynamicProto dynamicProto) {

@@ -42,7 +42,7 @@ public class ProtoMessageLiteValueProvider extends BaseProtoMessageValueProvider
   }
 
   @Override
-  public Optional<CelValue> newValue(String structType, Map<String, Object> fields) {
+  public Optional<Object> newValue(String structType, Map<String, Object> fields) {
     MessageLiteDescriptor descriptor = descriptorPool.findDescriptor(structType).orElse(null);
     if (descriptor == null) {
       return Optional.empty();
@@ -55,7 +55,7 @@ public class ProtoMessageLiteValueProvider extends BaseProtoMessageValueProvider
     }
 
     MessageLite message = descriptor.newMessageBuilder().build();
-    return Optional.of(protoLiteCelValueConverter.fromProtoMessageToCelValue(message));
+    return Optional.of(protoLiteCelValueConverter.toRuntimeValue(message));
   }
 
   public static ProtoMessageLiteValueProvider newInstance(CelLiteDescriptor... descriptors) {

@@ -45,7 +45,7 @@ public class ProtoMessageValueProvider extends BaseProtoMessageValueProvider {
   }
 
   @Override
-  public Optional<CelValue> newValue(String structType, Map<String, Object> fields) {
+  public Optional<Object> newValue(String structType, Map<String, Object> fields) {
     Message.Builder builder = protoMessageFactory.newBuilder(structType).orElse(null);
     if (builder == null) {
       return Optional.empty();
@@ -60,7 +60,7 @@ public class ProtoMessageValueProvider extends BaseProtoMessageValueProvider {
         fieldValue.ifPresent(o -> builder.setField(fieldDescriptor, o));
       }
 
-      return Optional.of(protoCelValueConverter.fromProtoMessageToCelValue(builder.build()));
+      return Optional.of(protoCelValueConverter.toRuntimeValue(builder.build()));
     } catch (ArrayIndexOutOfBoundsException e) {
       throw new IllegalArgumentException(e.getMessage());
     }

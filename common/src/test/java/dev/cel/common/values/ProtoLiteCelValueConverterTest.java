@@ -15,19 +15,23 @@
 package dev.cel.common.values;
 
 import static com.google.common.truth.Truth.assertThat;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+import com.google.common.primitives.UnsignedLong;
+import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.BytesValue;
+import com.google.protobuf.DoubleValue;
 import com.google.protobuf.Duration;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
 import com.google.protobuf.MessageLite;
+import com.google.protobuf.StringValue;
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
@@ -54,52 +58,50 @@ public class ProtoLiteCelValueConverterTest {
       ProtoLiteCelValueConverter.newInstance(DESCRIPTOR_POOL);
 
   @Test
-  public void fromProtoMessageToCelValue_withTestMessage_convertsToProtoMessageLiteValue() {
+  public void
+      fromProtoMessageToCelValue_withTestMessage_convertsToProtoMessageLiteValueFromProtoMessage() {
     ProtoMessageLiteValue protoMessageLiteValue =
         (ProtoMessageLiteValue)
-            PROTO_LITE_CEL_VALUE_CONVERTER.fromProtoMessageToCelValue(
-                TestAllTypes.getDefaultInstance());
+            PROTO_LITE_CEL_VALUE_CONVERTER.toRuntimeValue(TestAllTypes.getDefaultInstance());
 
     assertThat(protoMessageLiteValue.value()).isEqualTo(TestAllTypes.getDefaultInstance());
   }
 
+  @SuppressWarnings("ImmutableEnumChecker") // Test only
   private enum WellKnownProtoTestCase {
-    BOOL(com.google.protobuf.BoolValue.of(true), BoolValue.create(true)),
-    BYTES(
-        com.google.protobuf.BytesValue.of(ByteString.copyFromUtf8("test")),
-        BytesValue.create(CelByteString.of("test".getBytes(UTF_8)))),
-    FLOAT(FloatValue.of(1.0f), DoubleValue.create(1.0f)),
-    DOUBLE(com.google.protobuf.DoubleValue.of(1.0), DoubleValue.create(1.0)),
-    INT32(Int32Value.of(1), IntValue.create(1)),
-    INT64(Int64Value.of(1L), IntValue.create(1L)),
-    STRING(com.google.protobuf.StringValue.of("test"), StringValue.create("test")),
+    BOOL(BoolValue.of(true), true),
+    BYTES(BytesValue.of(ByteString.copyFromUtf8("test")), CelByteString.copyFromUtf8("test")),
+    FLOAT(FloatValue.of(1.0f), 1.0d),
+    DOUBLE(DoubleValue.of(1.0), 1.0d),
+    INT32(Int32Value.of(1), 1L),
+    INT64(Int64Value.of(1L), 1L),
+    STRING(StringValue.of("test"), "test"),
 
     DURATION(
         Duration.newBuilder().setSeconds(10).setNanos(50).build(),
-        DurationValue.create(java.time.Duration.ofSeconds(10, 50))),
+        java.time.Duration.ofSeconds(10, 50)),
     TIMESTAMP(
         Timestamp.newBuilder().setSeconds(1678886400L).setNanos(123000000).build(),
-        TimestampValue.create(Instant.ofEpochSecond(1678886400L, 123000000))),
-    UINT32(UInt32Value.of(1), UintValue.create(1)),
-    UINT64(UInt64Value.of(1L), UintValue.create(1L)),
+        Instant.ofEpochSecond(1678886400L, 123000000)),
+    UINT32(UInt32Value.of(1), UnsignedLong.valueOf(1)),
+    UINT64(UInt64Value.of(1L), UnsignedLong.valueOf(1L)),
     ;
 
     private final MessageLite msg;
-    private final CelValue celValue;
+    private final Object value;
 
-    WellKnownProtoTestCase(MessageLite msg, CelValue celValue) {
+    WellKnownProtoTestCase(MessageLite msg, Object value) {
       this.msg = msg;
-      this.celValue = celValue;
+      this.value = value;
     }
   }
 
   @Test
-  public void fromProtoMessageToCelValue_withWellKnownProto_convertsToEquivalentCelValue(
+  public void fromProtoMessageToCelValue_withWellKnownProto_convertsToPrimitivesFromProtoMessage(
       @TestParameter WellKnownProtoTestCase testCase) {
-    CelValue convertedCelValue =
-        PROTO_LITE_CEL_VALUE_CONVERTER.fromProtoMessageToCelValue(testCase.msg);
+    Object adaptedValue = PROTO_LITE_CEL_VALUE_CONVERTER.toRuntimeValue(testCase.msg);
 
-    assertThat(convertedCelValue).isEqualTo(testCase.celValue);
+    assertThat(adaptedValue).isEqualTo(testCase.value);
   }
 
   /** Test cases for repeated_int64: 1L,2L,3L */

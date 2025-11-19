@@ -87,15 +87,14 @@ public final class StructValueTest {
   public void selectField_success() {
     CelCustomStructValue celCustomStruct = new CelCustomStructValue(5);
 
-    assertThat(celCustomStruct.select(StringValue.create("data"))).isEqualTo(IntValue.create(5L));
+    assertThat(celCustomStruct.select("data")).isEqualTo(5L);
   }
 
   @Test
   public void selectField_nonExistentField_throws() {
     CelCustomStructValue celCustomStruct = new CelCustomStructValue(5);
 
-    assertThrows(
-        IllegalArgumentException.class, () -> celCustomStruct.select(StringValue.create("bogus")));
+    assertThrows(IllegalArgumentException.class, () -> celCustomStruct.select("bogus"));
   }
 
   @Test
@@ -104,8 +103,7 @@ public final class StructValueTest {
   public void findField_success(String fieldName, boolean expectedResult) {
     CelCustomStructValue celCustomStruct = new CelCustomStructValue(5);
 
-    assertThat(celCustomStruct.find(StringValue.create(fieldName)).isPresent())
-        .isEqualTo(expectedResult);
+    assertThat(celCustomStruct.find(fieldName).isPresent()).isEqualTo(expectedResult);
   }
 
   @Test
@@ -229,7 +227,7 @@ public final class StructValueTest {
   }
 
   @SuppressWarnings("Immutable") // Test only
-  private static class CelCustomStructValue extends StructValue<StringValue> {
+  private static class CelCustomStructValue extends StructValue<String> {
 
     private final long data;
 
@@ -249,15 +247,15 @@ public final class StructValueTest {
     }
 
     @Override
-    public CelValue select(StringValue field) {
+    public Object select(String field) {
       return find(field)
           .orElseThrow(() -> new IllegalArgumentException("Invalid field name: " + field));
     }
 
     @Override
-    public Optional<CelValue> find(StringValue field) {
-      if (field.value().equals("data")) {
-        return Optional.of(IntValue.create(value().data));
+    public Optional<Object> find(String field) {
+      if (field.equals("data")) {
+        return Optional.of(value().data);
       }
 
       return Optional.empty();

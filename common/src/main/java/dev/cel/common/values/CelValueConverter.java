@@ -17,9 +17,9 @@ package dev.cel.common.values;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -36,116 +36,87 @@ import java.util.Optional;
 abstract class CelValueConverter {
 
   /** Adapts a {@link CelValue} to a plain old Java Object. */
-  public Object fromCelValueToJavaObject(CelValue celValue) {
+  public Object unwrap(CelValue celValue) {
     Preconditions.checkNotNull(celValue);
 
-    if (celValue instanceof MapValue) {
-      MapValue<CelValue, CelValue> mapValue = (MapValue<CelValue, CelValue>) celValue;
-      ImmutableMap.Builder<Object, Object> mapBuilder =
-          ImmutableMap.builderWithExpectedSize(mapValue.size());
-      for (Entry<CelValue, CelValue> entry : mapValue.value().entrySet()) {
-        Object key = fromCelValueToJavaObject(entry.getKey());
-        Object value = fromCelValueToJavaObject(entry.getValue());
-        mapBuilder.put(key, value);
-      }
-
-      return mapBuilder.buildOrThrow();
-    } else if (celValue instanceof ListValue) {
-      ListValue<CelValue> listValue = (ListValue<CelValue>) celValue;
-      ImmutableList.Builder<Object> listBuilder =
-          ImmutableList.builderWithExpectedSize(listValue.size());
-      for (CelValue element : listValue.value()) {
-        listBuilder.add(fromCelValueToJavaObject(element));
-      }
-      return listBuilder.build();
-    } else if (celValue instanceof OptionalValue) {
-      OptionalValue<CelValue> optionalValue = (OptionalValue<CelValue>) celValue;
+    if (celValue instanceof OptionalValue) {
+      OptionalValue<Object, Object> optionalValue = (OptionalValue<Object, Object>) celValue;
       if (optionalValue.isZeroValue()) {
         return Optional.empty();
       }
 
-      return Optional.of(fromCelValueToJavaObject(optionalValue.value()));
+      return Optional.of(optionalValue.value());
     }
 
     return celValue.value();
   }
 
-  /** Adapts a plain old Java Object to a {@link CelValue}. */
-  public CelValue fromJavaObjectToCelValue(Object value) {
+  /**
+   * Canonicalizes an inbound {@code value} into a suitable Java object representation for
+   * evaluation.
+   */
+  public Object toRuntimeValue(Object value) {
     Preconditions.checkNotNull(value);
 
     if (value instanceof CelValue) {
-      return (CelValue) value;
+      return value;
     }
 
-    if (value instanceof Iterable) {
-      return toListValue((Iterable<Object>) value);
+    if (value instanceof Collection) {
+      return toListValue((Collection<Object>) value);
     } else if (value instanceof Map) {
       return toMapValue((Map<Object, Object>) value);
     } else if (value instanceof Optional) {
-      Optional<?> optionalValue = (Optional<?>) value;
+      Optional<Object> optionalValue = (Optional<Object>) value;
       return optionalValue
-          .map(o -> OptionalValue.create(fromJavaObjectToCelValue(o)))
+          .map(this::toRuntimeValue)
+          .map(OptionalValue::create)
           .orElse(OptionalValue.EMPTY);
     } else if (value instanceof Exception) {
       return ErrorValue.create((Exception) value);
     }
 
-    return fromJavaPrimitiveToCelValue(value);
+    return normalizePrimitive(value);
   }
 
-  /** Adapts a plain old Java Object that are considered primitives to a {@link CelValue}. */
-  protected CelValue fromJavaPrimitiveToCelValue(Object value) {
+  protected Object normalizePrimitive(Object value) {
     Preconditions.checkNotNull(value);
 
-    if (value instanceof Boolean) {
-      return BoolValue.create((Boolean) value);
-    } else if (value instanceof Long) {
-      return IntValue.create((Long) value);
-    } else if (value instanceof Integer) {
-      return IntValue.create((Integer) value);
-    } else if (value instanceof String) {
-      return StringValue.create((String) value);
+    if (value instanceof Integer) {
+      return ((Integer) value).longValue();
     } else if (value instanceof byte[]) {
-      return BytesValue.create(CelByteString.of((byte[]) value));
-    } else if (value instanceof Double) {
-      return DoubleValue.create((Double) value);
+      return CelByteString.of((byte[]) value);
     } else if (value instanceof Float) {
-      return DoubleValue.create(Double.valueOf((Float) value));
-    } else if (value instanceof UnsignedLong) {
-      return UintValue.create((UnsignedLong) value);
-    } else if (value instanceof CelByteString) {
-      return BytesValue.create((CelByteString) value);
+      return ((Float) value).doubleValue();
     }
 
-    // Fall back to an Opaque value, as a custom class was supplied in the runtime. The legacy
-    // interpreter allows this but this should not be allowed when a new runtime is introduced.
-    // TODO: Migrate consumers to directly supply an appropriate CelValue.
-    return OpaqueValue.create(value.toString(), value);
+    return value;
   }
 
-  private ListValue<CelValue> toListValue(Iterable<Object> iterable) {
+  private ImmutableList<Object> toListValue(Collection<Object> iterable) {
     Preconditions.checkNotNull(iterable);
 
-    ImmutableList.Builder<CelValue> listBuilder = ImmutableList.builder();
+    ImmutableList.Builder<Object> listBuilder =
+        ImmutableList.builderWithExpectedSize(iterable.size());
     for (Object entry : iterable) {
-      listBuilder.add(fromJavaObjectToCelValue(entry));
+      listBuilder.add(toRuntimeValue(entry));
     }
 
-    return ImmutableListValue.create(listBuilder.build());
+    return listBuilder.build();
   }
 
-  private MapValue<CelValue, CelValue> toMapValue(Map<Object, Object> map) {
+  private ImmutableMap<Object, Object> toMapValue(Map<Object, Object> map) {
     Preconditions.checkNotNull(map);
 
-    ImmutableMap.Builder<CelValue, CelValue> mapBuilder = ImmutableMap.builder();
+    ImmutableMap.Builder<Object, Object> mapBuilder =
+        ImmutableMap.builderWithExpectedSize(map.size());
     for (Entry<Object, Object> entry : map.entrySet()) {
-      CelValue mapKey = fromJavaObjectToCelValue(entry.getKey());
-      CelValue mapValue = fromJavaObjectToCelValue(entry.getValue());
+      Object mapKey = toRuntimeValue(entry.getKey());
+      Object mapValue = toRuntimeValue(entry.getValue());
       mapBuilder.put(mapKey, mapValue);
     }
 
-    return ImmutableMapValue.create(mapBuilder.buildOrThrow());
+    return mapBuilder.buildOrThrow();
   }
 
   protected CelValueConverter() {}

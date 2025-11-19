@@ -37,7 +37,7 @@ public class ProtoMessageLiteValueProviderTest {
 
   @Test
   public void newValue_emptyFields_success() {
-    Optional<CelValue> value =
+    Optional<Object> value =
         VALUE_PROVIDER.newValue("cel.expr.conformance.proto3.TestAllTypes", ImmutableMap.of());
     ProtoMessageLiteValue protoMessageLiteValue = (ProtoMessageLiteValue) value.get();
 

@@ -92,9 +92,9 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.find(StringValue.create("single_bool"))).isPresent();
-    assertThat(protoMessageValue.find(StringValue.create("single_int64"))).isPresent();
-    assertThat(protoMessageValue.find(StringValue.create("repeated_int64"))).isPresent();
+    assertThat(protoMessageValue.find("single_bool")).isPresent();
+    assertThat(protoMessageValue.find("single_int64")).isPresent();
+    assertThat(protoMessageValue.find("repeated_int64")).isPresent();
   }
 
   @Test
@@ -105,9 +105,9 @@ public final class ProtoMessageValueTest {
             DefaultDescriptorPool.INSTANCE,
             PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.find(StringValue.create("single_int32"))).isEmpty();
-    assertThat(protoMessageValue.find(StringValue.create("single_uint64"))).isEmpty();
-    assertThat(protoMessageValue.find(StringValue.create("repeated_int32"))).isEmpty();
+    assertThat(protoMessageValue.find("single_int32")).isEmpty();
+    assertThat(protoMessageValue.find("single_uint64")).isEmpty();
+    assertThat(protoMessageValue.find("repeated_int32")).isEmpty();
   }
 
   @Test
@@ -119,9 +119,7 @@ public final class ProtoMessageValueTest {
             PROTO_CEL_VALUE_CONVERTER);
 
     IllegalArgumentException exception =
-        assertThrows(
-            IllegalArgumentException.class,
-            () -> protoMessageValue.select(StringValue.create("bogus")));
+        assertThrows(IllegalArgumentException.class, () -> protoMessageValue.select("bogus"));
     assertThat(exception)
         .hasMessageThat()
         .isEqualTo(
@@ -135,18 +133,13 @@ public final class ProtoMessageValueTest {
         DefaultDescriptorPool.create(
             CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
                 ImmutableList.of(TestAllTypesExtensions.getDescriptor())));
-    ProtoCelValueConverter protoCelValueConverter =
-        ProtoCelValueConverter.newInstance(
-            DefaultDescriptorPool.INSTANCE,
-            DynamicProto.create(DefaultMessageFactory.create(descriptorPool)));
     TestAllTypes proto2Message =
         TestAllTypes.newBuilder().setExtension(TestAllTypesExtensions.int32Ext, 1).build();
 
     ProtoMessageValue protoMessageValue =
-        ProtoMessageValue.create(proto2Message, descriptorPool, protoCelValueConverter);
+        ProtoMessageValue.create(proto2Message, descriptorPool, PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.find(StringValue.create("cel.expr.conformance.proto2.int32_ext")))
-        .isPresent();
+    assertThat(protoMessageValue.find("cel.expr.conformance.proto2.int32_ext")).isPresent();
   }
 
   @Test
@@ -161,9 +154,7 @@ public final class ProtoMessageValueTest {
     IllegalArgumentException exception =
         assertThrows(
             IllegalArgumentException.class,
-            () ->
-                protoMessageValue.select(
-                    StringValue.create("cel.expr.conformance.proto2.int32_ext")));
+            () -> protoMessageValue.select("cel.expr.conformance.proto2.int32_ext"));
     assertThat(exception)
         .hasMessageThat()
         .isEqualTo(
@@ -171,49 +162,46 @@ public final class ProtoMessageValueTest {
                 + " 'cel.expr.conformance.proto2.TestAllTypes'");
   }
 
+  @SuppressWarnings("ImmutableEnumChecker") // Test only
   private enum SelectFieldTestCase {
     // Primitives
-    BOOL("single_bool", BoolValue.create(true)),
-    INT32("single_int32", IntValue.create(4L)),
-    INT64("single_int64", IntValue.create(5L)),
-    UINT32("single_uint32", UintValue.create(UnsignedLong.valueOf(1L))),
-    UINT64("single_uint64", UintValue.create(UnsignedLong.MAX_VALUE)),
-    FLOAT("single_float", DoubleValue.create(1.5d)),
-    DOUBLE("single_double", DoubleValue.create(2.5d)),
-    STRING("single_string", StringValue.create("test")),
-    BYTES("single_bytes", BytesValue.create(CelByteString.of(new byte[] {0x01}))),
+    BOOL("single_bool", true),
+    INT32("single_int32", 4L),
+    INT64("single_int64", 5L),
+    UINT32("single_uint32", UnsignedLong.valueOf(1L)),
+    UINT64("single_uint64", UnsignedLong.MAX_VALUE),
+    FLOAT("single_float", 1.5d),
+    DOUBLE("single_double", 2.5d),
+    STRING("single_string", "test"),
+    BYTES("single_bytes", CelByteString.of(new byte[] {0x01})),
     // Well known types
-    ANY("single_any", BoolValue.create(true)),
-    DURATION("single_duration", DurationValue.create(Duration.ofSeconds(100))),
-    TIMESTAMP("single_timestamp", TimestampValue.create(Instant.ofEpochSecond(100))),
-    INT32_WRAPPER("single_int32_wrapper", IntValue.create(5L)),
-    INT64_WRAPPER("single_int64_wrapper", IntValue.create(10L)),
-    UINT32_WRAPPER("single_uint32_wrapper", UintValue.create(UnsignedLong.valueOf(1L))),
-    UINT64_WRAPPER("single_uint64_wrapper", UintValue.create(UnsignedLong.MAX_VALUE)),
-    FLOAT_WRAPPER("single_float_wrapper", DoubleValue.create(7.5d)),
-    DOUBLE_WRAPPER("single_double_wrapper", DoubleValue.create(8.5d)),
-    STRING_WRAPPER("single_string_wrapper", StringValue.create("hello")),
-    BYTES_WRAPPER("single_bytes_wrapper", BytesValue.create(CelByteString.of(new byte[] {0x02}))),
-    REPEATED_INT64(
-        "repeated_int64", ImmutableListValue.create(ImmutableList.of(IntValue.create(5L)))),
-    MAP_STRING_STRING(
-        "map_string_string",
-        ImmutableMapValue.create(
-            ImmutableMap.of(StringValue.create("a"), StringValue.create("b")))),
+    ANY("single_any", true),
+    DURATION("single_duration", Duration.ofSeconds(100)),
+    TIMESTAMP("single_timestamp", Instant.ofEpochSecond(100)),
+    INT32_WRAPPER("single_int32_wrapper", 5L),
+    INT64_WRAPPER("single_int64_wrapper", 10L),
+    UINT32_WRAPPER("single_uint32_wrapper", UnsignedLong.valueOf(1L)),
+    UINT64_WRAPPER("single_uint64_wrapper", UnsignedLong.MAX_VALUE),
+    FLOAT_WRAPPER("single_float_wrapper", 7.5d),
+    DOUBLE_WRAPPER("single_double_wrapper", 8.5d),
+    STRING_WRAPPER("single_string_wrapper", "hello"),
+    BYTES_WRAPPER("single_bytes_wrapper", CelByteString.of(new byte[] {0x02})),
+    REPEATED_INT64("repeated_int64", ImmutableList.of(5L)),
+    MAP_STRING_STRING("map_string_string", ImmutableMap.of("a", "b")),
     NESTED_MESSAGE(
         "standalone_message",
         ProtoMessageValue.create(
             NestedMessage.getDefaultInstance(),
             DefaultDescriptorPool.INSTANCE,
             PROTO_CEL_VALUE_CONVERTER)),
-    NESTED_ENUM("standalone_enum", IntValue.create(1L));
+    NESTED_ENUM("standalone_enum", 1L);
 
     private final String fieldName;
-    private final CelValue celValue;
+    private final Object value;
 
-    SelectFieldTestCase(String fieldName, CelValue celValue) {
+    SelectFieldTestCase(String fieldName, Object value) {
       this.fieldName = fieldName;
-      this.celValue = celValue;
+      this.value = value;
     }
   }
 
@@ -253,8 +241,7 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select(StringValue.create(testCase.fieldName)))
-        .isEqualTo(testCase.celValue);
+    assertThat(protoMessageValue.select(testCase.fieldName)).isEqualTo(testCase.value);
   }
 
   @Test
@@ -268,8 +255,7 @@ public final class ProtoMessageValueTest {
             DefaultDescriptorPool.INSTANCE,
             PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select(StringValue.create("single_int32_wrapper")))
-        .isEqualTo(IntValue.create(5));
+    assertThat(protoMessageValue.select("single_int32_wrapper")).isEqualTo(5);
   }
 
   @Test
@@ -285,8 +271,8 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select(StringValue.create("single_timestamp")))
-        .isEqualTo(TimestampValue.create(Instant.ofEpochSecond(0, nanos)));
+    assertThat(protoMessageValue.select("single_timestamp"))
+        .isEqualTo(Instant.ofEpochSecond(0, nanos));
   }
 
   @Test
@@ -305,15 +291,16 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select(StringValue.create("single_duration")))
-        .isEqualTo(DurationValue.create(Duration.ofSeconds(seconds, nanos)));
+    assertThat(protoMessageValue.select("single_duration"))
+        .isEqualTo(Duration.ofSeconds(seconds, nanos));
   }
 
+  @SuppressWarnings("ImmutableEnumChecker") // Test only
   private enum SelectFieldJsonValueTestCase {
     NULL(Value.newBuilder().build(), NullValue.NULL_VALUE),
-    BOOL(Value.newBuilder().setBoolValue(true).build(), BoolValue.create(true)),
-    DOUBLE(Value.newBuilder().setNumberValue(4.5d).build(), DoubleValue.create(4.5d)),
-    STRING(Value.newBuilder().setStringValue("test").build(), StringValue.create("test")),
+    BOOL(Value.newBuilder().setBoolValue(true).build(), true),
+    DOUBLE(Value.newBuilder().setNumberValue(4.5d).build(), 4.5d),
+    STRING(Value.newBuilder().setStringValue("test").build(), "test"),
     STRUCT(
         Value.newBuilder()
             .setStructValue(
@@ -321,8 +308,7 @@ public final class ProtoMessageValueTest {
                     .putFields("a", Value.newBuilder().setBoolValue(false).build())
                     .build())
             .build(),
-        ImmutableMapValue.create(
-            ImmutableMap.of(StringValue.create("a"), BoolValue.create(false)))),
+        ImmutableMap.of("a", false)),
     LIST(
         Value.newBuilder()
             .setListValue(
@@ -330,14 +316,14 @@ public final class ProtoMessageValueTest {
                     .addValues(Value.newBuilder().setStringValue("test").build())
                     .build())
             .build(),
-        ImmutableListValue.create(ImmutableList.of(StringValue.create("test"))));
+        ImmutableList.of("test"));
 
     private final Value jsonValue;
-    private final CelValue celValue;
+    private final Object value;
 
-    SelectFieldJsonValueTestCase(Value jsonValue, CelValue celValue) {
+    SelectFieldJsonValueTestCase(Value jsonValue, Object value) {
       this.jsonValue = jsonValue;
-      this.celValue = celValue;
+      this.value = value;
     }
   }
 
@@ -350,8 +336,7 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select(StringValue.create("single_value")))
-        .isEqualTo(testCase.celValue);
+    assertThat(protoMessageValue.select("single_value")).isEqualTo(testCase.value);
   }
 
   @Test
@@ -368,10 +353,7 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select(StringValue.create("single_struct")))
-        .isEqualTo(
-            ImmutableMapValue.create(
-                ImmutableMap.of(StringValue.create("a"), BoolValue.create(false))));
+    assertThat(protoMessageValue.select("single_struct")).isEqualTo(ImmutableMap.of("a", false));
   }
 
   @Test
@@ -388,8 +370,7 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select(StringValue.create("list_value")))
-        .isEqualTo(ImmutableListValue.create(ImmutableList.of(BoolValue.create(false))));
+    assertThat(protoMessageValue.select("list_value")).isEqualTo(ImmutableList.of(false));
   }
 
   @Test
@@ -400,8 +381,7 @@ public final class ProtoMessageValueTest {
             DefaultDescriptorPool.INSTANCE,
             PROTO_CEL_VALUE_CONVERTER);
 
-    assertThat(protoMessageValue.select(StringValue.create("single_int64_wrapper")))
-        .isEqualTo(NullValue.NULL_VALUE);
+    assertThat(protoMessageValue.select("single_int64_wrapper")).isEqualTo(NullValue.NULL_VALUE);
   }
 
   @Test

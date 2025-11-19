@@ -28,7 +28,7 @@ import java.util.Optional;
 /** ProtoMessageValue is a struct value with protobuf support. */
 @AutoValue
 @Immutable
-public abstract class ProtoMessageValue extends StructValue<StringValue> {
+public abstract class ProtoMessageValue extends StructValue<String> {
 
   @Override
   public abstract Message value();
@@ -46,17 +46,17 @@ public abstract class ProtoMessageValue extends StructValue<StringValue> {
   }
 
   @Override
-  public CelValue select(StringValue field) {
+  public Object select(String field) {
     FieldDescriptor fieldDescriptor =
-        findField(celDescriptorPool(), value().getDescriptorForType(), field.value());
+        findField(celDescriptorPool(), value().getDescriptorForType(), field);
 
     return protoCelValueConverter().fromProtoMessageFieldToCelValue(value(), fieldDescriptor);
   }
 
   @Override
-  public Optional<CelValue> find(StringValue field) {
+  public Optional<Object> find(String field) {
     FieldDescriptor fieldDescriptor =
-        findField(celDescriptorPool(), value().getDescriptorForType(), field.value());
+        findField(celDescriptorPool(), value().getDescriptorForType(), field);
 
     // Selecting a field on a protobuf message yields a default value even if the field is not
     // declared. Therefore, we must exhaustively test whether they are actually declared.

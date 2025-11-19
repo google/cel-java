@@ -35,7 +35,7 @@ import java.util.Optional;
  */
 @AutoValue
 @Immutable
-public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
+public abstract class ProtoMessageLiteValue extends StructValue<String> {
 
   @Override
   public abstract MessageLite value();
@@ -60,17 +60,16 @@ public abstract class ProtoMessageLiteValue extends StructValue<StringValue> {
   }
 
   @Override
-  public CelValue select(StringValue field) {
+  public Object select(String field) {
     return find(field)
-        .orElseGet(
-            () -> protoLiteCelValueConverter().getDefaultCelValue(celType().name(), field.value()));
+        .orElseGet(() -> protoLiteCelValueConverter().getDefaultCelValue(celType().name(), field));
   }
 
   @Override
-  public Optional<CelValue> find(StringValue field) {
-    Object fieldValue = fieldValues().get(field.value());
+  public Optional<Object> find(String field) {
+    Object fieldValue = fieldValues().get(field);
     return Optional.ofNullable(fieldValue)
-        .map(value -> protoLiteCelValueConverter().fromJavaObjectToCelValue(fieldValue));
+        .map(value -> protoLiteCelValueConverter().toRuntimeValue(fieldValue));
   }
 
   public static ProtoMessageLiteValue create(
