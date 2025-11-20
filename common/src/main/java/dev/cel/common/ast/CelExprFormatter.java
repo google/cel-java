@@ -16,7 +16,7 @@ package dev.cel.common.ast;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.values.CelByteString;
-import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Locale;
 
 /** Provides string formatting support for {@link CelExpr}. */
@@ -111,7 +111,7 @@ final class CelExprFormatter {
             String.format(
                 Locale.getDefault(),
                 "b\"%s\"",
-                new String(byteString.toByteArray(), StandardCharsets.UTF_8)));
+                Base64.getEncoder().encodeToString(byteString.toByteArray())));
         break;
       default:
         append("Unknown kind: " + celConstant.getKind());
