@@ -15,8 +15,10 @@
 package dev.cel.parser;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.toCollection;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -32,9 +34,11 @@ import dev.cel.common.internal.EnvVisitor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Modernized parser implementation for CEL.
@@ -54,9 +58,10 @@ public final class CelParserImpl implements CelParser, EnvVisitable {
   // Specific options for limits on parsing power.
   private final CelOptions options;
 
-  // Builder is mutable by design. APIs must make defensive copies in and out of this class.
-  @SuppressWarnings("Immutable")
-  private final Builder parserBuilder;
+  private final ImmutableList<CelStandardMacro> standardMacros;
+
+  @SuppressWarnings("Immutable") // Interface not marked as immutable, however it should be.
+  private final ImmutableSet<CelParserLibrary> parserLibraries;
 
   /** Creates a new {@link Builder}. */
   public static CelParserBuilder newBuilder() {
@@ -75,7 +80,20 @@ public final class CelParserImpl implements CelParser, EnvVisitable {
 
   @Override
   public CelParserBuilder toParserBuilder() {
-    return new Builder(parserBuilder);
+    HashSet<String> standardMacroKeys =
+        standardMacros.stream()
+            .map(s -> s.getDefinition().getKey())
+            .collect(Collectors.toCollection(HashSet::new));
+
+    return new Builder()
+        .setOptions(options)
+        .setStandardMacros(standardMacros)
+        .addMacros(
+            // Separate standard macros from the custom macros before constructing the builder
+            macros.values().stream()
+                .filter(m -> !standardMacroKeys.contains(m.getKey()))
+                .collect(toCollection(ArrayList::new)))
+        .addLibraries(parserLibraries);
   }
 
   Optional<CelMacro> findMacro(String key) {
@@ -175,12 +193,17 @@ public final class CelParserImpl implements CelParser, EnvVisitable {
       // Add libraries, such as extensions
       parserLibrarySet.forEach(celLibrary -> celLibrary.setParserOptions(this));
 
-      ImmutableMap.Builder<String, CelMacro> builder = ImmutableMap.builder();
-      builder.putAll(macros);
+      ImmutableMap.Builder<String, CelMacro> macroMapBuilder = ImmutableMap.builder();
+      macroMapBuilder.putAll(macros);
       standardMacros.stream()
           .map(CelStandardMacro::getDefinition)
-          .forEach(celMacro -> builder.put(celMacro.getKey(), celMacro));
-      return new CelParserImpl(builder.buildOrThrow(), checkNotNull(options), this);
+          .forEach(celMacro -> macroMapBuilder.put(celMacro.getKey(), celMacro));
+
+      return new CelParserImpl(
+          macroMapBuilder.buildOrThrow(),
+          options,
+          ImmutableList.copyOf(standardMacros),
+          celParserLibraries.build());
     }
 
     private Builder() {
@@ -188,24 +211,17 @@ public final class CelParserImpl implements CelParser, EnvVisitable {
       this.celParserLibraries = ImmutableSet.builder();
       this.standardMacros = new ArrayList<>();
     }
-
-    private Builder(Builder builder) {
-      // The following properties are either immutable or simple primitives, thus can be assigned
-      // directly.
-      this.options = builder.options;
-      // The following needs to be deep copied as they are collection builders
-      this.macros = new HashMap<>(builder.macros);
-      this.standardMacros = new ArrayList<>(builder.standardMacros);
-      this.celParserLibraries = ImmutableSet.builder();
-      this.celParserLibraries.addAll(builder.celParserLibraries.build());
-    }
   }
 
   private CelParserImpl(
-      ImmutableMap<String, CelMacro> macros, CelOptions options, Builder parserBuilder) {
+      ImmutableMap<String, CelMacro> macros,
+      CelOptions options,
+      ImmutableList<CelStandardMacro> standardMacros,
+      ImmutableSet<CelParserLibrary> parserLibraries) {
     this.macros = macros;
-    this.options = options;
-    this.parserBuilder = new Builder(parserBuilder);
+    this.options = checkNotNull(options);
+    this.standardMacros = standardMacros;
+    this.parserLibraries = parserLibraries;
   }
 
   @Override
