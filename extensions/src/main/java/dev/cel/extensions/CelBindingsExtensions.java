@@ -31,7 +31,8 @@ import java.util.Optional;
 
 /** Internal implementation of the CEL local binding extensions. */
 @Immutable
-final class CelBindingsExtensions implements CelCompilerLibrary, CelExtensionLibrary.FeatureSet {
+public final class CelBindingsExtensions
+    implements CelCompilerLibrary, CelExtensionLibrary.FeatureSet {
   private static final String CEL_NAMESPACE = "cel";
   private static final String UNUSED_ITER_VAR = "#unused";
 
