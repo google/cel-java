@@ -60,7 +60,6 @@ import java.util.Optional;
 @Immutable
 @Internal
 public final class ProgramPlanner {
-
   private final CelTypeProvider typeProvider;
   private final CelValueProvider valueProvider;
   private final DefaultDispatcher dispatcher;

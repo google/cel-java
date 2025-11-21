@@ -27,4 +27,10 @@ public final class CelRuntimeFactoryTest {
   public void standardCelRuntimeBuilder() {
     assertThat(CelRuntimeFactory.standardCelRuntimeBuilder().build()).isNotNull();
   }
+
+  @Test
+  public void plannerCelRuntimeBuilder() {
+    CelRuntime runtime = CelRuntimeFactory.plannerCelRuntimeBuilder().build();
+    assertThat(runtime).isNotNull();
+  }
 }

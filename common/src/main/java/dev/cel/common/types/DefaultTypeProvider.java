@@ -16,9 +16,11 @@ package dev.cel.common.types;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
+import com.google.errorprone.annotations.Immutable;
 import java.util.Optional;
 
 /** {@code DefaultTypeProvider} is a registry of common CEL types. */
+@Immutable
 public class DefaultTypeProvider implements CelTypeProvider {
 
   private static final DefaultTypeProvider INSTANCE = new DefaultTypeProvider();
