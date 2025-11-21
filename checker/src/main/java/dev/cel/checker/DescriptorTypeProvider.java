@@ -67,7 +67,10 @@ public class DescriptorTypeProvider implements TypeProvider {
   /**
    * Constructs a provider based on the given file descriptor set proto, as it is emitted by the
    * protocol compiler.
+   *
+   * @deprecated Do not use. Migrate to CEL-Java fluent APIs.
    */
+  @Deprecated
   public DescriptorTypeProvider(FileDescriptorSet descriptorSet) {
     this(FileDescriptorSetConverter.convert(descriptorSet));
   }

@@ -36,6 +36,18 @@ java_library(
 )
 
 java_library(
+    name = "message_lite_type_provider",
+    visibility = ["//:internal"],
+    exports = ["//common/src/main/java/dev/cel/common/types:message_lite_type_provider"],
+)
+
+cel_android_library(
+    name = "message_lite_type_provider_android",
+    visibility = ["//:internal"],
+    exports = ["//common/src/main/java/dev/cel/common/types:message_lite_type_provider_android"],
+)
+
+java_library(
     name = "cel_types",
     exports = ["//common/src/main/java/dev/cel/common/types:cel_types"],
 )
@@ -54,6 +66,12 @@ java_library(
     name = "default_type_provider",
     visibility = ["//:internal"],
     exports = ["//common/src/main/java/dev/cel/common/types:default_type_provider"],
+)
+
+cel_android_library(
+    name = "default_type_provider_android",
+    visibility = ["//:internal"],
+    exports = ["//common/src/main/java/dev/cel/common/types:default_type_provider_android"],
 )
 
 java_library(

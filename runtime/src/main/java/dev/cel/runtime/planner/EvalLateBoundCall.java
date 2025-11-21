@@ -18,7 +18,6 @@ import static dev.cel.runtime.planner.EvalHelpers.evalStrictly;
 
 import com.google.common.collect.ImmutableList;
 import dev.cel.common.exceptions.CelOverloadNotFoundException;
-import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelResolvedOverload;
@@ -48,12 +47,7 @@ final class EvalLateBoundCall extends PlannedInterpretable {
             .findOverload(functionName, overloadIds, argVals)
             .orElseThrow(() -> new CelOverloadNotFoundException(functionName, overloadIds));
 
-    Object result = resolvedOverload.getDefinition().apply(argVals);
-    Object runtimeValue = celValueConverter.toRuntimeValue(result);
-    if (runtimeValue instanceof CelValue) {
-      return celValueConverter.unwrap((CelValue) runtimeValue);
-    }
-    return runtimeValue;
+    return EvalHelpers.dispatch(resolvedOverload, celValueConverter, argVals);
   }
 
   static EvalLateBoundCall create(

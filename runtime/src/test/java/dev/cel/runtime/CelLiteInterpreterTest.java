@@ -31,13 +31,14 @@ public class CelLiteInterpreterTest extends BaseInterpreterTest {
 
   @Override
   protected CelRuntimeBuilder newBaseRuntimeBuilder(CelOptions celOptions) {
-    return CelRuntimeFactory.standardCelRuntimeBuilder()
+    return CelRuntimeFactory.plannerCelRuntimeBuilder()
         .setValueProvider(
             ProtoMessageLiteValueProvider.newInstance(
                 dev.cel.expr.conformance.proto2.TestAllTypesCelDescriptor.getDescriptor(),
                 TestAllTypesCelDescriptor.getDescriptor()))
+        .addLateBoundFunctions("record")
         .addLibraries(CelOptionalLibrary.INSTANCE)
-        .setOptions(celOptions.toBuilder().enableCelValue(true).build());
+        .setOptions(celOptions);
   }
 
   @Override
@@ -49,6 +50,12 @@ public class CelLiteInterpreterTest extends BaseInterpreterTest {
   @Override
   public void dynamicMessage_dynamicDescriptor() throws Exception {
     // Dynamic message is not supported in Protolite
+    skipBaselineVerification();
+  }
+
+  @Override
+  public void typeComparisons() {
+    // TODO: Implement DescriptorLiteTypeResolver
     skipBaselineVerification();
   }
 

@@ -22,8 +22,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
-import dev.cel.bundle.Cel;
-import dev.cel.bundle.CelFactory;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelOptions;
 import dev.cel.common.internal.DynamicProto;
@@ -31,6 +29,11 @@ import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
+import dev.cel.compiler.CelCompiler;
+import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntimeFactory;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.Test;
@@ -114,72 +117,92 @@ public final class StructValueTest {
 
   @Test
   public void evaluate_usingCustomClass_createNewStruct() throws Exception {
-    Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableCelValue(true).build())
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
+            .build();
+    CelRuntime plannerRuntime =
+        CelRuntimeFactory.plannerCelRuntimeBuilder()
             .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
             .setValueProvider(CUSTOM_STRUCT_VALUE_PROVIDER)
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("custom_struct{data: 50}").getAst();
+    CelAbstractSyntaxTree ast = compiler.compile("custom_struct{data: 50}").getAst();
 
-    CelCustomStructValue result = (CelCustomStructValue) cel.createProgram(ast).eval();
+    CelCustomStructValue result = (CelCustomStructValue) plannerRuntime.createProgram(ast).eval();
 
     assertThat(result.data).isEqualTo(50);
   }
 
   @Test
   public void evaluate_usingCustomClass_asVariable() throws Exception {
-    Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableCelValue(true).build())
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
             .addVar("a", CUSTOM_STRUCT_TYPE)
+            .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
+            .build();
+    CelRuntime plannerRuntime =
+        CelRuntimeFactory.plannerCelRuntimeBuilder()
             .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
             .setValueProvider(CUSTOM_STRUCT_VALUE_PROVIDER)
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("a").getAst();
+    CelAbstractSyntaxTree ast = compiler.compile("a").getAst();
 
     CelCustomStructValue result =
         (CelCustomStructValue)
-            cel.createProgram(ast).eval(ImmutableMap.of("a", new CelCustomStructValue(10)));
+            plannerRuntime
+                .createProgram(ast)
+                .eval(ImmutableMap.of("a", new CelCustomStructValue(10)));
 
     assertThat(result.data).isEqualTo(10);
   }
 
   @Test
   public void evaluate_usingCustomClass_asVariableSelectField() throws Exception {
-    Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableCelValue(true).build())
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
             .addVar("a", CUSTOM_STRUCT_TYPE)
+            .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
+            .build();
+    CelRuntime plannerRuntime =
+        CelRuntimeFactory.plannerCelRuntimeBuilder()
             .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
             .setValueProvider(CUSTOM_STRUCT_VALUE_PROVIDER)
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("a.data").getAst();
+    CelAbstractSyntaxTree ast = compiler.compile("a.data").getAst();
 
-    assertThat(cel.createProgram(ast).eval(ImmutableMap.of("a", new CelCustomStructValue(20))))
+    assertThat(
+            plannerRuntime
+                .createProgram(ast)
+                .eval(ImmutableMap.of("a", new CelCustomStructValue(20))))
         .isEqualTo(20L);
   }
 
   @Test
   public void evaluate_usingCustomClass_selectField() throws Exception {
-    Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableCelValue(true).build())
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
+            .build();
+    CelRuntime plannerRuntime =
+        CelRuntimeFactory.plannerCelRuntimeBuilder()
             .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
             .setValueProvider(CUSTOM_STRUCT_VALUE_PROVIDER)
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("custom_struct{data: 5}.data").getAst();
+    CelAbstractSyntaxTree ast = compiler.compile("custom_struct{data: 5}.data").getAst();
 
-    Object result = cel.createProgram(ast).eval();
+    Object result = plannerRuntime.createProgram(ast).eval();
 
     assertThat(result).isEqualTo(5L);
   }
 
   @Test
   public void evaluate_usingMultipleProviders_selectFieldFromCustomClass() throws Exception {
-    Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableCelValue(true).build())
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
+            .build();
+    CelRuntime plannerRuntime =
+        CelRuntimeFactory.plannerCelRuntimeBuilder()
             .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
             .setValueProvider(
                 CombinedCelValueProvider.combine(
@@ -187,15 +210,48 @@ public final class StructValueTest {
                         CelOptions.DEFAULT, DynamicProto.create(unused -> Optional.empty())),
                     CUSTOM_STRUCT_VALUE_PROVIDER))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("custom_struct{data: 5}.data").getAst();
+    CelAbstractSyntaxTree ast = compiler.compile("custom_struct{data: 5}.data").getAst();
 
-    Object result = cel.createProgram(ast).eval();
+    Object result = plannerRuntime.createProgram(ast).eval();
 
     assertThat(result).isEqualTo(5L);
   }
 
-  // TODO: Bring back evaluate_usingMultipleProviders_selectFieldFromProtobufMessage
-  // once planner is exposed from factory
+  @Test
+  public void evaluate_usingMultipleProviders_selectFieldFromProtobufMessage() throws Exception {
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
+            .build();
+    CelRuntime plannerRuntime =
+        CelRuntimeFactory.plannerCelRuntimeBuilder()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
+            .setValueProvider(
+                CombinedCelValueProvider.combine(
+                    ProtoMessageValueProvider.newInstance(
+                        CelOptions.DEFAULT,
+                        // Note: this is unideal. Future iterations should make DynamicProto
+                        // completely an internal concern, and not expose it at all.
+                        DynamicProto.create(
+                            typeName -> {
+                              if (typeName.equals(TestAllTypes.getDescriptor().getFullName())) {
+                                return Optional.of(TestAllTypes.newBuilder());
+                              }
+                              return Optional.empty();
+                            })),
+                    CUSTOM_STRUCT_VALUE_PROVIDER))
+            .build();
+    CelAbstractSyntaxTree ast =
+        compiler
+            .compile("cel.expr.conformance.proto3.TestAllTypes{single_string: 'foo'}.single_string")
+            .getAst();
+
+    String result = (String) plannerRuntime.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo("foo");
+  }
 
   @SuppressWarnings("Immutable") // Test only
   private static class CelCustomStructValue extends StructValue<String> {

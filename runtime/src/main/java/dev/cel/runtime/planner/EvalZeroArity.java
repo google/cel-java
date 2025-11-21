@@ -14,7 +14,6 @@
 
 package dev.cel.runtime.planner;
 
-import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelResolvedOverload;
@@ -28,12 +27,7 @@ final class EvalZeroArity extends PlannedInterpretable {
 
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
-    Object result = resolvedOverload.getDefinition().apply(EMPTY_ARRAY);
-    Object runtimeValue = celValueConverter.toRuntimeValue(result);
-    if (runtimeValue instanceof CelValue) {
-      return celValueConverter.unwrap((CelValue) runtimeValue);
-    }
-    return runtimeValue;
+    return EvalHelpers.dispatch(resolvedOverload, celValueConverter, EMPTY_ARRAY);
   }
 
   static EvalZeroArity create(

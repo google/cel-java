@@ -17,6 +17,6 @@ package dev.cel.runtime.planner;
 import dev.cel.runtime.GlobalResolver;
 
 /** Identifies a resolver that can be unwrapped to bypass local variable state. */
-public interface ActivationWrapper extends GlobalResolver {
+interface ActivationWrapper extends GlobalResolver {
   GlobalResolver unwrap();
 }

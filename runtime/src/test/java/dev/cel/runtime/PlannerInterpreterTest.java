@@ -26,7 +26,7 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
 
   @Override
   protected CelRuntimeBuilder newBaseRuntimeBuilder(CelOptions celOptions) {
-    return CelRuntimeImpl.newBuilder()
+    return CelRuntimeFactory.plannerCelRuntimeBuilder()
         .addLateBoundFunctions("record")
         // CEL-Internal-2
         .setOptions(celOptions)
@@ -43,18 +43,6 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
   @Override
   public void unknownResultSet() {
     // TODO: Unknown support not implemented yet
-    skipBaselineVerification();
-  }
-
-  @Override
-  public void typeComparisons() {
-    // TODO: type() standard function needs to be implemented first.
-    skipBaselineVerification();
-  }
-
-  @Override
-  public void optional_errors() {
-    // TODO: Fix error message for function dispatch failures
     skipBaselineVerification();
   }
 
