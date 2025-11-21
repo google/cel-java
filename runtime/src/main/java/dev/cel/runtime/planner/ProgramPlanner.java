@@ -17,14 +17,19 @@ package dev.cel.runtime.planner;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.errorprone.annotations.CheckReturnValue;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
+import dev.cel.common.Operator;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
+import dev.cel.common.ast.CelExpr.CelCall;
+import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.CelList;
 import dev.cel.common.ast.CelExpr.CelMap;
+import dev.cel.common.ast.CelExpr.CelSelect;
 import dev.cel.common.ast.CelExpr.CelStruct;
 import dev.cel.common.ast.CelExpr.CelStruct.Entry;
 import dev.cel.common.ast.CelReference;
@@ -33,12 +38,16 @@ import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.StructType;
 import dev.cel.common.types.TypeType;
+import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationExceptionBuilder;
+import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.runtime.CelValueDispatcher;
 import dev.cel.runtime.Interpretable;
 import dev.cel.runtime.Program;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 /**
  * {@code ProgramPlanner} resolves functions, types, and identifiers at plan time given a
@@ -47,9 +56,9 @@ import java.util.NoSuchElementException;
 @ThreadSafe
 @Internal
 public final class ProgramPlanner {
-
   private final CelTypeProvider typeProvider;
   private final CelValueProvider valueProvider;
+  private final CelValueDispatcher dispatcher;
   private final AttributeFactory attributeFactory;
 
   /**
@@ -73,17 +82,37 @@ public final class ProgramPlanner {
         return planConstant(celExpr.constant());
       case IDENT:
         return planIdent(celExpr, ctx);
+      case SELECT:
+        return planSelect(celExpr, ctx);
+      case CALL:
+        return planCall(celExpr, ctx);
       case LIST:
         return planCreateList(celExpr, ctx);
       case STRUCT:
         return planCreateStruct(celExpr, ctx);
       case MAP:
         return planCreateMap(celExpr, ctx);
+      case COMPREHENSION:
+        return planComprehension(celExpr, ctx);
       case NOT_SET:
         throw new UnsupportedOperationException("Unsupported kind: " + celExpr.getKind());
-      default:
-        throw new IllegalArgumentException("Not yet implemented kind: " + celExpr.getKind());
     }
+
+    throw new IllegalArgumentException("Not yet implemented kind: " + celExpr.getKind());
+  }
+
+  private Interpretable planSelect(CelExpr celExpr, PlannerContext ctx) {
+    CelSelect select = celExpr.select();
+
+    Interpretable operand = plan(select.operand(), ctx);
+    // TODO: Relative attr handling
+    EvalAttribute attribute = (EvalAttribute) operand;
+
+    // TODO: Presence tests
+
+    Qualifier qualifier = attributeFactory.newQualifier(select.field());
+
+    return attribute.addQualifier(qualifier);
   }
 
   private Interpretable planConstant(CelConstant celConstant) {
@@ -136,6 +165,64 @@ public final class ProgramPlanner {
     }
 
     return EvalAttribute.create(attributeFactory.newAbsoluteAttribute(identRef.name()));
+  }
+
+  private Interpretable planCall(CelExpr expr, PlannerContext ctx) {
+    ResolvedFunction resolvedFunction = resolveFunction(expr, ctx.referenceMap());
+    CelExpr target = resolvedFunction.target().orElse(null);
+    int argCount = expr.call().args().size();
+    if (target != null) {
+      argCount++;
+    }
+
+    Interpretable[] evaluatedArgs = new Interpretable[argCount];
+
+    int offset = 0;
+    if (target != null) {
+      evaluatedArgs[0] = plan(target, ctx);
+      offset++;
+    }
+
+    ImmutableList<CelExpr> args = expr.call().args();
+    for (int argIndex = 0; argIndex < args.size(); argIndex++) {
+      evaluatedArgs[argIndex + offset] = plan(args.get(argIndex), ctx);
+    }
+
+    // TODO: Handle all specialized calls (logical operators, conditionals, equals etc)
+    String functionName = resolvedFunction.functionName();
+    Operator operator = Operator.findReverse(functionName).orElse(null);
+    if (operator != null) {
+      switch (operator) {
+        case LOGICAL_OR:
+          return EvalOr.create(evaluatedArgs);
+        case LOGICAL_AND:
+          return EvalAnd.create(evaluatedArgs);
+        default:
+          // fall-through
+      }
+    }
+
+    CelFunctionBinding resolvedOverload = null;
+
+    if (resolvedFunction.overloadId().isPresent()) {
+      resolvedOverload = dispatcher.findOverload(resolvedFunction.overloadId().get()).orElse(null);
+    }
+
+    if (resolvedOverload == null) {
+      resolvedOverload =
+          dispatcher
+              .findOverload(functionName)
+              .orElseThrow(() -> new NoSuchElementException("Overload not found: " + functionName));
+    }
+
+    switch (argCount) {
+      case 0:
+        return EvalZeroArity.create(resolvedOverload);
+      case 1:
+        return EvalUnary.create(resolvedOverload, evaluatedArgs[0]);
+      default:
+        return EvalVarArgsCall.create(resolvedOverload, evaluatedArgs);
+    }
   }
 
   private Interpretable planCreateStruct(CelExpr celExpr, PlannerContext ctx) {
@@ -193,6 +280,95 @@ public final class ProgramPlanner {
     return EvalCreateMap.create(keys, values);
   }
 
+  private Interpretable planComprehension(CelExpr expr, PlannerContext ctx) {
+    CelComprehension comprehension = expr.comprehension();
+
+    Interpretable accuInit = plan(comprehension.accuInit(), ctx);
+    Interpretable iterRange = plan(comprehension.iterRange(), ctx);
+    Interpretable loopCondition = plan(comprehension.loopCondition(), ctx);
+    Interpretable loopStep = plan(comprehension.loopStep(), ctx);
+    Interpretable result = plan(comprehension.result(), ctx);
+
+    return EvalFold.create(
+        comprehension.accuVar(),
+        accuInit,
+        comprehension.iterVar(),
+        comprehension.iterVar2(),
+        iterRange,
+        loopCondition,
+        loopStep,
+        result);
+  }
+
+  /**
+   * resolveFunction determines the call target, function name, and overload name (when unambiguous)
+   * from the given call expr.
+   */
+  private ResolvedFunction resolveFunction(
+      CelExpr expr, ImmutableMap<Long, CelReference> referenceMap) {
+    CelCall call = expr.call();
+    Optional<CelExpr> target = call.target();
+    String functionName = call.function();
+
+    CelReference reference = referenceMap.get(expr.id());
+    if (reference != null) {
+      // Checked expression
+      if (reference.overloadIds().size() == 1) {
+        ResolvedFunction.Builder builder =
+            ResolvedFunction.newBuilder()
+                .setFunctionName(functionName)
+                .setOverloadId(reference.overloadIds().get(0));
+
+        target.ifPresent(builder::setTarget);
+
+        return builder.build();
+      }
+    }
+
+    // Parse-only from this point on
+    //    dispatcher.findOverload(functionName)
+    //        .orElseThrow(() -> new NoSuchElementException(String.format("Function %s not found",
+    // call.function())));
+
+    if (!target.isPresent()) {
+      // TODO: Handle containers.
+
+      return ResolvedFunction.newBuilder().setFunctionName(functionName).build();
+    } else {
+      // TODO: Handle qualifications
+      return ResolvedFunction.newBuilder()
+          .setFunctionName(functionName)
+          .setTarget(target.get())
+          .build();
+    }
+  }
+
+  @AutoValue
+  abstract static class ResolvedFunction {
+
+    abstract String functionName();
+
+    abstract Optional<CelExpr> target();
+
+    abstract Optional<String> overloadId();
+
+    @AutoValue.Builder
+    abstract static class Builder {
+      abstract Builder setFunctionName(String functionName);
+
+      abstract Builder setTarget(CelExpr target);
+
+      abstract Builder setOverloadId(String overloadId);
+
+      @CheckReturnValue
+      abstract ResolvedFunction build();
+    }
+
+    private static Builder newBuilder() {
+      return new AutoValue_ProgramPlanner_ResolvedFunction.Builder();
+    }
+  }
+
   @AutoValue
   abstract static class PlannerContext {
 
@@ -206,15 +382,24 @@ public final class ProgramPlanner {
   }
 
   public static ProgramPlanner newPlanner(
-      CelTypeProvider typeProvider, CelValueProvider valueProvider) {
-    return new ProgramPlanner(typeProvider, valueProvider);
+      CelTypeProvider typeProvider,
+      CelValueProvider valueProvider,
+      CelValueDispatcher dispatcher,
+      CelValueConverter celValueConverter) {
+    return new ProgramPlanner(typeProvider, valueProvider, dispatcher, celValueConverter);
   }
 
-  private ProgramPlanner(CelTypeProvider typeProvider, CelValueProvider valueProvider) {
+  private ProgramPlanner(
+      CelTypeProvider typeProvider,
+      CelValueProvider valueProvider,
+      CelValueDispatcher dispatcher,
+      CelValueConverter celValueConverter) {
     this.typeProvider = typeProvider;
     this.valueProvider = valueProvider;
+    this.dispatcher = dispatcher;
     // TODO: Container support
     this.attributeFactory =
-        AttributeFactory.newAttributeFactory(CelContainer.newBuilder().build(), typeProvider);
+        AttributeFactory.newAttributeFactory(
+            CelContainer.newBuilder().build(), typeProvider, celValueConverter);
   }
 }

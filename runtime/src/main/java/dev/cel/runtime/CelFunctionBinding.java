@@ -35,9 +35,10 @@ import com.google.errorprone.annotations.Immutable;
  *
  * <p>Examples: string_startsWith_string, mathMax_list, lessThan_money_money
  */
-
 @Immutable
 public interface CelFunctionBinding {
+  String getFunctionName();
+
   String getOverloadId();
 
   ImmutableList<Class<?>> getArgTypes();
@@ -67,7 +68,43 @@ public interface CelFunctionBinding {
   /** Create a function binding from the {@code overloadId}, {@code argTypes}, and {@code impl}. */
   static CelFunctionBinding from(
       String overloadId, Iterable<Class<?>> argTypes, CelFunctionOverload impl) {
+    return from("", overloadId, argTypes, impl);
+  }
+
+  /** Create a unary function binding from the {@code overloadId}, {@code arg}, and {@code impl}. */
+  @SuppressWarnings("unchecked")
+  static <T> CelFunctionBinding from(
+      String functionName, String overloadId, Class<T> arg, CelFunctionOverload.Unary<T> impl) {
+    return from(functionName, overloadId, ImmutableList.of(arg), (args) -> impl.apply((T) args[0]));
+  }
+
+  /**
+   * Create a binary function binding from the {@code overloadId}, {@code arg1}, {@code arg2}, and
+   * {@code impl}.
+   */
+  @SuppressWarnings("unchecked")
+  static <T1, T2> CelFunctionBinding from(
+      // TODO: This should actually accept a grouping of overloads (functionName,
+      // functionOverloads[])
+      String functionName,
+      String overloadId,
+      Class<T1> arg1,
+      Class<T2> arg2,
+      CelFunctionOverload.Binary<T1, T2> impl) {
+    return from(
+        functionName,
+        overloadId,
+        ImmutableList.of(arg1, arg2),
+        (args) -> impl.apply((T1) args[0], (T2) args[1]));
+  }
+
+  /** Create a function binding from the {@code overloadId}, {@code argTypes}, and {@code impl}. */
+  static CelFunctionBinding from(
+      String functionName,
+      String overloadId,
+      Iterable<Class<?>> argTypes,
+      CelFunctionOverload impl) {
     return new FunctionBindingImpl(
-        overloadId, ImmutableList.copyOf(argTypes), impl, /* isStrict= */ true);
+        functionName, overloadId, ImmutableList.copyOf(argTypes), impl, /* isStrict= */ true);
   }
 }

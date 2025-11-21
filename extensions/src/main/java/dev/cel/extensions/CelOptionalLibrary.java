@@ -295,7 +295,8 @@ public final class CelOptionalLibrary
   public void setRuntimeOptions(
       CelRuntimeBuilder runtimeBuilder, RuntimeEquality runtimeEquality, CelOptions celOptions) {
     runtimeBuilder.addFunctionBindings(
-        CelFunctionBinding.from("optional_of", Object.class, Optional::of),
+        CelFunctionBinding.from(
+            Function.OPTIONAL_OF.getFunction(), "optional_of", Object.class, Optional::of),
         CelFunctionBinding.from(
             "optional_ofNonZeroValue",
             Object.class,
@@ -312,6 +313,7 @@ public final class CelOptionalLibrary
         CelFunctionBinding.from(
             "optional_hasValue", Object.class, val -> ((Optional<?>) val).isPresent()),
         CelFunctionBinding.from(
+            Operator.OPTIONAL_SELECT.getFunction(),
             "select_optional_field", // This only handles map selection. Proto selection is
             // special cased inside the interpreter.
             Map.class,

@@ -42,7 +42,7 @@ public final class InternalFunctionBinder {
    */
   public static CelFunctionBinding from(
       String overloadId, Iterable<Class<?>> argTypes, CelFunctionOverload impl, boolean isStrict) {
-    return new FunctionBindingImpl(overloadId, ImmutableList.copyOf(argTypes), impl, isStrict);
+    return new FunctionBindingImpl("", overloadId, ImmutableList.copyOf(argTypes), impl, isStrict);
   }
 
   private InternalFunctionBinder() {}

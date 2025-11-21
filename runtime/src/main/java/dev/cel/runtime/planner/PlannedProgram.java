@@ -16,8 +16,11 @@ package dev.cel.runtime.planner;
 
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.CelRuntimeException;
+import dev.cel.common.values.ErrorValue;
 import dev.cel.runtime.Activation;
 import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.CelEvaluationExceptionBuilder;
 import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
 import dev.cel.runtime.Interpretable;
@@ -31,18 +34,46 @@ abstract class PlannedProgram implements Program {
 
   @Override
   public Object eval() throws CelEvaluationException {
-    return interpretable().eval(GlobalResolver.EMPTY);
+    return evalThenUnwrap(interpretable(), GlobalResolver.EMPTY);
   }
 
   @Override
   public Object eval(Map<String, ?> mapValue) throws CelEvaluationException {
-    return interpretable().eval(Activation.copyOf(mapValue));
+    return evalThenUnwrap(interpretable(), Activation.copyOf(mapValue));
   }
 
   @Override
   public Object eval(Map<String, ?> mapValue, CelFunctionResolver lateBoundFunctionResolver)
       throws CelEvaluationException {
     throw new UnsupportedOperationException("Late bound functions not supported yet");
+  }
+
+  private Object evalThenUnwrap(Interpretable interpretable, GlobalResolver resolver)
+      throws CelEvaluationException {
+    try {
+      Object evalResult = interpretable.eval(resolver);
+      if (evalResult instanceof ErrorValue) {
+        ErrorValue errorValue = (ErrorValue) evalResult;
+        throw newCelEvaluationException(errorValue.value());
+      }
+
+      return evalResult;
+    } catch (CelRuntimeException e) {
+      throw CelEvaluationExceptionBuilder.newBuilder(e).build();
+    } catch (RuntimeException e) {
+      throw newCelEvaluationException(e);
+    }
+  }
+
+  private static CelEvaluationException newCelEvaluationException(Exception e) {
+    CelEvaluationExceptionBuilder builder;
+    if (e instanceof CelRuntimeException) {
+      builder = CelEvaluationExceptionBuilder.newBuilder((CelRuntimeException) e);
+    } else {
+      builder = CelEvaluationExceptionBuilder.newBuilder(e.getMessage()).setCause(e);
+    }
+
+    return builder.build();
   }
 
   static Program create(Interpretable interpretable) {

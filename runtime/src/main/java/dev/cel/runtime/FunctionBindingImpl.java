@@ -20,6 +20,7 @@ import com.google.errorprone.annotations.Immutable;
 @Immutable
 final class FunctionBindingImpl implements CelFunctionBinding {
 
+  private final String functionName;
   private final String overloadId;
 
   private final ImmutableList<Class<?>> argTypes;
@@ -27,6 +28,11 @@ final class FunctionBindingImpl implements CelFunctionBinding {
   private final CelFunctionOverload definition;
 
   private final boolean isStrict;
+
+  @Override
+  public String getFunctionName() {
+    return functionName;
+  }
 
   @Override
   public String getOverloadId() {
@@ -49,10 +55,12 @@ final class FunctionBindingImpl implements CelFunctionBinding {
   }
 
   FunctionBindingImpl(
+      String functionName,
       String overloadId,
       ImmutableList<Class<?>> argTypes,
       CelFunctionOverload definition,
       boolean isStrict) {
+    this.functionName = functionName;
     this.overloadId = overloadId;
     this.argTypes = argTypes;
     this.definition = definition;

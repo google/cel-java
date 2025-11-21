@@ -51,6 +51,11 @@ final class EvalAttribute implements Interpretable {
     throw new UnsupportedOperationException("Not yet supported");
   }
 
+  EvalAttribute addQualifier(Qualifier qualifier) {
+    Attribute newAttribute = attr.addQualifier(qualifier);
+    return create(newAttribute);
+  }
+
   static EvalAttribute create(Attribute attr) {
     return new EvalAttribute(attr);
   }
