@@ -18,6 +18,7 @@ java_library(
         ":eval_const",
         ":eval_create_list",
         ":eval_create_map",
+        ":eval_create_struct",
         ":planned_program",
         "//:auto_value",
         "//common:cel_ast",
@@ -26,6 +27,7 @@ java_library(
         "//common/ast",
         "//common/types",
         "//common/types:type_providers",
+        "//common/values:cel_value_provider",
         "//runtime:evaluation_exception",
         "//runtime:evaluation_exception_builder",
         "//runtime:interpretable",
@@ -85,6 +87,22 @@ java_library(
     srcs = ["EvalAttribute.java"],
     deps = [
         ":attribute",
+        "//runtime:evaluation_listener",
+        "//runtime:function_resolver",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_create_struct",
+    srcs = ["EvalCreateStruct.java"],
+    deps = [
+        "//common/types",
+        "//common/values",
+        "//common/values:cel_value_provider",
+        "//runtime:evaluation_exception",
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
         "//runtime:interpretable",

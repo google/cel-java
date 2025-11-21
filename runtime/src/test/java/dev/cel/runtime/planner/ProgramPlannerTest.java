@@ -25,8 +25,14 @@ import com.google.common.primitives.UnsignedLong;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelDescriptorUtil;
+import dev.cel.common.CelOptions;
 import dev.cel.common.CelSource;
 import dev.cel.common.ast.CelExpr;
+import dev.cel.common.internal.CelDescriptorPool;
+import dev.cel.common.internal.DefaultDescriptorPool;
+import dev.cel.common.internal.DefaultMessageFactory;
+import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypeProvider.CombinedCelTypeProvider;
@@ -38,7 +44,9 @@ import dev.cel.common.types.ProtoMessageTypeProvider;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.NullValue;
+import dev.cel.common.values.ProtoMessageValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.GlobalEnum;
@@ -56,8 +64,17 @@ public final class ProgramPlannerTest {
       new CombinedCelTypeProvider(
           DefaultTypeProvider.getInstance(),
           new ProtoMessageTypeProvider(ImmutableSet.of(TestAllTypes.getDescriptor())));
+  private static final CelDescriptorPool DESCRIPTOR_POOL =
+      DefaultDescriptorPool.create(
+          CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+              TestAllTypes.getDescriptor().getFile()));
+  private static final DynamicProto DYNAMIC_PROTO =
+      DynamicProto.create(DefaultMessageFactory.create(DESCRIPTOR_POOL));
+  private static final CelValueProvider VALUE_PROVIDER =
+      ProtoMessageValueProvider.newInstance(CelOptions.DEFAULT, DYNAMIC_PROTO);
 
-  private static final ProgramPlanner PLANNER = ProgramPlanner.newPlanner(TYPE_PROVIDER);
+  private static final ProgramPlanner PLANNER =
+      ProgramPlanner.newPlanner(TYPE_PROVIDER, VALUE_PROVIDER);
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
           .addVar("int_var", SimpleType.INT)
@@ -114,6 +131,24 @@ public final class ProgramPlannerTest {
   }
 
   @Test
+  public void planIdent_typeLiteral(@TestParameter TypeLiteralTestCase testCase) throws Exception {
+    if (isParseOnly) {
+      if (testCase.equals(TypeLiteralTestCase.DURATION)
+          || testCase.equals(TypeLiteralTestCase.TIMESTAMP)
+          || testCase.equals(TypeLiteralTestCase.PROTO_MESSAGE_TYPE)) {
+        // TODO Skip for now, requires attribute qualification
+        return;
+      }
+    }
+    CelAbstractSyntaxTree ast = compile(testCase.expression);
+    Program program = PLANNER.plan(ast);
+
+    TypeType result = (TypeType) program.eval();
+
+    assertThat(result).isEqualTo(testCase.type);
+  }
+
+  @Test
   @SuppressWarnings("unchecked") // test only
   public void plan_createList() throws Exception {
     CelAbstractSyntaxTree ast = compile("[1, 'foo', true, [2, false]]");
@@ -136,21 +171,39 @@ public final class ProgramPlannerTest {
   }
 
   @Test
-  public void planIdent_typeLiteral(@TestParameter TypeLiteralTestCase testCase) throws Exception {
-    if (isParseOnly) {
-      if (testCase.equals(TypeLiteralTestCase.DURATION)
-          || testCase.equals(TypeLiteralTestCase.TIMESTAMP)
-          || testCase.equals(TypeLiteralTestCase.PROTO_MESSAGE_TYPE)) {
-        // TODO Skip for now, requires attribute qualification
-        return;
-      }
-    }
-    CelAbstractSyntaxTree ast = compile(testCase.expression);
+  public void plan_createStruct() throws Exception {
+    CelAbstractSyntaxTree ast = compile("cel.expr.conformance.proto3.TestAllTypes{}");
     Program program = PLANNER.plan(ast);
 
-    TypeType result = (TypeType) program.eval();
+    TestAllTypes result = (TestAllTypes) program.eval();
 
-    assertThat(result).isEqualTo(testCase.type);
+    assertThat(result).isEqualTo(TestAllTypes.getDefaultInstance());
+  }
+
+  @Test
+  public void plan_createStruct_wrapper() throws Exception {
+    CelAbstractSyntaxTree ast = compile("google.protobuf.StringValue { value: 'foo' }");
+    Program program = PLANNER.plan(ast);
+
+    String result = (String) program.eval();
+
+    assertThat(result).isEqualTo("foo");
+  }
+
+  @Test
+  public void planCreateStruct_withFields() throws Exception {
+    CelAbstractSyntaxTree ast =
+        compile(
+            "cel.expr.conformance.proto3.TestAllTypes{"
+                + "single_string: 'foo',"
+                + "single_bool: true"
+                + "}");
+    Program program = PLANNER.plan(ast);
+
+    TestAllTypes result = (TestAllTypes) program.eval();
+
+    assertThat(result)
+        .isEqualTo(TestAllTypes.newBuilder().setSingleString("foo").setSingleBool(true).build());
   }
 
   private CelAbstractSyntaxTree compile(String expression) throws Exception {

@@ -25,11 +25,15 @@ import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelList;
 import dev.cel.common.ast.CelExpr.CelMap;
+import dev.cel.common.ast.CelExpr.CelStruct;
+import dev.cel.common.ast.CelExpr.CelStruct.Entry;
 import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
+import dev.cel.common.types.StructType;
 import dev.cel.common.types.TypeType;
+import dev.cel.common.values.CelValueProvider;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationExceptionBuilder;
 import dev.cel.runtime.Interpretable;
@@ -45,6 +49,7 @@ import java.util.NoSuchElementException;
 public final class ProgramPlanner {
 
   private final CelTypeProvider typeProvider;
+  private final CelValueProvider valueProvider;
   private final AttributeFactory attributeFactory;
 
   /**
@@ -70,6 +75,8 @@ public final class ProgramPlanner {
         return planIdent(celExpr, ctx);
       case LIST:
         return planCreateList(celExpr, ctx);
+      case STRUCT:
+        return planCreateStruct(celExpr, ctx);
       case MAP:
         return planCreateMap(celExpr, ctx);
       case NOT_SET:
@@ -131,6 +138,32 @@ public final class ProgramPlanner {
     return EvalAttribute.create(attributeFactory.newAbsoluteAttribute(identRef.name()));
   }
 
+  private Interpretable planCreateStruct(CelExpr celExpr, PlannerContext ctx) {
+    CelStruct struct = celExpr.struct();
+    CelType structType =
+        typeProvider
+            .findType(struct.messageName())
+            .orElseThrow(
+                () -> new IllegalArgumentException("Undefined type name: " + struct.messageName()));
+    if (!structType.kind().equals(CelKind.STRUCT)) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Expected struct type for %s, got %s", structType.name(), structType.kind()));
+    }
+
+    ImmutableList<Entry> entries = struct.entries();
+    String[] keys = new String[entries.size()];
+    Interpretable[] values = new Interpretable[entries.size()];
+
+    for (int i = 0; i < entries.size(); i++) {
+      Entry entry = entries.get(i);
+      keys[i] = entry.fieldKey();
+      values[i] = plan(entry.value(), ctx);
+    }
+
+    return EvalCreateStruct.create(valueProvider, (StructType) structType, keys, values);
+  }
+
   private Interpretable planCreateList(CelExpr celExpr, PlannerContext ctx) {
     CelList list = celExpr.list();
 
@@ -172,12 +205,14 @@ public final class ProgramPlanner {
     }
   }
 
-  public static ProgramPlanner newPlanner(CelTypeProvider typeProvider) {
-    return new ProgramPlanner(typeProvider);
+  public static ProgramPlanner newPlanner(
+      CelTypeProvider typeProvider, CelValueProvider valueProvider) {
+    return new ProgramPlanner(typeProvider, valueProvider);
   }
 
-  private ProgramPlanner(CelTypeProvider typeProvider) {
+  private ProgramPlanner(CelTypeProvider typeProvider, CelValueProvider valueProvider) {
     this.typeProvider = typeProvider;
+    this.valueProvider = valueProvider;
     // TODO: Container support
     this.attributeFactory =
         AttributeFactory.newAttributeFactory(CelContainer.newBuilder().build(), typeProvider);
