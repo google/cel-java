@@ -17,7 +17,9 @@ package dev.cel.runtime;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
+import com.google.protobuf.MessageLite;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Representation of a function overload which has been resolved to a specific set of argument types
@@ -25,14 +27,12 @@ import java.util.List;
  */
 @AutoValue
 @Immutable
-abstract class CelResolvedOverload implements ResolvedOverload {
+abstract class CelResolvedOverload {
 
   /** The overload id of the function. */
-  @Override
   public abstract String getOverloadId();
 
   /** The types of the function parameters. */
-  @Override
   public abstract ImmutableList<Class<?>> getParameterTypes();
 
   /* Denotes whether an overload is strict.
@@ -47,11 +47,9 @@ abstract class CelResolvedOverload implements ResolvedOverload {
    *
    * <p>In a vast majority of cases, this should be set to true.
    */
-  @Override
   public abstract boolean isStrict();
 
   /** The function definition. */
-  @Override
   public abstract CelFunctionOverload getDefinition();
 
   /**
@@ -75,5 +73,42 @@ abstract class CelResolvedOverload implements ResolvedOverload {
       List<Class<?>> parameterTypes) {
     return new AutoValue_CelResolvedOverload(
         overloadId, ImmutableList.copyOf(parameterTypes), isStrict, definition);
+  }
+
+  /**
+   * Returns true if the overload's expected argument types match the types of the given arguments.
+   */
+  boolean canHandle(Object[] arguments) {
+    ImmutableList<Class<?>> parameterTypes = getParameterTypes();
+    if (parameterTypes.size() != arguments.length) {
+      return false;
+    }
+    for (int i = 0; i < parameterTypes.size(); i++) {
+      Class<?> paramType = parameterTypes.get(i);
+      Object arg = arguments[i];
+      if (arg == null) {
+        // null can be assigned to messages, maps, and to objects.
+        // TODO: Remove null special casing
+        if (paramType != Object.class
+            && !MessageLite.class.isAssignableFrom(paramType)
+            && !Map.class.isAssignableFrom(paramType)) {
+          return false;
+        }
+        continue;
+      }
+
+      if (arg instanceof Exception || arg instanceof CelUnknownSet) {
+        // Only non-strict functions can accept errors/unknowns as arguments to a function
+        if (!isStrict()) {
+          // Skip assignability check below, but continue to validate remaining args
+          continue;
+        }
+      }
+
+      if (!paramType.isAssignableFrom(arg.getClass())) {
+        return false;
+      }
+    }
+    return true;
   }
 }

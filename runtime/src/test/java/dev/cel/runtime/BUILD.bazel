@@ -75,7 +75,6 @@ java_library(
         "//runtime:proto_message_runtime_equality",
         "//runtime:proto_message_runtime_helpers",
         "//runtime:resolved_overload",
-        "//runtime:resolved_overload_internal",
         "//runtime:runtime_equality",
         "//runtime:runtime_helpers",
         "//runtime:standard_functions",

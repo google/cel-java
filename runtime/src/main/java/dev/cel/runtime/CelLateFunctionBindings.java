@@ -29,14 +29,14 @@ import java.util.Optional;
 @Immutable
 public final class CelLateFunctionBindings implements CelFunctionResolver {
 
-  private final ImmutableMap<String, ResolvedOverload> functions;
+  private final ImmutableMap<String, CelResolvedOverload> functions;
 
-  private CelLateFunctionBindings(ImmutableMap<String, ResolvedOverload> functions) {
+  private CelLateFunctionBindings(ImmutableMap<String, CelResolvedOverload> functions) {
     this.functions = functions;
   }
 
   @Override
-  public Optional<ResolvedOverload> findOverloadMatchingArgs(
+  public Optional<CelResolvedOverload> findOverloadMatchingArgs(
       String functionName, List<String> overloadIds, Object[] args) throws CelEvaluationException {
     return DefaultDispatcher.findOverloadMatchingArgs(functionName, overloadIds, functions, args);
   }
@@ -54,7 +54,7 @@ public final class CelLateFunctionBindings implements CelFunctionResolver {
                     CelLateFunctionBindings::createResolvedOverload)));
   }
 
-  private static ResolvedOverload createResolvedOverload(CelFunctionBinding binding) {
+  private static CelResolvedOverload createResolvedOverload(CelFunctionBinding binding) {
     return CelResolvedOverload.of(
         binding.getOverloadId(),
         (args) -> binding.getDefinition().apply(args),

@@ -494,7 +494,7 @@ final class DefaultInterpreter implements Interpreter {
 
       Object[] argArray = Arrays.stream(argResults).map(IntermediateResult::value).toArray();
       ImmutableList<String> overloadIds = reference.overloadIds();
-      ResolvedOverload overload =
+      CelResolvedOverload overload =
           findOverloadOrThrow(frame, expr, callExpr.function(), overloadIds, argArray);
       try {
         Object dispatchResult = overload.getDefinition().apply(argArray);
@@ -517,7 +517,7 @@ final class DefaultInterpreter implements Interpreter {
       }
     }
 
-    private ResolvedOverload findOverloadOrThrow(
+    private CelResolvedOverload findOverloadOrThrow(
         ExecutionFrame frame,
         CelExpr expr,
         String functionName,
@@ -525,7 +525,7 @@ final class DefaultInterpreter implements Interpreter {
         Object[] args)
         throws CelEvaluationException {
       try {
-        Optional<ResolvedOverload> funcImpl =
+        Optional<CelResolvedOverload> funcImpl =
             dispatcher.findOverloadMatchingArgs(functionName, overloadIds, args);
         if (funcImpl.isPresent()) {
           return funcImpl.get();
@@ -1132,7 +1132,7 @@ final class DefaultInterpreter implements Interpreter {
       return currentResolver;
     }
 
-    private Optional<ResolvedOverload> findOverload(
+    private Optional<CelResolvedOverload> findOverload(
         String function, List<String> overloadIds, Object[] args) throws CelEvaluationException {
       if (lateBoundFunctionResolver.isPresent()) {
         return lateBoundFunctionResolver

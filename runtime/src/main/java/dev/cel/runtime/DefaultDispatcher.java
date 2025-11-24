@@ -31,26 +31,26 @@ import java.util.Optional;
 @Immutable
 final class DefaultDispatcher implements CelFunctionResolver {
 
-  private final ImmutableMap<String, ResolvedOverload> overloads;
+  private final ImmutableMap<String, CelResolvedOverload> overloads;
 
   @Override
-  public Optional<ResolvedOverload> findOverloadMatchingArgs(
+  public Optional<CelResolvedOverload> findOverloadMatchingArgs(
       String functionName, List<String> overloadIds, Object[] args) throws CelEvaluationException {
     return findOverloadMatchingArgs(functionName, overloadIds, overloads, args);
   }
 
   /** Finds the overload that matches the given function name, overload IDs, and arguments. */
-  static Optional<ResolvedOverload> findOverloadMatchingArgs(
+  static Optional<CelResolvedOverload> findOverloadMatchingArgs(
       String functionName,
       List<String> overloadIds,
-      Map<String, ? extends ResolvedOverload> overloads,
+      Map<String, ? extends CelResolvedOverload> overloads,
       Object[] args)
       throws CelEvaluationException {
     int matchingOverloadCount = 0;
-    ResolvedOverload match = null;
+    CelResolvedOverload match = null;
     List<String> candidates = null;
     for (String overloadId : overloadIds) {
-      ResolvedOverload overload = overloads.get(overloadId);
+      CelResolvedOverload overload = overloads.get(overloadId);
       // If the overload is null, it means that the function was not registered; however, it is
       // possible that the overload refers to a late-bound function.
       if (overload != null && overload.canHandle(args)) {
@@ -85,9 +85,9 @@ final class DefaultDispatcher implements CelFunctionResolver {
    *
    * @throws IllegalStateException if there are multiple overloads that are marked non-strict.
    */
-  Optional<ResolvedOverload> findSingleNonStrictOverload(List<String> overloadIds) {
+  Optional<CelResolvedOverload> findSingleNonStrictOverload(List<String> overloadIds) {
     for (String overloadId : overloadIds) {
-      ResolvedOverload overload = overloads.get(overloadId);
+      CelResolvedOverload overload = overloads.get(overloadId);
       if (overload != null && !overload.isStrict()) {
         if (overloadIds.size() > 1) {
           throw new IllegalStateException(
@@ -108,9 +108,9 @@ final class DefaultDispatcher implements CelFunctionResolver {
   @AutoBuilder(ofClass = DefaultDispatcher.class)
   abstract static class Builder {
 
-    abstract ImmutableMap<String, ResolvedOverload> overloads();
+    abstract ImmutableMap<String, CelResolvedOverload> overloads();
 
-    abstract ImmutableMap.Builder<String, ResolvedOverload> overloadsBuilder();
+    abstract ImmutableMap.Builder<String, CelResolvedOverload> overloadsBuilder();
 
     @CanIgnoreReturnValue
     Builder addOverload(
@@ -130,7 +130,7 @@ final class DefaultDispatcher implements CelFunctionResolver {
     abstract DefaultDispatcher build();
   }
 
-  DefaultDispatcher(ImmutableMap<String, ResolvedOverload> overloads) {
+  DefaultDispatcher(ImmutableMap<String, CelResolvedOverload> overloads) {
     this.overloads = overloads;
   }
 }

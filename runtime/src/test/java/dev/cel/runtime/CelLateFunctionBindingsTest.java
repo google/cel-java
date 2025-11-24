@@ -37,7 +37,7 @@ public final class CelLateFunctionBindingsTest {
             CelFunctionBinding.from("increment_int", Long.class, (arg) -> arg + 1),
             CelFunctionBinding.from(
                 "increment_uint", UnsignedLong.class, (arg) -> arg.plus(UnsignedLong.ONE)));
-    Optional<ResolvedOverload> overload =
+    Optional<CelResolvedOverload> overload =
         bindings.findOverloadMatchingArgs(
             "increment", ImmutableList.of("increment_int", "increment_uint"), new Object[] {1L});
     assertThat(overload).isPresent();
@@ -53,7 +53,7 @@ public final class CelLateFunctionBindingsTest {
             CelFunctionBinding.from("increment_int", Long.class, (arg) -> arg + 1),
             CelFunctionBinding.from(
                 "increment_uint", UnsignedLong.class, (arg) -> arg.plus(UnsignedLong.ONE)));
-    Optional<ResolvedOverload> overload =
+    Optional<CelResolvedOverload> overload =
         bindings.findOverloadMatchingArgs(
             "increment", ImmutableList.of("increment_int", "increment_uint"), new Object[] {1.0});
     assertThat(overload).isEmpty();
@@ -66,7 +66,7 @@ public final class CelLateFunctionBindingsTest {
             CelFunctionBinding.from("increment_int", Long.class, (arg) -> arg + 1),
             CelFunctionBinding.from(
                 "increment_uint", UnsignedLong.class, (arg) -> arg.plus(UnsignedLong.ONE)));
-    Optional<ResolvedOverload> overload =
+    Optional<CelResolvedOverload> overload =
         bindings.findOverloadMatchingArgs(
             "increment",
             ImmutableList.of("increment_int", "increment_uint"),
@@ -88,7 +88,7 @@ public final class CelLateFunctionBindingsTest {
                   }
                   return arg.plus(UnsignedLong.ONE);
                 }));
-    Optional<ResolvedOverload> overload =
+    Optional<CelResolvedOverload> overload =
         bindings.findOverloadMatchingArgs(
             "increment", ImmutableList.of("increment_uint"), new Object[] {UnsignedLong.MAX_VALUE});
     assertThat(overload).isPresent();
@@ -123,7 +123,7 @@ public final class CelLateFunctionBindingsTest {
     CelLateFunctionBindings bindings =
         CelLateFunctionBindings.from(
             CelFunctionBinding.from("identity_int", Long.class, (arg) -> arg));
-    Optional<ResolvedOverload> overload =
+    Optional<CelResolvedOverload> overload =
         bindings.findOverloadMatchingArgs(
             "identity", ImmutableList.of("identity_int"), new Object[] {null});
     assertThat(overload).isEmpty();
@@ -134,7 +134,7 @@ public final class CelLateFunctionBindingsTest {
     CelLateFunctionBindings bindings =
         CelLateFunctionBindings.from(
             CelFunctionBinding.from("identity_msg", TestAllTypes.class, (arg) -> arg));
-    Optional<ResolvedOverload> overload =
+    Optional<CelResolvedOverload> overload =
         bindings.findOverloadMatchingArgs(
             "identity", ImmutableList.of("identity_msg"), new Object[] {null});
     assertThat(overload).isPresent();

@@ -228,12 +228,6 @@ cel_android_library(
 )
 
 java_library(
-    name = "resolved_overload_internal",
-    visibility = ["//:internal"],
-    exports = ["//runtime/src/main/java/dev/cel/runtime:resolved_overload_internal"],
-)
-
-java_library(
     name = "internal_function_binder",
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:internal_function_binder"],
