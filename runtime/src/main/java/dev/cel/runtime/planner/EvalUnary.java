@@ -14,19 +14,24 @@
 
 package dev.cel.runtime.planner;
 
-import com.google.errorprone.annotations.Immutable;
+import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationListener;
 import dev.cel.runtime.CelFunctionResolver;
+import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.GlobalResolver;
+import dev.cel.runtime.Interpretable;
 
-@Immutable
-final class EvalAttribute implements InterpretableAttribute {
+final class EvalUnary implements Interpretable {
 
-  private final Attribute attr;
+  private final CelResolvedOverload resolvedOverload;
+  private final Interpretable arg;
 
   @Override
-  public Object eval(GlobalResolver resolver) {
-    return attr.resolve(resolver);
+  public Object eval(GlobalResolver resolver) throws CelEvaluationException {
+    Object argVal = arg.eval(resolver);
+    Object[] arguments = new Object[] {argVal};
+
+    return resolvedOverload.getDefinition().apply(arguments);
   }
 
   @Override
@@ -50,17 +55,12 @@ final class EvalAttribute implements InterpretableAttribute {
     throw new UnsupportedOperationException("Not yet supported");
   }
 
-  @Override
-  public EvalAttribute addQualifier(Qualifier qualifier) {
-    Attribute newAttribute = attr.addQualifier(qualifier);
-    return create(newAttribute);
+  static EvalUnary create(CelResolvedOverload resolvedOverload, Interpretable arg) {
+    return new EvalUnary(resolvedOverload, arg);
   }
 
-  static EvalAttribute create(Attribute attr) {
-    return new EvalAttribute(attr);
-  }
-
-  private EvalAttribute(Attribute attr) {
-    this.attr = attr;
+  private EvalUnary(CelResolvedOverload resolvedOverload, Interpretable arg) {
+    this.resolvedOverload = resolvedOverload;
+    this.arg = arg;
   }
 }

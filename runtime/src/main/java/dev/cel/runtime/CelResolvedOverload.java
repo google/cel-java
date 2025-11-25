@@ -17,6 +17,7 @@ package dev.cel.runtime;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.annotations.Internal;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +27,8 @@ import java.util.Map;
  */
 @AutoValue
 @Immutable
-abstract class CelResolvedOverload {
+@Internal
+public abstract class CelResolvedOverload {
 
   /** The overload id of the function. */
   public abstract String getOverloadId();
@@ -78,7 +80,14 @@ abstract class CelResolvedOverload {
    * Returns true if the overload's expected argument types match the types of the given arguments.
    */
   boolean canHandle(Object[] arguments) {
-    ImmutableList<Class<?>> parameterTypes = getParameterTypes();
+    return canHandle(arguments, getParameterTypes(), isStrict());
+  }
+
+  /**
+   * Returns true if the overload's expected argument types match the types of the given arguments.
+   */
+  public static boolean canHandle(
+      Object[] arguments, ImmutableList<Class<?>> parameterTypes, boolean isStrict) {
     if (parameterTypes.size() != arguments.length) {
       return false;
     }
@@ -96,7 +105,7 @@ abstract class CelResolvedOverload {
 
       if (arg instanceof Exception || arg instanceof CelUnknownSet) {
         // Only non-strict functions can accept errors/unknowns as arguments to a function
-        if (!isStrict()) {
+        if (!isStrict) {
           // Skip assignability check below, but continue to validate remaining args
           continue;
         }

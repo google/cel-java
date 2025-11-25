@@ -14,23 +14,82 @@
 
 package dev.cel.runtime.planner;
 
-
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
+import dev.cel.common.types.EnumType;
 import dev.cel.common.types.TypeType;
+import dev.cel.common.values.CelValue;
+import dev.cel.common.values.CelValueConverter;
+import dev.cel.common.values.ErrorValue;
 import dev.cel.runtime.GlobalResolver;
+import dev.cel.runtime.Interpretable;
+import java.util.NoSuchElementException;
 
 @Immutable
 interface Attribute {
   Object resolve(GlobalResolver ctx);
 
-  final class MaybeAttribute implements Attribute {
-    private final ImmutableList<Attribute> attributes;
+  Attribute addQualifier(Qualifier qualifier);
+
+  @Immutable
+  final class RelativeAttribute implements Attribute {
+
+    private final Interpretable operand;
+    private final CelValueConverter celValueConverter;
+    private final ImmutableList<Qualifier> qualifiers;
 
     @Override
     public Object resolve(GlobalResolver ctx) {
-      for (Attribute attr : attributes) {
+      Object obj = EvalHelpers.evalNonstrictly(operand, ctx);
+      if (obj instanceof ErrorValue) {
+        return obj;
+      }
+      obj = celValueConverter.toRuntimeValue(obj);
+
+      for (Qualifier qualifier : qualifiers) {
+        obj = qualifier.qualify(obj);
+      }
+
+      // TODO: Handle unknowns
+
+      return obj;
+    }
+
+    @Override
+    public Attribute addQualifier(Qualifier qualifier) {
+      return new RelativeAttribute(
+          this.operand,
+          celValueConverter,
+          ImmutableList.<Qualifier>builderWithExpectedSize(qualifiers.size() + 1)
+              .addAll(this.qualifiers)
+              .add(qualifier)
+              .build());
+    }
+
+    RelativeAttribute(Interpretable operand, CelValueConverter celValueConverter) {
+      this(operand, celValueConverter, ImmutableList.of());
+    }
+
+    private RelativeAttribute(
+        Interpretable operand,
+        CelValueConverter celValueConverter,
+        ImmutableList<Qualifier> qualifiers) {
+      this.operand = operand;
+      this.celValueConverter = celValueConverter;
+      this.qualifiers = qualifiers;
+    }
+  }
+
+  @Immutable
+  final class MaybeAttribute implements Attribute {
+    private final AttributeFactory attrFactory;
+    private final ImmutableList<NamespacedAttribute> attributes;
+
+    @Override
+    public Object resolve(GlobalResolver ctx) {
+      for (NamespacedAttribute attr : attributes) {
         Object value = attr.resolve(ctx);
         if (value != null) {
           return value;
@@ -41,13 +100,43 @@ interface Attribute {
       throw new UnsupportedOperationException("Unknown attributes is not supported yet");
     }
 
-    MaybeAttribute(ImmutableList<Attribute> attributes) {
+    @Override
+    public Attribute addQualifier(Qualifier qualifier) {
+      Object strQualifier = qualifier.value();
+      ImmutableList.Builder<String> augmentedNamesBuilder = ImmutableList.builder();
+      ImmutableList.Builder<NamespacedAttribute> attributesBuilder = ImmutableList.builder();
+      for (NamespacedAttribute attr : attributes) {
+        if (strQualifier instanceof String && attr.qualifiers.isEmpty()) {
+          for (String varName : attr.candidateVariableNames()) {
+            augmentedNamesBuilder.add(varName + "." + strQualifier);
+          }
+        }
+
+        attributesBuilder.add(attr.addQualifier(qualifier));
+      }
+      ImmutableList<String> augmentedNames = augmentedNamesBuilder.build();
+      ImmutableList.Builder<NamespacedAttribute> namespacedAttributeBuilder =
+          ImmutableList.builder();
+      if (!augmentedNames.isEmpty()) {
+        namespacedAttributeBuilder.add(
+            attrFactory.newAbsoluteAttribute(augmentedNames.toArray(new String[0])));
+      }
+
+      namespacedAttributeBuilder.addAll(attributesBuilder.build());
+      return new MaybeAttribute(attrFactory, namespacedAttributeBuilder.build());
+    }
+
+    MaybeAttribute(AttributeFactory attrFactory, ImmutableList<NamespacedAttribute> attributes) {
+      this.attrFactory = attrFactory;
       this.attributes = attributes;
     }
   }
 
+  @Immutable
   final class NamespacedAttribute implements Attribute {
     private final ImmutableList<String> namespacedNames;
+    private final ImmutableList<Qualifier> qualifiers;
+    private final CelValueConverter celValueConverter;
     private final CelTypeProvider typeProvider;
 
     @Override
@@ -55,23 +144,84 @@ interface Attribute {
       for (String name : namespacedNames) {
         Object value = ctx.resolve(name);
         if (value != null) {
-          // TODO: apply qualifiers
-          return value;
+          if (!qualifiers.isEmpty()) {
+            return applyQualifiers(value, celValueConverter, qualifiers);
+          } else {
+            return value;
+          }
         }
 
-        TypeType type = typeProvider.findType(name).map(TypeType::create).orElse(null);
+        CelType type = typeProvider.findType(name).orElse(null);
         if (type != null) {
+          if (qualifiers.isEmpty()) {
+            // Resolution of a fully qualified type name: foo.bar.baz
+            return TypeType.create(type);
+          } else {
+            // This is potentially a fully qualified reference to an enum value
+            if (type instanceof EnumType && qualifiers.size() == 1) {
+              EnumType enumType = (EnumType) type;
+              String strQualifier = (String) qualifiers.get(0).value();
+              return enumType
+                  .findNumberByName(strQualifier)
+                  .orElseThrow(
+                      () ->
+                          new NoSuchElementException(
+                              String.format(
+                                  "Field %s was not found on enum %s", enumType, strQualifier)));
+            }
+          }
           return type;
         }
       }
 
-      // TODO: Handle unknowns
-      throw new UnsupportedOperationException("Unknown attributes is not supported yet");
+      return null;
+      //      throw new IllegalArgumentException("Could not resolve variable.");
     }
 
-    NamespacedAttribute(CelTypeProvider typeProvider, ImmutableList<String> namespacedNames) {
-      this.typeProvider = typeProvider;
-      this.namespacedNames = namespacedNames;
+    private ImmutableList<String> candidateVariableNames() {
+      return namespacedNames;
     }
+
+    @Override
+    public NamespacedAttribute addQualifier(Qualifier qualifier) {
+      return new NamespacedAttribute(
+          typeProvider,
+          celValueConverter,
+          namespacedNames,
+          ImmutableList.<Qualifier>builder().addAll(qualifiers).add(qualifier).build());
+    }
+
+    NamespacedAttribute(
+        CelTypeProvider typeProvider,
+        CelValueConverter celValueConverter,
+        ImmutableList<String> namespacedNames) {
+      this(typeProvider, celValueConverter, namespacedNames, ImmutableList.of());
+    }
+
+    private NamespacedAttribute(
+        CelTypeProvider typeProvider,
+        CelValueConverter celValueConverter,
+        ImmutableList<String> namespacedNames,
+        ImmutableList<Qualifier> qualifiers) {
+      this.typeProvider = typeProvider;
+      this.celValueConverter = celValueConverter;
+      this.namespacedNames = namespacedNames;
+      this.qualifiers = qualifiers;
+    }
+  }
+
+  private static Object applyQualifiers(
+      Object value, CelValueConverter celValueConverter, ImmutableList<Qualifier> qualifiers) {
+    Object obj = celValueConverter.toRuntimeValue(value);
+
+    for (Qualifier qualifier : qualifiers) {
+      obj = qualifier.qualify(obj);
+    }
+
+    if (obj instanceof CelValue) {
+      obj = celValueConverter.unwrap((CelValue) obj);
+    }
+
+    return obj;
   }
 }

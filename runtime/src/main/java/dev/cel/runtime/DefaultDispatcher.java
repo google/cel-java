@@ -14,6 +14,7 @@
 
 package dev.cel.runtime;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.auto.value.AutoBuilder;
@@ -22,16 +23,26 @@ import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelErrorCode;
+import dev.cel.common.annotations.Internal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** Default implementation of dispatcher. */
+/**
+ * Default implementation of dispatcher.
+ *
+ * <p>CEL Library Internals. Do Not Use.
+ */
 @Immutable
-final class DefaultDispatcher implements CelFunctionResolver {
+@Internal
+public final class DefaultDispatcher implements CelFunctionResolver {
 
   private final ImmutableMap<String, CelResolvedOverload> overloads;
+
+  public Optional<CelResolvedOverload> findOverload(String functionName) {
+    return Optional.ofNullable(overloads.get(functionName));
+  }
 
   @Override
   public Optional<CelResolvedOverload> findOverloadMatchingArgs(
@@ -101,24 +112,26 @@ final class DefaultDispatcher implements CelFunctionResolver {
     return Optional.empty();
   }
 
-  static Builder newBuilder() {
+  public static Builder newBuilder() {
     return new AutoBuilder_DefaultDispatcher_Builder();
   }
 
+  /** Builder for {@link DefaultDispatcher}. */
   @AutoBuilder(ofClass = DefaultDispatcher.class)
-  abstract static class Builder {
+  public abstract static class Builder {
 
     abstract ImmutableMap<String, CelResolvedOverload> overloads();
 
     abstract ImmutableMap.Builder<String, CelResolvedOverload> overloadsBuilder();
 
     @CanIgnoreReturnValue
-    Builder addOverload(
+    public Builder addOverload(
         String overloadId,
         List<Class<?>> argTypes,
         boolean isStrict,
         CelFunctionOverload overload) {
       checkNotNull(overloadId);
+      checkArgument(!overloadId.isEmpty(), "Overload ID cannot be empty.");
       checkNotNull(argTypes);
       checkNotNull(overload);
 
@@ -127,7 +140,7 @@ final class DefaultDispatcher implements CelFunctionResolver {
       return this;
     }
 
-    abstract DefaultDispatcher build();
+    public abstract DefaultDispatcher build();
   }
 
   DefaultDispatcher(ImmutableMap<String, CelResolvedOverload> overloads) {

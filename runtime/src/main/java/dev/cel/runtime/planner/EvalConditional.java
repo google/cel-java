@@ -14,19 +14,36 @@
 
 package dev.cel.runtime.planner;
 
-import com.google.errorprone.annotations.Immutable;
+import com.google.common.base.Preconditions;
+import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationListener;
 import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
+import dev.cel.runtime.Interpretable;
 
-@Immutable
-final class EvalAttribute implements InterpretableAttribute {
+final class EvalConditional implements Interpretable {
 
-  private final Attribute attr;
+  @SuppressWarnings("Immutable")
+  private final Interpretable[] args;
 
   @Override
-  public Object eval(GlobalResolver resolver) {
-    return attr.resolve(resolver);
+  public Object eval(GlobalResolver resolver) throws CelEvaluationException {
+    Interpretable condition = args[0];
+    Interpretable truthy = args[1];
+    Interpretable falsy = args[2];
+    // TODO: Handle unknowns
+    Object condResult = condition.eval(resolver);
+    if (!(condResult instanceof Boolean)) {
+      throw new IllegalArgumentException(
+          String.format("Expected boolean value, found :%s", condResult));
+    }
+
+    // TODO: Handle exhaustive eval
+    if ((boolean) condResult) {
+      return truthy.eval(resolver);
+    }
+
+    return falsy.eval(resolver);
   }
 
   @Override
@@ -50,17 +67,12 @@ final class EvalAttribute implements InterpretableAttribute {
     throw new UnsupportedOperationException("Not yet supported");
   }
 
-  @Override
-  public EvalAttribute addQualifier(Qualifier qualifier) {
-    Attribute newAttribute = attr.addQualifier(qualifier);
-    return create(newAttribute);
+  static EvalConditional create(Interpretable[] args) {
+    return new EvalConditional(args);
   }
 
-  static EvalAttribute create(Attribute attr) {
-    return new EvalAttribute(attr);
-  }
-
-  private EvalAttribute(Attribute attr) {
-    this.attr = attr;
+  private EvalConditional(Interpretable[] args) {
+    Preconditions.checkArgument(args.length == 3);
+    this.args = args;
   }
 }

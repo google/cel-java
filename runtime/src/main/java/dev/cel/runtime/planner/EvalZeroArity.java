@@ -14,19 +14,20 @@
 
 package dev.cel.runtime.planner;
 
-import com.google.errorprone.annotations.Immutable;
+import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationListener;
 import dev.cel.runtime.CelFunctionResolver;
+import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.GlobalResolver;
+import dev.cel.runtime.Interpretable;
 
-@Immutable
-final class EvalAttribute implements InterpretableAttribute {
+final class EvalZeroArity implements Interpretable {
 
-  private final Attribute attr;
+  private final CelResolvedOverload resolvedOverload;
 
   @Override
-  public Object eval(GlobalResolver resolver) {
-    return attr.resolve(resolver);
+  public Object eval(GlobalResolver resolver) throws CelEvaluationException {
+    return resolvedOverload.getDefinition().apply(new Object[] {});
   }
 
   @Override
@@ -50,17 +51,11 @@ final class EvalAttribute implements InterpretableAttribute {
     throw new UnsupportedOperationException("Not yet supported");
   }
 
-  @Override
-  public EvalAttribute addQualifier(Qualifier qualifier) {
-    Attribute newAttribute = attr.addQualifier(qualifier);
-    return create(newAttribute);
+  static EvalZeroArity create(CelResolvedOverload resolvedOverload) {
+    return new EvalZeroArity(resolvedOverload);
   }
 
-  static EvalAttribute create(Attribute attr) {
-    return new EvalAttribute(attr);
-  }
-
-  private EvalAttribute(Attribute attr) {
-    this.attr = attr;
+  private EvalZeroArity(CelResolvedOverload resolvedOverload) {
+    this.resolvedOverload = resolvedOverload;
   }
 }
