@@ -130,16 +130,13 @@ public final class CelLateFunctionBindingsTest {
   }
 
   @Test
-  public void findOverload_nullMessageArg_returnsOverload() throws Exception {
+  public void findOverload_nullMessageArg_isEmpty() throws Exception {
     CelLateFunctionBindings bindings =
         CelLateFunctionBindings.from(
             CelFunctionBinding.from("identity_msg", TestAllTypes.class, (arg) -> arg));
     Optional<CelResolvedOverload> overload =
         bindings.findOverloadMatchingArgs(
             "identity", ImmutableList.of("identity_msg"), new Object[] {null});
-    assertThat(overload).isPresent();
-    assertThat(overload.get().getOverloadId()).isEqualTo("identity_msg");
-    assertThat(overload.get().getParameterTypes()).containsExactly(TestAllTypes.class);
-    assertThat(overload.get().getDefinition().apply(new Object[] {null})).isNull();
+    assertThat(overload).isEmpty();
   }
 }

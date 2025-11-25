@@ -42,11 +42,11 @@ public final class CelResolvedOverloadTest {
   }
 
   @Test
-  public void canHandle_nullMessageType_returnsTrue() {
+  public void canHandle_nullMessageType_returnsFalse() {
     CelResolvedOverload overload =
         CelResolvedOverload.of(
             "identity", (args) -> args[0], /* isStrict= */ true, TestAllTypes.class);
-    assertThat(overload.canHandle(new Object[] {null})).isTrue();
+    assertThat(overload.canHandle(new Object[] {null})).isFalse();
   }
 
   @Test

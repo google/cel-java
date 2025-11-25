@@ -17,7 +17,6 @@ package dev.cel.runtime;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
-import com.google.protobuf.MessageLite;
 import java.util.List;
 import java.util.Map;
 
@@ -89,9 +88,7 @@ abstract class CelResolvedOverload {
       if (arg == null) {
         // null can be assigned to messages, maps, and to objects.
         // TODO: Remove null special casing
-        if (paramType != Object.class
-            && !MessageLite.class.isAssignableFrom(paramType)
-            && !Map.class.isAssignableFrom(paramType)) {
+        if (paramType != Object.class && !Map.class.isAssignableFrom(paramType)) {
           return false;
         }
         continue;
