@@ -18,6 +18,7 @@ import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.runtime.Activation;
 import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.CelEvaluationExceptionBuilder;
 import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
 import dev.cel.runtime.Interpretable;
@@ -31,18 +32,31 @@ abstract class PlannedProgram implements Program {
 
   @Override
   public Object eval() throws CelEvaluationException {
-    return interpretable().eval(GlobalResolver.EMPTY);
+    return evalOrThrow(interpretable(), GlobalResolver.EMPTY);
   }
 
   @Override
   public Object eval(Map<String, ?> mapValue) throws CelEvaluationException {
-    return interpretable().eval(Activation.copyOf(mapValue));
+    return evalOrThrow(interpretable(), Activation.copyOf(mapValue));
   }
 
   @Override
   public Object eval(Map<String, ?> mapValue, CelFunctionResolver lateBoundFunctionResolver)
       throws CelEvaluationException {
     throw new UnsupportedOperationException("Late bound functions not supported yet");
+  }
+
+  private Object evalOrThrow(Interpretable interpretable, GlobalResolver resolver)
+      throws CelEvaluationException {
+    try {
+      return interpretable.eval(resolver);
+    } catch (RuntimeException e) {
+      throw newCelEvaluationException(e);
+    }
+  }
+
+  private static CelEvaluationException newCelEvaluationException(Exception e) {
+    return CelEvaluationExceptionBuilder.newBuilder(e.getMessage()).setCause(e).build();
   }
 
   static Program create(Interpretable interpretable) {

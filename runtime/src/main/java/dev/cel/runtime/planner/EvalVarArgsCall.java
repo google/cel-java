@@ -1,0 +1,70 @@
+// Copyright 2025 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package dev.cel.runtime.planner;
+
+import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.CelEvaluationListener;
+import dev.cel.runtime.CelFunctionResolver;
+import dev.cel.runtime.CelResolvedOverload;
+import dev.cel.runtime.GlobalResolver;
+import dev.cel.runtime.Interpretable;
+
+@SuppressWarnings("Immutable")
+final class EvalVarArgsCall implements Interpretable {
+
+  private final CelResolvedOverload resolvedOverload;
+  private final Interpretable[] args;
+
+  @Override
+  public Object eval(GlobalResolver resolver) throws CelEvaluationException {
+    Object[] argVals = new Object[args.length];
+    for (int i = 0; i < args.length; i++) {
+      Interpretable arg = args[i];
+      argVals[i] = arg.eval(resolver);
+    }
+
+    return resolvedOverload.getDefinition().apply(argVals);
+  }
+
+  @Override
+  public Object eval(GlobalResolver resolver, CelEvaluationListener listener) {
+    // TODO: Implement support
+    throw new UnsupportedOperationException("Not yet supported");
+  }
+
+  @Override
+  public Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver) {
+    // TODO: Implement support
+    throw new UnsupportedOperationException("Not yet supported");
+  }
+
+  @Override
+  public Object eval(
+      GlobalResolver resolver,
+      CelFunctionResolver lateBoundFunctionResolver,
+      CelEvaluationListener listener) {
+    // TODO: Implement support
+    throw new UnsupportedOperationException("Not yet supported");
+  }
+
+  static EvalVarArgsCall create(CelResolvedOverload resolvedOverload, Interpretable[] args) {
+    return new EvalVarArgsCall(resolvedOverload, args);
+  }
+
+  private EvalVarArgsCall(CelResolvedOverload resolvedOverload, Interpretable[] args) {
+    this.resolvedOverload = resolvedOverload;
+    this.args = args;
+  }
+}

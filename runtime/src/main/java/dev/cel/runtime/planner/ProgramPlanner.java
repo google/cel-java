@@ -17,12 +17,14 @@ package dev.cel.runtime.planner;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.errorprone.annotations.CheckReturnValue;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
+import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelList;
 import dev.cel.common.ast.CelExpr.CelMap;
 import dev.cel.common.ast.CelExpr.CelStruct;
@@ -36,9 +38,12 @@ import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationExceptionBuilder;
+import dev.cel.runtime.CelResolvedOverload;
+import dev.cel.runtime.DefaultDispatcher;
 import dev.cel.runtime.Interpretable;
 import dev.cel.runtime.Program;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 /**
  * {@code ProgramPlanner} resolves functions, types, and identifiers at plan time given a
@@ -50,6 +55,7 @@ public final class ProgramPlanner {
 
   private final CelTypeProvider typeProvider;
   private final CelValueProvider valueProvider;
+  private final DefaultDispatcher dispatcher;
   private final AttributeFactory attributeFactory;
 
   /**
@@ -73,6 +79,8 @@ public final class ProgramPlanner {
         return planConstant(celExpr.constant());
       case IDENT:
         return planIdent(celExpr, ctx);
+      case CALL:
+        return planCall(celExpr, ctx);
       case LIST:
         return planCreateList(celExpr, ctx);
       case STRUCT:
@@ -138,6 +146,53 @@ public final class ProgramPlanner {
     return EvalAttribute.create(attributeFactory.newAbsoluteAttribute(identRef.name()));
   }
 
+  private Interpretable planCall(CelExpr expr, PlannerContext ctx) {
+    ResolvedFunction resolvedFunction = resolveFunction(expr, ctx.referenceMap());
+    CelExpr target = resolvedFunction.target().orElse(null);
+    int argCount = expr.call().args().size();
+    if (target != null) {
+      argCount++;
+    }
+
+    Interpretable[] evaluatedArgs = new Interpretable[argCount];
+
+    int offset = 0;
+    if (target != null) {
+      evaluatedArgs[0] = plan(target, ctx);
+      offset++;
+    }
+
+    ImmutableList<CelExpr> args = expr.call().args();
+    for (int argIndex = 0; argIndex < args.size(); argIndex++) {
+      evaluatedArgs[argIndex + offset] = plan(args.get(argIndex), ctx);
+    }
+
+    // TODO: Handle all specialized calls (logical operators, conditionals, equals etc)
+    String functionName = resolvedFunction.functionName();
+
+    CelResolvedOverload resolvedOverload = null;
+    if (resolvedFunction.overloadId().isPresent()) {
+      resolvedOverload = dispatcher.findOverload(resolvedFunction.overloadId().get()).orElse(null);
+    }
+
+    if (resolvedOverload == null) {
+      // Parsed-only function dispatch
+      resolvedOverload =
+          dispatcher
+              .findOverload(functionName)
+              .orElseThrow(() -> new NoSuchElementException("Overload not found: " + functionName));
+    }
+
+    switch (argCount) {
+      case 0:
+        return EvalZeroArity.create(resolvedOverload);
+      case 1:
+        return EvalUnary.create(resolvedOverload, evaluatedArgs[0]);
+      default:
+        return EvalVarArgsCall.create(resolvedOverload, evaluatedArgs);
+    }
+  }
+
   private Interpretable planCreateStruct(CelExpr celExpr, PlannerContext ctx) {
     CelStruct struct = celExpr.struct();
     CelType structType =
@@ -193,6 +248,69 @@ public final class ProgramPlanner {
     return EvalCreateMap.create(keys, values);
   }
 
+  /**
+   * resolveFunction determines the call target, function name, and overload name (when unambiguous)
+   * from the given call expr.
+   */
+  private ResolvedFunction resolveFunction(
+      CelExpr expr, ImmutableMap<Long, CelReference> referenceMap) {
+    CelCall call = expr.call();
+    Optional<CelExpr> target = call.target();
+    String functionName = call.function();
+
+    CelReference reference = referenceMap.get(expr.id());
+    if (reference != null) {
+      // Checked expression
+      if (reference.overloadIds().size() == 1) {
+        ResolvedFunction.Builder builder =
+            ResolvedFunction.newBuilder()
+                .setFunctionName(functionName)
+                .setOverloadId(reference.overloadIds().get(0));
+
+        target.ifPresent(builder::setTarget);
+
+        return builder.build();
+      }
+    }
+
+    // Parsed-only.
+    // TODO: Handle containers.
+    if (!target.isPresent()) {
+      return ResolvedFunction.newBuilder().setFunctionName(functionName).build();
+    } else {
+      return ResolvedFunction.newBuilder()
+          .setFunctionName(functionName)
+          .setTarget(target.get())
+          .build();
+    }
+  }
+
+  @AutoValue
+  abstract static class ResolvedFunction {
+
+    abstract String functionName();
+
+    abstract Optional<CelExpr> target();
+
+    abstract Optional<String> overloadId();
+
+    @AutoValue.Builder
+    abstract static class Builder {
+      abstract Builder setFunctionName(String functionName);
+
+      abstract Builder setTarget(CelExpr target);
+
+      abstract Builder setOverloadId(String overloadId);
+
+      @CheckReturnValue
+      abstract ResolvedFunction build();
+    }
+
+    private static Builder newBuilder() {
+      return new AutoValue_ProgramPlanner_ResolvedFunction.Builder();
+    }
+  }
+
   @AutoValue
   abstract static class PlannerContext {
 
@@ -206,14 +324,16 @@ public final class ProgramPlanner {
   }
 
   public static ProgramPlanner newPlanner(
-      CelTypeProvider typeProvider, CelValueProvider valueProvider) {
-    return new ProgramPlanner(typeProvider, valueProvider);
+      CelTypeProvider typeProvider, CelValueProvider valueProvider, DefaultDispatcher dispatcher) {
+    return new ProgramPlanner(typeProvider, valueProvider, dispatcher);
   }
 
-  private ProgramPlanner(CelTypeProvider typeProvider, CelValueProvider valueProvider) {
+  private ProgramPlanner(
+      CelTypeProvider typeProvider, CelValueProvider valueProvider, DefaultDispatcher dispatcher) {
     this.typeProvider = typeProvider;
     this.valueProvider = valueProvider;
     // TODO: Container support
+    this.dispatcher = dispatcher;
     this.attributeFactory =
         AttributeFactory.newAttributeFactory(CelContainer.newBuilder().build(), typeProvider);
   }

@@ -19,6 +19,9 @@ java_library(
         ":eval_create_list",
         ":eval_create_map",
         ":eval_create_struct",
+        ":eval_unary",
+        ":eval_var_args_call",
+        ":eval_zero_arity",
         ":planned_program",
         "//:auto_value",
         "//common:cel_ast",
@@ -28,10 +31,12 @@ java_library(
         "//common/types",
         "//common/types:type_providers",
         "//common/values:cel_value_provider",
+        "//runtime:dispatcher",
         "//runtime:evaluation_exception",
         "//runtime:evaluation_exception_builder",
         "//runtime:interpretable",
         "//runtime:program",
+        "//runtime:resolved_overload",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -45,6 +50,7 @@ java_library(
         "//:auto_value",
         "//runtime:activation",
         "//runtime:evaluation_exception",
+        "//runtime:evaluation_exception_builder",
         "//runtime:function_resolver",
         "//runtime:interpretable",
         "//runtime:program",
@@ -92,6 +98,42 @@ java_library(
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_zero_arity",
+    srcs = ["EvalZeroArity.java"],
+    deps = [
+        "//runtime:evaluation_exception",
+        "//runtime:evaluation_listener",
+        "//runtime:function_resolver",
+        "//runtime:interpretable",
+        "//runtime:resolved_overload",
+    ],
+)
+
+java_library(
+    name = "eval_unary",
+    srcs = ["EvalUnary.java"],
+    deps = [
+        "//runtime:evaluation_exception",
+        "//runtime:evaluation_listener",
+        "//runtime:function_resolver",
+        "//runtime:interpretable",
+        "//runtime:resolved_overload",
+    ],
+)
+
+java_library(
+    name = "eval_var_args_call",
+    srcs = ["EvalVarArgsCall.java"],
+    deps = [
+        "//runtime:evaluation_exception",
+        "//runtime:evaluation_listener",
+        "//runtime:function_resolver",
+        "//runtime:interpretable",
+        "//runtime:resolved_overload",
     ],
 )
 
