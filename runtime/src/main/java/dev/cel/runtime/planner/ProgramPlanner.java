@@ -21,6 +21,7 @@ import com.google.errorprone.annotations.CheckReturnValue;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
+import dev.cel.common.Operator;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
@@ -169,6 +170,17 @@ public final class ProgramPlanner {
 
     // TODO: Handle all specialized calls (logical operators, conditionals, equals etc)
     String functionName = resolvedFunction.functionName();
+    Operator operator = Operator.findReverse(functionName).orElse(null);
+    if (operator != null) {
+      switch (operator) {
+        case LOGICAL_OR:
+          return EvalOr.create(evaluatedArgs);
+        case LOGICAL_AND:
+          return EvalAnd.create(evaluatedArgs);
+        default:
+          // fall-through
+      }
+    }
 
     CelResolvedOverload resolvedOverload = null;
     if (resolvedFunction.overloadId().isPresent()) {

@@ -16,6 +16,8 @@ package dev.cel.runtime.planner;
 
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.CelRuntimeException;
+import dev.cel.common.values.ErrorValue;
 import dev.cel.runtime.Activation;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationExceptionBuilder;
@@ -49,14 +51,28 @@ abstract class PlannedProgram implements Program {
   private Object evalOrThrow(Interpretable interpretable, GlobalResolver resolver)
       throws CelEvaluationException {
     try {
-      return interpretable.eval(resolver);
+      Object evalResult = interpretable.eval(resolver);
+      if (evalResult instanceof ErrorValue) {
+        ErrorValue errorValue = (ErrorValue) evalResult;
+        throw newCelEvaluationException(errorValue.value());
+      }
+
+      return evalResult;
     } catch (RuntimeException e) {
       throw newCelEvaluationException(e);
     }
   }
 
   private static CelEvaluationException newCelEvaluationException(Exception e) {
-    return CelEvaluationExceptionBuilder.newBuilder(e.getMessage()).setCause(e).build();
+    CelEvaluationExceptionBuilder builder;
+    if (e instanceof CelRuntimeException) {
+      // Preserve detailed error, including error codes if one exists.
+      builder = CelEvaluationExceptionBuilder.newBuilder((CelRuntimeException) e);
+    } else {
+      builder = CelEvaluationExceptionBuilder.newBuilder(e.getMessage()).setCause(e);
+    }
+
+    return builder.build();
   }
 
   static Program create(Interpretable interpretable) {

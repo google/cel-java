@@ -29,8 +29,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.primitives.UnsignedLong;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelDescriptorUtil;
+import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelSource;
 import dev.cel.common.Operator;
@@ -458,6 +460,70 @@ public final class ProgramPlannerTest {
             CelEvaluationException.class,
             () -> program.eval(ImmutableMap.of("dyn_var", "Impossible Overload")));
     assertThat(e).hasMessageThat().contains("No matching overload for function: concat");
+  }
+
+  @Test
+  @TestParameters("{expression: 'true || true', expectedResult: true}")
+  @TestParameters("{expression: 'true || false', expectedResult: true}")
+  @TestParameters("{expression: 'false || true', expectedResult: true}")
+  @TestParameters("{expression: 'false || false', expectedResult: false}")
+  @TestParameters("{expression: 'true || (1 / 0 > 2)', expectedResult: true}")
+  @TestParameters("{expression: '(1 / 0 > 2) || true', expectedResult: true}")
+  public void plan_call_logicalOr_shortCircuit(String expression, boolean expectedResult)
+      throws Exception {
+    CelAbstractSyntaxTree ast = compile(expression);
+    Program program = PLANNER.plan(ast);
+
+    boolean result = (boolean) program.eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expression: '(1 / 0 > 2) || (1 / 0 > 2)'}")
+  @TestParameters("{expression: 'false || (1 / 0 > 2)'}")
+  @TestParameters("{expression: '(1 / 0 > 2) || false'}")
+  public void plan_call_logicalOr_throws(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = compile(expression);
+    Program program = PLANNER.plan(ast);
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
+    // TODO: Tag metadata (source loc)
+    assertThat(e).hasMessageThat().isEqualTo("evaluation error: / by zero");
+    assertThat(e).hasCauseThat().isInstanceOf(ArithmeticException.class);
+    assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.DIVIDE_BY_ZERO);
+  }
+
+  @Test
+  @TestParameters("{expression: 'true && true', expectedResult: true}")
+  @TestParameters("{expression: 'true && false', expectedResult: false}")
+  @TestParameters("{expression: 'false && true', expectedResult: false}")
+  @TestParameters("{expression: 'false && false', expectedResult: false}")
+  @TestParameters("{expression: 'false && (1 / 0 > 2)', expectedResult: false}")
+  @TestParameters("{expression: '(1 / 0 > 2) && false', expectedResult: false}")
+  public void plan_call_logicalAnd_shortCircuit(String expression, boolean expectedResult)
+      throws Exception {
+    CelAbstractSyntaxTree ast = compile(expression);
+    Program program = PLANNER.plan(ast);
+
+    boolean result = (boolean) program.eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expression: '(1 / 0 > 2) && (1 / 0 > 2)'}")
+  @TestParameters("{expression: 'true && (1 / 0 > 2)'}")
+  @TestParameters("{expression: '(1 / 0 > 2) && true'}")
+  public void plan_call_logicalAnd_throws(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = compile(expression);
+    Program program = PLANNER.plan(ast);
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
+    // TODO: Tag metadata (source loc)
+    assertThat(e).hasMessageThat().isEqualTo("evaluation error: / by zero");
+    assertThat(e).hasCauseThat().isInstanceOf(ArithmeticException.class);
+    assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.DIVIDE_BY_ZERO);
   }
 
   private CelAbstractSyntaxTree compile(String expression) throws Exception {

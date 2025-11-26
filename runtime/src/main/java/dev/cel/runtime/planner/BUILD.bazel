@@ -14,11 +14,13 @@ java_library(
     ],
     deps = [
         ":attribute",
+        ":eval_and",
         ":eval_attribute",
         ":eval_const",
         ":eval_create_list",
         ":eval_create_map",
         ":eval_create_struct",
+        ":eval_or",
         ":eval_unary",
         ":eval_var_args_call",
         ":eval_zero_arity",
@@ -26,6 +28,7 @@ java_library(
         "//:auto_value",
         "//common:cel_ast",
         "//common:container",
+        "//common:operator",
         "//common/annotations",
         "//common/ast",
         "//common/types",
@@ -48,6 +51,8 @@ java_library(
     srcs = ["PlannedProgram.java"],
     deps = [
         "//:auto_value",
+        "//common:runtime_exception",
+        "//common/values",
         "//runtime:activation",
         "//runtime:evaluation_exception",
         "//runtime:evaluation_exception_builder",
@@ -138,6 +143,32 @@ java_library(
 )
 
 java_library(
+    name = "eval_or",
+    srcs = ["EvalOr.java"],
+    deps = [
+        ":eval_helpers",
+        "//common/values",
+        "//runtime:evaluation_listener",
+        "//runtime:function_resolver",
+        "//runtime:interpretable",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_and",
+    srcs = ["EvalAnd.java"],
+    deps = [
+        ":eval_helpers",
+        "//common/values",
+        "//runtime:evaluation_listener",
+        "//runtime:function_resolver",
+        "//runtime:interpretable",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "eval_create_struct",
     srcs = ["EvalCreateStruct.java"],
     deps = [
@@ -176,5 +207,14 @@ java_library(
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_helpers",
+    srcs = ["EvalHelpers.java"],
+    deps = [
+        "//common/values",
+        "//runtime:interpretable",
     ],
 )
