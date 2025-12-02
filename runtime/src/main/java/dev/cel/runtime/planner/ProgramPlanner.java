@@ -28,6 +28,7 @@ import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
 import dev.cel.common.ast.CelExpr.CelList;
 import dev.cel.common.ast.CelExpr.CelMap;
+import dev.cel.common.ast.CelExpr.CelSelect;
 import dev.cel.common.ast.CelExpr.CelStruct;
 import dev.cel.common.ast.CelExpr.CelStruct.Entry;
 import dev.cel.common.ast.CelReference;
@@ -58,6 +59,7 @@ public final class ProgramPlanner {
   private final CelValueProvider valueProvider;
   private final DefaultDispatcher dispatcher;
   private final AttributeFactory attributeFactory;
+  private final CelContainer container;
 
   /**
    * Plans a {@link Program} from the provided parsed-only or type-checked {@link
@@ -168,7 +170,6 @@ public final class ProgramPlanner {
       evaluatedArgs[argIndex + offset] = plan(args.get(argIndex), ctx);
     }
 
-    // TODO: Handle all specialized calls (logical operators, conditionals, equals etc)
     String functionName = resolvedFunction.functionName();
     Operator operator = Operator.findReverse(functionName).orElse(null);
     if (operator != null) {
@@ -209,16 +210,7 @@ public final class ProgramPlanner {
 
   private Interpretable planCreateStruct(CelExpr celExpr, PlannerContext ctx) {
     CelStruct struct = celExpr.struct();
-    CelType structType =
-        typeProvider
-            .findType(struct.messageName())
-            .orElseThrow(
-                () -> new IllegalArgumentException("Undefined type name: " + struct.messageName()));
-    if (!structType.kind().equals(CelKind.STRUCT)) {
-      throw new IllegalArgumentException(
-          String.format(
-              "Expected struct type for %s, got %s", structType.name(), structType.kind()));
-    }
+    StructType structType = resolveStructType(struct);
 
     ImmutableList<Entry> entries = struct.entries();
     String[] keys = new String[entries.size()];
@@ -230,7 +222,7 @@ public final class ProgramPlanner {
       values[i] = plan(entry.value(), ctx);
     }
 
-    return EvalCreateStruct.create(valueProvider, (StructType) structType, keys, values);
+    return EvalCreateStruct.create(valueProvider, structType, keys, values);
   }
 
   private Interpretable planCreateList(CelExpr celExpr, PlannerContext ctx) {
@@ -269,7 +261,7 @@ public final class ProgramPlanner {
   private ResolvedFunction resolveFunction(
       CelExpr expr, ImmutableMap<Long, CelReference> referenceMap) {
     CelCall call = expr.call();
-    Optional<CelExpr> target = call.target();
+    Optional<CelExpr> maybeTarget = call.target();
     String functionName = call.function();
 
     CelReference reference = referenceMap.get(expr.id());
@@ -281,22 +273,89 @@ public final class ProgramPlanner {
                 .setFunctionName(functionName)
                 .setOverloadId(reference.overloadIds().get(0));
 
-        target.ifPresent(builder::setTarget);
+        maybeTarget.ifPresent(builder::setTarget);
 
         return builder.build();
       }
     }
 
-    // Parsed-only.
-    // TODO: Handle containers.
-    if (!target.isPresent()) {
+    // Parsed-only function resolution.
+    //
+    // There are two distinct cases we must handle:
+    //
+    // 1. Non-qualified function calls. This will resolve into either:
+    //    - A simple global call foo()
+    //    - A fully qualified global call through normal container resolution foo.bar.qux()
+    // 2. Qualified function calls:
+    //    - A member call on an identifier foo.bar()
+    //    - A fully qualified global call, through normal container resolution or abbreviations
+    //      foo.bar.qux()
+    if (!maybeTarget.isPresent()) {
+      for (String cand : container.resolveCandidateNames(functionName)) {
+        CelResolvedOverload overload = dispatcher.findOverload(cand).orElse(null);
+        if (overload != null) {
+          return ResolvedFunction.newBuilder().setFunctionName(cand).build();
+        }
+      }
+
+      // Normal global call
       return ResolvedFunction.newBuilder().setFunctionName(functionName).build();
-    } else {
-      return ResolvedFunction.newBuilder()
-          .setFunctionName(functionName)
-          .setTarget(target.get())
-          .build();
     }
+
+    CelExpr target = maybeTarget.get();
+    String qualifiedPrefix = toQualifiedName(target).orElse(null);
+    if (qualifiedPrefix != null) {
+      String qualifiedName = qualifiedPrefix + "." + functionName;
+      for (String cand : container.resolveCandidateNames(qualifiedName)) {
+        CelResolvedOverload overload = dispatcher.findOverload(cand).orElse(null);
+        if (overload != null) {
+          return ResolvedFunction.newBuilder().setFunctionName(cand).build();
+        }
+      }
+    }
+
+    // Normal member call
+    return ResolvedFunction.newBuilder().setFunctionName(functionName).setTarget(target).build();
+  }
+
+  private StructType resolveStructType(CelStruct struct) {
+    String messageName = struct.messageName();
+    for (String typeName : container.resolveCandidateNames(messageName)) {
+      CelType structType = typeProvider.findType(typeName).orElse(null);
+      if (structType == null) {
+        continue;
+      }
+
+      if (!structType.kind().equals(CelKind.STRUCT)) {
+        throw new IllegalArgumentException(
+            String.format(
+                "Expected struct type for %s, got %s", structType.name(), structType.kind()));
+      }
+
+      return (StructType) structType;
+    }
+
+    throw new IllegalArgumentException("Undefined type name: " + messageName);
+  }
+
+  /** Converts a given expression into a qualified name, if possible. */
+  private Optional<String> toQualifiedName(CelExpr operand) {
+    switch (operand.getKind()) {
+      case IDENT:
+        return Optional.of(operand.ident().name());
+      case SELECT:
+        CelSelect select = operand.select();
+        String maybeQualified = toQualifiedName(select.operand()).orElse(null);
+        if (maybeQualified != null) {
+          return Optional.of(maybeQualified + "." + select.field());
+        }
+
+        break;
+      default:
+        // fall-through
+    }
+
+    return Optional.empty();
   }
 
   @AutoValue
@@ -338,17 +397,22 @@ public final class ProgramPlanner {
   }
 
   public static ProgramPlanner newPlanner(
-      CelTypeProvider typeProvider, CelValueProvider valueProvider, DefaultDispatcher dispatcher) {
-    return new ProgramPlanner(typeProvider, valueProvider, dispatcher);
+      CelTypeProvider typeProvider,
+      CelValueProvider valueProvider,
+      DefaultDispatcher dispatcher,
+      CelContainer container) {
+    return new ProgramPlanner(typeProvider, valueProvider, dispatcher, container);
   }
 
   private ProgramPlanner(
-      CelTypeProvider typeProvider, CelValueProvider valueProvider, DefaultDispatcher dispatcher) {
+      CelTypeProvider typeProvider,
+      CelValueProvider valueProvider,
+      DefaultDispatcher dispatcher,
+      CelContainer container) {
     this.typeProvider = typeProvider;
     this.valueProvider = valueProvider;
-    // TODO: Container support
     this.dispatcher = dispatcher;
-    this.attributeFactory =
-        AttributeFactory.newAttributeFactory(CelContainer.newBuilder().build(), typeProvider);
+    this.container = container;
+    this.attributeFactory = AttributeFactory.newAttributeFactory(container, typeProvider);
   }
 }

@@ -18,6 +18,7 @@ java_library(
         "//common:cel_descriptor_util",
         "//common:cel_source",
         "//common:compiler_common",
+        "//common:container",
         "//common:error_codes",
         "//common:operator",
         "//common:options",

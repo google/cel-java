@@ -31,6 +31,7 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
@@ -99,9 +100,11 @@ public final class ProgramPlannerTest {
       DynamicProto.create(DefaultMessageFactory.create(DESCRIPTOR_POOL));
   private static final CelValueProvider VALUE_PROVIDER =
       ProtoMessageValueProvider.newInstance(CelOptions.DEFAULT, DYNAMIC_PROTO);
+  private static final CelContainer CEL_CONTAINER =
+      CelContainer.newBuilder().setName("cel.expr.conformance.proto3").build();
 
   private static final ProgramPlanner PLANNER =
-      ProgramPlanner.newPlanner(TYPE_PROVIDER, VALUE_PROVIDER, newDispatcher());
+      ProgramPlanner.newPlanner(TYPE_PROVIDER, VALUE_PROVIDER, newDispatcher(), CEL_CONTAINER);
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
           .addVar("map_var", MapType.create(SimpleType.STRING, SimpleType.DYN))
@@ -115,6 +118,10 @@ public final class ProgramPlannerTest {
                   newGlobalOverload("neg_int", SimpleType.INT, SimpleType.INT),
                   newGlobalOverload("neg_double", SimpleType.DOUBLE, SimpleType.DOUBLE)),
               newFunctionDeclaration(
+                  "cel.expr.conformance.proto3.power",
+                  newGlobalOverload(
+                      "power_int_int", SimpleType.INT, SimpleType.INT, SimpleType.INT)),
+              newFunctionDeclaration(
                   "concat",
                   newGlobalOverload(
                       "concat_bytes_bytes", SimpleType.BYTES, SimpleType.BYTES, SimpleType.BYTES),
@@ -122,6 +129,7 @@ public final class ProgramPlannerTest {
                       "bytes_concat_bytes", SimpleType.BYTES, SimpleType.BYTES, SimpleType.BYTES)))
           .addMessageTypes(TestAllTypes.getDescriptor())
           .addLibraries(CelExtensions.optional())
+          .setContainer(CEL_CONTAINER)
           .build();
 
   /**
@@ -174,6 +182,14 @@ public final class ProgramPlannerTest {
         "neg",
         CelFunctionBinding.from("neg_int", Long.class, arg -> -arg),
         CelFunctionBinding.from("neg_double", Double.class, arg -> -arg));
+    addBindings(
+        builder,
+        "cel.expr.conformance.proto3.power",
+        CelFunctionBinding.from(
+            "power_int_int",
+            Long.class,
+            Long.class,
+            (value, power) -> (long) Math.pow(value, power)));
     addBindings(
         builder,
         "concat",
@@ -380,6 +396,16 @@ public final class ProgramPlannerTest {
   }
 
   @Test
+  public void plan_createStruct_withContainer() throws Exception {
+    CelAbstractSyntaxTree ast = compile("TestAllTypes{}");
+    Program program = PLANNER.plan(ast);
+
+    TestAllTypes result = (TestAllTypes) program.eval();
+
+    assertThat(result).isEqualTo(TestAllTypes.getDefaultInstance());
+  }
+
+  @Test
   public void plan_call_zeroArgs() throws Exception {
     CelAbstractSyntaxTree ast = compile("zero()");
     Program program = PLANNER.plan(ast);
@@ -553,6 +579,21 @@ public final class ProgramPlannerTest {
     assertThat(e).hasMessageThat().isEqualTo("evaluation error: / by zero");
     assertThat(e).hasCauseThat().isInstanceOf(ArithmeticException.class);
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.DIVIDE_BY_ZERO);
+  }
+
+  @Test
+  @TestParameters("{expression: 'power(2,3)'}")
+  @TestParameters("{expression: 'proto3.power(2,3)'}")
+  @TestParameters("{expression: 'conformance.proto3.power(2,3)'}")
+  @TestParameters("{expression: 'expr.conformance.proto3.power(2,3)'}")
+  @TestParameters("{expression: 'cel.expr.conformance.proto3.power(2,3)'}")
+  public void plan_call_withContainer(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = compile(expression); // invokes cel.expr.conformance.proto3.power
+    Program program = PLANNER.plan(ast);
+
+    Long result = (Long) program.eval();
+
+    assertThat(result).isEqualTo(8);
   }
 
   private CelAbstractSyntaxTree compile(String expression) throws Exception {
