@@ -177,6 +177,8 @@ public final class ProgramPlanner {
           return EvalOr.create(evaluatedArgs);
         case LOGICAL_AND:
           return EvalAnd.create(evaluatedArgs);
+        case CONDITIONAL:
+          return EvalConditional.create(evaluatedArgs);
         default:
           // fall-through
       }

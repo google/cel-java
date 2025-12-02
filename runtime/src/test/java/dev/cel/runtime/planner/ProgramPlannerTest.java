@@ -526,6 +526,35 @@ public final class ProgramPlannerTest {
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.DIVIDE_BY_ZERO);
   }
 
+  @Test
+  @TestParameters("{expression: 'false ? (1 / 0) > 2 : false', expectedResult: false}")
+  @TestParameters("{expression: 'false ? (1 / 0) > 2 : true', expectedResult: true}")
+  @TestParameters("{expression: 'true ? false : (1 / 0) > 2', expectedResult: false}")
+  @TestParameters("{expression: 'true ? true : (1 / 0) > 2', expectedResult: true}")
+  public void plan_call_conditional_shortCircuit(String expression, boolean expectedResult)
+      throws Exception {
+    CelAbstractSyntaxTree ast = compile(expression);
+    Program program = PLANNER.plan(ast);
+
+    boolean result = (boolean) program.eval();
+
+    assertThat(result).isEqualTo(expectedResult);
+  }
+
+  @Test
+  @TestParameters("{expression: '(1 / 0) > 2 ? true : true'}")
+  @TestParameters("{expression: 'true ? (1 / 0) > 2 : true'}")
+  @TestParameters("{expression: 'false ? true : (1 / 0) > 2'}")
+  public void plan_call_conditional_throws(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = compile(expression);
+    Program program = PLANNER.plan(ast);
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
+    assertThat(e).hasMessageThat().isEqualTo("evaluation error: / by zero");
+    assertThat(e).hasCauseThat().isInstanceOf(ArithmeticException.class);
+    assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.DIVIDE_BY_ZERO);
+  }
+
   private CelAbstractSyntaxTree compile(String expression) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.parse(expression).getAst();
     if (isParseOnly) {

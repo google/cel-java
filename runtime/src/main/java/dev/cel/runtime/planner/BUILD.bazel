@@ -16,6 +16,7 @@ java_library(
         ":attribute",
         ":eval_and",
         ":eval_attribute",
+        ":eval_conditional",
         ":eval_const",
         ":eval_create_list",
         ":eval_create_map",
@@ -169,6 +170,18 @@ java_library(
 )
 
 java_library(
+    name = "eval_conditional",
+    srcs = ["EvalConditional.java"],
+    deps = [
+        "//runtime:evaluation_exception",
+        "//runtime:evaluation_listener",
+        "//runtime:function_resolver",
+        "//runtime:interpretable",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "eval_create_struct",
     srcs = ["EvalCreateStruct.java"],
     deps = [
@@ -188,7 +201,7 @@ java_library(
     name = "eval_create_list",
     srcs = ["EvalCreateList.java"],
     deps = [
-        "//runtime",
+        "//runtime:evaluation_exception",
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
         "//runtime:interpretable",
@@ -201,7 +214,7 @@ java_library(
     name = "eval_create_map",
     srcs = ["EvalCreateMap.java"],
     deps = [
-        "//runtime",
+        "//runtime:evaluation_exception",
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
         "//runtime:interpretable",
