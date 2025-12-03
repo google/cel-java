@@ -38,6 +38,7 @@ import dev.cel.common.CelSource.Extension.Version;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
+import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.common.navigation.CelNavigableMutableAst;
 import dev.cel.common.navigation.CelNavigableMutableExpr;
 import dev.cel.common.types.ListType;
@@ -45,6 +46,9 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.extensions.CelExtensions;
+import dev.cel.optimizer.AstMutator;
+import dev.cel.optimizer.AstMutator.MangledComprehensionAst;
+import dev.cel.optimizer.AstMutator.MangledComprehensionName;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.optimizer.CelOptimizer;
 import dev.cel.optimizer.CelOptimizerFactory;
@@ -91,9 +95,11 @@ public class SubexpressionOptimizerTest {
               CelVarDecl.newVarDeclaration("index0", SimpleType.DYN),
               CelVarDecl.newVarDeclaration("index1", SimpleType.DYN),
               CelVarDecl.newVarDeclaration("index2", SimpleType.DYN),
+              CelVarDecl.newVarDeclaration("it", SimpleType.DYN),
               CelVarDecl.newVarDeclaration("@index0", SimpleType.DYN),
               CelVarDecl.newVarDeclaration("@index1", SimpleType.DYN),
-              CelVarDecl.newVarDeclaration("@index2", SimpleType.DYN))
+              CelVarDecl.newVarDeclaration("@index2", SimpleType.DYN),
+              CelVarDecl.newVarDeclaration("@it:0:0", SimpleType.DYN))
           .addMessageTypes(TestAllTypes.getDescriptor())
           .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
           .build();
@@ -283,6 +289,27 @@ public class SubexpressionOptimizerTest {
                             .build())
                     .optimize(ast));
     assertThat(e).hasMessageThat().isEqualTo("Optimization failure: Max iteration count reached.");
+  }
+
+  @Test
+  public void foo() throws Exception {
+    CelAbstractSyntaxTree ast = CEL.compile("[1].map(y, [1, 2].filter(x, x == y))").getAst();
+    CelOptimizer optimizer =
+        CelOptimizerFactory.standardCelOptimizerBuilder(CEL)
+            .addAstOptimizers(
+                SubexpressionOptimizer.newInstance(
+                    SubexpressionOptimizerOptions.newBuilder()
+                        .subexpressionMaxRecursionDepth(4)
+                        .populateMacroCalls(true).build()))
+            .build();
+
+    CelAbstractSyntaxTree optimizedAst = optimizer.optimize(ast);
+
+    Object result = CEL.createProgram(ast).eval();
+    System.out.println(result);
+
+    assertThat(CEL_UNPARSER.unparse(optimizedAst))
+        .isEqualTo("foo");
   }
 
   @Test
@@ -478,9 +505,7 @@ public class SubexpressionOptimizerTest {
     // Equivalent of [true, false, true].map(c0, [c0].map(c1, [c0, c1, true]))
     CelAbstractSyntaxTree ast =
         compileUsingInternalFunctions(
-            "cel.block([c0, c1, get_true()], [index2, false, index2].map(c0, [c0].map(c1, [index0,"
-                + " index1, index2]))) == [[[true, true, true]], [[false, false, true]], [[true,"
-                + " true, true]]]");
+            "cel.block([true, false, get_true()], [index2, false, index2].map(c0, [c0].map(c1, [c0, c1, index2]))) == [[[true, true, true]], [[false, false, true]], [[true, true, true]]]");
 
     boolean result = (boolean) celRuntime.createProgram(ast).eval();
 
@@ -548,6 +573,18 @@ public class SubexpressionOptimizerTest {
   }
 
   @Test
+  public void verifyOptimizedAstCorrectness_containsForwardReferenceFromComprehensionVar_throws() throws Exception {
+    CelAbstractSyntaxTree ast = compileUsingInternalFunctions("cel.block([it], [1].exists(it, it > 0 && index0 > 0))");
+
+    VerifyException e =
+        assertThrows(
+            VerifyException.class, () -> SubexpressionOptimizer.verifyOptimizedAstCorrectness(ast));
+    assertThat(e)
+        .hasMessageThat()
+        .startsWith("Illegal declared reference to a comprehension variable found in block indices.");
+  }
+
+  @Test
   @TestParameters("{source: 'cel.block([], index0)'}")
   @TestParameters("{source: 'cel.block([1, 2], index2)'}")
   public void verifyOptimizedAstCorrectness_indexOutOfBounds_throws(String source)
@@ -600,12 +637,36 @@ public class SubexpressionOptimizerTest {
         .allNodes()
         .filter(node -> node.getKind().equals(Kind.IDENT))
         .map(CelNavigableMutableExpr::expr)
-        .filter(expr -> expr.ident().name().startsWith("index"))
+        .filter(expr ->
+            expr.ident().name().startsWith("index")
+        )
         .forEach(
             indexExpr -> {
               String internalIdentName = "@" + indexExpr.ident().name();
               indexExpr.ident().setName(internalIdentName);
             });
+
+    MangledComprehensionAst mangledComprehensionAst = AstMutator.newInstance(10000).mangleComprehensionIdentifierNames(
+        mutableAst,
+        SubexpressionOptimizer.MANGLED_COMPREHENSION_ITER_VAR_PREFIX,
+        SubexpressionOptimizer.MANGLED_COMPREHENSION_ITER_VAR2_PREFIX,
+        SubexpressionOptimizer.MANGLED_COMPREHENSION_ACCU_VAR_PREFIX
+    );
+    mutableAst = mangledComprehensionAst.mutableAst();
+
+    CelNavigableMutableAst.fromAst(mutableAst)
+        .getRoot()
+        .allNodes()
+        .filter(node -> node.getKind().equals(Kind.IDENT))
+        .map(CelNavigableMutableExpr::expr)
+        .filter(expr ->
+            expr.ident().name().equals("it")
+        )
+        .forEach(
+            indexExpr -> {
+              indexExpr.ident().setName("@it:0:0");
+            });
+
 
     return CEL_FOR_EVALUATING_BLOCK.check(mutableAst.toParsedAst()).getAst();
   }

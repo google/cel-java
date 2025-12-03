@@ -280,4 +280,39 @@ public final class CelBindingsExtensionsTest {
     assertThat(result).containsExactly(true, true, true);
     assertThat(invocation.get()).isEqualTo(1);
   }
+
+  @Test
+  @SuppressWarnings("Immutable") // Test only
+  public void foo() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setStandardMacros(CelStandardMacro.MAP)
+            .addLibraries(CelExtensions.bindings())
+            .addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                    "get_true",
+                    CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)))
+            .build();
+    AtomicInteger invocation = new AtomicInteger();
+    CelRuntime celRuntime =
+        CelRuntimeFactory.standardCelRuntimeBuilder()
+            .addFunctionBindings(
+                CelFunctionBinding.from(
+                    "get_true_overload",
+                    ImmutableList.of(),
+                    arg -> {
+                      invocation.getAndIncrement();
+                      return true;
+                    }))
+            .build();
+
+    CelAbstractSyntaxTree ast = celCompiler.compile("cel.bind(x, get_true(), [x, false].map(c0, [c0].map(c1, [c0, x])))").getAst();
+
+    Object foo =  celRuntime.createProgram(ast).eval();
+    System.out.println(foo);
+    List<Boolean> result = (List<Boolean>) celRuntime.createProgram(ast).eval();
+
+    assertThat(result).containsExactly(true, true, true);
+    assertThat(invocation.get()).isEqualTo(1);
+  }
 }

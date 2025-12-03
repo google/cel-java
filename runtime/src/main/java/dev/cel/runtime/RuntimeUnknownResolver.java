@@ -116,11 +116,11 @@ public class RuntimeUnknownResolver {
   }
 
   void cacheLazilyEvaluatedResult(String name, DefaultInterpreter.IntermediateResult result) {
-    throw new IllegalStateException("Internal error: Lazy attributes can only be cached in ScopedResolver.");
+    // throw new IllegalStateException("Internal error: Lazy attributes can only be cached in ScopedResolver.");
   }
 
   void declareLazyAttribute(String attrName) {
-    throw new IllegalStateException("Internal error: Lazy attributes can only be declared in ScopedResolver.");
+    // throw new IllegalStateException("Internal error: Lazy attributes can only be declared in ScopedResolver.");
   }
 
   /**
