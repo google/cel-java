@@ -14,15 +14,13 @@
 
 package dev.cel.runtime.standard;
 
-import static dev.cel.runtime.standard.ArithmeticHelpers.getArithmeticErrorCode;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelNumericOverflowException;
 import dev.cel.common.internal.DateTimeHelpers;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.values.CelByteString;
@@ -61,7 +59,7 @@ public final class AddOperator extends CelStandardFunction {
                   try {
                     return RuntimeHelpers.int64Add(x, y, celOptions);
                   } catch (ArithmeticException e) {
-                    throw new CelRuntimeException(e, getArithmeticErrorCode(e));
+                    throw new CelNumericOverflowException(e);
                   }
                 })),
     ADD_UINT64(
@@ -75,7 +73,7 @@ public final class AddOperator extends CelStandardFunction {
                   try {
                     return RuntimeHelpers.uint64Add(x, y);
                   } catch (ArithmeticException e) {
-                    throw new CelRuntimeException(e, getArithmeticErrorCode(e));
+                    throw new CelNumericOverflowException(e);
                   }
                 });
           } else {
@@ -87,7 +85,7 @@ public final class AddOperator extends CelStandardFunction {
                   try {
                     return RuntimeHelpers.uint64Add(x, y, celOptions);
                   } catch (ArithmeticException e) {
-                    throw new CelRuntimeException(e, getArithmeticErrorCode(e));
+                    throw new CelNumericOverflowException(e);
                   }
                 });
           }

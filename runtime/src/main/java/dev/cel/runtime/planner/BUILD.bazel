@@ -52,7 +52,7 @@ java_library(
     srcs = ["PlannedProgram.java"],
     deps = [
         "//:auto_value",
-        "//common:runtime_exception",
+        "//common/exceptions:runtime_exception",
         "//common/values",
         "//runtime:activation",
         "//runtime:evaluation_exception",

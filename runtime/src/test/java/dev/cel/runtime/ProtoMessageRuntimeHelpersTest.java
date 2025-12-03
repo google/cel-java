@@ -36,7 +36,8 @@ import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelNumericOverflowException;
+import dev.cel.common.exceptions.CelRuntimeException;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.values.CelByteString;
@@ -91,7 +92,7 @@ public final class ProtoMessageRuntimeHelpersTest {
     assertThat(ProtoMessageRuntimeHelpers.int64Divide(Long.MIN_VALUE, -1, CelOptions.LEGACY))
         .isEqualTo(Long.MIN_VALUE);
     assertThrows(
-        ArithmeticException.class,
+        CelNumericOverflowException.class,
         () -> ProtoMessageRuntimeHelpers.int64Divide(Long.MIN_VALUE, -1, CelOptions.DEFAULT));
   }
 
@@ -171,7 +172,7 @@ public final class ProtoMessageRuntimeHelpersTest {
     assertThat(ProtoMessageRuntimeHelpers.uint64Add(4, 4, CelOptions.DEFAULT)).isEqualTo(8);
     assertThat(ProtoMessageRuntimeHelpers.uint64Add(-1, 1, CelOptions.LEGACY)).isEqualTo(0);
     assertThrows(
-        ArithmeticException.class,
+        CelNumericOverflowException.class,
         () -> ProtoMessageRuntimeHelpers.uint64Add(-1, 1, CelOptions.DEFAULT));
   }
 
@@ -185,7 +186,7 @@ public final class ProtoMessageRuntimeHelpersTest {
                 UnsignedLong.MAX_VALUE.minus(UnsignedLong.ONE), UnsignedLong.ONE))
         .isEqualTo(UnsignedLong.MAX_VALUE);
     assertThrows(
-        ArithmeticException.class,
+        CelNumericOverflowException.class,
         () -> ProtoMessageRuntimeHelpers.uint64Add(UnsignedLong.MAX_VALUE, UnsignedLong.ONE));
   }
 
@@ -202,7 +203,7 @@ public final class ProtoMessageRuntimeHelpersTest {
                     .build()))
         .isEqualTo(0);
     assertThrows(
-        ArithmeticException.class,
+        CelNumericOverflowException.class,
         () -> ProtoMessageRuntimeHelpers.uint64Multiply(Long.MIN_VALUE, 2, CelOptions.DEFAULT));
   }
 
@@ -213,7 +214,7 @@ public final class ProtoMessageRuntimeHelpersTest {
                 UnsignedLong.valueOf(32), UnsignedLong.valueOf(2)))
         .isEqualTo(UnsignedLong.valueOf(64));
     assertThrows(
-        ArithmeticException.class,
+        CelNumericOverflowException.class,
         () ->
             ProtoMessageRuntimeHelpers.uint64Multiply(
                 UnsignedLong.MAX_VALUE, UnsignedLong.valueOf(2)));
@@ -295,13 +296,13 @@ public final class ProtoMessageRuntimeHelpersTest {
     assertThat(ProtoMessageRuntimeHelpers.uint64Subtract(-1, 2, CelOptions.DEFAULT)).isEqualTo(-3);
     assertThat(ProtoMessageRuntimeHelpers.uint64Subtract(0, 1, CelOptions.LEGACY)).isEqualTo(-1);
     assertThrows(
-        ArithmeticException.class,
+        CelNumericOverflowException.class,
         () -> ProtoMessageRuntimeHelpers.uint64Subtract(0, 1, CelOptions.DEFAULT));
     assertThrows(
-        ArithmeticException.class,
+        CelNumericOverflowException.class,
         () -> ProtoMessageRuntimeHelpers.uint64Subtract(-3, -1, CelOptions.DEFAULT));
     assertThrows(
-        ArithmeticException.class,
+        CelNumericOverflowException.class,
         () -> ProtoMessageRuntimeHelpers.uint64Subtract(55, -40, CelOptions.DEFAULT));
   }
 
@@ -314,7 +315,7 @@ public final class ProtoMessageRuntimeHelpersTest {
                 UnsignedLong.valueOf(3), UnsignedLong.valueOf(2)))
         .isEqualTo(UnsignedLong.ONE);
     assertThrows(
-        ArithmeticException.class,
+        CelNumericOverflowException.class,
         () -> ProtoMessageRuntimeHelpers.uint64Subtract(UnsignedLong.ONE, UnsignedLong.valueOf(2)));
   }
 

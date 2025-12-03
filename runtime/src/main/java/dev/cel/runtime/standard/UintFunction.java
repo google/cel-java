@@ -17,9 +17,9 @@ package dev.cel.runtime.standard;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
 import com.google.common.primitives.UnsignedLongs;
-import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelBadFormatException;
+import dev.cel.common.exceptions.CelNumericOverflowException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
@@ -61,9 +61,7 @@ public final class UintFunction extends CelStandardFunction {
                 Long.class,
                 (Long arg) -> {
                   if (celOptions.errorOnIntWrap() && arg < 0) {
-                    throw new CelRuntimeException(
-                        new IllegalArgumentException("int out of uint range"),
-                        CelErrorCode.NUMERIC_OVERFLOW);
+                    throw new CelNumericOverflowException("int out of uint range");
                   }
                   return UnsignedLong.valueOf(arg);
                 });
@@ -73,9 +71,7 @@ public final class UintFunction extends CelStandardFunction {
                 Long.class,
                 (Long arg) -> {
                   if (celOptions.errorOnIntWrap() && arg < 0) {
-                    throw new CelRuntimeException(
-                        new IllegalArgumentException("int out of uint range"),
-                        CelErrorCode.NUMERIC_OVERFLOW);
+                    throw new CelNumericOverflowException("int out of uint range");
                   }
                   return arg;
                 });
@@ -91,10 +87,7 @@ public final class UintFunction extends CelStandardFunction {
                   if (celOptions.errorOnIntWrap()) {
                     return RuntimeHelpers.doubleToUnsignedChecked(arg)
                         .orElseThrow(
-                            () ->
-                                new CelRuntimeException(
-                                    new IllegalArgumentException("double out of uint range"),
-                                    CelErrorCode.NUMERIC_OVERFLOW));
+                            () -> new CelNumericOverflowException("double out of uint range"));
                   }
                   return UnsignedLong.valueOf(BigDecimal.valueOf(arg).toBigInteger());
                 });
@@ -108,9 +101,8 @@ public final class UintFunction extends CelStandardFunction {
                         .map(UnsignedLong::longValue)
                         .orElseThrow(
                             () ->
-                                new CelRuntimeException(
-                                    new IllegalArgumentException("double out of uint range"),
-                                    CelErrorCode.NUMERIC_OVERFLOW));
+                                new CelNumericOverflowException(
+                                    "double out of uint range"));
                   }
                   return arg.longValue();
                 });
@@ -126,7 +118,7 @@ public final class UintFunction extends CelStandardFunction {
                   try {
                     return UnsignedLong.valueOf(arg);
                   } catch (NumberFormatException e) {
-                    throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
+                    throw new CelBadFormatException(e);
                   }
                 });
           } else {
@@ -137,7 +129,7 @@ public final class UintFunction extends CelStandardFunction {
                   try {
                     return UnsignedLongs.parseUnsignedLong(arg);
                   } catch (NumberFormatException e) {
-                    throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
+                    throw new CelBadFormatException(e);
                   }
                 });
           }
