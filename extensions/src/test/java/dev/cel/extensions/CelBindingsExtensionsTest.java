@@ -38,6 +38,7 @@ import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -242,5 +243,77 @@ public final class CelBindingsExtensionsTest {
 
     assertThat(result).isTrue();
     assertThat(invocation.get()).isEqualTo(2);
+  }
+
+  @Test
+  @SuppressWarnings({"Immutable", "unchecked"}) // Test only
+  public void lazyBinding_boundAttributeInComprehension() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setStandardMacros(CelStandardMacro.MAP)
+            .addLibraries(CelExtensions.bindings())
+            .addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                    "get_true",
+                    CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)))
+            .build();
+    AtomicInteger invocation = new AtomicInteger();
+    CelRuntime celRuntime =
+        CelRuntimeFactory.standardCelRuntimeBuilder()
+            .addFunctionBindings(
+                CelFunctionBinding.from(
+                    "get_true_overload",
+                    ImmutableList.of(),
+                    arg -> {
+                      invocation.getAndIncrement();
+                      return true;
+                    }))
+            .build();
+
+    CelAbstractSyntaxTree ast =
+        celCompiler.compile("cel.bind(x, get_true(), [1,2,3].map(y, y < 0 || x))").getAst();
+
+    List<Boolean> result = (List<Boolean>) celRuntime.createProgram(ast).eval();
+
+    assertThat(result).containsExactly(true, true, true);
+    assertThat(invocation.get()).isEqualTo(1);
+  }
+
+  @Test
+  @SuppressWarnings({"Immutable"}) // Test only
+  public void lazyBinding_boundAttributeInNestedComprehension() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setStandardMacros(CelStandardMacro.EXISTS)
+            .addLibraries(CelExtensions.bindings())
+            .addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                    "get_true",
+                    CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)))
+            .build();
+    AtomicInteger invocation = new AtomicInteger();
+    CelRuntime celRuntime =
+        CelRuntimeFactory.standardCelRuntimeBuilder()
+            .addFunctionBindings(
+                CelFunctionBinding.from(
+                    "get_true_overload",
+                    ImmutableList.of(),
+                    arg -> {
+                      invocation.getAndIncrement();
+                      return true;
+                    }))
+            .build();
+
+    CelAbstractSyntaxTree ast =
+        celCompiler
+            .compile(
+                "cel.bind(x, get_true(), [1,2,3].exists(unused, x && "
+                    + "['a','b','c'].exists(unused_2, x)))")
+            .getAst();
+
+    boolean result = (boolean) celRuntime.createProgram(ast).eval();
+
+    assertThat(result).isTrue();
+    assertThat(invocation.get()).isEqualTo(1);
   }
 }

@@ -351,9 +351,9 @@ Result: true
 [BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2], [1, 2, 3], [1], [2], [@index2, @index3]], @index0.map(@it:0:0, @index1.filter(@it:1:0, @it:1:0 == @it:0:0)) == @index4)
 [BLOCK_RECURSION_DEPTH_2]: cel.@block([[[1], [2]], [1, 2], [1, 2, 3]], @index1.map(@it:0:0, @index2.filter(@it:1:0, @it:1:0 == @it:0:0)) == @index0)
 [BLOCK_RECURSION_DEPTH_3]: cel.@block([[[1], [2]], [1, 2], [1, 2, 3]], @index1.map(@it:0:0, @index2.filter(@it:1:0, @it:1:0 == @it:0:0)) == @index0)
-[BLOCK_RECURSION_DEPTH_4]: cel.@block([[1, 2, 3].filter(@it:1:0, @it:1:0 == @it:0:0)], [1, 2].map(@it:0:0, @index0) == [[1], [2]])
-[BLOCK_RECURSION_DEPTH_5]: cel.@block([[1, 2, 3].filter(@it:1:0, @it:1:0 == @it:0:0)], [1, 2].map(@it:0:0, @index0) == [[1], [2]])
-[BLOCK_RECURSION_DEPTH_6]: cel.@block([[1, 2, 3].filter(@it:1:0, @it:1:0 == @it:0:0)], [1, 2].map(@it:0:0, @index0) == [[1], [2]])
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[[1], [2]], [1, 2], [1, 2, 3]], @index1.map(@it:0:0, @index2.filter(@it:1:0, @it:1:0 == @it:0:0)) == @index0)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[[1], [2]], [1, 2], [1, 2, 3]], @index1.map(@it:0:0, @index2.filter(@it:1:0, @it:1:0 == @it:0:0)) == @index0)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[[1], [2]], [1, 2], [1, 2, 3]], @index1.map(@it:0:0, @index2.filter(@it:1:0, @it:1:0 == @it:0:0)) == @index0)
 [BLOCK_RECURSION_DEPTH_7]: [1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]
 [BLOCK_RECURSION_DEPTH_8]: [1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]
 [BLOCK_RECURSION_DEPTH_9]: [1, 2].map(y, [1, 2, 3].filter(x, x == y)) == [[1], [2]]
@@ -381,9 +381,9 @@ Result: true
 [BLOCK_RECURSION_DEPTH_1]: cel.@block([[1, 2], [1, 2, 3], [1], [2], [@index2, @index3]], @index0.transformList(@it:0:0, @it2:0:0, @index1.filter(@it:1:0, @it:1:0 == @it2:0:0 && @it:0:0 < @it2:0:0)) == @index4)
 [BLOCK_RECURSION_DEPTH_2]: cel.@block([[[1], [2]], [1, 2], [1, 2, 3]], @index1.transformList(@it:0:0, @it2:0:0, @index2.filter(@it:1:0, @it:1:0 == @it2:0:0 && @it:0:0 < @it2:0:0)) == @index0)
 [BLOCK_RECURSION_DEPTH_3]: cel.@block([[[1], [2]], [1, 2], [1, 2, 3]], @index1.transformList(@it:0:0, @it2:0:0, @index2.filter(@it:1:0, @it:1:0 == @it2:0:0 && @it:0:0 < @it2:0:0)) == @index0)
-[BLOCK_RECURSION_DEPTH_4]: cel.@block([[1, 2, 3].filter(@it:1:0, @it:1:0 == @it2:0:0 && @it:0:0 < @it2:0:0)], [1, 2].transformList(@it:0:0, @it2:0:0, @index0) == [[1], [2]])
-[BLOCK_RECURSION_DEPTH_5]: cel.@block([[1, 2, 3].filter(@it:1:0, @it:1:0 == @it2:0:0 && @it:0:0 < @it2:0:0)], [1, 2].transformList(@it:0:0, @it2:0:0, @index0) == [[1], [2]])
-[BLOCK_RECURSION_DEPTH_6]: cel.@block([[1, 2, 3].filter(@it:1:0, @it:1:0 == @it2:0:0 && @it:0:0 < @it2:0:0)], [1, 2].transformList(@it:0:0, @it2:0:0, @index0) == [[1], [2]])
+[BLOCK_RECURSION_DEPTH_4]: cel.@block([[[1], [2]], [1, 2], [1, 2, 3]], @index1.transformList(@it:0:0, @it2:0:0, @index2.filter(@it:1:0, @it:1:0 == @it2:0:0 && @it:0:0 < @it2:0:0)) == @index0)
+[BLOCK_RECURSION_DEPTH_5]: cel.@block([[[1], [2]], [1, 2], [1, 2, 3]], @index1.transformList(@it:0:0, @it2:0:0, @index2.filter(@it:1:0, @it:1:0 == @it2:0:0 && @it:0:0 < @it2:0:0)) == @index0)
+[BLOCK_RECURSION_DEPTH_6]: cel.@block([[[1], [2]], [1, 2], [1, 2, 3]], @index1.transformList(@it:0:0, @it2:0:0, @index2.filter(@it:1:0, @it:1:0 == @it2:0:0 && @it:0:0 < @it2:0:0)) == @index0)
 [BLOCK_RECURSION_DEPTH_7]: [1, 2].transformList(i, y, [1, 2, 3].filter(x, x == y && i < y)) == [[1], [2]]
 [BLOCK_RECURSION_DEPTH_8]: [1, 2].transformList(i, y, [1, 2, 3].filter(x, x == y && i < y)) == [[1], [2]]
 [BLOCK_RECURSION_DEPTH_9]: [1, 2].transformList(i, y, [1, 2, 3].filter(x, x == y && i < y)) == [[1], [2]]

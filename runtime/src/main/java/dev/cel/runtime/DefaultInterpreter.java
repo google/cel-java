@@ -982,7 +982,8 @@ final class DefaultInterpreter implements Interpreter {
             .build();
       }
       IntermediateResult accuValue;
-      if (LazyExpression.isLazilyEvaluable(compre)) {
+      boolean isLazilyEvaluable = LazyExpression.isLazilyEvaluable(compre);
+      if (isLazilyEvaluable) {
         accuValue = IntermediateResult.create(new LazyExpression(compre.accuInit()));
       } else {
         accuValue = evalNonstrictly(frame, compre.accuInit());
@@ -1035,7 +1036,13 @@ final class DefaultInterpreter implements Interpreter {
 
       accuValue = maybeAdaptViewToList(accuValue);
 
-      frame.pushScope(Collections.singletonMap(accuVar, accuValue));
+      Map<String, IntermediateResult> scopedAttributes =
+          Collections.singletonMap(accuVar, accuValue);
+      if (isLazilyEvaluable) {
+        frame.pushLazyScope(scopedAttributes);
+      } else {
+        frame.pushScope(scopedAttributes);
+      }
       IntermediateResult result;
       try {
         result = evalInternal(frame, compre.result());
@@ -1051,11 +1058,12 @@ final class DefaultInterpreter implements Interpreter {
       Map<String, IntermediateResult> blockList = new HashMap<>();
       for (int index = 0; index < exprList.elements().size(); index++) {
         // Register the block indices as lazily evaluated expressions stored as unique identifiers.
+        String indexKey = "@index" + index;
         blockList.put(
-            "@index" + index,
+            indexKey,
             IntermediateResult.create(new LazyExpression(exprList.elements().get(index))));
       }
-      frame.pushScope(Collections.unmodifiableMap(blockList));
+      frame.pushLazyScope(Collections.unmodifiableMap(blockList));
 
       return evalInternal(frame, blockCall.args().get(1));
     }
@@ -1165,6 +1173,13 @@ final class DefaultInterpreter implements Interpreter {
     private void cacheLazilyEvaluatedResult(
         String name, DefaultInterpreter.IntermediateResult result) {
       currentResolver.cacheLazilyEvaluatedResult(name, result);
+    }
+
+    private void pushLazyScope(Map<String, IntermediateResult> scope) {
+      pushScope(scope);
+      for (String lazyAttribute : scope.keySet()) {
+        currentResolver.declareLazyAttribute(lazyAttribute);
+      }
     }
 
     /** Note: we utilize a HashMap instead of ImmutableMap to make lookups faster on string keys. */

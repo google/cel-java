@@ -55,6 +55,7 @@ import dev.cel.parser.CelUnparserFactory;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -382,6 +383,31 @@ public class SubexpressionOptimizerTest {
   }
 
   @Test
+  @SuppressWarnings({"Immutable", "unchecked"}) // Test only
+  public void lazyEval_withinComprehension_blockIndexEvaluatedOnlyOnce() throws Exception {
+    AtomicInteger invocation = new AtomicInteger();
+    CelRuntime celRuntime =
+        CelRuntimeFactory.standardCelRuntimeBuilder()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .addFunctionBindings(
+                CelFunctionBinding.from(
+                    "get_true_overload",
+                    ImmutableList.of(),
+                    arg -> {
+                      invocation.getAndIncrement();
+                      return true;
+                    }))
+            .build();
+    CelAbstractSyntaxTree ast =
+        compileUsingInternalFunctions("cel.block([get_true()], [1,2,3].map(x, x < 0 || index0))");
+
+    List<Boolean> result = (List<Boolean>) celRuntime.createProgram(ast).eval();
+
+    assertThat(result).containsExactly(true, true, true);
+    assertThat(invocation.get()).isEqualTo(1);
+  }
+
+  @Test
   @SuppressWarnings("Immutable") // Test only
   public void lazyEval_multipleBlockIndices_inResultExpr() throws Exception {
     AtomicInteger invocation = new AtomicInteger();
@@ -452,9 +478,9 @@ public class SubexpressionOptimizerTest {
     // Equivalent of [true, false, true].map(c0, [c0].map(c1, [c0, c1, true]))
     CelAbstractSyntaxTree ast =
         compileUsingInternalFunctions(
-            "cel.block([c0, c1, get_true()], [index2, false, index2].map(c0, [c0].map(c1, [index0,"
-                + " index1, index2]))) == [[[true, true, true]], [[false, false, true]], [[true,"
-                + " true, true]]]");
+            "cel.block([true, false, get_true()], [index2, false, index2].map(c0, [c0].map(c1, [c0,"
+                + " c1, index2]))) == [[[true, true, true]], [[false, false, true]], [[true, true,"
+                + " true]]]");
 
     boolean result = (boolean) celRuntime.createProgram(ast).eval();
 

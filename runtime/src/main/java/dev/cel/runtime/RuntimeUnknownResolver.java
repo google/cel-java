@@ -116,7 +116,13 @@ public class RuntimeUnknownResolver {
   }
 
   void cacheLazilyEvaluatedResult(String name, DefaultInterpreter.IntermediateResult result) {
-    // no-op. Caching is handled in ScopedResolver.
+    throw new IllegalStateException(
+        "Internal error: Lazy attributes can only be cached in ScopedResolver.");
+  }
+
+  void declareLazyAttribute(String attrName) {
+    throw new IllegalStateException(
+        "Internal error: Lazy attributes can only be declared in ScopedResolver.");
   }
 
   /**
@@ -161,7 +167,26 @@ public class RuntimeUnknownResolver {
 
     @Override
     void cacheLazilyEvaluatedResult(String name, DefaultInterpreter.IntermediateResult result) {
-      lazyEvalResultCache.put(name, copyIfMutable(result));
+      // Ensure that lazily evaluated result is stored at the proper scope.
+      // A lazily attribute is first declared when a new cel.bind/cel.block expr is encountered.
+      //
+      // If this attribute isn't found in the current scope, we need to walk up the parent scopes
+      // until we find this declaration.
+      //
+      // For example: cel.bind(x, get_true(), ['foo','bar'].map(unused, x && x))
+      //
+      // Here, `x` would be evaluated in map macro's scope, but the result should be stored in
+      // cel.bind's scope.
+      if (!lazyEvalResultCache.containsKey(name)) {
+        parent.cacheLazilyEvaluatedResult(name, result);
+      } else {
+        lazyEvalResultCache.put(name, copyIfMutable(result));
+      }
+    }
+
+    @Override
+    void declareLazyAttribute(String attrName) {
+      lazyEvalResultCache.put(attrName, null);
     }
 
     /**

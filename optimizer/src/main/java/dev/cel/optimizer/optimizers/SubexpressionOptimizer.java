@@ -16,11 +16,13 @@ package dev.cel.optimizer.optimizers;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.stream.Collectors.toCollection;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -41,8 +43,11 @@ import dev.cel.common.CelValidationException;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
+import dev.cel.common.ast.CelExpr.CelComprehension;
+import dev.cel.common.ast.CelExpr.CelList;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelMutableExpr;
+import dev.cel.common.ast.CelMutableExpr.CelMutableComprehension;
 import dev.cel.common.ast.CelMutableExprConverter;
 import dev.cel.common.navigation.CelNavigableExpr;
 import dev.cel.common.navigation.CelNavigableMutableAst;
@@ -60,6 +65,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Performs Common Subexpression Elimination.
@@ -90,13 +96,14 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
   private static final SubexpressionOptimizer INSTANCE =
       new SubexpressionOptimizer(SubexpressionOptimizerOptions.newBuilder().build());
   private static final String BIND_IDENTIFIER_PREFIX = "@r";
-  private static final String MANGLED_COMPREHENSION_ITER_VAR_PREFIX = "@it";
-  private static final String MANGLED_COMPREHENSION_ITER_VAR2_PREFIX = "@it2";
-  private static final String MANGLED_COMPREHENSION_ACCU_VAR_PREFIX = "@ac";
   private static final String CEL_BLOCK_FUNCTION = "cel.@block";
   private static final String BLOCK_INDEX_PREFIX = "@index";
   private static final Extension CEL_BLOCK_AST_EXTENSION_TAG =
       Extension.create("cel_block", Version.of(1L, 1L), Component.COMPONENT_RUNTIME);
+
+  @VisibleForTesting static final String MANGLED_COMPREHENSION_ITER_VAR_PREFIX = "@it";
+  @VisibleForTesting static final String MANGLED_COMPREHENSION_ITER_VAR2_PREFIX = "@it2";
+  @VisibleForTesting static final String MANGLED_COMPREHENSION_ACCU_VAR_PREFIX = "@ac";
 
   private final SubexpressionOptimizerOptions cseOptions;
   private final AstMutator astMutator;
@@ -269,6 +276,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
     Verify.verify(
         resultHasAtLeastOneBlockIndex,
         "Expected at least one reference of index in cel.block result");
+
+    verifyNoInvalidScopedMangledVariables(celBlockExpr);
   }
 
   private static void verifyBlockIndex(CelExpr celExpr, int maxIndexValue) {
@@ -287,6 +296,67 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         "Illegal block index found. The index value must be less than %s. Expr: %s",
         maxIndexValue,
         celExpr);
+  }
+
+  private static void verifyNoInvalidScopedMangledVariables(CelExpr celExpr) {
+    CelCall celBlockCall = celExpr.call();
+    CelExpr blockBody = celBlockCall.args().get(1);
+
+    ImmutableSet<String> allMangledVariablesInBlockBody =
+        CelNavigableExpr.fromExpr(blockBody)
+            .allNodes()
+            .map(CelNavigableExpr::expr)
+            .flatMap(SubexpressionOptimizer::extractMangledNames)
+            .collect(toImmutableSet());
+
+    CelList blockIndices = celBlockCall.args().get(0).list();
+    for (CelExpr blockIndex : blockIndices.elements()) {
+      ImmutableSet<String> indexDeclaredCompVariables =
+          CelNavigableExpr.fromExpr(blockIndex)
+              .allNodes()
+              .map(CelNavigableExpr::expr)
+              .filter(expr -> expr.getKind() == Kind.COMPREHENSION)
+              .map(CelExpr::comprehension)
+              .flatMap(comp -> Stream.of(comp.iterVar(), comp.iterVar2()))
+              .filter(iter -> !Strings.isNullOrEmpty(iter))
+              .collect(toImmutableSet());
+
+      boolean containsIllegalDeclaration =
+          CelNavigableExpr.fromExpr(blockIndex)
+              .allNodes()
+              .map(CelNavigableExpr::expr)
+              .filter(expr -> expr.getKind() == Kind.IDENT)
+              .map(expr -> expr.ident().name())
+              .filter(SubexpressionOptimizer::isMangled)
+              .anyMatch(
+                  ident ->
+                      !indexDeclaredCompVariables.contains(ident)
+                          && allMangledVariablesInBlockBody.contains(ident));
+
+      Verify.verify(
+          !containsIllegalDeclaration,
+          "Illegal declared reference to a comprehension variable found in block indices. Expr: %s",
+          celExpr);
+    }
+  }
+
+  private static Stream<String> extractMangledNames(CelExpr expr) {
+    if (expr.getKind().equals(Kind.IDENT)) {
+      String name = expr.ident().name();
+      return isMangled(name) ? Stream.of(name) : Stream.empty();
+    }
+    if (expr.getKind().equals(Kind.COMPREHENSION)) {
+      CelComprehension comp = expr.comprehension();
+      return Stream.of(comp.iterVar(), comp.iterVar2(), comp.accuVar())
+          .filter(x -> !Strings.isNullOrEmpty(x))
+          .filter(SubexpressionOptimizer::isMangled);
+    }
+    return Stream.empty();
+  }
+
+  private static boolean isMangled(String name) {
+    return name.startsWith(MANGLED_COMPREHENSION_ITER_VAR_PREFIX)
+        || name.startsWith(MANGLED_COMPREHENSION_ITER_VAR2_PREFIX);
   }
 
   private static CelAbstractSyntaxTree tagAstExtension(CelAbstractSyntaxTree ast) {
@@ -355,8 +425,8 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
         navAst
             .getRoot()
             .descendants(TraversalOrder.PRE_ORDER)
-            .filter(node -> canEliminate(node, ineligibleExprs))
             .filter(node -> node.height() <= recursionLimit)
+            .filter(node -> canEliminate(node, ineligibleExprs))
             .sorted(Comparator.comparingInt(CelNavigableMutableExpr::height).reversed())
             .collect(toImmutableList());
     if (descendants.isEmpty()) {
@@ -441,7 +511,45 @@ public class SubexpressionOptimizer implements CelAstOptimizer {
             && navigableExpr.expr().list().elements().isEmpty())
         && containsEliminableFunctionOnly(navigableExpr)
         && !ineligibleExprs.contains(navigableExpr.expr())
-        && containsComprehensionIdentInSubexpr(navigableExpr);
+        && containsComprehensionIdentInSubexpr(navigableExpr)
+        && containsProperScopedComprehensionIdents(navigableExpr);
+  }
+
+  private boolean containsProperScopedComprehensionIdents(CelNavigableMutableExpr navExpr) {
+    if (!navExpr.getKind().equals(Kind.COMPREHENSION)) {
+      return true;
+    }
+
+    // For nested comprehensions of form [1].exists(x, [2].exists(y, x == y)), the inner
+    // comprehension [2].exists(y, x == y)
+    // should not be extracted out into a block index, as it causes issues with scoping.
+    ImmutableSet<String> mangledIterVars =
+        navExpr
+            .descendants()
+            .filter(x -> x.getKind().equals(Kind.IDENT))
+            .map(x -> x.expr().ident().name())
+            .filter(
+                name ->
+                    name.startsWith(MANGLED_COMPREHENSION_ITER_VAR_PREFIX)
+                        || name.startsWith(MANGLED_COMPREHENSION_ITER_VAR2_PREFIX))
+            .collect(toImmutableSet());
+
+    CelNavigableMutableExpr parent = navExpr.parent().orElse(null);
+    while (parent != null) {
+      if (parent.getKind().equals(Kind.COMPREHENSION)) {
+        CelMutableComprehension comp = parent.expr().comprehension();
+        boolean containsParentIterReferences =
+            mangledIterVars.contains(comp.iterVar()) || mangledIterVars.contains(comp.iterVar2());
+
+        if (containsParentIterReferences) {
+          return false;
+        }
+      }
+
+      parent = parent.parent().orElse(null);
+    }
+
+    return true;
   }
 
   private boolean containsComprehensionIdentInSubexpr(CelNavigableMutableExpr navExpr) {

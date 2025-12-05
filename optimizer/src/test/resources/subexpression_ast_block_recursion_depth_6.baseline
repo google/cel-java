@@ -2256,130 +2256,136 @@ CALL [1] {
   args: {
     LIST [2] {
       elements: {
-        COMPREHENSION [3] {
-          iter_var: @it:1:0
-          iter_range: {
+        LIST [3] {
+          elements: {
             LIST [4] {
               elements: {
                 CONSTANT [5] { value: 1 }
-                CONSTANT [6] { value: 2 }
-                CONSTANT [7] { value: 3 }
+              }
+            }
+            LIST [6] {
+              elements: {
+                CONSTANT [7] { value: 2 }
               }
             }
           }
-          accu_var: @ac:1:0
+        }
+        LIST [8] {
+          elements: {
+            CONSTANT [9] { value: 1 }
+            CONSTANT [10] { value: 2 }
+          }
+        }
+        LIST [11] {
+          elements: {
+            CONSTANT [12] { value: 1 }
+            CONSTANT [13] { value: 2 }
+            CONSTANT [14] { value: 3 }
+          }
+        }
+      }
+    }
+    CALL [15] {
+      function: _==_
+      args: {
+        COMPREHENSION [16] {
+          iter_var: @it:0:0
+          iter_range: {
+            IDENT [17] {
+              name: @index1
+            }
+          }
+          accu_var: @ac:0:0
           accu_init: {
-            LIST [8] {
+            LIST [18] {
               elements: {
               }
             }
           }
           loop_condition: {
-            CONSTANT [9] { value: true }
+            CONSTANT [19] { value: true }
           }
           loop_step: {
-            CALL [10] {
-              function: _?_:_
+            CALL [20] {
+              function: _+_
               args: {
-                CALL [11] {
-                  function: _==_
-                  args: {
-                    IDENT [12] {
-                      name: @it:1:0
-                    }
-                    IDENT [13] {
-                      name: @it:0:0
-                    }
-                  }
+                IDENT [21] {
+                  name: @ac:0:0
                 }
-                CALL [14] {
-                  function: _+_
-                  args: {
-                    IDENT [15] {
-                      name: @ac:1:0
-                    }
-                    LIST [16] {
-                      elements: {
-                        IDENT [17] {
-                          name: @it:1:0
+                LIST [22] {
+                  elements: {
+                    COMPREHENSION [23] {
+                      iter_var: @it:1:0
+                      iter_range: {
+                        IDENT [24] {
+                          name: @index2
+                        }
+                      }
+                      accu_var: @ac:1:0
+                      accu_init: {
+                        LIST [25] {
+                          elements: {
+                          }
+                        }
+                      }
+                      loop_condition: {
+                        CONSTANT [26] { value: true }
+                      }
+                      loop_step: {
+                        CALL [27] {
+                          function: _?_:_
+                          args: {
+                            CALL [28] {
+                              function: _==_
+                              args: {
+                                IDENT [29] {
+                                  name: @it:1:0
+                                }
+                                IDENT [30] {
+                                  name: @it:0:0
+                                }
+                              }
+                            }
+                            CALL [31] {
+                              function: _+_
+                              args: {
+                                IDENT [32] {
+                                  name: @ac:1:0
+                                }
+                                LIST [33] {
+                                  elements: {
+                                    IDENT [34] {
+                                      name: @it:1:0
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                            IDENT [35] {
+                              name: @ac:1:0
+                            }
+                          }
+                        }
+                      }
+                      result: {
+                        IDENT [36] {
+                          name: @ac:1:0
                         }
                       }
                     }
                   }
                 }
-                IDENT [18] {
-                  name: @ac:1:0
-                }
               }
             }
           }
           result: {
-            IDENT [19] {
-              name: @ac:1:0
-            }
-          }
-        }
-      }
-    }
-    CALL [20] {
-      function: _==_
-      args: {
-        COMPREHENSION [21] {
-          iter_var: @it:0:0
-          iter_range: {
-            LIST [22] {
-              elements: {
-                CONSTANT [23] { value: 1 }
-                CONSTANT [24] { value: 2 }
-              }
-            }
-          }
-          accu_var: @ac:0:0
-          accu_init: {
-            LIST [25] {
-              elements: {
-              }
-            }
-          }
-          loop_condition: {
-            CONSTANT [26] { value: true }
-          }
-          loop_step: {
-            CALL [27] {
-              function: _+_
-              args: {
-                IDENT [28] {
-                  name: @ac:0:0
-                }
-                LIST [29] {
-                  elements: {
-                    IDENT [30] {
-                      name: @index0
-                    }
-                  }
-                }
-              }
-            }
-          }
-          result: {
-            IDENT [31] {
+            IDENT [37] {
               name: @ac:0:0
             }
           }
         }
-        LIST [32] {
-          elements: {
-            LIST [33] {
-              elements: {
-                CONSTANT [34] { value: 1 }
-              }
-            }
-            LIST [35] {
-              elements: {
-                CONSTANT [36] { value: 2 }
-              }
-            }
-          }
+        IDENT [38] {
+          name: @index0
         }
       }
     }
@@ -2533,122 +2539,139 @@ CALL [1] {
   args: {
     LIST [2] {
       elements: {
-        COMPREHENSION [3] {
-          iter_var: @it:1:0
-          iter_range: {
+        LIST [3] {
+          elements: {
             LIST [4] {
               elements: {
                 CONSTANT [5] { value: 1 }
-                CONSTANT [6] { value: 2 }
-                CONSTANT [7] { value: 3 }
               }
             }
-          }
-          accu_var: @ac:1:0
-          accu_init: {
-            LIST [8] {
+            LIST [6] {
               elements: {
+                CONSTANT [7] { value: 2 }
               }
             }
           }
-          loop_condition: {
-            CONSTANT [9] { value: true }
+        }
+        LIST [8] {
+          elements: {
+            CONSTANT [9] { value: 1 }
+            CONSTANT [10] { value: 2 }
           }
-          loop_step: {
-            CALL [10] {
-              function: _?_:_
-              args: {
-                CALL [11] {
-                  function: _&&_
-                  args: {
-                    CALL [12] {
-                      function: _==_
-                      args: {
-                        IDENT [13] {
-                          name: @it:1:0
-                        }
-                        IDENT [14] {
-                          name: @it2:0:0
-                        }
-                      }
-                    }
-                    CALL [15] {
-                      function: _<_
-                      args: {
-                        IDENT [16] {
-                          name: @it:0:0
-                        }
-                        IDENT [17] {
-                          name: @it2:0:0
-                        }
-                      }
-                    }
-                  }
-                }
-                CALL [18] {
-                  function: _+_
-                  args: {
-                    IDENT [19] {
-                      name: @ac:1:0
-                    }
-                    LIST [20] {
-                      elements: {
-                        IDENT [21] {
-                          name: @it:1:0
-                        }
-                      }
-                    }
-                  }
-                }
-                IDENT [22] {
-                  name: @ac:1:0
-                }
-              }
-            }
-          }
-          result: {
-            IDENT [23] {
-              name: @ac:1:0
-            }
+        }
+        LIST [11] {
+          elements: {
+            CONSTANT [12] { value: 1 }
+            CONSTANT [13] { value: 2 }
+            CONSTANT [14] { value: 3 }
           }
         }
       }
     }
-    CALL [24] {
+    CALL [15] {
       function: _==_
       args: {
-        COMPREHENSION [25] {
+        COMPREHENSION [16] {
           iter_var: @it:0:0
           iter_var2: @it2:0:0
           iter_range: {
-            LIST [26] {
-              elements: {
-                CONSTANT [27] { value: 1 }
-                CONSTANT [28] { value: 2 }
-              }
+            IDENT [17] {
+              name: @index1
             }
           }
           accu_var: @ac:0:0
           accu_init: {
-            LIST [29] {
+            LIST [18] {
               elements: {
               }
             }
           }
           loop_condition: {
-            CONSTANT [30] { value: true }
+            CONSTANT [19] { value: true }
           }
           loop_step: {
-            CALL [31] {
+            CALL [20] {
               function: _+_
               args: {
-                IDENT [32] {
+                IDENT [21] {
                   name: @ac:0:0
                 }
-                LIST [33] {
+                LIST [22] {
                   elements: {
-                    IDENT [34] {
-                      name: @index0
+                    COMPREHENSION [23] {
+                      iter_var: @it:1:0
+                      iter_range: {
+                        IDENT [24] {
+                          name: @index2
+                        }
+                      }
+                      accu_var: @ac:1:0
+                      accu_init: {
+                        LIST [25] {
+                          elements: {
+                          }
+                        }
+                      }
+                      loop_condition: {
+                        CONSTANT [26] { value: true }
+                      }
+                      loop_step: {
+                        CALL [27] {
+                          function: _?_:_
+                          args: {
+                            CALL [28] {
+                              function: _&&_
+                              args: {
+                                CALL [29] {
+                                  function: _==_
+                                  args: {
+                                    IDENT [30] {
+                                      name: @it:1:0
+                                    }
+                                    IDENT [31] {
+                                      name: @it2:0:0
+                                    }
+                                  }
+                                }
+                                CALL [32] {
+                                  function: _<_
+                                  args: {
+                                    IDENT [33] {
+                                      name: @it:0:0
+                                    }
+                                    IDENT [34] {
+                                      name: @it2:0:0
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                            CALL [35] {
+                              function: _+_
+                              args: {
+                                IDENT [36] {
+                                  name: @ac:1:0
+                                }
+                                LIST [37] {
+                                  elements: {
+                                    IDENT [38] {
+                                      name: @it:1:0
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                            IDENT [39] {
+                              name: @ac:1:0
+                            }
+                          }
+                        }
+                      }
+                      result: {
+                        IDENT [40] {
+                          name: @ac:1:0
+                        }
+                      }
                     }
                   }
                 }
@@ -2656,24 +2679,13 @@ CALL [1] {
             }
           }
           result: {
-            IDENT [35] {
+            IDENT [41] {
               name: @ac:0:0
             }
           }
         }
-        LIST [36] {
-          elements: {
-            LIST [37] {
-              elements: {
-                CONSTANT [38] { value: 1 }
-              }
-            }
-            LIST [39] {
-              elements: {
-                CONSTANT [40] { value: 2 }
-              }
-            }
-          }
+        IDENT [42] {
+          name: @index0
         }
       }
     }
