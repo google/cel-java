@@ -14,12 +14,10 @@
 
 package dev.cel.runtime.standard;
 
-import static dev.cel.runtime.standard.ArithmeticHelpers.getArithmeticErrorCode;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelNumericOverflowException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
@@ -53,7 +51,7 @@ public final class MultiplyOperator extends CelStandardFunction {
                   try {
                     return RuntimeHelpers.int64Multiply(x, y, celOptions);
                   } catch (ArithmeticException e) {
-                    throw new CelRuntimeException(e, getArithmeticErrorCode(e));
+                    throw new CelNumericOverflowException(e);
                   }
                 })),
     MULTIPLY_DOUBLE(
@@ -71,7 +69,7 @@ public final class MultiplyOperator extends CelStandardFunction {
                   try {
                     return RuntimeHelpers.uint64Multiply(x, y);
                   } catch (ArithmeticException e) {
-                    throw new CelRuntimeException(e, getArithmeticErrorCode(e));
+                    throw new CelNumericOverflowException(e);
                   }
                 });
           } else {
@@ -83,7 +81,7 @@ public final class MultiplyOperator extends CelStandardFunction {
                   try {
                     return RuntimeHelpers.uint64Multiply(x, y, celOptions);
                   } catch (ArithmeticException e) {
-                    throw new CelRuntimeException(e, getArithmeticErrorCode(e));
+                    throw new CelNumericOverflowException(e);
                   }
                 });
           }

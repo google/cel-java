@@ -18,9 +18,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.MessageLite;
-import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.exceptions.CelAttributeNotFoundException;
 import dev.cel.common.values.BaseProtoCelValueConverter;
 import dev.cel.common.values.BaseProtoMessageValueProvider;
 import dev.cel.common.values.CelValue;
@@ -82,9 +81,7 @@ final class CelValueRuntimeTypeProvider implements RuntimeTypeProvider {
         return map.get(fieldName);
       }
 
-      throw new CelRuntimeException(
-          new IllegalArgumentException(String.format("key '%s' is not present in map.", fieldName)),
-          CelErrorCode.ATTRIBUTE_NOT_FOUND);
+      throw CelAttributeNotFoundException.forMissingMapKey(fieldName);
     }
 
     SelectableValue<String> selectableValue = getSelectableValueOrThrow(message, fieldName);
@@ -142,13 +139,7 @@ final class CelValueRuntimeTypeProvider implements RuntimeTypeProvider {
   }
 
   private static void throwInvalidFieldSelection(String fieldName) {
-    throw new CelRuntimeException(
-        new IllegalArgumentException(
-            String.format(
-                "Error resolving field '%s'. Field selections must be performed on messages or"
-                    + " maps.",
-                fieldName)),
-        CelErrorCode.ATTRIBUTE_NOT_FOUND);
+    throw CelAttributeNotFoundException.forFieldResolution(fieldName);
   }
 
   private CelValueRuntimeTypeProvider(

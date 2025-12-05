@@ -42,11 +42,10 @@ import com.google.protobuf.Timestamp;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
-import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoJsonAdapter;
-import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.exceptions.CelNumericOverflowException;
 import dev.cel.common.values.CelByteString;
 import java.time.Instant;
 import java.util.Map;
@@ -284,14 +283,14 @@ public final class ProtoLiteAdapter {
       try {
         return UInt32Value.of(unsignedIntCheckedCast((Long) value));
       } catch (IllegalArgumentException e) {
-        throw new CelRuntimeException(e, CelErrorCode.NUMERIC_OVERFLOW);
+        throw new CelNumericOverflowException(e);
       }
     }
     if (value instanceof UnsignedLong) {
       try {
         return UInt32Value.of(unsignedIntCheckedCast(((UnsignedLong) value).longValue()));
       } catch (IllegalArgumentException e) {
-        throw new CelRuntimeException(e, CelErrorCode.NUMERIC_OVERFLOW);
+        throw new CelNumericOverflowException(e);
       }
     }
 
@@ -316,7 +315,7 @@ public final class ProtoLiteAdapter {
     try {
       return Ints.checkedCast(value);
     } catch (IllegalArgumentException e) {
-      throw new CelRuntimeException(e, CelErrorCode.NUMERIC_OVERFLOW);
+      throw new CelNumericOverflowException(e);
     }
   }
 
@@ -324,7 +323,7 @@ public final class ProtoLiteAdapter {
     try {
       return UnsignedInts.checkedCast(value);
     } catch (IllegalArgumentException e) {
-      throw new CelRuntimeException(e, CelErrorCode.NUMERIC_OVERFLOW);
+      throw new CelNumericOverflowException(e);
     }
   }
 

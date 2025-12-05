@@ -15,9 +15,8 @@
 package dev.cel.runtime.standard;
 
 import com.google.common.collect.ImmutableSet;
-import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelBadFormatException;
 import dev.cel.common.internal.SafeStringFormatter;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
@@ -64,11 +63,9 @@ public final class BoolFunction extends CelStandardFunction {
                     case "0":
                       return false;
                     default:
-                      throw new CelRuntimeException(
-                          new IllegalArgumentException(
-                              SafeStringFormatter.format(
-                                  "Type conversion error from 'string' to 'bool': [%s]", str)),
-                          CelErrorCode.BAD_FORMAT);
+                      throw new CelBadFormatException(
+                          SafeStringFormatter.format(
+                              "Type conversion error from 'string' to 'bool': [%s]", str));
                   }
                 }));
 

@@ -16,7 +16,7 @@ package dev.cel.runtime.planner;
 
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelRuntimeException;
 import dev.cel.common.values.ErrorValue;
 import dev.cel.runtime.Activation;
 import dev.cel.runtime.CelEvaluationException;
