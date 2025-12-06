@@ -21,17 +21,16 @@ import dev.cel.common.values.ErrorValue;
 import dev.cel.runtime.CelEvaluationListener;
 import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
-import dev.cel.runtime.Interpretable;
 
-final class EvalAnd implements Interpretable {
+final class EvalAnd extends PlannedInterpretable {
 
   @SuppressWarnings("Immutable")
-  private final Interpretable[] args;
+  private final PlannedInterpretable[] args;
 
   @Override
   public Object eval(GlobalResolver resolver) {
     ErrorValue errorValue = null;
-    for (Interpretable arg : args) {
+    for (PlannedInterpretable arg : args) {
       Object argVal = evalNonstrictly(arg, resolver);
       if (argVal instanceof Boolean) {
         // Short-circuit on false
@@ -75,11 +74,12 @@ final class EvalAnd implements Interpretable {
     throw new UnsupportedOperationException("Not yet supported");
   }
 
-  static EvalAnd create(Interpretable[] args) {
-    return new EvalAnd(args);
+  static EvalAnd create(long exprId, PlannedInterpretable[] args) {
+    return new EvalAnd(exprId, args);
   }
 
-  private EvalAnd(Interpretable[] args) {
+  private EvalAnd(long exprId, PlannedInterpretable[] args) {
+    super(exprId);
     Preconditions.checkArgument(args.length == 2);
     this.args = args;
   }

@@ -11,10 +11,10 @@ java_library(
     exports = [
         ":evaluation_exception",
         ":late_function_binding",
+        ":metadata",
         "//runtime/src/main/java/dev/cel/runtime",
         "//runtime/src/main/java/dev/cel/runtime:descriptor_message_provider",
         "//runtime/src/main/java/dev/cel/runtime:function_overload",
-        "//runtime/src/main/java/dev/cel/runtime:metadata",
         "//runtime/src/main/java/dev/cel/runtime:runtime_type_provider",
     ],
 )
@@ -248,4 +248,10 @@ java_library(
 cel_android_library(
     name = "program_android",
     exports = ["//runtime/src/main/java/dev/cel/runtime:program_android"],
+)
+
+java_library(
+    name = "metadata",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:metadata"],
 )
