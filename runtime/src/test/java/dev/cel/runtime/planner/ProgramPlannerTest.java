@@ -38,6 +38,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelSource;
 import dev.cel.common.Operator;
 import dev.cel.common.ast.CelExpr;
+import dev.cel.common.exceptions.CelDivideByZeroException;
 import dev.cel.common.internal.CelDescriptorPool;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
@@ -421,7 +422,7 @@ public final class ProgramPlannerTest {
     Program program = PLANNER.plan(ast);
 
     CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
-    assertThat(e).hasMessageThat().contains("evaluation error: Intentional error");
+    assertThat(e).hasMessageThat().contains("evaluation error at <input>:5: Intentional error");
     assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -514,9 +515,9 @@ public final class ProgramPlannerTest {
     Program program = PLANNER.plan(ast);
 
     CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
-    // TODO: Tag metadata (source loc)
-    assertThat(e).hasMessageThat().isEqualTo("evaluation error: / by zero");
-    assertThat(e).hasCauseThat().isInstanceOf(ArithmeticException.class);
+    assertThat(e).hasMessageThat().startsWith("evaluation error at <input>:");
+    assertThat(e).hasMessageThat().endsWith("/ by zero");
+    assertThat(e).hasCauseThat().isInstanceOf(CelDivideByZeroException.class);
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.DIVIDE_BY_ZERO);
   }
 
@@ -546,9 +547,9 @@ public final class ProgramPlannerTest {
     Program program = PLANNER.plan(ast);
 
     CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
-    // TODO: Tag metadata (source loc)
-    assertThat(e).hasMessageThat().isEqualTo("evaluation error: / by zero");
-    assertThat(e).hasCauseThat().isInstanceOf(ArithmeticException.class);
+    assertThat(e).hasMessageThat().startsWith("evaluation error at <input>:");
+    assertThat(e).hasMessageThat().endsWith("/ by zero");
+    assertThat(e).hasCauseThat().isInstanceOf(CelDivideByZeroException.class);
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.DIVIDE_BY_ZERO);
   }
 
@@ -576,8 +577,9 @@ public final class ProgramPlannerTest {
     Program program = PLANNER.plan(ast);
 
     CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
-    assertThat(e).hasMessageThat().isEqualTo("evaluation error: / by zero");
-    assertThat(e).hasCauseThat().isInstanceOf(ArithmeticException.class);
+    assertThat(e).hasMessageThat().startsWith("evaluation error at <input>:");
+    assertThat(e).hasMessageThat().endsWith("/ by zero");
+    assertThat(e).hasCauseThat().isInstanceOf(CelDivideByZeroException.class);
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.DIVIDE_BY_ZERO);
   }
 
