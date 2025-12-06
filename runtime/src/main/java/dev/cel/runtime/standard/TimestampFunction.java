@@ -16,9 +16,8 @@ package dev.cel.runtime.standard;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Timestamp;
-import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelBadFormatException;
 import dev.cel.common.internal.DateTimeHelpers;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.runtime.CelFunctionBinding;
@@ -56,14 +55,14 @@ public final class TimestampFunction extends CelStandardFunction {
                     try {
                       return DateTimeHelpers.parse(ts);
                     } catch (DateTimeParseException e) {
-                      throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
+                      throw new CelBadFormatException(e);
                     }
 
                   } else {
                     try {
                       return ProtoTimeUtils.parse(ts);
                     } catch (ParseException e) {
-                      throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
+                      throw new CelBadFormatException(e);
                     }
                   }
                 })),

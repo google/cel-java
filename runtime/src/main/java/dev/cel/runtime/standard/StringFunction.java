@@ -20,9 +20,8 @@ import com.google.common.primitives.UnsignedLongs;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
-import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelBadFormatException;
 import dev.cel.common.internal.DateTimeHelpers;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.values.CelByteString;
@@ -69,10 +68,8 @@ public final class StringFunction extends CelStandardFunction {
                 CelByteString.class,
                 (byteStr) -> {
                   if (!byteStr.isValidUtf8()) {
-                    throw new CelRuntimeException(
-                        new IllegalArgumentException(
-                            "invalid UTF-8 in bytes, cannot convert to string"),
-                        CelErrorCode.BAD_FORMAT);
+                    throw new CelBadFormatException(
+                        "invalid UTF-8 in bytes, cannot convert to string");
                   }
                   return byteStr.toStringUtf8();
                 });
@@ -82,10 +79,8 @@ public final class StringFunction extends CelStandardFunction {
                 ByteString.class,
                 (byteStr) -> {
                   if (!byteStr.isValidUtf8()) {
-                    throw new CelRuntimeException(
-                        new IllegalArgumentException(
-                            "invalid UTF-8 in bytes, cannot convert to string"),
-                        CelErrorCode.BAD_FORMAT);
+                    throw new CelBadFormatException(
+                        "invalid UTF-8 in bytes, cannot convert to string");
                   }
                   return byteStr.toStringUtf8();
                 });

@@ -27,11 +27,6 @@ public abstract class CelException extends Exception {
     super(message, cause);
   }
 
-  public CelException(String message, CelErrorCode errorCode) {
-    super(message);
-    this.errorCode = errorCode;
-  }
-
   public CelException(String message, Throwable cause, CelErrorCode errorCode) {
     super(message, cause);
     this.errorCode = errorCode;

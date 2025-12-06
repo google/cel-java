@@ -21,10 +21,9 @@ import dev.cel.common.values.NullValue;
 import dev.cel.runtime.CelEvaluationListener;
 import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
-import dev.cel.runtime.Interpretable;
 
 @Immutable
-final class EvalConstant implements Interpretable {
+final class EvalConstant extends PlannedInterpretable {
 
   // Pre-allocation of common constants
   private static final EvalConstant NULL_VALUE = new EvalConstant(NullValue.NULL_VALUE);
@@ -115,6 +114,7 @@ final class EvalConstant implements Interpretable {
   }
 
   private EvalConstant(Object constant) {
+    super(/* exprId= */ -1); // It's not possible to throw while evaluating a constant
     this.constant = constant;
   }
 }

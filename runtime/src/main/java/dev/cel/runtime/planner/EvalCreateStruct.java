@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Immutable
-final class EvalCreateStruct implements Interpretable {
+final class EvalCreateStruct extends PlannedInterpretable {
 
   private final CelValueProvider valueProvider;
   private final StructType structType;
@@ -84,18 +84,21 @@ final class EvalCreateStruct implements Interpretable {
   }
 
   static EvalCreateStruct create(
+      long exprId,
       CelValueProvider valueProvider,
       StructType structType,
       String[] keys,
       Interpretable[] values) {
-    return new EvalCreateStruct(valueProvider, structType, keys, values);
+    return new EvalCreateStruct(exprId, valueProvider, structType, keys, values);
   }
 
   private EvalCreateStruct(
+      long exprId,
       CelValueProvider valueProvider,
       StructType structType,
       String[] keys,
       Interpretable[] values) {
+    super(exprId);
     this.valueProvider = valueProvider;
     this.structType = structType;
     this.keys = keys;
