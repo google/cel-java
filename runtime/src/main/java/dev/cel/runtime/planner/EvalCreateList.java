@@ -23,7 +23,7 @@ import dev.cel.runtime.GlobalResolver;
 import dev.cel.runtime.Interpretable;
 
 @Immutable
-final class EvalCreateList implements Interpretable {
+final class EvalCreateList extends PlannedInterpretable {
 
   // Array contents are not mutated
   @SuppressWarnings("Immutable")
@@ -51,17 +51,20 @@ final class EvalCreateList implements Interpretable {
   }
 
   @Override
-  public Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver,
+  public Object eval(
+      GlobalResolver resolver,
+      CelFunctionResolver lateBoundFunctionResolver,
       CelEvaluationListener listener) {
     // TODO: Implement support
     throw new UnsupportedOperationException("Not yet supported");
   }
 
-  static EvalCreateList create(Interpretable[] values) {
-    return new EvalCreateList(values);
+  static EvalCreateList create(long exprId, Interpretable[] values) {
+    return new EvalCreateList(exprId, values);
   }
 
-  private EvalCreateList(Interpretable[] values) {
+  private EvalCreateList(long exprId, Interpretable[] values) {
+    super(exprId);
     this.values = values;
   }
 }
