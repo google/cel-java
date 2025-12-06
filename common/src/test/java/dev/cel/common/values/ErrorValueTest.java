@@ -27,7 +27,7 @@ public class ErrorValueTest {
   @Test
   public void errorValue_construct() {
     IllegalArgumentException exception = new IllegalArgumentException("test");
-    ErrorValue opaqueValue = ErrorValue.create(exception);
+    ErrorValue opaqueValue = ErrorValue.create(0L, exception);
 
     assertThat(opaqueValue.value()).isEqualTo(exception);
     assertThat(opaqueValue.isZeroValue()).isFalse();
@@ -35,12 +35,12 @@ public class ErrorValueTest {
 
   @Test
   public void create_nullValue_throws() {
-    assertThrows(NullPointerException.class, () -> ErrorValue.create(null));
+    assertThrows(NullPointerException.class, () -> ErrorValue.create(0L, null));
   }
 
   @Test
   public void celTypeTest() {
-    ErrorValue value = ErrorValue.create(new IllegalArgumentException("test"));
+    ErrorValue value = ErrorValue.create(0L, new IllegalArgumentException("test"));
 
     assertThat(value.celType()).isEqualTo(SimpleType.ERROR);
   }

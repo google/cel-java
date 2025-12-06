@@ -23,10 +23,11 @@ import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Duration;
 import com.google.protobuf.MessageLiteOrBuilder;
 import com.google.re2j.Pattern;
-import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.exceptions.CelDivideByZeroException;
+import dev.cel.common.exceptions.CelIndexOutOfBoundsException;
+import dev.cel.common.exceptions.CelNumericOverflowException;
 import dev.cel.common.internal.Converter;
 import dev.cel.common.values.NullValue;
 import java.time.format.DateTimeParseException;
@@ -116,17 +117,11 @@ public class RuntimeHelpers {
     if (index instanceof Double) {
       return doubleToLongLossless(index.doubleValue())
           .map(v -> indexList(list, v))
-          .orElseThrow(
-              () ->
-                  new CelRuntimeException(
-                      new IndexOutOfBoundsException("Index out of bounds: " + index.doubleValue()),
-                      CelErrorCode.INDEX_OUT_OF_BOUNDS));
+          .orElseThrow(() -> new CelIndexOutOfBoundsException(index.doubleValue()));
     }
     int castIndex = Ints.checkedCast(index.longValue());
     if (castIndex < 0 || castIndex >= list.size()) {
-      throw new CelRuntimeException(
-          new IndexOutOfBoundsException("Index out of bounds: " + castIndex),
-          CelErrorCode.INDEX_OUT_OF_BOUNDS);
+      throw new CelIndexOutOfBoundsException(castIndex);
     }
     return list.get(castIndex);
   }
@@ -145,7 +140,7 @@ public class RuntimeHelpers {
 
   public static long int64Divide(long x, long y, CelOptions celOptions) {
     if (celOptions.errorOnIntWrap() && x == Long.MIN_VALUE && y == -1) {
-      throw new ArithmeticException("most negative number wraps");
+      throw new CelNumericOverflowException("most negative number wraps");
     }
     return x / y;
   }
@@ -186,13 +181,13 @@ public class RuntimeHelpers {
     if (celOptions.errorOnIntWrap()) {
       if (x < 0 && y < 0) {
         // Both numbers are in the upper half of the range, so it must overflow.
-        throw new ArithmeticException("range overflow on unsigned addition");
+        throw new CelNumericOverflowException("range overflow on unsigned addition");
       }
       long z = x + y;
       if ((x < 0 || y < 0) && z >= 0) {
         // Only one number is in the upper half of the range. It overflows if the result
         // is not in the upper half.
-        throw new ArithmeticException("range overflow on unsigned addition");
+        throw new CelNumericOverflowException("range overflow on unsigned addition");
       }
       return z;
     }
@@ -201,7 +196,7 @@ public class RuntimeHelpers {
 
   public static UnsignedLong uint64Add(UnsignedLong x, UnsignedLong y) {
     if (x.compareTo(UnsignedLong.MAX_VALUE.minus(y)) > 0) {
-      throw new ArithmeticException("range overflow on unsigned addition");
+      throw new CelNumericOverflowException("range overflow on unsigned addition");
     }
     return x.plus(y);
   }
@@ -228,7 +223,7 @@ public class RuntimeHelpers {
           ? UnsignedLongs.divide(x, y)
           : UnsignedLong.valueOf(x).dividedBy(UnsignedLong.valueOf(y)).longValue();
     } catch (ArithmeticException e) {
-      throw new CelRuntimeException(e, CelErrorCode.DIVIDE_BY_ZERO);
+      throw new CelDivideByZeroException(e);
     }
   }
 
@@ -240,8 +235,7 @@ public class RuntimeHelpers {
 
   public static UnsignedLong uint64Divide(UnsignedLong x, UnsignedLong y) {
     if (y.equals(UnsignedLong.ZERO)) {
-      throw new CelRuntimeException(
-          new ArithmeticException("/ by zero"), CelErrorCode.DIVIDE_BY_ZERO);
+      throw new CelDivideByZeroException();
     }
     return x.dividedBy(y);
   }
@@ -252,14 +246,13 @@ public class RuntimeHelpers {
           ? UnsignedLongs.remainder(x, y)
           : UnsignedLong.valueOf(x).mod(UnsignedLong.valueOf(y)).longValue();
     } catch (ArithmeticException e) {
-      throw new CelRuntimeException(e, CelErrorCode.DIVIDE_BY_ZERO);
+      throw new CelDivideByZeroException(e);
     }
   }
 
   public static UnsignedLong uint64Mod(UnsignedLong x, UnsignedLong y) {
     if (y.equals(UnsignedLong.ZERO)) {
-      throw new CelRuntimeException(
-          new ArithmeticException("/ by zero"), CelErrorCode.DIVIDE_BY_ZERO);
+      throw new CelDivideByZeroException();
     }
     return x.mod(y);
   }
@@ -276,7 +269,7 @@ public class RuntimeHelpers {
             ? x * y
             : UnsignedLong.valueOf(x).times(UnsignedLong.valueOf(y)).longValue();
     if (celOptions.errorOnIntWrap() && y != 0 && Long.divideUnsigned(z, y) != x) {
-      throw new ArithmeticException("multiply out of unsigned integer range");
+      throw new CelNumericOverflowException("multiply out of unsigned integer range");
     }
     return z;
   }
@@ -289,7 +282,7 @@ public class RuntimeHelpers {
 
   public static UnsignedLong uint64Multiply(UnsignedLong x, UnsignedLong y) {
     if (!y.equals(UnsignedLong.ZERO) && x.compareTo(UnsignedLong.MAX_VALUE.dividedBy(y)) > 0) {
-      throw new ArithmeticException("multiply out of unsigned integer range");
+      throw new CelNumericOverflowException("multiply out of unsigned integer range");
     }
     return x.times(y);
   }
@@ -299,7 +292,7 @@ public class RuntimeHelpers {
       // Throw an overflow error if x < y, as unsigned longs. This happens if y has its high
       // bit set and x does not, or if they have the same high bit and x < y as signed longs.
       if ((x < 0 && y < 0 && x < y) || (x >= 0 && y >= 0 && x < y) || (x >= 0 && y < 0)) {
-        throw new ArithmeticException("unsigned subtraction underflow");
+        throw new CelNumericOverflowException("unsigned subtraction underflow");
       }
       // fallthrough
     }
@@ -310,7 +303,7 @@ public class RuntimeHelpers {
     // Throw an overflow error if x < y, as unsigned longs. This happens if y has its high
     // bit set and x does not, or if they have the same high bit and x < y as signed longs.
     if (x.compareTo(y) < 0) {
-      throw new ArithmeticException("unsigned subtraction underflow");
+      throw new CelNumericOverflowException("unsigned subtraction underflow");
     }
     return x.minus(y);
   }

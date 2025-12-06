@@ -33,4 +33,7 @@ public interface Program {
    */
   Object eval(Map<String, ?> mapValue, CelFunctionResolver lateBoundFunctionResolver)
       throws CelEvaluationException;
+
+  /** Evaluate a compiled program with a custom variable {@code resolver}. */
+  Object eval(CelVariableResolver resolver) throws CelEvaluationException;
 }

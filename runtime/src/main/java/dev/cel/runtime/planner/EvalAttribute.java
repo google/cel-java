@@ -18,16 +18,20 @@ import com.google.errorprone.annotations.Immutable;
 import dev.cel.runtime.CelEvaluationListener;
 import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
-import dev.cel.runtime.Interpretable;
 
 @Immutable
-final class EvalAttribute implements Interpretable {
+final class EvalAttribute extends InterpretableAttribute {
 
   private final Attribute attr;
 
   @Override
   public Object eval(GlobalResolver resolver) {
-    return attr.resolve(resolver);
+    Object resolved = attr.resolve(resolver);
+    if (resolved instanceof MissingAttribute) {
+      ((MissingAttribute) resolved).resolve(resolver);
+    }
+
+    return resolved;
   }
 
   @Override
@@ -51,11 +55,18 @@ final class EvalAttribute implements Interpretable {
     throw new UnsupportedOperationException("Not yet supported");
   }
 
-  static EvalAttribute create(Attribute attr) {
-    return new EvalAttribute(attr);
+  @Override
+  public EvalAttribute addQualifier(long exprId, Qualifier qualifier) {
+    Attribute newAttribute = attr.addQualifier(qualifier);
+    return create(exprId, newAttribute);
   }
 
-  private EvalAttribute(Attribute attr) {
+  static EvalAttribute create(long exprId, Attribute attr) {
+    return new EvalAttribute(exprId, attr);
+  }
+
+  private EvalAttribute(long exprId, Attribute attr) {
+    super(exprId);
     this.attr = attr;
   }
 }

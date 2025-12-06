@@ -21,6 +21,7 @@ java_library(
             "CelLiteInterpreterTest.java",
             "CelValueInterpreterTest.java",
             "InterpreterTest.java",
+            "PlannerInterpreterTest.java",
         ] + ANDROID_TESTS,
     ),
     deps = [
@@ -37,8 +38,11 @@ java_library(
         "//common:error_codes",
         "//common:options",
         "//common:proto_v1alpha1_ast",
-        "//common:runtime_exception",
         "//common/ast",
+        "//common/exceptions:bad_format",
+        "//common/exceptions:divide_by_zero",
+        "//common/exceptions:numeric_overflow",
+        "//common/exceptions:runtime_exception",
         "//common/internal:cel_descriptor_pools",
         "//common/internal:converter",
         "//common/internal:default_message_factory",
@@ -133,6 +137,21 @@ java_library(
     ],
 )
 
+java_library(
+    name = "planner_interpreter_test",
+    testonly = 1,
+    srcs = [
+        "PlannerInterpreterTest.java",
+    ],
+    deps = [
+        "//extensions",
+        "//runtime",
+        "//testing:base_interpreter_test",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
 cel_android_local_test(
     name = "android_tests",
     srcs = ANDROID_TESTS,
@@ -153,6 +172,7 @@ cel_android_local_test(
         "//runtime:lite_runtime_android",
         "//runtime:lite_runtime_factory_android",
         "//runtime:lite_runtime_impl_android",
+        "//runtime:program_android",
         "//runtime:standard_functions_android",
         "//runtime:unknown_attributes_android",
         "//runtime/src/main/java/dev/cel/runtime:program_android",
@@ -200,6 +220,7 @@ junit4_test_suites(
         ":cel_lite_interpreter_test",
         ":cel_value_interpreter_test",
         ":interpreter_test",
+        ":planner_interpreter_test",
         ":tests",
     ],
 )

@@ -18,7 +18,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CheckReturnValue;
-import javax.annotation.concurrent.ThreadSafe;
+import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
 import dev.cel.common.Operator;
@@ -26,6 +26,7 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
+import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.CelList;
 import dev.cel.common.ast.CelExpr.CelMap;
 import dev.cel.common.ast.CelExpr.CelSelect;
@@ -37,12 +38,12 @@ import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.StructType;
 import dev.cel.common.types.TypeType;
+import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationExceptionBuilder;
 import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.DefaultDispatcher;
-import dev.cel.runtime.Interpretable;
 import dev.cel.runtime.Program;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -51,10 +52,9 @@ import java.util.Optional;
  * {@code ProgramPlanner} resolves functions, types, and identifiers at plan time given a
  * parsed-only or a type-checked expression.
  */
-@ThreadSafe
+@Immutable
 @Internal
 public final class ProgramPlanner {
-
   private final CelTypeProvider typeProvider;
   private final CelValueProvider valueProvider;
   private final DefaultDispatcher dispatcher;
@@ -66,22 +66,26 @@ public final class ProgramPlanner {
    * CelAbstractSyntaxTree}.
    */
   public Program plan(CelAbstractSyntaxTree ast) throws CelEvaluationException {
-    Interpretable plannedInterpretable;
+    PlannedInterpretable plannedInterpretable;
     try {
       plannedInterpretable = plan(ast.getExpr(), PlannerContext.create(ast));
     } catch (RuntimeException e) {
       throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage()).setCause(e).build();
     }
 
-    return PlannedProgram.create(plannedInterpretable);
+    ErrorMetadata errorMetadata =
+        ErrorMetadata.create(ast.getSource().getPositionsMap(), ast.getSource().getDescription());
+    return PlannedProgram.create(plannedInterpretable, errorMetadata);
   }
 
-  private Interpretable plan(CelExpr celExpr, PlannerContext ctx) {
+  private PlannedInterpretable plan(CelExpr celExpr, PlannerContext ctx) {
     switch (celExpr.getKind()) {
       case CONSTANT:
         return planConstant(celExpr.constant());
       case IDENT:
         return planIdent(celExpr, ctx);
+      case SELECT:
+        return planSelect(celExpr, ctx);
       case CALL:
         return planCall(celExpr, ctx);
       case LIST:
@@ -90,14 +94,37 @@ public final class ProgramPlanner {
         return planCreateStruct(celExpr, ctx);
       case MAP:
         return planCreateMap(celExpr, ctx);
+      case COMPREHENSION:
+        return planComprehension(celExpr, ctx);
       case NOT_SET:
         throw new UnsupportedOperationException("Unsupported kind: " + celExpr.getKind());
-      default:
-        throw new IllegalArgumentException("Not yet implemented kind: " + celExpr.getKind());
     }
+
+    throw new IllegalArgumentException("Not yet implemented kind: " + celExpr.getKind());
   }
 
-  private Interpretable planConstant(CelConstant celConstant) {
+  private PlannedInterpretable planSelect(CelExpr celExpr, PlannerContext ctx) {
+    CelSelect select = celExpr.select();
+    PlannedInterpretable operand = plan(select.operand(), ctx);
+
+    InterpretableAttribute attribute;
+    if (operand instanceof EvalAttribute) {
+      attribute = (EvalAttribute) operand;
+    } else {
+      attribute =
+          EvalAttribute.create(celExpr.id(), attributeFactory.newRelativeAttribute(operand));
+    }
+
+    if (select.testOnly()) {
+      attribute = EvalTestOnly.create(celExpr.id(), attribute);
+    }
+
+    Qualifier qualifier = StringQualifier.create(select.field());
+
+    return attribute.addQualifier(celExpr.id(), qualifier);
+  }
+
+  private PlannedInterpretable planConstant(CelConstant celConstant) {
     switch (celConstant.getKind()) {
       case NULL_VALUE:
         return EvalConstant.create(celConstant.nullValue());
@@ -118,16 +145,17 @@ public final class ProgramPlanner {
     }
   }
 
-  private Interpretable planIdent(CelExpr celExpr, PlannerContext ctx) {
+  private PlannedInterpretable planIdent(CelExpr celExpr, PlannerContext ctx) {
     CelReference ref = ctx.referenceMap().get(celExpr.id());
     if (ref != null) {
       return planCheckedIdent(celExpr.id(), ref, ctx.typeMap());
     }
 
-    return EvalAttribute.create(attributeFactory.newMaybeAttribute(celExpr.ident().name()));
+    return EvalAttribute.create(
+        celExpr.id(), attributeFactory.newMaybeAttribute(celExpr.ident().name()));
   }
 
-  private Interpretable planCheckedIdent(
+  private PlannedInterpretable planCheckedIdent(
       long id, CelReference identRef, ImmutableMap<Long, CelType> typeMap) {
     if (identRef.value().isPresent()) {
       return planConstant(identRef.value().get());
@@ -146,10 +174,10 @@ public final class ProgramPlanner {
       return EvalConstant.create(identType);
     }
 
-    return EvalAttribute.create(attributeFactory.newAbsoluteAttribute(identRef.name()));
+    return EvalAttribute.create(id, attributeFactory.newAbsoluteAttribute(identRef.name()));
   }
 
-  private Interpretable planCall(CelExpr expr, PlannerContext ctx) {
+  private PlannedInterpretable planCall(CelExpr expr, PlannerContext ctx) {
     ResolvedFunction resolvedFunction = resolveFunction(expr, ctx.referenceMap());
     CelExpr target = resolvedFunction.target().orElse(null);
     int argCount = expr.call().args().size();
@@ -157,7 +185,7 @@ public final class ProgramPlanner {
       argCount++;
     }
 
-    Interpretable[] evaluatedArgs = new Interpretable[argCount];
+    PlannedInterpretable[] evaluatedArgs = new PlannedInterpretable[argCount];
 
     int offset = 0;
     if (target != null) {
@@ -175,16 +203,17 @@ public final class ProgramPlanner {
     if (operator != null) {
       switch (operator) {
         case LOGICAL_OR:
-          return EvalOr.create(evaluatedArgs);
+          return EvalOr.create(expr.id(), evaluatedArgs);
         case LOGICAL_AND:
-          return EvalAnd.create(evaluatedArgs);
+          return EvalAnd.create(expr.id(), evaluatedArgs);
         case CONDITIONAL:
-          return EvalConditional.create(evaluatedArgs);
+          return EvalConditional.create(expr.id(), evaluatedArgs);
         default:
           // fall-through
       }
     }
 
+    // TODO: Handle all specialized calls (logical operators, conditionals, equals etc)
     CelResolvedOverload resolvedOverload = null;
     if (resolvedFunction.overloadId().isPresent()) {
       resolvedOverload = dispatcher.findOverload(resolvedFunction.overloadId().get()).orElse(null);
@@ -200,21 +229,21 @@ public final class ProgramPlanner {
 
     switch (argCount) {
       case 0:
-        return EvalZeroArity.create(resolvedOverload);
+        return EvalZeroArity.create(expr.id(), resolvedOverload);
       case 1:
-        return EvalUnary.create(resolvedOverload, evaluatedArgs[0]);
+        return EvalUnary.create(expr.id(), resolvedOverload, evaluatedArgs[0]);
       default:
-        return EvalVarArgsCall.create(resolvedOverload, evaluatedArgs);
+        return EvalVarArgsCall.create(expr.id(), resolvedOverload, evaluatedArgs);
     }
   }
 
-  private Interpretable planCreateStruct(CelExpr celExpr, PlannerContext ctx) {
+  private PlannedInterpretable planCreateStruct(CelExpr celExpr, PlannerContext ctx) {
     CelStruct struct = celExpr.struct();
     StructType structType = resolveStructType(struct);
 
     ImmutableList<Entry> entries = struct.entries();
     String[] keys = new String[entries.size()];
-    Interpretable[] values = new Interpretable[entries.size()];
+    PlannedInterpretable[] values = new PlannedInterpretable[entries.size()];
 
     for (int i = 0; i < entries.size(); i++) {
       Entry entry = entries.get(i);
@@ -222,28 +251,28 @@ public final class ProgramPlanner {
       values[i] = plan(entry.value(), ctx);
     }
 
-    return EvalCreateStruct.create(valueProvider, structType, keys, values);
+    return EvalCreateStruct.create(celExpr.id(), valueProvider, structType, keys, values);
   }
 
-  private Interpretable planCreateList(CelExpr celExpr, PlannerContext ctx) {
+  private PlannedInterpretable planCreateList(CelExpr celExpr, PlannerContext ctx) {
     CelList list = celExpr.list();
 
     ImmutableList<CelExpr> elements = list.elements();
-    Interpretable[] values = new Interpretable[elements.size()];
+    PlannedInterpretable[] values = new PlannedInterpretable[elements.size()];
 
     for (int i = 0; i < elements.size(); i++) {
       values[i] = plan(elements.get(i), ctx);
     }
 
-    return EvalCreateList.create(values);
+    return EvalCreateList.create(celExpr.id(), values);
   }
 
-  private Interpretable planCreateMap(CelExpr celExpr, PlannerContext ctx) {
+  private PlannedInterpretable planCreateMap(CelExpr celExpr, PlannerContext ctx) {
     CelMap map = celExpr.map();
 
     ImmutableList<CelMap.Entry> entries = map.entries();
-    Interpretable[] keys = new Interpretable[entries.size()];
-    Interpretable[] values = new Interpretable[entries.size()];
+    PlannedInterpretable[] keys = new PlannedInterpretable[entries.size()];
+    PlannedInterpretable[] values = new PlannedInterpretable[entries.size()];
 
     for (int i = 0; i < entries.size(); i++) {
       CelMap.Entry entry = entries.get(i);
@@ -251,7 +280,28 @@ public final class ProgramPlanner {
       values[i] = plan(entry.value(), ctx);
     }
 
-    return EvalCreateMap.create(keys, values);
+    return EvalCreateMap.create(celExpr.id(), keys, values);
+  }
+
+  private PlannedInterpretable planComprehension(CelExpr expr, PlannerContext ctx) {
+    CelComprehension comprehension = expr.comprehension();
+
+    PlannedInterpretable accuInit = plan(comprehension.accuInit(), ctx);
+    PlannedInterpretable iterRange = plan(comprehension.iterRange(), ctx);
+    PlannedInterpretable loopCondition = plan(comprehension.loopCondition(), ctx);
+    PlannedInterpretable loopStep = plan(comprehension.loopStep(), ctx);
+    PlannedInterpretable result = plan(comprehension.result(), ctx);
+
+    return EvalFold.create(
+        expr.id(),
+        comprehension.accuVar(),
+        accuInit,
+        comprehension.iterVar(),
+        comprehension.iterVar2(),
+        iterRange,
+        loopCondition,
+        loopStep,
+        result);
   }
 
   /**
@@ -400,19 +450,23 @@ public final class ProgramPlanner {
       CelTypeProvider typeProvider,
       CelValueProvider valueProvider,
       DefaultDispatcher dispatcher,
+      CelValueConverter celValueConverter,
       CelContainer container) {
-    return new ProgramPlanner(typeProvider, valueProvider, dispatcher, container);
+    return new ProgramPlanner(
+        typeProvider, valueProvider, dispatcher, celValueConverter, container);
   }
 
   private ProgramPlanner(
       CelTypeProvider typeProvider,
       CelValueProvider valueProvider,
       DefaultDispatcher dispatcher,
+      CelValueConverter celValueConverter,
       CelContainer container) {
     this.typeProvider = typeProvider;
     this.valueProvider = valueProvider;
     this.dispatcher = dispatcher;
     this.container = container;
-    this.attributeFactory = AttributeFactory.newAttributeFactory(container, typeProvider);
+    this.attributeFactory =
+        AttributeFactory.newAttributeFactory(container, typeProvider, celValueConverter);
   }
 }

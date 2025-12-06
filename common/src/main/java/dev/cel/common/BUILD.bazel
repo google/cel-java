@@ -173,18 +173,6 @@ java_library(
 )
 
 java_library(
-    name = "runtime_exception",
-    srcs = ["CelRuntimeException.java"],
-    # used_by_android
-    tags = [
-    ],
-    deps = [
-        ":error_codes",
-        "//common/annotations",
-    ],
-)
-
-java_library(
     name = "mutable_ast",
     srcs = ["CelMutableAst.java"],
     tags = [
@@ -205,7 +193,6 @@ java_library(
     ],
     deps = [
         ":cel_source",
-        "//:auto_value",
         "//common/ast:mutable_expr",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -249,7 +236,6 @@ java_library(
         ":source",
         ":source_location",
         "//:auto_value",
-        "//common/annotations",
         "//common/ast",
         "//common/internal",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -360,8 +346,5 @@ java_library(
     srcs = ["Operator.java"],
     tags = [
     ],
-    deps = [
-        "//common/ast",
-        "@maven//:com_google_guava_guava",
-    ],
+    deps = ["@maven//:com_google_guava_guava"],
 )
