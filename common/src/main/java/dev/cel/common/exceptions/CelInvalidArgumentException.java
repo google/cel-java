@@ -12,20 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.runtime.standard;
+package dev.cel.common.exceptions;
 
 import dev.cel.common.CelErrorCode;
+import dev.cel.common.annotations.Internal;
 
-final class ArithmeticHelpers {
+/** Indicates that an invalid argument was supplied to a function. */
+@Internal
+public final class CelInvalidArgumentException extends CelRuntimeException {
 
-  static CelErrorCode getArithmeticErrorCode(ArithmeticException e) {
-    String exceptionMessage = e.getMessage();
-    // The two known cases for an arithmetic exception is divide by zero and overflow.
-    if (exceptionMessage.equals("/ by zero")) {
-      return CelErrorCode.DIVIDE_BY_ZERO;
-    }
-    return CelErrorCode.NUMERIC_OVERFLOW;
+  public CelInvalidArgumentException(Throwable cause) {
+    super(cause, CelErrorCode.INVALID_ARGUMENT);
   }
-
-  private ArithmeticHelpers() {}
 }

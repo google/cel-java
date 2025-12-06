@@ -15,35 +15,46 @@
 package dev.cel.runtime.planner;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelContainer;
 import dev.cel.common.types.CelTypeProvider;
-import dev.cel.runtime.planner.Attribute.MaybeAttribute;
-import dev.cel.runtime.planner.Attribute.NamespacedAttribute;
+import dev.cel.common.values.CelValueConverter;
 
 @Immutable
 final class AttributeFactory {
 
-  private final CelContainer unusedContainer;
+  private final CelContainer container;
   private final CelTypeProvider typeProvider;
+  private final CelValueConverter celValueConverter;
 
   NamespacedAttribute newAbsoluteAttribute(String... names) {
-    return new NamespacedAttribute(typeProvider, ImmutableList.copyOf(names));
+    return new NamespacedAttribute(typeProvider, celValueConverter, ImmutableSet.copyOf(names));
   }
 
-  MaybeAttribute newMaybeAttribute(String... names) {
-    // TODO: Resolve container names
+  RelativeAttribute newRelativeAttribute(PlannedInterpretable operand) {
+    return new RelativeAttribute(operand, celValueConverter);
+  }
+
+  MaybeAttribute newMaybeAttribute(String name) {
     return new MaybeAttribute(
-        ImmutableList.of(new NamespacedAttribute(typeProvider, ImmutableList.copyOf(names))));
+        this,
+        ImmutableList.of(
+            new NamespacedAttribute(
+                typeProvider, celValueConverter, container.resolveCandidateNames(name))));
   }
 
   static AttributeFactory newAttributeFactory(
-      CelContainer celContainer, CelTypeProvider typeProvider) {
-    return new AttributeFactory(celContainer, typeProvider);
+      CelContainer celContainer,
+      CelTypeProvider typeProvider,
+      CelValueConverter celValueConverter) {
+    return new AttributeFactory(celContainer, typeProvider, celValueConverter);
   }
 
-  private AttributeFactory(CelContainer container, CelTypeProvider typeProvider) {
-    this.unusedContainer = container;
+  private AttributeFactory(
+      CelContainer container, CelTypeProvider typeProvider, CelValueConverter celValueConverter) {
+    this.container = container;
     this.typeProvider = typeProvider;
+    this.celValueConverter = celValueConverter;
   }
 }
