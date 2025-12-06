@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.protobuf.Message;
 import dev.cel.common.CelException;
+import dev.cel.common.exceptions.CelDivideByZeroException;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
@@ -39,7 +40,7 @@ public final class CelRuntimeLegacyImplTest {
     CelRuntime runtime = CelRuntimeFactory.standardCelRuntimeBuilder().build();
     CelRuntime.Program program = runtime.createProgram(compiler.compile("1/0").getAst());
     CelEvaluationException e = Assert.assertThrows(CelEvaluationException.class, program::eval);
-    assertThat(e).hasCauseThat().isInstanceOf(ArithmeticException.class);
+    assertThat(e).hasCauseThat().isInstanceOf(CelDivideByZeroException.class);
   }
 
   @Test

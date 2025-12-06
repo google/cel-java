@@ -21,7 +21,7 @@ import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
 import dev.cel.runtime.Interpretable;
 
-final class EvalConditional implements Interpretable {
+final class EvalConditional extends PlannedInterpretable {
 
   @SuppressWarnings("Immutable")
   private final Interpretable[] args;
@@ -67,11 +67,12 @@ final class EvalConditional implements Interpretable {
     throw new UnsupportedOperationException("Not yet supported");
   }
 
-  static EvalConditional create(Interpretable[] args) {
-    return new EvalConditional(args);
+  static EvalConditional create(long exprId, Interpretable[] args) {
+    return new EvalConditional(exprId, args);
   }
 
-  private EvalConditional(Interpretable[] args) {
+  private EvalConditional(long exprId, Interpretable[] args) {
+    super(exprId);
     Preconditions.checkArgument(args.length == 3);
     this.args = args;
   }

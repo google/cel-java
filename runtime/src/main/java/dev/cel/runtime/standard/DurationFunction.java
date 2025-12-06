@@ -16,9 +16,8 @@ package dev.cel.runtime.standard;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Duration;
-import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelBadFormatException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
@@ -62,13 +61,13 @@ public final class DurationFunction extends CelStandardFunction {
                     try {
                       return RuntimeHelpers.createJavaDurationFromString(d);
                     } catch (IllegalArgumentException e) {
-                      throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
+                      throw new CelBadFormatException(e);
                     }
                   } else {
                     try {
                       return RuntimeHelpers.createDurationFromString(d);
                     } catch (IllegalArgumentException e) {
-                      throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
+                      throw new CelBadFormatException(e);
                     }
                   }
                 })),

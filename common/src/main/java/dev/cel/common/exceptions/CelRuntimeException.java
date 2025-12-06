@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.common;
+package dev.cel.common.exceptions;
 
+import dev.cel.common.CelErrorCode;
 import dev.cel.common.annotations.Internal;
 
 /**
@@ -21,13 +22,15 @@ import dev.cel.common.annotations.Internal;
  *
  * <p>Note: This is not to be confused with the notion of CEL Runtime. Use {@code
  * CelEvaluationException} instead to signify an evaluation error.
- *
- * <p>TODO: Make this class abstract and define specific exception classes that
- * corresponds to the CelErrorCode.
  */
 @Internal
-public class CelRuntimeException extends RuntimeException {
+public abstract class CelRuntimeException extends RuntimeException {
   private final CelErrorCode errorCode;
+
+  CelRuntimeException(String errorMessage, CelErrorCode errorCode) {
+    super(errorMessage);
+    this.errorCode = errorCode;
+  }
 
   public CelRuntimeException(Throwable cause, CelErrorCode errorCode) {
     super(cause);

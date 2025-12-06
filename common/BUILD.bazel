@@ -54,13 +54,6 @@ java_library(
 )
 
 java_library(
-    name = "runtime_exception",
-    # used_by_android
-    visibility = ["//:internal"],
-    exports = ["//common/src/main/java/dev/cel/common:runtime_exception"],
-)
-
-java_library(
     name = "proto_json_adapter",
     exports = ["//common/src/main/java/dev/cel/common:proto_json_adapter"],
 )

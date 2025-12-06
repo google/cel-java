@@ -42,7 +42,7 @@ import com.google.rpc.context.AttributeContext.Peer;
 import com.google.rpc.context.AttributeContext.Request;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelRuntimeException;
 import dev.cel.common.internal.AdaptingTypes;
 import dev.cel.common.internal.BidiConverter;
 import dev.cel.common.internal.DefaultDescriptorPool;
