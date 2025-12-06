@@ -24,7 +24,7 @@ import dev.cel.runtime.GlobalResolver;
 import dev.cel.runtime.Interpretable;
 
 @Immutable
-final class EvalCreateMap implements Interpretable {
+final class EvalCreateMap extends PlannedInterpretable {
 
   // Array contents are not mutated
   @SuppressWarnings("Immutable")
@@ -58,18 +58,20 @@ final class EvalCreateMap implements Interpretable {
   }
 
   @Override
-  public Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver,
+  public Object eval(
+      GlobalResolver resolver,
+      CelFunctionResolver lateBoundFunctionResolver,
       CelEvaluationListener listener) {
     // TODO: Implement support
     throw new UnsupportedOperationException("Not yet supported");
   }
 
-
-  static EvalCreateMap create(Interpretable[] keys, Interpretable[] values) {
-    return new EvalCreateMap(keys, values);
+  static EvalCreateMap create(long exprId, Interpretable[] keys, Interpretable[] values) {
+    return new EvalCreateMap(exprId, keys, values);
   }
 
-  private EvalCreateMap(Interpretable[] keys, Interpretable[] values) {
+  private EvalCreateMap(long exprId, Interpretable[] keys, Interpretable[] values) {
+    super(exprId);
     Preconditions.checkArgument(keys.length == values.length);
     this.keys = keys;
     this.values = values;

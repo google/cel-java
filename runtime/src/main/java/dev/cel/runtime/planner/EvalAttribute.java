@@ -18,10 +18,9 @@ import com.google.errorprone.annotations.Immutable;
 import dev.cel.runtime.CelEvaluationListener;
 import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
-import dev.cel.runtime.Interpretable;
 
 @Immutable
-final class EvalAttribute implements Interpretable {
+final class EvalAttribute extends PlannedInterpretable {
 
   private final Attribute attr;
 
@@ -47,15 +46,15 @@ final class EvalAttribute implements Interpretable {
       GlobalResolver resolver,
       CelFunctionResolver lateBoundFunctionResolver,
       CelEvaluationListener listener) {
-    // TODO: Implement support
     throw new UnsupportedOperationException("Not yet supported");
   }
 
-  static EvalAttribute create(Attribute attr) {
-    return new EvalAttribute(attr);
+  static EvalAttribute create(long exprId, Attribute attr) {
+    return new EvalAttribute(exprId, attr);
   }
 
-  private EvalAttribute(Attribute attr) {
+  private EvalAttribute(long exprId, Attribute attr) {
+    super(exprId);
     this.attr = attr;
   }
 }
