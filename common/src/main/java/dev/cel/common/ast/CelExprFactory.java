@@ -266,7 +266,7 @@ public class CelExprFactory {
 
   /** Attempts to decrement the next expr ID if possible. */
   protected void maybeDeleteId(long id) {
-    if (id == exprId - 1) {
+    if (id == exprId) {
       exprId--;
     }
   }
