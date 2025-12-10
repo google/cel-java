@@ -35,15 +35,6 @@ public class CelValueConverterTest {
   }
 
   @Test
-  public void toRuntimeValue_errorValue() {
-    IllegalArgumentException e = new IllegalArgumentException("error");
-
-    ErrorValue errorValue = (ErrorValue) CEL_VALUE_CONVERTER.toRuntimeValue(e);
-
-    assertThat(errorValue.value()).isEqualTo(e);
-  }
-
-  @Test
   @SuppressWarnings("unchecked") // Test only
   public void unwrap_optionalValue() {
     Optional<Long> result = (Optional<Long>) CEL_VALUE_CONVERTER.unwrap(OptionalValue.create(2L));

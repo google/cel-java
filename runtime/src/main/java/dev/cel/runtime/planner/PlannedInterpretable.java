@@ -15,12 +15,17 @@
 package dev.cel.runtime.planner;
 
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.runtime.GlobalResolver;
+import dev.cel.runtime.Interpretable;
 
-/** Represents a resolvable symbol or path (such as a variable or a field selection). */
 @Immutable
-interface Attribute {
-  Object resolve(GlobalResolver ctx);
+abstract class PlannedInterpretable implements Interpretable {
+  private final long exprId;
 
-  Attribute addQualifier(Qualifier qualifier);
+  long exprId() {
+    return exprId;
+  }
+
+  PlannedInterpretable(long exprId) {
+    this.exprId = exprId;
+  }
 }

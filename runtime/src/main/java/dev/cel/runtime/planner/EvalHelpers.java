@@ -14,17 +14,33 @@
 
 package dev.cel.runtime.planner;
 
+import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelRuntimeException;
 import dev.cel.common.values.ErrorValue;
 import dev.cel.runtime.GlobalResolver;
-import dev.cel.runtime.Interpretable;
 
 final class EvalHelpers {
 
-  static Object evalNonstrictly(Interpretable interpretable, GlobalResolver resolver) {
+  static Object evalNonstrictly(PlannedInterpretable interpretable, GlobalResolver resolver) {
     try {
       return interpretable.eval(resolver);
+    } catch (StrictErrorException e) {
+      // Intercept the strict exception to get a more localized expr ID for error reporting purposes
+      // Example: foo [1] && strict_err [2] -> ID 2 is propagated.
+      return ErrorValue.create(e.exprId(), e);
     } catch (Exception e) {
-      return ErrorValue.create(e);
+      return ErrorValue.create(interpretable.exprId(), e);
+    }
+  }
+
+  static Object evalStrictly(PlannedInterpretable interpretable, GlobalResolver resolver) {
+    try {
+      return interpretable.eval(resolver);
+    } catch (CelRuntimeException e) {
+      throw new StrictErrorException(e, interpretable.exprId());
+    } catch (Exception e) {
+      throw new StrictErrorException(
+          e.getCause(), CelErrorCode.INTERNAL_ERROR, interpretable.exprId());
     }
   }
 
