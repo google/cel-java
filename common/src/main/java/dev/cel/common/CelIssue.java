@@ -99,14 +99,7 @@ public abstract class CelIssue {
   /** Returns a string representing this error that is suitable for displaying to humans. */
   public String toDisplayString(Source source) {
     // Based onhttps://github.com/google/cel-go/blob/v0.5.1/common/error.go#L42.
-    String result =
-        SafeStringFormatter.format(
-            "%s: %s:%d:%d: %s",
-            getSeverity(),
-            source.getDescription(),
-            getSourceLocation().getLine(),
-            getSourceLocation().getColumn() + 1,
-            getMessage());
+    String result = SafeStringFormatter.format("%s", getMessage());
     if (!CelSourceLocation.NONE.equals(getSourceLocation())) {
       Optional<String> optionalSnippet = source.getSnippet(getSourceLocation().getLine());
       if (optionalSnippet.isPresent()) {
