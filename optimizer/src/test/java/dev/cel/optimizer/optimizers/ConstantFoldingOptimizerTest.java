@@ -170,6 +170,11 @@ public class ConstantFoldingOptimizerTest {
           + " optional.of(4), ?single_uint64: optional.ofNonZeroValue(x)}', expected:"
           + " 'cel.expr.conformance.proto3.TestAllTypes{single_int64: 1, single_int32: 4,"
           + " ?single_uint64: optional.ofNonZeroValue(x)}'}")
+  @TestParameters(
+      "{source: 'TestAllTypes{single_nested_message: TestAllTypes.NestedMessage{bb:"
+          + " 42}}.single_nested_message.bb', expected: '42'}")
+  @TestParameters("{source: '{\"a\": 1}[\"a\"]', expected: '1'}")
+  @TestParameters("{source: '{\"a\": {\"b\": 2}}[\"a\"][\"b\"]', expected: '2'}")
   @TestParameters("{source: '{\"hello\": \"world\"}.hello == x', expected: '\"world\" == x'}")
   @TestParameters("{source: '{\"hello\": \"world\"}[\"hello\"] == x', expected: '\"world\" == x'}")
   @TestParameters("{source: '{\"hello\": \"world\"}.?hello', expected: 'optional.of(\"world\")'}")

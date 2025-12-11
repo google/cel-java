@@ -256,6 +256,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
     if (expr.getKind().equals(Kind.CALL)
         || expr.getKind().equals(Kind.LIST)
         || expr.getKind().equals(Kind.MAP)
+        || expr.getKind().equals(Kind.SELECT)
         || expr.getKind().equals(Kind.STRUCT)) {
       return expr.children().allMatch(ConstantFoldingOptimizer::areChildrenArgConstant);
     }
