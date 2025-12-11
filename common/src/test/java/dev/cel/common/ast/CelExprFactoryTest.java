@@ -37,4 +37,30 @@ public class CelExprFactoryTest {
     assertThat(exprFactory.nextExprId()).isEqualTo(1L);
     assertThat(exprFactory.nextExprId()).isEqualTo(2L);
   }
+
+  @Test
+  public void maybeDeleteId_deletesLastId() {
+    CelExprFactory exprFactory = CelExprFactory.newInstance();
+    long id1 = exprFactory.nextExprId(); // 1
+    assertThat(id1).isEqualTo(1L);
+
+    exprFactory.maybeDeleteId(id1);
+
+    // Should be reused
+    assertThat(exprFactory.nextExprId()).isEqualTo(1L);
+  }
+
+  @Test
+  public void maybeDeleteId_doesNotDeletePreviouslyAllocatedId() {
+    CelExprFactory exprFactory = CelExprFactory.newInstance();
+    long id1 = exprFactory.nextExprId(); // 1
+    long id2 = exprFactory.nextExprId(); // 2
+
+    // Try to delete id1. Since id2 was allocated after, it should NOT delete id1
+    // because that would rewind the counter and cause a collision with id2.
+    exprFactory.maybeDeleteId(id1);
+
+    // Should NOT be reused. Next should be 3.
+    assertThat(exprFactory.nextExprId()).isEqualTo(3L);
+  }
 }
