@@ -57,6 +57,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /** Default implementation of the CEL interpreter. */
 @ThreadSafe
@@ -343,7 +344,13 @@ final class DefaultInterpreter implements Interpreter {
       Object value = rawResult.value();
       boolean isLazyExpression = value instanceof LazyExpression;
       if (isLazyExpression) {
-        value = evalInternal(frame, ((LazyExpression) value).celExpr).value();
+        frame.markLazyEvaluationOrThrow(name);
+
+        try {
+          value = evalInternal(frame, ((LazyExpression) value).celExpr).value();
+        } finally {
+          frame.endLazyEvaluation(name);
+        }
       }
 
       // Value resolved from Binding, it could be Message, PartialMessage or unbound(null)
@@ -1063,9 +1070,14 @@ final class DefaultInterpreter implements Interpreter {
             indexKey,
             IntermediateResult.create(new LazyExpression(exprList.elements().get(index))));
       }
+      frame.setRequireCycleCheck(true);
       frame.pushLazyScope(Collections.unmodifiableMap(blockList));
 
-      return evalInternal(frame, blockCall.args().get(1));
+      try {
+        return evalInternal(frame, blockCall.args().get(1));
+      } finally {
+        frame.popScope();
+      }
     }
 
     private CelType getCheckedTypeOrThrow(CelExpr expr) throws CelEvaluationException {
@@ -1115,8 +1127,10 @@ final class DefaultInterpreter implements Interpreter {
     private final int maxIterations;
     private final ArrayDeque<RuntimeUnknownResolver> resolvers;
     private final Optional<? extends CelFunctionResolver> lateBoundFunctionResolver;
+    private final Set<String> activeLazyAttributes = new HashSet<>();
     private RuntimeUnknownResolver currentResolver;
     private int iterations;
+    private boolean requireCycleCheck;
     @VisibleForTesting int scopeLevel;
 
     private ExecutionFrame(
@@ -1130,6 +1144,25 @@ final class DefaultInterpreter implements Interpreter {
       this.lateBoundFunctionResolver = lateBoundFunctionResolver;
       this.currentResolver = resolver;
       this.maxIterations = maxIterations;
+    }
+
+    private void markLazyEvaluationOrThrow(String name) {
+      if (!requireCycleCheck) {
+        return;
+      }
+
+      boolean added = activeLazyAttributes.add(name);
+      if (!added) {
+        throw new IllegalStateException(String.format("Cycle detected: %s", name));
+      }
+    }
+
+    private void endLazyEvaluation(String name) {
+      if (!requireCycleCheck) {
+        return;
+      }
+
+      activeLazyAttributes.remove(name);
     }
 
     private Optional<CelEvaluationListener> getEvaluationListener() {
@@ -1173,6 +1206,14 @@ final class DefaultInterpreter implements Interpreter {
     private void cacheLazilyEvaluatedResult(
         String name, DefaultInterpreter.IntermediateResult result) {
       currentResolver.cacheLazilyEvaluatedResult(name, result);
+    }
+
+    /**
+     * If set, interpreter will check for potential cycles for lazily evaluable attributes. This
+     * only applies for cel.@block indices.
+     */
+    private void setRequireCycleCheck(boolean requireCycleCheck) {
+      this.requireCycleCheck = requireCycleCheck;
     }
 
     private void pushLazyScope(Map<String, IntermediateResult> scope) {
