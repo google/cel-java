@@ -52,6 +52,7 @@ import dev.cel.optimizer.optimizers.SubexpressionOptimizer.SubexpressionOptimize
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparser;
 import dev.cel.parser.CelUnparserFactory;
+import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
@@ -577,6 +578,23 @@ public class SubexpressionOptimizerTest {
     assertThat(e)
         .hasMessageThat()
         .contains("Illegal block index found. The index value must be less than");
+  }
+
+  @Test
+  public void block_containsCycle_throws() throws Exception {
+    CelAbstractSyntaxTree ast = compileUsingInternalFunctions("cel.block([index1,index0],index0)");
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, () -> CEL.createProgram(ast).eval());
+    assertThat(e).hasMessageThat().contains("Cycle detected: @index0");
+  }
+
+  @Test
+  public void block_withNonStrictFunctions_noCycle_success() throws Exception {
+    CelAbstractSyntaxTree ast = compileUsingInternalFunctions("cel.block([1/0 > 0, (index0 && false) && (index0 && true)],index1)");
+
+    boolean result = (boolean) CEL.createProgram(ast).eval();
+
+    assertThat(result).isFalse();
   }
 
   /**

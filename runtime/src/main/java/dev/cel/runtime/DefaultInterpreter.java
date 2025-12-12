@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
+import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.NullValue;
@@ -343,7 +344,13 @@ final class DefaultInterpreter implements Interpreter {
       Object value = rawResult.value();
       boolean isLazyExpression = value instanceof LazyExpression;
       if (isLazyExpression) {
-        value = evalInternal(frame, ((LazyExpression) value).celExpr).value();
+        frame.markLazyEvaluationOrThrow(name);
+
+        try {
+          value = evalInternal(frame, ((LazyExpression) value).celExpr).value();
+        } finally {
+          frame.endLazyEvaluation(name);
+        }
       }
 
       // Value resolved from Binding, it could be Message, PartialMessage or unbound(null)
@@ -1065,7 +1072,11 @@ final class DefaultInterpreter implements Interpreter {
       }
       frame.pushLazyScope(Collections.unmodifiableMap(blockList));
 
-      return evalInternal(frame, blockCall.args().get(1));
+      try {
+        return evalInternal(frame, blockCall.args().get(1));
+      } finally {
+        frame.popScope();
+      }
     }
 
     private CelType getCheckedTypeOrThrow(CelExpr expr) throws CelEvaluationException {
@@ -1115,6 +1126,7 @@ final class DefaultInterpreter implements Interpreter {
     private final int maxIterations;
     private final ArrayDeque<RuntimeUnknownResolver> resolvers;
     private final Optional<? extends CelFunctionResolver> lateBoundFunctionResolver;
+    private final Set<String> activeLazyAttributes = new HashSet<>();
     private RuntimeUnknownResolver currentResolver;
     private int iterations;
     @VisibleForTesting int scopeLevel;
@@ -1130,6 +1142,17 @@ final class DefaultInterpreter implements Interpreter {
       this.lateBoundFunctionResolver = lateBoundFunctionResolver;
       this.currentResolver = resolver;
       this.maxIterations = maxIterations;
+    }
+
+    private void markLazyEvaluationOrThrow(String name) {
+      boolean added = activeLazyAttributes.add(name);
+      if (!added) {
+        throw new IllegalStateException(String.format("Cycle detected: %s", name));
+      }
+    }
+
+    private void endLazyEvaluation(String name) {
+      activeLazyAttributes.remove(name);
     }
 
     private Optional<CelEvaluationListener> getEvaluationListener() {
