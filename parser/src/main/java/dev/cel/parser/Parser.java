@@ -686,7 +686,7 @@ final class Parser extends CELBaseVisitor<CelExpr> {
           CelExpr.newBuilder().setCall(callExpr.build()).build());
     }
 
-    exprFactory.maybeDeleteId(expr.id());
+    sourceInfo.removePositions(expr.id());
     return expandedMacro;
   }
 
@@ -1163,12 +1163,6 @@ final class Parser extends CELBaseVisitor<CelExpr> {
         sourceInfo.addPositions(exprId, position);
       }
       return exprId;
-    }
-
-    @Override
-    protected void maybeDeleteId(long id) {
-      sourceInfo.removePositions(id);
-      super.maybeDeleteId(id);
     }
 
     @Override
