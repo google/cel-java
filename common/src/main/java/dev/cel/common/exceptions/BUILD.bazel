@@ -1,0 +1,87 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = [
+        "//common/exceptions:__pkg__",
+        "//publish:__pkg__",
+    ],
+)
+
+java_library(
+    name = "attribute_not_found",
+    srcs = ["CelAttributeNotFoundException.java"],
+    # used_by_android
+    tags = [
+    ],
+    deps = [
+        "//common:error_codes",
+        "//common:runtime_exception",
+        "//common/annotations",
+    ],
+)
+
+java_library(
+    name = "divide_by_zero",
+    srcs = ["CelDivideByZeroException.java"],
+    # used_by_android
+    tags = [
+    ],
+    deps = [
+        "//common:error_codes",
+        "//common:runtime_exception",
+        "//common/annotations",
+    ],
+)
+
+java_library(
+    name = "index_out_of_bounds",
+    srcs = ["CelIndexOutOfBoundsException.java"],
+    # used_by_android
+    tags = [
+    ],
+    deps = [
+        "//common:error_codes",
+        "//common:runtime_exception",
+        "//common/annotations",
+    ],
+)
+
+java_library(
+    name = "bad_format",
+    srcs = ["CelBadFormatException.java"],
+    # used_by_android
+    tags = [
+    ],
+    deps = [
+        "//common:error_codes",
+        "//common:runtime_exception",
+        "//common/annotations",
+    ],
+)
+
+java_library(
+    name = "numeric_overflow",
+    srcs = ["CelNumericOverflowException.java"],
+    # used_by_android
+    tags = [
+    ],
+    deps = [
+        "//common:error_codes",
+        "//common:runtime_exception",
+        "//common/annotations",
+    ],
+)
+
+java_library(
+    name = "invalid_argument",
+    srcs = ["CelInvalidArgumentException.java"],
+    # used_by_android
+    tags = [
+    ],
+    deps = [
+        "//common:error_codes",
+        "//common:runtime_exception",
+        "//common/annotations",
+    ],
+)

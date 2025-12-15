@@ -1,0 +1,42 @@
+load("@rules_java//java:defs.bzl", "java_library")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//:internal"],
+)
+
+java_library(
+    name = "attribute_not_found",
+    # used_by_android
+    exports = ["//common/src/main/java/dev/cel/common/exceptions:attribute_not_found"],
+)
+
+java_library(
+    name = "divide_by_zero",
+    # used_by_android
+    exports = ["//common/src/main/java/dev/cel/common/exceptions:divide_by_zero"],
+)
+
+java_library(
+    name = "index_out_of_bounds",
+    # used_by_android
+    exports = ["//common/src/main/java/dev/cel/common/exceptions:index_out_of_bounds"],
+)
+
+java_library(
+    name = "bad_format",
+    # used_by_android
+    exports = ["//common/src/main/java/dev/cel/common/exceptions:bad_format"],
+)
+
+java_library(
+    name = "numeric_overflow",
+    # used_by_android
+    exports = ["//common/src/main/java/dev/cel/common/exceptions:numeric_overflow"],
+)
+
+java_library(
+    name = "invalid_argument",
+    # used_by_android
+    exports = ["//common/src/main/java/dev/cel/common/exceptions:invalid_argument"],
+)

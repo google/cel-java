@@ -20,14 +20,16 @@ import dev.cel.common.annotations.Internal;
  * Wrapper for an unchecked runtime exception with a CelErrorCode supplied.
  *
  * <p>Note: This is not to be confused with the notion of CEL Runtime. Use {@code
- * CelEvaluationException} instead to signify an evaluation error.
- *
- * <p>TODO: Make this class abstract and define specific exception classes that
- * corresponds to the CelErrorCode.
+ * CelEvaluationException} instead to signify an evaluation error. corresponds to the CelErrorCode.
  */
 @Internal
 public class CelRuntimeException extends RuntimeException {
   private final CelErrorCode errorCode;
+
+  public CelRuntimeException(String errorMessage, CelErrorCode errorCode) {
+    super(errorMessage);
+    this.errorCode = errorCode;
+  }
 
   public CelRuntimeException(Throwable cause, CelErrorCode errorCode) {
     super(cause);
