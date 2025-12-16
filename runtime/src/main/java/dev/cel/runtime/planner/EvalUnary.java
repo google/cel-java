@@ -14,21 +14,24 @@
 
 package dev.cel.runtime.planner;
 
+import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
+import static dev.cel.runtime.planner.EvalHelpers.evalStrictly;
+
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationListener;
 import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.GlobalResolver;
-import dev.cel.runtime.Interpretable;
 
-final class EvalUnary implements Interpretable {
+final class EvalUnary extends PlannedInterpretable {
 
   private final CelResolvedOverload resolvedOverload;
-  private final Interpretable arg;
+  private final PlannedInterpretable arg;
 
   @Override
   public Object eval(GlobalResolver resolver) throws CelEvaluationException {
-    Object argVal = arg.eval(resolver);
+    Object argVal =
+        resolvedOverload.isStrict() ? evalStrictly(arg, resolver) : evalNonstrictly(arg, resolver);
     Object[] arguments = new Object[] {argVal};
 
     return resolvedOverload.getDefinition().apply(arguments);
@@ -55,11 +58,13 @@ final class EvalUnary implements Interpretable {
     throw new UnsupportedOperationException("Not yet supported");
   }
 
-  static EvalUnary create(CelResolvedOverload resolvedOverload, Interpretable arg) {
-    return new EvalUnary(resolvedOverload, arg);
+  static EvalUnary create(
+      long exprId, CelResolvedOverload resolvedOverload, PlannedInterpretable arg) {
+    return new EvalUnary(exprId, resolvedOverload, arg);
   }
 
-  private EvalUnary(CelResolvedOverload resolvedOverload, Interpretable arg) {
+  private EvalUnary(long exprId, CelResolvedOverload resolvedOverload, PlannedInterpretable arg) {
+    super(exprId);
     this.resolvedOverload = resolvedOverload;
     this.arg = arg;
   }

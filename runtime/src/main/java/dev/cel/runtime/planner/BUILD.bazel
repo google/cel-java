@@ -14,6 +14,7 @@ java_library(
     ],
     deps = [
         ":attribute",
+        ":error_metadata",
         ":eval_and",
         ":eval_attribute",
         ":eval_conditional",
@@ -25,6 +26,7 @@ java_library(
         ":eval_unary",
         ":eval_var_args_call",
         ":eval_zero_arity",
+        ":planned_interpretable",
         ":planned_program",
         "//:auto_value",
         "//common:cel_ast",
@@ -51,6 +53,9 @@ java_library(
     name = "planned_program",
     srcs = ["PlannedProgram.java"],
     deps = [
+        ":error_metadata",
+        ":planned_interpretable",
+        ":strict_error_exception",
         "//:auto_value",
         "//common:runtime_exception",
         "//common/values",
@@ -68,6 +73,7 @@ java_library(
     name = "eval_const",
     srcs = ["EvalConstant.java"],
     deps = [
+        ":planned_interpretable",
         "//common/values",
         "//common/values:cel_byte_string",
         "//runtime:evaluation_listener",
@@ -99,6 +105,7 @@ java_library(
     srcs = ["EvalAttribute.java"],
     deps = [
         ":attribute",
+        ":planned_interpretable",
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
         "//runtime:interpretable",
@@ -111,6 +118,7 @@ java_library(
     name = "eval_zero_arity",
     srcs = ["EvalZeroArity.java"],
     deps = [
+        ":planned_interpretable",
         "//runtime:evaluation_exception",
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
@@ -123,6 +131,8 @@ java_library(
     name = "eval_unary",
     srcs = ["EvalUnary.java"],
     deps = [
+        ":eval_helpers",
+        ":planned_interpretable",
         "//runtime:evaluation_exception",
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
@@ -135,6 +145,8 @@ java_library(
     name = "eval_var_args_call",
     srcs = ["EvalVarArgsCall.java"],
     deps = [
+        ":eval_helpers",
+        ":planned_interpretable",
         "//runtime:evaluation_exception",
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
@@ -148,6 +160,7 @@ java_library(
     srcs = ["EvalOr.java"],
     deps = [
         ":eval_helpers",
+        ":planned_interpretable",
         "//common/values",
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
@@ -161,6 +174,7 @@ java_library(
     srcs = ["EvalAnd.java"],
     deps = [
         ":eval_helpers",
+        ":planned_interpretable",
         "//common/values",
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
@@ -173,6 +187,7 @@ java_library(
     name = "eval_conditional",
     srcs = ["EvalConditional.java"],
     deps = [
+        ":planned_interpretable",
         "//runtime:evaluation_exception",
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
@@ -185,6 +200,7 @@ java_library(
     name = "eval_create_struct",
     srcs = ["EvalCreateStruct.java"],
     deps = [
+        ":planned_interpretable",
         "//common/types",
         "//common/values",
         "//common/values:cel_value_provider",
@@ -201,6 +217,7 @@ java_library(
     name = "eval_create_list",
     srcs = ["EvalCreateList.java"],
     deps = [
+        ":planned_interpretable",
         "//runtime:evaluation_exception",
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
@@ -214,6 +231,7 @@ java_library(
     name = "eval_create_map",
     srcs = ["EvalCreateMap.java"],
     deps = [
+        ":planned_interpretable",
         "//runtime:evaluation_exception",
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
@@ -227,7 +245,39 @@ java_library(
     name = "eval_helpers",
     srcs = ["EvalHelpers.java"],
     deps = [
+        ":planned_interpretable",
+        ":strict_error_exception",
+        "//common:error_codes",
+        "//common:runtime_exception",
         "//common/values",
         "//runtime:interpretable",
+    ],
+)
+
+java_library(
+    name = "strict_error_exception",
+    srcs = ["StrictErrorException.java"],
+    deps = [
+        "//common:error_codes",
+        "//common:runtime_exception",
+    ],
+)
+
+java_library(
+    name = "error_metadata",
+    srcs = ["ErrorMetadata.java"],
+    deps = [
+        "//runtime:metadata",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "planned_interpretable",
+    srcs = ["PlannedInterpretable.java"],
+    deps = [
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )

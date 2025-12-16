@@ -72,8 +72,6 @@ abstract class CelValueConverter {
           .map(this::toRuntimeValue)
           .map(OptionalValue::create)
           .orElse(OptionalValue.EMPTY);
-    } else if (value instanceof Exception) {
-      return ErrorValue.create((Exception) value);
     }
 
     return normalizePrimitive(value);

@@ -14,25 +14,30 @@
 
 package dev.cel.runtime.planner;
 
+import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
+import static dev.cel.runtime.planner.EvalHelpers.evalStrictly;
+
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationListener;
 import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.GlobalResolver;
-import dev.cel.runtime.Interpretable;
 
 @SuppressWarnings("Immutable")
-final class EvalVarArgsCall implements Interpretable {
+final class EvalVarArgsCall extends PlannedInterpretable {
 
   private final CelResolvedOverload resolvedOverload;
-  private final Interpretable[] args;
+  private final PlannedInterpretable[] args;
 
   @Override
   public Object eval(GlobalResolver resolver) throws CelEvaluationException {
     Object[] argVals = new Object[args.length];
     for (int i = 0; i < args.length; i++) {
-      Interpretable arg = args[i];
-      argVals[i] = arg.eval(resolver);
+      PlannedInterpretable arg = args[i];
+      argVals[i] =
+          resolvedOverload.isStrict()
+              ? evalStrictly(arg, resolver)
+              : evalNonstrictly(arg, resolver);
     }
 
     return resolvedOverload.getDefinition().apply(argVals);
@@ -59,11 +64,14 @@ final class EvalVarArgsCall implements Interpretable {
     throw new UnsupportedOperationException("Not yet supported");
   }
 
-  static EvalVarArgsCall create(CelResolvedOverload resolvedOverload, Interpretable[] args) {
-    return new EvalVarArgsCall(resolvedOverload, args);
+  static EvalVarArgsCall create(
+      long exprId, CelResolvedOverload resolvedOverload, PlannedInterpretable[] args) {
+    return new EvalVarArgsCall(exprId, resolvedOverload, args);
   }
 
-  private EvalVarArgsCall(CelResolvedOverload resolvedOverload, Interpretable[] args) {
+  private EvalVarArgsCall(
+      long exprId, CelResolvedOverload resolvedOverload, PlannedInterpretable[] args) {
+    super(exprId);
     this.resolvedOverload = resolvedOverload;
     this.args = args;
   }
