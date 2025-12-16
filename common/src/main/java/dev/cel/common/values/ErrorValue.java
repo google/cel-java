@@ -33,6 +33,8 @@ import dev.cel.common.types.SimpleType;
     "Immutable") // Exception is technically not immutable as the stacktrace is malleable.
 public abstract class ErrorValue extends CelValue {
 
+  public abstract long exprId();
+
   @Override
   public abstract Exception value();
 
@@ -46,7 +48,7 @@ public abstract class ErrorValue extends CelValue {
     return SimpleType.ERROR;
   }
 
-  public static ErrorValue create(Exception value) {
-    return new AutoValue_ErrorValue(value);
+  public static ErrorValue create(long exprId, Exception value) {
+    return new AutoValue_ErrorValue(exprId, value);
   }
 }
