@@ -18,6 +18,7 @@ import static com.google.common.math.LongMath.checkedAdd;
 import static com.google.common.math.LongMath.checkedMultiply;
 import static com.google.common.math.LongMath.checkedSubtract;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.protobuf.Duration;
@@ -49,12 +50,16 @@ import java.util.TimeZone;
 public final class ProtoTimeUtils {
 
   // Timestamp for "0001-01-01T00:00:00Z"
-  private static final long TIMESTAMP_SECONDS_MIN = -62135596800L;
-
+  @VisibleForTesting
+  static final long TIMESTAMP_SECONDS_MIN = -62135596800L;
   // Timestamp for "9999-12-31T23:59:59Z"
-  private static final long TIMESTAMP_SECONDS_MAX = 253402300799L;
-  private static final long DURATION_SECONDS_MIN = -315576000000L;
-  private static final long DURATION_SECONDS_MAX = 315576000000L;
+  @VisibleForTesting
+  static final long TIMESTAMP_SECONDS_MAX = 253402300799L;
+  @VisibleForTesting
+  static final long DURATION_SECONDS_MIN = -315576000000L;
+  @VisibleForTesting
+  static final long DURATION_SECONDS_MAX = 315576000000L;
+
   private static final int MILLIS_PER_SECOND = 1000;
 
   private static final int NANOS_PER_SECOND = 1000000000;
@@ -344,7 +349,8 @@ public final class ProtoTimeUtils {
       }
     }
     try {
-      return normalizedTimestamp(seconds, nanos);
+      Timestamp timestamp = normalizedTimestamp(seconds, nanos);
+      return checkValid(timestamp);
     } catch (IllegalArgumentException e) {
       ParseException ex =
           new ParseException(
@@ -532,8 +538,7 @@ public final class ProtoTimeUtils {
       nanos = nanos + NANOS_PER_SECOND; // no overflow since nanos is negative (and we're adding)
       seconds = checkedSubtract(seconds, 1);
     }
-    Timestamp timestamp = Timestamp.newBuilder().setSeconds(seconds).setNanos(nanos).build();
-    return checkValid(timestamp);
+    return Timestamp.newBuilder().setSeconds(seconds).setNanos(nanos).build();
   }
 
   private static Duration normalizedDuration(long seconds, int nanos) {
@@ -549,8 +554,7 @@ public final class ProtoTimeUtils {
       nanos -= NANOS_PER_SECOND; // no overflow since nanos is positive (and we're subtracting)
       seconds++; // no overflow since seconds is negative (and we're incrementing)
     }
-    Duration duration = Duration.newBuilder().setSeconds(seconds).setNanos(nanos).build();
-    return checkValid(duration);
+    return Duration.newBuilder().setSeconds(seconds).setNanos(nanos).build();
   }
 
   private static String formatNanos(int nanos) {

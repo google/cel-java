@@ -84,3 +84,8 @@ declare dyn_var {
 =====>
 bindings: {dyn_var=NULL_VALUE}
 result:   NULL_VALUE
+
+Source: google.protobuf.Timestamp{ seconds: 253402300800 }
+=====>
+bindings: {}
+result:   +10000-01-01T00:00:00Z

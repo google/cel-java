@@ -2005,6 +2005,12 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     declareVariable("dyn_var", SimpleType.DYN);
     source = "dyn_var";
     runTest(ImmutableMap.of("dyn_var", NullValue.NULL_VALUE));
+
+    clearAllDeclarations();
+    // Currently allowed, but will be an error
+    // See https://github.com/google/cel-spec/pull/501
+    source = "google.protobuf.Timestamp{ seconds: 253402300800 }";
+    runTest();
   }
 
   @Test
