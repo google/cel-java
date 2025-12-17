@@ -116,7 +116,12 @@ public final class ProgramPlannerTest {
 
   private static final ProgramPlanner PLANNER =
       ProgramPlanner.newPlanner(
-          TYPE_PROVIDER, VALUE_PROVIDER, newDispatcher(), CEL_VALUE_CONVERTER, CEL_CONTAINER);
+          TYPE_PROVIDER,
+          VALUE_PROVIDER,
+          newDispatcher(),
+          CEL_VALUE_CONVERTER,
+          CEL_CONTAINER,
+          CEL_OPTIONS);
 
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
@@ -799,6 +804,50 @@ public final class ProgramPlannerTest {
     boolean result = (boolean) program.eval();
 
     assertThat(result).isTrue();
+  }
+
+  @Test
+  @TestParameters("{expression: '[1, 2, 3, 4, 5, 6].map(x, x)'}")
+  @TestParameters("{expression: '[1, 2, 3].map(x, [1, 2].map(y, x + y))'}")
+  public void plan_comprehension_iterationLimit_throws(String expression) throws Exception {
+    CelOptions options = CelOptions.current().comprehensionMaxIterations(5).build();
+    ProgramPlanner planner =
+        ProgramPlanner.newPlanner(
+            TYPE_PROVIDER,
+            ProtoMessageValueProvider.newInstance(options, DYNAMIC_PROTO),
+            newDispatcher(),
+            CEL_VALUE_CONVERTER,
+            CEL_CONTAINER,
+            options);
+    CelAbstractSyntaxTree ast = compile(expression);
+
+    Program program = planner.plan(ast);
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
+    assertThat(e).hasMessageThat().contains("Iteration budget exceeded: 5");
+    assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.ITERATION_BUDGET_EXCEEDED);
+  }
+
+  @Test
+  public void plan_comprehension_iterationLimit_success() throws Exception {
+    CelOptions options = CelOptions.current().comprehensionMaxIterations(10).build();
+    ProgramPlanner planner =
+        ProgramPlanner.newPlanner(
+            TYPE_PROVIDER,
+            ProtoMessageValueProvider.newInstance(options, DYNAMIC_PROTO),
+            newDispatcher(),
+            CEL_VALUE_CONVERTER,
+            CEL_CONTAINER,
+            options);
+    CelAbstractSyntaxTree ast = compile("[1, 2, 3].map(x, [1, 2].map(y, x + y))");
+
+    Program program = planner.plan(ast);
+
+    Object result = program.eval();
+    assertThat(result)
+        .isEqualTo(
+            ImmutableList.of(
+                ImmutableList.of(2L, 3L), ImmutableList.of(3L, 4L), ImmutableList.of(4L, 5L)));
   }
 
   private CelAbstractSyntaxTree compile(String expression) throws Exception {

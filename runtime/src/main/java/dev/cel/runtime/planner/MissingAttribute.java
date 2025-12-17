@@ -24,7 +24,7 @@ final class MissingAttribute implements Attribute {
   private final ImmutableSet<String> missingAttributes;
 
   @Override
-  public Object resolve(GlobalResolver ctx) {
+  public Object resolve(GlobalResolver ctx, ExecutionFrame frame) {
     throw CelAttributeNotFoundException.forFieldResolution(missingAttributes);
   }
 

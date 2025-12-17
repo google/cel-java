@@ -15,8 +15,6 @@
 package dev.cel.runtime.planner;
 
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.runtime.CelEvaluationListener;
-import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
 
 @Immutable
@@ -25,34 +23,13 @@ final class EvalAttribute extends InterpretableAttribute {
   private final Attribute attr;
 
   @Override
-  public Object eval(GlobalResolver resolver) {
-    Object resolved = attr.resolve(resolver);
+  public Object eval(GlobalResolver resolver, ExecutionFrame frame) {
+    Object resolved = attr.resolve(resolver, frame);
     if (resolved instanceof MissingAttribute) {
-      ((MissingAttribute) resolved).resolve(resolver);
+      ((MissingAttribute) resolved).resolve(resolver, frame);
     }
 
     return resolved;
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(
-      GlobalResolver resolver,
-      CelFunctionResolver lateBoundFunctionResolver,
-      CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
   }
 
   @Override
