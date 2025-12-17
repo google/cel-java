@@ -205,7 +205,7 @@ public final class DateTimeHelpers {
   }
 
   /** Throws an {@link IllegalArgumentException} if the given {@link Timestamp} is not valid. */
-  private static void checkValid(Instant instant) {
+  public static void checkValid(Instant instant) {
     long seconds = instant.getEpochSecond();
 
     if (seconds < TIMESTAMP_SECONDS_MIN || seconds > TIMESTAMP_SECONDS_MAX) {

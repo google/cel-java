@@ -81,7 +81,11 @@ public final class TimestampFunction extends CelStandardFunction {
         (celOptions, runtimeEquality) -> {
           if (celOptions.evaluateCanonicalTypesToNativeValues()) {
             return CelFunctionBinding.from(
-                "int64_to_timestamp", Long.class, Instant::ofEpochSecond);
+                "int64_to_timestamp", Long.class, epochSecond -> {
+                  Instant instant = Instant.ofEpochSecond(epochSecond);
+                  DateTimeHelpers.checkValid(instant);
+                  return instant;
+                });
           } else {
             return CelFunctionBinding.from(
                 "int64_to_timestamp", Long.class, ProtoTimeUtils::fromSecondsToTimestamp);
