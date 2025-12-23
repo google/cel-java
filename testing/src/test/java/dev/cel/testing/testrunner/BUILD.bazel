@@ -6,9 +6,6 @@ load("//testing/testrunner:cel_java_test.bzl", "cel_java_test")
 package(
     default_applicable_licenses = ["//:license"],
     default_testonly = 1,
-    default_visibility = [
-        "//testing/testrunner:__pkg__",
-    ],
 )
 
 # Since the user test class is triggered by the cel_test rule, we should not add it to the
