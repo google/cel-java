@@ -23,6 +23,7 @@ java_library(
         ":eval_create_map",
         ":eval_create_struct",
         ":eval_or",
+        ":eval_test_only",
         ":eval_unary",
         ":eval_var_args_call",
         ":eval_zero_arity",
@@ -132,6 +133,16 @@ java_library(
 )
 
 java_library(
+    name = "presence_test_qualifier",
+    srcs = ["PresenceTestQualifier.java"],
+    deps = [
+        ":attribute",
+        ":qualifier",
+        "//common/values",
+    ],
+)
+
+java_library(
     name = "string_qualifier",
     srcs = ["StringQualifier.java"],
     deps = [
@@ -153,6 +164,21 @@ java_library(
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_test_only",
+    srcs = ["EvalTestOnly.java"],
+    deps = [
+        ":interpretable_attribute",
+        ":presence_test_qualifier",
+        ":qualifier",
+        "//runtime:evaluation_exception",
+        "//runtime:evaluation_listener",
+        "//runtime:function_resolver",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
 

@@ -114,7 +114,7 @@ public final class ProgramPlanner {
     }
 
     if (select.testOnly()) {
-      throw new UnsupportedOperationException("Presence tests not supported yet");
+      attribute = EvalTestOnly.create(celExpr.id(), attribute);
     }
 
     Qualifier qualifier = StringQualifier.create(select.field());

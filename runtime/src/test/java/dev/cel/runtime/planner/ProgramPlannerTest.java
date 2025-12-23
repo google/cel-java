@@ -65,6 +65,7 @@ import dev.cel.expr.conformance.proto3.GlobalEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.extensions.CelExtensions;
+import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelFunctionOverload;
@@ -76,6 +77,7 @@ import dev.cel.runtime.RuntimeHelpers;
 import dev.cel.runtime.standard.AddOperator;
 import dev.cel.runtime.standard.CelStandardFunction;
 import dev.cel.runtime.standard.DivideOperator;
+import dev.cel.runtime.standard.DynFunction;
 import dev.cel.runtime.standard.EqualsOperator;
 import dev.cel.runtime.standard.GreaterEqualsOperator;
 import dev.cel.runtime.standard.GreaterOperator;
@@ -118,6 +120,7 @@ public final class ProgramPlannerTest {
 
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
+          .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
           .addVar("map_var", MapType.create(SimpleType.STRING, SimpleType.DYN))
           .addVar("int_var", SimpleType.INT)
@@ -175,6 +178,10 @@ public final class ProgramPlannerTest {
         builder,
         Operator.NOT_STRICTLY_FALSE.getFunction(),
         fromStandardFunction(NotStrictlyFalseFunction.create()));
+    addBindings(
+        builder,
+        "dyn",
+        fromStandardFunction(DynFunction.create()));
 
     // Custom functions
     addBindings(
@@ -742,6 +749,32 @@ public final class ProgramPlannerTest {
                 + " performed on messages or maps.");
   }
 
+  @Test
+  public void plan_select_presenceTest(@TestParameter PresenceTestCase testCase) throws Exception {
+    CelAbstractSyntaxTree ast = compile(testCase.expression);
+    Program program = PLANNER.plan(ast);
+
+    boolean result =
+        (boolean)
+            program.eval(
+                ImmutableMap.of("msg", testCase.inputParam, "map_var", testCase.inputParam));
+
+    assertThat(result).isEqualTo(testCase.expected);
+  }
+
+  @Test
+  public void plan_select_badPresenceTest_throws() throws Exception {
+    CelAbstractSyntaxTree ast = compile("has(dyn([]).invalid)");
+    Program program = PLANNER.plan(ast);
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
+    assertThat(e)
+        .hasMessageThat()
+        .contains(
+            "Error resolving field 'invalid'. Field selections must be performed on messages or"
+                + " maps.");
+  }
+
   private CelAbstractSyntaxTree compile(String expression) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.parse(expression).getAst();
     if (isParseOnly) {
@@ -812,6 +845,34 @@ public final class ProgramPlannerTest {
     TypeLiteralTestCase(String expression, CelType type) {
       this.expression = expression;
       this.type = TypeType.create(type);
+    }
+  }
+
+
+  @SuppressWarnings("Immutable") // Test only
+  private enum PresenceTestCase {
+    PROTO_FIELD_PRESENT(
+        "has(msg.single_string)", TestAllTypes.newBuilder().setSingleString("foo").build(), true),
+    PROTO_FIELD_ABSENT("has(msg.single_string)", TestAllTypes.newBuilder().build(), false),
+    PROTO_NESTED_FIELD_PRESENT(
+        "has(msg.single_nested_message.bb)",
+        TestAllTypes.newBuilder()
+            .setSingleNestedMessage(NestedMessage.newBuilder().setBb(42).build())
+            .build(),
+        true),
+    PROTO_NESTED_FIELD_ABSENT(
+        "has(msg.single_nested_message.bb)", TestAllTypes.newBuilder().build(), false),
+    PROTO_MAP_KEY_PRESENT("has(map_var.foo)", ImmutableMap.of("foo", "1"), true),
+    PROTO_MAP_KEY_ABSENT("has(map_var.bar)", ImmutableMap.of(), false);
+
+    private final String expression;
+    private final Object inputParam;
+    private final Object expected;
+
+    PresenceTestCase(String expression, Object inputParam, Object expected) {
+      this.expression = expression;
+      this.inputParam = inputParam;
+      this.expected = expected;
     }
   }
 }
