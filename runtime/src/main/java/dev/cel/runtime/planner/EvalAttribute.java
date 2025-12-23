@@ -20,13 +20,18 @@ import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
 
 @Immutable
-final class EvalAttribute extends PlannedInterpretable {
+final class EvalAttribute extends InterpretableAttribute {
 
   private final Attribute attr;
 
   @Override
   public Object eval(GlobalResolver resolver) {
-    return attr.resolve(resolver);
+    Object resolved = attr.resolve(resolver);
+    if (resolved instanceof MissingAttribute) {
+      ((MissingAttribute) resolved).resolve(resolver);
+    }
+
+    return resolved;
   }
 
   @Override
@@ -46,7 +51,14 @@ final class EvalAttribute extends PlannedInterpretable {
       GlobalResolver resolver,
       CelFunctionResolver lateBoundFunctionResolver,
       CelEvaluationListener listener) {
+    // TODO: Implement support
     throw new UnsupportedOperationException("Not yet supported");
+  }
+
+  @Override
+  public EvalAttribute addQualifier(long exprId, Qualifier qualifier) {
+    Attribute newAttribute = attr.addQualifier(qualifier);
+    return create(exprId, newAttribute);
   }
 
   static EvalAttribute create(long exprId, Attribute attr) {

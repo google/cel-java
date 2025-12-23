@@ -15,12 +15,14 @@
 package dev.cel.runtime.planner;
 
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.runtime.GlobalResolver;
 
-/** Represents a resolvable symbol or path (such as a variable or a field selection). */
+/**
+ * Represents a qualification step (such as a field selection or map key lookup) applied to an
+ * intermediate value during attribute resolution.
+ */
 @Immutable
-interface Attribute {
-  Object resolve(GlobalResolver ctx);
+interface Qualifier {
+  Object value();
 
-  Attribute addQualifier(Qualifier qualifier);
+  Object qualify(Object value);
 }

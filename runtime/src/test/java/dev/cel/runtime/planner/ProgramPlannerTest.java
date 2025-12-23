@@ -51,15 +51,19 @@ import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.ProtoMessageTypeProvider;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelByteString;
+import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.NullValue;
+import dev.cel.common.values.ProtoCelValueConverter;
 import dev.cel.common.values.ProtoMessageValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.GlobalEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
+import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
@@ -99,17 +103,26 @@ public final class ProgramPlannerTest {
   private static final DynamicProto DYNAMIC_PROTO =
       DynamicProto.create(DefaultMessageFactory.create(DESCRIPTOR_POOL));
   private static final CelValueProvider VALUE_PROVIDER =
-      ProtoMessageValueProvider.newInstance(CelOptions.DEFAULT, DYNAMIC_PROTO);
+      ProtoMessageValueProvider.newInstance(CEL_OPTIONS, DYNAMIC_PROTO);
+  private static final CelValueConverter CEL_VALUE_CONVERTER =
+      ProtoCelValueConverter.newInstance(DESCRIPTOR_POOL, DYNAMIC_PROTO);
   private static final CelContainer CEL_CONTAINER =
-      CelContainer.newBuilder().setName("cel.expr.conformance.proto3").build();
+      CelContainer.newBuilder()
+          .setName("cel.expr.conformance.proto3")
+          .addAbbreviations("really.long.abbr")
+          .build();
 
   private static final ProgramPlanner PLANNER =
-      ProgramPlanner.newPlanner(TYPE_PROVIDER, VALUE_PROVIDER, newDispatcher(), CEL_CONTAINER);
+      ProgramPlanner.newPlanner(
+          TYPE_PROVIDER, VALUE_PROVIDER, newDispatcher(), CEL_VALUE_CONVERTER, CEL_CONTAINER);
+
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
+          .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
           .addVar("map_var", MapType.create(SimpleType.STRING, SimpleType.DYN))
           .addVar("int_var", SimpleType.INT)
           .addVar("dyn_var", SimpleType.DYN)
+          .addVar("really.long.abbr.ident", SimpleType.DYN)
           .addFunctionDeclarations(
               newFunctionDeclaration("zero", newGlobalOverload("zero_overload", SimpleType.INT)),
               newFunctionDeclaration("error", newGlobalOverload("error_overload", SimpleType.INT)),
@@ -296,10 +309,6 @@ public final class ProgramPlannerTest {
 
   @Test
   public void plan_ident_enum() throws Exception {
-    if (isParseOnly) {
-      // TODO Skip for now, requires attribute qualification
-      return;
-    }
     CelAbstractSyntaxTree ast =
         compile(GlobalEnum.getDescriptor().getFullName() + "." + GlobalEnum.GAR);
     Program program = PLANNER.plan(ast);
@@ -321,20 +330,22 @@ public final class ProgramPlannerTest {
 
   @Test
   public void planIdent_typeLiteral(@TestParameter TypeLiteralTestCase testCase) throws Exception {
-    if (isParseOnly) {
-      if (testCase.equals(TypeLiteralTestCase.DURATION)
-          || testCase.equals(TypeLiteralTestCase.TIMESTAMP)
-          || testCase.equals(TypeLiteralTestCase.PROTO_MESSAGE_TYPE)) {
-        // TODO Skip for now, requires attribute qualification
-        return;
-      }
-    }
     CelAbstractSyntaxTree ast = compile(testCase.expression);
     Program program = PLANNER.plan(ast);
 
     TypeType result = (TypeType) program.eval();
 
     assertThat(result).isEqualTo(testCase.type);
+  }
+
+  @Test
+  public void plan_ident_withContainer() throws Exception {
+    CelAbstractSyntaxTree ast = compile("abbr.ident");
+    Program program = PLANNER.plan(ast);
+
+    Object result = program.eval(ImmutableMap.of("really.long.abbr.ident", 1L));
+
+    assertThat(result).isEqualTo(1);
   }
 
   @Test
@@ -595,6 +606,140 @@ public final class ProgramPlannerTest {
     Long result = (Long) program.eval();
 
     assertThat(result).isEqualTo(8);
+  }
+
+  @Test
+  public void plan_select_protoMessageField() throws Exception {
+    CelAbstractSyntaxTree ast = compile("msg.single_string");
+    Program program = PLANNER.plan(ast);
+
+    String result =
+        (String)
+            program.eval(
+                ImmutableMap.of("msg", TestAllTypes.newBuilder().setSingleString("foo").build()));
+
+    assertThat(result).isEqualTo("foo");
+  }
+
+  @Test
+  public void plan_select_nestedProtoMessage() throws Exception {
+    CelAbstractSyntaxTree ast = compile("msg.single_nested_message");
+    NestedMessage nestedMessage = NestedMessage.newBuilder().setBb(42).build();
+    Program program = PLANNER.plan(ast);
+
+    Object result =
+        program.eval(
+            ImmutableMap.of(
+                "msg", TestAllTypes.newBuilder().setSingleNestedMessage(nestedMessage).build()));
+
+    assertThat(result).isEqualTo(nestedMessage);
+  }
+
+  @Test
+  public void plan_select_nestedProtoMessageField() throws Exception {
+    CelAbstractSyntaxTree ast = compile("msg.single_nested_message.bb");
+    Program program = PLANNER.plan(ast);
+
+    Object result =
+        program.eval(
+            ImmutableMap.of(
+                "msg",
+                TestAllTypes.newBuilder()
+                    .setSingleNestedMessage(NestedMessage.newBuilder().setBb(42))
+                    .build()));
+
+    assertThat(result).isEqualTo(42);
+  }
+
+  @Test
+  public void plan_select_safeTraversal() throws Exception {
+    CelAbstractSyntaxTree ast = compile("msg.single_nested_message.bb");
+    Program program = PLANNER.plan(ast);
+
+    Object result = program.eval(ImmutableMap.of("msg", TestAllTypes.newBuilder().build()));
+
+    assertThat(result).isEqualTo(0L);
+  }
+
+  @Test
+  public void plan_select_onCreateStruct() throws Exception {
+    CelAbstractSyntaxTree ast =
+        compile("cel.expr.conformance.proto3.TestAllTypes{ single_string: 'foo'}.single_string");
+    Program program = PLANNER.plan(ast);
+
+    Object result = program.eval();
+
+    assertThat(result).isEqualTo("foo");
+  }
+
+  @Test
+  public void plan_select_onCreateMap() throws Exception {
+    CelAbstractSyntaxTree ast = compile("{'foo':'bar'}.foo");
+    Program program = PLANNER.plan(ast);
+
+    Object result = program.eval();
+
+    assertThat(result).isEqualTo("bar");
+  }
+
+  @Test
+  public void plan_select_onMapVariable() throws Exception {
+    CelAbstractSyntaxTree ast = compile("map_var.foo");
+    Program program = PLANNER.plan(ast);
+
+    Object result = program.eval(ImmutableMap.of("map_var", ImmutableMap.of("foo", 42L)));
+
+    assertThat(result).isEqualTo(42L);
+  }
+
+  @Test
+  public void plan_select_mapVarInputMissing_throws() throws Exception {
+    CelAbstractSyntaxTree ast = compile("map_var.foo");
+    Program program = PLANNER.plan(ast);
+    String errorMessage = "evaluation error at <input>:7: Error resolving ";
+    if (isParseOnly) {
+      errorMessage +=
+          "fields 'cel.expr.conformance.proto3.map_var, cel.expr.conformance.map_var,"
+              + " cel.expr.map_var, cel.map_var, map_var'";
+    } else {
+      errorMessage += "field 'map_var'";
+    }
+
+    CelEvaluationException e =
+        assertThrows(CelEvaluationException.class, () -> program.eval(ImmutableMap.of()));
+
+    assertThat(e).hasMessageThat().contains(errorMessage);
+  }
+
+  @Test
+  public void plan_select_mapVarKeyMissing_throws() throws Exception {
+    CelAbstractSyntaxTree ast = compile("map_var.foo");
+    Program program = PLANNER.plan(ast);
+
+    CelEvaluationException e =
+        assertThrows(
+            CelEvaluationException.class,
+            () -> program.eval(ImmutableMap.of("map_var", ImmutableMap.of())));
+    assertThat(e)
+        .hasMessageThat()
+        .contains("evaluation error at <input>:7: key 'foo' is not present in map");
+  }
+
+  @Test
+  public void plan_select_stringQualificationFail_throws() throws Exception {
+    CelAbstractSyntaxTree ast = compile("map_var.foo");
+    Program program = PLANNER.plan(ast);
+
+    CelEvaluationException e =
+        assertThrows(
+            CelEvaluationException.class,
+            () -> program.eval(ImmutableMap.of("map_var", "bogus string")));
+
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo(
+            "evaluation error at <input>:7: Error resolving field 'foo'. Field selections must be"
+                + " performed on messages or maps.");
   }
 
   private CelAbstractSyntaxTree compile(String expression) throws Exception {

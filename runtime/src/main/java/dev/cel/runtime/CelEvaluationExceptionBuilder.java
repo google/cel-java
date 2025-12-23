@@ -83,10 +83,16 @@ public final class CelEvaluationExceptionBuilder {
    */
   @Internal
   public static CelEvaluationExceptionBuilder newBuilder(CelRuntimeException celRuntimeException) {
+    // TODO: Temporary until migration is complete.
     Throwable cause = celRuntimeException.getCause();
-    return new CelEvaluationExceptionBuilder(cause.getMessage())
-        .setCause(cause)
-        .setErrorCode(celRuntimeException.getErrorCode());
+    String message =
+        cause == null
+            ? celRuntimeException.getMessage()
+            : celRuntimeException.getCause().getMessage();
+
+    return new CelEvaluationExceptionBuilder(message)
+        .setErrorCode(celRuntimeException.getErrorCode())
+        .setCause(cause);
   }
 
   private CelEvaluationExceptionBuilder(String message) {

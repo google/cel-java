@@ -37,12 +37,12 @@ import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.StructType;
 import dev.cel.common.types.TypeType;
+import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationExceptionBuilder;
 import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.DefaultDispatcher;
-import dev.cel.runtime.Interpretable;
 import dev.cel.runtime.Program;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -84,6 +84,8 @@ public final class ProgramPlanner {
         return planConstant(celExpr.constant());
       case IDENT:
         return planIdent(celExpr, ctx);
+      case SELECT:
+        return planSelect(celExpr, ctx);
       case CALL:
         return planCall(celExpr, ctx);
       case LIST:
@@ -97,6 +99,27 @@ public final class ProgramPlanner {
       default:
         throw new IllegalArgumentException("Not yet implemented kind: " + celExpr.getKind());
     }
+  }
+
+  private PlannedInterpretable planSelect(CelExpr celExpr, PlannerContext ctx) {
+    CelSelect select = celExpr.select();
+    PlannedInterpretable operand = plan(select.operand(), ctx);
+
+    InterpretableAttribute attribute;
+    if (operand instanceof EvalAttribute) {
+      attribute = (EvalAttribute) operand;
+    } else {
+      attribute =
+          EvalAttribute.create(celExpr.id(), attributeFactory.newRelativeAttribute(operand));
+    }
+
+    if (select.testOnly()) {
+      throw new UnsupportedOperationException("Presence tests not supported yet");
+    }
+
+    Qualifier qualifier = StringQualifier.create(select.field());
+
+    return attribute.addQualifier(celExpr.id(), qualifier);
   }
 
   private PlannedInterpretable planConstant(CelConstant celConstant) {
@@ -217,7 +240,7 @@ public final class ProgramPlanner {
 
     ImmutableList<Entry> entries = struct.entries();
     String[] keys = new String[entries.size()];
-    Interpretable[] values = new Interpretable[entries.size()];
+    PlannedInterpretable[] values = new PlannedInterpretable[entries.size()];
 
     for (int i = 0; i < entries.size(); i++) {
       Entry entry = entries.get(i);
@@ -403,19 +426,23 @@ public final class ProgramPlanner {
       CelTypeProvider typeProvider,
       CelValueProvider valueProvider,
       DefaultDispatcher dispatcher,
+      CelValueConverter celValueConverter,
       CelContainer container) {
-    return new ProgramPlanner(typeProvider, valueProvider, dispatcher, container);
+    return new ProgramPlanner(
+        typeProvider, valueProvider, dispatcher, celValueConverter, container);
   }
 
   private ProgramPlanner(
       CelTypeProvider typeProvider,
       CelValueProvider valueProvider,
       DefaultDispatcher dispatcher,
+      CelValueConverter celValueConverter,
       CelContainer container) {
     this.typeProvider = typeProvider;
     this.valueProvider = valueProvider;
     this.dispatcher = dispatcher;
     this.container = container;
-    this.attributeFactory = AttributeFactory.newAttributeFactory(container, typeProvider);
+    this.attributeFactory =
+        AttributeFactory.newAttributeFactory(container, typeProvider, celValueConverter);
   }
 }

@@ -26,8 +26,11 @@ java_library(
         ":eval_unary",
         ":eval_var_args_call",
         ":eval_zero_arity",
+        ":interpretable_attribute",
         ":planned_interpretable",
         ":planned_program",
+        ":qualifier",
+        ":string_qualifier",
         "//:auto_value",
         "//common:cel_ast",
         "//common:container",
@@ -36,11 +39,11 @@ java_library(
         "//common/ast",
         "//common/types",
         "//common/types:type_providers",
+        "//common/values",
         "//common/values:cel_value_provider",
         "//runtime:dispatcher",
         "//runtime:evaluation_exception",
         "//runtime:evaluation_exception_builder",
-        "//runtime:interpretable",
         "//runtime:program",
         "//runtime:resolved_overload",
         "@maven//:com_google_code_findbugs_annotations",
@@ -85,18 +88,56 @@ java_library(
 )
 
 java_library(
+    name = "interpretable_attribute",
+    srcs = ["InterpretableAttribute.java"],
+    deps = [
+        ":planned_interpretable",
+        ":qualifier",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
     name = "attribute",
     srcs = [
         "Attribute.java",
         "AttributeFactory.java",
+        "MaybeAttribute.java",
+        "MissingAttribute.java",
+        "NamespacedAttribute.java",
+        "RelativeAttribute.java",
     ],
     deps = [
+        ":eval_helpers",
+        ":planned_interpretable",
+        ":qualifier",
         "//common:container",
+        "//common/exceptions:attribute_not_found",
         "//common/types",
         "//common/types:type_providers",
+        "//common/values",
+        "//common/values:cel_value",
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "qualifier",
+    srcs = ["Qualifier.java"],
+    deps = [
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+java_library(
+    name = "string_qualifier",
+    srcs = ["StringQualifier.java"],
+    deps = [
+        ":qualifier",
+        "//common/exceptions:attribute_not_found",
+        "//common/values",
     ],
 )
 
@@ -105,7 +146,8 @@ java_library(
     srcs = ["EvalAttribute.java"],
     deps = [
         ":attribute",
-        ":planned_interpretable",
+        ":interpretable_attribute",
+        ":qualifier",
         "//runtime:evaluation_listener",
         "//runtime:function_resolver",
         "//runtime:interpretable",
