@@ -144,7 +144,7 @@ public final class ProgramPlannerTest {
                   newMemberOverload(
                       "bytes_concat_bytes", SimpleType.BYTES, SimpleType.BYTES, SimpleType.BYTES)))
           .addMessageTypes(TestAllTypes.getDescriptor())
-          .addLibraries(CelExtensions.optional())
+          .addLibraries(CelExtensions.optional(), CelExtensions.comprehensions())
           .setContainer(CEL_CONTAINER)
           .build();
 
@@ -178,10 +178,7 @@ public final class ProgramPlannerTest {
         builder,
         Operator.NOT_STRICTLY_FALSE.getFunction(),
         fromStandardFunction(NotStrictlyFalseFunction.create()));
-    addBindings(
-        builder,
-        "dyn",
-        fromStandardFunction(DynFunction.create()));
+    addBindings(builder, "dyn", fromStandardFunction(DynFunction.create()));
 
     // Custom functions
     addBindings(
@@ -663,7 +660,7 @@ public final class ProgramPlannerTest {
     CelAbstractSyntaxTree ast = compile("msg.single_nested_message.bb");
     Program program = PLANNER.plan(ast);
 
-    Object result = program.eval(ImmutableMap.of("msg", TestAllTypes.newBuilder().build()));
+    Object result = program.eval(ImmutableMap.of("msg", TestAllTypes.getDefaultInstance()));
 
     assertThat(result).isEqualTo(0L);
   }
@@ -775,6 +772,35 @@ public final class ProgramPlannerTest {
                 + " maps.");
   }
 
+  @Test
+  @TestParameters("{expression: '[1,2,3].exists(x, x > 0) == true'}")
+  @TestParameters("{expression: '[1,2,3].exists(x, x < 0) == false'}")
+  @TestParameters("{expression: '[1,2,3].exists(i, v, i >= 0 && v > 0) == true'}")
+  @TestParameters("{expression: '[1,2,3].exists(i, v, i < 0 || v < 0) == false'}")
+  @TestParameters("{expression: '[1,2,3].map(x, x + 1) == [2,3,4]'}")
+  public void plan_comprehension_lists(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = compile(expression);
+    Program program = PLANNER.plan(ast);
+
+    boolean result = (boolean) program.eval();
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  @TestParameters("{expression: '{\"a\": 1, \"b\": 2}.exists(k, k == \"a\")'}")
+  @TestParameters("{expression: '{\"a\": 1, \"b\": 2}.exists(k, k == \"c\") == false'}")
+  @TestParameters("{expression: '{\"a\": \"b\", \"c\": \"c\"}.exists(k, v, k == v)'}")
+  @TestParameters("{expression: '{\"a\": 1, \"b\": 2}.exists(k, v, v == 3) == false'}")
+  public void plan_comprehension_maps(String expression) throws Exception {
+    CelAbstractSyntaxTree ast = compile(expression);
+    Program program = PLANNER.plan(ast);
+
+    boolean result = (boolean) program.eval();
+
+    assertThat(result).isTrue();
+  }
+
   private CelAbstractSyntaxTree compile(String expression) throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.parse(expression).getAst();
     if (isParseOnly) {
@@ -848,12 +874,11 @@ public final class ProgramPlannerTest {
     }
   }
 
-
   @SuppressWarnings("Immutable") // Test only
   private enum PresenceTestCase {
     PROTO_FIELD_PRESENT(
         "has(msg.single_string)", TestAllTypes.newBuilder().setSingleString("foo").build(), true),
-    PROTO_FIELD_ABSENT("has(msg.single_string)", TestAllTypes.newBuilder().build(), false),
+    PROTO_FIELD_ABSENT("has(msg.single_string)", TestAllTypes.getDefaultInstance(), false),
     PROTO_NESTED_FIELD_PRESENT(
         "has(msg.single_nested_message.bb)",
         TestAllTypes.newBuilder()
@@ -861,7 +886,7 @@ public final class ProgramPlannerTest {
             .build(),
         true),
     PROTO_NESTED_FIELD_ABSENT(
-        "has(msg.single_nested_message.bb)", TestAllTypes.newBuilder().build(), false),
+        "has(msg.single_nested_message.bb)", TestAllTypes.getDefaultInstance(), false),
     PROTO_MAP_KEY_PRESENT("has(map_var.foo)", ImmutableMap.of("foo", "1"), true),
     PROTO_MAP_KEY_ABSENT("has(map_var.bar)", ImmutableMap.of(), false);
 

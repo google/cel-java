@@ -26,6 +26,7 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.CelCall;
+import dev.cel.common.ast.CelExpr.CelComprehension;
 import dev.cel.common.ast.CelExpr.CelList;
 import dev.cel.common.ast.CelExpr.CelMap;
 import dev.cel.common.ast.CelExpr.CelSelect;
@@ -94,10 +95,12 @@ public final class ProgramPlanner {
         return planCreateStruct(celExpr, ctx);
       case MAP:
         return planCreateMap(celExpr, ctx);
+      case COMPREHENSION:
+        return planComprehension(celExpr, ctx);
       case NOT_SET:
         throw new UnsupportedOperationException("Unsupported kind: " + celExpr.getKind());
       default:
-        throw new IllegalArgumentException("Not yet implemented kind: " + celExpr.getKind());
+        throw new UnsupportedOperationException("Unexpected kind: " + celExpr.getKind());
     }
   }
 
@@ -278,6 +281,27 @@ public final class ProgramPlanner {
     }
 
     return EvalCreateMap.create(celExpr.id(), keys, values);
+  }
+
+  private PlannedInterpretable planComprehension(CelExpr expr, PlannerContext ctx) {
+    CelComprehension comprehension = expr.comprehension();
+
+    PlannedInterpretable accuInit = plan(comprehension.accuInit(), ctx);
+    PlannedInterpretable iterRange = plan(comprehension.iterRange(), ctx);
+    PlannedInterpretable loopCondition = plan(comprehension.loopCondition(), ctx);
+    PlannedInterpretable loopStep = plan(comprehension.loopStep(), ctx);
+    PlannedInterpretable result = plan(comprehension.result(), ctx);
+
+    return EvalFold.create(
+        expr.id(),
+        comprehension.accuVar(),
+        accuInit,
+        comprehension.iterVar(),
+        comprehension.iterVar2(),
+        iterRange,
+        loopCondition,
+        loopStep,
+        result);
   }
 
   /**

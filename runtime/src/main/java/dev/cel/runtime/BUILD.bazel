@@ -1142,7 +1142,9 @@ java_library(
     name = "concatenated_list_view",
     srcs = ["ConcatenatedListView.java"],
     # used_by_android
-    visibility = ["//visibility:private"],
+    tags = [
+    ],
+    deps = ["//common/annotations"],
 )
 
 java_library(

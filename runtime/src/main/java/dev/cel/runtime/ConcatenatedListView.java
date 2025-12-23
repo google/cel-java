@@ -2,7 +2,7 @@
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
-// You may obtain a copy of the License aj
+// You may obtain a copy of the License at
 //
 //      https://www.apache.org/licenses/LICENSE-2.0
 //
@@ -14,6 +14,7 @@
 
 package dev.cel.runtime;
 
+import dev.cel.common.annotations.Internal;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,8 +28,12 @@ import java.util.NoSuchElementException;
  * comprehensions that dispatch `add_list` to concat N lists together).
  *
  * <p>This does not support any of the standard list operations from {@link java.util.List}.
+ *
+
+ * <p>CEL Library Internals. Do Not Use.
  */
-final class ConcatenatedListView<E> extends AbstractList<E> {
+@Internal
+public final class ConcatenatedListView<E> extends AbstractList<E> {
   private final List<List<? extends E>> sourceLists;
   private int totalSize = 0;
 
@@ -36,7 +41,7 @@ final class ConcatenatedListView<E> extends AbstractList<E> {
     this.sourceLists = new ArrayList<>();
   }
 
-  ConcatenatedListView(Collection<? extends E> collection) {
+  public ConcatenatedListView(Collection<? extends E> collection) {
     this();
     addAll(collection);
   }

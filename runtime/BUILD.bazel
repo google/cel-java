@@ -255,3 +255,11 @@ java_library(
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:metadata"],
 )
+
+java_library(
+    name = "concatenated_list_view",
+    visibility = ["//:internal"],
+    exports = [
+        "//runtime/src/main/java/dev/cel/runtime:concatenated_list_view",
+    ],
+)

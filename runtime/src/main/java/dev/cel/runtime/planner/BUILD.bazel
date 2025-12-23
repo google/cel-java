@@ -22,6 +22,7 @@ java_library(
         ":eval_create_list",
         ":eval_create_map",
         ":eval_create_struct",
+        ":eval_fold",
         ":eval_or",
         ":eval_test_only",
         ":eval_unary",
@@ -306,6 +307,22 @@ java_library(
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "eval_fold",
+    srcs = ["EvalFold.java"],
+    deps = [
+        ":planned_interpretable",
+        "//runtime:concatenated_list_view",
+        "//runtime:evaluation_exception",
+        "//runtime:evaluation_listener",
+        "//runtime:function_resolver",
+        "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
     ],
 )
 
