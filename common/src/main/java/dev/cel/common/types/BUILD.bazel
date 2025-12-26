@@ -184,6 +184,19 @@ java_library(
 )
 
 java_library(
+    name = "message_lite_type_provider",
+    srcs = [
+        "ProtoMessageLiteTypeProvider.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "default_type_provider",
     srcs = [
         "DefaultTypeProvider.java",

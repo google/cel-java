@@ -98,6 +98,6 @@ public final class SizeFunction extends CelStandardFunction {
   }
 
   private SizeFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("size", overloads);
   }
 }

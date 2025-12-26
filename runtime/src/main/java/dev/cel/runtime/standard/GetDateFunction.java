@@ -89,6 +89,6 @@ public final class GetDateFunction extends CelStandardFunction {
   }
 
   private GetDateFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("getDate", overloads);
   }
 }

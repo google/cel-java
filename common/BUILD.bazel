@@ -126,3 +126,8 @@ java_library(
     name = "operator",
     exports = ["//common/src/main/java/dev/cel/common:operator"],
 )
+
+cel_android_library(
+    name = "operator_android",
+    exports = ["//common/src/main/java/dev/cel/common:operator_android"],
+)

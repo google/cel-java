@@ -17,8 +17,6 @@ package dev.cel.runtime.planner;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.CelEvaluationListener;
-import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.ConcatenatedListView;
 import dev.cel.runtime.GlobalResolver;
 import java.util.Collection;
@@ -73,16 +71,16 @@ final class EvalFold extends PlannedInterpretable {
   }
 
   @Override
-  public Object eval(GlobalResolver resolver) throws CelEvaluationException {
-    Object iterRangeRaw = iterRange.eval(resolver);
+  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+    Object iterRangeRaw = iterRange.eval(resolver, frame);
     Folder folder = new Folder(resolver, accuVar, iterVar, iterVar2);
-    folder.accuVal = maybeWrapAccumulator(accuInit.eval(folder));
+    folder.accuVal = maybeWrapAccumulator(accuInit.eval(folder, frame));
 
     Object result;
     if (iterRangeRaw instanceof Map) {
-      result = evalMap((Map<?, ?>) iterRangeRaw, folder);
+      result = evalMap((Map<?, ?>) iterRangeRaw, folder, frame);
     } else if (iterRangeRaw instanceof Collection) {
-      result = evalList((Collection<?>) iterRangeRaw, folder);
+      result = evalList((Collection<?>) iterRangeRaw, folder, frame);
     } else {
       throw new IllegalArgumentException("Unexpected iter_range type: " + iterRangeRaw.getClass());
     }
@@ -90,48 +88,32 @@ final class EvalFold extends PlannedInterpretable {
     return maybeUnwrapAccumulator(result);
   }
 
-  @Override
-  public Object eval(GlobalResolver resolver, CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(
-      GlobalResolver resolver,
-      CelFunctionResolver lateBoundFunctionResolver,
-      CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  private Object evalMap(Map<?, ?> iterRange, Folder folder) throws CelEvaluationException {
+  private Object evalMap(Map<?, ?> iterRange, Folder folder, ExecutionFrame frame)
+      throws CelEvaluationException {
     for (Map.Entry<?, ?> entry : iterRange.entrySet()) {
+      frame.incrementIterations();
+
       folder.iterVarVal = entry.getKey();
       if (!iterVar2.isEmpty()) {
         folder.iterVar2Val = entry.getValue();
       }
-
-      boolean cond = (boolean) condition.eval(folder);
+      
+      boolean cond = (boolean) condition.eval(folder, frame);
       if (!cond) {
-        return result.eval(folder);
+        return result.eval(folder, frame);
       }
 
-      // TODO: Introduce comprehension safety controls, such as iteration limit.
-      folder.accuVal = loopStep.eval(folder);
+      folder.accuVal = loopStep.eval(folder, frame);
     }
-    return result.eval(folder);
+    return result.eval(folder, frame);
   }
 
-  private Object evalList(Collection<?> iterRange, Folder folder) throws CelEvaluationException {
+  private Object evalList(Collection<?> iterRange, Folder folder, ExecutionFrame frame)
+      throws CelEvaluationException {
     int index = 0;
     for (Object item : iterRange) {
+      frame.incrementIterations();
+
       if (iterVar2.isEmpty()) {
         folder.iterVarVal = item;
       } else {
@@ -139,15 +121,15 @@ final class EvalFold extends PlannedInterpretable {
         folder.iterVar2Val = item;
       }
 
-      boolean cond = (boolean) condition.eval(folder);
+      boolean cond = (boolean) condition.eval(folder, frame);
       if (!cond) {
-        return result.eval(folder);
+        return result.eval(folder, frame);
       }
 
-      folder.accuVal = loopStep.eval(folder);
+      folder.accuVal = loopStep.eval(folder, frame);
       index++;
     }
-    return result.eval(folder);
+    return result.eval(folder, frame);
   }
 
   private static Object maybeWrapAccumulator(Object val) {

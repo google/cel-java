@@ -106,6 +106,6 @@ public final class GetDayOfWeekFunction extends CelStandardFunction {
   }
 
   private GetDayOfWeekFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("getDayOfWeek", overloads);
   }
 }

@@ -14,6 +14,8 @@
 
 package dev.cel.runtime.standard;
 
+import static dev.cel.common.Operator.EQUALS;
+
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelOptions;
 import dev.cel.runtime.CelFunctionBinding;
@@ -58,6 +60,6 @@ public final class EqualsOperator extends CelStandardFunction {
   }
 
   private EqualsOperator(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super(EQUALS.getFunction(), overloads);
   }
 }

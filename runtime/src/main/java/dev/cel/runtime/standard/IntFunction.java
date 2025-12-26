@@ -130,6 +130,6 @@ public final class IntFunction extends CelStandardFunction {
   }
 
   private IntFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("int", overloads);
   }
 }

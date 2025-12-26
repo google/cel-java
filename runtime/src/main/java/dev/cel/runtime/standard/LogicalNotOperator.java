@@ -14,6 +14,8 @@
 
 package dev.cel.runtime.standard;
 
+import static dev.cel.common.Operator.LOGICAL_NOT;
+
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelOptions;
 import dev.cel.runtime.CelFunctionBinding;
@@ -57,6 +59,6 @@ public final class LogicalNotOperator extends CelStandardFunction {
   }
 
   private LogicalNotOperator(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super(LOGICAL_NOT.getFunction(), overloads);
   }
 }

@@ -90,6 +90,6 @@ public final class GetFullYearFunction extends CelStandardFunction {
   }
 
   private GetFullYearFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("getFullYear", overloads);
   }
 }

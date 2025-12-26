@@ -58,6 +58,6 @@ public final class ContainsFunction extends CelStandardFunction {
   }
 
   private ContainsFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("contains", overloads);
   }
 }

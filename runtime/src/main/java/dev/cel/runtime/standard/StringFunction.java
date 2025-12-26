@@ -134,6 +134,6 @@ public final class StringFunction extends CelStandardFunction {
   }
 
   private StringFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("string", overloads);
   }
 }

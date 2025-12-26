@@ -16,8 +16,6 @@ package dev.cel.runtime.planner;
 
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.CelEvaluationListener;
-import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
 
 @Immutable
@@ -26,29 +24,8 @@ final class EvalTestOnly extends InterpretableAttribute {
   private final InterpretableAttribute attr;
 
   @Override
-  public Object eval(GlobalResolver resolver) throws CelEvaluationException {
-    return attr.eval(resolver);
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(
-      GlobalResolver resolver,
-      CelFunctionResolver lateBoundFunctionResolver,
-      CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
+  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+    return attr.eval(resolver, frame);
   }
 
   @Override

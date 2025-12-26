@@ -40,3 +40,9 @@ java_library(
     # used_by_android
     exports = ["//common/src/main/java/dev/cel/common/exceptions:invalid_argument"],
 )
+
+java_library(
+    name = "iteration_budget_exceeded",
+    # used_by_android
+    exports = ["//common/src/main/java/dev/cel/common/exceptions:iteration_budget_exceeded"],
+)

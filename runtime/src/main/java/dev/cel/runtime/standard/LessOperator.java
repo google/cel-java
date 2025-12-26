@@ -14,6 +14,8 @@
 
 package dev.cel.runtime.standard;
 
+import static dev.cel.common.Operator.LESS;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.ByteString;
@@ -190,6 +192,6 @@ public final class LessOperator extends CelStandardFunction {
   }
 
   private LessOperator(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super(LESS.getFunction(), overloads);
   }
 }

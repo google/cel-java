@@ -16,6 +16,7 @@ java_library(
         "//runtime/src/main/java/dev/cel/runtime:descriptor_message_provider",
         "//runtime/src/main/java/dev/cel/runtime:function_overload",
         "//runtime/src/main/java/dev/cel/runtime:runtime_type_provider",
+        "//runtime/src/main/java/dev/cel/runtime:variable_resolver",
     ],
 )
 
@@ -254,6 +255,11 @@ java_library(
     name = "metadata",
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:metadata"],
+)
+
+java_library(
+    name = "variable_resolver",
+    exports = ["//runtime/src/main/java/dev/cel/runtime:variable_resolver"],
 )
 
 java_library(

@@ -14,6 +14,8 @@
 
 package dev.cel.runtime.standard;
 
+import static dev.cel.common.Operator.GREATER;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.ByteString;
@@ -190,6 +192,6 @@ public final class GreaterOperator extends CelStandardFunction {
   }
 
   private GreaterOperator(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super(GREATER.getFunction(), overloads);
   }
 }

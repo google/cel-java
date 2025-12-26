@@ -14,6 +14,7 @@
 
 package dev.cel.runtime.standard;
 
+import static dev.cel.common.Operator.NEGATE;
 import static dev.cel.runtime.standard.ArithmeticHelpers.getArithmeticErrorCode;
 
 import com.google.common.collect.ImmutableSet;
@@ -72,6 +73,6 @@ public final class NegateOperator extends CelStandardFunction {
   }
 
   private NegateOperator(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super(NEGATE.getFunction(), overloads);
   }
 }

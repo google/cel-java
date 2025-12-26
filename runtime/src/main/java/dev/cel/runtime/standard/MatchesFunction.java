@@ -84,6 +84,6 @@ public final class MatchesFunction extends CelStandardFunction {
   }
 
   private MatchesFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("matches", overloads);
   }
 }

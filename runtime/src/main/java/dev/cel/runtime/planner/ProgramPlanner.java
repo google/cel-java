@@ -18,9 +18,10 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CheckReturnValue;
-import javax.annotation.concurrent.ThreadSafe;
+import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
+import dev.cel.common.CelOptions;
 import dev.cel.common.Operator;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
@@ -52,15 +53,16 @@ import java.util.Optional;
  * {@code ProgramPlanner} resolves functions, types, and identifiers at plan time given a
  * parsed-only or a type-checked expression.
  */
-@ThreadSafe
+@Immutable
 @Internal
 public final class ProgramPlanner {
-
   private final CelTypeProvider typeProvider;
   private final CelValueProvider valueProvider;
   private final DefaultDispatcher dispatcher;
   private final AttributeFactory attributeFactory;
   private final CelContainer container;
+  private final CelOptions options;
+
 
   /**
    * Plans a {@link Program} from the provided parsed-only or type-checked {@link
@@ -76,7 +78,7 @@ public final class ProgramPlanner {
 
     ErrorMetadata errorMetadata =
         ErrorMetadata.create(ast.getSource().getPositionsMap(), ast.getSource().getDescription());
-    return PlannedProgram.create(plannedInterpretable, errorMetadata);
+    return PlannedProgram.create(plannedInterpretable, errorMetadata, options);
   }
 
   private PlannedInterpretable plan(CelExpr celExpr, PlannerContext ctx) {
@@ -214,6 +216,7 @@ public final class ProgramPlanner {
       }
     }
 
+    // TODO: Handle all specialized calls (logical operators, conditionals, equals etc)
     CelResolvedOverload resolvedOverload = null;
     if (resolvedFunction.overloadId().isPresent()) {
       resolvedOverload = dispatcher.findOverload(resolvedFunction.overloadId().get()).orElse(null);
@@ -451,9 +454,10 @@ public final class ProgramPlanner {
       CelValueProvider valueProvider,
       DefaultDispatcher dispatcher,
       CelValueConverter celValueConverter,
-      CelContainer container) {
+      CelContainer container,
+      CelOptions options) {
     return new ProgramPlanner(
-        typeProvider, valueProvider, dispatcher, celValueConverter, container);
+        typeProvider, valueProvider, dispatcher, celValueConverter, container, options);
   }
 
   private ProgramPlanner(
@@ -461,11 +465,13 @@ public final class ProgramPlanner {
       CelValueProvider valueProvider,
       DefaultDispatcher dispatcher,
       CelValueConverter celValueConverter,
-      CelContainer container) {
+      CelContainer container,
+      CelOptions options) {
     this.typeProvider = typeProvider;
     this.valueProvider = valueProvider;
     this.dispatcher = dispatcher;
     this.container = container;
+    this.options = options;
     this.attributeFactory =
         AttributeFactory.newAttributeFactory(container, typeProvider, celValueConverter);
   }

@@ -59,6 +59,6 @@ public final class EndsWithFunction extends CelStandardFunction {
   }
 
   private EndsWithFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("endsWith", overloads);
   }
 }

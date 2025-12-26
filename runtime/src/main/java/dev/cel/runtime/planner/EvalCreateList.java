@@ -17,53 +17,29 @@ package dev.cel.runtime.planner;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.CelEvaluationListener;
-import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
-import dev.cel.runtime.Interpretable;
 
 @Immutable
 final class EvalCreateList extends PlannedInterpretable {
 
   // Array contents are not mutated
   @SuppressWarnings("Immutable")
-  private final Interpretable[] values;
+  private final PlannedInterpretable[] values;
 
   @Override
-  public Object eval(GlobalResolver resolver) throws CelEvaluationException {
+  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     ImmutableList.Builder<Object> builder = ImmutableList.builderWithExpectedSize(values.length);
-    for (Interpretable value : values) {
-      builder.add(value.eval(resolver));
+    for (PlannedInterpretable value : values) {
+      builder.add(value.eval(resolver, frame));
     }
     return builder.build();
   }
 
-  @Override
-  public Object eval(GlobalResolver resolver, CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(
-      GlobalResolver resolver,
-      CelFunctionResolver lateBoundFunctionResolver,
-      CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  static EvalCreateList create(long exprId, Interpretable[] values) {
+  static EvalCreateList create(long exprId, PlannedInterpretable[] values) {
     return new EvalCreateList(exprId, values);
   }
 
-  private EvalCreateList(long exprId, Interpretable[] values) {
+  private EvalCreateList(long exprId, PlannedInterpretable[] values) {
     super(exprId);
     this.values = values;
   }

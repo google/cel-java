@@ -1,4 +1,4 @@
-// Copyright 2022 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,23 +14,19 @@
 
 package dev.cel.runtime;
 
-import static com.google.common.truth.Truth.assertThat;
-
-import org.junit.Test;
+import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.extensions.CelExtensions;
+import dev.cel.testing.BaseInterpreterTest;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
-@RunWith(JUnit4.class)
-public final class CelRuntimeFactoryTest {
+@RunWith(TestParameterInjector.class)
+public class PlannerInterpreterTest extends BaseInterpreterTest {
 
-  @Test
-  public void standardCelRuntimeBuilder() {
-    assertThat(CelRuntimeFactory.standardCelRuntimeBuilder().build()).isNotNull();
-  }
-
-  @Test
-  public void plannerCelRuntimeBuilder() {
-    CelRuntime runtime = CelRuntimeFactory.plannerCelRuntimeBuilder().build();
-    assertThat(runtime).isNotNull();
+  public PlannerInterpreterTest() {
+    super(
+        CelRuntimeFactory.plannerCelRuntimeBuilder()
+            .addLibraries(CelExtensions.optional())
+            .addFileTypes(TEST_FILE_DESCRIPTORS)
+            .build());
   }
 }

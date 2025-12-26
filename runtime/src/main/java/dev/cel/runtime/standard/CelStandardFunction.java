@@ -14,8 +14,10 @@
 
 package dev.cel.runtime.standard;
 
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelOptions;
@@ -28,20 +30,23 @@ import dev.cel.runtime.RuntimeEquality;
  */
 @Immutable
 public abstract class CelStandardFunction {
+  private final String name;
   private final ImmutableSet<CelStandardOverload> overloads;
 
   public ImmutableSet<CelFunctionBinding> newFunctionBindings(
       CelOptions celOptions, RuntimeEquality runtimeEquality) {
-    ImmutableSet.Builder<CelFunctionBinding> builder = ImmutableSet.builder();
-    for (CelStandardOverload overload : overloads) {
-      builder.add(overload.newFunctionBinding(celOptions, runtimeEquality));
-    }
+    ImmutableSet<CelFunctionBinding> overloadBindings =
+        overloads.stream()
+            .map(overload -> overload.newFunctionBinding(celOptions, runtimeEquality))
+            .collect(toImmutableSet());
 
-    return builder.build();
+    return CelFunctionBinding.groupOverloads(name, overloadBindings);
   }
 
-  CelStandardFunction(ImmutableSet<CelStandardOverload> overloads) {
-    checkState(!overloads.isEmpty(), "At least 1 overload must be provided.");
+  CelStandardFunction(String name, ImmutableSet<CelStandardOverload> overloads) {
+    checkArgument(!Strings.isNullOrEmpty(name), "Function name must be provided.");
+    checkArgument(!overloads.isEmpty(), "At least 1 overload must be provided.");
     this.overloads = overloads;
+    this.name = name;
   }
 }

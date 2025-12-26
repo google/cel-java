@@ -14,6 +14,8 @@
 
 package dev.cel.runtime.standard;
 
+import static dev.cel.common.Operator.NOT_EQUALS;
+
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelOptions;
 import dev.cel.runtime.CelFunctionBinding;
@@ -60,6 +62,6 @@ public final class NotEqualsOperator extends CelStandardFunction {
   }
 
   private NotEqualsOperator(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super(NOT_EQUALS.getFunction(), overloads);
   }
 }

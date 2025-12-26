@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.auto.value.AutoBuilder;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
@@ -127,7 +128,7 @@ public final class DefaultDispatcher implements CelFunctionResolver {
     @CanIgnoreReturnValue
     public Builder addOverload(
         String overloadId,
-        List<Class<?>> argTypes,
+        ImmutableList<Class<?>> argTypes,
         boolean isStrict,
         CelFunctionOverload overload) {
       checkNotNull(overloadId);
@@ -136,11 +137,36 @@ public final class DefaultDispatcher implements CelFunctionResolver {
       checkNotNull(overload);
 
       overloadsBuilder()
-          .put(overloadId, CelResolvedOverload.of(overloadId, overload, isStrict, argTypes));
+          .put(
+              overloadId,
+              CelResolvedOverload.of(
+                  overloadId,
+                  args -> guardedOp(overloadId, args, argTypes, isStrict, overload),
+                  isStrict,
+                  argTypes));
       return this;
     }
 
     public abstract DefaultDispatcher build();
+  }
+
+  /** Creates an invocation guard around the overload definition. */
+  private static Object guardedOp(
+      String functionName,
+      Object[] args,
+      ImmutableList<Class<?>> argTypes,
+      boolean isStrict,
+      CelFunctionOverload overload)
+      throws CelEvaluationException {
+    if (!CelResolvedOverload.canHandle(args, argTypes, isStrict)) {
+      if (argTypes.size() == 0) {
+        // TEMPORARY HACK. MAKE THIS UNDERSTAND DYNAMIC DISPATCH.
+        return overload.apply(args);
+      }
+      throw new IllegalArgumentException("No matching overload for function: " + functionName);
+    }
+
+    return overload.apply(args);
   }
 
   DefaultDispatcher(ImmutableMap<String, CelResolvedOverload> overloads) {

@@ -89,6 +89,6 @@ public final class GetMonthFunction extends CelStandardFunction {
   }
 
   private GetMonthFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("getMonth", overloads);
   }
 }

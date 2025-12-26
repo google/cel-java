@@ -14,6 +14,7 @@
 
 package dev.cel.runtime.standard;
 
+import static dev.cel.common.Operator.ADD;
 import static dev.cel.runtime.standard.ArithmeticHelpers.getArithmeticErrorCode;
 
 import com.google.common.collect.ImmutableSet;
@@ -170,6 +171,6 @@ public final class AddOperator extends CelStandardFunction {
   }
 
   private AddOperator(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super(ADD.getFunction(), overloads);
   }
 }
