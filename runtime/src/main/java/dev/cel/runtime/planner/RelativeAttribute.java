@@ -31,8 +31,8 @@ final class RelativeAttribute implements Attribute {
   private final ImmutableList<Qualifier> qualifiers;
 
   @Override
-  public Object resolve(GlobalResolver ctx) {
-    Object obj = EvalHelpers.evalStrictly(operand, ctx);
+  public Object resolve(GlobalResolver ctx, ExecutionFrame frame) {
+    Object obj = EvalHelpers.evalStrictly(operand, ctx, frame);
     obj = celValueConverter.toRuntimeValue(obj);
 
     for (Qualifier qualifier : qualifiers) {

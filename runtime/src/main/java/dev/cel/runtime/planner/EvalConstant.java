@@ -18,8 +18,6 @@ import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.values.CelByteString;
 import dev.cel.common.values.NullValue;
-import dev.cel.runtime.CelEvaluationListener;
-import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
 
 @Immutable
@@ -40,25 +38,7 @@ final class EvalConstant extends PlannedInterpretable {
   private final Object constant;
 
   @Override
-  public Object eval(GlobalResolver resolver) {
-    return constant;
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelEvaluationListener listener) {
-    return constant;
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver) {
-    return constant;
-  }
-
-  @Override
-  public Object eval(
-      GlobalResolver resolver,
-      CelFunctionResolver lateBoundFunctionResolver,
-      CelEvaluationListener listener) {
+  public Object eval(GlobalResolver resolver, ExecutionFrame frame) {
     return constant;
   }
 
