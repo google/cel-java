@@ -31,6 +31,7 @@ import dev.cel.bundle.CelEnvironment.LibrarySubset.OverloadSelector;
 import dev.cel.bundle.CelEnvironment.OverloadDecl;
 import dev.cel.bundle.CelEnvironment.TypeDecl;
 import dev.cel.bundle.CelEnvironment.VariableDecl;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
@@ -237,6 +238,27 @@ public class CelEnvironmentExporterTest {
     assertThat(
             celEnvironment.variables().stream().map(VariableDecl::name).collect(toImmutableList()))
         .containsNoneOf("double", "null_type");
+  }
+
+  @Test
+  public void container() {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .setContainer(
+                CelContainer.newBuilder()
+                    .setName("cntnr")
+                    .addAbbreviations("foo.Bar", "baz.Qux")
+                    .addAlias("nm", "user.name")
+                    .addAlias("id", "user.id")
+                    .build())
+            .build();
+
+    CelEnvironmentExporter exporter = CelEnvironmentExporter.newBuilder().build();
+    CelEnvironment celEnvironment = exporter.export(cel);
+    CelContainer container = celEnvironment.container();
+    assertThat(container.name()).isEqualTo("cntnr");
+    assertThat(container.abbreviations()).containsExactly("foo.Bar", "baz.Qux").inOrder();
+    assertThat(container.aliases()).containsAtLeast("nm", "user.name", "id", "user.id").inOrder();
   }
 }
 

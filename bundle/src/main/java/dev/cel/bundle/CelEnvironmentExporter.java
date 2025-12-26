@@ -161,6 +161,9 @@ public abstract class CelEnvironmentExporter {
    * </ul>
    */
   public CelEnvironment export(Cel cel) {
+    CelEnvironment.Builder envBuilder =
+        CelEnvironment.newBuilder().setContainer(cel.toCheckerBuilder().container());
+
     // Inventory is a full set of declarations and macros that are found in the configuration of
     // the supplied CEL instance.
     //
@@ -171,8 +174,6 @@ public abstract class CelEnvironmentExporter {
 
     Set<Object> inventory = new HashSet<>();
     collectInventory(inventory, cel);
-
-    CelEnvironment.Builder envBuilder = CelEnvironment.newBuilder();
     addExtensionConfigsAndRemoveFromInventory(envBuilder, inventory);
     addStandardLibrarySubsetAndRemoveFromInventory(envBuilder, inventory);
     addCustomDecls(envBuilder, inventory);

@@ -27,6 +27,7 @@ import static java.util.Collections.singletonList;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import dev.cel.bundle.CelEnvironment.Alias;
 import dev.cel.bundle.CelEnvironment.ExtensionConfig;
 import dev.cel.bundle.CelEnvironment.FunctionDecl;
 import dev.cel.bundle.CelEnvironment.LibrarySubset;
@@ -35,6 +36,7 @@ import dev.cel.bundle.CelEnvironment.LibrarySubset.OverloadSelector;
 import dev.cel.bundle.CelEnvironment.OverloadDecl;
 import dev.cel.bundle.CelEnvironment.TypeDecl;
 import dev.cel.bundle.CelEnvironment.VariableDecl;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelIssue;
 import dev.cel.common.formats.CelFileSource;
 import dev.cel.common.formats.ParserContext;
@@ -64,6 +66,8 @@ public final class CelEnvironmentYamlParser {
   private static final ExtensionConfig ERROR_EXTENSION_DECL = ExtensionConfig.of(ERROR);
   private static final FunctionSelector ERROR_FUNCTION_SELECTOR =
       FunctionSelector.create(ERROR, ImmutableSet.of());
+  private static final Alias ERROR_ALIAS =
+      Alias.newBuilder().setAlias(ERROR).setQualifiedName(ERROR).build();
 
   /** Generates a new instance of {@code CelEnvironmentYamlParser}. */
   public static CelEnvironmentYamlParser newInstance() {
@@ -86,6 +90,124 @@ public final class CelEnvironmentYamlParser {
     CelEnvironmentYamlParser.ParserImpl parser = new CelEnvironmentYamlParser.ParserImpl();
 
     return parser.parseYaml(environmentYamlSource, description);
+  }
+
+  private CelContainer parseContainer(ParserContext<Node> ctx, Node node) {
+    long valueId = ctx.collectMetadata(node);
+    // Syntax variant 1: "container: `str`"
+    if (validateYamlType(node, YamlNodeType.STRING, YamlNodeType.TEXT)) {
+      return CelContainer.ofName(newString(ctx, node));
+    }
+
+    // Syntax variant 2:
+    // container
+    //   name: str
+    //   abbreviations:
+    //   - a1
+    //   - a2
+    //   aliases:
+    //   - alias: a1
+    //     qualified_name: q1
+    //   - alias: a2
+    //     qualified_name: q2
+    if (!assertYamlType(ctx, valueId, node, YamlNodeType.MAP)) {
+      return CelContainer.ofName(ERROR);
+    }
+
+    CelContainer.Builder builder = CelContainer.newBuilder();
+    MappingNode variableMap = (MappingNode) node;
+    for (NodeTuple nodeTuple : variableMap.getValue()) {
+      Node keyNode = nodeTuple.getKeyNode();
+      long keyId = ctx.collectMetadata(keyNode);
+      Node valueNode = nodeTuple.getValueNode();
+      String keyName = ((ScalarNode) keyNode).getValue();
+      switch (keyName) {
+        case "name":
+          builder.setName(newString(ctx, valueNode));
+          break;
+        case "aliases":
+          ImmutableSet<Alias> aliases = parseAliases(ctx, valueNode);
+          for (Alias alias : aliases) {
+            builder.addAlias(alias.alias(), alias.qualifiedName());
+          }
+          break;
+        case "abbreviations":
+          builder.addAbbreviations(parseAbbreviations(ctx, valueNode));
+          break;
+        default:
+          ctx.reportError(keyId, String.format("Unsupported container tag: %s", keyName));
+          break;
+      }
+    }
+
+    return builder.build();
+  }
+
+  private ImmutableSet<Alias> parseAliases(ParserContext<Node> ctx, Node node) {
+    ImmutableSet.Builder<Alias> aliasSetBuilder = ImmutableSet.builder();
+    long valueId = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, valueId, node, YamlNodeType.LIST)) {
+      return aliasSetBuilder.build();
+    }
+
+    SequenceNode variableListNode = (SequenceNode) node;
+    for (Node elementNode : variableListNode.getValue()) {
+      aliasSetBuilder.add(parseAlias(ctx, elementNode));
+    }
+
+    return aliasSetBuilder.build();
+  }
+
+  private Alias parseAlias(ParserContext<Node> ctx, Node node) {
+    long id = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, id, node, YamlNodeType.MAP)) {
+      return ERROR_ALIAS;
+    }
+
+    Alias.Builder builder = Alias.newBuilder();
+    MappingNode attrMap = (MappingNode) node;
+    for (NodeTuple nodeTuple : attrMap.getValue()) {
+      Node keyNode = nodeTuple.getKeyNode();
+      long keyId = ctx.collectMetadata(keyNode);
+      Node valueNode = nodeTuple.getValueNode();
+      String keyName = ((ScalarNode) keyNode).getValue();
+      switch (keyName) {
+        case "alias":
+          builder.setAlias(newString(ctx, valueNode));
+          break;
+        case "qualified_name":
+          builder.setQualifiedName(newString(ctx, valueNode));
+          break;
+        default:
+          ctx.reportError(keyId, String.format("Unsupported alias tag: %s", keyName));
+          break;
+      }
+    }
+
+    if (!assertRequiredFields(ctx, id, builder.getMissingRequiredFieldNames())) {
+      return ERROR_ALIAS;
+    }
+
+    return builder.build();
+  }
+
+  private ImmutableSet<String> parseAbbreviations(ParserContext<Node> ctx, Node node) {
+    long valueId = ctx.collectMetadata(node);
+    if (!assertYamlType(ctx, valueId, node, YamlNodeType.LIST)) {
+      return ImmutableSet.of(ERROR);
+    }
+
+    ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+    SequenceNode nameListNode = (SequenceNode) node;
+    for (Node elementNode : nameListNode.getValue()) {
+      long elementId = ctx.collectMetadata(elementNode);
+      if (!assertYamlType(ctx, elementId, elementNode, YamlNodeType.STRING)) {
+        return ImmutableSet.of(ERROR);
+      }
+
+      builder.add(((ScalarNode) elementNode).getValue());
+    }
+    return builder.build();
   }
 
   private ImmutableSet<VariableDecl> parseVariables(ParserContext<Node> ctx, Node node) {
@@ -620,7 +742,7 @@ public final class CelEnvironmentYamlParser {
             builder.setDescription(newString(ctx, valueNode));
             break;
           case "container":
-            builder.setContainer(newString(ctx, valueNode));
+            builder.setContainer(parseContainer(ctx, valueNode));
             break;
           case "variables":
             builder.setVariables(parseVariables(ctx, valueNode));

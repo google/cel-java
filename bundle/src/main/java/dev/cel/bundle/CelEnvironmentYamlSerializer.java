@@ -16,10 +16,13 @@ package dev.cel.bundle;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import dev.cel.bundle.CelEnvironment.Alias;
 import dev.cel.bundle.CelEnvironment.LibrarySubset;
 import dev.cel.bundle.CelEnvironment.LibrarySubset.FunctionSelector;
 import dev.cel.bundle.CelEnvironment.LibrarySubset.OverloadSelector;
+import dev.cel.common.CelContainer;
 import java.util.Comparator;
+import java.util.Map;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.nodes.Node;
@@ -55,6 +58,8 @@ public final class CelEnvironmentYamlSerializer extends Representer {
         CelEnvironment.LibrarySubset.FunctionSelector.class, new RepresentFunctionSelector());
     this.multiRepresenters.put(
         CelEnvironment.LibrarySubset.OverloadSelector.class, new RepresentOverloadSelector());
+    this.multiRepresenters.put(CelEnvironment.Alias.class, new RepresentAlias());
+    this.multiRepresenters.put(CelContainer.class, new RepresentContainer());
   }
 
   public static String toYaml(CelEnvironment environment) {
@@ -72,7 +77,9 @@ public final class CelEnvironmentYamlSerializer extends Representer {
       if (!environment.description().isEmpty()) {
         configMap.put("description", environment.description());
       }
-      if (!environment.container().isEmpty()) {
+      if (!environment.container().name().isEmpty()
+          || !environment.container().abbreviations().isEmpty()
+          || !environment.container().aliases().isEmpty()) {
         configMap.put("container", environment.container());
       }
       if (!environment.extensions().isEmpty()) {
@@ -88,6 +95,43 @@ public final class CelEnvironmentYamlSerializer extends Representer {
         configMap.put("stdlib", environment.standardLibrarySubset().get());
       }
       return represent(configMap.buildOrThrow());
+    }
+  }
+
+  private final class RepresentContainer implements Represent {
+
+    @Override
+    public Node representData(Object data) {
+      CelContainer container = (CelContainer) data;
+      ImmutableMap.Builder<String, Object> configMap = ImmutableMap.builder();
+      if (!container.name().isEmpty()) {
+        configMap.put("name", container.name());
+      }
+      if (!container.abbreviations().isEmpty()) {
+        configMap.put("abbreviations", container.abbreviations());
+      }
+      if (!container.aliases().isEmpty()) {
+        ImmutableList.Builder<Alias> aliases = ImmutableList.builder();
+        for (Map.Entry<String, String> entry : container.aliases().entrySet()) {
+          aliases.add(
+              Alias.newBuilder()
+                  .setAlias(entry.getKey())
+                  .setQualifiedName(entry.getValue())
+                  .build());
+        }
+        configMap.put("aliases", aliases.build());
+      }
+      return represent(configMap.buildOrThrow());
+    }
+  }
+
+  private final class RepresentAlias implements Represent {
+
+    @Override
+    public Node representData(Object data) {
+      Alias alias = (Alias) data;
+      return represent(
+          ImmutableMap.of("alias", alias.alias(), "qualified_name", alias.qualifiedName()));
     }
   }
 

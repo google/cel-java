@@ -28,6 +28,7 @@ import dev.cel.bundle.CelEnvironment.LibrarySubset.FunctionSelector;
 import dev.cel.bundle.CelEnvironment.OverloadDecl;
 import dev.cel.bundle.CelEnvironment.TypeDecl;
 import dev.cel.bundle.CelEnvironment.VariableDecl;
+import dev.cel.common.CelContainer;
 import java.io.IOException;
 import java.net.URL;
 import org.junit.Test;
@@ -43,7 +44,13 @@ public final class CelEnvironmentYamlSerializerTest {
         CelEnvironment.newBuilder()
             .setName("dump_env")
             .setDescription("dump_env description")
-            .setContainer("test.container")
+            .setContainer(
+                CelContainer.newBuilder()
+                    .setName("test.container")
+                    .addAbbreviations("abbr1.Abbr1", "abbr2.Abbr2")
+                    .addAlias("alias1", "qual.name1")
+                    .addAlias("alias2", "qual.name2")
+                    .build())
             .addExtensions(
                 ImmutableSet.of(
                     ExtensionConfig.of("bindings"),

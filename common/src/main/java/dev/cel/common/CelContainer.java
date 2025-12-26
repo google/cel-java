@@ -14,8 +14,12 @@
 
 package dev.cel.common;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -23,6 +27,7 @@ import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 /** CelContainer holds a reference to an optional qualified container name and set of aliases. */
@@ -32,20 +37,38 @@ public abstract class CelContainer {
 
   public abstract String name();
 
-  abstract ImmutableMap<String, String> aliases();
+  abstract ImmutableMap<String, AliasEntry> aliasMap();
+
+  /**
+   * Returns the aliases configured in the container.
+   *
+   * <p>The key of the map is the alias and the value is the corresponding fully qualified name.
+   */
+  public ImmutableMap<String, String> aliases() {
+    return aliasMap().entrySet().stream()
+        .filter(e -> e.getValue().kind().equals(AliasKind.ALIAS))
+        .collect(toImmutableMap(Map.Entry::getKey, e -> e.getValue().qualifiedName()));
+  }
+
+  public ImmutableList<String> abbreviations() {
+    return aliasMap().entrySet().stream()
+        .filter(e -> e.getValue().kind().equals(AliasKind.ABBREVIATION))
+        .map(e -> e.getValue().qualifiedName())
+        .collect(toImmutableList());
+  }
 
   /** Builder for {@link CelContainer} */
   @AutoValue.Builder
   public abstract static class Builder {
 
-    private final LinkedHashMap<String, String> aliases = new LinkedHashMap<>();
+    private final LinkedHashMap<String, AliasEntry> aliasMap = new LinkedHashMap<>();
 
     abstract String name();
 
     /** Sets the fully-qualified name of the container. */
     public abstract Builder setName(String name);
 
-    abstract Builder setAliases(ImmutableMap<String, String> aliases);
+    abstract Builder setAliasMap(ImmutableMap<String, AliasEntry> aliasMap);
 
     /** See {@link #addAbbreviations(ImmutableSet)} for documentation. */
     @CanIgnoreReturnValue
@@ -170,7 +193,7 @@ public abstract class CelContainer {
 
     private void aliasAs(AliasKind kind, String qualifiedName, String alias) {
       validateAliasOrThrow(kind, qualifiedName, alias);
-      aliases.put(alias, qualifiedName);
+      aliasMap.put(alias, AliasEntry.create(kind, qualifiedName));
     }
 
     private void validateAliasOrThrow(AliasKind kind, String qualifiedName, String alias) {
@@ -185,12 +208,12 @@ public abstract class CelContainer {
             String.format("qualified name must not begin with a leading '.': %s", qualifiedName));
       }
 
-      String aliasRef = aliases.get(alias);
+      AliasEntry aliasRef = aliasMap.get(alias);
       if (aliasRef != null) {
         throw new IllegalArgumentException(
             String.format(
                 "%s collides with existing reference: name=%s, %s=%s, existing=%s",
-                kind, qualifiedName, kind, alias, aliasRef));
+                kind, qualifiedName, kind, alias, aliasRef.qualifiedName()));
       }
 
       String containerName = name();
@@ -206,7 +229,7 @@ public abstract class CelContainer {
 
     @CheckReturnValue
     public CelContainer build() {
-      setAliases(ImmutableMap.copyOf(aliases));
+      setAliasMap(ImmutableMap.copyOf(aliasMap));
       return autoBuild();
     }
   }
@@ -263,7 +286,7 @@ public abstract class CelContainer {
 
   public Builder toBuilder() {
     Builder builder = autoToBuilder();
-    builder.aliases.putAll(aliases());
+    builder.aliasMap.putAll(aliasMap());
     return builder;
   }
 
@@ -284,12 +307,12 @@ public abstract class CelContainer {
       simple = name.substring(0, dot);
       qualifier = name.substring(dot);
     }
-    String alias = aliases().get(simple);
+    AliasEntry alias = aliasMap().get(simple);
     if (alias == null) {
       return Optional.empty();
     }
 
-    return Optional.of(alias + qualifier);
+    return Optional.of(alias.qualifiedName() + qualifier);
   }
 
   private static boolean isIdentifierChar(int r) {
@@ -301,7 +324,7 @@ public abstract class CelContainer {
     return r == '.' || r == '_' || Character.isLetter(r) || Character.isDigit(r);
   }
 
-  private enum AliasKind {
+  enum AliasKind {
     ALIAS,
     ABBREVIATION;
 
@@ -309,5 +332,18 @@ public abstract class CelContainer {
     public String toString() {
       return this.name().toLowerCase(Locale.getDefault());
     }
+  }
+
+  /** Represents an alias or abbreviation. */
+  @AutoValue
+  @Immutable
+  abstract static class AliasEntry {
+    static AliasEntry create(AliasKind kind, String qualifiedName) {
+      return new AutoValue_CelContainer_AliasEntry(kind, qualifiedName);
+    }
+
+    abstract AliasKind kind();
+
+    abstract String qualifiedName();
   }
 }

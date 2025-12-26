@@ -80,10 +80,9 @@ public abstract class CelEnvironment {
   public abstract String name();
 
   /**
-   * An optional description of the config (example: location of the file containing the config
-   * content).
+   * Container, which captures default namespace and aliases for value resolution.
    */
-  public abstract String container();
+  public abstract CelContainer container();
 
   /**
    * An optional description of the environment (example: location of the file containing the config
@@ -124,7 +123,12 @@ public abstract class CelEnvironment {
 
     public abstract Builder setDescription(String description);
 
-    public abstract Builder setContainer(String container);
+    public abstract Builder setContainer(CelContainer container);
+
+    @CanIgnoreReturnValue
+    public Builder setContainer(String container) {
+      return setContainer(CelContainer.ofName(container));
+    }
 
     @CanIgnoreReturnValue
     public Builder addExtensions(ExtensionConfig... extensions) {
@@ -182,7 +186,7 @@ public abstract class CelEnvironment {
     return new AutoValue_CelEnvironment.Builder()
         .setName("")
         .setDescription("")
-        .setContainer("")
+        .setContainer(CelContainer.ofName(""))
         .setVariables(ImmutableSet.of())
         .setFunctions(ImmutableSet.of());
   }
@@ -195,8 +199,8 @@ public abstract class CelEnvironment {
       CelCompilerBuilder compilerBuilder =
           celCompiler
               .toCompilerBuilder()
+              .setContainer(container())
               .setTypeProvider(celTypeProvider)
-              .setContainer(CelContainer.ofName(container()))
               .addVarDeclarations(
                   variables().stream()
                       .map(v -> v.toCelVarDecl(celTypeProvider))
@@ -205,10 +209,6 @@ public abstract class CelEnvironment {
                   functions().stream()
                       .map(f -> f.toCelFunctionDecl(celTypeProvider))
                       .collect(toImmutableList()));
-
-      if (!container().isEmpty()) {
-        compilerBuilder.setContainer(CelContainer.ofName(container()));
-      }
 
       addAllCompilerExtensions(compilerBuilder, celOptions);
 
@@ -680,6 +680,38 @@ public abstract class CelEnvironment {
     /** Create a new extension config with the specified name and the latest version. */
     public static ExtensionConfig latest(String name) {
       return of(name, Integer.MAX_VALUE);
+    }
+  }
+
+  @AutoValue
+  abstract static class Alias {
+    abstract String alias();
+
+    abstract String qualifiedName();
+
+    static Builder newBuilder() {
+      return new AutoValue_CelEnvironment_Alias.Builder();
+    }
+
+    @AutoValue.Builder
+    abstract static class Builder implements RequiredFieldsChecker {
+
+      abstract Optional<String> alias();
+
+      abstract Optional<String> qualifiedName();
+
+      abstract Builder setAlias(String alias);
+
+      abstract Builder setQualifiedName(String qualifiedName);
+
+      abstract Alias build();
+
+      @Override
+      public ImmutableList<RequiredField> requiredFields() {
+        return ImmutableList.of(
+            RequiredField.of("alias", this::alias),
+            RequiredField.of("qualified_name", this::qualifiedName));
+      }
     }
   }
 

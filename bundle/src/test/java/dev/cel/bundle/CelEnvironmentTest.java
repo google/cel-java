@@ -24,6 +24,7 @@ import dev.cel.bundle.CelEnvironment.ExtensionConfig;
 import dev.cel.bundle.CelEnvironment.LibrarySubset;
 import dev.cel.bundle.CelEnvironment.LibrarySubset.FunctionSelector;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelValidationResult;
@@ -43,10 +44,31 @@ public class CelEnvironmentTest {
     assertThat(environment.source()).isEmpty();
     assertThat(environment.name()).isEmpty();
     assertThat(environment.description()).isEmpty();
-    assertThat(environment.container()).isEmpty();
+    assertThat(environment.container().name()).isEmpty();
+    assertThat(environment.container().abbreviations()).isEmpty();
+    assertThat(environment.container().aliases()).isEmpty();
     assertThat(environment.extensions()).isEmpty();
     assertThat(environment.variables()).isEmpty();
     assertThat(environment.functions()).isEmpty();
+  }
+
+  @Test
+  public void container() {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setContainer(
+                CelContainer.newBuilder()
+                    .setName("cntr")
+                    .addAbbreviations("foo.Bar", "baz.Qux")
+                    .addAlias("nm", "user.name")
+                    .addAlias("id", "user.id")
+                    .build())
+            .build();
+
+    assertThat(environment.container().name()).isEqualTo("cntr");
+    assertThat(environment.container().abbreviations()).containsExactly("foo.Bar", "baz.Qux");
+    assertThat(environment.container().aliases())
+        .containsExactly("nm", "user.name", "id", "user.id");
   }
 
   @Test

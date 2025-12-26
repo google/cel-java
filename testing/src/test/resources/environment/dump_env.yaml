@@ -14,7 +14,16 @@
 
 name: dump_env
 description: dump_env description
-container: test.container
+container:
+  name: test.container
+  abbreviations:
+  - abbr1.Abbr1
+  - abbr2.Abbr2
+  aliases:
+  - alias: alias1
+    qualified_name: qual.name1
+  - alias: alias2
+    qualified_name: qual.name2
 extensions:
 - name: bindings
 - name: encoders

@@ -33,6 +33,7 @@ import dev.cel.bundle.CelEnvironment.OverloadDecl;
 import dev.cel.bundle.CelEnvironment.TypeDecl;
 import dev.cel.bundle.CelEnvironment.VariableDecl;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelSource;
 import dev.cel.common.ast.CelExpr;
@@ -347,6 +348,36 @@ public final class CelEnvironmentYamlParserTest {
   }
 
   @Test
+  public void environment_setContainerWithAliasesAndAbbreviations() throws Exception {
+    String yamlConfig =
+        "container:\n"
+            + "  name: 'google.rpc.context'\n"
+            + "  abbreviations:\n"
+            + "    - 'pkg3.lib3.Baz'\n"
+            + "    - pkg4.lib4.Qux\n"
+            + "  aliases:\n"
+            + "    - alias: 'foo'\n"
+            + "      qualified_name: 'pkg1.lib1.Foo'\n"
+            + "    - alias: bar\n"
+            + "      qualified_name: pkg2.lib2.Bar\n";
+
+    CelEnvironment environment = ENVIRONMENT_PARSER.parse(yamlConfig);
+
+    assertThat(environment)
+        .isEqualTo(
+            CelEnvironment.newBuilder()
+                .setContainer(
+                    CelContainer.newBuilder()
+                        .setName("google.rpc.context")
+                        .addAbbreviations("pkg3.lib3.Baz", "pkg4.lib4.Qux")
+                        .addAlias("foo", "pkg1.lib1.Foo")
+                        .addAlias("bar", "pkg2.lib2.Bar")
+                        .build())
+                .setSource(environment.source().get())
+                .build());
+  }
+
+  @Test
   public void environment_withInlinedVariableDecl() throws Exception {
     String yamlConfig =
         "variables:\n"
@@ -623,6 +654,24 @@ public final class CelEnvironmentYamlParserTest {
         "ERROR: <input>:7:11: Unsupported overload selector tag: unknown_tag\n"
             + " |           unknown_tag: 'test_value'\n"
             + " | ..........^"),
+    MISSING_ALIAS_FIELDS(
+        "container:\n"
+            + "  name: 'test_container'\n"
+            + "  aliases:\n"
+            + "    - qualified_name: 'test_qualified_name'\n",
+        "ERROR: <input>:4:7: Missing required attribute(s): alias\n"
+            + " |     - qualified_name: 'test_qualified_name'\n"
+            + " | ......^"),
+    ILLEGAL_ALIAS_TAG(
+        "container:\n"
+            + "  name: 'test_container'\n"
+            + "  aliases:\n"
+            + "    - alias: 'test_alias'\n"
+            + "      qualified_name: 'test_qualified_name'\n"
+            + "      unknown_tag: 'test_value'\n",
+        "ERROR: <input>:6:7: Unsupported alias tag: unknown_tag\n"
+            + " |       unknown_tag: 'test_value'\n"
+            + " | ......^"),
     ;
 
     private final String yamlConfig;
