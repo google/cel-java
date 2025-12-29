@@ -18,59 +18,34 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.CelEvaluationListener;
-import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
-import dev.cel.runtime.Interpretable;
 
 @Immutable
 final class EvalCreateMap extends PlannedInterpretable {
 
   // Array contents are not mutated
   @SuppressWarnings("Immutable")
-  private final Interpretable[] keys;
+  private final PlannedInterpretable[] keys;
 
   // Array contents are not mutated
   @SuppressWarnings("Immutable")
-  private final Interpretable[] values;
+  private final PlannedInterpretable[] values;
 
   @Override
-  public Object eval(GlobalResolver resolver) throws CelEvaluationException {
+  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     ImmutableMap.Builder<Object, Object> builder =
         ImmutableMap.builderWithExpectedSize(keys.length);
     for (int i = 0; i < keys.length; i++) {
-      builder.put(keys[i].eval(resolver), values[i].eval(resolver));
+      builder.put(keys[i].eval(resolver, frame), values[i].eval(resolver, frame));
     }
     return builder.buildOrThrow();
   }
 
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(
-      GlobalResolver resolver,
-      CelFunctionResolver lateBoundFunctionResolver,
-      CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  static EvalCreateMap create(long exprId, Interpretable[] keys, Interpretable[] values) {
+  static EvalCreateMap create(long exprId, PlannedInterpretable[] keys, PlannedInterpretable[] values) {
     return new EvalCreateMap(exprId, keys, values);
   }
 
-  private EvalCreateMap(long exprId, Interpretable[] keys, Interpretable[] values) {
+  private EvalCreateMap(long exprId, PlannedInterpretable[] keys, PlannedInterpretable[] values) {
     super(exprId);
     Preconditions.checkArgument(keys.length == values.length);
     this.keys = keys;

@@ -18,8 +18,6 @@ import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
 
 import com.google.common.base.Preconditions;
 import dev.cel.common.values.ErrorValue;
-import dev.cel.runtime.CelEvaluationListener;
-import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
 
 final class EvalAnd extends PlannedInterpretable {
@@ -28,10 +26,10 @@ final class EvalAnd extends PlannedInterpretable {
   private final PlannedInterpretable[] args;
 
   @Override
-  public Object eval(GlobalResolver resolver) {
+  public Object eval(GlobalResolver resolver, ExecutionFrame frame) {
     ErrorValue errorValue = null;
     for (PlannedInterpretable arg : args) {
-      Object argVal = evalNonstrictly(arg, resolver);
+      Object argVal = evalNonstrictly(arg, resolver, frame);
       if (argVal instanceof Boolean) {
         // Short-circuit on false
         if (!((boolean) argVal)) {
@@ -51,27 +49,6 @@ final class EvalAnd extends PlannedInterpretable {
     }
 
     return true;
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(
-      GlobalResolver resolver,
-      CelFunctionResolver lateBoundFunctionResolver,
-      CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
   }
 
   static EvalAnd create(long exprId, PlannedInterpretable[] args) {

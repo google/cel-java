@@ -12,15 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.runtime.planner;
+package dev.cel.common.exceptions;
 
-import com.google.errorprone.annotations.Immutable;
-import dev.cel.runtime.GlobalResolver;
+import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelRuntimeException;
+import dev.cel.common.annotations.Internal;
+import java.util.Locale;
 
-/** Represents a resolvable symbol or path (such as a variable or a field selection). */
-@Immutable
-interface Attribute {
-  Object resolve(GlobalResolver ctx, ExecutionFrame frame);
+/** Indicates that the iteration budget for a comprehension has been exceeded. */
+@Internal
+public final class CelIterationLimitExceededException extends CelRuntimeException {
 
-  Attribute addQualifier(Qualifier qualifier);
+  public CelIterationLimitExceededException(int budget) {
+    super(
+        String.format(Locale.US, "Iteration budget exceeded: %d", budget),
+        CelErrorCode.ITERATION_BUDGET_EXCEEDED);
+  }
 }

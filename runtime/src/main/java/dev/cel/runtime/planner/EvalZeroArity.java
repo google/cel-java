@@ -15,8 +15,6 @@
 package dev.cel.runtime.planner;
 
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.CelEvaluationListener;
-import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.GlobalResolver;
 
@@ -26,29 +24,8 @@ final class EvalZeroArity extends PlannedInterpretable {
   private final CelResolvedOverload resolvedOverload;
 
   @Override
-  public Object eval(GlobalResolver resolver) throws CelEvaluationException {
+  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     return resolvedOverload.getDefinition().apply(EMPTY_ARRAY);
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(
-      GlobalResolver resolver,
-      CelFunctionResolver lateBoundFunctionResolver,
-      CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
   }
 
   static EvalZeroArity create(long exprId, CelResolvedOverload resolvedOverload) {

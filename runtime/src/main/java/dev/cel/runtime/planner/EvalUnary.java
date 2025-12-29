@@ -18,8 +18,6 @@ import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
 import static dev.cel.runtime.planner.EvalHelpers.evalStrictly;
 
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.CelEvaluationListener;
-import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.GlobalResolver;
 
@@ -29,33 +27,14 @@ final class EvalUnary extends PlannedInterpretable {
   private final PlannedInterpretable arg;
 
   @Override
-  public Object eval(GlobalResolver resolver) throws CelEvaluationException {
+  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     Object argVal =
-        resolvedOverload.isStrict() ? evalStrictly(arg, resolver) : evalNonstrictly(arg, resolver);
+        resolvedOverload.isStrict()
+            ? evalStrictly(arg, resolver, frame)
+            : evalNonstrictly(arg, resolver, frame);
     Object[] arguments = new Object[] {argVal};
 
     return resolvedOverload.getDefinition().apply(arguments);
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(
-      GlobalResolver resolver,
-      CelFunctionResolver lateBoundFunctionResolver,
-      CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
   }
 
   static EvalUnary create(

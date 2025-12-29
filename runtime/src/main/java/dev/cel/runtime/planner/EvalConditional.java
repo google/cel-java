@@ -16,23 +16,20 @@ package dev.cel.runtime.planner;
 
 import com.google.common.base.Preconditions;
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.CelEvaluationListener;
-import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
-import dev.cel.runtime.Interpretable;
 
 final class EvalConditional extends PlannedInterpretable {
 
   @SuppressWarnings("Immutable")
-  private final Interpretable[] args;
+  private final PlannedInterpretable[] args;
 
   @Override
-  public Object eval(GlobalResolver resolver) throws CelEvaluationException {
-    Interpretable condition = args[0];
-    Interpretable truthy = args[1];
-    Interpretable falsy = args[2];
+  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
+    PlannedInterpretable condition = args[0];
+    PlannedInterpretable truthy = args[1];
+    PlannedInterpretable falsy = args[2];
     // TODO: Handle unknowns
-    Object condResult = condition.eval(resolver);
+    Object condResult = condition.eval(resolver, frame);
     if (!(condResult instanceof Boolean)) {
       throw new IllegalArgumentException(
           String.format("Expected boolean value, found :%s", condResult));
@@ -40,38 +37,17 @@ final class EvalConditional extends PlannedInterpretable {
 
     // TODO: Handle exhaustive eval
     if ((boolean) condResult) {
-      return truthy.eval(resolver);
+      return truthy.eval(resolver, frame);
     }
 
-    return falsy.eval(resolver);
+    return falsy.eval(resolver, frame);
   }
 
-  @Override
-  public Object eval(GlobalResolver resolver, CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(
-      GlobalResolver resolver,
-      CelFunctionResolver lateBoundFunctionResolver,
-      CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  static EvalConditional create(long exprId, Interpretable[] args) {
+  static EvalConditional create(long exprId, PlannedInterpretable[] args) {
     return new EvalConditional(exprId, args);
   }
 
-  private EvalConditional(long exprId, Interpretable[] args) {
+  private EvalConditional(long exprId, PlannedInterpretable[] args) {
     super(exprId);
     Preconditions.checkArgument(args.length == 3);
     this.args = args;

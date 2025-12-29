@@ -15,11 +15,17 @@
 package dev.cel.runtime.planner;
 
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.runtime.Interpretable;
+import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.GlobalResolver;
 
 @Immutable
-abstract class PlannedInterpretable implements Interpretable {
+abstract class PlannedInterpretable {
   private final long exprId;
+
+  /** Runs interpretation with the given activation which supplies name/value bindings. */
+  abstract Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException;
+
+  // TODO: Implement support for late-bound functions and evaluation listener
 
   long exprId() {
     return exprId;

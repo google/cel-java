@@ -19,10 +19,7 @@ import dev.cel.common.types.StructType;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.StructValue;
 import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.CelEvaluationListener;
-import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.GlobalResolver;
-import dev.cel.runtime.Interpretable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,13 +36,13 @@ final class EvalCreateStruct extends PlannedInterpretable {
 
   // Array contents are not mutated
   @SuppressWarnings("Immutable")
-  private final Interpretable[] values;
+  private final PlannedInterpretable[] values;
 
   @Override
-  public Object eval(GlobalResolver resolver) throws CelEvaluationException {
+  public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     Map<String, Object> fieldValues = new HashMap<>();
     for (int i = 0; i < keys.length; i++) {
-      Object value = values[i].eval(resolver);
+      Object value = values[i].eval(resolver, frame);
       fieldValues.put(keys[i], value);
     }
 
@@ -62,33 +59,12 @@ final class EvalCreateStruct extends PlannedInterpretable {
     return value;
   }
 
-  @Override
-  public Object eval(GlobalResolver resolver, CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(GlobalResolver resolver, CelFunctionResolver lateBoundFunctionResolver) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
-  @Override
-  public Object eval(
-      GlobalResolver resolver,
-      CelFunctionResolver lateBoundFunctionResolver,
-      CelEvaluationListener listener) {
-    // TODO: Implement support
-    throw new UnsupportedOperationException("Not yet supported");
-  }
-
   static EvalCreateStruct create(
       long exprId,
       CelValueProvider valueProvider,
       StructType structType,
       String[] keys,
-      Interpretable[] values) {
+      PlannedInterpretable[] values) {
     return new EvalCreateStruct(exprId, valueProvider, structType, keys, values);
   }
 
@@ -97,7 +73,7 @@ final class EvalCreateStruct extends PlannedInterpretable {
       CelValueProvider valueProvider,
       StructType structType,
       String[] keys,
-      Interpretable[] values) {
+      PlannedInterpretable[] values) {
     super(exprId);
     this.valueProvider = valueProvider;
     this.structType = structType;

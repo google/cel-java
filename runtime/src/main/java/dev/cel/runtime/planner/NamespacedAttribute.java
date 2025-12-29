@@ -34,7 +34,7 @@ final class NamespacedAttribute implements Attribute {
   private final CelTypeProvider typeProvider;
 
   @Override
-  public Object resolve(GlobalResolver ctx) {
+  public Object resolve(GlobalResolver ctx, ExecutionFrame frame) {
     for (String name : namespacedNames) {
       Object value = ctx.resolve(name);
       if (value != null) {

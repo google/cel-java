@@ -21,9 +21,10 @@ import dev.cel.runtime.GlobalResolver;
 
 final class EvalHelpers {
 
-  static Object evalNonstrictly(PlannedInterpretable interpretable, GlobalResolver resolver) {
+  static Object evalNonstrictly(
+      PlannedInterpretable interpretable, GlobalResolver resolver, ExecutionFrame frame) {
     try {
-      return interpretable.eval(resolver);
+      return interpretable.eval(resolver, frame);
     } catch (StrictErrorException e) {
       // Intercept the strict exception to get a more localized expr ID for error reporting purposes
       // Example: foo [1] && strict_err [2] -> ID 2 is propagated.
@@ -33,9 +34,10 @@ final class EvalHelpers {
     }
   }
 
-  static Object evalStrictly(PlannedInterpretable interpretable, GlobalResolver resolver) {
+  static Object evalStrictly(
+      PlannedInterpretable interpretable, GlobalResolver resolver, ExecutionFrame frame) {
     try {
-      return interpretable.eval(resolver);
+      return interpretable.eval(resolver, frame);
     } catch (CelRuntimeException e) {
       throw new StrictErrorException(e, interpretable.exprId());
     } catch (Exception e) {
