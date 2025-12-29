@@ -43,9 +43,9 @@ import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.ProtoMessageValueProvider;
-import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Arithmetic;
-import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Comparison;
-import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Conversions;
+import dev.cel.runtime.standard.AddOperator.AddOverload;
+import dev.cel.runtime.standard.IntFunction.IntOverload;
+import dev.cel.runtime.standard.TimestampFunction.TimestampOverload;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
@@ -339,7 +339,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
                     (standardFunction, standardOverload) -> {
                       switch (standardFunction) {
                         case INT:
-                          if (standardOverload.equals(Conversions.INT64_TO_INT64)) {
+                          if (standardOverload.equals(IntOverload.INT64_TO_INT64)) {
                             // Note that we require UnsignedLong flag here to avoid ambiguous
                             // overloads against "uint64_to_int64", because they both use the same
                             // Java Long class. We skip adding this identity function if the flag is
@@ -350,26 +350,23 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
                         case TIMESTAMP:
                           // TODO: Remove this flag guard once the feature has been
                           // auto-enabled.
-                          if (standardOverload.equals(Conversions.INT64_TO_TIMESTAMP)) {
+                          if (standardOverload.equals(TimestampOverload.INT64_TO_TIMESTAMP)) {
                             return options.enableTimestampEpoch();
                           }
                           break;
                         case STRING:
                           return options.enableStringConversion();
                         case ADD:
-                          Arithmetic arithmetic = (Arithmetic) standardOverload;
-                          if (arithmetic.equals(Arithmetic.ADD_STRING)) {
+                          if (standardOverload.equals(AddOverload.ADD_STRING)) {
                             return options.enableStringConcatenation();
                           }
-                          if (arithmetic.equals(Arithmetic.ADD_LIST)) {
+                          if (standardOverload.equals(AddOverload.ADD_LIST)) {
                             return options.enableListConcatenation();
                           }
                           break;
                         default:
-                          if (standardOverload instanceof Comparison
-                              && !options.enableHeterogeneousNumericComparisons()) {
-                            Comparison comparison = (Comparison) standardOverload;
-                            return !comparison.isHeterogeneousComparison();
+                          if (!options.enableHeterogeneousNumericComparisons()) {
+                            return !CelStandardFunctions.isHeterogeneousComparison(standardOverload);
                           }
                           break;
                       }

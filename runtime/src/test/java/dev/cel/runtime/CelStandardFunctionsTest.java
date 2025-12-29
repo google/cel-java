@@ -24,8 +24,9 @@ import dev.cel.common.CelOptions;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction;
-import dev.cel.runtime.CelStandardFunctions.StandardFunction.Overload.Arithmetic;
+import dev.cel.runtime.standard.AddOperator.AddOverload;
 import dev.cel.runtime.standard.CelStandardOverload;
+import dev.cel.runtime.standard.SubtractOperator.SubtractOverload;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -118,12 +119,12 @@ public class CelStandardFunctionsTest {
             .filterFunctions(
                 (func, over) -> {
                   if (func.equals(CelStandardFunctions.StandardFunction.ADD)
-                      && over.equals(Arithmetic.ADD_INT64)) {
+                      && over.equals(AddOverload.ADD_INT64)) {
                     return true;
                   }
 
                   if (func.equals(CelStandardFunctions.StandardFunction.SUBTRACT)
-                      && over.equals(Arithmetic.SUBTRACT_INT64)) {
+                      && over.equals(SubtractOverload.SUBTRACT_INT64)) {
                     return true;
                   }
 
@@ -132,7 +133,7 @@ public class CelStandardFunctionsTest {
             .build();
 
     assertThat(celStandardFunction.getOverloads())
-        .containsExactly(Arithmetic.ADD_INT64, Arithmetic.SUBTRACT_INT64);
+        .containsExactly(AddOverload.ADD_INT64, SubtractOverload.SUBTRACT_INT64);
   }
 
   @Test
