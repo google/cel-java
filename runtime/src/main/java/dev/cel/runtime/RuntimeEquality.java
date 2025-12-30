@@ -223,6 +223,41 @@ public class RuntimeEquality {
     return Objects.equals(x, y);
   }
 
+  /**
+   * Returns the hash code consistent with the {@link #objectEquals(Object, Object)} method. For
+   * example, {@code hashCode(1) == hashCode(1.0)} since {@code objectEquals(1, 1.0)} is true.
+   */
+  public int hashCode(Object object) {
+    if (object == null) {
+      return 0;
+    }
+
+    if (celOptions.disableCelStandardEquality()) {
+      return Objects.hashCode(object);
+    }
+
+    object = runtimeHelpers.adaptValue(object);
+    if (object instanceof Number) {
+      return Double.hashCode(((Number) object).doubleValue());
+    }
+    if (object instanceof Iterable) {
+      int h = 1;
+      Iterable<?> iter = (Iterable<?>) object;
+      for (Object elem : iter) {
+        h = h * 31 + hashCode(elem);
+      }
+      return h;
+    }
+    if (object instanceof Map) {
+      int h = 0;
+      for (Map.Entry<?, ?> entry : ((Map<?, ?>) object).entrySet()) {
+        h += hashCode(entry.getKey()) ^ hashCode(entry.getValue());
+      }
+      return h;
+    }
+    return Objects.hashCode(object);
+  }
+
   private static Optional<UnsignedLong> doubleToUnsignedLossless(Number v) {
     Optional<UnsignedLong> conv = RuntimeHelpers.doubleToUnsignedChecked(v.doubleValue());
     return conv.map(ul -> ul.longValue() == v.doubleValue() ? ul : null);

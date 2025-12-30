@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelIssue;
@@ -316,27 +317,38 @@ final class CelListsExtensions
     return builder.build();
   }
 
+  private static class RuntimeEqualityObjectWrapper {
+    private final Object object;
+    private final int hashCode;
+    private final RuntimeEquality runtimeEquality;
+
+    RuntimeEqualityObjectWrapper(Object object, RuntimeEquality runtimeEquality) {
+      this.object = object;
+      this.runtimeEquality = runtimeEquality;
+      this.hashCode = runtimeEquality.hashCode(object);
+    }
+
+    @Override
+    public int hashCode() {
+      return hashCode;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (!(obj instanceof RuntimeEqualityObjectWrapper)) {
+        return false;
+      }
+      return runtimeEquality.objectEquals(object, ((RuntimeEqualityObjectWrapper) obj).object);
+    }
+  }
+
   private static ImmutableList<Object> distinct(
       Collection<Object> list, RuntimeEquality runtimeEquality) {
-    // TODO Optimize this method, which currently has the O(N^2) complexity.
     int size = list.size();
     ImmutableList.Builder<Object> builder = ImmutableList.builderWithExpectedSize(size);
-    List<Object> theList;
-    if (list instanceof List) {
-      theList = (List<Object>) list;
-    } else {
-      theList = ImmutableList.copyOf(list);
-    }
-    for (int i = 0; i < size; i++) {
-      Object element = theList.get(i);
-      boolean found = false;
-      for (int j = 0; j < i; j++) {
-        if (runtimeEquality.objectEquals(element, theList.get(j))) {
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
+    Set<RuntimeEqualityObjectWrapper> distinctValues = Sets.newHashSetWithExpectedSize(size);
+    for (Object element : list) {
+      if (distinctValues.add(new RuntimeEqualityObjectWrapper(element, runtimeEquality))) {
         builder.add(element);
       }
     }
