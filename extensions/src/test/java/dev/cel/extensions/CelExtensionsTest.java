@@ -188,6 +188,22 @@ public class CelExtensionsTest {
             "regex.replace",
             "regex.extract",
             "regex.extractAll",
+            "isIP",
+            "ip",
+            "isCIDR",
+            "cidr",
+            "isCanonical",
+            "family",
+            "isLoopback",
+            "isGlobalUnicast",
+            "isLinkLocalMulticast",
+            "isLinkLocalUnicast",
+            "isUnspecified",
+            "string",
+            "containsIP",
+            "containsCIDR",
+            "masked",
+            "prefixLength",
             "cel.@mapInsert");
   }
 }
