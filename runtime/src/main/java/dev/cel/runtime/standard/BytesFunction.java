@@ -76,6 +76,6 @@ public final class BytesFunction extends CelStandardFunction {
   }
 
   private BytesFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("bytes", overloads);
   }
 }

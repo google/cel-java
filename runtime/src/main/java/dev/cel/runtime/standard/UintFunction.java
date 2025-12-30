@@ -158,6 +158,6 @@ public final class UintFunction extends CelStandardFunction {
   }
 
   private UintFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("uint", overloads);
   }
 }

@@ -14,6 +14,8 @@
 
 package dev.cel.runtime.standard;
 
+import static dev.cel.common.Operator.IN;
+
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelOptions;
 import dev.cel.runtime.CelFunctionBinding;
@@ -70,6 +72,6 @@ public final class InOperator extends CelStandardFunction {
   }
 
   private InOperator(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super(IN.getFunction(), overloads);
   }
 }

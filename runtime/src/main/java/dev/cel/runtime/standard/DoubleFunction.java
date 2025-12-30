@@ -87,6 +87,6 @@ public final class DoubleFunction extends CelStandardFunction {
   }
 
   private DoubleFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("double", overloads);
   }
 }

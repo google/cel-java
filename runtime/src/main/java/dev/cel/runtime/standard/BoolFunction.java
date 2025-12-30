@@ -87,6 +87,6 @@ public final class BoolFunction extends CelStandardFunction {
   }
 
   private BoolFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("bool", overloads);
   }
 }

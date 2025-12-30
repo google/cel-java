@@ -107,6 +107,6 @@ public final class TimestampFunction extends CelStandardFunction {
   }
 
   private TimestampFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("timestamp", overloads);
   }
 }

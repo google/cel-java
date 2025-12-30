@@ -112,6 +112,6 @@ public final class GetMillisecondsFunction extends CelStandardFunction {
   }
 
   private GetMillisecondsFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("getMilliseconds", overloads);
   }
 }

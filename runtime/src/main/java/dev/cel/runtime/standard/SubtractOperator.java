@@ -14,6 +14,7 @@
 
 package dev.cel.runtime.standard;
 
+import static dev.cel.common.Operator.SUBTRACT;
 import static dev.cel.runtime.standard.ArithmeticHelpers.getArithmeticErrorCode;
 
 import com.google.common.collect.ImmutableSet;
@@ -157,6 +158,6 @@ public final class SubtractOperator extends CelStandardFunction {
   }
 
   private SubtractOperator(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super(SUBTRACT.getFunction(), overloads);
   }
 }

@@ -88,6 +88,6 @@ public final class DurationFunction extends CelStandardFunction {
   }
 
   private DurationFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("duration", overloads);
   }
 }

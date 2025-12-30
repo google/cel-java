@@ -57,6 +57,6 @@ public final class DynFunction extends CelStandardFunction {
   }
 
   private DynFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("dyn", overloads);
   }
 }

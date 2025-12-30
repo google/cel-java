@@ -14,6 +14,7 @@
 
 package dev.cel.runtime.standard;
 
+import static dev.cel.common.Operator.MULTIPLY;
 import static dev.cel.runtime.standard.ArithmeticHelpers.getArithmeticErrorCode;
 
 import com.google.common.collect.ImmutableSet;
@@ -103,6 +104,6 @@ public final class MultiplyOperator extends CelStandardFunction {
   }
 
   private MultiplyOperator(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super(MULTIPLY.getFunction(), overloads);
   }
 }

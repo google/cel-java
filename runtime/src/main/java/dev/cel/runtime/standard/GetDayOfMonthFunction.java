@@ -90,6 +90,6 @@ public final class GetDayOfMonthFunction extends CelStandardFunction {
   }
 
   private GetDayOfMonthFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("getDayOfMonth", overloads);
   }
 }

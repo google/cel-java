@@ -14,6 +14,7 @@
 
 package dev.cel.runtime.standard;
 
+import static dev.cel.common.Operator.DIVIDE;
 import static dev.cel.runtime.standard.ArithmeticHelpers.getArithmeticErrorCode;
 
 import com.google.common.collect.ImmutableSet;
@@ -90,6 +91,6 @@ public final class DivideOperator extends CelStandardFunction {
   }
 
   private DivideOperator(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super(DIVIDE.getFunction(), overloads);
   }
 }

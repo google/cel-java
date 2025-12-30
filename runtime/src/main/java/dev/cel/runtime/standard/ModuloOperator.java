@@ -14,6 +14,7 @@
 
 package dev.cel.runtime.standard;
 
+import static dev.cel.common.Operator.MODULO;
 import static dev.cel.runtime.standard.ArithmeticHelpers.getArithmeticErrorCode;
 
 import com.google.common.collect.ImmutableSet;
@@ -85,6 +86,6 @@ public final class ModuloOperator extends CelStandardFunction {
   }
 
   private ModuloOperator(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super(MODULO.getFunction(), overloads);
   }
 }

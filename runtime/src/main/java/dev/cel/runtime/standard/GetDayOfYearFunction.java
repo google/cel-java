@@ -91,6 +91,6 @@ public final class GetDayOfYearFunction extends CelStandardFunction {
   }
 
   private GetDayOfYearFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("getDayOfYear", overloads);
   }
 }

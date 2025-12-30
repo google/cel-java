@@ -48,6 +48,7 @@ java_library(
         ":arithmetic_helpers",
         ":standard_function",
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//common:runtime_exception",
         "//common/internal:date_time_helpers",
@@ -70,6 +71,7 @@ cel_android_library(
         ":arithmetic_helpers",
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//common:runtime_exception",
         "//common/internal:date_time_helpers_android",
@@ -92,6 +94,7 @@ java_library(
         ":arithmetic_helpers",
         ":standard_function",
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//common:runtime_exception",
         "//common/internal:date_time_helpers",
@@ -113,6 +116,7 @@ cel_android_library(
         ":arithmetic_helpers",
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//common:runtime_exception",
         "//common/internal:date_time_helpers_android",
@@ -364,6 +368,7 @@ java_library(
     ],
     deps = [
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//runtime:function_binding",
         "//runtime:runtime_equality",
@@ -380,6 +385,7 @@ cel_android_library(
     deps = [
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//runtime:function_binding_android",
         "//runtime:runtime_equality_android",
@@ -742,6 +748,7 @@ java_library(
     ],
     deps = [
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//common/internal:comparison_functions",
         "//common/internal:proto_time_utils",
@@ -763,6 +770,7 @@ cel_android_library(
     deps = [
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//common/internal:comparison_functions_android",
         "//common/internal:proto_time_utils_android",
@@ -782,6 +790,7 @@ java_library(
     ],
     deps = [
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//common/internal:comparison_functions",
         "//common/internal:proto_time_utils",
@@ -803,6 +812,7 @@ cel_android_library(
     deps = [
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//common/internal:comparison_functions_android",
         "//common/internal:proto_time_utils_android",
@@ -822,6 +832,7 @@ java_library(
     ],
     deps = [
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//runtime:function_binding",
         "//runtime:runtime_equality",
@@ -838,6 +849,7 @@ cel_android_library(
     deps = [
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//runtime:function_binding_android",
         "//runtime:runtime_equality_android",
@@ -852,6 +864,7 @@ java_library(
     ],
     deps = [
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//runtime:function_binding",
         "//runtime:runtime_equality",
@@ -869,6 +882,7 @@ cel_android_library(
     deps = [
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//runtime:function_binding_android",
         "//runtime:runtime_equality_android",
@@ -924,6 +938,7 @@ java_library(
     ],
     deps = [
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//common/internal:comparison_functions",
         "//common/internal:proto_time_utils",
@@ -945,6 +960,7 @@ cel_android_library(
     deps = [
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//common/internal:comparison_functions_android",
         "//common/internal:proto_time_utils_android",
@@ -964,6 +980,7 @@ java_library(
     ],
     deps = [
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//common/internal:comparison_functions",
         "//common/internal:proto_time_utils",
@@ -985,6 +1002,7 @@ cel_android_library(
     deps = [
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//common/internal:comparison_functions_android",
         "//common/internal:proto_time_utils_android",
@@ -1004,6 +1022,7 @@ java_library(
     ],
     deps = [
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//runtime:function_binding",
         "//runtime:runtime_equality",
@@ -1020,6 +1039,7 @@ cel_android_library(
     deps = [
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//runtime:function_binding_android",
         "//runtime:runtime_equality_android",
@@ -1071,6 +1091,7 @@ java_library(
     deps = [
         ":arithmetic_helpers",
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//common:runtime_exception",
         "//runtime:function_binding",
@@ -1090,6 +1111,7 @@ cel_android_library(
         ":arithmetic_helpers",
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//common:runtime_exception",
         "//runtime:function_binding_android",
@@ -1107,6 +1129,7 @@ java_library(
     deps = [
         ":arithmetic_helpers",
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//common:runtime_exception",
         "//runtime:function_binding",
@@ -1126,6 +1149,7 @@ cel_android_library(
         ":arithmetic_helpers",
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//common:runtime_exception",
         "//runtime:function_binding_android",
@@ -1143,6 +1167,7 @@ java_library(
     deps = [
         ":arithmetic_helpers",
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//common:runtime_exception",
         "//runtime:function_binding",
@@ -1162,6 +1187,7 @@ cel_android_library(
         ":arithmetic_helpers",
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//common:runtime_exception",
         "//runtime:function_binding_android",
@@ -1179,6 +1205,7 @@ java_library(
     deps = [
         ":arithmetic_helpers",
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//common:runtime_exception",
         "//runtime:function_binding",
@@ -1198,6 +1225,7 @@ cel_android_library(
         ":arithmetic_helpers",
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//common:runtime_exception",
         "//runtime:function_binding_android",
@@ -1214,6 +1242,7 @@ java_library(
     ],
     deps = [
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//runtime:function_binding",
         "//runtime:runtime_equality",
@@ -1230,6 +1259,7 @@ cel_android_library(
     deps = [
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//runtime:function_binding_android",
         "//runtime:runtime_equality_android",
@@ -1426,6 +1456,7 @@ java_library(
     ],
     deps = [
         ":standard_overload",
+        "//common:operator",
         "//common:options",
         "//runtime:function_binding",
         "//runtime:internal_function_binder",
@@ -1443,6 +1474,7 @@ cel_android_library(
     deps = [
         ":standard_function_android",
         ":standard_overload_android",
+        "//common:operator_android",
         "//common:options",
         "//runtime:function_binding_android",
         "//runtime:internal_function_binder_android",

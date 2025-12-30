@@ -58,6 +58,6 @@ public final class StartsWithFunction extends CelStandardFunction {
   }
 
   private StartsWithFunction(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super("startsWith", overloads);
   }
 }

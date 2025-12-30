@@ -14,6 +14,8 @@
 
 package dev.cel.runtime.standard;
 
+import static dev.cel.common.Operator.INDEX;
+
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelOptions;
 import dev.cel.runtime.CelFunctionBinding;
@@ -65,6 +67,6 @@ public final class IndexOperator extends CelStandardFunction {
   }
 
   private IndexOperator(ImmutableSet<CelStandardOverload> overloads) {
-    super(overloads);
+    super(INDEX.getFunction(), overloads);
   }
 }

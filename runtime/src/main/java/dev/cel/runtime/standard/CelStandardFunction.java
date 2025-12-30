@@ -14,8 +14,9 @@
 
 package dev.cel.runtime.standard;
 
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelOptions;
@@ -28,6 +29,7 @@ import dev.cel.runtime.RuntimeEquality;
  */
 @Immutable
 public abstract class CelStandardFunction {
+  private final String name;
   private final ImmutableSet<CelStandardOverload> overloads;
 
   public ImmutableSet<CelFunctionBinding> newFunctionBindings(
@@ -40,8 +42,10 @@ public abstract class CelStandardFunction {
     return builder.build();
   }
 
-  CelStandardFunction(ImmutableSet<CelStandardOverload> overloads) {
-    checkState(!overloads.isEmpty(), "At least 1 overload must be provided.");
+  CelStandardFunction(String name, ImmutableSet<CelStandardOverload> overloads) {
+    checkArgument(!Strings.isNullOrEmpty(name), "Function name must be provided.");
+    checkArgument(!overloads.isEmpty(), "At least 1 overload must be provided.");
     this.overloads = overloads;
+    this.name = name;
   }
 }
