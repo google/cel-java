@@ -82,7 +82,13 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
     }
 
     if (value instanceof MessageOrBuilder) {
-      MessageOrBuilder message = (MessageOrBuilder) value;
+      Message message;
+      if (value instanceof Message.Builder) {
+        message = ((Message.Builder) value).build();
+      } else {
+        message = (Message) value;
+      }
+
       // Attempt to convert the proto from a dynamic message into a concrete message if possible.
       if (message instanceof DynamicMessage) {
         message = dynamicProto.maybeAdaptDynamicMessage((DynamicMessage) message);

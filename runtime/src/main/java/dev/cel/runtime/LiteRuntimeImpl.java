@@ -15,7 +15,6 @@
 package dev.cel.runtime;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -23,29 +22,37 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
+import dev.cel.common.types.CelTypeProvider;
+import dev.cel.common.types.DefaultTypeProvider;
+import dev.cel.common.values.CelValue;
+import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.CelValueProvider;
+import dev.cel.runtime.planner.ProgramPlanner;
 import dev.cel.runtime.standard.CelStandardFunction;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @ThreadSafe
 final class LiteRuntimeImpl implements CelLiteRuntime {
-  private final Interpreter interpreter;
+  private final ProgramPlanner planner;
   private final CelOptions celOptions;
   private final ImmutableList<CelFunctionBinding> customFunctionBindings;
   private final ImmutableSet<CelStandardFunction> celStandardFunctions;
+  private final CelTypeProvider celTypeProvider;
   private final CelValueProvider celValueProvider;
+  private final CelContainer celContainer;
 
   // This does not affect the evaluation behavior in any manner.
   // CEL-Internal-4
   private final ImmutableSet<CelLiteRuntimeLibrary> runtimeLibraries;
 
   @Override
-  public Program createProgram(CelAbstractSyntaxTree ast) {
-    checkState(ast.isChecked(), "programs must be created from checked expressions");
-    return LiteProgramImpl.plan(interpreter.createInterpretable(ast));
+  public Program createProgram(CelAbstractSyntaxTree ast) throws CelEvaluationException {
+    return planner.plan(ast);
   }
 
   @Override
@@ -55,22 +62,29 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
             .setOptions(celOptions)
             .setStandardFunctions(celStandardFunctions)
             .addFunctionBindings(customFunctionBindings)
-            .addLibraries(runtimeLibraries);
+            .addLibraries(runtimeLibraries)
+            .setContainer(celContainer);
 
     if (celValueProvider != null) {
       builder.setValueProvider(celValueProvider);
+    }
+
+    if (celTypeProvider != null) {
+      builder.setTypeProvider(celTypeProvider);
     }
 
     return builder;
   }
 
   static final class Builder implements CelLiteRuntimeBuilder {
+    private CelContainer container;
 
     // Following is visible to test `toBuilder`.
     @VisibleForTesting CelOptions celOptions;
     @VisibleForTesting final HashMap<String, CelFunctionBinding> customFunctionBindings;
     @VisibleForTesting final ImmutableSet.Builder<CelLiteRuntimeLibrary> runtimeLibrariesBuilder;
     @VisibleForTesting final ImmutableSet.Builder<CelStandardFunction> standardFunctionBuilder;
+    @VisibleForTesting CelTypeProvider celTypeProvider;
     @VisibleForTesting CelValueProvider celValueProvider;
 
     @Override
@@ -103,6 +117,12 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     }
 
     @Override
+    public CelLiteRuntimeBuilder setTypeProvider(CelTypeProvider celTypeProvider) {
+      this.celTypeProvider = celTypeProvider;
+      return this;
+    }
+
+    @Override
     public CelLiteRuntimeBuilder setValueProvider(CelValueProvider celValueProvider) {
       this.celValueProvider = celValueProvider;
       return this;
@@ -119,12 +139,15 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
       return this;
     }
 
+    @Override
+    public CelLiteRuntimeBuilder setContainer(CelContainer container) {
+      this.container = checkNotNull(container);
+      return this;
+    }
+
     /** Throws if an unsupported flag in CelOptions is toggled. */
     private static void assertAllowedCelOptions(CelOptions celOptions) {
       String prefix = "Misconfigured CelOptions: ";
-      if (!celOptions.enableCelValue()) {
-        throw new IllegalArgumentException(prefix + "enableCelValue must be enabled.");
-      }
       if (!celOptions.enableUnsignedLongs()) {
         throw new IllegalArgumentException(prefix + "enableUnsignedLongs cannot be disabled.");
       }
@@ -184,31 +207,57 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
                   dispatcherBuilder.addOverload(
                       overloadId, func.getArgTypes(), func.isStrict(), func.getDefinition()));
 
-      Interpreter interpreter =
-          new DefaultInterpreter(
-              TypeResolver.create(),
-              CelValueRuntimeTypeProvider.newInstance(celValueProvider),
+      CelTypeProvider celTypeProvider = DefaultTypeProvider.getInstance();
+      if (this.celTypeProvider != null) {
+        celTypeProvider =
+            new CelTypeProvider.CombinedCelTypeProvider(celTypeProvider, this.celTypeProvider);
+      }
+
+      ProgramPlanner planner =
+          ProgramPlanner.newPlanner(
+              celTypeProvider,
+              celValueProvider,
               dispatcherBuilder.build(),
-              celOptions);
+              celValueProvider.celValueConverter(),
+              CelContainer.newBuilder().build(),
+              celOptions,
+              CelLateFunctionBindings.from() // TODO: Add
+              );
 
       return new LiteRuntimeImpl(
-          interpreter,
           celOptions,
           customFunctionBindings.values(),
           standardFunctions,
           runtimeLibs,
-          celValueProvider);
+          celValueProvider,
+          celTypeProvider,
+          container,
+          planner);
     }
 
     private Builder() {
-      this.celOptions =
-          CelOptions.current()
-              .enableCelValue(true)
-              .build();
-      this.celValueProvider = (structType, fields) -> Optional.empty();
+      this.celOptions = CelOptions.DEFAULT;
+      this.celValueProvider =
+          new CelValueProvider() {
+            @Override
+            public Optional<Object> newValue(String structType, Map<String, Object> fields) {
+              return Optional.empty();
+            }
+
+            @Override
+            public CelValueConverter celValueConverter() {
+              return new CelValueConverter() {
+                @Override
+                public Object unwrap(CelValue celValue) {
+                  return super.unwrap(celValue);
+                }
+              };
+            }
+          };
       this.customFunctionBindings = new HashMap<>();
       this.standardFunctionBuilder = ImmutableSet.builder();
       this.runtimeLibrariesBuilder = ImmutableSet.builder();
+      this.container = CelContainer.newBuilder().build();
     }
   }
 
@@ -217,17 +266,21 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
   }
 
   private LiteRuntimeImpl(
-      Interpreter interpreter,
       CelOptions celOptions,
       Iterable<CelFunctionBinding> customFunctionBindings,
       ImmutableSet<CelStandardFunction> celStandardFunctions,
       ImmutableSet<CelLiteRuntimeLibrary> runtimeLibraries,
-      CelValueProvider celValueProvider) {
-    this.interpreter = interpreter;
+      CelValueProvider celValueProvider,
+      CelTypeProvider celTypeProvider,
+      CelContainer celContainer,
+      ProgramPlanner planner) {
     this.celOptions = celOptions;
     this.customFunctionBindings = ImmutableList.copyOf(customFunctionBindings);
     this.celStandardFunctions = celStandardFunctions;
     this.runtimeLibraries = runtimeLibraries;
     this.celValueProvider = celValueProvider;
+    this.celTypeProvider = celTypeProvider;
+    this.celContainer = celContainer;
+    this.planner = planner;
   }
 }

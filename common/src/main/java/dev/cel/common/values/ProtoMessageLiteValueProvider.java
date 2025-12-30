@@ -32,12 +32,12 @@ import java.util.Set;
  */
 @Immutable
 @Beta
-public class ProtoMessageLiteValueProvider extends BaseProtoMessageValueProvider {
+public class ProtoMessageLiteValueProvider implements CelValueProvider {
   private final CelLiteDescriptorPool descriptorPool;
   private final ProtoLiteCelValueConverter protoLiteCelValueConverter;
 
   @Override
-  public BaseProtoCelValueConverter protoCelValueConverter() {
+  public CelValueConverter celValueConverter() {
     return protoLiteCelValueConverter;
   }
 

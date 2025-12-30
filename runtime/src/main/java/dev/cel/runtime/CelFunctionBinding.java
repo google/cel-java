@@ -14,8 +14,13 @@
 
 package dev.cel.runtime;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
+import java.util.Collection;
 
 /**
  * Binding consisting of an overload id, a Java-native argument signature, and an overload
@@ -35,7 +40,6 @@ import com.google.errorprone.annotations.Immutable;
  *
  * <p>Examples: string_startsWith_string, mathMax_list, lessThan_money_money
  */
-
 @Immutable
 public interface CelFunctionBinding {
   String getOverloadId();
@@ -69,5 +73,24 @@ public interface CelFunctionBinding {
       String overloadId, Iterable<Class<?>> argTypes, CelFunctionOverload impl) {
     return new FunctionBindingImpl(
         overloadId, ImmutableList.copyOf(argTypes), impl, /* isStrict= */ true);
+  }
+
+  /** See {@link #fromOverloads(String, Collection)}. */
+  static ImmutableSet<CelFunctionBinding> fromOverloads(
+      String functionName, CelFunctionBinding... overloadBindings) {
+    return fromOverloads(functionName, ImmutableList.copyOf(overloadBindings));
+  }
+
+  /**
+   * Creates a set of bindings for a function, enabling dynamic dispatch logic to select the correct
+   * overload at runtime based on argument types.
+   */
+  static ImmutableSet<CelFunctionBinding> fromOverloads(
+      String functionName, Collection<CelFunctionBinding> overloadBindings) {
+    checkArgument(!Strings.isNullOrEmpty(functionName), "Function name cannot be null or empty");
+    checkArgument(!overloadBindings.isEmpty(), "You must provide at least one binding.");
+
+    return FunctionBindingImpl.groupOverloadsToFunction(
+        functionName, ImmutableSet.copyOf(overloadBindings));
   }
 }

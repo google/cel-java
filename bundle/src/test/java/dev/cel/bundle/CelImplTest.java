@@ -557,24 +557,6 @@ public final class CelImplTest {
   }
 
   @Test
-  public void program_withCelValue() throws Exception {
-    Cel cel =
-        standardCelBuilderWithMacros()
-            .setOptions(CelOptions.current().enableCelValue(true).build())
-            .addDeclarations(
-                Decl.newBuilder()
-                    .setName("variable")
-                    .setIdent(IdentDecl.newBuilder().setType(CelProtoTypes.STRING))
-                    .build())
-            .setResultType(SimpleType.BOOL)
-            .build();
-
-    CelRuntime.Program program = cel.createProgram(cel.compile("variable == 'hello'").getAst());
-
-    assertThat(program.eval(ImmutableMap.of("variable", "hello"))).isEqualTo(true);
-  }
-
-  @Test
   public void program_withProtoVars() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
@@ -1405,26 +1387,6 @@ public final class CelImplTest {
     Cel cel =
         standardCelBuilderWithMacros()
             .setOptions(CelOptions.current().enableUnknownTracking(true).build())
-            .addVar("com", MapType.create(SimpleType.STRING, SimpleType.DYN))
-            .addFunctionBindings()
-            .setResultType(SimpleType.BOOL)
-            .build();
-    CelRuntime.Program program = cel.createProgram(cel.compile("com.google.a || false").getAst());
-
-    assertThat(
-            program.advanceEvaluation(
-                UnknownContext.create(
-                    fromMap(ImmutableMap.of()),
-                    ImmutableList.of(CelAttributePattern.fromQualifiedIdentifier("com.google.a")))))
-        .isEqualTo(CelUnknownSet.create(CelAttribute.fromQualifiedIdentifier("com.google.a")));
-  }
-
-  @Test
-  public void programAdvanceEvaluation_nestedSelect_withCelValue() throws Exception {
-    Cel cel =
-        standardCelBuilderWithMacros()
-            .setOptions(
-                CelOptions.current().enableUnknownTracking(true).enableCelValue(true).build())
             .addVar("com", MapType.create(SimpleType.STRING, SimpleType.DYN))
             .addFunctionBindings()
             .setResultType(SimpleType.BOOL)

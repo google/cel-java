@@ -29,13 +29,13 @@ import org.junit.runner.RunWith;
 public class CelLiteInterpreterTest extends BaseInterpreterTest {
   public CelLiteInterpreterTest() {
     super(
-        CelRuntimeFactory.standardCelRuntimeBuilder()
+        CelRuntimeFactory.plannerCelRuntimeBuilder()
             .setValueProvider(
                 ProtoMessageLiteValueProvider.newInstance(
                     dev.cel.expr.conformance.proto2.TestAllTypesCelDescriptor.getDescriptor(),
                     TestAllTypesCelDescriptor.getDescriptor()))
             .addLibraries(CelOptionalLibrary.INSTANCE)
-            .setOptions(newBaseCelOptions().toBuilder().enableCelValue(true).build())
+            .setOptions(newBaseCelOptions())
             .build());
   }
 

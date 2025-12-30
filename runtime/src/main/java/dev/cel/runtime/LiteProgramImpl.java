@@ -40,6 +40,11 @@ abstract class LiteProgramImpl implements Program {
     return interpretable().eval(Activation.copyOf(mapValue), lateBoundFunctionResolver);
   }
 
+  @Override
+  public Object eval(CelVariableResolver resolver) throws CelEvaluationException {
+    throw new UnsupportedOperationException("Unsupported");
+  }
+
   static Program plan(Interpretable interpretable) {
     return new AutoValue_LiteProgramImpl(interpretable);
   }

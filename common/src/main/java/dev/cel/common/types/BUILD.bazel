@@ -184,6 +184,32 @@ java_library(
 )
 
 java_library(
+    name = "message_lite_type_provider",
+    srcs = [
+        "ProtoMessageLiteTypeProvider.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//common/types",
+        "//common/types:type_providers",
+        "//protobuf:cel_lite_descriptor",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "message_lite_type_provider_android",
+    srcs = [
+        "ProtoMessageLiteTypeProvider.java",
+    ],
+    tags = [
+    ],
+    deps = [
+    ],
+)
+
+java_library(
     name = "default_type_provider",
     srcs = [
         "DefaultTypeProvider.java",
@@ -194,6 +220,20 @@ java_library(
         ":type_providers",
         ":types",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "default_type_provider_android",
+    srcs = [
+        "DefaultTypeProvider.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        "//common/types:type_providers_android",
+        "//common/types:types_android",
+        "@maven_android//:com_google_guava_guava",
     ],
 )
 

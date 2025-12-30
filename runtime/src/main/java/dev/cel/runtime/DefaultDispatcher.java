@@ -19,12 +19,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.auto.value.AutoBuilder;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.annotations.Internal;
+import dev.cel.runtime.FunctionBindingImpl.DynamicDispatchOverload;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,15 +48,22 @@ public final class DefaultDispatcher implements CelFunctionResolver {
   }
 
   @Override
+  public Optional<CelResolvedOverload> findOverloadMatchingArgs(String functionName, Object[] args)
+      throws CelEvaluationException {
+    return findOverloadMatchingArgs(functionName, overloads.keySet(), overloads, args);
+  }
+
+  @Override
   public Optional<CelResolvedOverload> findOverloadMatchingArgs(
-      String functionName, List<String> overloadIds, Object[] args) throws CelEvaluationException {
+      String functionName, Collection<String> overloadIds, Object[] args)
+      throws CelEvaluationException {
     return findOverloadMatchingArgs(functionName, overloadIds, overloads, args);
   }
 
   /** Finds the overload that matches the given function name, overload IDs, and arguments. */
   static Optional<CelResolvedOverload> findOverloadMatchingArgs(
       String functionName,
-      List<String> overloadIds,
+      Collection<String> overloadIds,
       Map<String, ? extends CelResolvedOverload> overloads,
       Object[] args)
       throws CelEvaluationException {
@@ -127,7 +137,7 @@ public final class DefaultDispatcher implements CelFunctionResolver {
     @CanIgnoreReturnValue
     public Builder addOverload(
         String overloadId,
-        List<Class<?>> argTypes,
+        ImmutableList<Class<?>> argTypes,
         boolean isStrict,
         CelFunctionOverload overload) {
       checkNotNull(overloadId);
@@ -136,11 +146,34 @@ public final class DefaultDispatcher implements CelFunctionResolver {
       checkNotNull(overload);
 
       overloadsBuilder()
-          .put(overloadId, CelResolvedOverload.of(overloadId, overload, isStrict, argTypes));
+          .put(
+              overloadId,
+              CelResolvedOverload.of(
+                  overloadId,
+                  args -> guardedOp(overloadId, args, argTypes, isStrict, overload),
+                  isStrict,
+                  argTypes));
       return this;
     }
 
     public abstract DefaultDispatcher build();
+  }
+
+  /** Creates an invocation guard around the overload definition. */
+  private static Object guardedOp(
+      String functionName,
+      Object[] args,
+      ImmutableList<Class<?>> argTypes,
+      boolean isStrict,
+      CelFunctionOverload overload)
+      throws CelEvaluationException {
+    // Argument checking for DynamicDispatch is handled inside the overload's apply method itself.
+    if (overload instanceof DynamicDispatchOverload
+        || CelFunctionOverload.canHandle(args, argTypes, isStrict)) {
+      return overload.apply(args);
+    }
+
+    throw new IllegalArgumentException("No matching overload for function: " + functionName);
   }
 
   DefaultDispatcher(ImmutableMap<String, CelResolvedOverload> overloads) {

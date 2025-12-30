@@ -1,4 +1,4 @@
-// Copyright 2023 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,16 +15,19 @@
 package dev.cel.runtime;
 
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
-// import com.google.testing.testsize.MediumTest;
+import dev.cel.extensions.CelExtensions;
 import dev.cel.testing.BaseInterpreterTest;
 import org.junit.runner.RunWith;
 
-/** Tests for {@link Interpreter} and related functionality using {@code CelValue}. */
-// @MediumTest
 @RunWith(TestParameterInjector.class)
-public class CelValueInterpreterTest extends BaseInterpreterTest {
+public class PlannerInterpreterTest extends BaseInterpreterTest {
 
-  public CelValueInterpreterTest() {
-    super(newBaseCelOptions().toBuilder().enableCelValue(true).build());
+  public PlannerInterpreterTest() {
+    super(
+        CelRuntimeFactory.plannerCelRuntimeBuilder()
+            .setOptions(newBaseCelOptions())
+            .addLibraries(CelExtensions.optional())
+            .addFileTypes(TEST_FILE_DESCRIPTORS)
+            .build());
   }
 }

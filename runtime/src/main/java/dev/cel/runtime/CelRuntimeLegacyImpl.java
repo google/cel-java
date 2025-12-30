@@ -40,9 +40,10 @@ import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 // CEL-Internal-3
 import dev.cel.common.internal.ProtoMessageFactory;
+import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.values.CelValueProvider;
-import dev.cel.common.values.ProtoMessageValueProvider;
+import dev.cel.runtime.FunctionBindingImpl.DynamicDispatchBinding;
 import dev.cel.runtime.standard.AddOperator.AddOverload;
 import dev.cel.runtime.standard.IntFunction.IntOverload;
 import dev.cel.runtime.standard.TimestampFunction.TimestampOverload;
@@ -77,7 +78,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
   private final Function<String, Message.Builder> customTypeFactory;
 
   private final CelStandardFunctions overriddenStandardFunctions;
-  private final CelValueProvider celValueProvider;
   private final ImmutableSet<FileDescriptor> fileDescriptors;
 
   // This does not affect the evaluation behavior in any manner.
@@ -111,10 +111,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       builder.setStandardFunctions(overriddenStandardFunctions);
     }
 
-    if (celValueProvider != null) {
-      builder.setValueProvider(celValueProvider);
-    }
-
     return builder;
   }
 
@@ -134,7 +130,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     @VisibleForTesting final ImmutableSet.Builder<CelRuntimeLibrary> celRuntimeLibraries;
 
     @VisibleForTesting Function<String, Message.Builder> customTypeFactory;
-    @VisibleForTesting CelValueProvider celValueProvider;
     @VisibleForTesting CelStandardFunctions overriddenStandardFunctions;
 
     private CelOptions options;
@@ -188,14 +183,20 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     }
 
     @Override
-    public CelRuntimeBuilder setTypeFactory(Function<String, Message.Builder> typeFactory) {
-      this.customTypeFactory = typeFactory;
-      return this;
+    public CelRuntimeBuilder setTypeProvider(CelTypeProvider celTypeProvider) {
+      throw new UnsupportedOperationException(
+          "setTypeProvider is not supported for legacy runtime");
     }
 
     @Override
     public CelRuntimeBuilder setValueProvider(CelValueProvider celValueProvider) {
-      this.celValueProvider = celValueProvider;
+      throw new UnsupportedOperationException(
+          "setValueProvider is not supported for legacy runtime");
+    }
+
+    @Override
+    public CelRuntimeBuilder setTypeFactory(Function<String, Message.Builder> typeFactory) {
+      this.customTypeFactory = typeFactory;
       return this;
     }
 
@@ -281,6 +282,10 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
           ImmutableMap.builder();
       for (CelFunctionBinding standardFunctionBinding :
           newStandardFunctionBindings(runtimeEquality)) {
+        if (standardFunctionBinding instanceof DynamicDispatchBinding) {
+          continue;
+        }
+
         functionBindingsBuilder.put(
             standardFunctionBinding.getOverloadId(), standardFunctionBinding);
       }
@@ -295,19 +300,8 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
                   dispatcherBuilder.addOverload(
                       overloadId, func.getArgTypes(), func.isStrict(), func.getDefinition()));
 
-      RuntimeTypeProvider runtimeTypeProvider;
-
-      if (options.enableCelValue()) {
-        CelValueProvider messageValueProvider = celValueProvider;
-
-        if (messageValueProvider == null) {
-          messageValueProvider = ProtoMessageValueProvider.newInstance(options, dynamicProto);
-        }
-
-        runtimeTypeProvider = CelValueRuntimeTypeProvider.newInstance(messageValueProvider);
-      } else {
-        runtimeTypeProvider = new DescriptorMessageProvider(runtimeTypeFactory, options);
-      }
+      RuntimeTypeProvider runtimeTypeProvider =
+          new DescriptorMessageProvider(runtimeTypeFactory, options);
 
       DefaultInterpreter interpreter =
           new DefaultInterpreter(
@@ -323,7 +317,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
           extensionRegistry,
           customTypeFactory,
           overriddenStandardFunctions,
-          celValueProvider,
           fileDescriptors,
           runtimeLibraries,
           ImmutableList.copyOf(customFunctionBindings.values()));
@@ -366,7 +359,8 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
                           break;
                         default:
                           if (!options.enableHeterogeneousNumericComparisons()) {
-                            return !CelStandardFunctions.isHeterogeneousComparison(standardOverload);
+                            return !CelStandardFunctions.isHeterogeneousComparison(
+                                standardOverload);
                           }
                           break;
                       }
@@ -420,7 +414,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       ExtensionRegistry extensionRegistry,
       @Nullable Function<String, Message.Builder> customTypeFactory,
       @Nullable CelStandardFunctions overriddenStandardFunctions,
-      @Nullable CelValueProvider celValueProvider,
       ImmutableSet<FileDescriptor> fileDescriptors,
       ImmutableSet<CelRuntimeLibrary> celRuntimeLibraries,
       ImmutableList<CelFunctionBinding> celFunctionBindings) {
@@ -430,7 +423,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     this.extensionRegistry = extensionRegistry;
     this.customTypeFactory = customTypeFactory;
     this.overriddenStandardFunctions = overriddenStandardFunctions;
-    this.celValueProvider = celValueProvider;
     this.fileDescriptors = fileDescriptors;
     this.celRuntimeLibraries = celRuntimeLibraries;
     this.celFunctionBindings = celFunctionBindings;

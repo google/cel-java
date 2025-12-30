@@ -15,6 +15,7 @@
 package dev.cel.runtime.standard;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
@@ -34,12 +35,12 @@ public abstract class CelStandardFunction {
 
   public ImmutableSet<CelFunctionBinding> newFunctionBindings(
       CelOptions celOptions, RuntimeEquality runtimeEquality) {
-    ImmutableSet.Builder<CelFunctionBinding> builder = ImmutableSet.builder();
-    for (CelStandardOverload overload : overloads) {
-      builder.add(overload.newFunctionBinding(celOptions, runtimeEquality));
-    }
+    ImmutableSet<CelFunctionBinding> overloadBindings =
+        overloads.stream()
+            .map(overload -> overload.newFunctionBinding(celOptions, runtimeEquality))
+            .collect(toImmutableSet());
 
-    return builder.build();
+    return CelFunctionBinding.fromOverloads(name, overloadBindings);
   }
 
   CelStandardFunction(String name, ImmutableSet<CelStandardOverload> overloads) {
