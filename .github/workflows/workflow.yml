@@ -45,7 +45,7 @@ jobs:
       # -- Start of Maven Conformance Tests (Ran only when there's version changes) --
       - name: Get changed file
         id: changed_file
-        uses: tj-actions/changed-files@v44
+        uses: tj-actions/changed-files@v46
         with:
           files: publish/cel_version.bzl
       - name: Verify Version Consistency
