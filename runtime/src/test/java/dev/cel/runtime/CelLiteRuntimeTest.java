@@ -42,6 +42,7 @@ import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.internal.ProtoTimeUtils;
+import dev.cel.common.types.ProtoMessageLiteTypeProvider;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.values.CelByteString;
@@ -74,22 +75,29 @@ import org.junit.runner.RunWith;
 /** Exercises tests for CelLiteRuntime using <b>full version of protobuf messages</b>. */
 @RunWith(TestParameterInjector.class)
 public class CelLiteRuntimeTest {
+  private static final CelContainer CEL_CONTAINER =
+      CelContainer.ofName("cel.expr.conformance.proto3");
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
           .addVar("content", SimpleType.DYN)
           .addMessageTypes(TestAllTypes.getDescriptor())
-          .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
+          .setContainer(CEL_CONTAINER)
           .build();
 
   private static final CelLiteRuntime CEL_RUNTIME =
       CelLiteRuntimeFactory.newLiteRuntimeBuilder()
           .setStandardFunctions(CelStandardFunctions.ALL_STANDARD_FUNCTIONS)
+          .setTypeProvider(
+              ProtoMessageLiteTypeProvider.newInstance(
+                  dev.cel.expr.conformance.proto2.TestAllTypesCelDescriptor.getDescriptor(),
+                  TestAllTypesCelDescriptor.getDescriptor()))
           .setValueProvider(
               ProtoMessageLiteValueProvider.newInstance(
                   dev.cel.expr.conformance.proto2.TestAllTypesCelDescriptor.getDescriptor(),
                   TestAllTypesCelDescriptor.getDescriptor()))
+          .setContainer(CEL_CONTAINER)
           .build();
 
   @Test

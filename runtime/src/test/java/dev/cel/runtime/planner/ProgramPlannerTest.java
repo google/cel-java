@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.primitives.UnsignedLong;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
@@ -36,7 +35,6 @@ import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelSource;
-import dev.cel.common.Operator;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.internal.CelDescriptorPool;
 import dev.cel.common.internal.DefaultDescriptorPool;
@@ -65,32 +63,23 @@ import dev.cel.expr.conformance.proto3.GlobalEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.extensions.CelExtensions;
+import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
-import dev.cel.runtime.CelFunctionOverload;
-import dev.cel.runtime.CelResolvedOverload;
+import dev.cel.runtime.CelLateFunctionBindings;
+import dev.cel.runtime.CelStandardFunctions;
+import dev.cel.runtime.CelStandardFunctions.StandardFunction;
 import dev.cel.runtime.DefaultDispatcher;
 import dev.cel.runtime.Program;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
-import dev.cel.runtime.standard.AddOperator;
-import dev.cel.runtime.standard.CelStandardFunction;
-import dev.cel.runtime.standard.DivideOperator;
-import dev.cel.runtime.standard.DynFunction;
-import dev.cel.runtime.standard.EqualsOperator;
-import dev.cel.runtime.standard.GreaterEqualsOperator;
-import dev.cel.runtime.standard.GreaterOperator;
-import dev.cel.runtime.standard.IndexOperator;
-import dev.cel.runtime.standard.LessOperator;
-import dev.cel.runtime.standard.LogicalNotOperator;
-import dev.cel.runtime.standard.NotStrictlyFalseFunction;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public final class ProgramPlannerTest {
-  // Note that the following deps will be built from top-level builder APIs
+  // Note that the following deps are ordinarily built from top-level builder APIs
   private static final CelOptions CEL_OPTIONS = CelOptions.current().build();
   private static final CelTypeProvider TYPE_PROVIDER =
       new CombinedCelTypeProvider(
@@ -113,6 +102,12 @@ public final class ProgramPlannerTest {
           .setName("cel.expr.conformance.proto3")
           .addAbbreviations("really.long.abbr")
           .build();
+  private static final CelLateFunctionBindings LATE_FUNCTION_BINDINGS =
+      CelLateFunctionBindings.from(
+          CelFunctionBinding.fromOverloads(
+              "late_bound_func",
+              CelFunctionBinding.from(
+                  "late_bound_func_overload", String.class, (arg) -> arg + "_resolved")));
 
   private static final ProgramPlanner PLANNER =
       ProgramPlanner.newPlanner(
@@ -121,16 +116,23 @@ public final class ProgramPlannerTest {
           newDispatcher(),
           CEL_VALUE_CONVERTER,
           CEL_CONTAINER,
-          CEL_OPTIONS);
+          CEL_OPTIONS,
+          LATE_FUNCTION_BINDINGS);
 
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+          .addFunctionDeclarations(
+              newFunctionDeclaration(
+                  "late_bound_func",
+                  newGlobalOverload(
+                      "late_bound_func_overload", SimpleType.STRING, SimpleType.STRING)))
           .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
           .addVar("map_var", MapType.create(SimpleType.STRING, SimpleType.DYN))
           .addVar("int_var", SimpleType.INT)
           .addVar("dyn_var", SimpleType.DYN)
           .addVar("really.long.abbr.ident", SimpleType.DYN)
+          .setContainer(CEL_CONTAINER)
           .addFunctionDeclarations(
               newFunctionDeclaration("zero", newGlobalOverload("zero_overload", SimpleType.INT)),
               newFunctionDeclaration("error", newGlobalOverload("error_overload", SimpleType.INT)),
@@ -148,9 +150,8 @@ public final class ProgramPlannerTest {
                       "concat_bytes_bytes", SimpleType.BYTES, SimpleType.BYTES, SimpleType.BYTES),
                   newMemberOverload(
                       "bytes_concat_bytes", SimpleType.BYTES, SimpleType.BYTES, SimpleType.BYTES)))
+          .addLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.comprehensions())
           .addMessageTypes(TestAllTypes.getDescriptor())
-          .addLibraries(CelExtensions.optional(), CelExtensions.comprehensions())
-          .setContainer(CEL_CONTAINER)
           .build();
 
   /**
@@ -161,136 +162,88 @@ public final class ProgramPlannerTest {
     DefaultDispatcher.Builder builder = DefaultDispatcher.newBuilder();
 
     // Subsetted StdLib
-    addBindings(
-        builder, Operator.INDEX.getFunction(), fromStandardFunction(IndexOperator.create()));
-    addBindings(
-        builder,
-        Operator.LOGICAL_NOT.getFunction(),
-        fromStandardFunction(LogicalNotOperator.create()));
-    addBindings(builder, Operator.ADD.getFunction(), fromStandardFunction(AddOperator.create()));
-    addBindings(
-        builder, Operator.GREATER.getFunction(), fromStandardFunction(GreaterOperator.create()));
-    addBindings(
-        builder,
-        Operator.GREATER_EQUALS.getFunction(),
-        fromStandardFunction(GreaterEqualsOperator.create()));
-    addBindings(builder, Operator.LESS.getFunction(), fromStandardFunction(LessOperator.create()));
-    addBindings(
-        builder, Operator.DIVIDE.getFunction(), fromStandardFunction(DivideOperator.create()));
-    addBindings(
-        builder, Operator.EQUALS.getFunction(), fromStandardFunction(EqualsOperator.create()));
-    addBindings(
-        builder,
-        Operator.NOT_STRICTLY_FALSE.getFunction(),
-        fromStandardFunction(NotStrictlyFalseFunction.create()));
-    addBindings(builder, "dyn", fromStandardFunction(DynFunction.create()));
+    CelStandardFunctions stdFunctions =
+        CelStandardFunctions.newBuilder()
+            .includeFunctions(
+                StandardFunction.INDEX,
+                StandardFunction.LOGICAL_NOT,
+                StandardFunction.ADD,
+                StandardFunction.GREATER,
+                StandardFunction.GREATER_EQUALS,
+                StandardFunction.LESS,
+                StandardFunction.DIVIDE,
+                StandardFunction.EQUALS,
+                StandardFunction.NOT_STRICTLY_FALSE,
+                StandardFunction.DYN)
+            .build();
+    addBindingsToDispatcher(
+        builder, stdFunctions.newFunctionBindings(RUNTIME_EQUALITY, CEL_OPTIONS));
 
     // Custom functions
-    addBindings(
+    addBindingsToDispatcher(
         builder,
-        "zero",
-        CelFunctionBinding.from("zero_overload", ImmutableList.of(), (unused) -> 0L));
-    addBindings(
+        CelFunctionBinding.fromOverloads(
+            "zero", CelFunctionBinding.from("zero_overload", ImmutableList.of(), (unused) -> 0L)));
+
+    addBindingsToDispatcher(
         builder,
-        "error",
-        CelFunctionBinding.from(
-            "error_overload",
-            ImmutableList.of(),
-            (unused) -> {
-              throw new IllegalArgumentException("Intentional error");
-            }));
-    addBindings(
+        CelFunctionBinding.fromOverloads(
+            "error",
+            CelFunctionBinding.from(
+                "error_overload",
+                ImmutableList.of(),
+                (unused) -> {
+                  throw new IllegalArgumentException("Intentional error");
+                })));
+
+    addBindingsToDispatcher(
         builder,
-        "neg",
-        CelFunctionBinding.from("neg_int", Long.class, arg -> -arg),
-        CelFunctionBinding.from("neg_double", Double.class, arg -> -arg));
-    addBindings(
+        CelFunctionBinding.fromOverloads(
+            "neg",
+            CelFunctionBinding.from("neg_int", Long.class, arg -> -arg),
+            CelFunctionBinding.from("neg_double", Double.class, arg -> -arg)));
+
+    addBindingsToDispatcher(
         builder,
-        "cel.expr.conformance.proto3.power",
-        CelFunctionBinding.from(
-            "power_int_int",
-            Long.class,
-            Long.class,
-            (value, power) -> (long) Math.pow(value, power)));
-    addBindings(
+        CelFunctionBinding.fromOverloads(
+            "cel.expr.conformance.proto3.power",
+            CelFunctionBinding.from(
+                "power_int_int",
+                Long.class,
+                Long.class,
+                (value, power) -> (long) Math.pow(value, power))));
+
+    addBindingsToDispatcher(
         builder,
-        "concat",
-        CelFunctionBinding.from(
-            "concat_bytes_bytes",
-            CelByteString.class,
-            CelByteString.class,
-            ProgramPlannerTest::concatenateByteArrays),
-        CelFunctionBinding.from(
-            "bytes_concat_bytes",
-            CelByteString.class,
-            CelByteString.class,
-            ProgramPlannerTest::concatenateByteArrays));
+        CelFunctionBinding.fromOverloads(
+            "concat",
+            CelFunctionBinding.from(
+                "concat_bytes_bytes",
+                CelByteString.class,
+                CelByteString.class,
+                ProgramPlannerTest::concatenateByteArrays),
+            CelFunctionBinding.from(
+                "bytes_concat_bytes",
+                CelByteString.class,
+                CelByteString.class,
+                ProgramPlannerTest::concatenateByteArrays)));
 
     return builder.build();
   }
 
-  private static void addBindings(
-      DefaultDispatcher.Builder builder,
-      String functionName,
-      CelFunctionBinding... functionBindings) {
-    addBindings(builder, functionName, ImmutableSet.copyOf(functionBindings));
-  }
-
-  private static void addBindings(
-      DefaultDispatcher.Builder builder,
-      String functionName,
-      ImmutableCollection<CelFunctionBinding> overloadBindings) {
+  private static void addBindingsToDispatcher(
+      DefaultDispatcher.Builder builder, ImmutableCollection<CelFunctionBinding> overloadBindings) {
     if (overloadBindings.isEmpty()) {
       throw new IllegalArgumentException("Invalid bindings");
     }
-    // TODO: Runtime top-level APIs currently does not allow grouping overloads with
-    // the function name. This capability will have to be added.
-    if (overloadBindings.size() == 1) {
-      CelFunctionBinding singleBinding = Iterables.getOnlyElement(overloadBindings);
-      builder.addOverload(
-          functionName,
-          singleBinding.getArgTypes(),
-          singleBinding.isStrict(),
-          args -> guardedOp(functionName, args, singleBinding));
-    } else {
-      overloadBindings.forEach(
-          overload ->
-              builder.addOverload(
-                  overload.getOverloadId(),
-                  overload.getArgTypes(),
-                  overload.isStrict(),
-                  args -> guardedOp(functionName, args, overload)));
 
-      // Setup dynamic dispatch
-      CelFunctionOverload dynamicDispatchDef =
-          args -> {
-            for (CelFunctionBinding overload : overloadBindings) {
-              if (CelResolvedOverload.canHandle(
-                  args, overload.getArgTypes(), overload.isStrict())) {
-                return overload.getDefinition().apply(args);
-              }
-            }
-
-            throw new IllegalArgumentException(
-                "No matching overload for function: " + functionName);
-          };
-
-      boolean allOverloadsStrict = overloadBindings.stream().allMatch(CelFunctionBinding::isStrict);
-      builder.addOverload(
-          functionName, ImmutableList.of(), /* isStrict= */ allOverloadsStrict, dynamicDispatchDef);
-    }
-  }
-
-  /** Creates an invocation guard around the overload definition. */
-  private static Object guardedOp(
-      String functionName, Object[] args, CelFunctionBinding singleBinding)
-      throws CelEvaluationException {
-    if (!CelResolvedOverload.canHandle(
-        args, singleBinding.getArgTypes(), singleBinding.isStrict())) {
-      throw new IllegalArgumentException("No matching overload for function: " + functionName);
-    }
-
-    return singleBinding.getDefinition().apply(args);
+    overloadBindings.forEach(
+        overload ->
+            builder.addOverload(
+                overload.getOverloadId(),
+                overload.getArgTypes(),
+                overload.isStrict(),
+                overload.getDefinition()));
   }
 
   @TestParameter boolean isParseOnly;
@@ -618,6 +571,17 @@ public final class ProgramPlannerTest {
   }
 
   @Test
+  public void plan_call_lateBoundFunction() throws Exception {
+    CelAbstractSyntaxTree ast = compile("late_bound_func('test')");
+
+    Program program = PLANNER.plan(ast);
+
+    String result = (String) program.eval(ImmutableMap.of(), LATE_FUNCTION_BINDINGS);
+
+    assertThat(result).isEqualTo("test_resolved");
+  }
+
+  @Test
   public void plan_select_protoMessageField() throws Exception {
     CelAbstractSyntaxTree ast = compile("msg.single_string");
     Program program = PLANNER.plan(ast);
@@ -818,7 +782,8 @@ public final class ProgramPlannerTest {
             newDispatcher(),
             CEL_VALUE_CONVERTER,
             CEL_CONTAINER,
-            options);
+            options,
+            LATE_FUNCTION_BINDINGS);
     CelAbstractSyntaxTree ast = compile(expression);
 
     Program program = planner.plan(ast);
@@ -838,7 +803,8 @@ public final class ProgramPlannerTest {
             newDispatcher(),
             CEL_VALUE_CONVERTER,
             CEL_CONTAINER,
-            options);
+            options,
+            LATE_FUNCTION_BINDINGS);
     CelAbstractSyntaxTree ast = compile("[1, 2, 3].map(x, [1, 2].map(y, x + y))");
 
     Program program = planner.plan(ast);
@@ -869,11 +835,6 @@ public final class ProgramPlannerTest {
     }
 
     return bytes1.concat(bytes2);
-  }
-
-  private static ImmutableSet<CelFunctionBinding> fromStandardFunction(
-      CelStandardFunction standardFunction) {
-    return standardFunction.newFunctionBindings(CEL_OPTIONS, RUNTIME_EQUALITY);
   }
 
   @SuppressWarnings("ImmutableEnumChecker") // Test only

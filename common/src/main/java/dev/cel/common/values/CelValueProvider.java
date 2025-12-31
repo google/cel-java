@@ -27,4 +27,8 @@ public interface CelValueProvider {
    * a wrapper.
    */
   Optional<Object> newValue(String structType, Map<String, Object> fields);
+
+  default CelValueConverter celValueConverter() {
+    return CelValueConverter.getDefaultInstance();
+  }
 }

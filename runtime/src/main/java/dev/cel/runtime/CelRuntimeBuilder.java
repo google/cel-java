@@ -22,6 +22,7 @@ import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import dev.cel.common.CelOptions;
+import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.values.CelValueProvider;
 import java.util.function.Function;
 
@@ -124,6 +125,13 @@ public interface CelRuntimeBuilder {
   CelRuntimeBuilder addFileTypes(FileDescriptorSet fileDescriptorSet);
 
   /**
+   * Sets the {@link CelTypeProvider} for resolving CEL types during evaluation, such as a fully
+   * qualified type name to a struct or an enum value.
+   */
+  @CanIgnoreReturnValue
+  CelRuntimeBuilder setTypeProvider(CelTypeProvider celTypeProvider);
+
+  /**
    * Set a custom type factory for the runtime.
    *
    * <p>Note: it is valid to combine type factory methods within the runtime. Only the options which
@@ -145,7 +153,7 @@ public interface CelRuntimeBuilder {
    * support proto messages in addition to custom struct values, protobuf value provider must be
    * configured first before the custom value provider.
    *
-   * <p>Note {@link CelOptions#enableCelValue()} must be enabled or this method will be a no-op.
+   * <p>Note that this option is only supported for planner-based runtime.
    */
   @CanIgnoreReturnValue
   CelRuntimeBuilder setValueProvider(CelValueProvider celValueProvider);

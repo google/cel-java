@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_library")
+load("//:cel_android_rules.bzl", "cel_android_library")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -23,6 +24,7 @@ java_library(
         ":eval_create_map",
         ":eval_create_struct",
         ":eval_fold",
+        ":eval_late_bound_call",
         ":eval_or",
         ":eval_test_only",
         ":eval_unary",
@@ -47,11 +49,61 @@ java_library(
         "//runtime:dispatcher",
         "//runtime:evaluation_exception",
         "//runtime:evaluation_exception_builder",
+        "//runtime:late_function_binding",
         "//runtime:program",
         "//runtime:resolved_overload",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "program_planner_android",
+    srcs = ["ProgramPlanner.java"],
+    tags = [
+    ],
+    deps = [
+        ":attribute_android",
+        ":error_metadata_android",
+        ":eval_and_android",
+        ":eval_attribute_android",
+        ":eval_conditional_android",
+        ":eval_const_android",
+        ":eval_create_list_android",
+        ":eval_create_map_android",
+        ":eval_create_struct_android",
+        ":eval_fold_android",
+        ":eval_late_bound_call_android",
+        ":eval_or_android",
+        ":eval_test_only_android",
+        ":eval_unary_android",
+        ":eval_var_args_call_android",
+        ":eval_zero_arity_android",
+        ":interpretable_attribute_android",
+        ":planned_interpretable_android",
+        ":planned_program_android",
+        ":qualifier_android",
+        ":string_qualifier_android",
+        "//:auto_value",
+        "//common:cel_ast_android",
+        "//common:container_android",
+        "//common:operator_android",
+        "//common:options",
+        "//common/annotations",
+        "//common/ast:ast_android",
+        "//common/types:type_providers_android",
+        "//common/types:types_android",
+        "//common/values:cel_value_provider_android",
+        "//common/values:values_android",
+        "//runtime:dispatcher_android",
+        "//runtime:evaluation_exception",
+        "//runtime:evaluation_exception_builder",
+        "//runtime:late_function_binding_android",
+        "//runtime:program_android",
+        "//runtime:resolved_overload_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
     ],
 )
 
@@ -67,13 +119,38 @@ java_library(
         "//common:options",
         "//common:runtime_exception",
         "//common/values",
-        "//runtime",
         "//runtime:activation",
         "//runtime:evaluation_exception",
         "//runtime:evaluation_exception_builder",
         "//runtime:function_resolver",
         "//runtime:interpretable",
         "//runtime:program",
+        "//runtime:resolved_overload",
+        "//runtime:variable_resolver",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+cel_android_library(
+    name = "planned_program_android",
+    srcs = ["PlannedProgram.java"],
+    deps = [
+        ":error_metadata_android",
+        ":execution_frame_android",
+        ":planned_interpretable_android",
+        ":strict_error_exception",
+        "//:auto_value",
+        "//common:options",
+        "//common:runtime_exception",
+        "//common/values:values_android",
+        "//runtime:activation_android",
+        "//runtime:evaluation_exception",
+        "//runtime:evaluation_exception_builder",
+        "//runtime:interpretable_android",
+        "//runtime:program_android",
+        "//runtime:resolved_overload_android",
+        "//runtime:variable_resolver",
+        "//runtime/src/main/java/dev/cel/runtime:function_resolver_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
@@ -92,6 +169,20 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "eval_const_android",
+    srcs = ["EvalConstant.java"],
+    deps = [
+        ":execution_frame_android",
+        ":planned_interpretable_android",
+        "//common/values:cel_byte_string",
+        "//common/values:values_android",
+        "//runtime:interpretable_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
 java_library(
     name = "interpretable_attribute",
     srcs = ["InterpretableAttribute.java"],
@@ -102,16 +193,28 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "interpretable_attribute_android",
+    srcs = ["InterpretableAttribute.java"],
+    deps = [
+        ":planned_interpretable_android",
+        ":qualifier_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+ATTRIBUTE_SOURCES = [
+    "Attribute.java",
+    "AttributeFactory.java",
+    "MaybeAttribute.java",
+    "MissingAttribute.java",
+    "NamespacedAttribute.java",
+    "RelativeAttribute.java",
+]
+
 java_library(
     name = "attribute",
-    srcs = [
-        "Attribute.java",
-        "AttributeFactory.java",
-        "MaybeAttribute.java",
-        "MissingAttribute.java",
-        "NamespacedAttribute.java",
-        "RelativeAttribute.java",
-    ],
+    srcs = ATTRIBUTE_SOURCES,
     deps = [
         ":eval_helpers",
         ":execution_frame",
@@ -129,8 +232,36 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "attribute_android",
+    srcs = ATTRIBUTE_SOURCES,
+    deps = [
+        ":eval_helpers_android",
+        ":execution_frame_android",
+        ":planned_interpretable_android",
+        ":qualifier_android",
+        "//common/exceptions:attribute_not_found",
+        "//common/src/main/java/dev/cel/common:container_android",
+        "//common/types:type_providers_android",
+        "//common/types:types_android",
+        "//common/values:cel_value_android",
+        "//common/values:values_android",
+        "//runtime:interpretable_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
 java_library(
     name = "qualifier",
+    srcs = ["Qualifier.java"],
+    deps = [
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+cel_android_library(
+    name = "qualifier_android",
     srcs = ["Qualifier.java"],
     deps = [
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -144,6 +275,18 @@ java_library(
         ":attribute",
         ":qualifier",
         "//common/values",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+cel_android_library(
+    name = "presence_test_qualifier_android",
+    srcs = ["PresenceTestQualifier.java"],
+    deps = [
+        ":attribute_android",
+        ":qualifier_android",
+        "//common/values:values_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
 
@@ -154,6 +297,18 @@ java_library(
         ":qualifier",
         "//common/exceptions:attribute_not_found",
         "//common/values",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+cel_android_library(
+    name = "string_qualifier_android",
+    srcs = ["StringQualifier.java"],
+    deps = [
+        ":qualifier_android",
+        "//common/exceptions:attribute_not_found",
+        "//common/values:values_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
 
@@ -171,6 +326,19 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "eval_attribute_android",
+    srcs = ["EvalAttribute.java"],
+    deps = [
+        ":attribute_android",
+        ":execution_frame_android",
+        ":interpretable_attribute_android",
+        ":qualifier_android",
+        "//runtime:interpretable_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
 java_library(
     name = "eval_test_only",
     srcs = ["EvalTestOnly.java"],
@@ -181,6 +349,20 @@ java_library(
         ":qualifier",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+cel_android_library(
+    name = "eval_test_only_android",
+    srcs = ["EvalTestOnly.java"],
+    deps = [
+        ":execution_frame_android",
+        ":interpretable_attribute_android",
+        ":presence_test_qualifier_android",
+        ":qualifier_android",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
@@ -197,6 +379,18 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "eval_zero_arity_android",
+    srcs = ["EvalZeroArity.java"],
+    deps = [
+        ":execution_frame_android",
+        ":planned_interpretable_android",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable_android",
+        "//runtime:resolved_overload_android",
+    ],
+)
+
 java_library(
     name = "eval_unary",
     srcs = ["EvalUnary.java"],
@@ -207,6 +401,19 @@ java_library(
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
         "//runtime:resolved_overload",
+    ],
+)
+
+cel_android_library(
+    name = "eval_unary_android",
+    srcs = ["EvalUnary.java"],
+    deps = [
+        ":eval_helpers_android",
+        ":execution_frame_android",
+        ":planned_interpretable_android",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable_android",
+        "//runtime:resolved_overload_android",
     ],
 )
 
@@ -223,6 +430,47 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "eval_var_args_call_android",
+    srcs = ["EvalVarArgsCall.java"],
+    deps = [
+        ":eval_helpers_android",
+        ":execution_frame_android",
+        ":planned_interpretable_android",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable_android",
+        "//runtime:resolved_overload_android",
+    ],
+)
+
+java_library(
+    name = "eval_late_bound_call",
+    srcs = ["EvalLateBoundCall.java"],
+    deps = [
+        ":eval_helpers",
+        ":execution_frame",
+        ":planned_interpretable",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable",
+        "//runtime:resolved_overload",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "eval_late_bound_call_android",
+    srcs = ["EvalLateBoundCall.java"],
+    deps = [
+        ":eval_helpers_android",
+        ":execution_frame_android",
+        ":planned_interpretable_android",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable_android",
+        "//runtime:resolved_overload_android",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
 java_library(
     name = "eval_or",
     srcs = ["EvalOr.java"],
@@ -233,6 +481,19 @@ java_library(
         "//common/values",
         "//runtime:interpretable",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "eval_or_android",
+    srcs = ["EvalOr.java"],
+    deps = [
+        ":eval_helpers_android",
+        ":execution_frame_android",
+        ":planned_interpretable_android",
+        "//common/values:values_android",
+        "//runtime:interpretable_android",
+        "@maven_android//:com_google_guava_guava",
     ],
 )
 
@@ -249,6 +510,19 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "eval_and_android",
+    srcs = ["EvalAnd.java"],
+    deps = [
+        ":eval_helpers_android",
+        ":execution_frame_android",
+        ":planned_interpretable_android",
+        "//common/values:values_android",
+        "//runtime:interpretable_android",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
 java_library(
     name = "eval_conditional",
     srcs = ["EvalConditional.java"],
@@ -258,6 +532,18 @@ java_library(
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "eval_conditional_android",
+    srcs = ["EvalConditional.java"],
+    deps = [
+        ":execution_frame_android",
+        ":planned_interpretable_android",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable_android",
+        "@maven_android//:com_google_guava_guava",
     ],
 )
 
@@ -277,6 +563,21 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "eval_create_struct_android",
+    srcs = ["EvalCreateStruct.java"],
+    deps = [
+        ":execution_frame_android",
+        ":planned_interpretable_android",
+        "//common/types:types_android",
+        "//common/values:cel_value_provider_android",
+        "//common/values:values_android",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
 java_library(
     name = "eval_create_list",
     srcs = ["EvalCreateList.java"],
@@ -290,6 +591,19 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "eval_create_list_android",
+    srcs = ["EvalCreateList.java"],
+    deps = [
+        ":execution_frame_android",
+        ":planned_interpretable_android",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
 java_library(
     name = "eval_create_map",
     srcs = ["EvalCreateMap.java"],
@@ -300,6 +614,19 @@ java_library(
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "eval_create_map_android",
+    srcs = ["EvalCreateMap.java"],
+    deps = [
+        ":execution_frame_android",
+        ":planned_interpretable_android",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
     ],
 )
 
@@ -318,14 +645,42 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "eval_fold_android",
+    srcs = ["EvalFold.java"],
+    deps = [
+        ":execution_frame_android",
+        ":planned_interpretable_android",
+        "//runtime:concatenated_list_view",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:org_jspecify_jspecify",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
 java_library(
     name = "execution_frame",
     srcs = ["ExecutionFrame.java"],
     deps = [
         "//common:options",
         "//common/exceptions:iteration_budget_exceeded",
-        "//runtime:interpretable",
-        "@maven//:org_jspecify_jspecify",
+        "//runtime:evaluation_exception",
+        "//runtime:function_resolver",
+        "//runtime:resolved_overload",
+    ],
+)
+
+cel_android_library(
+    name = "execution_frame_android",
+    srcs = ["ExecutionFrame.java"],
+    deps = [
+        "//common:options",
+        "//common/exceptions:iteration_budget_exceeded",
+        "//runtime:evaluation_exception",
+        "//runtime:resolved_overload_android",
+        "//runtime/src/main/java/dev/cel/runtime:function_resolver_android",
     ],
 )
 
@@ -343,9 +698,24 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "eval_helpers_android",
+    srcs = ["EvalHelpers.java"],
+    deps = [
+        ":execution_frame_android",
+        ":planned_interpretable_android",
+        ":strict_error_exception",
+        "//common:error_codes",
+        "//common:runtime_exception",
+        "//common/values:values_android",
+        "//runtime:interpretable_android",
+    ],
+)
+
 java_library(
     name = "strict_error_exception",
     srcs = ["StrictErrorException.java"],
+    # used_by_android
     deps = [
         "//common:error_codes",
         "//common:runtime_exception",
@@ -362,6 +732,16 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "error_metadata_android",
+    srcs = ["ErrorMetadata.java"],
+    deps = [
+        "//runtime:metadata",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
 java_library(
     name = "planned_interpretable",
     srcs = ["PlannedInterpretable.java"],
@@ -369,6 +749,17 @@ java_library(
         ":execution_frame",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+cel_android_library(
+    name = "planned_interpretable_android",
+    srcs = ["PlannedInterpretable.java"],
+    deps = [
+        ":execution_frame_android",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )

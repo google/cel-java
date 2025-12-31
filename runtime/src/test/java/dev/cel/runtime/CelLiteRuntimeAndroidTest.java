@@ -124,7 +124,7 @@ public class CelLiteRuntimeAndroidTest {
 
   @Test
   public void toRuntimeBuilder_propertiesCopied() {
-    CelOptions celOptions = CelOptions.current().enableCelValue(true).build();
+    CelOptions celOptions = CelOptions.current().build();
     CelLiteRuntimeLibrary runtimeExtension =
         CelLiteExtensions.sets(celOptions, SetsFunction.INTERSECTS);
     CelValueProvider celValueProvider = ProtoMessageLiteValueProvider.newInstance();
@@ -712,7 +712,6 @@ public class CelLiteRuntimeAndroidTest {
   }
 
   private enum CelOptionsTestCase {
-    CEL_VALUE_DISABLED(newBaseTestOptions().enableCelValue(false).build()),
     UNSIGNED_LONG_DISABLED(newBaseTestOptions().enableUnsignedLongs(false).build()),
     UNWRAP_WKT_DISABLED(newBaseTestOptions().unwrapWellKnownTypesOnFunctionDispatch(false).build()),
     STRING_CONCAT_DISABLED(newBaseTestOptions().enableStringConcatenation(false).build()),
@@ -723,7 +722,7 @@ public class CelLiteRuntimeAndroidTest {
     private final CelOptions celOptions;
 
     private static CelOptions.Builder newBaseTestOptions() {
-      return CelOptions.current().enableCelValue(true);
+      return CelOptions.current();
     }
 
     CelOptionsTestCase(CelOptions celOptions) {

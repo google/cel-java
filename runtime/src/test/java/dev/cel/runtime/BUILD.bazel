@@ -19,8 +19,8 @@ java_library(
         # keep sorted
         exclude = [
             "CelLiteInterpreterTest.java",
-            "CelValueInterpreterTest.java",
             "InterpreterTest.java",
+            "PlannerInterpreterTest.java",
         ] + ANDROID_TESTS,
     ),
     deps = [
@@ -48,6 +48,7 @@ java_library(
         "//common/internal:well_known_proto",
         "//common/types",
         "//common/types:cel_v1alpha1_types",
+        "//common/types:message_lite_type_provider",
         "//common/types:message_type_provider",
         "//common/values",
         "//common/values:cel_byte_string",
@@ -122,16 +123,17 @@ java_library(
 )
 
 java_library(
-    name = "cel_value_interpreter_test",
+    name = "planner_interpreter_test",
     testonly = 1,
     srcs = [
-        "CelValueInterpreterTest.java",
+        "PlannerInterpreterTest.java",
     ],
     deps = [
-        #         "//java/com/google/testing/testsize:annotations",
+        "//extensions",
+        "//runtime",
         "//testing:base_interpreter_test",
-        "@maven//:junit_junit",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -155,6 +157,7 @@ cel_android_local_test(
         "//runtime:lite_runtime_android",
         "//runtime:lite_runtime_factory_android",
         "//runtime:lite_runtime_impl_android",
+        "//runtime:program_android",
         "//runtime:standard_functions_android",
         "//runtime:unknown_attributes_android",
         "//runtime/src/main/java/dev/cel/runtime:program_android",
@@ -200,8 +203,8 @@ junit4_test_suites(
     src_dir = "src/test/java",
     deps = [
         ":cel_lite_interpreter_test",
-        ":cel_value_interpreter_test",
         ":interpreter_test",
+        ":planner_interpreter_test",
         ":tests",
     ],
 )
