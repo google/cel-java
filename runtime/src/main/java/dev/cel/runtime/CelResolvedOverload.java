@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.annotations.Internal;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Representation of a function overload which has been resolved to a specific set of argument types
@@ -80,41 +79,6 @@ public abstract class CelResolvedOverload {
    * Returns true if the overload's expected argument types match the types of the given arguments.
    */
   boolean canHandle(Object[] arguments) {
-    return canHandle(arguments, getParameterTypes(), isStrict());
-  }
-
-  /**
-   * Returns true if the overload's expected argument types match the types of the given arguments.
-   */
-  public static boolean canHandle(
-      Object[] arguments, ImmutableList<Class<?>> parameterTypes, boolean isStrict) {
-    if (parameterTypes.size() != arguments.length) {
-      return false;
-    }
-    for (int i = 0; i < parameterTypes.size(); i++) {
-      Class<?> paramType = parameterTypes.get(i);
-      Object arg = arguments[i];
-      if (arg == null) {
-        // null can be assigned to messages, maps, and to objects.
-        // TODO: Remove null special casing
-        if (paramType != Object.class && !Map.class.isAssignableFrom(paramType)) {
-          return false;
-        }
-        continue;
-      }
-
-      if (arg instanceof Exception || arg instanceof CelUnknownSet) {
-        // Only non-strict functions can accept errors/unknowns as arguments to a function
-        if (!isStrict) {
-          // Skip assignability check below, but continue to validate remaining args
-          continue;
-        }
-      }
-
-      if (!paramType.isAssignableFrom(arg.getClass())) {
-        return false;
-      }
-    }
-    return true;
+    return CelFunctionOverload.canHandle(arguments, getParameterTypes(), isStrict());
   }
 }
