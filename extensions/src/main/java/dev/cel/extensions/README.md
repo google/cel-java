@@ -351,6 +351,228 @@ Examples:
     math.sqrt(4)     // returns 2.0
     math.sqrt(-4)    // returns NaN
 
+## Network
+
+The Network extension provides types and functions for working with IP addresses
+and CIDR ranges. It introduces two opaque types: `net.IP` and `net.CIDR`.
+
+**Types**
+
+*   `net.IP`: Represents an IP address (either IPv4 or IPv6).
+*   `net.CIDR`: Represents a CIDR range, retaining the original host and prefix length.
+
+**Functions**
+
+### isIP
+
+Checks if a string is a valid IP address (IPv4 or IPv6). Excludes addresses with
+ports or zone indices.
+
+    isIP(<string>) -> <bool>
+
+Examples:
+
+    isIP("192.168.0.1")  // returns true
+    isIP("2001:db8::1")   // returns true
+    isIP("192.168.0.256") // returns false
+    isIP("1.2.3.4:80")    // returns false
+
+### ip
+
+Converts a string to a `net.IP` object. Throws an error if the string is not a
+valid IP address.
+
+    ip(<string>) -> <net.IP>
+
+Examples:
+
+    ip("127.0.0.1")     // returns net.IP object
+    ip("2001:db8::1")   // returns net.IP object
+    ip("invalid")       // error
+
+### isCIDR
+
+Checks if a string is a valid CIDR notation (e.g., "192.168.0.0/24").
+
+    isCIDR(<string>) -> <bool>
+
+Examples:
+
+    isCIDR("192.168.0.0/24")  // returns true
+    isCIDR("2001:db8::/32")   // returns true
+    isCIDR("192.168.0.0/33") // returns false
+    isCIDR("192.168.0.0")    // returns false
+
+### cidr
+
+Converts a string in CIDR notation to a `net.CIDR` object. Throws an error if
+the string is not valid CIDR notation.
+
+    cidr(<string>) -> <net.CIDR>
+
+Examples:
+
+    cidr("192.168.1.0/24")   // returns net.CIDR object
+    cidr("2001:db8::/48")    // returns net.CIDR object
+    cidr("192.168.1.0/33")   // error
+
+### ip.isCanonical
+
+Checks if a string is the canonical representation of an IP address.
+
+    ip.isCanonical(<string>) -> <bool>
+
+Examples:
+
+    ip.isCanonical("192.168.0.1")       // returns true
+    ip.isCanonical("2001:db8::1")        // returns true
+    ip.isCanonical("2001:db8:0:0:0:0:0:1") // returns false (not canonical)
+    ip.isCanonical("127.00.0.1")         // returns false (not canonical)
+
+### family
+
+Returns the IP family of a `net.IP` object as an integer (4 for IPv4, 6 for
+IPv6).
+
+    <net.IP>.family() -> <int>
+
+Examples:
+
+    ip("192.168.0.1").family()  // returns 4
+    ip("2001:db8::1").family()   // returns 6
+
+### isLoopback
+
+Checks if the `net.IP` object is a loopback address.
+
+    <net.IP>.isLoopback() -> <bool>
+
+Examples:
+
+    ip("127.0.0.1").isLoopback()  // returns true
+    ip("::1").isLoopback()       // returns true
+    ip("8.8.8.8").isLoopback()   // returns false
+
+### isGlobalUnicast
+
+Checks if the `net.IP` object is a global unicast address.
+
+    <net.IP>.isGlobalUnicast() -> <bool>
+
+Examples:
+
+    ip("8.8.8.8").isGlobalUnicast()      // returns true
+    ip("192.168.0.1").isGlobalUnicast()  // returns false (private)
+    ip("127.0.0.1").isGlobalUnicast()   // returns false (loopback)
+
+### isLinkLocalMulticast
+
+Checks if the `net.IP` object is a link-local multicast address.
+
+    <net.IP>.isLinkLocalMulticast() -> <bool>
+
+Examples:
+
+    ip("ff02::1").isLinkLocalMulticast()  // returns true
+    ip("224.0.0.1").isLinkLocalMulticast() // returns false
+
+### isLinkLocalUnicast
+
+Checks if the `net.IP` object is a link-local unicast address.
+
+    <net.IP>.isLinkLocalUnicast() -> <bool>
+
+Examples:
+
+    ip("169.254.0.1").isLinkLocalUnicast()  // returns true
+    ip("fe80::1").isLinkLocalUnicast()     // returns true
+    ip("192.168.0.1").isLinkLocalUnicast()  // returns false
+
+### isUnspecified
+
+Checks if the `net.IP` object is an unspecified address
+(e.g., "0.0.0.0" or "::").
+
+    <net.IP>.isUnspecified() -> <bool>
+
+Examples:
+
+    ip("0.0.0.0").isUnspecified()  // returns true
+    ip("::").isUnspecified()       // returns true
+    ip("1.2.3.4").isUnspecified()  // returns false
+
+### string
+
+Converts a `net.IP` or `net.CIDR` object to its string representation.
+
+    <net.IP>.string() -> <string>
+    <net.CIDR>.string() -> <string>
+
+Examples:
+
+    ip("1.2.3.4").string()          // returns "1.2.3.4"
+    cidr("10.0.0.0/8").string()     // returns "10.0.0.0/8"
+    cidr("10.0.0.1/8").string()     // returns "10.0.0.1/8"
+
+### ip (CIDR member)
+
+Returns the original base `net.IP` object from a `net.CIDR` object.
+
+    <net.CIDR>.ip() -> <net.IP>
+
+Example:
+
+    cidr("192.168.1.5/24").ip()  // returns ip("192.168.1.5")
+
+### containsIP
+
+Checks if a `net.CIDR` range contains the given IP address (either as a `net.IP`
+object or a string).
+
+    <net.CIDR>.containsIP(<net.IP>) -> <bool>
+    <net.CIDR>.containsIP(<string>) -> <bool>
+
+Examples:
+
+    cidr("10.0.0.0/8").containsIP(ip("10.1.2.3")) // returns true
+    cidr("10.0.0.0/8").containsIP("10.1.2.3")     // returns true
+    cidr("10.0.0.0/8").containsIP("11.0.0.1")     // returns false
+
+### containsCIDR
+
+Checks if a `net.CIDR` range completely contains another CIDR range (either as a
+`net.CIDR` object or a string).
+
+    <net.CIDR>.containsCIDR(<net.CIDR>) -> <bool>
+    <net.CIDR>.containsCIDR(<string>) -> <bool>
+
+Examples:
+
+    cidr("10.0.0.0/8").containsCIDR(cidr("10.1.0.0/16")) // returns true
+    cidr("10.0.0.0/8").containsCIDR("10.1.0.0/16")     // returns true
+    cidr("10.1.0.0/16").containsCIDR("10.0.0.0/8")     // returns false
+
+### masked
+
+Returns a new `net.CIDR` object representing the network range with the host
+bits masked off.
+
+    <net.CIDR>.masked() -> <net.CIDR>
+
+Example:
+
+    cidr("192.168.1.5/24").masked()  // returns cidr("192.168.1.0/24")
+
+### prefixLength
+
+Returns the prefix length of the `net.CIDR` object.
+
+    <net.CIDR>.prefixLength() -> <int>
+
+Example:
+
+    cidr("192.168.1.0/24").prefixLength() // returns 24
+
 ## Protos
 
 Extended macros and functions for proto manipulation.
@@ -392,8 +614,8 @@ zero-based.
 
 ### CharAt
 
-Returns the character at the given position. If the position is negative, or greater than
-the length of the string, the function will produce an error.
+Returns the character at the given position. If the position is negative, or
+greater than the length of the string, the function will produce an error.
 
     <string>.charAt(<int>) -> <string>
 
@@ -405,11 +627,12 @@ Examples:
 
 ### IndexOf
 
-Returns the integer index of the first occurrence of the search string. If the search string is
-not found the function returns -1.
+Returns the integer index of the first occurrence of the search string. If the
+search string is not found the function returns -1.
 
-The function also accepts an optional offset from which to begin the substring search. If the
-substring is the empty string, the index where the search starts is returned (zero or custom).
+The function also accepts an optional offset from which to begin the substring
+search. If the substring is the empty string, the index where the search starts
+is returned (zero or custom).
 
     <string>.indexOf(<string>) -> <int>
     <string>.indexOf(<string>, <int>) -> <int>
@@ -427,7 +650,8 @@ Examples:
 
 Returns a new string where the elements of string list are concatenated.
 
-The function also accepts an optional separator which is placed between elements in the resulting string.
+The function also accepts an optional separator which is placed between elements
+in the resulting string.
 
     <list<string>>.join() -> <string>
     <list<string>>.join(<string>) -> <string>
@@ -495,8 +719,8 @@ Examples:
 
 ### Split
 
-Returns a mutable list of strings split from the input by the given separator. The
-function accepts an optional argument specifying a limit on the number of
+Returns a mutable list of strings split from the input by the given separator.
+The function accepts an optional argument specifying a limit on the number of
 substrings produced by the split.
 
 When the split limit is 0, the result is an empty list. When the limit is 1,
@@ -682,7 +906,8 @@ Examples:
 
 Introduced at version: 1
 
-Flattens a list by one level, or to the specified level. Providing a negative level will error.
+Flattens a list by one level, or to the specified level. Providing a negative
+level will error.
 
 Examples:
 

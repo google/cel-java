@@ -34,6 +34,7 @@ java_library(
         ":encoders",
         ":lists",
         ":math",
+        ":network",
         ":optional_library",
         ":protos",
         ":regex",
@@ -128,6 +129,25 @@ java_library(
         "//compiler:compiler_builder",
         "//parser:macro",
         "//parser:parser_builder",
+        "//runtime",
+        "//runtime:function_binding",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "network",
+    srcs = ["CelNetworkExtensions.java"],
+    deps = [
+        ":extension_library",
+        "//checker:checker_builder",
+        "//common:compiler_common",
+        "//common/types",
+        "//common/types:type_providers",
+        "//compiler:compiler_builder",
+        "//java/com/google/common/net",
+        "//java/com/google/net/base:base-core",
         "//runtime",
         "//runtime:function_binding",
         "@maven//:com_google_errorprone_error_prone_annotations",

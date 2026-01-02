@@ -36,6 +36,7 @@ public final class CelExtensions {
   private static final CelRegexExtensions REGEX_EXTENSIONS = new CelRegexExtensions();
   private static final CelComprehensionsExtensions COMPREHENSIONS_EXTENSIONS =
       new CelComprehensionsExtensions();
+  private static final CelNetworkExtensions NETWORK_EXTENSIONS = new CelNetworkExtensions();
 
   /**
    * Implementation of optional values.
@@ -320,6 +321,18 @@ public final class CelExtensions {
   }
 
   /**
+   * Extended functions for Network manipulation.
+   *
+   * <p>Refer to README.md for available functions.
+   *
+   * <p>This will include all functions denoted in {@link CelNetworkExtensions.Function}, including
+   * any future additions.
+   */
+  public static CelNetworkExtensions network() {
+    return NETWORK_EXTENSIONS;
+  }
+
+  /**
    * Retrieves all function names used by every extension libraries.
    *
    * <p>Note: Certain extensions such as {@link CelProtoExtensions} and {@link
@@ -339,6 +352,8 @@ public final class CelExtensions {
                 .map(CelListsExtensions.Function::getFunction),
             stream(CelRegexExtensions.Function.values())
                 .map(CelRegexExtensions.Function::getFunction),
+            stream(CelNetworkExtensions.Function.values())
+                .map(CelNetworkExtensions.Function::getFunction),
             stream(CelComprehensionsExtensions.Function.values())
                 .map(CelComprehensionsExtensions.Function::getFunction))
         .collect(toImmutableSet());
@@ -346,31 +361,21 @@ public final class CelExtensions {
 
   public static CelExtensionLibrary<? extends CelExtensionLibrary.FeatureSet> getExtensionLibrary(
       String name, CelOptions options) {
-    switch (name) {
-      case "bindings":
-        return CelBindingsExtensions.library();
-      case "encoders":
-        return CelEncoderExtensions.library(options);
-      case "lists":
-        return CelListsExtensions.library();
-      case "math":
-        return CelMathExtensions.library(options);
-      case "optional":
-        return CelOptionalLibrary.library();
-      case "protos":
-        return CelProtoExtensions.library();
-      case "regex":
-        return CelRegexExtensions.library();
-      case "sets":
-        return CelSetsExtensions.library(options);
-      case "strings":
-        return CelStringExtensions.library();
-      case "comprehensions":
-        return CelComprehensionsExtensions.library();
+    return switch (name) {
+      case "bindings" -> CelBindingsExtensions.library();
+      case "encoders" -> CelEncoderExtensions.library(options);
+      case "lists" -> CelListsExtensions.library();
+      case "math" -> CelMathExtensions.library(options);
+      case "network" -> CelNetworkExtensions.library();
+      case "optional" -> CelOptionalLibrary.library();
+      case "protos" -> CelProtoExtensions.library();
+      case "regex" -> CelRegexExtensions.library();
+      case "sets" -> CelSetsExtensions.library(options);
+      case "strings" -> CelStringExtensions.library();
+      case "comprehensions" -> CelComprehensionsExtensions.library();
       // TODO: add support for remaining standard extensions
-      default:
-        throw new IllegalArgumentException("Unknown standard extension '" + name + "'");
-    }
+      default -> throw new IllegalArgumentException("Unknown standard extension '" + name + "'");
+    };
   }
 
   private CelExtensions() {}
