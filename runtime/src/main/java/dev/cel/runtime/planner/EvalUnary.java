@@ -17,6 +17,8 @@ package dev.cel.runtime.planner;
 import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
 import static dev.cel.runtime.planner.EvalHelpers.evalStrictly;
 
+import dev.cel.common.values.CelValue;
+import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.GlobalResolver;
@@ -25,6 +27,7 @@ final class EvalUnary extends PlannedInterpretable {
 
   private final CelResolvedOverload resolvedOverload;
   private final PlannedInterpretable arg;
+  private final CelValueConverter celValueConverter;
 
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
@@ -34,17 +37,30 @@ final class EvalUnary extends PlannedInterpretable {
             : evalNonstrictly(arg, resolver, frame);
     Object[] arguments = new Object[] {argVal};
 
-    return resolvedOverload.getDefinition().apply(arguments);
+    Object result = resolvedOverload.getDefinition().apply(arguments);
+    Object runtimeValue = celValueConverter.toRuntimeValue(result);
+    if (runtimeValue instanceof CelValue) {
+      return celValueConverter.unwrap((CelValue) runtimeValue);
+    }
+    return runtimeValue;
   }
 
   static EvalUnary create(
-      long exprId, CelResolvedOverload resolvedOverload, PlannedInterpretable arg) {
-    return new EvalUnary(exprId, resolvedOverload, arg);
+      long exprId,
+      CelResolvedOverload resolvedOverload,
+      PlannedInterpretable arg,
+      CelValueConverter celValueConverter) {
+    return new EvalUnary(exprId, resolvedOverload, arg, celValueConverter);
   }
 
-  private EvalUnary(long exprId, CelResolvedOverload resolvedOverload, PlannedInterpretable arg) {
+  private EvalUnary(
+      long exprId,
+      CelResolvedOverload resolvedOverload,
+      PlannedInterpretable arg,
+      CelValueConverter celValueConverter) {
     super(exprId);
     this.resolvedOverload = resolvedOverload;
     this.arg = arg;
+    this.celValueConverter = celValueConverter;
   }
 }

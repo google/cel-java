@@ -23,6 +23,7 @@ java_library(
         ":eval_create_map",
         ":eval_create_struct",
         ":eval_fold",
+        ":eval_late_bound_call",
         ":eval_or",
         ":eval_test_only",
         ":eval_unary",
@@ -40,6 +41,7 @@ java_library(
         "//common:options",
         "//common/annotations",
         "//common/ast",
+        "//common/exceptions:overload_not_found",
         "//common/types",
         "//common/types:type_providers",
         "//common/values",
@@ -74,6 +76,7 @@ java_library(
         "//runtime:function_resolver",
         "//runtime:interpretable",
         "//runtime:program",
+        "//runtime:resolved_overload",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
@@ -191,6 +194,8 @@ java_library(
     deps = [
         ":execution_frame",
         ":planned_interpretable",
+        "//common/values",
+        "//common/values:cel_value",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
         "//runtime:resolved_overload",
@@ -204,6 +209,8 @@ java_library(
         ":eval_helpers",
         ":execution_frame",
         ":planned_interpretable",
+        "//common/values",
+        "//common/values:cel_value",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
         "//runtime:resolved_overload",
@@ -217,9 +224,28 @@ java_library(
         ":eval_helpers",
         ":execution_frame",
         ":planned_interpretable",
+        "//common/values",
+        "//common/values:cel_value",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
         "//runtime:resolved_overload",
+    ],
+)
+
+java_library(
+    name = "eval_late_bound_call",
+    srcs = ["EvalLateBoundCall.java"],
+    deps = [
+        ":eval_helpers",
+        ":execution_frame",
+        ":planned_interpretable",
+        "//common/exceptions:overload_not_found",
+        "//common/values",
+        "//common/values:cel_value",
+        "//runtime:evaluation_exception",
+        "//runtime:interpretable",
+        "//runtime:resolved_overload",
+        "@maven//:com_google_guava_guava",
     ],
 )
 
@@ -324,8 +350,9 @@ java_library(
     deps = [
         "//common:options",
         "//common/exceptions:iteration_budget_exceeded",
-        "//runtime:interpretable",
-        "@maven//:org_jspecify_jspecify",
+        "//runtime:evaluation_exception",
+        "//runtime:function_resolver",
+        "//runtime:resolved_overload",
     ],
 )
 
