@@ -864,7 +864,7 @@ final class DefaultInterpreter implements Interpreter {
           throw CelEvaluationExceptionBuilder.newBuilder(
                   "duplicate map key [%s]", keyResult.value())
               .setErrorCode(CelErrorCode.DUPLICATE_ATTRIBUTE)
-              .setMetadata(metadata, entry.id())
+              .setMetadata(metadata, entry.key().id())
               .build();
         }
 
@@ -967,7 +967,7 @@ final class DefaultInterpreter implements Interpreter {
 
     @SuppressWarnings("unchecked")
     private IntermediateResult evalComprehension(
-        ExecutionFrame frame, CelExpr unusedExpr, CelComprehension compre)
+        ExecutionFrame frame, CelExpr compreExpr, CelComprehension compre)
         throws CelEvaluationException {
       String accuVar = compre.accuVar();
       String iterVar = compre.iterVar();
@@ -1000,7 +1000,7 @@ final class DefaultInterpreter implements Interpreter {
       }
       int i = 0;
       for (Object elem : iterRange) {
-        frame.incrementIterations();
+        frame.incrementIterations(metadata, compreExpr.id());
 
         CelAttribute iterAttr = CelAttribute.EMPTY;
         if (iterRange instanceof List) {
@@ -1183,13 +1183,14 @@ final class DefaultInterpreter implements Interpreter {
       return Optional.empty();
     }
 
-    private void incrementIterations() throws CelEvaluationException {
+    private void incrementIterations(Metadata metadata, long exprId) throws CelEvaluationException {
       if (maxIterations < 0) {
         return;
       }
       if (++iterations > maxIterations) {
         throw CelEvaluationExceptionBuilder.newBuilder(
                 String.format("Iteration budget exceeded: %d", maxIterations))
+            .setMetadata(metadata, exprId)
             .setErrorCode(CelErrorCode.ITERATION_BUDGET_EXCEEDED)
             .build();
       }

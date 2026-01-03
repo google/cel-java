@@ -1,4 +1,4 @@
-// Copyright 2025 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,17 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.common.values;
+package dev.cel.common.exceptions;
 
-import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.CelErrorCode;
+import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 
-/**
- * {@code BaseProtoMessageValueProvider} is a common parent to {@code ProtoMessageValueProvider} and
- * {@code ProtoMessageLiteValueProvider}.
- *
- * <p>CEL-Java internals. Do not use. Use one of the inherited variants mentioned above.
- */
+/** Indicates an attempt to create a map using duplicate keys. */
 @Internal
-@Immutable
-public abstract class BaseProtoMessageValueProvider implements CelValueProvider {}
+public final class CelDuplicateKeyException extends CelRuntimeException {
+
+  public static CelDuplicateKeyException of(Object key) {
+    return new CelDuplicateKeyException(String.format("duplicate map key [%s]", key));
+  }
+
+  private CelDuplicateKeyException(String message) {
+    super(message, CelErrorCode.DUPLICATE_ATTRIBUTE);
+  }
+}

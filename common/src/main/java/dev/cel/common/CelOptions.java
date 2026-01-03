@@ -17,7 +17,6 @@ package dev.cel.common;
 import com.google.auto.value.AutoValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.annotations.Beta;
 
 /**
  * Options to configure how the CEL parser, type-checker, and evaluator behave.
@@ -105,8 +104,6 @@ public abstract class CelOptions {
 
   public abstract boolean enableUnknownTracking();
 
-  public abstract boolean enableCelValue();
-
   public abstract int comprehensionMaxIterations();
 
   public abstract boolean evaluateCanonicalTypesToNativeValues();
@@ -162,7 +159,6 @@ public abstract class CelOptions {
         .errorOnDuplicateMapKeys(false)
         .resolveTypeDependencies(true)
         .enableUnknownTracking(false)
-        .enableCelValue(false)
         .comprehensionMaxIterations(-1)
         .unwrapWellKnownTypesOnFunctionDispatch(true)
         .fromProtoUnsetFieldOption(ProtoUnsetFieldOptions.BIND_DEFAULT)
@@ -431,16 +427,6 @@ public abstract class CelOptions {
      * and function results (a particular invocation that was identified as unknown).
      */
     public abstract Builder enableUnknownTracking(boolean value);
-
-    /**
-     * Enables the usage of {@code CelValue} for the runtime. It is a native value representation of
-     * CEL that wraps Java native objects, and comes with extended capabilities, such as allowing
-     * value constructs not understood by CEL (ex: POJOs).
-     *
-     * <p>Warning: This option is experimental.
-     */
-    @Beta
-    public abstract Builder enableCelValue(boolean value);
 
     /**
      * Limit the total number of iterations permitted within comprehension loops.

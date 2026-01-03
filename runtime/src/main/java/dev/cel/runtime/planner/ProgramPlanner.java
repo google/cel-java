@@ -17,8 +17,9 @@ package dev.cel.runtime.planner;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CheckReturnValue;
-import javax.annotation.concurrent.ThreadSafe;
+import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
@@ -34,6 +35,7 @@ import dev.cel.common.ast.CelExpr.CelSelect;
 import dev.cel.common.ast.CelExpr.CelStruct;
 import dev.cel.common.ast.CelExpr.CelStruct.Entry;
 import dev.cel.common.ast.CelReference;
+import dev.cel.common.exceptions.CelOverloadNotFoundException;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
@@ -53,17 +55,17 @@ import java.util.Optional;
  * {@code ProgramPlanner} resolves functions, types, and identifiers at plan time given a
  * parsed-only or a type-checked expression.
  */
-@ThreadSafe
+@Immutable
 @Internal
 public final class ProgramPlanner {
-
   private final CelTypeProvider typeProvider;
   private final CelValueProvider valueProvider;
   private final DefaultDispatcher dispatcher;
   private final AttributeFactory attributeFactory;
   private final CelContainer container;
   private final CelOptions options;
-
+  private final CelValueConverter celValueConverter;
+  private final ImmutableSet<String> lateBoundFunctionNames;
 
   /**
    * Plans a {@link Program} from the provided parsed-only or type-checked {@link
@@ -71,21 +73,24 @@ public final class ProgramPlanner {
    */
   public Program plan(CelAbstractSyntaxTree ast) throws CelEvaluationException {
     PlannedInterpretable plannedInterpretable;
+    ErrorMetadata errorMetadata =
+        ErrorMetadata.create(ast.getSource().getPositionsMap(), ast.getSource().getDescription());
     try {
       plannedInterpretable = plan(ast.getExpr(), PlannerContext.create(ast));
     } catch (RuntimeException e) {
-      throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage()).setCause(e).build();
+      throw CelEvaluationExceptionBuilder.newBuilder(e.getMessage())
+          .setMetadata(errorMetadata, ast.getExpr().id())
+          .setCause(e)
+          .build();
     }
 
-    ErrorMetadata errorMetadata =
-        ErrorMetadata.create(ast.getSource().getPositionsMap(), ast.getSource().getDescription());
     return PlannedProgram.create(plannedInterpretable, errorMetadata, options);
   }
 
   private PlannedInterpretable plan(CelExpr celExpr, PlannerContext ctx) {
     switch (celExpr.getKind()) {
       case CONSTANT:
-        return planConstant(celExpr.constant());
+        return planConstant(celExpr.id(), celExpr.constant());
       case IDENT:
         return planIdent(celExpr, ctx);
       case SELECT:
@@ -128,22 +133,22 @@ public final class ProgramPlanner {
     return attribute.addQualifier(celExpr.id(), qualifier);
   }
 
-  private PlannedInterpretable planConstant(CelConstant celConstant) {
+  private PlannedInterpretable planConstant(long exprId, CelConstant celConstant) {
     switch (celConstant.getKind()) {
       case NULL_VALUE:
-        return EvalConstant.create(celConstant.nullValue());
+        return EvalConstant.create(exprId, celConstant.nullValue());
       case BOOLEAN_VALUE:
-        return EvalConstant.create(celConstant.booleanValue());
+        return EvalConstant.create(exprId, celConstant.booleanValue());
       case INT64_VALUE:
-        return EvalConstant.create(celConstant.int64Value());
+        return EvalConstant.create(exprId, celConstant.int64Value());
       case UINT64_VALUE:
-        return EvalConstant.create(celConstant.uint64Value());
+        return EvalConstant.create(exprId, celConstant.uint64Value());
       case DOUBLE_VALUE:
-        return EvalConstant.create(celConstant.doubleValue());
+        return EvalConstant.create(exprId, celConstant.doubleValue());
       case STRING_VALUE:
-        return EvalConstant.create(celConstant.stringValue());
+        return EvalConstant.create(exprId, celConstant.stringValue());
       case BYTES_VALUE:
-        return EvalConstant.create(celConstant.bytesValue());
+        return EvalConstant.create(exprId, celConstant.bytesValue());
       default:
         throw new IllegalStateException("Unsupported kind: " + celConstant.getKind());
     }
@@ -162,7 +167,7 @@ public final class ProgramPlanner {
   private PlannedInterpretable planCheckedIdent(
       long id, CelReference identRef, ImmutableMap<Long, CelType> typeMap) {
     if (identRef.value().isPresent()) {
-      return planConstant(identRef.value().get());
+      return planConstant(id, identRef.value().get());
     }
 
     CelType type = typeMap.get(id);
@@ -175,7 +180,7 @@ public final class ProgramPlanner {
                   () ->
                       new NoSuchElementException(
                           "Reference to an undefined type: " + identRef.name()));
-      return EvalConstant.create(identType);
+      return EvalConstant.create(id, identType);
     }
 
     return EvalAttribute.create(id, attributeFactory.newAbsoluteAttribute(identRef.name()));
@@ -224,19 +229,36 @@ public final class ProgramPlanner {
 
     if (resolvedOverload == null) {
       // Parsed-only function dispatch
-      resolvedOverload =
-          dispatcher
-              .findOverload(functionName)
-              .orElseThrow(() -> new NoSuchElementException("Overload not found: " + functionName));
+      resolvedOverload = dispatcher.findOverload(functionName).orElse(null);
+    }
+
+    if (resolvedOverload == null) {
+      if (!lateBoundFunctionNames.contains(functionName)) {
+        CelReference reference = ctx.referenceMap().get(expr.id());
+        if (reference != null) {
+          throw new CelOverloadNotFoundException(functionName, reference.overloadIds());
+        } else {
+          throw new CelOverloadNotFoundException(functionName);
+        }
+      }
+
+      ImmutableList<String> overloadIds = ImmutableList.of();
+      if (resolvedFunction.overloadId().isPresent()) {
+        overloadIds = ImmutableList.of(resolvedFunction.overloadId().get());
+      }
+
+      return EvalLateBoundCall.create(
+          expr.id(), functionName, overloadIds, evaluatedArgs, celValueConverter);
     }
 
     switch (argCount) {
       case 0:
-        return EvalZeroArity.create(expr.id(), resolvedOverload);
+        return EvalZeroArity.create(expr.id(), resolvedOverload, celValueConverter);
       case 1:
-        return EvalUnary.create(expr.id(), resolvedOverload, evaluatedArgs[0]);
+        return EvalUnary.create(expr.id(), resolvedOverload, evaluatedArgs[0], celValueConverter);
       default:
-        return EvalVarArgsCall.create(expr.id(), resolvedOverload, evaluatedArgs);
+        return EvalVarArgsCall.create(
+            expr.id(), resolvedOverload, evaluatedArgs, celValueConverter);
     }
   }
 
@@ -455,9 +477,16 @@ public final class ProgramPlanner {
       DefaultDispatcher dispatcher,
       CelValueConverter celValueConverter,
       CelContainer container,
-      CelOptions options) {
+      CelOptions options,
+      ImmutableSet<String> lateBoundFunctionNames) {
     return new ProgramPlanner(
-        typeProvider, valueProvider, dispatcher, celValueConverter, container, options);
+        typeProvider,
+        valueProvider,
+        dispatcher,
+        celValueConverter,
+        container,
+        options,
+        lateBoundFunctionNames);
   }
 
   private ProgramPlanner(
@@ -466,12 +495,15 @@ public final class ProgramPlanner {
       DefaultDispatcher dispatcher,
       CelValueConverter celValueConverter,
       CelContainer container,
-      CelOptions options) {
+      CelOptions options,
+      ImmutableSet<String> lateBoundFunctionNames) {
     this.typeProvider = typeProvider;
     this.valueProvider = valueProvider;
     this.dispatcher = dispatcher;
+    this.celValueConverter = celValueConverter;
     this.container = container;
     this.options = options;
+    this.lateBoundFunctionNames = lateBoundFunctionNames;
     this.attributeFactory =
         AttributeFactory.newAttributeFactory(container, typeProvider, celValueConverter);
   }

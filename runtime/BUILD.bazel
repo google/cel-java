@@ -16,6 +16,7 @@ java_library(
         "//runtime/src/main/java/dev/cel/runtime:descriptor_message_provider",
         "//runtime/src/main/java/dev/cel/runtime:function_overload",
         "//runtime/src/main/java/dev/cel/runtime:runtime_type_provider",
+        "//runtime/src/main/java/dev/cel/runtime:variable_resolver",
     ],
 )
 
@@ -24,6 +25,14 @@ java_library(
     visibility = ["//:internal"],
     exports = [
         "//runtime/src/main/java/dev/cel/runtime:dispatcher",
+    ],
+)
+
+cel_android_library(
+    name = "dispatcher_android",
+    visibility = ["//:internal"],
+    exports = [
+        "//runtime/src/main/java/dev/cel/runtime:dispatcher_android",
     ],
 )
 
@@ -39,6 +48,14 @@ java_library(
     visibility = ["//:internal"],
     exports = [
         "//runtime/src/main/java/dev/cel/runtime:activation",
+    ],
+)
+
+cel_android_library(
+    name = "activation_android",
+    visibility = ["//:internal"],
+    exports = [
+        "//runtime/src/main/java/dev/cel/runtime:activation_android",
     ],
 )
 
@@ -78,6 +95,7 @@ cel_android_library(
 
 java_library(
     name = "evaluation_exception_builder",
+    # used_by_android
     exports = ["//runtime/src/main/java/dev/cel/runtime:evaluation_exception_builder"],
 )
 
@@ -109,6 +127,12 @@ java_library(
     name = "interpretable",
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:interpretable"],
+)
+
+cel_android_library(
+    name = "interpretable_android",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:interpretable_android"],
 )
 
 java_library(
@@ -252,12 +276,20 @@ cel_android_library(
 
 java_library(
     name = "metadata",
+    # used_by_android
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:metadata"],
 )
 
 java_library(
+    name = "variable_resolver",
+    # used_by_android
+    exports = ["//runtime/src/main/java/dev/cel/runtime:variable_resolver"],
+)
+
+java_library(
     name = "concatenated_list_view",
+    # used_by_android
     visibility = ["//:internal"],
     exports = [
         "//runtime/src/main/java/dev/cel/runtime:concatenated_list_view",

@@ -18,12 +18,10 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.protobuf.Message;
 import dev.cel.common.CelException;
-import dev.cel.common.values.CelValueProvider;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction;
-import java.util.Optional;
 import java.util.function.Function;
 import org.junit.Assert;
 import org.junit.Test;
@@ -107,13 +105,11 @@ public final class CelRuntimeLegacyImplTest {
     Function<String, Message.Builder> customTypeFactory = (typeName) -> TestAllTypes.newBuilder();
     CelStandardFunctions overriddenStandardFunctions =
         CelStandardFunctions.newBuilder().includeFunctions(StandardFunction.ADD).build();
-    CelValueProvider noOpValueProvider = (structType, fields) -> Optional.empty();
     CelRuntimeBuilder celRuntimeBuilder =
         CelRuntimeFactory.standardCelRuntimeBuilder()
             .setStandardEnvironmentEnabled(false)
             .setTypeFactory(customTypeFactory)
-            .setStandardFunctions(overriddenStandardFunctions)
-            .setValueProvider(noOpValueProvider);
+            .setStandardFunctions(overriddenStandardFunctions);
     CelRuntime celRuntime = celRuntimeBuilder.build();
 
     CelRuntimeLegacyImpl.Builder newRuntimeBuilder =
@@ -122,6 +118,5 @@ public final class CelRuntimeLegacyImplTest {
     assertThat(newRuntimeBuilder.customTypeFactory).isEqualTo(customTypeFactory);
     assertThat(newRuntimeBuilder.overriddenStandardFunctions)
         .isEqualTo(overriddenStandardFunctions);
-    assertThat(newRuntimeBuilder.celValueProvider).isEqualTo(noOpValueProvider);
   }
 }

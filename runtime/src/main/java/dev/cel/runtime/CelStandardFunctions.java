@@ -15,12 +15,15 @@
 package dev.cel.runtime;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelOptions;
+import dev.cel.common.Operator;
 import dev.cel.common.annotations.Internal;
 import dev.cel.runtime.standard.AddOperator;
 import dev.cel.runtime.standard.AddOperator.AddOverload;
@@ -104,6 +107,8 @@ import dev.cel.runtime.standard.TimestampFunction;
 import dev.cel.runtime.standard.TimestampFunction.TimestampOverload;
 import dev.cel.runtime.standard.UintFunction;
 import dev.cel.runtime.standard.UintFunction.UintOverload;
+import java.util.Collection;
+import java.util.Map;
 
 /** Runtime function bindings for the standard functions in CEL. */
 @Immutable
@@ -135,7 +140,7 @@ public final class CelStandardFunctions {
           GreaterEqualsOverload.GREATER_EQUALS_UINT64_DOUBLE,
           GreaterEqualsOverload.GREATER_EQUALS_DOUBLE_UINT64);
 
-  private final ImmutableSet<CelStandardOverload> standardOverloads;
+  private final ImmutableMultimap<String, CelStandardOverload> standardOverloads;
 
   public static final ImmutableSet<CelStandardFunction> ALL_STANDARD_FUNCTIONS =
       ImmutableSet.of(
@@ -187,13 +192,15 @@ public final class CelStandardFunctions {
    * special-cased, and does not appear in this enum.
    */
   public enum StandardFunction {
-    LOGICAL_NOT(LogicalNotOverload.LOGICAL_NOT),
-    IN(InOverload.IN_LIST, InOverload.IN_MAP),
-    NOT_STRICTLY_FALSE(NotStrictlyFalseOverload.NOT_STRICTLY_FALSE),
-    EQUALS(EqualsOverload.EQUALS),
-    NOT_EQUALS(NotEqualsOverload.NOT_EQUALS),
-    BOOL(BoolOverload.BOOL_TO_BOOL, BoolOverload.STRING_TO_BOOL),
+    LOGICAL_NOT(Operator.LOGICAL_NOT.getFunction(), LogicalNotOverload.LOGICAL_NOT),
+    IN(Operator.IN.getFunction(), InOverload.IN_LIST, InOverload.IN_MAP),
+    NOT_STRICTLY_FALSE(
+        Operator.NOT_STRICTLY_FALSE.getFunction(), NotStrictlyFalseOverload.NOT_STRICTLY_FALSE),
+    EQUALS(Operator.EQUALS.getFunction(), EqualsOverload.EQUALS),
+    NOT_EQUALS(Operator.NOT_EQUALS.getFunction(), NotEqualsOverload.NOT_EQUALS),
+    BOOL("bool", BoolOverload.BOOL_TO_BOOL, BoolOverload.STRING_TO_BOOL),
     ADD(
+        Operator.ADD.getFunction(),
         AddOverload.ADD_INT64,
         AddOverload.ADD_UINT64,
         AddOverload.ADD_DOUBLE,
@@ -204,6 +211,7 @@ public final class CelStandardFunctions {
         AddOverload.ADD_DURATION_TIMESTAMP,
         AddOverload.ADD_DURATION_DURATION),
     SUBTRACT(
+        Operator.SUBTRACT.getFunction(),
         SubtractOverload.SUBTRACT_INT64,
         SubtractOverload.SUBTRACT_TIMESTAMP_TIMESTAMP,
         SubtractOverload.SUBTRACT_TIMESTAMP_DURATION,
@@ -211,14 +219,22 @@ public final class CelStandardFunctions {
         SubtractOverload.SUBTRACT_DOUBLE,
         SubtractOverload.SUBTRACT_DURATION_DURATION),
     MULTIPLY(
+        Operator.MULTIPLY.getFunction(),
         MultiplyOverload.MULTIPLY_INT64,
         MultiplyOverload.MULTIPLY_DOUBLE,
         MultiplyOverload.MULTIPLY_UINT64),
-    DIVIDE(DivideOverload.DIVIDE_DOUBLE, DivideOverload.DIVIDE_INT64, DivideOverload.DIVIDE_UINT64),
-    MODULO(ModuloOverload.MODULO_INT64, ModuloOverload.MODULO_UINT64),
-    NEGATE(NegateOverload.NEGATE_INT64, NegateOverload.NEGATE_DOUBLE),
-    INDEX(IndexOverload.INDEX_LIST, IndexOverload.INDEX_MAP),
+    DIVIDE(
+        Operator.DIVIDE.getFunction(),
+        DivideOverload.DIVIDE_DOUBLE,
+        DivideOverload.DIVIDE_INT64,
+        DivideOverload.DIVIDE_UINT64),
+    MODULO(
+        Operator.MODULO.getFunction(), ModuloOverload.MODULO_INT64, ModuloOverload.MODULO_UINT64),
+    NEGATE(
+        Operator.NEGATE.getFunction(), NegateOverload.NEGATE_INT64, NegateOverload.NEGATE_DOUBLE),
+    INDEX(Operator.INDEX.getFunction(), IndexOverload.INDEX_LIST, IndexOverload.INDEX_MAP),
     SIZE(
+        "size",
         SizeOverload.SIZE_STRING,
         SizeOverload.SIZE_BYTES,
         SizeOverload.SIZE_LIST,
@@ -228,22 +244,26 @@ public final class CelStandardFunctions {
         SizeOverload.LIST_SIZE,
         SizeOverload.MAP_SIZE),
     INT(
+        "int",
         IntOverload.INT64_TO_INT64,
         IntOverload.UINT64_TO_INT64,
         IntOverload.DOUBLE_TO_INT64,
         IntOverload.STRING_TO_INT64,
         IntOverload.TIMESTAMP_TO_INT64),
     UINT(
+        "uint",
         UintOverload.UINT64_TO_UINT64,
         UintOverload.INT64_TO_UINT64,
         UintOverload.DOUBLE_TO_UINT64,
         UintOverload.STRING_TO_UINT64),
     DOUBLE(
+        "double",
         DoubleOverload.DOUBLE_TO_DOUBLE,
         DoubleOverload.INT64_TO_DOUBLE,
         DoubleOverload.STRING_TO_DOUBLE,
         DoubleOverload.UINT64_TO_DOUBLE),
     STRING(
+        "string",
         StringOverload.STRING_TO_STRING,
         StringOverload.INT64_TO_STRING,
         StringOverload.DOUBLE_TO_STRING,
@@ -252,51 +272,67 @@ public final class CelStandardFunctions {
         StringOverload.TIMESTAMP_TO_STRING,
         StringOverload.DURATION_TO_STRING,
         StringOverload.UINT64_TO_STRING),
-    BYTES(BytesOverload.BYTES_TO_BYTES, BytesOverload.STRING_TO_BYTES),
-    DURATION(DurationOverload.DURATION_TO_DURATION, DurationOverload.STRING_TO_DURATION),
+    BYTES("bytes", BytesOverload.BYTES_TO_BYTES, BytesOverload.STRING_TO_BYTES),
+    DURATION(
+        "duration", DurationOverload.DURATION_TO_DURATION, DurationOverload.STRING_TO_DURATION),
     TIMESTAMP(
+        "timestamp",
         TimestampOverload.STRING_TO_TIMESTAMP,
         TimestampOverload.TIMESTAMP_TO_TIMESTAMP,
         TimestampOverload.INT64_TO_TIMESTAMP),
-    DYN(DynOverload.TO_DYN),
-    MATCHES(MatchesOverload.MATCHES, MatchesOverload.MATCHES_STRING),
-    CONTAINS(ContainsOverload.CONTAINS_STRING),
-    ENDS_WITH(EndsWithOverload.ENDS_WITH_STRING),
-    STARTS_WITH(StartsWithOverload.STARTS_WITH_STRING),
+    DYN("dyn", DynOverload.TO_DYN),
+    MATCHES("matches", MatchesOverload.MATCHES, MatchesOverload.MATCHES_STRING),
+    CONTAINS("contains", ContainsOverload.CONTAINS_STRING),
+    ENDS_WITH("endsWith", EndsWithOverload.ENDS_WITH_STRING),
+    STARTS_WITH("startsWith", StartsWithOverload.STARTS_WITH_STRING),
     // Date/time Functions
     GET_FULL_YEAR(
-        GetFullYearOverload.TIMESTAMP_TO_YEAR, GetFullYearOverload.TIMESTAMP_TO_YEAR_WITH_TZ),
-    GET_MONTH(GetMonthOverload.TIMESTAMP_TO_MONTH, GetMonthOverload.TIMESTAMP_TO_MONTH_WITH_TZ),
+        "getFullYear",
+        GetFullYearOverload.TIMESTAMP_TO_YEAR,
+        GetFullYearOverload.TIMESTAMP_TO_YEAR_WITH_TZ),
+    GET_MONTH(
+        "getMonth",
+        GetMonthOverload.TIMESTAMP_TO_MONTH,
+        GetMonthOverload.TIMESTAMP_TO_MONTH_WITH_TZ),
     GET_DAY_OF_YEAR(
+        "getDayOfYear",
         GetDayOfYearOverload.TIMESTAMP_TO_DAY_OF_YEAR,
         GetDayOfYearOverload.TIMESTAMP_TO_DAY_OF_YEAR_WITH_TZ),
     GET_DAY_OF_MONTH(
+        "getDayOfMonth",
         GetDayOfMonthOverload.TIMESTAMP_TO_DAY_OF_MONTH,
         GetDayOfMonthOverload.TIMESTAMP_TO_DAY_OF_MONTH_WITH_TZ),
     GET_DATE(
+        "getDate",
         GetDateOverload.TIMESTAMP_TO_DAY_OF_MONTH_1_BASED,
         GetDateOverload.TIMESTAMP_TO_DAY_OF_MONTH_1_BASED_WITH_TZ),
     GET_DAY_OF_WEEK(
+        "getDayOfWeek",
         GetDayOfWeekOverload.TIMESTAMP_TO_DAY_OF_WEEK,
         GetDayOfWeekOverload.TIMESTAMP_TO_DAY_OF_WEEK_WITH_TZ),
 
     GET_HOURS(
+        "getHours",
         GetHoursOverload.TIMESTAMP_TO_HOURS,
         GetHoursOverload.TIMESTAMP_TO_HOURS_WITH_TZ,
         GetHoursOverload.DURATION_TO_HOURS),
     GET_MINUTES(
+        "getMinutes",
         GetMinutesOverload.TIMESTAMP_TO_MINUTES,
         GetMinutesOverload.TIMESTAMP_TO_MINUTES_WITH_TZ,
         GetMinutesOverload.DURATION_TO_MINUTES),
     GET_SECONDS(
+        "getSeconds",
         GetSecondsOverload.TIMESTAMP_TO_SECONDS,
         GetSecondsOverload.TIMESTAMP_TO_SECONDS_WITH_TZ,
         GetSecondsOverload.DURATION_TO_SECONDS),
     GET_MILLISECONDS(
+        "getMilliseconds",
         GetMillisecondsOverload.TIMESTAMP_TO_MILLISECONDS,
         GetMillisecondsOverload.TIMESTAMP_TO_MILLISECONDS_WITH_TZ,
         GetMillisecondsOverload.DURATION_TO_MILLISECONDS),
     LESS(
+        Operator.LESS.getFunction(),
         LessOverload.LESS_BOOL,
         LessOverload.LESS_INT64,
         LessOverload.LESS_UINT64,
@@ -312,6 +348,7 @@ public final class CelStandardFunctions {
         LessOverload.LESS_UINT64_DOUBLE,
         LessOverload.LESS_DOUBLE_UINT64),
     LESS_EQUALS(
+        Operator.LESS_EQUALS.getFunction(),
         LessEqualsOverload.LESS_EQUALS_BOOL,
         LessEqualsOverload.LESS_EQUALS_INT64,
         LessEqualsOverload.LESS_EQUALS_UINT64,
@@ -327,6 +364,7 @@ public final class CelStandardFunctions {
         LessEqualsOverload.LESS_EQUALS_UINT64_DOUBLE,
         LessEqualsOverload.LESS_EQUALS_DOUBLE_UINT64),
     GREATER(
+        Operator.GREATER.getFunction(),
         GreaterOverload.GREATER_BOOL,
         GreaterOverload.GREATER_INT64,
         GreaterOverload.GREATER_UINT64,
@@ -342,6 +380,7 @@ public final class CelStandardFunctions {
         GreaterOverload.GREATER_UINT64_DOUBLE,
         GreaterOverload.GREATER_DOUBLE_UINT64),
     GREATER_EQUALS(
+        Operator.GREATER_EQUALS.getFunction(),
         GreaterEqualsOverload.GREATER_EQUALS_BOOL,
         GreaterEqualsOverload.GREATER_EQUALS_BYTES,
         GreaterEqualsOverload.GREATER_EQUALS_DOUBLE,
@@ -357,9 +396,11 @@ public final class CelStandardFunctions {
         GreaterEqualsOverload.GREATER_EQUALS_UINT64_DOUBLE,
         GreaterEqualsOverload.GREATER_EQUALS_DOUBLE_UINT64);
 
+    private final String functionName;
     private final ImmutableSet<CelStandardOverload> standardOverloads;
 
-    StandardFunction(CelStandardOverload... overloads) {
+    StandardFunction(String functionName, CelStandardOverload... overloads) {
+      this.functionName = functionName;
       this.standardOverloads = ImmutableSet.copyOf(overloads);
     }
 
@@ -371,15 +412,25 @@ public final class CelStandardFunctions {
 
   @VisibleForTesting
   ImmutableSet<CelStandardOverload> getOverloads() {
-    return standardOverloads;
+    return ImmutableSet.copyOf(standardOverloads.values());
   }
 
   @Internal
   public ImmutableSet<CelFunctionBinding> newFunctionBindings(
       RuntimeEquality runtimeEquality, CelOptions celOptions) {
     ImmutableSet.Builder<CelFunctionBinding> builder = ImmutableSet.builder();
-    for (CelStandardOverload overload : standardOverloads) {
-      builder.add(overload.newFunctionBinding(celOptions, runtimeEquality));
+
+    for (Map.Entry<String, Collection<CelStandardOverload>> entry :
+        standardOverloads.asMap().entrySet()) {
+      String functionName = entry.getKey();
+      Collection<CelStandardOverload> overloads = entry.getValue();
+
+      ImmutableSet<CelFunctionBinding> bindings =
+          overloads.stream()
+              .map(o -> o.newFunctionBinding(celOptions, runtimeEquality))
+              .collect(toImmutableSet());
+
+      builder.addAll(CelFunctionBinding.fromOverloads(functionName, bindings));
     }
 
     return builder.build();
@@ -454,39 +505,36 @@ public final class CelStandardFunctions {
           "You may only populate one of the following builder methods: includeFunctions,"
               + " excludeFunctions or filterFunctions");
 
-      ImmutableSet.Builder<CelStandardOverload> standardOverloadBuilder = ImmutableSet.builder();
+      ImmutableMultimap.Builder<String, CelStandardOverload> standardOverloadBuilder =
+          ImmutableMultimap.builder();
       for (StandardFunction standardFunction : StandardFunction.values()) {
         if (hasIncludeFunctions) {
           if (this.includeFunctions.contains(standardFunction)) {
-            standardOverloadBuilder.addAll(standardFunction.standardOverloads);
+            standardOverloadBuilder.putAll(
+                standardFunction.functionName, standardFunction.standardOverloads);
           }
           continue;
         }
         if (hasExcludeFunctions) {
           if (!this.excludeFunctions.contains(standardFunction)) {
-            standardOverloadBuilder.addAll(standardFunction.standardOverloads);
+            standardOverloadBuilder.putAll(
+                standardFunction.functionName, standardFunction.standardOverloads);
           }
           continue;
         }
         if (hasFilterFunction) {
-          ImmutableSet.Builder<CelStandardOverload> filteredOverloadsBuilder =
-              ImmutableSet.builder();
           for (CelStandardOverload standardOverload : standardFunction.standardOverloads) {
             boolean includeOverload = functionFilter.include(standardFunction, standardOverload);
             if (includeOverload) {
-              standardOverloadBuilder.add(standardOverload);
+              standardOverloadBuilder.put(standardFunction.functionName, standardOverload);
             }
-          }
-
-          ImmutableSet<CelStandardOverload> filteredOverloads = filteredOverloadsBuilder.build();
-          if (!filteredOverloads.isEmpty()) {
-            standardOverloadBuilder.addAll(filteredOverloads);
           }
 
           continue;
         }
 
-        standardOverloadBuilder.addAll(standardFunction.standardOverloads);
+        standardOverloadBuilder.putAll(
+            standardFunction.functionName, standardFunction.standardOverloads);
       }
 
       return new CelStandardFunctions(standardOverloadBuilder.build());
@@ -511,7 +559,7 @@ public final class CelStandardFunctions {
     return HETEROGENEOUS_COMPARISON_OPERATORS.contains(overload);
   }
 
-  private CelStandardFunctions(ImmutableSet<CelStandardOverload> standardOverloads) {
+  private CelStandardFunctions(ImmutableMultimap<String, CelStandardOverload> standardOverloads) {
     this.standardOverloads = standardOverloads;
   }
 }
