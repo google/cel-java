@@ -42,16 +42,6 @@ public interface CelRuntime {
     /** Evaluate the expression using {@code message} fields as the source of input variables. */
     Object eval(Message message) throws CelEvaluationException;
 
-    /** Evaluate a compiled program with a custom variable {@code resolver}. */
-    Object eval(CelVariableResolver resolver) throws CelEvaluationException;
-
-    /**
-     * Evaluate a compiled program with a custom variable {@code resolver} and late-bound functions
-     * {@code lateBoundFunctionResolver}.
-     */
-    Object eval(CelVariableResolver resolver, CelFunctionResolver lateBoundFunctionResolver)
-        throws CelEvaluationException;
-
     /**
      * Trace evaluates a compiled program without any variables and invokes the listener as
      * evaluation progresses through the AST.
