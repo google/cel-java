@@ -19,7 +19,7 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.Immutable;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -37,15 +37,23 @@ public final class CelLateFunctionBindings implements CelFunctionResolver {
 
   @Override
   public Optional<CelResolvedOverload> findOverloadMatchingArgs(
-      String functionName, List<String> overloadIds, Object[] args) throws CelEvaluationException {
+      String functionName, Collection<String> overloadIds, Object[] args)
+      throws CelEvaluationException {
     return DefaultDispatcher.findOverloadMatchingArgs(functionName, overloadIds, functions, args);
+  }
+
+  @Override
+  public Optional<CelResolvedOverload> findOverloadMatchingArgs(String functionName, Object[] args)
+      throws CelEvaluationException {
+    return DefaultDispatcher.findOverloadMatchingArgs(
+        functionName, functions.keySet(), functions, args);
   }
 
   public static CelLateFunctionBindings from(CelFunctionBinding... functions) {
     return from(Arrays.asList(functions));
   }
 
-  public static CelLateFunctionBindings from(List<CelFunctionBinding> functions) {
+  public static CelLateFunctionBindings from(Collection<CelFunctionBinding> functions) {
     return new CelLateFunctionBindings(
         functions.stream()
             .collect(

@@ -16,19 +16,26 @@ package dev.cel.runtime.planner;
 
 import dev.cel.common.CelOptions;
 import dev.cel.common.exceptions.CelIterationLimitExceededException;
-import dev.cel.runtime.GlobalResolver;
-import org.jspecify.annotations.Nullable;
+import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.CelFunctionResolver;
+import dev.cel.runtime.CelResolvedOverload;
+import java.util.Collection;
+import java.util.Optional;
 
 /** Tracks execution context within a planned program. */
-final class ExecutionFrame implements GlobalResolver {
+final class ExecutionFrame {
 
-  private final GlobalResolver delegate;
   private final int comprehensionIterationLimit;
+  private final CelFunctionResolver functionResolver;
   private int iterationCount;
 
-  @Override
-  public @Nullable Object resolve(String name) {
-    return delegate.resolve(name);
+  Optional<CelResolvedOverload> findOverload(
+      String functionName, Collection<String> overloadIds, Object[] args)
+      throws CelEvaluationException {
+    if (overloadIds.isEmpty()) {
+      return functionResolver.findOverloadMatchingArgs(functionName, args);
+    }
+    return functionResolver.findOverloadMatchingArgs(functionName, overloadIds, args);
   }
 
   void incrementIterations() {
@@ -40,12 +47,12 @@ final class ExecutionFrame implements GlobalResolver {
     }
   }
 
-  static ExecutionFrame create(GlobalResolver delegate, CelOptions celOptions) {
-    return new ExecutionFrame(delegate, celOptions.comprehensionMaxIterations());
+  static ExecutionFrame create(CelFunctionResolver functionResolver, CelOptions celOptions) {
+    return new ExecutionFrame(functionResolver, celOptions.comprehensionMaxIterations());
   }
 
-  private ExecutionFrame(GlobalResolver delegate, int limit) {
-    this.delegate = delegate;
+  private ExecutionFrame(CelFunctionResolver functionResolver, int limit) {
     this.comprehensionIterationLimit = limit;
+    this.functionResolver = functionResolver;
   }
 }
