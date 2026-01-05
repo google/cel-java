@@ -21,10 +21,9 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.NullValue;
-import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.exceptions.CelAttributeNotFoundException;
 import dev.cel.common.internal.DynamicProto;
 import dev.cel.common.internal.ProtoAdapter;
 import dev.cel.common.internal.ProtoMessageFactory;
@@ -79,10 +78,8 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
             .newBuilder(messageName)
             .orElseThrow(
                 () ->
-                    new CelRuntimeException(
-                        new IllegalArgumentException(
-                            String.format("cannot resolve '%s' as a message", messageName)),
-                        CelErrorCode.ATTRIBUTE_NOT_FOUND));
+                    CelAttributeNotFoundException.of(
+                        String.format("cannot resolve '%s' as a message", messageName)));
 
     try {
       Descriptor descriptor = builder.getDescriptorForType();
@@ -122,10 +119,7 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
       if (isOptionalMessage) {
         return Optional.empty();
       } else {
-        throw new CelRuntimeException(
-            new IllegalArgumentException(
-                String.format("key '%s' is not present in map.", fieldName)),
-            CelErrorCode.ATTRIBUTE_NOT_FOUND);
+        throw CelAttributeNotFoundException.forMissingMapKey(fieldName);
       }
     }
 
@@ -197,13 +191,7 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
   private static MessageOrBuilder assertFullProtoMessage(Object candidate, String fieldName) {
     if (!(candidate instanceof MessageOrBuilder)) {
       // This can happen when the field selection is done on dyn, and it is not a message.
-      throw new CelRuntimeException(
-          new IllegalArgumentException(
-              String.format(
-                  "Error resolving field '%s'. Field selections must be performed on messages or"
-                      + " maps.",
-                  fieldName)),
-          CelErrorCode.ATTRIBUTE_NOT_FOUND);
+      throw CelAttributeNotFoundException.forFieldResolution(fieldName);
     }
     return (MessageOrBuilder) candidate;
   }

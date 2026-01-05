@@ -123,6 +123,7 @@ java_library(
         "//common:compiler_common",
         "//common:options",
         "//common/ast",
+        "//common/exceptions:numeric_overflow",
         "//common/internal:comparison_functions",
         "//common/types",
         "//compiler:compiler_builder",

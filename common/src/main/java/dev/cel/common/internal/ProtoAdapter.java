@@ -31,10 +31,9 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MapEntry;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageOrBuilder;
-import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.exceptions.CelNumericOverflowException;
 import dev.cel.common.values.CelByteString;
 import dev.cel.common.values.NullValue;
 import java.util.ArrayList;
@@ -361,7 +360,7 @@ public final class ProtoAdapter {
     try {
       return Ints.checkedCast(value);
     } catch (IllegalArgumentException e) {
-      throw new CelRuntimeException(e, CelErrorCode.NUMERIC_OVERFLOW);
+      throw new CelNumericOverflowException(e);
     }
   }
 
@@ -369,7 +368,7 @@ public final class ProtoAdapter {
     try {
       return UnsignedInts.checkedCast(value);
     } catch (IllegalArgumentException e) {
-      throw new CelRuntimeException(e, CelErrorCode.NUMERIC_OVERFLOW);
+      throw new CelNumericOverflowException(e);
     }
   }
 }

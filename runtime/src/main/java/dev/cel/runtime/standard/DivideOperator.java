@@ -15,12 +15,11 @@
 package dev.cel.runtime.standard;
 
 import static dev.cel.common.Operator.DIVIDE;
-import static dev.cel.runtime.standard.ArithmeticHelpers.getArithmeticErrorCode;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelDivideByZeroException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
@@ -58,7 +57,7 @@ public final class DivideOperator extends CelStandardFunction {
                   try {
                     return RuntimeHelpers.int64Divide(x, y, celOptions);
                   } catch (ArithmeticException e) {
-                    throw new CelRuntimeException(e, getArithmeticErrorCode(e));
+                    throw new CelDivideByZeroException(e);
                   }
                 })),
     DIVIDE_UINT64(

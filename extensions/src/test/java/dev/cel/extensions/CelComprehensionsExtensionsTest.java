@@ -24,6 +24,8 @@ import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationException;
+import dev.cel.common.exceptions.CelDivideByZeroException;
+import dev.cel.common.exceptions.CelIndexOutOfBoundsException;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
 import dev.cel.compiler.CelCompiler;
@@ -347,13 +349,13 @@ public class CelComprehensionsExtensionsTest {
   }
 
   @Test
-  public void twoVarComprehension_arithematicException_runtimeError() throws Exception {
+  public void twoVarComprehension_arithmeticException_runtimeError() throws Exception {
     CelAbstractSyntaxTree ast = CEL_COMPILER.compile("[0].all(i, k, i/k < k)").getAst();
 
     CelEvaluationException e =
         assertThrows(CelEvaluationException.class, () -> CEL_RUNTIME.createProgram(ast).eval());
 
-    assertThat(e).hasCauseThat().isInstanceOf(ArithmeticException.class);
+    assertThat(e).hasCauseThat().isInstanceOf(CelDivideByZeroException.class);
     assertThat(e).hasCauseThat().hasMessageThat().contains("/ by zero");
   }
 
@@ -364,7 +366,7 @@ public class CelComprehensionsExtensionsTest {
     CelEvaluationException e =
         assertThrows(CelEvaluationException.class, () -> CEL_RUNTIME.createProgram(ast).eval());
 
-    assertThat(e).hasCauseThat().isInstanceOf(IndexOutOfBoundsException.class);
+    assertThat(e).hasCauseThat().isInstanceOf(CelIndexOutOfBoundsException.class);
     assertThat(e).hasCauseThat().hasMessageThat().contains("Index out of bounds: 1");
   }
 }

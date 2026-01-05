@@ -15,7 +15,6 @@
 package dev.cel.common.exceptions;
 
 import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 
 /** Indicates that a list index access was attempted using an index that is out of bounds. */

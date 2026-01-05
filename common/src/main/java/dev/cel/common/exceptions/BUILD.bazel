@@ -9,14 +9,26 @@ package(
 )
 
 java_library(
+    name = "runtime_exception",
+    srcs = ["CelRuntimeException.java"],
+    # used_by_android
+    tags = [
+    ],
+    deps = [
+        "//common:error_codes",
+        "//common/annotations",
+    ],
+)
+
+java_library(
     name = "attribute_not_found",
     srcs = ["CelAttributeNotFoundException.java"],
     # used_by_android
     tags = [
     ],
     deps = [
+        ":runtime_exception",
         "//common:error_codes",
-        "//common:runtime_exception",
         "//common/annotations",
     ],
 )
@@ -28,8 +40,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":runtime_exception",
         "//common:error_codes",
-        "//common:runtime_exception",
         "//common/annotations",
     ],
 )
@@ -41,8 +53,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":runtime_exception",
         "//common:error_codes",
-        "//common:runtime_exception",
         "//common/annotations",
     ],
 )
@@ -54,8 +66,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":runtime_exception",
         "//common:error_codes",
-        "//common:runtime_exception",
         "//common/annotations",
     ],
 )
@@ -67,8 +79,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":runtime_exception",
         "//common:error_codes",
-        "//common:runtime_exception",
         "//common/annotations",
     ],
 )
@@ -80,8 +92,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":runtime_exception",
         "//common:error_codes",
-        "//common:runtime_exception",
         "//common/annotations",
     ],
 )
@@ -93,8 +105,8 @@ java_library(
     tags = [
     ],
     deps = [
+        ":runtime_exception",
         "//common:error_codes",
-        "//common:runtime_exception",
         "//common/annotations",
     ],
 )

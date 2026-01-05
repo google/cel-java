@@ -173,18 +173,6 @@ java_library(
 )
 
 java_library(
-    name = "runtime_exception",
-    srcs = ["CelRuntimeException.java"],
-    # used_by_android
-    tags = [
-    ],
-    deps = [
-        ":error_codes",
-        "//common/annotations",
-    ],
-)
-
-java_library(
     name = "mutable_ast",
     srcs = ["CelMutableAst.java"],
     tags = [

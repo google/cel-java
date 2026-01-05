@@ -65,7 +65,7 @@ java_library(
         ":strict_error_exception",
         "//:auto_value",
         "//common:options",
-        "//common:runtime_exception",
+        "//common/exceptions:runtime_exception",
         "//common/values",
         "//runtime",
         "//runtime:activation",
@@ -337,7 +337,7 @@ java_library(
         ":planned_interpretable",
         ":strict_error_exception",
         "//common:error_codes",
-        "//common:runtime_exception",
+        "//common/exceptions:runtime_exception",
         "//common/values",
         "//runtime:interpretable",
     ],
@@ -348,7 +348,7 @@ java_library(
     srcs = ["StrictErrorException.java"],
     deps = [
         "//common:error_codes",
-        "//common:runtime_exception",
+        "//common/exceptions:runtime_exception",
     ],
 )
 

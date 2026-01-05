@@ -173,11 +173,9 @@ java_library(
         ":proto_lite_adapter",
         ":proto_message_factory",
         ":well_known_proto",
-        "//:auto_value",
-        "//common:error_codes",
         "//common:options",
-        "//common:runtime_exception",
         "//common/annotations",
+        "//common/exceptions:numeric_overflow",
         "//common/values",
         "//common/values:cel_byte_string",
         "@maven//:com_google_code_findbugs_annotations",
@@ -194,11 +192,10 @@ java_library(
     ],
     deps = [
         ":well_known_proto",
-        "//common:error_codes",
         "//common:options",
         "//common:proto_json_adapter",
-        "//common:runtime_exception",
         "//common/annotations",
+        "//common/exceptions:numeric_overflow",
         "//common/internal:proto_time_utils",
         "//common/values",
         "//common/values:cel_byte_string",
@@ -441,9 +438,8 @@ java_library(
     tags = [
     ],
     deps = [
-        "//common:error_codes",
-        "//common:runtime_exception",
         "//common/annotations",
+        "//common/exceptions:bad_format",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
     ],
@@ -455,9 +451,8 @@ cel_android_library(
     tags = [
     ],
     deps = [
-        "//common:error_codes",
-        "//common:runtime_exception",
         "//common/annotations",
+        "//common/exceptions:bad_format",
         "@maven_android//:com_google_guava_guava",
         "@maven_android//:com_google_protobuf_protobuf_javalite",
     ],

@@ -15,7 +15,6 @@
 package dev.cel.common.exceptions;
 
 import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
 
 /** Indicates that a data conversion failed due to a mismatch in the format specification. */

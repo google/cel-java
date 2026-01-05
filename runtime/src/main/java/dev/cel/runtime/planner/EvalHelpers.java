@@ -15,7 +15,7 @@
 package dev.cel.runtime.planner;
 
 import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelRuntimeException;
 import dev.cel.common.values.ErrorValue;
 import dev.cel.runtime.GlobalResolver;
 

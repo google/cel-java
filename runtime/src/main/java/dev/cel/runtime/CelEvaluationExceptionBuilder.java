@@ -16,8 +16,8 @@ package dev.cel.runtime;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.exceptions.CelRuntimeException;
 import dev.cel.common.internal.SafeStringFormatter;
 import org.jspecify.annotations.Nullable;
 
@@ -83,16 +83,15 @@ public final class CelEvaluationExceptionBuilder {
    */
   @Internal
   public static CelEvaluationExceptionBuilder newBuilder(CelRuntimeException celRuntimeException) {
-    // TODO: Temporary until migration is complete.
-    Throwable cause = celRuntimeException.getCause();
+    // Intercept the cause to prevent including the cause's class name in the exception message.
     String message =
-        cause == null
+        celRuntimeException.getCause() == null
             ? celRuntimeException.getMessage()
             : celRuntimeException.getCause().getMessage();
 
     return new CelEvaluationExceptionBuilder(message)
         .setErrorCode(celRuntimeException.getErrorCode())
-        .setCause(cause);
+        .setCause(celRuntimeException);
   }
 
   private CelEvaluationExceptionBuilder(String message) {

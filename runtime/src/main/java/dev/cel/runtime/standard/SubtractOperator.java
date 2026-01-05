@@ -15,14 +15,13 @@
 package dev.cel.runtime.standard;
 
 import static dev.cel.common.Operator.SUBTRACT;
-import static dev.cel.runtime.standard.ArithmeticHelpers.getArithmeticErrorCode;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelNumericOverflowException;
 import dev.cel.common.internal.DateTimeHelpers;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.runtime.CelFunctionBinding;
@@ -59,7 +58,7 @@ public final class SubtractOperator extends CelStandardFunction {
                   try {
                     return RuntimeHelpers.int64Subtract(x, y, celOptions);
                   } catch (ArithmeticException e) {
-                    throw new CelRuntimeException(e, getArithmeticErrorCode(e));
+                    throw new CelNumericOverflowException(e);
                   }
                 })),
     SUBTRACT_TIMESTAMP_TIMESTAMP(
@@ -105,7 +104,7 @@ public final class SubtractOperator extends CelStandardFunction {
                   try {
                     return RuntimeHelpers.uint64Subtract(x, y);
                   } catch (ArithmeticException e) {
-                    throw new CelRuntimeException(e, getArithmeticErrorCode(e));
+                    throw new CelNumericOverflowException(e);
                   }
                 });
           } else {
@@ -117,7 +116,7 @@ public final class SubtractOperator extends CelStandardFunction {
                   try {
                     return RuntimeHelpers.uint64Subtract(x, y, celOptions);
                   } catch (ArithmeticException e) {
-                    throw new CelRuntimeException(e, getArithmeticErrorCode(e));
+                    throw new CelNumericOverflowException(e);
                   }
                 });
           }

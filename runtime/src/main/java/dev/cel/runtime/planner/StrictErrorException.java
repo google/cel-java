@@ -15,7 +15,7 @@
 package dev.cel.runtime.planner;
 
 import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelRuntimeException;
 
 /**
  * An exception that's raised when a strict call failed to invoke, which includes the source of

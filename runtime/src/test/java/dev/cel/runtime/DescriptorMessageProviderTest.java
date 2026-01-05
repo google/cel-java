@@ -31,7 +31,7 @@ import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelRuntimeException;
 import dev.cel.common.internal.CelDescriptorPool;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
@@ -114,8 +114,8 @@ public final class DescriptorMessageProviderTest {
             () ->
                 provider.createMessage(
                     "google.api.tools.contract.test.MissingMessageTypes", ImmutableMap.of()));
-    assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.ATTRIBUTE_NOT_FOUND);
+    assertThat(e).hasCauseThat().isNull();
   }
 
   @Test
@@ -159,8 +159,8 @@ public final class DescriptorMessageProviderTest {
     CelRuntimeException e =
         Assert.assertThrows(
             CelRuntimeException.class, () -> provider.selectField(ImmutableMap.of(), "hello"));
-    assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.ATTRIBUTE_NOT_FOUND);
+    assertThat(e).hasCauseThat().isNull();
   }
 
   @Test
@@ -177,8 +177,8 @@ public final class DescriptorMessageProviderTest {
     CelRuntimeException e =
         Assert.assertThrows(
             CelRuntimeException.class, () -> provider.selectField("hello", "not_a_field"));
-    assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
     assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.ATTRIBUTE_NOT_FOUND);
+    assertThat(e).hasCauseThat().isNull();
   }
 
   @Test

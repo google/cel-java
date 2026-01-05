@@ -16,9 +16,8 @@ package dev.cel.common.internal;
 
 import com.google.common.base.Strings;
 import com.google.protobuf.Timestamp;
-import dev.cel.common.CelErrorCode;
-import dev.cel.common.CelRuntimeException;
 import dev.cel.common.annotations.Internal;
+import dev.cel.common.exceptions.CelBadFormatException;
 import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.Instant;
@@ -184,7 +183,7 @@ public final class DateTimeHelpers {
       try {
         int ind = tz.indexOf(":");
         if (ind == -1) {
-          throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
+          throw new CelBadFormatException(e);
         }
 
         int hourOffset = Integer.parseInt(tz.substring(0, ind));
@@ -199,7 +198,7 @@ public final class DateTimeHelpers {
         return ZoneId.of(formattedOffset);
 
       } catch (DateTimeException e2) {
-        throw new CelRuntimeException(e2, CelErrorCode.BAD_FORMAT);
+        throw new CelBadFormatException(e2);
       }
     }
   }

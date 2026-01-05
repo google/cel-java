@@ -16,9 +16,8 @@ package dev.cel.runtime.standard;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
-import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelBadFormatException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import java.util.Arrays;
@@ -56,7 +55,7 @@ public final class DoubleFunction extends CelStandardFunction {
                   try {
                     return Double.parseDouble(arg);
                   } catch (NumberFormatException e) {
-                    throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
+                    throw new CelBadFormatException(e);
                   }
                 })),
     UINT64_TO_DOUBLE(

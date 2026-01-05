@@ -17,9 +17,9 @@ package dev.cel.runtime.standard;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.Timestamp;
-import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelBadFormatException;
+import dev.cel.common.exceptions.CelNumericOverflowException;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
@@ -56,9 +56,7 @@ public final class IntFunction extends CelStandardFunction {
                 UnsignedLong.class,
                 (UnsignedLong arg) -> {
                   if (arg.compareTo(UnsignedLong.valueOf(Long.MAX_VALUE)) > 0) {
-                    throw new CelRuntimeException(
-                        new IllegalArgumentException("unsigned out of int range"),
-                        CelErrorCode.NUMERIC_OVERFLOW);
+                    throw new CelNumericOverflowException("unsigned out of int range");
                   }
                   return arg.longValue();
                 });
@@ -68,9 +66,7 @@ public final class IntFunction extends CelStandardFunction {
                 Long.class,
                 (Long arg) -> {
                   if (celOptions.errorOnIntWrap() && arg < 0) {
-                    throw new CelRuntimeException(
-                        new IllegalArgumentException("unsigned out of int range"),
-                        CelErrorCode.NUMERIC_OVERFLOW);
+                    throw new CelNumericOverflowException("unsigned out of int range");
                   }
                   return arg;
                 });
@@ -86,9 +82,7 @@ public final class IntFunction extends CelStandardFunction {
                     return RuntimeHelpers.doubleToLongChecked(arg)
                         .orElseThrow(
                             () ->
-                                new CelRuntimeException(
-                                    new IllegalArgumentException("double is out of range for int"),
-                                    CelErrorCode.NUMERIC_OVERFLOW));
+                    new CelNumericOverflowException("double is out of range for int"));
                   }
                   return arg.longValue();
                 })),
@@ -101,7 +95,7 @@ public final class IntFunction extends CelStandardFunction {
                   try {
                     return Long.parseLong(arg);
                   } catch (NumberFormatException e) {
-                    throw new CelRuntimeException(e, CelErrorCode.BAD_FORMAT);
+                    throw new CelBadFormatException(e);
                   }
                 })),
     TIMESTAMP_TO_INT64(

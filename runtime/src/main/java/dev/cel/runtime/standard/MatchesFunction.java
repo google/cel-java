@@ -15,9 +15,8 @@
 package dev.cel.runtime.standard;
 
 import com.google.common.collect.ImmutableSet;
-import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelOptions;
-import dev.cel.common.CelRuntimeException;
+import dev.cel.common.exceptions.CelInvalidArgumentException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
@@ -51,7 +50,7 @@ public final class MatchesFunction extends CelStandardFunction {
                   try {
                     return RuntimeHelpers.matches(string, regexp, celOptions);
                   } catch (RuntimeException e) {
-                    throw new CelRuntimeException(e, CelErrorCode.INVALID_ARGUMENT);
+                    throw new CelInvalidArgumentException(e);
                   }
                 })),
     // Duplicate receiver-style matches overload.
@@ -65,7 +64,7 @@ public final class MatchesFunction extends CelStandardFunction {
                   try {
                     return RuntimeHelpers.matches(string, regexp, celOptions);
                   } catch (RuntimeException e) {
-                    throw new CelRuntimeException(e, CelErrorCode.INVALID_ARGUMENT);
+                    throw new CelInvalidArgumentException(e);
                   }
                 })),
     ;

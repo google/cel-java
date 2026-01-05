@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.common;
+package dev.cel.common.exceptions;
 
+import dev.cel.common.CelErrorCode;
 import dev.cel.common.annotations.Internal;
 
 /**
  * Wrapper for an unchecked runtime exception with a CelErrorCode supplied.
  *
  * <p>Note: This is not to be confused with the notion of CEL Runtime. Use {@code
- * CelEvaluationException} instead to signify an evaluation error. corresponds to the CelErrorCode.
+ * CelEvaluationException} instead to signify an evaluation error.
  */
 @Internal
-public class CelRuntimeException extends RuntimeException {
+public abstract class CelRuntimeException extends RuntimeException {
   private final CelErrorCode errorCode;
 
-  public CelRuntimeException(String errorMessage, CelErrorCode errorCode) {
+  CelRuntimeException(String errorMessage, CelErrorCode errorCode) {
     super(errorMessage);
     this.errorCode = errorCode;
   }

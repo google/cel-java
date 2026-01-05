@@ -6,6 +6,12 @@ package(
 )
 
 java_library(
+    name = "runtime_exception",
+    # used_by_android
+    exports = ["//common/src/main/java/dev/cel/common/exceptions:runtime_exception"],
+)
+
+java_library(
     name = "attribute_not_found",
     # used_by_android
     exports = ["//common/src/main/java/dev/cel/common/exceptions:attribute_not_found"],

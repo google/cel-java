@@ -32,6 +32,7 @@ import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExpr.ExprKind.Kind;
+import dev.cel.common.exceptions.CelNumericOverflowException;
 import dev.cel.common.internal.ComparisonFunctions;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
@@ -216,8 +217,7 @@ final class CelMathExtensions
                 "math_@max_int_double", Long.class, Double.class, CelMathExtensions::maxPair),
             CelFunctionBinding.from(
                 "math_@max_double_int", Double.class, Long.class, CelMathExtensions::maxPair),
-            CelFunctionBinding.from(
-                "math_@max_list_dyn", List.class, CelMathExtensions::maxList)),
+            CelFunctionBinding.from("math_@max_list_dyn", List.class, CelMathExtensions::maxList)),
         ImmutableSet.of(
             CelFunctionBinding.from("math_@max_uint", Long.class, x -> x),
             CelFunctionBinding.from(
@@ -640,8 +640,7 @@ final class CelMathExtensions
         ImmutableSet.of(
             CelFunctionBinding.from(
                 "math_sqrt_double", Double.class, CelMathExtensions::sqrtDouble),
-            CelFunctionBinding.from(
-                "math_sqrt_int", Long.class, CelMathExtensions::sqrtInt),
+            CelFunctionBinding.from("math_sqrt_int", Long.class, CelMathExtensions::sqrtInt),
             CelFunctionBinding.from(
                 "math_sqrt_uint", UnsignedLong.class, CelMathExtensions::sqrtUint)));
 
@@ -856,7 +855,7 @@ final class CelMathExtensions
   private static long absExact(long x) {
     if (x == Long.MIN_VALUE) {
       // The only case where standard Math.abs overflows silently
-      throw new ArithmeticException("integer overflow");
+      throw new CelNumericOverflowException("integer overflow");
     }
     return Math.abs(x);
   }

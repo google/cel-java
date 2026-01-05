@@ -23,6 +23,7 @@ java_library(
         "//common:operator",
         "//common:options",
         "//common/ast",
+        "//common/exceptions:divide_by_zero",
         "//common/internal:cel_descriptor_pools",
         "//common/internal:default_message_factory",
         "//common/internal:dynamic_proto",
