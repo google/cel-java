@@ -17,6 +17,7 @@ package dev.cel.runtime.planner;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CheckReturnValue;
 import javax.annotation.concurrent.ThreadSafe;
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -63,7 +64,6 @@ public final class ProgramPlanner {
   private final AttributeFactory attributeFactory;
   private final CelContainer container;
   private final CelOptions options;
-
 
   /**
    * Plans a {@link Program} from the provided parsed-only or type-checked {@link
@@ -155,8 +155,15 @@ public final class ProgramPlanner {
       return planCheckedIdent(celExpr.id(), ref, ctx.typeMap());
     }
 
-    return EvalAttribute.create(
-        celExpr.id(), attributeFactory.newMaybeAttribute(celExpr.ident().name()));
+    String name = celExpr.ident().name();
+    // If the identifier matches a variable that's available in local scope (from a comprehension)
+    // force it to resolve as an absolute attribute (simple name only), bypassing container
+    // resolution.
+    if (ctx.scopedVariables().contains(name)) {
+      return EvalAttribute.create(celExpr.id(), attributeFactory.newAbsoluteAttribute(name));
+    }
+
+    return EvalAttribute.create(celExpr.id(), attributeFactory.newMaybeAttribute(name));
   }
 
   private PlannedInterpretable planCheckedIdent(
@@ -291,9 +298,19 @@ public final class ProgramPlanner {
 
     PlannedInterpretable accuInit = plan(comprehension.accuInit(), ctx);
     PlannedInterpretable iterRange = plan(comprehension.iterRange(), ctx);
-    PlannedInterpretable loopCondition = plan(comprehension.loopCondition(), ctx);
-    PlannedInterpretable loopStep = plan(comprehension.loopStep(), ctx);
-    PlannedInterpretable result = plan(comprehension.result(), ctx);
+
+    PlannerContext innerCtx;
+    if (comprehension.iterVar2().isEmpty()) {
+      innerCtx = ctx.addScopedIdentifiers(comprehension.iterVar(), comprehension.accuVar());
+    } else {
+      innerCtx =
+          ctx.addScopedIdentifiers(
+              comprehension.iterVar(), comprehension.iterVar2(), comprehension.accuVar());
+    }
+
+    PlannedInterpretable loopCondition = plan(comprehension.loopCondition(), innerCtx);
+    PlannedInterpretable loopStep = plan(comprehension.loopStep(), innerCtx);
+    PlannedInterpretable result = plan(comprehension.result(), innerCtx);
 
     return EvalFold.create(
         expr.id(),
@@ -444,8 +461,23 @@ public final class ProgramPlanner {
 
     abstract ImmutableMap<Long, CelType> typeMap();
 
+    /** Tracks variables that are defined in the current scope (e.g. comprehensions). */
+    abstract ImmutableSet<String> scopedVariables();
+
     private static PlannerContext create(CelAbstractSyntaxTree ast) {
-      return new AutoValue_ProgramPlanner_PlannerContext(ast.getReferenceMap(), ast.getTypeMap());
+      return new AutoValue_ProgramPlanner_PlannerContext(
+          ast.getReferenceMap(), ast.getTypeMap(), ImmutableSet.of());
+    }
+
+    /** Returns a new context with the provided variables added to the local scope. */
+    PlannerContext addScopedIdentifiers(String... variables) {
+      ImmutableSet.Builder<String> newLocals =
+          ImmutableSet.builderWithExpectedSize(scopedVariables().size() + variables.length);
+      newLocals.addAll(scopedVariables());
+      newLocals.add(variables);
+
+      return new AutoValue_ProgramPlanner_PlannerContext(
+          referenceMap(), typeMap(), newLocals.build());
     }
   }
 
