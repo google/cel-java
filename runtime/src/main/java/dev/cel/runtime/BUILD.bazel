@@ -122,6 +122,7 @@ java_library(
     deps = [
         ":evaluation_exception",
         ":evaluation_exception_builder",
+        ":function_binding",
         ":function_overload",
         ":function_resolver",
         ":resolved_overload",
@@ -141,6 +142,7 @@ cel_android_library(
     deps = [
         ":evaluation_exception",
         ":evaluation_exception_builder",
+        ":function_binding_android",
         ":function_overload_android",
         ":function_resolver_android",
         ":resolved_overload_android",
@@ -609,6 +611,7 @@ java_library(
     deps = [
         ":function_binding",
         ":runtime_equality",
+        "//common:operator",
         "//common:options",
         "//common/annotations",
         "//runtime/standard:add",
@@ -666,6 +669,7 @@ cel_android_library(
     deps = [
         ":function_binding_android",
         ":runtime_equality_android",
+        "//common:operator_android",
         "//common:options",
         "//common/annotations",
         "//runtime/standard:add_android",
@@ -723,6 +727,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":evaluation_exception",
         ":function_overload",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -735,6 +740,7 @@ cel_android_library(
     tags = [
     ],
     deps = [
+        ":evaluation_exception",
         ":function_overload_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
@@ -774,7 +780,9 @@ java_library(
     ],
     deps = [
         ":evaluation_exception",
+        "//runtime:unknown_attributes",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
     ],
 )
 
@@ -785,7 +793,9 @@ cel_android_library(
     ],
     deps = [
         ":evaluation_exception",
+        "//runtime:unknown_attributes_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
     ],
 )
 
@@ -1173,7 +1183,6 @@ java_library(
     ],
     deps = [
         ":function_overload",
-        ":unknown_attributes",
         "//:auto_value",
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -1188,7 +1197,6 @@ cel_android_library(
     ],
     deps = [
         ":function_overload_android",
-        ":unknown_attributes_android",
         "//:auto_value",
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
