@@ -454,35 +454,66 @@ public class Env {
    * <p>Returns {@code null} if the function cannot be found.
    */
   public @Nullable CelIdentDecl tryLookupCelIdent(CelContainer container, String name) {
+    // Attempt to find the decl with just the ident name to account for shadowed variables
+    CelIdentDecl decl = tryLookupCelIdentFromLocalScopes(name);
+    if (decl != null) {
+      return decl;
+    }
+
     for (String cand : container.resolveCandidateNames(name)) {
-      // First determine whether we know this name already.
-      CelIdentDecl decl = findIdentDecl(cand);
+      decl = tryLookupCelIdent(cand);
       if (decl != null) {
         return decl;
       }
+    }
 
-      // Next try to import the name as a reference to a message type.
-      // This is done via the type provider.
-      Optional<CelType> type = typeProvider.lookupCelType(cand);
-      if (type.isPresent()) {
-        decl = CelIdentDecl.newIdentDeclaration(cand, type.get());
-        decls.get(0).putIdent(decl);
-        return decl;
-      }
+    return null;
+  }
 
-      // Next try to import this as an enum value by splitting the name in a type prefix and
-      // the enum inside.
-      Integer enumValue = typeProvider.lookupEnumValue(cand);
-      if (enumValue != null) {
-        decl =
-            CelIdentDecl.newBuilder()
-                .setName(cand)
-                .setType(SimpleType.INT)
-                .setConstant(CelConstant.ofValue(enumValue))
-                .build();
+  private @Nullable CelIdentDecl tryLookupCelIdent(String cand) {
+    // First determine whether we know this name already.
+    CelIdentDecl decl = findIdentDecl(cand);
+    if (decl != null) {
+      return decl;
+    }
 
-        decls.get(0).putIdent(decl);
-        return decl;
+    // Next try to import the name as a reference to a message type.
+    // This is done via the type provider.
+    Optional<CelType> type = typeProvider.lookupCelType(cand);
+    if (type.isPresent()) {
+      decl = CelIdentDecl.newIdentDeclaration(cand, type.get());
+      decls.get(0).putIdent(decl);
+      return decl;
+    }
+
+    // Next try to import this as an enum value by splitting the name in a type prefix and
+    // the enum inside.
+    Integer enumValue = typeProvider.lookupEnumValue(cand);
+    if (enumValue != null) {
+      decl =
+          CelIdentDecl.newBuilder()
+              .setName(cand)
+              .setType(SimpleType.INT)
+              .setConstant(CelConstant.ofValue(enumValue))
+              .build();
+
+      decls.get(0).putIdent(decl);
+      return decl;
+    }
+    return null;
+  }
+
+  private @Nullable CelIdentDecl tryLookupCelIdentFromLocalScopes(String name) {
+    int firstUserSpaceScope = 2;
+    // Iterate from the top of the stack down to the first local scope.
+    // Note that:
+    // Scope 0: Standard environment
+    // Scope 1: User defined environment
+    // Scope 2 and onwards: comprehension scopes
+    for (int i = decls.size() - 1; i >= firstUserSpaceScope; i--) {
+      CelIdentDecl ident = decls.get(i).getIdent(name);
+      if (ident != null) {
+        return ident;
       }
     }
     return null;
