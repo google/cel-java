@@ -12,3 +12,11 @@ Source: [0, 1, 2].exists(x, x > 2)
 =====>
 bindings: {}
 result:   false
+
+Source: [0].exists(x, x == 0)
+declare com.x {
+  value int
+}
+=====>
+bindings: {com.x=1}
+result:   true
