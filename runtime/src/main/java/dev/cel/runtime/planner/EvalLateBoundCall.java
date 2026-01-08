@@ -1,4 +1,4 @@
-// Copyright 2025 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,18 +14,20 @@
 
 package dev.cel.runtime.planner;
 
-import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
 import static dev.cel.runtime.planner.EvalHelpers.evalStrictly;
 
+import com.google.common.collect.ImmutableList;
+import dev.cel.common.exceptions.CelOverloadNotFoundException;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.GlobalResolver;
 
-final class EvalVarArgsCall extends PlannedInterpretable {
+final class EvalLateBoundCall extends PlannedInterpretable {
 
-  private final CelResolvedOverload resolvedOverload;
+  private final String functionName;
+  private final ImmutableList<String> overloadIds;
 
   @SuppressWarnings("Immutable")
   private final PlannedInterpretable[] args;
@@ -37,11 +39,14 @@ final class EvalVarArgsCall extends PlannedInterpretable {
     Object[] argVals = new Object[args.length];
     for (int i = 0; i < args.length; i++) {
       PlannedInterpretable arg = args[i];
-      argVals[i] =
-          resolvedOverload.isStrict()
-              ? evalStrictly(arg, resolver, frame)
-              : evalNonstrictly(arg, resolver, frame);
+      // Late bound functions are assumed to be strict.
+      argVals[i] = evalStrictly(arg, resolver, frame);
     }
+
+    CelResolvedOverload resolvedOverload =
+        frame
+            .findOverload(functionName, overloadIds, argVals)
+            .orElseThrow(() -> new CelOverloadNotFoundException(functionName, overloadIds));
 
     Object result = resolvedOverload.getDefinition().apply(argVals);
     Object runtimeValue = celValueConverter.toRuntimeValue(result);
@@ -51,21 +56,24 @@ final class EvalVarArgsCall extends PlannedInterpretable {
     return runtimeValue;
   }
 
-  static EvalVarArgsCall create(
+  static EvalLateBoundCall create(
       long exprId,
-      CelResolvedOverload resolvedOverload,
+      String functionName,
+      ImmutableList<String> overloadIds,
       PlannedInterpretable[] args,
       CelValueConverter celValueConverter) {
-    return new EvalVarArgsCall(exprId, resolvedOverload, args, celValueConverter);
+    return new EvalLateBoundCall(exprId, functionName, overloadIds, args, celValueConverter);
   }
 
-  private EvalVarArgsCall(
+  private EvalLateBoundCall(
       long exprId,
-      CelResolvedOverload resolvedOverload,
+      String functionName,
+      ImmutableList<String> overloadIds,
       PlannedInterpretable[] args,
       CelValueConverter celValueConverter) {
     super(exprId);
-    this.resolvedOverload = resolvedOverload;
+    this.functionName = functionName;
+    this.overloadIds = overloadIds;
     this.args = args;
     this.celValueConverter = celValueConverter;
   }

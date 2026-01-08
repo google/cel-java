@@ -52,3 +52,9 @@ java_library(
     # used_by_android
     exports = ["//common/src/main/java/dev/cel/common/exceptions:iteration_budget_exceeded"],
 )
+
+java_library(
+    name = "overload_not_found",
+    # used_by_android
+    exports = ["//common/src/main/java/dev/cel/common/exceptions:overload_not_found"],
+)

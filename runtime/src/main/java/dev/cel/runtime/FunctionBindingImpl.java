@@ -14,10 +14,13 @@
 
 package dev.cel.runtime;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.exceptions.CelOverloadNotFoundException;
 
 @Immutable
 final class FunctionBindingImpl implements CelFunctionBinding {
@@ -135,7 +138,11 @@ final class FunctionBindingImpl implements CelFunctionBinding {
         }
       }
 
-      throw new IllegalArgumentException("No matching overload for function: " + functionName);
+      throw new CelOverloadNotFoundException(
+          functionName,
+          overloadBindings.stream()
+              .map(CelFunctionBinding::getOverloadId)
+              .collect(toImmutableList()));
     }
 
     private DynamicDispatchOverload(

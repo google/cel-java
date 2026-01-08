@@ -110,3 +110,16 @@ java_library(
         "//common/annotations",
     ],
 )
+
+java_library(
+    name = "overload_not_found",
+    srcs = ["CelOverloadNotFoundException.java"],
+    # used_by_android
+    tags = [
+    ],
+    deps = [
+        ":runtime_exception",
+        "//common:error_codes",
+        "//common/annotations",
+    ],
+)

@@ -23,13 +23,33 @@ import dev.cel.runtime.Activation;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationExceptionBuilder;
 import dev.cel.runtime.CelFunctionResolver;
+import dev.cel.runtime.CelResolvedOverload;
+import dev.cel.runtime.CelVariableResolver;
 import dev.cel.runtime.GlobalResolver;
 import dev.cel.runtime.Program;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 @Immutable
 @AutoValue
 abstract class PlannedProgram implements Program {
+
+  private static final CelFunctionResolver EMPTY_FUNCTION_RESOLVER =
+      new CelFunctionResolver() {
+        @Override
+        public Optional<CelResolvedOverload> findOverloadMatchingArgs(
+            String functionName, Collection<String> overloadIds, Object[] args) {
+          return Optional.empty();
+        }
+
+        @Override
+        public Optional<CelResolvedOverload> findOverloadMatchingArgs(
+            String functionName, Object[] args) {
+          return Optional.empty();
+        }
+      };
+
   abstract PlannedInterpretable interpretable();
 
   abstract ErrorMetadata metadata();
@@ -38,24 +58,40 @@ abstract class PlannedProgram implements Program {
 
   @Override
   public Object eval() throws CelEvaluationException {
-    return evalOrThrow(interpretable(), GlobalResolver.EMPTY);
+    return evalOrThrow(interpretable(), GlobalResolver.EMPTY, EMPTY_FUNCTION_RESOLVER);
   }
 
   @Override
   public Object eval(Map<String, ?> mapValue) throws CelEvaluationException {
-    return evalOrThrow(interpretable(), Activation.copyOf(mapValue));
+    return evalOrThrow(interpretable(), Activation.copyOf(mapValue), EMPTY_FUNCTION_RESOLVER);
   }
 
   @Override
   public Object eval(Map<String, ?> mapValue, CelFunctionResolver lateBoundFunctionResolver)
       throws CelEvaluationException {
-    throw new UnsupportedOperationException("Late bound functions not supported yet");
+    return evalOrThrow(interpretable(), Activation.copyOf(mapValue), lateBoundFunctionResolver);
   }
 
-  private Object evalOrThrow(PlannedInterpretable interpretable, GlobalResolver resolver)
+  @Override
+  public Object eval(CelVariableResolver resolver) throws CelEvaluationException {
+    return evalOrThrow(
+        interpretable(), (name) -> resolver.find(name).orElse(null), EMPTY_FUNCTION_RESOLVER);
+  }
+
+  @Override
+  public Object eval(CelVariableResolver resolver, CelFunctionResolver lateBoundFunctionResolver)
+      throws CelEvaluationException {
+    return evalOrThrow(
+        interpretable(), (name) -> resolver.find(name).orElse(null), lateBoundFunctionResolver);
+  }
+
+  private Object evalOrThrow(
+      PlannedInterpretable interpretable,
+      GlobalResolver resolver,
+      CelFunctionResolver functionResolver)
       throws CelEvaluationException {
     try {
-      ExecutionFrame frame = ExecutionFrame.create(resolver, options());
+      ExecutionFrame frame = ExecutionFrame.create(functionResolver, options());
       Object evalResult = interpretable.eval(resolver, frame);
       if (evalResult instanceof ErrorValue) {
         ErrorValue errorValue = (ErrorValue) evalResult;

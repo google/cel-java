@@ -67,6 +67,7 @@ import dev.cel.extensions.CelExtensions;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.runtime.CelLateFunctionBindings;
 import dev.cel.runtime.CelStandardFunctions;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction;
 import dev.cel.runtime.DefaultDispatcher;
@@ -109,11 +110,17 @@ public final class ProgramPlannerTest {
           newDispatcher(),
           CEL_VALUE_CONVERTER,
           CEL_CONTAINER,
-          CEL_OPTIONS);
+          CEL_OPTIONS,
+          ImmutableSet.of("late_bound_func"));
 
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+          .addFunctionDeclarations(
+              newFunctionDeclaration(
+                  "late_bound_func",
+                  newGlobalOverload(
+                      "late_bound_func_overload", SimpleType.STRING, SimpleType.STRING)))
           .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
           .addVar("map_var", MapType.create(SimpleType.STRING, SimpleType.DYN))
           .addVar("int_var", SimpleType.INT)
@@ -440,12 +447,21 @@ public final class ProgramPlannerTest {
   public void plan_call_noMatchingOverload_throws() throws Exception {
     CelAbstractSyntaxTree ast = compile("concat(b'abc', dyn_var)");
     Program program = PLANNER.plan(ast);
+    String errorMsg;
+    if (isParseOnly) {
+      errorMsg =
+          "No matching overload for function 'concat'. Overload candidates: concat_bytes_bytes,"
+              + " bytes_concat_bytes";
+    } else {
+      errorMsg = "No matching overload for function 'concat_bytes_bytes'";
+    }
 
     CelEvaluationException e =
         assertThrows(
             CelEvaluationException.class,
             () -> program.eval(ImmutableMap.of("dyn_var", "Impossible Overload")));
-    assertThat(e).hasMessageThat().contains("No matching overload for function: concat");
+
+    assertThat(e).hasMessageThat().contains(errorMsg);
   }
 
   @Test
@@ -555,6 +571,23 @@ public final class ProgramPlannerTest {
     Long result = (Long) program.eval();
 
     assertThat(result).isEqualTo(8);
+  }
+
+  @Test
+  public void plan_call_lateBoundFunction() throws Exception {
+    CelAbstractSyntaxTree ast = compile("late_bound_func('test')");
+
+    Program program = PLANNER.plan(ast);
+
+    String result =
+        (String)
+            program.eval(
+                ImmutableMap.of(),
+                CelLateFunctionBindings.from(
+                    CelFunctionBinding.from(
+                        "late_bound_func_overload", String.class, (arg) -> arg + "_resolved")));
+
+    assertThat(result).isEqualTo("test_resolved");
   }
 
   @Test
@@ -758,7 +791,8 @@ public final class ProgramPlannerTest {
             newDispatcher(),
             CEL_VALUE_CONVERTER,
             CEL_CONTAINER,
-            options);
+            options,
+            ImmutableSet.of());
     CelAbstractSyntaxTree ast = compile(expression);
 
     Program program = planner.plan(ast);
@@ -778,7 +812,8 @@ public final class ProgramPlannerTest {
             newDispatcher(),
             CEL_VALUE_CONVERTER,
             CEL_CONTAINER,
-            options);
+            options,
+            ImmutableSet.of());
     CelAbstractSyntaxTree ast = compile("[1, 2, 3].map(x, [1, 2].map(y, x + y))");
 
     Program program = planner.plan(ast);
