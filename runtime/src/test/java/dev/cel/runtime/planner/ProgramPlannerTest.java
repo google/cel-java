@@ -790,13 +790,69 @@ public final class ProgramPlannerTest {
                 ImmutableList.of(2L, 3L), ImmutableList.of(3L, 4L), ImmutableList.of(4L, 5L)));
   }
 
+  @Test
+  public void plan_comprehension_withContainer_comprehensionVariableShadowed() throws Exception {
+    ProgramPlanner planner =
+        ProgramPlanner.newPlanner(
+            TYPE_PROVIDER,
+            ProtoMessageValueProvider.newInstance(CEL_OPTIONS, DYNAMIC_PROTO),
+            newDispatcher(),
+            CEL_VALUE_CONVERTER,
+            CelContainer.ofName("com"),
+            CEL_OPTIONS);
+    CelAbstractSyntaxTree ast = compile("[0].exists(int_var, int_var == 0)");
+
+    Program program = planner.plan(ast);
+
+    boolean result = (boolean) program.eval(ImmutableMap.of("com.int_var", 1));
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void plan_ident_withContainer_resolutionOrderHolds() throws Exception {
+    CelContainer container = CelContainer.ofName("foo");
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setContainer(container)
+            .addVar("bar", SimpleType.INT)
+            .addVar("foo.bar", SimpleType.INT)
+            .build();
+    ProgramPlanner planner =
+        ProgramPlanner.newPlanner(
+            TYPE_PROVIDER,
+            ProtoMessageValueProvider.newInstance(CEL_OPTIONS, DYNAMIC_PROTO),
+            newDispatcher(),
+            CEL_VALUE_CONVERTER,
+            container,
+            CEL_OPTIONS);
+    CelAbstractSyntaxTree ast = compile(celCompiler, "bar");
+
+    Program program = planner.plan(ast);
+
+    Long result =
+        (Long)
+            program.eval(
+                ImmutableMap.of(
+                    "bar", 1,
+                    "foo.bar", 2));
+
+    // When there's no shadowed variables, container resolution should always take precedence (e.g:
+    // `foo.bar`)
+    assertThat(result).isEqualTo(2);
+  }
+
   private CelAbstractSyntaxTree compile(String expression) throws Exception {
-    CelAbstractSyntaxTree ast = CEL_COMPILER.parse(expression).getAst();
+    return compile(CEL_COMPILER, expression);
+  }
+
+  private CelAbstractSyntaxTree compile(CelCompiler compiler, String expression) throws Exception {
+    CelAbstractSyntaxTree ast = compiler.parse(expression).getAst();
     if (isParseOnly) {
       return ast;
     }
 
-    return CEL_COMPILER.check(ast).getAst();
+    return compiler.check(ast).getAst();
   }
 
   private static CelByteString concatenateByteArrays(CelByteString bytes1, CelByteString bytes2) {
