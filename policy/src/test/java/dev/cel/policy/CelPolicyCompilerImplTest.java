@@ -14,9 +14,8 @@
 
 package dev.cel.policy;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.truth.Truth.assertThat;
-import static dev.cel.policy.PolicyTestHelper.readFromYaml;
+import static dev.cel.policy.testing.PolicyTestSuiteHelper.readFromYaml;
 import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
@@ -38,17 +37,15 @@ import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.CelUnparserFactory;
 import dev.cel.policy.PolicyTestHelper.K8sTagHandler;
-import dev.cel.policy.PolicyTestHelper.PolicyTestSuite;
-import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection;
-import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection.PolicyTestCase;
-import dev.cel.policy.PolicyTestHelper.PolicyTestSuite.PolicyTestSection.PolicyTestCase.PolicyTestInput;
 import dev.cel.policy.PolicyTestHelper.TestYamlPolicy;
+import dev.cel.policy.testing.PolicyTestSuiteHelper.PolicyTestSuite;
+import dev.cel.policy.testing.PolicyTestSuiteHelper.PolicyTestSuite.PolicyTestSection;
+import dev.cel.policy.testing.PolicyTestSuiteHelper.PolicyTestSuite.PolicyTestSection.PolicyTestCase;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelLateFunctionBindings;
 import dev.cel.testing.testdata.SingleFileProto.SingleFile;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.io.IOException;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -215,17 +212,8 @@ public final class CelPolicyCompilerImplTest {
     // Compile then evaluate the policy
     CelAbstractSyntaxTree compiledPolicyAst =
         CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
-    ImmutableMap.Builder<String, Object> inputBuilder = ImmutableMap.builder();
-    for (Map.Entry<String, PolicyTestInput> entry : testData.testCase.getInput().entrySet()) {
-      String exprInput = entry.getValue().getExpr();
-      if (isNullOrEmpty(exprInput)) {
-        inputBuilder.put(entry.getKey(), entry.getValue().getValue());
-      } else {
-        CelAbstractSyntaxTree exprInputAst = cel.compile(exprInput).getAst();
-        inputBuilder.put(entry.getKey(), cel.createProgram(exprInputAst).eval());
-      }
-    }
-    Object evalResult = cel.createProgram(compiledPolicyAst).eval(inputBuilder.buildOrThrow());
+    ImmutableMap<String, Object> inputMap = testData.testCase.toInputMap(cel);
+    Object evalResult = cel.createProgram(compiledPolicyAst).eval(inputMap);
 
     // Assert
     // Note that policies may either produce an optional or a non-optional result,

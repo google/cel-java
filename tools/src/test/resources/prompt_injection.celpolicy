@@ -1,0 +1,17 @@
+name: "policy.safety.prompt.injection"
+default: allow
+
+
+variables:
+# TODO: Helper to extract content
+  - injection_score: >
+      security.classifyInjection(ctx.agent.input.parts[0].prompt.content)
+
+rules:
+  - condition: variables.injection_score > 0.9
+    effect: deny
+    message: "Prompt injection detected with high confidence."
+
+  - condition: variables.injection_score > 0.5
+    effect: confirm
+    message: "Potential prompt injection detected. User confirmation required."

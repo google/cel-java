@@ -1,0 +1,40 @@
+load("@rules_java//java:defs.bzl", "java_library")
+load("//:testing.bzl", "junit4_test_suites")
+
+package(default_applicable_licenses = ["//:license"])
+
+java_library(
+    name = "tests",
+    testonly = True,
+    srcs = glob(
+        ["*.java"],
+    ),
+    resources = ["//tools/ai:test_policies"],
+    deps = [
+        "//:java_truth",
+        "//bundle:cel",
+        "//common:cel_ast",
+        "//common:compiler_common",
+        "//common:container",
+        "//common/formats:value_string",
+        "//common/types",
+        "//parser:macro",
+        "//policy/testing:policy_test_suite_helper",
+        "//runtime:evaluation_exception",
+        "//runtime:function_binding",
+        "//tools/ai:agentic_policy_compiler",
+        "//tools/src/main/java/dev/cel/tools/ai:agent_context_java_proto",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_testparameterinjector_test_parameter_injector",
+        "@maven//:junit_junit",
+    ],
+)
+
+junit4_test_suites(
+    name = "test_suites",
+    sizes = [
+        "small",
+    ],
+    src_dir = "src/test/java",
+    deps = [":tests"],
+)

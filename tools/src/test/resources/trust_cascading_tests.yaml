@@ -1,0 +1,47 @@
+description: "Trust Cascading Policy Tests"
+
+section:
+- name: "Cascading Logic"
+  tests:
+  - name: "Elevation Required (Replay)"
+    input:
+      ctx:
+        expr: >
+          AgentRequestContext{
+            agent: Agent{
+              context: AgentContext{
+                # History with low trust
+                history: [
+                  AgentMessage{ metadata: { 'trust_score': 'LOW' } }
+                ]
+              }
+            }
+          }
+    output: >
+      {
+        "effect": "replay",
+        "details": {
+           "append_attributes": { "trust_score": "MEDIUM" },
+           "reason": "Trust elevation required for proper answer."
+        }
+      }
+
+  - name: "Trust Sufficient (Allow)"
+    input:
+      ctx:
+        expr: >
+          AgentRequestContext{
+            agent: Agent{
+              context: AgentContext{
+                # History now has elevated trust (simulating subsequent turn)
+                history: [
+                  AgentMessage{ metadata: { 'trust_score': 'MEDIUM' } }
+                ]
+              }
+            }
+          }
+    output: >
+      {
+        "effect": "allow",
+        "message": "Trust level sufficient."
+      }
