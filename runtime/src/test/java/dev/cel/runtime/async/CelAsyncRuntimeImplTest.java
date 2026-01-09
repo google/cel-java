@@ -104,6 +104,56 @@ public final class CelAsyncRuntimeImplTest {
   }
 
   @Test
+  public void asyncProgram_sequentialUnknownResolution() throws Exception {
+    // Arrange
+    CelUnknownAttributeValueResolver resolveName =
+        CelUnknownAttributeValueResolver.fromResolver(
+            (attr) -> {
+              Thread.sleep(500);
+              return attr.toString();
+            });
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .setOptions(CelOptions.current().enableUnknownTracking(true).build())
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .addVar("com.google.var1", SimpleType.BOOL)
+            .addVar("com.google.var2", SimpleType.STRING)
+            .addVar("com.google.var3", SimpleType.STRING)
+            .setResultType(SimpleType.STRING)
+            .setContainer(CelContainer.ofName("com.google"))
+            .build();
+
+    CelAsyncRuntime asyncRuntime =
+        CelAsyncRuntimeFactory.defaultAsyncRuntime()
+            .setRuntime(cel)
+            .setExecutorService(newDirectExecutorService())
+            .build();
+
+    CelAbstractSyntaxTree ast =
+        cel.compile(
+                "var1 ? var2 : var3")
+            .getAst();
+
+    AsyncProgram program = asyncRuntime.createProgram(ast);
+
+    // Act
+    ListenableFuture<Object> future =
+        program.evaluateToCompletion(
+            CelResolvableAttributePattern.of(
+                CelAttributePattern.fromQualifiedIdentifier("com.google.var1"),
+                CelUnknownAttributeValueResolver.fromResolver(unused -> true)),
+            CelResolvableAttributePattern.of(
+                CelAttributePattern.fromQualifiedIdentifier("com.google.var2"), resolveName),
+            CelResolvableAttributePattern.of(
+                CelAttributePattern.fromQualifiedIdentifier("com.google.var3"), resolveName));
+    Object result = future.get(2, SECONDS);
+
+    // Assert
+    assertThat(result).isInstanceOf(String.class);
+    assertThat(result).isEqualTo("com.google.var2");
+  }
+
+  @Test
   public void asyncProgram_basicAsyncResolver() throws Exception {
     // Arrange
     SettableFuture<Object> var1 = SettableFuture.create();

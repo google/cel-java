@@ -160,7 +160,7 @@ final class AsyncProgramImpl implements CelAsyncRuntime.AsyncProgram {
             new CelEvaluationException("Max Evaluation iterations exceeded: " + iteration));
       }
       return resolveAndReevaluate(
-          (CelUnknownSet) result, startingUnknownContext, resolvableAttributePatterns, iteration);
+          (CelUnknownSet) result, ctx, resolvableAttributePatterns, iteration);
     }
 
     return immediateFuture(result);
