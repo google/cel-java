@@ -1,0 +1,20 @@
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_testonly = True,
+    default_visibility = [
+        "//tools/ai:__pkg__",
+    ],
+)
+
+filegroup(
+    name = "test_policies",
+    testonly = True,
+    srcs = glob(
+        [
+            "*.celpolicy",
+            "*.yaml",
+        ],
+    ),
+)

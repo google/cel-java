@@ -1,0 +1,29 @@
+description: "Risky Agent Replay Policy Tests"
+
+section:
+- name: "Risky Agent Checks"
+  tests:
+  - name: "Risky Agent 1 (Replay)"
+    input:
+      tool:
+        expr: >
+          McpToolCall{ name: "my_risky_agent1" }
+    output: >
+      {
+        "effect": "replay",
+        "details": {
+           "type": "USER",
+           "turn_window": 1
+        }
+      }
+
+  - name: "Safe Agent (Allow)"
+    input:
+      tool:
+        expr: >
+          McpToolCall{ name: "safe_agent" }
+    output: >
+      {
+        "effect": "allow",
+        "message": ""
+      }

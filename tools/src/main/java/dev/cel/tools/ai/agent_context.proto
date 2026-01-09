@@ -1,0 +1,316 @@
+syntax = "proto3";
+
+package cel.expr.ai;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option java_package = "dev.cel.expr.ai";
+option java_multiple_files = true;
+option java_outer_classname = "AgentContextProto";
+
+// AgentRequestContext defines the universal attribute vocabulary for
+// an AI-related policy check.
+//
+// It represents the state of an agent interaction at a specific point in time,
+// covering both initial conversation ingress (prompt) and subsequent tool
+// execution requests.
+message AgentRequestContext {
+  // A unique identifier for the specific policy request.
+  string request_id = 1;
+
+  // Timestamp of when the request was initiated.
+  google.protobuf.Timestamp time = 2;
+
+  // The context of the agent receiving the request (ingress). Includes the
+  // user's prompt, agent identity and configuration. This field must be
+  // populated in all request phases.
+  Agent agent = 3;
+
+  // The identifier of the agent/entity that invoked this request.
+  string last_agent = 4;  // e.g. "agents/travel-concierge"
+
+  // The identifier of the agent being invoked next (if applicable).
+  string next_agent = 5;  // e.g. "agents/booking-tool"
+}
+
+// Agent represents the AI System or Service being governed.
+// It encapsulates the static configuration (Manifests, Identity) and the
+// dynamic runtime state (Context, Inputs, Outputs).
+message Agent {
+  // The unique resource name of the agent.
+  // e.g. "agents/finance-helper" or "publishers/google/agents/gemini-pro"
+  string name = 1;
+
+  // Human-readable description of the agent's purpose.
+  string description = 2;
+
+  // The semantic version of the agent definition.
+  string version = 3;
+
+  // The underlying model family backing this agent.
+  Model model = 4;
+
+  // The provider or vendor responsible for hosting/managing this agent.
+  AgentProvider provider = 5;
+
+  // TODO: Trimmed down version of auth
+  //  google.rpc.context.AttributeContext.Auth auth = 6;
+
+  // The accumulated security context (Trust, Sensitivity, History).
+  AgentContext context = 7;
+
+  // The current turn's input (Prompt + Attachments)
+  AgentMessage input = 8;
+
+  // The pending response (if evaluating egress/output policies)
+  AgentMessage output = 9;
+}
+
+// AgentContext represents the aggregate security and data governance state
+// of the agent's context window.
+message AgentContext {
+  // Aggregated view of data sensitivity in the window.
+  repeated Sensitivity sensitivities = 1;
+
+  // Aggregated trust score (Min of all inputs).
+  Trust trust = 2;
+
+  // Origin/Lineage tracking.
+  repeated DataSource data_sources = 3;
+
+  // Full conversation history (for deep context inspection).
+  repeated AgentMessage history = 4;
+
+  // The flattened text content of the current prompt.
+  string prompt = 5;
+
+  // Sensitivity describes the classification of data within the context.
+  message Sensitivity {
+    // Valid labels are 'pii', 'internal'
+    string label = 1;
+
+    // The optional value associated with the label, e.g. 'credit card'
+    string value = 2;
+  }
+
+  // Describes the integrity/veracity of the data.
+  message Trust {
+    // Valid trust labels are "untrusted" (default), "trusted", and
+    // "partially_trusted".
+    string label = 1;
+  }
+
+  // Describes the provenance of a data chunk.
+  message DataSource {
+    // Unique id describing the originating data source.
+    string id = 1;  // e.g. "bigquery:sales_table"
+
+    // The category of origin for this data.
+    string provenance = 2;  // e.g. "UserPrompt", "Database:Secure", "PublicWeb"
+  }
+}
+
+// AgentMessage represents a single turn in the conversation.
+// It acts as a container for multimodal content (Text, Files, Tool Results).
+message AgentMessage {
+  // A discrete unit of content within the message.
+  message Part {
+    oneof type {
+      // User or System text input.
+      ContentPart prompt = 1;
+
+      // A request to execute a specific tool (MCP).
+      McpToolCall mcp_call = 2;
+
+      // The output/result of a tool execution.
+      ContentPart result = 3;
+
+      // A file or multimodal object (Image, PDF).
+      ContentPart attachment = 4;
+
+      // A summary or reference to previous history.
+      ContentPart history = 5;
+
+      // An error that occurred during processing.
+      ErrorPart error = 6;
+    }
+  }
+
+  // The actor who constructed the message (e.g., "user", "model", "tool").
+  string role = 1;
+
+  // The ordered sequence of content parts.
+  repeated Part parts = 2;
+
+  // Arbitrary metadata associated with the message turn.
+  optional google.protobuf.Struct metadata = 3;
+
+  // Message creation time
+  google.protobuf.Timestamp time = 4;
+}
+
+// ContentPart is a catch-all message type capable of encapsulating other
+// messages within its `structured_content` field.
+//
+// For example, a series of sub-agent MCP tool calls and results may be
+// encapsulated as an `AgentMessage` in JSON form within the
+// `structured_content` field.
+//
+// The approach is unconventional, but indicates how the data representation
+// provided to policy requires helper methods to help make agent policies
+// sensible and with support to type-convert from json to proto perhaps being
+// a necessary on-demand feature within agent policies.
+message ContentPart {
+  string id = 1;
+  string type = 2;
+  string mime_type = 3;
+  string name = 4;
+  string description = 5;
+  optional string uri = 6;
+  optional string content = 7;
+  optional bytes data = 8;
+  optional google.protobuf.Struct structured_content = 9;
+  optional google.protobuf.Struct annotations = 10;
+  google.protobuf.Timestamp time = 11;
+}
+
+// ErrorPart represents a processing error within the agent loop.
+message ErrorPart {
+  // The identifier of the specific ContentPart, ToolCall, or Message that
+  // caused this error. Used to correlate the failure back to the originating
+  // action (e.g., matching a failed tool call).
+  string id = 1;
+
+  // Standardized error code (e.g., gRPC status code or HTTP status).
+  int64 code = 2;
+
+  // Developer-facing error message describing the failure.
+  string error_message = 3;
+
+  // Timestamp when the error occurred.
+  google.protobuf.Timestamp time = 4;
+}
+
+// AgentProvider describes the entity responsible for the agent's operation.
+message AgentProvider {
+  // The base URL or endpoint where the agent service is hosted.
+  string url = 1;
+
+  // The name of the organization providing the agent (e.g. "Google",
+  // "Salesforce").
+  optional string organization = 2;
+}
+
+// Model describes the AI model backing the agent.
+message Model {
+  // Identifier of the model family (ex: gemini-pro, gpt-4 ...)
+  string name = 1;
+}
+
+// McpToolManifest describes a collection of tools provided by a specific
+// source.
+message McpToolManifest {
+  // Metadata about the tool provider itself, including authorization
+  // requirements.
+  McpToolProvider provider = 1;
+
+  // Collection of MCP Tool instances supported by the
+  repeated McpTool tools = 2;
+}
+
+// McpTool describes a specific function or capability available to the agent.
+message McpTool {
+  // The unique name of the tool
+  string name = 1;  // (e.g. "weather_lookup").
+
+  // Human readable description of what the tool does.
+  string description = 2;
+
+  // JSON Schema defining the expected arguments.
+  optional google.protobuf.Struct input_schema = 3;
+
+  // JSON Schema defining the expected output.
+  optional google.protobuf.Struct output_schema = 4;
+
+  // Security and behavior hints for policy enforcement.
+  optional McpToolAnnotations annotations = 5;
+
+  // Arbitrary tool metadata.
+  optional google.protobuf.Struct metadata = 6;
+}
+
+// Information about how the tools were provided and by whom.
+message McpToolProvider {
+  // URL where the tools were provided.
+  string url = 1;
+
+  // Name of the tool provider.
+  string organization = 2;  // e.g. "google-cloud"
+
+  // URL for the OAuth authorization endpoint supported by this tool provider
+  optional string authorization_server_url = 3;
+
+  // Repeated set of OAuth scopes for this tool provider.
+  repeated string supported_scopes = 4;
+}
+
+// Additional properties describing a tool to clients. Derived from MCP Spec.
+// See: google/api/configaspects/proto/mcp_config.proto
+message McpToolAnnotations {
+  // A human-readable title for the tool.
+  string title = 1;
+
+  // If true, the tool may perform destructive updates to its environment.
+  // If false, the tool performs only additive updates.
+  // NOTE: This property is meaningful only when `read_only_hint == false`
+  bool destructive_hint = 2;
+
+  // If true, calling the tool repeatedly with the same arguments will have no
+  // additional effect on its environment.
+  // NOTE: This property is meaningful only when `read_only_hint == false`.
+  bool idempotent_hint = 3;
+
+  // If true, this tool may interact with an "open world" of external entities.
+  // If false, the tools domain of interaction is closed. For example, the
+  // world of a web search tool is open, whereas that of a memory tool is not.
+  bool open_world_hint = 4;
+
+  // If true, the tool does not modify its environment.
+  // Default: false
+  bool read_only_hint = 5;
+}
+
+// McpToolCall represents a specific invocation of a tool by the agent.
+// It captures the intent (arguments), the status (result/error), and
+// governance metadata (confirmation).
+message McpToolCall {
+  // Unique identifier for this tool call.
+  // Used to correlate the call with its result or error in the history.
+  string id = 1;
+
+  // The name of the tool being called (e.g., "weather_lookup").
+  // This should match a tool defined in the agent's McpToolManifest.
+  string name = 2;
+
+  // The arguments provided to the tool call.
+  // Policies can inspect these values to enforce data safety (e.g. no PII).
+  google.protobuf.Struct arguments = 3;
+
+  // The execution status of the tool call.
+  // This field is populated if the tool has already been executed (in history).
+  oneof status {
+    // The successful output of the tool.
+    ContentPart result = 4;
+
+    // The error encountered during execution.
+    ErrorPart error = 5;
+  }
+
+  // Timestamp when the tool call was initiated.
+  google.protobuf.Timestamp time = 6;
+
+  // Indicates if the user explicitly confirmed this action.
+  // Useful for Human-in-the-Loop (HITL) policies.
+  bool user_confirmed = 7;
+}

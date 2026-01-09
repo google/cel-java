@@ -1,0 +1,21 @@
+name: "policy.trust.cascading"
+default: allow
+
+variables:
+  - trust_decision: >
+      security.cascade_trust(ctx.agent.context.history)
+
+rules:
+  - description: "Elevate trust and replay model call if required"
+    condition: variables.trust_decision.action == 'REPLAY'
+    effect: replay
+    output_expr: |
+      {
+        'append_attributes': variables.trust_decision.new_attributes,
+        'reason': 'Trust elevation required for proper answer.'
+      }
+
+  - description: "Trust sufficient, allow execution"
+    condition: variables.trust_decision.action == 'ALLOW'
+    effect: allow
+    message: "Trust level sufficient."

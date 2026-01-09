@@ -1,0 +1,37 @@
+description: "Tool Restriction Tests"
+
+section:
+- name: "Allowlist Enforcement"
+  tests:
+  - name: "Allowed Tool (Google Search)"
+    input:
+      tool:
+        expr: >
+          McpToolCall{ name: "google_search" }
+    output: >
+      {
+        "effect": "allow",
+        "message": ""
+      }
+
+  - name: "Allowed Tool (Data Analysis)"
+    input:
+      tool:
+        expr: >
+          McpToolCall{ name: "data_analysis" }
+    output: >
+      {
+        "effect": "allow",
+        "message": ""
+      }
+
+  - name: "Disallowed Tool (Random Tool)"
+    input:
+      tool:
+        expr: >
+          McpToolCall{ name: "random_3p_tool" }
+    output: >
+      {
+        "effect": "deny",
+        "message": "Tool access restricted. This tool is not in the allowlist."
+      }
