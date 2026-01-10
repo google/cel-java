@@ -1,4 +1,4 @@
-// Copyright 2022 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,25 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dev.cel.runtime;
+package dev.cel.common.exceptions;
 
-import static com.google.common.truth.Truth.assertThat;
+import dev.cel.common.CelErrorCode;
+import dev.cel.common.annotations.Internal;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+/** Indicates an attempt to create a map using duplicate keys. */
+@Internal
+public final class CelDuplicateKeyException extends CelRuntimeException {
 
-@RunWith(JUnit4.class)
-public final class CelRuntimeFactoryTest {
-
-  @Test
-  public void standardCelRuntimeBuilder() {
-    assertThat(CelRuntimeFactory.standardCelRuntimeBuilder().build()).isNotNull();
+  public static CelDuplicateKeyException of(Object key) {
+    return new CelDuplicateKeyException(String.format("duplicate map key [%s]", key));
   }
 
-  @Test
-  public void plannerCelRuntimeBuilder() {
-    CelRuntime runtime = CelRuntimeFactory.plannerCelRuntimeBuilder().build();
-    assertThat(runtime).isNotNull();
+  private CelDuplicateKeyException(String message) {
+    super(message, CelErrorCode.DUPLICATE_ATTRIBUTE);
   }
 }

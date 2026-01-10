@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CheckReturnValue;
-import javax.annotation.concurrent.ThreadSafe;
+import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
@@ -55,10 +55,9 @@ import java.util.Optional;
  * {@code ProgramPlanner} resolves functions, types, and identifiers at plan time given a
  * parsed-only or a type-checked expression.
  */
-@ThreadSafe
+@Immutable
 @Internal
 public final class ProgramPlanner {
-
   private final CelTypeProvider typeProvider;
   private final CelValueProvider valueProvider;
   private final DefaultDispatcher dispatcher;
@@ -91,7 +90,7 @@ public final class ProgramPlanner {
   private PlannedInterpretable plan(CelExpr celExpr, PlannerContext ctx) {
     switch (celExpr.getKind()) {
       case CONSTANT:
-        return planConstant(celExpr.constant());
+        return planConstant(celExpr.id(), celExpr.constant());
       case IDENT:
         return planIdent(celExpr, ctx);
       case SELECT:
@@ -134,22 +133,22 @@ public final class ProgramPlanner {
     return attribute.addQualifier(celExpr.id(), qualifier);
   }
 
-  private PlannedInterpretable planConstant(CelConstant celConstant) {
+  private PlannedInterpretable planConstant(long exprId, CelConstant celConstant) {
     switch (celConstant.getKind()) {
       case NULL_VALUE:
-        return EvalConstant.create(celConstant.nullValue());
+        return EvalConstant.create(exprId, celConstant.nullValue());
       case BOOLEAN_VALUE:
-        return EvalConstant.create(celConstant.booleanValue());
+        return EvalConstant.create(exprId, celConstant.booleanValue());
       case INT64_VALUE:
-        return EvalConstant.create(celConstant.int64Value());
+        return EvalConstant.create(exprId, celConstant.int64Value());
       case UINT64_VALUE:
-        return EvalConstant.create(celConstant.uint64Value());
+        return EvalConstant.create(exprId, celConstant.uint64Value());
       case DOUBLE_VALUE:
-        return EvalConstant.create(celConstant.doubleValue());
+        return EvalConstant.create(exprId, celConstant.doubleValue());
       case STRING_VALUE:
-        return EvalConstant.create(celConstant.stringValue());
+        return EvalConstant.create(exprId, celConstant.stringValue());
       case BYTES_VALUE:
-        return EvalConstant.create(celConstant.bytesValue());
+        return EvalConstant.create(exprId, celConstant.bytesValue());
       default:
         throw new IllegalStateException("Unsupported kind: " + celConstant.getKind());
     }
@@ -168,7 +167,7 @@ public final class ProgramPlanner {
   private PlannedInterpretable planCheckedIdent(
       long id, CelReference identRef, ImmutableMap<Long, CelType> typeMap) {
     if (identRef.value().isPresent()) {
-      return planConstant(identRef.value().get());
+      return planConstant(id, identRef.value().get());
     }
 
     CelType type = typeMap.get(id);
@@ -181,7 +180,7 @@ public final class ProgramPlanner {
                   () ->
                       new NoSuchElementException(
                           "Reference to an undefined type: " + identRef.name()));
-      return EvalConstant.create(identType);
+      return EvalConstant.create(id, identType);
     }
 
     return EvalAttribute.create(id, attributeFactory.newAbsoluteAttribute(identRef.name()));

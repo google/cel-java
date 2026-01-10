@@ -30,6 +30,7 @@ import java.util.Optional;
 @Immutable
 public final class CombinedCelValueProvider implements CelValueProvider {
   private final ImmutableList<CelValueProvider> celValueProviders;
+  private final CelValueConverter celValueConverter;
 
   /** Combines the provided first and second {@link CelValueProvider}. */
   public static CombinedCelValueProvider combine(CelValueProvider... providers) {
@@ -49,12 +50,18 @@ public final class CombinedCelValueProvider implements CelValueProvider {
     return Optional.empty();
   }
 
+  @Override
+  public CelValueConverter celValueConverter() {
+    return celValueConverter;
+  }
+
   /** Returns the underlying {@link CelValueProvider}s in order. */
   public ImmutableList<CelValueProvider> valueProviders() {
     return celValueProviders;
   }
 
   private CombinedCelValueProvider(ImmutableList<CelValueProvider> providers) {
-    celValueProviders = checkNotNull(providers);
+    this.celValueProviders = checkNotNull(providers);
+    this.celValueConverter = providers.get(0).celValueConverter();
   }
 }

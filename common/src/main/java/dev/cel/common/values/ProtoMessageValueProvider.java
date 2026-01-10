@@ -34,13 +34,13 @@ import java.util.Optional;
  */
 @Immutable
 @Internal
-public class ProtoMessageValueProvider extends BaseProtoMessageValueProvider {
+public class ProtoMessageValueProvider implements CelValueProvider {
   private final ProtoAdapter protoAdapter;
   private final ProtoMessageFactory protoMessageFactory;
   private final ProtoCelValueConverter protoCelValueConverter;
 
   @Override
-  public BaseProtoCelValueConverter protoCelValueConverter() {
+  public CelValueConverter celValueConverter() {
     return protoCelValueConverter;
   }
 

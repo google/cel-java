@@ -54,6 +54,12 @@ java_library(
 )
 
 java_library(
+    name = "duplicate_key",
+    # used_by_android
+    exports = ["//common/src/main/java/dev/cel/common/exceptions:duplicate_key"],
+)
+
+java_library(
     name = "overload_not_found",
     # used_by_android
     exports = ["//common/src/main/java/dev/cel/common/exceptions:overload_not_found"],

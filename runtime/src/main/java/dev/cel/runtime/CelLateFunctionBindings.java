@@ -35,6 +35,10 @@ public final class CelLateFunctionBindings implements CelFunctionResolver {
     this.functions = functions;
   }
 
+  public boolean containsFunction(String functionName) {
+    return functions.containsKey(functionName);
+  }
+
   @Override
   public Optional<CelResolvedOverload> findOverloadMatchingArgs(
       String functionName, Collection<String> overloadIds, Object[] args)

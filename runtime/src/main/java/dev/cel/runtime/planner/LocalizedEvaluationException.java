@@ -1,4 +1,4 @@
-// Copyright 2025 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,12 +18,16 @@ import dev.cel.common.CelErrorCode;
 import dev.cel.common.exceptions.CelRuntimeException;
 
 /**
- * An exception that's raised when a strict call failed to invoke, which includes the source of
- * expression ID, along with canonical CelErrorCode.
+ * Wraps a {@link CelRuntimeException} with its source expression ID for error reporting.
  *
- * <p>Note that StrictErrorException should not be surfaced directly back to the user.
+ * <p>This is the ONLY exception type that propagates through evaluation in the planner. All
+ * CelRuntimeExceptions from runtime helpers are immediately wrapped with location information to
+ * track where the error occurred in the expression tree.
+ *
+ * <p>Note: This exception should not be surfaced directly to users - it's unwrapped in {@link
+ * PlannedProgram}.
  */
-final class StrictErrorException extends CelRuntimeException {
+final class LocalizedEvaluationException extends CelRuntimeException {
 
   private final long exprId;
 
@@ -31,11 +35,11 @@ final class StrictErrorException extends CelRuntimeException {
     return exprId;
   }
 
-  StrictErrorException(CelRuntimeException cause, long exprId) {
+  LocalizedEvaluationException(CelRuntimeException cause, long exprId) {
     this(cause, cause.getErrorCode(), exprId);
   }
 
-  StrictErrorException(Throwable cause, CelErrorCode errorCode, long exprId) {
+  LocalizedEvaluationException(Throwable cause, CelErrorCode errorCode, long exprId) {
     super(cause, errorCode);
     this.exprId = exprId;
   }

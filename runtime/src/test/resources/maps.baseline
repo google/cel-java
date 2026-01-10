@@ -121,7 +121,7 @@ declare map {
 }
 =====>
 bindings: {}
-error:    evaluation error at test_location:24: duplicate map key [true]
+error:    evaluation error at test_location:20: duplicate map key [true]
 error_code:    DUPLICATE_ATTRIBUTE
 
 Source: {b: 1, !b: 2, b: 3}[true]
@@ -139,5 +139,5 @@ declare b {
 }
 =====>
 bindings: {b=true}
-error:    evaluation error at test_location:15: duplicate map key [true]
+error:    evaluation error at test_location:14: duplicate map key [true]
 error_code:    DUPLICATE_ATTRIBUTE

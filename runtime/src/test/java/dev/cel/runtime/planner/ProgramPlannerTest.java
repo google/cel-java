@@ -64,6 +64,7 @@ import dev.cel.expr.conformance.proto3.GlobalEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.extensions.CelExtensions;
+import dev.cel.extensions.CelOptionalLibrary;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
@@ -79,7 +80,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(TestParameterInjector.class)
 public final class ProgramPlannerTest {
-  // Note that the following deps will be built from top-level builder APIs
+  // Note that the following deps are ordinarily built from top-level builder APIs
   private static final CelOptions CEL_OPTIONS = CelOptions.current().build();
   private static final CelTypeProvider TYPE_PROVIDER =
       new CombinedCelTypeProvider(
@@ -126,6 +127,7 @@ public final class ProgramPlannerTest {
           .addVar("int_var", SimpleType.INT)
           .addVar("dyn_var", SimpleType.DYN)
           .addVar("really.long.abbr.ident", SimpleType.DYN)
+          .setContainer(CEL_CONTAINER)
           .addFunctionDeclarations(
               newFunctionDeclaration("zero", newGlobalOverload("zero_overload", SimpleType.INT)),
               newFunctionDeclaration("error", newGlobalOverload("error_overload", SimpleType.INT)),
@@ -143,9 +145,8 @@ public final class ProgramPlannerTest {
                       "concat_bytes_bytes", SimpleType.BYTES, SimpleType.BYTES, SimpleType.BYTES),
                   newMemberOverload(
                       "bytes_concat_bytes", SimpleType.BYTES, SimpleType.BYTES, SimpleType.BYTES)))
+          .addLibraries(CelOptionalLibrary.INSTANCE, CelExtensions.comprehensions())
           .addMessageTypes(TestAllTypes.getDescriptor())
-          .addLibraries(CelExtensions.optional(), CelExtensions.comprehensions())
-          .setContainer(CEL_CONTAINER)
           .build();
 
   /**
@@ -324,6 +325,17 @@ public final class ProgramPlannerTest {
     ImmutableMap<Object, Object> result = (ImmutableMap<Object, Object>) program.eval();
 
     assertThat(result).containsExactly("foo", 1L, true, "bar").inOrder();
+  }
+
+  @Test
+  public void plan_createMap_containsDuplicateKey_throws() throws Exception {
+    CelAbstractSyntaxTree ast = compile("{true: 1, false: 2, true: 3}");
+    Program program = PLANNER.plan(ast);
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
+    assertThat(e)
+        .hasMessageThat()
+        .contains("evaluation error at <input>:20: duplicate map key [true]");
   }
 
   @Test
