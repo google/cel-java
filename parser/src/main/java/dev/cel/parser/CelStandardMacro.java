@@ -55,6 +55,14 @@ public enum CelStandardMacro {
           Operator.EXISTS_ONE.getFunction(), 2, CelStandardMacro::expandExistsOneMacro)),
 
   /**
+   * Boolean comprehension which asserts that a predicate holds true for exactly one element in the
+   * input range.
+   */
+  EXISTS_ONE_NEW(
+      CelMacro.newReceiverMacro(
+          Operator.EXISTS_ONE_NEW.getFunction(), 2, CelStandardMacro::expandExistsOneMacro)),
+
+  /**
    * Comprehension which applies a transform to each element in the input range and produces a list
    * of equivalent size as output.
    */

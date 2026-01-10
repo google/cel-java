@@ -110,7 +110,7 @@ public class CelEnvironmentExporterTest {
                         FunctionSelector.create("matches", ImmutableSet.of()),
                         FunctionSelector.create(
                             "timestamp", ImmutableSet.of("string_to_timestamp"))))
-                .setExcludedMacros(ImmutableSet.of("map", "filter"))
+                .setExcludedMacros(ImmutableSet.of("map", "existsOne", "filter"))
                 .build());
   }
 

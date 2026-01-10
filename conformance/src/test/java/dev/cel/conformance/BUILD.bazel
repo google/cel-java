@@ -22,6 +22,7 @@ java_library(
         "//common:options",
         "//common/types:cel_proto_types",
         "//compiler",
+        "//compiler:compiler_builder",
         "//extensions",
         "//extensions:optional_library",
         "//parser:macro",
@@ -49,6 +50,7 @@ java_library(
     tags = ["conformance_maven"],
     deps = MAVEN_JAR_DEPS + [
         "//:java_truth",
+        "//compiler:compiler_builder",
         "//testing:expr_value_utils",
         "@cel_spec//proto/cel/expr:expr_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
@@ -75,6 +77,7 @@ _ALL_TESTS = [
     "@cel_spec//tests/simple:testdata/lists.textproto",
     "@cel_spec//tests/simple:testdata/logic.textproto",
     "@cel_spec//tests/simple:testdata/macros.textproto",
+    "@cel_spec//tests/simple:testdata/macros2.textproto",
     "@cel_spec//tests/simple:testdata/math_ext.textproto",
     "@cel_spec//tests/simple:testdata/namespace.textproto",
     "@cel_spec//tests/simple:testdata/optionals.textproto",

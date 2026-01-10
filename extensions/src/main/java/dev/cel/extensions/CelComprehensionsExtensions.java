@@ -160,6 +160,10 @@ final class CelComprehensionsExtensions
             3,
             CelComprehensionsExtensions::expandExistsOneMacro),
         CelMacro.newReceiverMacro(
+            Operator.EXISTS_ONE_NEW.getFunction(),
+            3,
+            CelComprehensionsExtensions::expandExistsOneMacro),
+        CelMacro.newReceiverMacro(
             "transformList", 3, CelComprehensionsExtensions::transformListMacro),
         CelMacro.newReceiverMacro(
             "transformList", 4, CelComprehensionsExtensions::transformListMacro),

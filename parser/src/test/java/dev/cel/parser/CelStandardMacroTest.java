@@ -32,6 +32,8 @@ public final class CelStandardMacroTest {
     assertThat(CelStandardMacro.EXISTS.getFunction()).isEqualTo(Operator.EXISTS.getFunction());
     assertThat(CelStandardMacro.EXISTS_ONE.getFunction())
         .isEqualTo(Operator.EXISTS_ONE.getFunction());
+    assertThat(CelStandardMacro.EXISTS_ONE_NEW.getFunction())
+        .isEqualTo(Operator.EXISTS_ONE_NEW.getFunction());
     assertThat(CelStandardMacro.FILTER.getFunction()).isEqualTo(Operator.FILTER.getFunction());
     assertThat(CelStandardMacro.MAP.getFunction()).isEqualTo(Operator.MAP.getFunction());
     assertThat(CelStandardMacro.MAP_FILTER.getFunction()).isEqualTo(Operator.MAP.getFunction());
@@ -88,6 +90,21 @@ public final class CelStandardMacroTest {
         .isEqualTo(CelStandardMacro.EXISTS_ONE.getDefinition().getKey());
     assertThat(CelStandardMacro.EXISTS_ONE.getDefinition().hashCode())
         .isEqualTo(CelStandardMacro.EXISTS_ONE.getDefinition().getKey().hashCode());
+  }
+
+  @Test
+  public void testExistsOneNew() {
+    assertThat(CelStandardMacro.EXISTS_ONE_NEW.getFunction())
+        .isEqualTo(Operator.EXISTS_ONE_NEW.getFunction());
+    assertThat(CelStandardMacro.EXISTS_ONE_NEW.getDefinition().getArgumentCount()).isEqualTo(2);
+    assertThat(CelStandardMacro.EXISTS_ONE_NEW.getDefinition().isReceiverStyle()).isTrue();
+    assertThat(CelStandardMacro.EXISTS_ONE_NEW.getDefinition().getKey())
+        .isEqualTo("existsOne:2:true");
+    assertThat(CelStandardMacro.EXISTS_ONE_NEW.getDefinition().isVariadic()).isFalse();
+    assertThat(CelStandardMacro.EXISTS_ONE_NEW.getDefinition().toString())
+        .isEqualTo(CelStandardMacro.EXISTS_ONE_NEW.getDefinition().getKey());
+    assertThat(CelStandardMacro.EXISTS_ONE_NEW.getDefinition().hashCode())
+        .isEqualTo(CelStandardMacro.EXISTS_ONE_NEW.getDefinition().getKey().hashCode());
   }
 
   @Test

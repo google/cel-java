@@ -784,6 +784,63 @@ M: m^#1:Expr.Ident#.exists_one(
   f^#4:Expr.Ident#
 )^#0:Expr.Call#
 
+I: m.existsOne(v, f)
+=====>
+P: __comprehension__(
+  // Variable
+  v,
+  // Target
+  m^#1:Expr.Ident#,
+  // Accumulator
+  @result,
+  // Init
+  0^#5:int64#,
+  // LoopCondition
+  true^#6:bool#,
+  // LoopStep
+  _?_:_(
+    f^#4:Expr.Ident#,
+    _+_(
+      @result^#7:Expr.Ident#,
+      1^#8:int64#
+    )^#9:Expr.Call#,
+    @result^#10:Expr.Ident#
+  )^#11:Expr.Call#,
+  // Result
+  _==_(
+    @result^#12:Expr.Ident#,
+    1^#13:int64#
+  )^#14:Expr.Call#)^#15:Expr.Comprehension#
+L: __comprehension__(
+  // Variable
+  v,
+  // Target
+  m^#1[1,0]#,
+  // Accumulator
+  @result,
+  // Init
+  0^#5[1,11]#,
+  // LoopCondition
+  true^#6[1,11]#,
+  // LoopStep
+  _?_:_(
+    f^#4[1,15]#,
+    _+_(
+      @result^#7[1,11]#,
+      1^#8[1,11]#
+    )^#9[1,11]#,
+    @result^#10[1,11]#
+  )^#11[1,11]#,
+  // Result
+  _==_(
+    @result^#12[1,11]#,
+    1^#13[1,11]#
+  )^#14[1,11]#)^#15[1,11]#
+M: m^#1:Expr.Ident#.existsOne(
+  v^#3:Expr.Ident#,
+  f^#4:Expr.Ident#
+)^#0:Expr.Call#
+
 I: m.map(v, f)
 =====>
 P: __comprehension__(

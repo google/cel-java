@@ -17,6 +17,7 @@ package dev.cel.parser;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
@@ -260,10 +261,17 @@ public final class CelParserImplTest {
   @TestParameters("{expression: 'A.all(a?b, c)'}")
   @TestParameters("{expression: 'A.exists(a?b, c)'}")
   @TestParameters("{expression: 'A.exists_one(a?b, c)'}")
+  @TestParameters("{expression: 'A.existsOne(a?b, c)'}")
   @TestParameters("{expression: 'A.filter(a?b, c)'}")
   public void parse_macroArgumentContainsSyntaxError_throws(String expression) {
     CelParser parser =
-        CelParserImpl.newBuilder().setStandardMacros(CelStandardMacro.STANDARD_MACROS).build();
+        CelParserImpl.newBuilder()
+            .setStandardMacros(
+                ImmutableSet.<CelStandardMacro>builder()
+                    .addAll(CelStandardMacro.STANDARD_MACROS)
+                    .add(CelStandardMacro.EXISTS_ONE_NEW)
+                    .build())
+            .build();
 
     CelValidationResult parseResult = parser.parse(expression);
 

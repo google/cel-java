@@ -45,7 +45,9 @@ public enum Operator {
   HAS("has"),
   ALL("all"),
   EXISTS("exists"),
+  @Deprecated // Prefer EXISTS_ONE_NEW.
   EXISTS_ONE("exists_one"),
+  EXISTS_ONE_NEW("existsOne"),
   MAP("map"),
   FILTER("filter"),
   NOT_STRICTLY_FALSE("@not_strictly_false"),
@@ -109,6 +111,7 @@ public enum Operator {
           .put(EQUALS.getFunction(), EQUALS)
           .put(EXISTS.getFunction(), EXISTS)
           .put(EXISTS_ONE.getFunction(), EXISTS_ONE)
+          .put(EXISTS_ONE_NEW.getFunction(), EXISTS_ONE_NEW)
           .put(FILTER.getFunction(), FILTER)
           .put(GREATER.getFunction(), GREATER)
           .put(GREATER_EQUALS.getFunction(), GREATER_EQUALS)

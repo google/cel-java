@@ -35,6 +35,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.types.CelProtoTypes;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.expr.conformance.test.SimpleTest;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.extensions.CelOptionalLibrary;
@@ -45,6 +46,7 @@ import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.Program;
 import dev.cel.runtime.CelRuntimeFactory;
+import dev.cel.runtime.CelRuntimeLibrary;
 import java.util.Map;
 import org.junit.runners.model.Statement;
 
@@ -61,31 +63,37 @@ public final class ConformanceTest extends Statement {
           .enableQuotedIdentifierSyntax(true)
           .build();
 
+  private static final ImmutableList<CelCompilerLibrary> CANONICAL_COMPILER_EXTENSIONS =
+      ImmutableList.of(
+          CelExtensions.bindings(),
+          CelExtensions.comprehensions(),
+          CelExtensions.encoders(OPTIONS),
+          CelExtensions.math(OPTIONS),
+          CelExtensions.protos(),
+          CelExtensions.sets(OPTIONS),
+          CelExtensions.strings(),
+          CelOptionalLibrary.INSTANCE);
+
+  private static final ImmutableList<CelRuntimeLibrary> CANONICAL_RUNTIME_EXTENSIONS =
+      ImmutableList.of(
+          CelExtensions.comprehensions(),
+          CelExtensions.encoders(OPTIONS),
+          CelExtensions.math(OPTIONS),
+          CelExtensions.sets(OPTIONS),
+          CelExtensions.strings(),
+          CelOptionalLibrary.INSTANCE);
+
   private static final CelParser PARSER_WITH_MACROS =
       CelParserFactory.standardCelParserBuilder()
           .setOptions(OPTIONS)
-          .addLibraries(
-              CelExtensions.bindings(),
-              CelExtensions.encoders(OPTIONS),
-              CelExtensions.math(OPTIONS),
-              CelExtensions.protos(),
-              CelExtensions.sets(OPTIONS),
-              CelExtensions.strings(),
-              CelOptionalLibrary.INSTANCE)
+          .addLibraries(CANONICAL_COMPILER_EXTENSIONS)
           .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .build();
 
   private static final CelParser PARSER_WITHOUT_MACROS =
       CelParserFactory.standardCelParserBuilder()
           .setOptions(OPTIONS)
-          .addLibraries(
-              CelExtensions.bindings(),
-              CelExtensions.encoders(OPTIONS),
-              CelExtensions.math(OPTIONS),
-              CelExtensions.protos(),
-              CelExtensions.sets(OPTIONS),
-              CelExtensions.strings(),
-              CelOptionalLibrary.INSTANCE)
+          .addLibraries(CANONICAL_COMPILER_EXTENSIONS)
           .setStandardMacros()
           .build();
 
@@ -104,13 +112,7 @@ public final class ConformanceTest extends Statement {
         .setContainer(CelContainer.ofName(test.getContainer()))
         .addDeclarations(decls.build())
         .addFileTypes(dev.cel.expr.conformance.proto2.TestAllTypesExtensions.getDescriptor())
-        .addLibraries(
-            CelExtensions.bindings(),
-            CelExtensions.encoders(OPTIONS),
-            CelExtensions.math(OPTIONS),
-            CelExtensions.sets(OPTIONS),
-            CelExtensions.strings(),
-            CelOptionalLibrary.INSTANCE)
+        .addLibraries(CANONICAL_COMPILER_EXTENSIONS)
         .addMessageTypes(dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor())
         .addMessageTypes(dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor())
         .build();
@@ -119,12 +121,7 @@ public final class ConformanceTest extends Statement {
   private static final CelRuntime RUNTIME =
       CelRuntimeFactory.standardCelRuntimeBuilder()
           .setOptions(OPTIONS)
-          .addLibraries(
-              CelExtensions.encoders(OPTIONS),
-              CelExtensions.math(OPTIONS),
-              CelExtensions.sets(OPTIONS),
-              CelExtensions.strings(),
-              CelOptionalLibrary.INSTANCE)
+          .addLibraries(CANONICAL_RUNTIME_EXTENSIONS)
           .setExtensionRegistry(DEFAULT_EXTENSION_REGISTRY)
           .addMessageTypes(dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor())
           .addMessageTypes(dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor())

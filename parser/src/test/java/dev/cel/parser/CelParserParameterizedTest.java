@@ -26,6 +26,7 @@ import dev.cel.expr.SourceInfo;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Ascii;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.EnumDescriptor;
@@ -57,7 +58,11 @@ import org.junit.runner.RunWith;
 public final class CelParserParameterizedTest extends BaselineTestCase {
   private static final CelParser PARSER =
       CelParserFactory.standardCelParserBuilder()
-          .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+          .setStandardMacros(
+              ImmutableSet.<CelStandardMacro>builder()
+                  .addAll(CelStandardMacro.STANDARD_MACROS)
+                  .add(CelStandardMacro.EXISTS_ONE_NEW)
+                  .build())
           .addLibraries(CelOptionalLibrary.INSTANCE)
           .addMacros(
               CelMacro.newGlobalVarArgMacro("noop_macro", (a, b, c) -> Optional.empty()),
@@ -162,6 +167,7 @@ public final class CelParserParameterizedTest extends BaselineTestCase {
     runTest(PARSER, "aaa.bbb(ccc)");
     runTest(PARSER, "has(m.f)");
     runTest(PARSER, "m.exists_one(v, f)");
+    runTest(PARSER, "m.existsOne(v, f)");
     runTest(PARSER, "m.map(v, f)");
     runTest(PARSER, "m.map(v, p, f)");
     runTest(PARSER, "m.filter(v, p)");
