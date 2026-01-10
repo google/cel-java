@@ -16,9 +16,12 @@ package dev.cel.runtime.planner;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.errorprone.annotations.Immutable;
+import dev.cel.common.exceptions.CelDuplicateKeyException;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
+import java.util.HashSet;
 
 @Immutable
 final class EvalCreateMap extends PlannedInterpretable {
@@ -35,13 +38,23 @@ final class EvalCreateMap extends PlannedInterpretable {
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     ImmutableMap.Builder<Object, Object> builder =
         ImmutableMap.builderWithExpectedSize(keys.length);
+    HashSet<Object> keysSeen = Sets.newHashSetWithExpectedSize(keys.length);
+
     for (int i = 0; i < keys.length; i++) {
-      builder.put(keys[i].eval(resolver, frame), values[i].eval(resolver, frame));
+      Object key = keys[i].eval(resolver, frame);
+
+      if (!keysSeen.add(key)) {
+        throw new LocalizedEvaluationException(CelDuplicateKeyException.of(key), keys[i].exprId());
+      }
+
+      builder.put(key, values[i].eval(resolver, frame));
     }
+
     return builder.buildOrThrow();
   }
 
-  static EvalCreateMap create(long exprId, PlannedInterpretable[] keys, PlannedInterpretable[] values) {
+  static EvalCreateMap create(
+      long exprId, PlannedInterpretable[] keys, PlannedInterpretable[] values) {
     return new EvalCreateMap(exprId, keys, values);
   }
 

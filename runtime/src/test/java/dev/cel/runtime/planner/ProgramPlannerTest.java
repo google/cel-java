@@ -327,6 +327,17 @@ public final class ProgramPlannerTest {
   }
 
   @Test
+  public void plan_createMap_containsDuplicateKey_throws() throws Exception {
+    CelAbstractSyntaxTree ast = compile("{true: 1, false: 2, true: 3}");
+    Program program = PLANNER.plan(ast);
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
+    assertThat(e)
+        .hasMessageThat()
+        .contains("evaluation error at <input>:20: duplicate map key [true]");
+  }
+
+  @Test
   public void plan_createStruct() throws Exception {
     CelAbstractSyntaxTree ast = compile("cel.expr.conformance.proto3.TestAllTypes{}");
     Program program = PLANNER.plan(ast);

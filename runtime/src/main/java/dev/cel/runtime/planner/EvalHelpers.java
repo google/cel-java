@@ -25,8 +25,8 @@ final class EvalHelpers {
       PlannedInterpretable interpretable, GlobalResolver resolver, ExecutionFrame frame) {
     try {
       return interpretable.eval(resolver, frame);
-    } catch (StrictErrorException e) {
-      // Intercept the strict exception to get a more localized expr ID for error reporting purposes
+    } catch (LocalizedEvaluationException e) {
+      // Intercept the localized exception to get a more specific expr ID for error reporting
       // Example: foo [1] && strict_err [2] -> ID 2 is propagated.
       return ErrorValue.create(e.exprId(), e);
     } catch (Exception e) {
@@ -39,9 +39,11 @@ final class EvalHelpers {
     try {
       return interpretable.eval(resolver, frame);
     } catch (CelRuntimeException e) {
-      throw new StrictErrorException(e, interpretable.exprId());
+      // Wrap with current interpretable's location
+      throw new LocalizedEvaluationException(e, interpretable.exprId());
     } catch (Exception e) {
-      throw new StrictErrorException(
+      // Wrap generic exceptions with location
+      throw new LocalizedEvaluationException(
           e.getCause(), CelErrorCode.INTERNAL_ERROR, interpretable.exprId());
     }
   }

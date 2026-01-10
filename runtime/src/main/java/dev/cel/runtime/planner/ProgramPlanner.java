@@ -91,7 +91,7 @@ public final class ProgramPlanner {
   private PlannedInterpretable plan(CelExpr celExpr, PlannerContext ctx) {
     switch (celExpr.getKind()) {
       case CONSTANT:
-        return planConstant(celExpr.constant());
+        return planConstant(celExpr.id(), celExpr.constant());
       case IDENT:
         return planIdent(celExpr, ctx);
       case SELECT:
@@ -134,22 +134,22 @@ public final class ProgramPlanner {
     return attribute.addQualifier(celExpr.id(), qualifier);
   }
 
-  private PlannedInterpretable planConstant(CelConstant celConstant) {
+  private PlannedInterpretable planConstant(long exprId, CelConstant celConstant) {
     switch (celConstant.getKind()) {
       case NULL_VALUE:
-        return EvalConstant.create(celConstant.nullValue());
+        return EvalConstant.create(exprId, celConstant.nullValue());
       case BOOLEAN_VALUE:
-        return EvalConstant.create(celConstant.booleanValue());
+        return EvalConstant.create(exprId, celConstant.booleanValue());
       case INT64_VALUE:
-        return EvalConstant.create(celConstant.int64Value());
+        return EvalConstant.create(exprId, celConstant.int64Value());
       case UINT64_VALUE:
-        return EvalConstant.create(celConstant.uint64Value());
+        return EvalConstant.create(exprId, celConstant.uint64Value());
       case DOUBLE_VALUE:
-        return EvalConstant.create(celConstant.doubleValue());
+        return EvalConstant.create(exprId, celConstant.doubleValue());
       case STRING_VALUE:
-        return EvalConstant.create(celConstant.stringValue());
+        return EvalConstant.create(exprId, celConstant.stringValue());
       case BYTES_VALUE:
-        return EvalConstant.create(celConstant.bytesValue());
+        return EvalConstant.create(exprId, celConstant.bytesValue());
       default:
         throw new IllegalStateException("Unsupported kind: " + celConstant.getKind());
     }
@@ -168,7 +168,7 @@ public final class ProgramPlanner {
   private PlannedInterpretable planCheckedIdent(
       long id, CelReference identRef, ImmutableMap<Long, CelType> typeMap) {
     if (identRef.value().isPresent()) {
-      return planConstant(identRef.value().get());
+      return planConstant(id, identRef.value().get());
     }
 
     CelType type = typeMap.get(id);
@@ -181,7 +181,7 @@ public final class ProgramPlanner {
                   () ->
                       new NoSuchElementException(
                           "Reference to an undefined type: " + identRef.name()));
-      return EvalConstant.create(identType);
+      return EvalConstant.create(id, identType);
     }
 
     return EvalAttribute.create(id, attributeFactory.newAbsoluteAttribute(identRef.name()));

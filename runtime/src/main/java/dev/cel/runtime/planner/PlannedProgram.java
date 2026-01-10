@@ -106,9 +106,12 @@ abstract class PlannedProgram implements Program {
 
   private CelEvaluationException newCelEvaluationException(long exprId, Exception e) {
     CelEvaluationExceptionBuilder builder;
-    if (e instanceof StrictErrorException) {
-      // Preserve detailed error, including error codes if one exists.
-      builder = CelEvaluationExceptionBuilder.newBuilder((CelRuntimeException) e.getCause());
+    if (e instanceof LocalizedEvaluationException) {
+      // Use the localized expr ID (most specific error location)
+      LocalizedEvaluationException localized = (LocalizedEvaluationException) e;
+      exprId = localized.exprId();
+      builder =
+          CelEvaluationExceptionBuilder.newBuilder((CelRuntimeException) localized.getCause());
     } else if (e instanceof CelRuntimeException) {
       builder = CelEvaluationExceptionBuilder.newBuilder((CelRuntimeException) e);
     } else {

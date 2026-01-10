@@ -63,8 +63,8 @@ java_library(
     deps = [
         ":error_metadata",
         ":execution_frame",
+        ":localized_evaluation_exception",
         ":planned_interpretable",
-        ":strict_error_exception",
         "//:auto_value",
         "//common:options",
         "//common/exceptions:runtime_exception",
@@ -87,8 +87,6 @@ java_library(
     deps = [
         ":execution_frame",
         ":planned_interpretable",
-        "//common/values",
-        "//common/values:cel_byte_string",
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -321,7 +319,9 @@ java_library(
     srcs = ["EvalCreateMap.java"],
     deps = [
         ":execution_frame",
+        ":localized_evaluation_exception",
         ":planned_interpretable",
+        "//common/exceptions:duplicate_key",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -361,8 +361,8 @@ java_library(
     srcs = ["EvalHelpers.java"],
     deps = [
         ":execution_frame",
+        ":localized_evaluation_exception",
         ":planned_interpretable",
-        ":strict_error_exception",
         "//common:error_codes",
         "//common/exceptions:runtime_exception",
         "//common/values",
@@ -371,8 +371,8 @@ java_library(
 )
 
 java_library(
-    name = "strict_error_exception",
-    srcs = ["StrictErrorException.java"],
+    name = "localized_evaluation_exception",
+    srcs = ["LocalizedEvaluationException.java"],
     deps = [
         "//common:error_codes",
         "//common/exceptions:runtime_exception",
