@@ -520,6 +520,41 @@ cel_android_library(
 )
 
 java_library(
+    name = "get_days",
+    srcs = ["GetDaysFunction.java"],
+    tags = [
+    ],
+    deps = [
+        ":standard_function",
+        ":standard_overload",
+        "//common:options",
+        "//common/internal:proto_time_utils",
+        "//runtime:function_binding",
+        "//runtime:runtime_equality",
+        "//runtime/standard:standard_function",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+cel_android_library(
+    name = "get_days_android",
+    srcs = ["GetDaysFunction.java"],
+    tags = [
+    ],
+    deps = [
+        ":standard_function_android",
+        ":standard_overload_android",
+        "//common:options",
+        "//common/internal:proto_time_utils_android",
+        "//runtime:function_binding_android",
+        "//runtime:runtime_equality_android",
+        "@maven_android//:com_google_guava_guava",
+        "@maven_android//:com_google_protobuf_protobuf_javalite",
+    ],
+)
+
+java_library(
     name = "get_full_year",
     srcs = ["GetFullYearFunction.java"],
     tags = [
