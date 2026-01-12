@@ -157,6 +157,16 @@ cel_android_library(
 )
 
 java_library(
+    name = "get_days",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_days"],
+)
+
+cel_android_library(
+    name = "get_days_android",
+    exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_days_android"],
+)
+
+java_library(
     name = "get_full_year",
     exports = ["//runtime/src/main/java/dev/cel/runtime/standard:get_full_year"],
 )

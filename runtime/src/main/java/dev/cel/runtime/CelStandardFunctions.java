@@ -55,6 +55,8 @@ import dev.cel.runtime.standard.GetDayOfWeekFunction;
 import dev.cel.runtime.standard.GetDayOfWeekFunction.GetDayOfWeekOverload;
 import dev.cel.runtime.standard.GetDayOfYearFunction;
 import dev.cel.runtime.standard.GetDayOfYearFunction.GetDayOfYearOverload;
+import dev.cel.runtime.standard.GetDaysFunction;
+import dev.cel.runtime.standard.GetDaysFunction.GetDaysOverload;
 import dev.cel.runtime.standard.GetFullYearFunction;
 import dev.cel.runtime.standard.GetFullYearFunction.GetFullYearOverload;
 import dev.cel.runtime.standard.GetHoursFunction;
@@ -158,6 +160,7 @@ public final class CelStandardFunctions {
           GetDayOfMonthFunction.create(),
           GetDayOfWeekFunction.create(),
           GetDayOfYearFunction.create(),
+          GetDaysFunction.create(),
           GetFullYearFunction.create(),
           GetHoursFunction.create(),
           GetMillisecondsFunction.create(),
@@ -310,6 +313,8 @@ public final class CelStandardFunctions {
         "getDayOfWeek",
         GetDayOfWeekOverload.TIMESTAMP_TO_DAY_OF_WEEK,
         GetDayOfWeekOverload.TIMESTAMP_TO_DAY_OF_WEEK_WITH_TZ),
+
+    GET_DAYS("getDays", GetDaysOverload.DURATION_TO_DAYS),
 
     GET_HOURS(
         "getHours",

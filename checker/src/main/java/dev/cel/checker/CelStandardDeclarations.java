@@ -213,6 +213,7 @@ public final class CelStandardDeclarations {
         "getDayOfWeek",
         Overload.DateTime.TIMESTAMP_TO_DAY_OF_WEEK,
         Overload.DateTime.TIMESTAMP_TO_DAY_OF_WEEK_WITH_TZ),
+    GET_DAYS("getDays", Overload.DateTime.DURATION_TO_DAYS),
     GET_HOURS(
         "getHours",
         Overload.DateTime.TIMESTAMP_TO_HOURS,
@@ -906,6 +907,10 @@ public final class CelStandardDeclarations {
                 SimpleType.INT,
                 SimpleType.TIMESTAMP,
                 SimpleType.STRING)),
+
+        DURATION_TO_DAYS(
+            CelOverloadDecl.newMemberOverload(
+                "duration_to_days", "get days from duration", SimpleType.INT, SimpleType.DURATION)),
 
         TIMESTAMP_TO_HOURS(
             CelOverloadDecl.newMemberOverload(

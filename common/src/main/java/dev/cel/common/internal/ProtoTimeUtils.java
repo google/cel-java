@@ -68,6 +68,7 @@ public final class ProtoTimeUtils {
 
   private static final long SECONDS_PER_MINUTE = 60L;
   private static final long SECONDS_PER_HOUR = SECONDS_PER_MINUTE * 60;
+  private static final long SECONDS_PER_DAY = SECONDS_PER_HOUR * 24;
 
   private static final ThreadLocal<SimpleDateFormat> TIMESTAMP_FORMAT =
       new ThreadLocal<SimpleDateFormat>() {
@@ -162,6 +163,14 @@ public final class ProtoTimeUtils {
    */
   public static long toHours(Duration duration) {
     return checkValid(duration).getSeconds() / SECONDS_PER_HOUR;
+  }
+
+  /**
+   * Convert a Duration to the number of days. The result will be rounded towards 0 to the nearest
+   * day.
+   */
+  public static long toDays(Duration duration) {
+    return checkValid(duration).getSeconds() / SECONDS_PER_DAY;
   }
 
   /**

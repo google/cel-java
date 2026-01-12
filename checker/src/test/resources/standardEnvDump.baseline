@@ -200,6 +200,9 @@ declare getDayOfYear {
   function timestamp_to_day_of_year google.protobuf.Timestamp.() -> int
   function timestamp_to_day_of_year_with_tz google.protobuf.Timestamp.(string) -> int
 }
+declare getDays {
+  function duration_to_days google.protobuf.Duration.() -> int
+}
 declare getFullYear {
   function timestamp_to_year google.protobuf.Timestamp.() -> int
   function timestamp_to_year_with_tz google.protobuf.Timestamp.(string) -> int
