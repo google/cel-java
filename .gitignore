@@ -31,3 +31,5 @@ mvn-artifacts
 
 *.swp
 *.lock
+.eclipse
+.vscode

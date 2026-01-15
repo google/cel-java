@@ -1,3 +1,36 @@
 Source: .cel.expr.conformance.proto3.TestAllTypes
 =====>
 cel.expr.conformance.proto3.TestAllTypes~type(cel.expr.conformance.proto3.TestAllTypes)^cel.expr.conformance.proto3.TestAllTypes
+
+Source: [0].exists(app, .app.config == 1)
+declare app.config {
+  value int
+}
+=====>
+__comprehension__(
+  // Variable
+  app,
+  // Target
+  [
+    0~int
+  ]~list(int),
+  // Accumulator
+  @result,
+  // Init
+  false~bool,
+  // LoopCondition
+  @not_strictly_false(
+    !_(
+      @result~bool^@result
+    )~bool^logical_not
+  )~bool^not_strictly_false,
+  // LoopStep
+  _||_(
+    @result~bool^@result,
+    _==_(
+      .app.config~int^.app.config,
+      1~int
+    )~bool^equals
+  )~bool^logical_or,
+  // Result
+  @result~bool^@result)~bool

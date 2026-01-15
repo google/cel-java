@@ -98,6 +98,11 @@ public class RuntimeUnknownResolver {
 
   /** Resolve a simple name to a value. */
   DefaultInterpreter.IntermediateResult resolveSimpleName(String name, Long exprId) {
+    // Strip leading dot if present (for global disambiguation).
+    if (name.startsWith(".")) {
+      name = name.substring(1);
+    }
+
     CelAttribute attr = CelAttribute.EMPTY;
 
     if (attributeTrackingEnabled) {
@@ -154,6 +159,10 @@ public class RuntimeUnknownResolver {
 
     @Override
     DefaultInterpreter.IntermediateResult resolveSimpleName(String name, Long exprId) {
+      // A name with a leading '.' always resolves in the root scope
+      if (name.startsWith(".")) {
+        return parent.resolveSimpleName(name, exprId);
+      }
       DefaultInterpreter.IntermediateResult result = lazyEvalResultCache.get(name);
       if (result != null) {
         return copyIfMutable(result);

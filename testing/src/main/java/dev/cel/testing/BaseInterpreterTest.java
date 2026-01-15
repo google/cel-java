@@ -863,6 +863,26 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     container = CelContainer.ofName("com");
     source = "[0].exists(x, x == 0)";
     runTest(ImmutableMap.of("com.x", 1));
+
+    clearAllDeclarations();
+    declareVariable("cel.example.y", SimpleType.INT);
+    container = CelContainer.ofName("cel.example");
+    source = "[{'z': 0}].exists(y, y.z == 0)";
+    runTest(ImmutableMap.of("cel.example.y", ImmutableMap.of("z", 1)));
+
+    clearAllDeclarations();
+    declareVariable("y.z", SimpleType.INT);
+    container = CelContainer.ofName("y");
+    source = "[{'z': 0}].exists(y, y.z == 0 && .y.z == 1)";
+    runTest(ImmutableMap.of("y.z", 1));
+
+    clearAllDeclarations();
+    declareVariable("x", SimpleType.INT);
+    source = "[0].exists(x, x == 0 && .x == 1)";
+    runTest(ImmutableMap.of("x", 1));
+
+    source = "[0].exists(x, [x+1].exists(x, x == .x))";
+    runTest(ImmutableMap.of("x", 1));
   }
 
   @Test

@@ -20,3 +20,35 @@ declare com.x {
 =====>
 bindings: {com.x=1}
 result:   true
+
+Source: [{'z': 0}].exists(y, y.z == 0)
+declare cel.example.y {
+  value int
+}
+=====>
+bindings: {cel.example.y={z=1}}
+result:   true
+
+Source: [{'z': 0}].exists(y, y.z == 0 && .y.z == 1)
+declare y.z {
+  value int
+}
+=====>
+bindings: {y.z=1}
+result:   true
+
+Source: [0].exists(x, x == 0 && .x == 1)
+declare x {
+  value int
+}
+=====>
+bindings: {x=1}
+result:   true
+
+Source: [0].exists(x, [x+1].exists(x, x == .x))
+declare x {
+  value int
+}
+=====>
+bindings: {x=1}
+result:   true

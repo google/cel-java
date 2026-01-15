@@ -199,6 +199,10 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   public void referenceTypeAbsolute() throws Exception {
     source = ".cel.expr.conformance.proto3.TestAllTypes";
     runTest();
+
+    declareVariable("app.config", SimpleType.INT);
+    source = "[0].exists(app, .app.config == 1)";
+    runTest();
   }
 
   @Test

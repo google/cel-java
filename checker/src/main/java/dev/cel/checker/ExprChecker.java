@@ -237,15 +237,18 @@ public final class ExprChecker {
     if (decl.equals(Env.ERROR_IDENT_DECL)) {
       // error reported
       env.setType(expr, SimpleType.ERROR);
-      env.setRef(expr, makeReference(decl));
+      env.setRef(expr, makeReference(decl.name(), decl));
       return expr;
     }
-    if (!decl.name().equals(ident.name())) {
+
+    String refName = maybeDisambiguate(ident.name(), decl.name());
+
+    if (!refName.equals(ident.name())) {
       // Overwrite the identifier with its fully qualified name.
-      expr = replaceIdentSubtree(expr, decl.name());
+      expr = replaceIdentSubtree(expr, refName);
     }
     env.setType(expr, decl.type());
-    env.setRef(expr, makeReference(decl));
+    env.setRef(expr, makeReference(refName, decl));
     return expr;
   }
 
@@ -260,13 +263,15 @@ public final class ExprChecker {
           env.reportError(expr.id(), getPosition(expr), "expression does not select a field");
           env.setType(expr, SimpleType.BOOL);
         } else {
+          String refName = maybeDisambiguate(qname, decl.name());
+
           if (namespacedDeclarations) {
             // Rewrite the node to be a variable reference to the resolved fully-qualified
             // variable name.
-            expr = replaceIdentSubtree(expr, decl.name());
+            expr = replaceIdentSubtree(expr, refName);
           }
           env.setType(expr, decl.type());
-          env.setRef(expr, makeReference(decl));
+          env.setRef(expr, makeReference(refName, decl));
         }
         return expr;
       }
@@ -595,12 +600,30 @@ public final class ExprChecker {
     return expr;
   }
 
-  private CelReference makeReference(CelIdentDecl decl) {
-    CelReference.Builder ref = CelReference.newBuilder().setName(decl.name());
+  private CelReference makeReference(String name, CelIdentDecl decl) {
+    CelReference.Builder ref = CelReference.newBuilder().setName(name);
     if (decl.constant().isPresent()) {
       ref.setValue(decl.constant().get());
     }
     return ref.build();
+  }
+
+  /**
+   * Returns the reference name, prefixed with a leading dot only if disambiguation is needed.
+   * Disambiguation is needed when: the original name had a leading dot, and there's a local
+   * variable that would shadow the resolved name.
+   */
+  private String maybeDisambiguate(String originalName, String resolvedName) {
+    if (!originalName.startsWith(".")) {
+      return resolvedName;
+    }
+    String simpleName = originalName.substring(1);
+    int dotIndex = simpleName.indexOf('.');
+    String localName = dotIndex > 0 ? simpleName.substring(0, dotIndex) : simpleName;
+    if (env.tryLookupCelIdentFromLocalScopes(localName) != null) {
+      return "." + resolvedName;
+    }
+    return resolvedName;
   }
 
   private OverloadResolution resolveOverload(

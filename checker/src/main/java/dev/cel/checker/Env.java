@@ -451,17 +451,29 @@ public class Env {
    * until the root package is reached. If {@code container} starts with {@code .}, the resolution
    * is in the root container only.
    *
-   * <p>Returns {@code null} if the function cannot be found.
+   * <p>Returns {@code null} if the ident cannot be found.
    */
   public @Nullable CelIdentDecl tryLookupCelIdent(CelContainer container, String name) {
-    // Attempt to find the decl with just the ident name to account for shadowed variables
-    CelIdentDecl decl = tryLookupCelIdentFromLocalScopes(name);
-    if (decl != null) {
-      return decl;
+    // A name with a leading '.' always resolves in the root scope, bypassing local scopes.
+    if (!name.startsWith(".")) {
+      // Check if this is a qualified ident, or a field selection.
+      String simpleName = name;
+      int dotIndex = name.indexOf('.');
+      if (dotIndex > 0) {
+        simpleName = name.substring(0, dotIndex);
+      }
+
+      // Attempt to find the decl with just the ident name to account for shadowed variables.
+      CelIdentDecl decl = tryLookupCelIdentFromLocalScopes(simpleName);
+      if (decl != null) {
+        // Appears to be a field selection on a local.
+        // Return null instead of attempting to resolve qualified name at the root scope
+        return dotIndex > 0 ? null : decl;
+      }
     }
 
     for (String cand : container.resolveCandidateNames(name)) {
-      decl = tryLookupCelIdent(cand);
+      CelIdentDecl decl = tryLookupCelIdent(cand);
       if (decl != null) {
         return decl;
       }
@@ -503,7 +515,13 @@ public class Env {
     return null;
   }
 
-  private @Nullable CelIdentDecl tryLookupCelIdentFromLocalScopes(String name) {
+  /**
+   * Lookup a local identifier by name. This searches only comprehension scopes, bypassing standard
+   * environment or user-defined environment.
+   *
+   * <p>Returns {@code null} if not found in local scopes.
+   */
+  @Nullable CelIdentDecl tryLookupCelIdentFromLocalScopes(String name) {
     int firstUserSpaceScope = 2;
     // Iterate from the top of the stack down to the first local scope.
     // Note that:
