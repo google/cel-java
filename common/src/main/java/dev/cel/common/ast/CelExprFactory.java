@@ -16,11 +16,17 @@ package dev.cel.common.ast;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.primitives.UnsignedLong;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.Descriptors.EnumValueDescriptor;
+import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.google.protobuf.Message;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.values.CelByteString;
 import java.util.Arrays;
+import java.util.List;
 
 /** Factory for generating expression nodes. */
 @Internal
@@ -136,6 +142,68 @@ public class CelExprFactory {
         .setFieldKey(field)
         .setValue(value)
         .build();
+  }
+
+  /** Creates a new message {@link CelExpr} from a protobuf {@link Message}. */
+  public final CelExpr newMessageValue(Message message) {
+    return newMessage(
+        message.getDescriptorForType().getFullName(),
+        message.getAllFields().entrySet().stream()
+            .map(entry -> newMessageFieldValue(entry.getKey(), entry.getValue()))
+            .collect(toImmutableList()));
+  }
+
+  private CelExpr.CelStruct.Entry newMessageFieldValue(FieldDescriptor field, Object value) {
+    CelExpr fieldValue;
+    if (field.isMapField()) {
+      fieldValue = newMapFieldValue(field, value);
+    } else if (field.isRepeated()) {
+      fieldValue = newRepeatedFieldValue(field, value);
+    } else {
+      fieldValue = newSingularFieldValue(field, value);
+    }
+    return newMessageField(field.getName(), fieldValue);
+  }
+
+  private CelExpr newMapFieldValue(FieldDescriptor field, Object value) {
+    @SuppressWarnings("unchecked")
+    List<Message> list = (List<Message>) value; // Safe cast per protobuf spec.
+    FieldDescriptor keyField = field.getMessageType().findFieldByNumber(1);
+    FieldDescriptor valueField = field.getMessageType().findFieldByNumber(2);
+    return newMap(
+        list.stream()
+            .map(
+                entryMsg ->
+                    newMapEntry(
+                        /* key= */ newSingularFieldValue(keyField, entryMsg.getField(keyField)),
+                        /* value= */ newSingularFieldValue(
+                            valueField, entryMsg.getField(valueField))))
+            .collect(toImmutableList()));
+  }
+
+  private CelExpr newRepeatedFieldValue(FieldDescriptor field, Object value) {
+    @SuppressWarnings("unchecked")
+    List<Object> list = (List<Object>) value; // Safe cast per protobuf spec.
+    return newList(
+        list.stream().map(v -> newSingularFieldValue(field, v)).collect(toImmutableList()));
+  }
+
+  private CelExpr newSingularFieldValue(FieldDescriptor field, Object value) {
+    return switch (field.getType()) {
+      case DOUBLE -> newDoubleLiteral((Double) value);
+      case FLOAT -> newDoubleLiteral(((Float) value).doubleValue());
+      case INT64, SFIXED64, SINT64 -> newIntLiteral((Long) value);
+      case UINT64, FIXED64 -> newUintLiteral((Long) value);
+      case INT32, SFIXED32, SINT32 -> newIntLiteral(((Integer) value).longValue());
+      case UINT32, FIXED32 -> newUintLiteral(((Integer) value).longValue());
+      case BOOL -> newBoolLiteral((Boolean) value);
+      case STRING -> newStringLiteral((String) value);
+      case BYTES -> newBytesLiteral(((ByteString) value).toByteArray());
+      case MESSAGE -> newMessageValue((Message) value);
+      case ENUM -> newIntLiteral((long) ((EnumValueDescriptor) value).getNumber());
+      case GROUP ->
+          throw new UnsupportedOperationException("Legacy GROUP fields are not supported by CEL.");
+    };
   }
 
   /** Fold creates a fold for one variable comprehension instruction. */
