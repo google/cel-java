@@ -240,12 +240,24 @@ public final class ExprChecker {
       env.setRef(expr, makeReference(decl));
       return expr;
     }
-    if (!decl.name().equals(ident.name())) {
+
+    // Preserve leading dot to signal runtime to bypass local scopes.
+    String refName = decl.name();
+    if (ident.name().startsWith(".")) {
+      refName = "." + refName;
+    }
+
+    if (!refName.equals(ident.name())) {
       // Overwrite the identifier with its fully qualified name.
-      expr = replaceIdentSubtree(expr, decl.name());
+      expr = replaceIdentSubtree(expr, refName);
     }
     env.setType(expr, decl.type());
-    env.setRef(expr, makeReference(decl));
+    // Build reference with the (potentially prefixed) name, preserving constant value if present.
+    CelReference.Builder refBuilder = CelReference.newBuilder().setName(refName);
+    if (decl.constant().isPresent()) {
+      refBuilder.setValue(decl.constant().get());
+    }
+    env.setRef(expr, refBuilder.build());
     return expr;
   }
 
@@ -260,13 +272,24 @@ public final class ExprChecker {
           env.reportError(expr.id(), getPosition(expr), "expression does not select a field");
           env.setType(expr, SimpleType.BOOL);
         } else {
+          // Preserve leading dot to signal runtime to bypass local scopes.
+          String refName = decl.name();
+          if (qname.startsWith(".")) {
+            refName = "." + refName;
+          }
+
           if (namespacedDeclarations) {
             // Rewrite the node to be a variable reference to the resolved fully-qualified
             // variable name.
-            expr = replaceIdentSubtree(expr, decl.name());
+            expr = replaceIdentSubtree(expr, refName);
           }
           env.setType(expr, decl.type());
-          env.setRef(expr, makeReference(decl));
+          // Build reference with the (potentially prefixed) name, preserving constant value.
+          CelReference.Builder refBuilder = CelReference.newBuilder().setName(refName);
+          if (decl.constant().isPresent()) {
+            refBuilder.setValue(decl.constant().get());
+          }
+          env.setRef(expr, refBuilder.build());
         }
         return expr;
       }
