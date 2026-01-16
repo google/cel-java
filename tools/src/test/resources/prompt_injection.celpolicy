@@ -1,11 +1,9 @@
 name: "policy.safety.prompt.injection"
 default: allow
 
-
 variables:
-# TODO: Helper to extract content
   - injection_score: >
-      security.classifyInjection(ctx.agent.input.parts[0].prompt.content)
+      security.classifyInjection(agent.context.prompt)
 
 rules:
   - condition: variables.injection_score > 0.9

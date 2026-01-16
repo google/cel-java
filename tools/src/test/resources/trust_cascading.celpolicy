@@ -3,7 +3,7 @@ default: allow
 
 variables:
   - trust_decision: >
-      security.cascade_trust(ctx.agent.context.history)
+      security.cascade_trust(agent.history())
 
 rules:
   - description: "Elevate trust and replay model call if required"

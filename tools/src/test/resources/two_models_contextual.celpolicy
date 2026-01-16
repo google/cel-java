@@ -4,7 +4,7 @@ default: allow
 variables:
   - trusted_plan: >
       security.computePrivilegedPlan(
-        ctx.agent.context.history.filter(msg, msg.metadata.trust_level == 'TRUSTED')
+        agent.history().filter(msg, msg.metadata.trust_level == 'TRUSTED')
       )
 
 rules:
@@ -23,9 +23,3 @@ rules:
       (tool.name in variables.trusted_plan)
     effect: allow
     message: ""
-
-#   - description: "Establish the privileged plan"
-#     condition: variables.trusted_plan.size() > 0
-#     effect: restrict_tools
-#     output_expr: |
-#       {'allowed_agents': variables.trusted_plan}

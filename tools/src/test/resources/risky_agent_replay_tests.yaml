@@ -7,7 +7,7 @@ section:
     input:
       tool:
         expr: >
-          McpToolCall{ name: "my_risky_agent1" }
+          ToolCall{ name: "my_risky_agent1" }
     output: >
       {
         "effect": "replay",
@@ -21,7 +21,7 @@ section:
     input:
       tool:
         expr: >
-          McpToolCall{ name: "safe_agent" }
+          ToolCall{ name: "safe_agent" }
     output: >
       {
         "effect": "allow",
