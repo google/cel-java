@@ -1,0 +1,13 @@
+name: "policy.risky.agent.replay"
+default: allow
+
+rules:
+  - description: "Limit turn window for risky agents"
+    condition: |
+      tool.name in ["my_risky_agent1", "my_risky_agent2"]
+    effect: replay
+    output_expr: |
+      {
+        'type': 'USER',
+        'turn_window': 1
+      }
