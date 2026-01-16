@@ -125,6 +125,7 @@ java_library(
         "//common/annotations",
         "//common/values:cel_byte_string",
         "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 
