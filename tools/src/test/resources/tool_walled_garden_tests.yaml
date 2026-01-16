@@ -7,18 +7,7 @@ section:
     input:
       tool:
         expr: >
-          McpToolCall{ name: "google_search" }
-    output: >
-      {
-        "effect": "allow",
-        "message": ""
-      }
-
-  - name: "Allowed Tool (Data Analysis)"
-    input:
-      tool:
-        expr: >
-          McpToolCall{ name: "data_analysis" }
+          ToolCall{ name: "google_search" }
     output: >
       {
         "effect": "allow",
@@ -29,7 +18,7 @@ section:
     input:
       tool:
         expr: >
-          McpToolCall{ name: "random_3p_tool" }
+          ToolCall{ name: "random_3p_tool" }
     output: >
       {
         "effect": "deny",

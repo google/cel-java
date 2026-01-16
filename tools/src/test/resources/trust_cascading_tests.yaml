@@ -5,17 +5,11 @@ section:
   tests:
   - name: "Elevation Required (Replay)"
     input:
-      ctx:
+      agent:
+        # Note: description is important below. It's used to fetch mocked history content.
         expr: >
-          AgentRequestContext{
-            agent: Agent{
-              context: AgentContext{
-                # History with low trust
-                history: [
-                  AgentMessage{ metadata: { 'trust_score': 'LOW' } }
-                ]
-              }
-            }
+          Agent{ 
+            description: "trust_cascading_low" 
           }
     output: >
       {
@@ -28,17 +22,10 @@ section:
 
   - name: "Trust Sufficient (Allow)"
     input:
-      ctx:
+      agent:
         expr: >
-          AgentRequestContext{
-            agent: Agent{
-              context: AgentContext{
-                # History now has elevated trust (simulating subsequent turn)
-                history: [
-                  AgentMessage{ metadata: { 'trust_score': 'MEDIUM' } }
-                ]
-              }
-            }
+          Agent{ 
+             description: "trust_cascading_medium" 
           }
     output: >
       {

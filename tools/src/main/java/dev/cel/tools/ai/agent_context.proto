@@ -9,31 +9,6 @@ option java_package = "dev.cel.expr.ai";
 option java_multiple_files = true;
 option java_outer_classname = "AgentContextProto";
 
-// AgentRequestContext defines the universal attribute vocabulary for
-// an AI-related policy check.
-//
-// It represents the state of an agent interaction at a specific point in time,
-// covering both initial conversation ingress (prompt) and subsequent tool
-// execution requests.
-message AgentRequestContext {
-  // A unique identifier for the specific policy request.
-  string request_id = 1;
-
-  // Timestamp of when the request was initiated.
-  google.protobuf.Timestamp time = 2;
-
-  // The context of the agent receiving the request (ingress). Includes the
-  // user's prompt, agent identity and configuration. This field must be
-  // populated in all request phases.
-  Agent agent = 3;
-
-  // The identifier of the agent/entity that invoked this request.
-  string last_agent = 4;  // e.g. "agents/travel-concierge"
-
-  // The identifier of the agent being invoked next (if applicable).
-  string next_agent = 5;  // e.g. "agents/booking-tool"
-}
-
 // Agent represents the AI System or Service being governed.
 // It encapsulates the static configuration (Manifests, Identity) and the
 // dynamic runtime state (Context, Inputs, Outputs).
@@ -54,10 +29,12 @@ message Agent {
   // The provider or vendor responsible for hosting/managing this agent.
   AgentProvider provider = 5;
 
-  // TODO: Trimmed down version of auth
-  //  google.rpc.context.AttributeContext.Auth auth = 6;
+  // Identity of the Agent itself (Service Account / Principal)
+  // Independent of 'request.auth.principal' which may be the end user
+  // credentials or the agent's identity
+  AgentAuth auth = 6;
 
-  // The accumulated security context (Trust, Sensitivity, History).
+  // The accumulated security context (Trust, Sensitivity, Data Sources).
   AgentContext context = 7;
 
   // The current turn's input (Prompt + Attachments)
@@ -65,6 +42,31 @@ message Agent {
 
   // The pending response (if evaluating egress/output policies)
   AgentMessage output = 9;
+}
+
+// AgentAuth represents the identity of the Agent itself.
+// Independent of 'request.auth.principal' which may be the end user
+// credentials or the agent's identity
+message AgentAuth {
+  // The principal of the agent, prefer SPIFFE format of:
+  // spiffe://<trust-domain>/ns/<project>/sa/<account>
+  // See: https://spiffe.io/docs/latest/spiffe/concepts/#spiffe-identifiers
+  string principal = 1;
+
+  // Map of string keys to structured claims about the agent.
+  // For example, with JWT-based tokens, the claims would include fields
+  // indicating the following:
+  //
+  // - The issuer 'iss' (e.g. url of the identity provider)
+  // - The audience(s) 'aud' (e.g. the intended recipient(s) of the token)
+  // - The token's expiration time ('exp')
+  // - The token's subject ('sub')
+  google.protobuf.Struct claims = 2;
+
+  // The OAuth scopes granted to the agent.
+  // This is a list of strings, where each string is a valid OAuth scope
+  // (e.g. "https://www.googleapis.com/auth/cloud-platform").
+  repeated string oauth_scopes = 3;
 }
 
 // AgentContext represents the aggregate security and data governance state
@@ -79,36 +81,23 @@ message AgentContext {
   // Origin/Lineage tracking.
   repeated DataSource data_sources = 3;
 
-  // Full conversation history (for deep context inspection).
-  repeated AgentMessage history = 4;
-
   // The flattened text content of the current prompt.
-  string prompt = 5;
+  string prompt = 4;
+}
 
-  // Sensitivity describes the classification of data within the context.
-  message Sensitivity {
-    // Valid labels are 'pii', 'internal'
-    string label = 1;
+// AgentHistory represents the ordered sequence of messages representing the
+// agent's conversation.
+//
+// AgentHistory is expected to be provided on-demand via helper methods
+// associated with an Agent instance.
+message AgentHistory {
+  // The name of the agent for whom this history is collected.
+  //
+  // This should match the `Agent.name` field.
+  string agent_name = 1;
 
-    // The optional value associated with the label, e.g. 'credit card'
-    string value = 2;
-  }
-
-  // Describes the integrity/veracity of the data.
-  message Trust {
-    // Valid trust labels are "untrusted" (default), "trusted", and
-    // "partially_trusted".
-    string label = 1;
-  }
-
-  // Describes the provenance of a data chunk.
-  message DataSource {
-    // Unique id describing the originating data source.
-    string id = 1;  // e.g. "bigquery:sales_table"
-
-    // The category of origin for this data.
-    string provenance = 2;  // e.g. "UserPrompt", "Database:Secure", "PublicWeb"
-  }
+  // The ordered sequence of messages representing the agent's conversation.
+  repeated AgentMessage messages = 2;
 }
 
 // AgentMessage represents a single turn in the conversation.
@@ -120,20 +109,18 @@ message AgentMessage {
       // User or System text input.
       ContentPart prompt = 1;
 
-      // A request to execute a specific tool (MCP).
-      McpToolCall mcp_call = 2;
-
-      // The output/result of a tool execution.
-      ContentPart result = 3;
+      // A request to execute a specific tool.
+      //
+      // If a call has been completed, the call will have the result or
+      // error populated. Calls which have not yet been resolved will only have
+      // the intent (arguments) populated.
+      ToolCall tool_call = 2;
 
       // A file or multimodal object (Image, PDF).
-      ContentPart attachment = 4;
-
-      // A summary or reference to previous history.
-      ContentPart history = 5;
+      ContentPart attachment = 3;
 
       // An error that occurred during processing.
-      ErrorPart error = 6;
+      ErrorPart error = 4;
     }
   }
 
@@ -141,6 +128,9 @@ message AgentMessage {
   string role = 1;
 
   // The ordered sequence of content parts.
+  //
+  // In the case of a tool call, the result or error will be populated within
+  // the `ToolCall` message rather than split into a separate `Part`.
   repeated Part parts = 2;
 
   // Arbitrary metadata associated with the message turn.
@@ -162,16 +152,46 @@ message AgentMessage {
 // sensible and with support to type-convert from json to proto perhaps being
 // a necessary on-demand feature within agent policies.
 message ContentPart {
+  // Unique identifier for this content part.
   string id = 1;
+
+  // The type of content.
+  //
+  // Common values include: "text", "file", "json"
   string type = 2;
+
+  // The MIME type of the content.
+  //
+  // Common values include: "text/plain", "application/json", "image/png"
   string mime_type = 3;
+
+  // The name of the content.
   string name = 4;
+
+  // The description of the content.
   string description = 5;
+
+  // The URI of the content.
   optional string uri = 6;
+
+  // The string seriralized representation of the content, either plain text or
+  // serialized JSON reflected from `structured_content`.
   optional string content = 7;
+
+  // The binary representation of the content.
+  //
+  // This field is used to represent binary data (e.g., images, PDFs) or
+  // serialized proto messages which come over the wire as base64-encoded string
+  // values that are expected to be decoded into binary data.
   optional bytes data = 8;
+
+  // The JSON object representation of the content, if applicable.
   optional google.protobuf.Struct structured_content = 9;
+
+  // Arbitrary metadata associated with the content part.
   optional google.protobuf.Struct annotations = 10;
+
+  // Timestamp associated with the content part.
   google.protobuf.Timestamp time = 11;
 }
 
@@ -208,19 +228,19 @@ message Model {
   string name = 1;
 }
 
-// McpToolManifest describes a collection of tools provided by a specific
+// ToolManifest describes a collection of tools provided by a specific
 // source.
-message McpToolManifest {
+message ToolManifest {
   // Metadata about the tool provider itself, including authorization
   // requirements.
-  McpToolProvider provider = 1;
+  ToolProvider provider = 1;
 
-  // Collection of MCP Tool instances supported by the
-  repeated McpTool tools = 2;
+  // Collection of Tool instances specified by the provider.
+  repeated Tool tools = 2;
 }
 
-// McpTool describes a specific function or capability available to the agent.
-message McpTool {
+// Tool describes a specific function or capability available to the agent.
+message Tool {
   // The unique name of the tool
   string name = 1;  // (e.g. "weather_lookup").
 
@@ -234,14 +254,14 @@ message McpTool {
   optional google.protobuf.Struct output_schema = 4;
 
   // Security and behavior hints for policy enforcement.
-  optional McpToolAnnotations annotations = 5;
+  optional ToolAnnotations annotations = 5;
 
   // Arbitrary tool metadata.
   optional google.protobuf.Struct metadata = 6;
 }
 
 // Information about how the tools were provided and by whom.
-message McpToolProvider {
+message ToolProvider {
   // URL where the tools were provided.
   string url = 1;
 
@@ -255,42 +275,96 @@ message McpToolProvider {
   repeated string supported_scopes = 4;
 }
 
-// Additional properties describing a tool to clients. Derived from MCP Spec.
-// See: google/api/configaspects/proto/mcp_config.proto
-message McpToolAnnotations {
+// Additional properties describing a tool to clients.
+//
+// Informed by annotations common to the MCP spec and conventions common to
+// other agent frameworks.
+message ToolAnnotations {
   // A human-readable title for the tool.
   string title = 1;
+
+  // If true, the tool does not modify its environment.
+  // Default: false
+  bool read_only = 2;
 
   // If true, the tool may perform destructive updates to its environment.
   // If false, the tool performs only additive updates.
   // NOTE: This property is meaningful only when `read_only_hint == false`
-  bool destructive_hint = 2;
+  bool destructive = 3;
 
   // If true, calling the tool repeatedly with the same arguments will have no
   // additional effect on its environment.
   // NOTE: This property is meaningful only when `read_only_hint == false`.
-  bool idempotent_hint = 3;
+  bool idempotent = 4;
 
   // If true, this tool may interact with an "open world" of external entities.
   // If false, the tools domain of interaction is closed. For example, the
   // world of a web search tool is open, whereas that of a memory tool is not.
-  bool open_world_hint = 4;
+  bool open_world = 5;
 
-  // If true, the tool does not modify its environment.
-  // Default: false
-  bool read_only_hint = 5;
+  // If true, this tool is intended to be called asynchronously.
+  // For example, a tool that starts a simulation process on a server and
+  // returns immediately.
+  bool async = 6;
+
+  // Additional structured tags associated with the tool.
+  map<string, google.protobuf.Struct> tags = 7;
+
+  // The OAuth scopes required to use this tool. If empty, the set of scopes
+  // required is inherited from ToolProvider.supported_scopes.
+  //
+  // This is a list of strings, where each string is a valid OAuth scope
+  // (e.g. "https://www.googleapis.com/auth/cloud-platform").
+  repeated string required_auth_scopes = 8;
+
+  // The OAuth scopes that are optional to use this tool.
+  repeated string optional_auth_scopes = 9;
+
+  message DataAccessLevel {
+    Sensitivity sensitivity = 1;
+
+    message AccessRole {
+      string role = 1;
+      google.protobuf.Struct metadata = 2;
+    }
+  }
 }
 
-// McpToolCall represents a specific invocation of a tool by the agent.
+// Sensitivity describes the classification of data within the context.
+message Sensitivity {
+  // Valid labels are 'pii', 'internal'
+  string label = 1;
+
+  // The optional value associated with the label, e.g. 'credit card'
+  string value = 2;
+}
+
+// Describes the integrity/veracity of the data.
+message Trust {
+  // Valid trust labels are "untrusted" (default), "trusted", and
+  // "partially_trusted".
+  string label = 1;
+}
+
+// Describes the provenance of a data chunk.
+message DataSource {
+  // Unique id describing the originating data source.
+  string id = 1;  // e.g. "bigquery:sales_table"
+
+  // The category of origin for this data.
+  string provenance = 2;  // e.g. "UserPrompt", "Database:Secure", "PublicWeb"
+}
+
+// ToolCall represents a specific invocation of a tool by the agent.
 // It captures the intent (arguments), the status (result/error), and
 // governance metadata (confirmation).
-message McpToolCall {
+message ToolCall {
   // Unique identifier for this tool call.
   // Used to correlate the call with its result or error in the history.
   string id = 1;
 
   // The name of the tool being called (e.g., "weather_lookup").
-  // This should match a tool defined in the agent's McpToolManifest.
+  // This should match a tool defined in the agent's ToolManifest.
   string name = 2;
 
   // The arguments provided to the tool call.
