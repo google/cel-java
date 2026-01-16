@@ -824,7 +824,7 @@ public final class ProgramPlannerTest {
             CEL_VALUE_CONVERTER,
             CEL_CONTAINER,
             options,
-                /* lateBoundFunctionNames= */ ImmutableSet.of());
+            /* lateBoundFunctionNames= */ ImmutableSet.of());
     CelAbstractSyntaxTree ast = compile("[1, 2, 3].map(x, [1, 2].map(y, x + y))");
 
     Program program = planner.plan(ast);
@@ -938,7 +938,7 @@ public final class ProgramPlannerTest {
       return ast;
     }
 
-    return CEL_COMPILER.check(ast).getAst();
+    return compiler.check(ast).getAst();
   }
 
   private static CelByteString concatenateByteArrays(CelByteString bytes1, CelByteString bytes2) {

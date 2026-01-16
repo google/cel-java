@@ -15,6 +15,7 @@
 package dev.cel.runtime.planner;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -48,6 +49,9 @@ import dev.cel.runtime.CelEvaluationExceptionBuilder;
 import dev.cel.runtime.CelResolvedOverload;
 import dev.cel.runtime.DefaultDispatcher;
 import dev.cel.runtime.Program;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -161,8 +165,14 @@ public final class ProgramPlanner {
       return planCheckedIdent(celExpr.id(), ref, ctx.typeMap());
     }
 
+    String identName = celExpr.ident().name();
+    if (ctx.isLocalVar(identName)) {
+      return EvalAttribute.create(
+          celExpr.id(), attributeFactory.newAbsoluteAttribute(identName));
+    }
+
     return EvalAttribute.create(
-        celExpr.id(), attributeFactory.newMaybeAttribute(celExpr.ident().name()));
+        celExpr.id(), attributeFactory.newMaybeAttribute(identName));
   }
 
   private PlannedInterpretable planCheckedIdent(
@@ -314,9 +324,17 @@ public final class ProgramPlanner {
 
     PlannedInterpretable accuInit = plan(comprehension.accuInit(), ctx);
     PlannedInterpretable iterRange = plan(comprehension.iterRange(), ctx);
+
+    ctx.pushLocalVars(comprehension.accuVar(), comprehension.iterVar(), comprehension.iterVar2());
+
     PlannedInterpretable loopCondition = plan(comprehension.loopCondition(), ctx);
     PlannedInterpretable loopStep = plan(comprehension.loopStep(), ctx);
+
+    ctx.popLocalVars(comprehension.iterVar(), comprehension.iterVar2());
+
     PlannedInterpretable result = plan(comprehension.result(), ctx);
+
+    ctx.popLocalVars(comprehension.accuVar());
 
     return EvalFold.create(
         expr.id(),
@@ -460,15 +478,57 @@ public final class ProgramPlanner {
     }
   }
 
-  @AutoValue
-  abstract static class PlannerContext {
+  static final class PlannerContext {
+    private final ImmutableMap<Long, CelReference> referenceMap;
+    private final ImmutableMap<Long, CelType> typeMap;
+    private final Map<String, Integer> localVars = new HashMap<>();
 
-    abstract ImmutableMap<Long, CelReference> referenceMap();
+    ImmutableMap<Long, CelReference> referenceMap() {
+      return referenceMap;
+    }
 
-    abstract ImmutableMap<Long, CelType> typeMap();
+    ImmutableMap<Long, CelType> typeMap() {
+      return typeMap;
+    }
 
-    private static PlannerContext create(CelAbstractSyntaxTree ast) {
-      return new AutoValue_ProgramPlanner_PlannerContext(ast.getReferenceMap(), ast.getTypeMap());
+    private void pushLocalVars(String... names) {
+      for (String name : names) {
+        if (Strings.isNullOrEmpty(name)) {
+          continue;
+        }
+        localVars.merge(name, 1, Integer::sum);
+      }
+    }
+
+    private void popLocalVars(String... names) {
+      for (String name : names) {
+        if (Strings.isNullOrEmpty(name)) {
+          continue;
+        }
+        Integer count = localVars.get(name);
+        if (count != null) {
+          if (count == 1) {
+            localVars.remove(name);
+          } else {
+            localVars.put(name, count - 1);
+          }
+        }
+      }
+    }
+
+    /** Checks if the given name is a local variable in the current scope. */
+    private boolean isLocalVar(String name) {
+      return localVars.containsKey(name);
+    }
+
+    private PlannerContext(
+        ImmutableMap<Long, CelReference> referenceMap, ImmutableMap<Long, CelType> typeMap) {
+      this.referenceMap = referenceMap;
+      this.typeMap = typeMap;
+    }
+
+    static PlannerContext create(CelAbstractSyntaxTree ast) {
+      return new PlannerContext(ast.getReferenceMap(), ast.getTypeMap());
     }
   }
 
