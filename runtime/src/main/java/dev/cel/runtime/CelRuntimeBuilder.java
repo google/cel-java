@@ -21,7 +21,9 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
+import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.values.CelValueProvider;
 import java.util.function.Function;
 
@@ -47,6 +49,14 @@ public interface CelRuntimeBuilder {
    */
   @CanIgnoreReturnValue
   CelRuntimeBuilder addFunctionBindings(Iterable<CelFunctionBinding> bindings);
+
+  /** Adds bindings for functions that are allowed to be late-bound (resolved at execution time). */
+  @CanIgnoreReturnValue
+  CelRuntimeBuilder addLateBoundFunctions(String... lateBoundFunctionNames);
+
+  /** Adds bindings for functions that are allowed to be late-bound (resolved at execution time). */
+  @CanIgnoreReturnValue
+  CelRuntimeBuilder addLateBoundFunctions(Iterable<String> lateBoundFunctionNames);
 
   /**
    * Add message {@link Descriptor}s to the builder for type-checking and object creation at
@@ -124,6 +134,13 @@ public interface CelRuntimeBuilder {
   CelRuntimeBuilder addFileTypes(FileDescriptorSet fileDescriptorSet);
 
   /**
+   * Sets the {@link CelTypeProvider} for resolving CEL types during evaluation, such as a fully
+   * qualified type name to a struct or an enum value.
+   */
+  @CanIgnoreReturnValue
+  CelRuntimeBuilder setTypeProvider(CelTypeProvider celTypeProvider);
+
+  /**
    * Set a custom type factory for the runtime.
    *
    * <p>Note: it is valid to combine type factory methods within the runtime. Only the options which
@@ -145,7 +162,7 @@ public interface CelRuntimeBuilder {
    * support proto messages in addition to custom struct values, protobuf value provider must be
    * configured first before the custom value provider.
    *
-   * <p>Note {@link CelOptions#enableCelValue()} must be enabled or this method will be a no-op.
+   * <p>Note that this option is only supported for planner-based runtime.
    */
   @CanIgnoreReturnValue
   CelRuntimeBuilder setValueProvider(CelValueProvider celValueProvider);
@@ -178,6 +195,15 @@ public interface CelRuntimeBuilder {
    */
   @CanIgnoreReturnValue
   CelRuntimeBuilder setExtensionRegistry(ExtensionRegistry extensionRegistry);
+
+
+  /**
+   * Set the {@link CelContainer} to use as the namespace for resolving CEL expression variables and
+   * functions.
+   */
+  @CanIgnoreReturnValue
+  CelRuntimeBuilder setContainer(CelContainer container);
+
 
   /** Build a new instance of the {@code CelRuntime}. */
   @CheckReturnValue
