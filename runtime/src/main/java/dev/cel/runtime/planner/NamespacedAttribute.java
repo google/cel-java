@@ -28,6 +28,7 @@ import java.util.NoSuchElementException;
 
 @Immutable
 final class NamespacedAttribute implements Attribute {
+  private final ImmutableSet<Integer> disambiguateNames;
   private final ImmutableSet<String> namespacedNames;
   private final ImmutableList<Qualifier> qualifiers;
   private final CelValueConverter celValueConverter;
@@ -35,8 +36,22 @@ final class NamespacedAttribute implements Attribute {
 
   @Override
   public Object resolve(GlobalResolver ctx, ExecutionFrame frame) {
+    GlobalResolver inputVars = ctx;
+    // Unwrap any local activations to ensure that we reach the variables provided as input
+    // to the expression in the event that we need to disambiguate between global and local
+    // variables.
+    if (!disambiguateNames.isEmpty()) {
+      inputVars = unwrapToRoot(ctx);
+    }
+
+    int i = 0;
     for (String name : namespacedNames) {
-      Object value = ctx.resolve(name);
+      GlobalResolver resolver = ctx;
+      if (disambiguateNames.contains(i)) {
+        resolver = inputVars;
+      }
+
+      Object value = resolver.resolve(name);
       if (value != null) {
         if (!qualifiers.isEmpty()) {
           return applyQualifiers(value, celValueConverter, qualifiers);
@@ -69,6 +84,7 @@ final class NamespacedAttribute implements Attribute {
         throw new IllegalStateException(
             "Unexpected type resolution when there were remaining qualifiers: " + type.name());
       }
+      i++;
     }
 
     return MissingAttribute.newMissingAttribute(namespacedNames);
@@ -82,12 +98,20 @@ final class NamespacedAttribute implements Attribute {
     return namespacedNames;
   }
 
+  private GlobalResolver unwrapToRoot(GlobalResolver resolver) {
+    while (resolver instanceof ActivationWrapper) {
+      resolver = ((ActivationWrapper) resolver).unwrap();
+    }
+    return resolver;
+  }
+
   @Override
   public NamespacedAttribute addQualifier(Qualifier qualifier) {
     return new NamespacedAttribute(
         typeProvider,
         celValueConverter,
         namespacedNames,
+        disambiguateNames,
         ImmutableList.<Qualifier>builder().addAll(qualifiers).add(qualifier).build());
   }
 
@@ -106,21 +130,40 @@ final class NamespacedAttribute implements Attribute {
     return obj;
   }
 
-  NamespacedAttribute(
+  static NamespacedAttribute create(
       CelTypeProvider typeProvider,
       CelValueConverter celValueConverter,
       ImmutableSet<String> namespacedNames) {
-    this(typeProvider, celValueConverter, namespacedNames, ImmutableList.of());
+    ImmutableSet.Builder<String> namesBuilder = ImmutableSet.builder();
+    ImmutableSet.Builder<Integer> indicesBuilder = ImmutableSet.builder();
+    int i = 0;
+    for (String name : namespacedNames) {
+      if (name.startsWith(".")) {
+        indicesBuilder.add(i);
+        namesBuilder.add(name.substring(1));
+      } else {
+        namesBuilder.add(name);
+      }
+      i++;
+    }
+    return new NamespacedAttribute(
+        typeProvider,
+        celValueConverter,
+        namesBuilder.build(),
+        indicesBuilder.build(),
+        ImmutableList.of());
   }
 
-  private NamespacedAttribute(
+  NamespacedAttribute(
       CelTypeProvider typeProvider,
       CelValueConverter celValueConverter,
       ImmutableSet<String> namespacedNames,
+      ImmutableSet<Integer> disambiguateNames,
       ImmutableList<Qualifier> qualifiers) {
     this.typeProvider = typeProvider;
     this.celValueConverter = celValueConverter;
     this.namespacedNames = namespacedNames;
+    this.disambiguateNames = disambiguateNames;
     this.qualifiers = qualifiers;
   }
 }

@@ -1,4 +1,4 @@
-// Copyright 2025 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,22 +14,9 @@
 
 package dev.cel.runtime.planner;
 
-import com.google.errorprone.annotations.Immutable;
-import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
 
-@Immutable
-abstract class PlannedInterpretable {
-  private final long exprId;
-
-  /** Runs interpretation with the given activation which supplies name/value bindings. */
-  abstract Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException;
-
-  long exprId() {
-    return exprId;
-  }
-
-  PlannedInterpretable(long exprId) {
-    this.exprId = exprId;
-  }
+/** Identifies a resolver that can be unwrapped to bypass local variable state. */
+interface ActivationWrapper extends GlobalResolver {
+  GlobalResolver unwrap();
 }

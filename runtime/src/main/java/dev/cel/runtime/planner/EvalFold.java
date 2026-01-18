@@ -97,7 +97,7 @@ final class EvalFold extends PlannedInterpretable {
       if (!iterVar2.isEmpty()) {
         folder.iterVar2Val = entry.getValue();
       }
-      
+
       boolean cond = (boolean) condition.eval(folder, frame);
       if (!cond) {
         return result.eval(folder, frame);
@@ -149,7 +149,7 @@ final class EvalFold extends PlannedInterpretable {
     return val;
   }
 
-  private static class Folder implements GlobalResolver {
+  private static class Folder implements ActivationWrapper {
     private final GlobalResolver resolver;
     private final String accuVar;
     private final String iterVar;
@@ -164,6 +164,11 @@ final class EvalFold extends PlannedInterpretable {
       this.accuVar = accuVar;
       this.iterVar = iterVar;
       this.iterVar2 = iterVar2;
+    }
+
+    @Override
+    public GlobalResolver unwrap() {
+      return resolver;
     }
 
     @Override
