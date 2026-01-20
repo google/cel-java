@@ -28,6 +28,14 @@ java_library(
     ],
 )
 
+cel_android_library(
+    name = "dispatcher_android",
+    visibility = ["//:internal"],
+    exports = [
+        "//runtime/src/main/java/dev/cel/runtime:dispatcher_android",
+    ],
+)
+
 java_library(
     name = "standard_functions",
     exports = [
@@ -40,6 +48,14 @@ java_library(
     visibility = ["//:internal"],
     exports = [
         "//runtime/src/main/java/dev/cel/runtime:activation",
+    ],
+)
+
+cel_android_library(
+    name = "activation_android",
+    visibility = ["//:internal"],
+    exports = [
+        "//runtime/src/main/java/dev/cel/runtime:activation_android",
     ],
 )
 
@@ -79,6 +95,7 @@ cel_android_library(
 
 java_library(
     name = "evaluation_exception_builder",
+    # used_by_android
     exports = ["//runtime/src/main/java/dev/cel/runtime:evaluation_exception_builder"],
 )
 
@@ -110,6 +127,12 @@ java_library(
     name = "interpretable",
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:interpretable"],
+)
+
+cel_android_library(
+    name = "interpretable_android",
+    visibility = ["//:internal"],
+    exports = ["//runtime/src/main/java/dev/cel/runtime:interpretable_android"],
 )
 
 java_library(
@@ -253,12 +276,20 @@ cel_android_library(
 
 java_library(
     name = "metadata",
+    # used_by_android
     visibility = ["//:internal"],
     exports = ["//runtime/src/main/java/dev/cel/runtime:metadata"],
 )
 
 java_library(
+    name = "variable_resolver",
+    # used_by_android
+    exports = ["//runtime/src/main/java/dev/cel/runtime:variable_resolver"],
+)
+
+java_library(
     name = "concatenated_list_view",
+    # used_by_android
     visibility = ["//:internal"],
     exports = [
         "//runtime/src/main/java/dev/cel/runtime:concatenated_list_view",
@@ -266,8 +297,10 @@ java_library(
 )
 
 java_library(
-    name = "variable_resolver",
+    name = "runtime_planner_impl",
+    testonly = 1,  # TODO: Move to factory when ready for exposure
+    visibility = ["//:internal"],
     exports = [
-        "//runtime/src/main/java/dev/cel/runtime:variable_resolver",
+        "//runtime/src/main/java/dev/cel/runtime:runtime_planner_impl",
     ],
 )

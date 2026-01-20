@@ -15,6 +15,7 @@
 package dev.cel.runtime;
 
 import dev.cel.common.CelOptions;
+import dev.cel.common.annotations.Beta;
 
 /** Helper class to construct new {@code CelRuntime} instances. */
 public final class CelRuntimeFactory {
@@ -30,6 +31,17 @@ public final class CelRuntimeFactory {
         .setOptions(CelOptions.current().build())
         // CEL-Internal-2
         .setStandardEnvironmentEnabled(true);
+  }
+
+  @Beta
+  public static CelRuntimeBuilder plannerCelRuntimeBuilder() {
+    return CelRuntimeImpl.newBuilder()
+        .setStandardFunctions(CelStandardFunctions.newBuilder().build())
+        .setOptions(
+            CelOptions.current()
+                .enableTimestampEpoch(true)
+                .enableHeterogeneousNumericComparisons(true)
+                .build());
   }
 
   private CelRuntimeFactory() {}

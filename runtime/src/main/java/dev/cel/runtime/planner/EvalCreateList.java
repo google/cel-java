@@ -30,7 +30,7 @@ final class EvalCreateList extends PlannedInterpretable {
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     ImmutableList.Builder<Object> builder = ImmutableList.builderWithExpectedSize(values.length);
     for (PlannedInterpretable value : values) {
-      builder.add(value.eval(resolver, frame));
+      builder.add(EvalHelpers.evalStrictly(value, resolver, frame));
     }
     return builder.build();
   }
