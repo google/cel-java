@@ -372,6 +372,7 @@ public final class CelImplTest {
     CelAbstractSyntaxTree ast = celCompiler.compile("input.expression").getAst();
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder()
+            // CEL-Internal-2
             .setTypeFactory(
                 (typeName) ->
                     typeName.equals("google.type.Expr") ? com.google.type.Expr.newBuilder() : null)
@@ -401,6 +402,7 @@ public final class CelImplTest {
 
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder()
+            // CEL-Internal-2
             .setTypeFactory(
                 (typeName) ->
                     typeName.equals("google.type.Expr") ? com.google.type.Expr.newBuilder() : null)
@@ -832,6 +834,7 @@ public final class CelImplTest {
   public void program_hermeticDescriptors_wellKnownProtobuf() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
+            // CEL-Internal-2
             .addMessageTypes(Timestamp.getDescriptor())
             .setContainer(CelContainer.ofName("google"))
             .setResultType(SimpleType.TIMESTAMP)
@@ -914,6 +917,7 @@ public final class CelImplTest {
         CelRuntimeFactory.standardCelRuntimeBuilder()
             .addFileTypes(CheckedExpr.getDescriptor().getFile())
             .setOptions(CelOptions.current().resolveTypeDependencies(true).build())
+            // CEL-Internal-2
             .build();
     CelRuntime.Program program = celRuntime.createProgram(ast);
 
@@ -942,6 +946,7 @@ public final class CelImplTest {
         CelRuntimeFactory.standardCelRuntimeBuilder()
             .addFileTypes(CheckedExpr.getDescriptor().getFile())
             .setOptions(CelOptions.current().resolveTypeDependencies(false).build())
+            // CEL-Internal-2
             .build();
     CelRuntime.Program program = celRuntime.createProgram(ast);
 
@@ -2154,6 +2159,7 @@ public final class CelImplTest {
     Cel cel =
         standardCelBuilderWithMacros()
             .addMessageTypes(descriptors)
+            // CEL-Internal-2
             .setOptions(CelOptions.current().enableTimestampEpoch(true).build())
             .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
             .build();

@@ -40,6 +40,7 @@ public final class CelFactory {
                 CelParserImpl.newBuilder(), CelCheckerLegacyImpl.newBuilder()),
             CelRuntimeLegacyImpl.newBuilder())
         .setOptions(CelOptions.current().build())
+        // CEL-Internal-2
         .setStandardEnvironmentEnabled(true);
   }
 

@@ -171,6 +171,7 @@ public class CelRuntimeTest {
             .build();
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder()
+            // CEL-Internal-2
             .addFileTypes(
                 FileDescriptorSet.newBuilder()
                     .addFile(
@@ -192,6 +193,7 @@ public class CelRuntimeTest {
             .build();
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder()
+            // CEL-Internal-2
             .setTypeFactory(
                 (typeName) ->
                     typeName.equals("google.protobuf.BoolValue")
@@ -218,6 +220,8 @@ public class CelRuntimeTest {
         CelCompilerFactory.standardCelCompilerBuilder().addFileTypes(fds).build();
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder()
+            // CEL-Internal-2
+            .addFileTypes(fds)
             .build();
 
     CelAbstractSyntaxTree ast =
@@ -241,6 +245,8 @@ public class CelRuntimeTest {
         CelCompilerFactory.standardCelCompilerBuilder().addFileTypes(fds).build();
     CelRuntime celRuntime =
         CelRuntimeFactory.standardCelRuntimeBuilder()
+            // CEL-Internal-2
+            .addFileTypes(fds)
             .setTypeFactory(
                 (typeName) ->
                     typeName.equals("google.protobuf.Any")

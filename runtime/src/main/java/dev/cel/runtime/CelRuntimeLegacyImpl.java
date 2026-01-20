@@ -38,7 +38,7 @@ import dev.cel.common.internal.CombinedDescriptorPool;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
-// CEL-Internal-3
+// CEL-Internal-1
 import dev.cel.common.internal.ProtoMessageFactory;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.values.CelValueProvider;
@@ -97,6 +97,7 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     CelRuntimeBuilder builder =
         new Builder()
             .setOptions(options)
+            // CEL-Internal-2
             .setStandardEnvironmentEnabled(standardEnvironmentEnabled)
             .setExtensionRegistry(extensionRegistry)
             .addFileTypes(fileDescriptors)
@@ -366,7 +367,8 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
                           break;
                         default:
                           if (!options.enableHeterogeneousNumericComparisons()) {
-                            return !CelStandardFunctions.isHeterogeneousComparison(standardOverload);
+                            return !CelStandardFunctions.isHeterogeneousComparison(
+                                standardOverload);
                           }
                           break;
                       }

@@ -295,6 +295,7 @@ public final class CelProtoExtensionsTest {
     TestAllTypesExtensions.registerAllExtensions(extensionRegistry);
     Cel cel =
         CelFactory.standardCelBuilder()
+            // CEL-Internal-2
             .addCompilerLibraries(CelExtensions.protos())
             .addFileTypes(TestAllTypesExtensions.getDescriptor())
             .setExtensionRegistry(extensionRegistry)
