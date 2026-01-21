@@ -22,6 +22,13 @@ load(
     "DEFAULT_TOOLCHAIN_CONFIGURATION",
     "default_java_toolchain",
 )
+load(
+    "@rules_java//java:defs.bzl",
+    "java_binary",
+    "java_library",
+    "java_package_configuration",
+    "java_plugin",
+)
 load("@rules_license//rules:license.bzl", "license")
 
 licenses(["notice"])  # Apache License 2.0

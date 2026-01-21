@@ -17,6 +17,7 @@ This module contains build rules for generating the conformance test targets.
 """
 
 load("@rules_java//java:defs.bzl", "java_test")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
 # Converts the list of tests to skip from the format used by the original Go test runner to a single
 # flag value where each test is separated by a comma. It also performs expansion, for example
@@ -79,7 +80,7 @@ def conformance_test(name, data, mode = MODE.TEST, skip_tests = []):
             ],
         )
 
-        native.sh_test(
+        sh_test(
             name = name,
             size = "small",
             srcs = ["//conformance/src/test/java/dev/cel/conformance:conformance_test.sh"],

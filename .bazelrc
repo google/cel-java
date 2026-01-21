@@ -4,3 +4,6 @@ build --java_language_version=11
 
 # Hide Java 8 deprecation warnings.
 common --javacopt=-Xlint:-options
+
+# Remove flag once https://github.com/google/cel-spec/issues/508 and rules_jvm_external is fixed.
+common --incompatible_autoload_externally=proto_library,cc_proto_library,java_proto_library,java_test
