@@ -19,10 +19,13 @@ import static com.google.common.truth.extensions.proto.ProtoTruth.assertThat;
 import static dev.cel.common.CelFunctionDecl.newFunctionDeclaration;
 import static dev.cel.common.CelOverloadDecl.newGlobalOverload;
 import static dev.cel.common.CelOverloadDecl.newMemberOverload;
+import static dev.cel.common.CelSource.Extension;
 import static org.junit.Assert.assertThrows;
 
+import dev.cel.common.CelValidationException;
 import dev.cel.expr.CheckedExpr;
 import dev.cel.expr.Constant;
+import dev.cel.runtime.CelEvaluationException;
 import dev.cel.expr.Decl;
 import dev.cel.expr.Decl.FunctionDecl;
 import dev.cel.expr.Decl.FunctionDecl.Overload;
@@ -47,7 +50,6 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.Duration;
 import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.Empty;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.FieldMask;
 import com.google.protobuf.Message;
@@ -55,7 +57,6 @@ import com.google.protobuf.Struct;
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.TypeRegistry;
-import com.google.protobuf.WrappersProto;
 import com.google.rpc.context.AttributeContext;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
@@ -72,7 +73,6 @@ import dev.cel.common.CelIssue;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
 import dev.cel.common.CelSourceLocation;
-import dev.cel.common.CelValidationException;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.ast.CelExpr;
@@ -102,7 +102,6 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelAttribute;
 import dev.cel.runtime.CelAttribute.Qualifier;
 import dev.cel.runtime.CelAttributePattern;
-import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelEvaluationExceptionBuilder;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime;
@@ -112,6 +111,7 @@ import dev.cel.runtime.CelRuntimeLegacyImpl;
 import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.CelVariableResolver;
 import dev.cel.runtime.UnknownContext;
+import dev.cel.testing.testdata.SingleFileProto.SingleFile;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -2191,6 +2191,74 @@ public final class CelImplTest {
     assertThat(newCheckerBuilder).isNotEqualTo(celImpl.toCheckerBuilder());
     assertThat(newCompilerBuilder).isNotEqualTo(celImpl.toCompilerBuilder());
     assertThat(newRuntimeBuilder).isNotEqualTo(celImpl.toRuntimeBuilder());
+  }
+
+  @Test
+  public void eval_withJsonFieldName() throws Exception {
+    Cel cel =
+        standardCelBuilderWithMacros()
+            .addVar("file", StructTypeReference.create(SingleFile.getDescriptor().getFullName()))
+            .addMessageTypes(SingleFile.getDescriptor())
+            .setOptions(CelOptions.current().enableJsonFieldNames(true).build())
+            .build();
+    CelAbstractSyntaxTree ast =
+        cel.compile("file.camelCased").getAst();
+
+    Object result = cel.createProgram(ast).eval(ImmutableMap.of("file", SingleFile.newBuilder().setSnakeCased("foo").build()));
+
+    assertThat(result).isEqualTo("foo");
+  }
+
+  @Test
+  public void eval_withJsonFieldName_runtimeOptionDisabled_throws() throws Exception {
+    CelCompiler celCompiler =
+            CelCompilerFactory.standardCelCompilerBuilder()
+                    .addVar("file", StructTypeReference.create(SingleFile.getDescriptor().getFullName()))
+                    .addMessageTypes(SingleFile.getDescriptor())
+                    .setOptions(CelOptions.current().enableJsonFieldNames(true).build())
+                    .build();
+    CelRuntime celRuntime =
+            CelRuntimeFactory.standardCelRuntimeBuilder()
+                    .addMessageTypes(SingleFile.getDescriptor())
+                    .setOptions(CelOptions.current().enableJsonFieldNames(false).build())
+                    .build();
+    CelAbstractSyntaxTree ast = celCompiler.compile("file.camelCased").getAst();
+
+    CelEvaluationException e =
+        assertThrows(
+                CelEvaluationException.class,
+                () -> celRuntime.createProgram(ast).eval(ImmutableMap.of("file", SingleFile.getDefaultInstance())));
+    assertThat(e).hasMessageThat().contains("field 'camelCased' is not declared in message 'dev.cel.testing.testdata.SingleFile");
+  }
+
+  @Test
+  public void compile_withJsonFieldName_astTagged() throws Exception {
+    Cel cel =
+            standardCelBuilderWithMacros()
+                    .addVar("file", StructTypeReference.create(SingleFile.getDescriptor().getFullName()))
+                    .addMessageTypes(SingleFile.getDescriptor())
+                    .setOptions(CelOptions.current().enableJsonFieldNames(true).build())
+                    .build();
+    CelAbstractSyntaxTree ast =
+            cel.compile("file.camelCased").getAst();
+
+    assertThat(ast.getSource().getExtensions()).contains(Extension.create("json_name", Extension.Version.of(1L, 1L), Extension.Component.COMPONENT_RUNTIME));
+  }
+
+  @Test
+  public void compile_withJsonFieldName_protoFieldNameComparison_throws() throws Exception {
+    Cel cel =
+      standardCelBuilderWithMacros()
+          .addVar("file", StructTypeReference.create(SingleFile.getDescriptor().getFullName()))
+          .addMessageTypes(SingleFile.getDescriptor())
+          .setOptions(CelOptions.current().enableJsonFieldNames(true).build())
+          .build();
+
+    CelValidationException e =
+            assertThrows(
+                    CelValidationException.class,
+                    () -> cel.compile("file.camelCased == file.snake_cased").getAst());
+    assertThat(e).hasMessageThat().contains("undefined field 'snake_cased'");
   }
 
   private static TypeProvider aliasingProvider(ImmutableMap<String, Type> typeAliases) {

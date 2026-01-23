@@ -14,8 +14,9 @@
 
 package dev.cel.runtime;
 
+import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
-// import com.google.testing.testsize.MediumTest;
+import dev.cel.common.CelOptions;
 import dev.cel.testing.BaseInterpreterTest;
 import org.junit.runner.RunWith;
 
@@ -25,7 +26,16 @@ import org.junit.runner.RunWith;
 public class CelValueInterpreterTest extends BaseInterpreterTest {
 
   public CelValueInterpreterTest() {
-    super(newBaseCelOptions().toBuilder().enableCelValue(true).build());
+    this(newBaseCelOptions().toBuilder().enableCelValue(true).build());
+  }
+
+  protected CelValueInterpreterTest(CelOptions celOptions) {
+    super(celOptions);
+  }
+
+  @Override
+  protected CelRuntimeBuilder getRuntimeBuilder(CelOptions celOptions) {
+    return super.getRuntimeBuilder(celOptions.toBuilder().enableCelValue(true).build());
   }
 
   @Override

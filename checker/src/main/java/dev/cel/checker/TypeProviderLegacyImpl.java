@@ -49,7 +49,7 @@ final class TypeProviderLegacyImpl implements TypeProvider {
   }
 
   @Override
-  public Optional<CelType> lookupCelType(String typeName) {
+  public Optional<TypeType> lookupCelType(String typeName) {
     return celTypeProvider.findType(typeName).map(TypeType::create);
   }
 

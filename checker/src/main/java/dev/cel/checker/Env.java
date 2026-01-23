@@ -14,6 +14,7 @@
 
 package dev.cel.checker;
 
+import dev.cel.common.types.TypeType;
 import dev.cel.expr.Constant;
 import dev.cel.expr.Decl;
 import dev.cel.expr.Decl.FunctionDecl.Overload;
@@ -491,7 +492,7 @@ public class Env {
 
     // Next try to import the name as a reference to a message type.
     // This is done via the type provider.
-    Optional<CelType> type = typeProvider.lookupCelType(cand);
+    Optional<TypeType> type = typeProvider.lookupCelType(cand);
     if (type.isPresent()) {
       decl = CelIdentDecl.newIdentDeclaration(cand, type.get());
       decls.get(0).putIdent(decl);

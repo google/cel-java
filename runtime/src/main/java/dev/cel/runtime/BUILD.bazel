@@ -828,6 +828,7 @@ java_library(
         "//:auto_value",
         "//common:cel_ast",
         "//common:cel_descriptor_util",
+        "//common:cel_source",
         "//common:cel_descriptors",
         "//common:options",
         "//common/annotations",

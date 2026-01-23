@@ -14,6 +14,7 @@
 
 package dev.cel.checker;
 
+import dev.cel.common.types.TypeType;
 import dev.cel.expr.Type;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
@@ -36,9 +37,9 @@ public interface TypeProvider {
   @Nullable Type lookupType(String typeName);
 
   /** Lookup the a {@link CelType} given a qualified {@code typeName}. Returns null if not found. */
-  default Optional<CelType> lookupCelType(String typeName) {
+  default Optional<TypeType> lookupCelType(String typeName) {
     Type type = lookupType(typeName);
-    return Optional.ofNullable(type).map(CelProtoTypes::typeToCelType);
+    return Optional.ofNullable(type).map(CelProtoTypes::typeToCelType).filter(t -> t instanceof TypeType).map(TypeType.class::cast);
   }
 
   /** Lookup the {@code Integer} enum value given an {@code enumName}. Returns null if not found. */

@@ -68,7 +68,10 @@ import dev.cel.common.types.OpaqueType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeParamType;
+import dev.cel.common.types.ProtoMessageTypeProvider;
 import dev.cel.common.values.CelByteString;
+import dev.cel.common.CelValidationException;
+import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
@@ -77,6 +80,7 @@ import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelLateFunctionBindings;
 import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeFactory;
 import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.CelVariableResolver;
@@ -114,25 +118,31 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
           .comprehensionMaxIterations(1_000)
           .build();
   private CelRuntime celRuntime;
+  protected CelOptions celOptions;
 
   protected BaseInterpreterTest() {
-    this(newRuntime(BASE_CEL_OPTIONS));
+    this(BASE_CEL_OPTIONS);
   }
 
   protected BaseInterpreterTest(CelOptions celOptions) {
-    this(newRuntime(celOptions));
+    this.celOptions = celOptions;
+    this.celRuntime = getRuntimeBuilder(celOptions).build();
   }
 
   protected BaseInterpreterTest(CelRuntime celRuntime) {
-    this.celRuntime = celRuntime;
+    this(celRuntime, BASE_CEL_OPTIONS);
   }
 
-  private static CelRuntime newRuntime(CelOptions celOptions) {
+  protected BaseInterpreterTest(CelRuntime celRuntime, CelOptions celOptions) {
+    this.celRuntime = celRuntime;
+    this.celOptions = celOptions;
+  }
+
+  protected CelRuntimeBuilder getRuntimeBuilder(CelOptions celOptions) {
     return CelRuntimeFactory.standardCelRuntimeBuilder()
         .addLibraries(CelOptionalLibrary.INSTANCE)
         .addFileTypes(TEST_FILE_DESCRIPTORS)
-        .setOptions(celOptions)
-        .build();
+        .setOptions(celOptions);
   }
 
   protected static CelOptions newBaseCelOptions() {
@@ -140,10 +150,42 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   }
 
   @Override
+  protected CelAbstractSyntaxTree prepareTest(List<FileDescriptor> descriptors) {
+    return prepareTest(
+        ProtoMessageTypeProvider.newBuilder()
+            .addFileDescriptors(descriptors)
+            .setAllowJsonFieldNames(celOptions != null && celOptions.enableJsonFieldNames())
+            .build());
+  }
+
+  protected CelAbstractSyntaxTree prepareTest(CelTypeProvider typeProvider) {
+    prepareCompiler(typeProvider);
+
+    CelAbstractSyntaxTree ast;
+    try {
+      ast = celCompiler.parse(source, testSourceDescription()).getAst();
+    } catch (CelValidationException e) {
+      printTestValidationError(e);
+      return null;
+    }
+
+    try {
+      return celCompiler.check(ast).getAst();
+    } catch (CelValidationException e) {
+      printTestValidationError(e);
+      return null;
+    }
+  }
+
+  @Override
   protected void prepareCompiler(CelTypeProvider typeProvider) {
     super.prepareCompiler(typeProvider);
     this.celCompiler =
-        celCompiler.toCompilerBuilder().addLibraries(CelOptionalLibrary.INSTANCE).build();
+        celCompiler
+            .toCompilerBuilder()
+            .addLibraries(CelOptionalLibrary.INSTANCE)
+            .setOptions(celOptions)
+            .build();
   }
 
   private CelAbstractSyntaxTree compileTestCase() {
@@ -2481,5 +2523,27 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     } catch (IOException e) {
       throw new RuntimeException("Error loading TestAllTypes descriptor", e);
     }
+  }
+
+  @Test
+  public void jsonFieldNames() throws Exception {
+    // Reconfigure the runtime with json field names enabled
+    this.celOptions = celOptions.toBuilder().enableJsonFieldNames(true).build();
+    this.celRuntime = getRuntimeBuilder(celOptions).build();
+    // BaseInterpreterTest.prepareCompiler will use the updated celOptions
+
+    TestAllTypes message = TestAllTypes.newBuilder().setSingleInt32(42).build();
+    declareVariable("x", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
+
+    // Access via json_name (camelCase)
+    source = "x.singleInt32 == 42";
+    assertThat(runTest(ImmutableMap.of("x", message))).isEqualTo(true);
+
+    // Struct construction using json_names
+    source = "TestAllTypes{singleInt32: 42}.singleInt32 == 42";
+    container = CelContainer.ofName(TestAllTypes.getDescriptor().getFile().getPackage());
+    assertThat(runTest()).isEqualTo(true);
+
+    skipBaselineVerification();
   }
 }

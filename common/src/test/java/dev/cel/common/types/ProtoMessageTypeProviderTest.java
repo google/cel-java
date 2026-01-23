@@ -20,8 +20,10 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.types.CelTypeProvider.CombinedCelTypeProvider;
+import dev.cel.common.types.StructType.Field;
 import dev.cel.expr.conformance.proto2.TestAllTypes;
 import dev.cel.expr.conformance.proto2.TestAllTypesExtensions;
+import dev.cel.testing.testdata.SingleFileProto.SingleFile;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -253,5 +255,23 @@ public final class ProtoMessageTypeProviderTest {
   public void types_combinedDuplicateProviderIsSameAsFirst() {
     CombinedCelTypeProvider combined = new CombinedCelTypeProvider(proto3Provider, proto3Provider);
     assertThat(combined.types()).hasSize(proto3Provider.types().size());
+  }
+
+  @Test
+  public void findField_withJsonNameOption() {
+    ProtoMessageTypeProvider typeProvider =
+        ProtoMessageTypeProvider.newBuilder()
+            .addFileDescriptors(SingleFile.getDescriptor().getFile())
+            .setAllowJsonFieldNames(true)
+            .build();
+
+    ProtoMessageType msgType = (ProtoMessageType) typeProvider.findType(SingleFile.getDescriptor().getFullName()).get();
+
+    // Note that these are the same fields, with json_name option set
+    Optional<Field> snakeCasedField = msgType.findField("snake_cased");
+    Optional<Field> jsonNameField = msgType.findField("camelCased");
+
+    assertThat(snakeCasedField).isEmpty();
+    assertThat(jsonNameField).isPresent();
   }
 }

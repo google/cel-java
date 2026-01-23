@@ -177,6 +177,7 @@ java_library(
         ":standard_decl",
         "//:auto_value",
         "//common:cel_ast",
+        "//common:cel_source",
         "//common:compiler_common",
         "//common:container",
         "//common:operator",

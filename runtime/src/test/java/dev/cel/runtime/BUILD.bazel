@@ -20,6 +20,7 @@ java_library(
         exclude = [
             "CelLiteInterpreterTest.java",
             "CelValueInterpreterTest.java",
+            "InterpreterJsonNameTest.java",
             "InterpreterTest.java",
         ] + ANDROID_TESTS,
     ),
@@ -118,6 +119,8 @@ java_library(
     ],
     deps = [
         #         "//java/com/google/testing/testsize:annotations",
+        "//common:options",
+        "//runtime",
         "//testing:base_interpreter_test",
         "@maven//:junit_junit",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
@@ -132,6 +135,8 @@ java_library(
     ],
     deps = [
         #         "//java/com/google/testing/testsize:annotations",
+        "//common:options",
+        "//runtime",
         "//testing:base_interpreter_test",
         "@maven//:junit_junit",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
@@ -182,6 +187,7 @@ java_library(
         "CelLiteInterpreterTest.java",
     ],
     deps = [
+        "//common:options",
         "//common/values:proto_message_lite_value_provider",
         "//extensions:optional_library",
         "//runtime",

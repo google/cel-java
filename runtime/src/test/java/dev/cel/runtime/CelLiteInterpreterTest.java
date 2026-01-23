@@ -14,7 +14,9 @@
 
 package dev.cel.runtime;
 
+import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.common.CelOptions;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.expr.conformance.proto3.TestAllTypesCelDescriptor;
 import dev.cel.extensions.CelOptionalLibrary;
@@ -28,15 +30,21 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 public class CelLiteInterpreterTest extends BaseInterpreterTest {
   public CelLiteInterpreterTest() {
-    super(
-        CelRuntimeFactory.standardCelRuntimeBuilder()
-            .setValueProvider(
-                ProtoMessageLiteValueProvider.newInstance(
-                    dev.cel.expr.conformance.proto2.TestAllTypesCelDescriptor.getDescriptor(),
-                    TestAllTypesCelDescriptor.getDescriptor()))
-            .addLibraries(CelOptionalLibrary.INSTANCE)
-            .setOptions(newBaseCelOptions().toBuilder().enableCelValue(true).build())
-            .build());
+    this(newBaseCelOptions().toBuilder().enableCelValue(true).build());
+  }
+  protected CelLiteInterpreterTest(CelOptions celOptions) {
+    super(celOptions);
+  }
+
+  @Override
+  protected CelRuntimeBuilder getRuntimeBuilder(CelOptions celOptions) {
+    return CelRuntimeFactory.standardCelRuntimeBuilder()
+        .setValueProvider(
+            ProtoMessageLiteValueProvider.newInstance(
+                dev.cel.expr.conformance.proto2.TestAllTypesCelDescriptor.getDescriptor(),
+                TestAllTypesCelDescriptor.getDescriptor()))
+        .addLibraries(CelOptionalLibrary.INSTANCE)
+        .setOptions(celOptions.toBuilder().enableCelValue(true).build());
   }
 
   @Override
