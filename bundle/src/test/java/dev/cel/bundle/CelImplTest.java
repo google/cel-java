@@ -112,6 +112,7 @@ import dev.cel.runtime.CelRuntimeLegacyImpl;
 import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.CelVariableResolver;
 import dev.cel.runtime.UnknownContext;
+import dev.cel.testing.testdata.SingleFileProto.SingleFile;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -2192,6 +2193,24 @@ public final class CelImplTest {
     assertThat(newCompilerBuilder).isNotEqualTo(celImpl.toCompilerBuilder());
     assertThat(newRuntimeBuilder).isNotEqualTo(celImpl.toRuntimeBuilder());
   }
+
+  @Test
+  public void eval_withJsonFieldName()
+      throws Exception {
+    Cel cel =
+        standardCelBuilderWithMacros()
+            .addVar("file", StructTypeReference.create(SingleFile.getDescriptor().getFullName()))
+            .addMessageTypes(SingleFile.getDescriptor())
+            .setOptions(CelOptions.current().enableJsonFieldNames(true).build())
+            .build();
+    CelAbstractSyntaxTree ast =
+        cel.compile("file.camelCased").getAst();
+
+    Object result = cel.createProgram(ast).eval(ImmutableMap.of("file", SingleFile.newBuilder().setSnakeCased("foo").build()));
+
+    assertThat(result).isEqualTo("foo");
+  }
+
 
   private static TypeProvider aliasingProvider(ImmutableMap<String, Type> typeAliases) {
     return new TypeProvider() {

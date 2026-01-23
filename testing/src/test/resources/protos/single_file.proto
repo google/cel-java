@@ -26,4 +26,5 @@ message SingleFile {
 
   string name = 1;
   Path path = 2;
+  string snake_cased = 3 [json_name = "camelCased"];
 }
