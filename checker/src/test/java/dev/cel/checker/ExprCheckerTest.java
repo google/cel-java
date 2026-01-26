@@ -91,7 +91,7 @@ public class ExprCheckerTest extends CelBaselineTestCase {
   private void runErroneousTest(CelAbstractSyntaxTree parsedAst) {
     checkArgument(!parsedAst.isChecked());
     Errors errors = new Errors("<input>", source);
-    Env env = Env.unconfigured(errors, TEST_OPTIONS);
+    Env env = Env.unconfigured(errors, new ProtoMessageTypeProvider(), TEST_OPTIONS);
     ExprChecker.typecheck(env, container, parsedAst, Optional.absent());
     testOutput().println(errors.getAllErrorsAsString());
     testOutput().println();
