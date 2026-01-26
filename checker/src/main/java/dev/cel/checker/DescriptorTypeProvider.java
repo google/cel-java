@@ -14,6 +14,11 @@
 
 package dev.cel.checker;
 
+import com.google.common.collect.ImmutableCollection;
+import dev.cel.common.types.CelProtoTypes;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.ProtoMessageType;
+import dev.cel.common.types.TypeType;
 import dev.cel.expr.Type;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Ascii;
@@ -40,6 +45,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
@@ -47,13 +53,11 @@ import org.jspecify.annotations.Nullable;
  * The {@code DescriptorTypeProvider} provides type information for one or more {@link Descriptor}
  * instances of proto messages.
  *
- * <p>TODO: Unify implementation across the runtime (i.e: DescriptorMessageProvider)
- * and the compilation. This class can likely be eliminated as part of the work.
- *
  * <p>CEL Library Internals. Do Not Use.
  */
 @Immutable
 @Internal
+@Deprecated
 public class DescriptorTypeProvider implements TypeProvider {
 
   @SuppressWarnings("Immutable")
@@ -86,6 +90,43 @@ public class DescriptorTypeProvider implements TypeProvider {
     return typeDef != null ? Types.create(Types.createMessage(typeDef.name())) : null;
   }
 
+  @Override
+  public Optional<TypeType> lookupCelType(String typeName) {
+    TypeDef typeDef = lookupMessageTypeDef(typeName);
+    if (typeDef == null) {
+      return Optional.empty();
+    }
+
+    ImmutableSet.Builder<String> fieldsBuilder = ImmutableSet.builder();
+    for (FieldDef fieldDef : typeDef.fields()) {
+      fieldsBuilder.add(fieldDef.name());
+    }
+
+    @SuppressWarnings("Immutable") // Legacy type defs
+    ProtoMessageType protoMessageType = ProtoMessageType.create(
+        typeName,
+        fieldsBuilder.build(),
+        fieldName -> {
+          FieldDef fieldDef = typeDef.lookupField(fieldName);
+          if (fieldDef == null) {
+            return Optional.empty();
+          }
+
+          Type type = fieldDefToType(fieldDef);
+          return Optional.of(CelProtoTypes.typeToCelType(type));
+        },
+        extensionFieldName -> {
+          ExtensionFieldType extensionFieldType = symbolTable.lookupExtension(extensionFieldName);
+          if (extensionFieldType == null) {
+            return Optional.empty();
+          }
+
+          return Optional.of(extensionFieldType.fieldType().celType());
+        }
+      );
+
+    return Optional.of(TypeType.create(protoMessageType));
+  }
   @Override
   public @Nullable Integer lookupEnumValue(String enumName) {
     int dot = enumName.lastIndexOf('.');
@@ -339,6 +380,8 @@ public class DescriptorTypeProvider implements TypeProvider {
 
   /** Value object for a proto-based primitive, message, or enum definition. */
   @AutoValue
+  @AutoValue.CopyAnnotations
+  @SuppressWarnings("Immutable")
   protected abstract static class TypeDef {
 
     /** The qualified name of the message or enum. */
@@ -434,12 +477,28 @@ public class DescriptorTypeProvider implements TypeProvider {
     }
   }
 
+  @Override
+  public ImmutableCollection<CelType> types() {
+    ImmutableList.Builder<CelType> typesBuilder = ImmutableList.builder();
+    for (TypeDef typeDef : symbolTable.typeMap.values()) {
+      TypeType typeType = lookupCelType(typeDef.name()).orElse(null);
+      if (typeType == null) {
+        continue;
+      }
+
+      typesBuilder.add(typeType.type());
+    }
+
+    return typesBuilder.build();
+  }
+
   /**
    * Value object for a proto-based field definition.
    *
    * <p>Only one of the {@link #type} or {@link #mapEntryType} may be set.
    */
   @AutoValue
+  @AutoValue.CopyAnnotations
   protected abstract static class FieldDef {
 
     /** The field name. */

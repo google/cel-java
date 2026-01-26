@@ -32,6 +32,7 @@ CHECKER_LEGACY_ENV_SOURCES = [
     "InferenceContext.java",
     "TypeFormatter.java",
     "TypeProvider.java",
+    "TypeProviderLegacyImpl.java",
     "Types.java",
 ]
 
@@ -190,6 +191,7 @@ java_library(
         "//common/types",
         "//common/types:cel_proto_types",
         "//common/types:cel_types",
+        "//common/types:message_type_provider",
         "//common/types:type_providers",
         "//parser:macro",
         "@cel_spec//proto/cel/expr:checked_java_proto",

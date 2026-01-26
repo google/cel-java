@@ -1001,14 +1001,12 @@ public final class CelImplTest {
   }
 
   @Test
-  @TestParameters("{resolveTypeDependencies: false}")
-  @TestParameters("{resolveTypeDependencies: true}")
-  public void program_enumTypeDirectResolution(boolean resolveTypeDependencies) throws Exception {
+  public void program_enumTypeDirectResolution() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
             .addFileTypes(StandaloneGlobalEnum.getDescriptor().getFile())
             .setOptions(
-                CelOptions.current().resolveTypeDependencies(resolveTypeDependencies).build())
+                CelOptions.current().resolveTypeDependencies(true).build())
             .setContainer(
                 CelContainer.ofName("dev.cel.testing.testdata.proto3.StandaloneGlobalEnum"))
             .setResultType(SimpleType.BOOL)

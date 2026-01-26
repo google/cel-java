@@ -39,11 +39,15 @@ import dev.cel.common.ast.CelReference;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
+import dev.cel.common.types.ProtoMessageType;
+import dev.cel.common.types.ProtoMessageType.Extension;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.StructType.Field;
 import dev.cel.common.types.TypeType;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -143,7 +147,7 @@ public final class ExprChecker {
   }
 
   private final Env env;
-  private final TypeProvider typeProvider;
+  private final CelTypeProvider typeProvider;
   private final CelContainer container;
   private final Map<Long, Integer> positionMap;
   private final InferenceContext inferenceContext;
@@ -410,7 +414,7 @@ public final class ExprChecker {
         expr = replaceStructEntryValueSubtree(expr, visitedValueExpr, i);
       }
       CelType fieldType =
-          getFieldType(entry.id(), getPosition(entry), messageType, entry.fieldKey()).celType();
+          getFieldType(entry.id(), getPosition(entry), messageType, entry.fieldKey()).type();
       CelType valueType = env.getType(visitedValueExpr);
       if (entry.optionalEntry()) {
         if (valueType instanceof OptionalType) {
@@ -716,7 +720,7 @@ public final class ExprChecker {
   // Return value from visit is not needed as the subtree is not rewritten here.
   @SuppressWarnings("CheckReturnValue")
   private CelType visitSelectField(
-      CelExpr expr, CelExpr operand, String field, boolean isOptional) {
+      CelExpr expr, CelExpr operand, String fieldName, boolean isOptional) {
     CelType operandType = inferenceContext.specialize(env.getType(operand));
     CelType resultType = SimpleType.ERROR;
 
@@ -727,10 +731,9 @@ public final class ExprChecker {
 
     if (!Types.isDynOrError(operandType)) {
       if (operandType.kind() == CelKind.STRUCT) {
-        TypeProvider.FieldType fieldType =
-            getFieldType(expr.id(), getPosition(expr), operandType, field);
-        // Type of the field
-        resultType = fieldType.celType();
+        Field field =
+            getFieldType(expr.id(), getPosition(expr), operandType, fieldName);
+        resultType = field.type();
       } else if (operandType.kind() == CelKind.MAP) {
         resultType = ((MapType) operandType).valueType();
       } else if (operandType.kind() == CelKind.TYPE_PARAM) {
@@ -805,18 +808,25 @@ public final class ExprChecker {
   }
 
   /** Returns the field type give a type instance and field name. */
-  private TypeProvider.FieldType getFieldType(
-      long exprId, int position, CelType type, String fieldName) {
+  private Field getFieldType(long exprId, int position, CelType type, String fieldName) {
     String typeName = type.name();
-    if (typeProvider.lookupCelType(typeName).isPresent()) {
-      TypeProvider.FieldType fieldType = typeProvider.lookupFieldType(type, fieldName);
-      if (fieldType != null) {
-        return fieldType;
+    ProtoMessageType protoMessageType =
+        typeProvider
+            .findType(typeName)
+            .filter(t -> t instanceof ProtoMessageType)
+            .map(ProtoMessageType.class::cast)
+            .orElse(null);
+
+    if (protoMessageType != null) {
+      Field field = protoMessageType.findField(fieldName).orElse(null);
+      if (field != null) {
+        return field;
       }
-      TypeProvider.ExtensionFieldType extensionFieldType =
-          typeProvider.lookupExtensionType(fieldName);
-      if (extensionFieldType != null) {
-        return extensionFieldType.fieldType();
+
+      Extension extensionField = protoMessageType.findExtension(fieldName).orElse(null);
+
+      if (extensionField != null) {
+        return Field.of(extensionField.name(), extensionField.type());
       }
       env.reportError(exprId, position, "undefined field '%s'", fieldName);
     } else {
@@ -831,6 +841,7 @@ public final class ExprChecker {
       }
       env.reportError(exprId, position, errorMessage, fieldName, typeName);
     }
+
     return ERROR;
   }
 
@@ -892,8 +903,8 @@ public final class ExprChecker {
     }
   }
 
-  /** Helper object to represent a {@link TypeProvider.FieldType} lookup failure. */
-  private static final TypeProvider.FieldType ERROR = TypeProvider.FieldType.of(Types.ERROR);
+  /** Helper object to represent a {@link CelTypeProvider#findType(String)} lookup failure. */
+  private static final Field ERROR = Field.of(SimpleType.ERROR.name(), SimpleType.ERROR);
 
   private static CelExpr replaceIdentSubtree(CelExpr expr, String name) {
     CelExpr.CelIdent newIdent = CelExpr.CelIdent.newBuilder().setName(name).build();
