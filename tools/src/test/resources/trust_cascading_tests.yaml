@@ -1,0 +1,34 @@
+description: "Trust Cascading Policy Tests"
+
+section:
+- name: "Cascading Logic"
+  tests:
+  - name: "Elevation Required (Replay)"
+    input:
+      agent:
+        # Note: description is important below. It's used to fetch mocked history content.
+        expr: >
+          Agent{ 
+            description: "trust_cascading_low" 
+          }
+    output: >
+      {
+        "effect": "replay",
+        "details": {
+           "append_attributes": { "trust_score": "MEDIUM" },
+           "reason": "Trust elevation required for proper answer."
+        }
+      }
+
+  - name: "Trust Sufficient (Allow)"
+    input:
+      agent:
+        expr: >
+          Agent{ 
+             description: "trust_cascading_medium" 
+          }
+    output: >
+      {
+        "effect": "allow",
+        "message": "Trust level sufficient."
+      }

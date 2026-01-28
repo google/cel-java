@@ -33,6 +33,7 @@ java_library(
         "//policy:policy_parser_context",
         "//policy:source",
         "//policy:validation_exception",
+        "//policy/testing:policy_test_suite_helper",
         "//runtime",
         "//runtime:function_binding",
         "//runtime:late_function_binding",

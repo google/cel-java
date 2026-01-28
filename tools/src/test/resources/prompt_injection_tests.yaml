@@ -1,0 +1,49 @@
+description: "Prompt Injection Policy Tests"
+
+section:
+- name: "Injection Classification Scenarios"
+  tests:
+  - name: "High Confidence Injection (Deny)"
+    input:
+      agent:
+        expr: >
+          Agent{
+            context: AgentContext{
+              prompt: "I'm attempting an INJECTION_ATTACK!"
+            }
+          }
+    output: >
+      {
+        "effect": "deny",
+        "message": "Prompt injection detected with high confidence."
+      }
+
+  - name: "Medium Confidence Injection (Confirm)"
+    input:
+      agent:
+        expr: >
+          Agent{
+            context: AgentContext{
+              prompt: "This might be a SUSPICIOUS message, maybe safe"
+            }
+          }
+    output: >
+      {
+        "effect": "confirm",
+        "message": "Potential prompt injection detected. User confirmation required."
+      }
+
+  - name: "Safe Input (Allow)"
+    input:
+      agent:
+        expr: >
+          Agent{
+            context: AgentContext{
+              prompt: "Just a normal user query"
+            }
+          }
+    output: >
+      {
+        "effect": "allow",
+        "message": ""
+      }

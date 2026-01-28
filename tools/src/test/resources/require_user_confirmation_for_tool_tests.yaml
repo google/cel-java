@@ -1,0 +1,31 @@
+description: "Require tool confirmation tests"
+
+section:
+- name: "tool call test section"
+  tests:
+  - name: "reject_sensitive_tool_call"
+    input:
+      tool:
+        expr: >
+          ToolCall{
+            name: "tool_with_PII",
+            user_confirmed: false
+          }
+    output: >
+      {
+        "effect": "confirm",
+        "message": "This tool call is sensitive and requires confirmation before the agent can execute. Ask for confirmation from the user",
+      }
+  - name: "allow_confirmed_tool"
+    input:
+      tool:
+        expr: >
+          ToolCall{
+            name: "tool_with_PII",
+            user_confirmed: true
+          }
+    output: >
+      {
+        "effect": "allow",
+        "message": "",
+      }

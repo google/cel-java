@@ -1,0 +1,15 @@
+name: "policy.safety.prompt.injection"
+default: allow
+
+variables:
+  - injection_score: >
+      security.classifyInjection(agent.context.prompt)
+
+rules:
+  - condition: variables.injection_score > 0.9
+    effect: deny
+    message: "Prompt injection detected with high confidence."
+
+  - condition: variables.injection_score > 0.5
+    effect: confirm
+    message: "Potential prompt injection detected. User confirmation required."
