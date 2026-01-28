@@ -824,7 +824,7 @@ public final class ProgramPlannerTest {
             CEL_VALUE_CONVERTER,
             CEL_CONTAINER,
             options,
-            ImmutableSet.of());
+            /* lateBoundFunctionNames= */ ImmutableSet.of());
     CelAbstractSyntaxTree ast = compile("[1, 2, 3].map(x, [1, 2].map(y, x + y))");
 
     Program program = planner.plan(ast);
@@ -836,13 +836,114 @@ public final class ProgramPlannerTest {
                 ImmutableList.of(2L, 3L), ImmutableList.of(3L, 4L), ImmutableList.of(4L, 5L)));
   }
 
+  @Test
+  public void localShadowIdentifier_inSelect() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .addVar("cel.example.y", SimpleType.INT)
+            .build();
+    ProgramPlanner planner =
+        ProgramPlanner.newPlanner(
+            TYPE_PROVIDER,
+            ProtoMessageValueProvider.newInstance(CEL_OPTIONS, DYNAMIC_PROTO),
+            newDispatcher(),
+            CEL_VALUE_CONVERTER,
+            CelContainer.ofName("cel.example"),
+            CEL_OPTIONS,
+            /* lateBoundFunctionNames= */ ImmutableSet.of());
+    CelAbstractSyntaxTree ast = compile(celCompiler, "[{'z': 0}].exists(y, y.z == 0)");
+
+    Program program = planner.plan(ast);
+
+    boolean result =
+        (boolean) program.eval(ImmutableMap.of("cel.example.y", ImmutableMap.of("z", 1)));
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void localShadowIdentifier_inSelect_globalDisambiguation() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .addVar("y.z", SimpleType.INT)
+            .build();
+    ProgramPlanner planner =
+        ProgramPlanner.newPlanner(
+            TYPE_PROVIDER,
+            ProtoMessageValueProvider.newInstance(CEL_OPTIONS, DYNAMIC_PROTO),
+            newDispatcher(),
+            CEL_VALUE_CONVERTER,
+            CelContainer.ofName("y"),
+            CEL_OPTIONS,
+            /* lateBoundFunctionNames= */ ImmutableSet.of());
+    CelAbstractSyntaxTree ast = compile(celCompiler, "[{'z': 0}].exists(y, y.z == 0 && .y.z == 1)");
+
+    Program program = planner.plan(ast);
+
+    boolean result = (boolean) program.eval(ImmutableMap.of("y.z", 1));
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void localShadowIdentifier_withGlobalDisambiguation() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .addVar("x", SimpleType.INT)
+            .build();
+    ProgramPlanner planner =
+        ProgramPlanner.newPlanner(
+            TYPE_PROVIDER,
+            ProtoMessageValueProvider.newInstance(CEL_OPTIONS, DYNAMIC_PROTO),
+            newDispatcher(),
+            CEL_VALUE_CONVERTER,
+            CelContainer.newBuilder().build(),
+            CEL_OPTIONS,
+            /* lateBoundFunctionNames= */ ImmutableSet.of());
+    CelAbstractSyntaxTree ast = compile(celCompiler, "[0].exists(x, x == 0 && .x == 1)");
+
+    Program program = planner.plan(ast);
+
+    boolean result = (boolean) program.eval(ImmutableMap.of("x", 1));
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void localDoubleShadowIdentifier_withGlobalDisambiguation() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+            .addVar("x", SimpleType.INT)
+            .build();
+    ProgramPlanner planner =
+        ProgramPlanner.newPlanner(
+            TYPE_PROVIDER,
+            ProtoMessageValueProvider.newInstance(CEL_OPTIONS, DYNAMIC_PROTO),
+            newDispatcher(),
+            CEL_VALUE_CONVERTER,
+            CelContainer.newBuilder().build(),
+            CEL_OPTIONS,
+            /* lateBoundFunctionNames= */ ImmutableSet.of());
+    CelAbstractSyntaxTree ast = compile(celCompiler, "[0].exists(x, [x+1].exists(x, x == .x))");
+
+    Program program = planner.plan(ast);
+
+    boolean result = (boolean) program.eval(ImmutableMap.of("x", 1));
+    assertThat(result).isTrue();
+  }
+
   private CelAbstractSyntaxTree compile(String expression) throws Exception {
-    CelAbstractSyntaxTree ast = CEL_COMPILER.parse(expression).getAst();
+    return compile(CEL_COMPILER, expression);
+  }
+
+  private CelAbstractSyntaxTree compile(CelCompiler compiler, String expression) throws Exception {
+    CelAbstractSyntaxTree ast = compiler.parse(expression).getAst();
     if (isParseOnly) {
       return ast;
     }
 
-    return CEL_COMPILER.check(ast).getAst();
+    return compiler.check(ast).getAst();
   }
 
   private static CelByteString concatenateByteArrays(CelByteString bytes1, CelByteString bytes2) {

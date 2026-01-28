@@ -29,7 +29,7 @@ final class AttributeFactory {
   private final CelValueConverter celValueConverter;
 
   NamespacedAttribute newAbsoluteAttribute(String... names) {
-    return new NamespacedAttribute(typeProvider, celValueConverter, ImmutableSet.copyOf(names));
+    return NamespacedAttribute.create(typeProvider, celValueConverter, ImmutableSet.copyOf(names));
   }
 
   RelativeAttribute newRelativeAttribute(PlannedInterpretable operand) {
@@ -37,11 +37,14 @@ final class AttributeFactory {
   }
 
   MaybeAttribute newMaybeAttribute(String name) {
+    // When there's a single name with a dot prefix, it indicates that the 'maybe' attribute is a
+    // globally namespaced identifier.
+    // Otherwise, the candidate names resolved from the container should be inferred.
+    ImmutableSet<String> names =
+        name.startsWith(".") ? ImmutableSet.of(name) : container.resolveCandidateNames(name);
+
     return new MaybeAttribute(
-        this,
-        ImmutableList.of(
-            new NamespacedAttribute(
-                typeProvider, celValueConverter, container.resolveCandidateNames(name))));
+        this, ImmutableList.of(NamespacedAttribute.create(typeProvider, celValueConverter, names)));
   }
 
   static AttributeFactory newAttributeFactory(

@@ -114,6 +114,7 @@ java_library(
         "RelativeAttribute.java",
     ],
     deps = [
+        ":activation_wrapper",
         ":eval_helpers",
         ":execution_frame",
         ":planned_interpretable",
@@ -127,6 +128,14 @@ java_library(
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "activation_wrapper",
+    srcs = ["ActivationWrapper.java"],
+    deps = [
+        "//runtime:interpretable",
     ],
 )
 
@@ -333,6 +342,7 @@ java_library(
     name = "eval_fold",
     srcs = ["EvalFold.java"],
     deps = [
+        ":activation_wrapper",
         ":execution_frame",
         ":planned_interpretable",
         "//runtime:concatenated_list_view",
