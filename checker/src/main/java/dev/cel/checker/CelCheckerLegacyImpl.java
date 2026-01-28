@@ -74,9 +74,6 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
   private final ImmutableSet<CelFunctionDecl> functionDeclarations;
   private final Optional<CelType> expectedResultType;
 
-  @SuppressWarnings("Immutable")
-  private final TypeProvider typeProvider;
-
   private final CelTypeProvider celTypeProvider;
   private final boolean standardEnvironmentEnabled;
 
@@ -163,11 +160,11 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
   private Env getEnv(Errors errors) {
     Env env;
     if (standardEnvironmentEnabled) {
-      env = Env.standard(errors, typeProvider, celOptions);
+      env = Env.standard(errors, celTypeProvider, celOptions);
     } else if (overriddenStandardDeclarations != null) {
-      env = Env.standard(overriddenStandardDeclarations, errors, typeProvider, celOptions);
+      env = Env.standard(overriddenStandardDeclarations, errors, celTypeProvider, celOptions);
     } else {
-      env = Env.unconfigured(errors, typeProvider, celOptions);
+      env = Env.unconfigured(errors, celTypeProvider, celOptions);
     }
     identDeclarations.forEach(env::add);
     functionDeclarations.forEach(env::add);
@@ -483,11 +480,10 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
         messageTypeProvider = protoTypeMaskTypeProvider;
       }
 
-      TypeProvider legacyProvider = new TypeProviderLegacyImpl(messageTypeProvider);
       if (customTypeProvider != null) {
-        legacyProvider =
-            new TypeProvider.CombinedTypeProvider(
-                ImmutableList.of(customTypeProvider, legacyProvider));
+        messageTypeProvider =
+            new CelTypeProvider.CombinedCelTypeProvider(
+                messageTypeProvider, new TypeProviderLegacyImpl(customTypeProvider));
       }
 
       return new CelCheckerLegacyImpl(
@@ -496,7 +492,7 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
           identDeclarationSet,
           functionDeclarations.build(),
           Optional.fromNullable(expectedResultType),
-          legacyProvider,
+          customTypeProvider,
           messageTypeProvider,
           standardEnvironmentEnabled,
           standardDeclarations,
@@ -535,7 +531,6 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     this.identDeclarations = identDeclarations;
     this.functionDeclarations = functionDeclarations;
     this.expectedResultType = expectedResultType;
-    this.typeProvider = typeProvider;
     this.celTypeProvider = celTypeProvider;
     this.standardEnvironmentEnabled = standardEnvironmentEnabled;
     this.overriddenStandardDeclarations = overriddenStandardDeclarations;
