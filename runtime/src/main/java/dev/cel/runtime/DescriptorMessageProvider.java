@@ -126,7 +126,9 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
     MessageOrBuilder typedMessage = assertFullProtoMessage(message, fieldName);
     FieldDescriptor fieldDescriptor = findField(typedMessage.getDescriptorForType(), fieldName);
     // check whether the field is a wrapper type, then test has and return null
-    if (isWrapperType(fieldDescriptor) && !typedMessage.hasField(fieldDescriptor)) {
+    if (isWrapperType(fieldDescriptor) &&
+        !fieldDescriptor.isRepeated() &&
+        !typedMessage.hasField(fieldDescriptor)) {
       return NullValue.NULL_VALUE;
     }
     Object value = typedMessage.getField(fieldDescriptor);

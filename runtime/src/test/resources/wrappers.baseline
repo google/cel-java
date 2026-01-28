@@ -66,6 +66,75 @@ single_bytes_wrapper {
 }
 result:   true
 
+Source: x.repeated_int32_wrapper == [1,2] && x.repeated_int64_wrapper == [3] && x.repeated_float_wrapper == [1.5, 2.5] && x.repeated_double_wrapper == [3.5, 4.5] && x.repeated_string_wrapper == ['foo', 'bar'] && x.repeated_bool_wrapper == [true] && x.repeated_uint32_wrapper == [1u, 2u] && x.repeated_uint64_wrapper == []
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_int64_wrapper {
+  value: -34
+}
+single_int32_wrapper {
+  value: -12
+}
+single_double_wrapper {
+  value: -3.0
+}
+single_float_wrapper {
+  value: 1.5
+}
+single_uint64_wrapper {
+  value: 34
+}
+single_uint32_wrapper {
+  value: 12
+}
+single_string_wrapper {
+}
+single_bool_wrapper {
+}
+single_bytes_wrapper {
+  value: "hi"
+}
+repeated_int64_wrapper {
+  value: 3
+}
+repeated_int32_wrapper {
+  value: 1
+}
+repeated_int32_wrapper {
+  value: 2
+}
+repeated_double_wrapper {
+  value: 3.5
+}
+repeated_double_wrapper {
+  value: 4.5
+}
+repeated_float_wrapper {
+  value: 1.5
+}
+repeated_float_wrapper {
+  value: 2.5
+}
+repeated_uint32_wrapper {
+  value: 1
+}
+repeated_uint32_wrapper {
+  value: 2
+}
+repeated_string_wrapper {
+  value: "foo"
+}
+repeated_string_wrapper {
+  value: "bar"
+}
+repeated_bool_wrapper {
+  value: true
+}
+}
+result:   true
+
 Source: x.single_bool_wrapper == null && x.single_bytes_wrapper == null && x.single_double_wrapper == null && x.single_float_wrapper == null && x.single_int32_wrapper == null && x.single_int64_wrapper == null && x.single_string_wrapper == null && x.single_uint32_wrapper == null && x.single_uint64_wrapper == null
 declare x {
   value cel.expr.conformance.proto3.TestAllTypes
