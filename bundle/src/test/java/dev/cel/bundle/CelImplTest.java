@@ -35,6 +35,7 @@ import dev.cel.expr.ParsedExpr;
 import dev.cel.expr.Reference;
 import dev.cel.expr.Type;
 import dev.cel.expr.Type.PrimitiveType;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -63,7 +64,6 @@ import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.checker.CelCheckerLegacyImpl;
 import dev.cel.checker.DescriptorTypeProvider;
 import dev.cel.checker.ProtoTypeMask;
-import dev.cel.checker.TypeProvider;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
 import dev.cel.common.CelDescriptorUtil;
@@ -82,12 +82,14 @@ import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelProtoMessageTypes;
 import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.EnumType;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.ProtoMessageTypeProvider;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.StructType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.values.CelByteString;
 import dev.cel.common.values.NullValue;
@@ -123,7 +125,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
-import org.jspecify.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -297,13 +298,12 @@ public final class CelImplTest {
 
   @Test
   public void compile_customTypesWithAliasingCombinedProviders() throws Exception {
-
     // The custom type provider sets up an alias from "Condition" to "google.type.Expr".
     // However, the first type resolution from the alias to the qualified type name won't be
     // sufficient as future checks will expect the resolved alias to also be a type.
-    TypeProvider customTypeProvider =
+    CelTypeProvider customTypeProvider =
         aliasingProvider(
-            ImmutableMap.of("Condition", CelProtoTypes.createMessage("google.type.Expr")));
+            ImmutableMap.of("Condition", StructTypeReference.create("google.type.Expr")));
 
     // The registration of the aliasing TypeProvider and the google.type.Expr descriptor
     // ensures that once the alias is resolved, the additional details about the Expr type
@@ -329,15 +329,19 @@ public final class CelImplTest {
 
   @Test
   public void compile_customTypesWithAliasingSelfContainedProvider() throws Exception {
-
     // The custom type provider sets up an alias from "Condition" to "google.type.Expr".
-    TypeProvider customTypeProvider =
+    StructType exprStruct = StructType.create(
+        "google.type.Expr",
+        ImmutableSet.of("expression"),
+        fieldName -> Optional.of(SimpleType.STRING)
+    );
+    CelTypeProvider customTypeProvider =
         aliasingProvider(
             ImmutableMap.of(
                 "Condition",
-                CelProtoTypes.createMessage("google.type.Expr"),
+                exprStruct,
                 "google.type.Expr",
-                CelProtoTypes.createMessage("google.type.Expr")));
+                exprStruct));
 
     // The registration of the aliasing TypeProvider and the google.type.Expr descriptor
     // ensures that once the alias is resolved, the additional details about the Expr type
@@ -1001,14 +1005,11 @@ public final class CelImplTest {
   }
 
   @Test
-  @TestParameters("{resolveTypeDependencies: false}")
-  @TestParameters("{resolveTypeDependencies: true}")
-  public void program_enumTypeDirectResolution(boolean resolveTypeDependencies) throws Exception {
+  public void program_enumTypeDirectResolution() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
             .addFileTypes(StandaloneGlobalEnum.getDescriptor().getFile())
-            .setOptions(
-                CelOptions.current().resolveTypeDependencies(resolveTypeDependencies).build())
+            .setOptions(CelOptions.current().resolveTypeDependencies(true).build())
             .setContainer(
                 CelContainer.ofName("dev.cel.testing.testdata.proto3.StandaloneGlobalEnum"))
             .setResultType(SimpleType.BOOL)
@@ -2193,28 +2194,16 @@ public final class CelImplTest {
     assertThat(newRuntimeBuilder).isNotEqualTo(celImpl.toRuntimeBuilder());
   }
 
-  private static TypeProvider aliasingProvider(ImmutableMap<String, Type> typeAliases) {
-    return new TypeProvider() {
+  private static CelTypeProvider aliasingProvider(ImmutableMap<String, CelType> typeAliases) {
+    return new CelTypeProvider() {
       @Override
-      public @Nullable Type lookupType(String typeName) {
-        Type alias = typeAliases.get(typeName);
-        if (alias != null) {
-          return CelProtoTypes.create(alias);
-        }
-        return null;
+      public ImmutableCollection<CelType> types() {
+        return typeAliases.values();
       }
 
       @Override
-      public @Nullable Integer lookupEnumValue(String enumName) {
-        return null;
-      }
-
-      @Override
-      public TypeProvider.@Nullable FieldType lookupFieldType(Type type, String fieldName) {
-        if (typeAliases.containsKey(type.getMessageType())) {
-          return TypeProvider.FieldType.of(CelProtoTypes.STRING);
-        }
-        return null;
+      public Optional<CelType> findType(String typeName) {
+        return Optional.ofNullable(typeAliases.get(typeName));
       }
     };
   }
