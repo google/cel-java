@@ -2016,6 +2016,33 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
                 .setSingleStringWrapper(StringValue.getDefaultInstance())));
 
     source =
+        "x.repeated_int32_wrapper == [1,2] && "
+            + "x.repeated_int64_wrapper == [3] && "
+            + "x.repeated_float_wrapper == [1.5, 2.5] && "
+            + "x.repeated_double_wrapper == [3.5, 4.5] && "
+            + "x.repeated_string_wrapper == ['foo', 'bar'] && "
+            + "x.repeated_bool_wrapper == [true] && "
+            + "x.repeated_uint32_wrapper == [1u, 2u] && "
+            + "x.repeated_uint64_wrapper == []";
+
+    runTest(
+        ImmutableMap.of(
+            "x",
+            wrapperBindings
+                .addRepeatedInt32Wrapper(Int32Value.of(1))
+                .addRepeatedInt32Wrapper(Int32Value.of(2))
+                .addRepeatedInt64Wrapper(Int64Value.of(3))
+                .addRepeatedFloatWrapper(FloatValue.of(1.5f))
+                .addRepeatedFloatWrapper(FloatValue.of(2.5f))
+                .addRepeatedDoubleWrapper(DoubleValue.of(3.5f))
+                .addRepeatedDoubleWrapper(DoubleValue.of(4.5f))
+                .addRepeatedStringWrapper(StringValue.of("foo"))
+                .addRepeatedStringWrapper(StringValue.of("bar"))
+                .addRepeatedBoolWrapper(BoolValue.of(true))
+                .addRepeatedUint32Wrapper(UInt32Value.of(1))
+                .addRepeatedUint32Wrapper(UInt32Value.of(2))));
+
+    source =
         "x.single_bool_wrapper == null && "
             + "x.single_bytes_wrapper == null && "
             + "x.single_double_wrapper == null && "
@@ -2041,7 +2068,7 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void longComprehension() {
     ImmutableList<Long> l = LongStream.range(0L, 1000L).boxed().collect(toImmutableList());
-    addFunctionBinding(CelFunctionBinding.from("constantLongList", ImmutableList.of(), args -> l));
+    addFunctionBinding(CelFunctionBinding.from("constantLongList", ImmutableList.of(), unused -> l));
 
     // Comprehension over compile-time constant long list.
     declareFunction(
@@ -2290,8 +2317,8 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
                 StructTypeReference.create(TEST_ALL_TYPE_DYNAMIC_DESCRIPTOR.getFullName())),
             SimpleType.BOOL));
     addFunctionBinding(
-        CelFunctionBinding.from("f_msg_generated", TestAllTypes.class, x -> true),
-        CelFunctionBinding.from("f_msg_dynamic", DynamicMessage.class, x -> true));
+        CelFunctionBinding.from("f_msg_generated", TestAllTypes.class, unused -> true),
+        CelFunctionBinding.from("f_msg_dynamic", DynamicMessage.class, unused -> true));
     input =
         ImmutableMap.of(
             "dynamic_msg", dynamicMessageBuilder.build(),
