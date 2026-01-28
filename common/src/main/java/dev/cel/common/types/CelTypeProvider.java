@@ -48,6 +48,7 @@ public interface CelTypeProvider {
   final class CombinedCelTypeProvider implements CelTypeProvider {
 
     private final ImmutableMap<String, CelType> allTypes;
+    private final ImmutableList<CelTypeProvider> typeProviders;
 
     public CombinedCelTypeProvider(CelTypeProvider first, CelTypeProvider second) {
       this(ImmutableList.of(first, second));
@@ -59,6 +60,7 @@ public interface CelTypeProvider {
           typeProvider ->
               typeProvider.types().forEach(type -> allTypes.putIfAbsent(type.name(), type)));
       this.allTypes = ImmutableMap.copyOf(allTypes);
+      this.typeProviders = typeProviders;
     }
 
     @Override
@@ -68,7 +70,14 @@ public interface CelTypeProvider {
 
     @Override
     public Optional<CelType> findType(String typeName) {
-      return Optional.ofNullable(allTypes.get(typeName));
+      for (CelTypeProvider typeProvider : typeProviders) {
+        Optional<CelType> foundType = typeProvider.findType(typeName);
+        if (foundType.isPresent()) {
+          return foundType;
+        }
+      }
+
+      return Optional.empty();
     }
   }
 }
