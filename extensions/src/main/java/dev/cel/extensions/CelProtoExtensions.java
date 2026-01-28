@@ -31,7 +31,8 @@ import java.util.Optional;
 
 /** Internal implementation of CEL proto extensions. */
 @Immutable
-final class CelProtoExtensions implements CelCompilerLibrary, CelExtensionLibrary.FeatureSet {
+public final class CelProtoExtensions
+    implements CelCompilerLibrary, CelExtensionLibrary.FeatureSet {
 
   private static final String PROTO_NAMESPACE = "proto";
   private static final CelExpr ERROR = CelExpr.newBuilder().setConstant(Constants.ERROR).build();
@@ -148,4 +149,6 @@ final class CelProtoExtensions implements CelCompilerLibrary, CelExtensionLibrar
     return target.exprKind().getKind().equals(CelExpr.ExprKind.Kind.IDENT)
         && target.ident().name().equals(PROTO_NAMESPACE);
   }
+
+  CelProtoExtensions() {}
 }

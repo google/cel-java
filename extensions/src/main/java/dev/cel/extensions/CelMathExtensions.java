@@ -57,7 +57,7 @@ import java.util.function.BiFunction;
  */
 @SuppressWarnings({"rawtypes", "unchecked"}) // Use of raw Comparables.
 @Immutable
-final class CelMathExtensions
+public final class CelMathExtensions
     implements CelCompilerLibrary, CelRuntimeLibrary, CelExtensionLibrary.FeatureSet {
 
   private static final String MATH_NAMESPACE = "math";

@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /** Internal implementation of CEL two variable comprehensions extensions. */
-final class CelComprehensionsExtensions
+public final class CelComprehensionsExtensions
     implements CelCompilerLibrary, CelInternalRuntimeLibrary, CelExtensionLibrary.FeatureSet {
 
   private static final String MAP_INSERT_FUNCTION = "cel.@mapInsert";

@@ -41,7 +41,7 @@ import java.util.Set;
  * rewrite the AST into a map to achieve a O(1) lookup.
  */
 @Immutable
-final class CelSetsExtensions
+public final class CelSetsExtensions
     implements CelCompilerLibrary, CelRuntimeLibrary, CelExtensionLibrary.FeatureSet {
 
   private static final String SET_CONTAINS_OVERLOAD_DOC =

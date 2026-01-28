@@ -51,9 +51,10 @@ import java.util.Optional;
 import java.util.Set;
 
 /** Internal implementation of CEL lists extensions. */
-final class CelListsExtensions
+public final class CelListsExtensions
     implements CelCompilerLibrary, CelInternalRuntimeLibrary, CelExtensionLibrary.FeatureSet {
 
+  /** Supported functions for Lists extension library. */
   @SuppressWarnings({"unchecked"}) // Unchecked: Type-checker guarantees casting safety.
   public enum Function {
     // Note! Creating dependencies on the outer class may cause circular initialization issues.

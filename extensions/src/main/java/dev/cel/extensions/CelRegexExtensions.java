@@ -37,7 +37,7 @@ import java.util.Set;
 
 /** Internal implementation of CEL regex extensions. */
 @Immutable
-final class CelRegexExtensions
+public final class CelRegexExtensions
     implements CelCompilerLibrary, CelRuntimeLibrary, CelExtensionLibrary.FeatureSet {
 
   private static final String REGEX_REPLACE_FUNCTION = "regex.replace";
