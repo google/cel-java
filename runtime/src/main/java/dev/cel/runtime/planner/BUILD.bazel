@@ -314,6 +314,7 @@ java_library(
     name = "eval_create_list",
     srcs = ["EvalCreateList.java"],
     deps = [
+        ":eval_helpers",
         ":execution_frame",
         ":planned_interpretable",
         "//runtime:evaluation_exception",

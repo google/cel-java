@@ -57,6 +57,7 @@ java_library(
     tags = [
     ],
     deps = [
+        "//common/values",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
@@ -68,6 +69,7 @@ cel_android_library(
     tags = [
     ],
     deps = [
+        "//common/values:values_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
     ],
@@ -207,13 +209,13 @@ java_library(
     tags = [
     ],
     deps = [
-        ":base_proto_message_value_provider",
         ":proto_message_value",
         "//common:options",
         "//common/annotations",
         "//common/internal:dynamic_proto",
         "//common/internal:proto_message_factory",
-        "//common/values:base_proto_cel_value_converter",
+        "//common/values",
+        "//common/values:cel_value_provider",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_protobuf_protobuf_java",
     ],
