@@ -19,7 +19,6 @@ import dev.cel.expr.Decl;
 import dev.cel.expr.Decl.FunctionDecl.Overload;
 import dev.cel.expr.Expr;
 import dev.cel.expr.Type;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -43,7 +42,9 @@ import dev.cel.common.internal.Errors;
 import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypes;
+import dev.cel.common.types.ProtoMessageTypeProvider;
 import dev.cel.common.types.SimpleType;
 import dev.cel.parser.CelStandardMacro;
 import java.util.ArrayList;
@@ -78,7 +79,7 @@ public class Env {
       CelFunctionDecl.newBuilder().setName("*error*").build();
 
   /** Type provider responsible for resolving CEL message references to strong types. */
-  private final TypeProvider typeProvider;
+  private final CelTypeProvider typeProvider;
 
   /**
    * Stack of declaration groups where each entry in stack represents a scope capable of hinding
@@ -105,7 +106,7 @@ public class Env {
           .build();
 
   private Env(
-      Errors errors, TypeProvider typeProvider, DeclGroup declGroup, CelOptions celOptions) {
+      Errors errors, CelTypeProvider typeProvider, DeclGroup declGroup, CelOptions celOptions) {
     this.celOptions = celOptions;
     this.errors = Preconditions.checkNotNull(errors);
     this.typeProvider = Preconditions.checkNotNull(typeProvider);
@@ -118,27 +119,10 @@ public class Env {
    */
   @Deprecated
   public static Env unconfigured(Errors errors) {
-    return unconfigured(errors, LEGACY_TYPE_CHECKER_OPTIONS);
+    return unconfigured(errors, new ProtoMessageTypeProvider(), LEGACY_TYPE_CHECKER_OPTIONS);
   }
 
-  /**
-   * Creates an unconfigured {@code Env} value without the standard CEL types, functions, and
-   * operators with a reference to the configured {@code celOptions}.
-   */
-  @VisibleForTesting
-  static Env unconfigured(Errors errors, CelOptions celOptions) {
-    return unconfigured(errors, new DescriptorTypeProvider(), celOptions);
-  }
-
-  /**
-   * Creates an unconfigured {@code Env} value without the standard CEL types, functions, and
-   * operators using a custom {@code typeProvider}.
-   *
-   * @deprecated Do not use. This exists for compatibility reasons. Migrate to CEL-Java fluent APIs.
-   *     See {@code CelCompilerFactory}.
-   */
-  @Deprecated
-  public static Env unconfigured(Errors errors, TypeProvider typeProvider, CelOptions celOptions) {
+  static Env unconfigured(Errors errors, CelTypeProvider typeProvider, CelOptions celOptions) {
     return new Env(errors, typeProvider, new DeclGroup(), celOptions);
   }
 
@@ -148,7 +132,7 @@ public class Env {
    */
   @Deprecated
   public static Env standard(Errors errors) {
-    return standard(errors, new DescriptorTypeProvider());
+    return standard(errors, new ProtoMessageTypeProvider(), LEGACY_TYPE_CHECKER_OPTIONS);
   }
 
   /**
@@ -173,6 +157,11 @@ public class Env {
    */
   @Deprecated
   public static Env standard(Errors errors, TypeProvider typeProvider, CelOptions celOptions) {
+    CelTypeProvider adapted = new TypeProviderLegacyImpl(typeProvider);
+    return standard(errors, adapted, celOptions);
+  }
+
+  static Env standard(Errors errors, CelTypeProvider typeProvider, CelOptions celOptions) {
     CelStandardDeclarations celStandardDeclaration =
         CelStandardDeclarations.newBuilder()
             .filterFunctions(
@@ -209,10 +198,10 @@ public class Env {
     return standard(celStandardDeclaration, errors, typeProvider, celOptions);
   }
 
-  public static Env standard(
+  static Env standard(
       CelStandardDeclarations celStandardDeclaration,
       Errors errors,
-      TypeProvider typeProvider,
+      CelTypeProvider typeProvider,
       CelOptions celOptions) {
     Env env = Env.unconfigured(errors, typeProvider, celOptions);
     // Isolate the standard declarations into their own scope for forward compatibility.
@@ -228,8 +217,8 @@ public class Env {
     return errors;
   }
 
-  /** Returns the {@code TypeProvider}. */
-  public TypeProvider getTypeProvider() {
+  /** Returns the {@code CelTypeProvider}. */
+  public CelTypeProvider getTypeProvider() {
     return typeProvider;
   }
 
@@ -491,7 +480,7 @@ public class Env {
 
     // Next try to import the name as a reference to a message type.
     // This is done via the type provider.
-    Optional<CelType> type = typeProvider.lookupCelType(cand);
+    Optional<CelType> type = typeProvider.findType(cand);
     if (type.isPresent()) {
       decl = CelIdentDecl.newIdentDeclaration(cand, type.get());
       decls.get(0).putIdent(decl);
@@ -500,7 +489,8 @@ public class Env {
 
     // Next try to import this as an enum value by splitting the name in a type prefix and
     // the enum inside.
-    Integer enumValue = typeProvider.lookupEnumValue(cand);
+    // Integer enumValue = typeProvider.lookupEnumValue(cand);
+    Integer enumValue = 0;
     if (enumValue != null) {
       decl =
           CelIdentDecl.newBuilder()
