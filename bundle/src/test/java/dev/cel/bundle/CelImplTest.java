@@ -21,6 +21,8 @@ import static dev.cel.common.CelOverloadDecl.newGlobalOverload;
 import static dev.cel.common.CelOverloadDecl.newMemberOverload;
 import static org.junit.Assert.assertThrows;
 
+import com.google.common.primitives.UnsignedLong;
+import com.google.protobuf.UInt64Value;
 import dev.cel.expr.CheckedExpr;
 import dev.cel.expr.Constant;
 import dev.cel.expr.Decl;
@@ -2191,6 +2193,74 @@ public final class CelImplTest {
     assertThat(newCheckerBuilder).isNotEqualTo(celImpl.toCheckerBuilder());
     assertThat(newCompilerBuilder).isNotEqualTo(celImpl.toCompilerBuilder());
     assertThat(newRuntimeBuilder).isNotEqualTo(celImpl.toRuntimeBuilder());
+  }
+
+  @Test
+  public void mapSelection_uintWrapper() throws Exception {
+    Cel cel = CelFactory.standardCelBuilder()
+            .addVar("args", MapType.create(SimpleType.DYN, SimpleType.DYN))
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .build();
+
+    CelAbstractSyntaxTree ast = cel.compile("args.i[1]").getAst();
+
+    Object result = cel.createProgram(ast).eval(
+            ImmutableMap.of("args",
+                    ImmutableMap.of("i", ImmutableMap.of(1L, UInt64Value.of(123L)))));
+
+    assertThat(result).isEqualTo(UnsignedLong.valueOf(123L));
+  }
+
+  @Test
+  public void messageCreation_listContainsUintWrapperCreation() throws Exception {
+    Cel cel = CelFactory.standardCelBuilder()
+            .addVar("args", MapType.create(SimpleType.DYN, SimpleType.DYN))
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .build();
+
+    CelAbstractSyntaxTree ast = cel.compile("TestAllTypes{repeated_uint64: [google.protobuf.UInt64Value{value: 123u}]}").getAst();
+
+    Object result = cel.createProgram(ast).eval(
+            ImmutableMap.of("args",
+                    ImmutableMap.of("i", ImmutableList.of(UInt64Value.of(123L)))));
+
+    assertThat(result).isEqualTo(TestAllTypes.newBuilder().addRepeatedUint64(123L).build());
+  }
+
+  @Test
+  public void messageCreation_listContainsUintWrapper() throws Exception {
+    Cel cel = CelFactory.standardCelBuilder()
+            .addVar("args", MapType.create(SimpleType.DYN, SimpleType.DYN))
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .build();
+
+    CelAbstractSyntaxTree ast = cel.compile("TestAllTypes{repeated_uint64: args.i}").getAst();
+
+    Object result = cel.createProgram(ast).eval(
+            ImmutableMap.of("args",
+                    ImmutableMap.of("i", ImmutableList.of(UInt64Value.of(123L)))));
+
+    assertThat(result).isEqualTo(TestAllTypes.newBuilder().addRepeatedUint64(123L).build());
+  }
+
+  @Test
+  public void messageCreation_mapContainsUintWrapper() throws Exception {
+    Cel cel = CelFactory.standardCelBuilder()
+            .addVar("args", MapType.create(SimpleType.DYN, SimpleType.DYN))
+            .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .build();
+
+    CelAbstractSyntaxTree ast = cel.compile("TestAllTypes{map_int64_uint64 : args.i}").getAst();
+
+    Object result = cel.createProgram(ast).eval(
+            ImmutableMap.of("args",
+                    ImmutableMap.of("i", ImmutableMap.of(1L, UInt64Value.of(123L)))));
+
+    assertThat(result).isEqualTo(TestAllTypes.newBuilder().putMapInt64Uint64(1L, 123L).build());
   }
 
   private static TypeProvider aliasingProvider(ImmutableMap<String, Type> typeAliases) {

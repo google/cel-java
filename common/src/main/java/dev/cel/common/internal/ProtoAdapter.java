@@ -30,6 +30,7 @@ import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MapEntry;
 import com.google.protobuf.Message;
+import com.google.protobuf.MessageLite;
 import com.google.protobuf.MessageOrBuilder;
 import dev.cel.common.CelOptions;
 import dev.cel.common.annotations.Internal;
@@ -244,28 +245,48 @@ public final class ProtoAdapter {
       case SFIXED32:
       case SINT32:
       case INT32:
-        return INT_CONVERTER;
+        return unwrapAndConvert(INT_CONVERTER);
       case FIXED32:
       case UINT32:
         if (celOptions.enableUnsignedLongs()) {
-          return UNSIGNED_UINT32_CONVERTER;
+          return unwrapAndConvert(UNSIGNED_UINT32_CONVERTER);
         }
-        return SIGNED_UINT32_CONVERTER;
+        return unwrapAndConvert(SIGNED_UINT32_CONVERTER);
       case FIXED64:
       case UINT64:
         if (celOptions.enableUnsignedLongs()) {
-          return UNSIGNED_UINT64_CONVERTER;
+          return unwrapAndConvert(UNSIGNED_UINT64_CONVERTER);
         }
-        return BidiConverter.IDENTITY;
+        return BidiConverter.of(
+            BidiConverter.IDENTITY.forwardConverter(),
+            value -> BidiConverter.IDENTITY.backwardConverter().convert(unwrap(value)));
       case FLOAT:
-        return DOUBLE_CONVERTER;
+        return unwrapAndConvert(DOUBLE_CONVERTER);
+      case DOUBLE:
+      case SFIXED64:
+      case SINT64:
+      case INT64:
+        return BidiConverter.of(
+            BidiConverter.IDENTITY.forwardConverter(),
+            value -> BidiConverter.IDENTITY.backwardConverter().convert(unwrap(value)));
       case BYTES:
         if (celOptions.evaluateCanonicalTypesToNativeValues()) {
           return BidiConverter.<Object, Object>of(
-              ProtoAdapter::adaptProtoByteStringToValue, ProtoAdapter::adaptCelByteStringToProto);
+              ProtoAdapter::adaptProtoByteStringToValue,
+              value -> adaptCelByteStringToProto(unwrap(value)));
         }
 
-        return BidiConverter.IDENTITY;
+        return BidiConverter.of(
+            BidiConverter.IDENTITY.forwardConverter(),
+            value -> BidiConverter.IDENTITY.backwardConverter().convert(unwrap(value)));
+      case STRING:
+        return BidiConverter.of(
+            BidiConverter.IDENTITY.forwardConverter(),
+            value -> BidiConverter.IDENTITY.backwardConverter().convert(unwrap(value)));
+      case BOOL:
+        return BidiConverter.of(
+            BidiConverter.IDENTITY.forwardConverter(),
+            value -> BidiConverter.IDENTITY.backwardConverter().convert(unwrap(value)));
       case ENUM:
         return BidiConverter.<Object, Long>of(
             value -> (long) ((EnumValueDescriptor) value).getNumber(),
@@ -370,5 +391,19 @@ public final class ProtoAdapter {
     } catch (IllegalArgumentException e) {
       throw new CelNumericOverflowException(e);
     }
+  }
+
+  private Object unwrap(Object value) {
+    if (value instanceof MessageLite) {
+      return adaptProtoToValue((MessageOrBuilder) value);
+    }
+    return value;
+  }
+
+  private BidiConverter<Number, Object> unwrapAndConvert(
+      final BidiConverter<Number, Number> original) {
+    return BidiConverter.of(
+        original.forwardConverter()::convert,
+        value -> original.backwardConverter().convert((Number) unwrap(value)));
   }
 }
