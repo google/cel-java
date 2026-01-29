@@ -154,6 +154,47 @@ declare dyn_var {
 bindings: {dyn_var=NULL_VALUE}
 result:   NULL_VALUE
 
+Source: TestAllTypes{repeated_int32: int32_list}.repeated_int32 == [1] && TestAllTypes{repeated_int64: int64_list}.repeated_int64 == [2] && TestAllTypes{repeated_uint32: uint32_list}.repeated_uint32 == [3u] && TestAllTypes{repeated_uint64: uint64_list}.repeated_uint64 == [4u] && TestAllTypes{repeated_float: float_list}.repeated_float == [5.5] && TestAllTypes{repeated_double: double_list}.repeated_double == [6.6] && TestAllTypes{repeated_bool: bool_list}.repeated_bool == [true] && TestAllTypes{repeated_string: string_list}.repeated_string == ['hello'] && TestAllTypes{repeated_bytes: bytes_list}.repeated_bytes == [b'world']
+declare int32_list {
+  value list(int)
+}
+declare int64_list {
+  value list(int)
+}
+declare uint32_list {
+  value list(uint)
+}
+declare uint64_list {
+  value list(uint)
+}
+declare float_list {
+  value list(double)
+}
+declare double_list {
+  value list(double)
+}
+declare bool_list {
+  value list(bool)
+}
+declare string_list {
+  value list(string)
+}
+declare bytes_list {
+  value list(bytes)
+}
+=====>
+bindings: {int32_list=[value: 1
+], int64_list=[value: 2
+], uint32_list=[value: 3
+], uint64_list=[value: 4
+], float_list=[value: 5.5
+], double_list=[value: 6.6
+], bool_list=[value: true
+], string_list=[value: "hello"
+], bytes_list=[value: "world"
+]}
+result:   true
+
 Source: google.protobuf.Timestamp{ seconds: 253402300800 }
 =====>
 bindings: {}
