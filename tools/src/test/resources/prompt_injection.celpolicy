@@ -2,14 +2,19 @@ name: "policy.safety.prompt.injection"
 default: allow
 
 variables:
-  - injection_score: >
-      security.classifyInjection(agent.context.prompt)
+  - high_confidence_threat: >
+      agent.input.threats().contains([ai.finding("prompt_injection", 0.9)])
+
+  - potential_threat: >
+      agent.input.threats().contains([ai.finding("prompt_injection", 0.5)])
 
 rules:
-  - condition: variables.injection_score > 0.9
+  - description: "Block high-confidence injection attacks"
+    condition: variables.high_confidence_threat
     effect: deny
-    message: "Prompt injection detected with high confidence."
+    message: "High-confidence prompt injection detected."
 
-  - condition: variables.injection_score > 0.5
+  - description: "Require confirmation for suspicious inputs"
+    condition: variables.potential_threat
     effect: confirm
     message: "Potential prompt injection detected. User confirmation required."

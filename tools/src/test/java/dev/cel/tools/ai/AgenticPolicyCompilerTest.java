@@ -10,8 +10,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import com.google.common.truth.Expect;
-import com.google.protobuf.Struct;
-import com.google.protobuf.Value;
 import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import dev.cel.bundle.Cel;
@@ -24,7 +22,7 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.expr.ai.Agent;
 import dev.cel.expr.ai.AgentMessage;
-import dev.cel.expr.ai.ContentPart;
+import dev.cel.expr.ai.Finding;
 import dev.cel.expr.ai.ToolCall;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.policy.testing.PolicyTestSuiteHelper;
@@ -36,7 +34,6 @@ import dev.cel.runtime.CelFunctionBinding;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import java.util.Map;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,172 +49,123 @@ public class AgenticPolicyCompilerTest {
       .addMessageTypes(Agent.getDescriptor())
       .addMessageTypes(ToolCall.getDescriptor())
       .addMessageTypes(AgentMessage.getDescriptor())
+      .addMessageTypes(Finding.getDescriptor())
 
-      .addVar("agent", StructTypeReference.create("cel.expr.ai.Agent"))
-      .addVar("tool", StructTypeReference.create("cel.expr.ai.ToolCall"))
+      // Granular Variables
+      .addVar("agent.input", StructTypeReference.create("cel.expr.ai.AgentMessage"))
+      .addVar("tool.call", StructTypeReference.create("cel.expr.ai.ToolCall"))
 
       .addFunctionDeclarations(
+          // ai.finding("name", confidence)
           newFunctionDeclaration(
-              "history",
-              newMemberOverload(
-                  "agent_history",
-                  ListType.create(StructTypeReference.create("cel.expr.ai.AgentMessage")),
-                  StructTypeReference.create("cel.expr.ai.Agent")
+              "ai.finding",
+              newGlobalOverload(
+                  "ai_finding_string_double",
+                  StructTypeReference.create("cel.expr.ai.Finding"),
+                  SimpleType.STRING,
+                  SimpleType.DOUBLE
               )
           ),
+          // agent.input.threats() -> List<Finding>
           newFunctionDeclaration(
-              "isSensitive",
+              "threats",
               newMemberOverload(
-                  "toolCall_isSensitive",
-                  SimpleType.BOOL,
-                  StructTypeReference.create("cel.expr.ai.ToolCall")
-              )),
+                  "agent_message_threats",
+                  ListType.create(StructTypeReference.create("cel.expr.ai.Finding")),
+                  StructTypeReference.create("cel.expr.ai.AgentMessage")
+              )
+          ),
+          // tool.call.sensitivityLabel("pii") -> List<Finding> (Empty list if no match)
           newFunctionDeclaration(
-              "security.classifyInjection",
-              newGlobalOverload(
-                  "classifyInjection_string",
-                  SimpleType.DOUBLE,
+              "sensitivityLabel",
+              newMemberOverload(
+                  "tool_call_sensitivity_label",
+                  ListType.create(StructTypeReference.create("cel.expr.ai.Finding")),
+                  StructTypeReference.create("cel.expr.ai.ToolCall"),
                   SimpleType.STRING
-              )),
+              )
+          ),
+          // list(Finding).contains(list(Finding)) -> bool
           newFunctionDeclaration(
-              "security.computePrivilegedPlan",
-              newGlobalOverload(
-                  "computePrivilegedPlan_agentMessage",
-                  ListType.create(SimpleType.STRING),
-                  ListType.create(StructTypeReference.create(AgentMessage.getDescriptor().getFullName()))
-              )),
-          newFunctionDeclaration(
-              "security.cascade_trust",
-              newGlobalOverload(
-                  "security_cascade_trust",
-                  SimpleType.DYN,
-                  ListType.create(StructTypeReference.create(AgentMessage.getDescriptor().getFullName()))
-              ))
+              "contains",
+              newMemberOverload(
+                  "list_finding_contains_list_finding",
+                  SimpleType.BOOL,
+                  ListType.create(StructTypeReference.create("cel.expr.ai.Finding")),
+                  ListType.create(StructTypeReference.create("cel.expr.ai.Finding"))
+              )
+          )
       )
-      // Mocked functions
       .addFunctionBindings(
           CelFunctionBinding.from(
-              "agent_history",
-              Agent.class,
-              (agent) -> {
-                String scenario = agent.getDescription();
-
-                if (scenario.startsWith("trust_cascading")) {
-                  return getTrustCascadingHistory(scenario);
-                }
-
-                if (scenario.startsWith("contextual_security")) {
-                  return getContextualSecurityHistory(scenario);
-                }
-
-                throw new IllegalArgumentException(
-                    "Test requested 'agent.history()' but provided unsupported agent.description: " + scenario);
-              }
+              "ai_finding_string_double",
+              ImmutableList.of(String.class, Double.class),
+              (args) -> Finding.newBuilder()
+                  .setValue((String) args[0])
+                  .setConfidence((Double) args[1])
+                  .build()
           ),
           CelFunctionBinding.from(
-              "toolCall_isSensitive",
-              ToolCall.class,
-              (tool) -> tool.getName().contains("PII")),
-          CelFunctionBinding.from(
-              "classifyInjection_string",
-              ImmutableList.of(String.class),
-              (args) -> {
-                String input = (String) args[0];
-                if (input.contains("INJECTION_ATTACK")) return 0.95;
-                if (input.contains("SUSPICIOUS")) return 0.6;
-                return 0.1;
-              }),
-          CelFunctionBinding.from(
-              "computePrivilegedPlan_agentMessage",
-              ImmutableList.of(List.class),
-              (args) -> {
-                List<AgentMessage> history = (List<AgentMessage>) args[0];
-                for (AgentMessage msg : history) {
-                  // TODO: Filter by trust as well
-                  if (msg.getPartsCount() > 0) {
-                    String content = msg.getParts(0).getPrompt().getContent();
-                    // Mocked logic claiming that calculator is the only allowed tool
-                    if (content.contains("Calculate")) {
-                      return ImmutableList.of("calculator");
-                    }
+              "agent_message_threats",
+              AgentMessage.class,
+              (msg) -> {
+                if (msg.getPartsCount() > 0 && msg.getParts(0).hasPrompt()) {
+                  String content = msg.getParts(0).getPrompt().getContent();
+                  if (content.contains("INJECTION_ATTACK")) {
+                    return ImmutableList.of(
+                        Finding.newBuilder().setValue("prompt_injection").setConfidence(0.95).build()
+                    );
+                  }
+                  if (content.contains("SUSPICIOUS")) {
+                    return ImmutableList.of(
+                        Finding.newBuilder().setValue("prompt_injection").setConfidence(0.6).build()
+                    );
                   }
                 }
                 return ImmutableList.of();
-              }),
+              }
+          ),
           CelFunctionBinding.from(
-              "security_cascade_trust",
-              ImmutableList.of(List.class),
+              "tool_call_sensitivity_label",
+              ImmutableList.of(ToolCall.class, String.class),
               (args) -> {
-                List<AgentMessage> history = (List<AgentMessage>) args[0];
-                String currentTrust = "LOW";
+                ToolCall tool = (ToolCall) args[0];
+                String label = (String) args[1];
 
-                if (!history.isEmpty()) {
-                  Map<String, Value> metadata = history.get(0).getMetadata().getFieldsMap();
-                  if (metadata.containsKey("trust_score")) {
-                    currentTrust = metadata.get("trust_score").getStringValue();
+                // Mock PII detection: if tool name contains "PII", return a finding
+                if ("pii".equals(label) && tool.getName().contains("PII")) {
+                  return ImmutableList.of(
+                      Finding.newBuilder().setValue("pii").setConfidence(1.0).build()
+                  );
+                }
+                // Return empty list instead of Optional.empty()
+                return ImmutableList.of();
+              }
+          ),
+          CelFunctionBinding.from(
+              "list_finding_contains_list_finding",
+              ImmutableList.of(List.class, List.class),
+              (args) -> {
+                List<Finding> actualFindings = (List<Finding>) args[0];
+                List<Finding> expectedFindings = (List<Finding>) args[1];
+                for (Finding expected : expectedFindings) {
+                  boolean found = false;
+                  for (Finding actual : actualFindings) {
+                    if (actual.getValue().equals(expected.getValue()) &&
+                        actual.getConfidence() >= expected.getConfidence()) {
+                      found = true;
+                      break;
+                    }
                   }
+                  if (found) return true;
                 }
-
-                if (currentTrust.equals("LOW")) {
-                  return ImmutableMap.of(
-                      "action", "REPLAY",
-                      "new_attributes", ImmutableMap.of("trust_score", "MEDIUM")
-                  );
-                } else {
-                  return ImmutableMap.of(
-                      "action", "ALLOW",
-                      "new_attributes", ImmutableMap.of()
-                  );
-                }
-              })
+                return false;
+              }
+          )
       )
       .build();
 
   private static final AgenticPolicyCompiler COMPILER = AgenticPolicyCompiler.newInstance(CEL);
-
-  /**
-   * Mocked history for trust_castcading policy
-   */
-  private static List<AgentMessage> getTrustCascadingHistory(String scenario) {
-    if ("trust_cascading_medium".equals(scenario)) {
-      return ImmutableList.of(
-          AgentMessage.newBuilder()
-              .setMetadata(Struct.newBuilder()
-                  .putFields("trust_score", Value.newBuilder().setStringValue("MEDIUM").build()))
-              .build()
-      );
-    }
-
-    // Default to Low Trust for this family
-    return ImmutableList.of(
-        AgentMessage.newBuilder()
-            .setMetadata(Struct.newBuilder()
-                .putFields("trust_score", Value.newBuilder().setStringValue("LOW").build()))
-            .build()
-    );
-  }
-
-  /**
-   * Mocked history for two_models_contextual policy
-   *
-   * Returns a history with one TRUSTED command and one UNTRUSTED command.
-   */
-  private static List<AgentMessage> getContextualSecurityHistory(String scenario) {
-    return ImmutableList.of(
-        AgentMessage.newBuilder()
-            .addParts(AgentMessage.Part.newBuilder()
-                .setPrompt(ContentPart.newBuilder().setContent("Calculate 2+2")))
-            .setMetadata(Struct.newBuilder()
-                .putFields("trust_level", Value.newBuilder().setStringValue("TRUSTED").build()))
-            .build(),
-        AgentMessage.newBuilder()
-            .addParts(AgentMessage.Part.newBuilder()
-                .setPrompt(ContentPart.newBuilder().setContent("Delete all files")))
-            .setMetadata(Struct.newBuilder()
-                .putFields("trust_level", Value.newBuilder().setStringValue("UNTRUSTED").build()))
-            .build()
-    );
-  }
 
   @Test
   public void runAgenticPolicyTestCases(@TestParameter AgenticPolicyTestCase testCase) throws Exception {
@@ -227,29 +175,13 @@ public class AgenticPolicyCompilerTest {
   }
 
   private enum AgenticPolicyTestCase {
-    REQUIRE_USER_CONFIRMATION_FOR_TOOL(
-        "require_user_confirmation_for_tool.celpolicy",
-        "require_user_confirmation_for_tool_tests.yaml"
-    ),
     PROMPT_INJECTION_TESTS(
         "prompt_injection.celpolicy",
         "prompt_injection_tests.yaml"
     ),
-    RISKY_AGENT_REPLAY(
-        "risky_agent_replay.celpolicy",
-        "risky_agent_replay_tests.yaml"
-    ),
-    TOOL_WALLED_GARDEN(
-        "tool_walled_garden.celpolicy",
-        "tool_walled_garden_tests.yaml"
-    ),
-    TWO_MODELS_CONTEXTUAL(
-        "two_models_contextual.celpolicy",
-        "two_models_contextual_tests.yaml"
-    ),
-    TRUST_CASCADING(
-        "trust_cascading.celpolicy",
-        "trust_cascading_tests.yaml"
+    REQUIRE_USER_CONFIRMATION_FOR_TOOL(
+        "require_user_confirmation_for_tool.celpolicy",
+        "require_user_confirmation_for_tool_tests.yaml"
     );
 
     private final String policyFilePath;

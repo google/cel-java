@@ -5,7 +5,7 @@ section:
   tests:
   - name: "reject_sensitive_tool_call"
     input:
-      tool:
+      tool.call:
         expr: >
           ToolCall{
             name: "tool_with_PII",
@@ -14,11 +14,11 @@ section:
     output: >
       {
         "effect": "confirm",
-        "message": "This tool call is sensitive and requires confirmation before the agent can execute. Ask for confirmation from the user",
+        "message": "This tool call contains sensitive data (PII). User confirmation is required."
       }
   - name: "allow_confirmed_tool"
     input:
-      tool:
+      tool.call:
         expr: >
           ToolCall{
             name: "tool_with_PII",
