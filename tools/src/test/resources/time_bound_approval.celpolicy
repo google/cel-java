@@ -1,0 +1,23 @@
+name: "policy.safety.time_bound_approval"
+default: allow
+
+variables:
+  # Define the validity window (30 seconds ago)
+  - approval_cutoff: now - duration('30s')
+
+  # Find approval messages in the valid window
+  - valid_approvals: >
+      agent.history()
+           .after(variables.approval_cutoff)
+           .role('model')
+           .filter(m, has(m.metadata.step) && m.metadata.step == 'approval_granted')
+
+  - has_valid_approval: variables.valid_approvals.size() > 0
+
+rules:
+  - description: "Require approval within the last 30 seconds for sensitive writes"
+    condition: >
+      tool.name == 'database_write' &&
+      !variables.has_valid_approval
+    effect: deny
+    message: "Authorization expired. Please re-approve the database write operation."
