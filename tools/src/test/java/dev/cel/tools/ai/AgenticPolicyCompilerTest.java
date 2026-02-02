@@ -23,6 +23,8 @@ import dev.cel.common.types.StructTypeReference;
 import dev.cel.expr.ai.Agent;
 import dev.cel.expr.ai.AgentMessage;
 import dev.cel.expr.ai.Finding;
+import dev.cel.expr.ai.Tool;
+import dev.cel.expr.ai.ToolAnnotations;
 import dev.cel.expr.ai.ToolCall;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.policy.testing.PolicyTestSuiteHelper;
@@ -48,15 +50,15 @@ public class AgenticPolicyCompilerTest {
       .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
       .addMessageTypes(Agent.getDescriptor())
       .addMessageTypes(ToolCall.getDescriptor())
+      .addMessageTypes(Tool.getDescriptor())
+      .addMessageTypes(ToolAnnotations.getDescriptor())
       .addMessageTypes(AgentMessage.getDescriptor())
       .addMessageTypes(Finding.getDescriptor())
-
-      // Granular Variables
       .addVar("agent.input", StructTypeReference.create("cel.expr.ai.AgentMessage"))
+      .addVar("tool.name", SimpleType.STRING)
+      .addVar("tool.annotations", StructTypeReference.create("cel.expr.ai.ToolAnnotations"))
       .addVar("tool.call", StructTypeReference.create("cel.expr.ai.ToolCall"))
-
       .addFunctionDeclarations(
-          // ai.finding("name", confidence)
           newFunctionDeclaration(
               "ai.finding",
               newGlobalOverload(
@@ -66,7 +68,6 @@ public class AgenticPolicyCompilerTest {
                   SimpleType.DOUBLE
               )
           ),
-          // agent.input.threats() -> List<Finding>
           newFunctionDeclaration(
               "threats",
               newMemberOverload(
@@ -75,7 +76,6 @@ public class AgenticPolicyCompilerTest {
                   StructTypeReference.create("cel.expr.ai.AgentMessage")
               )
           ),
-          // tool.call.sensitivityLabel("pii") -> List<Finding> (Empty list if no match)
           newFunctionDeclaration(
               "sensitivityLabel",
               newMemberOverload(
@@ -85,7 +85,6 @@ public class AgenticPolicyCompilerTest {
                   SimpleType.STRING
               )
           ),
-          // list(Finding).contains(list(Finding)) -> bool
           newFunctionDeclaration(
               "contains",
               newMemberOverload(
@@ -131,14 +130,11 @@ public class AgenticPolicyCompilerTest {
               (args) -> {
                 ToolCall tool = (ToolCall) args[0];
                 String label = (String) args[1];
-
-                // Mock PII detection: if tool name contains "PII", return a finding
                 if ("pii".equals(label) && tool.getName().contains("PII")) {
                   return ImmutableList.of(
                       Finding.newBuilder().setValue("pii").setConfidence(1.0).build()
                   );
                 }
-                // Return empty list instead of Optional.empty()
                 return ImmutableList.of();
               }
           ),
@@ -148,18 +144,13 @@ public class AgenticPolicyCompilerTest {
               (args) -> {
                 List<Finding> actualFindings = (List<Finding>) args[0];
                 List<Finding> expectedFindings = (List<Finding>) args[1];
-                for (Finding expected : expectedFindings) {
-                  boolean found = false;
-                  for (Finding actual : actualFindings) {
-                    if (actual.getValue().equals(expected.getValue()) &&
-                        actual.getConfidence() >= expected.getConfidence()) {
-                      found = true;
-                      break;
-                    }
-                  }
-                  if (found) return true;
-                }
-                return false;
+
+                return expectedFindings.stream().anyMatch(expected ->
+                    actualFindings.stream().anyMatch(actual ->
+                        actual.getValue().equals(expected.getValue()) &&
+                            actual.getConfidence() >= expected.getConfidence()
+                    )
+                );
               }
           )
       )
@@ -182,6 +173,10 @@ public class AgenticPolicyCompilerTest {
     REQUIRE_USER_CONFIRMATION_FOR_TOOL(
         "require_user_confirmation_for_tool.celpolicy",
         "require_user_confirmation_for_tool_tests.yaml"
+    ),
+    OPEN_WORLD_TOOL_REPLAY(
+        "open_world_tool_replay.celpolicy",
+        "open_world_tool_replay_tests.yaml"
     );
 
     private final String policyFilePath;

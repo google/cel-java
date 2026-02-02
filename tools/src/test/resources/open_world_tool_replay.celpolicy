@@ -1,0 +1,14 @@
+name: "policy.safety.open_world_replay"
+default: allow
+
+rules:
+  - description: "Limit turn window for open-world tools (internet access)"
+    condition: |
+      tool.annotations.open_world
+    effect: replay
+    output_expr: |
+      {
+        'type': 'USER',
+        'turn_window': 1,
+        'reason': 'Tool interacts with the open world.'
+      }

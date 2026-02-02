@@ -1,0 +1,36 @@
+description: "Open World Tool Replay Policy Tests"
+
+section:
+- name: "Capability Checks"
+  tests:
+  - name: "Open World Tool (Replay)"
+    input:
+      tool.annotations:
+        expr: >
+          ToolAnnotations{ open_world: true }
+      tool.call:
+        expr: >
+          ToolCall{ name: "internet_search" }
+    output: >
+      {
+        "effect": "replay",
+        "details": {
+           "type": "USER",
+           "turn_window": 1,
+           "reason": "Tool interacts with the open world."
+        }
+      }
+
+  - name: "Closed World Tool (Allow)"
+    input:
+      tool.annotations:
+        expr: >
+          ToolAnnotations{ open_world: false }
+      tool.call:
+        expr: >
+          ToolCall{ name: "calculator" }
+    output: >
+      {
+        "effect": "allow",
+        "message": ""
+      }
