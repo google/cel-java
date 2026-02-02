@@ -1,34 +1,56 @@
 description: "Trust Cascading Policy Tests"
 
 section:
-- name: "Cascading Logic"
+- name: "Trust Finding Scenarios"
   tests:
-  - name: "Elevation Required (Replay)"
+  - name: "Critical Compromise (Deny)"
     input:
-      agent:
-        # Note: description is important below. It's used to fetch mocked history content.
+      agent.context:
         expr: >
-          Agent{ 
-            description: "trust_cascading_low" 
+          AgentContext{
+            trust: TrustLevel{
+              level: "untrusted",
+              findings: [
+                Finding{ value: "compromised_session", confidence: 0.95 }
+              ]
+            }
+          }
+    output: >
+      {
+        "effect": "deny",
+        "message": "Critical Trust Failure: Session is potentially compromised."
+      }
+
+  - name: "Unverified Source (Replay)"
+    input:
+      agent.context:
+        expr: >
+          AgentContext{
+            trust: TrustLevel{
+              level: "untrusted",
+              findings: [
+                Finding{ value: "unverified_source", confidence: 0.85 }
+              ]
+            }
           }
     output: >
       {
         "effect": "replay",
         "details": {
-           "append_attributes": { "trust_score": "MEDIUM" },
-           "reason": "Trust elevation required for proper answer."
+           "reason": "Data source is unverified.",
+           "action": "verify_provenance"
         }
       }
 
-  - name: "Trust Sufficient (Allow)"
+  - name: "Trusted Context (Allow)"
     input:
-      agent:
+      agent.context:
         expr: >
-          Agent{ 
-             description: "trust_cascading_medium" 
+          AgentContext{
+             trust: TrustLevel{ level: "trusted" }
           }
     output: >
       {
         "effect": "allow",
-        "message": "Trust level sufficient."
+        "message": ""
       }
