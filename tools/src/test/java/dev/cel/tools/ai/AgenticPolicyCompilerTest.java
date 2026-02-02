@@ -21,13 +21,13 @@ import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.expr.ai.Agent;
-import dev.cel.expr.ai.AgentContext; // New Import
+import dev.cel.expr.ai.AgentContext;
 import dev.cel.expr.ai.AgentMessage;
 import dev.cel.expr.ai.Finding;
 import dev.cel.expr.ai.Tool;
 import dev.cel.expr.ai.ToolAnnotations;
 import dev.cel.expr.ai.ToolCall;
-import dev.cel.expr.ai.TrustLevel; // New Import
+import dev.cel.expr.ai.TrustLevel;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.policy.testing.PolicyTestSuiteHelper;
 import dev.cel.policy.testing.PolicyTestSuiteHelper.PolicyTestSuite;
@@ -35,9 +35,12 @@ import dev.cel.policy.testing.PolicyTestSuiteHelper.PolicyTestSuite.PolicyTestSe
 import dev.cel.policy.testing.PolicyTestSuiteHelper.PolicyTestSuite.PolicyTestSection.PolicyTestCase;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.runtime.CelLateFunctionBindings;
 import java.io.IOException;
 import java.net.URL;
+import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,10 +64,12 @@ public class AgenticPolicyCompilerTest {
 
       .addVar("agent.input", StructTypeReference.create("cel.expr.ai.AgentMessage"))
       .addVar("agent.context", StructTypeReference.create("cel.expr.ai.AgentContext"))
+      .addVar("_test_history", ListType.create(StructTypeReference.create("cel.expr.ai.AgentMessage")))
+      .addVar("now", SimpleType.TIMESTAMP)
+
       .addVar("tool.name", SimpleType.STRING)
       .addVar("tool.annotations", StructTypeReference.create("cel.expr.ai.ToolAnnotations"))
       .addVar("tool.call", StructTypeReference.create("cel.expr.ai.ToolCall"))
-
       .addFunctionDeclarations(
           newFunctionDeclaration(
               "ai.finding",
@@ -99,6 +104,31 @@ public class AgenticPolicyCompilerTest {
                   SimpleType.BOOL,
                   ListType.create(StructTypeReference.create("cel.expr.ai.Finding")),
                   ListType.create(StructTypeReference.create("cel.expr.ai.Finding"))
+              )
+          ),
+          newFunctionDeclaration(
+              "agent.history",
+              newGlobalOverload(
+                  "agent_history",
+                  ListType.create(StructTypeReference.create("cel.expr.ai.AgentMessage"))
+              )
+          ),
+          newFunctionDeclaration(
+              "role",
+              newMemberOverload(
+                  "list_agent_message_role_string",
+                  ListType.create(StructTypeReference.create("cel.expr.ai.AgentMessage")),
+                  ListType.create(StructTypeReference.create("cel.expr.ai.AgentMessage")),
+                  SimpleType.STRING
+              )
+          ),
+          newFunctionDeclaration(
+              "after",
+              newMemberOverload(
+                  "list_agent_message_after_timestamp",
+                  ListType.create(StructTypeReference.create("cel.expr.ai.AgentMessage")),
+                  ListType.create(StructTypeReference.create("cel.expr.ai.AgentMessage")),
+                  SimpleType.TIMESTAMP
               )
           )
       )
@@ -151,13 +181,39 @@ public class AgenticPolicyCompilerTest {
               (args) -> {
                 List<Finding> actualFindings = (List<Finding>) args[0];
                 List<Finding> expectedFindings = (List<Finding>) args[1];
-
                 return expectedFindings.stream().anyMatch(expected ->
                     actualFindings.stream().anyMatch(actual ->
                         actual.getValue().equals(expected.getValue()) &&
                             actual.getConfidence() >= expected.getConfidence()
                     )
                 );
+              }
+          ),
+          CelFunctionBinding.from(
+              "list_agent_message_role_string",
+              ImmutableList.of(List.class, String.class),
+              (args) -> {
+                List<AgentMessage> history = (List<AgentMessage>) args[0];
+                String role = (String) args[1];
+                return history.stream()
+                    .filter(m -> m.getRole().equals(role))
+                    .collect(Collectors.toList());
+              }
+          ),
+          CelFunctionBinding.from(
+              "list_agent_message_after_timestamp",
+              ImmutableList.of(List.class, Instant.class),
+              (args) -> {
+                List<AgentMessage> history = (List<AgentMessage>) args[0];
+                Instant cutoff = (Instant) args[1];
+
+                return history.stream()
+                    .filter(m -> {
+                      com.google.protobuf.Timestamp protoTs = m.getTime();
+                      Instant msgTime = Instant.ofEpochSecond(protoTs.getSeconds(), protoTs.getNanos());
+                      return msgTime.compareTo(cutoff) >= 0;
+                    })
+                    .collect(Collectors.toList());
               }
           )
       )
@@ -188,6 +244,10 @@ public class AgenticPolicyCompilerTest {
     TRUST_CASCADING(
         "trust_cascading.celpolicy",
         "trust_cascading_tests.yaml"
+    ),
+    TIME_BOUND_APPROVAL(
+        "time_bound_approval.celpolicy",
+        "time_bound_approval_tests.yaml"
     );
 
     private final String policyFilePath;
@@ -217,7 +277,21 @@ public class AgenticPolicyCompilerTest {
             "%s: %s", testSection.getName(), testCase.getName());
         try {
           ImmutableMap<String, Object> inputMap = testCase.toInputMap(cel);
-          Object evalResult = cel.createProgram(ast).eval(inputMap);
+
+          List<AgentMessage> history =
+              inputMap.containsKey("_test_history")
+                  ? (List<AgentMessage>) inputMap.get("_test_history")
+                  : ImmutableList.of();
+
+          CelLateFunctionBindings bindings = CelLateFunctionBindings.from(
+              CelFunctionBinding.from(
+                  "agent_history",
+                  ImmutableList.of(), // No args
+                  (args) -> history
+              )
+          );
+
+          Object evalResult = cel.createProgram(ast).eval(inputMap, bindings);
           Object expectedOutput = cel.createProgram(cel.compile(testCase.getOutput()).getAst()).eval();
           expect.withMessage(testName).that(evalResult).isEqualTo(expectedOutput);
         } catch (CelValidationException e) {
