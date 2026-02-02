@@ -2,20 +2,34 @@ name: "policy.trust.cascading"
 default: allow
 
 variables:
-  - trust_decision: >
-      security.cascade_trust(agent.history())
+  # Critical security threats
+  - is_compromised: >
+      agent.context.trust.findings.contains([ai.finding("compromised_session", 0.9)])
+
+  # Compliance and/or hygiene issues with the source
+  - is_unverified: >
+      agent.context.trust.findings.contains([ai.finding("unverified_source", 0.8)])
 
 rules:
-  - description: "Elevate trust and replay model call if required"
-    condition: variables.trust_decision.action == 'REPLAY'
+  - description: "Block sessions with high-confidence compromise indicators"
+    condition: variables.is_compromised
+    effect: deny
+    message: "Critical Trust Failure: Session is potentially compromised."
+
+  - description: "Replay to request source verification"
+    condition: variables.is_unverified
     effect: replay
     output_expr: |
       {
-        'append_attributes': variables.trust_decision.new_attributes,
-        'reason': 'Trust elevation required for proper answer.'
+        'reason': 'Data source is unverified.',
+        'action': 'verify_provenance'
       }
 
-  - description: "Trust sufficient, allow execution"
-    condition: variables.trust_decision.action == 'ALLOW'
-    effect: allow
-    message: "Trust level sufficient."
+  - description: "Replay generic untrusted contexts"
+    condition: agent.context.trust.level == 'untrusted'
+    effect: replay
+    output_expr: |
+      {
+        'reason': 'Context trust is insufficient.',
+        'required_level': 'trusted_3p'
+      }

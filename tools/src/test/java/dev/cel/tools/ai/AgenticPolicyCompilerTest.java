@@ -21,11 +21,13 @@ import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.expr.ai.Agent;
+import dev.cel.expr.ai.AgentContext; // New Import
 import dev.cel.expr.ai.AgentMessage;
 import dev.cel.expr.ai.Finding;
 import dev.cel.expr.ai.Tool;
 import dev.cel.expr.ai.ToolAnnotations;
 import dev.cel.expr.ai.ToolCall;
+import dev.cel.expr.ai.TrustLevel; // New Import
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.policy.testing.PolicyTestSuiteHelper;
 import dev.cel.policy.testing.PolicyTestSuiteHelper.PolicyTestSuite;
@@ -49,15 +51,20 @@ public class AgenticPolicyCompilerTest {
       .setContainer(CelContainer.ofName("cel.expr.ai"))
       .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
       .addMessageTypes(Agent.getDescriptor())
+      .addMessageTypes(AgentContext.getDescriptor())
+      .addMessageTypes(TrustLevel.getDescriptor())
       .addMessageTypes(ToolCall.getDescriptor())
       .addMessageTypes(Tool.getDescriptor())
       .addMessageTypes(ToolAnnotations.getDescriptor())
       .addMessageTypes(AgentMessage.getDescriptor())
       .addMessageTypes(Finding.getDescriptor())
+
       .addVar("agent.input", StructTypeReference.create("cel.expr.ai.AgentMessage"))
+      .addVar("agent.context", StructTypeReference.create("cel.expr.ai.AgentContext"))
       .addVar("tool.name", SimpleType.STRING)
       .addVar("tool.annotations", StructTypeReference.create("cel.expr.ai.ToolAnnotations"))
       .addVar("tool.call", StructTypeReference.create("cel.expr.ai.ToolCall"))
+
       .addFunctionDeclarations(
           newFunctionDeclaration(
               "ai.finding",
@@ -177,6 +184,10 @@ public class AgenticPolicyCompilerTest {
     OPEN_WORLD_TOOL_REPLAY(
         "open_world_tool_replay.celpolicy",
         "open_world_tool_replay_tests.yaml"
+    ),
+    TRUST_CASCADING(
+        "trust_cascading.celpolicy",
+        "trust_cascading_tests.yaml"
     );
 
     private final String policyFilePath;
