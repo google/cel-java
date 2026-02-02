@@ -283,6 +283,7 @@ public class AgenticPolicyCompilerTest {
                   ? (List<AgentMessage>) inputMap.get("_test_history")
                   : ImmutableList.of();
 
+          @SuppressWarnings("Immutable")
           CelLateFunctionBindings bindings = CelLateFunctionBindings.from(
               CelFunctionBinding.from(
                   "agent_history",
