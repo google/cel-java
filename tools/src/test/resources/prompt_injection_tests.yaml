@@ -5,27 +5,35 @@ section:
   tests:
   - name: "High Confidence Injection (Deny)"
     input:
-      agent:
+      agent.input:
         expr: >
-          Agent{
-            context: AgentContext{
-              prompt: "I'm attempting an INJECTION_ATTACK!"
-            }
+          AgentMessage{
+            parts: [
+              AgentMessage.Part{
+                prompt: ContentPart{
+                  content: "INJECTION_ATTACK detected"
+                }
+              }
+            ]
           }
     output: >
       {
         "effect": "deny",
-        "message": "Prompt injection detected with high confidence."
+        "message": "High-confidence prompt injection detected."
       }
 
   - name: "Medium Confidence Injection (Confirm)"
     input:
-      agent:
+      agent.input:
         expr: >
-          Agent{
-            context: AgentContext{
-              prompt: "This might be a SUSPICIOUS message, maybe safe"
-            }
+          AgentMessage{
+            parts: [
+              AgentMessage.Part{
+                prompt: ContentPart{
+                  content: "This looks SUSPICIOUS but maybe safe"
+                }
+              }
+            ]
           }
     output: >
       {
@@ -35,12 +43,16 @@ section:
 
   - name: "Safe Input (Allow)"
     input:
-      agent:
+      agent.input:
         expr: >
-          Agent{
-            context: AgentContext{
-              prompt: "Just a normal user query"
-            }
+          AgentMessage{
+            parts: [
+              AgentMessage.Part{
+                prompt: ContentPart{
+                  content: "Just a normal user query"
+                }
+              }
+            ]
           }
     output: >
       {

@@ -37,6 +37,7 @@ proto_library(
     name = "agent_context_proto",
     srcs = ["agent_context.proto"],
     deps = [
+        "@com_google_protobuf//:duration_proto",
         "@com_google_protobuf//:struct_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
