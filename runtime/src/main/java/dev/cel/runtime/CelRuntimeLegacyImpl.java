@@ -29,6 +29,7 @@ import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
 import dev.cel.common.CelOptions;
@@ -40,6 +41,7 @@ import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
 // CEL-Internal-1
 import dev.cel.common.internal.ProtoMessageFactory;
+import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.ProtoMessageValueProvider;
@@ -162,6 +164,18 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     }
 
     @Override
+    public CelRuntimeBuilder addLateBoundFunctions(String... lateBoundFunctionNames) {
+      throw new UnsupportedOperationException(
+          "This method is not supported for the legacy runtime");
+    }
+
+    @Override
+    public CelRuntimeBuilder addLateBoundFunctions(Iterable<String> lateBoundFunctionNames) {
+      throw new UnsupportedOperationException(
+          "This method is not supported for the legacy runtime");
+    }
+
+    @Override
     public CelRuntimeBuilder addMessageTypes(Descriptor... descriptors) {
       return addMessageTypes(Arrays.asList(descriptors));
     }
@@ -189,14 +203,20 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
     }
 
     @Override
-    public CelRuntimeBuilder setTypeFactory(Function<String, Message.Builder> typeFactory) {
-      this.customTypeFactory = typeFactory;
-      return this;
+    public CelRuntimeBuilder setTypeProvider(CelTypeProvider celTypeProvider) {
+      throw new UnsupportedOperationException(
+          "setTypeProvider is not supported for legacy runtime");
     }
 
     @Override
     public CelRuntimeBuilder setValueProvider(CelValueProvider celValueProvider) {
       this.celValueProvider = celValueProvider;
+      return this;
+    }
+
+    @Override
+    public CelRuntimeBuilder setTypeFactory(Function<String, Message.Builder> typeFactory) {
+      this.customTypeFactory = typeFactory;
       return this;
     }
 
@@ -230,6 +250,12 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
       checkNotNull(extensionRegistry);
       this.extensionRegistry = extensionRegistry.getUnmodifiable();
       return this;
+    }
+
+    @Override
+    public CelRuntimeBuilder setContainer(CelContainer container) {
+      throw new UnsupportedOperationException(
+          "This method is not supported for the legacy runtime");
     }
 
     /** Build a new {@code CelRuntimeLegacyImpl} instance from the builder config. */

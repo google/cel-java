@@ -82,7 +82,13 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
     }
 
     if (value instanceof MessageOrBuilder) {
-      MessageOrBuilder message = (MessageOrBuilder) value;
+      Message message;
+      if (value instanceof Message.Builder) {
+        message = ((Message.Builder) value).build();
+      } else {
+        message = (Message) value;
+      }
+
       // Attempt to convert the proto from a dynamic message into a concrete message if possible.
       if (message instanceof DynamicMessage) {
         message = dynamicProto.maybeAdaptDynamicMessage((DynamicMessage) message);
@@ -110,6 +116,7 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
     switch (fieldDescriptor.getType()) {
       case MESSAGE:
         if (WellKnownProto.isWrapperType(fieldDescriptor.getMessageType().getFullName())
+            && !fieldDescriptor.isRepeated()
             && !message.hasField(fieldDescriptor)) {
           // Special semantics for wrapper types per CEL specification. These all convert into null
           // instead of the default value.

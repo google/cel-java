@@ -38,6 +38,9 @@ final class EvalHelpers {
       PlannedInterpretable interpretable, GlobalResolver resolver, ExecutionFrame frame) {
     try {
       return interpretable.eval(resolver, frame);
+    } catch (LocalizedEvaluationException e) {
+      // Already localized - propagate as-is to preserve inner expression ID
+      throw e;
     } catch (CelRuntimeException e) {
       // Wrap with current interpretable's location
       throw new LocalizedEvaluationException(e, interpretable.exprId());

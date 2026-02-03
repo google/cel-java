@@ -31,7 +31,6 @@ import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
-import dev.cel.expr.conformance.proto3.TestAllTypes;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.Test;
@@ -185,7 +184,7 @@ public final class StructValueTest {
             .setValueProvider(
                 CombinedCelValueProvider.combine(
                     ProtoMessageValueProvider.newInstance(
-                        CelOptions.DEFAULT, DynamicProto.create(typeName -> Optional.empty())),
+                        CelOptions.DEFAULT, DynamicProto.create(unused -> Optional.empty())),
                     CUSTOM_STRUCT_VALUE_PROVIDER))
             .build();
     CelAbstractSyntaxTree ast = cel.compile("custom_struct{data: 5}.data").getAst();
@@ -195,36 +194,8 @@ public final class StructValueTest {
     assertThat(result).isEqualTo(5L);
   }
 
-  @Test
-  public void evaluate_usingMultipleProviders_selectFieldFromProtobufMessage() throws Exception {
-    Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableCelValue(true).build())
-            .addMessageTypes(TestAllTypes.getDescriptor())
-            .setTypeProvider(CUSTOM_STRUCT_TYPE_PROVIDER)
-            .setValueProvider(
-                CombinedCelValueProvider.combine(
-                    ProtoMessageValueProvider.newInstance(
-                        CelOptions.DEFAULT,
-                        // Note: this is unideal. Future iterations should make DynamicProto
-                        // completely an internal concern, and not expose it at all.
-                        DynamicProto.create(
-                            typeName -> {
-                              if (typeName.equals(TestAllTypes.getDescriptor().getFullName())) {
-                                return Optional.of(TestAllTypes.newBuilder());
-                              }
-                              return Optional.empty();
-                            })),
-                    CUSTOM_STRUCT_VALUE_PROVIDER))
-            .build();
-    CelAbstractSyntaxTree ast =
-        cel.compile("cel.expr.conformance.proto3.TestAllTypes{single_string: 'foo'}.single_string")
-            .getAst();
-
-    String result = (String) cel.createProgram(ast).eval();
-
-    assertThat(result).isEqualTo("foo");
-  }
+  // TODO: Bring back evaluate_usingMultipleProviders_selectFieldFromProtobufMessage
+  // once planner is exposed from factory
 
   @SuppressWarnings("Immutable") // Test only
   private static class CelCustomStructValue extends StructValue<String> {
