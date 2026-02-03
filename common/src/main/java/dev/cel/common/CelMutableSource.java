@@ -17,10 +17,12 @@ package dev.cel.common;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
+import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dev.cel.common.CelSource.Extension;
 import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.common.ast.CelMutableExprConverter;
+import dev.cel.common.internal.CelCodePointArray;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +40,9 @@ public final class CelMutableSource {
   private String description;
   private final Map<Long, CelMutableExpr> macroCalls;
   private final Set<Extension> extensions;
+  private final CelCodePointArray codePoints;
+  private final ImmutableList<Integer> lineOffsets;
+  private final Map<Long, Integer> positions;
 
   @CanIgnoreReturnValue
   public CelMutableSource addMacroCalls(long exprId, CelMutableExpr expr) {
@@ -88,8 +93,13 @@ public final class CelMutableSource {
     return extensions;
   }
 
-  public CelSource toCelSource() {
-    return CelSource.newBuilder()
+  public CelSource toCelSource(boolean retainSourcePositions) {
+    CelSource.Builder builder =
+        retainSourcePositions
+            ? CelSource.newBuilder(codePoints, lineOffsets).addPositionsMap(positions)
+            : CelSource.newBuilder();
+
+    return builder
         .setDescription(description)
         .addAllExtensions(extensions)
         .addAllMacroCalls(
@@ -101,7 +111,13 @@ public final class CelMutableSource {
   }
 
   public static CelMutableSource newInstance() {
-    return new CelMutableSource("", new HashMap<>(), new HashSet<>());
+    return new CelMutableSource(
+        "",
+        new HashMap<>(),
+        new HashSet<>(),
+        CelCodePointArray.fromString(""),
+        ImmutableList.of(),
+        new HashMap<>());
   }
 
   public static CelMutableSource fromCelSource(CelSource source) {
@@ -117,13 +133,24 @@ public final class CelMutableSource {
                           "Unexpected source collision at ID: " + prev.id());
                     },
                     HashMap::new)),
-        source.getExtensions());
+        source.getExtensions(),
+        source.getContent(),
+        source.getLineOffsets(),
+        source.getPositionsMap());
   }
 
   CelMutableSource(
-      String description, Map<Long, CelMutableExpr> macroCalls, Set<Extension> extensions) {
+      String description,
+      Map<Long, CelMutableExpr> macroCalls,
+      Set<Extension> extensions,
+      CelCodePointArray codePoints,
+      ImmutableList<Integer> lineOffsets,
+      Map<Long, Integer> positions) {
     this.description = checkNotNull(description);
     this.macroCalls = checkNotNull(macroCalls);
     this.extensions = checkNotNull(extensions);
+    this.codePoints = checkNotNull(codePoints);
+    this.lineOffsets = checkNotNull(lineOffsets);
+    this.positions = checkNotNull(positions);
   }
 }

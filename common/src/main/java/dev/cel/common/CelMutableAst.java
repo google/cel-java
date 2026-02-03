@@ -70,8 +70,19 @@ public final class CelMutableAst {
 
   /** Converts this mutable AST into a parsed {@link CelAbstractSyntaxTree}. */
   public CelAbstractSyntaxTree toParsedAst() {
+    return toParsedAst(false);
+  }
+
+  /**
+   * Converts this mutable AST into a parsed {@link CelAbstractSyntaxTree}.
+   *
+   * @param retainSourcePositions If true, the source positions (line offsets, code points) will be
+   *     retained in the resulting AST. If false, they will be scrubbed.
+   */
+  public CelAbstractSyntaxTree toParsedAst(boolean retainSourcePositions) {
     return CelAbstractSyntaxTree.newParsedAst(
-        CelMutableExprConverter.fromMutableExpr(mutatedExpr), source.toCelSource());
+        CelMutableExprConverter.fromMutableExpr(mutatedExpr),
+        source.toCelSource(retainSourcePositions));
   }
 
   /**

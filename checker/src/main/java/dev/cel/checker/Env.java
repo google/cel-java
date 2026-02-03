@@ -38,6 +38,7 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExprConverter;
+import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.common.ast.CelReference;
 import dev.cel.common.internal.Errors;
 import dev.cel.common.types.CelKind;
@@ -288,28 +289,31 @@ public class Env {
    * Returns the type associated with an expression by expression id. It's an error to call this
    * method if the type is not present.
    *
-   * @deprecated Use {@link #getType(CelExpr)} instead.
+   * @deprecated Do not use. Migrate to CEL-Java fluent APIs.
    */
   @Deprecated
   public Type getType(Expr expr) {
     Preconditions.checkNotNull(expr);
-    return CelProtoTypes.celTypeToType(getType(CelExprConverter.fromExpr(expr)));
+    CelExpr celExpr = CelExprConverter.fromExpr(expr);
+    CelType celType =
+        Preconditions.checkNotNull(typeMap.get(celExpr.id()), "expression has no type");
+    return CelProtoTypes.celTypeToType(celType);
   }
 
   /**
-   * Returns the type associated with an expression by expression id. It's an error to call this
-   * method if the type is not present.
+   * Returns the type associated with a mutable expression by expression id. It's an error to call
+   * this method if the type is not present.
    */
-  public CelType getType(CelExpr expr) {
+  CelType getType(CelMutableExpr expr) {
     return Preconditions.checkNotNull(typeMap.get(expr.id()), "expression has no type");
   }
 
   /**
-   * Sets the type associated with an expression by id. It's an error if the type is already set and
-   * is different than the provided one. Returns the expression parameter.
+   * Sets the type associated with a mutable expression by id. It's an error if the type is already
+   * set and is different than the provided one. Returns the expression parameter.
    */
   @CanIgnoreReturnValue
-  public CelExpr setType(CelExpr expr, CelType type) {
+  CelMutableExpr setType(CelMutableExpr expr, CelType type) {
     CelType oldType = typeMap.put(expr.id(), type);
     Preconditions.checkState(
         oldType == null || oldType.equals(type),
@@ -320,10 +324,10 @@ public class Env {
   }
 
   /**
-   * Sets the reference associated with an expression. It's an error if the reference is already set
-   * and is different.
+   * Sets the reference associated with a mutable expression. It's an error if the reference is
+   * already set and is different.
    */
-  public void setRef(CelExpr expr, CelReference reference) {
+  void setRef(CelMutableExpr expr, CelReference reference) {
     CelReference oldReference = referenceMap.put(expr.id(), reference);
     Preconditions.checkState(
         oldReference == null || oldReference.equals(reference),

@@ -148,8 +148,13 @@ public abstract class CelSource implements Source {
     return newBuilder(CelCodePointArray.fromString(text));
   }
 
-  public static Builder newBuilder(CelCodePointArray codePointArray) {
-    return new Builder(codePointArray, codePointArray.lineOffsets());
+  public static Builder newBuilder(CelCodePointArray codePoints) {
+    return newBuilder(codePoints, codePoints.lineOffsets());
+  }
+
+  public static Builder newBuilder(
+      CelCodePointArray codePoints, ImmutableList<Integer> lineOffsets) {
+    return new Builder(codePoints, lineOffsets);
   }
 
   /** Builder for {@link CelSource}. */

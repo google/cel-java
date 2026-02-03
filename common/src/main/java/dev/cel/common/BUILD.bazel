@@ -194,6 +194,7 @@ java_library(
     deps = [
         ":cel_source",
         "//common/ast:mutable_expr",
+        "//common/internal",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
