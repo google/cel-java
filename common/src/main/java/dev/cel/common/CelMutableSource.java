@@ -33,11 +33,19 @@ import java.util.stream.Collectors;
  * Represents the mutable portion of the {@link CelSource}. This is intended for the purposes of
  * augmenting an AST through CEL optimizers.
  */
+import com.google.common.collect.ImmutableList;
+import dev.cel.common.internal.CelCodePointArray;
+
+// ...
+
 public final class CelMutableSource {
 
   private String description;
   private final Map<Long, CelMutableExpr> macroCalls;
   private final Set<Extension> extensions;
+  private final CelCodePointArray codePoints;
+  private final ImmutableList<Integer> lineOffsets;
+  private final Map<Long, Integer> positions;
 
   @CanIgnoreReturnValue
   public CelMutableSource addMacroCalls(long exprId, CelMutableExpr expr) {
@@ -89,9 +97,10 @@ public final class CelMutableSource {
   }
 
   public CelSource toCelSource() {
-    return CelSource.newBuilder()
+    return CelSource.newBuilder(codePoints, lineOffsets)
         .setDescription(description)
         .addAllExtensions(extensions)
+        .addPositionsMap(positions)
         .addAllMacroCalls(
             macroCalls.entrySet().stream()
                 .collect(
@@ -101,7 +110,13 @@ public final class CelMutableSource {
   }
 
   public static CelMutableSource newInstance() {
-    return new CelMutableSource("", new HashMap<>(), new HashSet<>());
+    return new CelMutableSource(
+        "",
+        new HashMap<>(),
+        new HashSet<>(),
+        CelCodePointArray.fromString(""),
+        ImmutableList.of(),
+        new HashMap<>());
   }
 
   public static CelMutableSource fromCelSource(CelSource source) {
@@ -117,13 +132,24 @@ public final class CelMutableSource {
                           "Unexpected source collision at ID: " + prev.id());
                     },
                     HashMap::new)),
-        source.getExtensions());
+        source.getExtensions(),
+        source.getContent(),
+        source.getLineOffsets(),
+        source.getPositionsMap());
   }
 
   CelMutableSource(
-      String description, Map<Long, CelMutableExpr> macroCalls, Set<Extension> extensions) {
+      String description,
+      Map<Long, CelMutableExpr> macroCalls,
+      Set<Extension> extensions,
+      CelCodePointArray codePoints,
+      ImmutableList<Integer> lineOffsets,
+      Map<Long, Integer> positions) {
     this.description = checkNotNull(description);
     this.macroCalls = checkNotNull(macroCalls);
     this.extensions = checkNotNull(extensions);
+    this.codePoints = checkNotNull(codePoints);
+    this.lineOffsets = checkNotNull(lineOffsets);
+    this.positions = checkNotNull(positions);
   }
 }

@@ -38,6 +38,7 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.ast.CelExprConverter;
+import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.common.ast.CelReference;
 import dev.cel.common.internal.Errors;
 import dev.cel.common.types.CelKind;
@@ -305,6 +306,14 @@ public class Env {
   }
 
   /**
+   * Returns the type associated with a mutable expression by expression id. It's an error to call this
+   * method if the type is not present.
+   */
+  CelType getType(CelMutableExpr expr) {
+    return Preconditions.checkNotNull(typeMap.get(expr.id()), "expression has no type");
+  }
+
+  /**
    * Sets the type associated with an expression by id. It's an error if the type is already set and
    * is different than the provided one. Returns the expression parameter.
    */
@@ -320,10 +329,36 @@ public class Env {
   }
 
   /**
+   * Sets the type associated with a mutable expression by id. It's an error if the type is already set and
+   * is different than the provided one. Returns the expression parameter.
+   */
+  @CanIgnoreReturnValue
+  CelMutableExpr setType(CelMutableExpr expr, CelType type) {
+    CelType oldType = typeMap.put(expr.id(), type);
+    Preconditions.checkState(
+        oldType == null || oldType.equals(type),
+        "expression already has a type which is incompatible.\n old: %s\n new: %s",
+        oldType,
+        type);
+    return expr;
+  }
+
+  /**
    * Sets the reference associated with an expression. It's an error if the reference is already set
    * and is different.
    */
   public void setRef(CelExpr expr, CelReference reference) {
+    CelReference oldReference = referenceMap.put(expr.id(), reference);
+    Preconditions.checkState(
+        oldReference == null || oldReference.equals(reference),
+        "expression already has a reference which is incompatible");
+  }
+
+  /**
+   * Sets the reference associated with a mutable expression. It's an error if the reference is already set
+   * and is different.
+   */
+  void setRef(CelMutableExpr expr, CelReference reference) {
     CelReference oldReference = referenceMap.put(expr.id(), reference);
     Preconditions.checkState(
         oldReference == null || oldReference.equals(reference),
