@@ -31,6 +31,7 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
+import com.google.testing.junit.runner.util.TestPropertyExporter;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelEnvironment;
 import dev.cel.bundle.CelEnvironment.ExtensionConfig;
@@ -65,6 +66,16 @@ public final class TestRunnerLibrary {
   TestRunnerLibrary() {}
 
   private static final Logger logger = Logger.getLogger(TestRunnerLibrary.class.getName());
+
+  private static final String ATTR_CEL_EXPR = "Cel Expr";
+  private static final String ATTR_CEL_COVERAGE = "Cel Coverage";
+  private static final String ATTR_AST_NODE_COVERAGE = "Ast Node Coverage";
+  private static final String ATTR_INTERESTING_UNENCOUNTERED_NODES =
+      "Interesting Unencountered Nodes";
+  private static final String ATTR_AST_BRANCH_COVERAGE = "Ast Branch Coverage";
+  private static final String ATTR_INTERESTING_UNENCOUNTERED_BRANCH_PATHS =
+      "Interesting Unencountered Branch Paths";
+  private static final String ATTR_CEL_TEST_COVERAGE_GRAPH_URL = "Cel Test Coverage Graph URL";
 
   /**
    * Run the assertions for a given raw/checked expression test case.
@@ -144,6 +155,15 @@ public final class TestRunnerLibrary {
       celCoverageIndex.init(ast);
     }
     evaluate(ast, testCase, celTestContext, celCoverageIndex);
+
+    // For programmatic tests, if coverage is not enabled via the build macro, update the Sponge
+    // properties with the coverage report.
+    // This flag does not exist when the test is run via direct invocation of {@link
+    // TestRunnerLibrary#runTest}
+    String isCoverageEnabled = System.getProperty("is_coverage_enabled");
+    if (isCoverageEnabled == null && celCoverageIndex != null) {
+      updateSpongeProperties(celCoverageIndex.generateCoverageReport());
+    }
   }
 
   private static CelAbstractSyntaxTree readAstFromCheckedExpression(
@@ -402,5 +422,48 @@ public final class TestRunnerLibrary {
       return fromValue((Value) value);
     }
     return value;
+  }
+
+  /**
+   * Updates bazel/blaze test properties with the provided coverage report.
+   *
+   * <p>This method is called when {@link TestRunnerLibrary#runTest} is invoked directly to export
+   * coverage data.
+   */
+  private static void updateSpongeProperties(CelCoverageIndex.CoverageReport report) {
+    TestPropertyExporter exporter = TestPropertyExporter.INSTANCE;
+    if (report.nodes() == 0) {
+      exporter.exportProperty(ATTR_CEL_COVERAGE, "No coverage stats found");
+    } else {
+      // CEL expression
+      exporter.exportProperty(ATTR_CEL_EXPR, report.celExpression());
+      // Node coverage
+      double nodeCoverage = (double) report.coveredNodes() / (double) report.nodes() * 100.0;
+      String nodeCoverageString =
+          String.format(
+              "%.2f%% (%d out of %d nodes covered)",
+              nodeCoverage, report.coveredNodes(), report.nodes());
+      exporter.exportProperty(ATTR_AST_NODE_COVERAGE, nodeCoverageString);
+      if (!report.unencounteredNodes().isEmpty()) {
+        exporter.exportProperty(
+            ATTR_INTERESTING_UNENCOUNTERED_NODES, String.join("\n", report.unencounteredNodes()));
+      }
+      // Branch coverage
+      double branchCoverage = 0.0;
+      if (report.branches() > 0) {
+        branchCoverage =
+            (double) report.coveredBooleanOutcomes() / (double) report.branches() * 100.0;
+      }
+      String branchCoverageString =
+          String.format(
+              "%.2f%% (%d out of %d branch outcomes covered)",
+              branchCoverage, report.coveredBooleanOutcomes(), report.branches());
+      exporter.exportProperty(ATTR_AST_BRANCH_COVERAGE, branchCoverageString);
+      if (!report.unencounteredBranches().isEmpty()) {
+        exporter.exportProperty(
+            ATTR_INTERESTING_UNENCOUNTERED_BRANCH_PATHS,
+            String.join("\n", report.unencounteredBranches()));
+      }
+    }
   }
 }
