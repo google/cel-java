@@ -201,7 +201,7 @@ public final class ConstantFoldingOptimizer implements CelAstOptimizer {
         CelNavigableMutableExpr operand = navigableExpr.children().collect(onlyElement());
         return areChildrenArgConstant(operand);
       case COMPREHENSION:
-        return !isNestedComprehension(navigableExpr);
+        return !isNestedComprehension(navigableExpr) && containsFoldableFunctionOnly(navigableExpr);
       default:
         return false;
     }

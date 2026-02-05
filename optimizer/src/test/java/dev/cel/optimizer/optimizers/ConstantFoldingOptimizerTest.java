@@ -47,19 +47,24 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 public class ConstantFoldingOptimizerTest {
   private static final CelOptions CEL_OPTIONS =
-      CelOptions.current()
-          .enableTimestampEpoch(true)
-          .build();
+      CelOptions.current().populateMacroCalls(true).enableTimestampEpoch(true).build();
   private static final Cel CEL =
       CelFactory.standardCelBuilder()
           .addVar("x", SimpleType.DYN)
           .addVar("y", SimpleType.DYN)
           .addVar("list_var", ListType.create(SimpleType.STRING))
           .addVar("map_var", MapType.create(SimpleType.STRING, SimpleType.STRING))
+          .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
           .addFunctionDeclarations(
               CelFunctionDecl.newFunctionDeclaration(
                   "get_true",
-                  CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)))
+                  CelOverloadDecl.newGlobalOverload("get_true_overload", SimpleType.BOOL)),
+              CelFunctionDecl.newFunctionDeclaration(
+                  "get_list",
+                  CelOverloadDecl.newGlobalOverload(
+                      "get_list_overload",
+                      ListType.create(SimpleType.INT),
+                      ListType.create(SimpleType.INT))))
           .addFunctionBindings(
               CelFunctionBinding.from("get_true_overload", ImmutableList.of(), unused -> true))
           .addMessageTypes(TestAllTypes.getDescriptor())
@@ -371,6 +376,8 @@ public class ConstantFoldingOptimizerTest {
   @TestParameters("{source: 'x == 42'}")
   @TestParameters("{source: 'timestamp(100)'}")
   @TestParameters("{source: 'duration(\"1h\")'}")
+  @TestParameters("{source: '[true].exists(x, x == get_true())'}")
+  @TestParameters("{source: 'get_list([1, 2]).map(x, x * 2)'}")
   public void constantFold_noOp(String source) throws Exception {
     CelAbstractSyntaxTree ast = CEL.compile(source).getAst();
 
