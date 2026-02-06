@@ -13,5 +13,5 @@ java_library(
 alias(
     name = "test_policies",
     testonly = True,
-    actual = "//tools/src/test/resources:test_policies",
+    actual = "//tools/src/test/resources/policy:test_policies",
 )
