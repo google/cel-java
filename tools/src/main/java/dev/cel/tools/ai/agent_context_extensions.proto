@@ -1,0 +1,11 @@
+edition = "2024";
+
+package cel.expr.ai;
+
+import "tools/src/main/java/dev/cel/tools/ai/agent_context.proto";
+
+// Extensions for the Agent-related policy protos.
+extend AgentContext {
+  repeated ClassificationLabel agent_context_classification_labels = 1000;
+  repeated AgentMessage agent_context_message_history = 1001;
+}

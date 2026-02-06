@@ -47,3 +47,16 @@ java_proto_library(
     name = "agent_context_java_proto",
     deps = [":agent_context_proto"],
 )
+
+proto_library(
+    name = "agent_context_extensions_proto",
+    srcs = ["agent_context_extensions.proto"],
+    deps = [
+        ":agent_context_proto",
+    ],
+)
+
+java_proto_library(
+    name = "agent_context_extensions_java_proto",
+    deps = [":agent_context_extensions_proto"],
+)

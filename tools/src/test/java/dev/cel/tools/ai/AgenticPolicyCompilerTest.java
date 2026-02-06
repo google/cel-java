@@ -223,8 +223,8 @@ public class AgenticPolicyCompilerTest {
 
   @Test
   public void runAgenticPolicyTestCases(@TestParameter AgenticPolicyTestCase testCase) throws Exception {
-    CelAbstractSyntaxTree compiledPolicy = compilePolicy(testCase.policyFilePath);
-    PolicyTestSuite testSuite = PolicyTestSuiteHelper.readTestSuite(testCase.policyTestCaseFilePath);
+    CelAbstractSyntaxTree compiledPolicy = compilePolicy("policy/" + testCase.policyFilePath);
+    PolicyTestSuite testSuite = PolicyTestSuiteHelper.readTestSuite("policy/" + testCase.policyTestCaseFilePath);
     runTests(CEL, compiledPolicy, testSuite);
   }
 
