@@ -14,15 +14,14 @@
 
 package dev.cel.common.types;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
@@ -34,6 +33,7 @@ import com.google.protobuf.Descriptors.FileDescriptor;
 import dev.cel.common.CelDescriptorUtil;
 import dev.cel.common.CelDescriptors;
 import dev.cel.common.internal.FileDescriptorSetConverter;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,28 +68,53 @@ public final class ProtoMessageTypeProvider implements CelTypeProvider {
           .buildOrThrow();
 
   private final ImmutableMap<String, CelType> allTypes;
+  private final boolean allowJsonFieldNames;
 
-  public ProtoMessageTypeProvider() {
-    this(CelDescriptors.builder().build());
+  /** Returns a new builder for {@link ProtoMessageTypeProvider}. */
+  public static Builder newBuilder() {
+    return new Builder();
   }
 
+  /**
+   * @deprecated Use {@link #newBuilder()} instead.
+   */
+  @Deprecated
+  public ProtoMessageTypeProvider() {
+    this(CelDescriptors.builder().build(), false);
+  }
+
+  /**
+   * @deprecated Use {@link #newBuilder()} instead.
+   */
+  @Deprecated
   public ProtoMessageTypeProvider(FileDescriptorSet descriptorSet) {
     this(
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-            FileDescriptorSetConverter.convert(descriptorSet)));
+            FileDescriptorSetConverter.convert(descriptorSet)),
+        false);
   }
 
+  /**
+   * @deprecated Use {@link #newBuilder()} instead.
+   */
+  @Deprecated
   public ProtoMessageTypeProvider(Iterable<Descriptor> descriptors) {
     this(
         CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-            ImmutableSet.copyOf(Iterables.transform(descriptors, Descriptor::getFile))));
+            ImmutableSet.copyOf(Iterables.transform(descriptors, Descriptor::getFile))),
+        false);
   }
 
+  /**
+   * @deprecated Use {@link #newBuilder()} instead.
+   */
+  @Deprecated
   public ProtoMessageTypeProvider(ImmutableSet<FileDescriptor> fileDescriptors) {
-    this(CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileDescriptors));
+    this(CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(fileDescriptors), false);
   }
 
-  public ProtoMessageTypeProvider(CelDescriptors celDescriptors) {
+  private ProtoMessageTypeProvider(CelDescriptors celDescriptors, boolean allowJsonFieldNames) {
+    this.allowJsonFieldNames = allowJsonFieldNames;
     this.allTypes =
         ImmutableMap.<String, CelType>builder()
             .putAll(createEnumTypes(celDescriptors.enumDescriptors()))
@@ -120,8 +145,18 @@ public final class ProtoMessageTypeProvider implements CelTypeProvider {
       if (protoMessageTypes.containsKey(descriptor.getFullName())) {
         continue;
       }
-      ImmutableList<String> fieldNames =
-          descriptor.getFields().stream().map(FieldDescriptor::getName).collect(toImmutableList());
+
+      ImmutableSet.Builder<String> fieldNamesBuilder = ImmutableSet.builder();
+      ImmutableSet.Builder<String> jsonNamesBuilder = ImmutableSet.builder();
+      for (FieldDescriptor fd : descriptor.getFields()) {
+        if (allowJsonFieldNames) {
+          fieldNamesBuilder.add(fd.getJsonName());
+          jsonNamesBuilder.add(fd.getJsonName());
+        } else {
+          fieldNamesBuilder.add(fd.getName());
+        }
+      }
+      ImmutableSet<String> jsonNames = jsonNamesBuilder.build();
 
       Map<String, FieldDescriptor> extensionFields = new HashMap<>();
       for (FieldDescriptor extension : extensionMap.get(descriptor.getFullName())) {
@@ -133,9 +168,10 @@ public final class ProtoMessageTypeProvider implements CelTypeProvider {
           descriptor.getFullName(),
           ProtoMessageType.create(
               descriptor.getFullName(),
-              ImmutableSet.copyOf(fieldNames),
+              fieldNamesBuilder.build(),
               new FieldResolver(this, descriptor)::findField,
-              new FieldResolver(this, extensions)::findField));
+              new FieldResolver(this, extensions)::findField,
+              jsonNames::contains));
     }
     return ImmutableMap.copyOf(protoMessageTypes);
   }
@@ -158,19 +194,42 @@ public final class ProtoMessageTypeProvider implements CelTypeProvider {
   }
 
   private static class FieldResolver {
-    private final CelTypeProvider celTypeProvider;
+    private final ProtoMessageTypeProvider protoMessageTypeProvider;
     private final ImmutableMap<String, FieldDescriptor> fields;
 
-    private FieldResolver(CelTypeProvider celTypeProvider, Descriptor descriptor) {
-      this(
-          celTypeProvider,
-          descriptor.getFields().stream()
-              .collect(toImmutableMap(FieldDescriptor::getName, Function.identity())));
+    private static ImmutableMap<String, FieldDescriptor> collectJsonFieldDescriptorMap(
+        Descriptor descriptor) {
+      ImmutableMap.Builder<String, FieldDescriptor> builder = ImmutableMap.builder();
+      for (FieldDescriptor fd : descriptor.getFields()) {
+        if (!fd.getJsonName().isEmpty()) {
+          builder.put(fd.getJsonName(), fd);
+        } else {
+          builder.put(fd.getName(), fd);
+        }
+      }
+
+      return builder.buildOrThrow();
+    }
+
+    private static ImmutableMap<String, FieldDescriptor> collectFieldDescriptorMap(
+        Descriptor descriptor) {
+      return descriptor.getFields().stream()
+          .collect(toImmutableMap(FieldDescriptor::getName, Function.identity()));
     }
 
     private FieldResolver(
-        CelTypeProvider celTypeProvider, ImmutableMap<String, FieldDescriptor> fields) {
-      this.celTypeProvider = celTypeProvider;
+        ProtoMessageTypeProvider protoMessageTypeProvider, Descriptor descriptor) {
+      this(
+          protoMessageTypeProvider,
+          protoMessageTypeProvider.allowJsonFieldNames
+              ? collectJsonFieldDescriptorMap(descriptor)
+              : collectFieldDescriptorMap(descriptor));
+    }
+
+    private FieldResolver(
+        ProtoMessageTypeProvider protoMessageTypeProvider,
+        ImmutableMap<String, FieldDescriptor> fields) {
+      this.protoMessageTypeProvider = protoMessageTypeProvider;
       this.fields = fields;
     }
 
@@ -203,11 +262,11 @@ public final class ProtoMessageTypeProvider implements CelTypeProvider {
           String messageName = descriptor.getFullName();
           fieldType =
               CelTypes.getWellKnownCelType(messageName)
-                  .orElse(celTypeProvider.findType(descriptor.getFullName()).orElse(null));
+                  .orElse(protoMessageTypeProvider.findType(descriptor.getFullName()).orElse(null));
           break;
         case ENUM:
           EnumDescriptor enumDescriptor = fieldDescriptor.getEnumType();
-          fieldType = celTypeProvider.findType(enumDescriptor.getFullName()).orElse(null);
+          fieldType = protoMessageTypeProvider.findType(enumDescriptor.getFullName()).orElse(null);
           break;
         default:
           fieldType = PROTO_TYPE_TO_CEL_TYPE.get(fieldDescriptor.getType());
@@ -221,5 +280,84 @@ public final class ProtoMessageTypeProvider implements CelTypeProvider {
       }
       return Optional.of(fieldType);
     }
+  }
+
+  /** Builder for {@link ProtoMessageTypeProvider}. */
+  public static final class Builder {
+    private final ImmutableSet.Builder<FileDescriptor> fileDescriptors = ImmutableSet.builder();
+    private boolean allowJsonFieldNames;
+    private boolean resolveTypeDependencies;
+    private CelDescriptors celDescriptors;
+
+    /** Adds a {@link FileDescriptor} to the provider. */
+    @CanIgnoreReturnValue
+    public Builder addFileDescriptors(FileDescriptor... fileDescriptors) {
+      return addFileDescriptors(Arrays.asList(fileDescriptors));
+    }
+
+    /** Adds a collection of {@link FileDescriptor}s to the provider. */
+    @CanIgnoreReturnValue
+    public Builder addFileDescriptors(Iterable<FileDescriptor> fileDescriptors) {
+      this.fileDescriptors.addAll(fileDescriptors);
+      return this;
+    }
+
+    /** Adds a collection of {@link Descriptor}s. The parent file of each descriptor is added. */
+    @CanIgnoreReturnValue
+    public Builder addDescriptors(Iterable<Descriptor> descriptors) {
+      this.fileDescriptors.addAll(Iterables.transform(descriptors, Descriptor::getFile));
+      return this;
+    }
+
+    /**
+     * Use the `json_name` field option on a protobuf message as the name of the field.
+     *
+     * <p>If enabled, the type checker will only accept the `json_name` and will no longer recognize
+     * the original protobuf field name. This is to avoid ambiguity between the two names.
+     */
+    @CanIgnoreReturnValue
+    public Builder setAllowJsonFieldNames(boolean allowJsonFieldNames) {
+      this.allowJsonFieldNames = allowJsonFieldNames;
+      return this;
+    }
+
+    /**
+     * If true, all transitive dependencies of the added {@link FileDescriptor}s will be resolved
+     * and their types will be made available to the type provider. By default, this is disabled.
+     */
+    @CanIgnoreReturnValue
+    public Builder setResolveTypeDependencies(boolean resolveTypeDependencies) {
+      this.resolveTypeDependencies = resolveTypeDependencies;
+      return this;
+    }
+
+    /**
+     * Sets the CEL descriptors. Note this cannot be used in conjunction with other descriptor
+     * adders such as {@link #addDescriptors}.
+     */
+    @CanIgnoreReturnValue
+    public Builder setCelDescriptors(CelDescriptors celDescriptors) {
+      this.celDescriptors = celDescriptors;
+      return this;
+    }
+
+    /** Builds the {@link ProtoMessageTypeProvider}. */
+    public ProtoMessageTypeProvider build() {
+      ImmutableSet<FileDescriptor> fds = fileDescriptors.build();
+      if (celDescriptors != null && !fds.isEmpty()) {
+        throw new IllegalArgumentException(
+            "Both CelDescriptors and FileDescriptors cannot be set at the same time.");
+      }
+
+      if (celDescriptors == null) {
+        celDescriptors =
+            CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
+                fileDescriptors.build(), resolveTypeDependencies);
+      }
+
+      return new ProtoMessageTypeProvider(celDescriptors, allowJsonFieldNames);
+    }
+
+    private Builder() {}
   }
 }

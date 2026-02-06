@@ -46,7 +46,8 @@ public final class ProtoMessageTypeTest {
             "my.package.TestMessage",
             FIELD_MAP.keySet(),
             (field) -> Optional.ofNullable(FIELD_MAP.get(field)),
-            (extension) -> Optional.ofNullable(EXTENSION_MAP.get(extension)));
+            (extension) -> Optional.ofNullable(EXTENSION_MAP.get(extension)),
+            (unused) -> false);
   }
 
   @Test

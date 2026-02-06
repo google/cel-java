@@ -83,6 +83,8 @@ public abstract class CelOptions {
 
   public abstract boolean enableNamespacedDeclarations();
 
+  public abstract boolean enableJsonFieldNames();
+
   // Evaluation related options
 
   public abstract boolean disableCelStandardEquality();
@@ -150,6 +152,7 @@ public abstract class CelOptions {
         .enableTimestampEpoch(false)
         .enableHeterogeneousNumericComparisons(false)
         .enableNamespacedDeclarations(true)
+        .enableJsonFieldNames(false)
         // Evaluation options
         .disableCelStandardEquality(true)
         .evaluateCanonicalTypesToNativeValues(false)
@@ -528,6 +531,16 @@ public abstract class CelOptions {
      * implementations (C++ and Go).
      */
     public abstract Builder maxRegexProgramSize(int value);
+
+    /**
+     * Use the `json_name` field option on a protobuf message as the name of the field.
+     *
+     * <p>If enabled, the compiler will only accept the `json_name` and no longer recognize the
+     * original protobuf field name. Use with caution as this may break existing expressions during
+     * compilation. The runtime continues to support both names for maintaining backwards
+     * compatibility.
+     */
+    public abstract Builder enableJsonFieldNames(boolean value);
 
     public abstract CelOptions build();
   }

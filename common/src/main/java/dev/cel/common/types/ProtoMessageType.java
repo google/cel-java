@@ -29,14 +29,17 @@ import java.util.Optional;
 public final class ProtoMessageType extends StructType {
 
   private final StructType.FieldResolver extensionResolver;
+  private final JsonNameResolver jsonNameResolver;
 
   ProtoMessageType(
       String name,
       ImmutableSet<String> fieldNames,
       StructType.FieldResolver fieldResolver,
-      StructType.FieldResolver extensionResolver) {
+      StructType.FieldResolver extensionResolver,
+      JsonNameResolver jsonNameResolver) {
     super(name, fieldNames, fieldResolver);
     this.extensionResolver = extensionResolver;
+    this.jsonNameResolver = jsonNameResolver;
   }
 
   /** Find an {@code Extension} by its fully-qualified {@code extensionName}. */
@@ -46,20 +49,35 @@ public final class ProtoMessageType extends StructType {
         .map(type -> Extension.of(extensionName, type, this));
   }
 
+  /** Returns true if the field name is a json name. */
+  public boolean isJsonName(String fieldName) {
+    return jsonNameResolver.isJsonName(fieldName);
+  }
+
   /**
    * Create a new instance of the {@code ProtoMessageType} using the {@code visibleFields} set as a
    * mask of the fields from the backing proto.
    */
   public ProtoMessageType withVisibleFields(ImmutableSet<String> visibleFields) {
-    return new ProtoMessageType(name, visibleFields, fieldResolver, extensionResolver);
+    return new ProtoMessageType(
+        name, visibleFields, fieldResolver, extensionResolver, jsonNameResolver);
   }
 
   public static ProtoMessageType create(
       String name,
       ImmutableSet<String> fieldNames,
       FieldResolver fieldResolver,
-      FieldResolver extensionResolver) {
-    return new ProtoMessageType(name, fieldNames, fieldResolver, extensionResolver);
+      FieldResolver extensionResolver,
+      JsonNameResolver jsonNameResolver) {
+    return new ProtoMessageType(
+        name, fieldNames, fieldResolver, extensionResolver, jsonNameResolver);
+  }
+
+  /** Functional interface for resolving whether a field name is a json name. */
+  @FunctionalInterface
+  @Immutable
+  public interface JsonNameResolver {
+    boolean isJsonName(String fieldName);
   }
 
   /** {@code Extension} contains the name, type, and target message type of the extension. */

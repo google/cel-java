@@ -84,6 +84,7 @@ java_library(
         "//common/internal:proto_time_utils",
         "//common/resources/testdata/proto3:standalone_global_enum_java_proto",
         "//common/types",
+        "//common/types:message_type_provider",
         "//common/types:type_providers",
         "//common/values:cel_byte_string",
         "//extensions:optional_library",

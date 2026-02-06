@@ -71,6 +71,7 @@ import dev.cel.common.CelErrorCode;
 import dev.cel.common.CelIssue;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
+import dev.cel.common.CelSource.Extension;
 import dev.cel.common.CelSourceLocation;
 import dev.cel.common.CelValidationException;
 import dev.cel.common.CelValidationResult;
@@ -112,6 +113,7 @@ import dev.cel.runtime.CelRuntimeLegacyImpl;
 import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.CelVariableResolver;
 import dev.cel.runtime.UnknownContext;
+import dev.cel.testing.testdata.SingleFileProto.SingleFile;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -743,7 +745,7 @@ public final class CelImplTest {
                 CelFunctionBinding.from(
                     "throws",
                     ImmutableList.of(),
-                    (args) -> {
+                    (unused) -> {
                       throw new CelEvaluationException("this method always throws");
                     }))
             .setResultType(SimpleType.BOOL)
@@ -771,7 +773,7 @@ public final class CelImplTest {
                 CelFunctionBinding.from(
                     "throws",
                     ImmutableList.of(),
-                    (args) -> {
+                    (unused) -> {
                       throw CelEvaluationExceptionBuilder.newBuilder("this method always throws")
                           .setCause(new RuntimeException("reason"))
                           .build();
@@ -1143,7 +1145,7 @@ public final class CelImplTest {
             program.eval(
                 (name) -> name.equals("variable") ? Optional.of("hello") : Optional.empty()))
         .isEqualTo(true);
-    assertThat(program.eval((name) -> Optional.of(""))).isEqualTo(false);
+    assertThat(program.eval((unused) -> Optional.of(""))).isEqualTo(false);
   }
 
   @Test
@@ -2191,6 +2193,83 @@ public final class CelImplTest {
     assertThat(newCheckerBuilder).isNotEqualTo(celImpl.toCheckerBuilder());
     assertThat(newCompilerBuilder).isNotEqualTo(celImpl.toCompilerBuilder());
     assertThat(newRuntimeBuilder).isNotEqualTo(celImpl.toRuntimeBuilder());
+  }
+
+  @Test
+  public void eval_withJsonFieldName() throws Exception {
+    Cel cel =
+        standardCelBuilderWithMacros()
+            .addVar("file", StructTypeReference.create(SingleFile.getDescriptor().getFullName()))
+            .addMessageTypes(SingleFile.getDescriptor())
+            .setOptions(CelOptions.current().enableJsonFieldNames(true).build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("file.camelCased").getAst();
+
+    Object result =
+        cel.createProgram(ast)
+            .eval(ImmutableMap.of("file", SingleFile.newBuilder().setSnakeCased("foo").build()));
+
+    assertThat(result).isEqualTo("foo");
+  }
+
+  @Test
+  public void eval_withJsonFieldName_runtimeOptionDisabled_throws() throws Exception {
+    CelCompiler celCompiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addVar("file", StructTypeReference.create(SingleFile.getDescriptor().getFullName()))
+            .addMessageTypes(SingleFile.getDescriptor())
+            .setOptions(CelOptions.current().enableJsonFieldNames(true).build())
+            .build();
+    CelRuntime celRuntime =
+        CelRuntimeFactory.standardCelRuntimeBuilder()
+            .addMessageTypes(SingleFile.getDescriptor())
+            .setOptions(CelOptions.current().enableJsonFieldNames(false).build())
+            .build();
+    CelAbstractSyntaxTree ast = celCompiler.compile("file.camelCased").getAst();
+
+    CelEvaluationException e =
+        assertThrows(
+            CelEvaluationException.class,
+            () ->
+                celRuntime
+                    .createProgram(ast)
+                    .eval(ImmutableMap.of("file", SingleFile.getDefaultInstance())));
+    assertThat(e)
+        .hasMessageThat()
+        .contains(
+            "field 'camelCased' is not declared in message 'dev.cel.testing.testdata.SingleFile");
+  }
+
+  @Test
+  public void compile_withJsonFieldName_astTagged() throws Exception {
+    Cel cel =
+        standardCelBuilderWithMacros()
+            .addVar("file", StructTypeReference.create(SingleFile.getDescriptor().getFullName()))
+            .addMessageTypes(SingleFile.getDescriptor())
+            .setOptions(CelOptions.current().enableJsonFieldNames(true).build())
+            .build();
+    CelAbstractSyntaxTree ast = cel.compile("file.camelCased").getAst();
+
+    assertThat(ast.getSource().getExtensions())
+        .contains(
+            Extension.create(
+                "json_name", Extension.Version.of(1L, 1L), Extension.Component.COMPONENT_RUNTIME));
+  }
+
+  @Test
+  public void compile_withJsonFieldName_protoFieldNameComparison_throws() throws Exception {
+    Cel cel =
+        standardCelBuilderWithMacros()
+            .addVar("file", StructTypeReference.create(SingleFile.getDescriptor().getFullName()))
+            .addMessageTypes(SingleFile.getDescriptor())
+            .setOptions(CelOptions.current().enableJsonFieldNames(true).build())
+            .build();
+
+    CelValidationException e =
+        assertThrows(
+            CelValidationException.class,
+            () -> cel.compile("file.camelCased == file.snake_cased").getAst());
+    assertThat(e).hasMessageThat().contains("undefined field 'snake_cased'");
   }
 
   private static TypeProvider aliasingProvider(ImmutableMap<String, Type> typeAliases) {

@@ -15,6 +15,7 @@
 package dev.cel.runtime;
 
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.common.CelOptions;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.testing.BaseInterpreterTest;
 import org.junit.runner.RunWith;
@@ -23,15 +24,14 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 public class PlannerInterpreterTest extends BaseInterpreterTest {
 
-  public PlannerInterpreterTest() {
-    super(
-        CelRuntimeImpl.newBuilder()
-            .addLateBoundFunctions("record")
-            // CEL-Internal-2
-            .setOptions(newBaseCelOptions())
-            .addLibraries(CelExtensions.optional())
-            .addFileTypes(TEST_FILE_DESCRIPTORS)
-            .build());
+  @Override
+  protected CelRuntimeBuilder newBaseRuntimeBuilder(CelOptions celOptions) {
+    return CelRuntimeImpl.newBuilder()
+        .addLateBoundFunctions("record")
+        // CEL-Internal-2
+        .setOptions(celOptions)
+        .addLibraries(CelExtensions.optional())
+        .addFileTypes(TEST_FILE_DESCRIPTORS);
   }
 
   @Override
@@ -55,6 +55,12 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
   @Override
   public void optional_errors() {
     // TODO: Fix error message for function dispatch failures
+    skipBaselineVerification();
+  }
+
+  @Override
+  public void jsonFieldNames() throws Exception {
+    // TODO: Support JSON field names for planner
     skipBaselineVerification();
   }
 }

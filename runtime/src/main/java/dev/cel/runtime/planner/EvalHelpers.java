@@ -47,7 +47,7 @@ final class EvalHelpers {
     } catch (Exception e) {
       // Wrap generic exceptions with location
       throw new LocalizedEvaluationException(
-          e.getCause(), CelErrorCode.INTERNAL_ERROR, interpretable.exprId());
+          e, CelErrorCode.INTERNAL_ERROR, interpretable.exprId());
     }
   }
 

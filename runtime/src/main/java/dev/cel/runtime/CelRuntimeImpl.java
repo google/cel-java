@@ -437,9 +437,16 @@ abstract class CelRuntimeImpl implements CelRuntime {
         }
       }
 
+      CelTypeProvider messageTypeProvider =
+          ProtoMessageTypeProvider.newBuilder()
+              .setCelDescriptors(celDescriptors)
+              .setAllowJsonFieldNames(options().enableJsonFieldNames())
+              .setResolveTypeDependencies(options().resolveTypeDependencies())
+              .build();
+
       CelTypeProvider combinedTypeProvider =
           new CelTypeProvider.CombinedCelTypeProvider(
-              new ProtoMessageTypeProvider(celDescriptors), DefaultTypeProvider.getInstance());
+              messageTypeProvider, DefaultTypeProvider.getInstance());
       if (typeProvider() != null) {
         combinedTypeProvider =
             new CelTypeProvider.CombinedCelTypeProvider(combinedTypeProvider, typeProvider());

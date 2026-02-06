@@ -15,6 +15,7 @@
 package dev.cel.runtime;
 
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.common.CelOptions;
 import dev.cel.common.values.ProtoMessageLiteValueProvider;
 import dev.cel.expr.conformance.proto3.TestAllTypesCelDescriptor;
 import dev.cel.extensions.CelOptionalLibrary;
@@ -27,16 +28,16 @@ import org.junit.runner.RunWith;
  */
 @RunWith(TestParameterInjector.class)
 public class CelLiteInterpreterTest extends BaseInterpreterTest {
-  public CelLiteInterpreterTest() {
-    super(
-        CelRuntimeFactory.standardCelRuntimeBuilder()
-            .setValueProvider(
-                ProtoMessageLiteValueProvider.newInstance(
-                    dev.cel.expr.conformance.proto2.TestAllTypesCelDescriptor.getDescriptor(),
-                    TestAllTypesCelDescriptor.getDescriptor()))
-            .addLibraries(CelOptionalLibrary.INSTANCE)
-            .setOptions(newBaseCelOptions().toBuilder().enableCelValue(true).build())
-            .build());
+
+  @Override
+  protected CelRuntimeBuilder newBaseRuntimeBuilder(CelOptions celOptions) {
+    return CelRuntimeFactory.standardCelRuntimeBuilder()
+        .setValueProvider(
+            ProtoMessageLiteValueProvider.newInstance(
+                dev.cel.expr.conformance.proto2.TestAllTypesCelDescriptor.getDescriptor(),
+                TestAllTypesCelDescriptor.getDescriptor()))
+        .addLibraries(CelOptionalLibrary.INSTANCE)
+        .setOptions(celOptions.toBuilder().enableCelValue(true).build());
   }
 
   @Override
@@ -95,6 +96,12 @@ public class CelLiteInterpreterTest extends BaseInterpreterTest {
 
   @Override
   public void messages_error() {
+    skipBaselineVerification();
+  }
+
+  @Override
+  public void jsonFieldNames() {
+    // json_name field option is not yet supported in lite runtime
     skipBaselineVerification();
   }
 }

@@ -456,9 +456,12 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
       }
 
       CelTypeProvider messageTypeProvider =
-          new ProtoMessageTypeProvider(
-              CelDescriptorUtil.getAllDescriptorsFromFileDescriptor(
-                  fileTypeSet, celOptions.resolveTypeDependencies()));
+          ProtoMessageTypeProvider.newBuilder()
+              .setAllowJsonFieldNames(celOptions.enableJsonFieldNames())
+              .setResolveTypeDependencies(celOptions.resolveTypeDependencies())
+              .addFileDescriptors(fileTypeSet)
+              .build();
+
       if (celTypeProvider != null && fileTypeSet.isEmpty()) {
         messageTypeProvider = celTypeProvider;
       } else if (celTypeProvider != null) {

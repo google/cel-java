@@ -65,6 +65,7 @@ import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.OpaqueType;
+import dev.cel.common.types.ProtoMessageTypeProvider;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeParamType;
@@ -77,6 +78,7 @@ import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelLateFunctionBindings;
 import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeFactory;
 import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.CelVariableResolver;
@@ -114,36 +116,43 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
           .comprehensionMaxIterations(1_000)
           .build();
   private CelRuntime celRuntime;
+  protected CelOptions celOptions;
 
   protected BaseInterpreterTest() {
-    this(newRuntime(BASE_CEL_OPTIONS));
-  }
-
-  protected BaseInterpreterTest(CelOptions celOptions) {
-    this(newRuntime(celOptions));
+    this.celOptions = BASE_CEL_OPTIONS;
+    this.celRuntime = newBaseRuntimeBuilder(celOptions).build();
   }
 
   protected BaseInterpreterTest(CelRuntime celRuntime) {
     this.celRuntime = celRuntime;
+    this.celOptions = BASE_CEL_OPTIONS;
   }
 
-  private static CelRuntime newRuntime(CelOptions celOptions) {
+  protected CelRuntimeBuilder newBaseRuntimeBuilder(CelOptions celOptions) {
     return CelRuntimeFactory.standardCelRuntimeBuilder()
         .addLibraries(CelOptionalLibrary.INSTANCE)
         .addFileTypes(TEST_FILE_DESCRIPTORS)
-        .setOptions(celOptions)
-        .build();
+        .setOptions(celOptions);
   }
 
-  protected static CelOptions newBaseCelOptions() {
-    return BASE_CEL_OPTIONS;
+  @Override
+  protected CelAbstractSyntaxTree prepareTest(List<FileDescriptor> descriptors) {
+    return prepareTest(
+        ProtoMessageTypeProvider.newBuilder()
+            .addFileDescriptors(descriptors)
+            .setAllowJsonFieldNames(celOptions.enableJsonFieldNames())
+            .build());
   }
 
   @Override
   protected void prepareCompiler(CelTypeProvider typeProvider) {
     super.prepareCompiler(typeProvider);
     this.celCompiler =
-        celCompiler.toCompilerBuilder().addLibraries(CelOptionalLibrary.INSTANCE).build();
+        celCompiler
+            .toCompilerBuilder()
+            .addLibraries(CelOptionalLibrary.INSTANCE)
+            .setOptions(celOptions)
+            .build();
   }
 
   private CelAbstractSyntaxTree compileTestCase() {
@@ -2068,7 +2077,8 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   @Test
   public void longComprehension() {
     ImmutableList<Long> l = LongStream.range(0L, 1000L).boxed().collect(toImmutableList());
-    addFunctionBinding(CelFunctionBinding.from("constantLongList", ImmutableList.of(), unused -> l));
+    addFunctionBinding(
+        CelFunctionBinding.from("constantLongList", ImmutableList.of(), unused -> l));
 
     // Comprehension over compile-time constant long list.
     declareFunction(
@@ -2481,5 +2491,23 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     } catch (IOException e) {
       throw new RuntimeException("Error loading TestAllTypes descriptor", e);
     }
+  }
+
+  @Test
+  public void jsonFieldNames() throws Exception {
+    this.celOptions = celOptions.toBuilder().enableJsonFieldNames(true).build();
+    this.celRuntime = newBaseRuntimeBuilder(celOptions).build();
+
+    TestAllTypes message = TestAllTypes.newBuilder().setSingleInt32(42).build();
+    declareVariable("x", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
+
+    source = "x.singleInt32 == 42";
+    assertThat(runTest(ImmutableMap.of("x", message))).isEqualTo(true);
+
+    source = "TestAllTypes{singleInt32: 42}.singleInt32 == 42";
+    container = CelContainer.ofName(TestAllTypes.getDescriptor().getFile().getPackage());
+    assertThat(runTest()).isEqualTo(true);
+
+    skipBaselineVerification();
   }
 }

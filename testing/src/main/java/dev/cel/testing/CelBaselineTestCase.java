@@ -20,7 +20,6 @@ import static dev.cel.common.CelFunctionDecl.newFunctionDeclaration;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
-import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FileDescriptor;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
@@ -70,15 +69,11 @@ public abstract class CelBaselineTestCase extends BaselineTestCase {
     return prepareTest(new ProtoMessageTypeProvider(ImmutableSet.copyOf(descriptors)));
   }
 
-  protected CelAbstractSyntaxTree prepareTest(Iterable<Descriptor> descriptors) {
-    return prepareTest(new ProtoMessageTypeProvider(descriptors));
-  }
-
   protected CelAbstractSyntaxTree prepareTest(FileDescriptorSet descriptorSet) {
     return prepareTest(new ProtoMessageTypeProvider(descriptorSet));
   }
 
-  private CelAbstractSyntaxTree prepareTest(CelTypeProvider typeProvider) {
+  protected CelAbstractSyntaxTree prepareTest(CelTypeProvider typeProvider) {
     prepareCompiler(typeProvider);
 
     CelAbstractSyntaxTree ast;
@@ -186,9 +181,7 @@ public abstract class CelBaselineTestCase extends BaselineTestCase {
    * Declares a function with one or more overloads
    *
    * @param functionName Function name
-   * @param overloads Function overloads in protobuf representation. If {@link #declareWithCelTypes}
-   *     is set, the protobuf overloads are internally converted into java native versions {@link
-   *     CelOverloadDecl}.
+   * @param overloads Function overloads in protobuf representation.
    */
   protected void declareFunction(String functionName, CelOverloadDecl... overloads) {
     this.functionDecls.add(newFunctionDeclaration(functionName, overloads));

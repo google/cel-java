@@ -32,6 +32,7 @@ import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelMutableAst;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelProtoAbstractSyntaxTree;
+import dev.cel.common.CelSource;
 import dev.cel.common.Operator;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.ast.CelConstant;
@@ -52,12 +53,14 @@ import dev.cel.common.types.CelTypes;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
+import dev.cel.common.types.ProtoMessageType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeType;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -70,6 +73,11 @@ import org.jspecify.annotations.Nullable;
 @Internal
 @Deprecated
 public final class ExprChecker {
+  private static final CelSource.Extension JSON_NAME_EXTENSION =
+      CelSource.Extension.create(
+          "json_name",
+          CelSource.Extension.Version.of(1, 1),
+          CelSource.Extension.Component.COMPONENT_RUNTIME);
 
   /**
    * Deprecated type-check API.
@@ -152,7 +160,10 @@ public final class ExprChecker {
 
     CelAbstractSyntaxTree parsedAst = mutableAst.toParsedAst(/* retainSourcePositions= */ true);
     return CelAbstractSyntaxTree.newCheckedAst(
-        parsedAst.getExpr(), parsedAst.getSource(), env.getRefMap(), typeMap);
+        parsedAst.getExpr(),
+        parsedAst.getSource().toBuilder().addAllExtensions(checker.extensions).build(),
+        env.getRefMap(),
+        typeMap);
   }
 
   private final Env env;
@@ -163,6 +174,7 @@ public final class ExprChecker {
   private final boolean compileTimeOverloadResolution;
   private final boolean homogeneousLiterals;
   private final boolean namespacedDeclarations;
+  private final Set<CelSource.Extension> extensions;
 
   private ExprChecker(
       Env env,
@@ -180,6 +192,7 @@ public final class ExprChecker {
     this.compileTimeOverloadResolution = compileTimeOverloadResolution;
     this.homogeneousLiterals = homogeneousLiterals;
     this.namespacedDeclarations = namespacedDeclarations;
+    this.extensions = new HashSet<>();
   }
 
   /** Visit the {@code expr} value, routing to overloads based on the kind of expression. */
@@ -370,13 +383,13 @@ public final class ExprChecker {
 
     env.setRef(expr, CelReference.newBuilder().setName(decl.name()).build());
     CelType type = decl.type();
-    if (type.kind() != CelKind.ERROR) {
-      if (type.kind() != CelKind.TYPE) {
+    if (!type.kind().equals(CelKind.ERROR)) {
+      if (!type.kind().equals(CelKind.TYPE)) {
         // expected type of types
         env.reportError(expr.id(), getPosition(expr), "'%s' is not a type", CelTypes.format(type));
       } else {
         messageType = ((TypeType) type).type();
-        if (messageType.kind() != CelKind.STRUCT) {
+        if (!messageType.kind().equals(CelKind.STRUCT)) {
           env.reportError(
               expr.id(),
               getPosition(expr),
@@ -677,14 +690,18 @@ public final class ExprChecker {
     }
 
     if (!Types.isDynOrError(operandType)) {
-      if (operandType.kind() == CelKind.STRUCT) {
+      if (operandType.kind().equals(CelKind.STRUCT)) {
         TypeProvider.FieldType fieldType =
             getFieldType(expr.id(), getPosition(expr), operandType, field);
+        ProtoMessageType protoMessageType = resolveProtoMessageType(operandType);
+        if (protoMessageType != null && protoMessageType.isJsonName(field)) {
+          extensions.add(JSON_NAME_EXTENSION);
+        }
         // Type of the field
         resultType = fieldType.celType();
-      } else if (operandType.kind() == CelKind.MAP) {
+      } else if (operandType.kind().equals(CelKind.MAP)) {
         resultType = ((MapType) operandType).valueType();
-      } else if (operandType.kind() == CelKind.TYPE_PARAM) {
+      } else if (operandType.kind().equals(CelKind.TYPE_PARAM)) {
         // Mark the operand as type DYN to avoid cases where the free type variable might take on
         // an incorrect type if used in multiple locations.
         //
@@ -712,6 +729,33 @@ public final class ExprChecker {
       resultType = OptionalType.create(resultType);
     }
     return resultType;
+  }
+
+  private @Nullable ProtoMessageType resolveProtoMessageType(CelType operandType) {
+    if (operandType instanceof ProtoMessageType) {
+      return (ProtoMessageType) operandType;
+    }
+
+    if (operandType.kind().equals(CelKind.STRUCT)) {
+      // This is either a StructTypeReference or just a Struct. Attempt to search for
+      // ProtoMessageType that may exist in in the type provider.
+      TypeType typeDef =
+          typeProvider
+              .lookupCelType(operandType.name())
+              .filter(t -> t instanceof TypeType)
+              .map(TypeType.class::cast)
+              .orElse(null);
+      if (typeDef == null || typeDef.parameters().size() != 1) {
+        return null;
+      }
+
+      CelType maybeProtoMessageType = typeDef.parameters().get(0);
+      if (maybeProtoMessageType instanceof ProtoMessageType) {
+        return (ProtoMessageType) maybeProtoMessageType;
+      }
+    }
+
+    return null;
   }
 
   private void visitOptionalCall(CelMutableExpr expr, CelMutableCall call) {

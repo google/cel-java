@@ -16,6 +16,7 @@ java_library(
         "//common/types:cel_types",
         "//common/types:message_type_provider",
         "//common/types:type_providers",
+        "//testing/protos:single_file_java_proto",
         "@cel_spec//proto/cel/expr:checked_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",

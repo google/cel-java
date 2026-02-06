@@ -182,6 +182,15 @@ public final class DescriptorMessageProvider implements RuntimeTypeProvider {
       }
     }
 
+    if (fieldDescriptor == null && celOptions.enableJsonFieldNames()) {
+      for (FieldDescriptor fd : descriptor.getFields()) {
+        if (fd.getJsonName().equals(fieldName)) {
+          fieldDescriptor = fd;
+          break;
+        }
+      }
+    }
+
     if (fieldDescriptor == null) {
       throw new IllegalArgumentException(
           String.format(
