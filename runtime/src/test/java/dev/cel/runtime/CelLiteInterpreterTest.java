@@ -37,7 +37,7 @@ public class CelLiteInterpreterTest extends BaseInterpreterTest {
                 dev.cel.expr.conformance.proto2.TestAllTypesCelDescriptor.getDescriptor(),
                 TestAllTypesCelDescriptor.getDescriptor()))
         .addLibraries(CelOptionalLibrary.INSTANCE)
-        .setOptions(celOptions.toBuilder().enableCelValue(true).build());
+        .setOptions(celOptions);
   }
 
   @Override

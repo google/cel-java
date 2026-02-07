@@ -22,6 +22,7 @@ import com.google.api.expr.v1alpha1.Expr;
 import com.google.api.expr.v1alpha1.Type.PrimitiveType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.primitives.UnsignedLong;
 import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
@@ -738,5 +739,16 @@ public class CelRuntimeTest {
     assertThat(e)
         .hasMessageThat()
         .contains("No matching overload for function 'size'. Overload candidates: size_string");
+  }
+
+  @Test
+  public void uintConversion_dynamicDispatch() throws Exception {
+    CelCompiler celCompiler = CelCompilerFactory.standardCelCompilerBuilder().build();
+    CelRuntime celRuntime = CelRuntimeFactory.plannerCelRuntimeBuilder().build();
+    CelAbstractSyntaxTree ast = celCompiler.compile("uint(dyn(1u))").getAst();
+
+    Object result = celRuntime.createProgram(ast).eval();
+
+    assertThat(result).isEqualTo(UnsignedLong.valueOf(1L));
   }
 }
