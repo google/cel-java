@@ -6,9 +6,9 @@ package(
         "//:license",
     ],
     default_visibility = ["//visibility:public"],
-    #    default_visibility = [
-    #        "//tools/ai:__pkg__",
-    #    ],
+    #        default_visibility = [
+    #            "//tools/ai:__pkg__",
+    #        ],
 )
 
 java_library(
@@ -16,6 +16,7 @@ java_library(
     srcs = ["AgenticPolicyCompiler.java"],
     deps = [
         ":agent_context_java_proto",
+        ":agentic_policy_environment",
         "//bundle:cel",
         "//common:cel_ast",
         "//common/formats:value_string",
@@ -30,6 +31,28 @@ java_library(
         "//policy:validation_exception",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:org_yaml_snakeyaml",
+    ],
+)
+
+java_library(
+    name = "agentic_policy_environment",
+    srcs = ["AgenticPolicyEnvironment.java"],
+    resources = ["//tools/ai:ai_environments"],
+    deps = [
+        ":agent_context_extensions_java_proto",
+        ":agent_context_java_proto",
+        "//bundle:cel",
+        "//bundle:environment",
+        "//bundle:environment_exception",
+        "//bundle:environment_yaml_parser",
+        "//common:container",
+        "//common:options",
+        "//common/types",
+        "//common/types:type_providers",
+        "//parser:macro",
+        "//runtime:function_binding",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
     ],
 )
 

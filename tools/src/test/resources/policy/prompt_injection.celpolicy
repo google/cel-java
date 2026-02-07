@@ -3,17 +3,16 @@ default: allow
 
 variables:
   - high_confidence_threat: >
-      agent.input.threats().contains([ai.finding("prompt_injection", 0.9)])
+      agent.input.threatFindings().hasAll([ai.finding("prompt_injection", 0.9)])
 
   - potential_threat: >
-      agent.input.threats().contains([ai.finding("prompt_injection", 0.5)])
+      agent.input.threatFindings().hasAll([ai.finding("prompt_injection", 0.5)])
 
 rules:
   - description: "Block high-confidence injection attacks"
     condition: variables.high_confidence_threat
     effect: deny
     message: "High-confidence prompt injection detected."
-
   - description: "Require confirmation for suspicious inputs"
     condition: variables.potential_threat
     effect: confirm

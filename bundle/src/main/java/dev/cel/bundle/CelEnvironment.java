@@ -43,6 +43,7 @@ import dev.cel.common.types.MapType;
 import dev.cel.common.types.OptionalType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeParamType;
+import dev.cel.common.types.TypeType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerLibrary;
@@ -71,9 +72,10 @@ public abstract class CelEnvironment {
           "math", CanonicalCelExtension.MATH,
           "optional", CanonicalCelExtension.OPTIONAL,
           "protos", CanonicalCelExtension.PROTOS,
+          "regex", CanonicalCelExtension.REGEX,
           "sets", CanonicalCelExtension.SETS,
           "strings", CanonicalCelExtension.STRINGS,
-          "comprehensions", CanonicalCelExtension.COMPREHENSIONS);
+          "two-var-comprehensions", CanonicalCelExtension.COMPREHENSIONS);
 
   private static final ImmutableMap<String, ObjIntConsumer<CelOptions.Builder>> LIMIT_HANDLERS =
       ImmutableMap.of(
@@ -102,7 +104,7 @@ public abstract class CelEnvironment {
   /**
    * Container, which captures default namespace and aliases for value resolution.
    */
-  public abstract CelContainer container();
+  public abstract Optional<CelContainer> container();
 
   /**
    * An optional description of the environment (example: location of the file containing the config
@@ -226,7 +228,6 @@ public abstract class CelEnvironment {
     return new AutoValue_CelEnvironment.Builder()
         .setName("")
         .setDescription("")
-        .setContainer(CelContainer.ofName(""))
         .setVariables(ImmutableSet.of())
         .setFunctions(ImmutableSet.of())
         .setFeatures(ImmutableSet.of())
@@ -242,7 +243,6 @@ public abstract class CelEnvironment {
       CelCompilerBuilder compilerBuilder =
           celCompiler
               .toCompilerBuilder()
-              .setContainer(container())
               .setOptions(celOptions)
               .setTypeProvider(celTypeProvider)
               .addVarDeclarations(
@@ -253,6 +253,9 @@ public abstract class CelEnvironment {
                   functions().stream()
                       .map(f -> f.toCelFunctionDecl(celTypeProvider))
                       .collect(toImmutableList()));
+
+
+      container().ifPresent(compilerBuilder::setContainer);
 
       addAllCompilerExtensions(compilerBuilder, celOptions);
 
@@ -416,6 +419,9 @@ public abstract class CelEnvironment {
     /** The type of the variable. */
     public abstract TypeDecl type();
 
+    /** Description of the variable. */
+    public abstract Optional<String> description();
+
     /** Builder for {@link VariableDecl}. */
     @AutoValue.Builder
     public abstract static class Builder implements RequiredFieldsChecker {
@@ -427,6 +433,8 @@ public abstract class CelEnvironment {
       public abstract VariableDecl.Builder setName(String name);
 
       public abstract VariableDecl.Builder setType(TypeDecl typeDecl);
+
+      public abstract VariableDecl.Builder setDescription(String name);
 
       @Override
       public ImmutableList<RequiredField> requiredFields() {
@@ -667,6 +675,9 @@ public abstract class CelEnvironment {
           CelType keyType = params().get(0).toCelType(celTypeProvider);
           CelType valueType = params().get(1).toCelType(celTypeProvider);
           return MapType.create(keyType, valueType);
+        case "type":
+          checkState(params().size() == 1, "Expected 1 parameter for type, got " + params().size());
+          return TypeType.create(params().get(0).toCelType(celTypeProvider));
         default:
           if (isTypeParam()) {
             return TypeParamType.create(name());
@@ -838,10 +849,14 @@ public abstract class CelEnvironment {
     SETS(
         (options, version) -> CelExtensions.sets(options),
         (options, version) -> CelExtensions.sets(options)),
+    REGEX(
+        (options, version) -> CelExtensions.regex(),
+        (options, version) -> CelExtensions.regex()),
     LISTS((options, version) -> CelExtensions.lists(), (options, version) -> CelExtensions.lists()),
     COMPREHENSIONS(
         (options, version) -> CelExtensions.comprehensions(),
-        (options, version) -> CelExtensions.comprehensions());
+        (options, version) -> CelExtensions.comprehensions())
+    ;
 
     @SuppressWarnings("ImmutableEnumChecker")
     private final CompilerExtensionProvider compilerExtensionProvider;

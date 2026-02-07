@@ -2,6 +2,7 @@ package dev.cel.tools.ai;
 
 import static dev.cel.common.formats.YamlHelper.assertYamlType;
 
+import com.google.protobuf.Descriptors.FileDescriptor;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.formats.ValueString;
@@ -66,7 +67,9 @@ public final class AgenticPolicyCompiler {
           break;
 
         case "variables":
-          if (!assertYamlType(ctx, id, node, YamlNodeType.LIST)) return;
+          if (!assertYamlType(ctx, id, node, YamlNodeType.LIST)) {
+            return;
+          }
           List<Variable> parsedVariables = new ArrayList<>();
           SequenceNode varList = (SequenceNode) node;
 

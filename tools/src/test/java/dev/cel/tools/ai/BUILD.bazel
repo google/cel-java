@@ -9,7 +9,9 @@ java_library(
     srcs = glob(
         ["*.java"],
     ),
-    resources = ["//tools/ai:test_policies"],
+    resources = [
+        "//tools/ai:test_policies",
+    ],
     deps = [
         "//:java_truth",
         "//bundle:cel",
@@ -24,6 +26,7 @@ java_library(
         "//runtime:function_binding",
         "//runtime:late_function_binding",
         "//tools/ai:agentic_policy_compiler",
+        "//tools/ai:agentic_policy_environment",
         "//tools/src/main/java/dev/cel/tools/ai:agent_context_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",

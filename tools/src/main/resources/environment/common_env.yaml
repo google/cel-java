@@ -23,6 +23,7 @@ extensions:
 - name: "strings"
   version: "latest"
 - name: "two-var-comprehensions"
+- name: "optional"
 
 variables:
 - name: "now"
