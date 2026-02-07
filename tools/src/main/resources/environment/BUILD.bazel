@@ -1,0 +1,17 @@
+package(
+    default_applicable_licenses = [
+        "//:license",
+    ],
+    default_visibility = [
+        "//tools/ai:__pkg__",
+    ],
+)
+
+filegroup(
+    name = "ai_environments",
+    srcs = glob(
+        [
+            "*.yaml",
+        ],
+    ),
+)

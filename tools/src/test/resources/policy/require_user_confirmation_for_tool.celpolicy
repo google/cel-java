@@ -3,7 +3,7 @@ default: deny
 
 variables:
   - high_confidence_pii: >
-      tool.call.sensitivityLabel('pii').exists(f, f.confidence >= 0.8)
+      tool.call.sensitivityFindings('pii').orValue([]).exists(f, f.confidence >= 0.8)
 
 rules:
   - description: "Confirm tool calls if high-confidence PII is detected"
@@ -12,7 +12,6 @@ rules:
       !tool.call.user_confirmed
     effect: confirm
     message: "This tool call contains sensitive data (PII). User confirmation is required."
-
   - description: "Allow if no high-confidence PII is detected OR if confirmed"
     condition: >
       !variables.high_confidence_pii ||

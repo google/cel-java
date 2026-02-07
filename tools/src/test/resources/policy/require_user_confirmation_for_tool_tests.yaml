@@ -9,23 +9,38 @@ section:
         expr: >
           ToolCall{
             name: "tool_with_PII",
-            user_confirmed: false
+            user_confirmed: false,
           }
     output: >
       {
         "effect": "confirm",
         "message": "This tool call contains sensitive data (PII). User confirmation is required."
       }
+
   - name: "allow_confirmed_tool"
     input:
       tool.call:
         expr: >
           ToolCall{
             name: "tool_with_PII",
-            user_confirmed: true
+            user_confirmed: true,
           }
     output: >
       {
         "effect": "allow",
-        "message": "",
+        "message": ""
+      }
+
+  - name: "allow_benign_tool"
+    input:
+      tool.call:
+        expr: >
+          ToolCall{
+            name: "weather_tool",
+            user_confirmed: false
+          }
+    output: >
+      {
+        "effect": "allow",
+        "message": ""
       }

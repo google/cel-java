@@ -110,11 +110,15 @@ message AgentContext {
     verification = DECLARATION,
     declaration = {
       number: 1000,
-      reserved: true
+      full_name: ".cel.expr.ai.agent_context_classification_labels",
+      type: ".cel.expr.ai.ClassificationLabel",
+      repeated: true
     },
     declaration = {
       number: 1001,
-      reserved: true
+      full_name: ".cel.expr.ai.agent_context_message_history",
+      type: ".cel.expr.ai.AgentMessage",
+      repeated: true
     }
   ];
 }
@@ -462,7 +466,9 @@ message ToolCall {
     verification = DECLARATION,
     declaration = {
       number: 1000,
-      reserved: true
+      full_name: ".cel.expr.ai.agent_context_classification_labels",
+      type: ".cel.expr.ai.ClassificationLabel",
+      repeated: true
     }
   ];
 }
