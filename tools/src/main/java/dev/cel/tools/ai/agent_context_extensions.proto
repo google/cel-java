@@ -2,10 +2,29 @@ edition = "2024";
 
 package cel.expr.ai;
 
+option java_package = "dev.cel.expr.ai";
+option java_outer_classname = "AgentContextExtensions";
+
 import "tools/src/main/java/dev/cel/tools/ai/agent_context.proto";
 
 // Extensions for the Agent-related policy protos.
 extend AgentContext {
   repeated ClassificationLabel agent_context_classification_labels = 1000;
   repeated AgentMessage agent_context_message_history = 1001;
+}
+
+extend ToolAnnotations {
+  ToolOAuthScopes tool_oauth_scopes = 1000;
+  repeated ToolChangeScope tool_change_scopes = 1001;
+  ToolUndoWindow tool_undo_window = 1002;
+  repeated ClassificationLabel tool_input_classification_labels = 1003;
+  repeated ClassificationLabel tool_output_classification_labels = 1004;
+}
+
+extend ToolCall {
+  repeated ClassificationLabel tool_call_classification_labels = 1000;
+}
+
+extend ContentPart {
+  repeated ClassificationLabel content_classification_labels = 1000;
 }

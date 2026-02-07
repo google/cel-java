@@ -276,7 +276,9 @@ message ContentPart {
     verification = DECLARATION,
     declaration = {
       number: 1000,
-      reserved: true
+      full_name: ".cel.expr.ai.content_classification_labels",
+      type: ".cel.expr.ai.ClassificationLabel",
+      repeated: true
     }
   ];
 }
@@ -407,23 +409,31 @@ message ToolAnnotations {
     verification = DECLARATION,
     declaration = {
       number: 1000,
-      reserved: true
+      full_name: ".cel.expr.ai.tool_oauth_scopes",
+      type: ".cel.expr.ai.ToolOAuthScopes"
     },
     declaration = {
       number: 1001,
-      reserved: true
+      full_name: ".cel.expr.ai.tool_change_scopes",
+      type: ".cel.expr.ai.ToolChangeScope",
+      repeated: true
     },
     declaration = {
       number: 1002,
-      reserved: true
+      full_name: ".cel.expr.ai.tool_undo_window",
+      type: ".cel.expr.ai.ToolUndoWindow"
     },
     declaration = {
       number: 1003,
-      reserved: true
+      full_name: ".cel.expr.ai.tool_input_classification_labels",
+      type: ".cel.expr.ai.ClassificationLabel",
+      repeated: true
     },
     declaration = {
       number: 1004,
-      reserved: true
+      full_name: ".cel.expr.ai.tool_output_classification_labels",
+      type: ".cel.expr.ai.ClassificationLabel",
+      repeated: true
     }
   ];
 }
@@ -466,9 +476,70 @@ message ToolCall {
     verification = DECLARATION,
     declaration = {
       number: 1000,
-      full_name: ".cel.expr.ai.agent_context_classification_labels",
+      full_name: ".cel.expr.ai.tool_call_classification_labels",
       type: ".cel.expr.ai.ClassificationLabel",
       repeated: true
     }
   ];
+}
+
+// Extension indicating OAuth scoping information specific to a tool.
+//
+// This information is used in combination with ToolProvider.supported_scopes
+// to determine the set of OAuth scopes required to use the tool.
+message ToolOAuthScopes {
+  // The OAuth scopes required to use this tool. If empty, the set of scopes
+  // required is inherited from ToolProvider.supported_scopes.
+  //
+  // This is a list of strings, where each string is a valid OAuth scope
+  // (e.g. "https://www.googleapis.com/auth/cloud-platform").
+  repeated string required_scopes = 7;
+
+  // The OAuth scopes which may be conditionally necessary based on the content
+  // provided to the tool.
+  repeated string optional_scopes = 8;
+}
+
+// Extension indicating the scope of change that the tool can make to the
+// agent's environment.
+message ToolChangeScope {
+  // The type of scope under change by this tool.
+  // Common values include: "directory", "domain", "urn", "device_settings",
+  // "device_execution", "current_chat_window".
+  string type = 1;
+
+  // The identifier for the scope under change such as a directory
+  // (/tmp/<agentid>), domain (bigquery.google.com), URN
+  // (urn:uuid:123e4567-e89b-12d3-a456-426614174000), device settings, or
+  // device execution.
+  string value = 2;
+
+  // If true, the tool's changes to the scope are context sensitive and may
+  // require additional context beyond the current prompt to determine the
+  // scope of change.
+  bool context_sensitive = 3;
+}
+
+// Extension indicating the difficulty and time-bounds of undoing a change by a
+// tool.
+message ToolUndoWindow {
+  // The difficulty of undoing a change by a tool.
+  enum Difficulty {
+    // Unspecified difficulty. If not set, the difficulty is high.
+    DIFFICULTY_UNSPECIFIED = 0;
+    // Low difficulty, easily reverted, e.g. Ctrl+Z.
+    LOW = 1;
+    // Reversible, but requires some effort.
+    MEDIUM = 2;
+    // Practically impossible to revert.
+    HIGH = 3;
+  }
+
+  // The difficulty of undoing a change by a tool.
+  // If not set, the difficulty is high.
+  Difficulty difficulty = 1;
+
+  // The amount of time before the change becomes irreversible.
+  // If not set, the change is permanent.
+  google.protobuf.Duration duration = 2;
 }
