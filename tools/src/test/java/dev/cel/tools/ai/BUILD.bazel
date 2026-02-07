@@ -28,6 +28,7 @@ java_library(
         "//tools/ai:agentic_policy_compiler",
         "//tools/ai:agentic_policy_environment",
         "//tools/src/main/java/dev/cel/tools/ai:agent_context_java_proto",
+        "//tools/src/main/java/dev/cel/tools/ai:agent_context_extensions_java_proto",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
         "@maven//:com_google_protobuf_protobuf_java_util",

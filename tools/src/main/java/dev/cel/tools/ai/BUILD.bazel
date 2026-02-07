@@ -36,7 +36,12 @@ java_library(
 
 java_library(
     name = "agentic_policy_environment",
-    srcs = ["AgenticPolicyEnvironment.java"],
+    srcs = [
+        "AgentClassifier.java",
+        "AgenticPolicyClassifiers.java",
+        "AgenticPolicyEnvironment.java",
+        "AgentMessageSet.java",
+    ],
     resources = ["//tools/ai:ai_environments"],
     deps = [
         ":agent_context_extensions_java_proto",
@@ -51,6 +56,7 @@ java_library(
         "//common/types:type_providers",
         "//parser:macro",
         "//runtime:function_binding",
+        "//:auto_value",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
     ],
