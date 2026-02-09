@@ -4,7 +4,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import com.google.common.truth.Expect;
 import com.google.testing.junit.testparameterinjector.TestParameter;
@@ -28,6 +27,7 @@ import dev.cel.runtime.CelLateFunctionBindings;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import org.junit.Rule;
@@ -58,15 +58,13 @@ public class AgenticPolicyCompilerTest {
         "require_user_confirmation_for_tool_tests.yaml"),
     OPEN_WORLD_TOOL_REPLAY(
         "open_world_tool_replay.celpolicy",
-        "open_world_tool_replay_tests.yaml");
-    // TRUST_CASCADING(
-    // "trust_cascading.celpolicy",
-    // "trust_cascading_tests.yaml"
-    // ),
-    // TIME_BOUND_APPROVAL(
-    // "time_bound_approval.celpolicy",
-    // "time_bound_approval_tests.yaml"
-    // );
+        "open_world_tool_replay_tests.yaml"),
+    TRUST_CASCADING(
+        "trust_cascading.celpolicy",
+        "trust_cascading_tests.yaml"),
+    TIME_BOUND_APPROVAL(
+        "time_bound_approval.celpolicy",
+        "time_bound_approval_tests.yaml");
 
     private final String policyFilePath;
     private final String policyTestCaseFilePath;
@@ -94,17 +92,24 @@ public class AgenticPolicyCompilerTest {
         String testName = String.format(
             "%s: %s", testSection.getName(), testCase.getName());
         try {
-          ImmutableMap<String, Object> inputMap = testCase.toInputMap(cel);
+          HashMap<String, Object> inputMap = new HashMap<>(testCase.toInputMap(cel));
 
           List<AgentMessage> history = inputMap.containsKey("_test_history")
               ? (List<AgentMessage>) inputMap.get("_test_history")
               : ImmutableList.of();
 
+          AgentContext context = AgentContext.newBuilder()
+              .setExtension(AgentContextExtensions.agentContextMessageHistory, history)
+              .build();
+          AgentMessageSet messageSet = AgentMessageSet.of(context);
+
+          inputMap.put("agent.history", messageSet);
+
           @SuppressWarnings("Immutable")
           CelLateFunctionBindings bindings = CelLateFunctionBindings.from(
               CelFunctionBinding.from(
                   "agent_history",
-                  ImmutableList.of(), // No args
+                  ImmutableList.of(),
                   (args) -> history));
 
           Object evalResult = cel.createProgram(ast).eval(inputMap, bindings);

@@ -53,12 +53,14 @@ java_library(
         "//common:container",
         "//common:options",
         "//common/types",
+        "//common/types:message_type_provider",
         "//common/types:type_providers",
         "//parser:macro",
         "//runtime:function_binding",
         "//:auto_value",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:com_google_protobuf_protobuf_java_util",
     ],
 )
 

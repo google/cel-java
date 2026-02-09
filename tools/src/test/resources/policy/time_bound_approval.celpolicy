@@ -5,11 +5,11 @@ variables:
   # Define the validity window (30 seconds ago)
   - approval_cutoff: now - duration('30s')
 
-  # Find approval messages in the valid window
   - valid_approvals: >
-      agent.history()
+      agent.history
            .after(variables.approval_cutoff)
            .role('model')
+           .messages()
            .filter(m, has(m.metadata.step) && m.metadata.step == 'approval_granted')
 
   - has_valid_approval: variables.valid_approvals.size() > 0

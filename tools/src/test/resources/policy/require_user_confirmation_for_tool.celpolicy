@@ -3,7 +3,7 @@ default: deny
 
 variables:
   - high_confidence_pii: >
-      tool.call.sensitivityFindings('pii').orValue([]).exists(f, f.confidence >= 0.8)
+      tool.call.sensitivityFindings('pii').hasAll([ai.finding("pii_score", 0.8)])
 
 rules:
   - description: "Confirm tool calls if high-confidence PII is detected"

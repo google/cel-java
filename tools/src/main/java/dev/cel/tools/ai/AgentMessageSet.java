@@ -114,10 +114,10 @@ abstract class AgentMessageSet {
    * filtered history.
    */
   AgentContext filteredContext() {
-    if (!context().hasExtension(AgentContextExtensions.agentContextMessageHistory)) {
+    List<AgentMessage> msgs = context().getExtension(AgentContextExtensions.agentContextMessageHistory);
+    if (msgs.isEmpty()) {
       return context();
     }
-    List<AgentMessage> msgs = context().getExtension(AgentContextExtensions.agentContextMessageHistory);
     List<AgentMessage> filteredMsgs = new ArrayList<>();
 
     for (AgentMessage msg : msgs) {
@@ -162,10 +162,6 @@ abstract class AgentMessageSet {
         filteredParts.add(part);
       }
 
-      if (filteredParts.isEmpty()) {
-        continue;
-      }
-
       filteredMsgs.add(msg.toBuilder().clearParts().addAllParts(filteredParts).build());
     }
 
@@ -198,9 +194,9 @@ abstract class AgentMessageSet {
    * Returns a new {@link AgentMessageSet} filtered to include messages before the
    * given timestamp.
    */
-  AgentMessageSet filterBefore(Timestamp timestamp) {
+  AgentMessageSet filterBefore(Instant timestamp) {
     return toBuilder()
-        .setBefore(Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos()))
+        .setBefore(timestamp)
         .build();
   }
 
@@ -208,9 +204,9 @@ abstract class AgentMessageSet {
    * Returns a new {@link AgentMessageSet} filtered to include messages after the
    * given timestamp.
    */
-  AgentMessageSet filterAfter(Timestamp timestamp) {
+  AgentMessageSet filterAfter(Instant timestamp) {
     return toBuilder()
-        .setAfter(Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos()))
+        .setAfter(timestamp)
         .build();
   }
 

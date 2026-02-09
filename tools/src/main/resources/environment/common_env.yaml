@@ -690,6 +690,22 @@ functions:
       params:
       - type_name: cel.expr.ai.AgentMessage.Part
 
+- name: "messages"
+  description: |
+    Returns the ordered list of AgentMessages in the message set.
+  overloads:
+  - id: "AgentMessageSet_messages"
+    examples:
+    - |
+      // Returns the ordered list of messages in the message set.
+      agent.history.messages()
+    target:
+      type_name: cel.expr.ai.AgentMessageSet
+    return:
+      type_name: list
+      params:
+      - type_name: dyn
+
 - name: "spec"
   description: |
     Returns the specification for the tool.
