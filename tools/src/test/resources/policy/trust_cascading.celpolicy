@@ -4,11 +4,11 @@ default: allow
 variables:
   # Critical security threats
   - is_compromised: >
-      agent.context.trust.findings.contains([ai.finding("compromised_session", 0.9)])
+      agent.context.trust.findings.hasAll([ai.finding("compromised_session", 0.9)])
 
   # Compliance and/or hygiene issues with the source
   - is_unverified: >
-      agent.context.trust.findings.contains([ai.finding("unverified_source", 0.8)])
+      agent.context.trust.findings.hasAll([ai.finding("unverified_source", 0.8)])
 
 rules:
   - description: "Block sessions with high-confidence compromise indicators"

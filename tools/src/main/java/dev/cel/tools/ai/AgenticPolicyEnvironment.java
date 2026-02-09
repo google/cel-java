@@ -4,6 +4,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import dev.cel.bundle.Cel;
@@ -27,6 +28,7 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelFunctionBinding;
 import java.io.IOException;
 import java.net.URL;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,6 +42,7 @@ final class AgenticPolicyEnvironment {
   @SuppressWarnings("Immutable")
   static Cel newInstance(AgentClassifier classifier) {
     AgenticPolicyClassifiers classifiers = new AgenticPolicyClassifiers(classifier);
+
     CelBuilder builder = CelFactory.standardCelBuilder()
         .setContainer(CelContainer.ofName("cel.expr.ai"))
         .addFileTypes(Agent.getDescriptor().getFile())
@@ -110,10 +113,49 @@ final class AgenticPolicyEnvironment {
             String.class,
             (msg, toolName) -> AgentMessageSet.of(msg).filterToolCall(toolName)),
         CelFunctionBinding.from(
+            "AgentMessageSet_messages",
+            Object.class,
+            (set) -> {
+              AgentMessageSet messageSet = (AgentMessageSet) set;
+              List<AgentMessage> result = messageSet.filteredContext()
+                  .getExtension(AgentContextExtensions.agentContextMessageHistory);
+              return ImmutableList.copyOf(result);
+            }),
+        CelFunctionBinding.from(
+            "list(Finding)_hasAll_list(Finding)",
+            List.class,
+            List.class,
+            (source, required) -> hasAllFindings(Optional.of((List<Finding>) source), (List<Finding>) required)),
+        CelFunctionBinding.from(
             "AgentMessage_role_string",
             AgentMessage.class,
-            String.class,
-            (msg, role) -> AgentMessageSet.of(msg).filterRole(role)));
+            Object.class,
+            (msg, role) -> AgentMessageSet.of(msg).filterRole(String.valueOf(role))),
+        CelFunctionBinding.from(
+            "AgentMessageSet_role_string",
+            AgentMessageSet.class,
+            Object.class,
+            (set, role) -> set.filterRole(String.valueOf(role))),
+        CelFunctionBinding.from(
+            "AgentMessageSet_before_timestamp",
+            AgentMessageSet.class,
+            Instant.class,
+            AgentMessageSet::filterBefore),
+        CelFunctionBinding.from(
+            "AgentMessage_before_timestamp",
+            AgentMessage.class,
+            Instant.class,
+            (msg, ts) -> AgentMessageSet.of(msg).filterBefore(ts)),
+        CelFunctionBinding.from(
+            "AgentMessageSet_after_timestamp",
+            AgentMessageSet.class,
+            Instant.class,
+            AgentMessageSet::filterAfter),
+        CelFunctionBinding.from(
+            "AgentMessage_after_timestamp",
+            AgentMessage.class,
+            Instant.class,
+            (msg, ts) -> AgentMessageSet.of(msg).filterAfter(ts)));
 
     Cel celEnv = builder.build();
     celEnv = extendFromConfig(celEnv, "environment/agent_env.yaml");
@@ -129,10 +171,6 @@ final class AgenticPolicyEnvironment {
 
     return required.stream().allMatch(req -> source.stream().anyMatch(act -> act.getValue().equals(req.getValue()) &&
         act.getConfidence() >= req.getConfidence()));
-  }
-
-  static Cel newInstance() {
-    return newInstance(AgentClassifier.DEFAULT);
   }
 
   private static Cel extendFromConfig(Cel cel, String yamlConfigPath) {
