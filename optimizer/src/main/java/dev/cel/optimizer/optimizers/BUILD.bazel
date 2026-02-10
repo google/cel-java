@@ -92,6 +92,8 @@ java_library(
         "//common/navigation",
         "//common/navigation:common",
         "//common/navigation:mutable_navigation",
+        "//common:operator",
+        "//common/values:values",
         "//common/types",
         "//common/types:type_providers",
         "//optimizer:ast_optimizer",
