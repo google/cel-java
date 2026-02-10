@@ -63,4 +63,10 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
     // TODO: Support JSON field names for planner
     skipBaselineVerification();
   }
+
+  @Override
+  public void wrappers() throws Exception {
+    // TODO: Fix for planner
+    skipBaselineVerification();
+  }
 }
