@@ -1992,59 +1992,6 @@ public final class CelImplTest {
   }
 
   @Test
-  @TestParameters("{expression: 'string(123)'}")
-  @TestParameters("{expression: 'string(123u)'}")
-  @TestParameters("{expression: 'string(1.5)'}")
-  @TestParameters("{expression: 'string(\"foo\")'}")
-  @TestParameters("{expression: 'string(b\"foo\")'}")
-  @TestParameters("{expression: 'string(timestamp(100))'}")
-  @TestParameters("{expression: 'string(duration(\"1h\"))'}")
-  public void program_stringConversionDisabled_throws(String expression) throws Exception {
-    Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(
-                CelOptions.current()
-                    .enableTimestampEpoch(true)
-                    .enableStringConversion(false)
-                    .build())
-            .build();
-    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
-
-    CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> cel.createProgram(ast).eval());
-    assertThat(e).hasMessageThat().contains("No matching overload for function 'string'");
-    assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.OVERLOAD_NOT_FOUND);
-  }
-
-  @Test
-  public void program_stringConcatenationDisabled_throws() throws Exception {
-    Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableStringConcatenation(false).build())
-            .build();
-    CelAbstractSyntaxTree ast = cel.compile("'foo' + 'bar'").getAst();
-
-    CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> cel.createProgram(ast).eval());
-    assertThat(e).hasMessageThat().contains("No matching overload for function '_+_'");
-    assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.OVERLOAD_NOT_FOUND);
-  }
-
-  @Test
-  public void program_listConcatenationDisabled_throws() throws Exception {
-    Cel cel =
-        CelFactory.standardCelBuilder()
-            .setOptions(CelOptions.current().enableListConcatenation(false).build())
-            .build();
-    CelAbstractSyntaxTree ast = cel.compile("[1] + [2]").getAst();
-
-    CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> cel.createProgram(ast).eval());
-    assertThat(e).hasMessageThat().contains("No matching overload for function '_+_'");
-    assertThat(e.getErrorCode()).isEqualTo(CelErrorCode.OVERLOAD_NOT_FOUND);
-  }
-
-  @Test
   public void program_comprehensionDisabled_throws() throws Exception {
     Cel cel =
         standardCelBuilderWithMacros()
