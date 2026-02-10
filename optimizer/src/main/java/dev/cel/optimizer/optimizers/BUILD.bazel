@@ -72,6 +72,38 @@ java_library(
 )
 
 java_library(
+    name = "inlining",
+    srcs = [
+        "InliningOptimizer.java",
+    ],
+    tags = [
+    ],
+    deps = [
+        ":default_optimizer_constants",
+        "//:auto_value",
+        "//bundle:cel",
+        "//common:cel_ast",
+        "//common:cel_source",
+        "//common:compiler_common",
+        "//common:mutable_ast",
+        "//common:mutable_source",
+        "//common/ast",
+        "//common/ast:mutable_expr",
+        "//common/navigation",
+        "//common/navigation:common",
+        "//common/navigation:mutable_navigation",
+        "//common/types",
+        "//common/types:type_providers",
+        "//optimizer:ast_optimizer",
+        "//optimizer:mutable_ast",
+        "//optimizer:optimization_exception",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
     name = "default_optimizer_constants",
     srcs = [
         "DefaultOptimizerConstants.java",
