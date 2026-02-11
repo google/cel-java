@@ -404,16 +404,23 @@ public final class AstMutator {
   }
 
   private static int countComprehensionNestingLevel(CelNavigableMutableExpr comprehensionExpr) {
-    int nestedLevel = 0;
-    Optional<CelNavigableMutableExpr> maybeParent = comprehensionExpr.parent();
-    while (maybeParent.isPresent()) {
-      if (maybeParent.get().getKind().equals(Kind.COMPREHENSION)) {
-        nestedLevel++;
-      }
-
-      maybeParent = maybeParent.get().parent();
-    }
-    return nestedLevel;
+    return comprehensionExpr
+        .descendants()
+        .filter(node -> node.getKind().equals(Kind.COMPREHENSION))
+        .mapToInt(
+            node -> {
+              int nestedLevel = 1;
+              CelNavigableMutableExpr maybeParent = node.parent().orElse(null);
+              while (maybeParent != null && maybeParent.id() != comprehensionExpr.id()) {
+                if (maybeParent.getKind().equals(Kind.COMPREHENSION)) {
+                  nestedLevel++;
+                }
+                maybeParent = maybeParent.parent().orElse(null);
+              }
+              return nestedLevel;
+            })
+        .max()
+        .orElse(0);
   }
 
   /**

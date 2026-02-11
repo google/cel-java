@@ -358,6 +358,21 @@ Result: true
 [BLOCK_RECURSION_DEPTH_8]: true
 [BLOCK_RECURSION_DEPTH_9]: true
 
+Test case: NESTED_MACROS_3
+Source: [1,2,3].map(i, i * 2) + [1,2,3].map(i, i * 2).map(i, i * 2)
+=====>
+Result: [2, 4, 6, 4, 8, 12]
+[BLOCK_COMMON_SUBEXPR_ONLY]: [2, 4, 6, 4, 8, 12]
+[BLOCK_RECURSION_DEPTH_1]: [2, 4, 6, 4, 8, 12]
+[BLOCK_RECURSION_DEPTH_2]: [2, 4, 6, 4, 8, 12]
+[BLOCK_RECURSION_DEPTH_3]: [2, 4, 6, 4, 8, 12]
+[BLOCK_RECURSION_DEPTH_4]: [2, 4, 6, 4, 8, 12]
+[BLOCK_RECURSION_DEPTH_5]: [2, 4, 6, 4, 8, 12]
+[BLOCK_RECURSION_DEPTH_6]: [2, 4, 6, 4, 8, 12]
+[BLOCK_RECURSION_DEPTH_7]: [2, 4, 6, 4, 8, 12]
+[BLOCK_RECURSION_DEPTH_8]: [2, 4, 6, 4, 8, 12]
+[BLOCK_RECURSION_DEPTH_9]: [2, 4, 6, 4, 8, 12]
+
 Test case: NESTED_MACROS_COMP_V2_1
 Source: [1,2,3].transformList(i, v, [1, 2, 3].transformList(i, v, i + v + 1)) == [[2, 4, 6], [2, 4, 6], [2, 4, 6]]
 =====>

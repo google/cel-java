@@ -2165,13 +2165,13 @@ CALL [1] {
           }
         }
         COMPREHENSION [11] {
-          iter_var: @it:1:0
+          iter_var: @it:0:0
           iter_range: {
             IDENT [12] {
               name: @index0
             }
           }
-          accu_var: @ac:1:0
+          accu_var: @ac:0:0
           accu_init: {
             LIST [13] {
               elements: {
@@ -2186,7 +2186,7 @@ CALL [1] {
               function: _+_
               args: {
                 IDENT [16] {
-                  name: @ac:1:0
+                  name: @ac:0:0
                 }
                 LIST [17] {
                   elements: {
@@ -2194,7 +2194,7 @@ CALL [1] {
                       function: _+_
                       args: {
                         IDENT [19] {
-                          name: @it:1:0
+                          name: @it:0:0
                         }
                         CONSTANT [20] { value: 1 }
                       }
@@ -2206,7 +2206,7 @@ CALL [1] {
           }
           result: {
             IDENT [21] {
-              name: @ac:1:0
+              name: @ac:0:0
             }
           }
         }
@@ -2216,13 +2216,13 @@ CALL [1] {
       function: _==_
       args: {
         COMPREHENSION [23] {
-          iter_var: @it:0:0
+          iter_var: @it:1:0
           iter_range: {
             IDENT [24] {
               name: @index0
             }
           }
-          accu_var: @ac:0:0
+          accu_var: @ac:1:0
           accu_init: {
             LIST [25] {
               elements: {
@@ -2237,7 +2237,7 @@ CALL [1] {
               function: _+_
               args: {
                 IDENT [28] {
-                  name: @ac:0:0
+                  name: @ac:1:0
                 }
                 LIST [29] {
                   elements: {
@@ -2251,7 +2251,7 @@ CALL [1] {
           }
           result: {
             IDENT [31] {
-              name: @ac:0:0
+              name: @ac:1:0
             }
           }
         }
@@ -2313,13 +2313,13 @@ CALL [1] {
       function: _==_
       args: {
         COMPREHENSION [16] {
-          iter_var: @it:0:0
+          iter_var: @it:1:0
           iter_range: {
             IDENT [17] {
               name: @index1
             }
           }
-          accu_var: @ac:0:0
+          accu_var: @ac:1:0
           accu_init: {
             LIST [18] {
               elements: {
@@ -2334,18 +2334,18 @@ CALL [1] {
               function: _+_
               args: {
                 IDENT [21] {
-                  name: @ac:0:0
+                  name: @ac:1:0
                 }
                 LIST [22] {
                   elements: {
                     COMPREHENSION [23] {
-                      iter_var: @it:1:0
+                      iter_var: @it:0:0
                       iter_range: {
                         IDENT [24] {
                           name: @index2
                         }
                       }
-                      accu_var: @ac:1:0
+                      accu_var: @ac:0:0
                       accu_init: {
                         LIST [25] {
                           elements: {
@@ -2363,10 +2363,10 @@ CALL [1] {
                               function: _==_
                               args: {
                                 IDENT [29] {
-                                  name: @it:1:0
+                                  name: @it:0:0
                                 }
                                 IDENT [30] {
-                                  name: @it:0:0
+                                  name: @it:1:0
                                 }
                               }
                             }
@@ -2374,26 +2374,26 @@ CALL [1] {
                               function: _+_
                               args: {
                                 IDENT [32] {
-                                  name: @ac:1:0
+                                  name: @ac:0:0
                                 }
                                 LIST [33] {
                                   elements: {
                                     IDENT [34] {
-                                      name: @it:1:0
+                                      name: @it:0:0
                                     }
                                   }
                                 }
                               }
                             }
                             IDENT [35] {
-                              name: @ac:1:0
+                              name: @ac:0:0
                             }
                           }
                         }
                       }
                       result: {
                         IDENT [36] {
-                          name: @ac:1:0
+                          name: @ac:0:0
                         }
                       }
                     }
@@ -2404,12 +2404,128 @@ CALL [1] {
           }
           result: {
             IDENT [37] {
-              name: @ac:0:0
+              name: @ac:1:0
             }
           }
         }
         IDENT [38] {
           name: @index0
+        }
+      }
+    }
+  }
+}
+Test case: NESTED_MACROS_3
+Source: [1,2,3].map(i, i * 2) + [1,2,3].map(i, i * 2).map(i, i * 2)
+=====>
+CALL [1] {
+  function: cel.@block
+  args: {
+    LIST [2] {
+      elements: {
+        COMPREHENSION [3] {
+          iter_var: @it:0:0
+          iter_range: {
+            LIST [4] {
+              elements: {
+                CONSTANT [5] { value: 1 }
+                CONSTANT [6] { value: 2 }
+                CONSTANT [7] { value: 3 }
+              }
+            }
+          }
+          accu_var: @ac:0:0
+          accu_init: {
+            LIST [8] {
+              elements: {
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [9] { value: true }
+          }
+          loop_step: {
+            CALL [10] {
+              function: _+_
+              args: {
+                IDENT [11] {
+                  name: @ac:0:0
+                }
+                LIST [12] {
+                  elements: {
+                    CALL [13] {
+                      function: _*_
+                      args: {
+                        IDENT [14] {
+                          name: @it:0:0
+                        }
+                        CONSTANT [15] { value: 2 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [16] {
+              name: @ac:0:0
+            }
+          }
+        }
+      }
+    }
+    CALL [17] {
+      function: _+_
+      args: {
+        IDENT [18] {
+          name: @index0
+        }
+        COMPREHENSION [19] {
+          iter_var: @it:1:0
+          iter_range: {
+            IDENT [20] {
+              name: @index0
+            }
+          }
+          accu_var: @ac:1:0
+          accu_init: {
+            LIST [21] {
+              elements: {
+              }
+            }
+          }
+          loop_condition: {
+            CONSTANT [22] { value: true }
+          }
+          loop_step: {
+            CALL [23] {
+              function: _+_
+              args: {
+                IDENT [24] {
+                  name: @ac:1:0
+                }
+                LIST [25] {
+                  elements: {
+                    CALL [26] {
+                      function: _*_
+                      args: {
+                        IDENT [27] {
+                          name: @it:1:0
+                        }
+                        CONSTANT [28] { value: 2 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          result: {
+            IDENT [29] {
+              name: @ac:1:0
+            }
+          }
         }
       }
     }
@@ -2456,14 +2572,14 @@ CALL [1] {
       function: _==_
       args: {
         COMPREHENSION [16] {
-          iter_var: @it:0:0
-          iter_var2: @it2:0:0
+          iter_var: @it:1:0
+          iter_var2: @it2:1:0
           iter_range: {
             IDENT [17] {
               name: @index0
             }
           }
-          accu_var: @ac:0:0
+          accu_var: @ac:1:0
           accu_init: {
             LIST [18] {
               elements: {
@@ -2478,19 +2594,19 @@ CALL [1] {
               function: _+_
               args: {
                 IDENT [21] {
-                  name: @ac:0:0
+                  name: @ac:1:0
                 }
                 LIST [22] {
                   elements: {
                     COMPREHENSION [23] {
-                      iter_var: @it:1:0
-                      iter_var2: @it2:1:0
+                      iter_var: @it:0:0
+                      iter_var2: @it2:0:0
                       iter_range: {
                         IDENT [24] {
                           name: @index0
                         }
                       }
-                      accu_var: @ac:1:0
+                      accu_var: @ac:0:0
                       accu_init: {
                         LIST [25] {
                           elements: {
@@ -2505,7 +2621,7 @@ CALL [1] {
                           function: _+_
                           args: {
                             IDENT [28] {
-                              name: @ac:1:0
+                              name: @ac:0:0
                             }
                             LIST [29] {
                               elements: {
@@ -2516,10 +2632,10 @@ CALL [1] {
                                       function: _+_
                                       args: {
                                         IDENT [32] {
-                                          name: @it:1:0
+                                          name: @it:0:0
                                         }
                                         IDENT [33] {
-                                          name: @it2:1:0
+                                          name: @it2:0:0
                                         }
                                       }
                                     }
@@ -2533,7 +2649,7 @@ CALL [1] {
                       }
                       result: {
                         IDENT [35] {
-                          name: @ac:1:0
+                          name: @ac:0:0
                         }
                       }
                     }
@@ -2544,7 +2660,7 @@ CALL [1] {
           }
           result: {
             IDENT [36] {
-              name: @ac:0:0
+              name: @ac:1:0
             }
           }
         }
@@ -2596,14 +2712,14 @@ CALL [1] {
       function: _==_
       args: {
         COMPREHENSION [16] {
-          iter_var: @it:0:0
-          iter_var2: @it2:0:0
+          iter_var: @it:1:0
+          iter_var2: @it2:1:0
           iter_range: {
             IDENT [17] {
               name: @index1
             }
           }
-          accu_var: @ac:0:0
+          accu_var: @ac:1:0
           accu_init: {
             LIST [18] {
               elements: {
@@ -2618,18 +2734,18 @@ CALL [1] {
               function: _+_
               args: {
                 IDENT [21] {
-                  name: @ac:0:0
+                  name: @ac:1:0
                 }
                 LIST [22] {
                   elements: {
                     COMPREHENSION [23] {
-                      iter_var: @it:1:0
+                      iter_var: @it:0:0
                       iter_range: {
                         IDENT [24] {
                           name: @index2
                         }
                       }
-                      accu_var: @ac:1:0
+                      accu_var: @ac:0:0
                       accu_init: {
                         LIST [25] {
                           elements: {
@@ -2650,10 +2766,10 @@ CALL [1] {
                                   function: _==_
                                   args: {
                                     IDENT [30] {
-                                      name: @it:1:0
+                                      name: @it:0:0
                                     }
                                     IDENT [31] {
-                                      name: @it2:0:0
+                                      name: @it2:1:0
                                     }
                                   }
                                 }
@@ -2661,10 +2777,10 @@ CALL [1] {
                                   function: _<_
                                   args: {
                                     IDENT [33] {
-                                      name: @it:0:0
+                                      name: @it:1:0
                                     }
                                     IDENT [34] {
-                                      name: @it2:0:0
+                                      name: @it2:1:0
                                     }
                                   }
                                 }
@@ -2674,26 +2790,26 @@ CALL [1] {
                               function: _+_
                               args: {
                                 IDENT [36] {
-                                  name: @ac:1:0
+                                  name: @ac:0:0
                                 }
                                 LIST [37] {
                                   elements: {
                                     IDENT [38] {
-                                      name: @it:1:0
+                                      name: @it:0:0
                                     }
                                   }
                                 }
                               }
                             }
                             IDENT [39] {
-                              name: @ac:1:0
+                              name: @ac:0:0
                             }
                           }
                         }
                       }
                       result: {
                         IDENT [40] {
-                          name: @ac:1:0
+                          name: @ac:0:0
                         }
                       }
                     }
@@ -2704,7 +2820,7 @@ CALL [1] {
           }
           result: {
             IDENT [41] {
-              name: @ac:0:0
+              name: @ac:1:0
             }
           }
         }
@@ -2724,7 +2840,7 @@ CALL [1] {
     LIST [2] {
       elements: {
         COMPREHENSION [3] {
-          iter_var: @it:1:0
+          iter_var: @it:0:0
           iter_range: {
             LIST [4] {
               elements: {
@@ -2734,7 +2850,7 @@ CALL [1] {
               }
             }
           }
-          accu_var: @ac:1:0
+          accu_var: @ac:0:0
           accu_init: {
             LIST [8] {
               elements: {
@@ -2749,7 +2865,7 @@ CALL [1] {
               function: _+_
               args: {
                 IDENT [11] {
-                  name: @ac:1:0
+                  name: @ac:0:0
                 }
                 LIST [12] {
                   elements: {
@@ -2757,7 +2873,7 @@ CALL [1] {
                       function: _+_
                       args: {
                         IDENT [14] {
-                          name: @it:1:0
+                          name: @it:0:0
                         }
                         CONSTANT [15] { value: 1 }
                       }
@@ -2769,12 +2885,12 @@ CALL [1] {
           }
           result: {
             IDENT [16] {
-              name: @ac:1:0
+              name: @ac:0:0
             }
           }
         }
         COMPREHENSION [17] {
-          iter_var: @it:0:0
+          iter_var: @it:1:0
           iter_range: {
             LIST [18] {
               elements: {
@@ -2784,7 +2900,7 @@ CALL [1] {
               }
             }
           }
-          accu_var: @ac:0:0
+          accu_var: @ac:1:0
           accu_init: {
             LIST [22] {
               elements: {
@@ -2799,7 +2915,7 @@ CALL [1] {
               function: _+_
               args: {
                 IDENT [25] {
-                  name: @ac:0:0
+                  name: @ac:1:0
                 }
                 LIST [26] {
                   elements: {
@@ -2813,7 +2929,7 @@ CALL [1] {
           }
           result: {
             IDENT [28] {
-              name: @ac:0:0
+              name: @ac:1:0
             }
           }
         }
@@ -2841,8 +2957,8 @@ CALL [1] {
     LIST [2] {
       elements: {
         COMPREHENSION [3] {
-          iter_var: @it:1:0
-          iter_var2: @it2:1:0
+          iter_var: @it:0:0
+          iter_var2: @it2:0:0
           iter_range: {
             LIST [4] {
               elements: {
@@ -2852,7 +2968,7 @@ CALL [1] {
               }
             }
           }
-          accu_var: @ac:1:0
+          accu_var: @ac:0:0
           accu_init: {
             MAP [8] {
 
@@ -2866,10 +2982,10 @@ CALL [1] {
               function: cel.@mapInsert
               args: {
                 IDENT [11] {
-                  name: @ac:1:0
+                  name: @ac:0:0
                 }
                 IDENT [12] {
-                  name: @it:1:0
+                  name: @it:0:0
                 }
                 CALL [13] {
                   function: _+_
@@ -2878,10 +2994,10 @@ CALL [1] {
                       function: _+_
                       args: {
                         IDENT [15] {
-                          name: @it:1:0
+                          name: @it:0:0
                         }
                         IDENT [16] {
-                          name: @it2:1:0
+                          name: @it2:0:0
                         }
                       }
                     }
@@ -2893,13 +3009,13 @@ CALL [1] {
           }
           result: {
             IDENT [18] {
-              name: @ac:1:0
+              name: @ac:0:0
             }
           }
         }
         COMPREHENSION [19] {
-          iter_var: @it:0:0
-          iter_var2: @it2:0:0
+          iter_var: @it:1:0
+          iter_var2: @it2:1:0
           iter_range: {
             LIST [20] {
               elements: {
@@ -2909,7 +3025,7 @@ CALL [1] {
               }
             }
           }
-          accu_var: @ac:0:0
+          accu_var: @ac:1:0
           accu_init: {
             MAP [24] {
 
@@ -2923,10 +3039,10 @@ CALL [1] {
               function: cel.@mapInsert
               args: {
                 IDENT [27] {
-                  name: @ac:0:0
+                  name: @ac:1:0
                 }
                 IDENT [28] {
-                  name: @it:0:0
+                  name: @it:1:0
                 }
                 IDENT [29] {
                   name: @index0
@@ -2936,7 +3052,7 @@ CALL [1] {
           }
           result: {
             IDENT [30] {
-              name: @ac:0:0
+              name: @ac:1:0
             }
           }
         }
@@ -3120,13 +3236,13 @@ CALL [1] {
           }
         }
         COMPREHENSION [13] {
-          iter_var: @it:1:0
+          iter_var: @it:0:0
           iter_range: {
             IDENT [14] {
               name: @index1
             }
           }
-          accu_var: @ac:1:0
+          accu_var: @ac:0:0
           accu_init: {
             LIST [15] {
               elements: {
@@ -3141,7 +3257,7 @@ CALL [1] {
               function: _+_
               args: {
                 IDENT [18] {
-                  name: @ac:1:0
+                  name: @ac:0:0
                 }
                 LIST [19] {
                   elements: {
@@ -3158,7 +3274,7 @@ CALL [1] {
           }
           result: {
             IDENT [23] {
-              name: @ac:1:0
+              name: @ac:0:0
             }
           }
         }
@@ -3168,13 +3284,13 @@ CALL [1] {
       function: _==_
       args: {
         COMPREHENSION [25] {
-          iter_var: @it:0:0
+          iter_var: @it:1:0
           iter_range: {
             IDENT [26] {
               name: @index1
             }
           }
-          accu_var: @ac:0:0
+          accu_var: @ac:1:0
           accu_init: {
             LIST [27] {
               elements: {
@@ -3189,7 +3305,7 @@ CALL [1] {
               function: _+_
               args: {
                 IDENT [30] {
-                  name: @ac:0:0
+                  name: @ac:1:0
                 }
                 LIST [31] {
                   elements: {
@@ -3203,7 +3319,7 @@ CALL [1] {
           }
           result: {
             IDENT [33] {
-              name: @ac:0:0
+              name: @ac:1:0
             }
           }
         }
@@ -3252,14 +3368,14 @@ CALL [1] {
           }
         }
         COMPREHENSION [13] {
-          iter_var: @it:1:0
-          iter_var2: @it2:1:0
+          iter_var: @it:0:0
+          iter_var2: @it2:0:0
           iter_range: {
             IDENT [14] {
               name: @index1
             }
           }
-          accu_var: @ac:1:0
+          accu_var: @ac:0:0
           accu_init: {
             LIST [15] {
               elements: {
@@ -3274,7 +3390,7 @@ CALL [1] {
               function: _+_
               args: {
                 IDENT [18] {
-                  name: @ac:1:0
+                  name: @ac:0:0
                 }
                 LIST [19] {
                   elements: {
@@ -3291,7 +3407,7 @@ CALL [1] {
           }
           result: {
             IDENT [23] {
-              name: @ac:1:0
+              name: @ac:0:0
             }
           }
         }
@@ -3301,14 +3417,14 @@ CALL [1] {
       function: _==_
       args: {
         COMPREHENSION [25] {
-          iter_var: @it:0:0
-          iter_var2: @it2:0:0
+          iter_var: @it:1:0
+          iter_var2: @it2:1:0
           iter_range: {
             IDENT [26] {
               name: @index1
             }
           }
-          accu_var: @ac:0:0
+          accu_var: @ac:1:0
           accu_init: {
             LIST [27] {
               elements: {
@@ -3323,7 +3439,7 @@ CALL [1] {
               function: _+_
               args: {
                 IDENT [30] {
-                  name: @ac:0:0
+                  name: @ac:1:0
                 }
                 LIST [31] {
                   elements: {
@@ -3337,7 +3453,7 @@ CALL [1] {
           }
           result: {
             IDENT [33] {
-              name: @ac:0:0
+              name: @ac:1:0
             }
           }
         }
@@ -3483,16 +3599,16 @@ CALL [1] {
       }
     }
     COMPREHENSION [6] {
-      iter_var: @it:0:0
+      iter_var: @it:1:0
       iter_range: {
         COMPREHENSION [7] {
-          iter_var: @it:1:0
+          iter_var: @it:0:0
           iter_range: {
             IDENT [8] {
               name: @index0
             }
           }
-          accu_var: @ac:1:0
+          accu_var: @ac:0:0
           accu_init: {
             LIST [9] {
               elements: {
@@ -3507,7 +3623,7 @@ CALL [1] {
               function: _+_
               args: {
                 IDENT [12] {
-                  name: @ac:1:0
+                  name: @ac:0:0
                 }
                 LIST [13] {
                   elements: {
@@ -3517,10 +3633,10 @@ CALL [1] {
                           function: _+_
                           args: {
                             IDENT [16] {
-                              name: @it:1:0
+                              name: @it:0:0
                             }
                             IDENT [17] {
-                              name: @it:1:0
+                              name: @it:0:0
                             }
                           }
                         }
@@ -3528,10 +3644,10 @@ CALL [1] {
                           function: _+_
                           args: {
                             IDENT [19] {
-                              name: @it:1:0
+                              name: @it:0:0
                             }
                             IDENT [20] {
-                              name: @it:1:0
+                              name: @it:0:0
                             }
                           }
                         }
@@ -3544,12 +3660,12 @@ CALL [1] {
           }
           result: {
             IDENT [21] {
-              name: @ac:1:0
+              name: @ac:0:0
             }
           }
         }
       }
-      accu_var: @ac:0:0
+      accu_var: @ac:1:0
       accu_init: {
         LIST [22] {
           elements: {
@@ -3564,7 +3680,7 @@ CALL [1] {
           function: _+_
           args: {
             IDENT [25] {
-              name: @ac:0:0
+              name: @ac:1:0
             }
             LIST [26] {
               elements: {
@@ -3574,10 +3690,10 @@ CALL [1] {
                       function: _+_
                       args: {
                         IDENT [29] {
-                          name: @it:0:0
+                          name: @it:1:0
                         }
                         IDENT [30] {
-                          name: @it:0:0
+                          name: @it:1:0
                         }
                       }
                     }
@@ -3585,10 +3701,10 @@ CALL [1] {
                       function: _+_
                       args: {
                         IDENT [32] {
-                          name: @it:0:0
+                          name: @it:1:0
                         }
                         IDENT [33] {
-                          name: @it:0:0
+                          name: @it:1:0
                         }
                       }
                     }
@@ -3601,7 +3717,7 @@ CALL [1] {
       }
       result: {
         IDENT [34] {
-          name: @ac:0:0
+          name: @ac:1:0
         }
       }
     }
@@ -3755,8 +3871,8 @@ CALL [1] {
     LIST [2] {
       elements: {
         COMPREHENSION [3] {
-          iter_var: @it:1:0
-          iter_var2: @it2:1:0
+          iter_var: @it:0:0
+          iter_var2: @it2:0:0
           iter_range: {
             LIST [4] {
               elements: {
@@ -3765,7 +3881,7 @@ CALL [1] {
               }
             }
           }
-          accu_var: @ac:1:0
+          accu_var: @ac:0:0
           accu_init: {
             MAP [7] {
 
@@ -3779,10 +3895,10 @@ CALL [1] {
               function: cel.@mapInsert
               args: {
                 IDENT [10] {
-                  name: @ac:1:0
+                  name: @ac:0:0
                 }
                 IDENT [11] {
-                  name: @it:1:0
+                  name: @it:0:0
                 }
                 LIST [12] {
                   elements: {
@@ -3790,10 +3906,10 @@ CALL [1] {
                       function: _+_
                       args: {
                         IDENT [14] {
-                          name: @it:1:0
+                          name: @it:0:0
                         }
                         IDENT [15] {
-                          name: @it:1:0
+                          name: @it:0:0
                         }
                       }
                     }
@@ -3801,10 +3917,10 @@ CALL [1] {
                       function: _+_
                       args: {
                         IDENT [17] {
-                          name: @it2:1:0
+                          name: @it2:0:0
                         }
                         IDENT [18] {
-                          name: @it2:1:0
+                          name: @it2:0:0
                         }
                       }
                     }
@@ -3815,21 +3931,21 @@ CALL [1] {
           }
           result: {
             IDENT [19] {
-              name: @ac:1:0
+              name: @ac:0:0
             }
           }
         }
       }
     }
     COMPREHENSION [20] {
-      iter_var: @it:0:0
-      iter_var2: @it2:0:0
+      iter_var: @it:1:0
+      iter_var2: @it2:1:0
       iter_range: {
         IDENT [21] {
           name: @index0
         }
       }
-      accu_var: @ac:0:0
+      accu_var: @ac:1:0
       accu_init: {
         MAP [22] {
 
@@ -3843,10 +3959,10 @@ CALL [1] {
           function: cel.@mapInsert
           args: {
             IDENT [25] {
-              name: @ac:0:0
+              name: @ac:1:0
             }
             IDENT [26] {
-              name: @it:0:0
+              name: @it:1:0
             }
             LIST [27] {
               elements: {
@@ -3854,10 +3970,10 @@ CALL [1] {
                   function: _+_
                   args: {
                     IDENT [29] {
-                      name: @it:0:0
+                      name: @it:1:0
                     }
                     IDENT [30] {
-                      name: @it:0:0
+                      name: @it:1:0
                     }
                   }
                 }
@@ -3865,10 +3981,10 @@ CALL [1] {
                   function: _+_
                   args: {
                     IDENT [32] {
-                      name: @it2:0:0
+                      name: @it2:1:0
                     }
                     IDENT [33] {
-                      name: @it2:0:0
+                      name: @it2:1:0
                     }
                   }
                 }
@@ -3879,7 +3995,7 @@ CALL [1] {
       }
       result: {
         IDENT [34] {
-          name: @ac:0:0
+          name: @ac:1:0
         }
       }
     }
