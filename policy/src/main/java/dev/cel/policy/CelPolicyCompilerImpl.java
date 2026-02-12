@@ -64,6 +64,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
   private final String variablesPrefix;
   private final int iterationLimit;
   private final Optional<CelAstValidator> astDepthValidator;
+  private final Optional<CelValidator> validator;
 
   @Override
   public CelCompiledRule compileRule(CelPolicy policy) throws CelPolicyValidationException {
@@ -194,6 +195,10 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
       CelType outputType = SimpleType.DYN;
       try {
         varAst = localCel.compile(expression.value()).getAst();
+        if (this.validator.isPresent()) {
+          CelValidationResult result = this.validator.get().validate(varAst);
+          varAst = result.getAst();
+        }
         outputType = varAst.getResultType();
       } catch (CelValidationException e) {
         compilerContext.addIssue(expression.id(), e.getErrors());
@@ -212,6 +217,10 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
       CelAbstractSyntaxTree conditionAst;
       try {
         conditionAst = localCel.compile(match.condition().value()).getAst();
+        if (this.validator.isPresent()) {
+          CelValidationResult result = this.validator.get().validate(conditionAst);
+          conditionAst = result.getAst();
+        }
         if (!conditionAst.getResultType().equals(SimpleType.BOOL)) {
           compilerContext.addIssue(
               match.condition().id(),
@@ -229,6 +238,10 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
           ValueString output = match.result().output();
           try {
             outputAst = localCel.compile(output.value()).getAst();
+            if (this.validator.isPresent()) {
+              CelValidationResult result = this.validator.get().validate(outputAst);
+              outputAst = result.getAst();
+            }
           } catch (CelValidationException e) {
             compilerContext.addIssue(output.id(), e.getErrors());
             continue;
@@ -340,10 +353,12 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
     private String variablesPrefix;
     private int iterationLimit;
     private Optional<CelAstValidator> astDepthLimitValidator;
+    private ArrayList<CelAstValidator> validators;
 
     private Builder(Cel cel) {
       this.cel = cel;
       this.astDepthLimitValidator = Optional.of(AstDepthLimitValidator.DEFAULT);
+      this.validators = new ArrayList<>();
     }
 
     @Override
@@ -362,6 +377,26 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
 
     @Override
     @CanIgnoreReturnValue
+    public Builder addValidators(Iterable<? extends CelAstValidator> validators) {
+      validators.forEach(this.validators::add);
+      return this;
+    }
+
+    @Override
+    @CanIgnoreReturnValue
+    public Builder addValidators(CelAstValidator... validators) {
+      return addValidators(Arrays.asList(validators));
+    }
+
+    @Override
+    @CanIgnoreReturnValue
+    public Builder clearValidators() {
+      this.validators.clear();
+      return this;
+    }
+
+    @Override
+    @CanIgnoreReturnValue
     public CelPolicyCompilerBuilder setAstDepthLimit(int astDepthLimit) {
       if (astDepthLimit < 0) {
         astDepthLimitValidator = Optional.empty();
@@ -374,7 +409,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
     @Override
     public CelPolicyCompiler build() {
       return new CelPolicyCompilerImpl(
-          cel, this.variablesPrefix, this.iterationLimit, astDepthLimitValidator);
+          cel, this.variablesPrefix, this.iterationLimit, astDepthLimitValidator, validators);
     }
   }
 
@@ -388,10 +423,20 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
       Cel cel,
       String variablesPrefix,
       int iterationLimit,
-      Optional<CelAstValidator> astDepthValidator) {
+      Optional<CelAstValidator> astDepthValidator,
+      List<CelAstValidator> additionalValidators) {
     this.cel = checkNotNull(cel);
     this.variablesPrefix = checkNotNull(variablesPrefix);
     this.iterationLimit = iterationLimit;
     this.astDepthValidator = astDepthValidator;
+    if (additionalValidators.isEmpty()) {
+      this.validator = Optional.empty();
+    } else {
+      this.validator =
+          Optional.of(
+              CelValidatorFactory.standardCelValidatorBuilder(cel)
+                  .addAstValidators(additionalValidators)
+                  .build());
+    }
   }
 }

@@ -137,6 +137,7 @@ java_library(
     ],
     deps = [
         ":compiler",
+        "//validator:ast_validator",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
