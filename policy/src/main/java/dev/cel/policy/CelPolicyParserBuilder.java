@@ -29,6 +29,30 @@ public interface CelPolicyParserBuilder<T> {
   @CanIgnoreReturnValue
   CelPolicyParserBuilder<T> addTagVisitor(TagVisitor<T> tagVisitor);
 
+  /**
+   * Configures the parser to allow for key-value pairs to declare a variable name and expression.
+   *
+   * <p>For example:
+   *
+   * <pre>{@code
+   * variables:
+   * - foo: bar
+   * - baz: qux
+   * }</pre>
+   *
+   * <p>This is in contrast to the default behavior, which requires the following syntax:
+   *
+   * <pre>{@code
+   * variables:
+   * - name: foo
+   *   expression: bar
+   * - name: baz
+   *   expression: qux
+   * }</pre>
+   */
+  @CanIgnoreReturnValue
+  CelPolicyParserBuilder<T> enableSimpleVariables(boolean enable);
+
   /** Builds a new instance of {@link CelPolicyParser}. */
   @CheckReturnValue
   CelPolicyParser build();

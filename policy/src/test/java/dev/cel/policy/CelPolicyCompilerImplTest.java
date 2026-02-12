@@ -302,6 +302,29 @@ public final class CelPolicyCompilerImplTest {
     assertThat(evalResult).isEqualTo("foo" + exampleValue);
   }
 
+  @Test
+  public void evaluateYamlPolicy_withSimpleVariable() throws Exception {
+    Cel cel = newCel();
+    String policySource =
+        "name: shorthand_variables_policy\n"
+            + "rule:\n"
+            + "  variables:\n"
+            + "    - first: 'true'\n"
+            + "    - second: 'false'\n"
+            + "  match:\n"
+            + "    - output: 'variables.first && variables.second'";
+    CelPolicyParser parser =
+        CelPolicyParserFactory.newYamlParserBuilder().enableSimpleVariables(true).build();
+    CelPolicy policy = parser.parse(policySource);
+
+    CelAbstractSyntaxTree compiledPolicyAst =
+        CelPolicyCompilerFactory.newPolicyCompiler(cel).build().compile(policy);
+
+    boolean evalResult = (boolean) cel.createProgram(compiledPolicyAst).eval();
+
+    assertThat(evalResult).isFalse();
+  }
+
   private static final class EvaluablePolicyTestData {
     private final TestYamlPolicy yamlPolicy;
     private final PolicyTestCase testCase;

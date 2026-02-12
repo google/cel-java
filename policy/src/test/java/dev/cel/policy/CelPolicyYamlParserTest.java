@@ -149,6 +149,30 @@ public final class CelPolicyYamlParserTest {
   }
 
   @Test
+  public void parseYamlPolicy_withSimpleVariable_multipleInlinedVariables() {
+    String policySource =
+        "name: shorthand_variables_policy\n"
+            + "rule:\n"
+            + "  variables:\n"
+            + "    - first: 'true'\n"
+            + "      second: 'false'\n"
+            + "  match:\n"
+            + "    - condition: 'variables.my_var'\n"
+            + "      output: 'true'\n";
+    CelPolicyParser parser =
+        CelPolicyParserFactory.newYamlParserBuilder().enableSimpleVariables(true).build();
+
+    CelPolicyValidationException e =
+        assertThrows(CelPolicyValidationException.class, () -> parser.parse(policySource));
+    assertThat(e)
+        .hasMessageThat()
+        .contains(
+            "ERROR: <input>:5:7: Only one variable may be defined inline\n"
+                + " |       second: 'false'\n"
+                + " | ......^");
+  }
+
+  @Test
   public void parseYamlPolicy_errors(@TestParameter PolicyParseErrorTestCase testCase) {
     CelPolicyValidationException e =
         assertThrows(

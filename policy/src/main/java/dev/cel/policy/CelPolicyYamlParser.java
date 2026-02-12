@@ -49,6 +49,7 @@ final class CelPolicyYamlParser implements CelPolicyParser {
       Variable.newBuilder().setExpression(ERROR_VALUE).setName(ERROR_VALUE).build();
 
   private final TagVisitor<Node> tagVisitor;
+  private final boolean enableSimpleVariables;
 
   @Override
   public CelPolicy parse(String policySource) throws CelPolicyValidationException {
@@ -58,13 +59,15 @@ final class CelPolicyYamlParser implements CelPolicyParser {
   @Override
   public CelPolicy parse(String policySource, String description)
       throws CelPolicyValidationException {
-    ParserImpl parser = new ParserImpl(tagVisitor, policySource, description);
+    ParserImpl parser =
+        new ParserImpl(tagVisitor, enableSimpleVariables, policySource, description);
     return parser.parseYaml();
   }
 
   private static class ParserImpl implements PolicyParserContext<Node> {
 
     private final TagVisitor<Node> tagVisitor;
+    private final boolean enableSimpleVariables;
     private final CelPolicySource policySource;
     private final ParserContext<Node> ctx;
 
@@ -336,9 +339,45 @@ final class CelPolicyYamlParser implements CelPolicyParser {
       if (!assertYamlType(ctx, id, node, YamlNodeType.MAP)) {
         return ERROR_VARIABLE;
       }
+
       MappingNode variableMap = (MappingNode) node;
       Variable.Builder builder = Variable.newBuilder();
 
+      if (enableSimpleVariables) {
+        return parseVariableInline(ctx, id, variableMap, builder);
+      }
+      return parseVariableObject(ctx, policyBuilder, id, variableMap, builder);
+    }
+
+    private Variable parseVariableInline(
+        PolicyParserContext<Node> ctx, long id, MappingNode variableMap, Variable.Builder builder) {
+      int iterations = 0;
+      for (NodeTuple nodeTuple : variableMap.getValue()) {
+        Node keyNode = nodeTuple.getKeyNode();
+        long keyId = ctx.collectMetadata(keyNode);
+        builder
+            .setName(ctx.newValueString(keyNode))
+            .setExpression(ctx.newValueString(nodeTuple.getValueNode()));
+        iterations++;
+
+        if (iterations > 1) {
+          ctx.reportError(keyId, "Only one variable may be defined inline");
+        }
+      }
+
+      if (!assertRequiredFields(ctx, id, builder.getMissingRequiredFieldNames())) {
+        return ERROR_VARIABLE;
+      }
+
+      return builder.build();
+    }
+
+    private Variable parseVariableObject(
+        PolicyParserContext<Node> ctx,
+        CelPolicy.Builder policyBuilder,
+        long id,
+        MappingNode variableMap,
+        Variable.Builder builder) {
       for (NodeTuple nodeTuple : variableMap.getValue()) {
         Node keyNode = nodeTuple.getKeyNode();
         long keyId = ctx.collectMetadata(keyNode);
@@ -370,8 +409,13 @@ final class CelPolicyYamlParser implements CelPolicyParser {
       return builder.build();
     }
 
-    private ParserImpl(TagVisitor<Node> tagVisitor, String source, String description) {
+    private ParserImpl(
+        TagVisitor<Node> tagVisitor,
+        boolean enableSimpleVariables,
+        String source,
+        String description) {
       this.tagVisitor = tagVisitor;
+      this.enableSimpleVariables = enableSimpleVariables;
       this.policySource =
           CelPolicySource.newBuilder(CelCodePointArray.fromString(source))
               .setDescription(description)
@@ -413,9 +457,11 @@ final class CelPolicyYamlParser implements CelPolicyParser {
   static final class Builder implements CelPolicyParserBuilder<Node> {
 
     private TagVisitor<Node> tagVisitor;
+    private boolean enableSimpleVariables;
 
     private Builder() {
       this.tagVisitor = new TagVisitor<Node>() {};
+      this.enableSimpleVariables = false;
     }
 
     @Override
@@ -425,16 +471,23 @@ final class CelPolicyYamlParser implements CelPolicyParser {
     }
 
     @Override
+    public CelPolicyParserBuilder<Node> enableSimpleVariables(boolean enable) {
+      this.enableSimpleVariables = enable;
+      return this;
+    }
+
+    @Override
     public CelPolicyParser build() {
-      return new CelPolicyYamlParser(tagVisitor);
+      return new CelPolicyYamlParser(tagVisitor, enableSimpleVariables);
     }
   }
 
-  static Builder newBuilder() {
-    return new Builder();
+  static CelPolicyParserBuilder<Node> newBuilder() {
+    return new Builder().enableSimpleVariables(false);
   }
 
-  private CelPolicyYamlParser(TagVisitor<Node> tagVisitor) {
+  private CelPolicyYamlParser(TagVisitor<Node> tagVisitor, boolean enableSimpleVariables) {
     this.tagVisitor = checkNotNull(tagVisitor);
+    this.enableSimpleVariables = enableSimpleVariables;
   }
 }
