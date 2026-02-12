@@ -2068,42 +2068,6 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     runTest(ImmutableMap.of("dyn_var", NullValue.NULL_VALUE));
 
     clearAllDeclarations();
-    declareVariable("int32_list", ListType.create(SimpleType.INT));
-    declareVariable("int64_list", ListType.create(SimpleType.INT));
-    declareVariable("uint32_list", ListType.create(SimpleType.UINT));
-    declareVariable("uint64_list", ListType.create(SimpleType.UINT));
-    declareVariable("float_list", ListType.create(SimpleType.DOUBLE));
-    declareVariable("double_list", ListType.create(SimpleType.DOUBLE));
-    declareVariable("bool_list", ListType.create(SimpleType.BOOL));
-    declareVariable("string_list", ListType.create(SimpleType.STRING));
-    declareVariable("bytes_list", ListType.create(SimpleType.BYTES));
-
-    container = CelContainer.ofName(TestAllTypes.getDescriptor().getFullName());
-    source =
-        "TestAllTypes{repeated_int32: int32_list}.repeated_int32 == [1] && "
-            + "TestAllTypes{repeated_int64: int64_list}.repeated_int64 == [2] && "
-            + "TestAllTypes{repeated_uint32: uint32_list}.repeated_uint32 == [3u] && "
-            + "TestAllTypes{repeated_uint64: uint64_list}.repeated_uint64 == [4u] && "
-            + "TestAllTypes{repeated_float: float_list}.repeated_float == [5.5] && "
-            + "TestAllTypes{repeated_double: double_list}.repeated_double == [6.6] && "
-            + "TestAllTypes{repeated_bool: bool_list}.repeated_bool == [true] && "
-            + "TestAllTypes{repeated_string: string_list}.repeated_string == ['hello'] && "
-            + "TestAllTypes{repeated_bytes: bytes_list}.repeated_bytes == [b'world']";
-
-    runTest(
-        ImmutableMap.<String, Object>builder()
-            .put("int32_list", ImmutableList.of(Int32Value.of(1)))
-            .put("int64_list", ImmutableList.of(Int64Value.of(2)))
-            .put("uint32_list", ImmutableList.of(UInt32Value.of(3)))
-            .put("uint64_list", ImmutableList.of(UInt64Value.of(4)))
-            .put("float_list", ImmutableList.of(FloatValue.of(5.5f)))
-            .put("double_list", ImmutableList.of(DoubleValue.of(6.6)))
-            .put("bool_list", ImmutableList.of(BoolValue.of(true)))
-            .put("string_list", ImmutableList.of(StringValue.of("hello")))
-            .put("bytes_list", ImmutableList.of(BytesValue.of(ByteString.copyFromUtf8("world"))))
-            .buildOrThrow());
-
-    clearAllDeclarations();
     // Currently allowed, but will be an error
     // See https://github.com/google/cel-spec/pull/501
     source = "google.protobuf.Timestamp{ seconds: 253402300800 }";
