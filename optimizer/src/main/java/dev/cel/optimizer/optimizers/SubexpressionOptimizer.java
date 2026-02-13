@@ -91,7 +91,7 @@ import java.util.stream.Stream;
  * }
  * </pre>
  */
-public class SubexpressionOptimizer implements CelAstOptimizer {
+public final class SubexpressionOptimizer implements CelAstOptimizer {
 
   private static final SubexpressionOptimizer INSTANCE =
       new SubexpressionOptimizer(SubexpressionOptimizerOptions.newBuilder().build());

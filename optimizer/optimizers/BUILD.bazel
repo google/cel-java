@@ -14,3 +14,8 @@ java_library(
     name = "common_subexpression_elimination",
     exports = ["//optimizer/src/main/java/dev/cel/optimizer/optimizers:common_subexpression_elimination"],
 )
+
+java_library(
+    name = "inlining",
+    exports = ["//optimizer/src/main/java/dev/cel/optimizer/optimizers:inlining"],
+)

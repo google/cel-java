@@ -27,6 +27,7 @@ java_library(
         "//optimizer:optimizer_builder",
         "//optimizer/optimizers:common_subexpression_elimination",
         "//optimizer/optimizers:constant_folding",
+        "//optimizer/optimizers:inlining",
         "//parser:macro",
         "//parser:unparser",
         "//runtime",
