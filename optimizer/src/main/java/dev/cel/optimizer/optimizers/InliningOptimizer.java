@@ -38,6 +38,7 @@ import dev.cel.common.values.NullValue;
 import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.CelAstOptimizer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -51,21 +52,53 @@ public final class InliningOptimizer implements CelAstOptimizer {
   private final ImmutableList<InlineVariable> inlineVariables;
   private final AstMutator astMutator;
 
+  /**
+   * Creates a new {@code InliningOptimizer} with one or more {@link InlineVariable}s.
+   *
+   * <p>Note that the variables to be inlined can be a dependency to one other based on the supplied
+   * ordering. This allows for recursive inlining where a replacement value might itself contain
+   * variables that need to be inlined.
+   *
+   * <p>For example, given a source expression {@code "a + b"} and inline variables in the following
+   * order:
+   *
+   * <ul>
+   *   <li>{@code {a: b, b: 2}}, result: {@code 2 + 2}.
+   *   <li>{@code {b: 2, a: b}}, result: {@code b + 2}.
+   * </ul>
+   */
   public static InliningOptimizer newInstance(InlineVariable... inlineVariables) {
     return newInstance(ImmutableList.copyOf(inlineVariables));
   }
 
-  public static InliningOptimizer newInstance(Iterable<InlineVariable> inlineVariables) {
+  /**
+   * Creates a new {@code InliningOptimizer}.
+   *
+   * @see #newInstance(InlineVariable...)
+   */
+  public static InliningOptimizer newInstance(List<InlineVariable> inlineVariables) {
     return newInstance(InliningOptions.newBuilder().build(), ImmutableList.copyOf(inlineVariables));
   }
 
+  /**
+   * Creates a new {@code InliningOptimizer}.
+   *
+   * @see #newInstance(InlineVariable...)
+   * @param options {@link InliningOptions} to customize the inlining behavior with.
+   */
   public static InliningOptimizer newInstance(
       InliningOptions options, InlineVariable... inlineVariables) {
     return newInstance(options, ImmutableList.copyOf(inlineVariables));
   }
 
+  /**
+   * Creates a new {@code InliningOptimizer}.
+   *
+   * @see #newInstance(InlineVariable...)
+   * @param options {@link InliningOptions} to customize the inlining behavior with.
+   */
   public static InliningOptimizer newInstance(
-      InliningOptions options, Iterable<InlineVariable> inlineVariables) {
+      InliningOptions options, List<InlineVariable> inlineVariables) {
     return new InliningOptimizer(options, ImmutableList.copyOf(inlineVariables));
   }
 

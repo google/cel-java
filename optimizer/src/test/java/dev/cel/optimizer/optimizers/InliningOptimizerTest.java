@@ -268,4 +268,43 @@ public class InliningOptimizerTest {
             "cel.@block([[1, 2, 3].map(@it:0:0, @it:0:0 * 2)], "
                 + "(@index0.size() != 0) ? (@index0.map(@it:1:0, @it:1:0 * 2)[0]) : 42)");
   }
+
+  @Test
+  public void allowInliningDependentVariables_inOrder_dependentVariablesInlined() throws Exception {
+    String source = "int_var + dyn_var";
+    CelAbstractSyntaxTree astToInline = CEL.compile(source).getAst();
+
+    CelOptimizer optimizer =
+        CelOptimizerFactory.standardCelOptimizerBuilder(CEL)
+            .addAstOptimizers(
+                InliningOptimizer.newInstance(
+                    InlineVariable.of("int_var", CEL.compile("dyn_var").getAst()),
+                    InlineVariable.of("dyn_var", CEL.compile("2").getAst())))
+            .build();
+
+    CelAbstractSyntaxTree optimized = optimizer.optimize(astToInline);
+
+    String unparsed = CelUnparserFactory.newUnparser().unparse(optimized);
+    assertThat(unparsed).isEqualTo("2 + 2");
+  }
+
+  @Test
+  public void allowInliningDependentVariables_reverseOrder_inliningIsIndependent()
+      throws Exception {
+    String source = "int_var + dyn_var";
+    CelAbstractSyntaxTree astToInline = CEL.compile(source).getAst();
+
+    CelOptimizer optimizer =
+        CelOptimizerFactory.standardCelOptimizerBuilder(CEL)
+            .addAstOptimizers(
+                InliningOptimizer.newInstance(
+                    InlineVariable.of("dyn_var", CEL.compile("2").getAst()),
+                    InlineVariable.of("int_var", CEL.compile("dyn_var").getAst())))
+            .build();
+
+    CelAbstractSyntaxTree optimized = optimizer.optimize(astToInline);
+
+    String unparsed = CelUnparserFactory.newUnparser().unparse(optimized);
+    assertThat(unparsed).isEqualTo("dyn_var + 2");
+  }
 }
