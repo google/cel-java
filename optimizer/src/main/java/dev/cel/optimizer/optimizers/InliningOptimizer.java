@@ -52,6 +52,10 @@ public final class InliningOptimizer implements CelAstOptimizer {
   private final AstMutator astMutator;
 
   public static InliningOptimizer newInstance(InlineVariable... inlineVariables) {
+    return newInstance(ImmutableList.copyOf(inlineVariables));
+  }
+
+  public static InliningOptimizer newInstance(Iterable<InlineVariable> inlineVariables) {
     return newInstance(InliningOptions.newBuilder().build(), ImmutableList.copyOf(inlineVariables));
   }
 
