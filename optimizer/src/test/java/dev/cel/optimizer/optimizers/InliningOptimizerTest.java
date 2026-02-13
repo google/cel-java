@@ -58,7 +58,8 @@ public class InliningOptimizerTest {
               "child",
               StructTypeReference.create(TestAllTypes.NestedMessage.getDescriptor().getFullName()))
           .addVar("shadowed_ident", SimpleType.INT)
-          .setOptions(CelOptions.current().populateMacroCalls(true).build())
+          .setOptions(
+              CelOptions.current().populateMacroCalls(true).enableTimestampEpoch(true).build())
           .build();
 
   @Test
@@ -129,6 +130,52 @@ public class InliningOptimizerTest {
         /* inlineVarName= */ "msg.single_any.processing_purpose",
         /* replacementExpr= */ "[1, 2, 3]",
         /* expected= */ "[1, 2, 3].size() != 0"),
+    PRESENCE_WITH_INT_LITERAL_REWRITE(
+        /* source= */ "has(msg.single_any.processing_purpose)",
+        /* inlineVarName= */ "msg.single_any.processing_purpose",
+        /* replacementExpr= */ "1",
+        /* expected= */ "1 != 0"),
+    PRESENCE_WITH_UINT_LITERAL_REWRITE(
+        /* source= */ "has(msg.single_any.processing_purpose)",
+        /* inlineVarName= */ "msg.single_any.processing_purpose",
+        /* replacementExpr= */ "1u",
+        /* expected= */ "1u != 0u"),
+    PRESENCE_WITH_DOUBLE_LITERAL_REWRITE(
+        /* source= */ "has(msg.single_any.processing_purpose)",
+        /* inlineVarName= */ "msg.single_any.processing_purpose",
+        /* replacementExpr= */ "1.5",
+        /* expected= */ "1.5 != 0.0"),
+    PRESENCE_WITH_BOOL_LITERAL_REWRITE(
+        /* source= */ "has(msg.single_any.processing_purpose)",
+        /* inlineVarName= */ "msg.single_any.processing_purpose",
+        /* replacementExpr= */ "true",
+        /* expected= */ "true != false"),
+    PRESENCE_WITH_STRING_LITERAL_REWRITE(
+        /* source= */ "has(msg.single_any.processing_purpose)",
+        /* inlineVarName= */ "msg.single_any.processing_purpose",
+        /* replacementExpr= */ "'foo'",
+        /* expected= */ "\"foo\".size() != 0"),
+    PRESENCE_WITH_BYTES_LITERAL_REWRITE(
+        /* source= */ "has(msg.single_any.processing_purpose)",
+        /* inlineVarName= */ "msg.single_any.processing_purpose",
+        /* replacementExpr= */ "b'abc'",
+        /* expected= */ "b\"\\141\\142\\143\".size() != 0"),
+    PRESENCE_WITH_TIMESTAMP_LITERAL_REWRITE(
+        /* source= */ "has(msg.single_any.processing_purpose)",
+        /* inlineVarName= */ "msg.single_any.processing_purpose",
+        /* replacementExpr= */ "timestamp(1)",
+        /* expected= */ "timestamp(1) != timestamp(0)"),
+    PRESENCE_WITH_DURATION_LITERAL_REWRITE(
+        /* source= */ "has(msg.single_any.processing_purpose)",
+        /* inlineVarName= */ "msg.single_any.processing_purpose",
+        /* replacementExpr= */ "duration('1h')",
+        /* expected= */ "duration(\"1h\") != duration(\"0\")"),
+    PRESENCE_WITH_PROTOBUF_MESSAGE_REWRITE(
+        /* source= */ "has(msg.single_any.processing_purpose)",
+        /* inlineVarName= */ "msg.single_any.processing_purpose",
+        /* replacementExpr= */ "cel.expr.conformance.proto3.TestAllTypes{single_int64: 1}",
+        /* expected= */ "cel.expr.conformance.proto3.TestAllTypes{single_int64: 1} !="
+            + " cel.expr.conformance.proto3.TestAllTypes{}"),
     NESTED_SELECT(
         /* source= */ "msg.standalone_message.bb",
         /* inlineVarName= */ "msg.standalone_message",

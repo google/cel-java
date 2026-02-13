@@ -18,6 +18,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import com.google.common.primitives.UnsignedLong;
 import dev.cel.bundle.Cel;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelMutableAst;
@@ -27,6 +28,7 @@ import dev.cel.common.ast.CelExpr.ExprKind.Kind;
 import dev.cel.common.ast.CelMutableExpr;
 import dev.cel.common.ast.CelMutableExpr.CelMutableCall;
 import dev.cel.common.ast.CelMutableExpr.CelMutableComprehension;
+import dev.cel.common.ast.CelMutableExpr.CelMutableStruct;
 import dev.cel.common.navigation.CelNavigableMutableAst;
 import dev.cel.common.navigation.CelNavigableMutableExpr;
 import dev.cel.common.types.CelKind;
@@ -35,6 +37,7 @@ import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.NullValue;
 import dev.cel.optimizer.AstMutator;
 import dev.cel.optimizer.CelAstOptimizer;
+import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -106,26 +109,66 @@ public final class InliningOptimizer implements CelAstOptimizer {
             .ast()
             .getType(replacementExpr.id())
             .orElseThrow(() -> new NoSuchElementException("Type is not present."));
+
     if (isSizerType(replacementType)) {
       // has(X) -> X.size() != 0
-      return CelMutableExpr.ofCall(
-          CelMutableCall.create(
-              Operator.NOT_EQUALS.getFunction(),
-              CelMutableExpr.ofCall(CelMutableCall.create(replacementExpr, "size")),
-              CelMutableExpr.ofConstant(CelConstant.ofValue(0))));
-    } else if (replacementType.isAssignableFrom(SimpleType.NULL_TYPE)) {
-      // has(X) -> X != null
-      // This covers well-known wrapper types
-      return CelMutableExpr.ofCall(
-          CelMutableCall.create(
-              Operator.NOT_EQUALS.getFunction(),
-              replacementExpr,
-              CelMutableExpr.ofConstant(CelConstant.ofValue(NullValue.NULL_VALUE))));
+      return createNotEquals(
+          CelMutableExpr.ofCall(CelMutableCall.create(replacementExpr, "size")),
+          CelMutableExpr.ofConstant(CelConstant.ofValue(0)));
     }
 
-    throw new IllegalArgumentException(
-        String.format(
-            "Unable to inline expression type %s into presence test", replacementType.name()));
+    if (replacementType.isAssignableFrom(SimpleType.NULL_TYPE)) {
+      // has(X) -> X != null
+      // This covers well-known wrapper types
+
+      return createNotEquals(
+          replacementExpr, CelMutableExpr.ofConstant(CelConstant.ofValue(NullValue.NULL_VALUE)));
+    }
+
+    return getZeroValueExpr(replacementType, replacementExpr)
+        .map(zeroValue -> createNotEquals(replacementExpr, zeroValue))
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    String.format(
+                        "Unable to inline expression type %s into presence test",
+                        replacementType.name())));
+  }
+
+  private static Optional<CelMutableExpr> getZeroValueExpr(
+      CelType type, CelMutableExpr replacementExpr) {
+    switch (type.kind()) {
+      case BOOL:
+        return Optional.of(CelMutableExpr.ofConstant(CelConstant.ofValue(false)));
+      case DOUBLE:
+        return Optional.of(CelMutableExpr.ofConstant(CelConstant.ofValue(0.0d)));
+      case INT:
+        return Optional.of(CelMutableExpr.ofConstant(CelConstant.ofValue(0)));
+      case UINT:
+        return Optional.of(CelMutableExpr.ofConstant(CelConstant.ofValue(UnsignedLong.ZERO)));
+      case TIMESTAMP:
+        return Optional.of(
+            CelMutableExpr.ofCall(
+                CelMutableCall.create(
+                    "timestamp", CelMutableExpr.ofConstant(CelConstant.ofValue(0)))));
+      case DURATION:
+        return Optional.of(
+            CelMutableExpr.ofCall(
+                CelMutableCall.create(
+                    "duration", CelMutableExpr.ofConstant(CelConstant.ofValue("0")))));
+      case STRUCT:
+        return Optional.of(
+            CelMutableExpr.ofStruct(
+                CelMutableStruct.create(
+                    replacementExpr.struct().messageName(), new ArrayList<>())));
+      default:
+        return Optional.empty();
+    }
+  }
+
+  private static CelMutableExpr createNotEquals(CelMutableExpr left, CelMutableExpr right) {
+    return CelMutableExpr.ofCall(
+        CelMutableCall.create(Operator.NOT_EQUALS.getFunction(), left, right));
   }
 
   private static boolean isSizerType(CelType type) {
