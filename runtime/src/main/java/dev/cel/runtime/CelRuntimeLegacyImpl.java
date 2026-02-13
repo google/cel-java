@@ -45,7 +45,6 @@ import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.CelTypes;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.ProtoMessageValueProvider;
-import dev.cel.runtime.standard.AddOperator.AddOverload;
 import dev.cel.runtime.standard.IntFunction.IntOverload;
 import dev.cel.runtime.standard.TimestampFunction.TimestampOverload;
 import java.util.Arrays;
@@ -379,16 +378,6 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
                           // auto-enabled.
                           if (standardOverload.equals(TimestampOverload.INT64_TO_TIMESTAMP)) {
                             return options.enableTimestampEpoch();
-                          }
-                          break;
-                        case STRING:
-                          return options.enableStringConversion();
-                        case ADD:
-                          if (standardOverload.equals(AddOverload.ADD_STRING)) {
-                            return options.enableStringConcatenation();
-                          }
-                          if (standardOverload.equals(AddOverload.ADD_LIST)) {
-                            return options.enableListConcatenation();
                           }
                           break;
                         default:

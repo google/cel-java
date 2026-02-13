@@ -715,9 +715,6 @@ public class CelLiteRuntimeAndroidTest {
     CEL_VALUE_DISABLED(newBaseTestOptions().enableCelValue(false).build()),
     UNSIGNED_LONG_DISABLED(newBaseTestOptions().enableUnsignedLongs(false).build()),
     UNWRAP_WKT_DISABLED(newBaseTestOptions().unwrapWellKnownTypesOnFunctionDispatch(false).build()),
-    STRING_CONCAT_DISABLED(newBaseTestOptions().enableStringConcatenation(false).build()),
-    STRING_CONVERSION_DISABLED(newBaseTestOptions().enableStringConversion(false).build()),
-    LIST_CONCATENATION_DISABLED(newBaseTestOptions().enableListConcatenation(false).build()),
     ;
 
     private final CelOptions celOptions;
