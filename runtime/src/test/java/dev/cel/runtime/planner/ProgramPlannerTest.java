@@ -397,10 +397,12 @@ public final class ProgramPlannerTest {
   public void plan_call_throws() throws Exception {
     CelAbstractSyntaxTree ast = compile("error()");
     Program program = PLANNER.plan(ast);
+    String expectedOverloadId = isParseOnly ? "error" : "error_overload";
 
     CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
-    assertThat(e).hasMessageThat().contains("evaluation error at <input>:5: Intentional error");
-    assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
+    assertThat(e).hasMessageThat().contains("evaluation error at <input>:5: Function '" + expectedOverloadId + "' failed with arg(s) ''");
+    assertThat(e.getCause()).isInstanceOf(IllegalArgumentException.class);
+    assertThat(e.getCause().getMessage()).contains("Intentional error");
   }
 
   @Test

@@ -53,12 +53,6 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
   }
 
   @Override
-  public void optional_errors() {
-    // TODO: Fix error message for function dispatch failures
-    skipBaselineVerification();
-  }
-
-  @Override
   public void jsonFieldNames() throws Exception {
     // TODO: Support JSON field names for planner
     skipBaselineVerification();
