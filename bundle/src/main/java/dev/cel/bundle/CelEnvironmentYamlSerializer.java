@@ -77,10 +77,9 @@ public final class CelEnvironmentYamlSerializer extends Representer {
       if (!environment.description().isEmpty()) {
         configMap.put("description", environment.description());
       }
-      if (!environment.container().name().isEmpty()
-          || !environment.container().abbreviations().isEmpty()
-          || !environment.container().aliases().isEmpty()) {
-        configMap.put("container", environment.container());
+
+      if (environment.container().isPresent()) {
+        configMap.put("container", environment.container().get());
       }
       if (!environment.extensions().isEmpty()) {
         configMap.put("extensions", environment.extensions().asList());
