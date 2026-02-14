@@ -81,3 +81,8 @@ cel_android_library(
     name = "cel_proto_types_android",
     exports = ["//common/src/main/java/dev/cel/common/types:cel_proto_types_android"],
 )
+
+cel_android_library(
+    name = "default_type_provider_android",
+    exports = ["//common/src/main/java/dev/cel/common/types:default_type_provider_android"],
+)

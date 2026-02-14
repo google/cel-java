@@ -139,7 +139,8 @@ java_library(
 cel_android_library(
     name = "dispatcher_android",
     srcs = DISPATCHER_SOURCES,
-    visibility = ["//visibility:private"],
+    tags = [
+    ],
     deps = [
         ":evaluation_exception",
         ":evaluation_exception_builder",
@@ -175,7 +176,8 @@ java_library(
 cel_android_library(
     name = "activation_android",
     srcs = ["Activation.java"],
-    visibility = ["//visibility:private"],
+    tags = [
+    ],
     deps = [
         ":interpretable_android",
         ":runtime_helpers_android",
@@ -207,8 +209,10 @@ java_library(
     tags = [
     ],
     deps = [
+        "//common/annotations",
         "//common/types",
         "//common/types:type_providers",
+        "//common/values",
         "//common/values:cel_byte_string",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -219,11 +223,14 @@ java_library(
 cel_android_library(
     name = "type_resolver_android",
     srcs = ["TypeResolver.java"],
-    visibility = ["//visibility:private"],
+    tags = [
+    ],
     deps = [
+        "//common/annotations",
         "//common/types:type_providers_android",
         "//common/types:types_android",
         "//common/values:cel_byte_string",
+        "//common/values:values_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven_android//:com_google_guava_guava",
@@ -234,14 +241,17 @@ cel_android_library(
 java_library(
     name = "descriptor_type_resolver",
     srcs = ["DescriptorTypeResolver.java"],
-    visibility = ["//visibility:private"],
+    tags = [
+    ],
     deps = [
         ":type_resolver",
+        "//common/annotations",
         "//common/types",
         "//common/types:type_providers",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_jspecify_jspecify",
     ],
 )
 
@@ -476,8 +486,6 @@ RUNTIME_SOURCES = [
     "CelInternalRuntimeLibrary.java",
     "CelRuntime.java",
     "CelRuntimeBuilder.java",
-    "CelRuntimeFactory.java",
-    "CelRuntimeLegacyImpl.java",
     "CelRuntimeLibrary.java",
     "ProgramImpl.java",
     "UnknownContext.java",
@@ -570,6 +578,8 @@ java_library(
     name = "metadata",
     srcs = ["Metadata.java"],
     # used_by_android
+    tags = [
+    ],
     deps = [
         "//common/annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
@@ -579,6 +589,8 @@ java_library(
 java_library(
     name = "interpretable",
     srcs = INTERPRABLE_SOURCES,
+    tags = [
+    ],
     deps = [
         ":evaluation_exception",
         ":evaluation_listener",
@@ -592,7 +604,8 @@ java_library(
 cel_android_library(
     name = "interpretable_android",
     srcs = INTERPRABLE_SOURCES,
-    visibility = ["//visibility:private"],
+    tags = [
+    ],
     deps = [
         ":evaluation_exception",
         ":evaluation_listener_android",
@@ -782,7 +795,7 @@ java_library(
     ],
     deps = [
         ":evaluation_exception",
-        "//runtime:unknown_attributes",
+        ":unknown_attributes",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
@@ -795,7 +808,7 @@ cel_android_library(
     ],
     deps = [
         ":evaluation_exception",
-        "//runtime:unknown_attributes_android",
+        ":unknown_attributes_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven_android//:com_google_guava_guava",
     ],
@@ -803,11 +816,22 @@ cel_android_library(
 
 java_library(
     name = "runtime_planner_impl",
-    testonly = 1,
     srcs = ["CelRuntimeImpl.java"],
     tags = [
     ],
     deps = [
+        ":descriptor_type_resolver",
+        ":dispatcher",
+        ":evaluation_exception",
+        ":evaluation_listener",
+        ":function_binding",
+        ":function_resolver",
+        ":program",
+        ":proto_message_runtime_helpers",
+        ":runtime",
+        ":runtime_equality",
+        ":standard_functions",
+        ":variable_resolver",
         "//:auto_value",
         "//common:cel_ast",
         "//common:cel_descriptor_util",
@@ -825,17 +849,8 @@ java_library(
         "//common/values:cel_value_provider",
         "//common/values:combined_cel_value_provider",
         "//common/values:proto_message_value_provider",
-        "//runtime",
-        "//runtime:dispatcher",
-        "//runtime:evaluation_listener",
-        "//runtime:function_binding",
-        "//runtime:function_resolver",
-        "//runtime:program",
-        "//runtime:proto_message_runtime_helpers",
-        "//runtime:runtime_equality",
-        "//runtime:standard_functions",
-        "//runtime:variable_resolver",
         "//runtime/planner:program_planner",
+        "//runtime/standard:type",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -844,30 +859,22 @@ java_library(
 )
 
 java_library(
-    name = "runtime",
-    srcs = RUNTIME_SOURCES,
+    name = "runtime_legacy_impl",
+    srcs = ["CelRuntimeLegacyImpl.java"],
     tags = [
     ],
     deps = [
-        ":activation",
         ":cel_value_runtime_type_provider",
         ":descriptor_message_provider",
         ":descriptor_type_resolver",
         ":dispatcher",
-        ":evaluation_exception",
-        ":evaluation_listener",
         ":function_binding",
-        ":function_resolver",
-        ":interpretable",
         ":interpreter",
-        ":program",
-        ":proto_message_activation_factory",
         ":proto_message_runtime_equality",
+        ":runtime",
         ":runtime_equality",
         ":runtime_type_provider",
         ":standard_functions",
-        ":unknown_attributes",
-        "//:auto_value",
         "//common:cel_ast",
         "//common:cel_descriptor_util",
         "//common:cel_descriptors",
@@ -882,10 +889,55 @@ java_library(
         "//common/types:type_providers",
         "//common/values:cel_value_provider",
         "//common/values:proto_message_value_provider",
-        "//runtime:variable_resolver",
         "//runtime/standard:add",
         "//runtime/standard:int",
         "//runtime/standard:timestamp",
+        "@maven//:com_google_code_findbugs_annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_jspecify_jspecify",
+    ],
+)
+
+java_library(
+    name = "runtime_factory",
+    srcs = ["CelRuntimeFactory.java"],
+    tags = [
+    ],
+    deps = [
+        ":runtime",
+        ":runtime_legacy_impl",
+        "//common:options",
+    ],
+)
+
+java_library(
+    name = "runtime",
+    srcs = RUNTIME_SOURCES,
+    tags = [
+    ],
+    deps = [
+        ":activation",
+        ":evaluation_exception",
+        ":evaluation_listener",
+        ":function_binding",
+        ":function_resolver",
+        ":interpretable",
+        ":interpreter",
+        ":program",
+        ":proto_message_activation_factory",
+        ":runtime_equality",
+        ":standard_functions",
+        ":unknown_attributes",
+        ":variable_resolver",
+        "//:auto_value",
+        "//common:cel_ast",
+        "//common:container",
+        "//common:options",
+        "//common/annotations",
+        "//common/types:type_providers",
+        "//common/values:cel_value_provider",
         "@maven//:com_google_code_findbugs_annotations",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
@@ -950,8 +1002,8 @@ java_library(
         ":function_resolver",
         ":interpretable",
         ":program",
+        ":variable_resolver",
         "//:auto_value",
-        "//runtime:variable_resolver",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
@@ -1254,19 +1306,6 @@ cel_android_library(
 )
 
 java_library(
-    name = "variable_resolver",
-    srcs = [
-        "CelVariableResolver.java",
-        "HierarchicalVariableResolver.java",
-    ],
-    # used_by_android
-    tags = [
-    ],
-    deps = [
-    ],
-)
-
-java_library(
     name = "program",
     srcs = ["Program.java"],
     tags = [
@@ -1316,5 +1355,16 @@ cel_android_library(
         ":function_overload_android",
         "//common/annotations",
         "@maven_android//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "variable_resolver",
+    srcs = [
+        "CelVariableResolver.java",
+        "HierarchicalVariableResolver.java",
+    ],
+    # used_by_android
+    tags = [
     ],
 )

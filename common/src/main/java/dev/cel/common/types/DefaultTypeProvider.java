@@ -16,9 +16,11 @@ package dev.cel.common.types;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
+import com.google.errorprone.annotations.Immutable;
 import java.util.Optional;
 
 /** {@code DefaultTypeProvider} is a registry of common CEL types. */
+@Immutable
 public class DefaultTypeProvider implements CelTypeProvider {
 
   private static final DefaultTypeProvider INSTANCE = new DefaultTypeProvider();
@@ -43,6 +45,7 @@ public class DefaultTypeProvider implements CelTypeProvider {
     typeMapBuilder.putAll(SimpleType.TYPE_MAP);
     typeMapBuilder.put("list", ListType.create(SimpleType.DYN));
     typeMapBuilder.put("map", MapType.create(SimpleType.DYN, SimpleType.DYN));
+    typeMapBuilder.put("type", TypeType.create(SimpleType.DYN));
     typeMapBuilder.put(
         "optional_type",
         // TODO: Move to CelOptionalLibrary and register it on demand

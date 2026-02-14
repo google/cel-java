@@ -1390,6 +1390,40 @@ cel_android_library(
 )
 
 java_library(
+    name = "type",
+    srcs = ["TypeFunction.java"],
+    tags = [
+    ],
+    deps = [
+        ":standard_function",
+        ":standard_overload",
+        "//common:options",
+        "//common/types",
+        "//runtime:function_binding",
+        "//runtime:runtime_equality",
+        "//runtime:type_resolver",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "type_android",
+    srcs = ["TypeFunction.java"],
+    tags = [
+    ],
+    deps = [
+        ":standard_function_android",
+        ":standard_overload_android",
+        "//common:options",
+        "//common/types:types_android",
+        "//runtime:function_binding_android",
+        "//runtime:runtime_equality_android",
+        "//runtime:type_resolver_android",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "uint",
     srcs = ["UintFunction.java"],
     tags = [

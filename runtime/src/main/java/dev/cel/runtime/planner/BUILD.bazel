@@ -69,7 +69,6 @@ java_library(
         "//common:options",
         "//common/exceptions:runtime_exception",
         "//common/values",
-        "//runtime",
         "//runtime:activation",
         "//runtime:evaluation_exception",
         "//runtime:evaluation_exception_builder",
@@ -77,6 +76,7 @@ java_library(
         "//runtime:interpretable",
         "//runtime:program",
         "//runtime:resolved_overload",
+        "//runtime:variable_resolver",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )

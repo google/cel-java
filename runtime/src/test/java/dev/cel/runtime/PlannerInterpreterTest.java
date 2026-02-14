@@ -47,12 +47,6 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
   }
 
   @Override
-  public void typeComparisons() {
-    // TODO: type() standard function needs to be implemented first.
-    skipBaselineVerification();
-  }
-
-  @Override
   public void jsonFieldNames() throws Exception {
     // TODO: Support JSON field names for planner
     skipBaselineVerification();
