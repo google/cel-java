@@ -115,7 +115,11 @@ abstract class PlannedProgram implements Program {
     } else if (e instanceof CelRuntimeException) {
       builder = CelEvaluationExceptionBuilder.newBuilder((CelRuntimeException) e);
     } else {
-      builder = CelEvaluationExceptionBuilder.newBuilder(e.getMessage()).setCause(e);
+      // Unhandled function dispatch failures wraps the original exception with a descriptive message
+      // (e.g: "Function foo failed with...")
+      // We need to unwrap the cause here to preserve the original exception message and its cause.
+      Throwable cause = e.getCause() != null ? e.getCause() : e;
+      builder = CelEvaluationExceptionBuilder.newBuilder(e.getMessage()).setCause(cause);
     }
 
     return builder.setMetadata(metadata(), exprId).build();

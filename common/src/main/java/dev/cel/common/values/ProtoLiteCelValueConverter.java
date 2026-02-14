@@ -28,6 +28,7 @@ import com.google.errorprone.annotations.Immutable;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.MessageLite;
+import com.google.protobuf.MessageLiteOrBuilder;
 import com.google.protobuf.WireFormat;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.CelLiteDescriptorPool;
@@ -163,8 +164,13 @@ public final class ProtoLiteCelValueConverter extends BaseProtoCelValueConverter
   @SuppressWarnings("LiteProtoToString") // No alternative identifier to use. Debug only info is OK.
   public Object toRuntimeValue(Object value) {
     checkNotNull(value);
-    if (value instanceof MessageLite) {
-      MessageLite msg = (MessageLite) value;
+    if (value instanceof MessageLiteOrBuilder) {
+      MessageLite msg;
+      if (value instanceof MessageLite.Builder) {
+        msg = ((MessageLite.Builder) value).build();
+      } else {
+        msg = (MessageLite) value;
+      }
 
       MessageLiteDescriptor descriptor =
           descriptorPool

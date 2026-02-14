@@ -16,7 +16,9 @@ package dev.cel.runtime;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
+import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.runtime.standard.CelStandardFunction;
 
@@ -48,6 +50,25 @@ public interface CelLiteRuntimeBuilder {
   CelLiteRuntimeBuilder addFunctionBindings(Iterable<CelFunctionBinding> bindings);
 
   /**
+   * Adds bindings for functions that are allowed to be late-bound (resolved at execution time).
+   */
+  @CanIgnoreReturnValue
+  CelLiteRuntimeBuilder addLateBoundFunctions(String... lateBoundFunctionNames);
+
+  /**
+   * Adds bindings for functions that are allowed to be late-bound (resolved at execution time).
+   */
+  @CanIgnoreReturnValue
+  CelLiteRuntimeBuilder addLateBoundFunctions(Iterable<String> lateBoundFunctionNames);
+
+  /**
+   * Sets the {@link CelTypeProvider} for resolving CEL types during evaluation, such as a fully
+   * qualified type name to a struct or an enum value.
+   */
+  @CanIgnoreReturnValue
+  CelLiteRuntimeBuilder setTypeProvider(CelTypeProvider celTypeProvider);
+
+  /**
    * Sets the {@link CelValueProvider} for resolving struct values during evaluation. Multiple
    * providers can be combined using {@code CombinedCelValueProvider}. Note that if you intend to
    * support proto messages in addition to custom struct values, protobuf value provider must be
@@ -61,6 +82,13 @@ public interface CelLiteRuntimeBuilder {
 
   @CanIgnoreReturnValue
   CelLiteRuntimeBuilder addLibraries(Iterable<? extends CelLiteRuntimeLibrary> libraries);
+
+  /**
+   * Set the {@link CelContainer} to use as the namespace for resolving CEL expression variables and
+   * functions.
+   */
+  @CanIgnoreReturnValue
+  CelLiteRuntimeBuilder setContainer(CelContainer container);
 
   @CheckReturnValue
   CelLiteRuntime build();

@@ -197,8 +197,7 @@ public interface CelBuilder {
    * provider will be used first before falling back to the built-in {@link
    * dev.cel.common.values.ProtoMessageValueProvider} for resolving protobuf messages.
    *
-   * <p>Note that {@link CelOptions#enableCelValue()} must be enabled or this method will be a
-   * no-op.
+   * <p>Note that this option is only supported for planner-based runtime.
    */
   @CanIgnoreReturnValue
   CelBuilder setValueProvider(CelValueProvider celValueProvider);

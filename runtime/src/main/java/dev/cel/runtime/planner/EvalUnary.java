@@ -17,7 +17,6 @@ package dev.cel.runtime.planner;
 import static dev.cel.runtime.planner.EvalHelpers.evalNonstrictly;
 import static dev.cel.runtime.planner.EvalHelpers.evalStrictly;
 
-import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelResolvedOverload;
@@ -37,12 +36,7 @@ final class EvalUnary extends PlannedInterpretable {
             : evalNonstrictly(arg, resolver, frame);
     Object[] arguments = new Object[] {argVal};
 
-    Object result = resolvedOverload.getDefinition().apply(arguments);
-    Object runtimeValue = celValueConverter.toRuntimeValue(result);
-    if (runtimeValue instanceof CelValue) {
-      return celValueConverter.unwrap((CelValue) runtimeValue);
-    }
-    return runtimeValue;
+    return EvalHelpers.dispatch(resolvedOverload, celValueConverter, arguments);
   }
 
   static EvalUnary create(

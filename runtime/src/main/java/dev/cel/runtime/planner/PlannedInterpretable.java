@@ -25,8 +25,6 @@ abstract class PlannedInterpretable {
   /** Runs interpretation with the given activation which supplies name/value bindings. */
   abstract Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException;
 
-  // TODO: Implement support for late-bound functions and evaluation listener
-
   long exprId() {
     return exprId;
   }
