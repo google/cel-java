@@ -26,12 +26,18 @@ jobs:
         uses: actions/checkout@v6
       - name: Setup Bazel
         uses: bazel-contrib/setup-bazel@0.18.0
+        with:
+            # Avoid downloading Bazel every time.
+            bazelisk-cache: true
+            # Store build cache per workflow.
+            disk-cache: ${{ github.workflow }}
+            # Share repository cache between workflows.
+            repository-cache: true
       - name: Unwanted Dependencies
         run: .github/workflows/unwanted_deps.sh
       - name: Cross Artifact Duplicate Classes Check
         run: .github/workflows/cross_artifact_dependencies_check.sh
       - run: echo "🍏 This job's status is ${{ job.status }}."
-
   Bazel-Tests:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -60,7 +66,6 @@ jobs:
         run: bazelisk test ... --deleted_packages=//codelab/src/test/codelab --test_output=errors --test_tag_filters=-conformance_maven --build_tag_filters=-conformance_maven
       - run: echo "🍏 This job's status is ${{ job.status }}."
 
-
   # -- Start of Maven Conformance Tests (Ran only when there's version changes) --
   Maven-Conformance:
     runs-on: ubuntu-latest
@@ -79,6 +84,13 @@ jobs:
       - name: Setup Bazel
         if: steps.changed_file.outputs.any_changed == 'true'
         uses: bazel-contrib/setup-bazel@0.18.0
+        with:
+            # Avoid downloading Bazel every time.
+            bazelisk-cache: true
+            # Store build cache per workflow.
+            disk-cache: ${{ github.workflow }}
+            # Share repository cache between workflows.
+            repository-cache: true
       - name: Verify Version Consistency
         if: steps.changed_file.outputs.any_changed == 'true'
         run: |
