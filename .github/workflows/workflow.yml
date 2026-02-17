@@ -76,4 +76,6 @@ jobs:
 
       - name: Unwanted Dependencies
         run: .github/workflows/unwanted_deps.sh
+      - name: Cross Artifact Duplicate Classes Check
+        run: .github/workflows/cross_artifact_dependencies_check.sh
       - run: echo "🍏 This job's status is ${{ job.status }}."
