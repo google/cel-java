@@ -296,9 +296,7 @@ pom_file(
         "PACKAGE_NAME": "CEL Java Runtime for Android",
         "PACKAGE_DESC": "Common Expression Language Lite Runtime for Java (Suitable for Android)",
     },
-    targets = [
-        ":cel_common",
-    ] + LITE_RUNTIME_TARGETS,
+    targets = LITE_RUNTIME_TARGETS,
     template_file = "pom_template.xml",
 )
 
@@ -308,7 +306,5 @@ java_export(
     javadocopts = JAVA_DOC_OPTIONS,
     maven_coordinates = "dev.cel:runtime-android:%s" % CEL_VERSION,
     pom_template = ":cel_runtime_android_pom",
-    exports = [
-        ":cel_common",
-    ] + LITE_RUNTIME_TARGETS,
+    exports = LITE_RUNTIME_TARGETS,
 )
