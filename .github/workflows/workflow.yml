@@ -21,7 +21,7 @@ jobs:
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 Job is running on a ${{ runner.os }} server!"
-      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - run: echo "🔎 The name of your branch is ${GITHUB_REF} and your repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v6
       - name: Setup Bazel
@@ -76,4 +76,7 @@ jobs:
 
       - name: Unwanted Dependencies
         run: .github/workflows/unwanted_deps.sh
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+      - run: echo "🍏 This job's status is ${JOB_STATUS}."
+
+        env:
+          JOB_STATUS: ${{ job.status }}
