@@ -15,6 +15,29 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
+  Static-Checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 Job is running on a ${{ runner.os }} server!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@0.18.0
+        with:
+            # Avoid downloading Bazel every time.
+            bazelisk-cache: true
+            # Store build cache per workflow.
+            disk-cache: ${{ github.workflow }}
+            # Share repository cache between workflows.
+            repository-cache: true
+      - name: Unwanted Dependencies
+        run: .github/workflows/unwanted_deps.sh
+      - name: Cross-artifact Duplicate Classes Check
+        run: .github/workflows/cross_artifact_dependencies_check.sh
+      - run: echo "🍏 This job's status is ${{ job.status }}."
   Bazel-Tests:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -25,7 +48,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v6
       - name: Setup Bazel
-        uses: bazel-contrib/setup-bazel@0.14.0
+        uses: bazel-contrib/setup-bazel@0.18.0
         with:
             # Avoid downloading Bazel every time.
             bazelisk-cache: true
@@ -41,13 +64,33 @@ jobs:
         # Exclude codelab exercises as they are intentionally made to fail
         # Exclude maven conformance tests. They are only executed when there's version change.
         run: bazelisk test ... --deleted_packages=//codelab/src/test/codelab --test_output=errors --test_tag_filters=-conformance_maven --build_tag_filters=-conformance_maven
+      - run: echo "🍏 This job's status is ${{ job.status }}."
 
-      # -- Start of Maven Conformance Tests (Ran only when there's version changes) --
-      - name: Get changed file
+  # -- Start of Maven Conformance Tests (Ran only when there's version changes) --
+  Maven-Conformance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 Job is running on a ${{ runner.os }} server!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - name: Get changed files
         id: changed_file
         uses: tj-actions/changed-files@v46
         with:
           files: publish/cel_version.bzl
+      - name: Setup Bazel
+        if: steps.changed_file.outputs.any_changed == 'true'
+        uses: bazel-contrib/setup-bazel@0.18.0
+        with:
+            # Avoid downloading Bazel every time.
+            bazelisk-cache: true
+            # Store build cache per workflow.
+            disk-cache: ${{ github.workflow }}
+            # Share repository cache between workflows.
+            repository-cache: true
       - name: Verify Version Consistency
         if: steps.changed_file.outputs.any_changed == 'true'
         run: |
@@ -72,8 +115,4 @@ jobs:
       - name: Run Conformance Maven Test on Version Change
         if: steps.changed_file.outputs.any_changed == 'true'
         run: bazelisk test //conformance/src/test/java/dev/cel/conformance:conformance_maven --test_output=errors
-      # -- End of Maven Conformance Tests --
-
-      - name: Unwanted Dependencies
-        run: .github/workflows/unwanted_deps.sh
       - run: echo "🍏 This job's status is ${{ job.status }}."

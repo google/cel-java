@@ -7,6 +7,7 @@ package(
     ],
     default_visibility = [
         "//common/types:__pkg__",
+        "//publish:__pkg__",
     ],
 )
 

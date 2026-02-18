@@ -21,7 +21,6 @@ COMPILER_COMMON_SOURCES = [
 
 # keep sorted
 SOURCE_SOURCES = [
-    "CelSourceHelper.java",
     "Source.java",
 ]
 
@@ -234,6 +233,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":cel_source_helper",
         ":source",
         ":source_location",
         "//:auto_value",
@@ -250,12 +250,37 @@ cel_android_library(
     tags = [
     ],
     deps = [
+        ":cel_source_helper_android",
         ":source_android",
         ":source_location_android",
         "//:auto_value",
         "//common/ast:ast_android",
         "//common/internal:internal_android",
         "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
+java_library(
+    name = "cel_source_helper",
+    srcs = ["CelSourceHelper.java"],
+    tags = [
+    ],
+    deps = [
+        ":source_location",
+        "//common/annotations",
+        "//common/internal",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "cel_source_helper_android",
+    srcs = ["CelSourceHelper.java"],
+    deps = [
+        ":source_location_android",
+        "//common/annotations",
+        "//common/internal:internal_android",
         "@maven_android//:com_google_guava_guava",
     ],
 )
@@ -300,7 +325,6 @@ java_library(
     tags = [
     ],
     deps = [
-        ":source_location",
         "//common/annotations",
         "//common/internal",
         "@maven//:com_google_guava_guava",
@@ -312,7 +336,6 @@ cel_android_library(
     srcs = SOURCE_SOURCES,
     visibility = ["//visibility:private"],
     deps = [
-        ":source_location_android",
         "//common/annotations",
         "//common/internal:internal_android",
         "@maven_android//:com_google_guava_guava",
