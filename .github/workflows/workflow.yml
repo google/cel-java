@@ -96,7 +96,7 @@ jobs:
         run: |
           CEL_VERSION=$(grep 'CEL_VERSION =' publish/cel_version.bzl | cut -d '"' -f 2)
 
-          MODULE_VERSION=$(grep 'dev.cel:cel' MODULE.bazel | cut -d '"' -f 2 | cut -d ':' -f 3)
+          MODULE_VERSION=$(grep 'CEL_VERSION =' MODULE.bazel | cut -d '"' -f 2)
 
           if [ -z "$CEL_VERSION" ] || [ -z "$MODULE_VERSION" ]; then
             echo "❌ Error: Could not extract one or both version strings."
