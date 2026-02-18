@@ -1,0 +1,44 @@
+load("@rules_java//java:defs.bzl", "java_library", "java_test")
+
+package(default_applicable_licenses = [
+    "//:license",
+])
+
+MAVEN_COMPILER_JAR_DEPS = [
+    "@maven_conformance//:dev_cel_common",
+    "@maven_conformance//:dev_cel_compiler",
+]
+
+MAVEN_RUNTIME_JAR_DEPS = [
+    "@maven_conformance//:dev_cel_common",
+    "@maven_conformance//:dev_cel_protobuf",
+    "@maven_conformance//:dev_cel_runtime",
+]
+
+java_test(
+    name = "compiler_artifact_test",
+    srcs = ["CompilerArtifactTest.java"],
+    test_class = "dev.cel.maven.CompilerArtifactTest",
+    deps =
+        MAVEN_COMPILER_JAR_DEPS + [
+            "//:java_truth",
+            "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+            "@maven//:com_google_testparameterinjector_test_parameter_injector",
+            "@maven//:junit_junit",
+        ],
+)
+
+java_test(
+    name = "runtime_artifact_test",
+    srcs = ["RuntimeArtifactTest.java"],
+    test_class = "dev.cel.maven.RuntimeArtifactTest",
+    deps =
+        MAVEN_RUNTIME_JAR_DEPS + [
+            "//:java_truth",
+            "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
+            "@maven//:com_google_guava_guava",
+            "@maven//:com_google_protobuf_protobuf_java",
+            "@maven//:com_google_testparameterinjector_test_parameter_injector",
+            "@maven//:junit_junit",
+        ],
+)

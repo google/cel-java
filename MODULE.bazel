@@ -39,7 +39,9 @@ GUAVA_VERSION = "33.5.0"
 
 TRUTH_VERSION = "1.4.4"
 
-PROTOBUF_JAVA_VERSION = "4.33.4"
+PROTOBUF_JAVA_VERSION = "4.33.5"
+
+CEL_VERSION = "0.12.0-SNAPSHOT"
 
 # Compile only artifacts
 [
@@ -114,7 +116,11 @@ maven.install(
 
 maven.install(
     name = "maven_conformance",
-    artifacts = ["dev.cel:cel:0.11.1"],
+    artifacts = [
+        "dev.cel:cel:" + CEL_VERSION,
+        "dev.cel:compiler:" + CEL_VERSION,
+        "dev.cel:runtime:" + CEL_VERSION,
+    ],
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
