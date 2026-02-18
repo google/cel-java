@@ -117,12 +117,6 @@ public abstract class CelOptions {
 
   public abstract ProtoUnsetFieldOptions fromProtoUnsetFieldOption();
 
-  public abstract boolean enableStringConversion();
-
-  public abstract boolean enableStringConcatenation();
-
-  public abstract boolean enableListConcatenation();
-
   public abstract boolean enableComprehension();
 
   public abstract int maxRegexProgramSize();
@@ -169,9 +163,6 @@ public abstract class CelOptions {
         .comprehensionMaxIterations(-1)
         .unwrapWellKnownTypesOnFunctionDispatch(true)
         .fromProtoUnsetFieldOption(ProtoUnsetFieldOptions.BIND_DEFAULT)
-        .enableStringConversion(true)
-        .enableStringConcatenation(true)
-        .enableListConcatenation(true)
         .enableComprehension(true)
         .maxRegexProgramSize(-1);
   }
@@ -493,24 +484,6 @@ public abstract class CelOptions {
      * @see ProtoUnsetFieldOptions
      */
     public abstract Builder fromProtoUnsetFieldOption(ProtoUnsetFieldOptions value);
-
-    /**
-     * Enables string() overloads for the runtime. This option exists to maintain parity with
-     * cel-cpp interpreter options.
-     */
-    public abstract Builder enableStringConversion(boolean value);
-
-    /**
-     * Enables string concatenation overload for the runtime. This option exists to maintain parity
-     * with cel-cpp interpreter options.
-     */
-    public abstract Builder enableStringConcatenation(boolean value);
-
-    /**
-     * Enables list concatenation overload for the runtime. This option exists to maintain parity
-     * with cel-cpp interpreter options.
-     */
-    public abstract Builder enableListConcatenation(boolean value);
 
     /**
      * Enables comprehension (macros) for the runtime. Setting false has the same effect with

@@ -338,20 +338,6 @@ abstract class CelRuntimeImpl implements CelRuntime {
 
       // Disallowed options in favor of subsetting
       String subsettingError = "Subset the environment instead using setStandardFunctions method.";
-      if (!celOptions.enableStringConcatenation()) {
-        throw new IllegalArgumentException(
-            prefix + "enableStringConcatenation cannot be disabled. " + subsettingError);
-      }
-
-      if (!celOptions.enableStringConversion()) {
-        throw new IllegalArgumentException(
-            prefix + "enableStringConversion cannot be disabled. " + subsettingError);
-      }
-
-      if (!celOptions.enableListConcatenation()) {
-        throw new IllegalArgumentException(
-            prefix + "enableListConcatenation cannot be disabled. " + subsettingError);
-      }
 
       if (!celOptions.enableTimestampEpoch()) {
         throw new IllegalArgumentException(
