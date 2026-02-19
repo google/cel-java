@@ -33,6 +33,8 @@ jobs:
             disk-cache: ${{ github.workflow }}
             # Share repository cache between workflows.
             repository-cache: true
+            # Never write to the cache, strictly read-only
+            cache-save: false
       - name: Unwanted Dependencies
         run: .github/workflows/unwanted_deps.sh
       - name: Cross-artifact Duplicate Classes Check
@@ -56,6 +58,8 @@ jobs:
             disk-cache: ${{ github.workflow }}
             # Share repository cache between workflows.
             repository-cache: true
+            # Prevent PRs from polluting cache
+            cache-save: ${{ github.event_name != 'pull_request' }}
       - name: Bazel Output Version
         run: bazelisk --version
       - name: Java 8 Build
@@ -91,12 +95,14 @@ jobs:
             disk-cache: ${{ github.workflow }}
             # Share repository cache between workflows.
             repository-cache: true
+            # Never write to the cache, strictly read-only
+            cache-save: false
       - name: Verify Version Consistency
         if: steps.changed_file.outputs.any_changed == 'true'
         run: |
           CEL_VERSION=$(grep 'CEL_VERSION =' publish/cel_version.bzl | cut -d '"' -f 2)
 
-          MODULE_VERSION=$(grep 'dev.cel:cel' MODULE.bazel | cut -d '"' -f 2 | cut -d ':' -f 3)
+          MODULE_VERSION=$(grep 'CEL_VERSION =' MODULE.bazel | cut -d '"' -f 2)
 
           if [ -z "$CEL_VERSION" ] || [ -z "$MODULE_VERSION" ]; then
             echo "❌ Error: Could not extract one or both version strings."
