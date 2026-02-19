@@ -151,9 +151,15 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
 
         return toRuntimeValue(result);
       case UINT32:
-        return UnsignedLong.valueOf((int) result);
+        if (!fieldDescriptor.isRepeated()) {
+          return UnsignedLong.valueOf((int) result);
+        }
+        break;
       case UINT64:
-        return UnsignedLong.fromLongBits((long) result);
+        if (!fieldDescriptor.isRepeated()) {
+          return UnsignedLong.fromLongBits((long) result);
+        }
+        break;
       default:
         break;
     }

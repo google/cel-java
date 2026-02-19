@@ -297,7 +297,7 @@ java_library(
     deps = [
         ":execution_frame",
         ":planned_interpretable",
-        "//common/types",
+        "//common/types:type_providers",
         "//common/values",
         "//common/values:cel_value_provider",
         "//runtime:evaluation_exception",
