@@ -54,6 +54,7 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeBuilder;
+import dev.cel.runtime.CelRuntimeImpl;
 import dev.cel.runtime.CelRuntimeLibrary;
 import dev.cel.runtime.CelStandardFunctions;
 import java.util.Arrays;
@@ -199,6 +200,10 @@ final class CelImpl implements Cel, EnvVisitable {
     @Override
     public CelBuilder setContainer(CelContainer container) {
       compilerBuilder.setContainer(container);
+      if (runtimeBuilder instanceof CelRuntimeImpl.Builder) {
+        runtimeBuilder.setContainer(container);
+      }
+
       return this;
     }
 

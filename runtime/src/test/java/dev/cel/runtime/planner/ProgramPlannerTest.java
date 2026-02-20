@@ -113,7 +113,9 @@ public final class ProgramPlannerTest {
           CEL_VALUE_CONVERTER,
           CEL_CONTAINER,
           CEL_OPTIONS,
-          ImmutableSet.of("late_bound_func"));
+          ImmutableSet.of("late_bound_func"),
+          /* useOptionals= */ false
+      );
 
   private static final CelCompiler CEL_COMPILER =
       CelCompilerFactory.standardCelCompilerBuilder()
@@ -297,7 +299,9 @@ public final class ProgramPlannerTest {
             CEL_VALUE_CONVERTER,
             container,
             CEL_OPTIONS,
-            ImmutableSet.of());
+            ImmutableSet.of(),
+            /* useOptionals= */ false
+        );
 
     Program program = planner.plan(ast);
 
@@ -873,7 +877,9 @@ public final class ProgramPlannerTest {
             CEL_VALUE_CONVERTER,
             CEL_CONTAINER,
             options,
-            ImmutableSet.of());
+            ImmutableSet.of(),
+            /* useOptionals= */ false
+            );
     CelAbstractSyntaxTree ast = compile(expression);
 
     Program program = planner.plan(ast);
@@ -894,7 +900,9 @@ public final class ProgramPlannerTest {
             CEL_VALUE_CONVERTER,
             CEL_CONTAINER,
             options,
-            /* lateBoundFunctionNames= */ ImmutableSet.of());
+            /* lateBoundFunctionNames= */ ImmutableSet.of(),
+            /* useOptionals= */ false
+            );
     CelAbstractSyntaxTree ast = compile("[1, 2, 3].map(x, [1, 2].map(y, x + y))");
 
     Program program = planner.plan(ast);
@@ -921,7 +929,9 @@ public final class ProgramPlannerTest {
             CEL_VALUE_CONVERTER,
             CelContainer.ofName("cel.example"),
             CEL_OPTIONS,
-            /* lateBoundFunctionNames= */ ImmutableSet.of());
+            /* lateBoundFunctionNames= */ ImmutableSet.of(),
+            /* useOptionals= */ false
+            );
     CelAbstractSyntaxTree ast = compile(celCompiler, "[{'z': 0}].exists(y, y.z == 0)");
 
     Program program = planner.plan(ast);
@@ -946,7 +956,9 @@ public final class ProgramPlannerTest {
             CEL_VALUE_CONVERTER,
             CelContainer.ofName("y"),
             CEL_OPTIONS,
-            /* lateBoundFunctionNames= */ ImmutableSet.of());
+            /* lateBoundFunctionNames= */ ImmutableSet.of(),
+            /* useOptionals= */ false
+            );
     CelAbstractSyntaxTree ast = compile(celCompiler, "[{'z': 0}].exists(y, y.z == 0 && .y.z == 1)");
 
     Program program = planner.plan(ast);
@@ -970,7 +982,9 @@ public final class ProgramPlannerTest {
             CEL_VALUE_CONVERTER,
             CelContainer.newBuilder().build(),
             CEL_OPTIONS,
-            /* lateBoundFunctionNames= */ ImmutableSet.of());
+            /* lateBoundFunctionNames= */ ImmutableSet.of(),
+            /* useOptionals= */ false
+            );
     CelAbstractSyntaxTree ast = compile(celCompiler, "[0].exists(x, x == 0 && .x == 1)");
 
     Program program = planner.plan(ast);
@@ -994,7 +1008,9 @@ public final class ProgramPlannerTest {
             CEL_VALUE_CONVERTER,
             CelContainer.newBuilder().build(),
             CEL_OPTIONS,
-            /* lateBoundFunctionNames= */ ImmutableSet.of());
+            /* lateBoundFunctionNames= */ ImmutableSet.of(),
+            /* useOptionals= */ false
+            );
     CelAbstractSyntaxTree ast = compile(celCompiler, "[0].exists(x, [x+1].exists(x, x == .x))");
 
     Program program = planner.plan(ast);

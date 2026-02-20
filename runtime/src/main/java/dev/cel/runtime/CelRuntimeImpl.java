@@ -57,7 +57,7 @@ import org.jspecify.annotations.Nullable;
 @AutoValue
 @Internal
 @Immutable
-abstract class CelRuntimeImpl implements CelRuntime {
+public abstract class CelRuntimeImpl implements CelRuntime {
 
   abstract ProgramPlanner planner();
 
@@ -180,7 +180,7 @@ abstract class CelRuntimeImpl implements CelRuntime {
   @Override
   public abstract Builder toRuntimeBuilder();
 
-  static Builder newBuilder() {
+  public static Builder newBuilder() {
     return new AutoValue_CelRuntimeImpl.Builder()
         .setFunctionBindings(ImmutableMap.of())
         .setStandardFunctions(CelStandardFunctions.newBuilder().build())
@@ -189,7 +189,7 @@ abstract class CelRuntimeImpl implements CelRuntime {
   }
 
   @AutoValue.Builder
-  abstract static class Builder implements CelRuntimeBuilder {
+  public abstract static class Builder implements CelRuntimeBuilder {
 
     public abstract Builder setPlanner(ProgramPlanner planner);
 
@@ -465,7 +465,9 @@ abstract class CelRuntimeImpl implements CelRuntime {
               celValueConverter,
               container(),
               options(),
-              lateBoundFunctionNamesBuilder().build());
+              lateBoundFunctionNamesBuilder().build(),
+              // TODO
+              true);
       setPlanner(planner);
 
       setFunctionBindings(ImmutableMap.copyOf(mutableFunctionBindings));

@@ -17,10 +17,11 @@ package dev.cel.runtime;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.auto.value.AutoBuilder;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.CelErrorCode;
@@ -29,6 +30,7 @@ import dev.cel.common.exceptions.CelOverloadNotFoundException;
 import dev.cel.runtime.FunctionBindingImpl.DynamicDispatchOverload;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -124,16 +126,25 @@ public final class DefaultDispatcher implements CelFunctionResolver {
   }
 
   public static Builder newBuilder() {
-    return new AutoBuilder_DefaultDispatcher_Builder();
+    return new Builder();
   }
 
   /** Builder for {@link DefaultDispatcher}. */
-  @AutoBuilder(ofClass = DefaultDispatcher.class)
-  public abstract static class Builder {
+  public static class Builder {
 
-    abstract ImmutableMap<String, CelResolvedOverload> overloads();
+    @AutoValue
+    @Immutable
+    abstract static class OverloadEntry {
+      abstract ImmutableList<Class<?>> argTypes();
+      abstract boolean isStrict();
+      abstract CelFunctionOverload overload();
 
-    abstract ImmutableMap.Builder<String, CelResolvedOverload> overloadsBuilder();
+      private static OverloadEntry of(ImmutableList<Class<?>> argTypes, boolean isStrict, CelFunctionOverload overload) {
+        return new AutoValue_DefaultDispatcher_Builder_OverloadEntry(argTypes, isStrict, overload);
+      }
+    }
+
+    private final Map<String, OverloadEntry> overloads;
 
     @CanIgnoreReturnValue
     public Builder addOverload(
@@ -146,18 +157,56 @@ public final class DefaultDispatcher implements CelFunctionResolver {
       checkNotNull(argTypes);
       checkNotNull(overload);
 
-      overloadsBuilder()
-          .put(
-              overloadId,
-              CelResolvedOverload.of(
-                  overloadId,
-                  args -> guardedOp(overloadId, args, argTypes, isStrict, overload),
-                  isStrict,
-                  argTypes));
+      OverloadEntry newEntry = OverloadEntry.of(argTypes, isStrict, overload);
+
+      overloads.merge(overloadId, newEntry, (existing, incoming) -> mergeDynamicDispatchesOrThrow(overloadId, existing, incoming));
+
       return this;
     }
 
-    public abstract DefaultDispatcher build();
+    private OverloadEntry mergeDynamicDispatchesOrThrow(String overloadId, OverloadEntry existing, OverloadEntry incoming) {
+      if (existing.overload() instanceof DynamicDispatchOverload
+          && incoming.overload() instanceof DynamicDispatchOverload) {
+
+        DynamicDispatchOverload existingOverload = (DynamicDispatchOverload) existing.overload();
+        DynamicDispatchOverload incomingOverload = (DynamicDispatchOverload) incoming.overload();
+
+        DynamicDispatchOverload mergedOverload = new DynamicDispatchOverload(
+            overloadId,
+            ImmutableSet.<CelFunctionBinding>builder()
+                .addAll(existingOverload.getOverloadBindings())
+                .addAll(incomingOverload.getOverloadBindings())
+                .build());
+
+        boolean isStrict = mergedOverload.getOverloadBindings().stream()
+            .allMatch(CelFunctionBinding::isStrict);
+
+        return OverloadEntry.of(incoming.argTypes(), isStrict, mergedOverload);
+      }
+
+      throw new IllegalArgumentException("Duplicate overload ID binding: " + overloadId);
+    }
+
+    public DefaultDispatcher build() {
+      ImmutableMap.Builder<String, CelResolvedOverload> resolvedOverloads = ImmutableMap.builder();
+      for (Map.Entry<String, OverloadEntry> entry : overloads.entrySet()) {
+        String overloadId = entry.getKey();
+        OverloadEntry overloadEntry = entry.getValue();
+        resolvedOverloads.put(overloadId,
+            CelResolvedOverload.of(
+                overloadId,
+                args -> guardedOp(overloadId, args, overloadEntry.argTypes(), overloadEntry.isStrict(), overloadEntry.overload()),
+                overloadEntry.isStrict(),
+                overloadEntry.argTypes())
+        );
+      }
+
+      return new DefaultDispatcher(resolvedOverloads.buildOrThrow());
+    }
+
+    private Builder() {
+      this.overloads = new HashMap<>();
+    }
   }
 
   /** Creates an invocation guard around the overload definition. */

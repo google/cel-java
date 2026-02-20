@@ -43,6 +43,7 @@ import dev.cel.common.types.StructTypeReference;
 import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelByteString;
 import dev.cel.common.values.NullValue;
+import dev.cel.compiler.CelCompiler;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.parser.CelMacro;
@@ -62,6 +63,14 @@ import org.junit.runner.RunWith;
 @RunWith(TestParameterInjector.class)
 @SuppressWarnings({"unchecked", "SingleTestParameter"})
 public class CelOptionalLibraryTest {
+
+  private enum TestMode {
+    PLANNER_PARSE_ONLY,
+    PLANNER_CHECKED,
+    LEGACY_CHECKED
+  }
+
+  @TestParameter TestMode testMode;
 
   @SuppressWarnings("ImmutableEnumChecker") // Test only
   private enum ConstantTestCases {
@@ -92,15 +101,29 @@ public class CelOptionalLibraryTest {
     }
   }
 
-  private static CelBuilder newCelBuilder() {
+  private CelBuilder newCelBuilder() {
     return newCelBuilder(Integer.MAX_VALUE);
   }
 
-  private static CelBuilder newCelBuilder(int version) {
-    return CelFactory.standardCelBuilder()
+  private CelBuilder newCelBuilder(int version) {
+    CelBuilder celBuilder;
+    switch (testMode) {
+      case PLANNER_PARSE_ONLY:
+      case PLANNER_CHECKED:
+        celBuilder = CelFactory.plannerCelBuilder();
+        break;
+      case LEGACY_CHECKED:
+        celBuilder = CelFactory.standardCelBuilder();
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown test mode: " + testMode);
+    }
+
+    return celBuilder
         .setOptions(
             CelOptions.current()
                 .enableTimestampEpoch(true)
+                .enableHeterogeneousNumericComparisons(true)
                 .build())
         .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
         .setContainer(CelContainer.ofName("cel.expr.conformance.proto3"))
@@ -181,7 +204,7 @@ public class CelOptionalLibraryTest {
       throws Exception {
     Cel cel = newCelBuilder().setResultType(OptionalType.create(testCase.type)).build();
     String expression = String.format("optional.of(%s)", testCase.sourceWithNonZeroValue);
-    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, expression);
 
     Object result = cel.createProgram(ast).eval();
 
@@ -198,7 +221,7 @@ public class CelOptionalLibraryTest {
             .addVar("b", OptionalType.create(testCase.type))
             .setResultType(SimpleType.BOOL)
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("a == b").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "a == b");
 
     boolean result =
         (boolean)
@@ -216,7 +239,7 @@ public class CelOptionalLibraryTest {
   @Test
   public void optionalType_adaptsIntegerToLong_success() throws Exception {
     Cel cel = newCelBuilder().addVar("a", OptionalType.create(SimpleType.INT)).build();
-    CelAbstractSyntaxTree ast = cel.compile("a").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "a");
 
     Optional<Long> result =
         (Optional<Long>) cel.createProgram(ast).eval(ImmutableMap.of("a", Optional.of(5)));
@@ -227,7 +250,7 @@ public class CelOptionalLibraryTest {
   @Test
   public void optionalType_adaptsFloatToLong_success() throws Exception {
     Cel cel = newCelBuilder().addVar("a", OptionalType.create(SimpleType.DOUBLE)).build();
-    CelAbstractSyntaxTree ast = cel.compile("a").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "a");
 
     Optional<Long> result =
         (Optional<Long>) cel.createProgram(ast).eval(ImmutableMap.of("a", Optional.of(5.5f)));
@@ -239,7 +262,7 @@ public class CelOptionalLibraryTest {
   public void optionalOf_nullValue_success() throws Exception {
     Cel cel = newCelBuilder().setResultType(SimpleType.DYN).build();
     String expression = "optional.of(TestAllTypes{}.single_value)";
-    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, expression);
 
     Object result = cel.createProgram(ast).eval();
 
@@ -252,7 +275,7 @@ public class CelOptionalLibraryTest {
       @TestParameter ConstantTestCases testCase) throws Exception {
     Cel cel = newCelBuilder().setResultType(OptionalType.create(testCase.type)).build();
     String expression = String.format("optional.ofNonZeroValue(%s)", testCase.sourceWithZeroValue);
-    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, expression);
 
     Object result = cel.createProgram(ast).eval();
 
@@ -266,7 +289,7 @@ public class CelOptionalLibraryTest {
     Cel cel = newCelBuilder().setResultType(OptionalType.create(testCase.type)).build();
     String expression =
         String.format("optional.ofNonZeroValue(%s)", testCase.sourceWithNonZeroValue);
-    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, expression);
 
     Object result = cel.createProgram(ast).eval();
 
@@ -278,7 +301,7 @@ public class CelOptionalLibraryTest {
   public void optionalOfNonZeroValue_withNullValue_returnsEmptyOptionalValue() throws Exception {
     Cel cel = newCelBuilder().setResultType(SimpleType.DYN).build();
     CelAbstractSyntaxTree ast =
-        cel.compile("optional.ofNonZeroValue(TestAllTypes{}.single_value)").getAst();
+        compile(cel, "optional.ofNonZeroValue(TestAllTypes{}.single_value)");
 
     Object result = cel.createProgram(ast).eval();
 
@@ -289,7 +312,7 @@ public class CelOptionalLibraryTest {
   @Test
   public void optionalOfNonZeroValue_withEmptyMessage_returnsEmptyOptionalValue() throws Exception {
     Cel cel = newCelBuilder().setResultType(SimpleType.DYN).build();
-    CelAbstractSyntaxTree ast = cel.compile("optional.ofNonZeroValue(TestAllTypes{})").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "optional.ofNonZeroValue(TestAllTypes{})");
 
     Object result = cel.createProgram(ast).eval();
 
@@ -300,7 +323,7 @@ public class CelOptionalLibraryTest {
   @Test
   public void optionalNone_success() throws Exception {
     Cel cel = newCelBuilder().setResultType(SimpleType.DYN).build();
-    CelAbstractSyntaxTree ast = cel.compile("optional.none()").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "optional.none()");
 
     Object result = cel.createProgram(ast).eval();
 
@@ -312,7 +335,7 @@ public class CelOptionalLibraryTest {
   public void optionalValue_success(@TestParameter ConstantTestCases testCase) throws Exception {
     Cel cel = newCelBuilder().setResultType(testCase.type).build();
     String expression = String.format("optional.of(%s).value()", testCase.sourceWithNonZeroValue);
-    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, expression);
 
     Object result = cel.createProgram(ast).eval();
 
@@ -322,7 +345,7 @@ public class CelOptionalLibraryTest {
   @Test
   public void optionalValue_whenOptionalValueEmpty_throws() throws Exception {
     Cel cel = newCelBuilder().build();
-    CelAbstractSyntaxTree ast = cel.compile("optional.none().value()").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "optional.none().value()");
 
     assertThrows(CelEvaluationException.class, () -> cel.createProgram(ast).eval());
   }
@@ -333,7 +356,7 @@ public class CelOptionalLibraryTest {
     Cel cel = newCelBuilder().setResultType(SimpleType.BOOL).build();
     String expression =
         String.format("optional.of(%s).hasValue()", testCase.sourceWithNonZeroValue);
-    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, expression);
 
     Object result = cel.createProgram(ast).eval();
 
@@ -346,7 +369,7 @@ public class CelOptionalLibraryTest {
     Cel cel = newCelBuilder().setResultType(SimpleType.BOOL).build();
     String expression =
         String.format("optional.ofNonZeroValue(%s).hasValue()", testCase.sourceWithZeroValue);
-    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, expression);
 
     Object result = cel.createProgram(ast).eval();
 
@@ -361,7 +384,7 @@ public class CelOptionalLibraryTest {
             .addVar("y", OptionalType.create(SimpleType.INT))
             .setResultType(OptionalType.create(SimpleType.INT))
             .build();
-    CelRuntime.Program program = cel.createProgram(cel.compile("x.or(y)").getAst());
+    CelRuntime.Program program = cel.createProgram(compile(cel, "x.or(y)"));
 
     Object resultLhs = program.eval(ImmutableMap.of("x", Optional.of(5), "y", Optional.empty()));
     Object resultRhs = program.eval(ImmutableMap.of("x", Optional.empty(), "y", Optional.of(10)));
@@ -381,15 +404,17 @@ public class CelOptionalLibraryTest {
                     CelOverloadDecl.newGlobalOverload(
                         "error_overload", OptionalType.create(SimpleType.INT))))
             .addFunctionBindings(
-                CelFunctionBinding.from(
-                    "error_overload",
-                    ImmutableList.of(),
-                    val -> {
-                      throw new IllegalStateException("This function should not have been called!");
-                    }))
+                CelFunctionBinding.fromOverloads(
+                    "errorFunc",
+                    CelFunctionBinding.from(
+                        "error_overload",
+                        ImmutableList.of(),
+                        val -> {
+                          throw new IllegalStateException("This function should not have been called!");
+                        })))
             .setResultType(OptionalType.create(SimpleType.INT))
             .build();
-    CelRuntime.Program program = cel.createProgram(cel.compile("x.or(errorFunc())").getAst());
+    CelRuntime.Program program = cel.createProgram(compile(cel, "x.or(errorFunc())"));
 
     Object resultLhs = program.eval(ImmutableMap.of("x", Optional.of(5)));
 
@@ -399,20 +424,14 @@ public class CelOptionalLibraryTest {
   @Test
   public void optionalOr_producesNonOptionalValue_throws() throws Exception {
     Cel cel =
-        CelFactory.standardCelBuilder()
-            .addFunctionDeclarations(
-                CelFunctionDecl.newFunctionDeclaration(
-                    "or",
-                    CelOverloadDecl.newMemberOverload(
-                        "optional_or_optional", SimpleType.INT, SimpleType.INT, SimpleType.INT)))
-            .addFunctionBindings(
-                CelFunctionBinding.from("optional_or_optional", Long.class, Long.class, Long::sum))
+        newCelBuilder()
+            .addVar("x", OptionalType.create(SimpleType.INT))
             .build();
 
-    CelAbstractSyntaxTree ast = cel.compile("5.or(10)").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "x.or(optional.of(10))");
 
     CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> cel.createProgram(ast).eval());
+        assertThrows(CelEvaluationException.class, () -> cel.createProgram(ast).eval(ImmutableMap.of("x", 5L)));
     assertThat(e).hasMessageThat().contains("expected optional value, found: 5");
   }
 
@@ -424,7 +443,7 @@ public class CelOptionalLibraryTest {
         String.format(
             "optional.of(%s).orValue(%s)",
             testCase.sourceWithNonZeroValue, testCase.sourceWithZeroValue);
-    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, expression);
 
     Object result = cel.createProgram(ast).eval();
 
@@ -441,15 +460,16 @@ public class CelOptionalLibraryTest {
                     "errorFunc",
                     CelOverloadDecl.newGlobalOverload("error_overload", SimpleType.INT)))
             .addFunctionBindings(
-                CelFunctionBinding.from(
-                    "error_overload",
-                    ImmutableList.of(),
-                    val -> {
-                      throw new IllegalStateException("This function should not have been called!");
-                    }))
+                    CelFunctionBinding.fromOverloads("errorFunc",
+                      CelFunctionBinding.from(
+                          "error_overload",
+                          ImmutableList.of(),
+                          val -> {
+                            throw new IllegalStateException("This function should not have been called!");
+                          })))
             .setResultType(SimpleType.INT)
             .build();
-    CelRuntime.Program program = cel.createProgram(cel.compile("x.orValue(errorFunc())").getAst());
+    CelRuntime.Program program = cel.createProgram(compile(cel, "x.orValue(errorFunc())"));
 
     Object resultLhs = program.eval(ImmutableMap.of("x", Optional.of(5)));
 
@@ -462,7 +482,7 @@ public class CelOptionalLibraryTest {
     Cel cel = newCelBuilder().setResultType(testCase.type).build();
     String expression =
         String.format("optional.none().orValue(%s)", testCase.sourceWithNonZeroValue);
-    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, expression);
 
     Object result = cel.createProgram(ast).eval();
 
@@ -475,31 +495,27 @@ public class CelOptionalLibraryTest {
   @TestParameters("{source: 5.orValue(optional.of(10))}")
   @TestParameters("{source: 5.orValue(optional.none())}")
   public void optionalOrValue_unmatchingTypes_throwsCompilationException(String source) {
+    if (testMode.equals(TestMode.PLANNER_PARSE_ONLY)) {
+      return;
+    }
     Cel cel = newCelBuilder().build();
 
     CelValidationException e =
-        assertThrows(CelValidationException.class, () -> cel.compile(source).getAst());
+        assertThrows(CelValidationException.class, () -> compile(cel, source));
     assertThat(e).hasMessageThat().contains("found no matching overload for 'orValue'");
   }
 
   @Test
   public void optionalOrValue_producesNonOptionalValue_throws() throws Exception {
     Cel cel =
-        CelFactory.standardCelBuilder()
-            .addFunctionDeclarations(
-                CelFunctionDecl.newFunctionDeclaration(
-                    "orValue",
-                    CelOverloadDecl.newMemberOverload(
-                        "optional_orValue_value", SimpleType.INT, SimpleType.INT, SimpleType.INT)))
-            .addFunctionBindings(
-                CelFunctionBinding.from(
-                    "optional_orValue_value", Long.class, Long.class, Long::sum))
+        newCelBuilder()
+            .addVar("x", OptionalType.create(SimpleType.INT))
             .build();
 
-    CelAbstractSyntaxTree ast = cel.compile("5.orValue(10)").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "x.orValue(10)");
 
     CelEvaluationException e =
-        assertThrows(CelEvaluationException.class, () -> cel.createProgram(ast).eval());
+        assertThrows(CelEvaluationException.class, () -> cel.createProgram(ast).eval(ImmutableMap.of("x", 5)));
     assertThat(e).hasMessageThat().contains("expected optional value, found: 5");
   }
 
@@ -508,7 +524,7 @@ public class CelOptionalLibraryTest {
   @TestParameters("{source: optional.none().or(optional.none()).orValue(42) == 42}")
   public void optionalChainedFunctions_constants_success(String source) throws Exception {
     Cel cel = newCelBuilder().setResultType(SimpleType.BOOL).build();
-    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, source);
 
     boolean result = (boolean) cel.createProgram(ast).eval();
 
@@ -527,7 +543,7 @@ public class CelOptionalLibraryTest {
             .build();
     String expression =
         "optional.ofNonZeroValue('').or(optional.of(m.c['dashed-index'])).orValue('default value')";
-    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, expression);
 
     String result =
         (String)
@@ -550,7 +566,7 @@ public class CelOptionalLibraryTest {
             .setResultType(SimpleType.STRING)
             .build();
     String expression = "optional.ofNonZeroValue(m.a.z).orValue(m.c['dashed-index'])";
-    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, expression);
 
     CelEvaluationException e =
         assertThrows(
@@ -567,7 +583,7 @@ public class CelOptionalLibraryTest {
   @Test
   public void optionalFieldSelection_onMap_returnsOptionalEmpty() throws Exception {
     Cel cel = newCelBuilder().setResultType(OptionalType.create(SimpleType.INT)).build();
-    CelAbstractSyntaxTree ast = cel.compile("{'a': 2}.?x").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "{'a': 2}.?x");
 
     Object result = cel.createProgram(ast).eval();
 
@@ -577,7 +593,7 @@ public class CelOptionalLibraryTest {
   @Test
   public void optionalFieldSelection_onMap_returnsOptionalValue() throws Exception {
     Cel cel = newCelBuilder().setResultType(OptionalType.create(SimpleType.INT)).build();
-    CelAbstractSyntaxTree ast = cel.compile("{'a': 2}.?a").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "{'a': 2}.?a");
 
     Optional<Long> result = (Optional<Long>) cel.createProgram(ast).eval();
 
@@ -591,7 +607,7 @@ public class CelOptionalLibraryTest {
             .setResultType(OptionalType.create(SimpleType.INT))
             .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("msg.?single_int32").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "msg.?single_int32");
 
     Optional<Long> result =
         (Optional<Long>)
@@ -607,7 +623,7 @@ public class CelOptionalLibraryTest {
             .setResultType(OptionalType.create(SimpleType.INT))
             .addVar("msg", StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("msg.?single_int32").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "msg.?single_int32");
 
     Optional<Long> result =
         (Optional<Long>)
@@ -621,8 +637,7 @@ public class CelOptionalLibraryTest {
   public void optionalFieldSelection_onProtoMessage_listValue() throws Exception {
     Cel cel = newCelBuilder().build();
     CelAbstractSyntaxTree ast =
-        cel.compile("optional.of(TestAllTypes{repeated_string: ['foo']}).?repeated_string.value()")
-            .getAst();
+        compile(cel, "optional.of(TestAllTypes{repeated_string: ['foo']}).?repeated_string.value()");
 
     List<String> result = (List<String>) cel.createProgram(ast).eval();
 
@@ -633,9 +648,8 @@ public class CelOptionalLibraryTest {
   public void optionalFieldSelection_onProtoMessage_indexValue() throws Exception {
     Cel cel = newCelBuilder().build();
     CelAbstractSyntaxTree ast =
-        cel.compile(
-                "optional.of(TestAllTypes{repeated_string: ['foo']}).?repeated_string[0].value()")
-            .getAst();
+        compile(cel,
+                "optional.of(TestAllTypes{repeated_string: ['foo']}).?repeated_string[0].value()");
 
     String result = (String) cel.createProgram(ast).eval();
 
@@ -656,7 +670,7 @@ public class CelOptionalLibraryTest {
                         StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))))
             .build();
     CelAbstractSyntaxTree ast =
-        cel.compile("m.?c.missing.or(m.?c['dashed-index']).value().?single_int32").getAst();
+        compile(cel, "m.?c.missing.or(m.?c['dashed-index']).value().?single_int32");
 
     Optional<Long> result =
         (Optional<Long>)
@@ -674,7 +688,10 @@ public class CelOptionalLibraryTest {
   }
 
   @Test
-  public void optionalFieldSelection_indexerOnProtoMessage_throwsException() {
+  public void optionalFieldSelection_indexerOnProtoMessage_typeCheck_throwsException() {
+    if (testMode.equals(TestMode.PLANNER_PARSE_ONLY)) {
+      return;
+    }
     Cel cel =
         newCelBuilder()
             .setResultType(OptionalType.create(SimpleType.INT))
@@ -683,7 +700,7 @@ public class CelOptionalLibraryTest {
 
     CelValidationException e =
         assertThrows(
-            CelValidationException.class, () -> cel.compile("msg[?single_int32]").getAst());
+            CelValidationException.class, () -> compile(cel, "msg[?single_int32]"));
 
     assertThat(e).hasMessageThat().contains("undeclared reference to 'single_int32'");
   }
@@ -696,8 +713,7 @@ public class CelOptionalLibraryTest {
             .setResultType(SimpleType.BOOL)
             .build();
     CelAbstractSyntaxTree ast =
-        cel.compile("!has(msg.?single_nested_message.bb) && has(msg.?standalone_message.bb)")
-            .getAst();
+        compile(cel, "!has(msg.?single_nested_message.bb) && has(msg.?standalone_message.bb)");
 
     boolean result =
         (boolean)
@@ -718,7 +734,7 @@ public class CelOptionalLibraryTest {
   public void optionalFieldSelection_onMap_hasValueReturnsBoolean(
       String source, boolean expectedResult) throws Exception {
     Cel cel = newCelBuilder().setResultType(SimpleType.BOOL).build();
-    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, source);
 
     boolean result = (boolean) cel.createProgram(ast).eval();
 
@@ -735,7 +751,7 @@ public class CelOptionalLibraryTest {
                     SimpleType.STRING, MapType.create(SimpleType.STRING, SimpleType.STRING)))
             .setResultType(SimpleType.BOOL)
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("has(m.?x.y)").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "has(m.?x.y)");
 
     boolean result =
         (boolean)
@@ -755,7 +771,7 @@ public class CelOptionalLibraryTest {
                     SimpleType.STRING, MapType.create(SimpleType.STRING, SimpleType.STRING)))
             .setResultType(SimpleType.BOOL)
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("has(m.?x.y)").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "has(m.?x.y)");
 
     boolean result = (boolean) cel.createProgram(ast).eval(ImmutableMap.of("m", ImmutableMap.of()));
 
@@ -773,7 +789,7 @@ public class CelOptionalLibraryTest {
                         SimpleType.STRING, MapType.create(SimpleType.STRING, SimpleType.STRING))))
             .setResultType(SimpleType.BOOL)
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("has(optm.c) && !has(optm.c.missing)").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "has(optm.c) && !has(optm.c.missing)");
 
     boolean result =
         (boolean)
@@ -798,7 +814,7 @@ public class CelOptionalLibraryTest {
                         SimpleType.STRING, MapType.create(SimpleType.STRING, SimpleType.STRING))))
             .setResultType(OptionalType.create(SimpleType.STRING))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("optm.c[?'dashed-index']").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "optm.c[?'dashed-index']");
 
     Object result =
         cel.createProgram(ast)
@@ -821,7 +837,7 @@ public class CelOptionalLibraryTest {
                         SimpleType.STRING, MapType.create(SimpleType.STRING, SimpleType.STRING))))
             .setResultType(OptionalType.create(SimpleType.STRING))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("optm.c[?'dashed-index']").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "optm.c[?'dashed-index']");
 
     Object result =
         cel.createProgram(ast)
@@ -840,7 +856,7 @@ public class CelOptionalLibraryTest {
                     SimpleType.STRING, MapType.create(SimpleType.STRING, SimpleType.STRING)))
             .setResultType(OptionalType.create(SimpleType.STRING))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("m.c[?'dashed-index']").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "m.c[?'dashed-index']");
 
     Object result =
         cel.createProgram(ast).eval(ImmutableMap.of("m", ImmutableMap.of("c", ImmutableMap.of())));
@@ -858,7 +874,7 @@ public class CelOptionalLibraryTest {
                     SimpleType.STRING, MapType.create(SimpleType.STRING, SimpleType.STRING)))
             .setResultType(OptionalType.create(SimpleType.STRING))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("m.c[?'dashed-index']").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "m.c[?'dashed-index']");
 
     Object result =
         cel.createProgram(ast)
@@ -875,8 +891,12 @@ public class CelOptionalLibraryTest {
   @TestParameters("{source: '{?x: x}'}")
   public void optionalIndex_onMapWithUnknownInput_returnsUnknownResult(String source)
       throws Exception {
+    if (testMode.equals(TestMode.PLANNER_CHECKED) || testMode.equals(TestMode.PLANNER_PARSE_ONLY)) {
+      // TODO: Uncomment once unknowns is implemented
+      return;
+    }
     Cel cel = newCelBuilder().addVar("x", OptionalType.create(SimpleType.INT)).build();
-    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, source);
 
     Object result = cel.createProgram(ast).eval();
 
@@ -894,7 +914,7 @@ public class CelOptionalLibraryTest {
                     SimpleType.STRING, MapType.create(SimpleType.STRING, SimpleType.STRING)))
             .setResultType(OptionalType.create(SimpleType.STRING))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("{?'key': optional.of('test')}.?key").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "{?'key': optional.of('test')}.?key");
 
     Object result = cel.createProgram(ast).eval();
 
@@ -908,7 +928,7 @@ public class CelOptionalLibraryTest {
             .addVar("l", ListType.create(SimpleType.STRING))
             .setResultType(OptionalType.create(SimpleType.STRING))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("l[?0]").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "l[?0]");
     CelRuntime.Program program = cel.createProgram(ast);
 
     assertThat(program.eval(ImmutableMap.of("l", ImmutableList.of()))).isEqualTo(Optional.empty());
@@ -921,7 +941,7 @@ public class CelOptionalLibraryTest {
             .addVar("l", ListType.create(SimpleType.STRING))
             .setResultType(OptionalType.create(SimpleType.STRING))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("l[?0]").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "l[?0]");
 
     Object result = cel.createProgram(ast).eval(ImmutableMap.of("l", ImmutableList.of("hello")));
 
@@ -935,7 +955,7 @@ public class CelOptionalLibraryTest {
             .addVar("optl", OptionalType.create(ListType.create(SimpleType.STRING)))
             .setResultType(OptionalType.create(SimpleType.STRING))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("optl[?0]").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "optl[?0]");
     CelRuntime.Program program = cel.createProgram(ast);
 
     assertThat(program.eval(ImmutableMap.of("optl", Optional.empty()))).isEqualTo(Optional.empty());
@@ -950,7 +970,7 @@ public class CelOptionalLibraryTest {
             .addVar("optl", OptionalType.create(ListType.create(SimpleType.STRING)))
             .setResultType(OptionalType.create(SimpleType.STRING))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("optl[?0]").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "optl[?0]");
 
     Object result =
         cel.createProgram(ast)
@@ -961,12 +981,16 @@ public class CelOptionalLibraryTest {
 
   @Test
   public void optionalIndex_onListWithUnknownInput_returnsUnknownResult() throws Exception {
+    if (testMode.equals(TestMode.PLANNER_CHECKED) || testMode.equals(TestMode.PLANNER_PARSE_ONLY)) {
+      // TODO: Uncomment once unknowns is implemented
+      return;
+    }
     Cel cel =
         newCelBuilder()
             .addVar("x", OptionalType.create(SimpleType.INT))
             .setResultType(ListType.create(SimpleType.INT))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("[?x]").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "[?x]");
 
     Object result = cel.createProgram(ast).eval();
 
@@ -980,7 +1004,7 @@ public class CelOptionalLibraryTest {
             .addVar("optl", OptionalType.create(ListType.create(SimpleType.STRING)))
             .setResultType(OptionalType.create(SimpleType.STRING))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("optl[0]").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "optl[0]");
 
     Object result = cel.createProgram(ast).eval(ImmutableMap.of("optl", Optional.empty()));
 
@@ -996,12 +1020,16 @@ public class CelOptionalLibraryTest {
   @TestParameters("{expression: 'optional.none().orValue(optx)'}")
   public void optionalChainedFunctions_lhsIsUnknown_returnsUnknown(String expression)
       throws Exception {
+    if (testMode.equals(TestMode.PLANNER_CHECKED) || testMode.equals(TestMode.PLANNER_PARSE_ONLY)) {
+      // TODO: Uncomment once unknowns is implemented
+      return;
+    }
     Cel cel =
         newCelBuilder()
             .addVar("optx", OptionalType.create(SimpleType.INT))
             .addVar("x", SimpleType.INT)
             .build();
-    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, expression);
 
     Object result = cel.createProgram(ast).eval();
 
@@ -1021,7 +1049,7 @@ public class CelOptionalLibraryTest {
             .addVar("optx", OptionalType.create(SimpleType.INT))
             .addVar("x", SimpleType.INT)
             .build();
-    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, expression);
 
     assertThrows(CelEvaluationException.class, () -> cel.createProgram(ast).eval());
   }
@@ -1033,7 +1061,7 @@ public class CelOptionalLibraryTest {
             .addVar("optl", OptionalType.create(ListType.create(SimpleType.STRING)))
             .setResultType(OptionalType.create(SimpleType.STRING))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("optl[0]").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "optl[0]");
 
     Object result =
         cel.createProgram(ast)
@@ -1056,7 +1084,7 @@ public class CelOptionalLibraryTest {
                     SimpleType.STRING, MapType.create(SimpleType.STRING, SimpleType.STRING)))
             .setResultType(SimpleType.BOOL)
             .build();
-    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, source);
 
     boolean result =
         (boolean)
@@ -1084,7 +1112,7 @@ public class CelOptionalLibraryTest {
                         SimpleType.STRING, MapType.create(SimpleType.STRING, SimpleType.STRING))))
             .setResultType(SimpleType.BOOL)
             .build();
-    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, source);
 
     boolean result =
         (boolean)
@@ -1111,7 +1139,7 @@ public class CelOptionalLibraryTest {
             .build();
 
     CelAbstractSyntaxTree ast =
-        cel.compile("optm.c.missing.or(optl[0]).orValue('default value')").getAst();
+        compile(cel, "optm.c.missing.or(optl[0]).orValue('default value')");
 
     String result =
         (String)
@@ -1129,7 +1157,7 @@ public class CelOptionalLibraryTest {
   @Test
   public void optionalMapCreation_valueIsEmpty_returnsEmptyMap() throws Exception {
     Cel cel = newCelBuilder().build();
-    CelAbstractSyntaxTree ast = cel.compile("{?'key': optional.none()}").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "{?'key': optional.none()}");
 
     Map<String, Object> result = (Map<String, Object>) cel.createProgram(ast).eval();
 
@@ -1139,7 +1167,7 @@ public class CelOptionalLibraryTest {
   @Test
   public void optionalMapCreation_valueIsPresent_returnsMap() throws Exception {
     Cel cel = newCelBuilder().build();
-    CelAbstractSyntaxTree ast = cel.compile("{?'key': optional.of(5)}").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "{?'key': optional.of(5)}");
 
     Map<String, Object> result = (Map<String, Object>) cel.createProgram(ast).eval();
 
@@ -1161,7 +1189,7 @@ public class CelOptionalLibraryTest {
                     SimpleType.STRING, MapType.create(SimpleType.STRING, SimpleType.STRING)))
             .build();
     CelAbstractSyntaxTree ast =
-        cel.compile("{?'nested_map': optional.ofNonZeroValue({?'map': m.?c})}").getAst();
+        compile(cel, "{?'nested_map': optional.ofNonZeroValue({?'map': m.?c})}");
 
     Map<String, Map<String, Map<String, String>>> result =
         (Map<String, Map<String, Map<String, String>>>)
@@ -1190,8 +1218,7 @@ public class CelOptionalLibraryTest {
             .build();
 
     CelAbstractSyntaxTree ast =
-        cel.compile("{?'nested_map': optional.ofNonZeroValue({?'map': m.?c}), 'singleton': true}")
-            .getAst();
+        compile(cel, "{?'nested_map': optional.ofNonZeroValue({?'map': m.?c}), 'singleton': true}");
 
     Object result = cel.createProgram(ast).eval(ImmutableMap.of("m", ImmutableMap.of()));
 
@@ -1199,11 +1226,14 @@ public class CelOptionalLibraryTest {
   }
 
   @Test
-  public void optionalMapCreation_valueIsNonOptional_throws() {
+  public void optionalMapCreation_valueIsNonOptional_typeCheck_throws() {
+    if (testMode.equals(TestMode.PLANNER_PARSE_ONLY)) {
+      return;
+    }
     Cel cel = newCelBuilder().build();
 
     CelValidationException e =
-        assertThrows(CelValidationException.class, () -> cel.compile("{?'hi': 'world'}").getAst());
+        assertThrows(CelValidationException.class, () -> compile(cel, "{?'hi': 'world'}"));
 
     assertThat(e)
         .hasMessageThat()
@@ -1217,7 +1247,7 @@ public class CelOptionalLibraryTest {
             .setResultType(StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()))
             .build();
     CelAbstractSyntaxTree ast =
-        cel.compile("TestAllTypes{?single_double_wrapper: optional.ofNonZeroValue(0.0)}").getAst();
+        compile(cel, "TestAllTypes{?single_double_wrapper: optional.ofNonZeroValue(0.0)}");
 
     TestAllTypes result = (TestAllTypes) cel.createProgram(ast).eval();
 
@@ -1228,7 +1258,7 @@ public class CelOptionalLibraryTest {
   public void optionalMessageCreation_fieldValueIsPresent_returnsMessage() throws Exception {
     Cel cel = newCelBuilder().build();
     CelAbstractSyntaxTree ast =
-        cel.compile("TestAllTypes{?single_double_wrapper: optional.ofNonZeroValue(5.0)}").getAst();
+        compile(cel, "TestAllTypes{?single_double_wrapper: optional.ofNonZeroValue(5.0)}");
 
     TestAllTypes result = (TestAllTypes) cel.createProgram(ast).eval();
 
@@ -1253,7 +1283,7 @@ public class CelOptionalLibraryTest {
                 MapType.create(
                     SimpleType.STRING, MapType.create(SimpleType.STRING, SimpleType.STRING)))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile(source).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, source);
 
     TestAllTypes result =
         (TestAllTypes) cel.createProgram(ast).eval(ImmutableMap.of("m", ImmutableMap.of()));
@@ -1271,7 +1301,7 @@ public class CelOptionalLibraryTest {
                     SimpleType.STRING, MapType.create(SimpleType.STRING, SimpleType.STRING)))
             .build();
     CelAbstractSyntaxTree ast =
-        cel.compile("TestAllTypes{?map_string_string: m[?'nested']}").getAst();
+        compile(cel, "TestAllTypes{?map_string_string: m[?'nested']}");
 
     TestAllTypes result =
         (TestAllTypes)
@@ -1293,7 +1323,7 @@ public class CelOptionalLibraryTest {
             .addVar("x", OptionalType.create(SimpleType.INT))
             .addVar("y", OptionalType.create(SimpleType.DYN))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("[?m.?c, ?x, ?y]").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "[?m.?c, ?x, ?y]");
 
     List<?> result =
         (List<?>)
@@ -1315,7 +1345,7 @@ public class CelOptionalLibraryTest {
             .addVar("x", OptionalType.create(SimpleType.INT))
             .addVar("y", OptionalType.create(SimpleType.DYN))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("[?m.?c, ?x, ?y]").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "[?m.?c, ?x, ?y]");
 
     List<?> result =
         (List<?>)
@@ -1340,7 +1370,7 @@ public class CelOptionalLibraryTest {
             .addVar("y", OptionalType.create(SimpleType.DYN))
             .addVar("z", SimpleType.STRING)
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("[?m.?c, ?x, ?y, z]").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "[?m.?c, ?x, ?y, z]");
 
     List<?> result =
         (List<?>)
@@ -1362,7 +1392,10 @@ public class CelOptionalLibraryTest {
 
   @Test
   public void
-      optionalListCreation_containsMixedTypeElements_throwsWhenHomogeneousLiteralsEnabled() {
+      optionalListCreation_containsMixedTypeElements_typeCheck_throwsWhenHomogeneousLiteralsEnabled() {
+    if (testMode.equals(TestMode.PLANNER_PARSE_ONLY)) {
+      return;
+    }
     Cel cel =
         newCelBuilder()
             .setOptions(CelOptions.current().enableHomogeneousLiterals(true).build())
@@ -1375,7 +1408,7 @@ public class CelOptionalLibraryTest {
             .build();
 
     CelValidationException e =
-        assertThrows(CelValidationException.class, () -> cel.compile("[?m.?c, ?x, ?y]").getAst());
+        assertThrows(CelValidationException.class, () -> compile(cel, "[?m.?c, ?x, ?y]"));
 
     assertThat(e).hasMessageThat().contains("expected type 'map(string, string)' but found 'int'");
   }
@@ -1392,7 +1425,7 @@ public class CelOptionalLibraryTest {
     String expression =
         "TestAllTypes{repeated_string: ['greetings', ?m.nested.?hello], ?repeated_int32:"
             + " optional.ofNonZeroValue([?x, ?y])}";
-    CelAbstractSyntaxTree ast = cel.compile(expression).getAst();
+    CelAbstractSyntaxTree ast = compile(cel, expression);
 
     TestAllTypes result =
         (TestAllTypes)
@@ -1418,7 +1451,7 @@ public class CelOptionalLibraryTest {
             .addVar("x", OptionalType.create(SimpleType.INT))
             .setResultType(OptionalType.create(SimpleType.INT))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("x.optMap(y, y + 1)").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "x.optMap(y, y + 1)");
 
     Optional<?> result =
         (Optional<?>) cel.createProgram(ast).eval(ImmutableMap.of("x", Optional.empty()));
@@ -1433,7 +1466,7 @@ public class CelOptionalLibraryTest {
             .addVar("x", OptionalType.create(SimpleType.INT))
             .setResultType(OptionalType.create(SimpleType.INT))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("x.optMap(y, y + 1)").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "x.optMap(y, y + 1)");
 
     Optional<?> result =
         (Optional<?>) cel.createProgram(ast).eval(ImmutableMap.of("x", Optional.of(42L)));
@@ -1451,7 +1484,7 @@ public class CelOptionalLibraryTest {
 
     CelValidationException e =
         assertThrows(
-            CelValidationException.class, () -> cel.compile("x.optMap(y.z, y.z + 1)").getAst());
+            CelValidationException.class, () -> compile(cel, "x.optMap(y.z, y.z + 1)"));
 
     assertThat(e).hasMessageThat().contains("optMap() variable name must be a simple identifier");
   }
@@ -1463,7 +1496,7 @@ public class CelOptionalLibraryTest {
             .addVar("x", OptionalType.create(SimpleType.INT))
             .setResultType(OptionalType.create(SimpleType.INT))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("x.optFlatMap(y, optional.of(y + 1))").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "x.optFlatMap(y, optional.of(y + 1))");
 
     Optional<?> result =
         (Optional<?>) cel.createProgram(ast).eval(ImmutableMap.of("x", Optional.empty()));
@@ -1478,7 +1511,7 @@ public class CelOptionalLibraryTest {
             .addVar("x", OptionalType.create(SimpleType.INT))
             .setResultType(OptionalType.create(SimpleType.INT))
             .build();
-    CelAbstractSyntaxTree ast = cel.compile("x.optFlatMap(y, optional.of(y + 1))").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "x.optFlatMap(y, optional.of(y + 1))");
 
     Optional<?> result =
         (Optional<?>) cel.createProgram(ast).eval(ImmutableMap.of("x", Optional.of(42L)));
@@ -1495,7 +1528,7 @@ public class CelOptionalLibraryTest {
             .setResultType(OptionalType.create(SimpleType.INT))
             .build();
     CelAbstractSyntaxTree ast =
-        cel.compile("x.optFlatMap(y, optional.ofNonZeroValue(y - 1))").getAst();
+        compile(cel, "x.optFlatMap(y, optional.ofNonZeroValue(y - 1))");
 
     Optional<?> result =
         (Optional<?>) cel.createProgram(ast).eval(ImmutableMap.of("x", Optional.of(1L)));
@@ -1512,7 +1545,7 @@ public class CelOptionalLibraryTest {
             .setResultType(OptionalType.create(SimpleType.INT))
             .build();
     CelAbstractSyntaxTree ast =
-        cel.compile("x.optFlatMap(y, optional.ofNonZeroValue(y + 1))").getAst();
+        compile(cel, "x.optFlatMap(y, optional.ofNonZeroValue(y + 1))");
 
     Optional<?> result =
         (Optional<?>) cel.createProgram(ast).eval(ImmutableMap.of("x", Optional.of(1L)));
@@ -1521,7 +1554,11 @@ public class CelOptionalLibraryTest {
   }
 
   @Test
-  public void optionalFlatMapMacro_mappingExprIsNonOptional_throws() {
+  public void optionalFlatMapMacro_mappingExprIsNonOptional_typeCheck_throws() {
+    if (testMode.equals(TestMode.PLANNER_PARSE_ONLY)) {
+      return;
+    }
+
     Cel cel =
         newCelBuilder()
             .addVar("x", OptionalType.create(SimpleType.INT))
@@ -1529,7 +1566,7 @@ public class CelOptionalLibraryTest {
             .build();
     CelValidationException e =
         assertThrows(
-            CelValidationException.class, () -> cel.compile("x.optFlatMap(y, y + 1)").getAst());
+            CelValidationException.class, () -> compile(cel, "x.optFlatMap(y, y + 1)"));
 
     assertThat(e).hasMessageThat().contains("found no matching overload for '_?_:_'");
   }
@@ -1544,7 +1581,7 @@ public class CelOptionalLibraryTest {
 
     CelValidationException e =
         assertThrows(
-            CelValidationException.class, () -> cel.compile("x.optFlatMap(y.z, y.z + 1)").getAst());
+            CelValidationException.class, () -> compile(cel, "x.optFlatMap(y.z, y.z + 1)"));
 
     assertThat(e)
         .hasMessageThat()
@@ -1554,7 +1591,7 @@ public class CelOptionalLibraryTest {
   @Test
   public void optionalType_typeResolution() throws Exception {
     Cel cel = newCelBuilder().build();
-    CelAbstractSyntaxTree ast = cel.compile("optional_type").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "optional_type");
 
     TypeType optionalRuntimeType = (TypeType) cel.createProgram(ast).eval();
 
@@ -1566,7 +1603,7 @@ public class CelOptionalLibraryTest {
   public void optionalType_typeComparison() throws Exception {
     Cel cel = newCelBuilder().build();
 
-    CelAbstractSyntaxTree ast = cel.compile("type(optional.none()) == optional_type").getAst();
+    CelAbstractSyntaxTree ast = compile(cel, "type(optional.none()) == optional_type");
 
     assertThat(cel.createProgram(ast).eval()).isEqualTo(true);
   }
@@ -1576,7 +1613,7 @@ public class CelOptionalLibraryTest {
   @TestParameters("{expression: '[\"a\",\"b\",\"c\"].first().value() == \"a\"'}")
   public void listFirst_success(String expression) throws Exception {
     Cel cel = newCelBuilder().build();
-    boolean result = (boolean) cel.createProgram(cel.compile(expression).getAst()).eval();
+    boolean result = (boolean) cel.createProgram(compile(cel, expression)).eval();
     assertThat(result).isTrue();
   }
 
@@ -1585,15 +1622,18 @@ public class CelOptionalLibraryTest {
   @TestParameters("{expression: '[1, 2, 3].last().value() == 3'}")
   public void listLast_success(String expression) throws Exception {
     Cel cel = newCelBuilder().build();
-    boolean result = (boolean) cel.createProgram(cel.compile(expression).getAst()).eval();
+    boolean result = (boolean) cel.createProgram(compile(cel, expression)).eval();
     assertThat(result).isTrue();
   }
 
   @Test
   @TestParameters("{expression: '[1].first()', expectedError: 'undeclared reference to ''first'''}")
   @TestParameters("{expression: '[2].last()', expectedError: 'undeclared reference to ''last'''}")
-  public void listFirstAndLast_throws_earlyVersion(String expression, String expectedError)
+  public void listFirstAndLast_typeCheck_throws_earlyVersion(String expression, String expectedError)
       throws Exception {
+    if (testMode.equals(TestMode.PLANNER_PARSE_ONLY)) {
+      return;
+    }
     // Configure Cel with an earlier version of the 'optional' library, which did not support
     // 'first' and 'last'
     Cel cel = newCelBuilder(1).build();
@@ -1601,9 +1641,18 @@ public class CelOptionalLibraryTest {
             assertThrows(
                 CelValidationException.class,
                 () -> {
-                  cel.createProgram(cel.compile(expression).getAst()).eval();
+                  cel.createProgram(compile(cel, expression)).eval();
                 }))
         .hasMessageThat()
         .contains(expectedError);
+  }
+
+  private CelAbstractSyntaxTree compile(CelCompiler compiler, String expression) throws CelValidationException {
+    CelAbstractSyntaxTree ast = compiler.parse(expression).getAst();
+    if (testMode.equals(TestMode.PLANNER_PARSE_ONLY)) {
+      return ast;
+    }
+
+    return compiler.check(ast).getAst();
   }
 }

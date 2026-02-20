@@ -25,6 +25,7 @@ import static dev.cel.extensions.CelOptionalLibrary.Function.OPTIONAL_OF;
 import static dev.cel.extensions.CelOptionalLibrary.Function.OPTIONAL_OF_NON_ZERO_VALUE;
 import static dev.cel.extensions.CelOptionalLibrary.Function.OPTIONAL_UNWRAP;
 import static dev.cel.extensions.CelOptionalLibrary.Function.VALUE;
+import static dev.cel.runtime.CelFunctionBinding.from;
 import static dev.cel.runtime.CelFunctionBinding.fromOverloads;
 
 import com.google.common.collect.ImmutableList;
@@ -42,6 +43,9 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelVarDecl;
 import dev.cel.common.Operator;
+import static dev.cel.common.Operator.INDEX;
+import static dev.cel.common.Operator.OPTIONAL_INDEX;
+import static dev.cel.common.Operator.OPTIONAL_SELECT;
 import dev.cel.common.ast.CelExpr;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.MapType;
@@ -55,7 +59,6 @@ import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.parser.CelMacro;
 import dev.cel.parser.CelMacroExprFactory;
 import dev.cel.parser.CelParserBuilder;
-import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelInternalRuntimeLibrary;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.RuntimeEquality;
@@ -304,13 +307,11 @@ public final class CelOptionalLibrary
   public void setRuntimeOptions(
       CelRuntimeBuilder runtimeBuilder, RuntimeEquality runtimeEquality, CelOptions celOptions) {
     runtimeBuilder.addFunctionBindings(
-        fromOverloads(
-            OPTIONAL_OF.getFunction(),
-            CelFunctionBinding.from("optional_of", Object.class, Optional::of)));
+        fromOverloads(OPTIONAL_OF.getFunction(), from("optional_of", Object.class, Optional::of)));
     runtimeBuilder.addFunctionBindings(
         fromOverloads(
             OPTIONAL_OF_NON_ZERO_VALUE.getFunction(),
-            CelFunctionBinding.from(
+            from(
                 "optional_ofNonZeroValue",
                 Object.class,
                 val -> {
@@ -322,74 +323,87 @@ public final class CelOptionalLibrary
     runtimeBuilder.addFunctionBindings(
         fromOverloads(
             OPTIONAL_UNWRAP.getFunction(),
-            CelFunctionBinding.from(
+            from(
                 "optional_unwrap_list",
                 Collection.class,
                 CelOptionalLibrary::elideOptionalCollection)));
     runtimeBuilder.addFunctionBindings(
         fromOverloads(
             OPTIONAL_NONE.getFunction(),
-            CelFunctionBinding.from("optional_none", ImmutableList.of(), val -> Optional.empty())));
+            from("optional_none", ImmutableList.of(), val -> Optional.empty())));
     runtimeBuilder.addFunctionBindings(
         fromOverloads(
             VALUE.getFunction(),
-            CelFunctionBinding.from(
-                "optional_value", Object.class, val -> ((Optional<?>) val).get())));
+            from("optional_value", Object.class, val -> ((Optional<?>) val).get())));
     runtimeBuilder.addFunctionBindings(
         fromOverloads(
             HAS_VALUE.getFunction(),
-            CelFunctionBinding.from(
-                "optional_hasValue", Object.class, val -> ((Optional<?>) val).isPresent())));
+            from("optional_hasValue", Object.class, val -> ((Optional<?>) val).isPresent())));
 
     runtimeBuilder.addFunctionBindings(
-        CelFunctionBinding.from(
-            "select_optional_field", // This only handles map selection. Proto selection is
-            // special cased inside the interpreter.
-            Map.class,
-            String.class,
-            runtimeEquality::findInMap),
-        CelFunctionBinding.from(
-            "map_optindex_optional_value", Map.class, Object.class, runtimeEquality::findInMap),
-        CelFunctionBinding.from(
-            "optional_map_optindex_optional_value",
-            Optional.class,
-            Object.class,
-            (Optional optionalMap, Object key) ->
-                indexOptionalMap(optionalMap, key, runtimeEquality)),
-        CelFunctionBinding.from(
-            "optional_map_index_value",
-            Optional.class,
-            Object.class,
-            (Optional optionalMap, Object key) ->
-                indexOptionalMap(optionalMap, key, runtimeEquality)),
-        CelFunctionBinding.from(
-            "optional_list_index_int",
-            Optional.class,
-            Long.class,
-            CelOptionalLibrary::indexOptionalList),
-        CelFunctionBinding.from(
-            "list_optindex_optional_int",
-            List.class,
-            Long.class,
-            (List list, Long index) -> {
-              int castIndex = Ints.checkedCast(index);
-              if (castIndex < 0 || castIndex >= list.size()) {
-                return Optional.empty();
-              }
-              return Optional.of(list.get(castIndex));
-            }),
-        CelFunctionBinding.from(
-            "optional_list_optindex_optional_int",
-            Optional.class,
-            Long.class,
-            CelOptionalLibrary::indexOptionalList));
+        fromOverloads(
+            OPTIONAL_SELECT.getFunction(),
+            from(
+                "select_optional_field", // This only handles map selection. Proto selection is
+                // special cased inside the interpreter.
+                Map.class,
+                String.class,
+                runtimeEquality::findInMap)));
+
+    runtimeBuilder.addFunctionBindings(
+        fromOverloads(
+            OPTIONAL_INDEX.getFunction(),
+            from(
+                "list_optindex_optional_int",
+                List.class,
+                Long.class,
+                (List list, Long index) -> {
+                  int castIndex = Ints.checkedCast(index);
+                  if (castIndex < 0 || castIndex >= list.size()) {
+                    return Optional.empty();
+                  }
+                  return Optional.of(list.get(castIndex));
+                }),
+            from(
+                "optional_list_optindex_optional_int",
+                Optional.class,
+                Long.class,
+                CelOptionalLibrary::indexOptionalList),
+            from("map_optindex_optional_value", Map.class, Object.class, runtimeEquality::findInMap),
+            from(
+                "optional_map_optindex_optional_value",
+                Optional.class,
+                Object.class,
+                (Optional optionalMap, Object key) ->
+                    indexOptionalMap(optionalMap, key, runtimeEquality))));
+
+    runtimeBuilder.addFunctionBindings(
+        fromOverloads(
+            INDEX.getFunction(),
+            from(
+                "optional_list_index_int",
+                Optional.class,
+                Long.class,
+                CelOptionalLibrary::indexOptionalList),
+            from(
+                "optional_map_index_value",
+                Optional.class,
+                Object.class,
+                (Optional optionalMap, Object key) ->
+                    indexOptionalMap(optionalMap, key, runtimeEquality))
+            )
+        );
+
 
     if (version >= 2) {
       runtimeBuilder.addFunctionBindings(
-          CelFunctionBinding.from(
-              "optional_list_first", Collection.class, CelOptionalLibrary::listOptionalFirst),
-          CelFunctionBinding.from(
-              "optional_list_last", Collection.class, CelOptionalLibrary::listOptionalLast));
+          fromOverloads(
+              "first",
+              from("optional_list_first", Collection.class, CelOptionalLibrary::listOptionalFirst)));
+      runtimeBuilder.addFunctionBindings(
+          fromOverloads(
+              "last",
+              from("optional_list_last", Collection.class, CelOptionalLibrary::listOptionalLast)));
     }
   }
 

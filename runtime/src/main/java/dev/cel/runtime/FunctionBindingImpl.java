@@ -23,7 +23,7 @@ import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.exceptions.CelOverloadNotFoundException;
 
 @Immutable
-final class FunctionBindingImpl implements CelFunctionBinding {
+public final class FunctionBindingImpl implements CelFunctionBinding {
 
   private final String overloadId;
 
@@ -145,7 +145,11 @@ final class FunctionBindingImpl implements CelFunctionBinding {
               .collect(toImmutableList()));
     }
 
-    private DynamicDispatchOverload(
+    ImmutableSet<CelFunctionBinding> getOverloadBindings() {
+      return overloadBindings;
+    }
+
+    DynamicDispatchOverload(
         String functionName, ImmutableSet<CelFunctionBinding> overloadBindings) {
       this.functionName = functionName;
       this.overloadBindings = overloadBindings;

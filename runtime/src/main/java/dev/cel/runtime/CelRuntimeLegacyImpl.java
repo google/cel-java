@@ -303,23 +303,23 @@ public final class CelRuntimeLegacyImpl implements CelRuntime {
         }
       }
 
-      ImmutableMap.Builder<String, CelFunctionBinding> functionBindingsBuilder =
-          ImmutableMap.builder();
+      DefaultDispatcher.Builder dispatcherBuilder = DefaultDispatcher.newBuilder();
       for (CelFunctionBinding standardFunctionBinding :
           newStandardFunctionBindings(runtimeEquality)) {
-        functionBindingsBuilder.put(
-            standardFunctionBinding.getOverloadId(), standardFunctionBinding);
+        dispatcherBuilder.addOverload(
+            standardFunctionBinding.getOverloadId(),
+            standardFunctionBinding.getArgTypes(),
+            standardFunctionBinding.isStrict(),
+            standardFunctionBinding.getDefinition());
       }
 
-      functionBindingsBuilder.putAll(customFunctionBindings);
-
-      DefaultDispatcher.Builder dispatcherBuilder = DefaultDispatcher.newBuilder();
-      functionBindingsBuilder
-          .buildOrThrow()
-          .forEach(
-              (String overloadId, CelFunctionBinding func) ->
-                  dispatcherBuilder.addOverload(
-                      overloadId, func.getArgTypes(), func.isStrict(), func.getDefinition()));
+      for (CelFunctionBinding customBinding : customFunctionBindings.values()) {
+        dispatcherBuilder.addOverload(
+            customBinding.getOverloadId(),
+            customBinding.getArgTypes(),
+            customBinding.isStrict(),
+            customBinding.getDefinition());
+      }
 
       RuntimeTypeProvider runtimeTypeProvider;
 

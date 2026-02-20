@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
+import java.util.Optional;
 
 @Immutable
 final class EvalCreateList extends PlannedInterpretable {
@@ -26,21 +27,44 @@ final class EvalCreateList extends PlannedInterpretable {
   @SuppressWarnings("Immutable")
   private final PlannedInterpretable[] values;
 
+  // Array contents are not mutated
+  @SuppressWarnings("Immutable")
+  private final int[] optionalIndices;
+
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     ImmutableList.Builder<Object> builder = ImmutableList.builderWithExpectedSize(values.length);
-    for (PlannedInterpretable value : values) {
-      builder.add(EvalHelpers.evalStrictly(value, resolver, frame));
+    for (int i = 0; i < values.length; i++) {
+      Object element = EvalHelpers.evalStrictly(values[i], resolver, frame);
+      if (isOptionalIndex(i)) {
+        if (element instanceof Optional) {
+          Optional<?> opt = (Optional<?>) element;
+          opt.ifPresent(builder::add);
+        }
+      } else {
+        builder.add(element);
+      }
     }
     return builder.build();
   }
 
-  static EvalCreateList create(long exprId, PlannedInterpretable[] values) {
-    return new EvalCreateList(exprId, values);
+  private boolean isOptionalIndex(int index) {
+    for (int optionalIndex : optionalIndices) {
+      if (optionalIndex == index) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
-  private EvalCreateList(long exprId, PlannedInterpretable[] values) {
+  static EvalCreateList create(long exprId, PlannedInterpretable[] values, int[] optionalIndices) {
+    return new EvalCreateList(exprId, values, optionalIndices);
+  }
+
+  private EvalCreateList(long exprId, PlannedInterpretable[] values, int[] optionalIndices) {
     super(exprId);
     this.values = values;
+    this.optionalIndices = optionalIndices;
   }
 }

@@ -16,10 +16,12 @@ package dev.cel.bundle;
 
 import dev.cel.checker.CelCheckerLegacyImpl;
 import dev.cel.common.CelOptions;
+import dev.cel.common.annotations.Beta;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerImpl;
 import dev.cel.parser.CelParserImpl;
 import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntimeImpl;
 import dev.cel.runtime.CelRuntimeLegacyImpl;
 
 /** Helper class to configure the entire CEL stack in a common interface. */
@@ -42,6 +44,16 @@ public final class CelFactory {
         .setOptions(CelOptions.current().build())
         // CEL-Internal-2
         .setStandardEnvironmentEnabled(true);
+  }
+
+  @Beta
+  public static CelBuilder plannerCelBuilder() {
+    return CelImpl.newBuilder(
+              CelCompilerImpl.newBuilder(
+                      CelParserImpl.newBuilder(), CelCheckerLegacyImpl.newBuilder().setStandardEnvironmentEnabled(true)),
+              CelRuntimeImpl.newBuilder())
+            // CEL-Internal-2
+          .setOptions(CelOptions.current().build());
   }
 
   /** Combines a prebuilt {@link CelCompiler} and {@link CelRuntime} into {@link Cel}. */
