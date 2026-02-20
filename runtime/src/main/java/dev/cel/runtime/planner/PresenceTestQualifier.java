@@ -14,7 +14,7 @@
 
 package dev.cel.runtime.planner;
 
-import static dev.cel.runtime.planner.MissingAttribute.newMissingAttribute;
+import static dev.cel.runtime.planner.MissingAttribute.newMissingField;
 
 import dev.cel.common.values.SelectableValue;
 import java.util.Map;
@@ -40,7 +40,7 @@ final class PresenceTestQualifier implements Qualifier {
       return map.containsKey(value);
     }
 
-    return newMissingAttribute(value.toString());
+    return newMissingField(value.toString());
   }
 
   static PresenceTestQualifier create(Object value) {

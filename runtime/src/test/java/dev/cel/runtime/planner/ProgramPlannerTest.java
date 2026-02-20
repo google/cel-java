@@ -301,6 +301,15 @@ public final class ProgramPlannerTest {
   }
 
   @Test
+  public void plan_ident_missingAttribute_throws() throws Exception {
+    CelAbstractSyntaxTree ast = compile("int_var");
+    Program program = PLANNER.plan(ast);
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
+    assertThat(e).hasMessageThat().contains("evaluation error at <input>:0: No such attribute(s)");
+  }
+
+  @Test
   public void plan_ident_withContainer() throws Exception {
     CelAbstractSyntaxTree ast = compile("abbr.ident");
     Program program = PLANNER.plan(ast);
@@ -713,14 +722,13 @@ public final class ProgramPlannerTest {
   public void plan_select_mapVarInputMissing_throws() throws Exception {
     CelAbstractSyntaxTree ast = compile("map_var.foo");
     Program program = PLANNER.plan(ast);
-    String errorMessage = "evaluation error at <input>:7: Error resolving ";
+    String errorMessage = "evaluation error at <input>:7: No such attribute(s): ";
     if (isParseOnly) {
       errorMessage +=
-          "fields 'cel.expr.conformance.proto3.map_var, cel.expr.conformance.map_var,"
-              + " cel.expr.map_var, cel.map_var, map_var'";
-    } else {
-      errorMessage += "field 'map_var'";
+          "cel.expr.conformance.proto3.map_var, cel.expr.conformance.map_var, cel.expr.map_var,"
+              + " cel.map_var, ";
     }
+    errorMessage += "map_var";
 
     CelEvaluationException e =
         assertThrows(CelEvaluationException.class, () -> program.eval(ImmutableMap.of()));
