@@ -182,6 +182,7 @@ abstract class CelRuntimeImpl implements CelRuntime {
 
   static Builder newBuilder() {
     return new AutoValue_CelRuntimeImpl.Builder()
+        .setFunctionBindings(ImmutableMap.of())
         .setStandardFunctions(CelStandardFunctions.newBuilder().build())
         .setContainer(CelContainer.newBuilder().build())
         .setExtensionRegistry(ExtensionRegistry.getEmptyRegistry());
@@ -221,6 +222,8 @@ abstract class CelRuntimeImpl implements CelRuntime {
     abstract CelStandardFunctions standardFunctions();
 
     abstract ExtensionRegistry extensionRegistry();
+
+    abstract ImmutableMap<String, CelFunctionBinding> functionBindings();
 
     abstract ImmutableSet.Builder<Descriptors.FileDescriptor> fileDescriptorsBuilder();
 
@@ -442,6 +445,9 @@ abstract class CelRuntimeImpl implements CelRuntime {
       DescriptorTypeResolver descriptorTypeResolver =
           DescriptorTypeResolver.create(combinedTypeProvider);
       TypeFunction typeFunction = TypeFunction.create(descriptorTypeResolver);
+
+      mutableFunctionBindings.putAll(functionBindings());
+
       for (CelFunctionBinding binding :
           typeFunction.newFunctionBindings(options(), runtimeEquality)) {
         mutableFunctionBindings.put(binding.getOverloadId(), binding);

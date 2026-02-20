@@ -14,8 +14,13 @@
 
 package dev.cel.runtime;
 
+import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelValidationException;
+import dev.cel.common.types.CelTypeProvider;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.testing.BaseInterpreterTest;
 import org.junit.runner.RunWith;
@@ -23,6 +28,8 @@ import org.junit.runner.RunWith;
 /** Interpreter tests using ProgramPlanner */
 @RunWith(TestParameterInjector.class)
 public class PlannerInterpreterTest extends BaseInterpreterTest {
+
+  @TestParameter boolean isParseOnly;
 
   @Override
   protected CelRuntimeBuilder newBaseRuntimeBuilder(CelOptions celOptions) {
@@ -35,6 +42,36 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
   }
 
   @Override
+  protected void setContainer(CelContainer container) {
+    super.setContainer(container);
+    this.celRuntime = this.celRuntime.toRuntimeBuilder().setContainer(container).build();
+  }
+
+  @Override
+  protected CelAbstractSyntaxTree prepareTest(CelTypeProvider typeProvider) {
+    super.prepareCompiler(typeProvider);
+
+    CelAbstractSyntaxTree ast;
+    try {
+      ast = celCompiler.parse(source, testSourceDescription()).getAst();
+    } catch (CelValidationException e) {
+      printTestValidationError(e);
+      return null;
+    }
+
+    if (isParseOnly) {
+      return ast;
+    }
+
+    try {
+      return celCompiler.check(ast).getAst();
+    } catch (CelValidationException e) {
+      printTestValidationError(e);
+      return null;
+    }
+  }
+
+  @Override
   public void unknownField() {
     // TODO: Unknown support not implemented yet
     skipBaselineVerification();
@@ -44,5 +81,26 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
   public void unknownResultSet() {
     // TODO: Unknown support not implemented yet
     skipBaselineVerification();
+  }
+
+  @Override
+  public void optional() {
+    if (isParseOnly) {
+      // TODO: Fix for parsed-only mode.
+      skipBaselineVerification();
+    } else {
+      super.optional();
+    }
+  }
+
+  @Override
+  public void optional_errors() {
+    if (isParseOnly) {
+      // Parsed-only evaluation contains function name in the
+      // error message instead of the function overload.
+      skipBaselineVerification();
+    } else {
+      super.optional_errors();
+    }
   }
 }
