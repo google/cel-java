@@ -16,6 +16,7 @@ package dev.cel.common.values;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import dev.cel.common.CelOptions;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
 import dev.cel.common.internal.DynamicProto;
@@ -28,7 +29,9 @@ public class ProtoCelValueConverterTest {
 
   private static final ProtoCelValueConverter PROTO_CEL_VALUE_CONVERTER =
       ProtoCelValueConverter.newInstance(
-          DefaultDescriptorPool.INSTANCE, DynamicProto.create(DefaultMessageFactory.INSTANCE));
+          DefaultDescriptorPool.INSTANCE,
+          DynamicProto.create(DefaultMessageFactory.INSTANCE),
+          CelOptions.DEFAULT);
 
   @Test
   public void unwrap_nullValue() {

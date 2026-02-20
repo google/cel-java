@@ -45,10 +45,4 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
     // TODO: Unknown support not implemented yet
     skipBaselineVerification();
   }
-
-  @Override
-  public void jsonFieldNames() throws Exception {
-    // TODO: Support JSON field names for planner
-    skipBaselineVerification();
-  }
 }

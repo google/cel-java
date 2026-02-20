@@ -38,6 +38,7 @@ public class ProtoMessageValueProvider implements CelValueProvider {
   private final ProtoAdapter protoAdapter;
   private final ProtoMessageFactory protoMessageFactory;
   private final ProtoCelValueConverter protoCelValueConverter;
+  private final CelOptions celOptions;
 
   @Override
   public CelValueConverter celValueConverter() {
@@ -72,6 +73,14 @@ public class ProtoMessageValueProvider implements CelValueProvider {
       return fieldDescriptor;
     }
 
+    if (celOptions.enableJsonFieldNames()) {
+      for (FieldDescriptor fd : descriptor.getFields()) {
+        if (fd.getJsonName().equals(fieldName)) {
+          return fd;
+        }
+      }
+    }
+
     return protoMessageFactory
         .getDescriptorPool()
         .findExtensionDescriptor(descriptor, fieldName)
@@ -91,7 +100,9 @@ public class ProtoMessageValueProvider implements CelValueProvider {
   private ProtoMessageValueProvider(CelOptions celOptions, DynamicProto dynamicProto) {
     this.protoMessageFactory = dynamicProto.getProtoMessageFactory();
     this.protoCelValueConverter =
-        ProtoCelValueConverter.newInstance(protoMessageFactory.getDescriptorPool(), dynamicProto);
+        ProtoCelValueConverter.newInstance(
+            protoMessageFactory.getDescriptorPool(), dynamicProto, celOptions);
     this.protoAdapter = new ProtoAdapter(dynamicProto, celOptions);
+    this.celOptions = celOptions;
   }
 }

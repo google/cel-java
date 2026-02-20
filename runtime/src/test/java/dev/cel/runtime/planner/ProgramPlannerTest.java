@@ -98,7 +98,7 @@ public final class ProgramPlannerTest {
   private static final CelValueProvider VALUE_PROVIDER =
       ProtoMessageValueProvider.newInstance(CEL_OPTIONS, DYNAMIC_PROTO);
   private static final CelValueConverter CEL_VALUE_CONVERTER =
-      ProtoCelValueConverter.newInstance(DESCRIPTOR_POOL, DYNAMIC_PROTO);
+      ProtoCelValueConverter.newInstance(DESCRIPTOR_POOL, DYNAMIC_PROTO, CelOptions.DEFAULT);
   private static final CelContainer CEL_CONTAINER =
       CelContainer.newBuilder()
           .setName("cel.expr.conformance.proto3")

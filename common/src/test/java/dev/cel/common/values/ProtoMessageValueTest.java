@@ -35,6 +35,7 @@ import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.common.CelDescriptorUtil;
+import dev.cel.common.CelOptions;
 import dev.cel.common.internal.CelDescriptorPool;
 import dev.cel.common.internal.DefaultDescriptorPool;
 import dev.cel.common.internal.DefaultMessageFactory;
@@ -54,7 +55,9 @@ public final class ProtoMessageValueTest {
 
   private static final ProtoCelValueConverter PROTO_CEL_VALUE_CONVERTER =
       ProtoCelValueConverter.newInstance(
-          DefaultDescriptorPool.INSTANCE, DynamicProto.create(DefaultMessageFactory.INSTANCE));
+          DefaultDescriptorPool.INSTANCE,
+          DynamicProto.create(DefaultMessageFactory.INSTANCE),
+          CelOptions.DEFAULT);
 
   @Test
   public void emptyProtoMessage() {
@@ -62,7 +65,8 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             TestAllTypes.getDefaultInstance(),
             DefaultDescriptorPool.INSTANCE,
-            PROTO_CEL_VALUE_CONVERTER);
+            PROTO_CEL_VALUE_CONVERTER,
+            /* enableJsonFieldNames= */ false);
 
     assertThat(protoMessageValue.value()).isEqualTo(TestAllTypes.getDefaultInstance());
     assertThat(protoMessageValue.isZeroValue()).isTrue();
@@ -74,7 +78,7 @@ public final class ProtoMessageValueTest {
         TestAllTypes.newBuilder().setSingleBool(true).setSingleInt64(5L).build();
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(
-            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
+            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER, false);
 
     assertThat(protoMessageValue.value()).isEqualTo(testAllTypes);
     assertThat(protoMessageValue.isZeroValue()).isFalse();
@@ -90,7 +94,7 @@ public final class ProtoMessageValueTest {
             .build();
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(
-            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
+            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER, false);
 
     assertThat(protoMessageValue.find("single_bool")).isPresent();
     assertThat(protoMessageValue.find("single_int64")).isPresent();
@@ -103,7 +107,8 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             TestAllTypes.getDefaultInstance(),
             DefaultDescriptorPool.INSTANCE,
-            PROTO_CEL_VALUE_CONVERTER);
+            PROTO_CEL_VALUE_CONVERTER,
+            /* enableJsonFieldNames= */ false);
 
     assertThat(protoMessageValue.find("single_int32")).isEmpty();
     assertThat(protoMessageValue.find("single_uint64")).isEmpty();
@@ -116,7 +121,8 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             TestAllTypes.getDefaultInstance(),
             DefaultDescriptorPool.INSTANCE,
-            PROTO_CEL_VALUE_CONVERTER);
+            PROTO_CEL_VALUE_CONVERTER,
+            /* enableJsonFieldNames= */ false);
 
     IllegalArgumentException exception =
         assertThrows(IllegalArgumentException.class, () -> protoMessageValue.select("bogus"));
@@ -137,7 +143,7 @@ public final class ProtoMessageValueTest {
         TestAllTypes.newBuilder().setExtension(TestAllTypesExtensions.int32Ext, 1).build();
 
     ProtoMessageValue protoMessageValue =
-        ProtoMessageValue.create(proto2Message, descriptorPool, PROTO_CEL_VALUE_CONVERTER);
+        ProtoMessageValue.create(proto2Message, descriptorPool, PROTO_CEL_VALUE_CONVERTER, false);
 
     assertThat(protoMessageValue.find("cel.expr.conformance.proto2.int32_ext")).isPresent();
   }
@@ -149,7 +155,7 @@ public final class ProtoMessageValueTest {
 
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(
-            proto2Message, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
+            proto2Message, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER, false);
 
     IllegalArgumentException exception =
         assertThrows(
@@ -193,7 +199,8 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             NestedMessage.getDefaultInstance(),
             DefaultDescriptorPool.INSTANCE,
-            PROTO_CEL_VALUE_CONVERTER)),
+            PROTO_CEL_VALUE_CONVERTER,
+            /* enableJsonFieldNames= */ false)),
     NESTED_ENUM("standalone_enum", 1L);
 
     private final String fieldName;
@@ -239,7 +246,7 @@ public final class ProtoMessageValueTest {
 
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(
-            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
+            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER, false);
 
     assertThat(protoMessageValue.select(testCase.fieldName)).isEqualTo(testCase.value);
   }
@@ -253,7 +260,8 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             DynamicMessage.newBuilder(testAllTypes).build(),
             DefaultDescriptorPool.INSTANCE,
-            PROTO_CEL_VALUE_CONVERTER);
+            PROTO_CEL_VALUE_CONVERTER,
+            /* enableJsonFieldNames= */ false);
 
     assertThat(protoMessageValue.select("single_int32_wrapper")).isEqualTo(5);
   }
@@ -269,7 +277,7 @@ public final class ProtoMessageValueTest {
 
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(
-            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
+            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER, false);
 
     assertThat(protoMessageValue.select("single_timestamp"))
         .isEqualTo(Instant.ofEpochSecond(0, nanos));
@@ -289,7 +297,7 @@ public final class ProtoMessageValueTest {
 
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(
-            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
+            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER, false);
 
     assertThat(protoMessageValue.select("single_duration"))
         .isEqualTo(Duration.ofSeconds(seconds, nanos));
@@ -334,7 +342,7 @@ public final class ProtoMessageValueTest {
 
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(
-            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
+            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER, false);
 
     assertThat(protoMessageValue.select("single_value")).isEqualTo(testCase.value);
   }
@@ -351,7 +359,7 @@ public final class ProtoMessageValueTest {
 
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(
-            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
+            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER, false);
 
     assertThat(protoMessageValue.select("single_struct")).isEqualTo(ImmutableMap.of("a", false));
   }
@@ -368,7 +376,7 @@ public final class ProtoMessageValueTest {
 
     ProtoMessageValue protoMessageValue =
         ProtoMessageValue.create(
-            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER);
+            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER, false);
 
     assertThat(protoMessageValue.select("list_value")).isEqualTo(ImmutableList.of(false));
   }
@@ -379,7 +387,8 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             TestAllTypes.getDefaultInstance(),
             DefaultDescriptorPool.INSTANCE,
-            PROTO_CEL_VALUE_CONVERTER);
+            PROTO_CEL_VALUE_CONVERTER,
+            /* enableJsonFieldNames= */ false);
 
     assertThat(protoMessageValue.select("single_int64_wrapper")).isEqualTo(NullValue.NULL_VALUE);
   }
@@ -390,9 +399,21 @@ public final class ProtoMessageValueTest {
         ProtoMessageValue.create(
             TestAllTypes.getDefaultInstance(),
             DefaultDescriptorPool.INSTANCE,
-            PROTO_CEL_VALUE_CONVERTER);
+            PROTO_CEL_VALUE_CONVERTER,
+            /* enableJsonFieldNames= */ false);
 
     assertThat(protoMessageValue.celType())
         .isEqualTo(StructTypeReference.create(TestAllTypes.getDescriptor().getFullName()));
+  }
+
+  @Test
+  public void findField_jsonName_success() {
+    TestAllTypes testAllTypes = TestAllTypes.newBuilder().setSingleInt32(42).build();
+
+    ProtoMessageValue protoMessageValue =
+        ProtoMessageValue.create(
+            testAllTypes, DefaultDescriptorPool.INSTANCE, PROTO_CEL_VALUE_CONVERTER, true);
+
+    assertThat(protoMessageValue.find("singleInt32")).isPresent();
   }
 }
