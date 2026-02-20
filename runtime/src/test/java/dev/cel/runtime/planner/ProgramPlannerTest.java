@@ -277,7 +277,33 @@ public final class ProgramPlannerTest {
 
     Object result = program.eval();
 
-    assertThat(result).isEqualTo(1);
+    assertThat(result).isEqualTo(1L);
+  }
+
+  @Test
+  public void plan_ident_enumContainer() throws Exception {
+    CelContainer container = CelContainer.ofName(GlobalEnum.getDescriptor().getFullName());
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .setContainer(container)
+            .build();
+    CelAbstractSyntaxTree ast = compile(compiler, GlobalEnum.GAR.name());
+    ProgramPlanner planner =
+        ProgramPlanner.newPlanner(
+            TYPE_PROVIDER,
+            VALUE_PROVIDER,
+            newDispatcher(),
+            CEL_VALUE_CONVERTER,
+            container,
+            CEL_OPTIONS,
+            ImmutableSet.of());
+
+    Program program = planner.plan(ast);
+
+    Object result = program.eval();
+
+    assertThat(result).isEqualTo(1L);
   }
 
   @Test
