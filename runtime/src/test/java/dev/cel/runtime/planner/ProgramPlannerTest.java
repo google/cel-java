@@ -327,6 +327,18 @@ public final class ProgramPlannerTest {
   }
 
   @Test
+  public void planIdent_typeLiteral_equality(@TestParameter TypeLiteralTestCase testCase)
+      throws Exception {
+    // ex: type(bool) == type, type(TestAllTypes) == type
+    CelAbstractSyntaxTree ast = compile(String.format("type(%s) == type", testCase.expression));
+    Program program = PLANNER.plan(ast);
+
+    boolean result = (boolean) program.eval();
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
   public void plan_ident_missingAttribute_throws() throws Exception {
     CelAbstractSyntaxTree ast = compile("int_var");
     Program program = PLANNER.plan(ast);

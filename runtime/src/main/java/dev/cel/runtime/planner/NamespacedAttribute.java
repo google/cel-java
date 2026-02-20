@@ -20,6 +20,7 @@ import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.EnumType;
+import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
@@ -85,6 +86,12 @@ final class NamespacedAttribute implements Attribute {
     if (type != null) {
       if (qualifiers.isEmpty()) {
         // Resolution of a fully qualified type name: foo.bar.baz
+        if (type instanceof TypeType) {
+          // Coalesce all type(foo) "type" into a sentinel runtime type to allow for
+          // erasure based type comparisons
+          return TypeType.create(SimpleType.DYN);
+        }
+
         return TypeType.create(type);
       }
 
