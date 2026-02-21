@@ -1,0 +1,46 @@
+description: "Time-Bound Approval Policy Tests"
+
+section:
+- name: "Time Window Enforcement"
+  tests:
+  - name: "Approval Expired (Deny)"
+    input:
+      tool.name:
+        value: "database_write"
+      now:
+        expr: timestamp("2024-01-01T12:01:00Z")
+      _test_history:
+        expr: >
+          [
+            AgentMessage{ 
+              role: "model", 
+              time: timestamp("2024-01-01T12:00:00Z"),
+              metadata: { "step": "approval_granted" }
+            }
+          ]
+    output: >
+      {
+        "effect": "deny",
+        "message": "Authorization expired. Please re-approve the database write operation."
+      }
+
+  - name: "Approval Valid (Allow)"
+    input:
+      tool.name:
+        value: "database_write"
+      now:
+        expr: timestamp("2024-01-01T12:00:10Z")
+      _test_history:
+        expr: >
+          [
+            AgentMessage{ 
+              role: "model", 
+              time: timestamp("2024-01-01T12:00:00Z"),
+              metadata: { "step": "approval_granted" }
+            }
+          ]
+    output: >
+      {
+        "effect": "allow",
+        "message": ""
+      }

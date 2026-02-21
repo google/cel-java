@@ -1,0 +1,35 @@
+name: "policy.trust.cascading"
+default: allow
+
+variables:
+  # Critical security threats
+  - is_compromised: >
+      agent.context.trust.findings.hasAll([ai.finding("compromised_session", 0.9)])
+
+  # Compliance and/or hygiene issues with the source
+  - is_unverified: >
+      agent.context.trust.findings.hasAll([ai.finding("unverified_source", 0.8)])
+
+rules:
+  - description: "Block sessions with high-confidence compromise indicators"
+    condition: variables.is_compromised
+    effect: deny
+    message: "Critical Trust Failure: Session is potentially compromised."
+
+  - description: "Replay to request source verification"
+    condition: variables.is_unverified
+    effect: replay
+    output_expr: |
+      {
+        'reason': 'Data source is unverified.',
+        'action': 'verify_provenance'
+      }
+
+  - description: "Replay generic untrusted contexts"
+    condition: agent.context.trust.level == 'untrusted'
+    effect: replay
+    output_expr: |
+      {
+        'reason': 'Context trust is insufficient.',
+        'required_level': 'trusted_3p'
+      }
