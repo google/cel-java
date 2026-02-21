@@ -84,16 +84,6 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
   }
 
   @Override
-  public void optional() {
-    if (isParseOnly) {
-      // TODO: Fix for parsed-only mode.
-      skipBaselineVerification();
-    } else {
-      super.optional();
-    }
-  }
-
-  @Override
   public void optional_errors() {
     if (isParseOnly) {
       // Parsed-only evaluation contains function name in the
