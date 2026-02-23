@@ -98,7 +98,7 @@ public final class ProgramPlannerTest {
   private static final CelValueProvider VALUE_PROVIDER =
       ProtoMessageValueProvider.newInstance(CEL_OPTIONS, DYNAMIC_PROTO);
   private static final CelValueConverter CEL_VALUE_CONVERTER =
-      ProtoCelValueConverter.newInstance(DESCRIPTOR_POOL, DYNAMIC_PROTO);
+      ProtoCelValueConverter.newInstance(DESCRIPTOR_POOL, DYNAMIC_PROTO, CelOptions.DEFAULT);
   private static final CelContainer CEL_CONTAINER =
       CelContainer.newBuilder()
           .setName("cel.expr.conformance.proto3")
@@ -277,7 +277,33 @@ public final class ProgramPlannerTest {
 
     Object result = program.eval();
 
-    assertThat(result).isEqualTo(1);
+    assertThat(result).isEqualTo(1L);
+  }
+
+  @Test
+  public void plan_ident_enumContainer() throws Exception {
+    CelContainer container = CelContainer.ofName(GlobalEnum.getDescriptor().getFullName());
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addMessageTypes(TestAllTypes.getDescriptor())
+            .setContainer(container)
+            .build();
+    CelAbstractSyntaxTree ast = compile(compiler, GlobalEnum.GAR.name());
+    ProgramPlanner planner =
+        ProgramPlanner.newPlanner(
+            TYPE_PROVIDER,
+            VALUE_PROVIDER,
+            newDispatcher(),
+            CEL_VALUE_CONVERTER,
+            container,
+            CEL_OPTIONS,
+            ImmutableSet.of());
+
+    Program program = planner.plan(ast);
+
+    Object result = program.eval();
+
+    assertThat(result).isEqualTo(1L);
   }
 
   @Test
@@ -298,6 +324,27 @@ public final class ProgramPlannerTest {
     TypeType result = (TypeType) program.eval();
 
     assertThat(result).isEqualTo(testCase.type);
+  }
+
+  @Test
+  public void planIdent_typeLiteral_equality(@TestParameter TypeLiteralTestCase testCase)
+      throws Exception {
+    // ex: type(bool) == type, type(TestAllTypes) == type
+    CelAbstractSyntaxTree ast = compile(String.format("type(%s) == type", testCase.expression));
+    Program program = PLANNER.plan(ast);
+
+    boolean result = (boolean) program.eval();
+
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void plan_ident_missingAttribute_throws() throws Exception {
+    CelAbstractSyntaxTree ast = compile("int_var");
+    Program program = PLANNER.plan(ast);
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
+    assertThat(e).hasMessageThat().contains("evaluation error at <input>:0: No such attribute(s)");
   }
 
   @Test
@@ -713,14 +760,13 @@ public final class ProgramPlannerTest {
   public void plan_select_mapVarInputMissing_throws() throws Exception {
     CelAbstractSyntaxTree ast = compile("map_var.foo");
     Program program = PLANNER.plan(ast);
-    String errorMessage = "evaluation error at <input>:7: Error resolving ";
+    String errorMessage = "evaluation error at <input>:7: No such attribute(s): ";
     if (isParseOnly) {
       errorMessage +=
-          "fields 'cel.expr.conformance.proto3.map_var, cel.expr.conformance.map_var,"
-              + " cel.expr.map_var, cel.map_var, map_var'";
-    } else {
-      errorMessage += "field 'map_var'";
+          "cel.expr.conformance.proto3.map_var, cel.expr.conformance.map_var, cel.expr.map_var,"
+              + " cel.map_var, ";
     }
+    errorMessage += "map_var";
 
     CelEvaluationException e =
         assertThrows(CelEvaluationException.class, () -> program.eval(ImmutableMap.of()));

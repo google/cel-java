@@ -41,7 +41,13 @@ java_library(
     ],
 )
 
-MAVEN_JAR_DEPS = ["@maven_conformance//:dev_cel_cel"]
+MAVEN_JAR_DEPS = [
+    "@maven_conformance//:dev_cel_compiler",
+    "@maven_conformance//:dev_cel_common",
+    "@maven_conformance//:dev_cel_runtime",
+    "@maven_conformance//:dev_cel_protobuf",
+    "@maven_conformance//:dev_cel_cel",
+]
 
 java_library(
     name = "run_maven_jar",

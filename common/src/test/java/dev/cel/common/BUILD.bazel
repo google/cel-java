@@ -25,6 +25,7 @@ java_library(
         "//common:source_location",
         "//common/ast",
         "//common/internal",
+        "//common/internal:code_point_stream",
         "//common/types",
         "//common/types:cel_proto_types",
         "//common/types:cel_v1alpha1_types",

@@ -182,6 +182,7 @@ abstract class CelRuntimeImpl implements CelRuntime {
 
   static Builder newBuilder() {
     return new AutoValue_CelRuntimeImpl.Builder()
+        .setFunctionBindings(ImmutableMap.of())
         .setStandardFunctions(CelStandardFunctions.newBuilder().build())
         .setContainer(CelContainer.newBuilder().build())
         .setExtensionRegistry(ExtensionRegistry.getEmptyRegistry());
@@ -221,6 +222,8 @@ abstract class CelRuntimeImpl implements CelRuntime {
     abstract CelStandardFunctions standardFunctions();
 
     abstract ExtensionRegistry extensionRegistry();
+
+    abstract ImmutableMap<String, CelFunctionBinding> functionBindings();
 
     abstract ImmutableSet.Builder<Descriptors.FileDescriptor> fileDescriptorsBuilder();
 
@@ -338,20 +341,6 @@ abstract class CelRuntimeImpl implements CelRuntime {
 
       // Disallowed options in favor of subsetting
       String subsettingError = "Subset the environment instead using setStandardFunctions method.";
-      if (!celOptions.enableStringConcatenation()) {
-        throw new IllegalArgumentException(
-            prefix + "enableStringConcatenation cannot be disabled. " + subsettingError);
-      }
-
-      if (!celOptions.enableStringConversion()) {
-        throw new IllegalArgumentException(
-            prefix + "enableStringConversion cannot be disabled. " + subsettingError);
-      }
-
-      if (!celOptions.enableListConcatenation()) {
-        throw new IllegalArgumentException(
-            prefix + "enableListConcatenation cannot be disabled. " + subsettingError);
-      }
 
       if (!celOptions.enableTimestampEpoch()) {
         throw new IllegalArgumentException(
@@ -456,6 +445,9 @@ abstract class CelRuntimeImpl implements CelRuntime {
       DescriptorTypeResolver descriptorTypeResolver =
           DescriptorTypeResolver.create(combinedTypeProvider);
       TypeFunction typeFunction = TypeFunction.create(descriptorTypeResolver);
+
+      mutableFunctionBindings.putAll(functionBindings());
+
       for (CelFunctionBinding binding :
           typeFunction.newFunctionBindings(options(), runtimeEquality)) {
         mutableFunctionBindings.put(binding.getOverloadId(), binding);

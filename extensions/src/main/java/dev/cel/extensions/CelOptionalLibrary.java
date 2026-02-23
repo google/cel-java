@@ -17,6 +17,15 @@ package dev.cel.extensions;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static dev.cel.extensions.CelOptionalLibrary.Function.FIRST;
+import static dev.cel.extensions.CelOptionalLibrary.Function.HAS_VALUE;
+import static dev.cel.extensions.CelOptionalLibrary.Function.LAST;
+import static dev.cel.extensions.CelOptionalLibrary.Function.OPTIONAL_NONE;
+import static dev.cel.extensions.CelOptionalLibrary.Function.OPTIONAL_OF;
+import static dev.cel.extensions.CelOptionalLibrary.Function.OPTIONAL_OF_NON_ZERO_VALUE;
+import static dev.cel.extensions.CelOptionalLibrary.Function.OPTIONAL_UNWRAP;
+import static dev.cel.extensions.CelOptionalLibrary.Function.VALUE;
+import static dev.cel.runtime.CelFunctionBinding.fromOverloads;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -97,26 +106,26 @@ public final class CelOptionalLibrary
                 0,
                 ImmutableSet.of(
                     CelFunctionDecl.newFunctionDeclaration(
-                        Function.OPTIONAL_OF.getFunction(),
+                        OPTIONAL_OF.getFunction(),
                         CelOverloadDecl.newGlobalOverload(
                             "optional_of", optionalTypeV, paramTypeV)),
                     CelFunctionDecl.newFunctionDeclaration(
-                        Function.OPTIONAL_OF_NON_ZERO_VALUE.getFunction(),
+                        OPTIONAL_OF_NON_ZERO_VALUE.getFunction(),
                         CelOverloadDecl.newGlobalOverload(
                             "optional_ofNonZeroValue", optionalTypeV, paramTypeV)),
                     CelFunctionDecl.newFunctionDeclaration(
-                        Function.OPTIONAL_NONE.getFunction(),
+                        OPTIONAL_NONE.getFunction(),
                         CelOverloadDecl.newGlobalOverload("optional_none", optionalTypeV)),
                     CelFunctionDecl.newFunctionDeclaration(
-                        Function.VALUE.getFunction(),
+                        VALUE.getFunction(),
                         CelOverloadDecl.newMemberOverload(
                             "optional_value", paramTypeV, optionalTypeV)),
                     CelFunctionDecl.newFunctionDeclaration(
-                        Function.HAS_VALUE.getFunction(),
+                        HAS_VALUE.getFunction(),
                         CelOverloadDecl.newMemberOverload(
                             "optional_hasValue", SimpleType.BOOL, optionalTypeV)),
                     CelFunctionDecl.newFunctionDeclaration(
-                        Function.OPTIONAL_UNWRAP.getFunction(),
+                        OPTIONAL_UNWRAP.getFunction(),
                         CelOverloadDecl.newGlobalOverload(
                             "optional_unwrap_list", listTypeV, ListType.create(optionalTypeV))),
                     // Note: Implementation of "or" and "orValue" are special-cased inside the
@@ -193,7 +202,7 @@ public final class CelOptionalLibrary
                     .addAll(version1.functions)
                     .add(
                         CelFunctionDecl.newFunctionDeclaration(
-                            Function.FIRST.functionName,
+                            FIRST.functionName,
                             CelOverloadDecl.newMemberOverload(
                                 "optional_list_first",
                                 "Return the first value in a list if present, otherwise"
@@ -201,7 +210,7 @@ public final class CelOptionalLibrary
                                 optionalTypeV,
                                 listTypeV)),
                         CelFunctionDecl.newFunctionDeclaration(
-                            Function.LAST.functionName,
+                            LAST.functionName,
                             CelOverloadDecl.newMemberOverload(
                                 "optional_list_last",
                                 "Return the last value in a list if present, otherwise"
@@ -295,22 +304,44 @@ public final class CelOptionalLibrary
   public void setRuntimeOptions(
       CelRuntimeBuilder runtimeBuilder, RuntimeEquality runtimeEquality, CelOptions celOptions) {
     runtimeBuilder.addFunctionBindings(
-        CelFunctionBinding.from("optional_of", Object.class, Optional::of),
-        CelFunctionBinding.from(
-            "optional_ofNonZeroValue",
-            Object.class,
-            val -> {
-              if (isZeroValue(val)) {
-                return Optional.empty();
-              }
-              return Optional.of(val);
-            }),
-        CelFunctionBinding.from(
-            "optional_unwrap_list", Collection.class, CelOptionalLibrary::elideOptionalCollection),
-        CelFunctionBinding.from("optional_none", ImmutableList.of(), val -> Optional.empty()),
-        CelFunctionBinding.from("optional_value", Object.class, val -> ((Optional<?>) val).get()),
-        CelFunctionBinding.from(
-            "optional_hasValue", Object.class, val -> ((Optional<?>) val).isPresent()),
+        fromOverloads(
+            OPTIONAL_OF.getFunction(),
+            CelFunctionBinding.from("optional_of", Object.class, Optional::of)));
+    runtimeBuilder.addFunctionBindings(
+        fromOverloads(
+            OPTIONAL_OF_NON_ZERO_VALUE.getFunction(),
+            CelFunctionBinding.from(
+                "optional_ofNonZeroValue",
+                Object.class,
+                val -> {
+                  if (isZeroValue(val)) {
+                    return Optional.empty();
+                  }
+                  return Optional.of(val);
+                })));
+    runtimeBuilder.addFunctionBindings(
+        fromOverloads(
+            OPTIONAL_UNWRAP.getFunction(),
+            CelFunctionBinding.from(
+                "optional_unwrap_list",
+                Collection.class,
+                CelOptionalLibrary::elideOptionalCollection)));
+    runtimeBuilder.addFunctionBindings(
+        fromOverloads(
+            OPTIONAL_NONE.getFunction(),
+            CelFunctionBinding.from("optional_none", ImmutableList.of(), val -> Optional.empty())));
+    runtimeBuilder.addFunctionBindings(
+        fromOverloads(
+            VALUE.getFunction(),
+            CelFunctionBinding.from(
+                "optional_value", Object.class, val -> ((Optional<?>) val).get())));
+    runtimeBuilder.addFunctionBindings(
+        fromOverloads(
+            HAS_VALUE.getFunction(),
+            CelFunctionBinding.from(
+                "optional_hasValue", Object.class, val -> ((Optional<?>) val).isPresent())));
+
+    runtimeBuilder.addFunctionBindings(
         CelFunctionBinding.from(
             "select_optional_field", // This only handles map selection. Proto selection is
             // special cased inside the interpreter.
@@ -425,19 +456,18 @@ public final class CelOptionalLibrary
     return Optional.of(
         exprFactory.newGlobalCall(
             Operator.CONDITIONAL.getFunction(),
-            exprFactory.newReceiverCall(Function.HAS_VALUE.getFunction(), target),
+            exprFactory.newReceiverCall(HAS_VALUE.getFunction(), target),
             exprFactory.newGlobalCall(
-                Function.OPTIONAL_OF.getFunction(),
+                OPTIONAL_OF.getFunction(),
                 exprFactory.fold(
                     UNUSED_ITER_VAR,
                     exprFactory.newList(),
                     varName,
-                    exprFactory.newReceiverCall(
-                        Function.VALUE.getFunction(), exprFactory.copy(target)),
+                    exprFactory.newReceiverCall(VALUE.getFunction(), exprFactory.copy(target)),
                     exprFactory.newBoolLiteral(true),
                     exprFactory.newIdentifier(varName),
                     mapExpr)),
-            exprFactory.newGlobalCall(Function.OPTIONAL_NONE.getFunction())));
+            exprFactory.newGlobalCall(OPTIONAL_NONE.getFunction())));
   }
 
   private static Optional<CelExpr> expandOptFlatMap(
@@ -460,16 +490,16 @@ public final class CelOptionalLibrary
     return Optional.of(
         exprFactory.newGlobalCall(
             Operator.CONDITIONAL.getFunction(),
-            exprFactory.newReceiverCall(Function.HAS_VALUE.getFunction(), target),
+            exprFactory.newReceiverCall(HAS_VALUE.getFunction(), target),
             exprFactory.fold(
                 UNUSED_ITER_VAR,
                 exprFactory.newList(),
                 varName,
-                exprFactory.newReceiverCall(Function.VALUE.getFunction(), exprFactory.copy(target)),
+                exprFactory.newReceiverCall(VALUE.getFunction(), exprFactory.copy(target)),
                 exprFactory.newBoolLiteral(true),
                 exprFactory.newIdentifier(varName),
                 mapExpr),
-            exprFactory.newGlobalCall(Function.OPTIONAL_NONE.getFunction())));
+            exprFactory.newGlobalCall(OPTIONAL_NONE.getFunction())));
   }
 
   private static Object indexOptionalMap(

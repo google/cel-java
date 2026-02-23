@@ -20,7 +20,7 @@
   <artifactId>CEL_ARTIFACT_ID</artifactId>
 
   <dependencies>
-    {generated_bzl_deps}
+    {dependencies}
   </dependencies>
 
   <description>

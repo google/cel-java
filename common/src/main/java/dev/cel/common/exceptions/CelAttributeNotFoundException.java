@@ -39,6 +39,11 @@ public final class CelAttributeNotFoundException extends CelRuntimeException {
     return new CelAttributeNotFoundException(formatErrorMessage(fields));
   }
 
+  public static CelAttributeNotFoundException forMissingAttributes(Collection<String> attributes) {
+    return new CelAttributeNotFoundException(
+        "No such attribute(s): " + String.join(", ", attributes));
+  }
+
   private static String formatErrorMessage(Collection<String> fields) {
     String maybePlural = "";
     if (fields.size() > 1) {

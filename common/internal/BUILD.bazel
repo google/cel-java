@@ -12,6 +12,11 @@ java_library(
 )
 
 java_library(
+    name = "code_point_stream",
+    exports = ["//common/src/main/java/dev/cel/common/internal:code_point_stream"],
+)
+
+java_library(
     name = "comparison_functions",
     exports = ["//common/src/main/java/dev/cel/common/internal:comparison_functions"],
 )

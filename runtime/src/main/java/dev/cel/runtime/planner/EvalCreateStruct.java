@@ -15,7 +15,7 @@
 package dev.cel.runtime.planner;
 
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.types.StructType;
+import dev.cel.common.types.CelType;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.StructValue;
 import dev.cel.runtime.CelEvaluationException;
@@ -28,7 +28,7 @@ import java.util.Map;
 final class EvalCreateStruct extends PlannedInterpretable {
 
   private final CelValueProvider valueProvider;
-  private final StructType structType;
+  private final CelType structType;
 
   // Array contents are not mutated
   @SuppressWarnings("Immutable")
@@ -50,7 +50,8 @@ final class EvalCreateStruct extends PlannedInterpretable {
     Object value =
         valueProvider
             .newValue(structType.name(), Collections.unmodifiableMap(fieldValues))
-            .orElseThrow(() -> new IllegalArgumentException("Type name not found: " + structType));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Type name not found: " + structType.name()));
 
     if (value instanceof StructValue) {
       return ((StructValue) value).value();
@@ -62,7 +63,7 @@ final class EvalCreateStruct extends PlannedInterpretable {
   static EvalCreateStruct create(
       long exprId,
       CelValueProvider valueProvider,
-      StructType structType,
+      CelType structType,
       String[] keys,
       PlannedInterpretable[] values) {
     return new EvalCreateStruct(exprId, valueProvider, structType, keys, values);
@@ -71,7 +72,7 @@ final class EvalCreateStruct extends PlannedInterpretable {
   private EvalCreateStruct(
       long exprId,
       CelValueProvider valueProvider,
-      StructType structType,
+      CelType structType,
       String[] keys,
       PlannedInterpretable[] values) {
     super(exprId);

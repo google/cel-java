@@ -22,10 +22,18 @@ import dev.cel.runtime.GlobalResolver;
 final class MissingAttribute implements Attribute {
 
   private final ImmutableSet<String> missingAttributes;
+  private final Kind kind;
 
   @Override
   public Object resolve(GlobalResolver ctx, ExecutionFrame frame) {
-    throw CelAttributeNotFoundException.forFieldResolution(missingAttributes);
+    switch (kind) {
+      case ATTRIBUTE_NOT_FOUND:
+        throw CelAttributeNotFoundException.forMissingAttributes(missingAttributes);
+      case FIELD_NOT_FOUND:
+        throw CelAttributeNotFoundException.forFieldResolution(missingAttributes);
+    }
+
+    throw new IllegalArgumentException("Unexpected kind: " + kind);
   }
 
   @Override
@@ -33,15 +41,25 @@ final class MissingAttribute implements Attribute {
     throw new UnsupportedOperationException("Unsupported operation");
   }
 
-  static MissingAttribute newMissingAttribute(String... attributeNames) {
-    return newMissingAttribute(ImmutableSet.copyOf(attributeNames));
-  }
-
   static MissingAttribute newMissingAttribute(ImmutableSet<String> attributeNames) {
-    return new MissingAttribute(attributeNames);
+    return new MissingAttribute(attributeNames, Kind.ATTRIBUTE_NOT_FOUND);
   }
 
-  private MissingAttribute(ImmutableSet<String> missingAttributes) {
+  static MissingAttribute newMissingField(String... attributeNames) {
+    return newMissingField(ImmutableSet.copyOf(attributeNames));
+  }
+
+  static MissingAttribute newMissingField(ImmutableSet<String> attributeNames) {
+    return new MissingAttribute(attributeNames, Kind.FIELD_NOT_FOUND);
+  }
+
+  private MissingAttribute(ImmutableSet<String> missingAttributes, Kind kind) {
     this.missingAttributes = missingAttributes;
+    this.kind = kind;
+  }
+
+  private enum Kind {
+    ATTRIBUTE_NOT_FOUND,
+    FIELD_NOT_FOUND
   }
 }

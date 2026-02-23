@@ -132,24 +132,6 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
         throw new IllegalArgumentException(
             prefix + "unwrapWellKnownTypesOnFunctionDispatch cannot be disabled.");
       }
-      if (!celOptions.enableStringConcatenation()) {
-        throw new IllegalArgumentException(
-            prefix
-                + "enableStringConcatenation cannot be disabled. Subset the environment instead"
-                + " using setStandardFunctions method.");
-      }
-      if (!celOptions.enableStringConversion()) {
-        throw new IllegalArgumentException(
-            prefix
-                + "enableStringConversion cannot be disabled. Subset the environment instead using"
-                + " setStandardFunctions method.");
-      }
-      if (!celOptions.enableListConcatenation()) {
-        throw new IllegalArgumentException(
-            prefix
-                + "enableListConcatenation cannot be disabled. Subset the environment instead using"
-                + " setStandardFunctions method.");
-      }
     }
 
     @Override
@@ -201,10 +183,7 @@ final class LiteRuntimeImpl implements CelLiteRuntime {
     }
 
     private Builder() {
-      this.celOptions =
-          CelOptions.current()
-              .enableCelValue(true)
-              .build();
+      this.celOptions = CelOptions.current().enableCelValue(true).build();
       this.celValueProvider = (structType, fields) -> Optional.empty();
       this.customFunctionBindings = new HashMap<>();
       this.standardFunctionBuilder = ImmutableSet.builder();

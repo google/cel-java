@@ -34,6 +34,7 @@ java_library(
     ],
     deps = [
         "//:auto_value",
+        "//common:cel_source_helper",
         "//common:source",
         "//common:source_location",
         "//common/internal",

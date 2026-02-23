@@ -40,6 +40,8 @@ public abstract class ProtoMessageValue extends StructValue<String> {
 
   abstract ProtoCelValueConverter protoCelValueConverter();
 
+  abstract boolean enableJsonFieldNames();
+
   @Override
   public boolean isZeroValue() {
     return value().getDefaultInstanceForType().equals(value());
@@ -75,7 +77,8 @@ public abstract class ProtoMessageValue extends StructValue<String> {
   public static ProtoMessageValue create(
       Message value,
       CelDescriptorPool celDescriptorPool,
-      ProtoCelValueConverter protoCelValueConverter) {
+      ProtoCelValueConverter protoCelValueConverter,
+      boolean enableJsonFieldNames) {
     Preconditions.checkNotNull(value);
     Preconditions.checkNotNull(celDescriptorPool);
     Preconditions.checkNotNull(protoCelValueConverter);
@@ -83,7 +86,8 @@ public abstract class ProtoMessageValue extends StructValue<String> {
         value,
         StructTypeReference.create(value.getDescriptorForType().getFullName()),
         celDescriptorPool,
-        protoCelValueConverter);
+        protoCelValueConverter,
+        enableJsonFieldNames);
   }
 
   private FieldDescriptor findField(
@@ -91,6 +95,14 @@ public abstract class ProtoMessageValue extends StructValue<String> {
     FieldDescriptor fieldDescriptor = descriptor.findFieldByName(fieldName);
     if (fieldDescriptor != null) {
       return fieldDescriptor;
+    }
+
+    if (enableJsonFieldNames()) {
+      for (FieldDescriptor fd : descriptor.getFields()) {
+        if (fd.getJsonName().equals(fieldName)) {
+          return fd;
+        }
+      }
     }
 
     return celDescriptorPool

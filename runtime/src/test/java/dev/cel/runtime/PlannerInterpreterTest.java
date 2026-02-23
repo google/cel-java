@@ -14,8 +14,13 @@
 
 package dev.cel.runtime;
 
+import com.google.testing.junit.testparameterinjector.TestParameter;
 import com.google.testing.junit.testparameterinjector.TestParameterInjector;
+import dev.cel.common.CelAbstractSyntaxTree;
+import dev.cel.common.CelContainer;
 import dev.cel.common.CelOptions;
+import dev.cel.common.CelValidationException;
+import dev.cel.common.types.CelTypeProvider;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.testing.BaseInterpreterTest;
 import org.junit.runner.RunWith;
@@ -23,6 +28,8 @@ import org.junit.runner.RunWith;
 /** Interpreter tests using ProgramPlanner */
 @RunWith(TestParameterInjector.class)
 public class PlannerInterpreterTest extends BaseInterpreterTest {
+
+  @TestParameter boolean isParseOnly;
 
   @Override
   protected CelRuntimeBuilder newBaseRuntimeBuilder(CelOptions celOptions) {
@@ -32,6 +39,36 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
         .setOptions(celOptions)
         .addLibraries(CelExtensions.optional())
         .addFileTypes(TEST_FILE_DESCRIPTORS);
+  }
+
+  @Override
+  protected void setContainer(CelContainer container) {
+    super.setContainer(container);
+    this.celRuntime = this.celRuntime.toRuntimeBuilder().setContainer(container).build();
+  }
+
+  @Override
+  protected CelAbstractSyntaxTree prepareTest(CelTypeProvider typeProvider) {
+    super.prepareCompiler(typeProvider);
+
+    CelAbstractSyntaxTree ast;
+    try {
+      ast = celCompiler.parse(source, testSourceDescription()).getAst();
+    } catch (CelValidationException e) {
+      printTestValidationError(e);
+      return null;
+    }
+
+    if (isParseOnly) {
+      return ast;
+    }
+
+    try {
+      return celCompiler.check(ast).getAst();
+    } catch (CelValidationException e) {
+      printTestValidationError(e);
+      return null;
+    }
   }
 
   @Override
@@ -47,14 +84,13 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
   }
 
   @Override
-  public void jsonFieldNames() throws Exception {
-    // TODO: Support JSON field names for planner
-    skipBaselineVerification();
-  }
-
-  @Override
-  public void wrappers() throws Exception {
-    // TODO: Fix for planner
-    skipBaselineVerification();
+  public void optional_errors() {
+    if (isParseOnly) {
+      // Parsed-only evaluation contains function name in the
+      // error message instead of the function overload.
+      skipBaselineVerification();
+    } else {
+      super.optional_errors();
+    }
   }
 }

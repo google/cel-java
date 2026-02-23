@@ -131,7 +131,11 @@ java_library(
         "PlannerInterpreterTest.java",
     ],
     deps = [
+        "//common:cel_ast",
+        "//common:compiler_common",
+        "//common:container",
         "//common:options",
+        "//common/types:type_providers",
         "//extensions",
         "//runtime",
         "//runtime:runtime_planner_impl",
