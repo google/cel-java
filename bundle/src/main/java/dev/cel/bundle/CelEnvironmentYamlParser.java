@@ -143,6 +143,51 @@ public final class CelEnvironmentYamlParser {
     return builder.build();
   }
 
+  private ImmutableSet<CelEnvironment.FeatureFlag> parseFeatures(
+      ParserContext<Node> ctx, Node node) {
+    long valueId = ctx.collectMetadata(node);
+    if (!validateYamlType(node, YamlNodeType.LIST, YamlNodeType.TEXT)) {
+      ctx.reportError(valueId, "Unsupported features format");
+    }
+
+    ImmutableSet.Builder<CelEnvironment.FeatureFlag> featureFlags = ImmutableSet.builder();
+
+    SequenceNode featureListNode = (SequenceNode) node;
+    for (Node featureMapNode : featureListNode.getValue()) {
+      long featureMapId = ctx.collectMetadata(featureMapNode);
+      if (!assertYamlType(ctx, featureMapId, featureMapNode, YamlNodeType.MAP)) {
+        continue;
+      }
+
+      MappingNode featureMap = (MappingNode) featureMapNode;
+      String name = "";
+      boolean enabled = true;
+      for (NodeTuple nodeTuple : featureMap.getValue()) {
+        Node keyNode = nodeTuple.getKeyNode();
+        long keyId = ctx.collectMetadata(keyNode);
+        Node valueNode = nodeTuple.getValueNode();
+        String keyName = ((ScalarNode) keyNode).getValue();
+        switch (keyName) {
+          case "name":
+            name = newString(ctx, valueNode);
+            break;
+          case "enabled":
+            enabled = newBoolean(ctx, valueNode);
+            break;
+          default:
+            ctx.reportError(keyId, String.format("Unsupported feature tag: %s", keyName));
+            break;
+        }
+      }
+      if (name.isEmpty()) {
+        ctx.reportError(featureMapId, "Missing required attribute(s): name");
+        continue;
+      }
+      featureFlags.add(CelEnvironment.FeatureFlag.create(name, enabled));
+    }
+    return featureFlags.build();
+  }
+
   private ImmutableSet<Alias> parseAliases(ParserContext<Node> ctx, Node node) {
     ImmutableSet.Builder<Alias> aliasSetBuilder = ImmutableSet.builder();
     long valueId = ctx.collectMetadata(node);
@@ -755,6 +800,9 @@ public final class CelEnvironmentYamlParser {
             break;
           case "stdlib":
             builder.setStandardLibrarySubset(parseLibrarySubset(ctx, valueNode));
+            break;
+          case "features":
+            builder.setFeatures(parseFeatures(ctx, valueNode));
             break;
           default:
             ctx.reportError(id, "Unknown config tag: " + fieldName);

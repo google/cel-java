@@ -48,6 +48,7 @@ import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.parser.CelStandardMacro;
+import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
 import java.util.Arrays;
@@ -108,6 +109,9 @@ public abstract class CelEnvironment {
   /** Standard library subset (which macros, functions to include/exclude) */
   public abstract Optional<LibrarySubset> standardLibrarySubset();
 
+  /** Feature flags to enable in the environment. */
+  public abstract ImmutableSet<FeatureFlag> features();
+
   /** Builder for {@link CelEnvironment}. */
   @AutoValue.Builder
   public abstract static class Builder {
@@ -159,6 +163,13 @@ public abstract class CelEnvironment {
 
     public abstract Builder setStandardLibrarySubset(LibrarySubset stdLibrarySubset);
 
+    @CanIgnoreReturnValue
+    public Builder setFeatures(FeatureFlag... featureFlags) {
+      return setFeatures(ImmutableSet.copyOf(featureFlags));
+    }
+
+    public abstract Builder setFeatures(ImmutableSet<FeatureFlag> macros);
+
     abstract CelEnvironment autoBuild();
 
     @CheckReturnValue
@@ -188,18 +199,21 @@ public abstract class CelEnvironment {
         .setDescription("")
         .setContainer(CelContainer.ofName(""))
         .setVariables(ImmutableSet.of())
-        .setFunctions(ImmutableSet.of());
+        .setFunctions(ImmutableSet.of())
+        .setFeatures(ImmutableSet.of());
   }
 
   /** Extends the provided {@link CelCompiler} environment with this configuration. */
   public CelCompiler extend(CelCompiler celCompiler, CelOptions celOptions)
       throws CelEnvironmentException {
+    celOptions = applyFeatureFlags(celOptions);
     try {
       CelTypeProvider celTypeProvider = celCompiler.getTypeProvider();
       CelCompilerBuilder compilerBuilder =
           celCompiler
               .toCompilerBuilder()
               .setContainer(container())
+              .setOptions(celOptions)
               .setTypeProvider(celTypeProvider)
               .addVarDeclarations(
                   variables().stream()
@@ -222,17 +236,33 @@ public abstract class CelEnvironment {
 
   /** Extends the provided {@link Cel} environment with this configuration. */
   public Cel extend(Cel cel, CelOptions celOptions) throws CelEnvironmentException {
+    celOptions = applyFeatureFlags(celOptions);
     try {
       // Casting is necessary to only extend the compiler here
       CelCompiler celCompiler = extend((CelCompiler) cel, celOptions);
 
-      CelRuntimeBuilder celRuntimeBuilder = cel.toRuntimeBuilder();
-      addAllRuntimeExtensions(celRuntimeBuilder, celOptions);
+      CelRuntime celRuntime = extendRuntime(cel, celOptions);
 
-      return CelFactory.combine(celCompiler, celRuntimeBuilder.build());
+      return CelFactory.combine(celCompiler, celRuntime);
     } catch (RuntimeException e) {
       throw new CelEnvironmentException(e.getMessage(), e);
     }
+  }
+
+  private CelOptions applyFeatureFlags(CelOptions celOptions) {
+    CelOptions.Builder optionsBuilder = celOptions.toBuilder();
+    for (FeatureFlag featureFlag : features()) {
+      if (featureFlag.name().equals("cel.feature.macro_call_tracking")) {
+        optionsBuilder.populateMacroCalls(featureFlag.enabled());
+      } else if (featureFlag.name().equals("cel.feature.backtick_escape_syntax")) {
+        optionsBuilder.enableQuotedIdentifierSyntax(featureFlag.enabled());
+      } else if (featureFlag.name().equals("cel.feature.cross_type_numeric_comparisons")) {
+        optionsBuilder.enableHeterogeneousNumericComparisons(featureFlag.enabled());
+      } else {
+        throw new IllegalArgumentException("Unknown feature flag: " + featureFlag.name());
+      }
+    }
+    return optionsBuilder.build();
   }
 
   private void addAllCompilerExtensions(
@@ -250,7 +280,9 @@ public abstract class CelEnvironment {
     }
   }
 
-  private void addAllRuntimeExtensions(CelRuntimeBuilder celRuntimeBuilder, CelOptions celOptions) {
+  private CelRuntime extendRuntime(CelRuntime celRuntime, CelOptions celOptions) {
+    CelRuntimeBuilder celRuntimeBuilder = celRuntime.toRuntimeBuilder();
+    celRuntimeBuilder.setOptions(celOptions);
     // TODO: Add capability to accept user defined exceptions
     for (ExtensionConfig extensionConfig : extensions()) {
       CanonicalCelExtension extension = getExtensionOrThrow(extensionConfig.name());
@@ -262,6 +294,7 @@ public abstract class CelEnvironment {
         celRuntimeBuilder.addLibraries(celRuntimeLibrary);
       }
     }
+    return celRuntimeBuilder.build();
   }
 
   private void applyStandardLibrarySubset(CelCompilerBuilder compilerBuilder) {
@@ -622,6 +655,20 @@ public abstract class CelEnvironment {
               .findType(name())
               .orElseThrow(() -> new IllegalArgumentException("Undefined type name: " + name()));
       }
+    }
+  }
+
+  /** Represents a feature flag that can be enabled in the environment. */
+  @AutoValue
+  public abstract static class FeatureFlag {
+    /** Normalized name of the feature flag. */
+    public abstract String name();
+
+    /** Whether the feature is enabled or disabled. */
+    public abstract boolean enabled();
+
+    public static FeatureFlag create(String name, boolean enabled) {
+      return new AutoValue_CelEnvironment_FeatureFlag(name, enabled);
     }
   }
 

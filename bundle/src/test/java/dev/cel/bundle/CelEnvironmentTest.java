@@ -101,6 +101,49 @@ public class CelEnvironmentTest {
   }
 
   @Test
+  public void extend_allFeatureFlags() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setFeatures(
+                CelEnvironment.FeatureFlag.create("cel.feature.macro_call_tracking", true),
+                CelEnvironment.FeatureFlag.create("cel.feature.backtick_escape_syntax", true),
+                CelEnvironment.FeatureFlag.create(
+                    "cel.feature.cross_type_numeric_comparisons", true))
+            .build();
+
+    Cel cel =
+        environment.extend(
+            CelFactory.standardCelBuilder()
+                .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+                .build(),
+            CelOptions.DEFAULT);
+    CelAbstractSyntaxTree ast =
+        cel.compile("[{'foo.bar': 1}, {'foo.bar': 2}].all(e, e.`foo.bar` < 2.5)").getAst();
+    assertThat(ast.getSource().getMacroCalls()).hasSize(1);
+    boolean result = (boolean) cel.createProgram(ast).eval();
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void extend_unsupportedFeatureFlag_throws() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setFeatures(CelEnvironment.FeatureFlag.create("unknown.feature", true))
+            .build();
+
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                environment.extend(
+                    CelFactory.standardCelBuilder()
+                        .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+                        .build(),
+                    CelOptions.DEFAULT));
+    assertThat(e).hasMessageThat().contains("Unknown feature flag: unknown.feature");
+  }
+
+  @Test
   public void extensionVersion_specific() throws Exception {
     CelEnvironment environment =
         CelEnvironment.newBuilder().addExtensions(ExtensionConfig.of("math", 1)).build();

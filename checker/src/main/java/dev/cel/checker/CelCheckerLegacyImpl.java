@@ -203,6 +203,11 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     }
 
     @Override
+    public CelOptions options() {
+      return this.celOptions;
+    }
+
+    @Override
     public CelCheckerBuilder setContainer(CelContainer container) {
       checkNotNull(container);
       this.container = container;
@@ -419,11 +424,6 @@ public final class CelCheckerLegacyImpl implements CelChecker, EnvVisitable {
     @VisibleForTesting
     CelStandardDeclarations standardDeclarations() {
       return this.standardDeclarations;
-    }
-
-    @VisibleForTesting
-    CelOptions options() {
-      return this.celOptions;
     }
 
     @VisibleForTesting

@@ -126,6 +126,9 @@ public final class CelEnvironmentYamlSerializerTest {
                             FunctionSelector.create(
                                 "_+_", ImmutableSet.of("add_bytes", "add_list"))))
                     .build())
+            .setFeatures(
+                CelEnvironment.FeatureFlag.create("cel.feature.macro_call_tracking", true),
+                CelEnvironment.FeatureFlag.create("cel.feature.backtick_escape_syntax", false))
             .build();
 
     String yamlOutput = CelEnvironmentYamlSerializer.toYaml(environment);

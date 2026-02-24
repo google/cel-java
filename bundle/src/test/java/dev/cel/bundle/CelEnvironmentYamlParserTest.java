@@ -40,8 +40,8 @@ import dev.cel.common.ast.CelExpr;
 import dev.cel.common.types.SimpleType;
 import dev.cel.parser.CelUnparserFactory;
 import dev.cel.runtime.CelEvaluationListener;
-import dev.cel.runtime.CelLateFunctionBindings;
 import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.runtime.CelLateFunctionBindings;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Optional;
@@ -78,6 +78,33 @@ public final class CelEnvironmentYamlParserTest {
                 .setName("hello")
                 .setDescription("empty")
                 .setContainer("pb.pkg")
+                .build());
+  }
+
+  @Test
+  public void environment_setFeatures() throws Exception {
+    String yamlConfig =
+        "name: hello\n"
+            + "description: empty\n"
+            + "features:\n"
+            + "  - name: 'cel.feature.macro_call_tracking'\n"
+            + "    enabled: true\n"
+            + "  - name: 'cel.feature.backtick_escape_syntax'\n"
+            + "    enabled: false";
+
+    CelEnvironment environment = ENVIRONMENT_PARSER.parse(yamlConfig);
+
+    assertThat(environment)
+        .isEqualTo(
+            CelEnvironment.newBuilder()
+                .setSource(environment.source().get())
+                .setName("hello")
+                .setDescription("empty")
+                .setFeatures(
+                    ImmutableSet.of(
+                        CelEnvironment.FeatureFlag.create("cel.feature.macro_call_tracking", true),
+                        CelEnvironment.FeatureFlag.create(
+                            "cel.feature.backtick_escape_syntax", false)))
                 .build());
   }
 
@@ -672,6 +699,16 @@ public final class CelEnvironmentYamlParserTest {
         "ERROR: <input>:6:7: Unsupported alias tag: unknown_tag\n"
             + " |       unknown_tag: 'test_value'\n"
             + " | ......^"),
+    ILLEGAL_FEATURE_TAG(
+        "features:\n" + "  - name: 'test_feature'\n" + "    unknown_tag: 'test_value'\n",
+        "ERROR: <input>:3:5: Unsupported feature tag: unknown_tag\n"
+            + " |     unknown_tag: 'test_value'\n"
+            + " | ....^"),
+    MISSING_FEATURE_NAME(
+        "features:\n" + "  - enabled: true\n",
+        "ERROR: <input>:2:5: Missing required attribute(s): name\n"
+            + " |   - enabled: true\n"
+            + " | ....^"),
     ;
 
     private final String yamlConfig;
@@ -793,6 +830,7 @@ public final class CelEnvironmentYamlParserTest {
                                     .build())
                             .setReturnType(TypeDecl.create("bool"))
                             .build())))
+            .setFeatures(CelEnvironment.FeatureFlag.create("cel.feature.macro_call_tracking", true))
             .build()),
 
     LIBRARY_SUBSET_ENV(

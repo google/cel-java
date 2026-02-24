@@ -82,3 +82,8 @@ stdlib:
     overloads:
     - id: add_bytes
     - id: add_list
+features:
+- name: cel.feature.macro_call_tracking
+  enabled: true
+- name: cel.feature.backtick_escape_syntax
+  enabled: false

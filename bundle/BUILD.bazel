@@ -27,6 +27,5 @@ java_library(
 
 java_library(
     name = "environment_exporter",
-    visibility = ["//:internal"],
     exports = ["//bundle/src/main/java/dev/cel/bundle:environment_exporter"],
 )

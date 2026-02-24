@@ -38,6 +38,9 @@ functions:
           is_type_param: true
       return:
         type_name: "bool"
+features:
+  - name: cel.feature.macro_call_tracking
+    enabled: true
 # TODO: Add support for below
 #validators:
 #- name: cel.validator.duration
@@ -46,7 +49,3 @@ functions:
 #- name: cel.validator.nesting_comprehension_limit
 #  config:
 #    limit: 2
-# TODO: Add support for below
-#features:
-#- name: cel.feature.macro_call_tracking
-#  enabled: true

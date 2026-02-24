@@ -22,6 +22,7 @@ import dev.cel.expr.Decl;
 import dev.cel.expr.Decl.FunctionDecl;
 import dev.cel.expr.Decl.FunctionDecl.Overload;
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
@@ -30,6 +31,7 @@ import dev.cel.bundle.CelEnvironment.ExtensionConfig;
 import dev.cel.bundle.CelEnvironment.LibrarySubset;
 import dev.cel.bundle.CelEnvironment.LibrarySubset.FunctionSelector;
 import dev.cel.bundle.CelEnvironment.OverloadDecl;
+import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.checker.CelStandardDeclarations.StandardFunction;
 import dev.cel.checker.CelStandardDeclarations.StandardIdentifier;
 import dev.cel.common.CelFunctionDecl;
@@ -41,6 +43,7 @@ import dev.cel.common.internal.EnvVisitor;
 import dev.cel.common.types.CelProtoTypes;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypes;
+import dev.cel.compiler.CelCompiler;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.parser.CelMacro;
@@ -161,9 +164,24 @@ public abstract class CelEnvironmentExporter {
    * </ul>
    */
   public CelEnvironment export(Cel cel) {
-    CelEnvironment.Builder envBuilder =
-        CelEnvironment.newBuilder().setContainer(cel.toCheckerBuilder().container());
+    return export((CelCompiler) cel);
+  }
 
+  /**
+   * Exports a {@link CelEnvironment} that describes the configuration of the given {@link
+   * CelCompiler} instance.
+   *
+   * <p>The exported environment includes:
+   *
+   * <ul>
+   *   <li>Standard library subset: functions and their overloads that are either included or
+   *       excluded from the standard library.
+   *   <li>Extension libraries: names and versions of the extension libraries that are used.
+   *   <li>Custom declarations: functions and variables that are not part of the standard library or
+   *       any of the extension libraries.
+   * </ul>
+   */
+  public CelEnvironment export(CelCompiler cel) {
     // Inventory is a full set of declarations and macros that are found in the configuration of
     // the supplied CEL instance.
     //
@@ -171,6 +189,14 @@ public abstract class CelEnvironmentExporter {
     // standard library and extensions. The identified subsets will be removed from the inventory.
     //
     // Whatever is left will be included in the Environment as custom declarations.
+
+    // Checker builder is used to access some parts of the config not exposed in the EnvVisitable
+    // interface.
+    CelCheckerBuilder checkerBuilder = cel.toCheckerBuilder();
+
+    CelEnvironment.Builder envBuilder =
+        CelEnvironment.newBuilder().setContainer(checkerBuilder.container());
+    addOptions(envBuilder, checkerBuilder.options());
 
     Set<Object> inventory = new HashSet<>();
     collectInventory(inventory, cel);
@@ -180,11 +206,29 @@ public abstract class CelEnvironmentExporter {
     return envBuilder.build();
   }
 
+  private void addOptions(CelEnvironment.Builder envBuilder, CelOptions options) {
+    // The set of features supported in the exported environment in Go is pretty limited right now.
+    ImmutableSet.Builder<CelEnvironment.FeatureFlag> featureFlags = ImmutableSet.builder();
+    if (options.enableHeterogeneousNumericComparisons()) {
+      featureFlags.add(
+          CelEnvironment.FeatureFlag.create("cel.feature.cross_type_numeric_comparisons", true));
+    }
+    if (options.enableQuotedIdentifierSyntax()) {
+      featureFlags.add(
+          CelEnvironment.FeatureFlag.create("cel.feature.backtick_escape_syntax", true));
+    }
+    if (options.populateMacroCalls()) {
+      featureFlags.add(CelEnvironment.FeatureFlag.create("cel.feature.macro_call_tracking", true));
+    }
+    envBuilder.setFeatures(featureFlags.build());
+  }
+
   /**
    * Collects all function overloads, variable declarations and macros from the given {@link Cel}
    * instance and stores them in a map.
    */
-  private void collectInventory(Set<Object> inventory, Cel cel) {
+  private void collectInventory(Set<Object> inventory, CelCompiler cel) {
+    Preconditions.checkArgument(cel instanceof EnvVisitable);
     ((EnvVisitable) cel)
         .accept(
             new EnvVisitor() {

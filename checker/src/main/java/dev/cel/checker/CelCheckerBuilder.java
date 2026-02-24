@@ -35,6 +35,9 @@ public interface CelCheckerBuilder {
   @CanIgnoreReturnValue
   CelCheckerBuilder setOptions(CelOptions options);
 
+  /** Retrieves the currently configured {@link CelOptions} in the builder. */
+  CelOptions options();
+
   /**
    * Set the {@link CelContainer} to use as the namespace for resolving CEL expression variables and
    * functions.

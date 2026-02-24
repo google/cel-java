@@ -60,6 +60,7 @@ public final class CelEnvironmentYamlSerializer extends Representer {
         CelEnvironment.LibrarySubset.OverloadSelector.class, new RepresentOverloadSelector());
     this.multiRepresenters.put(CelEnvironment.Alias.class, new RepresentAlias());
     this.multiRepresenters.put(CelContainer.class, new RepresentContainer());
+    this.multiRepresenters.put(CelEnvironment.FeatureFlag.class, new RepresentFeatureFlag());
   }
 
   public static String toYaml(CelEnvironment environment) {
@@ -93,6 +94,9 @@ public final class CelEnvironmentYamlSerializer extends Representer {
       }
       if (environment.standardLibrarySubset().isPresent()) {
         configMap.put("stdlib", environment.standardLibrarySubset().get());
+      }
+      if (!environment.features().isEmpty()) {
+        configMap.put("features", environment.features().asList());
       }
       return represent(configMap.buildOrThrow());
     }
@@ -256,6 +260,19 @@ public final class CelEnvironmentYamlSerializer extends Representer {
     public Node representData(Object data) {
       OverloadSelector overloadSelector = (OverloadSelector) data;
       return represent(ImmutableMap.<String, Object>of("id", overloadSelector.id()));
+    }
+  }
+
+  private final class RepresentFeatureFlag implements Represent {
+
+    @Override
+    public Node representData(Object data) {
+      CelEnvironment.FeatureFlag featureFlag = (CelEnvironment.FeatureFlag) data;
+      return represent(
+          ImmutableMap.builder()
+              .put("name", featureFlag.name())
+              .put("enabled", featureFlag.enabled())
+              .buildOrThrow());
     }
   }
 }
