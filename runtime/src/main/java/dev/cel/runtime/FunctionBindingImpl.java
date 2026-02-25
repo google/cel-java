@@ -145,7 +145,11 @@ final class FunctionBindingImpl implements CelFunctionBinding {
               .collect(toImmutableList()));
     }
 
-    private DynamicDispatchOverload(
+    ImmutableSet<CelFunctionBinding> getOverloadBindings() {
+      return overloadBindings;
+    }
+
+    DynamicDispatchOverload(
         String functionName, ImmutableSet<CelFunctionBinding> overloadBindings) {
       this.functionName = functionName;
       this.overloadBindings = overloadBindings;

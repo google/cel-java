@@ -23,6 +23,7 @@ import dev.cel.runtime.GlobalResolver;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Immutable
 final class EvalCreateStruct extends PlannedInterpretable {
@@ -38,11 +39,35 @@ final class EvalCreateStruct extends PlannedInterpretable {
   @SuppressWarnings("Immutable")
   private final PlannedInterpretable[] values;
 
+  // Array contents are not mutated
+  @SuppressWarnings("Immutable")
+  private final boolean[] isOptional;
+
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     Map<String, Object> fieldValues = new HashMap<>();
     for (int i = 0; i < keys.length; i++) {
       Object value = values[i].eval(resolver, frame);
+
+      if (isOptional[i]) {
+        if (!(value instanceof Optional)) {
+          throw new IllegalArgumentException(
+              String.format(
+                  "Cannot initialize optional entry 'single_double_wrapper' from non-optional value"
+                      + " %s",
+                  value));
+        }
+
+        Optional<?> opt = (Optional<?>) value;
+        if (!opt.isPresent()) {
+          // This is a no-op currently but will be semantically correct when extended proto
+          // support allows proto mutation.
+          fieldValues.remove(keys[i]);
+          continue;
+        }
+        value = opt.get();
+      }
+
       fieldValues.put(keys[i], value);
     }
 
@@ -54,7 +79,7 @@ final class EvalCreateStruct extends PlannedInterpretable {
                 () -> new IllegalArgumentException("Type name not found: " + structType.name()));
 
     if (value instanceof StructValue) {
-      return ((StructValue) value).value();
+      return ((StructValue<?>) value).value();
     }
 
     return value;
@@ -65,8 +90,9 @@ final class EvalCreateStruct extends PlannedInterpretable {
       CelValueProvider valueProvider,
       CelType structType,
       String[] keys,
-      PlannedInterpretable[] values) {
-    return new EvalCreateStruct(exprId, valueProvider, structType, keys, values);
+      PlannedInterpretable[] values,
+      boolean[] isOptional) {
+    return new EvalCreateStruct(exprId, valueProvider, structType, keys, values, isOptional);
   }
 
   private EvalCreateStruct(
@@ -74,11 +100,13 @@ final class EvalCreateStruct extends PlannedInterpretable {
       CelValueProvider valueProvider,
       CelType structType,
       String[] keys,
-      PlannedInterpretable[] values) {
+      PlannedInterpretable[] values,
+      boolean[] isOptional) {
     super(exprId);
     this.valueProvider = valueProvider;
     this.structType = structType;
     this.keys = keys;
     this.values = values;
+    this.isOptional = isOptional;
   }
 }

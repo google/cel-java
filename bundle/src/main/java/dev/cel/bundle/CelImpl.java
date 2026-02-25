@@ -38,6 +38,7 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelSource;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.CelVarDecl;
+import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.EnvVisitable;
 import dev.cel.common.internal.EnvVisitor;
 import dev.cel.common.internal.FileDescriptorSetConverter;
@@ -54,6 +55,7 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeBuilder;
+import dev.cel.runtime.CelRuntimeImpl;
 import dev.cel.runtime.CelRuntimeLibrary;
 import dev.cel.runtime.CelStandardFunctions;
 import java.util.Arrays;
@@ -63,9 +65,14 @@ import java.util.function.Function;
  * Implementation of the synchronous CEL stack.
  *
  * <p>Note, the underlying {@link CelCompiler} and {@link CelRuntime} values are constructed lazily.
+ *
+ * <p>CEL Library Internals. Do Not Use. Consumers should use {@code CelFactory} instead.
+ *
+ * <p>TODO: Restrict visibility once factory is introduced
  */
 @Immutable
-final class CelImpl implements Cel, EnvVisitable {
+@Internal
+public final class CelImpl implements Cel, EnvVisitable {
 
   // The lazily constructed compiler and runtime values are memoized and guaranteed to be
   // constructed only once without side effects, thus making them effectively immutable.
@@ -142,8 +149,13 @@ final class CelImpl implements Cel, EnvVisitable {
    * Create a new builder for constructing a {@code CelImpl} instance.
    *
    * <p>By default, {@link CelOptions#DEFAULT} are enabled, as is the CEL standard environment.
+   *
+   * <p>CEL Library Internals. Do Not Use. Consumers should use {@code CelFactory} instead.
+   *
+   * <p>TODO: Restrict visibility once factory is introduced
    */
-  static CelBuilder newBuilder(
+  @Internal
+  public static CelBuilder newBuilder(
       CelCompilerBuilder compilerBuilder, CelRuntimeBuilder celRuntimeBuilder) {
     return new CelImpl.Builder(compilerBuilder, celRuntimeBuilder);
   }
@@ -199,6 +211,10 @@ final class CelImpl implements Cel, EnvVisitable {
     @Override
     public CelBuilder setContainer(CelContainer container) {
       compilerBuilder.setContainer(container);
+      if (runtimeBuilder instanceof CelRuntimeImpl.Builder) {
+        runtimeBuilder.setContainer(container);
+      }
+
       return this;
     }
 

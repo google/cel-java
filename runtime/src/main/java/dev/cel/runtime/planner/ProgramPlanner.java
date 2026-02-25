@@ -52,6 +52,7 @@ import dev.cel.runtime.Program;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@code ProgramPlanner} resolves functions, types, and identifiers at plan time given a
@@ -244,6 +245,13 @@ public final class ProgramPlanner {
       resolvedOverload = dispatcher.findOverload(functionName).orElse(null);
     }
 
+    PlannedInterpretable optionalCall =
+        maybeInterceptOptionalCalls(resolvedOverload, functionName, evaluatedArgs, expr)
+            .orElse(null);
+    if (optionalCall != null) {
+      return optionalCall;
+    }
+
     if (resolvedOverload == null) {
       if (!lateBoundFunctionNames.contains(functionName)) {
         CelReference reference = ctx.referenceMap().get(expr.id());
@@ -274,6 +282,62 @@ public final class ProgramPlanner {
     }
   }
 
+  /**
+   * Intercepts a potential optional function call.
+   *
+   * <p>This is analogous to cel-go's decorator. This could be moved to {@code CelOptionalLibrary}
+   * once we add the support for it.
+   */
+  private Optional<PlannedInterpretable> maybeInterceptOptionalCalls(
+      @Nullable CelResolvedOverload resolvedOverload,
+      String functionName,
+      PlannedInterpretable[] evaluatedArgs,
+      CelExpr expr) {
+    if (evaluatedArgs.length != 2) {
+      return Optional.empty();
+    }
+
+    String overloadId = resolvedOverload == null ? "" : resolvedOverload.getOverloadId();
+
+    switch (functionName) {
+      case "or":
+        if (overloadId.isEmpty() || overloadId.equals("optional_or_optional")) {
+          return Optional.of(EvalOptionalOr.create(expr.id(), evaluatedArgs[0], evaluatedArgs[1]));
+        }
+
+        return Optional.empty();
+      case "orValue":
+        if (overloadId.isEmpty() || overloadId.equals("optional_orValue_value")) {
+          return Optional.of(
+              EvalOptionalOrValue.create(expr.id(), evaluatedArgs[0], evaluatedArgs[1]));
+        }
+
+        return Optional.empty();
+      default:
+        break;
+    }
+
+    if (Operator.OPTIONAL_SELECT.getFunction().equals(functionName)) {
+      String field = expr.call().args().get(1).constant().stringValue();
+      InterpretableAttribute attribute;
+      if (evaluatedArgs[0] instanceof EvalAttribute) {
+        attribute = (EvalAttribute) evaluatedArgs[0];
+      } else {
+        attribute =
+            EvalAttribute.create(
+                expr.id(), attributeFactory.newRelativeAttribute(evaluatedArgs[0]));
+      }
+      Qualifier qualifier = StringQualifier.create(field);
+      PlannedInterpretable selectAttribute = attribute.addQualifier(expr.id(), qualifier);
+
+      return Optional.of(
+          EvalOptionalSelectField.create(
+              expr.id(), evaluatedArgs[0], field, selectAttribute, celValueConverter));
+    }
+
+    return Optional.empty();
+  }
+
   private PlannedInterpretable planCreateStruct(CelExpr celExpr, PlannerContext ctx) {
     CelStruct struct = celExpr.struct();
     CelType structType = resolveStructType(struct);
@@ -281,19 +345,21 @@ public final class ProgramPlanner {
     ImmutableList<Entry> entries = struct.entries();
     String[] keys = new String[entries.size()];
     PlannedInterpretable[] values = new PlannedInterpretable[entries.size()];
+    boolean[] isOptional = new boolean[entries.size()];
 
     for (int i = 0; i < entries.size(); i++) {
       Entry entry = entries.get(i);
       keys[i] = entry.fieldKey();
       values[i] = plan(entry.value(), ctx);
+      isOptional[i] = entry.optionalEntry();
     }
 
-    return EvalCreateStruct.create(celExpr.id(), valueProvider, structType, keys, values);
+    return EvalCreateStruct.create(
+        celExpr.id(), valueProvider, structType, keys, values, isOptional);
   }
 
   private PlannedInterpretable planCreateList(CelExpr celExpr, PlannerContext ctx) {
     CelList list = celExpr.list();
-
     ImmutableList<CelExpr> elements = list.elements();
     PlannedInterpretable[] values = new PlannedInterpretable[elements.size()];
 
@@ -301,7 +367,12 @@ public final class ProgramPlanner {
       values[i] = plan(elements.get(i), ctx);
     }
 
-    return EvalCreateList.create(celExpr.id(), values);
+    boolean[] isOptional = new boolean[elements.size()];
+    for (int optionalIndex : list.optionalIndices()) {
+      isOptional[optionalIndex] = true;
+    }
+
+    return EvalCreateList.create(celExpr.id(), values, isOptional);
   }
 
   private PlannedInterpretable planCreateMap(CelExpr celExpr, PlannerContext ctx) {
@@ -310,14 +381,16 @@ public final class ProgramPlanner {
     ImmutableList<CelMap.Entry> entries = map.entries();
     PlannedInterpretable[] keys = new PlannedInterpretable[entries.size()];
     PlannedInterpretable[] values = new PlannedInterpretable[entries.size()];
+    boolean[] isOptional = new boolean[entries.size()];
 
     for (int i = 0; i < entries.size(); i++) {
       CelMap.Entry entry = entries.get(i);
       keys[i] = plan(entry.key(), ctx);
       values[i] = plan(entry.value(), ctx);
+      isOptional[i] = entry.optionalEntry();
     }
 
-    return EvalCreateMap.create(celExpr.id(), keys, values);
+    return EvalCreateMap.create(celExpr.id(), keys, values, isOptional);
   }
 
   private PlannedInterpretable planComprehension(CelExpr expr, PlannerContext ctx) {

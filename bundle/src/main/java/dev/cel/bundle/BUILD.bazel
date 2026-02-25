@@ -11,8 +11,6 @@ package(
 CEL_SOURCES = [
     "Cel.java",
     "CelBuilder.java",
-    "CelFactory.java",
-    "CelImpl.java",
 ]
 
 java_library(
@@ -21,31 +19,74 @@ java_library(
     tags = [
     ],
     deps = [
-        "//checker",
-        "//checker:checker_builder",
         "//checker:checker_legacy_environment",
         "//checker:proto_type_mask",
         "//checker:standard_decl",
-        "//common:cel_ast",
-        "//common:cel_source",
         "//common:compiler_common",
         "//common:container",
         "//common:options",
-        "//common/internal:env_visitor",
-        "//common/internal:file_descriptor_converter",
-        "//common/types:cel_proto_types",
         "//common/types:type_providers",
         "//common/values:cel_value_provider",
-        "//compiler",
         "//compiler:compiler_builder",
-        "//parser",
         "//parser:macro",
-        "//parser:parser_builder",
         "//runtime",
         "//runtime:function_binding",
         "//runtime:standard_functions",
         "@cel_spec//proto/cel/expr:checked_java_proto",
         "@maven//:com_google_code_findbugs_annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+    ],
+)
+
+java_library(
+    name = "cel_factory",
+    srcs = ["CelFactory.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel",
+        ":cel_impl",
+        "//checker",
+        "//common:options",
+        "//compiler",
+        "//compiler:compiler_builder",
+        "//parser",
+        "//runtime",
+    ],
+)
+
+java_library(
+    name = "cel_impl",
+    srcs = ["CelImpl.java"],
+    tags = [
+    ],
+    deps = [
+        ":cel",
+        "//checker:checker_builder",
+        "//checker:proto_type_mask",
+        "//checker:standard_decl",
+        "//checker:type_provider_legacy",
+        "//common:cel_ast",
+        "//common:cel_source",
+        "//common:compiler_common",
+        "//common:container",
+        "//common:options",
+        "//common/annotations",
+        "//common/internal:env_visitor",
+        "//common/internal:file_descriptor_converter",
+        "//common/types:cel_proto_types",
+        "//common/types:type_providers",
+        "//common/values:cel_value_provider",
+        "//compiler:compiler_builder",
+        "//parser:macro",
+        "//parser:parser_builder",
+        "//runtime",
+        "//runtime:function_binding",
+        "//runtime:runtime_planner_impl",
+        "//runtime:standard_functions",
+        "@cel_spec//proto/cel/expr:checked_java_proto",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
@@ -60,6 +101,7 @@ java_library(
     tags = [
     ],
     deps = [
+        ":cel_factory",
         ":environment_exception",
         ":required_fields_checker",
         "//:auto_value",

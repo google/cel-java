@@ -7,7 +7,10 @@ package(
 
 java_library(
     name = "cel",
-    exports = ["//bundle/src/main/java/dev/cel/bundle:cel"],
+    exports = [
+        "//bundle/src/main/java/dev/cel/bundle:cel",
+        "//bundle/src/main/java/dev/cel/bundle:cel_factory",
+    ],
 )
 
 java_library(
@@ -28,4 +31,11 @@ java_library(
 java_library(
     name = "environment_exporter",
     exports = ["//bundle/src/main/java/dev/cel/bundle:environment_exporter"],
+)
+
+java_library(
+    name = "cel_impl",
+    testonly = 1,
+    visibility = ["//:internal"],
+    exports = ["//bundle/src/main/java/dev/cel/bundle:cel_impl"],
 )

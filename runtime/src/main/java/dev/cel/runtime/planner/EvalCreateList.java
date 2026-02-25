@@ -18,29 +18,49 @@ import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
+import java.util.Optional;
 
 @Immutable
 final class EvalCreateList extends PlannedInterpretable {
 
-  // Array contents are not mutated
   @SuppressWarnings("Immutable")
   private final PlannedInterpretable[] values;
+
+  @SuppressWarnings("Immutable")
+  private final boolean[] isOptional;
 
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     ImmutableList.Builder<Object> builder = ImmutableList.builderWithExpectedSize(values.length);
-    for (PlannedInterpretable value : values) {
-      builder.add(EvalHelpers.evalStrictly(value, resolver, frame));
+    for (int i = 0; i < values.length; i++) {
+      Object element = EvalHelpers.evalStrictly(values[i], resolver, frame);
+
+      if (isOptional[i]) {
+        if (!(element instanceof Optional)) {
+          throw new IllegalArgumentException(
+              String.format(
+                  "Cannot initialize optional list element from non-optional value %s", element));
+        }
+
+        Optional<?> opt = (Optional<?>) element;
+        if (!opt.isPresent()) {
+          continue;
+        }
+        element = opt.get();
+      }
+
+      builder.add(element);
     }
     return builder.build();
   }
 
-  static EvalCreateList create(long exprId, PlannedInterpretable[] values) {
-    return new EvalCreateList(exprId, values);
+  static EvalCreateList create(long exprId, PlannedInterpretable[] values, boolean[] isOptional) {
+    return new EvalCreateList(exprId, values, isOptional);
   }
 
-  private EvalCreateList(long exprId, PlannedInterpretable[] values) {
+  private EvalCreateList(long exprId, PlannedInterpretable[] values, boolean[] isOptional) {
     super(exprId);
     this.values = values;
+    this.isOptional = isOptional;
   }
 }

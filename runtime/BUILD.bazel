@@ -338,7 +338,6 @@ java_library(
 
 java_library(
     name = "runtime_planner_impl",
-    testonly = 1,  # TODO: Move to factory when ready for exposure
     visibility = ["//:internal"],
     exports = [
         "//runtime/src/main/java/dev/cel/runtime:runtime_planner_impl",

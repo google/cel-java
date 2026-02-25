@@ -22,6 +22,7 @@ import dev.cel.common.exceptions.CelDuplicateKeyException;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
 import java.util.HashSet;
+import java.util.Optional;
 
 @Immutable
 final class EvalCreateMap extends PlannedInterpretable {
@@ -34,6 +35,10 @@ final class EvalCreateMap extends PlannedInterpretable {
   @SuppressWarnings("Immutable")
   private final PlannedInterpretable[] values;
 
+  // Array contents are not mutated
+  @SuppressWarnings("Immutable")
+  private final boolean[] isOptional;
+
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     ImmutableMap.Builder<Object, Object> builder =
@@ -42,26 +47,55 @@ final class EvalCreateMap extends PlannedInterpretable {
 
     for (int i = 0; i < keys.length; i++) {
       Object key = keys[i].eval(resolver, frame);
+      Object val = values[i].eval(resolver, frame);
 
       if (!keysSeen.add(key)) {
         throw new LocalizedEvaluationException(CelDuplicateKeyException.of(key), keys[i].exprId());
       }
 
-      builder.put(key, values[i].eval(resolver, frame));
+      if (isOptional[i]) {
+        if (!(val instanceof Optional)) {
+          throw new IllegalArgumentException(
+              String.format(
+                  "Cannot initialize optional entry '%s' from non-optional value %s", key, val));
+        }
+
+        Optional<?> opt = (Optional<?>) val;
+        if (!opt.isPresent()) {
+          // This is a no-op currently but will be semantically correct when extended proto
+          // support allows proto mutation.
+          keysSeen.remove(key);
+          continue;
+        }
+        val = opt.get();
+      } else {
+        System.out.println();
+      }
+
+      builder.put(key, val);
     }
 
     return builder.buildOrThrow();
   }
 
   static EvalCreateMap create(
-      long exprId, PlannedInterpretable[] keys, PlannedInterpretable[] values) {
-    return new EvalCreateMap(exprId, keys, values);
+      long exprId,
+      PlannedInterpretable[] keys,
+      PlannedInterpretable[] values,
+      boolean[] isOptional) {
+    return new EvalCreateMap(exprId, keys, values, isOptional);
   }
 
-  private EvalCreateMap(long exprId, PlannedInterpretable[] keys, PlannedInterpretable[] values) {
+  private EvalCreateMap(
+      long exprId,
+      PlannedInterpretable[] keys,
+      PlannedInterpretable[] values,
+      boolean[] isOptional) {
     super(exprId);
     Preconditions.checkArgument(keys.length == values.length);
+    Preconditions.checkArgument(keys.length == isOptional.length);
     this.keys = keys;
     this.values = values;
+    this.isOptional = isOptional;
   }
 }

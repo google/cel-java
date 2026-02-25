@@ -17,6 +17,7 @@ java_library(
     deps = [
         "//:java_truth",
         "//bundle:cel",
+        "//bundle:cel_impl",
         "//bundle:environment",
         "//bundle:environment_exception",
         "//bundle:environment_exporter",

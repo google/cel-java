@@ -431,9 +431,9 @@ final class DefaultInterpreter implements Interpreter {
         case "type":
           return evalType(frame, callExpr);
         case "optional_or_optional":
-          return evalOptionalOr(frame, callExpr);
+          return evalOptionalOr(frame, expr);
         case "optional_orValue_value":
-          return evalOptionalOrValue(frame, callExpr);
+          return evalOptionalOrValue(frame, expr);
         case "select_optional_field":
           Optional<IntermediateResult> result = maybeEvalOptionalSelectField(frame, expr, callExpr);
           if (result.isPresent()) {
@@ -721,19 +721,19 @@ final class DefaultInterpreter implements Interpreter {
           typeResolver.resolveObjectType(argResult.value(), checkedTypeValue));
     }
 
-    private IntermediateResult evalOptionalOr(ExecutionFrame frame, CelCall callExpr)
+    private IntermediateResult evalOptionalOr(ExecutionFrame frame, CelExpr expr)
         throws CelEvaluationException {
-      return evalOptionalOrInternal(frame, callExpr, /* unwrapOptional= */ false);
+      return evalOptionalOrInternal(frame, expr, /* unwrapOptional= */ false);
     }
 
-    private IntermediateResult evalOptionalOrValue(ExecutionFrame frame, CelCall callExpr)
+    private IntermediateResult evalOptionalOrValue(ExecutionFrame frame, CelExpr expr)
         throws CelEvaluationException {
-      return evalOptionalOrInternal(frame, callExpr, /* unwrapOptional= */ true);
+      return evalOptionalOrInternal(frame, expr, /* unwrapOptional= */ true);
     }
 
     private IntermediateResult evalOptionalOrInternal(
-        ExecutionFrame frame, CelCall callExpr, boolean unwrapOptional)
-        throws CelEvaluationException {
+        ExecutionFrame frame, CelExpr expr, boolean unwrapOptional) throws CelEvaluationException {
+      CelCall callExpr = expr.call();
       CelExpr lhsExpr =
           callExpr
               .target()
@@ -746,10 +746,11 @@ final class DefaultInterpreter implements Interpreter {
       }
 
       if (!(lhsResult.value() instanceof Optional)) {
+        String functionName = unwrapOptional ? "orValue" : "or";
         throw CelEvaluationExceptionBuilder.newBuilder(
-                "expected optional value, found: %s", lhsResult.value())
+                "No matching overload for function '%s'.", functionName)
             .setErrorCode(CelErrorCode.INVALID_ARGUMENT)
-            .setMetadata(metadata, lhsExpr.id())
+            .setMetadata(metadata, expr.id())
             .build();
       }
 
@@ -832,6 +833,11 @@ final class DefaultInterpreter implements Interpreter {
             // optionals.
             && optionalIndicesSet.contains(i)
             && !isUnknownValue(value)) {
+          if (!(value instanceof Optional)) {
+            throw new IllegalArgumentException(
+                String.format(
+                    "Cannot initialize optional list element from non-optional value %s", value));
+          }
           Optional<?> optionalVal = (Optional<?>) value;
           if (!optionalVal.isPresent()) {
             continue;
@@ -870,6 +876,12 @@ final class DefaultInterpreter implements Interpreter {
 
         Object value = valueResult.value();
         if (entry.optionalEntry() && !isUnknownValue(value)) {
+          if (!(value instanceof Optional)) {
+            throw new IllegalArgumentException(
+                String.format(
+                    "Cannot initialize optional entry '%s' from non-optional value %s",
+                    keyResult.value(), value));
+          }
           Optional<?> optionalVal = (Optional<?>) value;
           if (!optionalVal.isPresent()) {
             // This is a no-op currently but will be semantically correct when extended proto
@@ -905,6 +917,13 @@ final class DefaultInterpreter implements Interpreter {
 
         Object value = fieldResult.value();
         if (entry.optionalEntry()) {
+          if (!(value instanceof Optional)) {
+            throw new IllegalArgumentException(
+                String.format(
+                    "Cannot initialize optional entry 'single_double_wrapper' from non-optional"
+                        + " value %s",
+                    value));
+          }
           Optional<?> optionalVal = (Optional<?>) value;
           if (!optionalVal.isPresent()) {
             // This is a no-op currently but will be semantically correct when extended proto
