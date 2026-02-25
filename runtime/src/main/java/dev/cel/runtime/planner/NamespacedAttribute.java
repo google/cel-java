@@ -62,11 +62,7 @@ final class NamespacedAttribute implements Attribute {
 
       Object value = resolver.resolve(name);
       if (value != null) {
-        if (!qualifiers.isEmpty()) {
-          return applyQualifiers(value, celValueConverter, qualifiers);
-        } else {
-          return value;
-        }
+        return applyQualifiers(value, celValueConverter, qualifiers);
       }
 
       // Attempt to resolve the qualify type name if the name is not a variable identifier

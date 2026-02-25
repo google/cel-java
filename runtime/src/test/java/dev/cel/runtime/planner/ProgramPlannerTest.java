@@ -1055,7 +1055,6 @@ public final class ProgramPlannerTest {
     INT("int", SimpleType.INT),
     UINT("uint", SimpleType.UINT),
     STRING("string", SimpleType.STRING),
-    DYN("dyn", SimpleType.DYN),
     LIST("list", ListType.create(SimpleType.DYN)),
     MAP("map", MapType.create(SimpleType.DYN, SimpleType.DYN)),
     NULL("null_type", SimpleType.NULL_TYPE),

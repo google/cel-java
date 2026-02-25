@@ -45,6 +45,7 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.Program;
+import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeFactory;
 import dev.cel.runtime.CelRuntimeImpl;
 import dev.cel.runtime.CelRuntimeLibrary;
@@ -119,26 +120,24 @@ public final class ConformanceTest extends Statement {
         .build();
   }
 
-  private static final CelRuntime RUNTIME =
-      CelRuntimeFactory.standardCelRuntimeBuilder()
-          .setOptions(OPTIONS)
-          .addLibraries(CANONICAL_RUNTIME_EXTENSIONS)
-          .setExtensionRegistry(DEFAULT_EXTENSION_REGISTRY)
-          .addMessageTypes(dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor())
-          .addMessageTypes(dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor())
-          .addFileTypes(dev.cel.expr.conformance.proto2.TestAllTypesExtensions.getDescriptor())
-          .build();
+  private static CelRuntime getRuntime(SimpleTest test, boolean usePlanner) {
+    CelRuntimeBuilder builder =
+        usePlanner ? CelRuntimeImpl.newBuilder() : CelRuntimeFactory.standardCelRuntimeBuilder();
 
-  private static final CelRuntime PLANNER_RUNTIME =
-      CelRuntimeImpl.newBuilder()
-          .setOptions(OPTIONS)
-          .addLibraries(CANONICAL_RUNTIME_EXTENSIONS)
-          .setExtensionRegistry(DEFAULT_EXTENSION_REGISTRY)
-          .addMessageTypes(dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor())
-          .addMessageTypes(dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor())
-          .addFileTypes(dev.cel.expr.conformance.proto2.TestAllTypesExtensions.getDescriptor())
-          .build();
+    builder
+        .setOptions(OPTIONS)
+        .addLibraries(CANONICAL_RUNTIME_EXTENSIONS)
+        .setExtensionRegistry(DEFAULT_EXTENSION_REGISTRY)
+        .addMessageTypes(dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor())
+        .addMessageTypes(dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor())
+        .addFileTypes(dev.cel.expr.conformance.proto2.TestAllTypesExtensions.getDescriptor());
 
+    if (usePlanner) {
+      builder.setContainer(CelContainer.ofName(test.getContainer()));
+    }
+
+    return builder.build();
+  }
 
   private static ImmutableMap<String, Object> getBindings(SimpleTest test) throws Exception {
     ImmutableMap.Builder<String, Object> bindings =
@@ -209,7 +208,7 @@ public final class ConformanceTest extends Statement {
       return;
     }
 
-    CelRuntime runtime = usePlanner ? PLANNER_RUNTIME : RUNTIME;
+    CelRuntime runtime = getRuntime(test, usePlanner);
     Program program = runtime.createProgram(response.getAst());
     ExprValue result = null;
     CelEvaluationException error = null;

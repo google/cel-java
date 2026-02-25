@@ -46,7 +46,6 @@ public abstract class SimpleType extends CelType {
 
   public static final ImmutableMap<String, CelType> TYPE_MAP =
       ImmutableMap.of(
-          DYN.name(), DYN,
           BOOL.name(), BOOL,
           BYTES.name(), BYTES,
           DOUBLE.name(), DOUBLE,

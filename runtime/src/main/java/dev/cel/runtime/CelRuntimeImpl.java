@@ -425,8 +425,7 @@ public abstract class CelRuntimeImpl implements CelRuntime {
       }
 
       RuntimeEquality runtimeEquality =
-          RuntimeEquality.create(
-              ProtoMessageRuntimeHelpers.create(dynamicProto, options()), options());
+          ProtoMessageRuntimeEquality.create(dynamicProto, options());
       ImmutableSet<CelRuntimeLibrary> runtimeLibraries = runtimeLibrariesBuilder().build();
       // Add libraries, such as extensions
       for (CelRuntimeLibrary celLibrary : runtimeLibraries) {

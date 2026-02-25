@@ -238,7 +238,7 @@ public final class CelStringExtensions
 
     Function(CelFunctionDecl functionDecl, CelFunctionBinding... functionBindings) {
       this.functionDecl = functionDecl;
-      this.functionBindings = ImmutableSet.copyOf(functionBindings);
+      this.functionBindings = CelFunctionBinding.fromOverloads(functionDecl.name(), functionBindings);
     }
   }
 

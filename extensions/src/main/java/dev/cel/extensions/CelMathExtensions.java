@@ -663,9 +663,15 @@ public final class CelMathExtensions
         ImmutableSet<CelFunctionBinding> functionBindingsULongSigned,
         ImmutableSet<CelFunctionBinding> functionBindingsULongUnsigned) {
       this.functionDecl = functionDecl;
-      this.functionBindings = functionBindings;
-      this.functionBindingsULongSigned = functionBindingsULongSigned;
-      this.functionBindingsULongUnsigned = functionBindingsULongUnsigned;
+      this.functionBindings = functionBindings.isEmpty()
+          ? ImmutableSet.of()
+          : CelFunctionBinding.fromOverloads(functionDecl.name(), functionBindings);
+      this.functionBindingsULongSigned = functionBindingsULongSigned.isEmpty()
+          ? ImmutableSet.of()
+          : CelFunctionBinding.fromOverloads(functionDecl.name(), functionBindingsULongSigned);
+      this.functionBindingsULongUnsigned = functionBindingsULongUnsigned.isEmpty()
+          ? ImmutableSet.of()
+          : CelFunctionBinding.fromOverloads(functionDecl.name(), functionBindingsULongUnsigned);
     }
   }
 

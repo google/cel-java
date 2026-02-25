@@ -827,6 +827,7 @@ java_library(
         ":function_binding",
         ":function_resolver",
         ":program",
+        ":proto_message_runtime_equality",
         ":proto_message_runtime_helpers",
         ":runtime",
         ":runtime_equality",
