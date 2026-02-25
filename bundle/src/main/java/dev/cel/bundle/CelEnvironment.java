@@ -53,6 +53,7 @@ import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.ObjIntConsumer;
 
 /**
  * CelEnvironment is a native representation of a CEL environment for compiler and runtime. This
@@ -73,6 +74,24 @@ public abstract class CelEnvironment {
           "sets", CanonicalCelExtension.SETS,
           "strings", CanonicalCelExtension.STRINGS,
           "comprehensions", CanonicalCelExtension.COMPREHENSIONS);
+
+  private static final ImmutableMap<String, ObjIntConsumer<CelOptions.Builder>> LIMIT_HANDLERS =
+      ImmutableMap.of(
+          "cel.limit.expression_code_points",
+          (options, value) -> options.maxExpressionCodePointSize(value),
+          "cel.limit.parse_error_recovery",
+          (options, value) -> options.maxParseErrorRecoveryLimit(value),
+          "cel.limit.parse_recursion_depth",
+          (options, value) -> options.maxParseRecursionDepth(value));
+
+  private static final ImmutableMap<String, BooleanOptionConsumer> FEATURE_HANDLERS =
+      ImmutableMap.of(
+          "cel.feature.macro_call_tracking",
+          (options, enabled) -> options.populateMacroCalls(enabled),
+          "cel.feature.backtick_escape_syntax",
+          (options, enabled) -> options.enableQuotedIdentifierSyntax(enabled),
+          "cel.feature.cross_type_numeric_comparisons",
+          (options, enabled) -> options.enableHeterogeneousNumericComparisons(enabled));
 
   /** Environment source in textual format (ex: textproto, YAML). */
   public abstract Optional<Source> source();
@@ -111,6 +130,9 @@ public abstract class CelEnvironment {
 
   /** Feature flags to enable in the environment. */
   public abstract ImmutableSet<FeatureFlag> features();
+
+  /** Limits to set in the environment. */
+  public abstract ImmutableSet<Limit> limits();
 
   /** Builder for {@link CelEnvironment}. */
   @AutoValue.Builder
@@ -168,7 +190,14 @@ public abstract class CelEnvironment {
       return setFeatures(ImmutableSet.copyOf(featureFlags));
     }
 
-    public abstract Builder setFeatures(ImmutableSet<FeatureFlag> macros);
+    public abstract Builder setFeatures(ImmutableSet<FeatureFlag> featureFlags);
+
+    @CanIgnoreReturnValue
+    public Builder setLimits(Limit... limits) {
+      return setLimits(ImmutableSet.copyOf(limits));
+    }
+
+    public abstract Builder setLimits(ImmutableSet<Limit> limits);
 
     abstract CelEnvironment autoBuild();
 
@@ -200,13 +229,14 @@ public abstract class CelEnvironment {
         .setContainer(CelContainer.ofName(""))
         .setVariables(ImmutableSet.of())
         .setFunctions(ImmutableSet.of())
-        .setFeatures(ImmutableSet.of());
+        .setFeatures(ImmutableSet.of())
+        .setLimits(ImmutableSet.of());
   }
 
   /** Extends the provided {@link CelCompiler} environment with this configuration. */
   public CelCompiler extend(CelCompiler celCompiler, CelOptions celOptions)
       throws CelEnvironmentException {
-    celOptions = applyFeatureFlags(celOptions);
+    celOptions = applyEnvironmentOptions(celOptions);
     try {
       CelTypeProvider celTypeProvider = celCompiler.getTypeProvider();
       CelCompilerBuilder compilerBuilder =
@@ -236,7 +266,7 @@ public abstract class CelEnvironment {
 
   /** Extends the provided {@link Cel} environment with this configuration. */
   public Cel extend(Cel cel, CelOptions celOptions) throws CelEnvironmentException {
-    celOptions = applyFeatureFlags(celOptions);
+    celOptions = applyEnvironmentOptions(celOptions);
     try {
       // Casting is necessary to only extend the compiler here
       CelCompiler celCompiler = extend((CelCompiler) cel, celOptions);
@@ -249,18 +279,22 @@ public abstract class CelEnvironment {
     }
   }
 
-  private CelOptions applyFeatureFlags(CelOptions celOptions) {
+  private CelOptions applyEnvironmentOptions(CelOptions celOptions) {
     CelOptions.Builder optionsBuilder = celOptions.toBuilder();
     for (FeatureFlag featureFlag : features()) {
-      if (featureFlag.name().equals("cel.feature.macro_call_tracking")) {
-        optionsBuilder.populateMacroCalls(featureFlag.enabled());
-      } else if (featureFlag.name().equals("cel.feature.backtick_escape_syntax")) {
-        optionsBuilder.enableQuotedIdentifierSyntax(featureFlag.enabled());
-      } else if (featureFlag.name().equals("cel.feature.cross_type_numeric_comparisons")) {
-        optionsBuilder.enableHeterogeneousNumericComparisons(featureFlag.enabled());
-      } else {
+      BooleanOptionConsumer consumer = FEATURE_HANDLERS.get(featureFlag.name());
+      if (consumer == null) {
         throw new IllegalArgumentException("Unknown feature flag: " + featureFlag.name());
       }
+      consumer.accept(optionsBuilder, featureFlag.enabled());
+    }
+    for (Limit limit : limits()) {
+      int value = limit.value() < 0 ? -1 : limit.value();
+      ObjIntConsumer<CelOptions.Builder> consumer = LIMIT_HANDLERS.get(limit.name());
+      if (consumer == null) {
+        throw new IllegalArgumentException("Unknown limit: " + limit.name());
+      }
+      consumer.accept(optionsBuilder, value);
     }
     return optionsBuilder.build();
   }
@@ -673,6 +707,25 @@ public abstract class CelEnvironment {
   }
 
   /**
+   * Represents a configurable limit in the environment.
+   *
+   * <p>A negative value indicates no limit. If not specified, the limit should be set to the
+   * library default.
+   */
+  @AutoValue
+  public abstract static class Limit {
+    /** Normalized name of the limit (e.g. cel.limit.expression_code_points */
+    public abstract String name();
+
+    /** The value of the limit, -1 means no limit. */
+    public abstract int value();
+
+    public static Limit create(String name, int value) {
+      return new AutoValue_CelEnvironment_Limit(name, value);
+    }
+  }
+
+  /**
    * Represents a configuration for a canonical CEL extension that can be enabled in the
    * environment.
    */
@@ -994,5 +1047,10 @@ public abstract class CelEnvironment {
         return new AutoValue_CelEnvironment_LibrarySubset_OverloadSelector.Builder();
       }
     }
+  }
+
+  @FunctionalInterface
+  private static interface BooleanOptionConsumer {
+    void accept(CelOptions.Builder options, boolean value);
   }
 }

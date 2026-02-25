@@ -43,6 +43,7 @@ import dev.cel.common.formats.ParserContext;
 import dev.cel.common.formats.YamlHelper.YamlNodeType;
 import dev.cel.common.formats.YamlParserContextImpl;
 import dev.cel.common.internal.CelCodePointArray;
+import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.nodes.MappingNode;
@@ -186,6 +187,70 @@ public final class CelEnvironmentYamlParser {
       featureFlags.add(CelEnvironment.FeatureFlag.create(name, enabled));
     }
     return featureFlags.build();
+  }
+
+  private ImmutableSet<CelEnvironment.Limit> parseLimits(ParserContext<Node> ctx, Node node) {
+    long valueId = ctx.collectMetadata(node);
+    if (!validateYamlType(node, YamlNodeType.LIST, YamlNodeType.TEXT)) {
+      ctx.reportError(valueId, "Unsupported limits format");
+    }
+
+    ImmutableSet.Builder<CelEnvironment.Limit> limits = ImmutableSet.builder();
+
+    SequenceNode featureListNode = (SequenceNode) node;
+    for (Node featureMapNode : featureListNode.getValue()) {
+      long featureMapId = ctx.collectMetadata(featureMapNode);
+      if (!assertYamlType(ctx, featureMapId, featureMapNode, YamlNodeType.MAP)) {
+        continue;
+      }
+
+      MappingNode featureMap = (MappingNode) featureMapNode;
+      String name = "";
+      Optional<Integer> value = Optional.empty();
+      // Shorthand syntax for limit: "cel.limit.foo: 1"
+      if (featureMap.getValue().size() == 1) {
+        NodeTuple nodeTuple = featureMap.getValue().get(0);
+        Node keyNode = nodeTuple.getKeyNode();
+        Node valueNode = nodeTuple.getValueNode();
+        String keyName = ((ScalarNode) keyNode).getValue();
+        if (!keyName.equals("name") && !keyName.equals("value")) {
+          limits.add(CelEnvironment.Limit.create(keyName, newInteger(ctx, valueNode)));
+          continue;
+        }
+        // Fall through to check against the long syntax.
+      }
+      // Long syntax for limit:
+      // limits:
+      // - name: cel.limit.foo
+      //   value: 1
+      for (NodeTuple nodeTuple : featureMap.getValue()) {
+        Node keyNode = nodeTuple.getKeyNode();
+        long keyId = ctx.collectMetadata(keyNode);
+        Node valueNode = nodeTuple.getValueNode();
+        String keyName = ((ScalarNode) keyNode).getValue();
+        switch (keyName) {
+          case "name":
+            name = newString(ctx, valueNode);
+            break;
+          case "value":
+            value = Optional.of(newInteger(ctx, valueNode));
+            break;
+          default:
+            ctx.reportError(keyId, String.format("Unsupported limits tag: %s", keyName));
+            break;
+        }
+      }
+      if (name.isEmpty()) {
+        ctx.reportError(featureMapId, "Missing required attribute(s): name");
+        continue;
+      }
+      if (!value.isPresent()) {
+        ctx.reportError(featureMapId, "Missing required attribute(s): value");
+        continue;
+      }
+      limits.add(CelEnvironment.Limit.create(name, value.get()));
+    }
+    return limits.build();
   }
 
   private ImmutableSet<Alias> parseAliases(ParserContext<Node> ctx, Node node) {
@@ -803,6 +868,9 @@ public final class CelEnvironmentYamlParser {
             break;
           case "features":
             builder.setFeatures(parseFeatures(ctx, valueNode));
+            break;
+          case "limits":
+            builder.setLimits(parseLimits(ctx, valueNode));
             break;
           default:
             ctx.reportError(id, "Unknown config tag: " + fieldName);

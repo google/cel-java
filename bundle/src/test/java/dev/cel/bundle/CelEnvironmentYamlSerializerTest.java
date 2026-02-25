@@ -129,6 +129,10 @@ public final class CelEnvironmentYamlSerializerTest {
             .setFeatures(
                 CelEnvironment.FeatureFlag.create("cel.feature.macro_call_tracking", true),
                 CelEnvironment.FeatureFlag.create("cel.feature.backtick_escape_syntax", false))
+            .setLimits(
+                CelEnvironment.Limit.create("cel.limit.expression_code_points", 1000),
+                CelEnvironment.Limit.create("cel.limit.parse_error_recovery", 10),
+                CelEnvironment.Limit.create("cel.limit.parse_recursion_depth", 7))
             .build();
 
     String yamlOutput = CelEnvironmentYamlSerializer.toYaml(environment);

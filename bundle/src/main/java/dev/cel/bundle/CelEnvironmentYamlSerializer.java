@@ -61,6 +61,7 @@ public final class CelEnvironmentYamlSerializer extends Representer {
     this.multiRepresenters.put(CelEnvironment.Alias.class, new RepresentAlias());
     this.multiRepresenters.put(CelContainer.class, new RepresentContainer());
     this.multiRepresenters.put(CelEnvironment.FeatureFlag.class, new RepresentFeatureFlag());
+    this.multiRepresenters.put(CelEnvironment.Limit.class, new RepresentLimit());
   }
 
   public static String toYaml(CelEnvironment environment) {
@@ -97,6 +98,9 @@ public final class CelEnvironmentYamlSerializer extends Representer {
       }
       if (!environment.features().isEmpty()) {
         configMap.put("features", environment.features().asList());
+      }
+      if (!environment.limits().isEmpty()) {
+        configMap.put("limits", environment.limits().asList());
       }
       return represent(configMap.buildOrThrow());
     }
@@ -272,6 +276,19 @@ public final class CelEnvironmentYamlSerializer extends Representer {
           ImmutableMap.builder()
               .put("name", featureFlag.name())
               .put("enabled", featureFlag.enabled())
+              .buildOrThrow());
+    }
+  }
+
+  private final class RepresentLimit implements Represent {
+
+    @Override
+    public Node representData(Object data) {
+      CelEnvironment.Limit limit = (CelEnvironment.Limit) data;
+      return represent(
+          ImmutableMap.builder()
+              .put("name", limit.name())
+              .put("value", limit.value() < 0 ? -1 : limit.value())
               .buildOrThrow());
     }
   }

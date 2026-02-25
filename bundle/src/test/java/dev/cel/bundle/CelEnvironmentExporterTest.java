@@ -260,5 +260,34 @@ public class CelEnvironmentExporterTest {
     assertThat(container.abbreviations()).containsExactly("foo.Bar", "baz.Qux").inOrder();
     assertThat(container.aliases()).containsAtLeast("nm", "user.name", "id", "user.id").inOrder();
   }
+
+  @Test
+  public void options() {
+    Cel cel =
+        CelFactory.standardCelBuilder()
+            .setOptions(
+                CelOptions.current()
+                    .maxExpressionCodePointSize(100)
+                    .maxParseErrorRecoveryLimit(10)
+                    .maxParseRecursionDepth(10)
+                    .enableQuotedIdentifierSyntax(true)
+                    .enableHeterogeneousNumericComparisons(true)
+                    .populateMacroCalls(true)
+                    .build())
+            .build();
+
+    CelEnvironmentExporter exporter = CelEnvironmentExporter.newBuilder().build();
+    CelEnvironment celEnvironment = exporter.export(cel);
+    assertThat(celEnvironment.features())
+        .containsExactly(
+            CelEnvironment.FeatureFlag.create("cel.feature.backtick_escape_syntax", true),
+            CelEnvironment.FeatureFlag.create("cel.feature.cross_type_numeric_comparisons", true),
+            CelEnvironment.FeatureFlag.create("cel.feature.macro_call_tracking", true));
+    assertThat(celEnvironment.limits())
+        .containsExactly(
+            CelEnvironment.Limit.create("cel.limit.expression_code_points", 100),
+            CelEnvironment.Limit.create("cel.limit.parse_error_recovery", 10),
+            CelEnvironment.Limit.create("cel.limit.parse_recursion_depth", 10));
+  }
 }
 

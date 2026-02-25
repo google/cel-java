@@ -221,6 +221,23 @@ public abstract class CelEnvironmentExporter {
       featureFlags.add(CelEnvironment.FeatureFlag.create("cel.feature.macro_call_tracking", true));
     }
     envBuilder.setFeatures(featureFlags.build());
+    ImmutableSet.Builder<CelEnvironment.Limit> limits = ImmutableSet.builder();
+    if (options.maxExpressionCodePointSize() != CelOptions.DEFAULT.maxExpressionCodePointSize()) {
+      limits.add(
+          CelEnvironment.Limit.create(
+              "cel.limit.expression_code_points", options.maxExpressionCodePointSize()));
+    }
+    if (options.maxParseErrorRecoveryLimit() != CelOptions.DEFAULT.maxParseErrorRecoveryLimit()) {
+      limits.add(
+          CelEnvironment.Limit.create(
+              "cel.limit.parse_error_recovery", options.maxParseErrorRecoveryLimit()));
+    }
+    if (options.maxParseRecursionDepth() != CelOptions.DEFAULT.maxParseRecursionDepth()) {
+      limits.add(
+          CelEnvironment.Limit.create(
+              "cel.limit.parse_recursion_depth", options.maxParseRecursionDepth()));
+    }
+    envBuilder.setLimits(limits.build());
   }
 
   /**

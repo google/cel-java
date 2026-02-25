@@ -41,6 +41,10 @@ functions:
 features:
   - name: cel.feature.macro_call_tracking
     enabled: true
+limits:
+- name: cel.limit.expression_code_points
+  value: 1000
+- cel.limit.parse_recursion_depth: 7
 # TODO: Add support for below
 #validators:
 #- name: cel.validator.duration

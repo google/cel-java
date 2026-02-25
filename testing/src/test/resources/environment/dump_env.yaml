@@ -87,3 +87,10 @@ features:
   enabled: true
 - name: cel.feature.backtick_escape_syntax
   enabled: false
+limits:
+- name: cel.limit.expression_code_points
+  value: 1000
+- name: cel.limit.parse_error_recovery
+  value: 10
+- name: cel.limit.parse_recursion_depth
+  value: 7

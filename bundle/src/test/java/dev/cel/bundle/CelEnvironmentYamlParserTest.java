@@ -109,6 +109,35 @@ public final class CelEnvironmentYamlParserTest {
   }
 
   @Test
+  public void environment_setLimits() throws Exception {
+    String yamlConfig =
+        "name: hello\n"
+            + "description: empty\n"
+            + "limits:\n"
+            + "  - name: 'cel.limit.expression_code_points'\n"
+            + "    value: 1000\n"
+            + "  - name: 'cel.limit.parse_error_recovery'\n"
+            + "    value: 10\n"
+            + "  - name: 'cel.limit.parse_recursion_depth'\n"
+            + "    value: 7";
+
+    CelEnvironment environment = ENVIRONMENT_PARSER.parse(yamlConfig);
+
+    assertThat(environment)
+        .isEqualTo(
+            CelEnvironment.newBuilder()
+                .setSource(environment.source().get())
+                .setName("hello")
+                .setDescription("empty")
+                .setLimits(
+                    ImmutableSet.of(
+                        CelEnvironment.Limit.create("cel.limit.expression_code_points", 1000),
+                        CelEnvironment.Limit.create("cel.limit.parse_error_recovery", 10),
+                        CelEnvironment.Limit.create("cel.limit.parse_recursion_depth", 7)))
+                .build());
+  }
+
+  @Test
   public void environment_setExtensions() throws Exception {
     String yamlConfig =
         "extensions:\n"
@@ -699,6 +728,30 @@ public final class CelEnvironmentYamlParserTest {
         "ERROR: <input>:6:7: Unsupported alias tag: unknown_tag\n"
             + " |       unknown_tag: 'test_value'\n"
             + " | ......^"),
+    UNSUPPORTED_LIMIT_TAG(
+        "limits:\n"
+            + "  - name: 'test_limit'\n"
+            + "    unknown_tag: 'test_value'\n"
+            + "    value: 100\n",
+        "ERROR: <input>:3:5: Unsupported limits tag: unknown_tag\n"
+            + " |     unknown_tag: 'test_value'\n"
+            + " | ....^"),
+    MISSING_LIMIT_NAME(
+        "limits:\n" + "  - value: 100\n",
+        "ERROR: <input>:2:5: Missing required attribute(s): name\n"
+            + " |   - value: 100\n"
+            + " | ....^"),
+    MISSING_LIMIT_VALUE(
+        "limits:\n" + "  - name: 'test_limit'\n",
+        "ERROR: <input>:2:5: Missing required attribute(s): value\n"
+            + " |   - name: 'test_limit'\n"
+            + " | ....^"),
+    ILLEGAL_LIMIT_VALUE(
+        "limits:\n" + "  - cel.limit.foo: 'not_a_number'\n",
+        "ERROR: <input>:2:21: Got yaml node type tag:yaml.org,2002:str, wanted type(s)"
+            + " [tag:yaml.org,2002:int]\n"
+            + " |   - cel.limit.foo: 'not_a_number'\n"
+            + " | ....................^"),
     ILLEGAL_FEATURE_TAG(
         "features:\n" + "  - name: 'test_feature'\n" + "    unknown_tag: 'test_value'\n",
         "ERROR: <input>:3:5: Unsupported feature tag: unknown_tag\n"
@@ -831,6 +884,10 @@ public final class CelEnvironmentYamlParserTest {
                             .setReturnType(TypeDecl.create("bool"))
                             .build())))
             .setFeatures(CelEnvironment.FeatureFlag.create("cel.feature.macro_call_tracking", true))
+            .setLimits(
+                ImmutableSet.of(
+                    CelEnvironment.Limit.create("cel.limit.expression_code_points", 1000),
+                    CelEnvironment.Limit.create("cel.limit.parse_recursion_depth", 7)))
             .build()),
 
     LIBRARY_SUBSET_ENV(

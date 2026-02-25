@@ -125,6 +125,37 @@ public class CelEnvironmentTest {
   }
 
   @Test
+  public void extend_allLimits() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setLimits(
+                CelEnvironment.Limit.create("cel.limit.expression_code_points", 20),
+                CelEnvironment.Limit.create("cel.limit.parse_error_recovery", 10),
+                CelEnvironment.Limit.create("cel.limit.parse_recursion_depth", 10))
+            .build();
+
+    Cel cel =
+        environment.extend(
+            CelFactory.standardCelBuilder()
+                .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+                .build(),
+            CelOptions.DEFAULT);
+    CelOptions checkerOptions = cel.toCheckerBuilder().options();
+    assertThat(checkerOptions.maxExpressionCodePointSize()).isEqualTo(20);
+    assertThat(checkerOptions.maxParseErrorRecoveryLimit()).isEqualTo(10);
+    assertThat(checkerOptions.maxParseRecursionDepth()).isEqualTo(10);
+
+    CelAbstractSyntaxTree ast = cel.compile("1 + 2 + 3 + 4 + 5").getAst();
+    Long result = (Long) cel.createProgram(ast).eval();
+    assertThat(result).isEqualTo(15L);
+
+    CelValidationResult validationResult = cel.compile("1 + 2 + 3 + 4 + 5 + 6");
+    assertThat(validationResult.hasError()).isTrue();
+    assertThat(validationResult.getErrorString())
+        .contains("expression code point size exceeds limit: size: 21, limit 20");
+  }
+
+  @Test
   public void extend_unsupportedFeatureFlag_throws() throws Exception {
     CelEnvironment environment =
         CelEnvironment.newBuilder()
@@ -141,6 +172,25 @@ public class CelEnvironmentTest {
                         .build(),
                     CelOptions.DEFAULT));
     assertThat(e).hasMessageThat().contains("Unknown feature flag: unknown.feature");
+  }
+
+  @Test
+  public void extend_unsupportedLimit_throws() throws Exception {
+    CelEnvironment environment =
+        CelEnvironment.newBuilder()
+            .setLimits(CelEnvironment.Limit.create("unknown.limit", 5))
+            .build();
+
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                environment.extend(
+                    CelFactory.standardCelBuilder()
+                        .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+                        .build(),
+                    CelOptions.DEFAULT));
+    assertThat(e).hasMessageThat().contains("Unknown limit: unknown.limit");
   }
 
   @Test
