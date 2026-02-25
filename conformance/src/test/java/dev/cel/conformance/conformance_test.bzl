@@ -38,10 +38,14 @@ def _expand_tests_to_skip(tests_to_skip):
             result.append(test_to_skip[0:slash] + part)
     return result
 
-def _conformance_test_args(data, skip_tests):
+def _conformance_test_args(data, skip_tests, use_planner):
     args = []
     args.append("-Ddev.cel.conformance.ConformanceTests.skip_tests={}".format(",".join(_expand_tests_to_skip(skip_tests))))
     args.append("-Ddev.cel.conformance.ConformanceTests.tests={}".format(",".join(["$(location " + test + ")" for test in data])))
+    if use_planner:
+        args.append("-Ddev.cel.conformance.ConformanceTests.use_planner=true")
+    else:
+        args.append("-Ddev.cel.conformance.ConformanceTests.use_planner=false")
     return args
 
 MODE = struct(
@@ -53,7 +57,7 @@ MODE = struct(
     DASHBOARD = "dashboard",
 )
 
-def conformance_test(name, data, mode = MODE.TEST, skip_tests = []):
+def conformance_test(name, data, mode = MODE.TEST, skip_tests = [], use_planner = False):
     """Executes conformance tests
 
     Args:
@@ -69,7 +73,7 @@ def conformance_test(name, data, mode = MODE.TEST, skip_tests = []):
     if mode == MODE.DASHBOARD:
         java_test(
             name = "_" + name,
-            jvm_flags = _conformance_test_args(data, skip_tests),
+            jvm_flags = _conformance_test_args(data, skip_tests, use_planner),
             data = data,
             size = "small",
             test_class = "dev.cel.conformance.ConformanceTests",
@@ -95,7 +99,7 @@ def conformance_test(name, data, mode = MODE.TEST, skip_tests = []):
     elif mode == MODE.TEST:
         java_test(
             name = name,
-            jvm_flags = _conformance_test_args(data, skip_tests),
+            jvm_flags = _conformance_test_args(data, skip_tests, use_planner),
             data = data,
             size = "small",
             test_class = "dev.cel.conformance.ConformanceTests",
@@ -104,7 +108,7 @@ def conformance_test(name, data, mode = MODE.TEST, skip_tests = []):
     elif mode == MODE.MAVEN_TEST:
         java_test(
             name = name,
-            jvm_flags = _conformance_test_args(data, skip_tests),
+            jvm_flags = _conformance_test_args(data, skip_tests, use_planner),
             data = data,
             size = "small",
             test_class = "dev.cel.conformance.ConformanceTests",
