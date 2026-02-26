@@ -175,8 +175,6 @@ _TESTS_TO_SKIP_PLANNER = [
     "timestamps/timestamp_range/sub_time_duration_under",
 
     # Skip until fixed.
-    "fields/qualified_identifier_resolution/map_key_float",
-    "fields/qualified_identifier_resolution/map_key_null",
     "fields/qualified_identifier_resolution/map_value_repeat_key_heterogeneous",
     "optionals/optionals/map_null_entry_no_such_key",
     "optionals/optionals/map_present_key_invalid_field",

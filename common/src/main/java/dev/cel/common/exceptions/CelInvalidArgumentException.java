@@ -24,4 +24,8 @@ public final class CelInvalidArgumentException extends CelRuntimeException {
   public CelInvalidArgumentException(Throwable cause) {
     super(cause, CelErrorCode.INVALID_ARGUMENT);
   }
+
+  public CelInvalidArgumentException(String message) {
+    super(message, CelErrorCode.INVALID_ARGUMENT);
+  }
 }

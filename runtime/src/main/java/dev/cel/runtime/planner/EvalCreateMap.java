@@ -17,8 +17,10 @@ package dev.cel.runtime.planner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.UnsignedLong;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.exceptions.CelDuplicateKeyException;
+import dev.cel.common.exceptions.CelInvalidArgumentException;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.GlobalResolver;
 import java.util.HashSet;
@@ -46,11 +48,22 @@ final class EvalCreateMap extends PlannedInterpretable {
     HashSet<Object> keysSeen = Sets.newHashSetWithExpectedSize(keys.length);
 
     for (int i = 0; i < keys.length; i++) {
-      Object key = keys[i].eval(resolver, frame);
+      PlannedInterpretable keyInterpretable = keys[i];
+      Object key = keyInterpretable.eval(resolver, frame);
+      if (!(key instanceof String
+          || key instanceof Long
+          || key instanceof UnsignedLong
+          || key instanceof Boolean)) {
+        throw new LocalizedEvaluationException(
+            new CelInvalidArgumentException("Unsupported key type: " + key),
+            keyInterpretable.exprId());
+      }
+
       Object val = values[i].eval(resolver, frame);
 
       if (!keysSeen.add(key)) {
-        throw new LocalizedEvaluationException(CelDuplicateKeyException.of(key), keys[i].exprId());
+        throw new LocalizedEvaluationException(
+            CelDuplicateKeyException.of(key), keyInterpretable.exprId());
       }
 
       if (isOptional[i]) {

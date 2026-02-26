@@ -391,6 +391,17 @@ public final class ProgramPlannerTest {
   }
 
   @Test
+  public void plan_createMap_unsupportedKeyType_throws() throws Exception {
+    CelAbstractSyntaxTree ast = compile("{1.0: 'foo'}");
+    Program program = PLANNER.plan(ast);
+
+    CelEvaluationException e = assertThrows(CelEvaluationException.class, program::eval);
+    assertThat(e)
+        .hasMessageThat()
+        .contains("evaluation error at <input>:1: Unsupported key type: 1.0");
+  }
+
+  @Test
   public void plan_createStruct() throws Exception {
     CelAbstractSyntaxTree ast = compile("cel.expr.conformance.proto3.TestAllTypes{}");
     Program program = PLANNER.plan(ast);
