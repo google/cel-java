@@ -45,7 +45,9 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntime.Program;
+import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeFactory;
+import dev.cel.runtime.CelRuntimeImpl;
 import dev.cel.runtime.CelRuntimeLibrary;
 import java.util.Map;
 import org.junit.runners.model.Statement;
@@ -118,15 +120,25 @@ public final class ConformanceTest extends Statement {
         .build();
   }
 
-  private static final CelRuntime RUNTIME =
-      CelRuntimeFactory.standardCelRuntimeBuilder()
-          .setOptions(OPTIONS)
-          .addLibraries(CANONICAL_RUNTIME_EXTENSIONS)
-          .setExtensionRegistry(DEFAULT_EXTENSION_REGISTRY)
-          .addMessageTypes(dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor())
-          .addMessageTypes(dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor())
-          .addFileTypes(dev.cel.expr.conformance.proto2.TestAllTypesExtensions.getDescriptor())
-          .build();
+  private static CelRuntime getRuntime(SimpleTest test, boolean usePlanner) {
+    CelRuntimeBuilder builder =
+        usePlanner ? CelRuntimeImpl.newBuilder() : CelRuntimeFactory.standardCelRuntimeBuilder();
+
+    builder
+        // CEL-Internal-2
+        .setOptions(OPTIONS)
+        .addLibraries(CANONICAL_RUNTIME_EXTENSIONS)
+        .setExtensionRegistry(DEFAULT_EXTENSION_REGISTRY)
+        .addMessageTypes(dev.cel.expr.conformance.proto2.TestAllTypes.getDescriptor())
+        .addMessageTypes(dev.cel.expr.conformance.proto3.TestAllTypes.getDescriptor())
+        .addFileTypes(dev.cel.expr.conformance.proto2.TestAllTypesExtensions.getDescriptor());
+
+    if (usePlanner) {
+      builder.setContainer(CelContainer.ofName(test.getContainer()));
+    }
+
+    return builder.build();
+  }
 
   private static ImmutableMap<String, Object> getBindings(SimpleTest test) throws Exception {
     ImmutableMap.Builder<String, Object> bindings =
@@ -157,13 +169,15 @@ public final class ConformanceTest extends Statement {
   private final String name;
   private final SimpleTest test;
   private final boolean skip;
+  private final boolean usePlanner;
 
-  public ConformanceTest(String name, SimpleTest test, boolean skip) {
+  public ConformanceTest(String name, SimpleTest test, boolean skip, boolean usePlanner) {
     this.name = Preconditions.checkNotNull(name);
     this.test =
         Preconditions.checkNotNull(
             defaultTestMatcherToTrueIfUnset(Preconditions.checkNotNull(test)));
     this.skip = skip;
+    this.usePlanner = usePlanner;
   }
 
   public String getName() {
@@ -178,7 +192,9 @@ public final class ConformanceTest extends Statement {
   public void evaluate() throws Throwable {
     CelValidationResult response = getParser(test).parse(test.getExpr(), test.getName());
     assertThat(response.hasError()).isFalse();
-    response = getChecker(test).check(response.getAst());
+    if (!test.getDisableCheck()) {
+      response = getChecker(test).check(response.getAst());
+    }
     assertThat(response.hasError()).isFalse();
     Type resultType = CelProtoTypes.celTypeToType(response.getAst().getResultType());
 
@@ -188,7 +204,13 @@ public final class ConformanceTest extends Statement {
       return;
     }
 
-    Program program = RUNTIME.createProgram(response.getAst());
+    if (!usePlanner && test.getDisableCheck()) {
+      // Only planner supports parsed-only evaluation
+      return;
+    }
+
+    CelRuntime runtime = getRuntime(test, usePlanner);
+    Program program = runtime.createProgram(response.getAst());
     ExprValue result = null;
     CelEvaluationException error = null;
     try {

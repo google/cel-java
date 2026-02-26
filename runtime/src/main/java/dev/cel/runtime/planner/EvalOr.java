@@ -39,8 +39,11 @@ final class EvalOr extends PlannedInterpretable {
         errorValue = (ErrorValue) argVal;
       } else {
         // TODO: Handle unknowns
-        throw new IllegalArgumentException(
-            String.format("Expected boolean value, found: %s", argVal));
+        errorValue =
+            ErrorValue.create(
+                arg.exprId(),
+                new IllegalArgumentException(
+                    String.format("Expected boolean value, found: %s", argVal)));
       }
     }
 

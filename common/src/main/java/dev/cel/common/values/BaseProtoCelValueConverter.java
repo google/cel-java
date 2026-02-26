@@ -17,6 +17,8 @@ package dev.cel.common.values;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -27,6 +29,7 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.DoubleValue;
 import com.google.protobuf.Duration;
+import com.google.protobuf.FieldMask;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
@@ -41,6 +44,8 @@ import com.google.protobuf.Value;
 import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.ProtoTimeUtils;
 import dev.cel.common.internal.WellKnownProto;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * {@code BaseProtoCelValueConverter} contains the common logic for converting between native Java
@@ -98,6 +103,17 @@ public abstract class BaseProtoCelValueConverter extends CelValueConverter {
         return UnsignedLong.valueOf(((UInt32Value) message).getValue());
       case UINT64_VALUE:
         return UnsignedLong.fromLongBits(((UInt64Value) message).getValue());
+      case FIELD_MASK:
+        FieldMask fieldMask = (FieldMask) message;
+        List<String> paths = new ArrayList<>(fieldMask.getPathsCount());
+        for (String path : fieldMask.getPathsList()) {
+          if (!path.isEmpty()) {
+            paths.add(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, path));
+          }
+        }
+        return normalizePrimitive(Joiner.on(",").join(paths));
+      case EMPTY:
+        return ImmutableMap.of();
       default:
         throw new UnsupportedOperationException(
             "Unsupported well known proto conversion - " + wellKnownProto);

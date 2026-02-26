@@ -43,6 +43,7 @@ public final class ConformanceTestRunner extends ParentRunner<ConformanceTest> {
 
   private final ImmutableSortedMap<String, SimpleTestFile> testFiles;
   private final ImmutableList<String> testsToSkip;
+  private final boolean usePlanner;
 
   private static ImmutableSortedMap<String, SimpleTestFile> loadTestFiles() {
     List<String> testPaths =
@@ -75,6 +76,9 @@ public final class ConformanceTestRunner extends ParentRunner<ConformanceTest> {
         ImmutableList.copyOf(
             SPLITTER.splitToList(
                 System.getProperty("dev.cel.conformance.ConformanceTests.skip_tests")));
+    usePlanner =
+        Boolean.parseBoolean(
+            System.getProperty("dev.cel.conformance.ConformanceTests.use_planner", "false"));
   }
 
   private boolean shouldSkipTest(String name) {
@@ -97,8 +101,7 @@ public final class ConformanceTestRunner extends ParentRunner<ConformanceTest> {
         for (SimpleTest test : testSection.getTestList()) {
           String name =
               String.format("%s/%s/%s", testFile.getName(), testSection.getName(), test.getName());
-          tests.add(
-              new ConformanceTest(name, test, test.getDisableCheck() || shouldSkipTest(name)));
+          tests.add(new ConformanceTest(name, test, shouldSkipTest(name), usePlanner));
         }
       }
     }

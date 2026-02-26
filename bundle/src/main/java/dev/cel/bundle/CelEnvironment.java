@@ -672,6 +672,10 @@ public abstract class CelEnvironment {
             return TypeParamType.create(name());
           }
 
+          if (name().equals("dyn")) {
+            return SimpleType.DYN;
+          }
+
           CelType simpleType = SimpleType.findByName(name()).orElse(null);
           if (simpleType != null) {
             return simpleType;

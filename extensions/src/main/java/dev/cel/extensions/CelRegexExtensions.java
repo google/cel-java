@@ -123,7 +123,8 @@ public final class CelRegexExtensions
 
     Function(CelFunctionDecl functionDecl, ImmutableSet<CelFunctionBinding> functionBindings) {
       this.functionDecl = functionDecl;
-      this.functionBindings = functionBindings;
+      this.functionBindings =
+          CelFunctionBinding.fromOverloads(functionDecl.name(), functionBindings);
     }
   }
 

@@ -54,6 +54,10 @@ public class CelValueConverter {
       return Optional.of(optionalValue.value());
     }
 
+    if (celValue instanceof ErrorValue) {
+      return celValue;
+    }
+
     return celValue.value();
   }
 
