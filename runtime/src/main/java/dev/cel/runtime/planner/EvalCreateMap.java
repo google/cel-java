@@ -59,12 +59,25 @@ final class EvalCreateMap extends PlannedInterpretable {
             keyInterpretable.exprId());
       }
 
-      Object val = values[i].eval(resolver, frame);
+      boolean isDuplicate = !keysSeen.add(key);
+      if (!isDuplicate) {
+        if (key instanceof Long) {
+          long longVal = (Long) key;
+          if (longVal >= 0) {
+            isDuplicate = keysSeen.contains(UnsignedLong.valueOf(longVal));
+          }
+        } else if (key instanceof UnsignedLong) {
+          UnsignedLong ulongVal = (UnsignedLong) key;
+          isDuplicate = keysSeen.contains(ulongVal.longValue());
+        }
+      }
 
-      if (!keysSeen.add(key)) {
+      if (isDuplicate) {
         throw new LocalizedEvaluationException(
             CelDuplicateKeyException.of(key), keyInterpretable.exprId());
       }
+
+      Object val = values[i].eval(resolver, frame);
 
       if (isOptional[i]) {
         if (!(val instanceof Optional)) {
