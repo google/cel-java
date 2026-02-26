@@ -138,7 +138,7 @@ java_library(
         "//common/types:type_providers",
         "//extensions",
         "//runtime",
-        "//runtime:runtime_planner_impl",
+        "//runtime:runtime_experimental_factory",
         "//testing:base_interpreter_test",
         "@maven//:com_google_testparameterinjector_test_parameter_injector",
         "@maven//:junit_junit",

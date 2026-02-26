@@ -38,7 +38,6 @@ import dev.cel.common.CelOptions;
 import dev.cel.common.CelSource;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.CelVarDecl;
-import dev.cel.common.annotations.Internal;
 import dev.cel.common.internal.EnvVisitable;
 import dev.cel.common.internal.EnvVisitor;
 import dev.cel.common.internal.FileDescriptorSetConverter;
@@ -65,14 +64,9 @@ import java.util.function.Function;
  * Implementation of the synchronous CEL stack.
  *
  * <p>Note, the underlying {@link CelCompiler} and {@link CelRuntime} values are constructed lazily.
- *
- * <p>CEL Library Internals. Do Not Use. Consumers should use {@code CelFactory} instead.
- *
- * <p>TODO: Restrict visibility once factory is introduced
  */
 @Immutable
-@Internal
-public final class CelImpl implements Cel, EnvVisitable {
+final class CelImpl implements Cel, EnvVisitable {
 
   // The lazily constructed compiler and runtime values are memoized and guaranteed to be
   // constructed only once without side effects, thus making them effectively immutable.
@@ -151,11 +145,8 @@ public final class CelImpl implements Cel, EnvVisitable {
    * <p>By default, {@link CelOptions#DEFAULT} are enabled, as is the CEL standard environment.
    *
    * <p>CEL Library Internals. Do Not Use. Consumers should use {@code CelFactory} instead.
-   *
-   * <p>TODO: Restrict visibility once factory is introduced
    */
-  @Internal
-  public static CelBuilder newBuilder(
+  static CelBuilder newBuilder(
       CelCompilerBuilder compilerBuilder, CelRuntimeBuilder celRuntimeBuilder) {
     return new CelImpl.Builder(compilerBuilder, celRuntimeBuilder);
   }

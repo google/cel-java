@@ -913,6 +913,19 @@ java_library(
 )
 
 java_library(
+    name = "runtime_experimental_factory",
+    srcs = ["CelRuntimeExperimentalFactory.java"],
+    tags = [
+    ],
+    deps = [
+        ":runtime",
+        ":runtime_planner_impl",
+        "//common:options",
+        "//common/annotations",
+    ],
+)
+
+java_library(
     name = "runtime",
     srcs = RUNTIME_SOURCES,
     tags = [

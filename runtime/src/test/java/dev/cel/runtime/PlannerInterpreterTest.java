@@ -33,9 +33,8 @@ public class PlannerInterpreterTest extends BaseInterpreterTest {
 
   @Override
   protected CelRuntimeBuilder newBaseRuntimeBuilder(CelOptions celOptions) {
-    return CelRuntimeImpl.newBuilder()
+    return CelRuntimeExperimentalFactory.plannerRuntimeBuilder()
         .addLateBoundFunctions("record")
-        // CEL-Internal-2
         .setOptions(celOptions)
         .addLibraries(CelExtensions.optional())
         .addFileTypes(TEST_FILE_DESCRIPTORS);

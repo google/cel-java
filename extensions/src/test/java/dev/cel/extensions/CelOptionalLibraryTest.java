@@ -26,9 +26,8 @@ import com.google.testing.junit.testparameterinjector.TestParameterInjector;
 import com.google.testing.junit.testparameterinjector.TestParameters;
 import dev.cel.bundle.Cel;
 import dev.cel.bundle.CelBuilder;
+import dev.cel.bundle.CelExperimentalFactory;
 import dev.cel.bundle.CelFactory;
-import dev.cel.bundle.CelImpl;
-import dev.cel.checker.CelCheckerLegacyImpl;
 import dev.cel.common.CelAbstractSyntaxTree;
 import dev.cel.common.CelContainer;
 import dev.cel.common.CelFunctionDecl;
@@ -46,16 +45,13 @@ import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelByteString;
 import dev.cel.common.values.NullValue;
 import dev.cel.compiler.CelCompiler;
-import dev.cel.compiler.CelCompilerImpl;
 import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.parser.CelMacro;
-import dev.cel.parser.CelParserImpl;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime;
-import dev.cel.runtime.CelRuntimeImpl;
 import dev.cel.runtime.InterpreterUtil;
 import java.time.Duration;
 import java.time.Instant;
@@ -106,17 +102,6 @@ public class CelOptionalLibraryTest {
     }
   }
 
-  private static CelBuilder plannerCelBuilder() {
-    // TODO: Replace with factory once available.
-    return CelImpl.newBuilder(
-            CelCompilerImpl.newBuilder(
-                CelParserImpl.newBuilder(),
-                CelCheckerLegacyImpl.newBuilder().setStandardEnvironmentEnabled(true)),
-            CelRuntimeImpl.newBuilder())
-        // CEL-Internal-2
-        .setOptions(CelOptions.current().build());
-  }
-
   private CelBuilder newCelBuilder() {
     return newCelBuilder(Integer.MAX_VALUE);
   }
@@ -126,7 +111,7 @@ public class CelOptionalLibraryTest {
     switch (testMode) {
       case PLANNER_PARSE_ONLY:
       case PLANNER_CHECKED:
-        celBuilder = plannerCelBuilder();
+        celBuilder = CelExperimentalFactory.plannerCelBuilder();
         break;
       case LEGACY_CHECKED:
         celBuilder = CelFactory.standardCelBuilder();
