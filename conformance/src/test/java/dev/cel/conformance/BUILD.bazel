@@ -175,8 +175,6 @@ _TESTS_TO_SKIP_PLANNER = [
     "timestamps/timestamp_range/sub_time_duration_under",
 
     # Skip until fixed.
-    "optionals/optionals/map_null_entry_no_such_key",
-    "optionals/optionals/map_present_key_invalid_field",
     "parse/receiver_function_names",
     "proto2/extensions_get/package_scoped_test_all_types_ext",
     "proto2/extensions_get/package_scoped_repeated_test_all_types",

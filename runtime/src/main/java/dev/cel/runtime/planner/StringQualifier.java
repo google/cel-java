@@ -15,6 +15,7 @@
 package dev.cel.runtime.planner;
 
 import dev.cel.common.exceptions.CelAttributeNotFoundException;
+import dev.cel.common.values.OptionalValue;
 import dev.cel.common.values.SelectableValue;
 import java.util.Map;
 
@@ -31,21 +32,34 @@ final class StringQualifier implements Qualifier {
   @Override
   @SuppressWarnings("unchecked") // Qualifications on maps/structs must be a string
   public Object qualify(Object obj) {
+    if (obj instanceof OptionalValue) {
+      OptionalValue<?, ?> opt = (OptionalValue<?, ?>) obj;
+      if (!opt.isZeroValue()) {
+        Object inner = opt.value();
+        if (!(inner instanceof SelectableValue) && !(inner instanceof Map)) {
+          throw CelAttributeNotFoundException.forFieldResolution(value);
+        }
+      }
+    }
+
     if (obj instanceof SelectableValue) {
       return ((SelectableValue<String>) obj).select(value);
-    } else if (obj instanceof Map) {
-      Map<String, Object> map = (Map<String, Object>) obj;
+    }
+
+    if (obj instanceof Map) {
+      Map<?, ?> map = (Map<?, ?>) obj;
+      Object mapVal = map.get(value);
+
+      if (mapVal != null) {
+        return mapVal;
+      }
+
       if (!map.containsKey(value)) {
         throw CelAttributeNotFoundException.forMissingMapKey(value);
       }
 
-      Object mapVal = map.get(value);
-
-      if (mapVal == null) {
-        throw CelAttributeNotFoundException.of(
-            String.format("Map value cannot be null for key: %s", value));
-      }
-      return map.get(value);
+      throw CelAttributeNotFoundException.of(
+          String.format("Map value cannot be null for key: %s", value));
     }
 
     throw CelAttributeNotFoundException.forFieldResolution(value);
