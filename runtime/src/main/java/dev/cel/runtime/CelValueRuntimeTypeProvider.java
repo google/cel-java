@@ -22,7 +22,6 @@ import dev.cel.common.annotations.Internal;
 import dev.cel.common.exceptions.CelAttributeNotFoundException;
 import dev.cel.common.values.BaseProtoCelValueConverter;
 import dev.cel.common.values.BaseProtoMessageValueProvider;
-import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueProvider;
 import dev.cel.common.values.CombinedCelValueProvider;
 import dev.cel.common.values.SelectableValue;
@@ -64,7 +63,7 @@ final class CelValueRuntimeTypeProvider implements RuntimeTypeProvider {
 
   @Override
   public Object createMessage(String messageName, Map<String, Object> values) {
-    return maybeUnwrapCelValue(
+    return protoCelValueConverter.maybeUnwrap(
         valueProvider
             .newValue(messageName, values)
             .orElseThrow(
@@ -87,7 +86,7 @@ final class CelValueRuntimeTypeProvider implements RuntimeTypeProvider {
     SelectableValue<String> selectableValue = getSelectableValueOrThrow(message, fieldName);
     Object value = selectableValue.select(fieldName);
 
-    return maybeUnwrapCelValue(value);
+    return protoCelValueConverter.maybeUnwrap(value);
   }
 
   @Override
@@ -120,22 +119,10 @@ final class CelValueRuntimeTypeProvider implements RuntimeTypeProvider {
     }
 
     if (message instanceof MessageLite) {
-      return maybeUnwrapCelValue(protoCelValueConverter.toRuntimeValue(message));
+      return protoCelValueConverter.maybeUnwrap(protoCelValueConverter.toRuntimeValue(message));
     }
 
     return message;
-  }
-
-  /**
-   * DefaultInterpreter cannot handle CelValue and instead expects plain Java objects.
-   *
-   * <p>This will become unnecessary once we introduce a rewrite of a Cel runtime.
-   */
-  private Object maybeUnwrapCelValue(Object object) {
-    if (object instanceof CelValue) {
-      return protoCelValueConverter.unwrap((CelValue) object);
-    }
-    return object;
   }
 
   private static void throwInvalidFieldSelection(String fieldName) {

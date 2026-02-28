@@ -176,12 +176,6 @@ _TESTS_TO_SKIP_PLANNER = [
 
     # Skip until fixed.
     "parse/receiver_function_names",
-    "proto2/extensions_get/package_scoped_test_all_types_ext",
-    "proto2/extensions_get/package_scoped_repeated_test_all_types",
-    "proto2/extensions_get/message_scoped_nested_ext",
-    "proto2/extensions_get/message_scoped_repeated_test_all_types",
-    "proto2_ext/get_ext/package_scoped_repeated_test_all_types",
-    "proto2_ext/get_ext/message_scoped_repeated_test_all_types",
 
     # TODO: Fix null assignment to a field
     "proto2/set_null/single_message",

@@ -22,7 +22,6 @@ import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.EnumType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeType;
-import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.GlobalResolver;
 import java.util.NoSuchElementException;
@@ -148,11 +147,7 @@ final class NamespacedAttribute implements Attribute {
       obj = qualifier.qualify(obj);
     }
 
-    if (obj instanceof CelValue) {
-      obj = celValueConverter.unwrap((CelValue) obj);
-    }
-
-    return obj;
+    return celValueConverter.maybeUnwrap(obj);
   }
 
   static NamespacedAttribute create(

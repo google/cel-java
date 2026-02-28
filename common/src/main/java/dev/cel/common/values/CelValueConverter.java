@@ -41,24 +41,39 @@ public class CelValueConverter {
     return DEFAULT_INSTANCE;
   }
 
-  /** Adapts a {@link CelValue} to a plain old Java Object. */
-  public Object unwrap(CelValue celValue) {
-    Preconditions.checkNotNull(celValue);
+  /**
+   * Unwraps the {@code value} into its plain old Java Object representation.
+   *
+   * <p>The value may be a {@link CelValue}, a {@link Collection} or a {@link Map}.
+   */
+  public Object maybeUnwrap(Object value) {
+    if (value instanceof CelValue) {
+      return unwrap((CelValue) value);
+    }
 
-    if (celValue instanceof OptionalValue) {
-      OptionalValue<Object, Object> optionalValue = (OptionalValue<Object, Object>) celValue;
-      if (optionalValue.isZeroValue()) {
-        return Optional.empty();
+    if (value instanceof Collection) {
+      Collection<Object> collection = (Collection<Object>) value;
+      ImmutableList.Builder<Object> builder =
+          ImmutableList.builderWithExpectedSize(collection.size());
+      for (Object element : collection) {
+        builder.add(maybeUnwrap(element));
       }
 
-      return Optional.of(optionalValue.value());
+      return builder.build();
     }
 
-    if (celValue instanceof ErrorValue) {
-      return celValue;
+    if (value instanceof Map) {
+      Map<Object, Object> map = (Map<Object, Object>) value;
+      ImmutableMap.Builder<Object, Object> builder =
+          ImmutableMap.builderWithExpectedSize(map.size());
+      for (Map.Entry<Object, Object> entry : map.entrySet()) {
+        builder.put(maybeUnwrap(entry.getKey()), maybeUnwrap(entry.getValue()));
+      }
+
+      return builder.buildOrThrow();
     }
 
-    return celValue.value();
+    return value;
   }
 
   /**
@@ -99,6 +114,26 @@ public class CelValueConverter {
     }
 
     return value;
+  }
+
+  /** Adapts a {@link CelValue} to a plain old Java Object. */
+  private static Object unwrap(CelValue celValue) {
+    Preconditions.checkNotNull(celValue);
+
+    if (celValue instanceof OptionalValue) {
+      OptionalValue<Object, Object> optionalValue = (OptionalValue<Object, Object>) celValue;
+      if (optionalValue.isZeroValue()) {
+        return Optional.empty();
+      }
+
+      return Optional.of(optionalValue.value());
+    }
+
+    if (celValue instanceof ErrorValue) {
+      return celValue;
+    }
+
+    return celValue.value();
   }
 
   private ImmutableList<Object> toListValue(Collection<Object> iterable) {

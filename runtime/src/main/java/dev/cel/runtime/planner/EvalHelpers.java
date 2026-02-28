@@ -17,7 +17,6 @@ package dev.cel.runtime.planner;
 import com.google.common.base.Joiner;
 import dev.cel.common.CelErrorCode;
 import dev.cel.common.exceptions.CelRuntimeException;
-import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.common.values.ErrorValue;
 import dev.cel.runtime.CelEvaluationException;
@@ -56,23 +55,21 @@ final class EvalHelpers {
     }
   }
 
-  static Object dispatch(CelResolvedOverload overload, CelValueConverter valueConverter, Object[] args) throws CelEvaluationException {
+  static Object dispatch(
+      CelResolvedOverload overload, CelValueConverter valueConverter, Object[] args)
+      throws CelEvaluationException {
     try {
       Object result = overload.getDefinition().apply(args);
-      Object runtimeValue = valueConverter.toRuntimeValue(result);
-      if (runtimeValue instanceof CelValue) {
-        return valueConverter.unwrap((CelValue) runtimeValue);
-      }
-
-      return runtimeValue;
+      return valueConverter.maybeUnwrap(valueConverter.toRuntimeValue(result));
     } catch (CelRuntimeException e) {
       // Function dispatch failure that's already been handled -- just propagate.
       throw e;
     } catch (RuntimeException e) {
       // Unexpected function dispatch failure.
-      throw new IllegalArgumentException(String.format(
-          "Function '%s' failed with arg(s) '%s'",
-          overload.getOverloadId(), Joiner.on(", ").join(args)),
+      throw new IllegalArgumentException(
+          String.format(
+              "Function '%s' failed with arg(s) '%s'",
+              overload.getOverloadId(), Joiner.on(", ").join(args)),
           e);
     }
   }

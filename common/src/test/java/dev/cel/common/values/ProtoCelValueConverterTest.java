@@ -35,7 +35,7 @@ public class ProtoCelValueConverterTest {
 
   @Test
   public void unwrap_nullValue() {
-    NullValue nullValue = (NullValue) PROTO_CEL_VALUE_CONVERTER.unwrap(NullValue.NULL_VALUE);
+    NullValue nullValue = (NullValue) PROTO_CEL_VALUE_CONVERTER.maybeUnwrap(NullValue.NULL_VALUE);
 
     // Note: No conversion is attempted. We're using dev.cel.common.values.NullValue.NULL_VALUE as
     // the

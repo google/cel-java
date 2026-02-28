@@ -37,7 +37,8 @@ public class CelValueConverterTest {
   @Test
   @SuppressWarnings("unchecked") // Test only
   public void unwrap_optionalValue() {
-    Optional<Long> result = (Optional<Long>) CEL_VALUE_CONVERTER.unwrap(OptionalValue.create(2L));
+    Optional<Long> result =
+        (Optional<Long>) CEL_VALUE_CONVERTER.maybeUnwrap(OptionalValue.create(2L));
 
     assertThat(result).isEqualTo(Optional.of(2L));
   }
@@ -45,7 +46,7 @@ public class CelValueConverterTest {
   @Test
   @SuppressWarnings("unchecked") // Test only
   public void unwrap_emptyOptionalValue() {
-    Optional<Long> result = (Optional<Long>) CEL_VALUE_CONVERTER.unwrap(OptionalValue.EMPTY);
+    Optional<Long> result = (Optional<Long>) CEL_VALUE_CONVERTER.maybeUnwrap(OptionalValue.EMPTY);
 
     assertThat(result).isEqualTo(Optional.empty());
   }

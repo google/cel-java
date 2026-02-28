@@ -317,6 +317,35 @@ public final class ProgramPlannerTest {
   }
 
   @Test
+  public void plan_ident_variableWithStructInList() throws Exception {
+    CelAbstractSyntaxTree ast = compile("dyn_var");
+    Program program = PLANNER.plan(ast);
+
+    Object result =
+        program.eval(
+            ImmutableMap.of(
+                "dyn_var", ImmutableList.of(TestAllTypes.newBuilder().setSingleInt32(42).build())));
+
+    assertThat(result)
+        .isEqualTo(ImmutableList.of(TestAllTypes.newBuilder().setSingleInt32(42).build()));
+  }
+
+  @Test
+  public void plan_ident_variableWithStructInMap() throws Exception {
+    CelAbstractSyntaxTree ast = compile("dyn_var");
+    Program program = PLANNER.plan(ast);
+
+    Object result =
+        program.eval(
+            ImmutableMap.of(
+                "dyn_var",
+                ImmutableMap.of("foo", TestAllTypes.newBuilder().setSingleInt32(42).build())));
+
+    assertThat(result)
+        .isEqualTo(ImmutableMap.of("foo", TestAllTypes.newBuilder().setSingleInt32(42).build()));
+  }
+
+  @Test
   public void planIdent_typeLiteral(@TestParameter TypeLiteralTestCase testCase) throws Exception {
     CelAbstractSyntaxTree ast = compile(testCase.expression);
     Program program = PLANNER.plan(ast);

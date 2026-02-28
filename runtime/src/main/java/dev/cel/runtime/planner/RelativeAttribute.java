@@ -16,7 +16,6 @@ package dev.cel.runtime.planner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
-import dev.cel.common.values.CelValue;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.GlobalResolver;
 
@@ -41,10 +40,7 @@ final class RelativeAttribute implements Attribute {
     }
 
     // TODO: Handle unknowns
-    if (obj instanceof CelValue) {
-      obj = celValueConverter.unwrap((CelValue) obj);
-    }
-    return obj;
+    return celValueConverter.maybeUnwrap(obj);
   }
 
   @Override
