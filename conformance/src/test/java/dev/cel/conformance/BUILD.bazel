@@ -124,14 +124,6 @@ _TESTS_TO_SKIP_LEGACY = [
     "string_ext/format",
     "string_ext/format_errors",
 
-    # TODO: Fix null assignment to a field
-    "proto2/set_null/single_message",
-    "proto2/set_null/single_duration",
-    "proto2/set_null/single_timestamp",
-    "proto3/set_null/single_message",
-    "proto3/set_null/single_duration",
-    "proto3/set_null/single_timestamp",
-
     # Future features for CEL 1.0
     # TODO: Strong typing support for enums, specified but not implemented.
     "enums/strong_proto2",
@@ -162,7 +154,6 @@ _TESTS_TO_SKIP_PLANNER = [
     "string_ext/format_errors",
 
     # TODO: Check behavior for go/cpp
-    "basic/functions/unbound",
     "basic/functions/unbound_is_runtime_error",
 
     # TODO: Ensure overflow occurs on conversions of double values which might not work properly on all platforms.
@@ -176,14 +167,6 @@ _TESTS_TO_SKIP_PLANNER = [
 
     # Skip until fixed.
     "parse/receiver_function_names",
-
-    # TODO: Fix null assignment to a field
-    "proto2/set_null/single_message",
-    "proto2/set_null/single_duration",
-    "proto2/set_null/single_timestamp",
-    "proto3/set_null/single_message",
-    "proto3/set_null/single_duration",
-    "proto3/set_null/single_timestamp",
 
     # Type inference edgecases around null(able) assignability.
     # These type check, but resolve to a different type.

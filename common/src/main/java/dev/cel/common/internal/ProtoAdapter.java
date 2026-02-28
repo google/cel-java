@@ -204,8 +204,29 @@ public final class ProtoAdapter {
   @SuppressWarnings({"unchecked", "rawtypes"})
   public Optional<Object> adaptValueToFieldType(
       FieldDescriptor fieldDescriptor, Object fieldValue) {
-    if (isWrapperType(fieldDescriptor) && fieldValue.equals(NullValue.NULL_VALUE)) {
-      return Optional.empty();
+    if (fieldValue instanceof NullValue) {
+      // `null` assignment to fields indicate that the field would not be set
+      // in a protobuf message (e.g: Message{msg_field: null} -> Message{})
+      //
+      // We explicitly check below for invalid null assignments, such as repeated
+      // or map fields. (e.g: Message{repeated_field: null} -> Error)
+      if (fieldDescriptor.isMapField()
+          || fieldDescriptor.isRepeated()
+          || fieldDescriptor.getJavaType() != FieldDescriptor.JavaType.MESSAGE
+          || WellKnownProto.JSON_STRUCT_VALUE
+              .typeName()
+              .equals(fieldDescriptor.getMessageType().getFullName())
+          || WellKnownProto.JSON_LIST_VALUE
+              .typeName()
+              .equals(fieldDescriptor.getMessageType().getFullName())) {
+        throw new IllegalArgumentException("Unsupported field type");
+      }
+
+      String typeFullName = fieldDescriptor.getMessageType().getFullName();
+      if (!WellKnownProto.ANY_VALUE.typeName().equals(typeFullName)
+          && !WellKnownProto.JSON_VALUE.typeName().equals(typeFullName)) {
+        return Optional.empty();
+      }
     }
     if (fieldDescriptor.isMapField()) {
       Descriptor entryDescriptor = fieldDescriptor.getMessageType();
@@ -368,14 +389,6 @@ public final class ProtoAdapter {
 
   private static String typeName(Descriptor protoType) {
     return protoType.getFullName();
-  }
-
-  private static boolean isWrapperType(FieldDescriptor fieldDescriptor) {
-    if (fieldDescriptor.getJavaType() != FieldDescriptor.JavaType.MESSAGE) {
-      return false;
-    }
-    String fieldTypeName = fieldDescriptor.getMessageType().getFullName();
-    return WellKnownProto.isWrapperType(fieldTypeName);
   }
 
   private static int intCheckedCast(long value) {

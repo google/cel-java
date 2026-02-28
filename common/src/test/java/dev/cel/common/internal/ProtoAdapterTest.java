@@ -150,10 +150,7 @@ public final class ProtoAdapterTest {
     @Test
     public void adaptValueToProto_bidirectionalConversion() {
       DynamicProto dynamicProto = DynamicProto.create(DefaultMessageFactory.INSTANCE);
-      ProtoAdapter protoAdapter =
-          new ProtoAdapter(
-              dynamicProto,
-              CelOptions.current().build());
+      ProtoAdapter protoAdapter = new ProtoAdapter(dynamicProto, CelOptions.current().build());
       assertThat(protoAdapter.adaptValueToProto(value, proto.getDescriptorForType().getFullName()))
           .isEqualTo(proto);
       assertThat(protoAdapter.adaptProtoToValue(proto)).isEqualTo(value);
@@ -181,6 +178,18 @@ public final class ProtoAdapterTest {
 
   @RunWith(JUnit4.class)
   public static class AsymmetricConversionTest {
+
+    @Test
+    public void unpackAny_celNullValue() throws Exception {
+      ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT);
+      Any any =
+          (Any)
+              protoAdapter.adaptValueToProto(
+                  dev.cel.common.values.NullValue.NULL_VALUE, "google.protobuf.Any");
+      Object unpacked = protoAdapter.adaptProtoToValue(any);
+      assertThat(unpacked).isEqualTo(dev.cel.common.values.NullValue.NULL_VALUE);
+    }
+
     @Test
     public void adaptValueToProto_asymmetricFloatConversion() {
       ProtoAdapter protoAdapter = new ProtoAdapter(DYNAMIC_PROTO, CelOptions.DEFAULT);

@@ -67,7 +67,7 @@ public final class ProtoCelValueConverter extends BaseProtoCelValueConverter {
         try {
           unpackedMessage = dynamicProto.unpack((Any) message);
         } catch (InvalidProtocolBufferException e) {
-          throw new IllegalStateException(
+          throw new IllegalArgumentException(
               "Unpacking failed for message: " + message.getDescriptorForType().getFullName(), e);
         }
         return toRuntimeValue(unpackedMessage);

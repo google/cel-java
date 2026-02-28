@@ -2123,6 +2123,31 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
   }
 
   @Test
+  public void nullAssignability() throws Exception {
+    setContainer(CelContainer.ofName(TestAllTypes.getDescriptor().getFile().getPackage()));
+    source = "TestAllTypes{single_int64_wrapper: null}.single_int64_wrapper == null";
+    runTest();
+
+    source = "TestAllTypes{}.single_int64_wrapper == null";
+    runTest();
+
+    source = "has(TestAllTypes{single_int64_wrapper: null}.single_int64_wrapper)";
+    runTest();
+
+    source = "TestAllTypes{single_value: null}.single_value == null";
+    runTest();
+
+    source = "has(TestAllTypes{single_value: null}.single_value)";
+    runTest();
+
+    source = "TestAllTypes{single_timestamp: null}.single_timestamp == timestamp(0)";
+    runTest();
+
+    source = "has(TestAllTypes{single_timestamp: null}.single_timestamp)";
+    runTest();
+  }
+
+  @Test
   public void longComprehension() {
     ImmutableList<Long> l = LongStream.range(0L, 1000L).boxed().collect(toImmutableList());
     addFunctionBinding(

@@ -210,10 +210,10 @@ public final class ConformanceTest extends Statement {
     }
 
     CelRuntime runtime = getRuntime(test, usePlanner);
-    Program program = runtime.createProgram(response.getAst());
     ExprValue result = null;
     CelEvaluationException error = null;
     try {
+      Program program = runtime.createProgram(response.getAst());
       result = toExprValue(program.eval(getBindings(test)), response.getAst().getResultType());
     } catch (CelEvaluationException e) {
       error = e;

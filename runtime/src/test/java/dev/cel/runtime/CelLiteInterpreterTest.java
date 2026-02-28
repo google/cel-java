@@ -55,6 +55,11 @@ public class CelLiteInterpreterTest extends BaseInterpreterTest {
   // All the tests below rely on message creation with fields populated. They are excluded for time
   // being until this support is added.
   @Override
+  public void nullAssignability() throws Exception {
+    skipBaselineVerification();
+  }
+
+  @Override
   public void wrappers() throws Exception {
     skipBaselineVerification();
   }
