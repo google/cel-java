@@ -20,6 +20,7 @@ import static dev.cel.runtime.planner.EvalHelpers.evalStrictly;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelResolvedOverload;
+import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.GlobalResolver;
 
 final class EvalVarArgsCall extends PlannedInterpretable {
@@ -34,12 +35,23 @@ final class EvalVarArgsCall extends PlannedInterpretable {
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     Object[] argVals = new Object[args.length];
+    CelUnknownSet unknownSet = null;
     for (int i = 0; i < args.length; i++) {
       PlannedInterpretable arg = args[i];
       argVals[i] =
           resolvedOverload.isStrict()
               ? evalStrictly(arg, resolver, frame)
               : evalNonstrictly(arg, resolver, frame);
+      if (resolvedOverload.isStrict() && argVals[i] instanceof CelUnknownSet) {
+        unknownSet =
+            unknownSet == null
+                ? (CelUnknownSet) argVals[i]
+                : unknownSet.merge((CelUnknownSet) argVals[i]);
+      }
+    }
+
+    if (unknownSet != null) {
+      return unknownSet;
     }
 
     return EvalHelpers.dispatch(resolvedOverload, celValueConverter, argVals);

@@ -25,7 +25,7 @@ final class MissingAttribute implements Attribute {
   private final Kind kind;
 
   @Override
-  public Object resolve(GlobalResolver ctx, ExecutionFrame frame) {
+  public Object resolve(long exprId, GlobalResolver ctx, ExecutionFrame frame) {
     switch (kind) {
       case ATTRIBUTE_NOT_FOUND:
         throw CelAttributeNotFoundException.forMissingAttributes(missingAttributes);

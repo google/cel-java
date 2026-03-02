@@ -43,4 +43,7 @@ public interface Program {
    */
   Object eval(CelVariableResolver resolver, CelFunctionResolver lateBoundFunctionResolver)
       throws CelEvaluationException;
+
+  /** Evaluate a compiled program with unknown attribute patterns {@code partialVars}. */
+  Object eval(PartialVars partialVars) throws CelEvaluationException;
 }

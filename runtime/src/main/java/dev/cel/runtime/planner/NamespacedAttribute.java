@@ -23,8 +23,13 @@ import dev.cel.common.types.EnumType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.TypeType;
 import dev.cel.common.values.CelValueConverter;
+import dev.cel.runtime.CelAttribute;
+import dev.cel.runtime.CelAttributePattern;
+import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.GlobalResolver;
+import dev.cel.runtime.PartialVars;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
 @Immutable
@@ -44,7 +49,7 @@ final class NamespacedAttribute implements Attribute {
   }
 
   @Override
-  public Object resolve(GlobalResolver ctx, ExecutionFrame frame) {
+  public Object resolve(long exprId, GlobalResolver ctx, ExecutionFrame frame) {
     GlobalResolver inputVars = ctx;
     // Unwrap any local activations to ensure that we reach the variables provided as input
     // to the expression in the event that we need to disambiguate between global and local
@@ -60,7 +65,28 @@ final class NamespacedAttribute implements Attribute {
       }
 
       Object value = resolver.resolve(name);
-      if (value != null) {
+      Optional<PartialVars> partialVars = frame.partialVars();
+      if (partialVars.isPresent() && !partialVars.get().unknowns().isEmpty()) {
+        ImmutableList<CelAttributePattern> patterns = partialVars.get().unknowns();
+        CelAttribute attr = CelAttribute.fromQualifiedIdentifier(name);
+        for (Qualifier qualifier : qualifiers) {
+          attr = attr.qualify(CelAttribute.Qualifier.fromGeneric(qualifier.value()));
+        }
+
+        Optional<CelAttributePattern> matchingPattern = findMatchingPattern(attr, patterns);
+        if (matchingPattern.isPresent()) {
+          return CelUnknownSet.create(matchingPattern.get().simplify(attr), ImmutableSet.of(exprId));
+        }
+
+        if (value != null) {
+          return applyQualifiers(value, celValueConverter, qualifiers);
+        }
+
+        Optional<CelAttributePattern> partialMatch = findPartialMatchingPattern(attr, patterns);
+        if (partialMatch.isPresent()) {
+          return CelUnknownSet.create(partialMatch.get().simplify(attr), ImmutableSet.of(exprId));
+        }
+      } else if (value != null) {
         return applyQualifiers(value, celValueConverter, qualifiers);
       }
 
@@ -148,6 +174,26 @@ final class NamespacedAttribute implements Attribute {
     }
 
     return celValueConverter.maybeUnwrap(obj);
+  }
+
+  private static Optional<CelAttributePattern> findMatchingPattern(
+      CelAttribute attr, ImmutableList<CelAttributePattern> patterns) {
+    for (CelAttributePattern pattern : patterns) {
+      if (pattern.isMatch(attr)) {
+        return Optional.of(pattern);
+      }
+    }
+    return Optional.empty();
+  }
+
+  private static Optional<CelAttributePattern> findPartialMatchingPattern(
+      CelAttribute attr, ImmutableList<CelAttributePattern> patterns) {
+    for (CelAttributePattern pattern : patterns) {
+      if (pattern.isPartialMatch(attr)) {
+        return Optional.of(pattern);
+      }
+    }
+    return Optional.empty();
   }
 
   static NamespacedAttribute create(

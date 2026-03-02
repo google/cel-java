@@ -826,6 +826,7 @@ java_library(
         ":evaluation_listener",
         ":function_binding",
         ":function_resolver",
+        ":partial_vars",
         ":program",
         ":proto_message_runtime_equality",
         ":runtime",
@@ -938,6 +939,7 @@ java_library(
         ":function_resolver",
         ":interpretable",
         ":interpreter",
+        ":partial_vars",
         ":program",
         ":proto_message_activation_factory",
         ":runtime_equality",
@@ -955,7 +957,6 @@ java_library(
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:com_google_protobuf_protobuf_java",
-        "@maven//:org_jspecify_jspecify",
     ],
 )
 
@@ -1014,6 +1015,7 @@ java_library(
         ":evaluation_exception",
         ":function_resolver",
         ":interpretable",
+        ":partial_vars",
         ":program",
         ":variable_resolver",
         "//:auto_value",
@@ -1029,6 +1031,7 @@ cel_android_library(
         ":evaluation_exception",
         ":function_resolver_android",
         ":interpretable_android",
+        ":partial_vars_android",
         ":program_android",
         ":variable_resolver",
         "//:auto_value",
@@ -1319,6 +1322,34 @@ cel_android_library(
 )
 
 java_library(
+    name = "partial_vars",
+    srcs = ["PartialVars.java"],
+    tags = [
+    ],
+    deps = [
+        ":variable_resolver",
+        "//:auto_value",
+        "//runtime:unknown_attributes",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+cel_android_library(
+    name = "partial_vars_android",
+    srcs = ["PartialVars.java"],
+    tags = [
+    ],
+    deps = [
+        ":variable_resolver",
+        "//:auto_value",
+        "//runtime:unknown_attributes_android",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven_android//:com_google_guava_guava",
+    ],
+)
+
+java_library(
     name = "program",
     srcs = ["Program.java"],
     tags = [
@@ -1326,6 +1357,7 @@ java_library(
     deps = [
         ":evaluation_exception",
         ":function_resolver",
+        ":partial_vars",
         ":variable_resolver",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
@@ -1339,8 +1371,8 @@ cel_android_library(
     deps = [
         ":evaluation_exception",
         ":function_resolver_android",
+        ":partial_vars_android",
         ":variable_resolver",
-        "//:auto_value",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )

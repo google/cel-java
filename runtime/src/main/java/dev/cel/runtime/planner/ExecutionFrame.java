@@ -19,6 +19,7 @@ import dev.cel.common.exceptions.CelIterationLimitExceededException;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionResolver;
 import dev.cel.runtime.CelResolvedOverload;
+import dev.cel.runtime.PartialVars;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -27,6 +28,7 @@ final class ExecutionFrame {
 
   private final int comprehensionIterationLimit;
   private final CelFunctionResolver functionResolver;
+  private final PartialVars partialVars;
   private int iterationCount;
 
   Optional<CelResolvedOverload> findOverload(
@@ -47,12 +49,19 @@ final class ExecutionFrame {
     }
   }
 
-  static ExecutionFrame create(CelFunctionResolver functionResolver, CelOptions celOptions) {
-    return new ExecutionFrame(functionResolver, celOptions.comprehensionMaxIterations());
+  static ExecutionFrame create(
+      CelFunctionResolver functionResolver, PartialVars partialVars, CelOptions celOptions) {
+    return new ExecutionFrame(
+        functionResolver, partialVars, celOptions.comprehensionMaxIterations());
   }
 
-  private ExecutionFrame(CelFunctionResolver functionResolver, int limit) {
+  Optional<PartialVars> partialVars() {
+    return Optional.ofNullable(partialVars);
+  }
+
+  private ExecutionFrame(CelFunctionResolver functionResolver, PartialVars partialVars, int limit) {
     this.comprehensionIterationLimit = limit;
     this.functionResolver = functionResolver;
+    this.partialVars = partialVars;
   }
 }

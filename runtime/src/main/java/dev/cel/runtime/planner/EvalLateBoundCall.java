@@ -21,6 +21,7 @@ import dev.cel.common.exceptions.CelOverloadNotFoundException;
 import dev.cel.common.values.CelValueConverter;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelResolvedOverload;
+import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.GlobalResolver;
 
 final class EvalLateBoundCall extends PlannedInterpretable {
@@ -36,10 +37,21 @@ final class EvalLateBoundCall extends PlannedInterpretable {
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     Object[] argVals = new Object[args.length];
+    CelUnknownSet unknownSet = null;
     for (int i = 0; i < args.length; i++) {
       PlannedInterpretable arg = args[i];
       // Late bound functions are assumed to be strict.
       argVals[i] = evalStrictly(arg, resolver, frame);
+      if (argVals[i] instanceof CelUnknownSet) {
+        unknownSet =
+            unknownSet == null
+                ? (CelUnknownSet) argVals[i]
+                : unknownSet.merge((CelUnknownSet) argVals[i]);
+      }
+    }
+
+    if (unknownSet != null) {
+      return unknownSet;
     }
 
     CelResolvedOverload resolvedOverload =

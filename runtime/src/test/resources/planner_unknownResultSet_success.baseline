@@ -1,0 +1,449 @@
+Source: x.single_int32 == 1 && true
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[2]}
+
+Source: x.single_int32 == 1 && false
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   false
+
+Source: x.single_int32 == 1 && x.single_int64 == 1
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32, x.single_int64], unknownExprIds=[2, 7]}
+
+Source: true && x.single_int32 == 1
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[4]}
+
+Source: false && x.single_int32 == 1
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   false
+
+Source: x.single_int32 == 1 || x.single_string == "test"
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   true
+
+Source: x.single_int32 == 1 || x.single_string != "test"
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[2]}
+
+Source: x.single_int32 == 1 || x.single_int64 == 1
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32, x.single_int64], unknownExprIds=[2, 7]}
+
+Source: true || x.single_int32 == 1
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   true
+
+Source: false || x.single_int32 == 1
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[4]}
+
+Source: x.single_int32.f(1)
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[2]}
+
+Source: 1.f(x.single_int32)
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[4]}
+
+Source: x.single_int64.f(x.single_int32)
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int64, x.single_int32], unknownExprIds=[2, 5]}
+
+Source: [0, 2, 4].exists(z, z == 2 || z == x.single_int32)
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   true
+
+Source: [0, 2, 4].exists(z, z == x.single_int32)
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[10]}
+
+Source: [0, 2, 4].exists_one(z, z == 0 || (z == 2 && z == x.single_int32) || (z == 4 && z == x.single_int64))
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int64], unknownExprIds=[27]}
+
+Source: [0, 2].all(z, z == 2 || z == x.single_int32)
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[13]}
+
+Source: [0, 2, 4].filter(z, z == 0 || (z == 2 && z == x.single_int32) || (z == 4 && z == x.single_int64))
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int64], unknownExprIds=[27]}
+
+Source: [0, 2, 4].map(z, z == 0 || (z == 2 && z == x.single_int32) || (z == 4 && z == x.single_int64))
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32, x.single_int64], unknownExprIds=[18, 27]}
+
+Source: x.single_int32 == 1 ? 1 : 2
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[2]}
+
+Source: true ? x.single_int32 : 2
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[4]}
+
+Source: true ? 1 : x.single_int32
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   1
+
+Source: false ? x.single_int32 : 2
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   2
+
+Source: false ? 1 : x.single_int32
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[5]}
+
+Source: x.single_int64 == 1 ? x.single_int32 : x.single_int32
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int64], unknownExprIds=[2]}
+
+Source: {x.single_int32: 2, 3: 4}
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[4]}
+
+Source: {1: x.single_int32, 3: 4}
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[5]}
+
+Source: {1: x.single_int32, x.single_int64: 4}
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32, x.single_int64], unknownExprIds=[5, 8]}
+
+Source: [1, x.single_int32, 3, 4]
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[4]}
+
+Source: [1, x.single_int32, x.single_int64, 4]
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32, x.single_int64], unknownExprIds=[4, 6]}
+
+Source: TestAllTypes{single_int32: x.single_int32}.single_int32 == 2
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32], unknownExprIds=[4]}
+
+Source: TestAllTypes{single_int32: x.single_int32, single_int64: x.single_int64}
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+declare f {
+  function f int.(int) -> bool
+}
+=====>
+bindings: {x=single_string: "test"
+single_timestamp {
+  seconds: 15
+}
+}
+result:   CelUnknownSet{attributes=[x.single_int32, x.single_int64], unknownExprIds=[4, 7]}

@@ -75,6 +75,7 @@ import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedEnum;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.extensions.CelOptionalLibrary;
+import dev.cel.runtime.CelAttributePattern;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelLateFunctionBindings;
@@ -83,6 +84,7 @@ import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeFactory;
 import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.CelVariableResolver;
+import dev.cel.runtime.PartialVars;
 import dev.cel.testing.testdata.proto3.StandaloneGlobalEnum;
 import java.io.IOException;
 import java.time.Duration;
@@ -193,13 +195,25 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     return runTestInternal(input, Optional.of(lateFunctionBindings));
   }
 
+  protected Object runTestWithUnknowns(Map<String, ?> input, CelAttributePattern... patterns) {
+    return runTestInternal(input, Optional.empty(), patterns);
+  }
+
   /**
    * Helper to run a test for configured instance variables. Input must be of type map or {@link
    * CelVariableResolver}.
    */
-  @SuppressWarnings("unchecked")
   private Object runTestInternal(
       Object input, Optional<CelLateFunctionBindings> lateFunctionBindings) {
+    return runTestInternal(input, lateFunctionBindings, new CelAttributePattern[0]);
+  }
+
+  // Test only
+  @SuppressWarnings("unchecked")
+  private Object runTestInternal(
+      Object input,
+      Optional<CelLateFunctionBindings> lateFunctionBindings,
+      CelAttributePattern... patterns) {
     CelAbstractSyntaxTree ast = compileTestCase();
     if (ast == null) {
       // Usually indicates test was not setup correctly
@@ -210,7 +224,13 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     Object result = null;
     try {
       CelRuntime.Program program = celRuntime.createProgram(ast);
-      if (lateFunctionBindings.isPresent()) {
+      if (patterns.length > 0) {
+        PartialVars partialVars =
+            input instanceof Map
+                ? PartialVars.of((Map<String, ?>) input, patterns)
+                : PartialVars.of((CelVariableResolver) input, patterns);
+        result = program.eval(partialVars);
+      } else if (lateFunctionBindings.isPresent()) {
         if (input instanceof Map) {
           Map<String, ?> map = ((Map<String, ?>) input);
           CelVariableResolver variableResolver = (name) -> Optional.ofNullable(map.get(name));
