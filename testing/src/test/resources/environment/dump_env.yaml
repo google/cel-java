@@ -61,6 +61,41 @@ functions:
     return:
       type_name: V
       is_type_param: true
+- name: zip
+  overloads:
+  - id: zip_list_int_list_int
+    args:
+    - type_name: list
+      params:
+      - type_name: int
+    - type_name: list
+      params:
+      - type_name: int
+    return:
+      type_name: list
+      params:
+      - type_name: list
+        params:
+        - type_name: int
+- name: zipGeneric
+  overloads:
+  - id: zip_list_list
+    args:
+    - type_name: list
+      params:
+      - type_name: T
+        is_type_param: true
+    - type_name: list
+      params:
+      - type_name: T
+        is_type_param: true
+    return:
+      type_name: list
+      params:
+      - type_name: list
+        params:
+        - type_name: T
+          is_type_param: true
 - name: coalesce
   overloads:
   - id: coalesce_null_int

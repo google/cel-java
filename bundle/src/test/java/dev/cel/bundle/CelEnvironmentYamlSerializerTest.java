@@ -107,6 +107,68 @@ public final class CelEnvironmentYamlSerializerTest {
                                     TypeDecl.newBuilder().setName("V").setIsTypeParam(true).build())
                                 .build())),
                     FunctionDecl.create(
+                        "zip",
+                        ImmutableSet.of(
+                            OverloadDecl.newBuilder()
+                                .setId("zip_list_int_list_int")
+                                .setArguments(
+                                    ImmutableList.of(
+                                        TypeDecl.newBuilder()
+                                            .setName("list")
+                                            .addParams(TypeDecl.create("int"))
+                                            .build(),
+                                        TypeDecl.newBuilder()
+                                            .setName("list")
+                                            .addParams(TypeDecl.create("int"))
+                                            .build()))
+                                .setReturnType(
+                                    TypeDecl.newBuilder()
+                                        .setName("list")
+                                        .addParams(
+                                            TypeDecl.newBuilder()
+                                                .setName("list")
+                                                .addParams(TypeDecl.create("int"))
+                                                .build())
+                                        .build())
+                                .build())),
+                    FunctionDecl.create(
+                        "zipGeneric",
+                        ImmutableSet.of(
+                            OverloadDecl.newBuilder()
+                                .setId("zip_list_list")
+                                .setArguments(
+                                    ImmutableList.of(
+                                        TypeDecl.newBuilder()
+                                            .setName("list")
+                                            .addParams(
+                                                TypeDecl.newBuilder()
+                                                    .setName("T")
+                                                    .setIsTypeParam(true)
+                                                    .build())
+                                            .build(),
+                                        TypeDecl.newBuilder()
+                                            .setName("list")
+                                            .addParams(
+                                                TypeDecl.newBuilder()
+                                                    .setName("T")
+                                                    .setIsTypeParam(true)
+                                                    .build())
+                                            .build()))
+                                .setReturnType(
+                                    TypeDecl.newBuilder()
+                                        .setName("list")
+                                        .addParams(
+                                            TypeDecl.newBuilder()
+                                                .setName("list")
+                                                .addParams(
+                                                    TypeDecl.newBuilder()
+                                                        .setName("T")
+                                                        .setIsTypeParam(true)
+                                                        .build())
+                                                .build())
+                                        .build())
+                                .build())),
+                    FunctionDecl.create(
                         "coalesce",
                         ImmutableSet.of(
                             OverloadDecl.newBuilder()

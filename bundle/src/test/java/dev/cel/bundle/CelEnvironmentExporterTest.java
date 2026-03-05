@@ -36,8 +36,10 @@ import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelVarDecl;
+import dev.cel.common.types.ListType;
 import dev.cel.common.types.OpaqueType;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.TypeParamType;
 import dev.cel.extensions.CelExtensions;
 import java.net.URL;
 import java.util.HashSet;
@@ -177,6 +179,20 @@ public class CelEnvironmentExporterTest {
                     CelOverloadDecl.newGlobalOverload(
                         "math_isFinite_int64", SimpleType.BOOL, SimpleType.INT)),
                 CelFunctionDecl.newFunctionDeclaration(
+                    "zipGeneric",
+                    CelOverloadDecl.newGlobalOverload(
+                        "zip_list_list",
+                        ListType.create(ListType.create(TypeParamType.create("T"))),
+                        ListType.create(TypeParamType.create("T")),
+                        ListType.create(TypeParamType.create("T")))),
+                CelFunctionDecl.newFunctionDeclaration(
+                    "zip",
+                    CelOverloadDecl.newGlobalOverload(
+                        "zip_list_int_list_int",
+                        ListType.create(ListType.create(SimpleType.INT)),
+                        ListType.create(SimpleType.INT),
+                        ListType.create(SimpleType.INT))),
+                CelFunctionDecl.newFunctionDeclaration(
                     "addWeeks",
                     CelOverloadDecl.newMemberOverload(
                         "timestamp_addWeeks",
@@ -207,6 +223,68 @@ public class CelEnvironmentExporterTest {
                         .setTarget(TypeDecl.create("google.protobuf.Timestamp"))
                         .setArguments(ImmutableList.of(TypeDecl.create("int")))
                         .setReturnType(TypeDecl.create("bool"))
+                        .build())),
+            FunctionDecl.create(
+                "zipGeneric",
+                ImmutableSet.of(
+                    OverloadDecl.newBuilder()
+                        .setId("zip_list_list")
+                        .setArguments(
+                            ImmutableList.of(
+                                TypeDecl.newBuilder()
+                                    .setName("list")
+                                    .addParams(
+                                        TypeDecl.newBuilder()
+                                            .setName("T")
+                                            .setIsTypeParam(true)
+                                            .build())
+                                    .build(),
+                                TypeDecl.newBuilder()
+                                    .setName("list")
+                                    .addParams(
+                                        TypeDecl.newBuilder()
+                                            .setName("T")
+                                            .setIsTypeParam(true)
+                                            .build())
+                                    .build()))
+                        .setReturnType(
+                            TypeDecl.newBuilder()
+                                .setName("list")
+                                .addParams(
+                                    TypeDecl.newBuilder()
+                                        .setName("list")
+                                        .addParams(
+                                            TypeDecl.newBuilder()
+                                                .setName("T")
+                                                .setIsTypeParam(true)
+                                                .build())
+                                        .build())
+                                .build())
+                        .build())),
+            FunctionDecl.create(
+                "zip",
+                ImmutableSet.of(
+                    OverloadDecl.newBuilder()
+                        .setId("zip_list_int_list_int")
+                        .setArguments(
+                            ImmutableList.of(
+                                TypeDecl.newBuilder()
+                                    .setName("list")
+                                    .addParams(TypeDecl.create("int"))
+                                    .build(),
+                                TypeDecl.newBuilder()
+                                    .setName("list")
+                                    .addParams(TypeDecl.create("int"))
+                                    .build()))
+                        .setReturnType(
+                            TypeDecl.newBuilder()
+                                .setName("list")
+                                .addParams(
+                                    TypeDecl.newBuilder()
+                                        .setName("list")
+                                        .addParams(TypeDecl.create("int"))
+                                        .build())
+                                .build())
                         .build())));
 
     // Random-check some standard functions: we don't want to see them explicitly defined.
