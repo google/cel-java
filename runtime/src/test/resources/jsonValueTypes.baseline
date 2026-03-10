@@ -53,6 +53,46 @@ bindings: {x=single_value {
 }
 result:   true
 
+Source: google.protobuf.Value{string_value: 'hello'} == 'hello'
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   true
+
+Source: google.protobuf.Value{number_value: 1.1} == 1.1
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   true
+
+Source: google.protobuf.Value{null_value: google.protobuf.NullValue.NULL_VALUE} == null
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   true
+
+Source: TestAllTypes{null_value: google.protobuf.NullValue.NULL_VALUE}.null_value == 0
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   true
+
+Source: TestAllTypes{null_value: google.protobuf.NullValue.NULL_VALUE}.null_value != dyn(null)
+declare x {
+  value cel.expr.conformance.proto3.TestAllTypes
+}
+=====>
+bindings: {}
+result:   true
+
 Source: x.single_value[0] == [['hello'], -1.1][0]
 declare x {
   value cel.expr.conformance.proto3.TestAllTypes
@@ -149,4 +189,3 @@ bindings: {x=single_struct {
 }
 }
 result:   {hello=val}
-

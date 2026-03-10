@@ -1,0 +1,35 @@
+Source: google.protobuf.Value{null_value: google.protobuf.NullValue.NULL_VALUE}
+=====>
+google.protobuf.Value{
+  null_value:google.protobuf.NullValue.NULL_VALUE~int^google.protobuf.NullValue.NULL_VALUE
+}~dyn^google.protobuf.Value
+
+Source: google.protobuf.Value{null_value: null}
+=====>
+ERROR: test_location:1:33: expected type of field 'null_value' is 'int' but provided type is 'null'
+ | google.protobuf.Value{null_value: null}
+ | ................................^
+
+Source: cel.expr.conformance.proto3.TestAllTypes{single_value: null}
+=====>
+cel.expr.conformance.proto3.TestAllTypes{
+  single_value:null~null
+}~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes
+
+Source: cel.expr.conformance.proto3.TestAllTypes{single_value: google.protobuf.NullValue.NULL_VALUE}
+=====>
+cel.expr.conformance.proto3.TestAllTypes{
+  single_value:google.protobuf.NullValue.NULL_VALUE~int^google.protobuf.NullValue.NULL_VALUE
+}~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes
+
+Source: cel.expr.conformance.proto3.TestAllTypes{null_value: null}
+=====>
+ERROR: test_location:1:52: expected type of field 'null_value' is 'int' but provided type is 'null'
+ | cel.expr.conformance.proto3.TestAllTypes{null_value: null}
+ | ...................................................^
+
+Source: cel.expr.conformance.proto3.TestAllTypes{null_value: google.protobuf.NullValue.NULL_VALUE}
+=====>
+cel.expr.conformance.proto3.TestAllTypes{
+  null_value:google.protobuf.NullValue.NULL_VALUE~int^google.protobuf.NullValue.NULL_VALUE
+}~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes

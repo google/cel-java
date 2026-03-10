@@ -1850,6 +1850,23 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
     source = "x.single_value == 'hello'";
     runTest(ImmutableMap.of("x", xString));
 
+    // json manual construction
+    source = "google.protobuf.Value{string_value: 'hello'} == 'hello'";
+    runTest();
+
+    source = "google.protobuf.Value{number_value: 1.1} == 1.1";
+    runTest();
+
+    source = "google.protobuf.Value{null_value: google.protobuf.NullValue.NULL_VALUE} == null";
+    runTest();
+
+    // NULL_VALUE is not the same as null.
+    source = "TestAllTypes{null_value: google.protobuf.NullValue.NULL_VALUE}.null_value == 0";
+    runTest();
+    source =
+        "TestAllTypes{null_value: google.protobuf.NullValue.NULL_VALUE}.null_value != dyn(null)";
+    runTest();
+
     // JSON list equality.
     TestAllTypes xList =
         TestAllTypes.newBuilder()

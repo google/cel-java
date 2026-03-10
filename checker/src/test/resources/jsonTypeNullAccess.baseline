@@ -1,0 +1,54 @@
+Source: google.protobuf.Value{null_value: google.protobuf.NullValue.NULL_VALUE} == null
+=====>
+_==_(
+  google.protobuf.Value{
+    null_value:google.protobuf.NullValue.NULL_VALUE~int^google.protobuf.NullValue.NULL_VALUE
+  }~dyn^google.protobuf.Value,
+  null~null
+)~bool^equals
+
+Source: cel.expr.conformance.proto3.TestAllTypes{single_value: null}.single_value == null
+=====>
+_==_(
+  cel.expr.conformance.proto3.TestAllTypes{
+    single_value:null~null
+  }~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes.single_value~dyn,
+  null~null
+)~bool^equals
+
+Source: cel.expr.conformance.proto3.TestAllTypes{single_value: google.protobuf.NullValue.NULL_VALUE}.single_value == null
+=====>
+_==_(
+  cel.expr.conformance.proto3.TestAllTypes{
+    single_value:google.protobuf.NullValue.NULL_VALUE~int^google.protobuf.NullValue.NULL_VALUE
+  }~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes.single_value~dyn,
+  null~null
+)~bool^equals
+
+Source: cel.expr.conformance.proto3.TestAllTypes{null_value: google.protobuf.NullValue.NULL_VALUE}.null_value == null
+=====>
+ERROR: test_location:1:103: found no matching overload for '_==_' applied to '(int, null)' (candidates: (%A0, %A0))
+ | cel.expr.conformance.proto3.TestAllTypes{null_value: google.protobuf.NullValue.NULL_VALUE}.null_value == null
+ | ......................................................................................................^
+
+Source: cel.expr.conformance.proto3.TestAllTypes{null_value: google.protobuf.NullValue.NULL_VALUE}.null_value == 0
+=====>
+_==_(
+  cel.expr.conformance.proto3.TestAllTypes{
+    null_value:google.protobuf.NullValue.NULL_VALUE~int^google.protobuf.NullValue.NULL_VALUE
+  }~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes.null_value~int,
+  0~int
+)~bool^equals
+
+Source: google.protobuf.NullValue.NULL_VALUE == null
+=====>
+ERROR: test_location:1:38: found no matching overload for '_==_' applied to '(int, null)' (candidates: (%A0, %A0))
+ | google.protobuf.NullValue.NULL_VALUE == null
+ | .....................................^
+
+Source: google.protobuf.NullValue.NULL_VALUE == 0
+=====>
+_==_(
+  google.protobuf.NullValue.NULL_VALUE~int^google.protobuf.NullValue.NULL_VALUE,
+  0~int
+)~bool^equals

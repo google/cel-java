@@ -517,6 +517,71 @@ public class ExprCheckerTest extends CelBaselineTestCase {
     runTest();
   }
 
+  @Test
+  public void jsonTypeNullConstruction() throws Exception {
+    // Ok
+    source = "google.protobuf.Value{null_value: google.protobuf.NullValue.NULL_VALUE}";
+    runTest();
+
+    // Error
+    source = "google.protobuf.Value{null_value: null}";
+    runTest();
+
+    // Ok
+    source = "cel.expr.conformance.proto3.TestAllTypes{single_value: null}";
+    runTest();
+
+    // Ok but not expected (int coerced to double/json number 0.0)
+    source =
+        "cel.expr.conformance.proto3.TestAllTypes{single_value:"
+            + " google.protobuf.NullValue.NULL_VALUE}";
+    runTest();
+
+    // Error
+    source = "cel.expr.conformance.proto3.TestAllTypes{null_value: null}";
+    runTest();
+
+    // Ok
+    source =
+        "cel.expr.conformance.proto3.TestAllTypes{null_value:"
+            + " google.protobuf.NullValue.NULL_VALUE}";
+    runTest();
+  }
+
+  @Test
+  public void jsonTypeNullAccess() throws Exception {
+    source = "google.protobuf.Value{null_value: google.protobuf.NullValue.NULL_VALUE} == null";
+    runTest();
+
+    source = "cel.expr.conformance.proto3.TestAllTypes{single_value: null}.single_value == null";
+    runTest();
+
+    source =
+        "cel.expr.conformance.proto3.TestAllTypes{single_value:"
+            + " google.protobuf.NullValue.NULL_VALUE}.single_value == null";
+    runTest();
+
+    // Error
+    source =
+        "cel.expr.conformance.proto3.TestAllTypes{null_value:"
+            + " google.protobuf.NullValue.NULL_VALUE}.null_value == null";
+    runTest();
+
+    // Ok
+    source =
+        "cel.expr.conformance.proto3.TestAllTypes{null_value:"
+            + " google.protobuf.NullValue.NULL_VALUE}.null_value == 0";
+    runTest();
+
+    // Error
+    source = "google.protobuf.NullValue.NULL_VALUE == null";
+    runTest();
+
+    // Ok
+    source = "google.protobuf.NullValue.NULL_VALUE == 0";
+    runTest();
+  }
+
   // Call Style and User Functions
   // =============================
 
