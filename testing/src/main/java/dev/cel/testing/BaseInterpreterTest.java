@@ -2162,6 +2162,33 @@ public abstract class BaseInterpreterTest extends CelBaselineTestCase {
 
     source = "has(TestAllTypes{single_timestamp: null}.single_timestamp)";
     runTest();
+
+    source =
+        "TestAllTypes{repeated_timestamp: [timestamp(1), null]}.repeated_timestamp =="
+            + " [timestamp(1)]";
+    runTest();
+
+    source =
+        "TestAllTypes{map_bool_timestamp: {true: null, false: timestamp(1)}}.map_bool_timestamp =="
+            + " {false: timestamp(1)}";
+    runTest();
+
+    source = "TestAllTypes{repeated_any: [1, null]}.repeated_any == [1, null]";
+    runTest();
+
+    source =
+        "TestAllTypes{map_bool_any: {true: null, false: 1}}.map_bool_any == {true: null, false: 1}";
+    runTest();
+
+    source =
+        "TestAllTypes{repeated_value: [google.protobuf.Value{bool_value: true},"
+            + " null]}.repeated_value == [true, null]";
+    runTest();
+
+    source =
+        "TestAllTypes{map_bool_value: {true: null, false: google.protobuf.Value{bool_value:"
+            + " true}}}.map_bool_value == {true: null, false: true}";
+    runTest();
   }
 
   @Test

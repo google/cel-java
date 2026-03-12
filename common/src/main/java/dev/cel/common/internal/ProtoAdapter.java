@@ -222,9 +222,7 @@ public final class ProtoAdapter {
         throw new IllegalArgumentException("Unsupported field type");
       }
 
-      String typeFullName = fieldDescriptor.getMessageType().getFullName();
-      if (!WellKnownProto.ANY_VALUE.typeName().equals(typeFullName)
-          && !WellKnownProto.JSON_VALUE.typeName().equals(typeFullName)) {
+      if (!isFieldAnyOrJson(fieldDescriptor)) {
         return Optional.empty();
       }
     }
@@ -242,7 +240,11 @@ public final class ProtoAdapter {
               getDefaultValueForMaybeMessage(keyDescriptor),
               valueDescriptor.getLiteType(),
               getDefaultValueForMaybeMessage(valueDescriptor));
+      boolean isValueAnyOrJson = isFieldAnyOrJson(valueDescriptor);
       for (Map.Entry entry : ((Map<?, ?>) fieldValue).entrySet()) {
+        if (!isValueAnyOrJson && entry.getValue() instanceof NullValue) {
+          continue;
+        }
         mapEntries.add(
             protoMapEntry.toBuilder()
                 .setKey(keyConverter.backwardConverter().convert(entry.getKey()))
@@ -252,13 +254,52 @@ public final class ProtoAdapter {
       return Optional.of(mapEntries);
     }
     if (fieldDescriptor.isRepeated()) {
+      List<?> listValue = (List<?>) fieldValue;
+
+      if (!isFieldAnyOrJson(fieldDescriptor)) {
+        listValue = filterOutNullValues(listValue);
+      }
+
       return Optional.of(
-          AdaptingTypes.adaptingList(
-              (List<?>) fieldValue, fieldToValueConverter(fieldDescriptor).reverse()));
+          AdaptingTypes.adaptingList(listValue, fieldToValueConverter(fieldDescriptor).reverse()));
     }
 
     return Optional.of(
         fieldToValueConverter(fieldDescriptor).backwardConverter().convert(fieldValue));
+  }
+
+  private static List<?> filterOutNullValues(List<?> originalList) {
+    List<Object> filteredList = null;
+
+    for (int i = 0; i < originalList.size(); i++) {
+      Object elem = originalList.get(i);
+
+      if (elem instanceof NullValue) {
+        if (filteredList == null) {
+          filteredList = new ArrayList<>(originalList.size() - 1);
+          if (i > 0) {
+            filteredList.addAll(originalList.subList(0, i));
+          }
+        }
+      } else if (filteredList != null) {
+        filteredList.add(elem);
+      }
+    }
+
+    // Return the original list if no nulls were found to avoid unnecessary allocations
+    return filteredList != null ? filteredList : originalList;
+  }
+
+  private static boolean isFieldAnyOrJson(FieldDescriptor fieldDescriptor) {
+    if (!fieldDescriptor.getType().equals(FieldDescriptor.Type.MESSAGE)) {
+      return false;
+    }
+
+    String typeFullName = fieldDescriptor.getMessageType().getFullName();
+
+    return WellKnownProto.getByTypeName(typeFullName)
+        .map(wkp -> wkp.equals(WellKnownProto.ANY_VALUE) || wkp.equals(WellKnownProto.JSON_VALUE))
+        .orElse(false);
   }
 
   @SuppressWarnings("rawtypes")
