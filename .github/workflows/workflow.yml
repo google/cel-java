@@ -82,7 +82,7 @@ jobs:
         uses: actions/checkout@v6
       - name: Get changed files
         id: changed_file
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@v47
         with:
           files: publish/cel_version.bzl
       - name: Setup Bazel
