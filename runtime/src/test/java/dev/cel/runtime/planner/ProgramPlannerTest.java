@@ -65,13 +65,17 @@ import dev.cel.expr.conformance.proto3.TestAllTypes;
 import dev.cel.expr.conformance.proto3.TestAllTypes.NestedMessage;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.parser.CelStandardMacro;
+import dev.cel.runtime.CelAttribute;
+import dev.cel.runtime.CelAttributePattern;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelLateFunctionBindings;
 import dev.cel.runtime.CelStandardFunctions;
 import dev.cel.runtime.CelStandardFunctions.StandardFunction;
+import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.DefaultDispatcher;
 import dev.cel.runtime.DescriptorTypeResolver;
+import dev.cel.runtime.PartialVars;
 import dev.cel.runtime.Program;
 import dev.cel.runtime.RuntimeEquality;
 import dev.cel.runtime.RuntimeHelpers;
@@ -944,6 +948,35 @@ public final class ProgramPlannerTest {
         .isEqualTo(
             ImmutableList.of(
                 ImmutableList.of(2L, 3L), ImmutableList.of(3L, 4L), ImmutableList.of(4L, 5L)));
+  }
+
+  @Test
+  public void plan_partialEval_withWildcardQualification() throws Exception {
+    CelCompiler compiler =
+        CelCompilerFactory.standardCelCompilerBuilder()
+            .addVar("unk", MapType.create(SimpleType.STRING, SimpleType.BOOL))
+            .addVar("unk.a", SimpleType.BOOL)
+            .addVar("unk.b", SimpleType.BOOL)
+            .build();
+    CelAbstractSyntaxTree ast = compile(compiler, "unk.a && unk.b && unk['c']");
+
+    Program program = PLANNER.plan(ast);
+
+    CelUnknownSet result =
+        (CelUnknownSet)
+            program.eval(
+                PartialVars.of(
+                    CelAttributePattern.create("unk")
+                        .qualify(CelAttribute.Qualifier.ofWildCard())));
+
+    assertThat(result)
+        .isEqualTo(
+            CelUnknownSet.create(
+                ImmutableSet.of(
+                    CelAttribute.create("unk"),
+                    CelAttribute.create("unk").qualify(CelAttribute.Qualifier.ofString("a")),
+                    CelAttribute.create("unk").qualify(CelAttribute.Qualifier.ofString("b"))),
+                ImmutableSet.of(2L, 5L, 7L)));
   }
 
   @Test

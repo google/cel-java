@@ -17,6 +17,7 @@ package dev.cel.runtime.planner;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.runtime.CelEvaluationException;
+import dev.cel.runtime.CelUnknownSet;
 import dev.cel.runtime.GlobalResolver;
 import java.util.Optional;
 
@@ -32,8 +33,15 @@ final class EvalCreateList extends PlannedInterpretable {
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) throws CelEvaluationException {
     ImmutableList.Builder<Object> builder = ImmutableList.builderWithExpectedSize(values.length);
+    CelUnknownSet unknownSet = null;
     for (int i = 0; i < values.length; i++) {
       Object element = EvalHelpers.evalStrictly(values[i], resolver, frame);
+
+      if (element instanceof CelUnknownSet) {
+        CelUnknownSet currentUnknown = (CelUnknownSet) element;
+        unknownSet = unknownSet == null ? currentUnknown : unknownSet.merge(currentUnknown);
+        continue;
+      }
 
       if (isOptional[i]) {
         if (!(element instanceof Optional)) {
@@ -51,6 +59,11 @@ final class EvalCreateList extends PlannedInterpretable {
 
       builder.add(element);
     }
+
+    if (unknownSet != null) {
+      return unknownSet;
+    }
+
     return builder.build();
   }
 

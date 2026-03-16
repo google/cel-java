@@ -38,6 +38,8 @@ java_library(
         "//runtime:interpreter_util",
         "//runtime:lite_runtime",
         "//runtime:lite_runtime_factory",
+        "//runtime:partial_vars",
+        "//runtime:unknown_attributes",
         "@cel_spec//proto/cel/expr/conformance/proto2:test_all_types_java_proto",
         "@cel_spec//proto/cel/expr/conformance/proto3:test_all_types_java_proto",
         "@cel_spec//proto/cel/expr/conformance/test:simple_java_proto",

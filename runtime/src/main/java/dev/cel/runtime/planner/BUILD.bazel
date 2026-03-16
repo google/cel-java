@@ -78,6 +78,7 @@ java_library(
         "//runtime:evaluation_exception_builder",
         "//runtime:function_resolver",
         "//runtime:interpretable",
+        "//runtime:partial_vars",
         "//runtime:program",
         "//runtime:resolved_overload",
         "//runtime:variable_resolver",
@@ -129,6 +130,8 @@ java_library(
         "//common/types:type_providers",
         "//common/values",
         "//runtime:interpretable",
+        "//runtime:partial_vars",
+        "//runtime:unknown_attributes",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
         "@maven//:org_jspecify_jspecify",
@@ -181,7 +184,6 @@ java_library(
         ":qualifier",
         "//runtime:interpretable",
         "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_guava_guava",
     ],
 )
 
@@ -238,6 +240,7 @@ java_library(
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
         "//runtime:resolved_overload",
+        "//runtime:unknown_attributes",
     ],
 )
 
@@ -253,6 +256,7 @@ java_library(
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
         "//runtime:resolved_overload",
+        "//runtime:unknown_attributes",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -266,6 +270,7 @@ java_library(
         ":planned_interpretable",
         "//common/values",
         "//runtime:interpretable",
+        "//runtime:unknown_attributes",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -279,6 +284,7 @@ java_library(
         ":planned_interpretable",
         "//common/values",
         "//runtime:interpretable",
+        "//runtime:unknown_attributes",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -291,6 +297,7 @@ java_library(
         ":planned_interpretable",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
+        "//runtime:unknown_attributes",
         "@maven//:com_google_guava_guava",
     ],
 )
@@ -306,8 +313,8 @@ java_library(
         "//common/values:cel_value_provider",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
+        "//runtime:unknown_attributes",
         "@maven//:com_google_errorprone_error_prone_annotations",
-        "@maven//:com_google_guava_guava",
     ],
 )
 
@@ -320,6 +327,7 @@ java_library(
         ":planned_interpretable",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
+        "//runtime:unknown_attributes",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
@@ -336,6 +344,7 @@ java_library(
         "//common/exceptions:invalid_argument",
         "//runtime:evaluation_exception",
         "//runtime:interpretable",
+        "//runtime:unknown_attributes",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
@@ -365,6 +374,7 @@ java_library(
         "//common/exceptions:iteration_budget_exceeded",
         "//runtime:evaluation_exception",
         "//runtime:function_resolver",
+        "//runtime:partial_vars",
         "//runtime:resolved_overload",
     ],
 )
@@ -425,6 +435,7 @@ java_library(
         ":planned_interpretable",
         "//common/exceptions:overload_not_found",
         "//runtime:interpretable",
+        "//runtime:interpreter_util",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],
@@ -439,6 +450,7 @@ java_library(
         ":planned_interpretable",
         "//common/exceptions:overload_not_found",
         "//runtime:interpretable",
+        "//runtime:interpreter_util",
         "@maven//:com_google_errorprone_error_prone_annotations",
         "@maven//:com_google_guava_guava",
     ],

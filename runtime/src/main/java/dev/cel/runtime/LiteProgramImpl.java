@@ -52,6 +52,12 @@ abstract class LiteProgramImpl implements Program {
     throw new UnsupportedOperationException("To be implemented");
   }
 
+  @Override
+  public Object eval(PartialVars partialVars) throws CelEvaluationException {
+    // TODO: Wire in program planner
+    throw new UnsupportedOperationException("To be implemented");
+  }
+
   static Program plan(Interpretable interpretable) {
     return new AutoValue_LiteProgramImpl(interpretable);
   }

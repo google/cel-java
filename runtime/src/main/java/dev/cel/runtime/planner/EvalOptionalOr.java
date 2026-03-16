@@ -18,6 +18,7 @@ import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.Immutable;
 import dev.cel.common.exceptions.CelOverloadNotFoundException;
 import dev.cel.runtime.GlobalResolver;
+import dev.cel.runtime.InterpreterUtil;
 import java.util.Optional;
 
 @Immutable
@@ -28,6 +29,10 @@ final class EvalOptionalOr extends PlannedInterpretable {
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) {
     Object lhsValue = EvalHelpers.evalStrictly(lhs, resolver, frame);
+
+    if (InterpreterUtil.isUnknown(lhsValue)) {
+      return lhsValue;
+    }
 
     if (!(lhsValue instanceof Optional)) {
       throw new CelOverloadNotFoundException("or");

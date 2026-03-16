@@ -24,9 +24,9 @@ final class EvalAttribute extends InterpretableAttribute {
 
   @Override
   public Object eval(GlobalResolver resolver, ExecutionFrame frame) {
-    Object resolved = attr.resolve(resolver, frame);
+    Object resolved = attr.resolve(exprId(), resolver, frame);
     if (resolved instanceof MissingAttribute) {
-      ((MissingAttribute) resolved).resolve(resolver, frame);
+      ((MissingAttribute) resolved).resolve(exprId(), resolver, frame);
     }
 
     return resolved;

@@ -135,6 +135,11 @@ public abstract class CelRuntimeImpl implements CelRuntime {
       }
 
       @Override
+      public Object eval(PartialVars partialVars) throws CelEvaluationException {
+        return program.eval(partialVars);
+      }
+
+      @Override
       public Object trace(CelEvaluationListener listener) throws CelEvaluationException {
         throw new UnsupportedOperationException("Trace is not yet supported.");
       }
