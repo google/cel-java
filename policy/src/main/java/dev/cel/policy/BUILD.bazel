@@ -138,6 +138,7 @@ java_library(
     ],
     deps = [
         ":compiler",
+        "//optimizer:ast_optimizer",
         "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
@@ -214,6 +215,7 @@ java_library(
         "//common/types",
         "//common/types:type_providers",
         "//optimizer",
+        "//optimizer:ast_optimizer",
         "//optimizer:optimization_exception",
         "//optimizer:optimizer_builder",
         "//optimizer/optimizers:common_subexpression_elimination",

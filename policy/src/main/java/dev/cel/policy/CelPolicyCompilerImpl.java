@@ -33,6 +33,7 @@ import dev.cel.common.ast.CelExpr;
 import dev.cel.common.formats.ValueString;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
+import dev.cel.optimizer.CelAstOptimizer;
 import dev.cel.optimizer.CelOptimizationException;
 import dev.cel.optimizer.CelOptimizer;
 import dev.cel.optimizer.CelOptimizerFactory;
@@ -63,6 +64,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
   private final Cel cel;
   private final String variablesPrefix;
   private final int iterationLimit;
+  private final ImmutableList<CelAstOptimizer> optimizers;
   private final Optional<CelAstValidator> astDepthValidator;
 
   @Override
@@ -140,19 +142,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
     }
 
     CelOptimizer astOptimizer =
-        CelOptimizerFactory.standardCelOptimizerBuilder(cel)
-            .addAstOptimizers(
-                ConstantFoldingOptimizer.getInstance(),
-                SubexpressionOptimizer.newInstance(
-                    SubexpressionOptimizerOptions.newBuilder()
-                        // "record" is used for recording subexpression results via
-                        // BlueprintLateFunctionBinding. Safely eliminable, since repeated
-                        // invocation does not change the intermediate results.
-                        .addEliminableFunctions("record")
-                        .populateMacroCalls(true)
-                        .enableCelBlock(true)
-                        .build()))
-            .build();
+        CelOptimizerFactory.standardCelOptimizerBuilder(cel).addAstOptimizers(optimizers).build();
     try {
       // Optimize the composed graph using const fold and CSE
       ast = astOptimizer.optimize(ast);
@@ -339,6 +329,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
     private final Cel cel;
     private String variablesPrefix;
     private int iterationLimit;
+    private ImmutableList<CelAstOptimizer> optimizers;
     private Optional<CelAstValidator> astDepthLimitValidator;
 
     private Builder(Cel cel) {
@@ -362,7 +353,7 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
 
     @Override
     @CanIgnoreReturnValue
-    public CelPolicyCompilerBuilder setAstDepthLimit(int astDepthLimit) {
+    public Builder setAstDepthLimit(int astDepthLimit) {
       if (astDepthLimit < 0) {
         astDepthLimitValidator = Optional.empty();
       } else {
@@ -372,26 +363,39 @@ final class CelPolicyCompilerImpl implements CelPolicyCompiler {
     }
 
     @Override
+    public Builder setOptimizers(List<CelAstOptimizer> optimizers) {
+      this.optimizers = ImmutableList.copyOf(optimizers);
+      return this;
+    }
+
+    @Override
     public CelPolicyCompiler build() {
       return new CelPolicyCompilerImpl(
-          cel, this.variablesPrefix, this.iterationLimit, astDepthLimitValidator);
+          cel, this.variablesPrefix, this.iterationLimit, this.optimizers, astDepthLimitValidator);
     }
   }
 
   static Builder newBuilder(Cel cel) {
     return new Builder(cel)
         .setVariablesPrefix(DEFAULT_VARIABLE_PREFIX)
-        .setIterationLimit(DEFAULT_ITERATION_LIMIT);
+        .setIterationLimit(DEFAULT_ITERATION_LIMIT)
+        .setOptimizers(
+            ImmutableList.of(
+                ConstantFoldingOptimizer.getInstance(),
+                SubexpressionOptimizer.newInstance(
+                    SubexpressionOptimizerOptions.newBuilder().populateMacroCalls(true).build())));
   }
 
   private CelPolicyCompilerImpl(
       Cel cel,
       String variablesPrefix,
       int iterationLimit,
+      ImmutableList<CelAstOptimizer> optimizers,
       Optional<CelAstValidator> astDepthValidator) {
     this.cel = checkNotNull(cel);
     this.variablesPrefix = checkNotNull(variablesPrefix);
     this.iterationLimit = iterationLimit;
+    this.optimizers = optimizers;
     this.astDepthValidator = astDepthValidator;
   }
 }

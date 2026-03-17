@@ -16,6 +16,8 @@ package dev.cel.policy;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
+import dev.cel.optimizer.CelAstOptimizer;
+import java.util.List;
 
 /** Interface for building an instance of {@link CelPolicyCompiler} */
 public interface CelPolicyCompilerBuilder {
@@ -37,6 +39,10 @@ public interface CelPolicyCompilerBuilder {
    */
   @CanIgnoreReturnValue
   CelPolicyCompilerBuilder setAstDepthLimit(int iterationLimit);
+
+  /** Configures the policy compiler to run the provided optimizers on compiled policies. */
+  @CanIgnoreReturnValue
+  CelPolicyCompilerBuilder setOptimizers(List<CelAstOptimizer> optimizers);
 
   @CheckReturnValue
   CelPolicyCompiler build();
